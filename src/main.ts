@@ -62,6 +62,5 @@ new Phaser.Game({
   scene,
   pixelArt: true,
 });
-scene.onEra = (css) => { $('era').style.background = css; };
 scene.onReady = update;
 (window as unknown as { __scene: TownScene }).__scene = scene;

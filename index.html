@@ -7,7 +7,6 @@
   <style>
     html, body { margin: 0; height: 100%; background: #111; overflow: hidden; font-family: system-ui, sans-serif; color: #eee; }
     #game { position: fixed; inset: 0; }
-    #era { position: fixed; inset: 0; pointer-events: none; mix-blend-mode: multiply; z-index: 1; }
     .panel { z-index: 2; }
     .panel { position: fixed; background: rgba(15, 18, 28, .86); border: 1px solid #3b4260; border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.4; }
     #hud { top: 10px; left: 10px; width: min(340px, calc(100vw - 44px)); }
@@ -24,7 +23,6 @@
 </head>
 <body>
   <div id="game"></div>
-  <div id="era"></div>
   <div id="hud" class="panel">
     <h1>TIMERPG</h1>
     <div id="year">1950</div>

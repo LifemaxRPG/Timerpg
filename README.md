@@ -44,7 +44,7 @@ npm run demo [seed]   # kills the present-day mayor as a child and prints the co
 2. [x] Verbs: kill, invest, sabotage, introduce, rumor, gift
 2b. [ ] Secrets/knowledge, debts and feuds, land ownership, more verbs (blackmail, warn, teach), your own traveler inventory/allies
 3. [x] Phaser + Vite renderer (placeholder art): layout from sim state (`src/town/layout.ts`), walkable player, year slider, original/altered timeline toggle
-4. [ ] Time-travel UI + era visual filters + "what changed" screen
+4. [ ] Time-travel UI + era-specific buildings and props + "what changed" screen
 5. [x] Real LimeZu sprites: tiled terrain, villas (wealthy households) and small homes, shops by type, animated player. Next: trees/props, interiors, NPC sprites
 6. [ ] Capacitor wrapper for Android
 7. [ ] LLM narration and NPC dialogue from the chronicle

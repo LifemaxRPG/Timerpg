@@ -19,7 +19,6 @@ export class TownScene extends Phaser.Scene {
   public onInfo: (lines: string[] | null) => void = () => {};
   public onWorld: (w: World) => void = () => {};
   public onReady: () => void = () => {};
-  public onEra: (css: string) => void = () => {};
 
   constructor() {
     super('town');
@@ -130,16 +129,7 @@ export class TownScene extends Phaser.Scene {
     for (const o of this.drawn) o.destroy();
     this.drawn = [];
     for (const lot of this.layout.lots) this.drawLot(w, lot);
-    this.drawEra();
     this.onWorld(w);
-  }
-
-  private drawEra(): void {
-    // Older eras get a warm, faded tint (a page-level multiply overlay); the present is untinted.
-    const t = (2025 - this.view.year) / 75;
-    const c = Phaser.Display.Color.Interpolate.ColorWithColor(
-      new Phaser.Display.Color(255, 255, 255), new Phaser.Display.Color(226, 188, 140), 100, Math.round(t * 100));
-    this.onEra(`rgb(${Math.round(c.r)}, ${Math.round(c.g)}, ${Math.round(c.b)})`);
   }
 
   private drawLot(w: World, lot: Lot): void {
