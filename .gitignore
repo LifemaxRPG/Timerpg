@@ -4,3 +4,6 @@ dist/
 assets-raw/
 *.zip
 
+
+# Agent worktrees (temporary working copies)
+.claude/worktrees/
