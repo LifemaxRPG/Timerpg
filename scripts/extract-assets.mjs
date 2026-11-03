@@ -29,6 +29,19 @@ const exteriors = {
   villa: range(1, 5).map((n) => [`villa_${n}`, `${ME}7_Villas_Singles_32x32/ME_Singles_Villas_32x32_Villa_${n}.png`]),
   roof: range(1, 11).map((n) => [`roof_${n}`, `${FM}Roof_${n}.png`]),
 };
+// Housing variety (see src/town/housing.ts for how these are used).
+const AH = `${ME}24_Additional_Houses_Singles_32x32/24_Additional_Houses_`;
+const GB = `${ME}4_Generic_Building_Singles_32x32/ME_Singles_Generic_Building_32x32_`;
+// Terraced family houses (12x15 tiles); 3 is a taller variant that does not fit and is skipped.
+exteriors.houseTerraced = [1, 2, 4, 5, 6].map((n) => [`house_terraced_${n}`, `${AH}Terraced_House_${n}_32x32.png`]);
+// Big detached houses for the wealthy.
+exteriors.houseEstate = ['Country_House', 'Japanese_House', 'One_Story_House', 'Modern_House'].map((n) => [`estate_${n.toLowerCase()}`, `${AH}${n}_32x32.png`]);
+// Whole apartment buildings (single sprites).
+exteriors.condo = ['5_1', '5_2', '5_3', '3_44', '3_45', '9'].map((n) => [`condo_${n}`, `${GB}Condo_${n}.png`]);
+// Modular parts: condo ground floors, shared middle floors, and roof props, stacked in TownScene.
+exteriors.condoGround = range(1, 12).map((n) => [`condo_ground_${n}`, `${FM}Ground_Floor_Condo_${n}.png`]);
+exteriors.middle = range(1, 18).map((n) => [`middle_${n}`, `${FM}Middle_Floor_${n}.png`]);
+exteriors.roofProp = [12, 13, 14, 15, 16].map((n) => [`roofprop_${n}`, `${FM}Roof_Props_${n}.png`]);
 const CP = `${ME}3_City_Props_Singles_32x32/ME_Singles_City_Props_32x32_`;
 const GD = `${ME}17_Garden_Singles_32x32/ME_Singles_Garden_32x32_`;
 const props = (group, base, nums) => (exteriors[group] = nums.map((n) => [`${group}_${n}`, `${base}_${n}.png`]));

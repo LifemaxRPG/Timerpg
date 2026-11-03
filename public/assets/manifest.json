@@ -271,6 +271,318 @@
    "h": 224
   }
  ],
+ "houseTerraced": [
+  {
+   "key": "house_terraced_1",
+   "path": "assets/houseTerraced/house_terraced_1.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_2",
+   "path": "assets/houseTerraced/house_terraced_2.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_4",
+   "path": "assets/houseTerraced/house_terraced_4.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_5",
+   "path": "assets/houseTerraced/house_terraced_5.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_6",
+   "path": "assets/houseTerraced/house_terraced_6.png",
+   "w": 384,
+   "h": 480
+  }
+ ],
+ "houseEstate": [
+  {
+   "key": "estate_country_house",
+   "path": "assets/houseEstate/estate_country_house.png",
+   "w": 576,
+   "h": 512
+  },
+  {
+   "key": "estate_japanese_house",
+   "path": "assets/houseEstate/estate_japanese_house.png",
+   "w": 480,
+   "h": 448
+  },
+  {
+   "key": "estate_one_story_house",
+   "path": "assets/houseEstate/estate_one_story_house.png",
+   "w": 512,
+   "h": 448
+  },
+  {
+   "key": "estate_modern_house",
+   "path": "assets/houseEstate/estate_modern_house.png",
+   "w": 736,
+   "h": 448
+  }
+ ],
+ "condo": [
+  {
+   "key": "condo_5_1",
+   "path": "assets/condo/condo_5_1.png",
+   "w": 192,
+   "h": 352
+  },
+  {
+   "key": "condo_5_2",
+   "path": "assets/condo/condo_5_2.png",
+   "w": 192,
+   "h": 352
+  },
+  {
+   "key": "condo_5_3",
+   "path": "assets/condo/condo_5_3.png",
+   "w": 192,
+   "h": 352
+  },
+  {
+   "key": "condo_3_44",
+   "path": "assets/condo/condo_3_44.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "condo_3_45",
+   "path": "assets/condo/condo_3_45.png",
+   "w": 192,
+   "h": 320
+  },
+  {
+   "key": "condo_9",
+   "path": "assets/condo/condo_9.png",
+   "w": 192,
+   "h": 384
+  }
+ ],
+ "condoGround": [
+  {
+   "key": "condo_ground_1",
+   "path": "assets/condoGround/condo_ground_1.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "condo_ground_2",
+   "path": "assets/condoGround/condo_ground_2.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "condo_ground_3",
+   "path": "assets/condoGround/condo_ground_3.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "condo_ground_4",
+   "path": "assets/condoGround/condo_ground_4.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "condo_ground_5",
+   "path": "assets/condoGround/condo_ground_5.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "condo_ground_6",
+   "path": "assets/condoGround/condo_ground_6.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "condo_ground_7",
+   "path": "assets/condoGround/condo_ground_7.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "condo_ground_8",
+   "path": "assets/condoGround/condo_ground_8.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "condo_ground_9",
+   "path": "assets/condoGround/condo_ground_9.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "condo_ground_10",
+   "path": "assets/condoGround/condo_ground_10.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "condo_ground_11",
+   "path": "assets/condoGround/condo_ground_11.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "condo_ground_12",
+   "path": "assets/condoGround/condo_ground_12.png",
+   "w": 224,
+   "h": 96
+  }
+ ],
+ "middle": [
+  {
+   "key": "middle_1",
+   "path": "assets/middle/middle_1.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "middle_2",
+   "path": "assets/middle/middle_2.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "middle_3",
+   "path": "assets/middle/middle_3.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "middle_4",
+   "path": "assets/middle/middle_4.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "middle_5",
+   "path": "assets/middle/middle_5.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "middle_6",
+   "path": "assets/middle/middle_6.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "middle_7",
+   "path": "assets/middle/middle_7.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "middle_8",
+   "path": "assets/middle/middle_8.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "middle_9",
+   "path": "assets/middle/middle_9.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "middle_10",
+   "path": "assets/middle/middle_10.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "middle_11",
+   "path": "assets/middle/middle_11.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "middle_12",
+   "path": "assets/middle/middle_12.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "middle_13",
+   "path": "assets/middle/middle_13.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "middle_14",
+   "path": "assets/middle/middle_14.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "middle_15",
+   "path": "assets/middle/middle_15.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "middle_16",
+   "path": "assets/middle/middle_16.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "middle_17",
+   "path": "assets/middle/middle_17.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "middle_18",
+   "path": "assets/middle/middle_18.png",
+   "w": 224,
+   "h": 128
+  }
+ ],
+ "roofProp": [
+  {
+   "key": "roofprop_12",
+   "path": "assets/roofProp/roofprop_12.png",
+   "w": 160,
+   "h": 96
+  },
+  {
+   "key": "roofprop_13",
+   "path": "assets/roofProp/roofprop_13.png",
+   "w": 160,
+   "h": 96
+  },
+  {
+   "key": "roofprop_14",
+   "path": "assets/roofProp/roofprop_14.png",
+   "w": 160,
+   "h": 96
+  },
+  {
+   "key": "roofprop_15",
+   "path": "assets/roofProp/roofprop_15.png",
+   "w": 160,
+   "h": 96
+  },
+  {
+   "key": "roofprop_16",
+   "path": "assets/roofProp/roofprop_16.png",
+   "w": 160,
+   "h": 96
+  }
+ ],
  "tree": [
   {
    "key": "tree_1",

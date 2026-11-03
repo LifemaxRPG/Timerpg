@@ -1,5 +1,8 @@
 import { rand } from '../sim/rng';
 import { ageIn, fullName, isAlive, type Id, type Person, type World } from '../sim/types';
+import { shopFacade } from './facade';
+import { apartmentCapacity, apartmentEligible, houseArt, type ResidentialKind } from './housing';
+import type { BuildingArt } from './buildings';
 import { planTown, TILE, type Candidate, type LotKind, type Prop, type Road, type TownPlan } from './plan';
 
 export { TILE };
@@ -17,6 +20,10 @@ export interface Lot {
   label: string;
   /** 0..1 stable value for choosing sprite variants. */
   look: number;
+  /** Sprite stack to draw (houses by tier/era, shop fronts by business type). */
+  art: BuildingArt;
+  /** Household heads living here (several in an apartment building). */
+  heads: Id[];
   residents: Id[];
 }
 
@@ -83,38 +90,84 @@ export function layoutTown(w: World): TownLayout {
   const sorted = heads.map(wealthOf).sort((a, b) => a - b);
   const median = sorted[Math.floor(sorted.length / 2)] ?? 0;
 
-  // Housing tier follows household wealth relative to the town: villa (top), medium, small.
-  const villaSlots = slotsOf('villa');
-  const villaHeads = heads
-    .filter((h) => wealthOf(h) >= median * 2.5 && wealthOf(h) > 0)
-    .sort((a, b) => wealthOf(b) - wealthOf(a) || (a < b ? -1 : 1))
-    .slice(0, villaSlots.length);
-  const villaSet = new Set(villaHeads);
-  const rest = heads.filter((h) => !villaSet.has(h));
-  const mediumHeads = rest.filter((h) => wealthOf(h) >= median);
-  const mediumSet = new Set(mediumHeads);
-  const smallHeads = rest.filter((h) => !mediumSet.has(h));
-  const smallSlots = slotsOf('small');
-  const mediumSlots = slotsOf('medium');
-
-  const placeHouses = (ids: Id[], tier: LotKind, slots: Candidate[], overflow?: { tier: LotKind; slots: Candidate[] }): void => {
-    const placed = assign(w.seed, ids, slots, tier);
-    for (const [head, c] of placed) {
-      used.add(c.id);
-      lots.push({
-        x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, kind: 'house', tier, refId: head,
-        label: `${w.people[head]!.surname} house`, look: rand(w.seed, 'look', head), residents: households.get(head)!.sort(),
-      });
-    }
-    // If a tier's plots run out, the rest move into the other size.
-    if (overflow) {
-      const left = ids.filter((id) => !placed.has(id));
-      if (left.length) placeHouses(left, overflow.tier, overflow.slots.filter((c) => !used.has(c.id)));
-    }
+  // Housing tier follows household wealth relative to the town: estate (top), villa, house, medium,
+  // small; the poorest singles and couples rent apartments (several households per building).
+  const sizeOf = (h: Id): number => households.get(h)!.length;
+  const byWealth = (a: Id, b: Id): number => wealthOf(b) - wealthOf(a) || (a < b ? -1 : 1);
+  const claimed = new Set<Id>();
+  const tierHeads = (pred: (h: Id) => boolean, limit = Infinity): Id[] => {
+    const out = heads.filter((h) => !claimed.has(h) && pred(h)).sort(byWealth).slice(0, limit);
+    for (const h of out) claimed.add(h);
+    return out;
   };
-  placeHouses(villaHeads, 'villa', villaSlots, { tier: 'medium', slots: mediumSlots });
-  placeHouses(mediumHeads, 'medium', mediumSlots.filter((c) => !used.has(c.id)), { tier: 'small', slots: smallSlots });
-  placeHouses(smallHeads, 'small', smallSlots.filter((c) => !used.has(c.id)), { tier: 'medium', slots: mediumSlots });
+  // The town fills outward: ordinary plots beyond a frontier (sized to the population) stay wooded
+  // until needed. Only small and medium plots are rationed; estates, villas, houses and apartments are always available.
+  let frontier = Infinity;
+  for (let i = 0, room = 0; i < plan.candidates.length; i++) {
+    const c = plan.candidates[i]!;
+    if (c.kind === 'shop') continue;
+    room += c.kind === 'apartment' ? 3 : 1;
+    if (room >= heads.length * 1.5) { frontier = c.rank; break; }
+  }
+  const slotsFor = (kind: LotKind, strict = false): Candidate[] =>
+    slotsOf(kind).filter((c) => !used.has(c.id) && (!strict || (kind !== 'small' && kind !== 'medium') || c.rank <= frontier));
+  const estateHeads = tierHeads((h) => wealthOf(h) >= median * 5 && wealthOf(h) > 0, slotsOf('estate').length);
+  const villaHeads = tierHeads((h) => wealthOf(h) >= median * 2.5 && wealthOf(h) > 0, slotsOf('villa').length);
+  const houseHeads = tierHeads((h) => wealthOf(h) >= median * 1.4 && wealthOf(h) > 0);
+  const mediumHeads = tierHeads((h) => wealthOf(h) >= median);
+  const aptHeads = tierHeads((h) => apartmentEligible(sizeOf(h), wealthOf(h), median));
+  const smallHeads = tierHeads(() => true);
+
+  // If a tier's plots run out, the rest move down the chain to the next kind of plot.
+  const FALLBACK: Record<ResidentialKind, ResidentialKind[]> = {
+    estate: ['villa', 'house', 'medium', 'small'],
+    villa: ['house', 'medium', 'small'],
+    house: ['medium', 'small', 'villa'],
+    medium: ['small', 'house'],
+    small: ['medium', 'house'],
+    apartment: ['small', 'medium', 'house'],
+  };
+  const pushHouse = (c: Candidate, tier: ResidentialKind, group: Id[]): void => {
+    used.add(c.id);
+    const look = rand(w.seed, 'look', tier === 'apartment' ? c.id : group[0]!);
+    const first = w.people[group[0]!]!;
+    lots.push({
+      x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, kind: 'house', tier, refId: group[0]!, heads: group,
+      label: tier === 'apartment' ? `${first.surname} Court apartments` : `${first.surname} house`,
+      look, art: houseArt(tier, look, w.year), residents: group.flatMap((h) => households.get(h)!).sort(),
+    });
+  };
+  /** Fill apartment buildings center-outward, each taking as many households as its sprite holds. */
+  const fillApartments = (ids: Id[], strict = true): Id[] => {
+    let i = 0;
+    for (const c of slotsFor('apartment', strict)) {
+      if (i >= ids.length) break;
+      const group = ids.slice(i, i + apartmentCapacity(rand(w.seed, 'look', c.id), w.year));
+      i += group.length;
+      pushHouse(c, 'apartment', group);
+    }
+    return ids.slice(i);
+  };
+  const placeHouses = (ids: Id[], tier: ResidentialKind): void => {
+    let left = ids;
+    if (tier === 'apartment') left = fillApartments(left, true);
+    for (const strict of [true, false]) {
+      for (const t of tier === 'apartment' ? FALLBACK.apartment : [tier, ...FALLBACK[tier]]) {
+        if (!left.length) return;
+        const placed = assign(w.seed, left, slotsFor(t, strict), t);
+        for (const [head, c] of placed) pushHouse(c, t, [head]);
+        left = left.filter((id) => !placed.has(id));
+      }
+    }
+    // Last resort (the plan grows until this is never needed): double up in apartment buildings.
+    if (left.length) fillApartments(left, false);
+  };
+  placeHouses(estateHeads, 'estate');
+  placeHouses(villaHeads, 'villa');
+  placeHouses(houseHeads, 'house');
+  placeHouses(mediumHeads, 'medium');
+  placeHouses(aptHeads, 'apartment');
+  placeHouses(smallHeads, 'small');
 
   const shopSlots = slotsOf('shop');
   const open = Object.values(w.businesses).filter((b) => b.closedYear === undefined);
@@ -123,9 +176,10 @@ export function layoutTown(w: World): TownLayout {
     const c = placedShops.get(b.id);
     if (!c) continue;
     used.add(c.id);
+    const look = rand(w.seed, 'look', b.id);
     lots.push({
       x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, kind: 'shop', tier: 'shop', refId: b.id,
-      label: b.name, look: rand(w.seed, 'look', b.id), residents: b.owner ? [b.owner] : [],
+      label: b.name, look, art: shopFacade(b.kind, look), heads: [], residents: b.owner ? [b.owner] : [],
     });
   }
 

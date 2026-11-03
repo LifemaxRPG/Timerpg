@@ -17,7 +17,7 @@ the past (kill the future mayor, invest in the bakery...), and come back to see 
   varying number of streets/width), main street, villa district, plaza with fountain, forest edge, street
   furniture. Grows until there is room for every shop and household.
 - `src/town/layout.ts` - who/what occupies the plan in a given year: the town fills center-outward,
-  housing tier follows household wealth (small / medium / villa), empty plots become wooded lots, yards get props.
+  housing tier follows household wealth (small / medium / house / villa / estate; poorest singles and couples share apartment buildings, see `housing.ts`), shop fronts are stacked modular floors (`facade.ts`), empty plots become wooded lots, yards get props.
 - `src/game/` + `src/main.ts` - Phaser scene and HUD; they only read sim state.
 - A timeline is `seed + list of interventions`. Saves only need those two things.
 - Future AI (e.g. Qwen) narrates the structured `chronicle` / `WorldDiff`; it never decides outcomes.
