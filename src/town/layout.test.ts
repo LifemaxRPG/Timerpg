@@ -41,8 +41,8 @@ describe('town plan (per-seed generation)', () => {
     for (const seed of SEEDS) {
       const p = planTown(seed);
       const n = (k: string): number => p.candidates.filter((c) => c.kind === k).length;
-      expect(n('shop'), `${seed} shops`).toBeGreaterThanOrEqual(22);
-      expect(n('villa'), `${seed} villas`).toBeGreaterThanOrEqual(4);
+      expect(n('shop'), `${seed} shops`).toBeGreaterThanOrEqual(20);
+      expect(n('villa'), `${seed} villas`).toBeGreaterThanOrEqual(3);
       // An apartment building houses at least 3 households, every other ordinary plot one.
       expect(n('small') + n('medium') + n('house') + 4 * n('apartment'), `${seed} homes`).toBeGreaterThanOrEqual(112);
     }
@@ -105,18 +105,45 @@ describe('town layout (who lives where)', () => {
     expect(spread(1950)).toBeLessThan(spread(2025));
   });
 
-  it('does not decorate on top of buildings', () => {
-    const l = layoutTown(worldAt(t, 2025));
-    const occupied = l.lots;
-    for (const p of l.props) {
-      const tx = p.x / 32;
-      const ty = (p.y - 1) / 32;
-      // yard props sit inside their own lot, so only check against OTHER lots
-      const host = [...l.plan.candidates.map((c) => ({ ...c })), ...l.plan.landmarks.map((c) => ({ ...c, id: c.id as string }))]
-        .find((c) => tx >= c.x && tx <= c.x + c.w && ty >= c.y && ty <= c.y + c.h);
-      expect(host).toBeDefined();
-      const other = occupied.find((o) => o.slot !== host!.id && tx >= o.x && tx < o.x + o.w && ty >= o.y && ty < o.y + o.h);
-      expect(other).toBeUndefined();
+  it('does not decorate on top of buildings, and only grows woodland over streets that are not built', () => {
+    for (const year of [1950, 2025]) {
+      const l = layoutTown(worldAt(t, year));
+      const unbuilt = l.plan.roads.filter((r) => !l.roads.includes(r));
+      for (const p of l.props) {
+        const tx = p.x / 32;
+        const ty = (p.y - 1) / 32;
+        // Props sit inside a plot or landmark site, or over a street that is not built yet.
+        const host = [...l.plan.candidates.map((c) => ({ ...c })), ...l.plan.landmarks.map((c) => ({ ...c, id: c.id as string }))]
+          .find((c) => tx >= c.x && tx <= c.x + c.w && ty >= c.y && ty <= c.y + c.h);
+        const overUnbuilt = unbuilt.some((r) => tx >= r.x - 1 && tx <= r.x + r.w + 1 && ty >= r.y - 1 && ty <= r.y + r.h + 1);
+        expect(host !== undefined || overUnbuilt, `${year} prop at ${tx.toFixed(1)},${ty.toFixed(1)} is on nothing`).toBe(true);
+        // ...and never on top of a building that is there this year.
+        const other = l.lots.find((o) => o.slot !== host?.id && tx >= o.x && tx < o.x + o.w && ty >= o.y && ty < o.y + o.h);
+        expect(other).toBeUndefined();
+        // ...and never on a street that IS built.
+        expect(l.roads.some((r) => tx >= r.x && tx < r.x + r.w && ty >= r.y && ty < r.y + r.h)).toBe(false);
+      }
     }
+  });
+
+  it('builds streets outward over time: fewer in 1950, all connected, and every lot has one beside it', () => {
+    const touching = (a: Rect, b: Rect): boolean => a.x <= b.x + b.w + 1 && b.x <= a.x + a.w + 1 && a.y <= b.y + b.h + 1 && b.y <= a.y + a.h + 1;
+    const early = layoutTown(worldAt(t, 1950));
+    const late = layoutTown(worldAt(t, 2025));
+    expect(early.roads.length).toBeLessThan(late.roads.length);
+    for (const l of [early, late]) {
+      // Everything built links back to the main street through other built streets.
+      const seen = new Set(l.roads.filter((r) => r.main));
+      for (let grew = true; grew; ) {
+        grew = false;
+        for (const r of l.roads) if (!seen.has(r) && [...seen].some((q) => touching(r, q))) { seen.add(r); grew = true; }
+      }
+      expect(seen.size).toBe(l.roads.length);
+      // Every occupied lot has a built street beside it.
+      for (const lot of l.lots) expect(l.roads.some((r) => touching({ x: lot.x - 2, y: lot.y - 2, w: lot.w + 4, h: lot.h + 4 }, r)), `${lot.slot} has no street`).toBe(true);
+    }
+    // 1950's streets are still there in 2025 (towns do not lose streets).
+    const lateSet = new Set(late.roads);
+    for (const r of early.roads) expect(lateSet.has(r)).toBe(true);
   });
 });

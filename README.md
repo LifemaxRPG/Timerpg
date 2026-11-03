@@ -19,7 +19,9 @@ the past (kill the future mayor, invest in the bakery...), and come back to see 
   frontages (zoned: downtown shops, apartments/houses, small homes toward the edge, a villa hill) -> crop ->
   greenery (`greenery.ts`: sparse near buildings, thickening into forest, so the edge is organic) and street
   furniture. Grows until there is room for every shop and household.
-- `src/town/layout.ts` - who/what occupies the plan in a given year: the town fills center-outward,
+- `src/town/layout.ts` - who/what occupies the plan in a given year. **The town grows**: streets are split at junctions and a
+  block is only built once something on it is in use (plus the chain back to the main street); the rest stays woodland, so
+  1950 is a compact core and the town spreads outward over the decades. Also: the town fills center-outward,
   housing tier follows household wealth (small / medium / house / villa / estate; poorest singles and couples share apartment buildings, see `housing.ts`), shop fronts are stacked modular floors (`facade.ts`), empty plots become wooded lots, yards get props.
 - `src/town/water.ts` - per-seed river (north-south, meandering, 3-6 wide) or lake, or none; plots near it are dropped, streets that meet it get bridge decks. The ground bake autotiles the shore; the player can't walk into water.
 - `src/game/` + `src/main.ts` - Phaser scene and HUD; they only read sim state.

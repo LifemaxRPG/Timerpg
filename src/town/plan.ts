@@ -26,7 +26,11 @@ export interface Candidate extends Rect {
 
 export type PropKind = 'tree' | 'lamp' | 'bench' | 'bush' | 'flowerBush' | 'flowers' | 'fountain1' | 'fountain2';
 /** A decoration. x is the center and y the bottom edge, in pixels. look picks the variant. */
-export interface Prop { kind: PropKind; x: number; y: number; look: number }
+export interface Prop {
+  kind: PropKind; x: number; y: number; look: number;
+  /** Index into plan.roads for street furniture: it is only drawn while that street is built (see layout.ts). */
+  road?: number;
+}
 
 export interface TownPlan {
   seed: string;
@@ -101,7 +105,7 @@ function build(seed: string, extra: number): Built | null {
   const n = (k: LotKind): number => lots.filter((l) => l.kind === k).length;
   // The sim never needs more than ~20 shops and ~100 households (apartments house about 4 each).
   const homeRoom = n('small') + n('medium') + n('house') + 4 * n('apartment');
-  const ok = n('shop') >= 22 && n('villa') >= 4 && homeRoom >= 112 && lm.landmarks.length >= 3;
+  const ok = n('shop') >= 20 && n('villa') >= 3 && homeRoom >= 112 && lm.landmarks.length >= 3;
   return { net, water, plaza, landmarks: lm.landmarks, lots, ok };
 }
 
@@ -144,8 +148,8 @@ export function planTown(seed: string): TownPlan {
   // ---- static decoration ----
   const props: Prop[] = [];
   const look = (...k: (string | number)[]): number => R('look', ...k);
-  const add = (kind: PropKind, tx: number, ty: number, l: number): void => {
-    props.push({ kind, x: Math.round(tx * TILE), y: Math.round(ty * TILE), look: l });
+  const add = (kind: PropKind, tx: number, ty: number, l: number, road?: number): void => {
+    props.push({ kind, x: Math.round(tx * TILE), y: Math.round(ty * TILE), look: l, ...(road === undefined ? {} : { road }) });
   };
   const insideOther = (self: Road, tx: number, ty: number): boolean =>
     roads.some((o) => o !== self && tx >= o.x - 1 && tx < o.x + o.w + 1 && ty >= o.y - 1 && ty < o.y + o.h + 1);
@@ -160,10 +164,10 @@ export function planTown(seed: string): TownPlan {
         const tx = r.horizontal ? t : side ? r.x + r.w : r.x - 1;
         const ty = r.horizontal ? (side ? r.y + r.h : r.y - 1) : t;
         if (insideOther(r, tx, ty) || waterNear(water, tx, ty, 2)) continue;
-        add('lamp', tx + 0.5, ty + 1, look('lamp', r.x, r.y, side, t));
+        add('lamp', tx + 0.5, ty + 1, look('lamp', r.x, r.y, side, t), roads.indexOf(r));
         if (r.main && r.horizontal && look('bench', r.x, side, t) < 0.4) {
           const bx = t + 4;
-          if (!insideOther(r, bx, ty) && !waterNear(water, bx, ty, 2)) add('bench', bx, ty + 1, look('bench2', t, side));
+          if (!insideOther(r, bx, ty) && !waterNear(water, bx, ty, 2)) add('bench', bx, ty + 1, look('bench2', t, side), roads.indexOf(r));
         }
       }
     }

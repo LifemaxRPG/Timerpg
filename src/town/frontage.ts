@@ -29,11 +29,30 @@ const FALLBACK: Record<LotKind, LotKind[]> = {
   shop: ['shop'],
 };
 
-/** A hill district (villas and estates) centered on a spot along one of the side streets. */
-export function pickHill(seed: string, roads: readonly Road[], center: { x: number; y: number }, radius: number): { x: number; y: number; r: number } | null {
-  const cands = roads.filter((r) => !r.main && Math.hypot(r.x + r.w / 2 - center.x, r.y + r.h / 2 - center.y) > radius * 0.4);
+/**
+ * A hill district (villas and estates), centered on the side street with the most free room for
+ * villa-sized plots (so the hill is never starved of space), with a little seeded randomness.
+ */
+export function pickHill(seed: string, roads: readonly Road[], center: { x: number; y: number }, radius: number, grid?: Grid): { x: number; y: number; r: number } | null {
+  const cands = roads.filter((r) => !r.main && Math.hypot(r.x + r.w / 2 - center.x, r.y + r.h / 2 - center.y) > radius * 0.35);
   if (!cands.length) return null;
-  const road = cands[Math.floor(rand(seed, 'hill', 'road') * cands.length)]!;
+  const room = (r: Road): number => {
+    if (!grid) return 0;
+    const { w, h } = SIZES.villa;
+    let n = 0;
+    for (const side of [-1, 1]) {
+      const len = r.horizontal ? r.w : r.h;
+      for (let t = 0; t + (r.horizontal ? w : h) <= len; t += 10) {
+        const rect: Rect = r.horizontal
+          ? { x: r.x + t, y: side < 0 ? r.y - 1 - h : r.y + r.h + 1, w, h }
+          : { x: side < 0 ? r.x - 1 - w : r.x + r.w + 1, y: r.y + t, w, h };
+        if (grid.free(rect, 2)) n++;
+      }
+    }
+    return n;
+  };
+  const scored = cands.map((r, i) => ({ r, score: room(r) + rand(seed, 'hill', 'jit', i) * 1.5 }));
+  const road = scored.reduce((best, c) => (c.score > best.score ? c : best)).r;
   const t = 0.3 + rand(seed, 'hill', 't') * 0.4;
   return { x: road.x + road.w * (road.horizontal ? t : 0.5), y: road.y + road.h * (road.horizontal ? 0.5 : t), r: 34 + rand(seed, 'hill', 'r') * 10 };
 }
@@ -41,7 +60,7 @@ export function pickHill(seed: string, roads: readonly Road[], center: { x: numb
 export function placeFrontage(inp: FrontageInput): RawLot[] {
   const { seed, grid, center, radius } = inp;
   const out: RawLot[] = [];
-  const hill = pickHill(seed, inp.roads, center, radius);
+  const hill = pickHill(seed, inp.roads, center, radius, grid);
   const R = (...k: (string | number)[]): number => rand(seed, 'front', ...k);
 
   // Downtown first (main street), then streets in order of distance from the center.

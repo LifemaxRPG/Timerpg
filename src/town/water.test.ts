@@ -85,8 +85,8 @@ describe('water (river / lake)', () => {
     for (const s of withWater) {
       const p = planTown(s);
       const n = (k: string): number => p.candidates.filter((c) => c.kind === k).length;
-      expect(n('shop'), `${s} shops`).toBeGreaterThanOrEqual(22);
-      expect(n('villa'), `${s} villas`).toBeGreaterThanOrEqual(4);
+      expect(n('shop'), `${s} shops`).toBeGreaterThanOrEqual(20);
+      expect(n('villa'), `${s} villas`).toBeGreaterThanOrEqual(3);
       expect(n('small') + n('medium') + n('house') + 4 * n('apartment'), `${s} homes`).toBeGreaterThanOrEqual(112);
     }
   });

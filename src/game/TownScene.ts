@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
 import { fullName, type World } from '../sim';
-import { layoutTown, landmarkDescription, lotDescription, type LandmarkPlot, type Lot, type Prop, type TownLayout } from '../town/layout';
+import { layoutTown, landmarkDescription, lotDescription, type LandmarkPlot, type Lot, type Prop, type Road, type TownLayout } from '../town/layout';
 import { landmarkFootprint } from '../town/landmarks';
 import { planTown, type TownPlan } from '../town/plan';
-import { isWater, type Bridge } from '../town/water';
+import type { Bridge } from '../town/water';
 import { pickVariant, type Manifest } from './art';
 
 export const TILE = 32;
@@ -19,6 +19,8 @@ export class TownScene extends Phaser.Scene {
   private view = { year: 2025, which: 'original' as 'original' | 'altered' };
   private layout: TownLayout | null = null;
   private plan!: TownPlan;
+  /** Bridges whose street is built this year (the others leave the river uncrossable). */
+  private openBridges: Bridge[] = [];
   private manifest: Manifest = {};
   private drawn: Phaser.GameObjects.GameObject[] = [];
   private player!: Phaser.GameObjects.Sprite;
@@ -53,8 +55,7 @@ export class TownScene extends Phaser.Scene {
     this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT') as Record<string, Phaser.Input.Keyboard.Key>;
     this.plan = planTown(this.worlds!.original[0]!.seed);
     this.bakeGround();
-    for (const p of this.plan.props) this.drawProp(p);
-    for (const b of this.plan.water?.bridges ?? []) this.drawBridgeRails(b);
+    for (const p of this.plan.props) if (p.road === undefined) this.drawProp(p);
 
     // Character sheet: 56 columns of 32x64 frames; row 1 = idle, row 2 = walk; 6 frames per direction.
     const COLS = 56;
@@ -80,19 +81,10 @@ export class TownScene extends Phaser.Scene {
 
   /** Grass, asphalt and sidewalks never change between years, so bake them once. */
   private bakeGround(): void {
-    const { width: MAP_W, height: MAP_H, roads } = this.plan;
+    const { width: MAP_W, height: MAP_H } = this.plan;
     const kind = new Uint8Array(MAP_W * MAP_H); // 0 grass, 1 road, 2 sidewalk, 3 water
-    for (const r of roads)
-      for (let y = r.y - 1; y < r.y + r.h + 1; y++)
-        for (let x = r.x - 1; x < r.x + r.w + 1; x++) {
-          if (x < 0 || y < 0 || x >= MAP_W || y >= MAP_H) continue;
-          const inside = x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h;
-          const i = y * MAP_W + x;
-          if (inside) kind[i] = 1;
-          else if (kind[i] === 0) kind[i] = 2;
-        }
     const water = this.plan.water;
-    if (water) for (let i = 0; i < kind.length; i++) if (water.mask[i] && kind[i] === 0) kind[i] = 3;
+    if (water) for (let i = 0; i < kind.length; i++) if (water.raw[i] && kind[i] === 0) kind[i] = 3;
     const wat = (x: number, y: number): boolean => x >= 0 && y >= 0 && x < MAP_W && y < MAP_H && kind[y * MAP_W + x] === 3;
     const shore = this.manifest.waterShore ?? [];
     const decor = this.manifest.waterDecor ?? [];
@@ -113,6 +105,9 @@ export class TownScene extends Phaser.Scene {
       if (wat(x - 1, y + 1)) return 21;
       return 0;
     };
+    // The plaza is paved (leaving a one-tile grass edge).
+    const pz = this.plan.plaza;
+    for (let y = pz.y + 1; y < pz.y + pz.h - 1; y++) for (let x = pz.x + 1; x < pz.x + pz.w - 1; x++) if (kind[y * MAP_W + x] === 0) kind[y * MAP_W + x] = 2;
     const grass = this.manifest.grass ?? [];
     const asphalt = this.manifest.asphalt ?? [];
     const sidewalk = this.manifest.sidewalk ?? [];
@@ -152,18 +147,14 @@ export class TownScene extends Phaser.Scene {
         rt.endDraw();
       }
     }
-    // Dashed center lines.
-    const g = this.add.graphics().setDepth(-90);
-    g.fillStyle(0xe8d44d, 0.9);
-    for (const r of roads) {
-      // Only along each road's own extent (roads stop at the forest edge and at the civic strip).
-      if (r.horizontal) for (let x = Math.max(0, r.x); x < Math.min(MAP_W, r.x + r.w); x += 2) g.fillRect(x * TILE + 6, (r.y + 1) * TILE - 2, 20, 4);
-      else for (let y = Math.max(0, r.y); y < Math.min(MAP_H, r.y + r.h); y += 2) g.fillRect((r.x + 1) * TILE - 2, y * TILE + 6, 4, 20);
-    }
   }
 
   /** Iron railings along both sides of a bridge deck (road + sidewalks are already baked into the ground). */
-  private drawBridgeRails(b: Bridge): void {
+  private keepIf(dynamic: boolean, o: Phaser.GameObjects.GameObject): void {
+    if (dynamic) this.drawn.push(o);
+  }
+
+  private drawBridgeRails(b: Bridge, dynamic = false): void {
     const m = this.manifest.bridgeRail ?? [];
     if (m.length < 4) return;
     const [h1, vRight, h2, vLeft] = m as [typeof m[0], typeof m[0], typeof m[0], typeof m[0]];
@@ -172,13 +163,13 @@ export class TownScene extends Phaser.Scene {
         const art = (tx * 7) % 3 === 0 ? h2 : h1;
         const north = (b.y + 1) * TILE - 6;
         const south = (b.y + b.h) * TILE + 6;
-        this.add.image(tx * TILE, north, art.key).setOrigin(0, 1).setDepth(north);
-        this.add.image(tx * TILE, south, art.key).setOrigin(0, 1).setDepth(south);
+        this.keepIf(dynamic, this.add.image(tx * TILE, north, art.key).setOrigin(0, 1).setDepth(north));
+        this.keepIf(dynamic, this.add.image(tx * TILE, south, art.key).setOrigin(0, 1).setDepth(south));
       }
     } else {
       for (let ty = b.y; ty < b.y + b.h; ty += 2) {
-        this.add.image(b.x * TILE, ty * TILE, vLeft.key).setOrigin(0, 0).setDepth(-60);
-        this.add.image((b.x + b.w - 1) * TILE, ty * TILE, vRight.key).setOrigin(0, 0).setDepth(-60);
+        this.keepIf(dynamic, this.add.image(b.x * TILE, ty * TILE, vLeft.key).setOrigin(0, 0).setDepth(-60));
+        this.keepIf(dynamic, this.add.image((b.x + b.w - 1) * TILE, ty * TILE, vRight.key).setOrigin(0, 0).setDepth(-60));
       }
     }
   }
@@ -199,10 +190,34 @@ export class TownScene extends Phaser.Scene {
     this.layout = layoutTown(w);
     for (const o of this.drawn) o.destroy();
     this.drawn = [];
+    this.drawRoads(this.layout.roads);
     for (const lot of this.layout.lots) this.drawLot(w, lot);
     for (const l of this.layout.landmarks) this.drawLandmark(l);
     for (const p of this.layout.props) this.drawProp(p, true);
     this.onWorld(w);
+  }
+
+  /** Streets that exist this year: sidewalks, asphalt, center lines, street furniture and bridges. */
+  private drawRoads(built: Road[]): void {
+    const sw = this.manifest.sidewalk?.[0], as = this.manifest.asphalt?.[0];
+    const keep = <T extends Phaser.GameObjects.GameObject>(o: T): T => { this.drawn.push(o); return o; };
+    if (sw && as) {
+      for (const r of built) keep(this.add.tileSprite((r.x - 1) * TILE, (r.y - 1) * TILE, (r.w + 2) * TILE, (r.h + 2) * TILE, sw.key).setOrigin(0).setDepth(-80));
+      for (const r of built) keep(this.add.tileSprite(r.x * TILE, r.y * TILE, r.w * TILE, r.h * TILE, as.key).setOrigin(0).setDepth(-79));
+    }
+    const g = keep(this.add.graphics().setDepth(-78));
+    g.fillStyle(0xe8d44d, 0.9);
+    for (const r of built) {
+      if (r.horizontal) for (let x = r.x; x < r.x + r.w; x += 2) g.fillRect(x * TILE + 6, (r.y + 1) * TILE - 2, 20, 4);
+      else for (let y = r.y; y < r.y + r.h; y += 2) g.fillRect((r.x + 1) * TILE - 2, y * TILE + 6, 4, 20);
+    }
+    const isBuilt = new Set(built);
+    this.plan.props.forEach((p) => { if (p.road !== undefined && isBuilt.has(this.plan.roads[p.road]!)) this.drawProp(p, true); });
+    this.openBridges = [];
+    for (const b of this.plan.water?.bridges ?? []) {
+      const road = this.plan.roads.find((r) => r.horizontal === b.horizontal && b.x < r.x + r.w + 1 && r.x - 1 < b.x + b.w && b.y < r.y + r.h + 1 && r.y - 1 < b.y + b.h);
+      if (road && isBuilt.has(road)) { this.openBridges.push(b); this.drawBridgeRails(b, true); }
+    }
   }
 
   private drawProp(p: Prop, dynamic = false): void {
@@ -257,8 +272,12 @@ export class TownScene extends Phaser.Scene {
   private blocked(x: number, y: number): boolean {
     const w = this.plan.water;
     if (w) {
-      for (const [px, py] of [[x - 7, y], [x + 7, y], [x - 7, y - 4], [x + 7, y - 4]] as const)
-        if (isWater(w, Math.floor(px / TILE), Math.floor(py / TILE))) return true;
+      for (const [px, py] of [[x - 7, y], [x + 7, y], [x - 7, y - 4], [x + 7, y - 4]] as const) {
+        const tx = Math.floor(px / TILE), ty = Math.floor(py / TILE);
+        if (tx < 0 || ty < 0 || tx >= w.width || ty >= w.height || !w.raw[ty * w.width + tx]) continue;
+        const onOpenBridge = this.openBridges.some((b) => tx >= b.x && tx < b.x + b.w && ty >= b.y && ty < b.y + b.h);
+        if (!onOpenBridge) return true;
+      }
     }
     if (!this.layout) return false;
     const inLandmark = this.layout.landmarks.some((l) => {

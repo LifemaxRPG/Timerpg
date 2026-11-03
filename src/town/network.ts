@@ -25,7 +25,7 @@ const PAD = 46; // room around the roads for lots (up to ~24 deep), a lake, and 
 
 export function planNetwork(seed: string, extra: number, river = false): Network {
   const R = (...k: (string | number)[]): number => rand(seed, 'net', ...k);
-  const rx = Math.round(66 + extra * 7 + R('rx') * 10);
+  const rx = Math.round(56 + extra * 7 + R('rx') * 10);
   const ry = Math.round(rx * (0.72 + R('ry') * 0.1));
   const ph = [R('bp1') * 6.28, R('bp2') * 6.28, R('bp3') * 6.28];
 
@@ -117,7 +117,30 @@ export function planNetwork(seed: string, extra: number, river = false): Network
     grew = false;
     for (const r of roads) if (!keep.has(r) && [...keep].some((k) => touches(r, k))) { keep.add(r); grew = true; }
   }
-  const final = roads.filter((r) => keep.has(r));
+  const connected = roads.filter((r) => keep.has(r));
+
+  // ---- split side streets at every junction, so the town can grow one block at a time ----
+  const final: Road[] = [];
+  for (const r of connected) {
+    if (r.main) { final.push(r); continue; }
+    const cuts: number[] = [];
+    for (const q of connected) {
+      if (q === r || q.horizontal === r.horizontal || !touches(r, q)) continue;
+      const c = r.horizontal ? q.x : q.y; // where the crossing street starts along r
+      const lo = r.horizontal ? r.x : r.y, len = r.horizontal ? r.w : r.h;
+      if (c > lo + 5 && c + 2 < lo + len - 5) cuts.push(c);
+    }
+    cuts.sort((a, b) => a - b);
+    let start = r.horizontal ? r.x : r.y;
+    const end = start + (r.horizontal ? r.w : r.h);
+    const piece = (a: number, b: number): Road => (r.horizontal ? { ...r, x: a, w: b - a } : { ...r, y: a, h: b - a });
+    for (const c of cuts) {
+      if (c - start < 6) continue; // never leave a stub shorter than a plot
+      final.push(piece(start, c));
+      start = c + 2;
+    }
+    final.push(piece(start, end));
+  }
 
   // ---- move into canvas coordinates ----
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;

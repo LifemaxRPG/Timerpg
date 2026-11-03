@@ -4,6 +4,7 @@ import type { LandmarkPlot } from './landmarks';
 import { shopFacade } from './facade';
 import { apartmentCapacity, apartmentEligible, houseArt, type ResidentialKind } from './housing';
 import type { BuildingArt } from './buildings';
+import { waterNear } from './water';
 import { planTown, TILE, type Candidate, type LotKind, type Prop, type Road, type TownPlan } from './plan';
 
 export { TILE };
@@ -31,7 +32,8 @@ export interface Lot {
 export interface TownLayout {
   width: number;
   height: number;
-  roads: readonly Road[];
+  /** Streets that exist in this year; the rest are still woodland (see layoutTown). */
+  roads: Road[];
   lots: Lot[];
   /** Civic landmarks that have opened by this year (world.year >= openYear). */
   landmarks: LandmarkPlot[];
@@ -52,7 +54,7 @@ function assign(seed: string, ids: Id[], slots: Candidate[], salt: string): Map<
   for (const id of [...ids].sort()) {
     if (taken.size >= slots.length) break;
     const k = rand(seed, 'pref', salt, id);
-    let s = Math.floor(k * k * slots.length);
+    let s = Math.floor(Math.pow(k, 2.5) * slots.length);
     while (taken.has(s)) s = (s + 1) % slots.length;
     taken.add(s);
     result.set(id, slots[s]!);
@@ -230,7 +232,49 @@ export function layoutTown(w: World): TownLayout {
     }
   }
 
-  return { width: plan.width, height: plan.height, roads: plan.roads, lots, landmarks, props, plan };
+  // ---------- which streets exist yet ----------
+  // The town grows outward: a street is built once something on it is in use (a home, a shop, or an
+  // open landmark), plus whatever streets link it back to the main street. The rest are woodland.
+  const near = (b: { x: number; y: number; w: number; h: number }, r: Road): boolean =>
+    b.x < r.x + r.w + 3 && r.x < b.x + b.w + 3 && b.y < r.y + r.h + 3 && r.y < b.y + b.h + 3;
+  const touching = (a: Road, b: Road): boolean => a.x <= b.x + b.w + 1 && b.x <= a.x + a.w + 1 && a.y <= b.y + b.h + 1 && b.y <= a.y + a.h + 1;
+  const roads = plan.roads;
+  const wanted = new Set<number>();
+  roads.forEach((r, i) => {
+    if (r.main || lots.some((l) => near(l, r)) || landmarks.some((l) => near(l, r))) wanted.add(i);
+  });
+  // Shortest chain back to the main street for every wanted street (breadth-first from the main street).
+  const parent = new Map<number, number>();
+  const queue = roads.map((r, i) => (r.main ? i : -1)).filter((i) => i >= 0);
+  queue.forEach((i) => parent.set(i, -1));
+  for (let q = 0; q < queue.length; q++) {
+    const i = queue[q]!;
+    roads.forEach((r, j) => {
+      if (!parent.has(j) && touching(roads[i]!, r)) { parent.set(j, i); queue.push(j); }
+    });
+  }
+  for (const i of [...wanted]) for (let j = parent.get(i) ?? -1; j >= 0; j = parent.get(j) ?? -1) wanted.add(j);
+  const builtRoads = roads.filter((_, i) => wanted.has(i));
+  // Streets not built yet: woodland grows right across them.
+  roads.forEach((r, i) => {
+    if (wanted.has(i)) return;
+    const len = r.horizontal ? r.w : r.h;
+    for (let t = 0; t < len; t += 3) {
+      const k = rand(w.seed, 'wild', i, t);
+      if (k > 0.85) continue;
+      const tx = r.horizontal ? r.x + t + 1 : r.x - 1 + Math.floor(rand(w.seed, 'wild-s', i, t) * (r.w + 2));
+      const ty = r.horizontal ? r.y - 1 + Math.floor(rand(w.seed, 'wild-s', i, t) * (r.h + 2)) : r.y + t + 1;
+      if (waterNear(plan.water, tx, ty, 1)) continue;
+      // Never over a street that is built (unbuilt streets cross built ones at junctions).
+      if (builtRoads.some((b) => tx >= b.x - 1 && tx < b.x + b.w + 1 && ty >= b.y - 1 && ty < b.y + b.h + 1)) continue;
+      props.push({
+        kind: k < 0.5 ? 'tree' : k < 0.75 ? 'bush' : 'flowers',
+        x: Math.round((tx + 0.5) * TILE), y: Math.round((ty + 1) * TILE), look: rand(w.seed, 'wild-l', i, t),
+      });
+    }
+  });
+
+  return { width: plan.width, height: plan.height, roads: builtRoads, lots, landmarks, props, plan };
 }
 
 export const lotDescription = (w: World, lot: Lot): string[] => {

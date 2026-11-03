@@ -105,20 +105,29 @@ export function placeLandmarks(seed: string, p: Params): LandmarkResult {
   for (const k of kinds) {
     const s = LANDMARK_SPECS[k];
     let best: { x: number; y: number; score: number; left: typeof plots } | undefined;
-    // Front door faces a street: the building sits just north of an east-west road's sidewalk.
-    // Side streets only: the main street's frontage is for shops.
-    for (const r of p.roads.filter((r) => r.horizontal && !r.main)) {
-      const y = r.y - 1 - s.h;
-      if (y < p.top) continue;
-      for (let x = Math.max(p.marginL + 2, r.x); x + s.w <= Math.min(p.width - p.marginR - 2, r.x + r.w); x++) {
-        const box = { x, y, w: s.w, h: s.h };
-        if (p.roads.some((o) => hit(box, o, 1)) || hit(box, p.plaza, 1) || done.some((d) => hit(box, d, 1)) || p.blocked?.(box)) continue;
-        const score = Math.hypot(x + s.w / 2 - p.center.x, (y + s.h / 2 - p.center.y) * 1.3)
-          + rand(seed, 'landmark', 'jit', k, x, y) * 10 ;
-        if (best && score >= best.score) continue;
-        const left = plots.filter((c) => !hit(box, c));
-        if (enough(left)) best = { x, y, score, left };
+    // The building stands beside a side street (never the main street, whose frontage is for shops):
+    // on either side of an east-west street, or either side of a north-south one.
+    const spots: { x: number; y: number }[] = [];
+    for (const r of p.roads.filter((r) => !r.main)) {
+      if (r.horizontal) {
+        for (let x = r.x; x + s.w <= r.x + r.w; x++) {
+          spots.push({ x, y: r.y - 1 - s.h }, { x, y: r.y + r.h + 1 });
+        }
+      } else {
+        for (let y = r.y; y + s.h <= r.y + r.h; y++) {
+          spots.push({ x: r.x - 1 - s.w, y }, { x: r.x + r.w + 1, y });
+        }
       }
+    }
+    for (const { x, y } of spots) {
+      if (y < p.top || x < p.marginL + 2 || x + s.w > p.width - p.marginR - 2 || y + s.h > p.height - p.top) continue;
+      const box = { x, y, w: s.w, h: s.h };
+      // Keep clear of the main street's frontage (a 13-deep shop plus its sidewalk): that is downtown.
+      if (p.roads.some((o) => hit(box, o, o.main ? 15 : 1)) || hit(box, p.plaza, 1) || done.some((d) => hit(box, d, 1)) || p.blocked?.(box)) continue;
+      const score = Math.hypot(x + s.w / 2 - p.center.x, (y + s.h / 2 - p.center.y) * 1.3) + rand(seed, 'landmark', 'jit', k, x, y) * 10;
+      if (best && score >= best.score) continue;
+      const left = plots.filter((c) => !hit(box, c));
+      if (enough(left)) best = { x, y, score, left };
     }
     if (best) {
       done.push(make(k, best.x, best.y));
