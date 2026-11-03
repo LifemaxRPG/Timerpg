@@ -1,66 +1,50 @@
 import Phaser from 'phaser';
-import { TownScene, describeMayor } from './game/TownScene';
-import { describeDiff, diffWorlds, fullName, runTimeline } from './sim';
+import { WorldScene } from './game/WorldScene';
 
 const params = new URLSearchParams(location.search);
 const seed = params.get('seed') ?? 'demo';
-const START = 1950;
-const PRESENT = 2025;
 
-// Original history, and a "what if" where you killed the future mayor as a child.
-const original = runTimeline({ seed, endYear: PRESENT, startYear: START });
-const mayor = original.snapshots[PRESENT - START]!.people[original.snapshots[PRESENT - START]!.mayor!]!;
-const killYear = Math.max(START + 1, mayor.birthYear + 5);
-const altered = runTimeline({
-  seed, endYear: PRESENT, startYear: START,
-  interventions: [{ kind: 'kill', year: killYear, targetId: mayor.id }],
-});
-
-const scene = new TownScene();
-scene.setWorlds(original.snapshots, altered.snapshots);
-
+const scene = new WorldScene(seed);
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 const slider = $<HTMLInputElement>('slider');
-let which: 'original' | 'altered' = 'original';
+$('year').textContent = slider.value;
 
-function update(): void {
-  const year = Number(slider.value);
-  $('year').textContent = String(year);
-  scene.setView(year, which);
-  const diffBox = $('diff');
-  if (which === 'altered') {
-    const a = original.snapshots[year - START]!;
-    const b = altered.snapshots[year - START]!;
-    const lines = [
-      `<b>What if you killed ${fullName(mayor)} in ${killYear}?</b>`,
-      ...(year < killYear ? ['(that hasn\'t happened yet in ' + year + ')'] : describeDiff(diffWorlds(a, b), a, b)),
-    ];
-    diffBox.innerHTML = lines.map((l) => `<div>${l}</div>`).join('');
-    diffBox.style.display = 'block';
-  } else {
-    diffBox.style.display = 'none';
-  }
-}
+// Year slider: update the label at once, redraw at most once per frame.
+let queued = false;
+slider.addEventListener('input', () => {
+  $('year').textContent = slider.value;
+  if (queued) return;
+  queued = true;
+  requestAnimationFrame(() => { queued = false; scene.setYear(Number(slider.value)); });
+});
 
-scene.onWorld = (w) => { $('mayor').textContent = describeMayor(w) + ` · pop ${Object.values(w.people).filter((p) => p.deathYear === undefined).length}`; };
+// "Welcome to ..." banner when you walk into a town.
+let hideTimer: number | undefined;
+scene.onTown = (info, entered) => {
+  $('town').textContent = info.name;
+  $('mayor').textContent = [info.mayor ? `Mayor: ${info.mayor}` : '', info.population !== null ? `pop ${info.population}` : ''].filter(Boolean).join(' · ');
+  if (!entered) return;
+  const b = $('banner');
+  b.querySelector('.name')!.textContent = info.name;
+  b.querySelector('.sub')!.textContent = `Founded ${info.founded}${info.population !== null ? ` · Population ${info.population}` : ''}`;
+  b.classList.add('show');
+  window.clearTimeout(hideTimer);
+  hideTimer = window.setTimeout(() => b.classList.remove('show'), 4000);
+};
 scene.onInfo = (lines) => {
   const box = $('info');
   if (!lines) { box.style.display = 'none'; return; }
   box.innerHTML = `<b>${lines[0]}</b>` + lines.slice(1).map((l) => `<div>${l}</div>`).join('');
   box.style.display = 'block';
 };
-
-slider.addEventListener('input', update);
-$('orig').addEventListener('click', () => { which = 'original'; $('orig').classList.add('on'); $('alt').classList.remove('on'); update(); });
-$('alt').addEventListener('click', () => { which = 'altered'; $('alt').classList.add('on'); $('orig').classList.remove('on'); update(); });
+scene.onLoading = (n) => { $('loading').style.display = n > 0 ? 'block' : 'none'; };
 
 new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game',
-  backgroundColor: '#1b1b1b',
+  backgroundColor: '#2a5a30',
   scale: { mode: Phaser.Scale.RESIZE, width: window.innerWidth, height: window.innerHeight },
   scene,
   pixelArt: true,
 });
-scene.onReady = update;
-(window as unknown as { __scene: TownScene }).__scene = scene;
+(window as unknown as { __scene: WorldScene }).__scene = scene;

@@ -24,7 +24,13 @@ the past (kill the future mayor, invest in the bakery...), and come back to see 
   1950 is a compact core and the town spreads outward over the decades. Also: the town fills center-outward,
   housing tier follows household wealth (small / medium / house / villa / estate; poorest singles and couples share apartment buildings, see `housing.ts`), shop fronts are stacked modular floors (`facade.ts`), empty plots become wooded lots, yards get props.
 - `src/town/water.ts` - per-seed river (north-south, meandering, 3-6 wide) or lake, or none; plots near it are dropped, streets that meet it get bridge decks. The ground bake autotiles the shore; the player can't walk into water.
-- `src/game/` + `src/main.ts` - Phaser scene and HUD; they only read sim state.
+- `src/world/` - the endless **world**: `map.ts` (one town per cell of a jittered grid, seed per cell, plan origins, the road that
+  joins a town's main street to its eastern neighbour), `names.ts` (town names and founding years), `wild.ts` (chunked wilderness).
+- `src/sim/worker.ts` + `src/game/generator.ts` - a background worker generates each town's plan and 1950-2025 history, so walking into
+  new territory never freezes the game.
+- `src/game/WorldScene.ts` - streams towns in/out around the player, draws link roads and wilderness, announces towns you enter,
+  walking/camera. `src/game/TownView.ts` - one town drawn anywhere in the world (loading work is time-sliced across frames).
+  `src/main.ts` - HUD and the "Welcome to ..." banner. They only read sim state.
 - A timeline is `seed + list of interventions`. Saves only need those two things.
 - Future AI (e.g. Qwen) narrates the structured `chronicle` / `WorldDiff`; it never decides outcomes.
 
@@ -43,7 +49,7 @@ you have checked the licenses allow redistribution.
 npm install
 npm test        # simulation tests
 npm run typecheck
-npm run dev         # play in the browser (http://localhost:5173, ?seed=abc for another town)
+npm run dev         # play in the browser (http://localhost:5173, ?seed=abc for another world)
 npm run build       # production build
 npm run demo [seed]   # kills the present-day mayor as a child and prints the consequences
 ```
@@ -52,6 +58,7 @@ npm run demo [seed]   # kills the present-day mayor as a child and prints the co
 
 1. [x] Deterministic simulation core + interventions + diff
 2. [x] Verbs: kill, invest, sabotage, introduce, rumor, gift
+2k. [x] Endless world: towns stream in as you walk (background worker), have names, are joined by roads, "Welcome to ..." banner
 2j. [x] Signs match the goods: business kinds are limited to ones the art can honestly show (bakery, butcher, ice cream, music, bait, clothing, dress, toy, gym, bank, law office, doctor); each kind only uses window sprites that match it (guarded by a test)
 2i. [x] Classic (pre-1975) storefronts: generated in code (extract script) - flat painted sign boards with block lettering from a built-in pixel font, replacing the pack's big modern signs; 120 sprites, one per business kind
 2h. [x] Era look (`src/town/era.ts`): old-fashioned street lamps and young trees in 1950, modern lamps/billboards/mature trees later

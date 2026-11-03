@@ -109,6 +109,11 @@ function build(seed: string, extra: number): Built | null {
   return { net, water, plaza, landmarks: lm.landmarks, lots, ok };
 }
 
+/** Store a plan computed elsewhere (a worker), so planTown(seed) returns it instantly. */
+export function primePlan(seed: string, plan: TownPlan): void {
+  cache.set(seed, plan);
+}
+
 export function planTown(seed: string): TownPlan {
   const hit = cache.get(seed);
   if (hit) return hit;

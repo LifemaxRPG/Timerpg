@@ -18,6 +18,12 @@
     #info { bottom: 10px; left: 10px; max-width: min(340px, calc(100vw - 44px)); display: none; }
     #info b { font-size: 14px; }
     #diff { top: 10px; right: 10px; max-width: min(320px, calc(100vw - 44px)); display: none; }
+    #banner { position: fixed; top: 18px; left: 50%; transform: translate(-50%, -140%); opacity: 0; transition: transform .5s ease, opacity .5s ease; text-align: center; background: rgba(15, 18, 28, .9); border: 2px solid #8c98ff; border-radius: 12px; padding: 10px 28px 12px; z-index: 5; pointer-events: none; box-shadow: 0 6px 24px rgba(0,0,0,.5); }
+    #banner.show { transform: translate(-50%, 0); opacity: 1; }
+    #banner .welcome { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: #aab; }
+    #banner .name { font-size: 30px; font-weight: 700; letter-spacing: 1px; }
+    #banner .sub { font-size: 13px; color: #c8cdea; margin-top: 2px; }
+    #loading { top: 10px; right: 10px; display: none; color: #c8cdea; }
     #hint { bottom: 10px; right: 10px; color: #aab; }
   </style>
 </head>
@@ -27,14 +33,12 @@
     <h1>TIMERPG</h1>
     <div id="year">1950</div>
     <input id="slider" type="range" min="1950" max="2025" value="2025" />
-    <div>
-      <button id="orig" class="on">Original timeline</button>
-      <button id="alt">Altered timeline</button>
-    </div>
-    <div id="mayor" style="margin-top:6px"></div>
+    <div id="town" style="margin-top:6px"></div>
+    <div id="mayor"></div>
   </div>
-  <div id="diff" class="panel"></div>
   <div id="info" class="panel"></div>
+  <div id="banner"><div class="welcome">Welcome to</div><div class="name"></div><div class="sub"></div></div>
+  <div id="loading" class="panel">Generating nearby towns…</div>
   <div id="hint" class="panel">WASD / arrows to walk · click a building</div>
   <script type="module" src="/src/main.ts"></script>
 </body>
