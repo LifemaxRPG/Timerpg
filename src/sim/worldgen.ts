@@ -32,6 +32,7 @@ export function makePerson(
     parents: parents.map((p) => p.id),
     children: [],
     wealth: 0,
+    reputation: 0,
   };
 }
 
@@ -41,7 +42,7 @@ const FOUNDING_BUSINESSES = 8;
 
 /** Builds the starting town (ids prefixed `gen:`). Deterministic in `seed`. */
 export function generateWorld(seed: string, startYear = 1950): World {
-  const world: World = { seed, year: startYear, people: {}, businesses: {} };
+  const world: World = { seed, year: startYear, people: {}, businesses: {}, bonds: {} };
   const add = (p: Person): Person => {
     p.wealth = p.birthYear < startYear - 18 ? 5 + Math.floor(rand(seed, 'wealth', p.id) * 35) : 0;
     world.people[p.id] = p;

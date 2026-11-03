@@ -4,6 +4,7 @@ import {
   ageIn, fullName, isAlive,
   type Business, type Id, type Intervention, type Person, type SimEvent, type Timeline, type World,
 } from './types';
+import { affinity, clampRep, pairKey } from './social';
 import { generateWorld, makePerson } from './worldgen';
 
 const byId = (a: { id: Id }, b: { id: Id }): number => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
@@ -61,22 +62,61 @@ function die(c: Ctx, p: Person, cause: 'natural' | 'murdered'): void {
 // ---------- interventions ----------
 
 function applyIntervention(c: Ctx, iv: Intervention): void {
-  if (iv.kind === 'kill') {
-    const t = c.w.people[iv.targetId];
-    if (!t || !isAlive(t)) {
-      emit(c, 'intervention_failed', `Nobody to kill: ${iv.targetId} is not alive in ${c.y}`);
+  const fail = (why: string): void => emit(c, 'intervention_failed', why);
+  const person = (id: Id): Person | undefined => {
+    const p = c.w.people[id];
+    return p && isAlive(p) ? p : undefined;
+  };
+  const business = (id: Id): Business | undefined => {
+    const b = c.w.businesses[id];
+    return b && b.closedYear === undefined ? b : undefined;
+  };
+
+  switch (iv.kind) {
+    case 'kill': {
+      const t = person(iv.targetId);
+      if (!t) return fail(`Nobody to kill: ${iv.targetId} is not alive in ${c.y}`);
+      emit(c, 'intervention', `Time traveler murders ${fullName(t)}`, t.id);
+      die(c, t, 'murdered');
       return;
     }
-    emit(c, 'intervention', `Time traveler murders ${fullName(t)}`, t.id);
-    die(c, t, 'murdered');
-  } else {
-    const b = c.w.businesses[iv.businessId];
-    if (!b || b.closedYear !== undefined) {
-      emit(c, 'intervention_failed', `No open business ${iv.businessId} in ${c.y}`);
+    case 'invest': {
+      const b = business(iv.businessId);
+      if (!b) return fail(`No open business ${iv.businessId} in ${c.y}`);
+      b.capital += iv.amount;
+      emit(c, 'intervention', `Time traveler invests ${iv.amount} in ${b.name}`, b.id);
       return;
     }
-    b.capital += iv.amount;
-    emit(c, 'intervention', `Time traveler invests ${iv.amount} in ${b.name}`, b.id);
+    case 'sabotage': {
+      const b = business(iv.businessId);
+      if (!b) return fail(`No open business ${iv.businessId} in ${c.y}`);
+      b.capital *= 0.4;
+      emit(c, 'intervention', `Time traveler sabotages ${b.name}`, b.id);
+      return;
+    }
+    case 'introduce': {
+      const a = person(iv.a);
+      const b = person(iv.b);
+      if (!a || !b || a.id === b.id) return fail(`Cannot introduce ${iv.a} and ${iv.b} in ${c.y}`);
+      const k = pairKey(a.id, b.id);
+      c.w.bonds[k] = (c.w.bonds[k] ?? 0) + 1;
+      emit(c, 'intervention', `Time traveler introduces ${fullName(a)} to ${fullName(b)}`, a.id);
+      return;
+    }
+    case 'rumor': {
+      const t = person(iv.targetId);
+      if (!t) return fail(`Nobody to talk about: ${iv.targetId} is not alive in ${c.y}`);
+      t.reputation = clampRep(t.reputation + iv.amount);
+      emit(c, 'intervention', `Time traveler ${iv.amount < 0 ? 'spreads rumors about' : 'sings the praises of'} ${fullName(t)}`, t.id);
+      return;
+    }
+    case 'gift': {
+      const t = person(iv.targetId);
+      if (!t) return fail(`Nobody to give to: ${iv.targetId} is not alive in ${c.y}`);
+      t.wealth += Math.max(0, iv.amount);
+      emit(c, 'intervention', `Time traveler gives ${iv.amount} to ${fullName(t)}`, t.id);
+      return;
+    }
   }
 }
 
@@ -121,7 +161,10 @@ function marriages(c: Ctx): void {
         !m.parents.some((pid) => wife.parents.includes(pid)),
     );
     if (!suitors.length) continue;
-    const husband = suitors[Math.floor(rand(seed, y, 'marry-pick', wife.id) * suitors.length)]!;
+    const appeal = (m: Person): number =>
+      affinity(w, wife.id, m.id) + (m.reputation + wife.reputation) * 0.3 +
+      rand(seed, y, 'suit', wife.id, m.id) * 0.4;
+    const husband = suitors.reduce((best, m) => (appeal(m) > appeal(best) ? m : best));
     wife.spouse = husband.id;
     husband.spouse = wife.id;
     emit(c, 'marriage', `${fullName(husband)} married ${fullName(wife)}`, wife.id);
@@ -201,9 +244,19 @@ export function holdElection(c: Ctx): void {
   const score = (p: Person): number =>
     p.traits.ambition * 0.4 + p.traits.charm * 0.4 + Math.log10(1 + p.wealth) * 0.1 +
     (w.mayor === p.id ? 0.1 : 0) + rand(seed, y, 'vote', p.id) * 0.2;
-  const field = living(w).filter((p) => ageIn(p, y) >= 30 && ageIn(p, y) <= 75);
+  const adults = living(w).filter((p) => ageIn(p, y) >= 18);
+  // Only the strongest contenders get the (costlier) popular-support calculation.
+  const field = adults
+    .filter((p) => ageIn(p, y) >= 30 && ageIn(p, y) <= 75)
+    .sort((a, b) => score(b) - score(a) || byId(a, b))
+    .slice(0, 10);
   if (!field.length) return;
-  const winner = field.reduce((best, p) => (score(p) > score(best) ? p : best));
+  const support = (p: Person): number => {
+    const voters = adults.filter((v) => v.id !== p.id);
+    return voters.length ? voters.reduce((s, v) => s + affinity(w, v.id, p.id), 0) / voters.length : 0;
+  };
+  const total = (p: Person): number => score(p) + p.reputation * 0.3 + support(p) * 0.5;
+  const winner = field.reduce((best, p) => (total(p) > total(best) ? p : best));
   if (winner.id !== w.mayor) {
     w.mayor = winner.id;
     emit(c, 'election', `${fullName(winner)} elected mayor`, winner.id);

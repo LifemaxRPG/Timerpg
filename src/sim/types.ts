@@ -19,6 +19,8 @@ export interface Person {
   spouse?: Id;
   children: Id[];
   wealth: number;
+  /** Public standing, -1..1. Affects elections and who people want to marry. */
+  reputation: number;
 }
 
 export interface Business {
@@ -37,11 +39,18 @@ export interface World {
   people: Record<Id, Person>;
   businesses: Record<Id, Business>;
   mayor?: Id;
+  /** Deliberate changes to how much two people like each other (see social.ts). Key = pairKey. */
+  bonds: Record<string, number>;
 }
 
 export type Intervention =
   | { kind: 'kill'; year: number; targetId: Id }
-  | { kind: 'invest'; year: number; businessId: Id; amount: number };
+  | { kind: 'invest'; year: number; businessId: Id; amount: number }
+  | { kind: 'sabotage'; year: number; businessId: Id }
+  | { kind: 'introduce'; year: number; a: Id; b: Id }
+  /** amount in -1..1: negative spreads a damaging rumor, positive runs a flattering campaign */
+  | { kind: 'rumor'; year: number; targetId: Id; amount: number }
+  | { kind: 'gift'; year: number; targetId: Id; amount: number };
 
 export type EventKind =
   | 'birth'
