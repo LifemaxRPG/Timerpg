@@ -15,6 +15,6 @@ export const SURNAMES = [
 ] as const;
 
 export const BUSINESS_KINDS = [
-  'General Store', 'Bakery', 'Hardware', 'Diner', 'Newspaper', 'Bank', 'Garage',
-  'Pharmacy', 'Barber Shop', 'Mill', 'Hotel', 'Cinema',
+  'General Store', 'Bakery', 'Butcher', 'Hardware', 'Ice Cream Parlor', 'Music Store',
+  'Bait Shop', 'Diner', 'Pharmacy', 'Bank', 'Newspaper', 'Barber Shop',
 ] as const;

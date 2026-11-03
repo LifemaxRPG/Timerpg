@@ -1,0 +1,862 @@
+{
+ "grass": [
+  {
+   "key": "grass_22",
+   "path": "assets/grass/grass_22.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "grass_9",
+   "path": "assets/grass/grass_9.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "grass_11",
+   "path": "assets/grass/grass_11.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "grass_12",
+   "path": "assets/grass/grass_12.png",
+   "w": 32,
+   "h": 32
+  }
+ ],
+ "asphalt": [
+  {
+   "key": "asphalt_24",
+   "path": "assets/asphalt/asphalt_24.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "asphalt_25",
+   "path": "assets/asphalt/asphalt_25.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "asphalt_26",
+   "path": "assets/asphalt/asphalt_26.png",
+   "w": 64,
+   "h": 32
+  },
+  {
+   "key": "asphalt_27",
+   "path": "assets/asphalt/asphalt_27.png",
+   "w": 64,
+   "h": 32
+  }
+ ],
+ "sidewalk": [
+  {
+   "key": "sidewalk_25",
+   "path": "assets/sidewalk/sidewalk_25.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "sidewalk_26",
+   "path": "assets/sidewalk/sidewalk_26.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "sidewalk_27",
+   "path": "assets/sidewalk/sidewalk_27.png",
+   "w": 64,
+   "h": 64
+  }
+ ],
+ "houseSmall": [
+  {
+   "key": "house_small_1",
+   "path": "assets/houseSmall/house_small_1.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_2",
+   "path": "assets/houseSmall/house_small_2.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_3",
+   "path": "assets/houseSmall/house_small_3.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_4",
+   "path": "assets/houseSmall/house_small_4.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_5",
+   "path": "assets/houseSmall/house_small_5.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_6",
+   "path": "assets/houseSmall/house_small_6.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_7",
+   "path": "assets/houseSmall/house_small_7.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_8",
+   "path": "assets/houseSmall/house_small_8.png",
+   "w": 192,
+   "h": 256
+  }
+ ],
+ "villa": [
+  {
+   "key": "villa_1",
+   "path": "assets/villa/villa_1.png",
+   "w": 288,
+   "h": 416
+  },
+  {
+   "key": "villa_2",
+   "path": "assets/villa/villa_2.png",
+   "w": 288,
+   "h": 416
+  },
+  {
+   "key": "villa_3",
+   "path": "assets/villa/villa_3.png",
+   "w": 288,
+   "h": 416
+  },
+  {
+   "key": "villa_4",
+   "path": "assets/villa/villa_4.png",
+   "w": 288,
+   "h": 416
+  },
+  {
+   "key": "villa_5",
+   "path": "assets/villa/villa_5.png",
+   "w": 288,
+   "h": 416
+  }
+ ],
+ "roof": [
+  {
+   "key": "roof_1",
+   "path": "assets/roof/roof_1.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "roof_2",
+   "path": "assets/roof/roof_2.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "roof_3",
+   "path": "assets/roof/roof_3.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "roof_4",
+   "path": "assets/roof/roof_4.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "roof_5",
+   "path": "assets/roof/roof_5.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "roof_6",
+   "path": "assets/roof/roof_6.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "roof_7",
+   "path": "assets/roof/roof_7.png",
+   "w": 224,
+   "h": 224
+  },
+  {
+   "key": "roof_8",
+   "path": "assets/roof/roof_8.png",
+   "w": 224,
+   "h": 224
+  },
+  {
+   "key": "roof_9",
+   "path": "assets/roof/roof_9.png",
+   "w": 224,
+   "h": 224
+  },
+  {
+   "key": "roof_10",
+   "path": "assets/roof/roof_10.png",
+   "w": 224,
+   "h": 224
+  },
+  {
+   "key": "roof_11",
+   "path": "assets/roof/roof_11.png",
+   "w": 224,
+   "h": 224
+  }
+ ],
+ "shop:Shop": [
+  {
+   "key": "shop_Shop_1",
+   "path": "assets/shop_Shop/shop_Shop_1.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_2",
+   "path": "assets/shop_Shop/shop_Shop_2.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_3",
+   "path": "assets/shop_Shop/shop_Shop_3.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_4",
+   "path": "assets/shop_Shop/shop_Shop_4.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_5",
+   "path": "assets/shop_Shop/shop_Shop_5.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_6",
+   "path": "assets/shop_Shop/shop_Shop_6.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_7",
+   "path": "assets/shop_Shop/shop_Shop_7.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_8",
+   "path": "assets/shop_Shop/shop_Shop_8.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_9",
+   "path": "assets/shop_Shop/shop_Shop_9.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_10",
+   "path": "assets/shop_Shop/shop_Shop_10.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_11",
+   "path": "assets/shop_Shop/shop_Shop_11.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_12",
+   "path": "assets/shop_Shop/shop_Shop_12.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_13",
+   "path": "assets/shop_Shop/shop_Shop_13.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_14",
+   "path": "assets/shop_Shop/shop_Shop_14.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_15",
+   "path": "assets/shop_Shop/shop_Shop_15.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_16",
+   "path": "assets/shop_Shop/shop_Shop_16.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_17",
+   "path": "assets/shop_Shop/shop_Shop_17.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_18",
+   "path": "assets/shop_Shop/shop_Shop_18.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_19",
+   "path": "assets/shop_Shop/shop_Shop_19.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_20",
+   "path": "assets/shop_Shop/shop_Shop_20.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_21",
+   "path": "assets/shop_Shop/shop_Shop_21.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_22",
+   "path": "assets/shop_Shop/shop_Shop_22.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_23",
+   "path": "assets/shop_Shop/shop_Shop_23.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_24",
+   "path": "assets/shop_Shop/shop_Shop_24.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_25",
+   "path": "assets/shop_Shop/shop_Shop_25.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_26",
+   "path": "assets/shop_Shop/shop_Shop_26.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_27",
+   "path": "assets/shop_Shop/shop_Shop_27.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_28",
+   "path": "assets/shop_Shop/shop_Shop_28.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_29",
+   "path": "assets/shop_Shop/shop_Shop_29.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_30",
+   "path": "assets/shop_Shop/shop_Shop_30.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_31",
+   "path": "assets/shop_Shop/shop_Shop_31.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_32",
+   "path": "assets/shop_Shop/shop_Shop_32.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_33",
+   "path": "assets/shop_Shop/shop_Shop_33.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_34",
+   "path": "assets/shop_Shop/shop_Shop_34.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_35",
+   "path": "assets/shop_Shop/shop_Shop_35.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Shop_36",
+   "path": "assets/shop_Shop/shop_Shop_36.png",
+   "w": 224,
+   "h": 96
+  }
+ ],
+ "shop:Bakery": [
+  {
+   "key": "shop_Bakery_1",
+   "path": "assets/shop_Bakery/shop_Bakery_1.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Bakery_2",
+   "path": "assets/shop_Bakery/shop_Bakery_2.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Bakery_3",
+   "path": "assets/shop_Bakery/shop_Bakery_3.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Bakery_4",
+   "path": "assets/shop_Bakery/shop_Bakery_4.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Bakery_5",
+   "path": "assets/shop_Bakery/shop_Bakery_5.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Bakery_6",
+   "path": "assets/shop_Bakery/shop_Bakery_6.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Bakery_7",
+   "path": "assets/shop_Bakery/shop_Bakery_7.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Bakery_8",
+   "path": "assets/shop_Bakery/shop_Bakery_8.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Bakery_9",
+   "path": "assets/shop_Bakery/shop_Bakery_9.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Bakery_10",
+   "path": "assets/shop_Bakery/shop_Bakery_10.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Bakery_11",
+   "path": "assets/shop_Bakery/shop_Bakery_11.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Bakery_12",
+   "path": "assets/shop_Bakery/shop_Bakery_12.png",
+   "w": 224,
+   "h": 160
+  }
+ ],
+ "shop:Butchery": [
+  {
+   "key": "shop_Butchery_1",
+   "path": "assets/shop_Butchery/shop_Butchery_1.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Butchery_2",
+   "path": "assets/shop_Butchery/shop_Butchery_2.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Butchery_3",
+   "path": "assets/shop_Butchery/shop_Butchery_3.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Butchery_4",
+   "path": "assets/shop_Butchery/shop_Butchery_4.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Butchery_5",
+   "path": "assets/shop_Butchery/shop_Butchery_5.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Butchery_6",
+   "path": "assets/shop_Butchery/shop_Butchery_6.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Butchery_7",
+   "path": "assets/shop_Butchery/shop_Butchery_7.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Butchery_8",
+   "path": "assets/shop_Butchery/shop_Butchery_8.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Butchery_9",
+   "path": "assets/shop_Butchery/shop_Butchery_9.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Butchery_10",
+   "path": "assets/shop_Butchery/shop_Butchery_10.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Butchery_11",
+   "path": "assets/shop_Butchery/shop_Butchery_11.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Butchery_12",
+   "path": "assets/shop_Butchery/shop_Butchery_12.png",
+   "w": 224,
+   "h": 160
+  }
+ ],
+ "shop:Music_Store": [
+  {
+   "key": "shop_Music_Store_1",
+   "path": "assets/shop_Music_Store/shop_Music_Store_1.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "shop_Music_Store_2",
+   "path": "assets/shop_Music_Store/shop_Music_Store_2.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "shop_Music_Store_3",
+   "path": "assets/shop_Music_Store/shop_Music_Store_3.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "shop_Music_Store_4",
+   "path": "assets/shop_Music_Store/shop_Music_Store_4.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "shop_Music_Store_5",
+   "path": "assets/shop_Music_Store/shop_Music_Store_5.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "shop_Music_Store_6",
+   "path": "assets/shop_Music_Store/shop_Music_Store_6.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "shop_Music_Store_7",
+   "path": "assets/shop_Music_Store/shop_Music_Store_7.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "shop_Music_Store_8",
+   "path": "assets/shop_Music_Store/shop_Music_Store_8.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "shop_Music_Store_9",
+   "path": "assets/shop_Music_Store/shop_Music_Store_9.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "shop_Music_Store_10",
+   "path": "assets/shop_Music_Store/shop_Music_Store_10.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "shop_Music_Store_11",
+   "path": "assets/shop_Music_Store/shop_Music_Store_11.png",
+   "w": 224,
+   "h": 128
+  },
+  {
+   "key": "shop_Music_Store_12",
+   "path": "assets/shop_Music_Store/shop_Music_Store_12.png",
+   "w": 224,
+   "h": 128
+  }
+ ],
+ "shop:Bait_Shop": [
+  {
+   "key": "shop_Bait_Shop_1",
+   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_1.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "shop_Bait_Shop_2",
+   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_2.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "shop_Bait_Shop_3",
+   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_3.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "shop_Bait_Shop_4",
+   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_4.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "shop_Bait_Shop_5",
+   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_5.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "shop_Bait_Shop_6",
+   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_6.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "shop_Bait_Shop_7",
+   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_7.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "shop_Bait_Shop_8",
+   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_8.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "shop_Bait_Shop_9",
+   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_9.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "shop_Bait_Shop_10",
+   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_10.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "shop_Bait_Shop_11",
+   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_11.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "shop_Bait_Shop_12",
+   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_12.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "shop_Bait_Shop_13",
+   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_13.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "shop_Bait_Shop_14",
+   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_14.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "shop_Bait_Shop_15",
+   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_15.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "shop_Bait_Shop_16",
+   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_16.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "shop_Bait_Shop_17",
+   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_17.png",
+   "w": 224,
+   "h": 192
+  },
+  {
+   "key": "shop_Bait_Shop_18",
+   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_18.png",
+   "w": 224,
+   "h": 192
+  }
+ ],
+ "shop:Ice_Cream_Shop": [
+  {
+   "key": "shop_Ice_Cream_Shop_1",
+   "path": "assets/shop_Ice_Cream_Shop/shop_Ice_Cream_Shop_1.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Ice_Cream_Shop_2",
+   "path": "assets/shop_Ice_Cream_Shop/shop_Ice_Cream_Shop_2.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Ice_Cream_Shop_3",
+   "path": "assets/shop_Ice_Cream_Shop/shop_Ice_Cream_Shop_3.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Ice_Cream_Shop_4",
+   "path": "assets/shop_Ice_Cream_Shop/shop_Ice_Cream_Shop_4.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Ice_Cream_Shop_5",
+   "path": "assets/shop_Ice_Cream_Shop/shop_Ice_Cream_Shop_5.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Ice_Cream_Shop_6",
+   "path": "assets/shop_Ice_Cream_Shop/shop_Ice_Cream_Shop_6.png",
+   "w": 224,
+   "h": 160
+  }
+ ],
+ "characters": [
+  {
+   "key": "char_01",
+   "path": "assets/characters/char_01.png",
+   "w": 1792,
+   "h": 1312
+  },
+  {
+   "key": "char_02",
+   "path": "assets/characters/char_02.png",
+   "w": 1792,
+   "h": 1312
+  },
+  {
+   "key": "char_03",
+   "path": "assets/characters/char_03.png",
+   "w": 1792,
+   "h": 1312
+  },
+  {
+   "key": "char_04",
+   "path": "assets/characters/char_04.png",
+   "w": 1792,
+   "h": 1312
+  },
+  {
+   "key": "char_05",
+   "path": "assets/characters/char_05.png",
+   "w": 1792,
+   "h": 1312
+  },
+  {
+   "key": "char_06",
+   "path": "assets/characters/char_06.png",
+   "w": 1792,
+   "h": 1312
+  },
+  {
+   "key": "char_07",
+   "path": "assets/characters/char_07.png",
+   "w": 1792,
+   "h": 1312
+  },
+  {
+   "key": "char_08",
+   "path": "assets/characters/char_08.png",
+   "w": 1792,
+   "h": 1312
+  }
+ ]
+}

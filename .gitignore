@@ -1,5 +1,6 @@
 node_modules/
 dist/
-# Raw purchased asset packs (LimeZu) - not redistributable. Only curated, used sprites go in public/assets.
+# Raw purchased asset packs (LimeZu). Only the curated sprites we use are committed, in public/assets.
 assets-raw/
 *.zip
+

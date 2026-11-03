@@ -18,6 +18,15 @@ the past (kill the future mayor, invest in the bakery...), and come back to see 
 - A timeline is `seed + list of interventions`. Saves only need those two things.
 - Future AI (e.g. Qwen) narrates the structured `chronicle` / `WorldDiff`; it never decides outcomes.
 
+## Art credits
+
+Art by **LimeZu** - [Modern Exteriors](https://limezu.itch.io/modernexteriors) and
+[Modern Interiors](https://limezu.itch.io/moderninteriors) (purchased; credit required by the license).
+Only the sprites we use are committed, in `public/assets/` (about 140 files). To re-extract or add
+more from your zips: `npm run assets -- --exteriors <Modern_Exteriors.zip> --interiors <Modern_Interiors.zip>`
+(edit `scripts/extract-assets.mjs` to choose sprites). The repo is private; keep it that way unless
+you have checked the licenses allow redistribution.
+
 ## Commands
 
 ```
@@ -36,6 +45,6 @@ npm run demo [seed]   # kills the present-day mayor as a child and prints the co
 2b. [ ] Secrets/knowledge, debts and feuds, land ownership, more verbs (blackmail, warn, teach), your own traveler inventory/allies
 3. [x] Phaser + Vite renderer (placeholder art): layout from sim state (`src/town/layout.ts`), walkable player, year slider, original/altered timeline toggle
 4. [ ] Time-travel UI + era visual filters + "what changed" screen
-5. [ ] Curated LimeZu sprites (assets-raw/ is git-ignored; only used sprites are committed, license permitting)
+5. [x] Real LimeZu sprites: tiled terrain, villas (wealthy households) and small homes, shops by type, animated player. Next: trees/props, interiors, NPC sprites
 6. [ ] Capacitor wrapper for Android
 7. [ ] LLM narration and NPC dialogue from the chronicle
