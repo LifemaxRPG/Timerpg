@@ -271,6 +271,222 @@
    "h": 224
   }
  ],
+ "waterShore": [
+  {
+   "key": "water_shore_1",
+   "path": "assets/waterShore/water_shore_1.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_2",
+   "path": "assets/waterShore/water_shore_2.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_3",
+   "path": "assets/waterShore/water_shore_3.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_4",
+   "path": "assets/waterShore/water_shore_4.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_5",
+   "path": "assets/waterShore/water_shore_5.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_6",
+   "path": "assets/waterShore/water_shore_6.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_7",
+   "path": "assets/waterShore/water_shore_7.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_8",
+   "path": "assets/waterShore/water_shore_8.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_9",
+   "path": "assets/waterShore/water_shore_9.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_10",
+   "path": "assets/waterShore/water_shore_10.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_11",
+   "path": "assets/waterShore/water_shore_11.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_12",
+   "path": "assets/waterShore/water_shore_12.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_13",
+   "path": "assets/waterShore/water_shore_13.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_14",
+   "path": "assets/waterShore/water_shore_14.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_15",
+   "path": "assets/waterShore/water_shore_15.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_16",
+   "path": "assets/waterShore/water_shore_16.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_17",
+   "path": "assets/waterShore/water_shore_17.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_18",
+   "path": "assets/waterShore/water_shore_18.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_19",
+   "path": "assets/waterShore/water_shore_19.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_20",
+   "path": "assets/waterShore/water_shore_20.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_21",
+   "path": "assets/waterShore/water_shore_21.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_22",
+   "path": "assets/waterShore/water_shore_22.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_shore_23",
+   "path": "assets/waterShore/water_shore_23.png",
+   "w": 32,
+   "h": 32
+  }
+ ],
+ "waterDecor": [
+  {
+   "key": "water_decor_1",
+   "path": "assets/waterDecor/water_decor_1.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_decor_2",
+   "path": "assets/waterDecor/water_decor_2.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_decor_3",
+   "path": "assets/waterDecor/water_decor_3.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_decor_4",
+   "path": "assets/waterDecor/water_decor_4.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_decor_5",
+   "path": "assets/waterDecor/water_decor_5.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_decor_11",
+   "path": "assets/waterDecor/water_decor_11.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_decor_12",
+   "path": "assets/waterDecor/water_decor_12.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "water_decor_13",
+   "path": "assets/waterDecor/water_decor_13.png",
+   "w": 32,
+   "h": 32
+  }
+ ],
+ "bridgeRail": [
+  {
+   "key": "bridge_rail_2",
+   "path": "assets/bridgeRail/bridge_rail_2.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "bridge_rail_4",
+   "path": "assets/bridgeRail/bridge_rail_4.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "bridge_rail_6",
+   "path": "assets/bridgeRail/bridge_rail_6.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "bridge_rail_8",
+   "path": "assets/bridgeRail/bridge_rail_8.png",
+   "w": 32,
+   "h": 64
+  }
+ ],
  "tree": [
   {
    "key": "tree_1",

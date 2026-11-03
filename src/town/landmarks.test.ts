@@ -97,3 +97,17 @@ describe('civic landmarks (layout by year)', () => {
     expect(inside(layoutTown(worldAt(t, l.openYear)))).toBe(0);
   });
 });
+
+describe('landmarks vs water', () => {
+  it('never sit in or beside a river or lake', async () => {
+    const { hitsWater } = await import('./water');
+    const { planTown } = await import('./plan');
+    let withWater = 0;
+    for (let i = 0; i < 40; i++) {
+      const p = planTown(`seed-${i}`);
+      if (p.water) withWater++;
+      for (const l of p.landmarks) expect(hitsWater(p.water, l, 1), `seed-${i} ${l.id} touches water`).toBe(false);
+    }
+    expect(withWater).toBeGreaterThan(10);
+  });
+});

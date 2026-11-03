@@ -1,5 +1,6 @@
 import { rand } from '../sim/rng';
 import { placeLandmarks, type LandmarkPlot } from './landmarks';
+import { hitsWater, planWater, waterNear, type WaterBody } from './water';
 
 // The TOWN PLAN is everything about the place that does not depend on the year or on
 // time-travel edits: street network, building plots, plaza, forest edge, street furniture.
@@ -40,6 +41,8 @@ export interface TownPlan {
   plaza: Rect;
   /** Civic landmark plots (reserved; which are open depends on the year, see layout.ts). */
   landmarks: LandmarkPlot[];
+  /** River or lake (null if this seed has none); see water.ts. Bridges are in `water.bridges`. */
+  water: WaterBody | null;
 }
 
 export const TILE = 32;
@@ -101,7 +104,10 @@ export function planTown(seed: string): TownPlan {
       lotRow(ks, roadY + 3);
       y = roadY + 3 + SIZES[ks].h + 2;
     }
-    return { width, vroads, roads, raw, mainY, height: y + 2 };
+    for (const vx of vroads) roads.push({ x: vx, y: TOP - 2, w: 2, h: y + 2 - TOP - 2, main: false, horizontal: false });
+    // Water: plots near it are dropped (the growth loop below makes up the capacity).
+    const water = planWater(seed, { width, height: y + 2, marginL, marginR, top: TOP, vroads, roads });
+    return { width, vroads, roads, raw: raw.filter((c) => !hitsWater(water, c, 2)), mainY, height: y + 2, water };
   };
   // Grow the town (wider, then taller) until there is comfortable room for every shop and
   // household; the sim never needs more than ~20 shops and ~100 households.
@@ -111,9 +117,8 @@ export function planTown(seed: string): TownPlan {
   let built = compose(baseWidth, bands);
   for (let extra = 6; count(built, 'shop') - 2 < 24 && extra <= 60; extra += 6) built = compose(baseWidth + extra, bands);
   while (count(built, 'small', 'medium') < 140 && bands < 12) built = compose(built.width, ++bands);
-  const { width, vroads, roads, raw, mainY } = built;
+  const { width, vroads, roads, raw, mainY, water } = built;
   let height = built.height;
-  for (const vx of vroads) roads.push({ x: vx, y: TOP - 2, w: 2, h: height - TOP - 2, main: false, horizontal: false });
 
   // Plaza: replaces the two most central shop plots on the north side of main street.
   const center = { x: (marginL + width - marginR) / 2, y: mainY + 1 };
@@ -136,6 +141,7 @@ export function planTown(seed: string): TownPlan {
   const lm = placeLandmarks(seed, {
     marginL, marginR, top: TOP, width, height, roads, plaza, center, plots: afterPlaza,
     keep: [[['shop'], 22], [['villa'], 6], [['small', 'medium'], 140]],
+    blocked: (box) => hitsWater(water, box, 2),
   });
   const kept = lm.plots as typeof afterPlaza;
   roads.push(...lm.roads);
@@ -160,9 +166,9 @@ export function planTown(seed: string): TownPlan {
     const spacing = r.main ? 9 : 14;
     for (const [side, rowY] of [['n', r.y - 1], ['s', r.y + 2]] as const) {
       for (let x = r.x + 2 + Math.floor(R('lamp0', r.y, side) * spacing); x < r.x + r.w - 2; x += spacing) {
-        if (vroads.some((vx) => x >= vx - 1 && x < vx + 3)) continue;
+        if (vroads.some((vx) => x >= vx - 1 && x < vx + 3) || waterNear(water, x, rowY, 2)) continue;
         add('lamp', x + 0.5, rowY + 1, look('lamp', r.y, side, x));
-        if (r.main && look('bench', r.y, side, x) < 0.4 && !vroads.some((vx) => x + 4 >= vx - 1 && x + 4 < vx + 3))
+        if (r.main && look('bench', r.y, side, x) < 0.4 && !vroads.some((vx) => x + 4 >= vx - 1 && x + 4 < vx + 3) && !waterNear(water, x + 4, rowY, 2))
           add('bench', x + 4, rowY + 1, look('bench2', x, side));
       }
     }
@@ -183,13 +189,13 @@ export function planTown(seed: string): TownPlan {
   for (let ty = 0; ty < height; ty += 2) {
     for (let tx = 0; tx < width; tx += 2) {
       const inside = tx >= marginL && tx < width - marginR && ty >= 3 && ty < height - 2;
-      if (inside || nearRoad(roads, tx, ty) || nearRoad(roads, tx + 1, ty + 1)) continue;
+      if (inside || nearRoad(roads, tx, ty) || nearRoad(roads, tx + 1, ty + 1) || waterNear(water, tx, ty, 3)) continue;
       const r = R('forest', tx, ty);
       if (r < 0.68) add('tree', tx + 0.5 + R('fx', tx, ty), ty + 1.5 + R('fy', tx, ty), look('ftree', tx, ty));
     }
   }
 
-  const plan: TownPlan = { seed, width, height, roads, candidates, props, mainY, center, plaza, landmarks };
+  const plan: TownPlan = { seed, width, height, roads, candidates, props, mainY, center, plaza, landmarks, water };
   cache.set(seed, plan);
   return plan;
 }
