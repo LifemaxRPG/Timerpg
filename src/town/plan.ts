@@ -1,4 +1,5 @@
 import { rand } from '../sim/rng';
+import { placeLandmarks, type LandmarkPlot } from './landmarks';
 
 // The TOWN PLAN is everything about the place that does not depend on the year or on
 // time-travel edits: street network, building plots, plaza, forest edge, street furniture.
@@ -37,6 +38,8 @@ export interface TownPlan {
   mainY: number;
   center: { x: number; y: number };
   plaza: Rect;
+  /** Civic landmark plots (reserved; which are open depends on the year, see layout.ts). */
+  landmarks: LandmarkPlot[];
 }
 
 export const TILE = 32;
@@ -108,7 +111,8 @@ export function planTown(seed: string): TownPlan {
   let built = compose(baseWidth, bands);
   for (let extra = 6; count(built, 'shop') - 2 < 24 && extra <= 60; extra += 6) built = compose(baseWidth + extra, bands);
   while (count(built, 'small', 'medium') < 140 && bands < 12) built = compose(built.width, ++bands);
-  const { width, vroads, roads, raw, mainY, height } = built;
+  const { width, vroads, roads, raw, mainY } = built;
+  let height = built.height;
   for (const vx of vroads) roads.push({ x: vx, y: TOP - 2, w: 2, h: height - TOP - 2, main: false, horizontal: false });
 
   // Plaza: replaces the two most central shop plots on the north side of main street.
@@ -125,7 +129,18 @@ export function planTown(seed: string): TownPlan {
   const [p1, p2] = best!;
   const px = Math.min(p1.x, p2.x);
   const plaza: Rect = { x: px, y: p1.y, w: Math.max(p1.x, p2.x) + SIZES.shop.w - px, h: SIZES.shop.h };
-  const kept = raw.filter((c) => c !== p1 && c !== p2);
+  const afterPlaza = raw.filter((c) => c !== p1 && c !== p2);
+
+  // Civic landmarks replace the plots they cover (never roads/plaza); an extra civic street is
+  // appended below the town if one does not fit between the blocks.
+  const lm = placeLandmarks(seed, {
+    marginL, marginR, top: TOP, width, height, roads, plaza, center, plots: afterPlaza,
+    keep: [[['shop'], 22], [['villa'], 6], [['small', 'medium'], 140]],
+  });
+  const kept = lm.plots as typeof afterPlaza;
+  roads.push(...lm.roads);
+  height = lm.height;
+  const landmarks = lm.landmarks;
 
   const candidates: Candidate[] = kept.map((c) => {
     const cx = c.x + c.w / 2;
@@ -174,7 +189,7 @@ export function planTown(seed: string): TownPlan {
     }
   }
 
-  const plan: TownPlan = { seed, width, height, roads, candidates, props, mainY, center, plaza };
+  const plan: TownPlan = { seed, width, height, roads, candidates, props, mainY, center, plaza, landmarks };
   cache.set(seed, plan);
   return plan;
 }

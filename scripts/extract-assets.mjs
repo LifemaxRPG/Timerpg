@@ -54,6 +54,19 @@ const SHOPS = {
 for (const [kind, nums] of Object.entries(SHOPS))
   exteriors[`shop:${kind}`] = nums.map((i) => [`shop_${kind}_${i}`, `${FM}Ground_Floor_${kind}_${i}.png`]);
 
+// Civic landmark buildings (whole-building sprites; tile sizes are mirrored in src/town/landmarks.ts).
+const LM = {
+  post: ['22_Post_Office_Singles_32x32/22_Post_Office_32x32_Building_', [1, 2, 3, 4]],
+  school: ['13_School_Singles_32x32/ME_Singles_School_32x32_School_', [1]],
+  fire: ['18_Fire_Station_Singles_32x32/ME_Singles_Fire_Station_32x32_Building', ['']],
+  police: ['15_Police_Station_Singles_32x32/ME_Singles_Police_Station_32x32_Police_Station_', [1, 2, 3]],
+  hospital: ['12_Hotel_and_Hospital_Singles_32x32/ME_Singles_Hotel_and_Hospital_32x32_Hospital_', [1]],
+  hotel: ['12_Hotel_and_Hospital_Singles_32x32/ME_Singles_Hotel_and_Hospital_32x32_Hotel_', [1]],
+  clocktower: ['13_School_Singles_32x32/ME_Singles_School_32x32_Clock_Tower_', [1, 2]],
+};
+for (const [kind, [base, nums]] of Object.entries(LM))
+  exteriors[`landmark:${kind}`] = nums.map((n) => [`landmark_${kind}_${n || 1}`, `${ME}${base}${n}.png`]);
+
 const interiors = {
   characters: range(1, 8).map((n) => {
     const id = String(n).padStart(2, '0');

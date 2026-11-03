@@ -111,7 +111,8 @@ describe('town layout (who lives where)', () => {
       const tx = p.x / 32;
       const ty = (p.y - 1) / 32;
       // yard props sit inside their own lot, so only check against OTHER lots
-      const host = l.plan.candidates.find((c) => tx >= c.x && tx <= c.x + c.w && ty >= c.y && ty <= c.y + c.h);
+      const host = [...l.plan.candidates.map((c) => ({ ...c })), ...l.plan.landmarks.map((c) => ({ ...c, id: c.id as string }))]
+        .find((c) => tx >= c.x && tx <= c.x + c.w && ty >= c.y && ty <= c.y + c.h);
       expect(host).toBeDefined();
       const other = occupied.find((o) => o.slot !== host!.id && tx >= o.x && tx < o.x + o.w && ty >= o.y && ty < o.y + o.h);
       expect(other).toBeUndefined();

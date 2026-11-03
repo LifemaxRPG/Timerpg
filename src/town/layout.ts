@@ -1,9 +1,10 @@
 import { rand } from '../sim/rng';
 import { ageIn, fullName, isAlive, type Id, type Person, type World } from '../sim/types';
+import type { LandmarkPlot } from './landmarks';
 import { planTown, TILE, type Candidate, type LotKind, type Prop, type Road, type TownPlan } from './plan';
 
 export { TILE };
-export type { LotKind, Prop, Road };
+export type { LotKind, Prop, Road, LandmarkPlot };
 
 export interface Lot {
   x: number; y: number; w: number; h: number;
@@ -25,6 +26,8 @@ export interface TownLayout {
   height: number;
   roads: readonly Road[];
   lots: Lot[];
+  /** Civic landmarks that have opened by this year (world.year >= openYear). */
+  landmarks: LandmarkPlot[];
   /** Year-dependent decoration (yards, trees on empty plots). Static props live in the plan. */
   props: Prop[];
   plan: TownPlan;
@@ -157,7 +160,23 @@ export function layoutTown(w: World): TownLayout {
     }
   }
 
-  return { width: plan.width, height: plan.height, roads: plan.roads, lots, props, plan };
+  // Landmark plots: wooded until the landmark opens.
+  const landmarks = plan.landmarks.filter((l) => w.year >= l.openYear);
+  for (const l of plan.landmarks) {
+    if (w.year >= l.openYear) continue;
+    const n = 6 + Math.round((l.w * l.h) / 25);
+    for (let i = 0; i < n; i++) {
+      const r3 = rand(w.seed, 'lm-k', l.id, i);
+      props.push({
+        kind: r3 < 0.6 ? 'tree' : r3 < 0.85 ? 'bush' : 'flowerBush',
+        x: Math.round((l.x + 0.5 + rand(w.seed, 'lm-x', l.id, i) * (l.w - 1)) * TILE),
+        y: Math.round((l.y + 1 + rand(w.seed, 'lm-y', l.id, i) * (l.h - 1.5)) * TILE),
+        look: rand(w.seed, 'lm-l', l.id, i),
+      });
+    }
+  }
+
+  return { width: plan.width, height: plan.height, roads: plan.roads, lots, landmarks, props, plan };
 }
 
 export const lotDescription = (w: World, lot: Lot): string[] => {
@@ -174,3 +193,9 @@ export const lotDescription = (w: World, lot: Lot): string[] => {
     }),
   ];
 };
+
+export const landmarkDescription = (w: World, l: LandmarkPlot): string[] => [
+  l.name,
+  `Opened ${l.openYear} (${w.year - l.openYear} year${w.year - l.openYear === 1 ? '' : 's'} ago)`,
+  l.blurb,
+];

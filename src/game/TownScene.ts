@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { fullName, type World } from '../sim';
-import { layoutTown, lotDescription, type Lot, type Prop, type TownLayout } from '../town/layout';
+import { layoutTown, landmarkDescription, lotDescription, type LandmarkPlot, type Lot, type Prop, type TownLayout } from '../town/layout';
+import { landmarkFootprint } from '../town/landmarks';
 import { planTown, type TownPlan } from '../town/plan';
 import { pickVariant, shopArtGroup, type Manifest } from './art';
 
@@ -138,6 +139,7 @@ export class TownScene extends Phaser.Scene {
     for (const o of this.drawn) o.destroy();
     this.drawn = [];
     for (const lot of this.layout.lots) this.drawLot(w, lot);
+    for (const l of this.layout.landmarks) this.drawLandmark(l);
     for (const p of this.layout.props) this.drawProp(p, true);
     this.onWorld(w);
   }
@@ -147,6 +149,16 @@ export class TownScene extends Phaser.Scene {
     if (!art) return;
     const img = this.add.image(p.x, p.y, art.key).setOrigin(0.5, 1).setDepth(p.kind === 'flowers' ? p.y - 500 : p.y);
     if (dynamic) this.drawn.push(img);
+  }
+
+  private drawLandmark(l: LandmarkPlot): void {
+    const art = pickVariant(this.manifest[`landmark:${l.id}`] ?? [], l.look);
+    if (!art) return;
+    const bottom = (l.y + l.h) * TILE;
+    this.drawn.push(this.add.image((l.x + l.w / 2) * TILE, bottom, art.key).setOrigin(0.5, 1).setDepth(bottom));
+    this.drawn.push(this.add.text((l.x + l.w / 2) * TILE, bottom + 4, l.name, {
+      fontFamily: 'system-ui, sans-serif', fontSize: '11px', color: '#fff', backgroundColor: 'rgba(0,0,0,0.6)', padding: { x: 4, y: 2 },
+    }).setOrigin(0.5, 0).setDepth(bottom + 1));
   }
 
   private drawLot(w: World, lot: Lot): void {
@@ -180,6 +192,8 @@ export class TownScene extends Phaser.Scene {
     const wp = this.cameras.main.getWorldPoint(p.x, p.y);
     const tx = wp.x / TILE;
     const ty = wp.y / TILE;
+    const lm = this.layout.landmarks.find((l) => tx >= l.x && tx < l.x + l.w && ty >= l.y && ty < l.y + l.h);
+    if (lm) { this.onInfo(landmarkDescription(w, lm)); return; }
     const lot = this.layout.lots.find((l) => tx >= l.x && tx < l.x + l.w && ty >= l.y && ty < l.y + l.h);
     this.onInfo(lot ? lotDescription(w, lot) : null);
   }
@@ -187,6 +201,11 @@ export class TownScene extends Phaser.Scene {
   /** Feet box vs building footprints (the lower part of each lot). */
   private blocked(x: number, y: number): boolean {
     if (!this.layout) return false;
+    const inLandmark = this.layout.landmarks.some((l) => {
+      const f = landmarkFootprint(l);
+      return x + 7 > f.x * TILE && x - 7 < (f.x + f.w) * TILE && y > f.y * TILE && y - 4 < (f.y + f.h) * TILE;
+    });
+    if (inLandmark) return true;
     return this.layout.lots.some((l) => {
       const footTop = (l.y + l.h - Math.min(l.h, l.kind === 'shop' ? 5 : l.tier === 'villa' ? 6 : 4)) * TILE;
       return x + 7 > l.x * TILE && x - 7 < (l.x + l.w) * TILE && y > footTop && y - 4 < (l.y + l.h) * TILE;
