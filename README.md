@@ -48,6 +48,12 @@ you have checked the licenses allow redistribution.
 - `docs/ANDROID.md` - building the Android app
 - `docs/REVIEW_GUIDE.md` - architecture and open questions, written for code reviewers
 
+## Single-file build
+
+`npm run build:single` writes `export/timerpg.html`: one self-contained file (code, worker and every sprite embedded) that works when
+opened directly from disk or a phone's storage, no server needed. If the browser will not start the embedded worker, town generation
+falls back to the main thread automatically.
+
 ## Commands
 
 ```

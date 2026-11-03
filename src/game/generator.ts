@@ -1,26 +1,59 @@
+import GenWorker from '../sim/worker.ts?worker&inline';
+import { generate, type GenRequest, type GenResponse } from '../sim/generate';
 import { primePlan, type TownPlan } from '../town/plan';
 import type { Intervention, World } from '../sim/types';
-import type { GenRequest, GenResponse } from '../sim/worker';
 
-/** Asks a background worker for town plans and histories; results come back as promises. */
+/**
+ * Asks for town plans and histories; results come back as promises. Generation runs in a background
+ * worker (embedded in the page, so it also works from a single saved HTML file). If the browser will not
+ * start the worker (some file:// / content:// contexts), it quietly falls back to the main thread.
+ */
 export class Generator {
-  private worker = new Worker(new URL('../sim/worker.ts', import.meta.url), { type: 'module' });
-  private pending = new Map<number, (r: GenResponse) => void>();
+  private worker: Worker | null = null;
+  private pending = new Map<number, { req: GenRequest; resolve: (r: GenResponse) => void }>();
   private cached = new Map<string, Promise<TownPlan>>();
   private nextId = 1;
+  private heard = false;
 
   constructor() {
-    this.worker.onmessage = (e: MessageEvent<GenResponse>) => {
-      this.pending.get(e.data.id)?.(e.data);
-      this.pending.delete(e.data.id);
-    };
+    try {
+      this.worker = new GenWorker();
+      this.worker.onmessage = (e: MessageEvent<GenResponse>) => {
+        this.heard = true;
+        const p = this.pending.get(e.data.id);
+        this.pending.delete(e.data.id);
+        p?.resolve(e.data);
+      };
+      this.worker.onerror = () => this.fallBack();
+      // A worker that never answers (blocked silently) is treated like one that failed.
+      window.setTimeout(() => { if (!this.heard && this.pending.size) this.fallBack(); }, 12000);
+    } catch {
+      this.worker = null;
+    }
+  }
+
+  /** Whether generation is running on the main thread (no worker available). */
+  get onMainThread(): boolean {
+    return this.worker === null;
+  }
+
+  private fallBack(): void {
+    if (!this.worker) return;
+    this.worker.terminate();
+    this.worker = null;
+    for (const p of this.pending.values()) this.runHere(p.req, p.resolve);
+  }
+
+  private runHere(req: GenRequest, resolve: (r: GenResponse) => void): void {
+    window.setTimeout(() => { this.pending.delete(req.id); resolve(generate(req)); }, 0);
   }
 
   private ask(req: Omit<GenRequest, 'id'>): Promise<GenResponse> {
     return new Promise((resolve) => {
-      const id = this.nextId++;
-      this.pending.set(id, resolve);
-      this.worker.postMessage({ id, ...req } satisfies GenRequest);
+      const full: GenRequest = { id: this.nextId++, ...req };
+      this.pending.set(full.id, { req: full, resolve });
+      if (this.worker) this.worker.postMessage(full);
+      else this.runHere(full, resolve);
     });
   }
 

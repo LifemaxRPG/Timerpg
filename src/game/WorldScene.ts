@@ -96,16 +96,22 @@ export class WorldScene extends Phaser.Scene {
   }
 
   preload(): void {
-    this.load.json('manifest', 'assets/manifest.json');
-    this.load.once('filecomplete-json-manifest', () => {
-      this.manifest = this.cache.json.get('manifest') as Manifest;
-      for (const [group, items] of Object.entries(this.manifest)) {
+    // In the single-file build the manifest and every sprite are embedded in the page as data URIs
+    // (a saved HTML file cannot fetch files next to it); otherwise they are loaded from assets/.
+    const embed = (window as unknown as { __EMBED__?: { manifest: Manifest; files: Record<string, string> } }).__EMBED__;
+    const queue = (manifest: Manifest): void => {
+      this.manifest = manifest;
+      for (const [group, items] of Object.entries(manifest)) {
         for (const it of items) {
-          if (group === 'characters') this.load.spritesheet(it.key, it.path, { frameWidth: 32, frameHeight: 64 });
-          else this.load.image(it.key, it.path);
+          const src = embed?.files[it.path] ?? it.path;
+          if (group === 'characters') this.load.spritesheet(it.key, src, { frameWidth: 32, frameHeight: 64 });
+          else this.load.image(it.key, src);
         }
       }
-    });
+    };
+    if (embed) { queue(embed.manifest); return; }
+    this.load.json('manifest', 'assets/manifest.json');
+    this.load.once('filecomplete-json-manifest', () => queue(this.cache.json.get('manifest') as Manifest));
   }
 
   create(): void {
@@ -125,7 +131,8 @@ export class WorldScene extends Phaser.Scene {
     this.player.play('idle-down');
 
     const cam = this.cameras.main;
-    cam.setZoom(1);
+    // Phones are narrow: start zoomed out a little so there is more street on screen.
+    cam.setZoom(Phaser.Math.Clamp(this.scale.width / 640, 0.6, 1));
     cam.roundPixels = true;
     this.input.addPointer(1); // a second finger, for pinch-to-zoom
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => { if (!this.input.pointer2.isDown) this.click(p); });

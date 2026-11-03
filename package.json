@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "assets": "node scripts/extract-assets.mjs",
     "android:sync": "vite build && cap sync android",
-    "android:open": "cap open android"
+    "android:open": "cap open android",
+    "build:single": "node scripts/build-single.mjs"
   },
   "devDependencies": {
     "@capacitor/android": "^6.2.3",
