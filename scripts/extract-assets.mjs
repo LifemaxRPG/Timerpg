@@ -173,6 +173,88 @@ for (const [group, combos] of Object.entries(COMBOS)) {
     });
   }
 }
+
+// ---- "Classic" (pre-1975) storefronts. The pack's shop fronts have big modern signs (a loaf of bread, a
+// fish, cleavers...). For earlier decades we keep each storefront below its sign line, rebuild the brick
+// wall and cornice above it from a clean strip of the same sprite, and paint a flat sign board with plain
+// block lettering from a tiny built-in pixel font. One sprite per (business kind, ground-floor variant).
+const FONT = {
+  A: ['.###.', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'], B: ['####.', '#...#', '#...#', '####.', '#...#', '#...#', '####.'],
+  C: ['.####', '#....', '#....', '#....', '#....', '#....', '.####'], D: ['####.', '#...#', '#...#', '#...#', '#...#', '#...#', '####.'],
+  E: ['#####', '#....', '#....', '####.', '#....', '#....', '#####'], F: ['#####', '#....', '#....', '####.', '#....', '#....', '#....'],
+  G: ['.####', '#....', '#....', '#.###', '#...#', '#...#', '.###.'], H: ['#...#', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
+  I: ['#####', '..#..', '..#..', '..#..', '..#..', '..#..', '#####'], J: ['..###', '...#.', '...#.', '...#.', '...#.', '#..#.', '.##..'],
+  K: ['#...#', '#..#.', '#.#..', '##...', '#.#..', '#..#.', '#...#'], L: ['#....', '#....', '#....', '#....', '#....', '#....', '#####'],
+  M: ['#...#', '##.##', '#.#.#', '#.#.#', '#...#', '#...#', '#...#'], N: ['#...#', '##..#', '#.#.#', '#..##', '#...#', '#...#', '#...#'],
+  O: ['.###.', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'], P: ['####.', '#...#', '#...#', '####.', '#....', '#....', '#....'],
+  R: ['####.', '#...#', '#...#', '####.', '#.#..', '#..#.', '#...#'], S: ['.####', '#....', '#....', '.###.', '....#', '....#', '####.'],
+  T: ['#####', '..#..', '..#..', '..#..', '..#..', '..#..', '..#..'], U: ['#...#', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
+  V: ['#...#', '#...#', '#...#', '#...#', '#...#', '.#.#.', '..#..'], W: ['#...#', '#...#', '#...#', '#.#.#', '#.#.#', '##.##', '#...#'],
+  X: ['#...#', '#...#', '.#.#.', '..#..', '.#.#.', '#...#', '#...#'], Y: ['#...#', '#...#', '.#.#.', '..#..', '..#..', '..#..', '..#..'],
+  Z: ['#####', '....#', '...#.', '..#..', '.#...', '#....', '#####'], '&': ['.##..', '#..#.', '.##..', '.#...', '#.#.#', '#..#.', '.##.#'],
+  ' ': ['.....', '.....', '.....', '.....', '.....', '.....', '.....'],
+};
+const SCALE = 2; // each font pixel is 2x2 sprite pixels
+const textWidth = (t) => t.length * 6 * SCALE - SCALE;
+/** One storefront per business kind: [kind, family, sign text, board, letters, border] (RGB). */
+const CLASSIC = [
+  ['Bakery', 'Bakery', 'BAKERY', [236, 226, 192], [160, 48, 44], [70, 44, 32]],
+  ['Butcher', 'Butchery', 'BUTCHER', [34, 86, 62], [240, 232, 204], [18, 48, 36]],
+  ['Ice Cream Parlor', 'Ice_Cream_Shop', 'ICE CREAM', [250, 228, 232], [32, 112, 122], [110, 70, 84]],
+  ['Music Store', 'Music_Store', 'MUSIC', [30, 44, 92], [240, 204, 84], [14, 22, 56]],
+  ['Bait Shop', 'Bait_Shop', 'BAIT & TACKLE', [36, 98, 102], [240, 232, 204], [18, 52, 56]],
+  ['General Store', 'Shop', 'GENERAL STORE', [236, 226, 192], [40, 40, 52], [70, 52, 36]],
+  ['Hardware', 'Shop', 'HARDWARE', [44, 84, 56], [240, 232, 204], [22, 46, 30]],
+  ['Diner', 'Shop', 'DINER', [170, 48, 44], [244, 236, 214], [90, 24, 22]],
+  ['Pharmacy', 'Shop', 'PHARMACY', [244, 244, 236], [44, 120, 72], [80, 90, 84]],
+  ['Bank', 'Shop', 'BANK', [40, 44, 56], [236, 200, 90], [20, 22, 30]],
+  ['Newspaper', 'Shop', 'NEWSPAPER', [238, 232, 214], [30, 30, 36], [80, 74, 62]],
+  ['Barber Shop', 'Shop', 'BARBER', [244, 244, 240], [176, 40, 44], [60, 64, 90]],
+];
+/** Rows (from the bottom of the 96px storefront) below which the original is kept untouched. */
+const KEEP = { Bakery: 66, Butchery: 66, Ice_Cream_Shop: 62, Music_Store: 66, Bait_Shop: 66, Shop: 74 };
+/** Clean brick strip (x range) per family: the right side for the bait shop (the fish covers its left). */
+const STRIP = { Bait_Shop: 196 };
+const slug = (k) => k.toLowerCase().replace(/[^a-z]+/g, '_');
+
+function classicShop(buf, fam, text, board, letters, border) {
+  const src = PNG.sync.read(buf);
+  const W = src.width, H = src.height, BODY = 96;
+  const out = new PNG({ width: W, height: BODY });
+  const px = (img, x, y) => { const i = (y * img.width + x) * 4; return [img.data[i], img.data[i + 1], img.data[i + 2], img.data[i + 3]]; };
+  const put = (x, y, c) => { const i = (y * W + x) * 4; out.data[i] = c[0]; out.data[i + 1] = c[1]; out.data[i + 2] = c[2]; out.data[i + 3] = c[3] ?? 255; };
+  for (let y = 0; y < BODY; y++) for (let x = 0; x < W; x++) put(x, y, px(src, x, y + H - BODY)); // storefront only
+  // Rebuild the wall + cornice above the kept part by tiling a clean 8px strip.
+  const rebuild = BODY - KEEP[fam]; // rows from the top
+  const sx = STRIP[fam] ?? 8;
+  for (let y = 0; y < rebuild; y++) for (let x = 6; x < W - 6; x++) put(x, y, px(src, sx + ((x - 6) % 8), y + H - BODY));
+  // Sign board (centered), 20 rows tall, just under the cornice.
+  const tw = textWidth(text), bw = Math.min(W - 24, tw + 16), bh = 20;
+  const bx = Math.floor((W - bw) / 2), by = 12;
+  for (let y = by; y < by + bh; y++)
+    for (let x = bx; x < bx + bw; x++) put(x, y, x === bx || x === bx + bw - 1 || y === by || y === by + bh - 1 ? border : board);
+  let cx = Math.floor((W - tw) / 2);
+  const cy = by + Math.floor((bh - 7 * SCALE) / 2);
+  for (const ch of text) {
+    const g = FONT[ch] ?? FONT[' '];
+    for (let gy = 0; gy < 7; gy++) for (let gx = 0; gx < 5; gx++) if (g[gy][gx] === '#')
+      for (let dy = 0; dy < SCALE; dy++) for (let dx = 0; dx < SCALE; dx++) put(cx + gx * SCALE + dx, cy + gy * SCALE + dy, letters);
+    cx += 6 * SCALE;
+  }
+  return PNG.sync.write(out);
+}
+for (const [kind, fam, text, board, letters, border] of CLASSIC) {
+  const group = `classic:${slug(kind)}`;
+  manifest[group] = [];
+  for (const e of manifest[`shop:${fam}`]) {
+    const n = e.key.split('_').pop();
+    const key = `classic_${slug(kind)}_${n}`;
+    const rel = `${group.replace(':', '_')}/${key}.png`;
+    fs.mkdirSync(path.join(OUT, path.dirname(rel)), { recursive: true });
+    fs.writeFileSync(path.join(OUT, rel), classicShop(fs.readFileSync(path.join(path.dirname(OUT), e.path)), fam, text, board, letters, border));
+    manifest[group].push({ key, path: `assets/${rel}`, w: 224, h: 96 });
+  }
+}
 fs.writeFileSync(path.join(OUT, 'manifest.json'), JSON.stringify(manifest, null, 1));
 const total = Object.values(manifest).reduce((s, g) => s + g.length, 0);
 console.log(`Extracted ${total} sprites to ${path.relative(process.cwd(), OUT)}`);

@@ -4,6 +4,9 @@
 /** Rooftop billboards only appear once advertising took off. */
 export const BILLBOARDS_FROM = 1975;
 
+/** Before this year shops have plain painted sign boards; after it, the big modern signs (bread, fish, cleavers...). */
+export const CLASSIC_STOREFRONTS_UNTIL = 1975;
+
 /**
  * Lamp sprites in manifest order (scripts/extract-assets.mjs, group `lamp`: Street_Lamp 1..5):
  * 0,1 ornate double-arm posts, 2,3 modern cobra heads, 4 old globe lamp.

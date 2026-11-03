@@ -33,4 +33,18 @@ describe('era', () => {
     for (let i = 0; i < 200; i++) if (shopFacade('Hardware', i / 200, 2025).layers.some((l) => l.key.startsWith('roofprop_'))) late++;
     expect(late).toBeGreaterThan(20);
   });
+
+  it('shops are plain painted-sign storefronts before 1975 and have the fancy signs after', () => {
+    for (const kind of ['Bakery', 'Butcher', 'Ice Cream Parlor', 'Music Store', 'Bait Shop', 'Hardware', 'Diner']) {
+      for (let i = 0; i < 20; i++) {
+        const early = shopFacade(kind, i / 20, 1952);
+        const late = shopFacade(kind, i / 20, 2025);
+        expect(early.layers[0]!.key.startsWith('classic_'), `${kind} 1952`).toBe(true);
+        expect(early.layers[0]!.h).toBe(96);
+        expect(late.layers[0]!.key.startsWith('shop_'), `${kind} 2025`).toBe(true);
+        // Same building either way: same number of floors and same total height.
+        expect(early.h).toBe(late.h);
+      }
+    }
+  });
 });

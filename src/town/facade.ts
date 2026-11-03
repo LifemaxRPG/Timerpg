@@ -1,5 +1,6 @@
 import { rand } from '../sim/rng';
-import { BILLBOARDS_FROM } from './era';
+import { BILLBOARDS_FROM, CLASSIC_STOREFRONTS_UNTIL } from './era';
+import { BUSINESS_KINDS } from '../sim/names';
 import { colourOf, pickStable, stack, type BuildingArt, type Colour } from './buildings';
 
 // Shop fronts: a ground floor of the business's type, optionally a middle floor with windows,
@@ -27,6 +28,8 @@ const SHOP_ART: Record<string, string> = {
   'Bait Shop': 'Bait_Shop',
 };
 export const shopFamily = (businessKind: string): string => SHOP_ART[businessKind] ?? 'Shop';
+/** Matches `slug` in scripts/extract-assets.mjs (classic storefront sprite names). */
+export const kindSlug = (kind: string): string => kind.toLowerCase().replace(/[^a-z]+/g, '_');
 export const SHOP_PLOT_H = 13 * 32;
 export const SHOP_W = 224;
 
@@ -46,6 +49,8 @@ export function allFacadeArt(): { key: string; w: number; h: number }[] {
   for (let n = 1; n <= 11; n++) out.push({ key: `roof_${n}`, w: SHOP_W, h: ROOF_H(n) });
   for (let n = 1; n <= 18; n++) out.push({ key: `middle_${n}`, w: SHOP_W, h: 128 });
   for (const n of BILLBOARDS) out.push({ key: `roofprop_${n}`, w: 160, h: 96 });
+  // Plain pre-1975 storefronts: one per business kind and ground-floor variant, storefront only (96px).
+  for (const kind of BUSINESS_KINDS) for (const n of FAMILIES[shopFamily(kind)]!.nums) out.push({ key: `classic_${kindSlug(kind)}_${n}`, w: SHOP_W, h: BODY });
   return out;
 }
 
@@ -66,7 +71,10 @@ export function shopFacade(businessKind: string, look: number, year = 2025): Bui
   const middle = colour === 'red' ? 1 : colour === 'blue' ? 7 : 13;
 
   const parts = [
-    { key: `shop_${fam}_${ground}`, w: SHOP_W, h: f.h, rise: BODY },
+    // Before 1975: the plain painted-sign version (already just the 96px storefront).
+    year < CLASSIC_STOREFRONTS_UNTIL
+      ? { key: `classic_${kindSlug(businessKind)}_${ground}`, w: SHOP_W, h: BODY, rise: BODY }
+      : { key: `shop_${fam}_${ground}`, w: SHOP_W, h: f.h, rise: BODY },
     ...(withMiddle ? [{ key: `middle_${middle + Math.floor(r('midv') * 6)}`, w: SHOP_W, h: 128 }] : []),
     { key: `roof_${roof}`, w: SHOP_W, h: ROOF_H(roof) },
   ];
