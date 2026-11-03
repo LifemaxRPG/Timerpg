@@ -47,6 +47,7 @@ npm run demo [seed]   # kills the present-day mayor as a child and prints the co
 1. [x] Deterministic simulation core + interventions + diff
 2. [x] Verbs: kill, invest, sabotage, introduce, rumor, gift
 2c. [x] World generation v2: per-seed street networks, districts, plaza, forest edge, street furniture, growth from the center
+2d. [x] Landmarks (post office, school, fire/police station, hospital, hotel, clock tower) with per-seed opening years (`src/town/landmarks.ts`)
 2b. [ ] Secrets/knowledge, debts and feuds, land ownership, more verbs (blackmail, warn, teach), your own traveler inventory/allies
 3. [x] Phaser + Vite renderer (placeholder art): layout from sim state (`src/town/layout.ts`), walkable player, year slider, original/altered timeline toggle
 4. [ ] Time-travel UI + era-specific buildings and props + "what changed" screen
