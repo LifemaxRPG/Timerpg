@@ -4,6 +4,7 @@
 // public/assets/ (git-ignored; the pack licenses forbid redistributing the files) and writes
 // public/assets/manifest.json. Without these files the game falls back to placeholder art.
 import AdmZip from 'adm-zip';
+import { PNG } from 'pngjs';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -124,6 +125,54 @@ function pull(zipPath, groups) {
 }
 pull(path.resolve(args.exteriors), exteriors);
 pull(path.resolve(args.interiors), interiors);
+
+// ---- Recolored variants of the mobile homes and terraced houses (the pack has only one gray colorway,
+// which made towns look samey). The license allows editing the assets. Walls (light, unsaturated pixels)
+// and roofs (mid-dark, unsaturated pixels) are re-tinted; outlines, windows, doors and decks are untouched.
+const WALLS = [null, [250, 238, 200], [200, 225, 245], [205, 230, 205], [245, 215, 215], [250, 220, 190]];
+const ROOFS = [null, [150, 62, 54], [62, 102, 70], [104, 74, 56], [58, 76, 118], [172, 92, 58]];
+function hsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2;
+  const d = max - min;
+  const sat = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+  return [sat, l];
+}
+function recolor(buf, wi, ri) {
+  const png = PNG.sync.read(buf);
+  const d = png.data;
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i + 3] === 0) continue;
+    const [sat, l] = hsl(d[i], d[i + 1], d[i + 2]);
+    if (l < 0.22 || sat >= 0.25) continue;
+    let t, k;
+    if (l > 0.7 && WALLS[wi]) { t = WALLS[wi]; k = l / 0.93; }
+    else if (l <= 0.7 && ROOFS[ri]) { t = ROOFS[ri]; k = Math.min(1.2, l / 0.42); }
+    else continue;
+    d[i] = Math.min(255, Math.round(t[0] * k));
+    d[i + 1] = Math.min(255, Math.round(t[1] * k));
+    d[i + 2] = Math.min(255, Math.round(t[2] * k));
+  }
+  return PNG.sync.write(png);
+}
+/** [wall, roof] palette indices for each recolored variant; _c0 would be the original. */
+const COMBOS = {
+  houseSmall: [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [0, 1], [0, 2], [0, 3], [2, 4]],
+  houseMedium: [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [0, 1], [0, 2], [0, 3], [2, 4]],
+  houseTerraced: [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5]],
+};
+for (const [group, combos] of Object.entries(COMBOS)) {
+  const originals = [...manifest[group]];
+  for (const e of originals) {
+    const src = fs.readFileSync(path.join(path.dirname(OUT), e.path));
+    combos.forEach(([wi, ri], ci) => {
+      const key = `${e.key}_c${ci + 1}`;
+      const rel = `${group}/${key}.png`;
+      fs.writeFileSync(path.join(OUT, rel), recolor(src, wi, ri));
+      manifest[group].push({ key, path: `assets/${rel}`, w: e.w, h: e.h });
+    });
+  }
+}
 fs.writeFileSync(path.join(OUT, 'manifest.json'), JSON.stringify(manifest, null, 1));
 const total = Object.values(manifest).reduce((s, g) => s + g.length, 0);
 console.log(`Extracted ${total} sprites to ${path.relative(process.cwd(), OUT)}`);

@@ -24,8 +24,11 @@ const single = (key: string, w: number, h: number, footRows: number, capacity = 
 
 const range = (a: number, b: number): number[] => Array.from({ length: b - a + 1 }, (_, i) => i + a);
 
+/** Recolored copies made by scripts/extract-assets.mjs: `<key>_c1` .. `<key>_c<N>`; the original is the gray one. */
+const withColours = (keys: string[], colours: number): string[] => keys.flatMap((k) => [k, ...range(1, colours).map((c) => `${k}_c${c}`)]);
+
 const mobile = (prefix: string, w: number): Variant[] =>
-  range(1, 8).map((n) => ({ id: `${prefix}_${n}`, art: () => single(`${prefix}_${n}`, w, n <= 4 ? 192 : 256, 4) }));
+  range(1, 8).flatMap((n) => withColours([`${prefix}_${n}`], 9).map((key) => ({ id: key, art: () => single(key, w, n <= 4 ? 192 : 256, 4) })));
 
 /** Pitched roofs per colour for modular condos (all 192 tall so ground+middle+roof = 13 tiles). */
 const CONDO_ROOF: Record<Colour, number[]> = { red: [2], blue: [4], gray: [6] };
@@ -49,7 +52,7 @@ const CATALOG: Record<ResidentialKind, Variant[]> = {
   small: mobile('house_small', 192),
   medium: mobile('house_medium', 256),
   villa: range(1, 5).map((n) => ({ id: `villa_${n}`, art: () => single(`villa_${n}`, 288, 416, 6) })),
-  house: [1, 2, 4, 5, 6].map((n) => ({ id: `house_terraced_${n}`, art: () => single(`house_terraced_${n}`, 384, 480, 5) })),
+  house: withColours([1, 2, 4, 5, 6].map((n) => `house_terraced_${n}`), 5).map((key) => ({ id: key, art: () => single(key, 384, 480, 5) })),
   estate: [
     { id: 'estate_country_house', art: () => single('estate_country_house', 576, 512, 6) },
     { id: 'estate_japanese_house', art: () => single('estate_japanese_house', 480, 448, 6) },

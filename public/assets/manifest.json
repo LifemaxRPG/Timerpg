@@ -119,6 +119,438 @@
    "path": "assets/houseSmall/house_small_8.png",
    "w": 192,
    "h": 256
+  },
+  {
+   "key": "house_small_1_c1",
+   "path": "assets/houseSmall/house_small_1_c1.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_1_c2",
+   "path": "assets/houseSmall/house_small_1_c2.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_1_c3",
+   "path": "assets/houseSmall/house_small_1_c3.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_1_c4",
+   "path": "assets/houseSmall/house_small_1_c4.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_1_c5",
+   "path": "assets/houseSmall/house_small_1_c5.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_1_c6",
+   "path": "assets/houseSmall/house_small_1_c6.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_1_c7",
+   "path": "assets/houseSmall/house_small_1_c7.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_1_c8",
+   "path": "assets/houseSmall/house_small_1_c8.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_1_c9",
+   "path": "assets/houseSmall/house_small_1_c9.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_2_c1",
+   "path": "assets/houseSmall/house_small_2_c1.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_2_c2",
+   "path": "assets/houseSmall/house_small_2_c2.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_2_c3",
+   "path": "assets/houseSmall/house_small_2_c3.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_2_c4",
+   "path": "assets/houseSmall/house_small_2_c4.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_2_c5",
+   "path": "assets/houseSmall/house_small_2_c5.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_2_c6",
+   "path": "assets/houseSmall/house_small_2_c6.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_2_c7",
+   "path": "assets/houseSmall/house_small_2_c7.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_2_c8",
+   "path": "assets/houseSmall/house_small_2_c8.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_2_c9",
+   "path": "assets/houseSmall/house_small_2_c9.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_3_c1",
+   "path": "assets/houseSmall/house_small_3_c1.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_3_c2",
+   "path": "assets/houseSmall/house_small_3_c2.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_3_c3",
+   "path": "assets/houseSmall/house_small_3_c3.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_3_c4",
+   "path": "assets/houseSmall/house_small_3_c4.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_3_c5",
+   "path": "assets/houseSmall/house_small_3_c5.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_3_c6",
+   "path": "assets/houseSmall/house_small_3_c6.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_3_c7",
+   "path": "assets/houseSmall/house_small_3_c7.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_3_c8",
+   "path": "assets/houseSmall/house_small_3_c8.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_3_c9",
+   "path": "assets/houseSmall/house_small_3_c9.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_4_c1",
+   "path": "assets/houseSmall/house_small_4_c1.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_4_c2",
+   "path": "assets/houseSmall/house_small_4_c2.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_4_c3",
+   "path": "assets/houseSmall/house_small_4_c3.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_4_c4",
+   "path": "assets/houseSmall/house_small_4_c4.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_4_c5",
+   "path": "assets/houseSmall/house_small_4_c5.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_4_c6",
+   "path": "assets/houseSmall/house_small_4_c6.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_4_c7",
+   "path": "assets/houseSmall/house_small_4_c7.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_4_c8",
+   "path": "assets/houseSmall/house_small_4_c8.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_4_c9",
+   "path": "assets/houseSmall/house_small_4_c9.png",
+   "w": 192,
+   "h": 192
+  },
+  {
+   "key": "house_small_5_c1",
+   "path": "assets/houseSmall/house_small_5_c1.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_5_c2",
+   "path": "assets/houseSmall/house_small_5_c2.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_5_c3",
+   "path": "assets/houseSmall/house_small_5_c3.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_5_c4",
+   "path": "assets/houseSmall/house_small_5_c4.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_5_c5",
+   "path": "assets/houseSmall/house_small_5_c5.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_5_c6",
+   "path": "assets/houseSmall/house_small_5_c6.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_5_c7",
+   "path": "assets/houseSmall/house_small_5_c7.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_5_c8",
+   "path": "assets/houseSmall/house_small_5_c8.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_5_c9",
+   "path": "assets/houseSmall/house_small_5_c9.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_6_c1",
+   "path": "assets/houseSmall/house_small_6_c1.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_6_c2",
+   "path": "assets/houseSmall/house_small_6_c2.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_6_c3",
+   "path": "assets/houseSmall/house_small_6_c3.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_6_c4",
+   "path": "assets/houseSmall/house_small_6_c4.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_6_c5",
+   "path": "assets/houseSmall/house_small_6_c5.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_6_c6",
+   "path": "assets/houseSmall/house_small_6_c6.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_6_c7",
+   "path": "assets/houseSmall/house_small_6_c7.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_6_c8",
+   "path": "assets/houseSmall/house_small_6_c8.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_6_c9",
+   "path": "assets/houseSmall/house_small_6_c9.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_7_c1",
+   "path": "assets/houseSmall/house_small_7_c1.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_7_c2",
+   "path": "assets/houseSmall/house_small_7_c2.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_7_c3",
+   "path": "assets/houseSmall/house_small_7_c3.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_7_c4",
+   "path": "assets/houseSmall/house_small_7_c4.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_7_c5",
+   "path": "assets/houseSmall/house_small_7_c5.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_7_c6",
+   "path": "assets/houseSmall/house_small_7_c6.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_7_c7",
+   "path": "assets/houseSmall/house_small_7_c7.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_7_c8",
+   "path": "assets/houseSmall/house_small_7_c8.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_7_c9",
+   "path": "assets/houseSmall/house_small_7_c9.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_8_c1",
+   "path": "assets/houseSmall/house_small_8_c1.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_8_c2",
+   "path": "assets/houseSmall/house_small_8_c2.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_8_c3",
+   "path": "assets/houseSmall/house_small_8_c3.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_8_c4",
+   "path": "assets/houseSmall/house_small_8_c4.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_8_c5",
+   "path": "assets/houseSmall/house_small_8_c5.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_8_c6",
+   "path": "assets/houseSmall/house_small_8_c6.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_8_c7",
+   "path": "assets/houseSmall/house_small_8_c7.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_8_c8",
+   "path": "assets/houseSmall/house_small_8_c8.png",
+   "w": 192,
+   "h": 256
+  },
+  {
+   "key": "house_small_8_c9",
+   "path": "assets/houseSmall/house_small_8_c9.png",
+   "w": 192,
+   "h": 256
   }
  ],
  "houseMedium": [
@@ -167,6 +599,438 @@
   {
    "key": "house_medium_8",
    "path": "assets/houseMedium/house_medium_8.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_1_c1",
+   "path": "assets/houseMedium/house_medium_1_c1.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_1_c2",
+   "path": "assets/houseMedium/house_medium_1_c2.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_1_c3",
+   "path": "assets/houseMedium/house_medium_1_c3.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_1_c4",
+   "path": "assets/houseMedium/house_medium_1_c4.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_1_c5",
+   "path": "assets/houseMedium/house_medium_1_c5.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_1_c6",
+   "path": "assets/houseMedium/house_medium_1_c6.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_1_c7",
+   "path": "assets/houseMedium/house_medium_1_c7.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_1_c8",
+   "path": "assets/houseMedium/house_medium_1_c8.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_1_c9",
+   "path": "assets/houseMedium/house_medium_1_c9.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_2_c1",
+   "path": "assets/houseMedium/house_medium_2_c1.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_2_c2",
+   "path": "assets/houseMedium/house_medium_2_c2.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_2_c3",
+   "path": "assets/houseMedium/house_medium_2_c3.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_2_c4",
+   "path": "assets/houseMedium/house_medium_2_c4.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_2_c5",
+   "path": "assets/houseMedium/house_medium_2_c5.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_2_c6",
+   "path": "assets/houseMedium/house_medium_2_c6.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_2_c7",
+   "path": "assets/houseMedium/house_medium_2_c7.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_2_c8",
+   "path": "assets/houseMedium/house_medium_2_c8.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_2_c9",
+   "path": "assets/houseMedium/house_medium_2_c9.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_3_c1",
+   "path": "assets/houseMedium/house_medium_3_c1.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_3_c2",
+   "path": "assets/houseMedium/house_medium_3_c2.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_3_c3",
+   "path": "assets/houseMedium/house_medium_3_c3.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_3_c4",
+   "path": "assets/houseMedium/house_medium_3_c4.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_3_c5",
+   "path": "assets/houseMedium/house_medium_3_c5.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_3_c6",
+   "path": "assets/houseMedium/house_medium_3_c6.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_3_c7",
+   "path": "assets/houseMedium/house_medium_3_c7.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_3_c8",
+   "path": "assets/houseMedium/house_medium_3_c8.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_3_c9",
+   "path": "assets/houseMedium/house_medium_3_c9.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_4_c1",
+   "path": "assets/houseMedium/house_medium_4_c1.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_4_c2",
+   "path": "assets/houseMedium/house_medium_4_c2.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_4_c3",
+   "path": "assets/houseMedium/house_medium_4_c3.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_4_c4",
+   "path": "assets/houseMedium/house_medium_4_c4.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_4_c5",
+   "path": "assets/houseMedium/house_medium_4_c5.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_4_c6",
+   "path": "assets/houseMedium/house_medium_4_c6.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_4_c7",
+   "path": "assets/houseMedium/house_medium_4_c7.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_4_c8",
+   "path": "assets/houseMedium/house_medium_4_c8.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_4_c9",
+   "path": "assets/houseMedium/house_medium_4_c9.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_5_c1",
+   "path": "assets/houseMedium/house_medium_5_c1.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_5_c2",
+   "path": "assets/houseMedium/house_medium_5_c2.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_5_c3",
+   "path": "assets/houseMedium/house_medium_5_c3.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_5_c4",
+   "path": "assets/houseMedium/house_medium_5_c4.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_5_c5",
+   "path": "assets/houseMedium/house_medium_5_c5.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_5_c6",
+   "path": "assets/houseMedium/house_medium_5_c6.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_5_c7",
+   "path": "assets/houseMedium/house_medium_5_c7.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_5_c8",
+   "path": "assets/houseMedium/house_medium_5_c8.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_5_c9",
+   "path": "assets/houseMedium/house_medium_5_c9.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_6_c1",
+   "path": "assets/houseMedium/house_medium_6_c1.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_6_c2",
+   "path": "assets/houseMedium/house_medium_6_c2.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_6_c3",
+   "path": "assets/houseMedium/house_medium_6_c3.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_6_c4",
+   "path": "assets/houseMedium/house_medium_6_c4.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_6_c5",
+   "path": "assets/houseMedium/house_medium_6_c5.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_6_c6",
+   "path": "assets/houseMedium/house_medium_6_c6.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_6_c7",
+   "path": "assets/houseMedium/house_medium_6_c7.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_6_c8",
+   "path": "assets/houseMedium/house_medium_6_c8.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_6_c9",
+   "path": "assets/houseMedium/house_medium_6_c9.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_7_c1",
+   "path": "assets/houseMedium/house_medium_7_c1.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_7_c2",
+   "path": "assets/houseMedium/house_medium_7_c2.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_7_c3",
+   "path": "assets/houseMedium/house_medium_7_c3.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_7_c4",
+   "path": "assets/houseMedium/house_medium_7_c4.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_7_c5",
+   "path": "assets/houseMedium/house_medium_7_c5.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_7_c6",
+   "path": "assets/houseMedium/house_medium_7_c6.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_7_c7",
+   "path": "assets/houseMedium/house_medium_7_c7.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_7_c8",
+   "path": "assets/houseMedium/house_medium_7_c8.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_7_c9",
+   "path": "assets/houseMedium/house_medium_7_c9.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_8_c1",
+   "path": "assets/houseMedium/house_medium_8_c1.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_8_c2",
+   "path": "assets/houseMedium/house_medium_8_c2.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_8_c3",
+   "path": "assets/houseMedium/house_medium_8_c3.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_8_c4",
+   "path": "assets/houseMedium/house_medium_8_c4.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_8_c5",
+   "path": "assets/houseMedium/house_medium_8_c5.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_8_c6",
+   "path": "assets/houseMedium/house_medium_8_c6.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_8_c7",
+   "path": "assets/houseMedium/house_medium_8_c7.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_8_c8",
+   "path": "assets/houseMedium/house_medium_8_c8.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_8_c9",
+   "path": "assets/houseMedium/house_medium_8_c9.png",
    "w": 256,
    "h": 256
   }
@@ -705,6 +1569,156 @@
   {
    "key": "house_terraced_6",
    "path": "assets/houseTerraced/house_terraced_6.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_1_c1",
+   "path": "assets/houseTerraced/house_terraced_1_c1.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_1_c2",
+   "path": "assets/houseTerraced/house_terraced_1_c2.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_1_c3",
+   "path": "assets/houseTerraced/house_terraced_1_c3.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_1_c4",
+   "path": "assets/houseTerraced/house_terraced_1_c4.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_1_c5",
+   "path": "assets/houseTerraced/house_terraced_1_c5.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_2_c1",
+   "path": "assets/houseTerraced/house_terraced_2_c1.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_2_c2",
+   "path": "assets/houseTerraced/house_terraced_2_c2.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_2_c3",
+   "path": "assets/houseTerraced/house_terraced_2_c3.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_2_c4",
+   "path": "assets/houseTerraced/house_terraced_2_c4.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_2_c5",
+   "path": "assets/houseTerraced/house_terraced_2_c5.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_4_c1",
+   "path": "assets/houseTerraced/house_terraced_4_c1.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_4_c2",
+   "path": "assets/houseTerraced/house_terraced_4_c2.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_4_c3",
+   "path": "assets/houseTerraced/house_terraced_4_c3.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_4_c4",
+   "path": "assets/houseTerraced/house_terraced_4_c4.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_4_c5",
+   "path": "assets/houseTerraced/house_terraced_4_c5.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_5_c1",
+   "path": "assets/houseTerraced/house_terraced_5_c1.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_5_c2",
+   "path": "assets/houseTerraced/house_terraced_5_c2.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_5_c3",
+   "path": "assets/houseTerraced/house_terraced_5_c3.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_5_c4",
+   "path": "assets/houseTerraced/house_terraced_5_c4.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_5_c5",
+   "path": "assets/houseTerraced/house_terraced_5_c5.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_6_c1",
+   "path": "assets/houseTerraced/house_terraced_6_c1.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_6_c2",
+   "path": "assets/houseTerraced/house_terraced_6_c2.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_6_c3",
+   "path": "assets/houseTerraced/house_terraced_6_c3.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_6_c4",
+   "path": "assets/houseTerraced/house_terraced_6_c4.png",
+   "w": 384,
+   "h": 480
+  },
+  {
+   "key": "house_terraced_6_c5",
+   "path": "assets/houseTerraced/house_terraced_6_c5.png",
    "w": 384,
    "h": 480
   }
