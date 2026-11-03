@@ -121,6 +121,56 @@
    "h": 256
   }
  ],
+ "houseMedium": [
+  {
+   "key": "house_medium_1",
+   "path": "assets/houseMedium/house_medium_1.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_2",
+   "path": "assets/houseMedium/house_medium_2.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_3",
+   "path": "assets/houseMedium/house_medium_3.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_4",
+   "path": "assets/houseMedium/house_medium_4.png",
+   "w": 256,
+   "h": 192
+  },
+  {
+   "key": "house_medium_5",
+   "path": "assets/houseMedium/house_medium_5.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_6",
+   "path": "assets/houseMedium/house_medium_6.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_7",
+   "path": "assets/houseMedium/house_medium_7.png",
+   "w": 256,
+   "h": 256
+  },
+  {
+   "key": "house_medium_8",
+   "path": "assets/houseMedium/house_medium_8.png",
+   "w": 256,
+   "h": 256
+  }
+ ],
  "villa": [
   {
    "key": "villa_1",
@@ -221,28 +271,302 @@
    "h": 224
   }
  ],
+ "tree": [
+  {
+   "key": "tree_1",
+   "path": "assets/tree/tree_1.png",
+   "w": 64,
+   "h": 96
+  },
+  {
+   "key": "tree_2",
+   "path": "assets/tree/tree_2.png",
+   "w": 64,
+   "h": 96
+  },
+  {
+   "key": "tree_3",
+   "path": "assets/tree/tree_3.png",
+   "w": 64,
+   "h": 96
+  },
+  {
+   "key": "tree_4",
+   "path": "assets/tree/tree_4.png",
+   "w": 64,
+   "h": 96
+  },
+  {
+   "key": "tree_5",
+   "path": "assets/tree/tree_5.png",
+   "w": 64,
+   "h": 128
+  },
+  {
+   "key": "tree_6",
+   "path": "assets/tree/tree_6.png",
+   "w": 64,
+   "h": 128
+  },
+  {
+   "key": "tree_8",
+   "path": "assets/tree/tree_8.png",
+   "w": 64,
+   "h": 128
+  },
+  {
+   "key": "tree_11",
+   "path": "assets/tree/tree_11.png",
+   "w": 96,
+   "h": 128
+  },
+  {
+   "key": "tree_12",
+   "path": "assets/tree/tree_12.png",
+   "w": 96,
+   "h": 128
+  }
+ ],
+ "lamp": [
+  {
+   "key": "lamp_1",
+   "path": "assets/lamp/lamp_1.png",
+   "w": 64,
+   "h": 128
+  },
+  {
+   "key": "lamp_2",
+   "path": "assets/lamp/lamp_2.png",
+   "w": 64,
+   "h": 128
+  },
+  {
+   "key": "lamp_3",
+   "path": "assets/lamp/lamp_3.png",
+   "w": 64,
+   "h": 128
+  },
+  {
+   "key": "lamp_4",
+   "path": "assets/lamp/lamp_4.png",
+   "w": 64,
+   "h": 128
+  },
+  {
+   "key": "lamp_5",
+   "path": "assets/lamp/lamp_5.png",
+   "w": 32,
+   "h": 128
+  }
+ ],
+ "bench": [
+  {
+   "key": "bench_1",
+   "path": "assets/bench/bench_1.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "bench_2",
+   "path": "assets/bench/bench_2.png",
+   "w": 96,
+   "h": 64
+  },
+  {
+   "key": "bench_7",
+   "path": "assets/bench/bench_7.png",
+   "w": 64,
+   "h": 64
+  }
+ ],
+ "flowerBush": [
+  {
+   "key": "flowerBush_1",
+   "path": "assets/flowerBush/flowerBush_1.png",
+   "w": 64,
+   "h": 32
+  },
+  {
+   "key": "flowerBush_2",
+   "path": "assets/flowerBush/flowerBush_2.png",
+   "w": 64,
+   "h": 32
+  },
+  {
+   "key": "flowerBush_3",
+   "path": "assets/flowerBush/flowerBush_3.png",
+   "w": 64,
+   "h": 32
+  },
+  {
+   "key": "flowerBush_4",
+   "path": "assets/flowerBush/flowerBush_4.png",
+   "w": 96,
+   "h": 32
+  },
+  {
+   "key": "flowerBush_5",
+   "path": "assets/flowerBush/flowerBush_5.png",
+   "w": 96,
+   "h": 32
+  },
+  {
+   "key": "flowerBush_6",
+   "path": "assets/flowerBush/flowerBush_6.png",
+   "w": 96,
+   "h": 32
+  }
+ ],
+ "bush": [
+  {
+   "key": "bush_1",
+   "path": "assets/bush/bush_1.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "bush_2",
+   "path": "assets/bush/bush_2.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "bush_3",
+   "path": "assets/bush/bush_3.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "bush_4",
+   "path": "assets/bush/bush_4.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "bush_5",
+   "path": "assets/bush/bush_5.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "bush_6",
+   "path": "assets/bush/bush_6.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "bush_8",
+   "path": "assets/bush/bush_8.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "bush_10",
+   "path": "assets/bush/bush_10.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "bush_12",
+   "path": "assets/bush/bush_12.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "bush_16",
+   "path": "assets/bush/bush_16.png",
+   "w": 32,
+   "h": 96
+  }
+ ],
+ "flowers": [
+  {
+   "key": "flowers_1",
+   "path": "assets/flowers/flowers_1.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "flowers_2",
+   "path": "assets/flowers/flowers_2.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "flowers_3",
+   "path": "assets/flowers/flowers_3.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "flowers_4",
+   "path": "assets/flowers/flowers_4.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "flowers_5",
+   "path": "assets/flowers/flowers_5.png",
+   "w": 32,
+   "h": 32
+  }
+ ],
+ "fountain1": [
+  {
+   "key": "fountain1_1",
+   "path": "assets/fountain1/fountain1_1.png",
+   "w": 64,
+   "h": 96
+  },
+  {
+   "key": "fountain1_2",
+   "path": "assets/fountain1/fountain1_2.png",
+   "w": 64,
+   "h": 96
+  },
+  {
+   "key": "fountain1_3",
+   "path": "assets/fountain1/fountain1_3.png",
+   "w": 64,
+   "h": 96
+  },
+  {
+   "key": "fountain1_4",
+   "path": "assets/fountain1/fountain1_4.png",
+   "w": 64,
+   "h": 96
+  }
+ ],
+ "fountain2": [
+  {
+   "key": "fountain2_1",
+   "path": "assets/fountain2/fountain2_1.png",
+   "w": 96,
+   "h": 192
+  },
+  {
+   "key": "fountain2_2",
+   "path": "assets/fountain2/fountain2_2.png",
+   "w": 96,
+   "h": 192
+  },
+  {
+   "key": "fountain2_3",
+   "path": "assets/fountain2/fountain2_3.png",
+   "w": 96,
+   "h": 192
+  },
+  {
+   "key": "fountain2_4",
+   "path": "assets/fountain2/fountain2_4.png",
+   "w": 96,
+   "h": 192
+  }
+ ],
  "shop:Shop": [
   {
    "key": "shop_Shop_1",
    "path": "assets/shop_Shop/shop_Shop_1.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "shop_Shop_2",
-   "path": "assets/shop_Shop/shop_Shop_2.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "shop_Shop_3",
-   "path": "assets/shop_Shop/shop_Shop_3.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "shop_Shop_4",
-   "path": "assets/shop_Shop/shop_Shop_4.png",
    "w": 224,
    "h": 96
   },
@@ -253,20 +577,8 @@
    "h": 96
   },
   {
-   "key": "shop_Shop_6",
-   "path": "assets/shop_Shop/shop_Shop_6.png",
-   "w": 224,
-   "h": 96
-  },
-  {
    "key": "shop_Shop_7",
    "path": "assets/shop_Shop/shop_Shop_7.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "shop_Shop_8",
-   "path": "assets/shop_Shop/shop_Shop_8.png",
    "w": 224,
    "h": 96
   },
@@ -277,44 +589,8 @@
    "h": 96
   },
   {
-   "key": "shop_Shop_10",
-   "path": "assets/shop_Shop/shop_Shop_10.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "shop_Shop_11",
-   "path": "assets/shop_Shop/shop_Shop_11.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "shop_Shop_12",
-   "path": "assets/shop_Shop/shop_Shop_12.png",
-   "w": 224,
-   "h": 96
-  },
-  {
    "key": "shop_Shop_13",
    "path": "assets/shop_Shop/shop_Shop_13.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "shop_Shop_14",
-   "path": "assets/shop_Shop/shop_Shop_14.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "shop_Shop_15",
-   "path": "assets/shop_Shop/shop_Shop_15.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "shop_Shop_16",
-   "path": "assets/shop_Shop/shop_Shop_16.png",
    "w": 224,
    "h": 96
   },
@@ -325,20 +601,8 @@
    "h": 96
   },
   {
-   "key": "shop_Shop_18",
-   "path": "assets/shop_Shop/shop_Shop_18.png",
-   "w": 224,
-   "h": 96
-  },
-  {
    "key": "shop_Shop_19",
    "path": "assets/shop_Shop/shop_Shop_19.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "shop_Shop_20",
-   "path": "assets/shop_Shop/shop_Shop_20.png",
    "w": 224,
    "h": 96
   },
@@ -349,44 +613,8 @@
    "h": 96
   },
   {
-   "key": "shop_Shop_22",
-   "path": "assets/shop_Shop/shop_Shop_22.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "shop_Shop_23",
-   "path": "assets/shop_Shop/shop_Shop_23.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "shop_Shop_24",
-   "path": "assets/shop_Shop/shop_Shop_24.png",
-   "w": 224,
-   "h": 96
-  },
-  {
    "key": "shop_Shop_25",
    "path": "assets/shop_Shop/shop_Shop_25.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "shop_Shop_26",
-   "path": "assets/shop_Shop/shop_Shop_26.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "shop_Shop_27",
-   "path": "assets/shop_Shop/shop_Shop_27.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "shop_Shop_28",
-   "path": "assets/shop_Shop/shop_Shop_28.png",
    "w": 224,
    "h": 96
   },
@@ -397,44 +625,14 @@
    "h": 96
   },
   {
-   "key": "shop_Shop_30",
-   "path": "assets/shop_Shop/shop_Shop_30.png",
-   "w": 224,
-   "h": 96
-  },
-  {
    "key": "shop_Shop_31",
    "path": "assets/shop_Shop/shop_Shop_31.png",
    "w": 224,
    "h": 96
   },
   {
-   "key": "shop_Shop_32",
-   "path": "assets/shop_Shop/shop_Shop_32.png",
-   "w": 224,
-   "h": 96
-  },
-  {
    "key": "shop_Shop_33",
    "path": "assets/shop_Shop/shop_Shop_33.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "shop_Shop_34",
-   "path": "assets/shop_Shop/shop_Shop_34.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "shop_Shop_35",
-   "path": "assets/shop_Shop/shop_Shop_35.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "shop_Shop_36",
-   "path": "assets/shop_Shop/shop_Shop_36.png",
    "w": 224,
    "h": 96
   }
@@ -447,20 +645,8 @@
    "h": 160
   },
   {
-   "key": "shop_Bakery_2",
-   "path": "assets/shop_Bakery/shop_Bakery_2.png",
-   "w": 224,
-   "h": 160
-  },
-  {
    "key": "shop_Bakery_3",
    "path": "assets/shop_Bakery/shop_Bakery_3.png",
-   "w": 224,
-   "h": 160
-  },
-  {
-   "key": "shop_Bakery_4",
-   "path": "assets/shop_Bakery/shop_Bakery_4.png",
    "w": 224,
    "h": 160
   },
@@ -471,20 +657,8 @@
    "h": 160
   },
   {
-   "key": "shop_Bakery_6",
-   "path": "assets/shop_Bakery/shop_Bakery_6.png",
-   "w": 224,
-   "h": 160
-  },
-  {
    "key": "shop_Bakery_7",
    "path": "assets/shop_Bakery/shop_Bakery_7.png",
-   "w": 224,
-   "h": 160
-  },
-  {
-   "key": "shop_Bakery_8",
-   "path": "assets/shop_Bakery/shop_Bakery_8.png",
    "w": 224,
    "h": 160
   },
@@ -495,20 +669,8 @@
    "h": 160
   },
   {
-   "key": "shop_Bakery_10",
-   "path": "assets/shop_Bakery/shop_Bakery_10.png",
-   "w": 224,
-   "h": 160
-  },
-  {
    "key": "shop_Bakery_11",
    "path": "assets/shop_Bakery/shop_Bakery_11.png",
-   "w": 224,
-   "h": 160
-  },
-  {
-   "key": "shop_Bakery_12",
-   "path": "assets/shop_Bakery/shop_Bakery_12.png",
    "w": 224,
    "h": 160
   }
@@ -521,20 +683,8 @@
    "h": 160
   },
   {
-   "key": "shop_Butchery_2",
-   "path": "assets/shop_Butchery/shop_Butchery_2.png",
-   "w": 224,
-   "h": 160
-  },
-  {
    "key": "shop_Butchery_3",
    "path": "assets/shop_Butchery/shop_Butchery_3.png",
-   "w": 224,
-   "h": 160
-  },
-  {
-   "key": "shop_Butchery_4",
-   "path": "assets/shop_Butchery/shop_Butchery_4.png",
    "w": 224,
    "h": 160
   },
@@ -545,20 +695,8 @@
    "h": 160
   },
   {
-   "key": "shop_Butchery_6",
-   "path": "assets/shop_Butchery/shop_Butchery_6.png",
-   "w": 224,
-   "h": 160
-  },
-  {
    "key": "shop_Butchery_7",
    "path": "assets/shop_Butchery/shop_Butchery_7.png",
-   "w": 224,
-   "h": 160
-  },
-  {
-   "key": "shop_Butchery_8",
-   "path": "assets/shop_Butchery/shop_Butchery_8.png",
    "w": 224,
    "h": 160
   },
@@ -569,20 +707,8 @@
    "h": 160
   },
   {
-   "key": "shop_Butchery_10",
-   "path": "assets/shop_Butchery/shop_Butchery_10.png",
-   "w": 224,
-   "h": 160
-  },
-  {
    "key": "shop_Butchery_11",
    "path": "assets/shop_Butchery/shop_Butchery_11.png",
-   "w": 224,
-   "h": 160
-  },
-  {
-   "key": "shop_Butchery_12",
-   "path": "assets/shop_Butchery/shop_Butchery_12.png",
    "w": 224,
    "h": 160
   }
@@ -669,20 +795,8 @@
    "h": 192
   },
   {
-   "key": "shop_Bait_Shop_2",
-   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_2.png",
-   "w": 224,
-   "h": 192
-  },
-  {
    "key": "shop_Bait_Shop_3",
    "path": "assets/shop_Bait_Shop/shop_Bait_Shop_3.png",
-   "w": 224,
-   "h": 192
-  },
-  {
-   "key": "shop_Bait_Shop_4",
-   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_4.png",
    "w": 224,
    "h": 192
   },
@@ -693,20 +807,8 @@
    "h": 192
   },
   {
-   "key": "shop_Bait_Shop_6",
-   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_6.png",
-   "w": 224,
-   "h": 192
-  },
-  {
    "key": "shop_Bait_Shop_7",
    "path": "assets/shop_Bait_Shop/shop_Bait_Shop_7.png",
-   "w": 224,
-   "h": 192
-  },
-  {
-   "key": "shop_Bait_Shop_8",
-   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_8.png",
    "w": 224,
    "h": 192
   },
@@ -717,20 +819,8 @@
    "h": 192
   },
   {
-   "key": "shop_Bait_Shop_10",
-   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_10.png",
-   "w": 224,
-   "h": 192
-  },
-  {
    "key": "shop_Bait_Shop_11",
    "path": "assets/shop_Bait_Shop/shop_Bait_Shop_11.png",
-   "w": 224,
-   "h": 192
-  },
-  {
-   "key": "shop_Bait_Shop_12",
-   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_12.png",
    "w": 224,
    "h": 192
   },
@@ -741,32 +831,14 @@
    "h": 192
   },
   {
-   "key": "shop_Bait_Shop_14",
-   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_14.png",
-   "w": 224,
-   "h": 192
-  },
-  {
    "key": "shop_Bait_Shop_15",
    "path": "assets/shop_Bait_Shop/shop_Bait_Shop_15.png",
    "w": 224,
    "h": 192
   },
   {
-   "key": "shop_Bait_Shop_16",
-   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_16.png",
-   "w": 224,
-   "h": 192
-  },
-  {
    "key": "shop_Bait_Shop_17",
    "path": "assets/shop_Bait_Shop/shop_Bait_Shop_17.png",
-   "w": 224,
-   "h": 192
-  },
-  {
-   "key": "shop_Bait_Shop_18",
-   "path": "assets/shop_Bait_Shop/shop_Bait_Shop_18.png",
    "w": 224,
    "h": 192
   }
@@ -779,32 +851,14 @@
    "h": 160
   },
   {
-   "key": "shop_Ice_Cream_Shop_2",
-   "path": "assets/shop_Ice_Cream_Shop/shop_Ice_Cream_Shop_2.png",
-   "w": 224,
-   "h": 160
-  },
-  {
    "key": "shop_Ice_Cream_Shop_3",
    "path": "assets/shop_Ice_Cream_Shop/shop_Ice_Cream_Shop_3.png",
    "w": 224,
    "h": 160
   },
   {
-   "key": "shop_Ice_Cream_Shop_4",
-   "path": "assets/shop_Ice_Cream_Shop/shop_Ice_Cream_Shop_4.png",
-   "w": 224,
-   "h": 160
-  },
-  {
    "key": "shop_Ice_Cream_Shop_5",
    "path": "assets/shop_Ice_Cream_Shop/shop_Ice_Cream_Shop_5.png",
-   "w": 224,
-   "h": 160
-  },
-  {
-   "key": "shop_Ice_Cream_Shop_6",
-   "path": "assets/shop_Ice_Cream_Shop/shop_Ice_Cream_Shop_6.png",
    "w": 224,
    "h": 160
   }

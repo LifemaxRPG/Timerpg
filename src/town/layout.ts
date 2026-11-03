@@ -1,28 +1,21 @@
 import { rand } from '../sim/rng';
 import { ageIn, fullName, isAlive, type Id, type Person, type World } from '../sim/types';
+import { planTown, TILE, type Candidate, type LotKind, type Prop, type Road, type TownPlan } from './plan';
 
-// Town map in tiles. Pure function of (world): same world -> same layout.
+export { TILE };
+export type { LotKind, Prop, Road };
 
-export interface Rect { x: number; y: number; w: number; h: number }
-export interface Road extends Rect { main: boolean; horizontal: boolean }
-
-export type LotKind = 'villa' | 'small' | 'shop';
-const SIZES: Record<LotKind, { w: number; h: number }> = {
-  villa: { w: 9, h: 13 },
-  small: { w: 6, h: 6 },
-  shop: { w: 7, h: 13 },
-};
-
-export interface Lot extends Rect {
-  /** Stable slot id, e.g. "shop:12". */
+export interface Lot {
+  x: number; y: number; w: number; h: number;
+  /** Stable slot id, e.g. "small:20,34". */
   slot: string;
   kind: 'house' | 'shop';
-  /** House size class (villas go to the wealthiest households); shops are 'shop'. */
+  /** Size class: villa/medium/small houses (by household wealth) or shop. */
   tier: LotKind;
   /** Household head id (house) or business id (shop). */
   refId: Id;
   label: string;
-  /** 0..1 stable value for choosing sprite variants and colors. */
+  /** 0..1 stable value for choosing sprite variants. */
   look: number;
   residents: Id[];
 }
@@ -30,76 +23,29 @@ export interface Lot extends Rect {
 export interface TownLayout {
   width: number;
   height: number;
-  roads: Road[];
+  roads: readonly Road[];
   lots: Lot[];
+  /** Year-dependent decoration (yards, trees on empty plots). Static props live in the plan. */
+  props: Prop[];
+  plan: TownPlan;
 }
-
-export const MAP_W = 152;
-const VERTICAL_ROADS = [20, 60, 100, 136]; // x of 2-wide north-south streets
-
-interface Band { north: LotKind; south: LotKind; main?: boolean }
-const BANDS: Band[] = [
-  { north: 'villa', south: 'small' },
-  { north: 'small', south: 'small' },
-  { north: 'shop', south: 'shop', main: true },
-  { north: 'small', south: 'small' },
-  { north: 'small', south: 'small' },
-  { north: 'small', south: 'small' },
-];
-
-interface Candidate extends Rect { kind: LotKind }
-const ROADS: Road[] = [];
-/** Roads never change between years or timelines. */
-export const TOWN_ROADS: readonly Road[] = ROADS;
-const CANDIDATES: Candidate[] = [];
-export let MAIN_ROAD_Y = 0;
-export let MAP_H = 0;
-
-function lotRow(kind: LotKind, y: number): Candidate[] {
-  const { w, h } = SIZES[kind];
-  const out: Candidate[] = [];
-  for (let x = 2; x + w <= MAP_W - 2; x += w + 1) {
-    if (!VERTICAL_ROADS.some((vx) => x < vx + 3 && x + w > vx - 1)) out.push({ x, y, w, h, kind });
-  }
-  return out;
-}
-
-(function build(): void {
-  let y = 2;
-  for (const band of BANDS) {
-    const hn = SIZES[band.north].h;
-    const hs = SIZES[band.south].h;
-    const roadY = y + hn + 1; // 1 tile of sidewalk between lots and the road
-    ROADS.push({ x: 0, y: roadY, w: MAP_W, h: 2, main: !!band.main, horizontal: true });
-    if (band.main) MAIN_ROAD_Y = roadY;
-    CANDIDATES.push(...lotRow(band.north, y), ...lotRow(band.south, roadY + 3));
-    y = roadY + 3 + hs + 2;
-  }
-  MAP_H = y;
-  for (const x of VERTICAL_ROADS) ROADS.push({ x, y: 0, w: 2, h: MAP_H, main: false, horizontal: false });
-})();
-
-const SLOTS: Record<LotKind, Candidate[]> = {
-  villa: CANDIDATES.filter((c) => c.kind === 'villa'),
-  small: CANDIDATES.filter((c) => c.kind === 'small'),
-  shop: CANDIDATES.filter((c) => c.kind === 'shop'),
-};
-export const capacity = { villa: SLOTS.villa.length, small: SLOTS.small.length, shop: SLOTS.shop.length };
 
 /**
- * Assigns each id a slot index: its hashed preferred slot, probing forward when taken.
- * Ids are placed in sorted order, so identical inputs always give identical placement and
- * most entities keep their lot as the town changes around them.
+ * Assigns each id a plot from `slots` (sorted center-outward). Each id prefers a plot by a
+ * stable random key skewed toward the center, and probes outward when it is taken. Ids are
+ * placed in sorted order, so identical inputs give identical placement and most entities keep
+ * their plot as the town changes around them; the town fills from the middle out.
  */
-function assign(seed: string, ids: Id[], cap: number, salt: string): Map<Id, number> {
+function assign(seed: string, ids: Id[], slots: Candidate[], salt: string): Map<Id, Candidate> {
   const taken = new Set<number>();
-  const result = new Map<Id, number>();
+  const result = new Map<Id, Candidate>();
   for (const id of [...ids].sort()) {
-    if (taken.size >= cap) break;
-    let s = Math.floor(rand(seed, 'slot', salt, id) * cap);
-    while (taken.has(s)) s = (s + 1) % cap;
+    if (taken.size >= slots.length) break;
+    const k = rand(seed, 'pref', salt, id);
+    let s = Math.floor(k * k * slots.length);
+    while (taken.has(s)) s = (s + 1) % slots.length;
     taken.add(s);
-    result.set(id, s);
+    result.set(id, slots[s]!);
   }
   return result;
 }
@@ -122,7 +68,10 @@ export function householdHead(w: World, p: Person): Id {
 }
 
 export function layoutTown(w: World): TownLayout {
+  const plan = planTown(w.seed);
+  const slotsOf = (kind: LotKind): Candidate[] => plan.candidates.filter((c) => c.kind === kind);
   const lots: Lot[] = [];
+  const used = new Set<string>();
 
   const households = new Map<Id, Id[]>();
   for (const p of Object.values(w.people).filter(isAlive)) {
@@ -134,37 +83,81 @@ export function layoutTown(w: World): TownLayout {
   const sorted = heads.map(wealthOf).sort((a, b) => a - b);
   const median = sorted[Math.floor(sorted.length / 2)] ?? 0;
 
-  // The wealthiest households (relative to the town median) live in villas, up to capacity.
+  // Housing tier follows household wealth relative to the town: villa (top), medium, small.
+  const villaSlots = slotsOf('villa');
   const villaHeads = heads
     .filter((h) => wealthOf(h) >= median * 2.5 && wealthOf(h) > 0)
     .sort((a, b) => wealthOf(b) - wealthOf(a) || (a < b ? -1 : 1))
-    .slice(0, capacity.villa);
+    .slice(0, villaSlots.length);
   const villaSet = new Set(villaHeads);
-  const placeHouses = (ids: Id[], tier: 'villa' | 'small'): void => {
-    const slots = assign(w.seed, ids, SLOTS[tier].length, tier);
-    for (const [head, slot] of slots) {
-      const rect = SLOTS[tier][slot]!;
+  const rest = heads.filter((h) => !villaSet.has(h));
+  const mediumHeads = rest.filter((h) => wealthOf(h) >= median);
+  const mediumSet = new Set(mediumHeads);
+  const smallHeads = rest.filter((h) => !mediumSet.has(h));
+  const smallSlots = slotsOf('small');
+  const mediumSlots = slotsOf('medium');
+
+  const placeHouses = (ids: Id[], tier: LotKind, slots: Candidate[], overflow?: { tier: LotKind; slots: Candidate[] }): void => {
+    const placed = assign(w.seed, ids, slots, tier);
+    for (const [head, c] of placed) {
+      used.add(c.id);
       lots.push({
-        ...rect, slot: `${tier}:${slot}`, kind: 'house', tier, refId: head,
-        label: `${w.people[head]!.surname} house`, look: rand(w.seed, 'look', head),
-        residents: households.get(head)!.sort(),
+        x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, kind: 'house', tier, refId: head,
+        label: `${w.people[head]!.surname} house`, look: rand(w.seed, 'look', head), residents: households.get(head)!.sort(),
       });
     }
+    // If a tier's plots run out, the rest move into the other size.
+    if (overflow) {
+      const left = ids.filter((id) => !placed.has(id));
+      if (left.length) placeHouses(left, overflow.tier, overflow.slots.filter((c) => !used.has(c.id)));
+    }
   };
-  placeHouses(villaHeads, 'villa');
-  placeHouses(heads.filter((h) => !villaSet.has(h)), 'small');
+  placeHouses(villaHeads, 'villa', villaSlots, { tier: 'medium', slots: mediumSlots });
+  placeHouses(mediumHeads, 'medium', mediumSlots.filter((c) => !used.has(c.id)), { tier: 'small', slots: smallSlots });
+  placeHouses(smallHeads, 'small', smallSlots.filter((c) => !used.has(c.id)), { tier: 'medium', slots: mediumSlots });
 
+  const shopSlots = slotsOf('shop');
   const open = Object.values(w.businesses).filter((b) => b.closedYear === undefined);
-  const bSlots = assign(w.seed, open.map((b) => b.id), SLOTS.shop.length, 'shop');
+  const placedShops = assign(w.seed, open.map((b) => b.id), shopSlots, 'shop');
   for (const b of open) {
-    const slot = bSlots.get(b.id);
-    if (slot === undefined) continue;
+    const c = placedShops.get(b.id);
+    if (!c) continue;
+    used.add(c.id);
     lots.push({
-      ...SLOTS.shop[slot]!, slot: `shop:${slot}`, kind: 'shop', tier: 'shop', refId: b.id,
+      x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, kind: 'shop', tier: 'shop', refId: b.id,
       label: b.name, look: rand(w.seed, 'look', b.id), residents: b.owner ? [b.owner] : [],
     });
   }
-  return { width: MAP_W, height: MAP_H, roads: ROADS, lots };
+
+  // ---------- year-dependent decoration ----------
+  const props: Prop[] = [];
+  const scatter = (c: Candidate, n: number, tag: string, edgesOnly: boolean): void => {
+    for (let i = 0; i < n; i++) {
+      const r1 = rand(w.seed, 'sc-x', tag, c.id, i);
+      const r2 = rand(w.seed, 'sc-y', tag, c.id, i);
+      const r3 = rand(w.seed, 'sc-k', tag, c.id, i);
+      // Yards keep the middle (the door) clear: push x toward the left or right edge.
+      const fx = edgesOnly ? (r1 < 0.5 ? 0.08 + r1 * 0.3 : 0.77 + (r1 - 0.5) * 0.3) : 0.08 + r1 * 0.84;
+      const kind = r3 < (edgesOnly ? 0.25 : 0.55) ? 'tree' : r3 < 0.8 ? 'bush' : r3 < 0.9 ? 'flowerBush' : 'flowers';
+      props.push({
+        kind, x: Math.round((c.x + fx * c.w) * TILE),
+        y: Math.round((c.y + (edgesOnly ? 0.55 + r2 * 0.42 : 0.2 + r2 * 0.75) * c.h) * TILE),
+        look: rand(w.seed, 'sc-l', tag, c.id, i),
+      });
+    }
+  };
+  for (const c of plan.candidates) {
+    if (!used.has(c.id)) {
+      // Empty plot: a wooded lot, thicker toward the outskirts.
+      scatter(c, c.kind === 'villa' || c.kind === 'shop' ? 6 : 4, 'empty', false);
+    } else if (c.kind !== 'shop') {
+      scatter(c, 1 + Math.floor(rand(w.seed, 'yard', c.id) * 3), 'yard', true);
+    } else {
+      scatter(c, 2, 'shopfront', true);
+    }
+  }
+
+  return { width: plan.width, height: plan.height, roads: plan.roads, lots, props, plan };
 }
 
 export const lotDescription = (w: World, lot: Lot): string[] => {

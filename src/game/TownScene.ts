@@ -1,9 +1,14 @@
 import Phaser from 'phaser';
 import { fullName, type World } from '../sim';
-import { MAIN_ROAD_Y, MAP_H, MAP_W, TOWN_ROADS, layoutTown, lotDescription, type Lot, type TownLayout } from '../town/layout';
+import { layoutTown, lotDescription, type Lot, type Prop, type TownLayout } from '../town/layout';
+import { planTown, type TownPlan } from '../town/plan';
 import { pickVariant, shopArtGroup, type Manifest } from './art';
 
 export const TILE = 32;
+const PROP_GROUP: Record<Prop['kind'], string> = {
+  tree: 'tree', lamp: 'lamp', bench: 'bench', bush: 'bush', flowerBush: 'flowerBush', flowers: 'flowers',
+  fountain1: 'fountain1', fountain2: 'fountain2',
+};
 const CHUNK = 64; // ground is baked into 2048px textures (safe on mobile GPUs)
 const DIRS = ['right', 'up', 'left', 'down'] as const;
 
@@ -11,6 +16,7 @@ export class TownScene extends Phaser.Scene {
   private worlds: { original: World[]; altered: World[] } | null = null;
   private view = { year: 2025, which: 'original' as 'original' | 'altered' };
   private layout: TownLayout | null = null;
+  private plan!: TownPlan;
   private manifest: Manifest = {};
   private drawn: Phaser.GameObjects.GameObject[] = [];
   private player!: Phaser.GameObjects.Sprite;
@@ -43,7 +49,9 @@ export class TownScene extends Phaser.Scene {
 
   create(): void {
     this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT') as Record<string, Phaser.Input.Keyboard.Key>;
+    this.plan = planTown(this.worlds!.original[0]!.seed);
     this.bakeGround();
+    for (const p of this.plan.props) this.drawProp(p);
 
     // Character sheet: 56 columns of 32x64 frames; row 1 = idle, row 2 = walk; 6 frames per direction.
     const COLS = 56;
@@ -51,12 +59,12 @@ export class TownScene extends Phaser.Scene {
       this.anims.create({ key: `walk-${d}`, frames: this.anims.generateFrameNumbers('char_01', { start: 2 * COLS + i * 6, end: 2 * COLS + i * 6 + 5 }), frameRate: 10, repeat: -1 });
       this.anims.create({ key: `idle-${d}`, frames: this.anims.generateFrameNumbers('char_01', { start: 1 * COLS + i * 6, end: 1 * COLS + i * 6 + 5 }), frameRate: 6, repeat: -1 });
     });
-    this.player = this.add.sprite((MAP_W / 2) * TILE, (MAIN_ROAD_Y + 1.5) * TILE, 'char_01', 1 * COLS + 18).setOrigin(0.5, 1);
+    this.player = this.add.sprite(this.plan.center.x * TILE, (this.plan.mainY + 1.5) * TILE, 'char_01', 1 * COLS + 18).setOrigin(0.5, 1);
     this.player.play('idle-down');
 
     const cam = this.cameras.main;
     cam.startFollow(this.player, true, 0.12, 0.12);
-    cam.setBounds(0, 0, MAP_W * TILE, MAP_H * TILE);
+    cam.setBounds(0, 0, this.plan.width * TILE, this.plan.height * TILE);
     cam.setZoom(1);
     cam.roundPixels = true;
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => this.click(p));
@@ -69,8 +77,9 @@ export class TownScene extends Phaser.Scene {
 
   /** Grass, asphalt and sidewalks never change between years, so bake them once. */
   private bakeGround(): void {
+    const { width: MAP_W, height: MAP_H, roads } = this.plan;
     const kind = new Uint8Array(MAP_W * MAP_H); // 0 grass, 1 road, 2 sidewalk
-    for (const r of TOWN_ROADS)
+    for (const r of roads)
       for (let y = r.y - 1; y < r.y + r.h + 1; y++)
         for (let x = r.x - 1; x < r.x + r.w + 1; x++) {
           if (x < 0 || y < 0 || x >= MAP_W || y >= MAP_H) continue;
@@ -106,7 +115,7 @@ export class TownScene extends Phaser.Scene {
     // Dashed center lines.
     const g = this.add.graphics().setDepth(-90);
     g.fillStyle(0xe8d44d, 0.9);
-    for (const r of TOWN_ROADS) {
+    for (const r of roads) {
       if (r.horizontal) for (let x = 0; x < MAP_W; x += 2) g.fillRect(x * TILE + 6, (r.y + 1) * TILE - 2, 20, 4);
       else for (let y = 0; y < MAP_H; y += 2) g.fillRect((r.x + 1) * TILE - 2, y * TILE + 6, 4, 20);
     }
@@ -129,7 +138,15 @@ export class TownScene extends Phaser.Scene {
     for (const o of this.drawn) o.destroy();
     this.drawn = [];
     for (const lot of this.layout.lots) this.drawLot(w, lot);
+    for (const p of this.layout.props) this.drawProp(p, true);
     this.onWorld(w);
+  }
+
+  private drawProp(p: Prop, dynamic = false): void {
+    const art = pickVariant(this.manifest[PROP_GROUP[p.kind]] ?? [], p.look);
+    if (!art) return;
+    const img = this.add.image(p.x, p.y, art.key).setOrigin(0.5, 1).setDepth(p.kind === 'flowers' ? p.y - 500 : p.y);
+    if (dynamic) this.drawn.push(img);
   }
 
   private drawLot(w: World, lot: Lot): void {
@@ -138,7 +155,7 @@ export class TownScene extends Phaser.Scene {
     const add = (o: Phaser.GameObjects.GameObject): void => { this.drawn.push(o); };
 
     if (lot.kind === 'house') {
-      const group = lot.tier === 'villa' ? 'villa' : 'houseSmall';
+      const group = lot.tier === 'villa' ? 'villa' : lot.tier === 'medium' ? 'houseMedium' : 'houseSmall';
       const art = pickVariant(this.manifest[group] ?? [], lot.look);
       if (art) add(this.add.image(cx, bottom, art.key).setOrigin(0.5, 1).setDepth(bottom));
       return;
@@ -189,8 +206,8 @@ export class TownScene extends Phaser.Scene {
     this.player.play(`walk-${DIRS[this.facing]}`, true);
     const len = Math.hypot(dx, dy);
     const sp = (180 * dt) / 1000 / len;
-    const nx = Phaser.Math.Clamp(this.player.x + dx * sp, 10, MAP_W * TILE - 10);
-    const ny = Phaser.Math.Clamp(this.player.y + dy * sp, 64, MAP_H * TILE - 4);
+    const nx = Phaser.Math.Clamp(this.player.x + dx * sp, 10, this.plan.width * TILE - 10);
+    const ny = Phaser.Math.Clamp(this.player.y + dy * sp, 64, this.plan.height * TILE - 4);
     if (!this.blocked(nx, this.player.y)) this.player.x = nx;
     if (!this.blocked(this.player.x, ny)) this.player.y = ny;
     this.player.setDepth(this.player.y);

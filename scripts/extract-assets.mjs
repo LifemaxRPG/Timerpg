@@ -25,12 +25,34 @@ const exteriors = {
   asphalt: [24, 25, 26, 27].map((n) => [`asphalt_${n}`, `${ME}2_City_Terrains_Singles_32x32/ME_Singles_City_Terrains_32x32_Asphalt_1_Variation_${n}.png`]),
   sidewalk: [25, 26, 27].map((n) => [`sidewalk_${n}`, `${ME}2_City_Terrains_Singles_32x32/ME_Singles_City_Terrains_32x32_Sidewalk_1_${n}.png`]),
   houseSmall: range(1, 8).map((n) => [`house_small_${n}`, `${ME}11_Camping_Singles_32x32/ME_Singles_Camping_32x32_Mobile_House_Small_${n}.png`]),
+  houseMedium: range(1, 8).map((n) => [`house_medium_${n}`, `${ME}11_Camping_Singles_32x32/ME_Singles_Camping_32x32_Mobile_House_Medium_${n}.png`]),
   villa: range(1, 5).map((n) => [`villa_${n}`, `${ME}7_Villas_Singles_32x32/ME_Singles_Villas_32x32_Villa_${n}.png`]),
   roof: range(1, 11).map((n) => [`roof_${n}`, `${FM}Roof_${n}.png`]),
 };
-const SHOPS = { Shop: 36, Bakery: 12, Butchery: 12, Music_Store: 12, Bait_Shop: 18, Ice_Cream_Shop: 6 };
-for (const [kind, n] of Object.entries(SHOPS))
-  exteriors[`shop:${kind}`] = range(1, n).map((i) => [`shop_${kind}_${i}`, `${FM}Ground_Floor_${kind}_${i}.png`]);
+const CP = `${ME}3_City_Props_Singles_32x32/ME_Singles_City_Props_32x32_`;
+const GD = `${ME}17_Garden_Singles_32x32/ME_Singles_Garden_32x32_`;
+const props = (group, base, nums) => (exteriors[group] = nums.map((n) => [`${group}_${n}`, `${base}_${n}.png`]));
+props('tree', `${CP}Tree`, [1, 2, 3, 4, 5, 6, 8, 11, 12]);
+props('lamp', `${CP}Street_Lamp`, [1, 2, 3, 4, 5]);
+props('bench', `${CP}Bench`, [1, 2, 7]);
+props('flowerBush', `${CP}Flower_Bush`, [1, 2, 3, 4, 5, 6]);
+props('bush', `${GD}Bush`, [1, 2, 3, 4, 5, 6, 8, 10, 12, 16]);
+props('flowers', `${CP}Flowers`, [1, 2, 3, 4, 5]);
+props('fountain1', `${GD}Fountain_1`, [1, 2, 3, 4]);
+props('fountain2', `${GD}Fountain_2`, [1, 2, 3, 4]);
+// Open-for-business variants only (even numbers are shutters-down; generic shops also include
+// "CLOSED"/"DANGER" signs that don't suit a living town).
+const odds = (n) => range(1, n).filter((i) => i % 2 === 1);
+const SHOPS = {
+  Shop: [1, 5, 7, 9, 13, 17, 19, 21, 25, 29, 31, 33],
+  Bakery: odds(12),
+  Butchery: odds(12),
+  Music_Store: range(1, 12),
+  Bait_Shop: odds(18),
+  Ice_Cream_Shop: odds(6),
+};
+for (const [kind, nums] of Object.entries(SHOPS))
+  exteriors[`shop:${kind}`] = nums.map((i) => [`shop_${kind}_${i}`, `${FM}Ground_Floor_${kind}_${i}.png`]);
 
 const interiors = {
   characters: range(1, 8).map((n) => {

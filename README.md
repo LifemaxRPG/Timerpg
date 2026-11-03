@@ -13,7 +13,11 @@ the past (kill the future mayor, invest in the bakery...), and come back to see 
     business founding, mayor elections) and `runTimeline()` which applies time-traveler interventions.
   - `social.ts` - pairwise affinity (seeded baseline + deliberate `bonds`) and reputation; drives marriages and elections.
   - `diff.ts` - compares the same year across two timelines ("what did my actions change?").
-- `src/town/` - pure layout generator: sim state -> lots/roads (stable slots, so buildings keep their place across years).
+- `src/town/plan.ts` - the **town plan**, a pure function of the seed: street network (irregular spacing,
+  varying number of streets/width), main street, villa district, plaza with fountain, forest edge, street
+  furniture. Grows until there is room for every shop and household.
+- `src/town/layout.ts` - who/what occupies the plan in a given year: the town fills center-outward,
+  housing tier follows household wealth (small / medium / villa), empty plots become wooded lots, yards get props.
 - `src/game/` + `src/main.ts` - Phaser scene and HUD; they only read sim state.
 - A timeline is `seed + list of interventions`. Saves only need those two things.
 - Future AI (e.g. Qwen) narrates the structured `chronicle` / `WorldDiff`; it never decides outcomes.
@@ -42,6 +46,7 @@ npm run demo [seed]   # kills the present-day mayor as a child and prints the co
 
 1. [x] Deterministic simulation core + interventions + diff
 2. [x] Verbs: kill, invest, sabotage, introduce, rumor, gift
+2c. [x] World generation v2: per-seed street networks, districts, plaza, forest edge, street furniture, growth from the center
 2b. [ ] Secrets/knowledge, debts and feuds, land ownership, more verbs (blackmail, warn, teach), your own traveler inventory/allies
 3. [x] Phaser + Vite renderer (placeholder art): layout from sim state (`src/town/layout.ts`), walkable player, year slider, original/altered timeline toggle
 4. [ ] Time-travel UI + era-specific buildings and props + "what changed" screen
