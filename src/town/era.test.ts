@@ -1,0 +1,36 @@
+import { describe, expect, it } from 'vitest';
+import { BILLBOARDS_FROM, lampIndexes, pickIndex, treeIndexes } from './era';
+import { shopFacade } from './facade';
+
+describe('era', () => {
+  it('lamps and trees only add options as the years pass (nothing disappears)', () => {
+    for (let y = 1950; y < 2025; y++) {
+      for (const f of [lampIndexes, treeIndexes]) for (const i of f(y)) expect(f(y + 1)).toContain(i);
+    }
+  });
+
+  it('1950 has only old-fashioned lamps and young trees; 2025 has modern lamps and big trees', () => {
+    expect(lampIndexes(1950)).not.toContain(2);
+    expect(lampIndexes(1950)).not.toContain(3);
+    expect(lampIndexes(2025)).toContain(3);
+    expect(treeIndexes(1950)).not.toContain(7);
+    expect(treeIndexes(2025)).toContain(8);
+  });
+
+  it('pickIndex is stable and clamps to what exists', () => {
+    expect(pickIndex([0, 1, 4], 5, 0.5)).toBe(pickIndex([0, 1, 4], 5, 0.5));
+    expect(pickIndex([0, 1, 7, 8], 3, 0.99)).toBe(1);
+    expect(pickIndex([0, 1], 5, 0.999)).toBe(1);
+  });
+
+  it('rooftop billboards only appear from the mid-70s', () => {
+    for (let i = 0; i < 200; i++) {
+      const look = i / 200;
+      const early = shopFacade('Hardware', look, BILLBOARDS_FROM - 1);
+      expect(early.layers.some((l) => l.key.startsWith('roofprop_')), `look ${look}`).toBe(false);
+    }
+    let late = 0;
+    for (let i = 0; i < 200; i++) if (shopFacade('Hardware', i / 200, 2025).layers.some((l) => l.key.startsWith('roofprop_'))) late++;
+    expect(late).toBeGreaterThan(20);
+  });
+});

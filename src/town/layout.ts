@@ -187,7 +187,7 @@ export function layoutTown(w: World): TownLayout {
     const look = rand(w.seed, 'look', b.id);
     lots.push({
       x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, kind: 'shop', tier: 'shop', refId: b.id,
-      label: b.name, look, front: 0, art: shopFacade(b.kind, look), heads: [], residents: b.owner ? [b.owner] : [],
+      label: b.name, look, front: 0, art: shopFacade(b.kind, look, w.year), heads: [], residents: b.owner ? [b.owner] : [],
     });
   }
 

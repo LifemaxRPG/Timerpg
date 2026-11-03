@@ -52,6 +52,7 @@ npm run demo [seed]   # kills the present-day mayor as a child and prints the co
 
 1. [x] Deterministic simulation core + interventions + diff
 2. [x] Verbs: kill, invest, sabotage, introduce, rumor, gift
+2h. [x] Era look (`src/town/era.ts`): old-fashioned street lamps and young trees in 1950, modern lamps/billboards/mature trees later
 2g. [x] Color variety: the extract script generates recolored copies (wall + roof colors) of the mobile homes and terraced houses (80 + 80 + 30 sprites), since the pack only ships one gray colorway
 2f. [x] Ground texture (patches, pebbles, twigs, sprouts baked into the grass) and yards: houses get front yards with picket fence + gate, side/back hedges and a dirt path
 2c. [x] World generation v2: per-seed street networks, districts, plaza, forest edge, street furniture, growth from the center

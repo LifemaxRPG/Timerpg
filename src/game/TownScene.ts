@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { fullName, type World } from '../sim';
 import { layoutTown, landmarkDescription, lotDescription, type LandmarkPlot, type Lot, type Prop, type Road, type TownLayout } from '../town/layout';
 import { landmarkFootprint } from '../town/landmarks';
+import { lampIndexes, pickIndex, treeIndexes } from '../town/era';
 import { planTown, type TownPlan } from '../town/plan';
 import type { Bridge } from '../town/water';
 import { pickVariant, type Manifest } from './art';
@@ -229,7 +230,12 @@ export class TownScene extends Phaser.Scene {
   }
 
   private drawProp(p: Prop, dynamic = false): void {
-    const art = pickVariant(this.manifest[PROP_GROUP[p.kind]] ?? [], p.look);
+    const group = this.manifest[PROP_GROUP[p.kind]] ?? [];
+    // Street furniture and the town's own trees follow the era (the forest and plaza are fixed).
+    const yr = this.view.year;
+    const art = p.kind === 'lamp' ? group[pickIndex(lampIndexes(yr), group.length, p.look)]
+      : p.kind === 'tree' && dynamic ? group[pickIndex(treeIndexes(yr), group.length, p.look)]
+      : pickVariant(group, p.look);
     if (!art) return;
     const img = this.add.image(p.x, p.y, art.key).setOrigin(0.5, 1).setDepth(p.kind === 'path' ? -60 : p.kind === 'flowers' ? p.y - 500 : p.y);
     if (dynamic) this.drawn.push(img);

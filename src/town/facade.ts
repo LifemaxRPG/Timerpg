@@ -1,4 +1,5 @@
 import { rand } from '../sim/rng';
+import { BILLBOARDS_FROM } from './era';
 import { colourOf, pickStable, stack, type BuildingArt, type Colour } from './buildings';
 
 // Shop fronts: a ground floor of the business's type, optionally a middle floor with windows,
@@ -46,8 +47,8 @@ export function allFacadeArt(): { key: string; w: number; h: number }[] {
   return out;
 }
 
-/** The sprite stack for a business's shop front. Deterministic in (kind, look). */
-export function shopFacade(businessKind: string, look: number): BuildingArt {
+/** The sprite stack for a business's shop front. Deterministic in (kind, look, era); billboards only from the mid-70s. */
+export function shopFacade(businessKind: string, look: number, year = 2025): BuildingArt {
   const fam = shopFamily(businessKind);
   const f = FAMILIES[fam]!;
   const n = pickStable(f.nums.map((i) => ({ id: String(i) })), look, `ground:${fam}`).id;
@@ -69,7 +70,7 @@ export function shopFacade(businessKind: string, look: number): BuildingArt {
   ];
   const s = stack(parts);
   const layers = [...s.layers];
-  if (r('prop') < 0.3) {
+  if (year >= BILLBOARDS_FROM && r('prop') < 0.3) {
     const pn = BILLBOARDS[Math.floor(r('which') * BILLBOARDS.length)]!;
     layers.push({ key: `roofprop_${pn}`, w: 160, h: 96, y: layers[layers.length - 1]!.y + 12, dx: 0 });
   }
