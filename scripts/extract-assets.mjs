@@ -29,6 +29,12 @@ const exteriors = {
   villa: range(1, 5).map((n) => [`villa_${n}`, `${ME}7_Villas_Singles_32x32/ME_Singles_Villas_32x32_Villa_${n}.png`]),
   roof: range(1, 11).map((n) => [`roof_${n}`, `${FM}Roof_${n}.png`]),
 };
+// Water: shore autotile set (Grass_Water_2; index n-1 = tile n; 22 = plain water, 23 = plain grass),
+// ripple/lily-pad overlays, and the iron railing (horizontal 2 and 6, vertical right 4 / left 8) for bridges.
+const TF = `${ME}1_Terrains_and_Fences_Singles_32x32/ME_Singles_Terrains_and_Fences_32x32_`;
+exteriors.waterShore = range(1, 23).map((n) => [`water_shore_${n}`, `${TF}Grass_Water_2_${n}.png`]);
+exteriors.waterDecor = [1, 2, 3, 4, 5, 11, 12, 13].map((n) => [`water_decor_${n}`, `${TF}Props_Water_${n}.png`]);
+exteriors.bridgeRail = [2, 4, 6, 8].map((n) => [`bridge_rail_${n}`, `${TF}Fence_3_${n}.png`]);
 const CP = `${ME}3_City_Props_Singles_32x32/ME_Singles_City_Props_32x32_`;
 const GD = `${ME}17_Garden_Singles_32x32/ME_Singles_Garden_32x32_`;
 const props = (group, base, nums) => (exteriors[group] = nums.map((n) => [`${group}_${n}`, `${base}_${n}.png`]));

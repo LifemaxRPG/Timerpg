@@ -18,6 +18,7 @@ the past (kill the future mayor, invest in the bakery...), and come back to see 
   furniture. Grows until there is room for every shop and household.
 - `src/town/layout.ts` - who/what occupies the plan in a given year: the town fills center-outward,
   housing tier follows household wealth (small / medium / villa), empty plots become wooded lots, yards get props.
+- `src/town/water.ts` - per-seed river (north-south, meandering, 3-6 wide) or lake, or none; plots near it are dropped, streets that meet it get bridge decks. The ground bake autotiles the shore; the player can't walk into water.
 - `src/game/` + `src/main.ts` - Phaser scene and HUD; they only read sim state.
 - A timeline is `seed + list of interventions`. Saves only need those two things.
 - Future AI (e.g. Qwen) narrates the structured `chronicle` / `WorldDiff`; it never decides outcomes.
