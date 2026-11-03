@@ -9,7 +9,7 @@ import { pickVariant, type Manifest } from './art';
 export const TILE = 32;
 const PROP_GROUP: Record<Prop['kind'], string> = {
   tree: 'tree', lamp: 'lamp', bench: 'bench', bush: 'bush', flowerBush: 'flowerBush', flowers: 'flowers',
-  fountain1: 'fountain1', fountain2: 'fountain2',
+  fountain1: 'fountain1', fountain2: 'fountain2', fence: 'fence', hedge: 'hedge', path: 'dirtPath',
 };
 const CHUNK = 64; // ground is baked into 2048px textures (safe on mobile GPUs)
 const DIRS = ['right', 'up', 'left', 'down'] as const;
@@ -109,6 +109,8 @@ export class TownScene extends Phaser.Scene {
     const pz = this.plan.plaza;
     for (let y = pz.y + 1; y < pz.y + pz.h - 1; y++) for (let x = pz.x + 1; x < pz.x + pz.w - 1; x++) if (kind[y * MAP_W + x] === 0) kind[y * MAP_W + x] = 2;
     const grass = this.manifest.grass ?? [];
+    const patches = this.manifest.grassPatch ?? [];
+    const clutter = this.manifest.clutter ?? [];
     const asphalt = this.manifest.asphalt ?? [];
     const sidewalk = this.manifest.sidewalk ?? [];
     const hash = (x: number, y: number): number => ((Math.imul(x, 73856093) ^ Math.imul(y, 19349663)) >>> 0) / 4294967296;
@@ -143,6 +145,12 @@ export class TownScene extends Phaser.Scene {
             const set = k === 1 ? asphalt : k === 2 ? sidewalk : grass;
             const entry = set.length ? (n < 0.97 ? set[0]! : pickVariant(set, (n - 0.97) * 33)) : undefined;
             if (entry) rt.batchDrawFrame(entry.key, undefined, x * TILE, y * TILE);
+            // The pack's grass is flat; texture comes from overlays: light patches and ground clutter.
+            if (k === 0) {
+              const h2 = hash(gx * 3 + 11, gy * 5 + 7);
+              if (patches.length && h2 < 0.085) rt.batchDrawFrame(pickVariant(patches, h2 / 0.085).key, undefined, x * TILE, y * TILE);
+              else if (clutter.length && h2 > 0.955) rt.batchDrawFrame(pickVariant(clutter, (h2 - 0.955) / 0.045).key, undefined, x * TILE, y * TILE);
+            }
           }
         rt.endDraw();
       }
@@ -223,7 +231,7 @@ export class TownScene extends Phaser.Scene {
   private drawProp(p: Prop, dynamic = false): void {
     const art = pickVariant(this.manifest[PROP_GROUP[p.kind]] ?? [], p.look);
     if (!art) return;
-    const img = this.add.image(p.x, p.y, art.key).setOrigin(0.5, 1).setDepth(p.kind === 'flowers' ? p.y - 500 : p.y);
+    const img = this.add.image(p.x, p.y, art.key).setOrigin(0.5, 1).setDepth(p.kind === 'path' ? -60 : p.kind === 'flowers' ? p.y - 500 : p.y);
     if (dynamic) this.drawn.push(img);
   }
 
@@ -239,7 +247,7 @@ export class TownScene extends Phaser.Scene {
 
   private drawLot(w: World, lot: Lot): void {
     const cx = (lot.x + lot.w / 2) * TILE;
-    const bottom = (lot.y + lot.h) * TILE;
+    const bottom = (lot.y + lot.h - lot.front) * TILE; // the building stands above the front yard
     const add = (o: Phaser.GameObjects.GameObject): void => { this.drawn.push(o); };
 
     // Houses and shop fronts are stacks of sprites (see src/town/housing.ts and facade.ts).
@@ -289,8 +297,9 @@ export class TownScene extends Phaser.Scene {
       const art = l.art;
       const half = Math.min(art.w, l.w * TILE) / 2;
       const cx = (l.x + l.w / 2) * TILE;
-      const footTop = (l.y + l.h - Math.min(l.h, art.footRows)) * TILE;
-      return x + 7 > cx - half && x - 7 < cx + half && y > footTop && y - 4 < (l.y + l.h) * TILE;
+      const bottom = (l.y + l.h - l.front) * TILE; // the building, not its front yard
+      const footTop = bottom - Math.min(l.h - l.front, art.footRows) * TILE;
+      return x + 7 > cx - half && x - 7 < cx + half && y > footTop && y - 4 < bottom;
     });
   }
 

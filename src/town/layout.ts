@@ -5,6 +5,7 @@ import { shopFacade } from './facade';
 import { apartmentCapacity, apartmentEligible, houseArt, type ResidentialKind } from './housing';
 import type { BuildingArt } from './buildings';
 import { waterNear } from './water';
+import { FRONT } from './kinds';
 import { planTown, TILE, type Candidate, type LotKind, type Prop, type Road, type TownPlan } from './plan';
 
 export { TILE };
@@ -22,6 +23,8 @@ export interface Lot {
   label: string;
   /** 0..1 stable value for choosing sprite variants. */
   look: number;
+  /** Tiles of front yard at the bottom of the plot; the building stands above it. */
+  front: number;
   /** Sprite stack to draw (houses by tier/era, shop fronts by business type). */
   art: BuildingArt;
   /** Household heads living here (several in an apartment building). */
@@ -139,7 +142,7 @@ export function layoutTown(w: World): TownLayout {
     lots.push({
       x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, kind: 'house', tier, refId: group[0]!, heads: group,
       label: tier === 'apartment' ? `${first.surname} Court apartments` : `${first.surname} house`,
-      look, art: houseArt(tier, look, w.year), residents: group.flatMap((h) => households.get(h)!).sort(),
+      look, front: FRONT[tier], art: houseArt(tier, look, w.year), residents: group.flatMap((h) => households.get(h)!).sort(),
     });
   };
   /** Fill apartment buildings center-outward, each taking as many households as its sprite holds. */
@@ -184,7 +187,7 @@ export function layoutTown(w: World): TownLayout {
     const look = rand(w.seed, 'look', b.id);
     lots.push({
       x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, kind: 'shop', tier: 'shop', refId: b.id,
-      label: b.name, look, art: shopFacade(b.kind, look), heads: [], residents: b.owner ? [b.owner] : [],
+      label: b.name, look, front: 0, art: shopFacade(b.kind, look), heads: [], residents: b.owner ? [b.owner] : [],
     });
   }
 
@@ -214,6 +217,27 @@ export function layoutTown(w: World): TownLayout {
     } else {
       scatter(c, 2, 'shopfront', true);
     }
+  }
+
+  // Yards: every occupied house gets a picket fence along the front (with a gate gap), hedges down
+  // both sides and along the back, and a dirt path from the door to the gate.
+  for (const lot of lots) {
+    if (lot.kind !== 'house' || lot.front === 0) continue;
+    const bottom = lot.y + lot.h; // plot bottom edge, in tiles
+    const cx = lot.x + lot.w / 2;
+    const mid = Math.floor(cx);
+    for (let row = 0; row < lot.front; row++)
+      for (const dx of [-1, 0]) props.push({ kind: 'path', x: Math.round((mid + dx + 0.5) * TILE), y: (bottom - lot.front + row + 1) * TILE, look: 0 });
+    for (let tx = lot.x; tx < lot.x + lot.w; tx++) {
+      if (Math.abs(tx + 0.5 - cx) < 1.6) continue; // the gate
+      props.push({ kind: 'fence', x: Math.round((tx + 0.5) * TILE), y: bottom * TILE, look: tx % 2 });
+    }
+    const hedge = (tx: number, ty: number, tag: string): void => {
+      if (rand(w.seed, 'hedge', lot.slot, tag, tx, ty) < 0.18) return; // a gap or two keeps it natural
+      props.push({ kind: 'hedge', x: Math.round((tx + 0.5) * TILE), y: Math.round((ty + 1) * TILE), look: rand(w.seed, 'hedge-l', lot.slot, tx, ty) });
+    };
+    for (let ty = lot.y + 1; ty < bottom - 1; ty++) { hedge(lot.x, ty, 'l'); hedge(lot.x + lot.w - 1, ty, 'r'); }
+    for (let tx = lot.x + 1; tx < lot.x + lot.w - 1; tx++) hedge(tx, lot.y, 'b');
   }
 
   // Landmark plots: wooded until the landmark opens.

@@ -487,6 +487,196 @@
    "h": 64
   }
  ],
+ "grassPatch": [
+  {
+   "key": "grass_patch_8",
+   "path": "assets/grassPatch/grass_patch_8.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "grass_patch_9",
+   "path": "assets/grassPatch/grass_patch_9.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "grass_patch_10",
+   "path": "assets/grassPatch/grass_patch_10.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "grass_patch_11",
+   "path": "assets/grassPatch/grass_patch_11.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "grass_patch_12",
+   "path": "assets/grassPatch/grass_patch_12.png",
+   "w": 64,
+   "h": 32
+  },
+  {
+   "key": "grass_patch_13",
+   "path": "assets/grassPatch/grass_patch_13.png",
+   "w": 64,
+   "h": 32
+  }
+ ],
+ "clutter": [
+  {
+   "key": "clutter_1",
+   "path": "assets/clutter/clutter_1.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "clutter_2",
+   "path": "assets/clutter/clutter_2.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "clutter_5",
+   "path": "assets/clutter/clutter_5.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "clutter_6",
+   "path": "assets/clutter/clutter_6.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "clutter_8",
+   "path": "assets/clutter/clutter_8.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "clutter_9",
+   "path": "assets/clutter/clutter_9.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "clutter_10",
+   "path": "assets/clutter/clutter_10.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "clutter_11",
+   "path": "assets/clutter/clutter_11.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "clutter_13",
+   "path": "assets/clutter/clutter_13.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "clutter_14",
+   "path": "assets/clutter/clutter_14.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "clutter_16",
+   "path": "assets/clutter/clutter_16.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "clutter_17",
+   "path": "assets/clutter/clutter_17.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "clutter_20",
+   "path": "assets/clutter/clutter_20.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "clutter_21",
+   "path": "assets/clutter/clutter_21.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "clutter_22",
+   "path": "assets/clutter/clutter_22.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "clutter_24",
+   "path": "assets/clutter/clutter_24.png",
+   "w": 32,
+   "h": 32
+  }
+ ],
+ "fence": [
+  {
+   "key": "fence_9",
+   "path": "assets/fence/fence_9.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "fence_10",
+   "path": "assets/fence/fence_10.png",
+   "w": 32,
+   "h": 32
+  }
+ ],
+ "dirtPath": [
+  {
+   "key": "dirt_path_21",
+   "path": "assets/dirtPath/dirt_path_21.png",
+   "w": 32,
+   "h": 32
+  }
+ ],
+ "hedge": [
+  {
+   "key": "hedge_1",
+   "path": "assets/hedge/hedge_1.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "hedge_2",
+   "path": "assets/hedge/hedge_2.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "hedge_3",
+   "path": "assets/hedge/hedge_3.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "hedge_4",
+   "path": "assets/hedge/hedge_4.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "hedge_5",
+   "path": "assets/hedge/hedge_5.png",
+   "w": 32,
+   "h": 32
+  }
+ ],
  "houseTerraced": [
   {
    "key": "house_terraced_1",

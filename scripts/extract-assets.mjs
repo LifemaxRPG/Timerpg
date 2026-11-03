@@ -35,6 +35,13 @@ const TF = `${ME}1_Terrains_and_Fences_Singles_32x32/ME_Singles_Terrains_and_Fen
 exteriors.waterShore = range(1, 23).map((n) => [`water_shore_${n}`, `${TF}Grass_Water_2_${n}.png`]);
 exteriors.waterDecor = [1, 2, 3, 4, 5, 11, 12, 13].map((n) => [`water_decor_${n}`, `${TF}Props_Water_${n}.png`]);
 exteriors.bridgeRail = [2, 4, 6, 8].map((n) => [`bridge_rail_${n}`, `${TF}Fence_3_${n}.png`]);
+// Ground texture and yards: the pack's grass is flat, so variety comes from overlays - light-green
+// patches and ground clutter (pebbles, sprouts, twigs) - plus picket fences, hedges and a dirt path tile.
+exteriors.grassPatch = [8, 9, 10, 11, 12, 13].map((n) => [`grass_patch_${n}`, `${TF}Props_Grass_${n}.png`]);
+exteriors.clutter = [1, 2, 5, 6, 8, 9, 10, 11, 13, 14, 16, 17, 20, 21, 22, 24].map((n) => [`clutter_${n}`, `${TF}Props_Dirt_${n}.png`]);
+exteriors.fence = [9, 10].map((n) => [`fence_${n}`, `${TF}Props_Fence_${n}.png`]);
+exteriors.dirtPath = [['dirt_path_21', `${TF}Grass_3_21.png`]];
+exteriors.hedge = [1, 2, 3, 4, 5].map((n) => [`hedge_${n}`, `${ME}17_Garden_Singles_32x32/ME_Singles_Garden_32x32_Bush_${n}.png`]);
 
 // Housing variety (see src/town/housing.ts for how these are used).
 const AH = `${ME}24_Additional_Houses_Singles_32x32/24_Additional_Houses_`;

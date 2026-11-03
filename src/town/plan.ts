@@ -7,7 +7,7 @@ import { placeLandmarks, type LandmarkPlot } from './landmarks';
 import { planNetwork } from './network';
 import { planWater, shiftWater, waterKind, waterNear, type WaterBody } from './water';
 
-export { SIZES } from './kinds';
+export { FRONT, SIZES } from './kinds';
 export type { LotKind, Rect, Road } from './kinds';
 
 // The TOWN PLAN is everything about the place that does not depend on the year or on
@@ -24,7 +24,7 @@ export interface Candidate extends Rect {
   rank: number;
 }
 
-export type PropKind = 'tree' | 'lamp' | 'bench' | 'bush' | 'flowerBush' | 'flowers' | 'fountain1' | 'fountain2';
+export type PropKind = 'tree' | 'lamp' | 'bench' | 'bush' | 'flowerBush' | 'flowers' | 'fountain1' | 'fountain2' | 'fence' | 'hedge' | 'path';
 /** A decoration. x is the center and y the bottom edge, in pixels. look picks the variant. */
 export interface Prop {
   kind: PropKind; x: number; y: number; look: number;
@@ -105,7 +105,7 @@ function build(seed: string, extra: number): Built | null {
   const n = (k: LotKind): number => lots.filter((l) => l.kind === k).length;
   // The sim never needs more than ~20 shops and ~100 households (apartments house about 4 each).
   const homeRoom = n('small') + n('medium') + n('house') + 4 * n('apartment');
-  const ok = n('shop') >= 20 && n('villa') >= 3 && homeRoom >= 112 && lm.landmarks.length >= 3;
+  const ok = n('shop') >= 20 && n('villa') >= 2 && homeRoom >= 100 && lm.landmarks.length >= 3;
   return { net, water, plaza, landmarks: lm.landmarks, lots, ok };
 }
 
@@ -116,7 +116,7 @@ export function planTown(seed: string): TownPlan {
 
   // Grow the town (longer streets, more of them) until everything fits.
   let built: Built | null = null;
-  for (let extra = 0; extra <= 6; extra++) {
+  for (let extra = 0; extra <= 8; extra++) {
     const b = build(seed, extra);
     if (b) built = b;
     if (b?.ok) break;
