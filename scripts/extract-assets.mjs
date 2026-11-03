@@ -78,6 +78,9 @@ const SHOPS = {
   Music_Store: range(1, 12),
   Bait_Shop: odds(18),
   Ice_Cream_Shop: odds(6),
+  // Gym fronts (glass windows, barbell sign) and condo ground floors (arched bank door, office door).
+  Gym: [1, 3, 5, 7, 9, 11],
+  Condo: [3, 4, 7, 8, 11, 12],
 };
 for (const [kind, nums] of Object.entries(SHOPS))
   exteriors[`shop:${kind}`] = nums.map((i) => [`shop_${kind}_${i}`, `${FM}Ground_Floor_${kind}_${i}.png`]);
@@ -196,28 +199,32 @@ const FONT = {
 };
 const SCALE = 2; // each font pixel is 2x2 sprite pixels
 const textWidth = (t) => t.length * 6 * SCALE - SCALE;
-/** One storefront per business kind: [kind, family, sign text, board, letters, border] (RGB). */
+/**
+ * One storefront per business kind: [kind, sprite family, ground-floor variants that show this kind of
+ * goods, sign text, board, letters, border, options]. The variants matter: the generic shop windows show
+ * gowns (Plume), casual outfits (Groove, Coolies) and animal costumes (Bim Bum), so only those kinds use them.
+ */
 const CLASSIC = [
-  ['Bakery', 'Bakery', 'BAKERY', [236, 226, 192], [160, 48, 44], [70, 44, 32]],
-  ['Butcher', 'Butchery', 'BUTCHER', [34, 86, 62], [240, 232, 204], [18, 48, 36]],
-  ['Ice Cream Parlor', 'Ice_Cream_Shop', 'ICE CREAM', [250, 228, 232], [32, 112, 122], [110, 70, 84]],
-  ['Music Store', 'Music_Store', 'MUSIC', [30, 44, 92], [240, 204, 84], [14, 22, 56]],
-  ['Bait Shop', 'Bait_Shop', 'BAIT & TACKLE', [36, 98, 102], [240, 232, 204], [18, 52, 56]],
-  ['General Store', 'Shop', 'GENERAL STORE', [236, 226, 192], [40, 40, 52], [70, 52, 36]],
-  ['Hardware', 'Shop', 'HARDWARE', [44, 84, 56], [240, 232, 204], [22, 46, 30]],
-  ['Diner', 'Shop', 'DINER', [170, 48, 44], [244, 236, 214], [90, 24, 22]],
-  ['Pharmacy', 'Shop', 'PHARMACY', [244, 244, 236], [44, 120, 72], [80, 90, 84]],
-  ['Bank', 'Shop', 'BANK', [40, 44, 56], [236, 200, 90], [20, 22, 30]],
-  ['Newspaper', 'Shop', 'NEWSPAPER', [238, 232, 214], [30, 30, 36], [80, 74, 62]],
-  ['Barber Shop', 'Shop', 'BARBER', [244, 244, 240], [176, 40, 44], [60, 64, 90]],
+  ['Bakery', 'Bakery', odds(12), 'BAKERY', [236, 226, 192], [160, 48, 44], [70, 44, 32]],
+  ['Butcher', 'Butchery', odds(12), 'BUTCHER', [34, 86, 62], [240, 232, 204], [18, 48, 36]],
+  ['Ice Cream Parlor', 'Ice_Cream_Shop', odds(6), 'ICE CREAM', [250, 228, 232], [32, 112, 122], [110, 70, 84]],
+  ['Music Store', 'Music_Store', range(1, 12), 'MUSIC', [30, 44, 92], [240, 204, 84], [14, 22, 56]],
+  ['Bait Shop', 'Bait_Shop', odds(18), 'BAIT & TACKLE', [36, 98, 102], [240, 232, 204], [18, 52, 56]],
+  ['Clothing Store', 'Shop', [5, 7, 17, 19, 29, 31], 'CLOTHING', [236, 226, 192], [40, 40, 52], [70, 52, 36]],
+  ['Dress Shop', 'Shop', [1, 13, 25], 'DRESS SHOP', [244, 232, 236], [150, 50, 90], [90, 60, 76]],
+  ['Toy Store', 'Shop', [9, 21, 33], 'TOY STORE', [176, 52, 46], [244, 236, 214], [96, 26, 24]],
+  ['Gym', 'Gym', [1, 3, 5, 7, 9, 11], 'ATHLETIC CLUB', [30, 40, 70], [240, 240, 232], [14, 20, 40]],
+  ['Bank', 'Condo', [3, 7, 11], 'BANK', [40, 44, 56], [236, 200, 90], [20, 22, 30], { cx: 62, by: 8, bh: 16 }],
+  ['Law Office', 'Condo', [4, 8, 12], 'LAW OFFICE', [236, 226, 192], [40, 40, 52], [70, 52, 36], { by: 6, bh: 16 }],
+  ["Doctor's Office", 'Condo', [4, 8, 12], 'DOCTOR', [244, 244, 236], [44, 120, 72], [80, 90, 84], { by: 6, bh: 16 }],
 ];
 /** Rows (from the bottom of the 96px storefront) below which the original is kept untouched. */
-const KEEP = { Bakery: 66, Butchery: 66, Ice_Cream_Shop: 62, Music_Store: 66, Bait_Shop: 66, Shop: 74 };
+const KEEP = { Bakery: 66, Butchery: 66, Ice_Cream_Shop: 62, Music_Store: 66, Bait_Shop: 66, Shop: 74, Gym: 66, Condo: 96 };
 /** Clean brick strip (x range) per family: the right side for the bait shop (the fish covers its left). */
 const STRIP = { Bait_Shop: 196 };
 const slug = (k) => k.toLowerCase().replace(/[^a-z]+/g, '_');
 
-function classicShop(buf, fam, text, board, letters, border) {
+function classicShop(buf, fam, text, board, letters, border, opts = {}) {
   const src = PNG.sync.read(buf);
   const W = src.width, H = src.height, BODY = 96;
   const out = new PNG({ width: W, height: BODY });
@@ -229,11 +236,11 @@ function classicShop(buf, fam, text, board, letters, border) {
   const sx = STRIP[fam] ?? 8;
   for (let y = 0; y < rebuild; y++) for (let x = 6; x < W - 6; x++) put(x, y, px(src, sx + ((x - 6) % 8), y + H - BODY));
   // Sign board (centered), 20 rows tall, just under the cornice.
-  const tw = textWidth(text), bw = Math.min(W - 24, tw + 16), bh = 20;
-  const bx = Math.floor((W - bw) / 2), by = 12;
+  const tw = textWidth(text), bw = Math.min(W - 24, tw + 16), bh = opts.bh ?? 20;
+  const bx = Math.max(6, Math.min(W - 6 - bw, Math.round((opts.cx ?? W / 2) - bw / 2))), by = opts.by ?? 12;
   for (let y = by; y < by + bh; y++)
     for (let x = bx; x < bx + bw; x++) put(x, y, x === bx || x === bx + bw - 1 || y === by || y === by + bh - 1 ? border : board);
-  let cx = Math.floor((W - tw) / 2);
+  let cx = bx + Math.floor((bw - tw) / 2);
   const cy = by + Math.floor((bh - 7 * SCALE) / 2);
   for (const ch of text) {
     const g = FONT[ch] ?? FONT[' '];
@@ -243,15 +250,16 @@ function classicShop(buf, fam, text, board, letters, border) {
   }
   return PNG.sync.write(out);
 }
-for (const [kind, fam, text, board, letters, border] of CLASSIC) {
+for (const [kind, fam, nums, text, board, letters, border, opts] of CLASSIC) {
   const group = `classic:${slug(kind)}`;
   manifest[group] = [];
-  for (const e of manifest[`shop:${fam}`]) {
-    const n = e.key.split('_').pop();
+  for (const n of nums) {
+    const e = manifest[`shop:${fam}`].find((x) => x.key === `shop_${fam}_${n}`);
+    if (!e) throw new Error(`missing source sprite shop_${fam}_${n}`);
     const key = `classic_${slug(kind)}_${n}`;
     const rel = `${group.replace(':', '_')}/${key}.png`;
     fs.mkdirSync(path.join(OUT, path.dirname(rel)), { recursive: true });
-    fs.writeFileSync(path.join(OUT, rel), classicShop(fs.readFileSync(path.join(path.dirname(OUT), e.path)), fam, text, board, letters, border));
+    fs.writeFileSync(path.join(OUT, rel), classicShop(fs.readFileSync(path.join(path.dirname(OUT), e.path)), fam, text, board, letters, border, opts));
     manifest[group].push({ key, path: `assets/${rel}`, w: 224, h: 96 });
   }
 }

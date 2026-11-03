@@ -52,6 +52,7 @@ npm run demo [seed]   # kills the present-day mayor as a child and prints the co
 
 1. [x] Deterministic simulation core + interventions + diff
 2. [x] Verbs: kill, invest, sabotage, introduce, rumor, gift
+2j. [x] Signs match the goods: business kinds are limited to ones the art can honestly show (bakery, butcher, ice cream, music, bait, clothing, dress, toy, gym, bank, law office, doctor); each kind only uses window sprites that match it (guarded by a test)
 2i. [x] Classic (pre-1975) storefronts: generated in code (extract script) - flat painted sign boards with block lettering from a built-in pixel font, replacing the pack's big modern signs; 120 sprites, one per business kind
 2h. [x] Era look (`src/town/era.ts`): old-fashioned street lamps and young trees in 1950, modern lamps/billboards/mature trees later
 2g. [x] Color variety: the extract script generates recolored copies (wall + roof colors) of the mobile homes and terraced houses (80 + 80 + 30 sprites), since the pack only ships one gray colorway

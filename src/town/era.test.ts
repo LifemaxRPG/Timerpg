@@ -26,16 +26,16 @@ describe('era', () => {
   it('rooftop billboards only appear from the mid-70s', () => {
     for (let i = 0; i < 200; i++) {
       const look = i / 200;
-      const early = shopFacade('Hardware', look, BILLBOARDS_FROM - 1);
+      const early = shopFacade('Clothing Store', look, BILLBOARDS_FROM - 1);
       expect(early.layers.some((l) => l.key.startsWith('roofprop_')), `look ${look}`).toBe(false);
     }
     let late = 0;
-    for (let i = 0; i < 200; i++) if (shopFacade('Hardware', i / 200, 2025).layers.some((l) => l.key.startsWith('roofprop_'))) late++;
+    for (let i = 0; i < 200; i++) if (shopFacade('Clothing Store', i / 200, 2025).layers.some((l) => l.key.startsWith('roofprop_'))) late++;
     expect(late).toBeGreaterThan(20);
   });
 
   it('shops are plain painted-sign storefronts before 1975 and have the fancy signs after', () => {
-    for (const kind of ['Bakery', 'Butcher', 'Ice Cream Parlor', 'Music Store', 'Bait Shop', 'Hardware', 'Diner']) {
+    for (const kind of ['Bakery', 'Butcher', 'Ice Cream Parlor', 'Music Store', 'Bait Shop', 'Clothing Store', 'Toy Store']) {
       for (let i = 0; i < 20; i++) {
         const early = shopFacade(kind, i / 20, 1952);
         const late = shopFacade(kind, i / 20, 2025);

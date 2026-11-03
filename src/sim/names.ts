@@ -14,7 +14,8 @@ export const SURNAMES = [
   'Radcliffe', 'Sutter', 'Thorne', 'Underhill', 'Vance', 'Whitaker', 'Yoder', 'Zimmer',
 ] as const;
 
+/** Only kinds the shop-front art can honestly show (see src/town/facade.ts KIND_ART). */
 export const BUSINESS_KINDS = [
-  'General Store', 'Bakery', 'Butcher', 'Hardware', 'Ice Cream Parlor', 'Music Store',
-  'Bait Shop', 'Diner', 'Pharmacy', 'Bank', 'Newspaper', 'Barber Shop',
+  'Bakery', 'Butcher', 'Ice Cream Parlor', 'Music Store', 'Bait Shop', 'Clothing Store',
+  'Dress Shop', 'Toy Store', 'Gym', 'Bank', 'Law Office', "Doctor's Office",
 ] as const;

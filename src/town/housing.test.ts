@@ -2,7 +2,8 @@ import fs from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { runTimeline, worldAt } from '../sim';
 import { colourOf, pickStable } from './buildings';
-import { allFacadeArt, shopFacade, SHOP_PLOT_H, SHOP_W } from './facade';
+import { BUSINESS_KINDS } from '../sim/names';
+import { allFacadeArt, KIND_ART_KINDS, shopFacade, SHOP_PLOT_H, SHOP_W } from './facade';
 import { allHousingArt, apartmentCapacity, houseArt, RESIDENTIAL, variantsFor } from './housing';
 import { layoutTown } from './layout';
 import { SIZES } from './plan';
@@ -71,7 +72,7 @@ describe('housing variants', () => {
 });
 
 describe('shop fronts', () => {
-  const kinds = ['Bakery', 'Butcher', 'Ice Cream Parlor', 'Music Store', 'Bait Shop', 'Hardware', 'Newspaper'];
+  const kinds = ['Bakery', 'Butcher', 'Ice Cream Parlor', 'Music Store', 'Bait Shop', 'Clothing Store', 'Dress Shop'];
 
   it('are deterministic and fit the 13-tile plot, 7 tiles wide', () => {
     expect(px(SIZES.shop.h)).toBe(SHOP_PLOT_H);
@@ -87,7 +88,7 @@ describe('shop fronts', () => {
 
   it('match the roof and middle floor to the ground floor colour, and never use a flat roof', () => {
     for (const look of LOOKS) {
-      const a = shopFacade('Hardware', look);
+      const a = shopFacade('Clothing Store', look);
       const ground = Number(a.layers[0]!.key.split('_').pop());
       const col = colourOf(ground, 36);
       const roof = Number(a.layers.find((l) => l.key.startsWith('roof_'))!.key.split('_').pop());
@@ -98,7 +99,7 @@ describe('shop fronts', () => {
   });
 
   it('generic shops sometimes get a middle floor, specialists never overflow', () => {
-    const generic = LOOKS.map((l) => shopFacade('Hardware', l));
+    const generic = LOOKS.map((l) => shopFacade('Clothing Store', l));
     expect(generic.some((a) => a.layers.some((l) => l.key.startsWith('middle_')))).toBe(true);
     expect(generic.some((a) => !a.layers.some((l) => l.key.startsWith('middle_')))).toBe(true);
   });
@@ -145,13 +146,29 @@ describe('apartments in a living town', () => {
   });
 
   it('shop floors stack on the storefront, so there is no gap between the shop front and its roof', () => {
-    for (const kind of ['Bakery', 'Butcher', 'Ice Cream Parlor', 'Music Store', 'Bait Shop', 'Hardware']) {
+    for (const kind of ['Bakery', 'Butcher', 'Ice Cream Parlor', 'Music Store', 'Bait Shop', 'Clothing Store']) {
       for (let i = 0; i < 40; i++) {
         const a = shopFacade(kind, i / 40, 2025);
         const [ground, next] = a.layers;
         // The real storefront is 96px tall whatever the sprite height (the rest is sign overhang).
         expect(next!.y, `${kind} ${i}: layer above the storefront starts at ${next!.y}`).toBe(96);
         expect(ground!.y).toBe(0);
+      }
+    }
+  });
+
+  it('every business kind has art that shows its goods; no two kinds share a window display', () => {
+    // A new kind added to the sim without matching art would silently get the wrong storefront.
+    for (const kind of BUSINESS_KINDS) expect(KIND_ART_KINDS(), `${kind} has no shop-front art`).toContain(kind);
+    const seen = new Map<string, string>();
+    for (const kind of BUSINESS_KINDS) {
+      for (let i = 0; i < 60; i++) {
+        const key = shopFacade(kind, i / 60, 2025).layers[0]!.key;
+        const owner = seen.get(key);
+        // Law offices and doctor's offices share the same plain office door.
+        const sameDoor = owner && ['Law Office', "Doctor's Office"].includes(owner) && ['Law Office', "Doctor's Office"].includes(kind);
+        if (owner && owner !== kind && !sameDoor) throw new Error(`${key} is used by both ${owner} and ${kind}`);
+        seen.set(key, kind);
       }
     }
   });

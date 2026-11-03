@@ -2595,6 +2595,82 @@
    "h": 160
   }
  ],
+ "shop:Gym": [
+  {
+   "key": "shop_Gym_1",
+   "path": "assets/shop_Gym/shop_Gym_1.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Gym_3",
+   "path": "assets/shop_Gym/shop_Gym_3.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Gym_5",
+   "path": "assets/shop_Gym/shop_Gym_5.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Gym_7",
+   "path": "assets/shop_Gym/shop_Gym_7.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Gym_9",
+   "path": "assets/shop_Gym/shop_Gym_9.png",
+   "w": 224,
+   "h": 160
+  },
+  {
+   "key": "shop_Gym_11",
+   "path": "assets/shop_Gym/shop_Gym_11.png",
+   "w": 224,
+   "h": 160
+  }
+ ],
+ "shop:Condo": [
+  {
+   "key": "shop_Condo_3",
+   "path": "assets/shop_Condo/shop_Condo_3.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Condo_4",
+   "path": "assets/shop_Condo/shop_Condo_4.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Condo_7",
+   "path": "assets/shop_Condo/shop_Condo_7.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Condo_8",
+   "path": "assets/shop_Condo/shop_Condo_8.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Condo_11",
+   "path": "assets/shop_Condo/shop_Condo_11.png",
+   "w": 224,
+   "h": 96
+  },
+  {
+   "key": "shop_Condo_12",
+   "path": "assets/shop_Condo/shop_Condo_12.png",
+   "w": 224,
+   "h": 96
+  }
+ ],
  "landmark:post": [
   {
    "key": "landmark_post_1",
@@ -2963,312 +3039,126 @@
    "h": 96
   }
  ],
- "classic:general_store": [
+ "classic:clothing_store": [
   {
-   "key": "classic_general_store_1",
-   "path": "assets/classic_general_store/classic_general_store_1.png",
+   "key": "classic_clothing_store_5",
+   "path": "assets/classic_clothing_store/classic_clothing_store_5.png",
    "w": 224,
    "h": 96
   },
   {
-   "key": "classic_general_store_5",
-   "path": "assets/classic_general_store/classic_general_store_5.png",
+   "key": "classic_clothing_store_7",
+   "path": "assets/classic_clothing_store/classic_clothing_store_7.png",
    "w": 224,
    "h": 96
   },
   {
-   "key": "classic_general_store_7",
-   "path": "assets/classic_general_store/classic_general_store_7.png",
+   "key": "classic_clothing_store_17",
+   "path": "assets/classic_clothing_store/classic_clothing_store_17.png",
    "w": 224,
    "h": 96
   },
   {
-   "key": "classic_general_store_9",
-   "path": "assets/classic_general_store/classic_general_store_9.png",
+   "key": "classic_clothing_store_19",
+   "path": "assets/classic_clothing_store/classic_clothing_store_19.png",
    "w": 224,
    "h": 96
   },
   {
-   "key": "classic_general_store_13",
-   "path": "assets/classic_general_store/classic_general_store_13.png",
+   "key": "classic_clothing_store_29",
+   "path": "assets/classic_clothing_store/classic_clothing_store_29.png",
    "w": 224,
    "h": 96
   },
   {
-   "key": "classic_general_store_17",
-   "path": "assets/classic_general_store/classic_general_store_17.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_general_store_19",
-   "path": "assets/classic_general_store/classic_general_store_19.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_general_store_21",
-   "path": "assets/classic_general_store/classic_general_store_21.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_general_store_25",
-   "path": "assets/classic_general_store/classic_general_store_25.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_general_store_29",
-   "path": "assets/classic_general_store/classic_general_store_29.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_general_store_31",
-   "path": "assets/classic_general_store/classic_general_store_31.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_general_store_33",
-   "path": "assets/classic_general_store/classic_general_store_33.png",
+   "key": "classic_clothing_store_31",
+   "path": "assets/classic_clothing_store/classic_clothing_store_31.png",
    "w": 224,
    "h": 96
   }
  ],
- "classic:hardware": [
+ "classic:dress_shop": [
   {
-   "key": "classic_hardware_1",
-   "path": "assets/classic_hardware/classic_hardware_1.png",
+   "key": "classic_dress_shop_1",
+   "path": "assets/classic_dress_shop/classic_dress_shop_1.png",
    "w": 224,
    "h": 96
   },
   {
-   "key": "classic_hardware_5",
-   "path": "assets/classic_hardware/classic_hardware_5.png",
+   "key": "classic_dress_shop_13",
+   "path": "assets/classic_dress_shop/classic_dress_shop_13.png",
    "w": 224,
    "h": 96
   },
   {
-   "key": "classic_hardware_7",
-   "path": "assets/classic_hardware/classic_hardware_7.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_hardware_9",
-   "path": "assets/classic_hardware/classic_hardware_9.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_hardware_13",
-   "path": "assets/classic_hardware/classic_hardware_13.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_hardware_17",
-   "path": "assets/classic_hardware/classic_hardware_17.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_hardware_19",
-   "path": "assets/classic_hardware/classic_hardware_19.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_hardware_21",
-   "path": "assets/classic_hardware/classic_hardware_21.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_hardware_25",
-   "path": "assets/classic_hardware/classic_hardware_25.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_hardware_29",
-   "path": "assets/classic_hardware/classic_hardware_29.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_hardware_31",
-   "path": "assets/classic_hardware/classic_hardware_31.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_hardware_33",
-   "path": "assets/classic_hardware/classic_hardware_33.png",
+   "key": "classic_dress_shop_25",
+   "path": "assets/classic_dress_shop/classic_dress_shop_25.png",
    "w": 224,
    "h": 96
   }
  ],
- "classic:diner": [
+ "classic:toy_store": [
   {
-   "key": "classic_diner_1",
-   "path": "assets/classic_diner/classic_diner_1.png",
+   "key": "classic_toy_store_9",
+   "path": "assets/classic_toy_store/classic_toy_store_9.png",
    "w": 224,
    "h": 96
   },
   {
-   "key": "classic_diner_5",
-   "path": "assets/classic_diner/classic_diner_5.png",
+   "key": "classic_toy_store_21",
+   "path": "assets/classic_toy_store/classic_toy_store_21.png",
    "w": 224,
    "h": 96
   },
   {
-   "key": "classic_diner_7",
-   "path": "assets/classic_diner/classic_diner_7.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_diner_9",
-   "path": "assets/classic_diner/classic_diner_9.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_diner_13",
-   "path": "assets/classic_diner/classic_diner_13.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_diner_17",
-   "path": "assets/classic_diner/classic_diner_17.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_diner_19",
-   "path": "assets/classic_diner/classic_diner_19.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_diner_21",
-   "path": "assets/classic_diner/classic_diner_21.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_diner_25",
-   "path": "assets/classic_diner/classic_diner_25.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_diner_29",
-   "path": "assets/classic_diner/classic_diner_29.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_diner_31",
-   "path": "assets/classic_diner/classic_diner_31.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_diner_33",
-   "path": "assets/classic_diner/classic_diner_33.png",
+   "key": "classic_toy_store_33",
+   "path": "assets/classic_toy_store/classic_toy_store_33.png",
    "w": 224,
    "h": 96
   }
  ],
- "classic:pharmacy": [
+ "classic:gym": [
   {
-   "key": "classic_pharmacy_1",
-   "path": "assets/classic_pharmacy/classic_pharmacy_1.png",
+   "key": "classic_gym_1",
+   "path": "assets/classic_gym/classic_gym_1.png",
    "w": 224,
    "h": 96
   },
   {
-   "key": "classic_pharmacy_5",
-   "path": "assets/classic_pharmacy/classic_pharmacy_5.png",
+   "key": "classic_gym_3",
+   "path": "assets/classic_gym/classic_gym_3.png",
    "w": 224,
    "h": 96
   },
   {
-   "key": "classic_pharmacy_7",
-   "path": "assets/classic_pharmacy/classic_pharmacy_7.png",
+   "key": "classic_gym_5",
+   "path": "assets/classic_gym/classic_gym_5.png",
    "w": 224,
    "h": 96
   },
   {
-   "key": "classic_pharmacy_9",
-   "path": "assets/classic_pharmacy/classic_pharmacy_9.png",
+   "key": "classic_gym_7",
+   "path": "assets/classic_gym/classic_gym_7.png",
    "w": 224,
    "h": 96
   },
   {
-   "key": "classic_pharmacy_13",
-   "path": "assets/classic_pharmacy/classic_pharmacy_13.png",
+   "key": "classic_gym_9",
+   "path": "assets/classic_gym/classic_gym_9.png",
    "w": 224,
    "h": 96
   },
   {
-   "key": "classic_pharmacy_17",
-   "path": "assets/classic_pharmacy/classic_pharmacy_17.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_pharmacy_19",
-   "path": "assets/classic_pharmacy/classic_pharmacy_19.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_pharmacy_21",
-   "path": "assets/classic_pharmacy/classic_pharmacy_21.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_pharmacy_25",
-   "path": "assets/classic_pharmacy/classic_pharmacy_25.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_pharmacy_29",
-   "path": "assets/classic_pharmacy/classic_pharmacy_29.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_pharmacy_31",
-   "path": "assets/classic_pharmacy/classic_pharmacy_31.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_pharmacy_33",
-   "path": "assets/classic_pharmacy/classic_pharmacy_33.png",
+   "key": "classic_gym_11",
+   "path": "assets/classic_gym/classic_gym_11.png",
    "w": 224,
    "h": 96
   }
  ],
  "classic:bank": [
   {
-   "key": "classic_bank_1",
-   "path": "assets/classic_bank/classic_bank_1.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_bank_5",
-   "path": "assets/classic_bank/classic_bank_5.png",
+   "key": "classic_bank_3",
+   "path": "assets/classic_bank/classic_bank_3.png",
    "w": 224,
    "h": 96
   },
@@ -3279,204 +3169,48 @@
    "h": 96
   },
   {
-   "key": "classic_bank_9",
-   "path": "assets/classic_bank/classic_bank_9.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_bank_13",
-   "path": "assets/classic_bank/classic_bank_13.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_bank_17",
-   "path": "assets/classic_bank/classic_bank_17.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_bank_19",
-   "path": "assets/classic_bank/classic_bank_19.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_bank_21",
-   "path": "assets/classic_bank/classic_bank_21.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_bank_25",
-   "path": "assets/classic_bank/classic_bank_25.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_bank_29",
-   "path": "assets/classic_bank/classic_bank_29.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_bank_31",
-   "path": "assets/classic_bank/classic_bank_31.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_bank_33",
-   "path": "assets/classic_bank/classic_bank_33.png",
+   "key": "classic_bank_11",
+   "path": "assets/classic_bank/classic_bank_11.png",
    "w": 224,
    "h": 96
   }
  ],
- "classic:newspaper": [
+ "classic:law_office": [
   {
-   "key": "classic_newspaper_1",
-   "path": "assets/classic_newspaper/classic_newspaper_1.png",
+   "key": "classic_law_office_4",
+   "path": "assets/classic_law_office/classic_law_office_4.png",
    "w": 224,
    "h": 96
   },
   {
-   "key": "classic_newspaper_5",
-   "path": "assets/classic_newspaper/classic_newspaper_5.png",
+   "key": "classic_law_office_8",
+   "path": "assets/classic_law_office/classic_law_office_8.png",
    "w": 224,
    "h": 96
   },
   {
-   "key": "classic_newspaper_7",
-   "path": "assets/classic_newspaper/classic_newspaper_7.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_newspaper_9",
-   "path": "assets/classic_newspaper/classic_newspaper_9.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_newspaper_13",
-   "path": "assets/classic_newspaper/classic_newspaper_13.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_newspaper_17",
-   "path": "assets/classic_newspaper/classic_newspaper_17.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_newspaper_19",
-   "path": "assets/classic_newspaper/classic_newspaper_19.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_newspaper_21",
-   "path": "assets/classic_newspaper/classic_newspaper_21.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_newspaper_25",
-   "path": "assets/classic_newspaper/classic_newspaper_25.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_newspaper_29",
-   "path": "assets/classic_newspaper/classic_newspaper_29.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_newspaper_31",
-   "path": "assets/classic_newspaper/classic_newspaper_31.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_newspaper_33",
-   "path": "assets/classic_newspaper/classic_newspaper_33.png",
+   "key": "classic_law_office_12",
+   "path": "assets/classic_law_office/classic_law_office_12.png",
    "w": 224,
    "h": 96
   }
  ],
- "classic:barber_shop": [
+ "classic:doctor_s_office": [
   {
-   "key": "classic_barber_shop_1",
-   "path": "assets/classic_barber_shop/classic_barber_shop_1.png",
+   "key": "classic_doctor_s_office_4",
+   "path": "assets/classic_doctor_s_office/classic_doctor_s_office_4.png",
    "w": 224,
    "h": 96
   },
   {
-   "key": "classic_barber_shop_5",
-   "path": "assets/classic_barber_shop/classic_barber_shop_5.png",
+   "key": "classic_doctor_s_office_8",
+   "path": "assets/classic_doctor_s_office/classic_doctor_s_office_8.png",
    "w": 224,
    "h": 96
   },
   {
-   "key": "classic_barber_shop_7",
-   "path": "assets/classic_barber_shop/classic_barber_shop_7.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_barber_shop_9",
-   "path": "assets/classic_barber_shop/classic_barber_shop_9.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_barber_shop_13",
-   "path": "assets/classic_barber_shop/classic_barber_shop_13.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_barber_shop_17",
-   "path": "assets/classic_barber_shop/classic_barber_shop_17.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_barber_shop_19",
-   "path": "assets/classic_barber_shop/classic_barber_shop_19.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_barber_shop_21",
-   "path": "assets/classic_barber_shop/classic_barber_shop_21.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_barber_shop_25",
-   "path": "assets/classic_barber_shop/classic_barber_shop_25.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_barber_shop_29",
-   "path": "assets/classic_barber_shop/classic_barber_shop_29.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_barber_shop_31",
-   "path": "assets/classic_barber_shop/classic_barber_shop_31.png",
-   "w": 224,
-   "h": 96
-  },
-  {
-   "key": "classic_barber_shop_33",
-   "path": "assets/classic_barber_shop/classic_barber_shop_33.png",
+   "key": "classic_doctor_s_office_12",
+   "path": "assets/classic_doctor_s_office/classic_doctor_s_office_12.png",
    "w": 224,
    "h": 96
   }
