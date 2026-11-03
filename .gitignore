@@ -7,3 +7,6 @@ assets-raw/
 
 # Agent worktrees (temporary working copies)
 .claude/worktrees/
+
+# Exported code bundles for sharing
+export/

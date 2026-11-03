@@ -10,7 +10,37 @@ const esc = (t: string): string => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', 
 const slider = $<HTMLInputElement>('slider');
 $('year').textContent = slider.value;
 
+// ---------- touch: on-screen joystick, zoom buttons (pinch is handled by the scene) ----------
+const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window || params.get('touch') === '1';
+if (isTouch) document.body.classList.add('touch');
+{
+  const stick = $('stick'), knob = $('knob');
+  const R = 46; // how far the knob can travel from the center, in px
+  let active: number | null = null;
+  const move = (e: PointerEvent): void => {
+    const r = stick.getBoundingClientRect();
+    let dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+    const len = Math.hypot(dx, dy);
+    if (len > R) { dx = (dx / len) * R; dy = (dy / len) * R; }
+    knob.style.transform = `translate(${dx}px, ${dy}px)`;
+    scene.setMove(dx / R, dy / R);
+  };
+  stick.addEventListener('pointerdown', (e) => { active = e.pointerId; stick.setPointerCapture(e.pointerId); move(e); });
+  stick.addEventListener('pointermove', (e) => { if (e.pointerId === active) move(e); });
+  const end = (e: PointerEvent): void => { if (e.pointerId !== active) return; active = null; knob.style.transform = ''; scene.setMove(0, 0); };
+  stick.addEventListener('pointerup', end);
+  stick.addEventListener('pointercancel', end);
+}
+$('zin').addEventListener('click', () => scene.zoomBy(1.25));
+$('zout').addEventListener('click', () => scene.zoomBy(0.8));
+
 // ---------- year slider: the time machine ----------
+const stepYear = (d: number): void => {
+  slider.value = String(Math.min(2025, Math.max(1950, Number(slider.value) + d)));
+  slider.dispatchEvent(new Event('input'));
+};
+$('yminus').addEventListener('click', () => stepYear(-1));
+$('yplus').addEventListener('click', () => stepYear(1));
 let queued = false;
 slider.addEventListener('input', () => {
   $('year').textContent = slider.value;
@@ -64,12 +94,13 @@ scene.onSelect = (sel) => {
       <span>Introduce to <select data-for="${esc(p.id)}">${adults(p.id)}</select> <button data-act="introduce" data-id="${esc(p.id)}">Go</button></span>
     </div>`).join('');
   const biz = sel.business ? `<div class="row"><div class="who">${esc(sel.business.label)}</div><span><button data-act="invest" data-id="${esc(sel.business.id)}">Invest 500</button> <button class="bad" data-act="sabotage" data-id="${esc(sel.business.id)}">Sabotage</button></span></div>` : '';
-  box.innerHTML = `<b>${esc(sel.title)}</b>${sel.lines.map((l) => `<div>${esc(l)}</div>`).join('')}${people}${biz}
+  box.innerHTML = `<div class="head"><b>${esc(sel.title)}</b><span class="close" id="closesel" role="button" aria-label="Close">×</span></div>${sel.lines.map((l) => `<div>${esc(l)}</div>`).join('')}${people}${biz}
     <div class="hint">${sel.people.length || sel.business ? `You act in <b id="actyear">${slider.value}</b>: use the year slider to travel first.` : 'Nothing to act on here.'}</div><div class="result" id="result"></div>`;
   box.style.display = 'block';
 };
 
 $('info').addEventListener('click', async (e) => {
+  if ((e.target as HTMLElement).id === 'closesel') { scene.clearSelection(); return; }
   const btn = (e.target as HTMLElement).closest('button[data-act]') as HTMLButtonElement | null;
   if (!btn || !current) return;
   const id = btn.dataset.id!;

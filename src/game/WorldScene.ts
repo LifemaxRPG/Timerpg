@@ -72,6 +72,9 @@ export class WorldScene extends Phaser.Scene {
   /** The player's changes to each town's past, kept in the browser so they survive a reload. */
   private ivs = new Map<string, Intervention[]>();
   private lastClick: { x: number; y: number } | null = null;
+  /** On-screen joystick, each axis -1..1 (set by the page). */
+  private stick = { x: 0, y: 0 };
+  private pinch = 0;
   /** What is selected, so the selection follows the same people/shop when the year changes. */
   private selection: { townId: string; ids: string[]; biz: string | null } | null = null;
 
@@ -124,7 +127,8 @@ export class WorldScene extends Phaser.Scene {
     const cam = this.cameras.main;
     cam.setZoom(1);
     cam.roundPixels = true;
-    this.input.on('pointerdown', (p: Phaser.Input.Pointer) => this.click(p));
+    this.input.addPointer(1); // a second finger, for pinch-to-zoom
+    this.input.on('pointerdown', (p: Phaser.Input.Pointer) => { if (!this.input.pointer2.isDown) this.click(p); });
     this.input.on('wheel', (_p: unknown, _o: unknown, _dx: number, dy: number) => {
       cam.setZoom(Phaser.Math.Clamp(cam.zoom * (dy > 0 ? 0.9 : 1.1), 0.35, 2));
     });
@@ -415,6 +419,25 @@ export class WorldScene extends Phaser.Scene {
     }
   }
 
+  // ---------- touch and zoom helpers (called by the page) ----------
+
+  /** Joystick input: x and y each from -1 to 1. */
+  setMove(x: number, y: number): void {
+    this.stick = { x, y };
+  }
+
+  zoomBy(factor: number): void {
+    const cam = this.cameras.main;
+    cam.setZoom(Phaser.Math.Clamp(cam.zoom * factor, 0.35, 2));
+  }
+
+  /** Close the action panel. */
+  clearSelection(): void {
+    this.selection = null;
+    this.lastClick = null;
+    this.onSelect(null);
+  }
+
   update(_t: number, dt: number): void {
     for (const { view } of this.views.values()) view.tick();
     if (!this.ready) return;
@@ -422,17 +445,27 @@ export class WorldScene extends Phaser.Scene {
     this.bg.setPosition(Math.floor((cam.worldView.centerX - 3072) / TILE) * TILE, Math.floor((cam.worldView.centerY - 3072) / TILE) * TILE);
     if (this.frame++ % 12 === 0) { this.manage(); this.trackTown(); }
 
+    // Two fingers on the screen: pinch to zoom.
+    const { pointer1, pointer2 } = this.input;
+    if (pointer1.isDown && pointer2.isDown) {
+      const d = Phaser.Math.Distance.Between(pointer1.x, pointer1.y, pointer2.x, pointer2.y);
+      if (this.pinch > 0 && d > 0) this.zoomBy(d / this.pinch);
+      this.pinch = d;
+    } else this.pinch = 0;
+
+    // Keyboard and joystick combine; the joystick is analog (push further to walk faster).
     const k = this.keys;
-    const dx = (k.D!.isDown || k.RIGHT!.isDown ? 1 : 0) - (k.A!.isDown || k.LEFT!.isDown ? 1 : 0);
-    const dy = (k.S!.isDown || k.DOWN!.isDown ? 1 : 0) - (k.W!.isDown || k.UP!.isDown ? 1 : 0);
-    if (!dx && !dy) {
+    let dx = (k.D!.isDown || k.RIGHT!.isDown ? 1 : 0) - (k.A!.isDown || k.LEFT!.isDown ? 1 : 0) + this.stick.x;
+    let dy = (k.S!.isDown || k.DOWN!.isDown ? 1 : 0) - (k.W!.isDown || k.UP!.isDown ? 1 : 0) + this.stick.y;
+    const mag = Math.hypot(dx, dy);
+    if (mag < 0.12) {
       this.player.play(`idle-${DIRS[this.facing]}`, true);
       return;
     }
+    if (mag > 1) { dx /= mag; dy /= mag; }
     this.facing = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 0 : 2) : dy > 0 ? 3 : 1;
     this.player.play(`walk-${DIRS[this.facing]}`, true);
-    const sp = (180 * dt) / 1000 / Math.hypot(dx, dy);
-    const nx = this.player.x + dx * sp, ny = this.player.y + dy * sp;
+    const nx = this.player.x + (dx * 180 * dt) / 1000, ny = this.player.y + (dy * 180 * dt) / 1000;
     if (!this.blocked(nx, this.player.y)) this.player.x = nx;
     if (!this.blocked(this.player.x, ny)) this.player.y = ny;
     this.player.setDepth(this.player.y);
