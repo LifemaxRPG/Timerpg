@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Timerpg</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #111; overflow: hidden; font-family: system-ui, sans-serif; color: #eee; }
+    #game { position: fixed; inset: 0; }
+    #era { position: fixed; inset: 0; pointer-events: none; mix-blend-mode: multiply; z-index: 1; }
+    .panel { z-index: 2; }
+    .panel { position: fixed; background: rgba(15, 18, 28, .86); border: 1px solid #3b4260; border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.4; }
+    #hud { top: 10px; left: 10px; width: min(340px, calc(100vw - 44px)); }
+    #hud h1 { font-size: 15px; margin: 0 0 6px; letter-spacing: .5px; }
+    #year { font-size: 28px; font-weight: 700; }
+    #hud input[type=range] { width: 100%; }
+    #hud button { background: #2a3150; color: #eee; border: 1px solid #4a5480; border-radius: 6px; padding: 6px 10px; margin: 4px 4px 0 0; cursor: pointer; }
+    #hud button.on { background: #5b6bd6; border-color: #8c98ff; }
+    #info { bottom: 10px; left: 10px; max-width: min(340px, calc(100vw - 44px)); display: none; }
+    #info b { font-size: 14px; }
+    #diff { top: 10px; right: 10px; max-width: min(320px, calc(100vw - 44px)); display: none; }
+    #hint { bottom: 10px; right: 10px; color: #aab; }
+  </style>
+</head>
+<body>
+  <div id="game"></div>
+  <div id="era"></div>
+  <div id="hud" class="panel">
+    <h1>TIMERPG</h1>
+    <div id="year">1950</div>
+    <input id="slider" type="range" min="1950" max="2025" value="2025" />
+    <div>
+      <button id="orig" class="on">Original timeline</button>
+      <button id="alt">Altered timeline</button>
+    </div>
+    <div id="mayor" style="margin-top:6px"></div>
+  </div>
+  <div id="diff" class="panel"></div>
+  <div id="info" class="panel"></div>
+  <div id="hint" class="panel">WASD / arrows to walk · click a building</div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

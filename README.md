@@ -13,6 +13,8 @@ the past (kill the future mayor, invest in the bakery...), and come back to see 
     business founding, mayor elections) and `runTimeline()` which applies time-traveler interventions.
   - `social.ts` - pairwise affinity (seeded baseline + deliberate `bonds`) and reputation; drives marriages and elections.
   - `diff.ts` - compares the same year across two timelines ("what did my actions change?").
+- `src/town/` - pure layout generator: sim state -> lots/roads (stable slots, so buildings keep their place across years).
+- `src/game/` + `src/main.ts` - Phaser scene and HUD; they only read sim state.
 - A timeline is `seed + list of interventions`. Saves only need those two things.
 - Future AI (e.g. Qwen) narrates the structured `chronicle` / `WorldDiff`; it never decides outcomes.
 
@@ -22,6 +24,8 @@ the past (kill the future mayor, invest in the bakery...), and come back to see 
 npm install
 npm test        # simulation tests
 npm run typecheck
+npm run dev         # play in the browser (http://localhost:5173, ?seed=abc for another town)
+npm run build       # production build
 npm run demo [seed]   # kills the present-day mayor as a child and prints the consequences
 ```
 
@@ -30,7 +34,7 @@ npm run demo [seed]   # kills the present-day mayor as a child and prints the co
 1. [x] Deterministic simulation core + interventions + diff
 2. [x] Verbs: kill, invest, sabotage, introduce, rumor, gift
 2b. [ ] Secrets/knowledge, debts and feuds, land ownership, more verbs (blackmail, warn, teach), your own traveler inventory/allies
-3. [ ] Phaser + Vite renderer: procedurally laid-out town from sim state, walkable player
+3. [x] Phaser + Vite renderer (placeholder art): layout from sim state (`src/town/layout.ts`), walkable player, year slider, original/altered timeline toggle
 4. [ ] Time-travel UI + era visual filters + "what changed" screen
 5. [ ] Curated LimeZu sprites (assets-raw/ is git-ignored; only used sprites are committed, license permitting)
 6. [ ] Capacitor wrapper for Android
