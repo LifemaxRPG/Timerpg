@@ -4,7 +4,7 @@ import { layoutTown, landmarkDescription, lotDescription, type LandmarkPlot, typ
 import { landmarkFootprint } from '../town/landmarks';
 import { planTown, type TownPlan } from '../town/plan';
 import { isWater, type Bridge } from '../town/water';
-import { pickVariant, shopArtGroup, type Manifest } from './art';
+import { pickVariant, type Manifest } from './art';
 
 export const TILE = 32;
 const PROP_GROUP: Record<Prop['kind'], string> = {
@@ -227,21 +227,15 @@ export class TownScene extends Phaser.Scene {
     const bottom = (lot.y + lot.h) * TILE;
     const add = (o: Phaser.GameObjects.GameObject): void => { this.drawn.push(o); };
 
-    if (lot.kind === 'house') {
-      const group = lot.tier === 'villa' ? 'villa' : lot.tier === 'medium' ? 'houseMedium' : 'houseSmall';
-      const art = pickVariant(this.manifest[group] ?? [], lot.look);
-      if (art) add(this.add.image(cx, bottom, art.key).setOrigin(0.5, 1).setDepth(bottom));
-      return;
-    }
+    // Houses and shop fronts are stacks of sprites (see src/town/housing.ts and facade.ts).
+    const { layers } = lot.art;
+    layers.forEach((l, i) => {
+      if (!this.textures.exists(l.key)) return;
+      add(this.add.image(cx + l.dx, bottom - l.y, l.key).setOrigin(0.5, 1).setDepth(i === 0 ? bottom : bottom - 1 + i * 0.001));
+    });
+    if (lot.kind === 'house') return;
 
-    // Shops: a ground floor of the right type with a roof stacked on top.
     const b = w.businesses[lot.refId]!;
-    const ground = pickVariant(this.manifest[shopArtGroup(b.kind)] ?? [], lot.look);
-    const roof = pickVariant(this.manifest.roof ?? [], (lot.look * 7.31) % 1);
-    if (ground) {
-      add(this.add.image(cx, bottom, ground.key).setOrigin(0.5, 1).setDepth(bottom));
-      if (roof) add(this.add.image(cx, bottom - ground.h, roof.key).setOrigin(0.5, 1).setDepth(bottom - 1));
-    }
     add(this.add.text(cx, bottom + 4, b.name, {
       fontFamily: 'system-ui, sans-serif', fontSize: '11px', color: '#fff', backgroundColor: 'rgba(0,0,0,0.6)', padding: { x: 4, y: 2 },
     }).setOrigin(0.5, 0).setDepth(bottom + 1));
@@ -259,7 +253,7 @@ export class TownScene extends Phaser.Scene {
     this.onInfo(lot ? lotDescription(w, lot) : null);
   }
 
-  /** Feet box vs building footprints (the lower part of each lot). */
+  /** Feet box vs building footprints (the lower rows of each building, as wide as its sprite). */
   private blocked(x: number, y: number): boolean {
     const w = this.plan.water;
     if (w) {
@@ -273,8 +267,11 @@ export class TownScene extends Phaser.Scene {
     });
     if (inLandmark) return true;
     return this.layout.lots.some((l) => {
-      const footTop = (l.y + l.h - Math.min(l.h, l.kind === 'shop' ? 5 : l.tier === 'villa' ? 6 : 4)) * TILE;
-      return x + 7 > l.x * TILE && x - 7 < (l.x + l.w) * TILE && y > footTop && y - 4 < (l.y + l.h) * TILE;
+      const art = l.art;
+      const half = Math.min(art.w, l.w * TILE) / 2;
+      const cx = (l.x + l.w / 2) * TILE;
+      const footTop = (l.y + l.h - Math.min(l.h, art.footRows)) * TILE;
+      return x + 7 > cx - half && x - 7 < cx + half && y > footTop && y - 4 < (l.y + l.h) * TILE;
     });
   }
 

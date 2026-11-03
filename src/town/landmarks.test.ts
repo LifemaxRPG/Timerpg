@@ -58,7 +58,7 @@ describe('civic landmarks (plan)', () => {
       const n = (k: string): number => p.candidates.filter((c) => c.kind === k).length;
       expect(n('shop'), seed).toBeGreaterThanOrEqual(22);
       expect(n('villa'), seed).toBeGreaterThanOrEqual(6);
-      expect(n('small') + n('medium'), seed).toBeGreaterThanOrEqual(140);
+      expect(n('small') + n('medium') + n('house') + 3 * n('apartment'), seed).toBeGreaterThanOrEqual(140);
     }
   });
 

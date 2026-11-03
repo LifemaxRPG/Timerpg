@@ -1,6 +1,7 @@
 import { rand } from '../sim/rng';
 import { placeLandmarks, type LandmarkPlot } from './landmarks';
 import { hitsWater, planWater, waterNear, type WaterBody } from './water';
+import { residentialBand } from './housing';
 
 // The TOWN PLAN is everything about the place that does not depend on the year or on
 // time-travel edits: street network, building plots, plaza, forest edge, street furniture.
@@ -9,9 +10,12 @@ import { hitsWater, planWater, waterNear, type WaterBody } from './water';
 export interface Rect { x: number; y: number; w: number; h: number }
 export interface Road extends Rect { main: boolean; horizontal: boolean }
 
-export type LotKind = 'villa' | 'medium' | 'small' | 'shop';
+export type LotKind = 'estate' | 'villa' | 'house' | 'medium' | 'small' | 'apartment' | 'shop';
 export const SIZES: Record<LotKind, { w: number; h: number }> = {
+  estate: { w: 23, h: 16 },
   villa: { w: 9, h: 13 },
+  house: { w: 12, h: 15 },
+  apartment: { w: 7, h: 13 },
   medium: { w: 8, h: 8 },
   small: { w: 6, h: 6 },
   shop: { w: 7, h: 13 },
@@ -72,8 +76,7 @@ export function planTown(seed: string): TownPlan {
   if (villaIdx >= mainIdx) villaIdx++;
   const bandKinds = (i: number): [LotKind, LotKind] => {
     if (i === mainIdx) return ['shop', 'shop'];
-    const pick = (side: string): LotKind => (R('kind', i, side) < 0.5 ? 'small' : 'medium');
-    return [i === villaIdx ? 'villa' : pick('n'), pick('s')];
+    return residentialBand((side) => R('kind', i, side), i === villaIdx);
   };
 
   const compose = (width: number, count: number) => {
@@ -116,7 +119,9 @@ export function planTown(seed: string): TownPlan {
   let bands = nBands;
   let built = compose(baseWidth, bands);
   for (let extra = 6; count(built, 'shop') - 2 < 24 && extra <= 60; extra += 6) built = compose(baseWidth + extra, bands);
-  while (count(built, 'small', 'medium') < 140 && bands < 12) built = compose(built.width, ++bands);
+  // Room for ~140 households: an apartment building houses about 3, every other ordinary plot one.
+  const homeRoom = (b: Built): number => count(b, 'small', 'medium', 'house') + 3 * count(b, 'apartment');
+  while (homeRoom(built) < 140 && bands < 12) built = compose(built.width, ++bands);
   const { width, vroads, roads, raw, mainY, water } = built;
   let height = built.height;
 

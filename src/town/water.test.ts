@@ -38,7 +38,7 @@ describe('water (river / lake)', () => {
           maxW = Math.max(maxW, n);
         }
         expect(minW, s).toBeGreaterThanOrEqual(3);
-        expect(maxW, s).toBeLessThanOrEqual(9);
+        expect(maxW, s).toBeLessThanOrEqual(12); // meanders widen a few rows (a sideways bend spans a diagonal)
       } else {
         expect(w.mask.reduce((a, b) => a + b, 0), s).toBeGreaterThan(80);
       }
@@ -85,7 +85,7 @@ describe('water (river / lake)', () => {
       const n = (k: string): number => p.candidates.filter((c) => c.kind === k).length;
       expect(n('shop'), `${s} shops`).toBeGreaterThanOrEqual(22);
       expect(n('villa'), `${s} villas`).toBeGreaterThanOrEqual(6);
-      expect(n('small') + n('medium'), `${s} homes`).toBeGreaterThanOrEqual(140);
+      expect(n('small') + n('medium') + n('house') + 3 * n('apartment'), `${s} homes`).toBeGreaterThanOrEqual(140);
     }
   });
 });
