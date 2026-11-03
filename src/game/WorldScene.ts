@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { fullName, type World } from '../sim';
+import { fullName, type Intervention, type World } from '../sim';
+import type { Inspection } from '../town/inspect';
 import type { Rect, Road } from '../town/kinds';
 import type { TownPlan } from '../town/plan';
 import { linkRoad, originOf, siteAt, sitesNear, type TownSite } from '../world/map';
@@ -17,12 +18,32 @@ const WILD_PX = WILD_CHUNK * TILE;
 type GO = Phaser.GameObjects.GameObject;
 
 export interface TownInfo {
+  townId: string;
   name: string;
   founded: number;
   /** Null until the town's history has arrived. */
   population: number | null;
   mayor: string | null;
+  /** How this year differs from the original timeline; null if the player has not changed this town. */
+  changes: string[] | null;
 }
+
+/** What the player clicked, and who/what in it they can act on. */
+export interface Selection extends Inspection {
+  townId: string;
+  townName: string;
+}
+
+export interface ActionResult { ok: boolean; message: string }
+
+/** An action the player can take; the year is filled in from the slider when it is performed. */
+export type ActionSpec =
+  | { kind: 'kill'; targetId: string }
+  | { kind: 'rumor'; targetId: string; amount: number }
+  | { kind: 'gift'; targetId: string; amount: number }
+  | { kind: 'introduce'; a: string; b: string }
+  | { kind: 'invest'; businessId: string; amount: number }
+  | { kind: 'sabotage'; businessId: string };
 
 interface Loaded { site: TownSite; view: TownView }
 interface Link { key: string; rects: Road[]; objs: GO[] }
@@ -48,11 +69,17 @@ export class WorldScene extends Phaser.Scene {
   private ready = false;
   private currentId: string | null = null;
   private frame = 0;
+  /** The player's changes to each town's past, kept in the browser so they survive a reload. */
+  private ivs = new Map<string, Intervention[]>();
+  private lastClick: { x: number; y: number } | null = null;
+  /** What is selected, so the selection follows the same people/shop when the year changes. */
+  private selection: { townId: string; ids: string[]; biz: string | null } | null = null;
 
   onReady: () => void = () => {};
   /** The player walked into a town (or its details changed). */
   onTown: (info: TownInfo, entered: boolean) => void = () => {};
-  onInfo: (lines: string[] | null) => void = () => {};
+  /** The player clicked a building or landmark (null: clicked nothing). */
+  onSelect: (s: Selection | null) => void = () => {};
   /** How many towns are still being generated or drawn. */
   onLoading: (n: number) => void = () => {};
 
@@ -137,7 +164,13 @@ export class WorldScene extends Phaser.Scene {
     const corridors: Rect[] = [...linkRoad(me, { site: east, plan: pe }), ...linkRoad({ site: west, plan: pw }, me)];
     const view = new TownView(this, this.manifest, site.seed, t.plan, originOf(site, t.plan), corridors);
     view.setYear(this.year);
-    view.setTimeline(t.snapshots);
+    const saved = this.loadChanges(site);
+    if (saved.length) {
+      this.ivs.set(site.id, saved);
+      view.setHistory((await this.gen.history(site.seed, saved)).snapshots, t.snapshots);
+    } else {
+      view.setTimeline(t.snapshots);
+    }
     this.views.set(site.id, { site, view });
     this.clearWildIn(view.mapPx);
     this.syncLinks();
@@ -260,12 +293,97 @@ export class WorldScene extends Phaser.Scene {
 
   private click(p: Phaser.Input.Pointer): void {
     const wp = this.cameras.main.getWorldPoint(p.x, p.y);
-    for (const { view } of this.views.values()) {
+    this.lastClick = { x: wp.x, y: wp.y };
+    this.selection = null;
+    for (const { site, view } of this.views.values()) {
       if (!view.contains(wp.x, wp.y)) continue;
-      this.onInfo(view.info(wp.x, wp.y));
+      const ins = view.select(wp.x, wp.y);
+      // Remember who/what was clicked so the selection follows them through the years.
+      if (ins && (ins.people.length || ins.business)) this.selection = { townId: site.id, ids: ins.people.map((q) => q.id), biz: ins.business?.id ?? null };
+    }
+    this.reselect();
+  }
+
+  /** Inspect again whatever is selected: the same people or shop, wherever they live in the year now shown. */
+  reselect(): void {
+    if (this.selection) {
+      const { townId, ids, biz } = this.selection;
+      const l = this.views.get(townId);
+      const ins = l?.view.selectRef(ids, biz) ?? null;
+      this.onSelect(ins && l ? { ...ins, townId, townName: l.site.name } : null);
       return;
     }
-    this.onInfo(null);
+    if (!this.lastClick) return;
+    const { x, y } = this.lastClick;
+    for (const { site, view } of this.views.values()) {
+      if (!view.contains(x, y)) continue;
+      const ins = view.select(x, y);
+      this.onSelect(ins ? { ...ins, townId: site.id, townName: site.name } : null);
+      return;
+    }
+    this.onSelect(null);
+  }
+
+  /** Adults of a town this year, for the "introduce to..." list. */
+  adultsOf(townId: string, except?: string): { id: string; label: string }[] {
+    return this.views.get(townId)?.view.adults(except) ?? [];
+  }
+
+  // ---------- changing the past ----------
+
+  private storageKey(site: TownSite): string {
+    return `timerpg:${this.worldSeed}:${site.id}`;
+  }
+
+  private loadChanges(site: TownSite): Intervention[] {
+    try {
+      const raw = JSON.parse(localStorage.getItem(this.storageKey(site)) ?? '[]') as Intervention[];
+      return Array.isArray(raw) ? raw : [];
+    } catch { return []; }
+  }
+
+  private saveChanges(site: TownSite, list: Intervention[]): void {
+    try {
+      if (list.length) localStorage.setItem(this.storageKey(site), JSON.stringify(list));
+      else localStorage.removeItem(this.storageKey(site));
+    } catch { /* private mode etc.: changes just will not persist */ }
+  }
+
+  /** Do something in the year the slider shows, then re-run that town's history with it. */
+  async act(townId: string, spec: ActionSpec): Promise<ActionResult> {
+    const l = this.views.get(townId);
+    if (!l) return { ok: false, message: 'That town is not loaded.' };
+    if (this.year <= 1950) return { ok: false, message: 'Travel to a later year first (use the slider): there is nothing before 1950.' };
+    const iv = { ...spec, year: this.year } as Intervention;
+    const list = [...(this.ivs.get(townId) ?? []), iv];
+    const { snapshots, notes } = await this.gen.history(l.site.seed, list);
+    const failed = notes.find((n) => n.startsWith('✗'));
+    if (failed) return { ok: false, message: failed.replace('✗ ', '') };
+    if (!this.views.has(townId)) return { ok: false, message: 'You left town before history finished changing.' };
+    this.ivs.set(townId, list);
+    this.saveChanges(l.site, list);
+    l.view.setTimeline(snapshots);
+    this.cameras.main.flash(600, 150, 190, 255); // history ripples
+    this.announce(false);
+    this.reselect();
+    return { ok: true, message: notes[notes.length - 1] ?? 'Done.' };
+  }
+
+  /** Undo every change to a town: back to its original history. */
+  reset(townId: string): void {
+    const l = this.views.get(townId);
+    if (!l) return;
+    this.ivs.delete(townId);
+    this.saveChanges(l.site, []);
+    l.view.resetToOriginal();
+    this.cameras.main.flash(400, 255, 220, 150);
+    this.announce(false);
+    this.reselect();
+  }
+
+  /** The id of the town the player is in, if any. */
+  get insideTown(): string | null {
+    return this.currentId;
   }
 
   private blocked(x: number, y: number): boolean {
@@ -279,10 +397,12 @@ export class WorldScene extends Phaser.Scene {
     if (!cur) return;
     const w: World | null = cur.view.world();
     this.onTown({
+      townId: cur.site.id,
       name: cur.site.name,
       founded: cur.site.founded,
       population: w ? Object.values(w.people).filter((p) => p.deathYear === undefined).length : null,
       mayor: w?.mayor ? fullName(w.people[w.mayor]!) : null,
+      changes: cur.view.changes(),
     }, entered);
   }
 

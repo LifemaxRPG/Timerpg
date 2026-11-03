@@ -58,6 +58,7 @@ npm run demo [seed]   # kills the present-day mayor as a child and prints the co
 
 1. [x] Deterministic simulation core + interventions + diff
 2. [x] Verbs: kill, invest, sabotage, introduce, rumor, gift
+2l. [x] **Changing the past in-game**: click a building, pick a person/shop, choose an action (kill, smear, praise, gift, introduce, invest, sabotage) in the year the slider shows; the town's history is re-run in the background, a "what changed" panel compares it with the original, changes persist per town (localStorage) and can be undone
 2k. [x] Endless world: towns stream in as you walk (background worker), have names, are joined by roads, "Welcome to ..." banner
 2j. [x] Signs match the goods: business kinds are limited to ones the art can honestly show (bakery, butcher, ice cream, music, bait, clothing, dress, toy, gym, bank, law office, doctor); each kind only uses window sprites that match it (guarded by a test)
 2i. [x] Classic (pre-1975) storefronts: generated in code (extract script) - flat painted sign boards with block lettering from a built-in pixel font, replacing the pack's big modern signs; 120 sprites, one per business kind

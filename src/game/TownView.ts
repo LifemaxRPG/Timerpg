@@ -1,9 +1,10 @@
 import Phaser from 'phaser';
-import type { World } from '../sim';
+import { describeDiff, diffWorlds, isEmptyDiff, type World } from '../sim';
+import { adultsOf, inspectAt, type Inspection } from '../town/inspect';
 import { landmarkFootprint } from '../town/landmarks';
 import { lampIndexes, pickIndex, treeIndexes } from '../town/era';
 import type { Rect } from '../town/kinds';
-import { landmarkDescription, layoutTown, lotDescription, type LandmarkPlot, type Lot, type Prop, type Road, type TownLayout } from '../town/layout';
+import { layoutTown, type LandmarkPlot, type Lot, type Prop, type Road, type TownLayout } from '../town/layout';
 import type { TownPlan } from '../town/plan';
 import type { Bridge } from '../town/water';
 import { pickVariant, type Manifest } from './art';
@@ -36,6 +37,8 @@ export class TownView {
   /** The whole plan in world pixels. */
   readonly mapPx: Rect;
   private timeline: World[] | null = null;
+  /** The original history (before any of the player's changes). */
+  private baseline: World[] | null = null;
   private year = 2025;
   private openBridges: Bridge[] = [];
   private drawn: GO[] = [];
@@ -178,9 +181,41 @@ export class TownView {
 
   // ---------- history and year ----------
 
+  /** Show this history; the first one given is remembered as the original to compare against. */
   setTimeline(snapshots: World[]): void {
+    this.baseline ??= snapshots;
     this.timeline = snapshots;
     this.refresh();
+  }
+
+  /** Show `current` (the player's altered history) while keeping `original` as the baseline. */
+  setHistory(current: World[], original: World[]): void {
+    this.baseline = original;
+    this.setTimeline(current);
+  }
+
+  resetToOriginal(): void {
+    if (this.baseline) this.setTimeline(this.baseline);
+  }
+
+  /** True once the player's changes have made the history differ from the original. */
+  get altered(): boolean {
+    return !!this.timeline && this.timeline !== this.baseline;
+  }
+
+  /** How the current year differs from the original timeline (null if nothing was changed). */
+  changes(): string[] | null {
+    if (!this.altered || !this.baseline || !this.timeline) return null;
+    const a = this.baseline[this.year - 1950], b = this.timeline[this.year - 1950];
+    if (!a || !b) return null;
+    const d = diffWorlds(a, b);
+    return isEmptyDiff(d) ? [] : describeDiff(d, a, b);
+  }
+
+  /** Adults living in the town this year (for choosing who to introduce someone to). */
+  adults(except?: string): { id: string; label: string }[] {
+    const w = this.world();
+    return w ? adultsOf(w, except) : [];
   }
 
   setYear(year: number): void {
@@ -308,15 +343,19 @@ export class TownView {
     return wx >= b.x && wx < b.x + b.w && wy >= b.y && wy < b.y + b.h;
   }
 
-  /** Text for whatever stands at this world position (a landmark or a building), or null. */
-  info(wx: number, wy: number): string[] | null {
+  /** What stands at this world position (a building or landmark), and who/what can be acted on, or null. */
+  select(wx: number, wy: number): Inspection | null {
     const w = this.world();
     if (!w || !this.layout) return null;
-    const tx = (wx - this.ox) / TILE, ty = (wy - this.oy) / TILE;
-    const lm = this.layout.landmarks.find((l) => tx >= l.x && tx < l.x + l.w && ty >= l.y && ty < l.y + l.h);
-    if (lm) return landmarkDescription(w, lm);
-    const lot = this.layout.lots.find((l) => tx >= l.x && tx < l.x + l.w && ty >= l.y && ty < l.y + l.h);
-    return lot ? lotDescription(w, lot) : null;
+    return inspectAt(this.layout, w, (wx - this.ox) / TILE, (wy - this.oy) / TILE);
+  }
+
+  /** The building these people (or this business) are in this year, inspected; null if they are not in town. */
+  selectRef(personIds: string[], businessId: string | null): Inspection | null {
+    const w = this.world();
+    if (!w || !this.layout) return null;
+    const lot = this.layout.lots.find((l) => (businessId !== null && l.kind === 'shop' && l.refId === businessId) || l.residents.some((id) => personIds.includes(id)));
+    return lot ? inspectAt(this.layout, w, lot.x + 1, lot.y + 1) : null;
   }
 
   /** Feet box vs water and building footprints (the lower rows of each building, as wide as its sprite). */
