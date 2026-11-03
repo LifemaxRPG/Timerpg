@@ -146,4 +146,16 @@ describe('town layout (who lives where)', () => {
     const lateSet = new Set(late.roads);
     for (const r of early.roads) expect(lateSet.has(r)).toBe(true);
   });
+
+  it('never scatters decoration across shops or apartments (they have no yard)', () => {
+    for (const year of [1950, 1985, 2025]) {
+      const l = layoutTown(worldAt(t, year));
+      for (const lot of l.lots.filter((x) => x.front === 0)) {
+        for (const p of l.props) {
+          const tx = p.x / 32, ty = (p.y - 1) / 32;
+          expect(tx >= lot.x && tx < lot.x + lot.w && ty >= lot.y && ty < lot.y + lot.h, `${year} ${p.kind} inside ${lot.slot}`).toBe(false);
+        }
+      }
+    }
+  });
 });

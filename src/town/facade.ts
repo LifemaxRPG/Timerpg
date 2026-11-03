@@ -9,6 +9,8 @@ import { colourOf, pickStable, stack, type BuildingArt, type Colour } from './bu
 
 /** Open-for-business ground-floor sprites per family (mirrors scripts/extract-assets.mjs SHOPS). */
 const odds = (n: number): number[] => Array.from({ length: n }, (_, i) => i + 1).filter((i) => i % 2 === 1);
+/** `h` is the sprite height; the real storefront is `BODY` tall, the rest is sign overhang. */
+const BODY = 96;
 const FAMILIES: Record<string, { total: number; nums: number[]; h: number }> = {
   Shop: { total: 36, nums: [1, 5, 7, 9, 13, 17, 19, 21, 25, 29, 31, 33], h: 96 },
   Bakery: { total: 12, nums: odds(12), h: 160 },
@@ -56,15 +58,15 @@ export function shopFacade(businessKind: string, look: number, year = 2025): Bui
   const colour = colourOf(ground, f.total);
   const r = (salt: string): number => rand('facade', salt, look.toFixed(6));
 
-  // Middle floor only where it fits: ground + 128 + the shortest roof must stay inside the plot.
-  const withMiddle = SHOP_PLOT_H - f.h >= 128 + 192 && r('mid') < 0.7;
-  const left = SHOP_PLOT_H - f.h - (withMiddle ? 128 : 0);
+  // Floors stack on the storefront (BODY), not the whole sprite: ground + middle + roof must fit the plot.
+  const withMiddle = SHOP_PLOT_H - BODY >= 128 + 192 && r('mid') < 0.7;
+  const left = SHOP_PLOT_H - BODY - (withMiddle ? 128 : 0);
   const roofs = ROOFS[colour].filter((id) => ROOF_H(id) <= left).map((id) => ({ id: String(id) }));
   const roof = Number(pickStable(roofs, look, `roof:${colour}`).id);
   const middle = colour === 'red' ? 1 : colour === 'blue' ? 7 : 13;
 
   const parts = [
-    { key: `shop_${fam}_${ground}`, w: SHOP_W, h: f.h },
+    { key: `shop_${fam}_${ground}`, w: SHOP_W, h: f.h, rise: BODY },
     ...(withMiddle ? [{ key: `middle_${middle + Math.floor(r('midv') * 6)}`, w: SHOP_W, h: 128 }] : []),
     { key: `roof_${roof}`, w: SHOP_W, h: ROOF_H(roof) },
   ];

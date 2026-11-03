@@ -56,12 +56,14 @@ export function pickStable<T extends { id: string }>(items: readonly T[], look: 
 export const layer = (key: string, w: number, h: number, y = 0, dx = 0): Layer => ({ key, w, h, y, dx });
 
 /** Stack layers bottom-up (each starts where the previous ends). */
-export function stack(parts: readonly { key: string; w: number; h: number; dx?: number }[]): { layers: Layer[]; w: number; h: number } {
+export function stack(parts: readonly { key: string; w: number; h: number; dx?: number; rise?: number }[]): { layers: Layer[]; w: number; h: number } {
   let y = 0;
   let w = 0;
   const layers = parts.map((p) => {
     const l = layer(p.key, p.w, p.h, y, p.dx ?? 0);
-    y += p.h;
+    // `rise` is how far the next layer starts above this one. It is less than `h` for sprites whose
+    // top is sign overhang (the sign is drawn over the layer above, which sits on the real front).
+    y += p.rise ?? p.h;
     w = Math.max(w, p.w);
     return l;
   });

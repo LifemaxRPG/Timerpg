@@ -143,4 +143,16 @@ describe('apartments in a living town', () => {
     const tiers = new Set(layoutTown(worldAt(t, 2025)).lots.filter((x) => x.kind === 'house').map((x) => x.tier));
     expect(tiers.size).toBeGreaterThanOrEqual(4);
   });
+
+  it('shop floors stack on the storefront, so there is no gap between the shop front and its roof', () => {
+    for (const kind of ['Bakery', 'Butcher', 'Ice Cream Parlor', 'Music Store', 'Bait Shop', 'Hardware']) {
+      for (let i = 0; i < 40; i++) {
+        const a = shopFacade(kind, i / 40, 2025);
+        const [ground, next] = a.layers;
+        // The real storefront is 96px tall whatever the sprite height (the rest is sign overhang).
+        expect(next!.y, `${kind} ${i}: layer above the storefront starts at ${next!.y}`).toBe(96);
+        expect(ground!.y).toBe(0);
+      }
+    }
+  });
 });

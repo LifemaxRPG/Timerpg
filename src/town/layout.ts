@@ -208,14 +208,29 @@ export function layoutTown(w: World): TownLayout {
       });
     }
   };
+  const lotBySlot = new Map(lots.map((l) => [l.slot, l]));
   for (const c of plan.candidates) {
     if (!used.has(c.id)) {
       // Empty plot: a wooded lot, thicker toward the outskirts.
       scatter(c, c.kind === 'villa' || c.kind === 'shop' ? 6 : 4, 'empty', false);
-    } else if (c.kind !== 'shop') {
-      scatter(c, 1 + Math.floor(rand(w.seed, 'yard', c.id) * 3), 'yard', true);
-    } else {
-      scatter(c, 2, 'shopfront', true);
+      continue;
+    }
+    // Occupied: decoration only in the front yard, beside the path. Shops and apartments have no
+    // yard (the building fills the plot), so nothing is scattered across them.
+    const lot = lotBySlot.get(c.id);
+    if (!lot || lot.front === 0) continue;
+    const n = 1 + Math.floor(rand(w.seed, 'yard', c.id) * 3);
+    for (let i = 0; i < n; i++) {
+      const r1 = rand(w.seed, 'sc-x', 'yard', c.id, i);
+      const r2 = rand(w.seed, 'sc-y', 'yard', c.id, i);
+      const r3 = rand(w.seed, 'sc-k', 'yard', c.id, i);
+      const side = r1 < 0.5 ? 0.12 + r1 * 0.3 : 0.7 + (r1 - 0.5) * 0.36; // left or right of the path
+      props.push({
+        kind: r3 < 0.2 ? 'tree' : r3 < 0.6 ? 'bush' : r3 < 0.85 ? 'flowerBush' : 'flowers',
+        x: Math.round((c.x + side * c.w) * TILE),
+        y: Math.round((c.y + c.h - lot.front + 0.5 + r2 * (lot.front - 0.9)) * TILE),
+        look: rand(w.seed, 'sc-l', 'yard', c.id, i),
+      });
     }
   }
 
