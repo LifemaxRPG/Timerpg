@@ -127,6 +127,12 @@ function findBridges(raw: Uint8Array, W: number, H: number, roads: readonly Road
   return out;
 }
 
+/** What water a seed gets (decided up front so the street network can make room for a river). */
+export function waterKind(seed: string): 'none' | 'river' | 'lake' {
+  const roll = rand(seed, 'water', 'kind');
+  return roll < 0.28 ? 'none' : roll < 0.72 ? 'river' : 'lake';
+}
+
 export function planWater(seed: string, g: WaterGeometry): WaterBody | null {
   const R = (...k: (string | number)[]): number => rand(seed, 'water', ...k);
   const { width: W, height: H } = g;
@@ -176,46 +182,54 @@ export function planWater(seed: string, g: WaterGeometry): WaterBody | null {
     return finish('river', raw);
   }
 
-  // ---- lake: an organic blob that sits on at least one street (so there is a bridge) ----
-  const main = g.roads.find((r) => r.main);
-  for (let attempt = 0; attempt < 40; attempt++) {
-    const rx = 10 + R('rx', attempt) * 4;
-    const ry = rx * (0.62 + R('ry', attempt) * 0.3);
-    // Sits between two north-south streets so it only ever interrupts one east-west street.
-    const vr = g.roads.filter((r) => !r.horizontal).sort((a, b) => a.x - b.x);
-    const gi = Math.floor(R('gi', attempt) * Math.max(1, vr.length - 1));
-    if (gi + 1 >= vr.length) return null;
-    const lo = vr[gi]!.x + vr[gi]!.w + 3 + rx * 1.3;
-    const hi = vr[gi + 1]!.x - 4 - rx * 1.3;
-    if (hi < lo) continue;
-    const cx = lo + R('cx', attempt) * (hi - lo);
-    // Centered near a random east-west street (not the main one) so the lake really crosses it.
-    const streets = g.roads.filter((r) => r.horizontal && !r.main && r.y > g.top + 14 && r.y < H - 16);
-    if (!streets.length) return null;
-    const st = streets[Math.floor(R('st', attempt) * streets.length)]!;
-    const cy = st.y + 1 + (R('cy', attempt) - 0.5) * ry * 0.9;
+  // ---- lake: an organic blob just beyond the edge of the town, clear of every street ----
+  // (A pond in the middle of a dense street web would need long bridges; at the edge it is scenery
+  // you walk up to, and the town's streets simply stop short of it.)
+  let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
+  for (const r of g.roads) { bx0 = Math.min(bx0, r.x); by0 = Math.min(by0, r.y); bx1 = Math.max(bx1, r.x + r.w); by1 = Math.max(by1, r.y + r.h); }
+  const ccx = (bx0 + bx1) / 2, ccy = (by0 + by1) / 2;
+  const clearOfRoads = (cx: number, cy: number, rx: number, ry: number): boolean =>
+    !g.roads.some((r) => r.x - 4 < cx + rx * 1.4 && r.x + r.w + 4 > cx - rx * 1.4 && r.y - 4 < cy + ry * 1.4 && r.y + r.h + 4 > cy - ry * 1.4);
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const rx = 9 + R('rx', attempt) * 5;
+    const ry = rx * (0.65 + R('ry', attempt) * 0.3);
+    const th = R('th', attempt) * 6.283;
+    let cx = 0, cy = 0, found = false;
+    for (let t = 10; t < 260; t++) {
+      cx = ccx + Math.cos(th) * t;
+      cy = ccy + Math.sin(th) * t * 0.8;
+      if (cx - rx * 1.5 < 2 || cx + rx * 1.5 > W - 2 || cy - ry * 1.5 < 2 || cy + ry * 1.5 > H - 2) break;
+      if (clearOfRoads(cx, cy, rx, ry)) { found = true; break; }
+    }
+    if (!found) continue;
     const p = [R('lp1', attempt) * 6.28, R('lp2', attempt) * 6.28, R('lp3', attempt) * 6.28];
     const raw = new Uint8Array(W * H);
     for (let y = Math.max(0, Math.floor(cy - ry * 1.5)); y < Math.min(H, Math.ceil(cy + ry * 1.5)); y++)
       for (let x = Math.max(0, Math.floor(cx - rx * 1.5)); x < Math.min(W, Math.ceil(cx + rx * 1.5)); x++) {
         const u = (x + 0.5 - cx) / rx, v = (y + 0.5 - cy) / ry;
-        const th = Math.atan2(v, u);
-        const lim = 1 + 0.16 * Math.sin(2 * th + p[0]!) + 0.12 * Math.sin(3 * th + p[1]!) + 0.07 * Math.sin(5 * th + p[2]!);
+        const a = Math.atan2(v, u);
+        const lim = 1 + 0.16 * Math.sin(2 * a + p[0]!) + 0.12 * Math.sin(3 * a + p[1]!) + 0.07 * Math.sin(5 * a + p[2]!);
         if (Math.hypot(u, v) < lim) raw[y * W + x] = 1;
       }
     smooth(raw, W, H);
-    const bridges = findBridges(raw, W, H, g.roads);
-    const touchesMain = main && bridges.some((b) => b.horizontal && b.y === main.y - 1);
-    if (bridges.length !== 1 || !bridges[0]!.horizontal || touchesMain) continue;
-    // Every deck must carry a street that really goes through the water (no streets that merely brush it).
-    const wet = (b: Bridge): number => {
-      let n = 0;
-      for (let y = b.y; y < b.y + b.h; y++) for (let x = b.x; x < b.x + b.w; x++) if (raw[y * W + x]) n++;
-      return n;
-    };
-    if (bridges.some((b) => wet(b) < 6)) continue;
-    if (bridges.some((b) => (b.horizontal ? b.w : b.h) > 26)) continue;
+    if (findBridges(raw, W, H, g.roads).length) continue;
     return finish('lake', raw);
   }
   return null;
+}
+
+/** The same water body on a canvas that was cropped/shifted: new size W x H, old (x,y) -> (x+dx, y+dy). */
+export function shiftWater(w: WaterBody | null, dx: number, dy: number, W: number, H: number): WaterBody | null {
+  if (!w) return null;
+  const move = (src: Uint8Array): Uint8Array => {
+    const out = new Uint8Array(W * H);
+    for (let y = 0; y < w.height; y++)
+      for (let x = 0; x < w.width; x++) {
+        if (!src[y * w.width + x]) continue;
+        const nx = x + dx, ny = y + dy;
+        if (nx >= 0 && ny >= 0 && nx < W && ny < H) out[ny * W + nx] = 1;
+      }
+    return out;
+  };
+  return { ...w, width: W, height: H, mask: move(w.mask), raw: move(w.raw), bridges: w.bridges.map((b) => ({ ...b, x: b.x + dx, y: b.y + dy })) };
 }

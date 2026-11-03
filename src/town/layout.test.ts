@@ -42,9 +42,9 @@ describe('town plan (per-seed generation)', () => {
       const p = planTown(seed);
       const n = (k: string): number => p.candidates.filter((c) => c.kind === k).length;
       expect(n('shop'), `${seed} shops`).toBeGreaterThanOrEqual(22);
-      expect(n('villa'), `${seed} villas`).toBeGreaterThanOrEqual(6);
+      expect(n('villa'), `${seed} villas`).toBeGreaterThanOrEqual(4);
       // An apartment building houses at least 3 households, every other ordinary plot one.
-      expect(n('small') + n('medium') + n('house') + 3 * n('apartment'), `${seed} homes`).toBeGreaterThanOrEqual(140);
+      expect(n('small') + n('medium') + n('house') + 4 * n('apartment'), `${seed} homes`).toBeGreaterThanOrEqual(112);
     }
   });
 

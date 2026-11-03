@@ -13,8 +13,11 @@ the past (kill the future mayor, invest in the bakery...), and come back to see 
     business founding, mayor elections) and `runTimeline()` which applies time-traveler interventions.
   - `social.ts` - pairwise affinity (seeded baseline + deliberate `bonds`) and reputation; drives marriages and elections.
   - `diff.ts` - compares the same year across two timelines ("what did my actions change?").
-- `src/town/plan.ts` - the **town plan**, a pure function of the seed: street network (irregular spacing,
-  varying number of streets/width), main street, villa district, plaza with fountain, forest edge, street
+- `src/town/network.ts`, `frontage.ts`, `plan.ts` - the **town plan**, a pure function of the seed. Pipeline:
+  street network (dense but irregular web inside an organic blob outline; main street that jogs; streets that
+  dead-end; a river replaces a cross street) -> water -> plaza -> landmarks -> building plots laid along street
+  frontages (zoned: downtown shops, apartments/houses, small homes toward the edge, a villa hill) -> crop ->
+  greenery (`greenery.ts`: sparse near buildings, thickening into forest, so the edge is organic) and street
   furniture. Grows until there is room for every shop and household.
 - `src/town/layout.ts` - who/what occupies the plan in a given year: the town fills center-outward,
   housing tier follows household wealth (small / medium / house / villa / estate; poorest singles and couples share apartment buildings, see `housing.ts`), shop fronts are stacked modular floors (`facade.ts`), empty plots become wooded lots, yards get props.

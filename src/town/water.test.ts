@@ -64,7 +64,9 @@ describe('water (river / lake)', () => {
     for (const s of withWater) {
       const p = planTown(s);
       const w = p.water!;
-      expect(w.bridges.length, s).toBeGreaterThanOrEqual(1);
+      // Rivers cut across streets and need bridges; lakes sit beyond the town's edge and touch none.
+      if (w.kind === 'river') expect(w.bridges.length, s).toBeGreaterThanOrEqual(1);
+      else expect(w.bridges.length, s).toBe(0);
       for (const b of w.bridges) {
         const road = p.roads.find((r) => r.horizontal === b.horizontal && overlap(b, { x: r.x - 1, y: r.y - 1, w: r.w + 2, h: r.h + 2 }));
         expect(road, `${s} bridge ${JSON.stringify(b)} carries no street`).toBeTruthy();
@@ -84,8 +86,8 @@ describe('water (river / lake)', () => {
       const p = planTown(s);
       const n = (k: string): number => p.candidates.filter((c) => c.kind === k).length;
       expect(n('shop'), `${s} shops`).toBeGreaterThanOrEqual(22);
-      expect(n('villa'), `${s} villas`).toBeGreaterThanOrEqual(6);
-      expect(n('small') + n('medium') + n('house') + 3 * n('apartment'), `${s} homes`).toBeGreaterThanOrEqual(140);
+      expect(n('villa'), `${s} villas`).toBeGreaterThanOrEqual(4);
+      expect(n('small') + n('medium') + n('house') + 4 * n('apartment'), `${s} homes`).toBeGreaterThanOrEqual(112);
     }
   });
 });

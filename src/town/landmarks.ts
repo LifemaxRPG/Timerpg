@@ -63,6 +63,8 @@ interface Params {
   keep: readonly [readonly string[], number][];
   /** Extra obstacle test (e.g. water): spots where this returns true are skipped. */
   blocked?: (box: Box) => boolean;
+  /** Landmarks that find no spot beside a street are dropped when false (default: park them on a civic strip). */
+  civicStrip?: boolean;
 }
 
 export interface LandmarkResult {
@@ -104,14 +106,15 @@ export function placeLandmarks(seed: string, p: Params): LandmarkResult {
     const s = LANDMARK_SPECS[k];
     let best: { x: number; y: number; score: number; left: typeof plots } | undefined;
     // Front door faces a street: the building sits just north of an east-west road's sidewalk.
-    for (const r of p.roads.filter((r) => r.horizontal)) {
+    // Side streets only: the main street's frontage is for shops.
+    for (const r of p.roads.filter((r) => r.horizontal && !r.main)) {
       const y = r.y - 1 - s.h;
       if (y < p.top) continue;
-      for (let x = p.marginL + 2; x + s.w <= p.width - p.marginR - 2; x++) {
+      for (let x = Math.max(p.marginL + 2, r.x); x + s.w <= Math.min(p.width - p.marginR - 2, r.x + r.w); x++) {
         const box = { x, y, w: s.w, h: s.h };
         if (p.roads.some((o) => hit(box, o, 1)) || hit(box, p.plaza, 1) || done.some((d) => hit(box, d, 1)) || p.blocked?.(box)) continue;
         const score = Math.hypot(x + s.w / 2 - p.center.x, (y + s.h / 2 - p.center.y) * 1.3)
-          + rand(seed, 'landmark', 'jit', k, x, y) * 10 - (r.main ? 10 : 0);
+          + rand(seed, 'landmark', 'jit', k, x, y) * 10 ;
         if (best && score >= best.score) continue;
         const left = plots.filter((c) => !hit(box, c));
         if (enough(left)) best = { x, y, score, left };
@@ -126,7 +129,7 @@ export function placeLandmarks(seed: string, p: Params): LandmarkResult {
   // Whatever did not fit between the blocks gets a civic strip with its own street below the town.
   const roads: LandmarkResult['roads'] = [];
   let height = p.height;
-  if (unplaced.length) {
+  if (unplaced.length && p.civicStrip !== false) {
     const tallest = Math.max(...unplaced.map((k) => LANDMARK_SPECS[k].h));
     const roadY = p.height + tallest + 2;
     roads.push({ x: p.marginL - 3, y: roadY, w: p.width - p.marginL - p.marginR + 6, h: 2, main: false, horizontal: true });
