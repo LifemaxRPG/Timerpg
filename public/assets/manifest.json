@@ -863,6 +863,98 @@
    "h": 160
   }
  ],
+ "landmark:post": [
+  {
+   "key": "landmark_post_1",
+   "path": "assets/landmark_post/landmark_post_1.png",
+   "w": 256,
+   "h": 416
+  },
+  {
+   "key": "landmark_post_2",
+   "path": "assets/landmark_post/landmark_post_2.png",
+   "w": 256,
+   "h": 416
+  },
+  {
+   "key": "landmark_post_3",
+   "path": "assets/landmark_post/landmark_post_3.png",
+   "w": 256,
+   "h": 416
+  },
+  {
+   "key": "landmark_post_4",
+   "path": "assets/landmark_post/landmark_post_4.png",
+   "w": 256,
+   "h": 416
+  }
+ ],
+ "landmark:school": [
+  {
+   "key": "landmark_school_1",
+   "path": "assets/landmark_school/landmark_school_1.png",
+   "w": 768,
+   "h": 736
+  }
+ ],
+ "landmark:fire": [
+  {
+   "key": "landmark_fire_1",
+   "path": "assets/landmark_fire/landmark_fire_1.png",
+   "w": 512,
+   "h": 480
+  }
+ ],
+ "landmark:police": [
+  {
+   "key": "landmark_police_1",
+   "path": "assets/landmark_police/landmark_police_1.png",
+   "w": 672,
+   "h": 576
+  },
+  {
+   "key": "landmark_police_2",
+   "path": "assets/landmark_police/landmark_police_2.png",
+   "w": 672,
+   "h": 576
+  },
+  {
+   "key": "landmark_police_3",
+   "path": "assets/landmark_police/landmark_police_3.png",
+   "w": 672,
+   "h": 576
+  }
+ ],
+ "landmark:hospital": [
+  {
+   "key": "landmark_hospital_1",
+   "path": "assets/landmark_hospital/landmark_hospital_1.png",
+   "w": 864,
+   "h": 672
+  }
+ ],
+ "landmark:hotel": [
+  {
+   "key": "landmark_hotel_1",
+   "path": "assets/landmark_hotel/landmark_hotel_1.png",
+   "w": 544,
+   "h": 736
+  }
+ ],
+ "landmark:clocktower": [
+  {
+   "key": "landmark_clocktower_1",
+   "path": "assets/landmark_clocktower/landmark_clocktower_1.png",
+   "w": 256,
+   "h": 480
+  },
+  {
+   "key": "landmark_clocktower_2",
+   "path": "assets/landmark_clocktower/landmark_clocktower_2.png",
+   "w": 256,
+   "h": 480
+  }
+ ],
  "characters": [
   {
    "key": "char_01",
