@@ -96,3 +96,11 @@ This is a foundation for slower visible change. Deliberate moves, renovation/dem
 ## Neighborhood character
 
 Each seed also assigns fixed neighborhood identities to plots: Old Town commerce, a villa district, gardens and woodland-edge housing, plus a riverside/lakeside district only where suitable plots actually border water. Neighborhoods share curated facade colors and yard treatments: flower gardens, formal hedges, compact frontages or loose planting. New buildings adopt their site's style; existing buildings retain theirs across year changes and tenant turnover. Inspection shows the local neighborhood name. This uses the existing curated sprite manifest and preserves the street/plot geometry.
+
+## Working entrances and first interiors
+
+Walk to a pale gold entrance marker and press **E**, or tap the Enter button. Interiors use curated Modern Interiors furniture and floor tiles, with solid walls and furniture. Homes have living/kitchen, bedroom and bathroom areas; retail and civic buildings use furnished templates suited to their use. Press E near the indoor exit, Escape, or the Leave button to return outside. Apartment buildings currently open a representative apartment interior rather than separate floors/units.
+
+Whole exterior building bodies now block movement, with substeps preventing tunnelling through walls during a slow frame. Closely packed shops receive an accessible marked side entrance when their south-facing threshold is blocked. Time travel relocates a player trapped by newly appeared construction, and leaves an interior safely when that property did not exist in the destination year. The room camera frames the interior and outdoor streaming pauses while indoors.
+
+Interior structure is derived from the property and tier; current use determines its furnishing template. This is the first interior pass: additional floors, individualized units, inventory interactions and NPCs remain future work. `scripts/extract-interiors.mjs --interiors <zip>` reproduces the curated interior sprites and size catalogue, and the main asset extraction script invokes it automatically.
