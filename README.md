@@ -91,4 +91,8 @@ npm run demo [seed]   # kills the present-day mayor as a child and prints the co
 
 The first generation improvement preserves properties across years. Vacant buildings have subdued coloring, keep their collision footprint, and can be inspected for their recorded construction/vacancy dates and former occupants. New shop tenants change the storefront display while retaining the upper floors and roof. Time-travel interventions re-simulate occupancy alongside people and businesses. Existing seed/intervention saves need no new payload; regenerated towns use the updated placement rules.
 
-This is a foundation for slower visible change. Deliberate moves, renovation/demolition, construction stages, neighborhood palettes and individual tree aging are still future work. Buildings currently retain their original architecture indefinitely; wealth changes alone do not trigger a move.
+This is a foundation for slower visible change. Deliberate moves, renovation/demolition, construction stages and individual tree aging are still future work. Buildings currently retain their original architecture indefinitely; wealth changes alone do not trigger a move.
+
+## Neighborhood character
+
+Each seed also assigns fixed neighborhood identities to plots: Old Town commerce, a villa district, gardens and woodland-edge housing, plus a riverside/lakeside district only where suitable plots actually border water. Neighborhoods share curated facade colors and yard treatments: flower gardens, formal hedges, compact frontages or loose planting. New buildings adopt their site's style; existing buildings retain theirs across year changes and tenant turnover. Inspection shows the local neighborhood name. This uses the existing curated sprite manifest and preserves the street/plot geometry.

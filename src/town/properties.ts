@@ -1,3 +1,4 @@
+import { neighborhoodOf } from './neighborhoods';
 import { rand } from '../sim/rng';
 import { isAlive, type Id, type World } from '../sim/types';
 import { shopFacade } from './facade';
@@ -80,11 +81,12 @@ export function advanceSettlement(w: World): void {
   const construct = (c: Candidate, preferred: Lot): Lot => {
     const look = rand(w.seed, 'property', c.id);
     const tier = c.kind;
+    const district = neighborhoodOf(plan, c.neighborhood);
     const art = tier === 'shop'
-      ? shopFacade(w.businesses[preferred.refId]!.kind, look, w.year)
-      : houseArt(tier, look, w.year);
+      ? shopFacade(w.businesses[preferred.refId]!.kind, look, w.year, district.shopColour)
+      : houseArt(tier, look, w.year, district.palette);
     const lot: Lot = {
-      ...preferred, x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, tier,
+      ...preferred, x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, neighborhood: c.neighborhood, tier,
       look, front: FRONT[tier], art, heads: [], residents: [], builtYear: w.year,
     };
     properties.push(lot); bySlot.set(c.id, lot);

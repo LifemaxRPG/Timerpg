@@ -1,3 +1,4 @@
+import { neighborhoodOf, type NeighborhoodId } from './neighborhoods';
 import { rand } from '../sim/rng';
 import { ageIn, fullName, isAlive, type Id, type Person, type World } from '../sim/types';
 import type { LandmarkPlot } from './landmarks';
@@ -15,6 +16,7 @@ export interface Lot {
   x: number; y: number; w: number; h: number;
   /** Stable slot id, e.g. "small:20,34". */
   slot: string;
+  neighborhood: NeighborhoodId;
   kind: 'house' | 'shop';
   /** Size class: villa/medium/small houses (by household wealth) or shop. */
   tier: LotKind;
@@ -145,9 +147,9 @@ export function draftLots(w: World, plan: TownPlan): Lot[] {
     const look = rand(w.seed, 'look', tier === 'apartment' ? c.id : group[0]!);
     const first = w.people[group[0]!]!;
     lots.push({
-      x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, kind: 'house', tier, refId: group[0]!, heads: group,
+      x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, neighborhood: c.neighborhood, kind: 'house', tier, refId: group[0]!, heads: group,
       label: tier === 'apartment' ? `${first.surname} Court apartments` : `${first.surname} house`,
-      look, front: FRONT[tier], art: houseArt(tier, look, w.year), residents: group.flatMap((h) => households.get(h)!).sort(),
+      look, front: FRONT[tier], art: houseArt(tier, look, w.year, neighborhoodOf(plan, c.neighborhood).palette), residents: group.flatMap((h) => households.get(h)!).sort(),
     });
   };
   /** Fill apartment buildings center-outward, each taking as many households as its sprite holds. */
@@ -191,8 +193,8 @@ export function draftLots(w: World, plan: TownPlan): Lot[] {
     used.add(c.id);
     const look = rand(w.seed, 'look', b.id);
     lots.push({
-      x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, kind: 'shop', tier: 'shop', refId: b.id,
-      label: b.name, look, front: 0, art: shopFacade(b.kind, look, w.year), heads: [], residents: b.owner ? [b.owner] : [],
+      x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, neighborhood: c.neighborhood, kind: 'shop', tier: 'shop', refId: b.id,
+      label: b.name, look, front: 0, art: shopFacade(b.kind, look, w.year, neighborhoodOf(plan, c.neighborhood).shopColour), heads: [], residents: b.owner ? [b.owner] : [],
     });
   }
 
@@ -234,14 +236,18 @@ export function layoutTown(w: World): TownLayout {
     // yard (the building fills the plot), so nothing is scattered across them.
     const lot = lotBySlot.get(c.id);
     if (!lot || lot.front === 0) continue;
-    const n = 1 + Math.floor(rand(w.seed, 'yard', c.id) * 3);
+    const style = neighborhoodOf(plan, lot.neighborhood).yard;
+    const n = (style === 'flower' ? 3 : style === 'formal' ? 2 : 1) + Math.floor(rand(w.seed, 'yard', c.id) * 2);
     for (let i = 0; i < n; i++) {
       const r1 = rand(w.seed, 'sc-x', 'yard', c.id, i);
       const r2 = rand(w.seed, 'sc-y', 'yard', c.id, i);
       const r3 = rand(w.seed, 'sc-k', 'yard', c.id, i);
       const side = r1 < 0.5 ? 0.12 + r1 * 0.3 : 0.7 + (r1 - 0.5) * 0.36; // left or right of the path
+      const kind = style === 'flower' ? (r3 < 0.2 ? 'bush' : r3 < 0.7 ? 'flowerBush' : 'flowers')
+        : style === 'formal' ? (r3 < 0.6 ? 'bush' : 'flowerBush')
+        : r3 < 0.25 ? 'tree' : r3 < 0.8 ? 'bush' : 'flowers';
       props.push({
-        kind: r3 < 0.2 ? 'tree' : r3 < 0.6 ? 'bush' : r3 < 0.85 ? 'flowerBush' : 'flowers',
+        kind,
         x: Math.round((c.x + side * c.w) * TILE),
         y: Math.round((c.y + c.h - lot.front + 0.5 + r2 * (lot.front - 0.9)) * TILE),
         look: rand(w.seed, 'sc-l', 'yard', c.id, i),
@@ -253,6 +259,7 @@ export function layoutTown(w: World): TownLayout {
   // both sides and along the back, and a dirt path from the door to the gate.
   for (const lot of properties) {
     if (lot.kind !== 'house' || lot.front === 0) continue;
+    const style = neighborhoodOf(plan, lot.neighborhood).yard;
     const bottom = lot.y + lot.h; // plot bottom edge, in tiles
     const cx = lot.x + lot.w / 2;
     const mid = Math.floor(cx);
@@ -260,10 +267,12 @@ export function layoutTown(w: World): TownLayout {
       for (const dx of [-1, 0]) props.push({ kind: 'path', x: Math.round((mid + dx + 0.5) * TILE), y: (bottom - lot.front + row + 1) * TILE, look: 0 });
     for (let tx = lot.x; tx < lot.x + lot.w; tx++) {
       if (Math.abs(tx + 0.5 - cx) < 1.6) continue; // the gate
-      props.push({ kind: 'fence', x: Math.round((tx + 0.5) * TILE), y: bottom * TILE, look: tx % 2 });
+      if (style === 'natural') continue;
+      props.push({ kind: style === 'formal' ? 'hedge' : 'fence', x: Math.round((tx + 0.5) * TILE), y: bottom * TILE, look: tx % 2 });
     }
     const hedge = (tx: number, ty: number, tag: string): void => {
-      if (rand(w.seed, 'hedge', lot.slot, tag, tx, ty) < 0.18) return; // a gap or two keeps it natural
+      const gap = style === 'formal' ? 0.04 : style === 'flower' ? 0.18 : style === 'natural' ? 0.65 : 0.3;
+      if (rand(w.seed, 'hedge', lot.slot, tag, tx, ty) < gap) return; // a gap or two keeps it natural
       props.push({ kind: 'hedge', x: Math.round((tx + 0.5) * TILE), y: Math.round((ty + 1) * TILE), look: rand(w.seed, 'hedge-l', lot.slot, tx, ty) });
     };
     for (let ty = lot.y + 1; ty < bottom - 1; ty++) { hedge(lot.x, ty, 'l'); hedge(lot.x + lot.w - 1, ty, 'r'); }

@@ -1,3 +1,4 @@
+import { zoneNeighborhoods, type Neighborhood, type NeighborhoodId } from './neighborhoods';
 import { rand } from '../sim/rng';
 import { placeFrontage } from './frontage';
 import { greenery } from './greenery';
@@ -22,6 +23,7 @@ export interface Candidate extends Rect {
   kind: LotKind;
   /** Lower = closer to the town center; the town fills from rank 0 outward. */
   rank: number;
+  neighborhood: NeighborhoodId;
 }
 
 export type PropKind = 'tree' | 'lamp' | 'bench' | 'bush' | 'flowerBush' | 'flowers' | 'fountain1' | 'fountain2' | 'fence' | 'hedge' | 'path';
@@ -38,6 +40,7 @@ export interface TownPlan {
   height: number;
   roads: Road[];
   candidates: Candidate[];
+  neighborhoods: Neighborhood[];
   /** Static decoration (street furniture, plaza, greenery). */
   props: Prop[];
   mainY: number;
@@ -145,10 +148,12 @@ export function planTown(seed: string): TownPlan {
   const plazaR = mv(plaza);
   const landmarks = built.landmarks.map(mv);
   const water = shiftWater(built.water, dx, dy, width, height);
-  const candidates: Candidate[] = built.lots.map(mv).map((c) => ({
+  const sites = built.lots.map(mv).map((c) => ({
     ...c,
     rank: Math.hypot(c.x + c.w / 2 - center.x, (c.y + c.h / 2 - center.y) * 1.3) + R('rank', c.id) * 8,
   })).sort((a, b) => a.rank - b.rank || (a.id < b.id ? -1 : 1));
+
+  const { neighborhoods, candidates } = zoneNeighborhoods(seed, sites, center, water);
 
   // ---- static decoration ----
   const props: Prop[] = [];
@@ -199,7 +204,7 @@ export function planTown(seed: string): TownPlan {
   if (water) for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) if (water.raw[y * width + x]) wet.mark({ x, y, w: 1, h: 1 }, 2);
   props.push(...greenery(seed, developed, wet));
 
-  const plan: TownPlan = { seed, width, height, roads, candidates, props, mainY, center, plaza: plazaR, landmarks, water };
+  const plan: TownPlan = { seed, width, height, roads, candidates, neighborhoods, props, mainY, center, plaza: plazaR, landmarks, water };
   cache.set(seed, plan);
   return plan;
 }
