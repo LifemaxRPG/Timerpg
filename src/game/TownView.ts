@@ -236,7 +236,7 @@ export class TownView {
     for (const o of this.drawn) o.destroy();
     this.drawn = [];
     this.drawRoads(this.layout.roads);
-    for (const lot of this.layout.lots) this.drawLot(w, lot);
+    for (const lot of [...this.layout.lots, ...this.layout.vacantLots]) this.drawLot(w, lot);
     for (const l of this.layout.landmarks) this.drawLandmark(l);
     for (const p of this.layout.props) this.drawProp(p, true);
   }
@@ -323,11 +323,12 @@ export class TownView {
     // Houses and shop fronts are stacks of sprites (see src/town/housing.ts and facade.ts).
     lot.art.layers.forEach((l, i) => {
       if (!this.scene.textures.exists(l.key)) return;
-      this.keep(this.scene.add.image(cx + l.dx, bottom - l.y, l.key).setOrigin(0.5, 1).setDepth(i === 0 ? bottom : bottom - 1 + i * 0.001));
+      const img = this.keep(this.scene.add.image(cx + l.dx, bottom - l.y, l.key).setOrigin(0.5, 1).setDepth(i === 0 ? bottom : bottom - 1 + i * 0.001));
+      if (lot.vacantSince !== undefined) img.setTint(0xa4aaa3);
     });
-    if (lot.kind === 'house') return;
-    const b = w.businesses[lot.refId]!;
-    this.keep(this.scene.add.text(cx, bottom + 4, b.name, {
+    if (lot.kind === 'house' && lot.vacantSince === undefined) return;
+    const title = lot.vacantSince !== undefined ? (lot.kind === 'shop' ? 'Vacant shop' : 'Vacant home') : w.businesses[lot.refId]!.name;
+    this.keep(this.scene.add.text(cx, bottom + 4, title, {
       fontFamily: 'system-ui, sans-serif', fontSize: '11px', color: '#fff', backgroundColor: 'rgba(0,0,0,0.6)', padding: { x: 4, y: 2 },
     }).setOrigin(0.5, 0).setDepth(bottom + 1));
   }
@@ -376,7 +377,7 @@ export class TownView {
       return x + 7 > f.x * TILE && x - 7 < (f.x + f.w) * TILE && y > f.y * TILE && y - 4 < (f.y + f.h) * TILE;
     });
     if (inLandmark) return true;
-    return this.layout.lots.some((l) => {
+    return [...this.layout.lots, ...this.layout.vacantLots].some((l) => {
       const art = l.art;
       const half = Math.min(art.w, l.w * TILE) / 2;
       const cx = (l.x + l.w / 2) * TILE;

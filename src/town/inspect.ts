@@ -18,8 +18,13 @@ export function inspectAt(layout: TownLayout, w: World, tx: number, ty: number):
     const [title, ...lines] = landmarkDescription(w, lm);
     return { title: title!, lines, people: [], business: null };
   }
-  const lot = layout.lots.find((l) => tx >= l.x && tx < l.x + l.w && ty >= l.y && ty < l.y + l.h);
+  const lot = [...layout.lots, ...layout.vacantLots].find((l) => tx >= l.x && tx < l.x + l.w && ty >= l.y && ty < l.y + l.h);
   if (!lot) return null;
+  if (lot.vacantSince !== undefined) return {
+    title: lot.kind === 'shop' ? 'Vacant shop' : 'Vacant home',
+    lines: [`Building recorded in ${lot.builtYear}`, `Vacant since ${lot.vacantSince}`, `Previously: ${lot.label}`],
+    people: [], business: null,
+  };
   const [title, ...lines] = lotDescription(w, lot);
   if (lot.kind === 'shop') {
     const b = w.businesses[lot.refId]!;

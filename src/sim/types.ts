@@ -1,3 +1,5 @@
+import type { Settlement } from '../town/properties';
+
 export type Id = string;
 
 export interface Traits {
@@ -39,6 +41,8 @@ export interface World {
   people: Record<Id, Person>;
   businesses: Record<Id, Business>;
   mayor?: Id;
+  /** Physical town history, advanced with the simulation, independent of viewing order. */
+  settlement?: Settlement;
   /** Deliberate changes to how much two people like each other (see social.ts). Key = pairKey. */
   bonds: Record<string, number>;
 }

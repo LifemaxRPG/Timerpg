@@ -19,10 +19,11 @@ the past (kill the future mayor, invest in the bakery...), and come back to see 
   frontages (zoned: downtown shops, apartments/houses, small homes toward the edge, a villa hill) -> crop ->
   greenery (`greenery.ts`: sparse near buildings, thickening into forest, so the edge is organic) and street
   furniture. Grows until there is room for every shop and household.
+- `src/town/properties.ts` - persistent buildings and occupancy, advanced once per simulation year. Existing households stay put despite wealth changes; surviving family can remain, vacant homes and shops are reused before new construction, and built roads never disappear. Building art is chosen when first built, not reselected every year. Physical state lives in `World.settlement`, so interventions rebuild it deterministically and viewing years out of order cannot change history.
 - `src/town/layout.ts` - who/what occupies the plan in a given year. **The town grows**: streets are split at junctions and a
   block is only built once something on it is in use (plus the chain back to the main street); the rest stays woodland, so
   1950 is a compact core and the town spreads outward over the decades. Also: the town fills center-outward,
-  housing tier follows household wealth (small / medium / house / villa / estate; poorest singles and couples share apartment buildings, see `housing.ts`), shop fronts are stacked modular floors (`facade.ts`), empty plots become wooded lots, yards get props.
+  initial housing tier follows household wealth (small / medium / house / villa / estate; poorest singles and couples share apartment buildings, see `housing.ts`), shop fronts are stacked modular floors (`facade.ts`), never-built plots remain wooded; vacant buildings remain standing, yards get props.
 - `src/town/water.ts` - per-seed river (north-south, meandering, 3-6 wide) or lake, or none; plots near it are dropped, streets that meet it get bridge decks. The ground bake autotiles the shore; the player can't walk into water.
 - `src/world/` - the endless **world**: `map.ts` (one town per cell of a jittered grid, seed per cell, plan origins, the road that
   joins a town's main street to its eastern neighbour), `names.ts` (town names and founding years), `wild.ts` (chunked wilderness).
@@ -85,3 +86,9 @@ npm run demo [seed]   # kills the present-day mayor as a child and prints the co
 5. [x] Real LimeZu sprites: tiled terrain, villas (wealthy households) and small homes, shops by type, animated player. Next: trees/props, interiors, NPC sprites
 6. [ ] Capacitor wrapper for Android
 7. [ ] LLM narration and NPC dialogue from the chronicle
+
+## Persistent town history
+
+The first generation improvement preserves properties across years. Vacant buildings have subdued coloring, keep their collision footprint, and can be inspected for their recorded construction/vacancy dates and former occupants. New shop tenants change the storefront display while retaining the upper floors and roof. Time-travel interventions re-simulate occupancy alongside people and businesses. Existing seed/intervention saves need no new payload; regenerated towns use the updated placement rules.
+
+This is a foundation for slower visible change. Deliberate moves, renovation/demolition, construction stages, neighborhood palettes and individual tree aging are still future work. Buildings currently retain their original architecture indefinitely; wealth changes alone do not trigger a move.
