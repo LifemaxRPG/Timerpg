@@ -103,4 +103,10 @@ Walk to a pale gold entrance marker and press **E**, or tap the Enter button. In
 
 Whole exterior building bodies now block movement, with substeps preventing tunnelling through walls during a slow frame. Closely packed shops receive an accessible marked side entrance when their south-facing threshold is blocked. Time travel relocates a player trapped by newly appeared construction, and leaves an interior safely when that property did not exist in the destination year. The room camera frames the interior and outdoor streaming pauses while indoors.
 
-Interior structure is derived from the property and tier; current use determines its furnishing template. This is the first interior pass: additional floors, individualized units, inventory interactions and NPCs remain future work. `scripts/extract-interiors.mjs --interiors <zip>` reproduces the curated interior sprites and size catalogue, and the main asset extraction script invokes it automatically.
+Interior structure is derived from the property and tier; current use determines its furnishing template. Additional floors, individualized apartment units, inventory interactions and NPCs remain future work. `scripts/extract-interiors.mjs --interiors <interiors.zip> --exteriors <exteriors.zip>` reproduces the curated interior sprites and size catalogue, and the main asset extraction script invokes it automatically.
+
+## Interiors by building type
+
+All 12 business types and 7 civic building types now have explicit layouts and curated furnishings. Examples include bait-shop rods and tackle, bakery prep and displays, ice-cream freezers and seating, school classrooms/library, hospital wards/treatment/waiting, hotel guest rooms/reception, police holding cells, postal sorting/parcels and a fire-engine bay. Layouts keep clear routes from the entrance to their separate areas. Vacant shops lose stock while retaining their structural layout and permanent fittings.
+
+Floating exterior building-name boxes are removed. Building identities remain available through inspection and the nearby entrance prompt.

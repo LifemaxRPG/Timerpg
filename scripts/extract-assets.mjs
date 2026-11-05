@@ -268,4 +268,4 @@ fs.writeFileSync(path.join(OUT, 'manifest.json'), JSON.stringify(manifest, null,
 const total = Object.values(manifest).reduce((s, g) => s + g.length, 0);
 console.log(`Extracted ${total} sprites to ${path.relative(process.cwd(), OUT)}`);
 
-execFileSync(process.execPath, ['scripts/extract-interiors.mjs', '--interiors', args.interiors], { stdio: 'inherit' });
+execFileSync(process.execPath, ['scripts/extract-interiors.mjs', '--interiors', args.interiors, '--exteriors', args.exteriors], { stdio: 'inherit' });

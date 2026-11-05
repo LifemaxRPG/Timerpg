@@ -3361,6 +3361,132 @@
    "h": 48
   },
   {
+   "key": "interior_fishingRack",
+   "path": "assets/interior/fishingRack.png",
+   "w": 64,
+   "h": 96
+  },
+  {
+   "key": "interior_tackle",
+   "path": "assets/interior/tackle.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_iceDisplay",
+   "path": "assets/interior/iceDisplay.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "interior_bakeryRack",
+   "path": "assets/interior/bakeryRack.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_meatCase",
+   "path": "assets/interior/meatCase.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "interior_meat",
+   "path": "assets/interior/meat.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "interior_clothingRack",
+   "path": "assets/interior/clothingRack.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_gift",
+   "path": "assets/interior/gift.png",
+   "w": 32,
+   "h": 48
+  },
+  {
+   "key": "interior_toyCar",
+   "path": "assets/interior/toyCar.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "interior_dollhouse",
+   "path": "assets/interior/dollhouse.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_files",
+   "path": "assets/interior/files.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "interior_bars",
+   "path": "assets/interior/bars.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "interior_clock",
+   "path": "assets/interior/clock.png",
+   "w": 32,
+   "h": 80
+  },
+  {
+   "key": "interior_fireTruck",
+   "path": "assets/interior/fireTruck.png",
+   "w": 288,
+   "h": 160
+  },
+  {
+   "key": "interior_parcels",
+   "path": "assets/interior/parcels.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_letter",
+   "path": "assets/interior/letter.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "interior_mailBox",
+   "path": "assets/interior/mailBox.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "interior_schoolDesk",
+   "path": "assets/interior/schoolDesk.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "interior_teacherDesk",
+   "path": "assets/interior/teacherDesk.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_blackboard",
+   "path": "assets/interior/blackboard.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_bookcase",
+   "path": "assets/interior/bookcase.png",
+   "w": 64,
+   "h": 64
+  },
+  {
    "key": "interior_floorWood",
    "path": "assets/interior/floorWood.png",
    "w": 32,

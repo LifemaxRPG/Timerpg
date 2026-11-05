@@ -120,6 +120,111 @@ export const INTERIOR_ASSETS = {
     "w": 32,
     "h": 48
   },
+  "fishingRack": {
+    "key": "interior_fishingRack",
+    "w": 64,
+    "h": 96
+  },
+  "tackle": {
+    "key": "interior_tackle",
+    "w": 64,
+    "h": 64
+  },
+  "iceDisplay": {
+    "key": "interior_iceDisplay",
+    "w": 32,
+    "h": 64
+  },
+  "bakeryRack": {
+    "key": "interior_bakeryRack",
+    "w": 64,
+    "h": 64
+  },
+  "meatCase": {
+    "key": "interior_meatCase",
+    "w": 32,
+    "h": 64
+  },
+  "meat": {
+    "key": "interior_meat",
+    "w": 32,
+    "h": 32
+  },
+  "clothingRack": {
+    "key": "interior_clothingRack",
+    "w": 64,
+    "h": 64
+  },
+  "gift": {
+    "key": "interior_gift",
+    "w": 32,
+    "h": 48
+  },
+  "toyCar": {
+    "key": "interior_toyCar",
+    "w": 32,
+    "h": 32
+  },
+  "dollhouse": {
+    "key": "interior_dollhouse",
+    "w": 64,
+    "h": 64
+  },
+  "files": {
+    "key": "interior_files",
+    "w": 32,
+    "h": 32
+  },
+  "bars": {
+    "key": "interior_bars",
+    "w": 32,
+    "h": 64
+  },
+  "clock": {
+    "key": "interior_clock",
+    "w": 32,
+    "h": 80
+  },
+  "fireTruck": {
+    "key": "interior_fireTruck",
+    "w": 288,
+    "h": 160
+  },
+  "parcels": {
+    "key": "interior_parcels",
+    "w": 64,
+    "h": 64
+  },
+  "letter": {
+    "key": "interior_letter",
+    "w": 32,
+    "h": 32
+  },
+  "mailBox": {
+    "key": "interior_mailBox",
+    "w": 32,
+    "h": 64
+  },
+  "schoolDesk": {
+    "key": "interior_schoolDesk",
+    "w": 32,
+    "h": 64
+  },
+  "teacherDesk": {
+    "key": "interior_teacherDesk",
+    "w": 64,
+    "h": 64
+  },
+  "blackboard": {
+    "key": "interior_blackboard",
+    "w": 64,
+    "h": 64
+  },
+  "bookcase": {
+    "key": "interior_bookcase",
+    "w": 64,
+    "h": 64
+  },
   "floorWood": {
     "key": "interior_floorWood",
     "w": 32,

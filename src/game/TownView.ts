@@ -238,7 +238,7 @@ export class TownView {
     for (const o of this.drawn) o.destroy();
     this.drawn = [];
     this.drawRoads(this.layout.roads);
-    for (const lot of [...this.layout.lots, ...this.layout.vacantLots]) this.drawLot(w, lot);
+    for (const lot of [...this.layout.lots, ...this.layout.vacantLots]) this.drawLot(lot);
     for (const l of this.layout.landmarks) this.drawLandmark(l);
     for (const p of this.layout.props) this.drawProp(p, true);
     this.doors = this.makeEntrances();
@@ -319,12 +319,10 @@ export class TownView {
     const bottom = this.oy + (l.y + l.h) * TILE;
     const cx = this.ox + (l.x + l.w / 2) * TILE;
     this.keep(this.scene.add.image(cx, bottom, art.key).setOrigin(0.5, 1).setDepth(bottom));
-    this.keep(this.scene.add.text(cx, bottom + 4, l.name, {
-      fontFamily: 'system-ui, sans-serif', fontSize: '11px', color: '#fff', backgroundColor: 'rgba(0,0,0,0.6)', padding: { x: 4, y: 2 },
-    }).setOrigin(0.5, 0).setDepth(bottom + 1));
+
   }
 
-  private drawLot(w: World, lot: Lot): void {
+  private drawLot(lot: Lot): void {
     const cx = this.ox + (lot.x + lot.w / 2) * TILE;
     const bottom = this.oy + (lot.y + lot.h - lot.front) * TILE; // the building stands above the front yard
     // Houses and shop fronts are stacks of sprites (see src/town/housing.ts and facade.ts).
@@ -333,11 +331,7 @@ export class TownView {
       const img = this.keep(this.scene.add.image(cx + l.dx, bottom - l.y, l.key).setOrigin(0.5, 1).setDepth(i === 0 ? bottom : bottom - 1 + i * 0.001));
       if (lot.vacantSince !== undefined) img.setTint(0xa4aaa3);
     });
-    if (lot.kind === 'house' && lot.vacantSince === undefined) return;
-    const title = lot.vacantSince !== undefined ? (lot.kind === 'shop' ? 'Vacant shop' : 'Vacant home') : w.businesses[lot.refId]!.name;
-    this.keep(this.scene.add.text(cx, bottom + 4, title, {
-      fontFamily: 'system-ui, sans-serif', fontSize: '11px', color: '#fff', backgroundColor: 'rgba(0,0,0,0.6)', padding: { x: 4, y: 2 },
-    }).setOrigin(0.5, 0).setDepth(bottom + 1));
+
   }
 
   // ---------- interaction (world pixel coordinates in, local logic inside) ----------

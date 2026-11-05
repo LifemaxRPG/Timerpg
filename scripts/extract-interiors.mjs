@@ -21,6 +21,14 @@ const catalogue = {
   toilet: ['3_Bathroom', 'Bathroom', 21], bathroomSink: ['3_Bathroom', 'Bathroom', 2],
   weights: ['8_Gym', 'Gym', 83], treadmill: ['8_Gym', 'Gym', 95],
   mannequin: ['21_Clothing_Store', 'Clothing_Store', 1],
+  fishingRack: ['9_Fishing', 'Fishing', 68], tackle: ['9_Fishing', 'Fishing', 27],
+  iceDisplay: ['24_Ice_Cream_Shop', 'Ice_Cream_Shop', 27],
+  bakeryRack: ['16_Grocery_Store', 'Grocery_Store', 250], meatCase: ['16_Grocery_Store', 'Grocery_Store', 286],
+  meat: ['16_Grocery_Store', 'Grocery_Store', 303],
+  clothingRack: ['21_Clothing_Store', 'Clothing_Store', 278],
+  gift: ['10_Birthday_Party', 'Birthday_Party', 5], toyCar: ['4_Bedroom', 'Bedroom', 455],
+  dollhouse: ['4_Bedroom', 'Bedroom', 506], files: ['26_Condominium', 'Condominium', 75],
+  bars: ['18_Jail', 'Jail', 19], clock: ['2_Living_Room', 'Living_Room', 89],
 };
 const out = path.resolve('public/assets/interior'); fs.mkdirSync(out, { recursive: true });
 const entries = [];
@@ -35,6 +43,21 @@ for (const [key, [folder, file, number]] of Object.entries(catalogue)) {
   const src = folder === '19_Hospital' ? source.replace('Hospital_Singles_32x32/', 'Hospital_SIngles_32x32/') : source;
   const item = zip.getEntry(src); if (!item) throw new Error(`Missing interior source: ${src}`);
   write(key, item.getData());
+}
+const exteriorPath = process.argv[process.argv.indexOf('--exteriors') + 1];
+if (!exteriorPath || exteriorPath === process.argv[0]) throw new Error('Pass --exteriors <Modern_Exteriors.zip>');
+const exteriorZip = new AdmZip(exteriorPath);
+const exteriorBase = 'Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/';
+for (const [name, source] of Object.entries({
+  fireTruck: '18_Fire_Station_Singles_32x32/ME_Singles_Fire_Station_32x32_Fire_Truck_Left.png',
+  parcels: '22_Post_Office_Singles_32x32/22_Post_Office_32x32_Multiple_Packages_1.png',
+  letter: '22_Post_Office_Singles_32x32/22_Post_Office_32x32_Letter_1.png',
+  mailBox: '22_Post_Office_Singles_32x32/22_Post_Office_32x32_Big_Blue_Mailbox.png',
+})) write(name, exteriorZip.getEntry(exteriorBase + source).getData());
+const classroom = PNG.sync.read(zip.getEntry('1_Interiors/32x32/Theme_Sorter_32x32/5_Classroom_and_library_32x32.png').getData());
+for (const [name,x,y,w,h] of [['schoolDesk',64,96,32,64], ['teacherDesk',160,32,64,64],
+  ['blackboard',416,160,64,64], ['bookcase',128,224,64,64]]) {
+  const sprite = new PNG({width:w,height:h}); PNG.bitblt(classroom,sprite,x,y,w,h,0,0); write(name,PNG.sync.write(sprite));
 }
 const builder = PNG.sync.read(zip.getEntry('1_Interiors/32x32/Room_Builder_32x32.png').getData());
 for (const [name, x, y] of [['floorWood',1120,640], ['floorStone',1248,416], ['floorTile',1120,384]]) {

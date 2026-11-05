@@ -26,7 +26,7 @@ export class InteriorView {
     keep(scene.add.rectangle(ox+room.exit.x,oy+room.exit.y,48,12,0xe8cf8e).setDepth(-1400000000));
     keep(scene.add.text(ox+room.exit.x,oy+room.exit.y+14,'EXIT',{fontFamily:'system-ui',fontSize:'10px',color:'#e8cf8e'}).setOrigin(.5,0).setDepth(oy+room.height+201));
     for (const f of room.furniture) {
-      keep(scene.add.image(ox+f.x,oy+f.y,f.key).setOrigin(0).setDepth(oy+f.y+f.h));
+      keep(scene.add.image(ox+f.x,oy+f.y,f.key).setOrigin(0).setDepth(oy+f.y+f.h+(f.solid?0:96)));
     }
   }
   destroy():void { for(const o of this.objects)o.destroy();this.objects=[]; }
