@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" shape-rendering="crispEdges">
+<defs><pattern id="t" width="64" height="64" patternUnits="userSpaceOnUse">
+<rect width="64" height="64" fill="#479b2b"/>
+<path fill="#3c8b26" d="M0 8h12v4H0zm23 1h16v5H23zM46 3h18v7H46zM6 29h20v6H6zm29 28h20v7H29zM0 49h12v7H0zm43-23h21v5H43z"/>
+<path fill="#56aa30" d="M0 0h10v4H0zm13 17h17v5H13zm28 0h16v5H41zM2 38h16v5H2zm24-8h14v6H24zm20 12h18v5H46zM8 58h16v6H8z"/>
+<path fill="#65b936" d="M7 11h3v12H7zM3 16h3v7H3zm7-3h3v8h-3zm3 4h3v6h-3zM27 39h3v12h-3zm-5 5h3v8h-3zm8-7h3v12h-3zm4 5h3v8h-3zM49 51h3v13h-3zm-5 4h3v9h-3zm9-5h3v11h-3zm4 5h3v9h-3zM42 7h3v11h-3zm-4 4h3v7h-3zm8-6h3v12h-3zm4 5h3v8h-3z"/>
+<path fill="#77c844" d="M8 11h2v8H8zm20 28h2v8h-2zM50 51h2v9h-2zM43 7h2v8h-2zM17 54h2v6h-2zM58 28h2v7h-2zM2 27h2v7H2z"/>
+<path fill="#348326" d="M15 27h8v3h-8zM36 18h9v3h-9zM2 53h7v3H2zM50 36h9v3h-9zM21 3h8v3h-8z"/>
+</pattern></defs><rect width="128" height="128" fill="url(#t)"/></svg>
