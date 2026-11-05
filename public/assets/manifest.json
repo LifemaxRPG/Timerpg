@@ -1,6 +1,12 @@
 {
  "grass": [
   {
+   "key": "grass_base_seamless",
+   "path": "assets/grass/grass_base_seamless.svg",
+   "w": 128,
+   "h": 128
+  },
+  {
    "key": "grass_22",
    "path": "assets/grass/grass_22.png",
    "w": 32,
