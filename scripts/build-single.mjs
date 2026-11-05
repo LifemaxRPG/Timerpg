@@ -19,8 +19,13 @@ html = html.replace(/<link rel="modulepreload"[^>]*>/g, '').replace(m[0], '');
 // 2) embed the manifest and every sprite it lists
 const manifest = JSON.parse(fs.readFileSync(path.join(dist, 'assets', 'manifest.json'), 'utf8'));
 const files = {};
-for (const group of Object.values(manifest))
-  for (const it of group) files[it.path] = `data:image/png;base64,${fs.readFileSync(path.join(dist, it.path)).toString('base64')}`;
+for (const group of Object.values(manifest)) {
+  for (const it of group) {
+    const ext = path.extname(it.path).toLowerCase();
+    const mime = ext === '.svg' ? 'image/svg+xml' : ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg' : ext === '.webp' ? 'image/webp' : 'image/png';
+    files[it.path] = `data:${mime};base64,${fs.readFileSync(path.join(dist, it.path)).toString('base64')}`;
+  }
+}
 const embed = `<script>window.__EMBED__=${JSON.stringify({ manifest, files })};</script>`;
 
 // (a function, not a string: minified JS is full of `$&` / `$'` that String.replace would expand)
