@@ -125,6 +125,9 @@ export class WorldScene extends Phaser.Scene {
     this.gen = new Generator();
     this.scale.on('resize', () => { if (this.room) this.fitInterior(); });
     this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,ESC') as Record<string, Phaser.Input.Keyboard.Key>;
+    // Handle interaction on keydown so a quick press released between frames is not lost.
+    this.input.keyboard!.on('keydown-E', (event: KeyboardEvent) => { if (!event.repeat) this.interact(); });
+    this.input.keyboard!.on('keydown-ESC', (event: KeyboardEvent) => { if (!event.repeat) this.backInterior(); });
     // The ground between towns: an endless lawn (one tile, re-centered under the camera each frame).
     const grass = this.manifest.grass?.[0]?.key ?? 'grass_22';
     this.bg = this.add.tileSprite(0, 0, 6144, 6144, grass).setOrigin(0).setDepth(Z.BG);
@@ -590,8 +593,6 @@ export class WorldScene extends Phaser.Scene {
   update(_t: number, dt: number): void {
     for (const { view } of this.views.values()) view.tick();
     if (!this.ready) return;
-    if (Phaser.Input.Keyboard.JustDown(this.keys.ESC!)) this.backInterior();
-    else if (Phaser.Input.Keyboard.JustDown(this.keys.E!)) this.interact();
     this.updateDoorPrompt();
     const cam = this.cameras.main;
     if (!this.room) this.bg.setPosition(Math.floor((cam.worldView.centerX - 3072) / TILE) * TILE, Math.floor((cam.worldView.centerY - 3072) / TILE) * TILE);
