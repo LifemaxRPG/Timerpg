@@ -118,7 +118,7 @@ export class WorldScene extends Phaser.Scene {
     this.gen = new Generator();
     this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT') as Record<string, Phaser.Input.Keyboard.Key>;
     // The ground between towns: an endless lawn (one tile, re-centered under the camera each frame).
-    const grass = this.manifest.grass?.[0]?.key ?? 'grass_22';
+    const grass = this.textures.exists('grass_base_seamless') ? 'grass_base_seamless' : (this.manifest.grass?.[0]?.key ?? 'grass_22');
     this.bg = this.add.tileSprite(0, 0, 6144, 6144, grass).setOrigin(0).setDepth(Z.BG);
 
     // Character sheet: 56 columns of 32x64 frames; row 1 = idle, row 2 = walk; 6 frames per direction.
