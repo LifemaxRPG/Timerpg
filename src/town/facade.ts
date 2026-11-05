@@ -1,6 +1,6 @@
 import { rand } from '../sim/rng';
 import { BUSINESS_KINDS } from '../sim/names';
-import { colourOf, pickStable, stack, type BuildingArt } from './buildings';
+import { colourOf, pickStable, stack, type BuildingArt, type Colour } from './buildings';
 import { BILLBOARDS_FROM, CLASSIC_STOREFRONTS_UNTIL } from './era';
 
 // Shop fronts: a ground floor that shows the business's goods, optionally a middle floor with windows,
@@ -83,10 +83,11 @@ export function allFacadeArt(): { key: string; w: number; h: number }[] {
  * The sprite stack for a business's shop front. Deterministic in (kind, look, era): before 1975 shops
  * have painted sign boards, after that the pack's big modern signs; billboards only from the mid-70s.
  */
-export function shopFacade(businessKind: string, look: number, year = 2025): BuildingArt {
+export function shopFacade(businessKind: string, look: number, year = 2025, shellColour?: Colour): BuildingArt {
   const { fam, nums, plain } = artFor(businessKind);
   const f = FAMILIES[fam]!;
-  const ground = Number(pickStable(nums.map((i) => ({ id: String(i) })), look, `ground:${businessKind}`).id);
+  const compatible = nums.filter((n) => shellColour === undefined || colourOf(n, f.total) === shellColour);
+  const ground = Number(pickStable(compatible.map((i) => ({ id: String(i) })), look, `ground:${businessKind}`).id);
   const colour = colourOf(ground, f.total);
   const r = (salt: string): number => rand('facade', salt, look.toFixed(6));
   const painted = plain || year < CLASSIC_STOREFRONTS_UNTIL;
@@ -111,5 +112,5 @@ export function shopFacade(businessKind: string, look: number, year = 2025): Bui
     const pn = BILLBOARDS[Math.floor(r('which') * BILLBOARDS.length)]!;
     layers.push({ key: `roofprop_${pn}`, w: 160, h: 96, y: layers[layers.length - 1]!.y + 12, dx: 0 });
   }
-  return { layers, w: SHOP_W, h: s.h, footRows: 5, capacity: 1 };
+  return { layers, colour, w: SHOP_W, h: s.h, footRows: 5, capacity: 1 };
 }

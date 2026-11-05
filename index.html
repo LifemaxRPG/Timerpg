@@ -61,6 +61,8 @@
       #loading { top: auto; bottom: 150px; right: 10px; font-size: 11px; }
       #zoom { bottom: calc(50vh); }
     }
+    #door { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:6; max-width:calc(100vw - 44px); padding:12px 18px; border:1px solid #e8cf8e; border-radius:10px; color:#fff5d8; background:rgba(15,18,28,.94); font:600 14px system-ui; cursor:pointer; display:none; }
+    body.touch #door { left:auto; right:12px; transform:none; bottom:24px; max-width:calc(100vw - 184px); }
     #hint { bottom: 10px; right: 10px; color: #aab; }
   </style>
 </head>
@@ -77,8 +79,9 @@
   <div id="changes" class="panel"></div>
   <div id="banner"><div class="welcome">Welcome to</div><div class="name"></div><div class="sub"></div></div>
   <div id="loading" class="panel">Generating nearby towns…</div>
-  <div id="hint" class="panel">WASD / arrows to walk · click a building to act on it · slider = time machine</div>
+  <div id="hint" class="panel">WASD / arrows to walk · E at a door to enter · Esc to leave · slider = time machine</div>
   <div id="zoom"><button id="zin" aria-label="Zoom in">＋</button><button id="zout" aria-label="Zoom out">－</button></div>
+  <button id="door" aria-label="Enter or leave building"></button>
   <div id="stick"><div id="knob"></div></div>
   <script type="module" src="/src/main.ts"></script>
 </body>

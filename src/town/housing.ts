@@ -1,3 +1,4 @@
+import { paletteColours, type Palette } from './neighborhoods';
 import { rand } from '../sim/rng';
 import { layer, pickStable, stack, type BuildingArt, type Colour } from './buildings';
 import type { LotKind } from './plan';
@@ -71,8 +72,16 @@ const CATALOG: Record<ResidentialKind, Variant[]> = {
 export const variantsFor = (tier: ResidentialKind, year: number): Variant[] => CATALOG[tier].filter((v) => v.from === undefined || year >= v.from);
 
 /** The sprite stack for a house plot. Stable per (tier, look, era). */
-export function houseArt(tier: ResidentialKind, look: number, year: number): BuildingArt {
-  return pickStable(variantsFor(tier, year), look, tier).art(look);
+export function houseArt(tier: ResidentialKind, look: number, year: number, palette?: Palette): BuildingArt {
+  const variants = variantsFor(tier, year);
+  let available = variants;
+  if (palette && (tier === 'small' || tier === 'medium' || tier === 'house')) {
+    available = variants.filter((v) => paletteColours[palette].includes(Number(v.id.match(/_c(\d+)$/)?.[1] ?? 0)));
+  } else if (palette && tier === 'villa') {
+    const roofs = { cream: [1, 5], blue: [4], sage: [2], stone: [2, 3] }[palette];
+    available = variants.filter((v) => roofs.includes(Number(v.id.split('_').pop())));
+  }
+  return pickStable(available, look, tier).art(look);
 }
 
 /** Households an apartment plot holds in a given year. */

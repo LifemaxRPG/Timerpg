@@ -1,3 +1,4 @@
+import { neighborhoodOf, type NeighborhoodId } from './neighborhoods';
 import { rand } from '../sim/rng';
 import { ageIn, fullName, isAlive, type Id, type Person, type World } from '../sim/types';
 import type { LandmarkPlot } from './landmarks';
@@ -15,6 +16,7 @@ export interface Lot {
   x: number; y: number; w: number; h: number;
   /** Stable slot id, e.g. "small:20,34". */
   slot: string;
+  neighborhood: NeighborhoodId;
   kind: 'house' | 'shop';
   /** Size class: villa/medium/small houses (by household wealth) or shop. */
   tier: LotKind;
@@ -27,6 +29,10 @@ export interface Lot {
   front: number;
   /** Sprite stack to draw (houses by tier/era, shop fronts by business type). */
   art: BuildingArt;
+  /** First year this building is recorded by the simulation. */
+  builtYear?: number;
+  /** Vacant buildings remain standing and cannot offer actions on former occupants. */
+  vacantSince?: number;
   /** Household heads living here (several in an apartment building). */
   heads: Id[];
   residents: Id[];
@@ -38,6 +44,7 @@ export interface TownLayout {
   /** Streets that exist in this year; the rest are still woodland (see layoutTown). */
   roads: Road[];
   lots: Lot[];
+  vacantLots: Lot[];
   /** Civic landmarks that have opened by this year (world.year >= openYear). */
   landmarks: LandmarkPlot[];
   /** Year-dependent decoration (yards, trees on empty plots). Static props live in the plan. */
@@ -82,8 +89,8 @@ export function householdHead(w: World, p: Person): Id {
   return p.id;
 }
 
-export function layoutTown(w: World): TownLayout {
-  const plan = planTown(w.seed);
+/** Initial placement and preferences for new households; existing properties are retained separately. */
+export function draftLots(w: World, plan: TownPlan): Lot[] {
   const slotsOf = (kind: LotKind): Candidate[] => plan.candidates.filter((c) => c.kind === kind);
   const lots: Lot[] = [];
   const used = new Set<string>();
@@ -140,9 +147,9 @@ export function layoutTown(w: World): TownLayout {
     const look = rand(w.seed, 'look', tier === 'apartment' ? c.id : group[0]!);
     const first = w.people[group[0]!]!;
     lots.push({
-      x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, kind: 'house', tier, refId: group[0]!, heads: group,
+      x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, neighborhood: c.neighborhood, kind: 'house', tier, refId: group[0]!, heads: group,
       label: tier === 'apartment' ? `${first.surname} Court apartments` : `${first.surname} house`,
-      look, front: FRONT[tier], art: houseArt(tier, look, w.year), residents: group.flatMap((h) => households.get(h)!).sort(),
+      look, front: FRONT[tier], art: houseArt(tier, look, w.year, neighborhoodOf(plan, c.neighborhood).palette), residents: group.flatMap((h) => households.get(h)!).sort(),
     });
   };
   /** Fill apartment buildings center-outward, each taking as many households as its sprite holds. */
@@ -186,10 +193,20 @@ export function layoutTown(w: World): TownLayout {
     used.add(c.id);
     const look = rand(w.seed, 'look', b.id);
     lots.push({
-      x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, kind: 'shop', tier: 'shop', refId: b.id,
-      label: b.name, look, front: 0, art: shopFacade(b.kind, look, w.year), heads: [], residents: b.owner ? [b.owner] : [],
+      x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, neighborhood: c.neighborhood, kind: 'shop', tier: 'shop', refId: b.id,
+      label: b.name, look, front: 0, art: shopFacade(b.kind, look, w.year, neighborhoodOf(plan, c.neighborhood).shopColour), heads: [], residents: b.owner ? [b.owner] : [],
     });
   }
+
+  return lots;
+}
+
+export function layoutTown(w: World): TownLayout {
+  const plan = planTown(w.seed);
+  const properties = w.settlement?.properties ?? draftLots(w, plan);
+  const lots = properties.filter((l) => l.vacantSince === undefined);
+  const vacantLots = properties.filter((l) => l.vacantSince !== undefined);
+  const used = new Set(properties.map((l) => l.slot));
 
   // ---------- year-dependent decoration ----------
   const props: Prop[] = [];
@@ -208,7 +225,7 @@ export function layoutTown(w: World): TownLayout {
       });
     }
   };
-  const lotBySlot = new Map(lots.map((l) => [l.slot, l]));
+  const lotBySlot = new Map(properties.map((l) => [l.slot, l]));
   for (const c of plan.candidates) {
     if (!used.has(c.id)) {
       // Empty plot: a wooded lot, thicker toward the outskirts.
@@ -219,14 +236,18 @@ export function layoutTown(w: World): TownLayout {
     // yard (the building fills the plot), so nothing is scattered across them.
     const lot = lotBySlot.get(c.id);
     if (!lot || lot.front === 0) continue;
-    const n = 1 + Math.floor(rand(w.seed, 'yard', c.id) * 3);
+    const style = neighborhoodOf(plan, lot.neighborhood).yard;
+    const n = (style === 'flower' ? 3 : style === 'formal' ? 2 : 1) + Math.floor(rand(w.seed, 'yard', c.id) * 2);
     for (let i = 0; i < n; i++) {
       const r1 = rand(w.seed, 'sc-x', 'yard', c.id, i);
       const r2 = rand(w.seed, 'sc-y', 'yard', c.id, i);
       const r3 = rand(w.seed, 'sc-k', 'yard', c.id, i);
       const side = r1 < 0.5 ? 0.12 + r1 * 0.3 : 0.7 + (r1 - 0.5) * 0.36; // left or right of the path
+      const kind = style === 'flower' ? (r3 < 0.2 ? 'bush' : r3 < 0.7 ? 'flowerBush' : 'flowers')
+        : style === 'formal' ? (r3 < 0.6 ? 'bush' : 'flowerBush')
+        : r3 < 0.25 ? 'tree' : r3 < 0.8 ? 'bush' : 'flowers';
       props.push({
-        kind: r3 < 0.2 ? 'tree' : r3 < 0.6 ? 'bush' : r3 < 0.85 ? 'flowerBush' : 'flowers',
+        kind,
         x: Math.round((c.x + side * c.w) * TILE),
         y: Math.round((c.y + c.h - lot.front + 0.5 + r2 * (lot.front - 0.9)) * TILE),
         look: rand(w.seed, 'sc-l', 'yard', c.id, i),
@@ -234,10 +255,11 @@ export function layoutTown(w: World): TownLayout {
     }
   }
 
-  // Yards: every occupied house gets a picket fence along the front (with a gate gap), hedges down
+  // Yards: every standing house keeps a picket fence along the front (with a gate gap), hedges down
   // both sides and along the back, and a dirt path from the door to the gate.
-  for (const lot of lots) {
+  for (const lot of properties) {
     if (lot.kind !== 'house' || lot.front === 0) continue;
+    const style = neighborhoodOf(plan, lot.neighborhood).yard;
     const bottom = lot.y + lot.h; // plot bottom edge, in tiles
     const cx = lot.x + lot.w / 2;
     const mid = Math.floor(cx);
@@ -245,10 +267,12 @@ export function layoutTown(w: World): TownLayout {
       for (const dx of [-1, 0]) props.push({ kind: 'path', x: Math.round((mid + dx + 0.5) * TILE), y: (bottom - lot.front + row + 1) * TILE, look: 0 });
     for (let tx = lot.x; tx < lot.x + lot.w; tx++) {
       if (Math.abs(tx + 0.5 - cx) < 1.6) continue; // the gate
-      props.push({ kind: 'fence', x: Math.round((tx + 0.5) * TILE), y: bottom * TILE, look: tx % 2 });
+      if (style === 'natural') continue;
+      props.push({ kind: style === 'formal' ? 'hedge' : 'fence', x: Math.round((tx + 0.5) * TILE), y: bottom * TILE, look: tx % 2 });
     }
     const hedge = (tx: number, ty: number, tag: string): void => {
-      if (rand(w.seed, 'hedge', lot.slot, tag, tx, ty) < 0.18) return; // a gap or two keeps it natural
+      const gap = style === 'formal' ? 0.04 : style === 'flower' ? 0.18 : style === 'natural' ? 0.65 : 0.3;
+      if (rand(w.seed, 'hedge', lot.slot, tag, tx, ty) < gap) return; // a gap or two keeps it natural
       props.push({ kind: 'hedge', x: Math.round((tx + 0.5) * TILE), y: Math.round((ty + 1) * TILE), look: rand(w.seed, 'hedge-l', lot.slot, tx, ty) });
     };
     for (let ty = lot.y + 1; ty < bottom - 1; ty++) { hedge(lot.x, ty, 'l'); hedge(lot.x + lot.w - 1, ty, 'r'); }
@@ -274,26 +298,9 @@ export function layoutTown(w: World): TownLayout {
   // ---------- which streets exist yet ----------
   // The town grows outward: a street is built once something on it is in use (a home, a shop, or an
   // open landmark), plus whatever streets link it back to the main street. The rest are woodland.
-  const near = (b: { x: number; y: number; w: number; h: number }, r: Road): boolean =>
-    b.x < r.x + r.w + 3 && r.x < b.x + b.w + 3 && b.y < r.y + r.h + 3 && r.y < b.y + b.h + 3;
-  const touching = (a: Road, b: Road): boolean => a.x <= b.x + b.w + 1 && b.x <= a.x + a.w + 1 && a.y <= b.y + b.h + 1 && b.y <= a.y + a.h + 1;
   const roads = plan.roads;
-  const wanted = new Set<number>();
-  roads.forEach((r, i) => {
-    if (r.main || lots.some((l) => near(l, r)) || landmarks.some((l) => near(l, r))) wanted.add(i);
-  });
-  // Shortest chain back to the main street for every wanted street (breadth-first from the main street).
-  const parent = new Map<number, number>();
-  const queue = roads.map((r, i) => (r.main ? i : -1)).filter((i) => i >= 0);
-  queue.forEach((i) => parent.set(i, -1));
-  for (let q = 0; q < queue.length; q++) {
-    const i = queue[q]!;
-    roads.forEach((r, j) => {
-      if (!parent.has(j) && touching(roads[i]!, r)) { parent.set(j, i); queue.push(j); }
-    });
-  }
-  for (const i of [...wanted]) for (let j = parent.get(i) ?? -1; j >= 0; j = parent.get(j) ?? -1) wanted.add(j);
-  const builtRoads = roads.filter((_, i) => wanted.has(i));
+  const builtRoads = developedRoads(plan, properties, w.year, w.settlement?.roads);
+  const wanted = new Set(builtRoads.map((r) => roads.indexOf(r)));
   // Streets not built yet: woodland grows right across them.
   roads.forEach((r, i) => {
     if (wanted.has(i)) return;
@@ -313,7 +320,32 @@ export function layoutTown(w: World): TownLayout {
     }
   });
 
-  return { width: plan.width, height: plan.height, roads: builtRoads, lots, landmarks, props, plan };
+  return { width: plan.width, height: plan.height, roads: builtRoads, lots, vacantLots, landmarks, props, plan };
+}
+
+/** Infrastructure survives vacancy and population decline. */
+export function developedRoads(plan: TownPlan, lots: Lot[], year: number, previous: number[] = []): Road[] {
+  const near = (b: { x: number; y: number; w: number; h: number }, r: Road): boolean =>
+    b.x < r.x + r.w + 3 && r.x < b.x + b.w + 3 && b.y < r.y + r.h + 3 && r.y < b.y + b.h + 3;
+  const touching = (a: Road, b: Road): boolean => a.x <= b.x + b.w + 1 && b.x <= a.x + a.w + 1 && a.y <= b.y + b.h + 1 && b.y <= a.y + a.h + 1;
+  const roads = plan.roads;
+  const wanted = new Set<number>(previous);
+  const landmarks = plan.landmarks.filter((l) => year >= l.openYear);
+  roads.forEach((r, i) => {
+    if (r.main || lots.some((l) => near(l, r)) || landmarks.some((l) => near(l, r))) wanted.add(i);
+  });
+  // Shortest chain back to the main street for every wanted street (breadth-first from the main street).
+  const parent = new Map<number, number>();
+  const queue = roads.map((r, i) => (r.main ? i : -1)).filter((i) => i >= 0);
+  queue.forEach((i) => parent.set(i, -1));
+  for (let q = 0; q < queue.length; q++) {
+    const i = queue[q]!;
+    roads.forEach((r, j) => {
+      if (!parent.has(j) && touching(roads[i]!, r)) { parent.set(j, i); queue.push(j); }
+    });
+  }
+  for (const i of [...wanted]) for (let j = parent.get(i) ?? -1; j >= 0; j = parent.get(j) ?? -1) wanted.add(j);
+  return roads.filter((_, i) => wanted.has(i));
 }
 
 export const lotDescription = (w: World, lot: Lot): string[] => {

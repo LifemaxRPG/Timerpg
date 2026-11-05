@@ -1,3 +1,4 @@
+import { advanceSettlement } from '../town/properties';
 import { BUSINESS_KINDS } from './names';
 import { pick, rand, rngFor } from './rng';
 import {
@@ -293,6 +294,7 @@ export function runTimeline(opts: RunOptions): Timeline {
   const ivs = [...(opts.interventions ?? [])].sort((a, b) => a.year - b.year);
 
   holdElection({ w: world, y: startYear, log: chronicle });
+  advanceSettlement(world);
   const snapshots: World[] = [structuredClone(world)];
 
   for (let y = startYear + 1; y <= opts.endYear; y++) {
@@ -301,6 +303,7 @@ export function runTimeline(opts: RunOptions): Timeline {
     // Interventions dated before the sim starts are applied in the first simulated year.
     const todays = ivs.filter((iv) => iv.year === y || (y === startYear + 1 && iv.year <= startYear));
     step(c, todays);
+    advanceSettlement(world);
     snapshots.push(structuredClone(world));
   }
   return { seed: opts.seed, startYear, endYear: opts.endYear, snapshots, chronicle };

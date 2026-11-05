@@ -3214,5 +3214,295 @@
    "w": 224,
    "h": 96
   }
+ ],
+ "interior": [
+  {
+   "key": "interior_table",
+   "path": "assets/interior/table.png",
+   "w": 64,
+   "h": 48
+  },
+  {
+   "key": "interior_plant",
+   "path": "assets/interior/plant.png",
+   "w": 64,
+   "h": 80
+  },
+  {
+   "key": "interior_sofa",
+   "path": "assets/interior/sofa.png",
+   "w": 64,
+   "h": 48
+  },
+  {
+   "key": "interior_wardrobe",
+   "path": "assets/interior/wardrobe.png",
+   "w": 64,
+   "h": 96
+  },
+  {
+   "key": "interior_cabinet",
+   "path": "assets/interior/cabinet.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_chair",
+   "path": "assets/interior/chair.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "interior_bed",
+   "path": "assets/interior/bed.png",
+   "w": 80,
+   "h": 80
+  },
+  {
+   "key": "interior_bedGreen",
+   "path": "assets/interior/bedGreen.png",
+   "w": 80,
+   "h": 80
+  },
+  {
+   "key": "interior_counter",
+   "path": "assets/interior/counter.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_sink",
+   "path": "assets/interior/sink.png",
+   "w": 64,
+   "h": 32
+  },
+  {
+   "key": "interior_stove",
+   "path": "assets/interior/stove.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "interior_fridge",
+   "path": "assets/interior/fridge.png",
+   "w": 32,
+   "h": 96
+  },
+  {
+   "key": "interior_bread",
+   "path": "assets/interior/bread.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "interior_shelf",
+   "path": "assets/interior/shelf.png",
+   "w": 64,
+   "h": 96
+  },
+  {
+   "key": "interior_desk",
+   "path": "assets/interior/desk.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_hospitalBed",
+   "path": "assets/interior/hospitalBed.png",
+   "w": 64,
+   "h": 96
+  },
+  {
+   "key": "interior_medical",
+   "path": "assets/interior/medical.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_guitar",
+   "path": "assets/interior/guitar.png",
+   "w": 32,
+   "h": 80
+  },
+  {
+   "key": "interior_piano",
+   "path": "assets/interior/piano.png",
+   "w": 64,
+   "h": 80
+  },
+  {
+   "key": "interior_toilet",
+   "path": "assets/interior/toilet.png",
+   "w": 32,
+   "h": 96
+  },
+  {
+   "key": "interior_bathroomSink",
+   "path": "assets/interior/bathroomSink.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_weights",
+   "path": "assets/interior/weights.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "interior_treadmill",
+   "path": "assets/interior/treadmill.png",
+   "w": 64,
+   "h": 80
+  },
+  {
+   "key": "interior_mannequin",
+   "path": "assets/interior/mannequin.png",
+   "w": 32,
+   "h": 48
+  },
+  {
+   "key": "interior_fishingRack",
+   "path": "assets/interior/fishingRack.png",
+   "w": 64,
+   "h": 96
+  },
+  {
+   "key": "interior_tackle",
+   "path": "assets/interior/tackle.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_iceDisplay",
+   "path": "assets/interior/iceDisplay.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "interior_bakeryRack",
+   "path": "assets/interior/bakeryRack.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_meatCase",
+   "path": "assets/interior/meatCase.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "interior_meat",
+   "path": "assets/interior/meat.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "interior_clothingRack",
+   "path": "assets/interior/clothingRack.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_gift",
+   "path": "assets/interior/gift.png",
+   "w": 32,
+   "h": 48
+  },
+  {
+   "key": "interior_toyCar",
+   "path": "assets/interior/toyCar.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "interior_dollhouse",
+   "path": "assets/interior/dollhouse.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_files",
+   "path": "assets/interior/files.png",
+   "w": 64,
+   "h": 48
+  },
+  {
+   "key": "interior_bars",
+   "path": "assets/interior/bars.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "interior_clock",
+   "path": "assets/interior/clock.png",
+   "w": 32,
+   "h": 80
+  },
+  {
+   "key": "interior_fireTruck",
+   "path": "assets/interior/fireTruck.png",
+   "w": 288,
+   "h": 160
+  },
+  {
+   "key": "interior_parcels",
+   "path": "assets/interior/parcels.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_letter",
+   "path": "assets/interior/letter.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "interior_mailBox",
+   "path": "assets/interior/mailBox.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "interior_schoolDesk",
+   "path": "assets/interior/schoolDesk.png",
+   "w": 32,
+   "h": 64
+  },
+  {
+   "key": "interior_teacherDesk",
+   "path": "assets/interior/teacherDesk.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_blackboard",
+   "path": "assets/interior/blackboard.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_bookcase",
+   "path": "assets/interior/bookcase.png",
+   "w": 64,
+   "h": 64
+  },
+  {
+   "key": "interior_floorWood",
+   "path": "assets/interior/floorWood.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "interior_floorStone",
+   "path": "assets/interior/floorStone.png",
+   "w": 32,
+   "h": 32
+  },
+  {
+   "key": "interior_floorTile",
+   "path": "assets/interior/floorTile.png",
+   "w": 32,
+   "h": 32
+  }
  ]
 }

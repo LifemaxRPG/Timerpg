@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 // Usage: node scripts/extract-assets.mjs --exteriors <Modern_Exteriors.zip> --interiors <Modern_Interiors.zip>
 //
 // Copies ONLY the sprites this game uses out of your purchased LimeZu packs into
@@ -266,3 +267,5 @@ for (const [kind, fam, nums, text, board, letters, border, opts] of CLASSIC) {
 fs.writeFileSync(path.join(OUT, 'manifest.json'), JSON.stringify(manifest, null, 1));
 const total = Object.values(manifest).reduce((s, g) => s + g.length, 0);
 console.log(`Extracted ${total} sprites to ${path.relative(process.cwd(), OUT)}`);
+
+execFileSync(process.execPath, ['scripts/extract-interiors.mjs', '--interiors', args.interiors, '--exteriors', args.exteriors], { stdio: 'inherit' });

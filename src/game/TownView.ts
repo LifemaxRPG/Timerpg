@@ -1,7 +1,8 @@
+import type { Entrance } from '../town/interiors';
 import Phaser from 'phaser';
 import { describeDiff, diffWorlds, isEmptyDiff, type World } from '../sim';
 import { adultsOf, inspectAt, type Inspection } from '../town/inspect';
-import { landmarkFootprint } from '../town/landmarks';
+import { accessibleDoor, buildingBody, buildingDoor, civicBody, civicDoor, feetHit, } from '../town/collision';
 import { lampIndexes, pickIndex, treeIndexes } from '../town/era';
 import type { Rect } from '../town/kinds';
 import { layoutTown, type LandmarkPlot, type Lot, type Prop, type Road, type TownLayout } from '../town/layout';
@@ -45,6 +46,7 @@ export class TownView {
   private fixed: GO[] = [];
   private queue: (() => void)[] = [];
   private destroyed = false;
+  private doors: Entrance[] = [];
 
   constructor(
     private scene: Phaser.Scene,
@@ -236,9 +238,14 @@ export class TownView {
     for (const o of this.drawn) o.destroy();
     this.drawn = [];
     this.drawRoads(this.layout.roads);
-    for (const lot of this.layout.lots) this.drawLot(w, lot);
+    for (const lot of [...this.layout.lots, ...this.layout.vacantLots]) this.drawLot(lot);
     for (const l of this.layout.landmarks) this.drawLandmark(l);
     for (const p of this.layout.props) this.drawProp(p, true);
+    this.doors = this.makeEntrances();
+    for (const e of this.entrances()) {
+      const x = this.ox + e.door.x, y = this.oy + e.door.y;
+      this.keep(this.scene.add.rectangle(x, y, 22, 8, 0xe8cf8e, 0.65).setDepth(Z.DECAL + 1));
+    }
   }
 
   // ---------- drawing ----------
@@ -312,24 +319,19 @@ export class TownView {
     const bottom = this.oy + (l.y + l.h) * TILE;
     const cx = this.ox + (l.x + l.w / 2) * TILE;
     this.keep(this.scene.add.image(cx, bottom, art.key).setOrigin(0.5, 1).setDepth(bottom));
-    this.keep(this.scene.add.text(cx, bottom + 4, l.name, {
-      fontFamily: 'system-ui, sans-serif', fontSize: '11px', color: '#fff', backgroundColor: 'rgba(0,0,0,0.6)', padding: { x: 4, y: 2 },
-    }).setOrigin(0.5, 0).setDepth(bottom + 1));
+
   }
 
-  private drawLot(w: World, lot: Lot): void {
+  private drawLot(lot: Lot): void {
     const cx = this.ox + (lot.x + lot.w / 2) * TILE;
     const bottom = this.oy + (lot.y + lot.h - lot.front) * TILE; // the building stands above the front yard
     // Houses and shop fronts are stacks of sprites (see src/town/housing.ts and facade.ts).
     lot.art.layers.forEach((l, i) => {
       if (!this.scene.textures.exists(l.key)) return;
-      this.keep(this.scene.add.image(cx + l.dx, bottom - l.y, l.key).setOrigin(0.5, 1).setDepth(i === 0 ? bottom : bottom - 1 + i * 0.001));
+      const img = this.keep(this.scene.add.image(cx + l.dx, bottom - l.y, l.key).setOrigin(0.5, 1).setDepth(i === 0 ? bottom : bottom - 1 + i * 0.001));
+      if (lot.vacantSince !== undefined) img.setTint(0xa4aaa3);
     });
-    if (lot.kind === 'house') return;
-    const b = w.businesses[lot.refId]!;
-    this.keep(this.scene.add.text(cx, bottom + 4, b.name, {
-      fontFamily: 'system-ui, sans-serif', fontSize: '11px', color: '#fff', backgroundColor: 'rgba(0,0,0,0.6)', padding: { x: 4, y: 2 },
-    }).setOrigin(0.5, 0).setDepth(bottom + 1));
+
   }
 
   // ---------- interaction (world pixel coordinates in, local logic inside) ----------
@@ -358,7 +360,7 @@ export class TownView {
     return lot ? inspectAt(this.layout, w, lot.x + 1, lot.y + 1) : null;
   }
 
-  /** Feet box vs water and building footprints (the lower rows of each building, as wide as its sprite). */
+  /** Feet box vs water and full building bodies, including vacant properties. */
   blocked(wx: number, wy: number): boolean {
     const x = wx - this.ox, y = wy - this.oy;
     const w = this.plan.water;
@@ -371,18 +373,27 @@ export class TownView {
       }
     }
     if (!this.layout) return false;
-    const inLandmark = this.layout.landmarks.some((l) => {
-      const f = landmarkFootprint(l);
-      return x + 7 > f.x * TILE && x - 7 < (f.x + f.w) * TILE && y > f.y * TILE && y - 4 < (f.y + f.h) * TILE;
-    });
-    if (inLandmark) return true;
-    return this.layout.lots.some((l) => {
-      const art = l.art;
-      const half = Math.min(art.w, l.w * TILE) / 2;
-      const cx = (l.x + l.w / 2) * TILE;
-      const bottom = (l.y + l.h - l.front) * TILE; // the building, not its front yard
-      const footTop = bottom - Math.min(l.h - l.front, art.footRows) * TILE;
-      return x + 7 > cx - half && x - 7 < cx + half && y > footTop && y - 4 < bottom;
+    return this.layout.landmarks.some((l) => feetHit(x, y, civicBody(l)))
+      || [...this.layout.lots, ...this.layout.vacantLots].some((l) => feetHit(x, y, buildingBody(l)));
+  }
+
+  /** Every standing property has an explicit, persistent entrance. */
+  entrances(): Entrance[] { return this.doors; }
+
+  private makeEntrances(): Entrance[] {
+    if (!this.layout) return [];
+    const entries: Entrance[] = [
+      ...[...this.layout.lots, ...this.layout.vacantLots].map((lot) => ({
+        id: lot.slot, title: lot.label, door: buildingDoor(lot), lot,
+      })),
+      ...this.layout.landmarks.map((landmark) => ({
+        id: `civic:${landmark.id}`, title: landmark.name, door: civicDoor(landmark), landmark,
+      })),
+    ];
+    return entries.flatMap((e) => {
+      const body=e.lot?buildingBody(e.lot):civicBody(e.landmark!);
+      const door=accessibleDoor(body,e.door,(x,y)=>this.blocked(this.ox+x,this.oy+y));
+      return door?[{...e,door}]:[];
     });
   }
 
