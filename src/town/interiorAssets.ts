@@ -172,8 +172,8 @@ export const INTERIOR_ASSETS = {
   },
   "files": {
     "key": "interior_files",
-    "w": 32,
-    "h": 32
+    "w": 64,
+    "h": 48
   },
   "bars": {
     "key": "interior_bars",

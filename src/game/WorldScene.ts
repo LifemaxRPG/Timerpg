@@ -1,5 +1,5 @@
 import { moveSafely, nearestFree } from '../town/collision';
-import { interiorBlocked, planInterior, type Entrance } from '../town/interiors';
+import { interiorBlocked, planInterior, type Entrance, type InteriorConnection } from '../town/interiors';
 import { InteriorView } from './InteriorView';
 import Phaser from 'phaser';
 import { fullName, type Intervention, type World } from '../sim';
@@ -145,7 +145,7 @@ export class WorldScene extends Phaser.Scene {
     this.input.addPointer(1); // a second finger, for pinch-to-zoom
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => { if (!this.input.pointer2.isDown) this.click(p); });
     this.input.on('wheel', (_p: unknown, _o: unknown, _dx: number, dy: number) => {
-      cam.setZoom(Phaser.Math.Clamp(cam.zoom * (dy > 0 ? 0.9 : 1.1), 0.35, 2));
+      this.zoomBy(dy > 0 ? 0.9 : 1.1);
     });
 
     // Start in the home town (cell 0,0): wait for it, then put the player on its main street.
@@ -317,7 +317,8 @@ export class WorldScene extends Phaser.Scene {
     const wp = this.cameras.main.getWorldPoint(p.x, p.y);
     if (this.room) {
       const r = this.room.view;
-      if (Math.hypot(wp.x-r.ox-r.room.exit.x,wp.y-r.oy-r.room.exit.y)<40) this.interact();
+      const at = r.room.connections.find(c=>Math.hypot(wp.x-r.ox-c.at.x,wp.y-r.oy-c.at.y)<40);
+      if ((at && this.nearestInteriorConnection()?.id===at.id) || (r.room.outsideExit && Math.hypot(wp.x-r.ox-r.room.exit.x,wp.y-r.oy-r.room.exit.y)<40)) this.interact();
       return;
     }
     const door = this.nearestEntrance();
@@ -441,7 +442,9 @@ export class WorldScene extends Phaser.Scene {
     if (!this.ready) return;
     if (this.room) {
       const v=this.room.view;
-      if (Math.hypot(this.player.x-v.ox-v.room.exit.x,this.player.y-v.oy-v.room.exit.y)<72) this.leaveInterior();
+      const connection=this.nearestInteriorConnection();
+      if(connection)this.travelInterior(connection);
+      else if(v.room.outsideExit && Math.hypot(this.player.x-v.ox-v.room.exit.x,this.player.y-v.oy-v.room.exit.y)<72)this.leaveInterior();
       return;
     }
     const nearby=this.nearestEntrance(); if(!nearby)return;
@@ -462,6 +465,7 @@ export class WorldScene extends Phaser.Scene {
     old.view.destroy();this.room=null;
     this.player.setPosition(old.outside.x,old.outside.y);
     this.player.setDepth(this.player.y);
+    this.cameras.main.removeBounds();
     this.cameras.main.setZoom(old.zoom);
     this.cameras.main.startFollow(this.player,true,.12,.12);
     this.cameras.main.centerOn(this.player.x,this.player.y);
@@ -475,7 +479,7 @@ export class WorldScene extends Phaser.Scene {
     const w=loaded?.view.world();
     if(!entrance||!w){this.leaveInterior();return;}
     const position={x:this.player.x-old.view.ox,y:this.player.y-old.view.oy};
-    const plan=planInterior(w,entrance);old.view.destroy();old.view=new InteriorView(this,plan);
+    const plan=planInterior(w,entrance,old.view.room.zoneId);old.view.destroy();old.view=new InteriorView(this,plan);
     const safe=nearestFree(position,(x,y)=>interiorBlocked(plan,x,y))??plan.spawn;
     this.player.setPosition(old.view.ox+safe.x,old.view.oy+safe.y);
     this.fitInterior();
@@ -484,7 +488,7 @@ export class WorldScene extends Phaser.Scene {
   private fitInterior(): void {
     if(!this.room)return;
     const v=this.room.view,plan=v.room,cam=this.cameras.main;
-    cam.stopFollow();
+    cam.stopFollow();cam.removeBounds();
     cam.setZoom(Math.min(1.25,Math.max(.35,Math.min(this.scale.width/(plan.width+48),this.scale.height/(plan.height+80)))));
     cam.centerOn(v.ox+plan.width/2,v.oy+plan.height/2);
   }
@@ -495,9 +499,42 @@ export class WorldScene extends Phaser.Scene {
     if(free)this.player.setPosition(free.x,free.y);
   }
 
+  private nearestInteriorConnection(): InteriorConnection | null {
+    if(!this.room)return null;
+    const v=this.room.view;
+    return [...v.room.connections].sort((a,b)=>Math.hypot(this.player.x-v.ox-a.at.x,this.player.y-v.oy-a.at.y)-Math.hypot(this.player.x-v.ox-b.at.x,this.player.y-v.oy-b.at.y))
+      .find(c=>Math.hypot(this.player.x-v.ox-c.at.x,this.player.y-v.oy-c.at.y)<64)??null;
+  }
+
+  private travelInterior(connection: InteriorConnection): void {
+    const state=this.room;if(!state)return;
+    const loaded=this.views.get(state.townId),w=loaded?.view.world();
+    const entrance=loaded?.view.entrances().find(e=>e.id===state.entranceId);
+    if(!w||!entrance){this.leaveInterior();return;}
+    const plan=planInterior(w,entrance,connection.target);
+    const arrival=plan.connections.find(c=>c.id===connection.arrival);
+    if(!arrival)throw new Error(`Missing arrival ${connection.arrival} in ${connection.target}`);
+    state.view.destroy();state.view=new InteriorView(this,plan);
+    this.player.setPosition(state.view.ox+arrival.at.x,state.view.oy+arrival.at.y);
+    this.player.setDepth(this.player.y);this.fitInterior();this.updateDoorPrompt();
+  }
+
+  /** Escape goes back one level; upper floors never teleport directly into the street. */
+  private backInterior(): void {
+    if(!this.room)return;
+    const plan=this.room.view.room;
+    if(plan.outsideExit){this.leaveInterior();return;}
+    const back=plan.connections.find(c=>c.id==='room-exit'||c.id==='stairs-down');
+    if(back)this.travelInterior(back);
+  }
+
   private updateDoorPrompt(): void {
-    const label=this.room ? `${this.room.view.room.title} · Leave [Esc]`
-      : (()=>{const n=this.nearestEntrance();return n?`Enter ${n.entrance.title} [E]`:'';})();
+    let label='';
+    if(this.room){
+      const v=this.room.view,c=this.nearestInteriorConnection();
+      if(c)label=`${c.label} [E]`;
+      else if(v.room.outsideExit&&Math.hypot(this.player.x-v.ox-v.room.exit.x,this.player.y-v.oy-v.room.exit.y)<72)label='Leave building [E]';
+    }else{const n=this.nearestEntrance();if(n)label=`Enter ${n.entrance.title} [E]`;}
     if(label!==this.doorLabel){this.doorLabel=label;this.onDoor(label,!!this.room);}
   }
 
@@ -535,6 +572,12 @@ export class WorldScene extends Phaser.Scene {
   zoomBy(factor: number): void {
     const cam = this.cameras.main;
     cam.setZoom(Phaser.Math.Clamp(cam.zoom * factor, 0.35, 2));
+    if(this.room){
+      const v=this.room.view,p=v.room;
+      const fit=Math.min(1.25,Math.max(.35,Math.min(this.scale.width/(p.width+48),this.scale.height/(p.height+80))));
+      if(cam.zoom>fit+.02){cam.setBounds(v.ox-32,v.oy-32,p.width+64,p.height+64);cam.startFollow(this.player,true,.12,.12);}
+      else{cam.stopFollow();cam.removeBounds();cam.centerOn(v.ox+p.width/2,v.oy+p.height/2);}
+    }
   }
 
   /** Close the action panel. */
@@ -547,7 +590,7 @@ export class WorldScene extends Phaser.Scene {
   update(_t: number, dt: number): void {
     for (const { view } of this.views.values()) view.tick();
     if (!this.ready) return;
-    if (Phaser.Input.Keyboard.JustDown(this.keys.ESC!)) this.leaveInterior();
+    if (Phaser.Input.Keyboard.JustDown(this.keys.ESC!)) this.backInterior();
     else if (Phaser.Input.Keyboard.JustDown(this.keys.E!)) this.interact();
     this.updateDoorPrompt();
     const cam = this.cameras.main;

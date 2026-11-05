@@ -27,7 +27,7 @@ const catalogue = {
   meat: ['16_Grocery_Store', 'Grocery_Store', 303],
   clothingRack: ['21_Clothing_Store', 'Clothing_Store', 278],
   gift: ['10_Birthday_Party', 'Birthday_Party', 5], toyCar: ['4_Bedroom', 'Bedroom', 455],
-  dollhouse: ['4_Bedroom', 'Bedroom', 506], files: ['26_Condominium', 'Condominium', 75],
+  dollhouse: ['4_Bedroom', 'Bedroom', 506], files: ['26_Condominium', 'Condominium', 76],
   bars: ['18_Jail', 'Jail', 19], clock: ['2_Living_Room', 'Living_Room', 89],
 };
 const out = path.resolve('public/assets/interior'); fs.mkdirSync(out, { recursive: true });

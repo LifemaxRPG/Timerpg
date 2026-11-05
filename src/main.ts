@@ -39,7 +39,7 @@ scene.onDoor = (label, inside) => {
   const button = $('door');button.textContent=isTouch?label.replace(' [E]','').replace(' [Esc]',''):label;button.style.display=label?'block':'none';
   button.dataset.inside=String(inside);
 };
-$('door').addEventListener('click',()=>{if(scene.indoors)scene.leaveInterior();else scene.interact();});
+$('door').addEventListener('click',()=>scene.interact());
 
 // ---------- year slider: the time machine ----------
 const stepYear = (d: number): void => {

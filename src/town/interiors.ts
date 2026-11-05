@@ -1,3 +1,4 @@
+import { planLargeBuilding } from './largeBuildings';
 import { rand } from '../sim/rng';
 import type { World } from '../sim/types';
 import { feetHit, type Point } from './collision';
@@ -10,15 +11,22 @@ export interface Entrance {
   id: string; title: string; door: Point; lot?: Lot; landmark?: LandmarkPlot;
 }
 export interface Furnishing extends Rect { key: string; solid: boolean; stock?: boolean }
+export interface InteriorConnection {
+  id: string; label: string; at: Point; target: string; arrival: string;
+  kind: 'stairs' | 'door'; doorRect?: Rect;
+}
 export interface RoomPlan {
   id: string; title: string; use: string; template: string; width: number; height: number;
   floor: string; walls: Rect[]; furniture: Furnishing[];
   areas: { name: string; rect: Rect; floor?: string }[];
   spawn: Point; exit: Point;
+  zoneId: string; outsideExit: boolean; connections: InteriorConnection[];
 }
 
 /** Persistent structure is keyed to the property, not the occupant or current year. */
-export function planInterior(w: World, e: Entrance): RoomPlan {
+export function planInterior(w: World, e: Entrance, zoneId?: string): RoomPlan {
+  const large = planLargeBuilding(w, e, zoneId);
+  if (large) return large;
   const lot = e.lot;
   const home = lot?.kind === 'house';
   const use = home ? (lot.tier === 'apartment' ? 'Apartment' : 'Home')
@@ -173,19 +181,6 @@ export function planInterior(w: World, e: Entrance): RoomPlan {
         put('medical',112,384);put('hospitalBed',592,256);put('medical',704,256);put('bathroomSink',592,384);
         put('desk',112,560);put('sofa',W-112,560);
         break;
-      case 'hotel': {
-        area('Reception',32,560,W-64,H-584);
-        for(const x of [352,464]){
-          walls.push({x,y:96,w:16,h:128},{x,y:304,w:16,h:112},{x,y:496,w:16,h:48});
-        }
-        walls.push({x:32,y:352,w:320,h:16},{x:480,y:352,w:W-512,h:16});
-        for(const [x,y,n] of [[32,96,1],[480,96,2],[32,368,3],[480,368,4]]){
-          area(`Guest room ${n}`,x!,y!,320,y===96?256:176,'interior_floorWood');
-          put(bed,x!+112,y!+128);put('wardrobe',x!+240,y!+128);
-        }
-        put('counter',144,640);put('sofa',W-144,640);put('plant',64,H-48);
-        break;
-      }
       case 'police':
         vertical(W-240,416);
         walls.push({x:W-224,y:320,w:64,h:16},{x:W-80,y:320,w:48,h:16});
@@ -212,7 +207,8 @@ export function planInterior(w: World, e: Entrance): RoomPlan {
   // Vacant properties retain the same shell and room divisions; loose goods are absent.
   const contents = lot?.vacantSince === undefined ? furniture : furniture.filter((f) => !f.stock);
   return {id:e.id,title:e.title,use,template,width:W,height:H,floor,walls,furniture:contents,areas,
-    spawn:{x:W/2,y:H-64},exit:{x:W/2,y:H-40}};
+    spawn:{x:W/2,y:H-64},exit:{x:W/2,y:H-40},zoneId:'main',outsideExit:true,
+    connections:template==='police'?[{id:'stairs-up',label:'Upstairs: offices & records',at:{x:64,y:H-80},target:'police:upper',arrival:'stairs-down',kind:'stairs'}]:[]};
 }
 
 export function interiorBlocked(room: RoomPlan, x: number, y: number): boolean {

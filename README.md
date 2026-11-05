@@ -103,10 +103,16 @@ Walk to a pale gold entrance marker and press **E**, or tap the Enter button. In
 
 Whole exterior building bodies now block movement, with substeps preventing tunnelling through walls during a slow frame. Closely packed shops receive an accessible marked side entrance when their south-facing threshold is blocked. Time travel relocates a player trapped by newly appeared construction, and leaves an interior safely when that property did not exist in the destination year. The room camera frames the interior and outdoor streaming pauses while indoors.
 
-Interior structure is derived from the property and tier; current use determines its furnishing template. Additional floors, individualized apartment units, inventory interactions and NPCs remain future work. `scripts/extract-interiors.mjs --interiors <interiors.zip> --exteriors <exteriors.zip>` reproduces the curated interior sprites and size catalogue, and the main asset extraction script invokes it automatically.
+Interior structure is derived from the property and tier; current use determines its furnishing template. Individualized apartment units, inventory interactions and NPCs remain future work. `scripts/extract-interiors.mjs --interiors <interiors.zip> --exteriors <exteriors.zip>` reproduces the curated interior sprites and size catalogue, and the main asset extraction script invokes it automatically.
 
 ## Interiors by building type
 
 All 12 business types and 7 civic building types now have explicit layouts and curated furnishings. Examples include bait-shop rods and tackle, bakery prep and displays, ice-cream freezers and seating, school classrooms/library, hospital wards/treatment/waiting, hotel guest rooms/reception, police holding cells, postal sorting/parcels and a fire-engine bay. Layouts keep clear routes from the entrance to their separate areas. Vacant shops lose stock while retaining their structural layout and permanent fittings.
 
 Floating exterior building-name boxes are removed. Building identities remain available through inspection and the nearby entrance prompt.
+
+## Multi-floor hotels and police stations
+
+Hotels now open into a dedicated lobby with reception, lounge and breakfast seating. Working stairs lead to two or three guest floors, with four or six numbered rooms per floor, determined by the property seed. Each room is a separate private interior with beds, a wardrobe, a desk and its own bathroom. Corridors show room doors rather than exposing all the beds. Door connections return to the correct corridor; stairs connect adjacent floors. Hotel structure and room numbering remain stable when changing years.
+
+Police stations retain public reception and holding cells downstairs and add a separate investigations/records floor upstairs. Use E or the touch action button near stairs and room doors. Escape goes back one area at a time, returning outside only from the ground floor. Zooming in indoors follows the player within room bounds; zooming out frames the room.

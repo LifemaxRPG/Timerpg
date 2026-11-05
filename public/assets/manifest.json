@@ -3423,8 +3423,8 @@
   {
    "key": "interior_files",
    "path": "assets/interior/files.png",
-   "w": 32,
-   "h": 32
+   "w": 64,
+   "h": 48
   },
   {
    "key": "interior_bars",
