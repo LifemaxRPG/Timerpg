@@ -1,3 +1,4 @@
+import { neighborhoodOf } from './neighborhoods';
 import { ageIn, fullName, isAlive, type Id, type Person, type World } from '../sim/types';
 import { landmarkDescription, lotDescription, type TownLayout } from './layout';
 
@@ -18,20 +19,26 @@ export function inspectAt(layout: TownLayout, w: World, tx: number, ty: number):
     const [title, ...lines] = landmarkDescription(w, lm);
     return { title: title!, lines, people: [], business: null };
   }
-  const lot = layout.lots.find((l) => tx >= l.x && tx < l.x + l.w && ty >= l.y && ty < l.y + l.h);
+  const lot = [...layout.lots, ...layout.vacantLots].find((l) => tx >= l.x && tx < l.x + l.w && ty >= l.y && ty < l.y + l.h);
   if (!lot) return null;
+  const district = neighborhoodOf(layout.plan, lot.neighborhood).name;
+  if (lot.vacantSince !== undefined) return {
+    title: lot.kind === 'shop' ? 'Vacant shop' : 'Vacant home',
+    lines: [district, `Building recorded in ${lot.builtYear}`, `Vacant since ${lot.vacantSince}`, `Previously: ${lot.label}`],
+    people: [], business: null,
+  };
   const [title, ...lines] = lotDescription(w, lot);
   if (lot.kind === 'shop') {
     const b = w.businesses[lot.refId]!;
     const owner = b.owner ? w.people[b.owner] : undefined;
     return {
-      title: title!, lines,
+      title: title!, lines: [district, ...lines],
       people: owner && isAlive(owner) ? [{ id: owner.id, label: `${label(owner, w.year)}, owner` }] : [],
       business: { id: b.id, label: b.name },
     };
   }
   return {
-    title: title!, lines: [],
+    title: title!, lines: [district, ...(lot.builtYear === undefined ? [] : [`Building recorded in ${lot.builtYear}`])],
     people: lot.residents.map((id) => w.people[id]!).filter(isAlive).map((p) => ({ id: p.id, label: label(p, w.year) })),
     business: null,
   };

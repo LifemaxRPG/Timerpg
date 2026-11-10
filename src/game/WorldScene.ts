@@ -1,3 +1,6 @@
+import { moveSafely, nearestFree } from '../town/collision';
+import { interiorBlocked, planInterior, type Entrance, type InteriorConnection } from '../town/interiors';
+import { InteriorView } from './InteriorView';
 import Phaser from 'phaser';
 import { fullName, type Intervention, type World } from '../sim';
 import type { Inspection } from '../town/inspect';
@@ -69,6 +72,10 @@ export class WorldScene extends Phaser.Scene {
   private ready = false;
   private currentId: string | null = null;
   private frame = 0;
+  private room: { view: InteriorView; townId: string; entranceId: string; outside: {x:number;y:number}; zoom:number } | null = null;
+  private doorLabel = '';
+  onDoor: (label: string, inside: boolean) => void = () => {};
+  get indoors(): boolean { return this.room !== null; }
   /** The player's changes to each town's past, kept in the browser so they survive a reload. */
   private ivs = new Map<string, Intervention[]>();
   private lastClick: { x: number; y: number } | null = null;
@@ -116,7 +123,11 @@ export class WorldScene extends Phaser.Scene {
 
   create(): void {
     this.gen = new Generator();
-    this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT') as Record<string, Phaser.Input.Keyboard.Key>;
+    this.scale.on('resize', () => { if (this.room) this.fitInterior(); });
+    this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,ESC') as Record<string, Phaser.Input.Keyboard.Key>;
+    // Handle interaction on keydown so a quick press released between frames is not lost.
+    this.input.keyboard!.on('keydown-E', (event: KeyboardEvent) => { if (!event.repeat) this.interact(); });
+    this.input.keyboard!.on('keydown-ESC', (event: KeyboardEvent) => { if (!event.repeat) this.backInterior(); });
     // The ground between towns: an endless lawn (one tile, re-centered under the camera each frame).
     const grass = this.textures.exists('grass_base_seamless') ? 'grass_base_seamless' : (this.manifest.grass?.[0]?.key ?? 'grass_22');
     this.bg = this.add.tileSprite(0, 0, 6144, 6144, grass).setOrigin(0).setDepth(Z.BG);
@@ -137,7 +148,7 @@ export class WorldScene extends Phaser.Scene {
     this.input.addPointer(1); // a second finger, for pinch-to-zoom
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => { if (!this.input.pointer2.isDown) this.click(p); });
     this.input.on('wheel', (_p: unknown, _o: unknown, _dx: number, dy: number) => {
-      cam.setZoom(Phaser.Math.Clamp(cam.zoom * (dy > 0 ? 0.9 : 1.1), 0.35, 2));
+      this.zoomBy(dy > 0 ? 0.9 : 1.1);
     });
 
     // Start in the home town (cell 0,0): wait for it, then put the player on its main street.
@@ -157,6 +168,8 @@ export class WorldScene extends Phaser.Scene {
   setYear(year: number): void {
     this.year = year;
     for (const { view } of this.views.values()) view.setYear(year);
+    this.refreshInterior();
+    this.recoverPosition();
     this.announce(false);
   }
 
@@ -183,6 +196,7 @@ export class WorldScene extends Phaser.Scene {
       view.setTimeline(t.snapshots);
     }
     this.views.set(site.id, { site, view });
+    if (this.ready && !this.room) this.recoverPosition();
     this.clearWildIn(view.mapPx);
     this.syncLinks();
   }
@@ -304,6 +318,14 @@ export class WorldScene extends Phaser.Scene {
 
   private click(p: Phaser.Input.Pointer): void {
     const wp = this.cameras.main.getWorldPoint(p.x, p.y);
+    if (this.room) {
+      const r = this.room.view;
+      const at = r.room.connections.find(c=>Math.hypot(wp.x-r.ox-c.at.x,wp.y-r.oy-c.at.y)<40);
+      if ((at && this.nearestInteriorConnection()?.id===at.id) || (r.room.outsideExit && Math.hypot(wp.x-r.ox-r.room.exit.x,wp.y-r.oy-r.room.exit.y)<40)) this.interact();
+      return;
+    }
+    const door = this.nearestEntrance();
+    if (door && Math.hypot(wp.x-door.x,wp.y-door.y)<32) { this.interact(); return; }
     this.lastClick = { x: wp.x, y: wp.y };
     this.selection = null;
     for (const { site, view } of this.views.values()) {
@@ -374,6 +396,8 @@ export class WorldScene extends Phaser.Scene {
     this.ivs.set(townId, list);
     this.saveChanges(l.site, list);
     l.view.setTimeline(snapshots);
+    this.refreshInterior();
+    this.recoverPosition();
     this.cameras.main.flash(600, 150, 190, 255); // history ripples
     this.announce(false);
     this.reselect();
@@ -387,6 +411,8 @@ export class WorldScene extends Phaser.Scene {
     this.ivs.delete(townId);
     this.saveChanges(l.site, []);
     l.view.resetToOriginal();
+    this.refreshInterior();
+    this.recoverPosition();
     this.cameras.main.flash(400, 255, 220, 150);
     this.announce(false);
     this.reselect();
@@ -398,8 +424,121 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private blocked(x: number, y: number): boolean {
+    if (this.room) return interiorBlocked(this.room.view.room, x-this.room.view.ox, y-this.room.view.oy);
     for (const { view } of this.views.values()) if (view.contains(x, y) && view.blocked(x, y)) return true;
     return false;
+  }
+
+  private nearestEntrance(): { townId: string; entrance: Entrance; x:number; y:number } | null {
+    let nearest: { townId:string; entrance:Entrance; x:number; y:number } | null = null;
+    let best=72;
+    for (const [townId,{view}] of this.views) for (const entrance of view.entrances()) {
+      const x=view.ox+entrance.door.x, y=view.oy+entrance.door.y;
+      const d=Math.hypot(x-this.player.x,y-this.player.y);
+      if (d<best && this.player.y>=y-10 && !view.blocked(x,y)) { nearest={townId,entrance,x,y};best=d; }
+    }
+    return nearest;
+  }
+
+  /** E or a tap enters only when standing in front of an actual door. */
+  interact(): void {
+    if (!this.ready) return;
+    if (this.room) {
+      const v=this.room.view;
+      const connection=this.nearestInteriorConnection();
+      if(connection)this.travelInterior(connection);
+      else if(v.room.outsideExit && Math.hypot(this.player.x-v.ox-v.room.exit.x,this.player.y-v.oy-v.room.exit.y)<72)this.leaveInterior();
+      return;
+    }
+    const nearby=this.nearestEntrance(); if(!nearby)return;
+    const loaded=this.views.get(nearby.townId)!;
+    const w=loaded.view.world();if(!w)return;
+    const plan=planInterior(w,nearby.entrance);
+    const view=new InteriorView(this,plan), cam=this.cameras.main;
+    this.room={view,townId:nearby.townId,entranceId:nearby.entrance.id,outside:{x:nearby.x,y:nearby.y},zoom:cam.zoom};
+    this.player.setPosition(view.ox+plan.spawn.x,view.oy+plan.spawn.y);
+    this.player.setDepth(this.player.y);
+    this.fitInterior();
+    this.clearSelection();this.onLoading(0);this.updateDoorPrompt();
+  }
+
+  /** Escape / the touch Leave button is always available, including after time travel. */
+  leaveInterior(): void {
+    const old=this.room;if(!old)return;
+    old.view.destroy();this.room=null;
+    this.player.setPosition(old.outside.x,old.outside.y);
+    this.player.setDepth(this.player.y);
+    this.cameras.main.removeBounds();
+    this.cameras.main.setZoom(old.zoom);
+    this.cameras.main.startFollow(this.player,true,.12,.12);
+    this.cameras.main.centerOn(this.player.x,this.player.y);
+    this.recoverPosition();this.updateDoorPrompt();
+  }
+
+  private refreshInterior(): void {
+    const old=this.room;if(!old)return;
+    const loaded=this.views.get(old.townId);
+    const entrance=loaded?.view.entrances().find(e=>e.id===old.entranceId);
+    const w=loaded?.view.world();
+    if(!entrance||!w){this.leaveInterior();return;}
+    const position={x:this.player.x-old.view.ox,y:this.player.y-old.view.oy};
+    const plan=planInterior(w,entrance,old.view.room.zoneId);old.view.destroy();old.view=new InteriorView(this,plan);
+    const safe=nearestFree(position,(x,y)=>interiorBlocked(plan,x,y))??plan.spawn;
+    this.player.setPosition(old.view.ox+safe.x,old.view.oy+safe.y);
+    this.fitInterior();
+  }
+
+  private fitInterior(): void {
+    if(!this.room)return;
+    const v=this.room.view,plan=v.room,cam=this.cameras.main;
+    cam.stopFollow();cam.removeBounds();
+    cam.setZoom(Math.min(1.25,Math.max(.35,Math.min(this.scale.width/(plan.width+48),this.scale.height/(plan.height+80)))));
+    cam.centerOn(v.ox+plan.width/2,v.oy+plan.height/2);
+  }
+
+  private recoverPosition(): void {
+    if(!this.player)return;
+    const free=nearestFree(this.player,(x,y)=>this.blocked(x,y));
+    if(free)this.player.setPosition(free.x,free.y);
+  }
+
+  private nearestInteriorConnection(): InteriorConnection | null {
+    if(!this.room)return null;
+    const v=this.room.view;
+    return [...v.room.connections].sort((a,b)=>Math.hypot(this.player.x-v.ox-a.at.x,this.player.y-v.oy-a.at.y)-Math.hypot(this.player.x-v.ox-b.at.x,this.player.y-v.oy-b.at.y))
+      .find(c=>Math.hypot(this.player.x-v.ox-c.at.x,this.player.y-v.oy-c.at.y)<64)??null;
+  }
+
+  private travelInterior(connection: InteriorConnection): void {
+    const state=this.room;if(!state)return;
+    const loaded=this.views.get(state.townId),w=loaded?.view.world();
+    const entrance=loaded?.view.entrances().find(e=>e.id===state.entranceId);
+    if(!w||!entrance){this.leaveInterior();return;}
+    const plan=planInterior(w,entrance,connection.target);
+    const arrival=plan.connections.find(c=>c.id===connection.arrival);
+    if(!arrival)throw new Error(`Missing arrival ${connection.arrival} in ${connection.target}`);
+    state.view.destroy();state.view=new InteriorView(this,plan);
+    this.player.setPosition(state.view.ox+arrival.at.x,state.view.oy+arrival.at.y);
+    this.player.setDepth(this.player.y);this.fitInterior();this.updateDoorPrompt();
+  }
+
+  /** Escape goes back one level; upper floors never teleport directly into the street. */
+  private backInterior(): void {
+    if(!this.room)return;
+    const plan=this.room.view.room;
+    if(plan.outsideExit){this.leaveInterior();return;}
+    const back=plan.connections.find(c=>c.id==='room-exit'||c.id==='stairs-down');
+    if(back)this.travelInterior(back);
+  }
+
+  private updateDoorPrompt(): void {
+    let label='';
+    if(this.room){
+      const v=this.room.view,c=this.nearestInteriorConnection();
+      if(c)label=`${c.label} [E]`;
+      else if(v.room.outsideExit&&Math.hypot(this.player.x-v.ox-v.room.exit.x,this.player.y-v.oy-v.room.exit.y)<72)label='Leave building [E]';
+    }else{const n=this.nearestEntrance();if(n)label=`Enter ${n.entrance.title} [E]`;}
+    if(label!==this.doorLabel){this.doorLabel=label;this.onDoor(label,!!this.room);}
   }
 
   /** Report the town the player is standing in (and whether they just walked into it). */
@@ -436,6 +575,12 @@ export class WorldScene extends Phaser.Scene {
   zoomBy(factor: number): void {
     const cam = this.cameras.main;
     cam.setZoom(Phaser.Math.Clamp(cam.zoom * factor, 0.35, 2));
+    if(this.room){
+      const v=this.room.view,p=v.room;
+      const fit=Math.min(1.25,Math.max(.35,Math.min(this.scale.width/(p.width+48),this.scale.height/(p.height+80))));
+      if(cam.zoom>fit+.02){cam.setBounds(v.ox-32,v.oy-32,p.width+64,p.height+64);cam.startFollow(this.player,true,.12,.12);}
+      else{cam.stopFollow();cam.removeBounds();cam.centerOn(v.ox+p.width/2,v.oy+p.height/2);}
+    }
   }
 
   /** Close the action panel. */
@@ -448,9 +593,10 @@ export class WorldScene extends Phaser.Scene {
   update(_t: number, dt: number): void {
     for (const { view } of this.views.values()) view.tick();
     if (!this.ready) return;
+    this.updateDoorPrompt();
     const cam = this.cameras.main;
-    this.bg.setPosition(Math.floor((cam.worldView.centerX - 3072) / TILE) * TILE, Math.floor((cam.worldView.centerY - 3072) / TILE) * TILE);
-    if (this.frame++ % 12 === 0) { this.manage(); this.trackTown(); }
+    if (!this.room) this.bg.setPosition(Math.floor((cam.worldView.centerX - 3072) / TILE) * TILE, Math.floor((cam.worldView.centerY - 3072) / TILE) * TILE);
+    if (!this.room && this.frame++ % 12 === 0) { this.manage(); this.trackTown(); }
 
     // Two fingers on the screen: pinch to zoom.
     const { pointer1, pointer2 } = this.input;
@@ -472,9 +618,9 @@ export class WorldScene extends Phaser.Scene {
     if (mag > 1) { dx /= mag; dy /= mag; }
     this.facing = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 0 : 2) : dy > 0 ? 3 : 1;
     this.player.play(`walk-${DIRS[this.facing]}`, true);
-    const nx = this.player.x + (dx * 180 * dt) / 1000, ny = this.player.y + (dy * 180 * dt) / 1000;
-    if (!this.blocked(nx, this.player.y)) this.player.x = nx;
-    if (!this.blocked(this.player.x, ny)) this.player.y = ny;
+    const elapsed=Math.min(dt,100);
+    const next=moveSafely(this.player,dx*180*elapsed/1000,dy*180*elapsed/1000,(x,y)=>this.blocked(x,y));
+    this.player.setPosition(next.x,next.y);
     this.player.setDepth(this.player.y);
   }
 }

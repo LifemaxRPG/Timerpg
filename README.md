@@ -19,10 +19,11 @@ the past (kill the future mayor, invest in the bakery...), and come back to see 
   frontages (zoned: downtown shops, apartments/houses, small homes toward the edge, a villa hill) -> crop ->
   greenery (`greenery.ts`: sparse near buildings, thickening into forest, so the edge is organic) and street
   furniture. Grows until there is room for every shop and household.
+- `src/town/properties.ts` - persistent buildings and occupancy, advanced once per simulation year. Existing households stay put despite wealth changes; surviving family can remain, vacant homes and shops are reused before new construction, and built roads never disappear. Building art is chosen when first built, not reselected every year. Physical state lives in `World.settlement`, so interventions rebuild it deterministically and viewing years out of order cannot change history.
 - `src/town/layout.ts` - who/what occupies the plan in a given year. **The town grows**: streets are split at junctions and a
   block is only built once something on it is in use (plus the chain back to the main street); the rest stays woodland, so
   1950 is a compact core and the town spreads outward over the decades. Also: the town fills center-outward,
-  housing tier follows household wealth (small / medium / house / villa / estate; poorest singles and couples share apartment buildings, see `housing.ts`), shop fronts are stacked modular floors (`facade.ts`), empty plots become wooded lots, yards get props.
+  initial housing tier follows household wealth (small / medium / house / villa / estate; poorest singles and couples share apartment buildings, see `housing.ts`), shop fronts are stacked modular floors (`facade.ts`), never-built plots remain wooded; vacant buildings remain standing, yards get props.
 - `src/town/water.ts` - per-seed river (north-south, meandering, 3-6 wide) or lake, or none; plots near it are dropped, streets that meet it get bridge decks. The ground bake autotiles the shore; the player can't walk into water.
 - `src/world/` - the endless **world**: `map.ts` (one town per cell of a jittered grid, seed per cell, plan origins, the road that
   joins a town's main street to its eastern neighbour), `names.ts` (town names and founding years), `wild.ts` (chunked wilderness).
@@ -85,3 +86,33 @@ npm run demo [seed]   # kills the present-day mayor as a child and prints the co
 5. [x] Real LimeZu sprites: tiled terrain, villas (wealthy households) and small homes, shops by type, animated player. Next: trees/props, interiors, NPC sprites
 6. [ ] Capacitor wrapper for Android
 7. [ ] LLM narration and NPC dialogue from the chronicle
+
+## Persistent town history
+
+The first generation improvement preserves properties across years. Vacant buildings have subdued coloring, keep their collision footprint, and can be inspected for their recorded construction/vacancy dates and former occupants. New shop tenants change the storefront display while retaining the upper floors and roof. Time-travel interventions re-simulate occupancy alongside people and businesses. Existing seed/intervention saves need no new payload; regenerated towns use the updated placement rules.
+
+This is a foundation for slower visible change. Deliberate moves, renovation/demolition, construction stages and individual tree aging are still future work. Buildings currently retain their original architecture indefinitely; wealth changes alone do not trigger a move.
+
+## Neighborhood character
+
+Each seed also assigns fixed neighborhood identities to plots: Old Town commerce, a villa district, gardens and woodland-edge housing, plus a riverside/lakeside district only where suitable plots actually border water. Neighborhoods share curated facade colors and yard treatments: flower gardens, formal hedges, compact frontages or loose planting. New buildings adopt their site's style; existing buildings retain theirs across year changes and tenant turnover. Inspection shows the local neighborhood name. This uses the existing curated sprite manifest and preserves the street/plot geometry.
+
+## Working entrances and first interiors
+
+Walk to a pale gold entrance marker and press **E**, or tap the Enter button. Interiors use curated Modern Interiors furniture and floor tiles, with solid walls and furniture. Homes have living/kitchen, bedroom and bathroom areas; retail and civic buildings use furnished templates suited to their use. Press E near the indoor exit, Escape, or the Leave button to return outside. Apartment buildings currently open a representative apartment interior rather than separate floors/units.
+
+Whole exterior building bodies now block movement, with substeps preventing tunnelling through walls during a slow frame. Closely packed shops receive an accessible marked side entrance when their south-facing threshold is blocked. Time travel relocates a player trapped by newly appeared construction, and leaves an interior safely when that property did not exist in the destination year. The room camera frames the interior and outdoor streaming pauses while indoors.
+
+Interior structure is derived from the property and tier; current use determines its furnishing template. Individualized apartment units, inventory interactions and NPCs remain future work. `scripts/extract-interiors.mjs --interiors <interiors.zip> --exteriors <exteriors.zip>` reproduces the curated interior sprites and size catalogue, and the main asset extraction script invokes it automatically.
+
+## Interiors by building type
+
+All 12 business types and 7 civic building types now have explicit layouts and curated furnishings. Examples include bait-shop rods and tackle, bakery prep and displays, ice-cream freezers and seating, school classrooms/library, hospital wards/treatment/waiting, hotel guest rooms/reception, police holding cells, postal sorting/parcels and a fire-engine bay. Layouts keep clear routes from the entrance to their separate areas. Vacant shops lose stock while retaining their structural layout and permanent fittings.
+
+Floating exterior building-name boxes are removed. Building identities remain available through inspection and the nearby entrance prompt.
+
+## Multi-floor hotels and police stations
+
+Hotels now open into a dedicated lobby with reception, lounge and breakfast seating. Working stairs lead to two or three guest floors, with four or six numbered rooms per floor, determined by the property seed. Each room is a separate private interior with beds, a wardrobe, a desk and its own bathroom. Corridors show room doors rather than exposing all the beds. Door connections return to the correct corridor; stairs connect adjacent floors. Hotel structure and room numbering remain stable when changing years.
+
+Police stations retain public reception and holding cells downstairs and add a separate investigations/records floor upstairs. Use E or the touch action button near stairs and room doors. Escape goes back one area at a time, returning outside only from the ground floor. Zooming in indoors follows the player within room bounds; zooming out frames the room.

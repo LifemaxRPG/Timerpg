@@ -19,6 +19,8 @@ export interface Layer {
 }
 
 export interface BuildingArt {
+  /** Modular shop shell colour, retained when the tenant changes. */
+  colour?: Colour;
   layers: Layer[];
   /** Overall width and height in pixels. */
   w: number;

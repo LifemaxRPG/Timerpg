@@ -34,6 +34,13 @@ if (isTouch) document.body.classList.add('touch');
 $('zin').addEventListener('click', () => scene.zoomBy(1.25));
 $('zout').addEventListener('click', () => scene.zoomBy(0.8));
 
+scene.onDoor = (label, inside) => {
+  if (inside) $('banner').classList.remove('show');
+  const button = $('door');button.textContent=isTouch?label.replace(' [E]','').replace(' [Esc]',''):label;button.style.display=label?'block':'none';
+  button.dataset.inside=String(inside);
+};
+$('door').addEventListener('click',()=>scene.interact());
+
 // ---------- year slider: the time machine ----------
 const stepYear = (d: number): void => {
   slider.value = String(Math.min(2025, Math.max(1950, Number(slider.value) + d)));
