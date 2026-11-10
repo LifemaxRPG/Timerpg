@@ -1,3 +1,5 @@
+import { loreOf } from './world/lore';
+import { siteAt } from './world/map';
 import Phaser from 'phaser';
 import { WorldScene, type ActionSpec, type Selection, type TownInfo } from './game/WorldScene';
 
@@ -61,13 +63,13 @@ slider.addEventListener('input', () => {
 // ---------- "Welcome to ..." banner, HUD and what-changed panel ----------
 let hideTimer: number | undefined;
 scene.onTown = (info: TownInfo, entered: boolean) => {
-  $('town').textContent = info.name;
+  $('town').textContent = `${info.name} · ${info.kind}`;
   $('mayor').textContent = [info.mayor ? `Mayor: ${info.mayor}` : '', info.population !== null ? `pop ${info.population}` : ''].filter(Boolean).join(' · ');
   renderChanges(info);
   if (!entered) return;
   const b = $('banner');
   b.querySelector('.name')!.textContent = info.name;
-  b.querySelector('.sub')!.textContent = `Founded ${info.founded}${info.population !== null ? ` · Population ${info.population}` : ''}`;
+  b.querySelector('.sub')!.textContent = `${info.blurb} · Founded ${info.founded}${info.population !== null ? ` · Population ${info.population}` : ''}`;
   b.classList.add('show');
   window.clearTimeout(hideTimer);
   hideTimer = window.setTimeout(() => b.classList.remove('show'), 4000);
@@ -166,7 +168,10 @@ talk.addEventListener('click', (e) => {
   const b = t.closest('button[data-opt]') as HTMLButtonElement | null;
   if (b) void scene.talkChoose(b.dataset.opt!);
 });
-if (location.search.includes('debug')) (window as unknown as { __scene: unknown }).__scene = scene;
+if (location.search.includes('debug')) {
+  (window as unknown as { __scene: unknown }).__scene = scene;
+  (window as unknown as { __lore: unknown }).__lore = (m: { loreId: string }) => { const [cx, cy] = m.loreId.split(',').map(Number) as [number, number]; return loreOf(scene.worldSeed, siteAt(scene.worldSeed, cx, cy)); };
+}
 
 // ---------- the notebook: what people have told you ----------
 const jbtn = $('journalbtn'), jbox = $('journal');
@@ -209,3 +214,25 @@ try {
     $('helpok').addEventListener('click', () => { $('help').style.display = 'none'; try { localStorage.setItem('timerpg.helped', '1'); } catch { /* private mode */ } });
   }
 } catch { /* storage unavailable: skip the card */ }
+
+// ---------- maps, compass and discoveries ----------
+const wmap = $('worldmap');
+const drawMap = (): void => {
+  const rows = scene.worldGrid();
+  const open = scene.maps.filter((m) => !scene.found.includes(m.loreId));
+  wmap.innerHTML = `<div class="head"><b>Map</b><span class="close" id="closemap" role="button" aria-label="Close">×</span></div>
+    <div class="grid" style="grid-template-columns: repeat(${rows[0]!.length}, 1fr)">${rows.flat().map((c) =>
+      `<div class="cell${c.here ? ' here' : ''}${c.target ? ' target' : ''}">${c.name ? esc(c.name) : '?'}${c.target ? '<small>✕ ' + esc(c.title ?? '') + '</small>' : c.kind ? `<small>${esc(c.kind)}</small>` : c.here ? '<small>you are here</small>' : ''}</div>`).join('')}</div>
+    <div class="legend">${open.length ? open.map((m) => `<div>✕ <b>${esc(m.targetName)}</b>: ${esc(m.title)}. Told in ${esc(m.originName)}; it happened in ${m.year}.</div>`).join('') : 'No map yet. Old residents know local legends: get to know one well and ask.'}
+    ${scene.found.length ? `<div style="margin-top:6px">${scene.found.length} legend${scene.found.length > 1 ? 's' : ''} uncovered (see the Notebook).</div>` : ''}</div>`;
+};
+scene.onMaps = () => { if (wmap.style.display === 'block') drawMap(); };
+$('mapbtn').addEventListener('click', () => { if (wmap.style.display === 'block') { wmap.style.display = 'none'; } else { drawMap(); wmap.style.display = 'block'; } });
+wmap.addEventListener('click', (e) => { if ((e.target as HTMLElement).id === 'closemap') wmap.style.display = 'none'; });
+scene.onCompass = (t) => { const c = $('compass'); c.style.display = t ? 'block' : 'none'; if (t) c.textContent = '🧭 ' + t; };
+scene.onDiscover = (title, text) => {
+  const d = $('discover');
+  d.innerHTML = `<b>📍 ${esc(title)}</b><div style="margin-top:6px">${esc(text)}</div><div class="hint" style="margin-top:6px;color:#9aa3cc;font-size:12px">Added to your notebook.</div><button id="discoverok">Close</button>`;
+  d.style.display = 'block';
+  $('discoverok').addEventListener('click', () => { d.style.display = 'none'; });
+};

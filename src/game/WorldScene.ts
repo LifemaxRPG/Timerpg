@@ -2,6 +2,8 @@ import { moveSafely, nearestFree } from '../town/collision';
 import { interiorBlocked, planInterior, type Entrance, type InteriorConnection } from '../town/interiors';
 import { InteriorView } from './InteriorView';
 import Phaser from 'phaser';
+import { loreOf, mapOf, type Lore, type MapEntry } from '../world/lore';
+import { archetypeOf } from '../sim/archetype';
 import { Police } from './Police';
 import { doorstep, findPath, walkable } from '../town/schedule';
 import { Npcs, HOURS_PER_SECOND } from './Npcs';
@@ -30,6 +32,9 @@ export interface TownInfo {
   townId: string;
   name: string;
   founded: number;
+  /** The town's character, e.g. "Mining town". */
+  kind: string;
+  blurb: string;
   /** Null until the town's history has arrived. */
   population: number | null;
   mayor: string | null;
@@ -102,6 +107,16 @@ export class WorldScene extends Phaser.Scene {
   onJournal: (entries: JournalEntry[]) => void = () => {};
   private saveJournal(): void { try { localStorage.setItem('timerpg.journal', JSON.stringify(this.journal)); } catch { /* private mode */ } this.onJournal(this.journal); }
   private speakSeq = 0;
+  /** Maps the player holds (each points at another town), and the legends already uncovered. */
+  maps: MapEntry[] = (() => { try { return JSON.parse(localStorage.getItem(`timerpg.maps:${this.worldSeed}`) ?? '[]'); } catch { return []; } })();
+  found: string[] = (() => { try { return JSON.parse(localStorage.getItem(`timerpg.found:${this.worldSeed}`) ?? '[]'); } catch { return []; } })();
+  /** Towns the player has walked into (their names show on the map screen). */
+  visited: string[] = (() => { try { return JSON.parse(localStorage.getItem(`timerpg.visited:${this.worldSeed}`) ?? '[]'); } catch { return []; } })();
+  onMaps: () => void = () => {};
+  onDiscover: (title: string, text: string) => void = () => {};
+  /** Compass text for the nearest unfinished map, or null. */
+  onCompass: (text: string | null) => void = () => {};
+  private save(key: string, v: unknown): void { try { localStorage.setItem(`timerpg.${key}:${this.worldSeed}`, JSON.stringify(v)); } catch { /* private mode */ } }
   private talking: { townId: string; id: string } | null = null;
   /** A conversation opened (card) or closed (null). */
   onTalk: (card: TalkCard | null) => void = () => {};
@@ -401,8 +416,16 @@ export class WorldScene extends Phaser.Scene {
     const at = this.npcs.positionOf(id);
     return {
       w, person, job: r.job, townName: l.site.name, familiarity: this.familiar[`${l.site.id}:${id}`] ?? 0,
-      witnesses: at ? this.npcs.countNear(at.x, at.y, 260, id) : 0, wanted: this.wantedHours > 0, journal: this.journal, days: this.npcs.days,
+      witnesses: at ? this.npcs.countNear(at.x, at.y, 260, id) : 0, wanted: this.wantedHours > 0, journal: this.journal, days: this.npcs.days, legend: this.legendCtx(l.site.id),
     };
+  }
+
+  private legendCtx(townId: string): NonNullable<TalkCtx['legend']> | undefined {
+    const l = this.views.get(townId);
+    const w = l?.view.world();
+    if (!l || !w) return undefined;
+    const lore = loreOf(this.worldSeed, l.site);
+    return { text: lore.legend, targetName: lore.targetName, available: w.year > lore.year, hasMap: this.maps.some((m) => m.loreId === lore.originId) };
   }
 
   private card(c: TalkCtx, line: string): TalkCard {
@@ -460,6 +483,18 @@ export class WorldScene extends Phaser.Scene {
       this.speak(t.townId, c3, optionId, got.line, '', got.entry ? fact : [], got.entry && optionId === 'rumors' ? [got.entry.aboutName.split(' ')[0]!] : [], got.entry?.id ?? 'none');
       return;
     }
+    if (optionId === 'legend') {
+      const lg = c.legend;
+      const lore = this.views.get(t.townId) ? loreOf(this.worldSeed, this.views.get(t.townId)!.site) : null;
+      if (lg?.available && lore) {
+        if (!this.maps.some((m) => m.loreId === lore.originId)) {
+          this.maps.push(mapOf(lore)); this.save('maps', this.maps); this.onMaps();
+          this.onNote(`Map added: ${lore.title}. Open 🗺 Map.`);
+        }
+        this.speak(t.townId, c, 'legend', narrate(c, 'legend'), '', [`The legend you are telling: ${lore.legend}`], [lore.targetName], lore.originId);
+      } else this.speak(t.townId, c, 'legend', narrate(c, 'legend'));
+      return;
+    }
     const spec = specFor(optionId);
     if (!spec) {
       this.familiar[key] = (this.familiar[key] ?? 0) + (optionId === 'chat' ? 1 : 0);
@@ -482,6 +517,68 @@ export class WorldScene extends Phaser.Scene {
     const c2 = this.talkCtx(t.townId, t.id);
     if (!c2) { this.closeTalk(); this.onNote(line); return; }
     this.speak(t.townId, c2, optionId.startsWith('leak:') ? 'chat' : optionId, narrate(c2, optionId), `\n[${line}]`);
+  }
+
+  /** Where in a town a legend's spot is, in world pixels (a landmark's door, or the plaza fountain). */
+  private spotOf(townId: string, lore: Lore): { x: number; y: number } | null {
+    const l = this.views.get(townId);
+    const lay = l?.view.layout;
+    if (!l || !lay) return null;
+    const lm = lore.spot === 'fountain' ? undefined : lay.landmarks.find((x) => x.id === lore.spot);
+    const p = lay.plan.plaza;
+    const tx = lm ? lm.x + lm.w / 2 : p.x + p.w / 2, ty = lm ? lm.y + lm.h + 1 : p.y + p.h - 4;
+    return { x: l.view.ox + tx * TILE, y: l.view.oy + ty * TILE };
+  }
+
+  /** Compass for the newest unfinished map, and the discovery itself when the player stands at the spot. */
+  private checkMaps(): void {
+    if (this.currentId && !this.visited.includes(this.currentId)) { this.visited.push(this.currentId); this.save('visited', this.visited); this.onMaps(); }
+    const open = this.maps.filter((m) => !this.found.includes(m.loreId));
+    const m = open[open.length - 1];
+    if (!m) { this.onCompass(null); return; }
+    const year = this.year;
+    const [tcx, tcy] = m.targetId.split(',').map(Number) as [number, number];
+    const site = siteAt(this.worldSeed, tcx, tcy);
+    const inTarget = this.currentId === m.targetId;
+    const lore = loreOf(this.worldSeed, siteAt(this.worldSeed, ...(m.loreId.split(',').map(Number) as [number, number])));
+    let tx = site.center.x * TILE, ty = site.center.y * TILE;
+    let near = false;
+    if (inTarget) {
+      const sp = this.spotOf(m.targetId, lore);
+      if (sp) { tx = sp.x; ty = sp.y; near = Math.hypot(sp.x - this.player.x, sp.y - this.player.y) < 56; }
+    }
+    if (near && year > lore.year) {
+      this.found.push(m.loreId); this.save('found', this.found);
+      this.journal.push({ id: `lore:${m.loreId}`, about: '', aboutName: `📍 ${lore.title}:`, text: lore.discovery, from: `found in ${lore.targetName}`, year });
+      this.saveJournal();
+      // The target town's own legend is now yours to ask about, but you also learn of it from this find.
+      this.onDiscover(lore.title, lore.discovery);
+      this.onCompass(null);
+      return;
+    }
+    const dx = tx - this.player.x, dy = ty - this.player.y, d = Math.hypot(dx, dy) / TILE;
+    const arrows = ['→', '↘', '↓', '↙', '←', '↖', '↑', '↗'];
+    const arrow = arrows[Math.round(((Math.atan2(dy, dx) + Math.PI * 2) % (Math.PI * 2)) / (Math.PI / 4)) % 8]!;
+    const gated = inTarget && near && year <= lore.year ? ' · nothing here yet. Come back in a later year.' : '';
+    this.onCompass(inTarget ? `${arrow} ${lore.title}: ${d < 8 ? 'very close' : d < 25 ? 'close' : `${Math.round(d)} tiles`}${gated}` : `${arrow} ${m.targetName} · ${Math.round(d)} tiles`);
+  }
+
+  /** The cells around the player for the map screen. */
+  worldGrid(rx = 3, ry = 2): { id: string; name: string | null; here: boolean; target: boolean; title: string | null; kind: string | null }[][] {
+    const here = this.currentId ? this.views.get(this.currentId)?.site : undefined;
+    const cx0 = here?.cx ?? Math.round(this.player.x / TILE / 360), cy0 = here?.cy ?? Math.round(this.player.y / TILE / 320);
+    const targets = new Map(this.maps.filter((m) => !this.found.includes(m.loreId)).map((m) => [m.targetId, m]));
+    const rows = [];
+    for (let cy = cy0 - ry; cy <= cy0 + ry; cy++) {
+      const row = [];
+      for (let cx = cx0 - rx; cx <= cx0 + rx; cx++) {
+        const id = `${cx},${cy}`, t = targets.get(id);
+        const seen = this.visited.includes(id) || !!t;
+        row.push({ id, name: seen ? siteAt(this.worldSeed, cx, cy).name : null, here: id === here?.id, target: !!t, title: t?.title ?? null, kind: this.visited.includes(id) ? archetypeOf(siteAt(this.worldSeed, cx, cy).seed).label : null });
+      }
+      rows.push(row);
+    }
+    return rows;
   }
 
   /** Wanted: the police officer comes for you; catching you is an arrest. */
@@ -732,6 +829,8 @@ export class WorldScene extends Phaser.Scene {
       townId: cur.site.id,
       name: cur.site.name,
       founded: cur.site.founded,
+      kind: archetypeOf(cur.site.seed).label,
+      blurb: archetypeOf(cur.site.seed).blurb,
       population: w ? Object.values(w.people).filter((p) => p.deathYear === undefined).length : null,
       mayor: w?.mayor ? fullName(w.people[w.mayor]!) : null,
       changes: cur.view.changes(),
@@ -790,7 +889,7 @@ export class WorldScene extends Phaser.Scene {
     if (text !== this.clockText) { this.clockText = text; this.onClock(text); }
     const cam = this.cameras.main;
     if (!this.room) this.bg.setPosition(Math.floor((cam.worldView.centerX - 3072) / TILE) * TILE, Math.floor((cam.worldView.centerY - 3072) / TILE) * TILE);
-    if (!this.room && this.frame++ % 12 === 0) { this.manage(); this.trackTown(); }
+    if (!this.room && this.frame++ % 12 === 0) { this.manage(); this.trackTown(); this.checkMaps(); }
 
     // Two fingers on the screen: pinch to zoom.
     const { pointer1, pointer2 } = this.input;

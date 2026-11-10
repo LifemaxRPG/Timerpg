@@ -20,6 +20,8 @@ export interface TalkCtx {
   journal: JournalEntry[];
   /** Game days that have passed: gossip spreads a little each day. */
   days?: number;
+  /** This town's legend, if the year is late enough for it to exist. */
+  legend?: { text: string; targetName: string; available: boolean; hasMap: boolean };
 }
 
 export interface JournalEntry {
@@ -60,6 +62,7 @@ export function optionsFor(c: TalkCtx): Option[] {
     { id: 'work', label: 'Ask about their work', kind: 'say', enabled: true },
     { id: 'rumors', label: 'Ask what they\'ve heard around town', kind: 'say', enabled: fam >= 2, ...(fam < 2 ? { note: 'They don\'t know you well enough' } : {}) },
     { id: 'secret', label: 'Ask if they\'re keeping anything to themselves', kind: 'say', enabled: fam >= 3, ...(fam < 3 ? { note: 'They don\'t trust you yet' } : {}) },
+    { id: 'legend', label: 'Ask about old local legends', kind: 'say', enabled: fam >= 3 && ageIn(c.person, c.w.year) >= 40, ...(fam < 3 ? { note: 'They don\'t trust you yet' } : ageIn(c.person, c.w.year) < 40 ? { note: 'They\'re too young to remember' } : c.legend?.hasMap ? { note: 'You already have this map' } : {}) },
     { id: 'praise', label: 'Say something nice about them around town', kind: 'act', enabled: fam >= 1, ...(fam < 1 ? { note: 'Get to know them first' } : {}) },
     { id: 'gift', label: 'Give a gift ($200)', kind: 'act', enabled: fam >= 1, ...(fam < 1 ? { note: 'Get to know them first' } : {}) },
     { id: 'smear', label: 'Spread a nasty rumor about them', kind: 'danger', enabled: fam >= 2, ...(fam < 2 ? { note: 'You barely know them' } : { note: c.witnesses ? 'People are listening' : 'Nobody is listening' }) },
@@ -121,6 +124,8 @@ export function narrate(c: TalkCtx, intent: string): string {
       return c.job.includes('owner') ? `I run ${c.job.replace(' (owner)', '')}. ${p.wealth > 5000 ? 'Business is good.' : 'It keeps the lights on.'}`
         : c.job === 'retired' ? 'Retired. I sit in the plaza and watch the world go by.'
         : c.job === 'at school' ? 'I\'m at school.' : `I ${c.job}.`;
+    case 'legend':
+      return c.legend?.available ? `${c.legend.text} Here, I\'ll sketch you a map.` : 'Legends? Nothing worth telling has happened around here yet.';
     case 'praise': return 'You said what about me? ...Well. That\'s kind of you.';
     case 'gift': return warm ? 'For me? Thank you, truly.' : 'Oh. ...Thank you.';
     default:

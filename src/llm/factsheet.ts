@@ -31,7 +31,7 @@ function family(c: TalkCtx): string[] {
 }
 
 /** Intents the model may voice. "town" is left to templates: a 0.6B model only produces filler about it. */
-export const VOICED = new Set(['greet', 'chat', 'family', 'work', 'praise', 'gift', 'rumors', 'secret']);
+export const VOICED = new Set(['greet', 'chat', 'family', 'work', 'praise', 'gift', 'rumors', 'secret', 'legend']);
 
 /** What the player says, as words, for each menu choice. */
 const PLAYER: Record<string, string> = {
@@ -44,6 +44,7 @@ const PLAYER: Record<string, string> = {
   gift: 'Here, take this money. It\'s a gift.',
   rumors: 'Heard anything interesting lately?',
   secret: 'Are you hiding anything?',
+  legend: 'Are there any old legends around here?',
 };
 
 /**
