@@ -401,7 +401,7 @@ export class WorldScene extends Phaser.Scene {
     const at = this.npcs.positionOf(id);
     return {
       w, person, job: r.job, townName: l.site.name, familiarity: this.familiar[`${l.site.id}:${id}`] ?? 0,
-      witnesses: at ? this.npcs.countNear(at.x, at.y, 260, id) : 0, wanted: this.wantedHours > 0, journal: this.journal,
+      witnesses: at ? this.npcs.countNear(at.x, at.y, 260, id) : 0, wanted: this.wantedHours > 0, journal: this.journal, days: this.npcs.days,
     };
   }
 

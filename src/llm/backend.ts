@@ -33,6 +33,8 @@ export class Llm {
   private w: Wllama | null = null;
   private cache = new Map<string, string>();
   private misses = 0;
+  /** Numbers for the panel, so a real device's speed can be read off the screen. */
+  stats = { loadSecs: 0, replies: 0, lastSecs: 0, timeouts: 0, rejected: 0 };
   /** Seconds a reply may take before the template line is used instead. */
   timeoutMs = 25000;
   private busy: Promise<unknown> = Promise.resolve();
@@ -42,6 +44,7 @@ export class Llm {
   /** Load the model from a file the player picked (and remember it) or from storage / next to the game. */
   async load(picked?: Blob): Promise<void> {
     if (this.state === 'loading' || this.state === 'ready') return;
+    const t0 = performance.now();
     this.set('loading', 'Looking for the model…');
     if (!(await workersWork())) {
       this.set('error', 'The dialogue AI cannot run when the game is opened as a plain file. Use the Android app, or serve the game over http. Built-in lines are used meanwhile.');
@@ -58,6 +61,7 @@ export class Llm {
       this.w = new Wllama(embedded ? { 'single-thread/wllama.wasm': embedded } : { 'single-thread/wllama.wasm': singleWasm, 'multi-thread/wllama.wasm': multiWasm }, { allowOffline: true });
       await this.w.loadModel([blob], { n_ctx: 1024, n_batch: 256, n_threads: threads });
       blob = null;
+      this.stats.loadSecs = (performance.now() - t0) / 1000;
       this.set('ready', `Dialogue AI is on (Qwen3-0.6B, ${threads} thread${threads > 1 ? 's' : ''}).`);
     } catch (e) {
       this.w = null;
@@ -73,6 +77,7 @@ export class Llm {
     const w = this.w;
     const run = async (): Promise<string | null> => {
       this.onBusy(true);
+      const started = performance.now();
       const ctl = new AbortController();
       const timer = setTimeout(() => ctl.abort(), timeoutMs);
       try {
@@ -81,10 +86,13 @@ export class Llm {
           sampling: { temp: 0.3, top_k: 40, top_p: 0.9, penalty_repeat: 1.15 },
         });
         const text = validate(raw, b);
-        if (text) { this.cache.set(key, text); this.misses = 0; }
+        this.stats.lastSecs = (performance.now() - started) / 1000;
+        if (text) { this.cache.set(key, text); this.misses = 0; this.stats.replies++; } else this.stats.rejected++;
+        this.onChange(this.state, this.detail);
         return text;
       } catch {
         // Repeated timeouts mean this device is too slow: switch to template dialogue instead of making people wait.
+        if (ctl.signal.aborted) this.stats.timeouts++;
         if (ctl.signal.aborted && ++this.misses >= 2) this.set('slow', 'The model is too slow on this device, so dialogue uses the built-in lines.');
         return null;
       } finally { clearTimeout(timer); this.onBusy(false); }

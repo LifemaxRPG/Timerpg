@@ -34,4 +34,15 @@ describe('secrets', () => {
     expect(trustNeeded(p, { id: 'x', about: p.id, kind: 'affair', text: '', weight: 0.9 }, true))
       .toBeGreaterThan(trustNeeded(p, { id: 'y', about: p.id, kind: 'ambition', text: '', weight: 0.3 }, false));
   });
+
+  it('gossip spreads: more days, more people know, and nobody un-learns', () => {
+    for (const s of all.slice(0, 15)) {
+      const a = holdersOf(w, s, 0), b = holdersOf(w, s, 3), c = holdersOf(w, s, 99);
+      expect(b.length).toBeGreaterThanOrEqual(a.length);
+      for (const id of a) expect(c).toContain(id);
+      expect(c.length).toBeLessThanOrEqual(a.length + 8);
+    }
+    const some = all.find((s) => holdersOf(w, s, 0).length < holdersOf(w, s, 8).length);
+    expect(some).toBeDefined();
+  });
 });

@@ -25,6 +25,13 @@
     #info button:disabled { opacity: .4; cursor: not-allowed; }
     #info select { background: #1b2036; color: #eee; border: 1px solid #4a5480; border-radius: 6px; padding: 3px; max-width: 170px; font-size: 12px; }
     #talk { bottom: 10px; left: 10px; width: min(400px, calc(100vw - 44px)); max-height: 70vh; overflow: auto; display: none; }
+    body.talking #stick, body.talking #zoom { display: none !important; }
+    @media (max-width: 700px) {
+      #talk { left: 8px; right: 8px; bottom: 8px; width: auto; max-height: 52vh; }
+      #talk button { padding: 6px 9px; font-size: 12.5px; }
+      #talk .opts { gap: 3px; margin: 3px 0; }
+      #talk .line { margin: 3px 0 6px; padding: 6px 9px; }
+    }
     #talk .head { display: flex; justify-content: space-between; font-size: 15px; }
     #talk .sub { color: #9aa3cc; font-size: 12px; margin-bottom: 6px; }
     #talk .line { background: #1b2036; border-radius: 8px; padding: 8px 10px; margin: 4px 0 8px; font-style: italic; line-height: 1.35; }

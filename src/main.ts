@@ -149,6 +149,7 @@ scene.onNote = (text) => {
   noteTimer = window.setTimeout(() => { n.style.display = 'none'; }, 3500);
 };
 scene.onTalk = (card) => {
+  document.body.classList.toggle('talking', !!card);
   if (!card) { talk.style.display = 'none'; return; }
   const opt = (o: { id: string; label: string; kind: string; enabled: boolean; note?: string }): string =>
     `<button class="${o.kind === 'danger' ? 'bad' : ''}" data-opt="${esc(o.id)}" ${o.enabled ? '' : 'disabled'}>${esc(o.label)}${o.note ? `<small>${esc(o.note)}</small>` : ''}</button>`;
@@ -187,6 +188,7 @@ const drawAi = (): void => {
     <p>${esc(scene.llm.detail)}</p>
     ${st === 'ready' || st === 'loading' ? '' : `<p>Everything runs on this device, with no internet. Choose the model file <b>qwen3-0.6b-q4_k_m.gguf</b> (0.4 GB) once; it is saved here afterward.</p>
     <label class="btn" for="aifile">Choose model file</label><input id="aifile" type="file" accept=".gguf" style="display:none">`}
+    ${scene.llm.stats.loadSecs ? `<p style="font-size:12px">Loaded in ${scene.llm.stats.loadSecs.toFixed(0)} s · last reply ${scene.llm.stats.lastSecs.toFixed(1)} s · ${scene.llm.stats.replies} used, ${scene.llm.stats.rejected} fell back to built-in lines, ${scene.llm.stats.timeouts} timeouts</p>` : ''}
     ${st === 'slow' ? '<p>You can still play: people just use the built-in lines.</p>' : ''}`;
 };
 scene.llm.onChange = drawAi;

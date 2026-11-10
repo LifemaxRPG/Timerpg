@@ -18,6 +18,8 @@ interface Town { ox: number; oy: number; layout: TownLayout; world: World }
 export class Npcs {
   /** Game time of day, 0..24. */
   hour = 7.5;
+  /** Whole game days since the game started (gossip spreads with it). */
+  days = 0;
   private sprites = new Map<string, Phaser.GameObjects.Sprite>();
   private cast: Resident[] = [];
   private castFor: TownLayout | null = null;
@@ -70,7 +72,9 @@ export class Npcs {
 
   /** Move everyone to where the clock says they are. `town` is the town the player is in (or null). */
   update(dt: number, town: Town | null, playerX: number, playerY: number): void {
-    this.hour = (this.hour + (dt / 1000) * HOURS_PER_SECOND) % 24;
+    const next = this.hour + (dt / 1000) * HOURS_PER_SECOND;
+    if (next >= 24) this.days++;
+    this.hour = next % 24;
     if (!town) { this.clear(); return; }
     if (this.castFor !== town.layout) {
       this.clear();

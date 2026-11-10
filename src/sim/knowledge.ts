@@ -62,12 +62,16 @@ export function secretsOf(w: World, p: Person): Secret[] {
 }
 
 const holdersCache = new WeakMap<World, Map<string, Id[]>>();
+/** A secret reaches one more person for each game day that passes, up to this many. */
+export const MAX_SPREAD = 8;
 
 /** Everyone who knows this secret: the subject, their spouse, and a few confidants. */
-export function holdersOf(w: World, s: Secret): Id[] {
+export function holdersOf(w: World, s: Secret, days = 0): Id[] {
+  const spread = Math.min(MAX_SPREAD, Math.max(0, Math.floor(days)));
   let m = holdersCache.get(w);
   if (!m) { m = new Map(); holdersCache.set(w, m); }
-  const hit = m.get(s.id);
+  const ck = `${s.id}#${spread}`;
+  const hit = m.get(ck);
   if (hit) return hit;
   const subject = w.people[s.about]!;
   const holders = new Set<Id>([s.about]);
@@ -77,18 +81,18 @@ export function holdersOf(w: World, s: Secret): Id[] {
     .map((q) => ({ id: q.id, a: affinity(w, s.about, q.id) + rand(w.seed, 'confide', s.id, q.id) * 0.4 }))
     .sort((x, y) => y.a - x.a || (x.id < y.id ? -1 : 1));
   const n = 1 + Math.floor(subject.traits.charm * 3) + (s.weight < 0.5 ? 2 : 0); // petty secrets leak
-  for (const f of friends.slice(0, n)) holders.add(f.id);
+  for (const f of friends.slice(0, n + spread)) holders.add(f.id);
   const result = [...holders];
-  m.set(s.id, result);
+  m.set(ck, result);
   return result;
 }
 
 /** Secrets about OTHER people that this person knows. */
-export function heardBy(w: World, p: Person): Secret[] {
+export function heardBy(w: World, p: Person, days = 0): Secret[] {
   return adults(w)
     .filter((q) => q.id !== p.id)
     .flatMap((q) => secretsOf(w, q))
-    .filter((s) => holdersOf(w, s).includes(p.id))
+    .filter((s) => holdersOf(w, s, days).includes(p.id))
     .sort((a, b) => (a.id < b.id ? -1 : 1));
 }
 

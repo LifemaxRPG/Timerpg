@@ -18,6 +18,8 @@ export interface TalkCtx {
   wanted: boolean;
   /** What the player has already learned (their notebook). */
   journal: JournalEntry[];
+  /** Game days that have passed: gossip spreads a little each day. */
+  days?: number;
 }
 
 export interface JournalEntry {
@@ -73,7 +75,7 @@ export function optionsFor(c: TalkCtx): Option[] {
 /** Ask what they have heard (about others) or what they are hiding (about themselves). */
 export function ask(c: TalkCtx, intent: 'rumors' | 'secret'): { line: string; entry: JournalEntry | null } {
   const own = intent === 'secret';
-  const pool = own ? secretsOf(c.w, c.person) : heardBy(c.w, c.person);
+  const pool = own ? secretsOf(c.w, c.person) : heardBy(c.w, c.person, c.days ?? 0);
   const fresh = pool.filter((sc) => !c.journal.some((j) => j.id === sc.id));
   if (!pool.length) return { line: own ? 'Nothing worth telling. I live a quiet life.' : 'Nothing I\'d repeat. People here keep to themselves.', entry: null };
   if (!fresh.length) return { line: own ? 'You already know everything I\'m willing to say.' : 'That\'s all I\'ve heard, honestly.', entry: null };
