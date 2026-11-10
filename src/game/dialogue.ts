@@ -1,3 +1,4 @@
+import { heardBy, secretsOf, trustNeeded } from '../sim/knowledge';
 import { ageIn, fullName, type Person, type World } from '../sim/types';
 
 // WALK-UP CONVERSATION. What you can say or do to a person depends on how well they know you,
@@ -15,6 +16,19 @@ export interface TalkCtx {
   /** Other people close enough to see what you do right now. */
   witnesses: number;
   wanted: boolean;
+  /** What the player has already learned (their notebook). */
+  journal: JournalEntry[];
+}
+
+export interface JournalEntry {
+  /** Secret id (seed:person:kind). */
+  id: string;
+  about: string;
+  aboutName: string;
+  text: string;
+  /** Who told you and when. */
+  from: string;
+  year: number;
 }
 
 export interface Option {
@@ -42,16 +56,39 @@ export function optionsFor(c: TalkCtx): Option[] {
     { id: 'town', label: `Ask about ${c.townName}`, kind: 'say', enabled: true },
     { id: 'family', label: 'Ask about their family', kind: 'say', enabled: true },
     { id: 'work', label: 'Ask about their work', kind: 'say', enabled: true },
+    { id: 'rumors', label: 'Ask what they\'ve heard around town', kind: 'say', enabled: fam >= 2, ...(fam < 2 ? { note: 'They don\'t know you well enough' } : {}) },
+    { id: 'secret', label: 'Ask if they\'re keeping anything to themselves', kind: 'say', enabled: fam >= 3, ...(fam < 3 ? { note: 'They don\'t trust you yet' } : {}) },
     { id: 'praise', label: 'Say something nice about them around town', kind: 'act', enabled: fam >= 1, ...(fam < 1 ? { note: 'Get to know them first' } : {}) },
     { id: 'gift', label: 'Give a gift ($200)', kind: 'act', enabled: fam >= 1, ...(fam < 1 ? { note: 'Get to know them first' } : {}) },
     { id: 'smear', label: 'Spread a nasty rumor about them', kind: 'danger', enabled: fam >= 2, ...(fam < 2 ? { note: 'You barely know them' } : { note: c.witnesses ? 'People are listening' : 'Nobody is listening' }) },
     { id: 'drastic', label: 'Do something drastic…', kind: 'danger', enabled: fam >= 2, ...(fam < 2 ? { note: 'You barely know them' } : { note: c.witnesses ? `${c.witnesses} ${c.witnesses === 1 ? 'person' : 'people'} could see` : 'No one is around' }) },
   ];
+  // Let slip something you learned: it hurts the person it is about.
+  for (const j of c.journal.filter((e) => e.about !== c.person.id).slice(-3)) {
+    opts.push({ id: `leak:${j.id}`, label: `Let it slip that ${j.aboutName} ${j.text}`, kind: 'danger', enabled: fam >= 2, note: c.witnesses ? 'People are listening' : 'Nobody is listening' });
+  }
   return opts;
 }
 
+/** Ask what they have heard (about others) or what they are hiding (about themselves). */
+export function ask(c: TalkCtx, intent: 'rumors' | 'secret'): { line: string; entry: JournalEntry | null } {
+  const own = intent === 'secret';
+  const pool = own ? secretsOf(c.w, c.person) : heardBy(c.w, c.person);
+  const fresh = pool.filter((sc) => !c.journal.some((j) => j.id === sc.id));
+  if (!pool.length) return { line: own ? 'Nothing worth telling. I live a quiet life.' : 'Nothing I\'d repeat. People here keep to themselves.', entry: null };
+  if (!fresh.length) return { line: own ? 'You already know everything I\'m willing to say.' : 'That\'s all I\'ve heard, honestly.', entry: null };
+  const sc = fresh[0]!;
+  if (c.familiarity < trustNeeded(c.person, sc, own)) {
+    return { line: own ? 'Some things I keep to myself. Not yet.' : 'I hear things, sure. But I don\'t know you well enough to say.', entry: null };
+  }
+  const about = c.w.people[sc.about]!;
+  const name = own ? 'I' : fullName(about);
+  const entry: JournalEntry = { id: sc.id, about: sc.about, aboutName: fullName(about), text: sc.text, from: fullName(c.person), year: c.w.year };
+  return { line: own ? `...Fine. Between us: I ${sc.text.replace(/^is /, 'am ').replace(/^holds /, 'hold ').replace(/^wants /, 'want ').replace(/^dreams /, 'dream ').replace(/^ran /, 'ran ')}. Don\'t make me regret telling you.` : `Keep this quiet, but ${name} ${sc.text}.`, entry };
+}
+
 export const specFor = (id: string): TalkSpec | null =>
-  id === 'praise' ? { kind: 'rumor', amount: 1 } : id === 'smear' ? { kind: 'rumor', amount: -1 } : id === 'gift' ? { kind: 'gift', amount: 200 } : id === 'drastic' ? { kind: 'kill' } : null;
+  id === 'praise' ? { kind: 'rumor', amount: 1 } : id === 'smear' ? { kind: 'rumor', amount: -1 } : id === 'gift' ? { kind: 'gift', amount: 200 } : id === 'drastic' ? { kind: 'kill' } : id.startsWith('leak:') ? { kind: 'rumor', amount: -1 } : null;
 
 /** A line of dialogue for an intent, built only from facts in the simulation. */
 export function narrate(c: TalkCtx, intent: string): string {
@@ -84,6 +121,8 @@ export function narrate(c: TalkCtx, intent: string): string {
         : c.job === 'at school' ? 'I\'m at school.' : `I ${c.job}.`;
     case 'praise': return 'You said what about me? ...Well. That\'s kind of you.';
     case 'gift': return warm ? 'For me? Thank you, truly.' : 'Oh. ...Thank you.';
-    default: return '...';
+    default:
+      if (intent.startsWith('leak:')) return warm ? 'Oh! Is that so? Well... I\'ll keep my ears open.' : 'Hm. I hadn\'t heard that. Interesting.';
+      return '...';
   }
 }

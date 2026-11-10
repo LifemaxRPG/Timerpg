@@ -37,6 +37,12 @@
     #talk summary { cursor: pointer; color: #b58; font-size: 12px; margin-top: 6px; }
     #talk .close, #info .close { cursor: pointer; padding: 0 6px; }
     #talk .hint { color: #9aa3cc; font-size: 12px; margin-top: 6px; }
+    #journal { top: 10px; right: 10px; width: min(320px, calc(100vw - 44px)); max-height: 60vh; overflow: auto; display: none; z-index: 6; }
+    #journal .head { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    #journal .entry { padding: 6px 0; border-top: 1px solid #2f3652; font-size: 13px; }
+    #journal small { display: block; color: #9aa3cc; font-size: 11px; }
+    #journal .close { cursor: pointer; padding: 0 6px; }
+    #journalbtn { position: fixed; top: 66px; right: 10px; z-index: 5; cursor: pointer; }
     #note { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); display: none; max-width: min(520px, 90vw); text-align: center; z-index: 5; }
     #info .hint { color: #9aa3cc; font-size: 12px; margin-top: 6px; }
     #info .result { margin-top: 6px; font-size: 12px; }
@@ -92,6 +98,8 @@
   </div>
   <div id="talk" class="panel"></div>
   <div id="note" class="panel"></div>
+  <div id="journal" class="panel"></div>
+  <button id="journalbtn" class="panel" aria-label="Notebook">📓 Notebook</button>
   <div id="info" class="panel"></div>
   <div id="changes" class="panel"></div>
   <div id="banner"><div class="welcome">Welcome to</div><div class="name"></div><div class="sub"></div></div>

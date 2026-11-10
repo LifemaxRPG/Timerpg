@@ -3,7 +3,7 @@ import { interiorBlocked, planInterior, type Entrance, type InteriorConnection }
 import { InteriorView } from './InteriorView';
 import Phaser from 'phaser';
 import { Npcs, HOURS_PER_SECOND } from './Npcs';
-import { narrate, optionsFor, specFor, type Option, type TalkCtx } from './dialogue';
+import { ask, narrate, optionsFor, specFor, type JournalEntry, type Option, type TalkCtx } from './dialogue';
 import { fullName, type Intervention, type World } from '../sim';
 import type { Inspection } from '../town/inspect';
 import type { Rect, Road } from '../town/kinds';
@@ -89,6 +89,10 @@ export class WorldScene extends Phaser.Scene {
   /** Game hours of "wanted" left: while it lasts, nobody will talk to you. */
   wantedHours = 0;
   private familiar: Record<string, number> = (() => { try { return JSON.parse(localStorage.getItem('timerpg.familiar') ?? '{}'); } catch { return {}; } })();
+  /** What you have learned from people (the notebook), kept in the browser. */
+  journal: JournalEntry[] = (() => { try { return JSON.parse(localStorage.getItem('timerpg.journal') ?? '[]'); } catch { return []; } })();
+  onJournal: (entries: JournalEntry[]) => void = () => {};
+  private saveJournal(): void { try { localStorage.setItem('timerpg.journal', JSON.stringify(this.journal)); } catch { /* private mode */ } this.onJournal(this.journal); }
   private talking: { townId: string; id: string } | null = null;
   /** A conversation opened (card) or closed (null). */
   onTalk: (card: TalkCard | null) => void = () => {};
@@ -380,7 +384,7 @@ export class WorldScene extends Phaser.Scene {
     const at = this.npcs.positionOf(id);
     return {
       w, person, job: r.job, townName: l.site.name, familiarity: this.familiar[`${l.site.id}:${id}`] ?? 0,
-      witnesses: at ? this.npcs.countNear(at.x, at.y, 260, id) : 0, wanted: this.wantedHours > 0,
+      witnesses: at ? this.npcs.countNear(at.x, at.y, 260, id) : 0, wanted: this.wantedHours > 0, journal: this.journal,
     };
   }
 
@@ -415,6 +419,12 @@ export class WorldScene extends Phaser.Scene {
     const opt = optionsFor(c).find((o) => o.id === optionId);
     if (!opt || !opt.enabled) return;
     const key = `${this.views.get(t.townId)!.site.id}:${t.id}`;
+    if (optionId === 'rumors' || optionId === 'secret') {
+      const got = ask(c, optionId);
+      if (got.entry && !this.journal.some((j) => j.id === got.entry!.id)) { this.journal.push(got.entry); this.saveJournal(); this.onNote(`Notebook: ${got.entry.aboutName} ${got.entry.text}`); }
+      this.onTalk(this.card(this.talkCtx(t.townId, t.id) ?? c, got.line));
+      return;
+    }
     const spec = specFor(optionId);
     if (!spec) {
       this.familiar[key] = (this.familiar[key] ?? 0) + (optionId === 'chat' ? 1 : 0);
@@ -423,7 +433,8 @@ export class WorldScene extends Phaser.Scene {
       return;
     }
     const seen = c.witnesses;
-    const r = await this.act(t.townId, spec.kind === 'kill' ? { kind: 'kill', targetId: t.id } : { kind: spec.kind, targetId: t.id, amount: spec.amount });
+    const target = optionId.startsWith('leak:') ? this.journal.find((j) => j.id === optionId.slice(5))?.about ?? t.id : t.id;
+    const r = await this.act(t.townId, spec.kind === 'kill' ? { kind: 'kill', targetId: target } : { kind: spec.kind, targetId: target, amount: spec.amount });
     let line = r.message;
     if (r.ok && (spec.kind === 'kill' || (spec.kind === 'rumor' && spec.amount < 0)) && seen > 0) {
       // Caught: witnesses report you; for a while nobody will talk to you.

@@ -166,3 +166,14 @@ talk.addEventListener('click', (e) => {
   if (b) void scene.talkChoose(b.dataset.opt!);
 });
 if (location.search.includes('debug')) (window as unknown as { __scene: unknown }).__scene = scene;
+
+// ---------- the notebook: what people have told you ----------
+const jbtn = $('journalbtn'), jbox = $('journal');
+const drawJournal = (entries: { aboutName: string; text: string; from: string; year: number }[]): void => {
+  jbox.innerHTML = `<div class="head"><b>Notebook</b><span class="close" id="closejournal" role="button" aria-label="Close">×</span></div>` +
+    (entries.length ? entries.map((e) => `<div class="entry"><b>${esc(e.aboutName)}</b> ${esc(e.text)}<small>told by ${esc(e.from)}, ${e.year}</small></div>`).join('') : '<div class="hint">Nothing yet. Get to know people and ask what they\'ve heard.</div>');
+};
+scene.onJournal = drawJournal;
+drawJournal(scene.journal);
+jbtn.addEventListener('click', () => { jbox.style.display = jbox.style.display === 'block' ? 'none' : 'block'; });
+jbox.addEventListener('click', (e) => { if ((e.target as HTMLElement).id === 'closejournal') jbox.style.display = 'none'; });

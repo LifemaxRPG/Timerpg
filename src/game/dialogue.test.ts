@@ -1,15 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { runTimeline, worldAt, isAlive } from '../sim';
-import { narrate, optionsFor, specFor, type TalkCtx } from './dialogue';
+import { ask, narrate, optionsFor, specFor, type TalkCtx } from './dialogue';
 
 const w = worldAt(runTimeline({ seed: 'alpha', endYear: 1990 }), 1990);
 const person = Object.values(w.people).find((p) => isAlive(p))!;
-const ctx = (o: Partial<TalkCtx> = {}): TalkCtx => ({ w, person, job: 'works at Bakery', townName: 'Testville', familiarity: 0, witnesses: 0, wanted: false, ...o });
+const ctx = (o: Partial<TalkCtx> = {}): TalkCtx => ({ w, person, job: 'works at Bakery', townName: 'Testville', familiarity: 0, witnesses: 0, wanted: false, journal: [], ...o });
 
 describe('talking to people', () => {
   it('strangers only chat: nice/gift/rumor/drastic are gated by familiarity', () => {
     const on = (c: TalkCtx) => optionsFor(c).filter((o) => o.enabled).map((o) => o.id);
     expect(on(ctx())).toEqual(['chat', 'town', 'family', 'work']);
+    expect(on(ctx({ familiarity: 2 }))).toContain('rumors');
+    expect(on(ctx({ familiarity: 2 }))).not.toContain('secret');
     expect(on(ctx({ familiarity: 1 }))).toContain('gift');
     expect(on(ctx({ familiarity: 1 }))).not.toContain('drastic');
     expect(on(ctx({ familiarity: 2 }))).toContain('drastic');
@@ -27,5 +29,21 @@ describe('talking to people', () => {
     expect(specFor('smear')).toEqual({ kind: 'rumor', amount: -1 });
     expect(specFor('chat')).toBeNull();
     for (const i of ['greet', 'chat', 'town', 'family', 'work', 'praise', 'gift']) expect(narrate(ctx(), i).length).toBeGreaterThan(3);
+  });
+
+  it('trust gates secrets; once trusted, someone with something to say tells you and it goes in the notebook', () => {
+    const people = Object.values(w.people).filter(isAlive);
+    const teller = people.find((p) => ask(ctx({ person: p, familiarity: 9 }), 'rumors').entry);
+    expect(teller).toBeDefined();
+    const told = ask(ctx({ person: teller!, familiarity: 9 }), 'rumors');
+    expect(told.entry!.about).not.toBe(teller!.id);
+    expect(ask(ctx({ person: teller!, familiarity: 2 }), 'rumors').entry === null || ask(ctx({ person: teller!, familiarity: 2 }), 'rumors').entry!.id === told.entry!.id).toBe(true);
+    expect(ask(ctx({ person: teller!, familiarity: 9, journal: [told.entry!] }), 'rumors').entry?.id).not.toBe(told.entry!.id);
+  });
+  it('lets you leak what you learned', () => {
+    const j = { id: 'a:b:debt', about: 'p:other', aboutName: 'Some One', text: 'is in debt', from: 'X', year: 1990 };
+    const o = optionsFor(ctx({ familiarity: 2, journal: [j] })).find((x) => x.id === 'leak:a:b:debt')!;
+    expect(o.kind).toBe('danger');
+    expect(specFor('leak:a:b:debt')).toEqual({ kind: 'rumor', amount: -1 });
   });
 });
