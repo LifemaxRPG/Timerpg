@@ -26,3 +26,14 @@ To make a shareable APK: Android Studio -> Build -> Build Bundle(s) / APK(s) -> 
   the year slider and its arrows are the time machine.
 - Not yet verified on a real device: this was set up and tested in a desktop browser with a phone-sized touch screen.
   Performance on low-end phones (many sprites on screen) is the main thing to watch.
+
+## Building the APK without Android Studio (what was done in the cloud sandbox)
+```
+mkdir -p /opt/android-sdk/cmdline-tools   # unzip Google's commandlinetools-linux zip into .../latest
+sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+echo "sdk.dir=/opt/android-sdk" > android/local.properties
+npm run android:sync && (cd android && ./gradlew assembleDebug)   # -> android/app/build/outputs/apk/debug/app-debug.apk
+```
+If Maven Central answers 429, point Gradle at Google's mirror `https://maven-central.storage-download.googleapis.com/maven2/`
+in `~/.gradle/init.gradle`. The debug APK is signed with the debug key and installs by sideloading.
+The dialogue AI model (0.4 GB) is not inside the APK: open **🧠 AI** in the app and choose the .gguf once (see `docs/AI.md`).
