@@ -236,3 +236,14 @@ scene.onDiscover = (title, text) => {
   d.style.display = 'block';
   $('discoverok').addEventListener('click', () => { d.style.display = 'none'; });
 };
+
+// ---------- the Gazette: what has happened in this town, up to the year on the slider ----------
+const gz = $('gazette');
+const drawGazette = (): void => {
+  const items = scene.gazette();
+  gz.innerHTML = `<div class="head"><b>📰 The Gazette</b><span class="close" id="closegz" role="button" aria-label="Close">×</span></div>` +
+    (items.length ? items.map((i) => `<div class="item"><small>${i.year} · ${esc(i.category)}</small><b>${esc(i.headline)}</b>${esc(i.body)}</div>`).join('') : '<div class="hint">Nothing reported yet.</div>');
+};
+$('gazettebtn').addEventListener('click', () => { if (gz.style.display === 'block') gz.style.display = 'none'; else { drawGazette(); gz.style.display = 'block'; } });
+gz.addEventListener('click', (e) => { if ((e.target as HTMLElement).id === 'closegz') gz.style.display = 'none'; });
+slider.addEventListener('input', () => { if (gz.style.display === 'block') window.setTimeout(drawGazette, 400); });

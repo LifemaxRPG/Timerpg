@@ -20,6 +20,7 @@ import { pickVariant, type Manifest } from './art';
 import { Generator } from './generator';
 import { TILE, TownView, Z } from './TownView';
 
+const hashStr = (str: string): number => { let h = 2166136261; for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 16777619); return (h >>> 0) / 4294967296; };
 const DIRS = ['right', 'up', 'left', 'down'] as const;
 /** A town starts loading when the player is within this many tiles of its center (sideways / up-down)... */
 const LOAD_DX = 290, LOAD_DY = 250;
@@ -416,8 +417,23 @@ export class WorldScene extends Phaser.Scene {
     const at = this.npcs.positionOf(id);
     return {
       w, person, job: r.job, townName: l.site.name, familiarity: this.familiar[`${l.site.id}:${id}`] ?? 0,
-      witnesses: at ? this.npcs.countNear(at.x, at.y, 260, id) : 0, wanted: this.wantedHours > 0, journal: this.journal, days: this.npcs.days, legend: this.legendCtx(l.site.id),
+      witnesses: at ? this.npcs.countNear(at.x, at.y, 260, id) : 0, wanted: this.wantedHours > 0, journal: this.journal, days: this.npcs.days, legend: this.legendCtx(l.site.id), news: this.newsFor(w, id),
     };
+  }
+
+  /** A story from the last three years that this person could pass on (not one only about them). */
+  private newsFor(w: World, personId: string): TalkCtx['news'] {
+    const recent = (w.stories ?? []).filter((x) => x.year >= w.year - 3 && !(x.people.length === 1 && x.people[0] === personId));
+    if (!recent.length) return null;
+    let best = recent[0]!, bv = -1;
+    for (const x of recent) { const k = hashStr(`${personId}|${x.id}`); if (k > bv) { bv = k; best = x; } }
+    return { headline: best.headline, body: best.body, about: best.people };
+  }
+
+  /** The town's Gazette for the year on the slider: newest first. */
+  gazette(): { year: number; headline: string; body: string; category: string }[] {
+    const w = this.currentId ? this.views.get(this.currentId)?.view.world() : null;
+    return (w?.stories ?? []).slice(-60).reverse().map((x) => ({ year: x.year, headline: x.headline, body: x.body, category: x.category }));
   }
 
   private legendCtx(townId: string): NonNullable<TalkCtx['legend']> | undefined {
@@ -493,6 +509,10 @@ export class WorldScene extends Phaser.Scene {
         }
         this.speak(t.townId, c, 'legend', narrate(c, 'legend'), '', [`The legend you are telling: ${lore.legend}`], [lore.targetName], lore.originId);
       } else this.speak(t.townId, c, 'legend', narrate(c, 'legend'));
+      return;
+    }
+    if (optionId === 'news' && c.news) {
+      this.speak(t.townId, c, 'news', narrate(c, 'news'), '', [`The news you are passing on: ${c.news.headline}. ${c.news.body}`], [], c.news.headline);
       return;
     }
     const spec = specFor(optionId);

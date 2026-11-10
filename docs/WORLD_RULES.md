@@ -26,3 +26,24 @@ Tests (`archetype.test.ts`) check the effects on real histories, not just the la
 - Every legend is tied to a **year** (1952-1993). Before it, the old resident has nothing to tell, and the spot
   shows "nothing here yet": time travel decides when a legend exists.
 - Legends are told in a town and found in the next one, so they chain across the endless world.
+
+## The scenario engine (`src/sim/scenarios.ts`)
+Each year a few stories happen in every town (more in bigger towns). A story is a **template** (about 40: courtship,
+affair rumors, fence disputes, shop rivalries, fires, robberies, embezzlement, inventors, lotteries, layoffs, thefts,
+missing people, murder mysteries, mayor scandals, festivals, anniversaries, storms, floods, blights, blizzards, mine
+accidents, epidemics, car crashes, benefit suppers, returning natives, mysterious strangers, inheritance fights,
+reunions, strange lights ...) whose **roles are filled by the town's real people and shops**, whose **outcome is
+rolled**, whose **wording** is assembled from phrase pools that change with the era, and whose **effects are real**:
+reputations move, money changes hands, bonds break or form, shops lose capital, people die, newcomers arrive.
+- **Open threads and sequels:** some stories leave a thread open (a missing person, an unsolved murder, a feud, an
+  affair, a stranger's past, an estate fight); years later a follow-up story resolves it one way or another.
+- **Fits the town:** the weights depend on the town type (mine accidents only in mining towns, floods in water
+  towns), the year (polio in the 1950s, a pandemic in 2020, layoffs after 1975) and the population.
+- **No loops:** a kind of story cannot recur within 4 years, and an exact repeat is marked "Again: ...".
+- **Causal ripples:** who plays a role is the eligible person with the highest keyed hash, so removing someone in
+  the past changes only the stories they were in.
+- **How many:** `scenarioSpace(world)` counts the distinct stories the library can tell in a town (roles filled from
+  the real population x outcomes x phrasings): over a million per town, before multiplying by the 76 years and by
+  every town in the endless world. A town only lives through a few hundred of them.
+- **Where you see them:** the 📰 **Gazette** button lists the town's stories up to the year on the slider, and
+  people can pass news on when you ask what is in the news (the on-device AI can voice it).

@@ -33,6 +33,8 @@ interface S {
   die: (p: Person, cause: 'natural' | 'murdered') => void;
   /** Keyed roll 0..1 for this story. */
   r: (...k: (string | number)[]) => number;
+  /** Everyone alive (sorted by id, computed once per year). */
+  all: Person[];
   adults: Person[];
   shops: Business[];
 }
@@ -272,9 +274,9 @@ const T: Template[] = [
     },
   },
   {
-    id: 'vandalism', cat: 'crime', roles: ['person'], variants: 4, weight: (s) => (s.w && living(s.w).some((p) => ageIn(p, s.y) >= 13 && ageIn(p, s.y) < 18) ? 0.8 : 0),
+    id: 'vandalism', cat: 'crime', roles: ['person'], variants: 4, weight: (s) => (s.all.some((p) => ageIn(p, s.y) >= 13 && ageIn(p, s.y) < 18) ? 0.8 : 0),
     make: (s) => {
-      const k = choose(s, 'k', living(s.w).filter((p) => ageIn(p, s.y) >= 13 && ageIn(p, s.y) < 18));
+      const k = choose(s, 'k', s.all.filter((p) => ageIn(p, s.y) >= 13 && ageIn(p, s.y) < 18));
       if (!k) return null;
       return { headline: v(s, 'h', ['Prank goes too far', 'Town hall not amused', 'Mischief on Main Street', 'The great mailbox mystery']), body: `Someone ${v(s, 'a', ['painted the water tower', 'put a cow on the school roof', 'tipped over every mailbox on Main Street', 'wrote a name on the clock tower'])}. Word is ${k.first} ${k.surname} (${ageIn(k, s.y)}) was in on it.`, people: [k.id], apply: () => rep(k, -0.1) };
     },
@@ -356,9 +358,9 @@ const T: Template[] = [
   },
   // ===== celebration =====
   {
-    id: 'champions', cat: 'celebration', roles: ['person'], variants: 3, weight: (s) => (living(s.w).some((p) => ageIn(p, s.y) >= 14 && ageIn(p, s.y) < 18) ? 0.9 : 0),
+    id: 'champions', cat: 'celebration', roles: ['person'], variants: 3, weight: (s) => (s.all.some((p) => ageIn(p, s.y) >= 14 && ageIn(p, s.y) < 18) ? 0.9 : 0),
     make: (s) => {
-      const k = choose(s, 'k', living(s.w).filter((p) => ageIn(p, s.y) >= 14 && ageIn(p, s.y) < 18));
+      const k = choose(s, 'k', s.all.filter((p) => ageIn(p, s.y) >= 14 && ageIn(p, s.y) < 18));
       if (!k) return null;
       return { headline: v(s, 'h', [`${k.first} ${k.surname} wins the day`, `Local hero: ${k.first} ${k.surname}`, `${k.first} brings home the prize`, `Pride of the town: ${k.surname}`]), body: `${nm(k)} (${ageIn(k, s.y)}) ${v(s, 'a', ['scored the winning run', 'took the state spelling title', 'won the county science fair', 'sank the last-second shot'])}. The town turned out to cheer.`, people: [k.id], apply: () => rep(k, 0.14) };
     },
@@ -392,7 +394,7 @@ const T: Template[] = [
     },
   },
   {
-    id: 'benefit_fund', cat: 'family', roles: ['person'], variants: 3, weight: (s) => (living(s.w).some((p) => p.deathYear === undefined) && Object.values(s.w.people).some((p) => p.deathYear === s.y - 1 && ageIn(p, s.y - 1) >= 25 && ageIn(p, s.y - 1) <= 60 && p.children.length) ? 3 : 0),
+    id: 'benefit_fund', cat: 'family', roles: ['person'], variants: 3, weight: (s) => (s.all.some((p) => p.deathYear === undefined) && Object.values(s.w.people).some((p) => p.deathYear === s.y - 1 && ageIn(p, s.y - 1) >= 25 && ageIn(p, s.y - 1) <= 60 && p.children.length) ? 3 : 0),
     make: (s) => {
       const dead = Object.values(s.w.people).filter((p) => p.deathYear === s.y - 1 && ageIn(p, s.y - 1) >= 25 && ageIn(p, s.y - 1) <= 60 && p.children.length).sort((a, b) => (a.id < b.id ? -1 : 1));
       const d = choose(s, 'd', dead);
@@ -460,7 +462,7 @@ const T: Template[] = [
   {
     id: 'hero_dog', cat: 'uncanny', roles: ['person'], variants: 3, weight: () => 0.5,
     make: (s) => {
-      const a = choose(s, 'a', living(s.w).filter((p) => ageIn(p, s.y) < 14));
+      const a = choose(s, 'a', s.all.filter((p) => ageIn(p, s.y) < 14));
       if (!a) return null;
       return { headline: `${a.first}'s dog saves the day`, body: `${a.first} ${a.surname}'s ${v(s, 'd', ['collie', 'beagle', 'old retriever'])} ${v(s, 'a', ['pulled a child out of the creek', 'barked until help came to a fallen neighbor', 'chased off a thief'])}. The dog is now the most famous resident on the street.`, people: [a.id], apply: () => rep(a, 0.08) };
     },
@@ -512,9 +514,10 @@ const SEQUELS: Sequel[] = [
 export const TEMPLATE_COUNT = T.length;
 export const SEQUEL_COUNT = SEQUELS.length;
 
-function makeS(w: World, y: number, slot: number, die: S['die']): S {
-  const adults = living(w).filter((p) => ageIn(p, y) >= 18);
-  return { w, y, slot, type: archetypeOf(w.seed).id, die, r: (...k) => rand(w.seed, y, 'story', slot, ...k), adults, shops: open(w) };
+function makeS(w: World, y: number, slot: number, die: S['die'], sorted: Person[]): S {
+  const all = sorted.filter(isAlive);
+  const adults = all.filter((p) => ageIn(p, y) >= 18);
+  return { w, y, slot, type: archetypeOf(w.seed).id, die, r: (...k) => rand(w.seed, y, 'story', slot, ...k), all, adults, shops: open(w) };
 }
 
 /** Pick the template for this slot: weighted, by keyed rolls (stable when other things change). */
@@ -536,7 +539,8 @@ function pickTemplate(s: S, used: Set<string>): Template | undefined {
 export function runScenarios(c: Ctx, die: S['die']): Story[] {
   const { w, y } = c;
   const out: Story[] = [];
-  const pop = living(w).length;
+  const sorted = Object.values(w.people).sort((a, b) => (a.id < b.id ? -1 : 1));
+  const pop = sorted.filter(isAlive).length;
   const n = 1 + Math.min(3, Math.floor(pop / 60)) + (rand(w.seed, y, 'story-extra') < 0.4 ? 1 : 0);
   const used = new Set<string>();
   w.stories ??= [];
@@ -547,7 +551,7 @@ export function runScenarios(c: Ctx, die: S['die']): Story[] {
     for (const st of ready) { const k = rand(w.seed, y, 'sequel-pick', st.id); if (k > bv) { bv = k; pick = st; } }
     const q = pick && SEQUELS.find((x) => x.from === pick!.template);
     if (pick && q) {
-      const s = makeS(w, y, 99, die);
+      const s = makeS(w, y, 99, die, sorted);
       const made = q.make(s, pick);
       if (made) {
         pick.open = false;
@@ -558,7 +562,7 @@ export function runScenarios(c: Ctx, die: S['die']): Story[] {
     }
   }
   for (let slot = 0; slot < n; slot++) {
-    const s = makeS(w, y, slot, die);
+    const s = makeS(w, y, slot, die, sorted);
     const t = pickTemplate(s, used);
     if (!t) continue;
     const made = t.make(s);
