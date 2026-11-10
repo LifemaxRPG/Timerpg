@@ -36,7 +36,9 @@ describe('time-traveler verbs', () => {
         seed, endYear: 1980,
         interventions: [{ kind: 'rumor', year: 1979, targetId: mayor, amount: -1 }],
       });
-      expect(worldAt(alt, 1979).people[mayor]!.reputation).toBe(-1);
+      // town stories in the same year may move it a little (a ribbon-cutting, a scandal), but the smear dominates
+      expect(worldAt(alt, 1979).people[mayor]!.reputation).toBeLessThan(-0.5);
+      expect(worldAt(alt, 1979).people[mayor]!.reputation).toBeLessThan(worldAt(base, 1979).people[mayor]!.reputation);
       if (worldAt(alt, 1980).mayor !== worldAt(base, 1980).mayor) flipped++;
     }
     expect(flipped).toBeGreaterThan(0);

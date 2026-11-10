@@ -77,3 +77,6 @@ export function pickShop(a: Archetype, kinds: readonly string[], r: number): str
   for (let i = 0; i < kinds.length; i++) { t -= weights[i]!; if (t < 0) return kinds[i]!; }
   return kinds[kinds.length - 1]!;
 }
+
+/** The year the town was first settled (well before the game's 1950 start). */
+export const foundedOf = (seed: string): number => 1830 + Math.floor(rand(seed, 'town-founded') * 100);

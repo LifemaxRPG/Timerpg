@@ -35,6 +35,24 @@ export interface Business {
   capital: number;
 }
 
+/** One thing that happened in town, as the Gazette reports it (see scenarios.ts). */
+export type StoryCategory = 'romance' | 'feud' | 'business' | 'crime' | 'civic' | 'nature' | 'celebration' | 'tragedy' | 'arrival' | 'family' | 'uncanny';
+export interface Story {
+  id: string;
+  year: number;
+  template: string;
+  category: StoryCategory;
+  headline: string;
+  body: string;
+  /** The people it is about (first = the main one). */
+  people: Id[];
+  business?: Id;
+  /** A thread that a later story can resolve (a missing person, an unsolved crime, a feud). */
+  open?: boolean;
+  /** The id of the earlier story this one follows up. */
+  sequelOf?: string;
+}
+
 export interface World {
   seed: string;
   year: number;
@@ -43,6 +61,8 @@ export interface World {
   mayor?: Id;
   /** Physical town history, advanced with the simulation, independent of viewing order. */
   settlement?: Settlement;
+  /** Everything the Gazette has reported so far, oldest first. */
+  stories?: Story[];
   /** Deliberate changes to how much two people like each other (see social.ts). Key = pairKey. */
   bonds: Record<string, number>;
 }

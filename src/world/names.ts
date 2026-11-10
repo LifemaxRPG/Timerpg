@@ -1,4 +1,4 @@
-import { archetypeOf } from '../sim/archetype';
+import { archetypeOf, foundedOf } from '../sim/archetype';
 import { pick, rand, rngFor } from '../sim/rng';
 
 // Town names, pure in the town's seed: "Maplefield", "Cedar Falls", "Port Willow", "Mount Amber".
@@ -27,4 +27,4 @@ export function townName(seed: string): string {
 }
 
 /** The year the town was first settled (well before the game's 1950 start). */
-export const townFounded = (seed: string): number => 1830 + Math.floor(rand(seed, 'town-founded') * 100);
+export const townFounded = foundedOf;

@@ -1,5 +1,6 @@
 import { advanceSettlement } from '../town/properties';
 import { archetypeOf, pickShop } from './archetype';
+import { runScenarios } from './scenarios';
 import { BUSINESS_KINDS } from './names';
 import { pick, rand, rngFor } from './rng';
 import {
@@ -272,6 +273,7 @@ function step(c: Ctx, interventions: Intervention[]): void {
     if (rand(c.w.seed, c.y, 'death', p.id) < deathChance(ageIn(p, c.y))) die(c, p, 'natural');
   }
   economy(c);
+  runScenarios(c, (p, cause) => die(c, p, cause));
   marriages(c);
   births(c);
   immigration(c);
