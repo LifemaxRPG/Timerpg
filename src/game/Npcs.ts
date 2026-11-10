@@ -7,6 +7,8 @@ import { TILE } from './TownView';
 const COLS = 56;
 const DIRS = ['right', 'up', 'left', 'down'] as const;
 /** Game hours per real second: a full day lasts 8 real minutes. */
+/** At most this many people are drawn at once (keeps phones smooth and streets uncluttered). */
+const MAX_VISIBLE = 26;
 export const HOURS_PER_SECOND = 24 / 480;
 
 interface Town { ox: number; oy: number; layout: TownLayout; world: World }
@@ -17,7 +19,7 @@ interface Town { ox: number; oy: number; layout: TownLayout; world: World }
  */
 export class Npcs {
   /** Game time of day, 0..24. */
-  hour = 7.5;
+  hour = 10;
   /** Whole game days since the game started (gossip spreads with it). */
   days = 0;
   private sprites = new Map<string, Phaser.GameObjects.Sprite>();
@@ -81,27 +83,41 @@ export class Npcs {
       this.cast = buildResidents(town.layout, town.world);
       this.castFor = town.layout;
     }
-    const seen = new Set<string>();
+    // Who is on the street right now (and where), nearest to the player first; only the nearest are drawn.
+    const out: { r: Resident; x: number; y: number; moving: boolean; dir: 0 | 1 | 2 | 3 }[] = [];
     for (const r of this.cast) {
       const pose = dayAt(r, this.hour).pose;
       if (!pose) continue;
-      const x = town.ox + pose.x * TILE, y = town.oy + pose.y * TILE;
-      if (Math.abs(x - playerX) > 900 || Math.abs(y - playerY) > 700) continue; // off screen: don't bother
+      // A little sideways spread, so people do not walk in a single line down the sidewalk.
+      const x = town.ox + (pose.x + (r.look - 0.5) * 0.5) * TILE, y = town.oy + (pose.y + (((r.look * 7) % 1) - 0.5) * 0.3) * TILE;
+      if (Math.abs(x - playerX) > 900 || Math.abs(y - playerY) > 700) continue;
+      out.push({ r, x, y, moving: pose.moving, dir: pose.dir });
+    }
+    out.sort((a, b) => Math.hypot(a.x - playerX, a.y - playerY) - Math.hypot(b.x - playerX, b.y - playerY));
+    const seen = new Set<string>();
+    for (const o of out.slice(0, MAX_VISIBLE)) {
+      const { r } = o;
       seen.add(r.id);
       let s = this.sprites.get(r.id);
       if (!s) {
         const key = this.sheets[Math.floor(r.look * this.sheets.length)]!;
         this.ensureAnims(key);
-        s = this.scene.add.sprite(x, y, key, COLS + 18).setOrigin(0.5, 1);
+        s = this.scene.add.sprite(o.x, o.y, key, COLS + 18).setOrigin(0.5, 1).setAlpha(0);
         s.setData('key', key);
         this.sprites.set(r.id, s);
+        this.scene.tweens.add({ targets: s, alpha: 1, duration: 450 });
       }
       const key = s.getData('key') as string;
       if (this.held.has(r.id)) { s.play(`${key}-idle-down`, true); continue; }
-      s.play(`${key}-${pose.moving ? 'walk' : 'idle'}-${DIRS[pose.dir]}`, true);
-      s.setPosition(x, y).setDepth(y);
+      s.play(`${key}-${o.moving ? 'walk' : 'idle'}-${DIRS[o.dir]}`, true);
+      s.setPosition(o.x, o.y).setDepth(o.y);
     }
-    for (const [id, s] of this.sprites) if (!seen.has(id)) { s.destroy(); this.sprites.delete(id); }
+    // Anyone who went indoors (or out of range) fades away instead of popping out of existence.
+    for (const [id, s] of this.sprites) {
+      if (seen.has(id)) continue;
+      this.sprites.delete(id);
+      this.scene.tweens.add({ targets: s, alpha: 0, duration: 350, onComplete: () => s.destroy() });
+    }
   }
 
   clear(): void {

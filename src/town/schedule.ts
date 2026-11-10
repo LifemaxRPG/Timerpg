@@ -93,7 +93,6 @@ export function buildResidents(layout: TownLayout, w: World): Resident[] {
   const shops = layout.lots.filter((l) => l.kind === 'shop' && l.vacantSince === undefined);
   const shopSpot = shops.map((s) => ({ lot: s, tile: doorstep(ok, s) })).filter((s): s is { lot: typeof s.lot; tile: Tile } => s.tile !== null);
   const plazaR = layout.plan.plaza;
-  const plazaTile: Tile = { x: Math.floor(plazaR.x + plazaR.w / 2), y: plazaR.y + plazaR.h - 2 };
   const school = layout.landmarks.find((l) => /school/i.test(l.id) || /school/i.test(l.name));
   const schoolTile = school ? doorstep(ok, school) : null;
   const jobOf = new Map<Id, { tile: Tile; job: string }>();
@@ -109,19 +108,23 @@ export function buildResidents(layout: TownLayout, w: World): Resident[] {
     const age = ageIn(p, w.year);
     if (age < 5) continue; // toddlers stay indoors
     const R = (...k: (string | number)[]): number => rand(w.seed, 'day', id, ...k);
+    // Each person has their own spot in the plaza (not everyone on one tile).
+    const mySpot: Tile = { x: plazaR.x + 1 + Math.floor(R('px') * Math.max(1, plazaR.w - 2)), y: plazaR.y + 1 + Math.floor(R('py') * Math.max(1, plazaR.h - 2)) };
     let work: { tile: Tile; job: string } | undefined = jobOf.get(id);
     if (!work && age >= 18 && age < 66 && shopSpot.length) {
       const s = shopSpot[Math.floor(R('job') * shopSpot.length)]!;
       work = { tile: s.tile, job: `works at ${w.businesses[s.lot.refId]!.name}` };
     }
-    if (!work && age < 18) work = { tile: schoolTile ?? plazaTile, job: schoolTile ? 'at school' : 'out about town' };
-    if (!work) work = { tile: plazaTile, job: 'retired' };
+    // Not everyone commutes: some work at home or keep to the house.
+    if (age >= 18 && age < 66 && !jobOf.has(id) && R('homebody') < 0.25) work = { tile: home, job: 'works from home' };
+    if (!work && age < 18) work = { tile: schoolTile ?? mySpot, job: schoolTile ? 'at school' : 'out about town' };
+    if (!work) work = { tile: mySpot, job: 'retired' };
     out.push({
       id, name: fullName(p), age, sex: p.sex, home, work: work.tile, job: work.job,
-      evening: plazaTile,
+      evening: mySpot,
       toWork: findPath(ok, home, work.tile, width, height),
-      toPlaza: findPath(ok, home, plazaTile, width, height),
-      leave: 7 + R('leave') * 1.2,
+      toPlaza: findPath(ok, home, mySpot, width, height),
+      leave: 6.3 + R('leave') * 3.2,
       strolls: R('stroll') < 0.35,
       look: R('look'),
     });
@@ -158,7 +161,7 @@ const pathLength = (path: Tile[]): number => {
 export function dayAt(r: Resident, hour: number): { activity: Activity; pose: Pose | null } {
   const walkH = (path: Tile[]): number => pathLength(path) / WALK_TILES_PER_HOUR;
   const out = walkH(r.toWork), leave = r.leave, arrive = leave + out;
-  const workEnd = r.age < 18 ? 15.5 : r.age >= 66 ? 12 : 17 + (r.look * 1.5);
+  const workEnd = r.age < 18 ? 15 + r.look * 1.2 : r.age >= 66 ? 11.5 + r.look * 2 : 16 + r.look * 3;
   if (hour >= leave && hour < arrive) return { activity: 'commute', pose: along(r.toWork, (hour - leave) * WALK_TILES_PER_HOUR, false) };
   if (hour >= arrive && hour < workEnd) {
     // Retired people sit in the plaza instead of going indoors.

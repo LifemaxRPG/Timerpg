@@ -176,12 +176,6 @@ export class WorldScene extends Phaser.Scene {
   create(): void {
     this.gen = new Generator();
     this.police = new Police(this, (this.manifest.characters ?? [])[7]?.key ?? 'char_01');
-    // While the model writes a reply to someone you are talking to, the world pauses: the CPU is
-    // better spent on the model (about ten times faster than with the game rendering alongside).
-    this.llm.onBusy = (busy) => {
-      if (busy && this.talking) this.game.loop.sleep();
-      else this.game.loop.wake();
-    };
     this.npcs = new Npcs(this, (this.manifest.characters ?? []).map((c) => c.key));
     this.scale.on('resize', () => { if (this.room) this.fitInterior(); });
     this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,ESC') as Record<string, Phaser.Input.Keyboard.Key>;
@@ -471,12 +465,11 @@ export class WorldScene extends Phaser.Scene {
     this.talking = { townId, id };
     this.npcs.held.add(id);
     this.onTalk(this.card(c, narrate(c, 'greet')));
-    if (this.llm.state === 'ready') this.speak(townId, c, 'greet', narrate(c, 'greet'));
-    else if (this.llm.state === 'off') void this.llm.load();
+    // The greeting is instant (built-in); the model is kept free for the question the player actually asks.
+    if (this.llm.state === 'off') void this.llm.load();
   }
 
   closeTalk(): void {
-    this.game.loop.wake();
     if (this.talking) this.npcs.held.delete(this.talking.id);
     this.talking = null;
     this.onTalk(null);

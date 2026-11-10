@@ -194,12 +194,15 @@ const drawAi = (): void => {
     ${st === 'ready' || st === 'loading' ? '' : `<p>Everything runs on this device, with no internet. Choose the model file <b>qwen3-0.6b-q4_k_m.gguf</b> (0.4 GB) once; it is saved here afterward.</p>
     <label class="btn" for="aifile">Choose model file</label><input id="aifile" type="file" accept=".gguf" style="display:none">`}
     ${scene.llm.stats.loadSecs ? `<p style="font-size:12px">Loaded in ${scene.llm.stats.loadSecs.toFixed(0)} s · last reply ${scene.llm.stats.lastSecs.toFixed(1)} s · ${scene.llm.stats.replies} used, ${scene.llm.stats.rejected} fell back to built-in lines, ${scene.llm.stats.timeouts} timeouts</p>` : ''}
+    ${scene.llm.stats.benchSecs ? `<p style="font-size:12px">Speed test: ${scene.llm.stats.benchSecs.toFixed(1)} s for ${scene.llm.stats.benchTokens} words</p>` : ''}
+    ${st === 'ready' ? '<p><button id="aioff" class="btn">Use built-in lines instead</button></p>' : ''}
+    <pre style="font-size:10.5px;white-space:pre-wrap;color:#9aa3cc;margin:6px 0 0;max-height:150px;overflow:auto">${esc(scene.llm.diag.join('\n'))}</pre>
     ${st === 'slow' ? '<p>You can still play: people just use the built-in lines.</p>' : ''}`;
 };
 scene.llm.onChange = drawAi;
 drawAi();
 aibtn.addEventListener('click', () => { aibox.style.display = aibox.style.display === 'block' ? 'none' : 'block'; });
-aibox.addEventListener('click', (e) => { if ((e.target as HTMLElement).id === 'closeai') aibox.style.display = 'none'; });
+aibox.addEventListener('click', (e) => { const id = (e.target as HTMLElement).id; if (id === 'closeai') aibox.style.display = 'none'; if (id === 'aioff') scene.llm.disable(); });
 aibox.addEventListener('change', (e) => {
   const f = (e.target as HTMLInputElement).files?.[0];
   if (!f) return;
