@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@capacitor/core": "^6.2.3",
+    "@wllama/wllama": "^2.3.7",
     "phaser": "^3.88.2"
   }
 }

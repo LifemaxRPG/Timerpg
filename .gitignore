@@ -10,3 +10,4 @@ assets-raw/
 
 # Exported code bundles for sharing
 export/
+models/

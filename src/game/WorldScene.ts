@@ -3,6 +3,8 @@ import { interiorBlocked, planInterior, type Entrance, type InteriorConnection }
 import { InteriorView } from './InteriorView';
 import Phaser from 'phaser';
 import { Npcs, HOURS_PER_SECOND } from './Npcs';
+import { Llm } from '../llm/backend';
+import { brief, VOICED } from '../llm/factsheet';
 import { ask, narrate, optionsFor, specFor, type JournalEntry, type Option, type TalkCtx } from './dialogue';
 import { fullName, type Intervention, type World } from '../sim';
 import type { Inspection } from '../town/inspect';
@@ -83,6 +85,7 @@ export class WorldScene extends Phaser.Scene {
   private ready = false;
   private currentId: string | null = null;
   npcs!: Npcs;
+  readonly llm = new Llm();
   /** Clock text changed (e.g. "7:30 AM"). */
   onClock: (text: string) => void = () => {};
   private clockText = '';
@@ -93,6 +96,7 @@ export class WorldScene extends Phaser.Scene {
   journal: JournalEntry[] = (() => { try { return JSON.parse(localStorage.getItem('timerpg.journal') ?? '[]'); } catch { return []; } })();
   onJournal: (entries: JournalEntry[]) => void = () => {};
   private saveJournal(): void { try { localStorage.setItem('timerpg.journal', JSON.stringify(this.journal)); } catch { /* private mode */ } this.onJournal(this.journal); }
+  private speakSeq = 0;
   private talking: { townId: string; id: string } | null = null;
   /** A conversation opened (card) or closed (null). */
   onTalk: (card: TalkCard | null) => void = () => {};
@@ -392,6 +396,19 @@ export class WorldScene extends Phaser.Scene {
     return { id: c.person.id, name: fullName(c.person), subtitle: `${c.w.year - c.person.birthYear} · ${c.job}`, line, options: optionsFor(c), wanted: c.wanted };
   }
 
+  /**
+   * Say a line: the template instantly if the language model is off; otherwise show "…" and swap in the
+   * model's words when they arrive (or the template if it is slow or its reply fails the fact check).
+   */
+  private speak(townId: string, c: TalkCtx, intent: string, template: string, suffix = '', facts: string[] = [], must: string[] = [], keyExtra = ''): void {
+    const seq = ++this.speakSeq;
+    const emit = (line: string): void => { if (seq === this.speakSeq && this.talking?.id === c.person.id) this.onTalk(this.card(this.talkCtx(townId, c.person.id) ?? c, line + suffix)); };
+    if (this.llm.state !== 'ready' || !VOICED.has(intent)) { emit(template); if (this.llm.state === 'off') void this.llm.load(); return; }
+    emit('…');
+    const key = `${c.w.seed}:${c.person.id}:${intent}:${c.w.year}:${c.familiarity}:${c.wanted ? 1 : 0}:${keyExtra}`;
+    void this.llm.say(brief(c, intent, template, facts, must), key).then((line) => emit(line ?? template));
+  }
+
   /** Walk-up conversation: only works when you are standing close to them. */
   talkTo(townId: string, id: string): void {
     const at = this.npcs.positionOf(id);
@@ -402,6 +419,8 @@ export class WorldScene extends Phaser.Scene {
     this.talking = { townId, id };
     this.npcs.held.add(id);
     this.onTalk(this.card(c, narrate(c, 'greet')));
+    if (this.llm.state === 'ready') this.speak(townId, c, 'greet', narrate(c, 'greet'));
+    else if (this.llm.state === 'off') void this.llm.load();
   }
 
   closeTalk(): void {
@@ -422,14 +441,16 @@ export class WorldScene extends Phaser.Scene {
     if (optionId === 'rumors' || optionId === 'secret') {
       const got = ask(c, optionId);
       if (got.entry && !this.journal.some((j) => j.id === got.entry!.id)) { this.journal.push(got.entry); this.saveJournal(); this.onNote(`Notebook: ${got.entry.aboutName} ${got.entry.text}`); }
-      this.onTalk(this.card(this.talkCtx(t.townId, t.id) ?? c, got.line));
+      const c3 = this.talkCtx(t.townId, t.id) ?? c;
+      const fact = got.entry ? [`You are quietly telling the player this secret: ${optionId === 'secret' ? 'you yourself' : got.entry.aboutName} ${got.entry.text}. Say it in your own words and ask them to keep it quiet.`] : [];
+      this.speak(t.townId, c3, optionId, got.line, '', got.entry ? fact : [], got.entry && optionId === 'rumors' ? [got.entry.aboutName.split(' ')[0]!] : [], got.entry?.id ?? 'none');
       return;
     }
     const spec = specFor(optionId);
     if (!spec) {
       this.familiar[key] = (this.familiar[key] ?? 0) + (optionId === 'chat' ? 1 : 0);
       try { localStorage.setItem('timerpg.familiar', JSON.stringify(this.familiar)); } catch { /* private mode */ }
-      this.onTalk(this.card({ ...c, familiarity: this.familiar[key] ?? 0 }, narrate(c, optionId)));
+      { const c4 = { ...c, familiarity: this.familiar[key] ?? 0 }; this.speak(t.townId, c4, optionId, narrate(c4, optionId)); }
       return;
     }
     const seen = c.witnesses;
@@ -446,7 +467,7 @@ export class WorldScene extends Phaser.Scene {
     } else if (r.ok && spec.kind === 'kill') { this.closeTalk(); this.onNote(`${r.message} Nobody saw.`); return; }
     const c2 = this.talkCtx(t.townId, t.id);
     if (!c2) { this.closeTalk(); this.onNote(line); return; }
-    this.onTalk(this.card(c2, `${narrate(c2, optionId)}\n[${line}]`));
+    this.speak(t.townId, c2, optionId.startsWith('leak:') ? 'chat' : optionId, narrate(c2, optionId), `\n[${line}]`);
   }
 
   /** Inspect again whatever is selected: the same people or shop, wherever they live in the year now shown. */

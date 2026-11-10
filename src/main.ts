@@ -177,3 +177,25 @@ scene.onJournal = drawJournal;
 drawJournal(scene.journal);
 jbtn.addEventListener('click', () => { jbox.style.display = jbox.style.display === 'block' ? 'none' : 'block'; });
 jbox.addEventListener('click', (e) => { if ((e.target as HTMLElement).id === 'closejournal') jbox.style.display = 'none'; });
+
+// ---------- the on-device dialogue AI (Qwen3-0.6B): pick the model file once, then it works offline ----------
+const aibox = $('ai'), aibtn = $('aibtn');
+const drawAi = (): void => {
+  const st = scene.llm.state;
+  aibtn.textContent = st === 'ready' ? '🧠 AI on' : st === 'loading' ? '🧠 loading…' : '🧠 AI';
+  aibox.innerHTML = `<div class="head"><b>Dialogue AI</b><span class="close" id="closeai" role="button" aria-label="Close">×</span></div>
+    <p>${esc(scene.llm.detail)}</p>
+    ${st === 'ready' || st === 'loading' ? '' : `<p>Everything runs on this device, with no internet. Choose the model file <b>qwen3-0.6b-q4_k_m.gguf</b> (0.4 GB) once; it is saved here afterward.</p>
+    <label class="btn" for="aifile">Choose model file</label><input id="aifile" type="file" accept=".gguf" style="display:none">`}
+    ${st === 'slow' ? '<p>You can still play: people just use the built-in lines.</p>' : ''}`;
+};
+scene.llm.onChange = drawAi;
+drawAi();
+aibtn.addEventListener('click', () => { aibox.style.display = aibox.style.display === 'block' ? 'none' : 'block'; });
+aibox.addEventListener('click', (e) => { if ((e.target as HTMLElement).id === 'closeai') aibox.style.display = 'none'; });
+aibox.addEventListener('change', (e) => {
+  const f = (e.target as HTMLInputElement).files?.[0];
+  if (!f) return;
+  scene.llm.state = 'off';
+  void scene.llm.load(f);
+});

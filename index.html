@@ -43,6 +43,12 @@
     #journal small { display: block; color: #9aa3cc; font-size: 11px; }
     #journal .close { cursor: pointer; padding: 0 6px; }
     #journalbtn { position: fixed; top: 66px; right: 10px; z-index: 5; cursor: pointer; }
+    #aibtn { position: fixed; top: 106px; right: 10px; z-index: 5; cursor: pointer; }
+    #ai { top: 10px; right: 10px; width: min(340px, calc(100vw - 44px)); display: none; z-index: 6; font-size: 13px; }
+    #ai .head { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    #ai .close { cursor: pointer; padding: 0 6px; }
+    #ai p { margin: 6px 0; color: #c8cee8; }
+    #ai button, #ai label.btn { background: #2a3150; color: #eee; border: 1px solid #4a5480; border-radius: 8px; padding: 8px 10px; cursor: pointer; font-size: 13px; display: inline-block; margin-right: 4px; }
     #note { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); display: none; max-width: min(520px, 90vw); text-align: center; z-index: 5; }
     #info .hint { color: #9aa3cc; font-size: 12px; margin-top: 6px; }
     #info .result { margin-top: 6px; font-size: 12px; }
@@ -99,6 +105,8 @@
   <div id="talk" class="panel"></div>
   <div id="note" class="panel"></div>
   <div id="journal" class="panel"></div>
+  <div id="ai" class="panel"></div>
+  <button id="aibtn" class="panel" aria-label="Dialogue AI">🧠 AI</button>
   <button id="journalbtn" class="panel" aria-label="Notebook">📓 Notebook</button>
   <div id="info" class="panel"></div>
   <div id="changes" class="panel"></div>

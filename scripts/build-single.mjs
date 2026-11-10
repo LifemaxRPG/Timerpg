@@ -26,7 +26,10 @@ for (const group of Object.values(manifest)) {
     files[it.path] = `data:${mime};base64,${fs.readFileSync(path.join(dist, it.path)).toString('base64')}`;
   }
 }
-const embed = `<script>window.__EMBED__=${JSON.stringify({ manifest, files })};</script>`;
+// the language-model engine (single-threaded; a saved file has no cross-origin isolation for threads)
+const wasmFile = fs.readdirSync(path.join(dist, 'assets')).find((f) => /^wllama.*\.wasm$/.test(f) && fs.statSync(path.join(dist, 'assets', f)).size > 1e6);
+const wasm = wasmFile ? `data:application/wasm;base64,${fs.readFileSync(path.join(dist, 'assets', wasmFile)).toString('base64')}` : undefined;
+const embed = `<script>window.__EMBED__=${JSON.stringify({ manifest, files, wasm })};</script>`;
 
 // (a function, not a string: minified JS is full of `$&` / `$'` that String.replace would expand)
 html = html.replace('</body>', () => `${embed}\n<script type="module">${js}</script>\n</body>`);
