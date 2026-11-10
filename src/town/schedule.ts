@@ -69,7 +69,7 @@ export function findPath(ok: (x: number, y: number) => boolean, a: Tile, b: Tile
 }
 
 /** The walkable tile closest to the middle of the bottom edge of a building. */
-function doorstep(ok: (x: number, y: number) => boolean, r: { x: number; y: number; w: number; h: number }): Tile | null {
+export function doorstep(ok: (x: number, y: number) => boolean, r: { x: number; y: number; w: number; h: number }): Tile | null {
   const cx = Math.floor(r.x + r.w / 2), cy = r.y + r.h;
   for (let d = 0; d <= 10; d++) {
     for (let dy = -d; dy <= d; dy++) for (let dx = -d; dx <= d; dx++) {

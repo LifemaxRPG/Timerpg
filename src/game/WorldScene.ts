@@ -2,6 +2,8 @@ import { moveSafely, nearestFree } from '../town/collision';
 import { interiorBlocked, planInterior, type Entrance, type InteriorConnection } from '../town/interiors';
 import { InteriorView } from './InteriorView';
 import Phaser from 'phaser';
+import { Police } from './Police';
+import { doorstep, findPath, walkable } from '../town/schedule';
 import { Npcs, HOURS_PER_SECOND } from './Npcs';
 import { Llm } from '../llm/backend';
 import { brief, VOICED } from '../llm/factsheet';
@@ -86,6 +88,9 @@ export class WorldScene extends Phaser.Scene {
   private currentId: string | null = null;
   npcs!: Npcs;
   readonly llm = new Llm();
+  private police!: Police;
+  private route: { x: number; y: number }[] = [];
+  private routeClock = 0;
   /** Clock text changed (e.g. "7:30 AM"). */
   onClock: (text: string) => void = () => {};
   private clockText = '';
@@ -154,6 +159,7 @@ export class WorldScene extends Phaser.Scene {
 
   create(): void {
     this.gen = new Generator();
+    this.police = new Police(this, (this.manifest.characters ?? [])[7]?.key ?? 'char_01');
     this.npcs = new Npcs(this, (this.manifest.characters ?? []).map((c) => c.key));
     this.scale.on('resize', () => { if (this.room) this.fitInterior(); });
     this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,ESC') as Record<string, Phaser.Input.Keyboard.Key>;
@@ -470,6 +476,41 @@ export class WorldScene extends Phaser.Scene {
     this.speak(t.townId, c2, optionId.startsWith('leak:') ? 'chat' : optionId, narrate(c2, optionId), `\n[${line}]`);
   }
 
+  /** Wanted: the police officer comes for you; catching you is an arrest. */
+  private lawEnforcement(dt: number): void {
+    const here = this.currentId ? this.views.get(this.currentId) : undefined;
+    const lm = here?.view.layout?.landmarks.find((l) => l.id === 'police');
+    if (this.wantedHours <= 0 || !here || !lm || this.room) { this.police.dismiss(); this.route = []; return; }
+    const layout = here.view.layout!;
+    const ok = walkable(layout);
+    const { ox, oy } = here.view;
+    const door = doorstep(ok, lm) ?? { x: Math.floor(lm.x + lm.w / 2), y: lm.y + lm.h };
+    const doorX = ox + (door.x + 0.5) * TILE, doorY = oy + (door.y + 0.5) * TILE;
+    this.police.ensure({ x: doorX, y: doorY });
+    // Re-plan the route along the streets about once a second.
+    this.routeClock += dt;
+    if (this.routeClock > 900 || !this.route.length) {
+      this.routeClock = 0;
+      const c = this.police.at!;
+      const tile = (x: number, y: number) => ({ x: Math.floor((x - ox) / TILE), y: Math.floor((y - oy) / TILE) });
+      const from = doorstep(ok, { x: tile(c.x, c.y).x, y: tile(c.x, c.y).y - 1, w: 1, h: 1 }) ?? tile(c.x, c.y);
+      const pt = tile(this.player.x, this.player.y);
+      const goal = doorstep(ok, { x: pt.x, y: pt.y - 1, w: 1, h: 1 }) ?? pt;
+      this.route = findPath(ok, from, goal, layout.plan.width, layout.plan.height).map((t) => ({ x: ox + (t.x + 0.5) * TILE, y: oy + (t.y + 0.5) * TILE }));
+    }
+    if (this.police.chase(dt, this.route, this.player)) {
+      this.police.dismiss();
+      this.wantedHours = 0;
+      this.closeTalk();
+      this.player.setPosition(doorX, doorY + TILE);
+      this.player.setDepth(this.player.y);
+      // A night in the cells: every conversation starts over, because people remember what you did.
+      for (const k of Object.keys(this.familiar)) if (k.startsWith(`${here.site.id}:`)) delete this.familiar[k];
+      try { localStorage.setItem('timerpg.familiar', JSON.stringify(this.familiar)); } catch { /* private mode */ }
+      this.onNote('ARRESTED. You are released after questioning, but the town no longer trusts you.');
+    }
+  }
+
   /** Inspect again whatever is selected: the same people or shop, wherever they live in the year now shown. */
   reselect(): void {
     if (this.selection) {
@@ -730,6 +771,7 @@ export class WorldScene extends Phaser.Scene {
     const here = !this.room && this.currentId ? this.views.get(this.currentId) : undefined;
     const w = here?.view.world();
     if (this.wantedHours > 0) { this.wantedHours = Math.max(0, this.wantedHours - (dt / 1000) * HOURS_PER_SECOND); if (this.wantedHours === 0) this.onNote('The heat has died down.'); }
+    this.lawEnforcement(dt);
     if (this.talking) {
       const at = this.npcs.positionOf(this.talking.id);
       if (!at || Math.hypot(at.x - this.player.x, at.y - this.player.y) > 160) this.closeTalk();
