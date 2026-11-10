@@ -87,6 +87,7 @@ $('changes').addEventListener('click', (e) => {
 
 // ---------- clicking a building: who lives there and what you can do to them ----------
 let current: Selection | null = null;
+scene.onClock = (t) => { $('clock').textContent = t; };
 scene.onSelect = (sel) => {
   current = sel;
   const box = $('info');
@@ -101,7 +102,7 @@ scene.onSelect = (sel) => {
       <span>Introduce to <select data-for="${esc(p.id)}">${adults(p.id)}</select> <button data-act="introduce" data-id="${esc(p.id)}">Go</button></span>
     </div>`).join('');
   const biz = sel.business ? `<div class="row"><div class="who">${esc(sel.business.label)}</div><span><button data-act="invest" data-id="${esc(sel.business.id)}">Invest 500</button> <button class="bad" data-act="sabotage" data-id="${esc(sel.business.id)}">Sabotage</button></span></div>` : '';
-  box.innerHTML = `<div class="head"><b>${esc(sel.title)}</b><span class="close" id="closesel" role="button" aria-label="Close">×</span></div>${sel.lines.map((l) => `<div>${esc(l)}</div>`).join('')}${people}${biz}
+  box.innerHTML = `<div class="head"><b>${esc(sel.title)}</b><span class="close" id="closesel" role="button" aria-label="Close">×</span></div>${sel.lines.map((l) => `<div>${esc(l)}</div>`).join('')}${sel.people.length === 1 && !sel.business ? ((r) => (r ? `<div>${esc(r.job)}</div>` : ''))(scene.npcs.residentById(sel.people[0]!.id)) : ''}${people}${biz}
     <div class="hint">${sel.people.length || sel.business ? `You act in <b id="actyear">${slider.value}</b>: use the year slider to travel first.` : 'Nothing to act on here.'}</div><div class="result" id="result"></div>`;
   box.style.display = 'block';
 };

@@ -2,6 +2,7 @@ import { moveSafely, nearestFree } from '../town/collision';
 import { interiorBlocked, planInterior, type Entrance, type InteriorConnection } from '../town/interiors';
 import { InteriorView } from './InteriorView';
 import Phaser from 'phaser';
+import { Npcs } from './Npcs';
 import { fullName, type Intervention, type World } from '../sim';
 import type { Inspection } from '../town/inspect';
 import type { Rect, Road } from '../town/kinds';
@@ -71,6 +72,10 @@ export class WorldScene extends Phaser.Scene {
   private keys!: Record<string, Phaser.Input.Keyboard.Key>;
   private ready = false;
   private currentId: string | null = null;
+  npcs!: Npcs;
+  /** Clock text changed (e.g. "7:30 AM"). */
+  onClock: (text: string) => void = () => {};
+  private clockText = '';
   private frame = 0;
   private room: { view: InteriorView; townId: string; entranceId: string; outside: {x:number;y:number}; zoom:number } | null = null;
   private doorLabel = '';
@@ -123,6 +128,7 @@ export class WorldScene extends Phaser.Scene {
 
   create(): void {
     this.gen = new Generator();
+    this.npcs = new Npcs(this, (this.manifest.characters ?? []).map((c) => c.key));
     this.scale.on('resize', () => { if (this.room) this.fitInterior(); });
     this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,ESC') as Record<string, Phaser.Input.Keyboard.Key>;
     // Handle interaction on keydown so a quick press released between frames is not lost.
@@ -328,6 +334,12 @@ export class WorldScene extends Phaser.Scene {
     if (door && Math.hypot(wp.x-door.x,wp.y-door.y)<32) { this.interact(); return; }
     this.lastClick = { x: wp.x, y: wp.y };
     this.selection = null;
+    const who = this.npcs.personAt(wp.x, wp.y);
+    if (who && this.currentId) {
+      this.selection = { townId: this.currentId, ids: [who], biz: null };
+      this.reselect();
+      return;
+    }
     for (const { site, view } of this.views.values()) {
       if (!view.contains(wp.x, wp.y)) continue;
       const ins = view.select(wp.x, wp.y);
@@ -594,6 +606,12 @@ export class WorldScene extends Phaser.Scene {
     for (const { view } of this.views.values()) view.tick();
     if (!this.ready) return;
     this.updateDoorPrompt();
+    const here = !this.room && this.currentId ? this.views.get(this.currentId) : undefined;
+    const w = here?.view.world();
+    this.npcs.update(dt, here && w && here.view.layout ? { ox: here.view.ox, oy: here.view.oy, layout: here.view.layout, world: w } : null, this.player.x, this.player.y);
+    const h = Math.floor(this.npcs.hour), m = Math.floor((this.npcs.hour % 1) * 60 / 10) * 10;
+    const text = `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
+    if (text !== this.clockText) { this.clockText = text; this.onClock(text); }
     const cam = this.cameras.main;
     if (!this.room) this.bg.setPosition(Math.floor((cam.worldView.centerX - 3072) / TILE) * TILE, Math.floor((cam.worldView.centerY - 3072) / TILE) * TILE);
     if (!this.room && this.frame++ % 12 === 0) { this.manage(); this.trackTown(); }
