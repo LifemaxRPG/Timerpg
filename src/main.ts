@@ -199,3 +199,11 @@ aibox.addEventListener('change', (e) => {
   scene.llm.state = 'off';
   void scene.llm.load(f);
 });
+
+// First-run help card
+try {
+  if (!localStorage.getItem('timerpg.helped')) {
+    $('help').style.display = 'block';
+    $('helpok').addEventListener('click', () => { $('help').style.display = 'none'; try { localStorage.setItem('timerpg.helped', '1'); } catch { /* private mode */ } });
+  }
+} catch { /* storage unavailable: skip the card */ }

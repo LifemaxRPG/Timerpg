@@ -160,6 +160,12 @@ export class WorldScene extends Phaser.Scene {
   create(): void {
     this.gen = new Generator();
     this.police = new Police(this, (this.manifest.characters ?? [])[7]?.key ?? 'char_01');
+    // While the model writes a reply to someone you are talking to, the world pauses: the CPU is
+    // better spent on the model (about ten times faster than with the game rendering alongside).
+    this.llm.onBusy = (busy) => {
+      if (busy && this.talking) this.game.loop.sleep();
+      else this.game.loop.wake();
+    };
     this.npcs = new Npcs(this, (this.manifest.characters ?? []).map((c) => c.key));
     this.scale.on('resize', () => { if (this.room) this.fitInterior(); });
     this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,E,ESC') as Record<string, Phaser.Input.Keyboard.Key>;
@@ -366,7 +372,8 @@ export class WorldScene extends Phaser.Scene {
     if (door && Math.hypot(wp.x-door.x,wp.y-door.y)<32) { this.interact(); return; }
     this.lastClick = { x: wp.x, y: wp.y };
     this.selection = null;
-    const who = this.npcs.personAt(wp.x, wp.y);
+    // Fingers are fat and the phone view is zoomed out: grow the tap target as the zoom shrinks.
+    const who = this.npcs.personAt(wp.x, wp.y, Math.max(26, 44 / this.cameras.main.zoom));
     if (who && this.currentId) {
       this.selection = null;
       this.onSelect(null);
@@ -430,6 +437,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   closeTalk(): void {
+    this.game.loop.wake();
     if (this.talking) this.npcs.held.delete(this.talking.id);
     this.talking = null;
     this.onTalk(null);

@@ -49,6 +49,8 @@
     #ai .close { cursor: pointer; padding: 0 6px; }
     #ai p { margin: 6px 0; color: #c8cee8; }
     #ai button, #ai label.btn { background: #2a3150; color: #eee; border: 1px solid #4a5480; border-radius: 8px; padding: 8px 10px; cursor: pointer; font-size: 13px; display: inline-block; margin-right: 4px; }
+    #help { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(380px, calc(100vw - 40px)); z-index: 20; display: none; line-height: 1.45; }
+    #help button { margin-top: 8px; background: #3b4580; color: #fff; border: 0; border-radius: 8px; padding: 9px 14px; font-size: 14px; cursor: pointer; }
     #note { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); display: none; max-width: min(520px, 90vw); text-align: center; z-index: 5; }
     #info .hint { color: #9aa3cc; font-size: 12px; margin-top: 6px; }
     #info .result { margin-top: 6px; font-size: 12px; }
@@ -103,6 +105,11 @@
     <div id="mayor"></div>
   </div>
   <div id="talk" class="panel"></div>
+  <div id="help" class="panel"><b>How to play</b><br>
+    Walk with the stick (or WASD). <b>Tap a person</b> when you're next to them to talk; chatting a few times earns their trust.<br>
+    The <b>year slider</b> is the time machine: what you do changes that year's history.<br>
+    <b>📓 Notebook</b> keeps what people tell you. <b>🧠 AI</b> lets people speak with an on-device language model.<br>
+    <button id="helpok">Got it</button></div>
   <div id="note" class="panel"></div>
   <div id="journal" class="panel"></div>
   <div id="ai" class="panel"></div>

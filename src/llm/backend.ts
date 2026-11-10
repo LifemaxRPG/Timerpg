@@ -28,6 +28,8 @@ export class Llm {
   state: LlmState = 'off';
   detail = 'Dialogue AI is off. Add the model file to turn it on.';
   onChange: (s: LlmState, detail: string) => void = () => {};
+  /** Called with true when a reply starts generating and false when it is done (the game lowers its frame rate meanwhile). */
+  onBusy: (busy: boolean) => void = () => {};
   private w: Wllama | null = null;
   private cache = new Map<string, string>();
   private misses = 0;
@@ -70,6 +72,7 @@ export class Llm {
     if (this.state !== 'ready' || !this.w) return null;
     const w = this.w;
     const run = async (): Promise<string | null> => {
+      this.onBusy(true);
       const ctl = new AbortController();
       const timer = setTimeout(() => ctl.abort(), timeoutMs);
       try {
@@ -84,7 +87,7 @@ export class Llm {
         // Repeated timeouts mean this device is too slow: switch to template dialogue instead of making people wait.
         if (ctl.signal.aborted && ++this.misses >= 2) this.set('slow', 'The model is too slow on this device, so dialogue uses the built-in lines.');
         return null;
-      } finally { clearTimeout(timer); }
+      } finally { clearTimeout(timer); this.onBusy(false); }
     };
     // One generation at a time: the model is a single resource.
     const next = this.busy.then(run, run);
