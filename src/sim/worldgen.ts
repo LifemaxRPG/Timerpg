@@ -1,3 +1,4 @@
+import { archetypeOf, pickShop } from './archetype';
 import { BUSINESS_KINDS, FEMALE_NAMES, MALE_NAMES, SURNAMES } from './names';
 import { clamp01, pick, rand, rngFor } from './rng';
 import type { Business, Person, World } from './types';
@@ -44,7 +45,7 @@ const FOUNDING_BUSINESSES = 8;
 export function generateWorld(seed: string, startYear = 1950): World {
   const world: World = { seed, year: startYear, people: {}, businesses: {}, bonds: {} };
   const add = (p: Person): Person => {
-    p.wealth = p.birthYear < startYear - 18 ? 5 + Math.floor(rand(seed, 'wealth', p.id) * 35) : 0;
+    p.wealth = p.birthYear < startYear - 18 ? Math.round((5 + Math.floor(rand(seed, 'wealth', p.id) * 35)) * archetypeOf(seed).wealth) : 0;
     world.people[p.id] = p;
     return p;
   };
@@ -81,7 +82,8 @@ export function generateWorld(seed: string, startYear = 1950): World {
     .sort((a, b) => b.traits.ambition - a.traits.ambition || a.id.localeCompare(b.id))
     .slice(0, FOUNDING_BUSINESSES);
   founders.forEach((p, i) => {
-    const kind = BUSINESS_KINDS[i % BUSINESS_KINDS.length] as string;
+    // The first dozen cover every kind (the shop art needs variety); beyond that the town's specialties win.
+    const kind = i < BUSINESS_KINDS.length ? (BUSINESS_KINDS[(i + Math.floor(rand(seed, 'kind-shift') * BUSINESS_KINDS.length)) % BUSINESS_KINDS.length] as string) : pickShop(archetypeOf(seed), BUSINESS_KINDS, rand(seed, 'bkind', i));
     const b: Business = {
       id: `b:gen:${i}`,
       name: `${p.surname}'s ${kind}`,

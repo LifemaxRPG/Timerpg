@@ -1,4 +1,5 @@
 import { advanceSettlement } from '../town/properties';
+import { archetypeOf, pickShop } from './archetype';
 import { BUSINESS_KINDS } from './names';
 import { pick, rand, rngFor } from './rng';
 import {
@@ -144,7 +145,7 @@ function economy(c: Ctx): void {
   }
   for (const p of living(w)) {
     const age = ageIn(p, y);
-    if (age >= 18) p.wealth = Math.max(0, p.wealth + (age <= 65 ? 3 : 1) + (rand(seed, y, 'wage', p.id) - 0.5) * 2);
+    if (age >= 18) p.wealth = Math.max(0, p.wealth + ((age <= 65 ? 3 : 1) + (rand(seed, y, 'wage', p.id) - 0.5) * 2) * archetypeOf(seed).wealth);
   }
 }
 
@@ -196,14 +197,15 @@ function immigration(c: Ctx): void {
   const { w, y } = c;
   const seed = w.seed;
   if (living(w).length > 500) return;
-  const roll = rand(seed, y, 'immig-n');
+  // The town's character sets how many people move in (a mining town booms, then empties).
+  const roll = Math.pow(rand(seed, y, 'immig-n'), 1 / archetypeOf(seed).immigration(y));
   const n = roll < 0.5 ? 0 : roll < 0.9 ? 1 : 2;
   for (let i = 0; i < n; i++) {
     const id = `imm:${y}:${i}`;
     const age = 18 + Math.floor(rand(seed, id, 'age') * 28);
     const r = rngFor(seed, id, 'surname');
     const p = makePerson(seed, id, y - age, pick(r, ['Novak', 'Reyes', 'Chen', 'Haddad', 'Larsen', 'Moreau', 'Singh', 'Kowalski']));
-    p.wealth = 10 + Math.floor(rand(seed, id, 'wealth') * 20);
+    p.wealth = Math.round((10 + Math.floor(rand(seed, id, 'wealth') * 20)) * archetypeOf(seed).wealth);
     w.people[id] = p;
     emit(c, 'immigration', `${fullName(p)} (${age}) moved to town`, id);
   }
@@ -214,14 +216,14 @@ function foundings(c: Ctx): void {
   const seed = w.seed;
   const open = openBusinesses(w);
   // Town business capacity grows with the calendar, not with headcount (see births()).
-  const capacity = 8 + Math.floor((y - 1950) / 6);
+  const capacity = Math.round((8 + Math.floor((y - 1950) / 6)) * archetypeOf(seed).commerce);
   if (open.length >= capacity) return;
   const owners = new Set(open.map((b) => b.owner));
   for (const p of living(w)) {
     const age = ageIn(p, y);
     if (age < 25 || age > 60 || owners.has(p.id) || p.wealth < 20) continue;
     if (rand(seed, y, 'found', p.id) >= 0.04 * p.traits.ambition * 2) continue;
-    const kind = pick(rngFor(seed, y, 'found-kind', p.id), BUSINESS_KINDS);
+    const kind = pickShop(archetypeOf(seed), BUSINESS_KINDS, rand(seed, y, 'found-kind', p.id));
     const b: Business = {
       id: `b:${p.id}:${y}`,
       name: `${p.surname}'s ${kind}`,

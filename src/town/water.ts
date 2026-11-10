@@ -1,3 +1,4 @@
+import { archetypeOf } from '../sim/archetype';
 import { rand } from '../sim/rng';
 import type { Rect, Road } from './plan';
 
@@ -129,14 +130,28 @@ function findBridges(raw: Uint8Array, W: number, H: number, roads: readonly Road
 
 /** What water a seed gets (decided up front so the street network can make room for a river). */
 export function waterKind(seed: string): 'none' | 'river' | 'lake' {
-  const roll = rand(seed, 'water', 'kind');
+  const roll = waterRoll(seed);
   return roll < 0.28 ? 'none' : roll < 0.72 ? 'river' : 'lake';
+}
+
+/**
+ * The seed's water roll, bent by the town's type: harbor and resort towns always have water (harbors
+ * lean to a river or the sea-like lake, resorts to a lake), mill towns always sit on a river.
+ * Below 0.28 = none, below 0.72 = river, otherwise lake.
+ */
+function waterRoll(seed: string): number {
+  const r = rand(seed, 'water', 'kind');
+  const t = archetypeOf(seed).id;
+  if (t === 'harbor') return 0.28 + r * 0.72;
+  if (t === 'resort') return 0.72 + r * 0.28;
+  if (t === 'mill') return 0.28 + r * 0.44;
+  return r;
 }
 
 export function planWater(seed: string, g: WaterGeometry): WaterBody | null {
   const R = (...k: (string | number)[]): number => rand(seed, 'water', ...k);
   const { width: W, height: H } = g;
-  const roll = R('kind');
+  const roll = waterRoll(seed);
   if (roll < 0.28) return null;
   const finish = (kind: 'river' | 'lake', raw: Uint8Array): WaterBody | null => {
     smooth(raw, W, H);

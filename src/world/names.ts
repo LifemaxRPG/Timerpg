@@ -1,3 +1,4 @@
+import { archetypeOf } from '../sim/archetype';
 import { pick, rand, rngFor } from '../sim/rng';
 
 // Town names, pure in the town's seed: "Maplefield", "Cedar Falls", "Port Willow", "Mount Amber".
@@ -13,14 +14,16 @@ const SECOND = ['Falls', 'Springs', 'Heights', 'Crossing', 'Junction', 'Hollow',
 export function townName(seed: string): string {
   const r = rngFor(seed, 'town-name');
   const style = r();
-  const first = pick(r, FIRST);
+  // A harbor town sounds like one, a mining town like another (see sim/archetype.ts).
+  const t = archetypeOf(seed);
+  const first = pick(r, t.names.first);
   if (style < 0.5) {
     // Avoid doubled words like "Brookbrook" or "Stonestone".
-    const options = ENDINGS.filter((e) => !first.toLowerCase().includes(e));
-    return first + pick(r, options);
+    const options = t.names.ending.filter((e) => !first.toLowerCase().includes(e));
+    return first + pick(r, options.length ? options : t.names.ending);
   }
-  if (style < 0.8) return `${first} ${pick(r, SECOND)}`;
-  return style < 0.9 ? `Port ${first}` : `Mount ${first}`;
+  if (style < 0.85) return `${first} ${pick(r, t.names.second)}`;
+  return t.id === 'harbor' ? `Port ${first}` : t.id === 'mining' || t.id === 'resort' ? `Mount ${first}` : `${first} ${pick(r, t.names.second)}`;
 }
 
 /** The year the town was first settled (well before the game's 1950 start). */
