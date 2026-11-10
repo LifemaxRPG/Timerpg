@@ -49,6 +49,22 @@ export class Npcs {
     return best;
   }
 
+  /** How many other people are within `reach` pixels of a point (they can see what happens there). */
+  countNear(wx: number, wy: number, reach: number, except?: string): number {
+    let n = 0;
+    for (const [id, s] of this.sprites) if (id !== except && Math.hypot(wx - s.x, wy - s.y) < reach) n++;
+    return n;
+  }
+
+  /** Where a person is on screen right now (null if indoors). */
+  positionOf(id: string): { x: number; y: number } | null {
+    const s = this.sprites.get(id);
+    return s ? { x: s.x, y: s.y } : null;
+  }
+
+  /** People who stop and face the player while talking. */
+  held = new Set<string>();
+
   residentById(id: string): Resident | undefined { return this.cast.find((r) => r.id === id); }
   get count(): number { return this.sprites.size; }
 
@@ -77,6 +93,7 @@ export class Npcs {
         this.sprites.set(r.id, s);
       }
       const key = s.getData('key') as string;
+      if (this.held.has(r.id)) { s.play(`${key}-idle-down`, true); continue; }
       s.play(`${key}-${pose.moving ? 'walk' : 'idle'}-${DIRS[pose.dir]}`, true);
       s.setPosition(x, y).setDepth(y);
     }

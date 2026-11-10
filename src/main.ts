@@ -92,18 +92,10 @@ scene.onSelect = (sel) => {
   current = sel;
   const box = $('info');
   if (!sel) { box.style.display = 'none'; return; }
-  const adults = (id: string): string => scene.adultsOf(sel.townId, id).map((a) => `<option value="${esc(a.id)}">${esc(a.label)}</option>`).join('');
-  const people = sel.people.map((p) => `
-    <div class="row"><div class="who">${esc(p.label)}</div>
-      <span><button class="bad" data-act="kill" data-id="${esc(p.id)}">Kill</button>
-      <button data-act="smear" data-id="${esc(p.id)}">Smear</button>
-      <button data-act="praise" data-id="${esc(p.id)}">Praise</button>
-      <button data-act="gift" data-id="${esc(p.id)}">Gift 200</button></span>
-      <span>Introduce to <select data-for="${esc(p.id)}">${adults(p.id)}</select> <button data-act="introduce" data-id="${esc(p.id)}">Go</button></span>
-    </div>`).join('');
+  const people = sel.people.map((p) => `<div class="row"><div class="who">${esc(p.label)}</div></div>`).join('');
   const biz = sel.business ? `<div class="row"><div class="who">${esc(sel.business.label)}</div><span><button data-act="invest" data-id="${esc(sel.business.id)}">Invest 500</button> <button class="bad" data-act="sabotage" data-id="${esc(sel.business.id)}">Sabotage</button></span></div>` : '';
   box.innerHTML = `<div class="head"><b>${esc(sel.title)}</b><span class="close" id="closesel" role="button" aria-label="Close">×</span></div>${sel.lines.map((l) => `<div>${esc(l)}</div>`).join('')}${sel.people.length === 1 && !sel.business ? ((r) => (r ? `<div>${esc(r.job)}</div>` : ''))(scene.npcs.residentById(sel.people[0]!.id)) : ''}${people}${biz}
-    <div class="hint">${sel.people.length || sel.business ? `You act in <b id="actyear">${slider.value}</b>: use the year slider to travel first.` : 'Nothing to act on here.'}</div><div class="result" id="result"></div>`;
+    <div class="hint">${sel.people.length || sel.business ? `Find people on the street and walk up to them to talk. You act in <b id="actyear">${slider.value}</b>.` : 'Nothing to act on here.'}</div><div class="result" id="result"></div>`;
   box.style.display = 'block';
 };
 
@@ -146,3 +138,31 @@ new Phaser.Game({
   pixelArt: true,
 });
 (window as unknown as { __scene: WorldScene }).__scene = scene;
+
+// ---------- walking up to someone: a conversation menu ----------
+const talk = $('talk');
+let noteTimer = 0;
+scene.onNote = (text) => {
+  const n = $('note');
+  n.textContent = text; n.style.display = 'block';
+  clearTimeout(noteTimer);
+  noteTimer = window.setTimeout(() => { n.style.display = 'none'; }, 3500);
+};
+scene.onTalk = (card) => {
+  if (!card) { talk.style.display = 'none'; return; }
+  const opt = (o: { id: string; label: string; kind: string; enabled: boolean; note?: string }): string =>
+    `<button class="${o.kind === 'danger' ? 'bad' : ''}" data-opt="${esc(o.id)}" ${o.enabled ? '' : 'disabled'}>${esc(o.label)}${o.note ? `<small>${esc(o.note)}</small>` : ''}</button>`;
+  const say = card.options.filter((o) => o.kind === 'say'), act = card.options.filter((o) => o.kind === 'act'), bad = card.options.filter((o) => o.kind === 'danger');
+  talk.innerHTML = `<div class="head"><b>${esc(card.name)}</b><span class="close" id="closetalk" role="button" aria-label="Close">×</span></div>
+    <div class="sub">${esc(card.subtitle)}</div>
+    <div class="line">${esc(card.line).replace(/\n/g, '<br>')}</div>
+    ${card.wanted ? '<div class="hint">They want nothing to do with you right now.</div>' : `<div class="opts">${say.map(opt).join('')}</div><div class="opts">${act.map(opt).join('')}</div><details><summary>Something darker…</summary><div class="opts">${bad.map(opt).join('')}</div></details><div class="hint">You act in ${esc(slider.value)}; use the year slider first to change a different time.</div>`}`;
+  talk.style.display = 'block';
+};
+talk.addEventListener('click', (e) => {
+  const t = e.target as HTMLElement;
+  if (t.id === 'closetalk') { scene.closeTalk(); return; }
+  const b = t.closest('button[data-opt]') as HTMLButtonElement | null;
+  if (b) void scene.talkChoose(b.dataset.opt!);
+});
+if (location.search.includes('debug')) (window as unknown as { __scene: unknown }).__scene = scene;

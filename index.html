@@ -24,6 +24,20 @@
     #info button.bad { border-color: #a05060; }
     #info button:disabled { opacity: .4; cursor: not-allowed; }
     #info select { background: #1b2036; color: #eee; border: 1px solid #4a5480; border-radius: 6px; padding: 3px; max-width: 170px; font-size: 12px; }
+    #talk { bottom: 10px; left: 10px; width: min(400px, calc(100vw - 44px)); max-height: 70vh; overflow: auto; display: none; }
+    #talk .head { display: flex; justify-content: space-between; font-size: 15px; }
+    #talk .sub { color: #9aa3cc; font-size: 12px; margin-bottom: 6px; }
+    #talk .line { background: #1b2036; border-radius: 8px; padding: 8px 10px; margin: 4px 0 8px; font-style: italic; line-height: 1.35; }
+    #talk .opts { display: flex; flex-direction: column; gap: 4px; margin: 4px 0; }
+    #talk button { text-align: left; background: #2a3150; color: #eee; border: 1px solid #4a5480; border-radius: 8px; padding: 8px 10px; cursor: pointer; font-size: 13px; }
+    #talk button:hover:not(:disabled) { background: #3b4580; }
+    #talk button.bad { border-color: #a05060; }
+    #talk button:disabled { opacity: .45; cursor: not-allowed; }
+    #talk button small { display: block; color: #9aa3cc; font-size: 11px; margin-top: 2px; }
+    #talk summary { cursor: pointer; color: #b58; font-size: 12px; margin-top: 6px; }
+    #talk .close, #info .close { cursor: pointer; padding: 0 6px; }
+    #talk .hint { color: #9aa3cc; font-size: 12px; margin-top: 6px; }
+    #note { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); display: none; max-width: min(520px, 90vw); text-align: center; z-index: 5; }
     #info .hint { color: #9aa3cc; font-size: 12px; margin-top: 6px; }
     #info .result { margin-top: 6px; font-size: 12px; }
     #info .result.ok { color: #9be39b; } #info .result.no { color: #ff9b9b; }
@@ -76,6 +90,8 @@
     <div id="town" style="margin-top:6px"></div>
     <div id="mayor"></div>
   </div>
+  <div id="talk" class="panel"></div>
+  <div id="note" class="panel"></div>
   <div id="info" class="panel"></div>
   <div id="changes" class="panel"></div>
   <div id="banner"><div class="welcome">Welcome to</div><div class="name"></div><div class="sub"></div></div>

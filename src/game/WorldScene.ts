@@ -2,7 +2,8 @@ import { moveSafely, nearestFree } from '../town/collision';
 import { interiorBlocked, planInterior, type Entrance, type InteriorConnection } from '../town/interiors';
 import { InteriorView } from './InteriorView';
 import Phaser from 'phaser';
-import { Npcs } from './Npcs';
+import { Npcs, HOURS_PER_SECOND } from './Npcs';
+import { narrate, optionsFor, specFor, type Option, type TalkCtx } from './dialogue';
 import { fullName, type Intervention, type World } from '../sim';
 import type { Inspection } from '../town/inspect';
 import type { Rect, Road } from '../town/kinds';
@@ -40,6 +41,15 @@ export interface Selection extends Inspection {
 
 export interface ActionResult { ok: boolean; message: string }
 
+export interface TalkCard {
+  id: string;
+  name: string;
+  subtitle: string;
+  line: string;
+  options: Option[];
+  wanted: boolean;
+}
+
 /** An action the player can take; the year is filled in from the slider when it is performed. */
 export type ActionSpec =
   | { kind: 'kill'; targetId: string }
@@ -76,6 +86,14 @@ export class WorldScene extends Phaser.Scene {
   /** Clock text changed (e.g. "7:30 AM"). */
   onClock: (text: string) => void = () => {};
   private clockText = '';
+  /** Game hours of "wanted" left: while it lasts, nobody will talk to you. */
+  wantedHours = 0;
+  private familiar: Record<string, number> = (() => { try { return JSON.parse(localStorage.getItem('timerpg.familiar') ?? '{}'); } catch { return {}; } })();
+  private talking: { townId: string; id: string } | null = null;
+  /** A conversation opened (card) or closed (null). */
+  onTalk: (card: TalkCard | null) => void = () => {};
+  /** A short message for the player ("Walk closer to talk", "You are wanted"). */
+  onNote: (text: string) => void = () => {};
   private frame = 0;
   private room: { view: InteriorView; townId: string; entranceId: string; outside: {x:number;y:number}; zoom:number } | null = null;
   private doorLabel = '';
@@ -336,10 +354,12 @@ export class WorldScene extends Phaser.Scene {
     this.selection = null;
     const who = this.npcs.personAt(wp.x, wp.y);
     if (who && this.currentId) {
-      this.selection = { townId: this.currentId, ids: [who], biz: null };
-      this.reselect();
+      this.selection = null;
+      this.onSelect(null);
+      this.talkTo(this.currentId, who);
       return;
     }
+    this.closeTalk();
     for (const { site, view } of this.views.values()) {
       if (!view.contains(wp.x, wp.y)) continue;
       const ins = view.select(wp.x, wp.y);
@@ -347,6 +367,75 @@ export class WorldScene extends Phaser.Scene {
       if (ins && (ins.people.length || ins.business)) this.selection = { townId: site.id, ids: ins.people.map((q) => q.id), biz: ins.business?.id ?? null };
     }
     this.reselect();
+  }
+
+  // ---------- conversations ----------
+
+  private talkCtx(townId: string, id: string): TalkCtx | null {
+    const l = this.views.get(townId);
+    const w = l?.view.world();
+    const person = w?.people[id];
+    const r = this.npcs.residentById(id);
+    if (!l || !w || !person || !r) return null;
+    const at = this.npcs.positionOf(id);
+    return {
+      w, person, job: r.job, townName: l.site.name, familiarity: this.familiar[`${l.site.id}:${id}`] ?? 0,
+      witnesses: at ? this.npcs.countNear(at.x, at.y, 260, id) : 0, wanted: this.wantedHours > 0,
+    };
+  }
+
+  private card(c: TalkCtx, line: string): TalkCard {
+    return { id: c.person.id, name: fullName(c.person), subtitle: `${c.w.year - c.person.birthYear} · ${c.job}`, line, options: optionsFor(c), wanted: c.wanted };
+  }
+
+  /** Walk-up conversation: only works when you are standing close to them. */
+  talkTo(townId: string, id: string): void {
+    const at = this.npcs.positionOf(id);
+    const c = this.talkCtx(townId, id);
+    if (!at || !c) return;
+    if (Math.hypot(at.x - this.player.x, at.y - this.player.y) > 96) { this.onNote(`Walk up to ${fullName(c.person)} to talk.`); return; }
+    this.closeTalk();
+    this.talking = { townId, id };
+    this.npcs.held.add(id);
+    this.onTalk(this.card(c, narrate(c, 'greet')));
+  }
+
+  closeTalk(): void {
+    if (this.talking) this.npcs.held.delete(this.talking.id);
+    this.talking = null;
+    this.onTalk(null);
+  }
+
+  /** The player picked a menu option. Returns the new card, or null if the conversation ended. */
+  async talkChoose(optionId: string): Promise<void> {
+    const t = this.talking;
+    if (!t) return;
+    const c = this.talkCtx(t.townId, t.id);
+    if (!c) { this.closeTalk(); return; }
+    const opt = optionsFor(c).find((o) => o.id === optionId);
+    if (!opt || !opt.enabled) return;
+    const key = `${this.views.get(t.townId)!.site.id}:${t.id}`;
+    const spec = specFor(optionId);
+    if (!spec) {
+      this.familiar[key] = (this.familiar[key] ?? 0) + (optionId === 'chat' ? 1 : 0);
+      try { localStorage.setItem('timerpg.familiar', JSON.stringify(this.familiar)); } catch { /* private mode */ }
+      this.onTalk(this.card({ ...c, familiarity: this.familiar[key] ?? 0 }, narrate(c, optionId)));
+      return;
+    }
+    const seen = c.witnesses;
+    const r = await this.act(t.townId, spec.kind === 'kill' ? { kind: 'kill', targetId: t.id } : { kind: spec.kind, targetId: t.id, amount: spec.amount });
+    let line = r.message;
+    if (r.ok && (spec.kind === 'kill' || (spec.kind === 'rumor' && spec.amount < 0)) && seen > 0) {
+      // Caught: witnesses report you; for a while nobody will talk to you.
+      const police = this.views.get(t.townId)?.view.layout?.landmarks.some((l) => l.id === 'police');
+      this.wantedHours = (spec.kind === 'kill' ? 6 : 2) * (police ? 1.5 : 1);
+      line = `${r.message} ${seen} ${seen === 1 ? 'person saw' : 'people saw'} it. You are wanted${police ? ' — the police are looking for you' : ''}.`;
+      this.onNote('WANTED — lie low until it blows over.');
+      if (spec.kind === 'kill') { this.closeTalk(); this.onNote(line); return; }
+    } else if (r.ok && spec.kind === 'kill') { this.closeTalk(); this.onNote(`${r.message} Nobody saw.`); return; }
+    const c2 = this.talkCtx(t.townId, t.id);
+    if (!c2) { this.closeTalk(); this.onNote(line); return; }
+    this.onTalk(this.card(c2, `${narrate(c2, optionId)}\n[${line}]`));
   }
 
   /** Inspect again whatever is selected: the same people or shop, wherever they live in the year now shown. */
@@ -608,6 +697,11 @@ export class WorldScene extends Phaser.Scene {
     this.updateDoorPrompt();
     const here = !this.room && this.currentId ? this.views.get(this.currentId) : undefined;
     const w = here?.view.world();
+    if (this.wantedHours > 0) { this.wantedHours = Math.max(0, this.wantedHours - (dt / 1000) * HOURS_PER_SECOND); if (this.wantedHours === 0) this.onNote('The heat has died down.'); }
+    if (this.talking) {
+      const at = this.npcs.positionOf(this.talking.id);
+      if (!at || Math.hypot(at.x - this.player.x, at.y - this.player.y) > 160) this.closeTalk();
+    }
     this.npcs.update(dt, here && w && here.view.layout ? { ox: here.view.ox, oy: here.view.oy, layout: here.view.layout, world: w } : null, this.player.x, this.player.y);
     const h = Math.floor(this.npcs.hour), m = Math.floor((this.npcs.hour % 1) * 60 / 10) * 10;
     const text = `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
