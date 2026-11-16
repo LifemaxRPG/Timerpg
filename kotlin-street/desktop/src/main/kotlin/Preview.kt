@@ -69,7 +69,9 @@ fun streetOfShops(): List<HabitStack> {
         val id = o.getString("id"); val n = o.getString("sprite")
         val mids = (0 until o.getJSONArray("parts").length()).count { o.getJSONArray("parts").getJSONObject(it).getString("key").startsWith("middle_") }
         if (SpriteArt.buildings[id] == null) img("${n}_front")?.let { front ->
-            SpriteArt.buildings[id] = SpriteBuilding(front, img("${n}_side")!!, img("${n}_emis")!!, img("${n}_roof"), img("${n}_sign"), img("${n}_prop"), mids)
+            val wj = File(dir, "buildings/windows.json").takeIf { it.exists() }?.let { org.json.JSONObject(it.readText()) }
+            val ws = wj?.optJSONArray(n)?.let { a -> (0 until a.length()).map { k -> val r = a.getJSONArray(k); FloatArray(4) { r.getDouble(it).toFloat() } } }.orEmpty()
+            SpriteArt.buildings[id] = SpriteBuilding(front, img("${n}_side")!!, img("${n}_emis")!!, img("${n}_roof"), img("${n}_sign"), img("${n}_prop"), mids, ws)
         }
         building(id, o.getString("name"), "", HabitMaterial.CLAY, mids)
     }
@@ -141,15 +143,10 @@ fun main(args: Array<String>) {
     }
     GameState.enabled = true
     GameState.look = 1
-    StageTuning.zoom = 0.3f
-    GameState.x = 330f; GameState.lane = 7f; GameState.dir = 1f
+    StageTuning.zoom = 0.2f
     val first = streetOfShops().first().id
-    render("$out/g_golden.png", 780, 360, 17.6f, "2026-06-14", first, false, bottom = 40f, ambient = 100f)
-    GameState.x = 760f; GameState.lane = 5f; GameState.dir = -1f; GameState.moveX = 0f
-    render("$out/g_noon.png", 780, 360, 12.5f, "2026-06-14", first, false, bottom = 40f, ambient = 100f)
-    GameState.x = 330f; GameState.lane = 8f; GameState.dir = 1f
-    render("$out/g_night.png", 780, 360, 21.8f, "2026-06-14", first, false, bottom = 40f, ambient = 100f)
-    StageTuning.zoom = 0.16f
-    GameState.x = 330f; GameState.lane = 7f
-    render("$out/g_close.png", 780, 360, 17.6f, "2026-06-14", first, false, bottom = 40f, ambient = 100f)
+    for ((tag, x, hour) in listOf(Triple("w1", 1000f, 17.6f), Triple("w2", 1500f, 12.5f), Triple("w3", 1500f, 21.8f), Triple("w4", 1000f, 21.8f))) {
+        GameState.x = x; GameState.lane = 7f; GameState.dir = 1f
+        render("$out/$tag.png", 780, 360, hour, "2026-06-14", first, false, bottom = 40f, ambient = 100f)
+    }
 }

@@ -1,24 +1,80 @@
 {
-  "town": "alpha",
+  "town": "eta",
   "year": 2025,
-  "type": "Harbor town",
+  "type": "Commuter suburb",
   "shops": [
     {
-      "id": "b:gen:7",
+      "id": "b:gen:14:c0:1987",
       "sprite": "b0",
-      "name": "Okafor's Gym",
-      "kind": "Gym",
-      "owner": "Lois Okafor",
+      "name": "Okafor's Toy Store",
+      "kind": "Toy Store",
+      "owner": "John Nolan",
       "colour": "red",
       "parts": [
         {
-          "key": "shop_Gym_3",
+          "key": "shop_Shop_9",
           "w": 224,
-          "h": 160,
+          "h": 96,
           "y": 0
         },
         {
-          "key": "roof_8",
+          "key": "middle_1",
+          "w": 224,
+          "h": 128,
+          "y": 96
+        },
+        {
+          "key": "roof_2",
+          "w": 224,
+          "h": 192,
+          "y": 224
+        },
+        {
+          "key": "roofprop_16",
+          "w": 160,
+          "h": 96,
+          "y": 236
+        }
+      ]
+    },
+    {
+      "id": "b:gen:3",
+      "sprite": "b1",
+      "name": "Garrity's Toy Store",
+      "kind": "Toy Store",
+      "owner": "Irene Radcliffe",
+      "colour": "gray",
+      "parts": [
+        {
+          "key": "shop_Shop_33",
+          "w": 224,
+          "h": 96,
+          "y": 0
+        },
+        {
+          "key": "roof_11",
+          "w": 224,
+          "h": 224,
+          "y": 96
+        }
+      ]
+    },
+    {
+      "id": "b:gen:7",
+      "sprite": "b2",
+      "name": "Mercer's Doctor's Office",
+      "kind": "Doctor's Office",
+      "owner": "June Mercer",
+      "colour": "gray",
+      "parts": [
+        {
+          "key": "classic_doctor_s_office_12",
+          "w": 224,
+          "h": 96,
+          "y": 0
+        },
+        {
+          "key": "roof_11",
           "w": 224,
           "h": 224,
           "y": 96
@@ -32,11 +88,11 @@
       ]
     },
     {
-      "id": "b:gen:11:c0>1953>1977:2023",
-      "sprite": "b1",
-      "name": "Reyes's Clothing Store",
+      "id": "b:gen:1",
+      "sprite": "b3",
+      "name": "Lund's Clothing Store",
       "kind": "Clothing Store",
-      "owner": "Ruth Reyes",
+      "owner": "William Lund",
       "colour": "red",
       "parts": [
         {
@@ -46,107 +102,35 @@
           "y": 0
         },
         {
-          "key": "middle_6",
-          "w": 224,
-          "h": 128,
-          "y": 96
-        },
-        {
           "key": "roof_2",
           "w": 224,
           "h": 192,
-          "y": 224
+          "y": 96
         },
         {
-          "key": "roofprop_13",
+          "key": "roofprop_14",
           "w": 160,
           "h": 96,
-          "y": 236
+          "y": 108
         }
       ]
     },
     {
-      "id": "b:gen:3",
-      "sprite": "b2",
-      "name": "Mercer's Bait Shop",
-      "kind": "Bait Shop",
-      "owner": "James Mercer",
+      "id": "b:gen:15:c1:1992",
+      "sprite": "b4",
+      "name": "Pruitt's Bank",
+      "kind": "Bank",
+      "owner": "Dorothy Pruitt",
       "colour": "blue",
       "parts": [
         {
-          "key": "shop_Bait_Shop_7",
-          "w": 224,
-          "h": 192,
-          "y": 0
-        },
-        {
-          "key": "roof_9",
-          "w": 224,
-          "h": 224,
-          "y": 96
-        }
-      ]
-    },
-    {
-      "id": "b:imm:1976:0:1992",
-      "sprite": "b3",
-      "name": "Reyes's Law Office",
-      "kind": "Law Office",
-      "owner": "Edith Reyes",
-      "colour": "blue",
-      "parts": [
-        {
-          "key": "classic_law_office_8",
+          "key": "classic_bank_7",
           "w": 224,
           "h": 96,
           "y": 0
         },
         {
-          "key": "roof_9",
-          "w": 224,
-          "h": 224,
-          "y": 96
-        }
-      ]
-    },
-    {
-      "id": "b:gen:21:w>1953:2010",
-      "sprite": "b4",
-      "name": "Vance's Bait Shop",
-      "kind": "Bait Shop",
-      "owner": "Louise Vance",
-      "colour": "red",
-      "parts": [
-        {
-          "key": "shop_Bait_Shop_1",
-          "w": 224,
-          "h": 192,
-          "y": 0
-        },
-        {
-          "key": "roof_2",
-          "w": 224,
-          "h": 192,
-          "y": 96
-        }
-      ]
-    },
-    {
-      "id": "b:gen:10:c1:1986",
-      "sprite": "b5",
-      "name": "Keller's Bait Shop",
-      "kind": "Bait Shop",
-      "owner": "Robert Keller",
-      "colour": "blue",
-      "parts": [
-        {
-          "key": "shop_Bait_Shop_11",
-          "w": 224,
-          "h": 192,
-          "y": 0
-        },
-        {
-          "key": "middle_7",
+          "key": "middle_12",
           "w": 224,
           "h": 128,
           "y": 96
@@ -160,15 +144,99 @@
       ]
     },
     {
-      "id": "b:gen:8:c2:1980",
-      "sprite": "b6",
-      "name": "Ingram's Doctor's Office",
-      "kind": "Doctor's Office",
-      "owner": "Robert Ingram",
+      "id": "b:gen:20:w:1974",
+      "sprite": "b5",
+      "name": "Underhill's Gym",
+      "kind": "Gym",
+      "owner": "Clyde Underhill",
       "colour": "gray",
       "parts": [
         {
-          "key": "classic_doctor_s_office_12",
+          "key": "shop_Gym_9",
+          "w": 224,
+          "h": 160,
+          "y": 0
+        },
+        {
+          "key": "middle_16",
+          "w": 224,
+          "h": 128,
+          "y": 96
+        },
+        {
+          "key": "roof_6",
+          "w": 224,
+          "h": 192,
+          "y": 224
+        }
+      ]
+    },
+    {
+      "id": "b:gen:17:c1:1986",
+      "sprite": "b6",
+      "name": "Radcliffe's Bank",
+      "kind": "Bank",
+      "owner": "Louise Radcliffe",
+      "colour": "blue",
+      "parts": [
+        {
+          "key": "classic_bank_7",
+          "w": 224,
+          "h": 96,
+          "y": 0
+        },
+        {
+          "key": "middle_12",
+          "w": 224,
+          "h": 128,
+          "y": 96
+        },
+        {
+          "key": "roof_4",
+          "w": 224,
+          "h": 192,
+          "y": 224
+        }
+      ]
+    },
+    {
+      "id": "b:gen:4",
+      "sprite": "b7",
+      "name": "Radcliffe's Gym",
+      "kind": "Gym",
+      "owner": "John Radcliffe",
+      "colour": "blue",
+      "parts": [
+        {
+          "key": "shop_Gym_7",
+          "w": 224,
+          "h": 160,
+          "y": 0
+        },
+        {
+          "key": "middle_8",
+          "w": 224,
+          "h": 128,
+          "y": 96
+        },
+        {
+          "key": "roof_4",
+          "w": 224,
+          "h": 192,
+          "y": 224
+        }
+      ]
+    },
+    {
+      "id": "b:gen:17:c2>1979:2022",
+      "sprite": "b8",
+      "name": "Okafor's Bank",
+      "kind": "Bank",
+      "owner": "Mildred Okafor",
+      "colour": "gray",
+      "parts": [
+        {
+          "key": "classic_bank_11",
           "w": 224,
           "h": 96,
           "y": 0
@@ -194,83 +262,27 @@
       ]
     },
     {
-      "id": "b:gen:5",
-      "sprite": "b7",
-      "name": "Keller's Dress Shop",
-      "kind": "Dress Shop",
-      "owner": "Vernon Keller",
-      "colour": "red",
-      "parts": [
-        {
-          "key": "shop_Shop_1",
-          "w": 224,
-          "h": 96,
-          "y": 0
-        },
-        {
-          "key": "middle_5",
-          "w": 224,
-          "h": 128,
-          "y": 96
-        },
-        {
-          "key": "roof_2",
-          "w": 224,
-          "h": 192,
-          "y": 224
-        }
-      ]
-    },
-    {
-      "id": "b:gen:17:c1:1997",
-      "sprite": "b8",
-      "name": "Radcliffe's Butcher",
-      "kind": "Butcher",
-      "owner": "Carl Radcliffe",
-      "colour": "red",
-      "parts": [
-        {
-          "key": "shop_Butchery_1",
-          "w": 224,
-          "h": 160,
-          "y": 0
-        },
-        {
-          "key": "middle_4",
-          "w": 224,
-          "h": 128,
-          "y": 96
-        },
-        {
-          "key": "roof_2",
-          "w": 224,
-          "h": 192,
-          "y": 224
-        }
-      ]
-    },
-    {
-      "id": "b:gen:1:h:1962",
+      "id": "b:gen:7:w:1962",
       "sprite": "b9",
-      "name": "Brennan's Bakery",
+      "name": "Holloway's Bakery",
       "kind": "Bakery",
-      "owner": "Vera Brennan",
-      "colour": "blue",
+      "owner": "Clyde Holloway",
+      "colour": "red",
       "parts": [
         {
-          "key": "shop_Bakery_7",
+          "key": "shop_Bakery_1",
           "w": 224,
           "h": 160,
           "y": 0
         },
         {
-          "key": "middle_10",
+          "key": "middle_2",
           "w": 224,
           "h": 128,
           "y": 96
         },
         {
-          "key": "roof_4",
+          "key": "roof_2",
           "w": 224,
           "h": 192,
           "y": 224

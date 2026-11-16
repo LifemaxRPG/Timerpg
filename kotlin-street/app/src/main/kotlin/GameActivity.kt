@@ -91,6 +91,12 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
     fun img(n: String): androidx.compose.ui.graphics.ImageBitmap? = try {
         ctx.assets.open("buildings/$n.png").use { BitmapFactory.decodeStream(it) }.asImageBitmap()
     } catch (e: Exception) { null }
+    // the real windows of each building (tools/make_buildings.py)
+    val windows = HashMap<String, List<FloatArray>>()
+    try {
+        val wj = org.json.JSONObject(ctx.assets.open("buildings/windows.json").bufferedReader().use { it.readText() })
+        for (key in wj.keys()) { val a = wj.getJSONArray(key); windows[key] = (0 until a.length()).map { k -> val r = a.getJSONArray(k); FloatArray(4) { r.getDouble(it).toFloat() } } }
+    } catch (e: Exception) { }
     val shops = (0 until arr.length()).map { i ->
         val o = arr.getJSONObject(i)
         val id = o.getString("id"); val n = o.getString("sprite")
@@ -98,7 +104,7 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
         val mids = (0 until parts.length()).count { parts.getJSONObject(it).getString("key").startsWith("middle_") }
         // OUR building, composed from our sprites (tools/make_buildings.py)
         img("${n}_front")?.let { front ->
-            SpriteArt.buildings[id] = SpriteBuilding(front, img("${n}_side")!!, img("${n}_emis")!!, img("${n}_roof"), img("${n}_sign"), img("${n}_prop"), mids)
+            SpriteArt.buildings[id] = SpriteBuilding(front, img("${n}_side")!!, img("${n}_emis")!!, img("${n}_roof"), img("${n}_sign"), img("${n}_prop"), mids, windows[n].orEmpty())
         }
         shop(id, o.getString("name"), "", HabitMaterial.CLAY, mids)
     }

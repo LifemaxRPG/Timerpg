@@ -29,3 +29,10 @@ The three files that tied it to habit tracking were stubbed or adapted; `HabitsS
 `GameState`; `BuildingPainter.spriteBuilding` draws our building sprites on the engine's box (side face and roof lean with
 the view, lit by the engine); `furniture`/`shadows` draw our props and cast their shadows; `StreetLifePainter` draws our
 pixel characters (and the player) and has no dogs, bikes or cars. All switches are in `shim/Tuning.kt`.
+
+## Windows (spike)
+`tools/make_buildings.py` finds the clean, window-shaped glass on a building's upper floors, cuts it out of the front
+texture and writes each window's rectangle to `buildings/windows.json`. `BuildingPainter.spriteBuilding` draws, for each
+window, the engine's room (a dim room by day, a warm lit room once its lamp is on) BEHIND the front, and the engine's
+sky/street reflection and sun glint over it. Shop windows (they show goods) and arched or ornate windows are left as
+they are. Not done yet: people and curtains in the windows, windows on the side faces.

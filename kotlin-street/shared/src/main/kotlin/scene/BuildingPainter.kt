@@ -2325,12 +2325,41 @@ internal class BuildingPainter {
             drawPath(spritePath, Color(0xFFFFF2D0), alpha = .1f * direct)
             if (nightOn) drawPath(spritePath, nightInk, blendMode = BlendMode.Multiply)
         }
-        // the rooftop sign (or billboard) stands on the roof, halfway back
-        val sign = sb.sign ?: sb.prop
-        if (sign != null) {
-            val w = if (sb.sign != null) B.W else 160f * k
-            val h = sign.height * k
-            picture2(sign, -w / 2f + s * .5f, -hf - dy * .5f - h, w, h, FilterQuality.None)
+        // what sticks up above the roofline: the part of the storefront's sign that does not fit over the front (it
+        // continues the front exactly, so the sign reads as one piece), or a rooftop billboard standing halfway back
+        val over = sb.sign
+        if (over != null) {
+            val h = over.height * k
+            picture2(over, -half, -hf - h, B.W, h, FilterQuality.None)
+        } else {
+            val bill = sb.prop
+            if (bill != null) {
+                val w = 160f * k
+                val h = bill.height * k
+                picture2(bill, -w / 2f + s * .5f, -hf - dy * .5f - h, w, h, FilterQuality.None)
+            }
+        }
+        // the windows are real openings: the room behind each (dark glass and a dim room by day, a warm lit room once
+        // the lamp is on), with the front's glass cut out in front of it
+        val wseed = art.stack.id.hashCode()
+        val glassDark = lerp(SceneInk.GlassDay, SceneInk.GlassNight, sky.dark)
+        val litRoom = lerp(SceneInk.WindowLitDay, SceneInk.WindowLit, sky.dark)
+        val dayRoom = lerp(SceneInk.WindowLitDay, glassDark, sky.dark)
+        for (i in sb.windows.indices) {
+            val w = sb.windows[i]
+            val x = -half + w[0] * k
+            val y = -hf + w[1] * k
+            val ww = w[2] * k
+            val hh = w[3] * k
+            val pane = wseed * 31 + i
+            val lampOn = Dusk.lightsOn(pane, hour)
+            drawRect(glassDark, Offset(x, y), Size(ww, hh))
+            val room = GlassMap.interior(pane)
+            if (room >= 0) interior(x, y, ww, hh, room, .9f * (1f - .75f * sky.dark * lampOn))
+            if (lampOn > .02f) {
+                drawRect(lerp(dayRoom, litRoom, lampOn), Offset(x, y), Size(ww, hh), alpha = .75f * lampOn)
+                drawRect(SceneInk.WindowLitLow, Offset(x, y + hh * .55f), Size(ww, hh * .45f), alpha = lampOn * .45f)
+            }
         }
         // the front never moves
         picture2(sb.front, -half, -hf, B.W, hf, FilterQuality.None)
@@ -2338,6 +2367,20 @@ internal class BuildingPainter {
         blueHour(-half, -hf, B.W, hf, .35f)
         drawRect(aoWall, Offset(-half, -14f), Size(B.W, 14f))
         if (nightOn) drawRect(nightInk, Offset(-half, -hf), Size(B.W, hf), blendMode = BlendMode.Multiply)
+        // over the glass: what it mirrors (the sky, the street, the sun's glint), fainter the brighter the room, and
+        // the lit room's light on the frame
+        for (i in sb.windows.indices) {
+            val w = sb.windows[i]
+            val x = -half + w[0] * k
+            val y = -hf + w[1] * k
+            val ww = w[2] * k
+            val hh = w[3] * k
+            val pane = wseed * 31 + i
+            val lampOn = Dusk.lightsOn(pane, hour)
+            val mirror = fresnel * (1f + PANE_FRESNEL * GlassMap.tilt(pane))
+            mirrorSky(x, y, ww, hh, min(1f, FacadeLook.reflection(lampOn, sky.dark) * mirror) * (1f - .5f * lampOn), pane, 1f - .7f * lampOn)
+            if (lampOn > .02f && sky.dark > .2f) roomOnReveals(x, y, ww, hh, .3f * lampOn * sky.dark)
+        }
         // lit at dusk: the glass glows
         val on = (sky.dark * Dusk.lightsOn(art.stack.id.hashCode(), hour, Dusk.SHOP)).coerceIn(0f, 1f)
         if (on > .01f) picture2(sb.emis, -half, -hf, B.W, hf, FilterQuality.None, alpha = on * .5f, blend = BlendMode.Plus)

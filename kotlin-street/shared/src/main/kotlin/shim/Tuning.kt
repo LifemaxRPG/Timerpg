@@ -35,6 +35,8 @@ class SpriteBuilding(
     val prop: ImageBitmap?,
     /** How many 128-row middle floors the front has (the rest is the storefront). */
     val middles: Int,
+    /** The real windows (x, y, w, h in front-sprite pixels): their glass is cut out of [front]; the engine draws the rooms behind. */
+    val windows: List<FloatArray> = emptyList(),
 )
 
 /** All of the game's own art that replaces the habit scene's procedural art, installed by the platform. */
