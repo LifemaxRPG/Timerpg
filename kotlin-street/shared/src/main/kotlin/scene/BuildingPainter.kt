@@ -5786,14 +5786,14 @@ internal class BuildingPainter {
 }
 
 // where our prop sprites stand, and how big they are drawn (street units per sprite pixel)
-private const val LAMP_K = .8f
+private val LAMP_K get() = SpriteArt.PIXEL
 private const val LAMP_FOOT_X = 15f
 private const val LAMP_FOOT_Y = 127f
 private const val LAMP_LENS_X = 36f
 private const val LAMP_LENS_Y = 16f
-private const val TREE_K = 1.25f
+private val TREE_K get() = SpriteArt.PIXEL * 1.5f
 private const val TREE_FOOT_X = 31f
 private const val TREE_FOOT_Y = 95f
-private const val BENCH_K = .8f
+private val BENCH_K get() = SpriteArt.PIXEL
 private const val BENCH_FOOT_X = 31f
 private const val BENCH_FOOT_Y = 61f

@@ -314,22 +314,22 @@ internal class StreetLifePainter {
         val sheet = sheets[look % sheets.size]
         val standing = p.still > .5f
         val i = if (standing) 0 else (frame % StreetGait.FRAMES) * 6 / StreetGait.FRAMES
-        // the same height as the procedural walker it replaces (its body is ~56 of our 64 rows)
-        val ref = SceneSprites.walker(look, 0).image.height.toFloat()
-        val k = ref / 56f
-        val w = (32 * k).toInt().coerceAtLeast(1)
-        val h = (64 * k).toInt().coerceAtLeast(1)
-        drawImage(
-            sheet,
-            srcOffset = IntOffset(((if (p.slot == 9999) GameState.facing else 0) * 6 + i) * 32, (if (standing) 1 else 2) * 64),
-            srcSize = IntSize(32, 64),
-            dstOffset = IntOffset(-w / 2, -(61 * k).toInt()),
-            dstSize = IntSize(w, h),
-            alpha = alpha,
-            colorFilter = filter,
-            blendMode = blend,
-            filterQuality = FilterQuality.None,
-        )
+        // each sprite pixel is 1.5 of the buildings' (a whole number of screen pixels when the zoom is snapped), whatever
+        // lane they are in: the figure transform here already scales by perspective and unit
+        val k = SpriteArt.PIXEL * 1.5f / (perspective(p.lane) * unit)
+        withTransform({ scale(k, k, Offset.Zero) }) {
+            drawImage(
+                sheet,
+                srcOffset = IntOffset(((if (p.slot == 9999) GameState.facing else 0) * 6 + i) * 32, (if (standing) 1 else 2) * 64),
+                srcSize = IntSize(32, 64),
+                dstOffset = IntOffset(-16, -61),
+                dstSize = IntSize(32, 64),
+                alpha = alpha,
+                colorFilter = filter,
+                blendMode = blend,
+                filterQuality = FilterQuality.None,
+            )
+        }
     }
 
     /**

@@ -220,7 +220,15 @@ private class Frame(
             cam(i).towards(cam(j), (at - i).coerceIn(0f, 1f))
         }
 
-    val scale: Float = lerp(camera.scale, view.scale, zoom)
+    val scale: Float =
+        lerp(camera.scale, view.scale, zoom).let { raw ->
+            if (!StageTuning.pixelPerfect || !GameState.enabled) raw
+            else {
+                // a whole, even number of screen pixels to a sprite pixel: pixel art stays crisp, props can be 1.5x
+                val per = max(2f, 2f * kotlin.math.round(raw * density * SpriteArt.PIXEL / 2f))
+                per / (SpriteArt.PIXEL * density)
+            }
+        }
     val unit: Float = scale * density
 
     /** The street's x in the middle of the view. */
@@ -820,7 +828,7 @@ private fun StageCanvas(
             drawIntoCanvas { it.saveLayer(Rect(0f, 0f, this.size.width, this.size.height), layer) }
         clipRect(0f, f.top, this.size.width, this.size.height) {
             withTransform({
-                translate(this@Canvas.size.width / 2f - f.middle * f.unit, f.ground)
+                translate(kotlin.math.round(this@Canvas.size.width / 2f - f.middle * f.unit), kotlin.math.round(f.ground))
                 scale(f.unit, f.unit, Offset.Zero)
             }) {
                 with(painter) {
@@ -895,7 +903,7 @@ private fun StageCanvas(
                 // exposed for the sky: the street dark in front of it, then its lights given back
                 with(backlight) { expose(sky) }
                 withTransform({
-                    translate(this@Canvas.size.width / 2f - f.middle * f.unit, f.ground)
+                    translate(kotlin.math.round(this@Canvas.size.width / 2f - f.middle * f.unit), kotlin.math.round(f.ground))
                     scale(f.unit, f.unit, Offset.Zero)
                 }) {
                     with(painter) {

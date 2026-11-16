@@ -16,6 +16,8 @@ object StageTuning {
     var pixelPeople = true
     /** Cars, dogs and bicycles: we have no art for them yet. */
     var cars = false
+    /** Snap the zoom so every sprite pixel is a whole (even) number of screen pixels, and the camera to whole pixels. */
+    var pixelPerfect = true
     /** The habit scene's out-of-focus foreground (railings, sign posts, tree branches sliding past the camera). Its art, not ours: off. */
     var foreground = false
     /** How much bigger than the city-scale passers the people are drawn (a game wants a readable character). */
@@ -49,5 +51,7 @@ object SpriteArt {
     var trees: List<ImageBitmap> = emptyList()
     var bench: ImageBitmap? = null
     const val SRC_W = 224f
+    /** Street units per sprite pixel (a building's front is B.W units for its 224 pixels). */
+    val PIXEL: Float get() = com.lifemax.rpg.feature.habits.domain.BuildingSpec.W / SRC_W
     const val MID_H = 128f
 }

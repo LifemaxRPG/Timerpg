@@ -24,3 +24,6 @@
 - Feed the street from live game logic (port the TS logic to Kotlin, or export on demand).
 - Residents appear in their own windows at the times their schedules put them home.
 - Walkable pavement collisions with props; entering shops; the camera-rotating corner turn.
+
+## Pixel-perfect scaling
+The camera zoom is snapped so each sprite pixel is a whole, even number of screen pixels, the camera translate is rounded to whole pixels, and props and characters are drawn at 1x or 1.5x the building pixel scale. Pixel art stays crisp while moving. Toggle with `StageTuning.pixelPerfect`.
