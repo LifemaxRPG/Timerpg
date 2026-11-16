@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.IntSize
 import com.lifemax.rpg.feature.habits.domain.AIM_AIR
 import com.lifemax.rpg.feature.habits.domain.BuildingLayout
 import com.lifemax.rpg.feature.habits.domain.BuildingSpec as B
+import com.lifemax.rpg.feature.habits.domain.FurnitureKind
 import com.lifemax.rpg.feature.habits.domain.Camera
 import com.lifemax.rpg.feature.habits.domain.HabitStack
 import com.lifemax.rpg.feature.habits.domain.HabitsProjection
@@ -610,7 +611,19 @@ private fun StageCanvas(
             val dt = if (last == 0L) 0f else ((t - last) / 1e9f).coerceAtMost(.1f)
             last = t
             val s = streetNow.value
+            val before = GameState.x
             GameState.step(dt, s.start, s.end, BuildingPainter.PAVEMENT - 2f)
+            // lamps, trees and benches stand at the kerb: walk round them (further from the road), not through them
+            if (GameState.lane > BuildingPainter.PAVEMENT - 8f) {
+                for (f in s.furniture) {
+                    val r = if (f.kind == FurnitureKind.TREE) 9f else 5f
+                    if ((before <= f.x - r && GameState.x > f.x - r) || (before >= f.x + r && GameState.x < f.x + r) ||
+                        (kotlin.math.abs(before - f.x) < r && kotlin.math.abs(GameState.x - f.x) < r)) {
+                        GameState.x = if (before < f.x) f.x - r else f.x + r
+                        break
+                    }
+                }
+            }
             scroll.snapTo(GameState.x)
             GameState.nearest = s.lefts.indices.firstOrNull { GameState.x >= s.lefts[it] && GameState.x <= s.lefts[it] + B.W } ?: -1
         }
