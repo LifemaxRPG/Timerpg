@@ -20,6 +20,8 @@ object GameState {
     var facing = 0
     /** Distance walked, for the walk cycle. */
     var travel = 0f
+    /** Index of the building the player is in front of (-1 between buildings). */
+    var nearest = -1
 
     const val SPEED = 46f       // street units a second
     const val LANE_SPEED = 7f   // units a second in and out

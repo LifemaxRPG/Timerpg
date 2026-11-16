@@ -612,6 +612,7 @@ private fun StageCanvas(
             val s = streetNow.value
             GameState.step(dt, s.start, s.end, BuildingPainter.PAVEMENT - 2f)
             scroll.snapTo(GameState.x)
+            GameState.nearest = s.lefts.indices.firstOrNull { GameState.x >= s.lefts[it] && GameState.x <= s.lefts[it] + B.W } ?: -1
         }
     }
 

@@ -85,7 +85,7 @@ private val SHOPS = listOf(
 )
 
 /** Our game's town street, exported by tools/export-street.ts (falls back to a built-in street). */
-private class StreetData(val title: String, val shops: List<HabitStack>)
+private class StreetData(val title: String, val shops: List<HabitStack>, val owners: List<String> = emptyList())
 
 private fun loadStreet(ctx: android.content.Context): StreetData = try {
     val j = org.json.JSONObject(ctx.assets.open("street.json").bufferedReader().use { it.readText() })
@@ -110,7 +110,7 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
         }
         shop(id, o.getString("name"), "", HabitMaterial.CLAY, mids)
     }
-    StreetData("${j.getString("town")} · ${j.getString("type")} · ${j.getInt("year")}", shops)
+    StreetData("${j.getString("town")} · ${j.getString("type")} · ${j.getInt("year")}", shops, (0 until arr.length()).map { arr.getJSONObject(it).optString("owner") })
 } catch (e: Exception) {
     StreetData("built-in street", SHOPS)
 }
@@ -137,6 +137,13 @@ private fun GameScreen() {
             accent = Color(0xFF6FA8FF), actions = StageActions(), modifier = Modifier.fillMaxSize(),
         )
         Text(data.title, 14.sp, Modifier.align(Alignment.TopStart).padding(14.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
+        // the shop the player is standing at
+        val near = GameState.nearest
+        if (near in data.shops.indices) {
+            val st = data.shops[near]
+            Text(st.cue + (data.owners.getOrNull(near)?.takeIf { it.isNotBlank() }?.let { "  ·  $it" } ?: ""), 15.sp,
+                Modifier.align(Alignment.BottomCenter).padding(bottom = 18.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
+        }
         // time of day
         Row(
             Modifier.align(Alignment.TopCenter).padding(top = 10.dp).background(Color(0x99101420), RoundedCornerShape(12.dp)).padding(horizontal = 14.dp, vertical = 6.dp),
