@@ -1,0 +1,281 @@
+{
+  "town": "alpha",
+  "year": 2025,
+  "type": "Harbor town",
+  "shops": [
+    {
+      "id": "b:gen:7",
+      "sprite": "b0",
+      "name": "Okafor's Gym",
+      "kind": "Gym",
+      "owner": "Lois Okafor",
+      "colour": "red",
+      "parts": [
+        {
+          "key": "shop_Gym_3",
+          "w": 224,
+          "h": 160,
+          "y": 0
+        },
+        {
+          "key": "roof_8",
+          "w": 224,
+          "h": 224,
+          "y": 96
+        },
+        {
+          "key": "roofprop_12",
+          "w": 160,
+          "h": 96,
+          "y": 108
+        }
+      ]
+    },
+    {
+      "id": "b:gen:11:c0>1953>1977:2023",
+      "sprite": "b1",
+      "name": "Reyes's Clothing Store",
+      "kind": "Clothing Store",
+      "owner": "Ruth Reyes",
+      "colour": "red",
+      "parts": [
+        {
+          "key": "shop_Shop_7",
+          "w": 224,
+          "h": 96,
+          "y": 0
+        },
+        {
+          "key": "middle_6",
+          "w": 224,
+          "h": 128,
+          "y": 96
+        },
+        {
+          "key": "roof_2",
+          "w": 224,
+          "h": 192,
+          "y": 224
+        },
+        {
+          "key": "roofprop_13",
+          "w": 160,
+          "h": 96,
+          "y": 236
+        }
+      ]
+    },
+    {
+      "id": "b:gen:3",
+      "sprite": "b2",
+      "name": "Mercer's Bait Shop",
+      "kind": "Bait Shop",
+      "owner": "James Mercer",
+      "colour": "blue",
+      "parts": [
+        {
+          "key": "shop_Bait_Shop_7",
+          "w": 224,
+          "h": 192,
+          "y": 0
+        },
+        {
+          "key": "roof_9",
+          "w": 224,
+          "h": 224,
+          "y": 96
+        }
+      ]
+    },
+    {
+      "id": "b:imm:1976:0:1992",
+      "sprite": "b3",
+      "name": "Reyes's Law Office",
+      "kind": "Law Office",
+      "owner": "Edith Reyes",
+      "colour": "blue",
+      "parts": [
+        {
+          "key": "classic_law_office_8",
+          "w": 224,
+          "h": 96,
+          "y": 0
+        },
+        {
+          "key": "roof_9",
+          "w": 224,
+          "h": 224,
+          "y": 96
+        }
+      ]
+    },
+    {
+      "id": "b:gen:21:w>1953:2010",
+      "sprite": "b4",
+      "name": "Vance's Bait Shop",
+      "kind": "Bait Shop",
+      "owner": "Louise Vance",
+      "colour": "red",
+      "parts": [
+        {
+          "key": "shop_Bait_Shop_1",
+          "w": 224,
+          "h": 192,
+          "y": 0
+        },
+        {
+          "key": "roof_2",
+          "w": 224,
+          "h": 192,
+          "y": 96
+        }
+      ]
+    },
+    {
+      "id": "b:gen:10:c1:1986",
+      "sprite": "b5",
+      "name": "Keller's Bait Shop",
+      "kind": "Bait Shop",
+      "owner": "Robert Keller",
+      "colour": "blue",
+      "parts": [
+        {
+          "key": "shop_Bait_Shop_11",
+          "w": 224,
+          "h": 192,
+          "y": 0
+        },
+        {
+          "key": "middle_7",
+          "w": 224,
+          "h": 128,
+          "y": 96
+        },
+        {
+          "key": "roof_4",
+          "w": 224,
+          "h": 192,
+          "y": 224
+        }
+      ]
+    },
+    {
+      "id": "b:gen:8:c2:1980",
+      "sprite": "b6",
+      "name": "Ingram's Doctor's Office",
+      "kind": "Doctor's Office",
+      "owner": "Robert Ingram",
+      "colour": "gray",
+      "parts": [
+        {
+          "key": "classic_doctor_s_office_12",
+          "w": 224,
+          "h": 96,
+          "y": 0
+        },
+        {
+          "key": "middle_15",
+          "w": 224,
+          "h": 128,
+          "y": 96
+        },
+        {
+          "key": "roof_6",
+          "w": 224,
+          "h": 192,
+          "y": 224
+        },
+        {
+          "key": "roofprop_15",
+          "w": 160,
+          "h": 96,
+          "y": 236
+        }
+      ]
+    },
+    {
+      "id": "b:gen:5",
+      "sprite": "b7",
+      "name": "Keller's Dress Shop",
+      "kind": "Dress Shop",
+      "owner": "Vernon Keller",
+      "colour": "red",
+      "parts": [
+        {
+          "key": "shop_Shop_1",
+          "w": 224,
+          "h": 96,
+          "y": 0
+        },
+        {
+          "key": "middle_5",
+          "w": 224,
+          "h": 128,
+          "y": 96
+        },
+        {
+          "key": "roof_2",
+          "w": 224,
+          "h": 192,
+          "y": 224
+        }
+      ]
+    },
+    {
+      "id": "b:gen:17:c1:1997",
+      "sprite": "b8",
+      "name": "Radcliffe's Butcher",
+      "kind": "Butcher",
+      "owner": "Carl Radcliffe",
+      "colour": "red",
+      "parts": [
+        {
+          "key": "shop_Butchery_1",
+          "w": 224,
+          "h": 160,
+          "y": 0
+        },
+        {
+          "key": "middle_4",
+          "w": 224,
+          "h": 128,
+          "y": 96
+        },
+        {
+          "key": "roof_2",
+          "w": 224,
+          "h": 192,
+          "y": 224
+        }
+      ]
+    },
+    {
+      "id": "b:gen:1:h:1962",
+      "sprite": "b9",
+      "name": "Brennan's Bakery",
+      "kind": "Bakery",
+      "owner": "Vera Brennan",
+      "colour": "blue",
+      "parts": [
+        {
+          "key": "shop_Bakery_7",
+          "w": 224,
+          "h": 160,
+          "y": 0
+        },
+        {
+          "key": "middle_10",
+          "w": 224,
+          "h": 128,
+          "y": 96
+        },
+        {
+          "key": "roof_4",
+          "w": 224,
+          "h": 192,
+          "y": 224
+        }
+      ]
+    }
+  ]
+}

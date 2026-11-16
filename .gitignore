@@ -12,3 +12,6 @@ assets-raw/
 export/
 models/
 prototypes/*/dist/
+kotlin-street/local.properties
+kotlin-street/**/build/
+kotlin-street/.gradle/
