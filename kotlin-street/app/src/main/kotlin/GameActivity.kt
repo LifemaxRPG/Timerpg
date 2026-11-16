@@ -29,6 +29,8 @@ import com.lifemax.rpg.feature.habits.domain.HabitMaterial
 import com.lifemax.rpg.feature.habits.domain.HabitRules
 import com.lifemax.rpg.feature.habits.domain.HabitStack
 import com.lifemax.rpg.feature.habits.domain.HabitsProjection
+import com.lifemax.rpg.feature.habits.domain.WeatherOverride
+import com.lifemax.rpg.feature.habits.domain.WeatherState
 import com.lifemax.rpg.feature.habits.presentation.HabitsUi
 import com.lifemax.rpg.feature.habits.presentation.scene.GameState
 import com.lifemax.rpg.feature.habits.presentation.scene.HabitsStage
@@ -118,9 +120,13 @@ private fun GameScreen() {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val data = remember { loadStreet(ctx) }
     var hour by remember { mutableFloatStateOf(17.6f) }
-    val p = remember(hour, data) {
+    var season by remember { mutableIntStateOf(1) }
+    var weather by remember { mutableIntStateOf(0) }
+    val p = remember(hour, data, season, weather) {
+        // the date sets the season (leaf, blossom, snow); the weather is forced
+        WeatherOverride.forced = WEATHERS[weather].second
         HabitsProjection(
-            day = "2026-06-14", hour = hour, who = "", whoHint = "", rough = false, built = 0, due = 0,
+            day = SEASONS[season].second, hour = hour, who = "", whoHint = "", rough = false, built = 0, due = 0,
             reducedMotion = false, haptics = null, problem = "", limits = HabitLimits(40, 40, 40, 40, 40, 1, 12, 12),
             rules = HabitRules(10, 40, 100, 12), stacks = data.shops, lapse = emptyList(), tokens = emptyMap(), light = false,
         )
@@ -141,6 +147,11 @@ private fun GameScreen() {
             Spacer(Modifier.width(10.dp))
             Slider(hour, { hour = it }, 0f, 24f, Modifier.width(240.dp))
         }
+        // the season and the weather
+        Column(Modifier.align(Alignment.TopEnd).padding(10.dp), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { SEASONS.forEachIndexed { i, (l, _) -> Chip(l, season == i) { season = i } } }
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { WEATHERS.forEachIndexed { i, (l, _) -> Chip(l, weather == i) { weather = i } } }
+        }
         // walking: left and right; in and out across the pavement
         Row(Modifier.align(Alignment.BottomStart).padding(18.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             HoldButton("◀") { GameState.moveX = if (it) -1f else 0f }
@@ -151,6 +162,24 @@ private fun GameScreen() {
             HoldButton("▼") { GameState.moveLane = if (it) 1f else 0f }
         }
     }
+}
+
+private val SEASONS = listOf("🌸" to "2026-04-20", "☀" to "2026-06-14", "🍂" to "2026-10-20", "❄" to "2026-01-20")
+private val WEATHERS = listOf<Pair<String, WeatherState?>>(
+    "Clear" to null,
+    "Overcast" to WeatherState(.85f, 0f, 0f, 0f),
+    "Rain" to WeatherState(.9f, .8f, .8f, 0f),
+    "Mist" to WeatherState(.4f, 0f, 0f, .75f),
+)
+
+@Composable
+private fun Chip(label: String, on: Boolean, onClick: () -> Unit) {
+    Box(
+        Modifier.background(if (on) Color(0xCC3A6FD8) else Color(0x99101420), RoundedCornerShape(10.dp)).pointerInput(Unit) {
+            awaitEachGesture { awaitFirstDown(); waitForUpOrCancellation()?.let { onClick() } }
+        }.padding(horizontal = 10.dp, vertical = 6.dp),
+        contentAlignment = Alignment.Center,
+    ) { Text(label, 13.sp) }
 }
 
 /** A button that is "on" while a finger is on it. */

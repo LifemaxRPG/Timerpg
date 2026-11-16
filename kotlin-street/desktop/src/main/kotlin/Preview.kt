@@ -129,6 +129,31 @@ fun loadProps(assets: String) {
     SpriteArt.trees = listOf("tree_1", "tree_2", "tree_3").map { img("tree/$it.png") }
 }
 
+/** Renders a short walk: the scene runs on, [GameState.moveX] set per phase, and a frame is saved every so often. */
+fun renderWalk(prefix: String, w: Int, h: Int, hour: Float, focus: String, phases: List<Pair<Float, Int>>, saveEvery: Int) {
+    val density = 2f
+    val scene = ImageComposeScene(width = (w * density).toInt(), height = (h * density).toInt(), density = Density(density)) {
+        HabitsStage(p = projection(hour, "2026-06-14"), ui = HabitsUi(focus = focus), visible = true, top = 0f, bottom = 40f * density, cover = 0f, inset = 0f,
+            accent = Color(0xFF6FA8FF), actions = StageActions())
+    }
+    var nanos = 0L; var n = 0; var saved = 0
+    // warm up (sprites bake off the main thread)
+    repeat(40) { nanos += 33_333_333L; Thread.sleep(50); scene.render(nanos) }
+    for ((move, frames) in phases) {
+        GameState.moveX = move
+        repeat(frames) {
+            nanos += 33_333_333L; Thread.sleep(4)
+            val img = scene.render(nanos); n++
+            if (n % saveEvery == 0) {
+                File("$prefix${saved++}.png").also { it.parentFile.mkdirs() }.writeBytes(img.encodeToData(EncodedImageFormat.PNG)!!.bytes)
+                println("walk frame $n x=${GameState.x} dir=${GameState.dir} walking=${GameState.walking}")
+            }
+        }
+    }
+    GameState.moveX = 0f
+    scene.close()
+}
+
 fun main(args: Array<String>) {
     System.setProperty("java.awt.headless", "true")
     installDesktopImages()
@@ -145,8 +170,31 @@ fun main(args: Array<String>) {
     GameState.look = 1
     StageTuning.zoom = 0.2f
     val first = streetOfShops().first().id
-    for ((tag, x, hour) in listOf(Triple("w1", 1000f, 17.6f), Triple("w2", 1500f, 12.5f), Triple("w3", 1500f, 21.8f), Triple("w4", 1000f, 21.8f))) {
-        GameState.x = x; GameState.lane = 7f; GameState.dir = 1f
-        render("$out/$tag.png", 780, 360, hour, "2026-06-14", first, false, bottom = 40f, ambient = 100f)
+    val mode = System.getProperty("mode", "pano")
+    if (mode == "walk") {
+        GameState.x = 300f; GameState.lane = 7f; GameState.dir = 1f
+        renderWalk("$out/walk_", 780, 360, 16.8f, first, listOf(1f to 90, 0f to 20, -1f to 90), 30)
+        return
+    }
+    if (mode == "weather") {
+        GameState.x = 1000f; GameState.lane = 7f; GameState.dir = 1f
+        val cases = listOf(
+            Triple("spring", "2026-04-20", null), Triple("autumn", "2026-10-20", null), Triple("winter", "2026-01-20", null),
+            Triple("rain", "2026-06-14", com.lifemax.rpg.feature.habits.domain.WeatherState(.9f, .8f, .8f, 0f)),
+            Triple("mist", "2026-06-14", com.lifemax.rpg.feature.habits.domain.WeatherState(.4f, 0f, 0f, .75f)),
+            Triple("overcast", "2026-06-14", com.lifemax.rpg.feature.habits.domain.WeatherState(.85f, 0f, 0f, 0f)),
+        )
+        for ((tag, day, w) in cases) {
+            com.lifemax.rpg.feature.habits.domain.WeatherOverride.forced = w
+            render("$out/wx_$tag.png", 780, 360, 16.2f, day, first, false, bottom = 40f, ambient = 100f)
+        }
+        com.lifemax.rpg.feature.habits.domain.WeatherOverride.forced = null
+        return
+    }
+    if (mode == "pano") {
+        for (i in 0..8) {
+            GameState.x = i * 380f; GameState.lane = 7f; GameState.dir = 1f
+            render("$out/pan_$i.png", 780, 360, 16.8f, "2026-06-14", first, false, bottom = 40f, ambient = 100f)
+        }
     }
 }

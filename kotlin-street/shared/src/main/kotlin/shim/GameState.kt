@@ -16,6 +16,8 @@ object GameState {
     var moveX = 0f
     var moveLane = 0f
     var walking = false
+    /** Which of the sheet's four views the player shows: 0 right (flipped for left), 1 back (walking away), 3 front (towards us). */
+    var facing = 0
     /** Distance walked, for the walk cycle. */
     var travel = 0f
 
@@ -27,7 +29,9 @@ object GameState {
         val dx = moveX * SPEED * dt
         val nx = (x + dx).coerceIn(from + 20f, to - 20f)
         walking = kotlin.math.abs(moveX) > .05f || kotlin.math.abs(moveLane) > .05f
-        if (kotlin.math.abs(moveX) > .05f) dir = if (moveX > 0) 1f else -1f
+        if (kotlin.math.abs(moveX) > .05f) { dir = if (moveX > 0) 1f else -1f; facing = 0 }
+        else if (moveLane < -.05f) facing = 1
+        else if (moveLane > .05f) facing = 3
         travel += kotlin.math.abs(nx - x) + kotlin.math.abs(moveLane) * LANE_SPEED * dt * .6f
         x = nx
         lane = (lane + moveLane * LANE_SPEED * dt).coerceIn(LANE_MIN, laneMax)

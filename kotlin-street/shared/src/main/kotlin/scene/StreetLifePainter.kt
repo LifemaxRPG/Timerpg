@@ -321,7 +321,7 @@ internal class StreetLifePainter {
         val h = (64 * k).toInt().coerceAtLeast(1)
         drawImage(
             sheet,
-            srcOffset = IntOffset(i * 32, (if (standing) 1 else 2) * 64),
+            srcOffset = IntOffset(((if (p.slot == 9999) GameState.facing else 0) * 6 + i) * 32, (if (standing) 1 else 2) * 64),
             srcSize = IntSize(32, 64),
             dstOffset = IntOffset(-w / 2, -(61 * k).toInt()),
             dstSize = IntSize(w, h),
