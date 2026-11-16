@@ -176,6 +176,14 @@ fun main(args: Array<String>) {
         renderWalk("$out/walk_", 780, 360, 16.8f, first, listOf(1f to 90, 0f to 20, -1f to 90), 30)
         return
     }
+    if (mode == "rooms") {
+        GameState.x = 1500f; GameState.lane = 7f; GameState.dir = 1f
+        StageTuning.zoom = 0.12f
+        for ((tag, hour, amb) in listOf(Triple("day", 14.0f, 100f), Triple("dusk", 19.2f, 130f), Triple("night", 22.3f, 160f))) {
+            render("$out/rm_$tag.png", 780, 360, hour, "2026-06-14", first, false, bottom = 40f, ambient = amb)
+        }
+        return
+    }
     if (mode == "weather") {
         GameState.x = 1000f; GameState.lane = 7f; GameState.dir = 1f
         val cases = listOf(

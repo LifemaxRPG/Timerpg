@@ -2284,6 +2284,27 @@ internal class BuildingPainter {
         }
     }
 
+    /** The people of one of our buildings' windows: which windows are lit rooms, who is in each, and when. */
+    private class SpriteWindows(val lit: IntArray, val cast: Array<WindowCast>, val here: FloatArray)
+
+    private val spriteWindows = HashMap<String, SpriteWindows>()
+
+    private fun windowsOf(id: String, ws: List<FloatArray>): SpriteWindows = spriteWindows.getOrPut(id) {
+        val seed = id.hashCode()
+        val n = ws.size
+        // about seven in ten windows are lit rooms (homes), taken in a stable order of their own
+        val on = if (n == 0) 0 else maxOf(1, kotlin.math.ceil(n * .7f).toInt())
+        val order = (0 until n).sortedBy { Ambient.hash(seed, it, 301) }.take(on)
+        // where each lit window sits among the others, so neighbours are not the same kind of room
+        fun rank(v: List<Float>, x: Float): Int = v.distinctBy { (it / 6f).toInt() }.sorted().indexOfFirst { kotlin.math.abs(it - x) < 6f }.coerceAtLeast(0)
+        val xs = ws.map { it[0] + it[2] / 2f }
+        val ys = ws.map { it[1] + it[3] / 2f }
+        val cols = IntArray(on) { rank(xs, xs[order[it]]) }
+        val rows = IntArray(on) { rank(ys, ys[order[it]]) }
+        val groups = IntArray(on) { (cols[it] + rows[it]) and 1 }
+        SpriteWindows(order.toIntArray(), if (on == 0) emptyArray() else Silhouettes.cast("", id, on, groups, cols, rows), FloatArray(on))
+    }
+
     private val spritePath = Path()
 
     /** A picture drawn at ([x], [y]) [w] by [h] (street units). */
@@ -2344,7 +2365,7 @@ internal class BuildingPainter {
      * engine: the sun's wash and shade across the front and the side, the blue hour, the night, the contact shadow at
      * its foot, and its windows lit at dusk.
      */
-    private fun DrawScope.spriteBuilding(art: BuildingArt, sb: SpriteBuilding, sky: SkyColors) {
+    private fun DrawScope.spriteBuilding(art: BuildingArt, sb: SpriteBuilding, sky: SkyColors, seconds: Float) {
         val half = B.W / 2f
         val k = B.W / SpriteArt.SRC_W
         val hf = sb.front.height * k
@@ -2389,6 +2410,10 @@ internal class BuildingPainter {
         val glassDark = lerp(SceneInk.GlassDay, SceneInk.GlassNight, sky.dark)
         val litRoom = lerp(SceneInk.WindowLitDay, SceneInk.WindowLit, sky.dark)
         val dayRoom = lerp(SceneInk.WindowLitDay, glassDark, sky.dark)
+        val sw = windowsOf(art.stack.id, sb.windows)
+        if (sw.cast.isNotEmpty()) Presence.floorPresence(sw.here, sw.cast, wseed, wseed + 1, 0, 1, seconds)
+        val litIndex = IntArray(sb.windows.size) { -1 }
+        for (j in sw.lit.indices) litIndex[sw.lit[j]] = j
         for (i in sb.windows.indices) {
             val w = sb.windows[i]
             val x = -half + w[0] * k
@@ -2398,11 +2423,19 @@ internal class BuildingPainter {
             val pane = wseed * 31 + i
             val lampOn = Dusk.lightsOn(pane, hour)
             drawRect(glassDark, Offset(x, y), Size(ww, hh))
-            val room = GlassMap.interior(pane)
-            if (room >= 0) interior(x, y, ww, hh, room, .9f * (1f - .75f * sky.dark * lampOn))
-            if (lampOn > .02f) {
-                drawRect(lerp(dayRoom, litRoom, lampOn), Offset(x, y), Size(ww, hh), alpha = .75f * lampOn)
-                drawRect(SceneInk.WindowLitLow, Offset(x, y + hh * .55f), Size(ww, hh * .45f), alpha = lampOn * .45f)
+            val j = litIndex[i]
+            if (j >= 0) {
+                // a lit home: a furnished room, someone doing something in it now and then, its lamp at dusk
+                val c = sw.cast[j]
+                val bright = if (sw.here[j] <= 0f && seconds > 0f) .12f + .88f * Silhouettes.lamp(c.seed, seconds) else 1f
+                val tv = Dusk.tv(pane, hour, seconds)
+                drawRect(lerp(dayRoom, litRoom, lampOn), Offset(x, y), Size(ww, hh), alpha = bright)
+                windowLife(c, x, y, ww, hh, seconds, 1f, PeopleLod.FULL, sky, sw.here[j], lampOn, tv)
+                drawRect(SceneInk.WindowLitLow, Offset(x, y + hh * .55f), Size(ww, hh * .45f), alpha = lampOn * bright * .45f)
+            } else {
+                // a dark window: dim glass and a blind or curtain behind it
+                val room = GlassMap.interior(pane)
+                if (room >= 0) interior(x, y, ww, hh, room, .9f * (1f - .75f * sky.dark))
             }
         }
         // the front never moves
@@ -2474,7 +2507,7 @@ internal class BuildingPainter {
         drawRect(aoGround, Offset(l0 + 1f, 0f), Size(Perspective.right(sideShift) - l0 + 6f, 8f))
         SpriteArt.buildings[art.stack.id]?.let {
             // one of OUR buildings: its art on the engine's box, light and shade
-            spriteBuilding(art, it, sky)
+            spriteBuilding(art, it, sky, seconds)
             return
         }
         lobby(art, sky, detailed, seconds, lod)
