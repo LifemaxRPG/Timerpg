@@ -161,7 +161,7 @@ fun main(args: Array<String>) {
     loadProps(File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path)
     val out = args.getOrElse(0) { "build/preview" }
     if (System.getProperty("onlyone") != null) {
-        GameState.enabled = true; GameState.look = 1; StageTuning.zoom = 0.3f; GameState.x = 330f; GameState.lane = 7f
+        GameState.enabled = true; GameState.look = 1; StageTuning.zoom = 0.3f; GameState.x = (System.getProperty("x") ?: "330").toFloat(); GameState.lane = 7f
         val first = streetOfShops().first().id
         render("$out/dbg_${System.getProperty("skip", "none")}.png", 780, 360, 17.6f, "2026-06-14", first, false, bottom = 40f, ambient = 100f)
         return

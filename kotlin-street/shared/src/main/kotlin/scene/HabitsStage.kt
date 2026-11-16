@@ -936,7 +936,7 @@ private fun StageCanvas(
         if (layered) drawIntoCanvas { it.restore() }
         // the near layer: a few dark, soft things between the camera and the street, sliding
         // faster than it
-        with(foregroundPainter) {
+        if (StageTuning.foreground) with(foregroundPainter) {
             foreground(
                 sky,
                 street,

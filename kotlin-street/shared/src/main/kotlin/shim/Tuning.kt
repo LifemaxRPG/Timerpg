@@ -16,6 +16,8 @@ object StageTuning {
     var pixelPeople = true
     /** Cars, dogs and bicycles: we have no art for them yet. */
     var cars = false
+    /** The habit scene's out-of-focus foreground (railings, sign posts, tree branches sliding past the camera). Its art, not ours: off. */
+    var foreground = false
     /** How much bigger than the city-scale passers the people are drawn (a game wants a readable character). */
     var personScale = 3.0f
 }
