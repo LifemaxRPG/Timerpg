@@ -223,7 +223,7 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
         listOf(all.take(half), all.drop(half)).filter { it.isNotEmpty() }.mapIndexed { k, es -> StreetInfo(if (k == 0) "Main Street" else "Side Street", es.map { it.value.stack }, es.map { it.value.owner }, es.map { it.key }) }
     }
     // the crossroads, for the corner turn: the same pictures the street uses (decoded once)
-    fun facades(list: List<String>) = list.mapNotNull { bySprite[it]?.art }.map { com.lifemax.rpg.feature.habits.presentation.scene.turnFacade(it.front, it.side, it.emis, it.prop, it.house?.shape, it.house?.slope, it.house?.back, it.house?.fence, it.house?.fenceSnow, it.house?.porch) }
+    fun facades(list: List<String>) = list.mapNotNull { bySprite[it]?.art }.map { com.lifemax.rpg.feature.habits.presentation.scene.turnFacade(it.front, it.side, it.emis, it.prop, it.house?.shape, it.house?.slope, it.house?.back, it.house?.fence, it.house?.fenceSnow, it.house?.porch, it.model?.shape, it.model?.atlas) }
     val jn = j.optJSONObject("junction")
     val rows = if (streetsJ != null && streetsJ.length() >= 2 && jn != null) TurnRows(
         facades(names(streetsJ.getJSONObject(0).optJSONArray("buildings"))), facades(names(jn.optJSONArray("mainEast"))),

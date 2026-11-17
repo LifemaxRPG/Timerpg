@@ -23,14 +23,15 @@ import kotlin.math.max
 /**
  * The turn's pictures for one of our buildings. For a pitched-roof house ([house], with its near and far slopes'
  * pictures): its gable end cut to the wall's rows (the roof's triangles are drawn by the turn), its roof, and its yard's
- * fence (with where snow lies on it) and its porch's pictures.
+ * fence (with where snow lies on it) and its porch's pictures. For a villa ([model], with its [atlas]): its front gable.
  */
 fun turnFacade(
     front: ImageBitmap, side: ImageBitmap, emis: ImageBitmap?, prop: ImageBitmap?, house: HouseShape?,
     slope: ImageBitmap? = null, back: ImageBitmap? = null,
     fence: ImageBitmap? = null, fenceSnow: ImageBitmap? = null, porch: ImageBitmap? = null,
+    model: com.lifemax.rpg.feature.habits.domain.ModelShape? = null, atlas: ImageBitmap? = null,
 ): TurnFacade {
-    if (house == null) return TurnFacade(front, side, emis, prop)
+    if (house == null) return TurnFacade(front, side, emis, prop, gable = if (model != null && atlas != null) TurnGableArt.of(model, atlas) else null)
     val rows = minOf(side.height, house.h.toInt())
     val px = IntArray(side.width * rows)
     side.readPixels(px, 0, side.height - rows, side.width, rows)
