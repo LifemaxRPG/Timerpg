@@ -64,7 +64,10 @@ fun streetOfShops(): List<HabitStack> {
     val arr = org.json.JSONObject(File(dir, "street.json").readText()).getJSONArray("shops")
     fun img(n: String): androidx.compose.ui.graphics.ImageBitmap? =
         File(dir, "buildings/$n.png").takeIf { it.exists() }?.let { SkiaImage.makeFromEncoded(it.readBytes()).toComposeImageBitmap() }
-    return (0 until arr.length()).map { i ->
+    val half = (arr.length() + 1) / 2
+    val which = (System.getProperty("street") ?: "all")
+    val idx = when (which) { "0" -> 0 until half; "1" -> half until arr.length(); else -> 0 until arr.length() }
+    return idx.map { i ->
         val o = arr.getJSONObject(i)
         val id = o.getString("id"); val n = o.getString("sprite")
         val mids = (0 until o.getJSONArray("parts").length()).count { o.getJSONArray("parts").getJSONObject(it).getString("key").startsWith("middle_") }
