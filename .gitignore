@@ -18,3 +18,7 @@ kotlin-street/.gradle/
 
 # llama.cpp source (fetched by kotlin-street/tools/get-llama.sh)
 kotlin-street/third_party/
+
+# Python bytecode
+__pycache__/
+*.pyc
