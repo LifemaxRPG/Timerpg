@@ -363,13 +363,15 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     }
     val pickModel = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) engine.importModel(uri) }
     // the sound follows the hour, the weather and the season; footsteps while walking (the stride's own cadence)
+    // the town's kind (harbor, farm, mill ...) picks its music
+    val townKind = remember(data) { com.timerpg.street.audio.SoundRules.townOf(data.town) }
     LaunchedEffect(sound) {
         if (sound == null) return@LaunchedEffect
         var stepAt = 0f; var foot = 0
         while (true) {
             androidx.compose.runtime.withFrameNanos { }
             val w = WEATHERS[weather].second
-            sound.set(com.timerpg.street.audio.SoundRules.at(hour, w?.rain ?: 0f, w?.cloudiness ?: 0f, w?.mist ?: 0f, season))
+            sound.set(com.timerpg.street.audio.SoundRules.at(hour, w?.rain ?: 0f, w?.cloudiness ?: 0f, w?.mist ?: 0f, season, townKind))
             if (GameState.walking) {
                 // a step every ~0.62 street units of stride... measured by the distance walked
                 if (GameState.travel - stepAt > 17f || GameState.travel < stepAt) {

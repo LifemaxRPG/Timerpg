@@ -68,7 +68,10 @@ class SoundScape(private val ctx: Context) {
     fun stop() { running = false; thread?.join(500); thread = null }
 
     private fun bed(name: String): Pcm? = synchronized(beds) { beds.getOrPut(name) { Pcm.load(ctx.assets, "audio/amb/$name.ogg") } }
-    private fun track(name: String): Pcm? = synchronized(tracks) { tracks.getOrPut(name) { Pcm.load(ctx.assets, "audio/music/$name.ogg") } }
+    /** music/TOWN_MOOD.ogg, else music/MOOD.ogg (a town's own music when there is one). */
+    private fun track(name: String): Pcm? = synchronized(tracks) {
+        tracks.getOrPut(name) { Pcm.load(ctx.assets, "audio/music/$name.ogg") ?: name.substringAfter('_', "").takeIf { it.isNotEmpty() }?.let { Pcm.load(ctx.assets, "audio/music/$it.ogg") } }
+    }
 
     private fun loop() {
         Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO)

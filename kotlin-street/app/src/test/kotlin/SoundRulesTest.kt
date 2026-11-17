@@ -21,4 +21,12 @@ class SoundRulesTest {
         // no crickets in winter
         assertTrue(SoundRules.at(23f, 0f, 0f, 0f, 3).beds["crickets_night"]!! < .01f)
     }
+
+    @Test
+    fun eachTownHasItsOwnMusic() {
+        assertEquals("harbor", SoundRules.townOf("Maple Hollow · Harbor town · 1987"))
+        assertEquals("suburb", SoundRules.townOf("eta · Commuter suburb · 2025"))
+        assertEquals("harbor_night", SoundRules.at(23f, 0f, 0f, 0f, 1, "harbor").music)
+        assertEquals("rain", SoundRules.at(23f, .9f, .9f, 0f, 1).music)
+    }
 }

@@ -12,6 +12,15 @@ object SoundRules {
     /** Music by mood: one plays at a time, crossfading when it changes. */
     val TRACKS = listOf("morning", "day", "evening", "night", "rain")
 
+    /** The town kinds (src/sim/archetype.ts), each with its own music: music/KIND_MOOD.ogg, else music/MOOD.ogg. */
+    val TOWNS = listOf("farm", "harbor", "mill", "mining", "resort", "suburb")
+
+    /** The town kind from the street's label ("Harbor town", "Commuter suburb" ...), or null. */
+    fun townOf(label: String): String? {
+        val l = label.lowercase()
+        return TOWNS.firstOrNull { l.contains(it) } ?: if (l.contains("suburb")) "suburb" else null
+    }
+
     /**
      * Short sounds scattered over the beds ([Mix.scatter]: how many a minute), each picked from its files in
      * assets/audio/sfx (made with MOSS-SoundEffect).
@@ -30,7 +39,7 @@ object SoundRules {
     private fun smooth(a: Float, b: Float, x: Float): Float { val t = ((x - a) / (b - a)).coerceIn(0f, 1f); return t * t * (3f - 2f * t) }
 
     /** [hour] 0..24, [rain] / [cloud] / [mist] 0..1, [season] 0 spring .. 3 winter. */
-    fun at(hour: Float, rain: Float, cloud: Float, mist: Float, season: Int): Mix {
+    fun at(hour: Float, rain: Float, cloud: Float, mist: Float, season: Int, town: String? = null): Mix {
         val day = smooth(5.5f, 8f, hour) * (1f - smooth(19.5f, 22f, hour))          // the town awake
         val dawn = smooth(4.5f, 6.5f, hour) * (1f - smooth(8.5f, 11f, hour))         // the birds' hour
         val night = 1f - day
@@ -60,6 +69,6 @@ object SoundRules {
             "bell" to (if (hour in 11.9f..12.2f || hour in 17.9f..18.2f) 6f else .08f) * day,
             "thunder" to 1.2f * smooth(.7f, .95f, rain),
         )
-        return Mix(beds, music, if (music == "night") .45f else .55f, scatter)
+        return Mix(beds, if (town != null) "${town}_$music" else music, if (music == "night") .45f else .55f, scatter)
     }
 }
