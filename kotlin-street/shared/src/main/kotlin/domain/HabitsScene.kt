@@ -360,8 +360,9 @@ fun streetLayout(buildings: List<BuildingLayout>): StreetLayout {
     furniture += Furniture(FurnitureKind.LAMP, start + b.GAP / 2f, -1)
     furniture += Furniture(FurnitureKind.TREE, start - b.GAP / 2f, -2)
     if (buildings.isNotEmpty()) {
-        furniture += Furniture(FurnitureKind.LAMP, end - b.GAP / 2f, -3)
-        furniture += Furniture(FurnitureKind.TREE, end + b.GAP / 2f, -4)
+        // tree then lamp at the far end: the lamp's head hangs out over the open pavement, not into the tree
+        furniture += Furniture(FurnitureKind.TREE, end - b.GAP / 2f, -4)
+        furniture += Furniture(FurnitureKind.LAMP, end + b.GAP / 2f, -3)
     }
     return StreetLayout(centers, lefts, furniture, start - b.GAP, end + b.GAP)
 }

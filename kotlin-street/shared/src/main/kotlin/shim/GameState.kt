@@ -26,6 +26,8 @@ object GameState {
     var atCorner = false
     /** Where this street's crossroads is: at its far (east) end, or at its start. */
     var cornerAtEnd = true
+    /** Half the screen's width in street units (set by the stage as it draws), so the camera can stop at the street's ends. */
+    var halfView = 0f
 
     const val SPEED = 46f       // street units a second
     const val LANE_SPEED = 7f   // units a second in and out

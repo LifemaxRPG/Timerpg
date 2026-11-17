@@ -310,19 +310,18 @@ internal class StreetLifePainter {
 
     /** Our pixel-art character, in place of the procedural walker: the right-facing frame ([party] flips it to walk left). */
     private fun DrawScope.pixelWalker(p: Passer, look: Int, frame: Int, alpha: Float, filter: ColorFilter?) {
-        val sheets = SpriteSheets.sheets
-        val sheet = sheets[look % sheets.size]
+        val sheet = sheetFor(p, look)
         val standing = p.still > .5f
         val i = if (standing) 0 else (frame % StreetGait.FRAMES) * 6 / StreetGait.FRAMES
-        // each sprite pixel is 1.5 of the buildings' (a whole number of screen pixels when the zoom is snapped), whatever
-        // lane they are in: the figure transform here already scales by perspective and unit
-        val k = SpriteArt.PIXEL * 1.5f / (perspective(p.lane) * unit)
+        // each sprite pixel is one of the buildings' (the same grid as the street; a whole number of screen pixels when
+        // the zoom is snapped), whatever lane they are in: the figure transform here already scales by perspective and unit
+        val k = SpriteArt.PIXEL / (perspective(p.lane) * unit)
         withTransform({ scale(k, k, Offset.Zero) }) {
             drawImage(
                 sheet,
                 srcOffset = IntOffset(((if (p.slot == 9999) GameState.facing else 0) * 6 + i) * 32, (if (standing) 1 else 2) * 64),
                 srcSize = IntSize(32, 64),
-                dstOffset = IntOffset(-16, -61),
+                dstOffset = IntOffset(-16, -63),
                 dstSize = IntSize(32, 64),
                 alpha = alpha,
                 colorFilter = filter,
@@ -330,6 +329,22 @@ internal class StreetLifePainter {
                 filterQuality = FilterQuality.None,
             )
         }
+    }
+
+    /**
+     * Which of our character sheets a passer wears: chosen once from the passer's slot (so it never changes on screen),
+     * never the player's own, and the second of a pair never the same as the first. The player wears GameState.look.
+     */
+    private fun sheetFor(p: Passer, look: Int): androidx.compose.ui.graphics.ImageBitmap {
+        val sheets = SpriteSheets.sheets
+        val mine = GameState.look.mod(sheets.size)
+        if (p.slot == 9999) return sheets[mine]
+        val others = sheets.indices.filter { it != mine }
+        if (others.isEmpty()) return sheets[mine]
+        val n = others.size
+        val first = (p.slot * 7 + 3).mod(n)
+        val second = look != p.look
+        return sheets[others[if (!second) first else (first + 1 + p.slot.mod(maxOf(1, n - 1))).mod(n)]]
     }
 
     /**
@@ -840,6 +855,16 @@ internal class StreetLifePainter {
         y: Float,
         persp: Float,
     ) {
+        if (StageTuning.pixelPeople && SpriteSheets.sheets.isNotEmpty()) {
+            // our pixel people: one soft shadow under both feet, as wide as the shoes and a little more
+            val w = 7f * SpriteArt.PIXEL
+            translate(x, y) {
+                scale(w, 1.4f * SpriteArt.PIXEL, Offset.Zero) {
+                    drawCircle(contact, 1f, Offset.Zero, alpha = if (p.still > .5f) .5f else .38f)
+                }
+            }
+            return
+        }
         val j = SceneSprites.walker(look, frame).joints
         val s = StreetLife.SIZE * persp
         foot(x + p.dir * j.footNX * s, y, j.footNH * s)

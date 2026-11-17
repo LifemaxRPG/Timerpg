@@ -2304,14 +2304,17 @@ internal class BuildingPainter {
         val sw = (img.width / n).coerceAtLeast(1)
         for (i in 0 until n) {
             val x0 = ox + ux * i / n
-            val y0 = oy + uy * i / n
+            // the strip reaches up to the top edge at its higher end (the edge rises across it), so no sky shows through
+            // in the notch between the side and the roof; the roof is drawn after and covers the overlap
+            val y0 = oy + uy * i / n + minOf(0f, uy / n)
             val dx = if (ux >= 0f) x0 else x0 + ux / n
             val dw = abs(ux) / n + .6f
+            val dh = h + abs(uy) / n
             withTransform({
                 translate(dx, y0)
-                scale(dw / sw, h / img.height, Offset.Zero)
+                scale(dw / sw, dh / img.height, Offset.Zero)
             }) {
-                drawImage(img, IntOffset(i * sw, 0), IntSize(sw, img.height), IntOffset.Zero, IntSize(sw, img.height), 1f, Fill, null, BlendMode.SrcOver, FilterQuality.Low)
+                drawImage(img, IntOffset(i * sw, 0), IntSize(sw, img.height), IntOffset.Zero, IntSize(sw, img.height), 1f, Fill, null, BlendMode.SrcOver, FilterQuality.None)
             }
         }
     }
@@ -2327,12 +2330,14 @@ internal class BuildingPainter {
             // j = 0 is the far (back) strip
             val t = (j + 1f) / n
             val yy = y - dy * (1f - (j + 1f) / n)
-            val xx = x + shift * (1f - t)
+            // each strip covers the whole step to the next one's offset, so the roof's sloped edge has no staircase gaps
+            val xx = x + minOf(shift * (1f - t), shift * (1f - j.toFloat() / n))
+            val ww = w + abs(shift) / n
             withTransform({
                 translate(xx, yy - dy / n)
-                scale(w / img.width, (dy / n + .6f) / sh, Offset.Zero)
+                scale(ww / img.width, (dy / n + .6f) / sh, Offset.Zero)
             }) {
-                drawImage(img, IntOffset(0, j * sh), IntSize(img.width, sh), IntOffset.Zero, IntSize(img.width, sh), 1f, Fill, null, BlendMode.SrcOver, FilterQuality.Low)
+                drawImage(img, IntOffset(0, j * sh), IntSize(img.width, sh), IntOffset.Zero, IntSize(img.width, sh), 1f, Fill, null, BlendMode.SrcOver, FilterQuality.None)
             }
         }
     }
@@ -5788,7 +5793,7 @@ private const val LAMP_FOOT_Y = 127f
 // the lantern glass under the lamp's head (props/lamp_1.png is 64x128; the glass is the pale band at about 44-56, 46-50)
 private const val LAMP_LENS_X = 50f
 private const val LAMP_LENS_Y = 48f
-private val TREE_K get() = SpriteArt.PIXEL * 1.5f
+private val TREE_K get() = SpriteArt.PIXEL   // the same grid as the buildings
 private const val TREE_FOOT_X = 31f
 private const val TREE_FOOT_Y = 95f
 private val BENCH_K get() = SpriteArt.PIXEL

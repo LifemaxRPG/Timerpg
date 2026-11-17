@@ -626,7 +626,10 @@ private fun StageCanvas(
                     }
                 }
             }
-            scroll.snapTo(GameState.x)
+            // the camera stops where the street's built ends reach the screen's edges; the player walks on to the end
+            val half = GameState.halfView
+            val lo = s.start + half; val hi = s.end - half
+            scroll.snapTo(if (half <= 0f) GameState.x else if (lo < hi) GameState.x.coerceIn(lo, hi) else (s.start + s.end) / 2f)
             GameState.atCorner = if (GameState.cornerAtEnd) GameState.x > s.end - 110f else GameState.x < s.start + 110f
             GameState.nearest = s.lefts.indices.firstOrNull { GameState.x >= s.lefts[it] && GameState.x <= s.lefts[it] + B.W } ?: -1
         }
@@ -749,6 +752,7 @@ private fun StageCanvas(
     ) {
         if (this.size.width <= 0f) return@Canvas
         val f = frame()
+        if (GameState.enabled && f.unit > 0f) GameState.halfView = size.width / 2f / f.unit
         val d = density.density
         val horizon = f.ground - HORIZON_DP * d * f.scale.coerceAtMost(1f)
         // the sun or the moon stands beside the building in front
@@ -1076,6 +1080,23 @@ private fun sunEdge(
         fun x(at: Float) = f.screenX(cx + at)
         fun y(up: Float) = f.ground - up * u
         val roof = layout.roof
+        val sb = SpriteArt.buildings[art.stack.id]
+        if (sb != null) {
+            // one of OUR buildings: its real silhouette (as spriteBuilding draws it), not the engine's cornice, tank and sign
+            val k = B.W / SpriteArt.SRC_W
+            val hf = sb.front.height * k
+            edge.box(x(-half), y(hf), x(half), f.ground, s, if (sb.roof != null) dy else 0f)
+            val over = sb.sign
+            val bill = sb.prop
+            if (over != null) edge.box(x(-half), y(hf + over.height * k), x(half), y(hf))
+            else if (bill != null) {
+                val w = 160f * k
+                val left = -w / 2f + f.sideShift(cx) * .5f
+                val bottom = hf + B.DY * .5f
+                edge.box(x(left), y(bottom + bill.height * k), x(left + w), y(bottom))
+            }
+            continue
+        }
         edge.box(x(-half), y(roof), x(half), f.ground, s, dy)
         if (art.floors.isEmpty()) continue
         edge.box(x(-half - 3f), y(roof + B.CORNICE), x(half + 3f), y(roof), s, dy)
