@@ -4,19 +4,28 @@ import androidx.compose.ui.graphics.ImageBitmap
 import com.lifemax.rpg.feature.habits.domain.HouseShape
 
 /*
- * Our pitched-roof houses in the corner turn (CornerTurn.kt) and the street crossing. Until the turn builds their roofs,
- * a house is a box of its own size: its front picture's width (not stretched to the slot's 224 pixels), standing back in
- * its slot by its front yard (as far as the slot is deep), as tall as its wall with a flat top at its eave's edge, and
- * its gable end cut down to the wall's rows.
+ * Our pitched-roof houses in the corner turn (CornerTurn.kt) and the street crossing: a box of its own size (its front
+ * picture's width, not stretched to the slot's 224 pixels), standing back in its slot by its front yard (as far as the
+ * slot is deep), as tall as its wall up to the eave's edge, its gable end cut down to the wall's rows, and its pitched
+ * roof on top (TurnRoof.kt).
  */
 
-/** The turn's pictures for one of our buildings ([house] for a pitched-roof house: its gable cut to the wall's rows). */
-fun turnFacade(front: ImageBitmap, side: ImageBitmap, emis: ImageBitmap?, prop: ImageBitmap?, house: HouseShape?): TurnFacade {
+/**
+ * The turn's pictures for one of our buildings. For a pitched-roof house ([house], with its near and far slopes'
+ * pictures): its gable end cut to the wall's rows (the roof's triangles are drawn by the turn), and its roof.
+ */
+fun turnFacade(
+    front: ImageBitmap, side: ImageBitmap, emis: ImageBitmap?, prop: ImageBitmap?, house: HouseShape?,
+    slope: ImageBitmap? = null, back: ImageBitmap? = null,
+): TurnFacade {
     if (house == null) return TurnFacade(front, side, emis, prop)
     val rows = minOf(side.height, house.h.toInt())
     val px = IntArray(side.width * rows)
     side.readPixels(px, 0, side.height - rows, side.width, rows)
-    return TurnFacade(front, PlatformImages.create(px, side.width, rows, false), emis, prop, house)
+    // the gable's colour: the siding's, a quarter of the way along the end wall (clear of its window)
+    val gable = androidx.compose.ui.graphics.Color(px[minOf(rows - 1, 24) * side.width + side.width / 5] or (0xFF shl 24))
+    val roof = slope?.let { TurnRoofArt(house, it, back, gable) }
+    return TurnFacade(front, PlatformImages.create(px, side.width, rows, false), emis, prop, house, roof)
 }
 
 /**

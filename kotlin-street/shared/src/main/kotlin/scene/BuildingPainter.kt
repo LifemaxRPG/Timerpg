@@ -3001,7 +3001,58 @@ internal class BuildingPainter {
                 part(sb.emis, p[0].toInt(), p[1].toInt(), p[2].toInt(), p[3].toInt(), x, y, ww, hh, alpha = on * .3f, blend = BlendMode.Plus)
             }
         }
+        // --- the porch light beside the door: a small lamp on the wall, lit from dusk with a warm pool on the wall and
+        // the ground below it (the porch's deck or the steps)
+        run {
+            val lx = 106f; val ly = 32f                                 // front-picture pixels: right of the door, at head height
+            val x = v.x(lx, 0f); val y = v.y(sh.h - ly, 0f)
+            drawRect(houseInk(Color(0xFF2A2633)), Offset(x - .5f * k, y - 1f * k), Size(4f * k, 5f * k))
+            val on = (sky.dark * Dusk.lightsOn(wseed + 7, hour, Dusk.LAMP)).coerceIn(0f, 1f)
+            drawRect(lerp(houseInk(Color(0xFFBFB59A)), SceneInk.WindowLit, on), Offset(x + .5f * k, y), Size(2f * k, 3f * k))
+            if (on > .02f) {
+                val c = Offset(x + 1.5f * k, y + 1.5f * k)
+                val r = 16f * k
+                drawCircle(Brush.radialGradient(listOf(SceneInk.LampLight.copy(alpha = .55f * on), Color.Transparent), c, r), r, c, blendMode = BlendMode.Plus)
+                // its pool on the ground in front of the door
+                val gy = v.y(0f, -10f)
+                withTransform({ translate(c.x, gy); scale(1f, .28f, Offset.Zero) }) {
+                    drawCircle(Brush.radialGradient(listOf(SceneInk.LampLight.copy(alpha = .4f * on), Color.Transparent), Offset.Zero, 22f * k), 22f * k, Offset.Zero, blendMode = BlendMode.Plus)
+                }
+            }
+        }
         drawRect(SceneInk.Highlight, Offset(ex, ey), Size(picW * k, .6f * k))
+        // smoke from the flue on cold days, most at night and in the morning
+        houseSmoke(wseed, v.x((sh.flueX0 + sh.flueX1) / 2f, (sh.flueD0 + sh.flueD1) / 2f), v.y(sh.flueTop, (sh.flueD0 + sh.flueD1) / 2f), k, seconds, sky)
+    }
+
+    /**
+     * The smoke off a house's flue (its top at ([x], [y])): soft puffs rising, growing and thinning, drifting with the
+     * wind, from the heating in the cold months ([Dusk.steam]: thickest at night and in the morning); none in summer.
+     */
+    private fun DrawScope.houseSmoke(seed: Int, x: Float, y: Float, k: Float, seconds: Float, sky: SkyColors) {
+        val day = season.dayOfYear
+        val cold = if (day < 90 || day > 300) 1f else if (day < 120 || day > 275) .4f else 0f
+        val density = cold * Dusk.steam(hour, day)
+        if (density <= .01f) return
+        duskTints(sky)
+        val wind = Ambient.sway(seed, seconds)
+        val puffs = SceneSprites.dusk.puffs
+        val half = DuskSprites.PUFF / 2f
+        for (j in 0 until Dusk.PUFFS) {
+            val t = Dusk.puff(seed, j, seconds * .8f)
+            val size = (.5f + 1.9f * t) * 9f * k / DuskSprites.PUFF
+            val px = x + t * (4f + 3f * wind) * k + 4f * t * t * k
+            val py = y - t * 30f * k
+            val fade = (1f - t) * (1f - t)
+            val a = density * .5f * fade * min(1f, t * 10f)
+            if (a <= .01f) continue
+            withTransform({
+                translate(px, py)
+                scale(size, size, Offset.Zero)
+            }) {
+                drawImage(puffs[j % DuskSprites.PUFFS], Offset(-half, -half), alpha = a, colorFilter = steamFilter)
+            }
+        }
     }
 
     /**
