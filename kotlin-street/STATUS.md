@@ -33,11 +33,21 @@
   "Back to Main Street"), and turning back plays the turn in reverse and leaves you at the junction end of Main Street.
 - Demo town is still "eta" (Main Street: 8 shops; Orchard Lane: 6 homes). Checked on 9 seeds: all give 7-8 on Main Street, 2-6 on the cross street.
 
-## Native dialogue AI (engine only; verified on a computer with tools/llm-host-test.sh, NOT yet on a phone)
-- llama.cpp built into the APK (arm64-v8a; CPU kernels armv8.0 / armv8.2+dotprod+fp16 / armv8.6+i8mm, best one picked
-  at run time), `NativeLlm` implements `LlmBackend`: KV prefix reuse, old sampler settings, streaming, cancel, errors
-  instead of crashes (missing/invalid model, no native library, low memory), frees the model on memory pressure.
-- Not connected to the UI yet (no dialogue screen uses it), and nothing ships or downloads the model file.
+## Dialogue and the native dialogue AI (verified on a computer; NOT yet run on a phone)
+- `tools/export-dialogue.ts` -> `assets/dialogue.json`: the people at each building of both streets (shop owners; a home's
+  head and one other adult), with the game's template lines and the model's prompts for each topic (see README).
+- "Talk to <name>" at a building opens a dialogue panel (topics, the reply streaming in, a marker for AI vs built-in line);
+  walking away or turning the corner closes it. The "AI" chip (top left) opens the model and speed panel.
+- `dialogue/DialogueEngine.kt`: one low-priority worker owns the model; lines are written ahead nearest-first (paused in
+  the corner turn and in the background), questions jump the queue, replies pass the `validate()` port or the template
+  stays; results cached in `filesDir/dialogue-cache.json`. Model file picked once with the system picker (GGUF header
+  checked, copied with progress).
+- The engine is `NativeLlm` (`llm/Backends.kt`): llama.cpp built into the APK (arm64-v8a; CPU kernels armv8.0 /
+  armv8.2+dotprod+fp16 / armv8.6+i8mm, best one picked at run time), KV prefix reuse, old sampler settings, streaming,
+  cancel, errors instead of crashes (missing/invalid model, no native library, low memory).
+- Nothing ships or downloads the model file: it is picked from the phone's storage once.
+- Guesses to check on a device: the free-memory thresholds for loading, the 45 s reply timeout, two tries per line, the
+  thread count, the panel sizes on small landscape screens.
 
 ## Known rough edges / not done
 - Untested on a real device (touch, speed, memory, the turn's draw cost). Android-only code: image helper, asset loading, controls.

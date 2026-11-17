@@ -76,4 +76,6 @@ dependencies {
     implementation("androidx.compose.runtime:runtime")
     implementation("androidx.activity:activity-compose:1.9.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    // JVM unit tests (the validate() port, the pre-generation queue): gradle :app:testDebugUnitTest
+    testImplementation("junit:junit:4.13.2")
 }

@@ -1,0 +1,72 @@
+package com.timerpg.street.llm
+
+/**
+ * The check every model reply passes before a player sees it: an exact port of `validate()` in src/llm/factsheet.ts (the
+ * same steps and rules, in the same order). JavaScript's regex semantics are kept where Java's (or Android's ICU) differ:
+ * its whitespace class `\s` and `trim()`, ASCII-only `\b` word boundaries, ASCII-only case folding for `/i`, and `$` as the
+ * very end of the text. So a reply passes here exactly when it passes in the TypeScript game
+ * (test vectors: tools/validate-vectors.ts -> app/src/test/kotlin/ValidateVectors.kt).
+ */
+object Dialogue {
+    /** JavaScript's `\s`: WhiteSpace and LineTerminator, which is also what `String.prototype.trim` removes. */
+    private const val WS = "\t\n\u000B\u000C\r    -     　﻿"
+
+    private fun isJsSpace(c: Char): Boolean = when (c) {
+        '\t', '\n', '\u000B', '\u000C', '\r', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '　', '﻿' -> true
+        else -> c in ' '..' '
+    }
+
+    private fun jsTrim(s: String): String = s.trim(::isJsSpace)
+
+    /** `/.../i` on an ASCII pattern: each letter matches its two ASCII cases only (as JavaScript does without the u flag). */
+    private fun ci(p: String): String = buildString {
+        for (c in p) if (c in 'a'..'z') append('[').append(c).append(c.uppercaseChar()).append(']') else append(c)
+    }
+
+    /** `\b` before and after a run that starts and ends with a word character, with JavaScript's ASCII word characters. */
+    private const val B0 = "(?<![A-Za-z0-9_])"
+    private const val B1 = "(?![A-Za-z0-9_])"
+
+    private val THINK = Regex("<think>[\\s\\S]*?</think>")
+    private val SPECIAL = Regex("<\\|[^|]*\\|>")
+    private val QUOTES = Regex("^[\"“'‘]+|[\"”'’]+\\z")
+    private val ACTION = Regex("\\*[^*]*\\*")
+    private val SPACES = Regex("[$WS]+")
+    private val SENTENCES = Regex("[^.!?]+[.!?]+(?:[$WS]|\\z)|[^.!?]+\\z")
+    private val AI_START = Regex("^(?:" + ci("as an ai|i am an ai|i'm an ai|sorry, i") + ")")
+    private val AI_WORDS = Regex(B0 + "(?:" + ci("language model|assistant") + ")" + B1)
+    private val STAGE = Regex(
+        B0 + "(?:" + ci("i say|i respond|i reply|i smile|smiles?|nods?|my eyes|flickers?|let me know|how can i (?:help|assist)|anything else") + ")" + B1,
+    )
+
+    /**
+     * Cleans the model's reply, or returns null if it must not be used (the template line is shown instead).
+     * [must]: words the reply has to contain (a name from the fact sheet); [self]: the speaker's full name, which a
+     * reply may not contain (no self-introductions).
+     */
+    fun validate(raw: String, must: List<String>, self: String): String? {
+        var t = jsTrim(SPECIAL.replace(THINK.replace(raw, ""), ""))
+        t = jsTrim(SPACES.replace(ACTION.replace(QUOTES.replace(t, ""), ""), " "))
+        if (t.length < 3 || t.length > 320) return null
+        // Keep at most the first two sentences.
+        val sentences = SENTENCES.findAll(t).map { it.value }.toList()
+        if (sentences.size > 2) t = jsTrim(sentences.take(2).joinToString(""))
+        if (AI_START.containsMatchIn(t) || AI_WORDS.containsMatchIn(t)) return null
+        // Stage directions, assistant-speak and self-introductions are not how a neighbor talks.
+        if (STAGE.containsMatchIn(t)) return null
+        if (self.isNotEmpty() && t.lowercase().contains(self.lowercase())) return null
+        val low = t.lowercase()
+        if (must.any { !low.contains(it.lowercase()) }) return null
+        return t
+    }
+
+    /** The reply so far, tidied for showing while it streams in (not a check: [validate] decides at the end). */
+    fun preview(raw: String): String {
+        var t = SPECIAL.replace(THINK.replace(raw, ""), "")
+        // a special token or a think block still being written
+        val cut = listOf(t.indexOf("<think>"), t.indexOf("<|")).filter { it >= 0 }.minOrNull()
+        if (cut != null) t = t.substring(0, cut)
+        t = ACTION.replace(t, "")
+        return jsTrim(SPACES.replace(t, " ")).trimStart('"', '“', '\'', '‘')
+    }
+}
