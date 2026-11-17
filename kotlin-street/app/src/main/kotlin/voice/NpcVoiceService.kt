@@ -33,6 +33,9 @@ class NpcVoiceService(private val ctx: Context) {
     private val idle = Runnable { worker.execute { bank.close() } }
     private fun touch() { main.removeCallbacks(idle); main.postDelayed(idle, 30_000L) }
 
+    /** Told when an NPC starts and stops speaking (the street's sound dips under the voice). */
+    var onSpeaking: ((Boolean) -> Unit)? = null
+
     /** Voices on or off (the player's choice). */
     var enabled by mutableStateOf(true)
     /** Downloading the models: 0..1, or -1 when not downloading. */
@@ -73,14 +76,16 @@ class NpcVoiceService(private val ctx: Context) {
             MediaPlayer().apply {
                 setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())
                 setDataSource(f.path)
-                setOnCompletionListener { it.release(); if (player === it) player = null }
+                setOnCompletionListener { it.release(); if (player === it) { player = null; onSpeaking?.invoke(false) } }
                 prepare()
                 start()
+                onSpeaking?.invoke(true)
             }
         } catch (e: Exception) { null }
     }
 
     fun stop() {
+        if (player != null) onSpeaking?.invoke(false)
         generation++
         player?.let { try { it.stop() } catch (e: Exception) { }; it.release() }
         player = null

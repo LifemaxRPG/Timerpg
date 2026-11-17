@@ -65,6 +65,7 @@ class GameActivity : ComponentActivity() {
     private var dialogue: DialogueEngine? = null
     /** NPC voices (Kokoro and Supertonic), and the one-time model download. */
     private var voices: com.timerpg.street.voice.NpcVoiceService? = null
+    private var sound: com.timerpg.street.audio.SoundScape? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         AndroidFx.install()
@@ -95,7 +96,11 @@ class GameActivity : ComponentActivity() {
         dialogue = engine
         val v = com.timerpg.street.voice.NpcVoiceService(applicationContext)
         voices = v
-        setContent { GameScreen(engine, v) }
+        // the street's sound: ambience, music, footsteps; it dips while someone speaks
+        val s = com.timerpg.street.audio.SoundScape(applicationContext)
+        sound = s
+        v.onSpeaking = { on -> s.duck(on) }
+        setContent { GameScreen(engine, v, s) }
     }
 
     /** The whole screen: no system bars (a swipe shows them for a moment), drawn into the camera cutout, never dimming. */
@@ -118,10 +123,12 @@ class GameActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         dialogue?.onForeground(true)
+        sound?.start()
     }
 
     override fun onStop() {
         dialogue?.onForeground(false)
+        sound?.stop()
         super.onStop()
     }
 
@@ -234,7 +241,7 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
 }
 
 @Composable
-private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.NpcVoiceService) {
+private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.NpcVoiceService, sound: com.timerpg.street.audio.SoundScape? = null) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val data = remember { loadStreet(ctx) }
     // the main street and the cross street; the corner turn leads from one to the other
@@ -355,6 +362,24 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         if (t != null && t.npc.building != here) { t.close(voices); talk = null }
     }
     val pickModel = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) engine.importModel(uri) }
+    // the sound follows the hour, the weather and the season; footsteps while walking (the stride's own cadence)
+    LaunchedEffect(sound) {
+        if (sound == null) return@LaunchedEffect
+        var stepAt = 0f; var foot = 0
+        while (true) {
+            androidx.compose.runtime.withFrameNanos { }
+            val w = WEATHERS[weather].second
+            sound.set(com.timerpg.street.audio.SoundRules.at(hour, w?.rain ?: 0f, w?.cloudiness ?: 0f, w?.mist ?: 0f, season))
+            if (GameState.walking) {
+                // a step every ~0.62 street units of stride... measured by the distance walked
+                if (GameState.travel - stepAt > 17f || GameState.travel < stepAt) {
+                    stepAt = GameState.travel; foot = (foot + 1) % 4
+                    val wet = (w?.wet ?: 0f) > .3f
+                    sound.play(if (wet) "step_wet_${foot + 1}" else "step_${foot + 1}", .5f, if (foot % 2 == 0) -.15f else .15f)
+                }
+            }
+        }
+    }
     // the player's voice: hold the mic in a conversation, say something, let go
     val ears = remember { com.timerpg.street.voice.PlayerVoice(ctx.applicationContext) }
     // and what each person remembers of it
