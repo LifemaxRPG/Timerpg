@@ -36,6 +36,8 @@ class TurnBuilding(
     val prop: ImageBitmap? = null,
     /** On the camera's side of the junction (east of it): it ends up behind the camera, so it is gone by the end of the turn. */
     val nearSide: Boolean = false,
+    /** Behind the camera at the start and in view at the end (the far side of a street crossing): it comes in late. */
+    val fadeInLate: Boolean = false,
 ) {
     val h: Float get() = front.height.toFloat()
     val cx: Float get() = (x0 + x1) / 2f
@@ -192,6 +194,7 @@ private fun smooth(e0: Float, e1: Float, x: Float): Float { val t = ((x - e0) / 
 private fun buildingFade(cam: Cam, b: TurnBuilding, e: Float): Float {
     val v = cam.v(b.cx, b.cz)
     val depth = 1f - smooth(0f, 1f, (-v - 10f) / 210f)
+    if (b.fadeInLate) return smooth(.45f, .85f, e)
     return if (b.nearSide) minOf(depth, 1f - smooth(.5f, .9f, e)) else depth
 }
 
@@ -225,7 +228,7 @@ private fun DrawScope.buildingBody(cam: Cam, b: TurnBuilding) {
     fun toward(f: F) = f.nx * (camX - (f.ax + f.bx) / 2f) + f.nz * (camZ - (f.az + f.bz) / 2f) > 1f
     // the roof, seen from above (not at all from below, where only walls show)
     if (b.h < cam.eye - 5f) ground(cam, listOf(b.x0 to b.z0, b.x1 to b.z0, b.x1 to b.z1, b.x0 to b.z1), b.h, (if (TurnLight.season == 3) Color(0xFFdde5ee) else Color(0xFF454852)).let { c -> val l = TurnLight.current; Color(c.red * (if (TurnLight.season == 3) l.r else 1f), c.green * (if (TurnLight.season == 3) l.g else 1f), c.blue * (if (TurnLight.season == 3) l.b else 1f), a) })
-    val fnx = when (b.frontN) { 1 -> 1f; 2 -> -1f; else -> 0f }; val fnz = if (b.frontN == 0) -1f else 0f
+    val fnx = when (b.frontN) { 1 -> 1f; 2 -> -1f; else -> 0f }; val fnz = when (b.frontN) { 0 -> -1f; 3 -> 1f; else -> 0f }
     fun draw(f: F, k: Float) {
         val isFront = f.id == b.frontN
         val img = if (isFront) b.front else b.side
@@ -241,6 +244,7 @@ private fun DrawScope.buildingBody(cam: Cam, b: TurnBuilding) {
         val (ax, az, bx, bz) = when (b.frontN) {
             1 -> listOf(b.cx, b.cz - w / 2f, b.cx, b.cz + w / 2f)
             2 -> listOf(b.cx, b.cz + w / 2f, b.cx, b.cz - w / 2f)
+            3 -> listOf(b.cx + w / 2f, b.cz, b.cx - w / 2f, b.cz)
             else -> listOf(b.cx - w / 2f, b.cz, b.cx + w / 2f, b.cz)
         }
         if (fnx * (camX - b.cx) + fnz * (camZ - b.cz) > 1f)
@@ -257,7 +261,10 @@ private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?
     val e = progress * progress * (3f - 2f * progress)
     // the street's own sky is behind (the stage draws it, panning as we turn): then no sky of our own
     if (!skyBehind) drawRect(Brush.verticalGradient(listOf(TurnLight.current.top, TurnLight.current.bottom), 0f, cam.hy), size = androidx.compose.ui.geometry.Size(size.width, cam.hy + 2f))
-    drawRect(Brush.verticalGradient(listOf(TurnLight.current.bottom.copy(alpha = if (skyBehind) 0f else 1f), TurnLight.current.ground), cam.hy, cam.hy + 150f), Offset(0f, cam.hy), androidx.compose.ui.geometry.Size(size.width, size.height - cam.hy))
+    // below the horizon, beyond where the ground is drawn: the far ground (own sky), or a thin strip of the sky's own low haze
+    // over the street's sky (a dark band there would show above every low roof)
+    if (skyBehind) drawRect(Brush.verticalGradient(listOf(TurnLight.current.bottom.copy(alpha = 0f), TurnLight.current.bottom), cam.hy - 10f, cam.hy + 30f), Offset(0f, cam.hy - 10f), androidx.compose.ui.geometry.Size(size.width, size.height - cam.hy + 10f))
+    else drawRect(Brush.verticalGradient(listOf(TurnLight.current.bottom, TurnLight.current.ground), cam.hy, cam.hy + 150f), Offset(0f, cam.hy), androidx.compose.ui.geometry.Size(size.width, size.height - cam.hy))
     val far = 1400f
     // the two roads and their pavements
     val winter = TurnLight.season == 3
@@ -513,4 +520,111 @@ fun turnSkyPan(progress: Float, frame: TurnFrame, density: Float): Float {
     val e = progress * progress * (3f - 2f * progress)
     val phi = -(Math.PI / 2).toFloat() * e
     return phi * (920f * frame.px) / (.03f * density)
+}
+
+
+// ------------------------------------------------------------------------------------------------ crossing the street
+
+/**
+ * Crossing to the other side of the street: the camera swings half a turn about the middle of the road while the player
+ * walks across, so the row that was behind the camera comes round into view and the one we left goes behind us. [north]
+ * is the row we start facing (west to east), [south] the row across the road (west to east). Coordinates as the corner
+ * turn: the north fronts on z = 0 facing -Z, the road z -170..-40, the south fronts on z = -218 facing +Z.
+ */
+fun crossingBuildings(north: List<TurnFacade>, south: List<TurnFacade>): List<TurnBuilding> {
+    val d = 120f
+    val out = ArrayList<TurnBuilding>()
+    north.takeLast(5).forEachIndexed { i, f -> val x0 = -460f + 224f * i; out += TurnBuilding(f.front, f.side, f.emis, x0, x0 + 224f, 0f, d, 0, f.prop, nearSide = true) }
+    south.take(5).forEachIndexed { i, f -> val x0 = -460f + 224f * i; out += TurnBuilding(f.front, f.side, f.emis, x0, x0 + 224f, -218f - d, -218f, 3, f.prop, fadeInLate = true) }
+    return out
+}
+
+/** Draws the crossing at [progress] (0 = facing the north row, 1 = facing the south row). */
+fun DrawScope.drawCrossing(buildings: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float, hour: Float = 14f, season: Int = 1, trees: List<ImageBitmap> = emptyList(), frame: TurnFrame? = null, skyBehind: Boolean = false) {
+    TurnLight.reverse = false
+    TurnLight.season = season
+    val wx = com.lifemax.rpg.feature.habits.domain.WeatherOverride.forced
+    TurnLight.current = TurnLight.at(hour).weathered(wx?.cloudiness ?: 0f, wx?.rain ?: 0f, wx?.mist ?: 0f)
+    val e = progress * progress * (3f - 2f * progress)
+    // the pivot: the middle of the road, in front of the player
+    val cam = Cam(Math.PI.toFloat() * e, -105f, size.width, size.height, frame)
+    if (!skyBehind) drawRect(Brush.verticalGradient(listOf(TurnLight.current.top, TurnLight.current.bottom), 0f, cam.hy), size = androidx.compose.ui.geometry.Size(size.width, cam.hy + 2f))
+    // below the horizon, beyond where the ground is drawn: the far ground (own sky), or a thin strip of the sky's own low haze
+    // over the street's sky (a dark band there would show above every low roof)
+    if (skyBehind) drawRect(Brush.verticalGradient(listOf(TurnLight.current.bottom.copy(alpha = 0f), TurnLight.current.bottom), cam.hy - 10f, cam.hy + 30f), Offset(0f, cam.hy - 10f), androidx.compose.ui.geometry.Size(size.width, size.height - cam.hy + 10f))
+    else drawRect(Brush.verticalGradient(listOf(TurnLight.current.bottom, TurnLight.current.ground), cam.hy, cam.hy + 150f), Offset(0f, cam.hy), androidx.compose.ui.geometry.Size(size.width, size.height - cam.hy))
+    val far = 1600f
+    val winter = season == 3
+    val roadC = if (winter) Color(0xFF434a5a) else Color(0xFF3b3e47)
+    val pave = if (winter) Color(0xFFd3dae4) else if (season == 2) Color(0xFF948b86) else Color(0xFF8d919c)
+    ground(cam, listOf(-far to -170f, far to -170f, far to -40f, -far to -40f), 0f, roadC)
+    ground(cam, listOf(-far to -40f, far to -40f, far to 0f, -far to 0f), 0f, pave)
+    ground(cam, listOf(-far to -218f, far to -218f, far to -170f, -far to -170f), 0f, pave)
+    ground(cam, listOf(-far to 0f, far to 0f, far to 700f, -far to 700f), 0f, roadC)
+    ground(cam, listOf(-far to -900f, far to -900f, far to -218f, -far to -218f), 0f, roadC)
+    val stripe = Color(0xFFd9dce3)
+    for (i in -30..30) { val x = i * 60f; ground(cam, listOf(x to -107f, x + 25f to -107f, x + 25f to -103f, x to -103f), 0f, stripe) }
+    // a crossing where the player crosses
+    for (i in 0 until 7) { val x = 40f + i * 15f; ground(cam, listOf(x to -164f, x + 7f to -164f, x + 7f to -46f, x to -46f), 0f, stripe) }
+    val camX = Cam.PX - cam.s * cam.dc; val camZ = cam.pz - cam.c * cam.dc
+    class Item(x: Float, z: Float, val draw: DrawScope.() -> Unit) {
+        val v = kotlin.math.round(cam.v(x, z) * 16f)
+        val dist2 = (x - camX) * (x - camX) + (z - camZ) * (z - camZ)
+    }
+    val items = ArrayList<Item>()
+    for (b in buildings) items += Item(b.cx, b.cz) { building(cam, b, e) }
+    val lt0 = TurnLight.current
+    val lightM = floatArrayOf(lt0.r, 0f, 0f, 0f, 0f, 0f, lt0.g, 0f, 0f, 0f, 0f, 0f, lt0.b, 0f, 0f, 0f, 0f, 0f, 1f, 0f)
+    val leafM = seasonTreeMatrix(if (season == 2) 1f else 0f, if (season == 3) 1f else 0f, if (season == 0) 1f else 0f, lt0.r, lt0.g, lt0.b)
+    fun propFilter(x: Float, z: Float, m: FloatArray) = ColorFilter.colorMatrix(ColorMatrix(hazed(m, haze(cam.v(x, z) + cam.dc), lt0.hazeR, lt0.hazeG, lt0.hazeB)))
+    fun prop(img: ImageBitmap, x: Float, z: Float, footX: Float, footY: Float, m: FloatArray, flip: Boolean) {
+        items += Item(x, z) {
+            val d = cam.v(x, z) + cam.dc
+            val a = propFade(cam.v(x, z))
+            if (d >= 60f && a > .05f) {
+                val k = cam.f / d
+                val px = cam.sx(cam.u(x, z), d); val py = cam.sy(0f, d)
+                withTransform({ translate(px, py); scale(if (flip) -k else k, k, Offset.Zero) }) {
+                    drawImage(img, dstOffset = IntOffset(-footX.toInt(), -footY.toInt()), dstSize = IntSize(img.width, img.height), srcSize = IntSize(img.width, img.height), srcOffset = IntOffset.Zero, alpha = a, filterQuality = FilterQuality.None, colorFilter = propFilter(x, z, m))
+                }
+            }
+        }
+    }
+    // lamps and trees along both kerbs (the far side's are seen from behind at first: mirrored)
+    lamp?.let { l -> for (x in listOf(-340f, 110f, 560f)) { prop(l, x, -30f, 15f, 127f, lightM, false); prop(l, x + 120f, -188f, 15f, 127f, lightM, true) } }
+    if (trees.isNotEmpty()) for ((n, x) in listOf(-236f, -12f, 212f, 436f).withIndex()) { prop(trees[n % trees.size], x, -8f, 31f, 95f, leafM, false); prop(trees[(n + 1) % trees.size], x + 20f, -210f, 31f, 95f, leafM, false) }
+    for (it in items.sortedWith(compareByDescending<Item> { it.v }.thenByDescending { it.dist2 })) with(it) { draw() }
+    // the player: across the road, from the north pavement to the south one
+    walker?.let { w ->
+        val p = progress.coerceIn(0f, 1f)
+        val z = -20f - 175f * smooth(.08f, .92f, p)
+        val x = 100f
+        val d = cam.v(x, z) + cam.dc
+        if (d > 60f) {
+            // walking -Z: towards the camera at first, away from it once it has come round
+            val depth = -cam.c
+            val group = if (depth > 0f) 1 else 3
+            val frame = ((p * 14f).toInt()) % 6
+            val k = cam.f / d
+            val px = cam.sx(cam.u(x, z), d); val py = cam.sy(0f, d)
+            withTransform({ translate(px, py - 61f * k); scale(k, k, Offset.Zero) }) {
+                drawImage(w, srcOffset = IntOffset((group * 6 + frame) * 32, 128), srcSize = IntSize(32, 64), dstOffset = IntOffset(-16, 0), dstSize = IntSize(32, 64), filterQuality = FilterQuality.None)
+            }
+        }
+    }
+}
+
+/** How far (street units) the street's sky pans for the crossing at [progress]: half a turn. */
+fun crossingSkyPan(progress: Float, frame: TurnFrame, density: Float): Float {
+    val e = progress * progress * (3f - 2f * progress)
+    return -(Math.PI.toFloat() * e) * (920f * frame.px) / (.03f * density)
+}
+
+@Composable
+fun StreetCrossing(art: TurnArt, north: List<TurnFacade>, south: List<TurnFacade>, progress: Float, modifier: Modifier = Modifier, hour: Float = 14f, season: Int = 1, skyBehind: Boolean = false) {
+    val b = androidx.compose.runtime.remember(north, south) { crossingBuildings(north, south) }
+    Canvas(modifier.fillMaxSize()) {
+        val fr = if (skyBehind && GameState.framePx > 0f) TurnFrame(GameState.frameGround, GameState.frameHorizon, GameState.framePx) else null
+        drawCrossing(b, art.lamp, art.walker, progress, hour, season, art.trees, fr, skyBehind)
+    }
 }

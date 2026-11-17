@@ -106,3 +106,43 @@ fun renderTurnOverStreet(out: String, assets: String) {
     }
     com.lifemax.rpg.feature.habits.presentation.scene.StageTuning.skyOnly = false
 }
+
+/** The 180-degree street crossing over the stage's sky (preview frames cross_NN.png). The far row is a stand-in (the cross street's homes). */
+fun renderCrossing(out: String, assets: String) {
+    fun load(dir: String, name: String): ImageBitmap = SkiaImage.makeFromEncoded(File(File(assets, dir), name).readBytes()).toComposeImageBitmap()
+    val rows = turnRows(assets) { n -> try { load("buildings", n) } catch (e: Exception) { null } } ?: return
+    val art = TurnArt(emptyList(), emptyList(), try { load("props", "lamp_1.png") } catch (e: Exception) { null },
+        try { load("characters", "char_02.png") } catch (e: Exception) { null }, trees = (1..3).map { load("props", "tree_$it.png") })
+    val hour = (System.getProperty("hour") ?: "16.8").toFloat()
+    val first = streetOfShops().first().id
+    val gs = com.lifemax.rpg.feature.habits.presentation.scene.GameState
+    gs.x = 1e9f
+    val density = 2f
+    File(out).mkdirs()
+    val frames = 12
+    for (i in 0 until frames) {
+        val t = i / (frames - 1f)
+        com.lifemax.rpg.feature.habits.presentation.scene.StageTuning.skyOnly = true
+        val sc = ImageComposeScene(width = (780 * density).toInt(), height = (360 * density).toInt(), density = Density(density)) {
+            androidx.compose.foundation.layout.Box(Modifier.fillMaxSize()) {
+                com.lifemax.rpg.feature.habits.presentation.scene.HabitsStage(
+                    p = projection(hour, "2026-06-14"), ui = com.lifemax.rpg.feature.habits.presentation.HabitsUi(city = false, focus = first), visible = true,
+                    top = 0f, bottom = 40f * density, cover = 0f, inset = 0f, accent = androidx.compose.ui.graphics.Color(0xFF6FA8FF),
+                    actions = com.lifemax.rpg.feature.habits.presentation.scene.StageActions(), ambientAt = 100f,
+                )
+                com.lifemax.rpg.feature.habits.presentation.scene.StreetCrossing(art, rows.mainWest, rows.crossWest, t, Modifier.fillMaxSize(), hour, 1, skyBehind = true)
+            }
+        }
+        var nanos = 0L
+        var img = sc.render(nanos)
+        for (k in 0 until 10) {
+            if (gs.framePx > 0f) gs.skyPan = com.lifemax.rpg.feature.habits.presentation.scene.crossingSkyPan(t, com.lifemax.rpg.feature.habits.presentation.scene.TurnFrame(gs.frameGround, gs.frameHorizon, gs.framePx), density)
+            nanos += 16_666_667L; Thread.sleep(30); img = sc.render(nanos)
+        }
+        File(out, "cross_%02d.png".format(i)).writeBytes(img.encodeToData(EncodedImageFormat.PNG)!!.bytes)
+        sc.close()
+        println("cross frame $i")
+    }
+    com.lifemax.rpg.feature.habits.presentation.scene.StageTuning.skyOnly = false
+    gs.skyPan = 0f
+}
