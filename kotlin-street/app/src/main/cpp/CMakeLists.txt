@@ -125,4 +125,7 @@ else()
     # memory search on a computer
     add_executable(embed_host_test embed_host_test.cpp)
     target_link_libraries(embed_host_test PRIVATE llm_core Threads::Threads)
+    add_executable(eval_memory eval_memory.cpp)
+    target_link_libraries(eval_memory PRIVATE llm_core Threads::Threads)
+    target_include_directories(eval_memory PRIVATE "${LLAMA_DIR}/vendor")
 endif()

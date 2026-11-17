@@ -242,3 +242,35 @@ extern "C" JNIEXPORT jfloatArray JNICALL EMB(nativeEmbed)(JNIEnv * env, jobject,
         return nullptr;
     }
 }
+
+// JNI for com.timerpg.street.llm.NativeReranker: llm::Reranker (Qwen3-Reranker).
+#define RR(name) Java_com_timerpg_street_llm_NativeReranker_##name
+
+namespace { llm::Reranker * rr(jlong h) { return reinterpret_cast<llm::Reranker *>(h); } }
+
+extern "C" JNIEXPORT jlong JNICALL RR(nativeCreate)(JNIEnv *, jobject) {
+    try {
+        llm::init_backend(llm::cpu_variant_libs(), nullptr);
+        return reinterpret_cast<jlong>(new (std::nothrow) llm::Reranker());
+    } catch (...) {
+        return 0;
+    }
+}
+
+extern "C" JNIEXPORT void JNICALL RR(nativeDestroy)(JNIEnv *, jobject, jlong h) {
+    try { delete rr(h); } catch (...) {}
+}
+
+extern "C" JNIEXPORT jboolean JNICALL RR(nativeLoad)(JNIEnv * env, jobject, jlong h, jbyteArray model, jint threads) {
+    if (!h) return JNI_FALSE;
+    try { return rr(h)->load(from_bytes(env, model), threads) ? JNI_TRUE : JNI_FALSE; } catch (...) { return JNI_FALSE; }
+}
+
+extern "C" JNIEXPORT jstring JNICALL RR(nativeError)(JNIEnv * env, jobject, jlong h) {
+    return h ? to_jstring(env, rr(h)->error()) : nullptr;
+}
+
+extern "C" JNIEXPORT jfloat JNICALL RR(nativeScore)(JNIEnv * env, jobject, jlong h, jbyteArray inst, jbyteArray query, jbyteArray doc) {
+    if (!h) return -1.f;
+    try { return rr(h)->score(from_bytes(env, inst), from_bytes(env, query), from_bytes(env, doc)); } catch (...) { return -1.f; }
+}

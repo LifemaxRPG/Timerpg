@@ -17,14 +17,16 @@ import java.util.concurrent.Executors
 class MemoryService(private val ctx: Context) {
     private val memory = NpcMemory()
     private val embedder = NativeEmbedder()
+    private val judge = com.timerpg.street.llm.NativeReranker()
     private val worker = Executors.newSingleThreadExecutor { r -> Thread(r, "npc-memory").apply { isDaemon = true } }
     private val main = Handler(Looper.getMainLooper())
     private val file = File(ctx.filesDir, "memories.json")
-    private val idle = Runnable { worker.execute { embedder.close() } }
+    private val idle = Runnable { worker.execute { embedder.close(); judge.close() } }
     @Volatile private var loadedFile = false
 
     val modelFile: File get() = File(ModelDownloads.dir(ctx), MODEL)
     val installed: Boolean get() = modelFile.isFile
+    val judgeFile: File get() = File(ModelDownloads.dir(ctx), JUDGE)
     val count: Int get() = memory.size
 
     private fun ensure(): Boolean {
@@ -32,7 +34,8 @@ class MemoryService(private val ctx: Context) {
             loadedFile = true
             runCatching { if (file.isFile) memory.load(file.readText()) }.onFailure { Log.w(TAG, "memories unreadable: $it") }
         }
-        if (!embedder.loaded && installed) embedder.load(modelFile)
+        if (!embedder.loaded && installed) AiLane.run("memory") { embedder.load(modelFile) }
+        if (!judge.loaded && judgeFile.isFile) AiLane.run("memory") { judge.load(judgeFile) }
         return embedder.loaded
     }
 
@@ -49,11 +52,29 @@ class MemoryService(private val ctx: Context) {
                 if (!ensure()) emptyList()
                 else {
                     val q = AiLane.run("memory") { embedder.embed(QUERY + said) }
-                    if (q == null) emptyList() else NpcMemory.asFacts(memory.recall(npc, q, System.currentTimeMillis()))
+                    if (q == null) emptyList() else NpcMemory.asFacts(pick(npc, said, q))
                 }
             } catch (t: Throwable) { Log.w(TAG, "recall: $t"); emptyList() }
             main.post { onFacts(facts) }
         }
+    }
+
+    /**
+     * The memories to hand the model: the embedder's closest few, judged by the reranker (Qwen3-Reranker-4B: yes to at
+     * most two), plus the last exchange. Measured (tools/memory-eval, 30 memories with look-alikes, 30 lines): 20 of 20
+     * references found, nothing recalled for 10 of 10 unrelated lines; the embedder alone recalled something for 8 of the
+     * 10. When nothing comes close the judge is not asked (small talk stays quick). Without the judge: the embedder's rule.
+     */
+    private fun pick(npc: String, said: String, q: FloatArray): List<NpcMemory.Entry> {
+        val now = System.currentTimeMillis()
+        if (!judge.loaded) return memory.recall(npc, q, now)
+        val cands = memory.candidates(npc, q, 4).filter { it.second >= .2f && (it.third >= 1f || memory.countOf(npc) < 6) }
+        val yes = cands.mapNotNull { (e, _, _) ->
+            val p = AiLane.run("memory") { judge.score(JUDGE_TASK, said, "The player said: ${e.said} You answered: ${e.answered}") }
+            if (p >= .5f) e to p else null
+        }.sortedByDescending { it.second }.take(2).map { it.first }
+        val last = memory.last(npc, now)
+        return if (last != null && last !in yes) (listOf(last) + yes).take(3) else yes
     }
 
     /** [npc] will remember that the player said [said] and they answered [answered]. */
@@ -71,11 +92,13 @@ class MemoryService(private val ctx: Context) {
         }
     }
 
-    fun release() { main.removeCallbacks(idle); worker.execute { embedder.close() } }
+    fun release() { main.removeCallbacks(idle); worker.execute { embedder.close(); judge.close() } }
 
     companion object {
         private const val TAG = "NpcMemory"
         const val MODEL = "embed/Qwen3-Embedding-0.6B-Q8_0.gguf"
+        const val JUDGE = "rerank/Qwen3-Reranker-4B.Q4_K_M.gguf"
+        const val JUDGE_TASK = "Given what the player says now, find what this person remembers about it"
         private const val IDLE_MS = 60_000L
         /** Qwen3-Embedding's query instruction (stored memories are plain text). */
         const val QUERY = "Instruct: Given what the player says now, find what this person remembers about it\nQuery: "

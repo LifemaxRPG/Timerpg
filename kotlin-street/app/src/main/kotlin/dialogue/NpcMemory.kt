@@ -16,6 +16,7 @@ class NpcMemory {
 
     private val entries = ArrayList<Entry>()
     val size: Int get() = synchronized(entries) { entries.size }
+    fun countOf(npc: String): Int = synchronized(entries) { entries.count { it.npc == npc } }
 
     fun add(e: Entry) = synchronized(entries) {
         entries += e
@@ -44,6 +45,21 @@ class NpcMemory {
         val last = mine.maxByOrNull { it.time }?.takeIf { now - it.time <= recentMs }
         return if (last != null && last !in scored) (listOf(last) + scored).take(k) else scored
     }
+
+    /** [npc]'s [k] memories most like [query], best first, with their likeness and how far (in standard deviations) each
+     *  stands above the person's mean. */
+    fun candidates(npc: String, query: FloatArray, k: Int = 4): List<Triple<Entry, Float, Float>> {
+        val mine = synchronized(entries) { entries.filter { it.npc == npc } }
+        if (mine.isEmpty()) return emptyList()
+        val all = mine.map { it to dot(it.vec, query) }
+        val mean = all.sumOf { it.second.toDouble() } / all.size
+        val sd = kotlin.math.sqrt(maxOf(1e-9, all.sumOf { (it.second - mean) * (it.second - mean) } / all.size))
+        return all.sortedByDescending { it.second }.take(k).map { Triple(it.first, it.second, ((it.second - mean) / sd).toFloat()) }
+    }
+
+    /** [npc]'s most recent exchange, if it was within [recentMs] of [now]. */
+    fun last(npc: String, now: Long, recentMs: Long = 10 * 60_000L): Entry? =
+        synchronized(entries) { entries.filter { it.npc == npc }.maxByOrNull { it.time } }?.takeIf { now - it.time <= recentMs }
 
     fun toJson(): String = synchronized(entries) {
         JSONArray(entries.map { JSONObject().put("npc", it.npc).put("t", it.time).put("said", it.said).put("answered", it.answered).put("v", pack(it.vec)) }).toString()
