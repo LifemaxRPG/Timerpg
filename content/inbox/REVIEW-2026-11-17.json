@@ -1,0 +1,1777 @@
+{
+ "reviewed": "2026-11-17",
+ "source": "content-inbox branch, runs 2026-11-17-1057 .. 1811 (prompt v1)",
+ "scores": "1-5: fun, stakes (how much the present changes), prose, mechanics",
+ "scenarios": [
+  {
+   "id": "scenario-20261117-6722",
+   "run": "2026-11-17-1112",
+   "title": "Bread Behind the Vault Door",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 4,
+   "stakes": 3,
+   "prose": 3,
+   "mechanics": 4,
+   "why": "Sabotaging the bank to get a bakery with the vault door kept as a cupboard is a visible, funny Main Street change in exactly the spirit the owner asked for. The twist should hit harder (savings lost, a mortgage called in), not just 'bank jobs'."
+  },
+  {
+   "id": "scenario-20261117-7621",
+   "run": "2026-11-17-1242",
+   "title": "The Empty Chair Becomes a Statue",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 4,
+   "stakes": 4,
+   "prose": 3,
+   "mechanics": 3,
+   "why": "Killing the mayor creates a dynasty and a statue: sharp irony, with a visible portrait and statue and a strong line. The player is never given a reason to want this high-reputation mayor gone ('political hold' is never shown), and the clue is flat."
+  },
+  {
+   "id": "scenario-20261117-6724",
+   "run": "2026-11-17-1112",
+   "title": "The Boot That Founded Nothing",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 4,
+   "stakes": 3,
+   "prose": 3,
+   "mechanics": 3,
+   "why": "A planted fake relic that grows into a monument is funny and uncanny, and it has the best NPC line ('People still give directions by it'). Step 3 removes the monument 75% of the time, so the usual result is an empty plinth; the monument should more often stand."
+  },
+  {
+   "id": "scenario-20261117-8971",
+   "run": "2026-11-17-1457",
+   "title": "The Voice Before the Water",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 4,
+   "stakes": 4,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "The best hook in the slice: names disappear from a flood memorial because a poor teenager got his radio. The twist (the operator pays 20% of his savings) is weak and should cost something real. Text like 'paid a documented emergency operating contribution' needs a full rewrite."
+  },
+  {
+   "id": "scenario-20261117-8064",
+   "run": "2026-11-17-1326",
+   "title": "The Ring Carried Back",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 4,
+   "stakes": 3,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "The idea that uses time travel best: carry a ring from the present-day lost-and-found back in time, a separation never happens, a person exists who did not, and the drawer is empty when you return. The return verb and its cross-timeline object rule are worth building. Replace 'house_scenario_child' with the existing build/move_in and rewrite the text."
+  },
+  {
+   "id": "scenario-20261117-8224",
+   "run": "2026-11-17-1342",
+   "title": "The Fair Took the Wrong Turn",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 4,
+   "stakes": 3,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "The best small-cause, big-effect chain in the set: turn one arrow, and decades later a covered market hall stands on an empty lot and the fair lives on Main Street. The text is dry ('Organizer {A} obtained emergency permission to hold the arriving fair group'), and the category 'uncanny' is wrong."
+  },
+  {
+   "id": "scenario-20261117-8524",
+   "run": "2026-11-17-1412",
+   "title": "The Numbers Before the Drawing",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 4,
+   "stakes": 3,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "Classic Back to the Future fun: tell a poor, ambitious kid the winning number, then return to a department store and a closed bakery. Requiring an 'unclaimed' prize throws away the obvious twist (the real winner never wins). The uncanny line is good."
+  },
+  {
+   "id": "scenario-20261117-6721",
+   "run": "2026-11-17-1112",
+   "title": "The Apprentice Who Outgrew the Shop",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 3,
+   "stakes": 2,
+   "prose": 3,
+   "mechanics": 4,
+   "why": "A clean monkey's paw: your investment trains the pupil who later closes the teacher's store, with one of the best lines in the set. The stakes are a single storefront swap, and the headlines are dry."
+  },
+  {
+   "id": "scenario-20261117-10472",
+   "run": "2026-11-17-1727",
+   "title": "The Wedding That Made a Different Family",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 4,
+   "stakes": 3,
+   "prose": 1,
+   "mechanics": 3,
+   "why": "The Back to the Future core: break an engagement, and one child never exists while another grows up to open a barber shop on Main Street. Standard levers (no_child, marry, child, found_business) and a discoverable Gazette engagement notice. But present_day forbids any emotional echo ('no ghost, empty bed or grieving memory'), and the headline 'Engaged Couple Ends Its Plans after an Honest Reassessment' is dead on the page."
+  },
+  {
+   "id": "scenario-20261117-6871",
+   "run": "2026-11-17-1127",
+   "title": "The Tuition Receipt",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 3,
+   "stakes": 3,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "Pay for med school, get a town doctor, and someone who died in your timeline answers the door: this is the owner's fantasy almost word for word. The twist ('consuming a quarter of the doctor's personal money') is no twist, and the clue gives the whole answer away."
+  },
+  {
+   "id": "scenario-20261117-8222",
+   "run": "2026-11-17-1342",
+   "title": "The Clock That Kept the Square Awake",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 3,
+   "stakes": 3,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "A stopped town clock that runs and chimes again is visible and audible when you return, suits the clock tower the renderer already has, and the twist (the neighbors lose sleep) is gently funny. Role B is defined but never used in an effect."
+  },
+  {
+   "id": "scenario-20261117-9131",
+   "run": "2026-11-17-1513",
+   "title": "The Stone in the Schoolbag",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 3,
+   "stakes": 3,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "A coherent chain (a rock-mad poor kid becomes a geologist, condemns the quarry, it becomes a park) with a place you can walk into and a good bitter line from the owner. It would be much stronger if the baseline had a collapse that the survey prevents, instead of 'do not require an accident'."
+  },
+  {
+   "id": "scenario-20261117-9134",
+   "run": "2026-11-17-1513",
+   "title": "The Last Ride After Closing",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 3,
+   "stakes": 3,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "Night worker meets garage owner, then a late ride, a bus co-op and a terminal on Main Street: believable steps and a place you can walk into. It also has the best NPC line in the slice. The 'lost free parking' twist is thin."
+  },
+  {
+   "id": "scenario-20261117-9262",
+   "run": "2026-11-17-1526",
+   "title": "The Lure That Bought the Shore",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 3,
+   "stakes": 3,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "The clearest monkey's paw and the closest to the owner's money brief: a bait-shop invention makes its owner rich enough to buy the shore and shut out the poor man who fished there. Strong NPC line. The copy must lose phrases like 'lawfully ended the revocable free-fishing permission'."
+  },
+  {
+   "id": "scenario-20261117-7012",
+   "run": "2026-11-17-1141",
+   "title": "The Pocket Orchard",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 3,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "A small gift to a child grows into an orchard you can watch mature over several visits, which is gentle and visible. The twist (no more room for kites) is thin, and the headlines are bureaucratic ('Receives a Public-Use Agreement')."
+  },
+  {
+   "id": "scenario-20261117-7172",
+   "run": "2026-11-17-1157",
+   "title": "The Freezer Route",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 3,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "A freezer investment that grows into a delivery business and closes the butcher is a believable chain, with a good line ('They do not ask how my week has been'). The prose is jargon ('segregated loads', 'licensed cold room')."
+  },
+  {
+   "id": "scenario-20261117-7473",
+   "run": "2026-11-17-1227",
+   "title": "The Person Named as Guardian",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 3,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "An orphan who stays in town and opens a parlor with the family recipe is lovely and visible. The text is legalistic ('a legally retained family recipe', 'conditional care plan')."
+  },
+  {
+   "id": "scenario-20261117-7773",
+   "run": "2026-11-17-1257",
+   "title": "The Map Drawn on a Napkin",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 3,
+   "stakes": 3,
+   "prose": 1,
+   "mechanics": 3,
+   "why": "One of the few with town-level stakes: a nobody becomes mayor, a Main Street block goes car-free and a clothing store closes, built mostly from existing levers (introduce, run_for_mayor, win_election). Every line of text needs redoing, for example 'secured lawful approval for a funded pedestrian-block plan'."
+  },
+  {
+   "id": "scenario-20261117-7914",
+   "run": "2026-11-17-1311",
+   "title": "The Haunted Lease",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 3,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "The best cruel-act premise in the set: you invent a ghost, then come back to find tickets for it sold in the window of the shop you ruined. The text keeps debunking itself ('An exhibition included the inspection report explaining the original pipe noises'). Let the story grow and stay ambiguous."
+  },
+  {
+   "id": "scenario-20261117-8374",
+   "run": "2026-11-17-1357",
+   "title": "The Tree at the Wrong Corner",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 3,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "Planting a sapling and returning to a landmark tree is a lovely, visible time-travel payoff, with a mild twist (the roots crack the neighbor's foundation). Simplify the overbuilt setup (child's sketch, adult steward, permission) and rewrite the text."
+  },
+  {
+   "id": "scenario-20261117-9871",
+   "run": "2026-11-17-1627",
+   "title": "Two Lunchboxes on the Campaign Table",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 3,
+   "stakes": 3,
+   "prose": 1,
+   "mechanics": 3,
+   "why": "Two lonely kids introduced at lunch end up rivals for mayor, with their old photo hung beside the winner's portrait. It's one of the few scenarios that changes who runs the town, and it mostly uses standard levers. But the Gazette text is boilerplate ('Subsequent meetings followed their actual choices'), and the 14-year gap between filing to run (step 2) and winning (step 3) makes no sense."
+  },
+  {
+   "id": "scenario-20261117-10031",
+   "run": "2026-11-17-1643",
+   "title": "The Train That Outlived the Toy Store",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 3,
+   "stakes": 3,
+   "prose": 1,
+   "mechanics": 3,
+   "why": "A toy-shop drawing becomes a miniature railway at the edge of town that the player can ride, outliving the shop that paid for it. It's visible, charming and fits the 2.5D street. The A line is warm; the Gazette bodies ('Real fares and operating costs entered the project accounts') need replacing."
+  },
+  {
+   "id": "scenario-20261117-10784",
+   "run": "2026-11-17-1758",
+   "title": "The Parent Who Survived and Left",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 3,
+   "stakes": 3,
+   "prose": 1,
+   "mechanics": 3,
+   "why": "Warning a parent away from a bridge collapse saves a life but not the marriage. It's the prompt's own 'warn a father' idea with a good bittersweet twist. But the collapse itself and its other victims are left 'to their own recorded history' (a missed bigger rescue), and C's line 'My parent is alive. Our family also changed.' reads like a form."
+  },
+  {
+   "id": "scenario-20261117-9571",
+   "run": "2026-11-17-1557",
+   "title": "The Face Missing from the Class Picture",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 3,
+   "stakes": 3,
+   "prose": 1,
+   "mechanics": 3,
+   "why": "A person who never existed is born and paints the town mural: a top-tier ripple, with a careful four-step chain and birth rule. But the hook contradicts its own title ('A school photograph has no missing or ghostly face'), the copy reads 'The birth entered the actual household and school-age population history', and the twist (a merchant moves an advertisement) is weak."
+  },
+  {
+   "id": "scenario-20261117-9713",
+   "run": "2026-11-17-1611",
+   "title": "The Debt Behind the Anniversary Notice",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 3,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "Real gossip with moral weight, built almost entirely from existing levers (rumor, knows, bond, divorce, marry), and B's line 'I still wish I had heard the truth privately' is good. Tighten the template timing: the divorce comes 12-14 years after the reveal and the remarriage at 58-65."
+  },
+  {
+   "id": "scenario-20261117-10781",
+   "run": "2026-11-17-1758",
+   "title": "The Bank That Faced the Parking Lot",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 3,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 3,
+   "why": "A great fit for a walkable 2.5D street: the bank turns its door to a drive-up lot, and the clothing store next door dies of lost foot traffic. B's line ('The bank did not move away. It only turned around.') is excellent. The Gazette bodies are boilerplate, and relocate_entrance needs renderer support."
+  },
+  {
+   "id": "scenario-20261117-10172",
+   "run": "2026-11-17-1657",
+   "title": "The Job Left Empty",
+   "verdict": "keep_with_text_rewrite",
+   "fun": 2,
+   "stakes": 3,
+   "prose": 1,
+   "mechanics": 3,
+   "why": "A rare cruel act that helps someone: the man who got the murdered mechanic's job later employs the orphan, and D's line ('It is a good job. That is a different thing from the parent I do not have.') is strong. It uses standard levers (kill, hire, found_business). It needs a reason for the player to want this, and the moralizing bodies ('Hiring did not replace the person the family lost') should go."
+  },
+  {
+   "id": "scenario-20261117-7011",
+   "run": "2026-11-17-1141",
+   "title": "One Extra Name on the Roll",
+   "verdict": "rework",
+   "fun": 4,
+   "stakes": 4,
+   "prose": 2,
+   "mechanics": 2,
+   "why": "A person who never existed becomes mayor: this is the biggest ripple in the slice. But the new child has no placeholder ('The adult child of {A} and {B}'), the rival D is 8-12 at the intervention, and the clue ('attended different gatherings') leads nowhere."
+  },
+  {
+   "id": "scenario-20261117-7324",
+   "run": "2026-11-17-1212",
+   "title": "The One Ballot and the Long Way Round",
+   "verdict": "rework",
+   "fun": 4,
+   "stakes": 3,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "Casting the vote that breaks a tied election is a superb, discoverable hook. A different mayor should change much more than a bus depot and a closed shortcut, and the baseline needs a real tie (chance 1, fails 0)."
+  },
+  {
+   "id": "scenario-20261117-6574",
+   "run": "2026-11-17-1057",
+   "title": "The Warning Before Closing",
+   "verdict": "rework",
+   "fun": 3,
+   "stakes": 3,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "Saving a shopkeeper from a fire, with a clue that has real detail ('returned for the account book'), is a strong rescue. Then the chain falls apart: the saved man's child becomes a lawyer, who somehow builds a footbridge by buying out a bait shop."
+  },
+  {
+   "id": "scenario-20261117-7624",
+   "run": "2026-11-17-1242",
+   "title": "The Invitation in the Drawer",
+   "verdict": "rework",
+   "fun": 3,
+   "stakes": 3,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "Hiding one invitation erases a person from the family album, a properly eerie Back to the Future premise. The player has no motive to do it, and the replacement outcome (B and C open a bakery in their late 40s) is generic."
+  },
+  {
+   "id": "scenario-20261117-6573",
+   "run": "2026-11-17-1057",
+   "title": "The Wrong Person to Distrust",
+   "verdict": "rework",
+   "fun": 3,
+   "stakes": 3,
+   "prose": 2,
+   "mechanics": 2,
+   "why": "A smear that swaps the mayor is good material, but the payoff is a paved promenade over a meadow. The rival candidate is 18-24, A is never shown to be a candidate, and step 3 needs B to be mayor again 22-26 years later."
+  },
+  {
+   "id": "scenario-20261117-6874",
+   "run": "2026-11-17-1127",
+   "title": "One More Winter at Home",
+   "verdict": "rework",
+   "fun": 3,
+   "stakes": 1,
+   "prose": 3,
+   "mechanics": 3,
+   "why": "Giving a child one last winter with a dying parent is real emotion, and the line lands ('I still wonder who I might have been if I had gone'). The present only gains a woodworking room; the change needs a bigger visible consequence."
+  },
+  {
+   "id": "scenario-20261117-7173",
+   "run": "2026-11-17-1157",
+   "title": "The Prize Nobody Wanted Back",
+   "verdict": "rework",
+   "fun": 3,
+   "stakes": 1,
+   "prose": 3,
+   "mechanics": 3,
+   "why": "Giving the town's perpetual loser a kinder show is warm and a little funny. The payoff (a stage and a ticket price) barely changes the present and needs a real consequence."
+  },
+  {
+   "id": "scenario-20261117-7474",
+   "run": "2026-11-17-1227",
+   "title": "The Money Meant for Leaving",
+   "verdict": "rework",
+   "fun": 3,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "This is the owner's own 'take money' example, and it ends in a night_noise effect on a neighbour. Role C exists only inside that effect. Stealing someone's way out should change more than a bakery annex."
+  },
+  {
+   "id": "scenario-20261117-8221",
+   "run": "2026-11-17-1342",
+   "title": "The Reunion with Two More Chairs",
+   "verdict": "rework",
+   "fun": 3,
+   "stakes": 3,
+   "prose": 2,
+   "mechanics": 2,
+   "why": "Two names gone from a memorial and two more chairs at a reunion is a moving payoff. But the chain needs a scripted baseline outbreak that kills two specific people around 30, plus a vaccine given at 11-16 that still protects them. Its only twist is a 20% wealth hit for the doctor."
+  },
+  {
+   "id": "scenario-20261117-8523",
+   "run": "2026-11-17-1412",
+   "title": "The Chess Table by the Door",
+   "verdict": "rework",
+   "fun": 3,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "A lonely old man teaching a child chess is the warmest premise in the set and leads to a toy store, but the twist is a reservation sign on a table. Give the old man something in the present (a portrait in the club, a named trophy) and raise the stakes."
+  },
+  {
+   "id": "scenario-20261117-7171",
+   "run": "2026-11-17-1157",
+   "title": "The Surveyor's First Boots",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 3,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "Flood-safe homes on a ridge could be big, but the chain never lets a flood happen, and the twist is a lost view ('obstruct_view'). Role B is bound but never appears in any text."
+  },
+  {
+   "id": "scenario-20261117-7323",
+   "run": "2026-11-17-1212",
+   "title": "The Voice in the School Exercise Book",
+   "verdict": "rework",
+   "fun": 3,
+   "stakes": 1,
+   "prose": 3,
+   "mechanics": 2,
+   "why": "A child saving an old poet's work is tender. The payoff is a visitor panel, the twist is tourists leaning over a gate, and it needs three bespoke effects."
+  },
+  {
+   "id": "scenario-20261117-10034",
+   "run": "2026-11-17-1643",
+   "title": "The Eviction Notice with Tomorrow's Date",
+   "verdict": "rework",
+   "fun": 3,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 2,
+   "why": "Strong uncanny premise: the player carries a future eviction notice back, and A's line ('The paper says I leave. The lease says I can stay. I keep both where I can see them.') is the best in the slice. But a 1960s lease option deciding a 2020s eviction is incoherent, the review/renew/maintain steps are padding, and it needs a carried-artifact system first."
+  },
+  {
+   "id": "scenario-20261117-8824",
+   "run": "2026-11-17-1442",
+   "title": "The Dog That Brought Someone Home",
+   "verdict": "rework",
+   "fun": 3,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 2,
+   "why": "A warm, Stardew-like chain (a child returns an old man's dog, they become friends, he leaves her the place, it becomes a refuge) with a good last line: 'I hear the good deed every morning.' But it needs a new feed verb, persistent animals, a refuge type and a baseline death pinned to exactly 10-12 years later."
+  },
+  {
+   "id": "scenario-20261117-8974",
+   "run": "2026-11-17-1457",
+   "title": "The Gate That Would Not Close",
+   "verdict": "rework",
+   "fun": 3,
+   "stakes": 3,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "Saving the mill is a genuinely big lever, but the chain spends it on a hydro plant and a fish channel that cuts output by 15%. It ignores the jobs, families and Main Street that a surviving mill would keep. The seven-rule pending-closure spec is overbuilt."
+  },
+  {
+   "id": "scenario-20261117-9264",
+   "run": "2026-11-17-1526",
+   "title": "The Tunnel Under the Pantry",
+   "verdict": "rework",
+   "fun": 3,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 2,
+   "why": "The slice's only uncanny scenario debunks itself ('described the measured echo without claiming a ghost', 'No ghosts, invented voices'), and it takes three made-up effects to arrive at a side-yard path. A's line about Sunday visitors is good; leave the whisper unexplained."
+  },
+  {
+   "id": "scenario-20261117-9412",
+   "run": "2026-11-17-1541",
+   "title": "The Snow Shovel in the Campaign Photograph",
+   "verdict": "rework",
+   "fun": 3,
+   "stakes": 3,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "Making a mayor out of a humble, uncredited act is exactly the ripple the owner wants, but the chain hedges it away: he runs at 1-3 years, wins at 12-14, and a rule says 'Never infer decades of uninterrupted mayoral service'. The copy reads 'Its recorded result followed the lawful voting process.'"
+  },
+  {
+   "id": "scenario-20261117-9414",
+   "run": "2026-11-17-1541",
+   "title": "The Apology with the Wrong House Number",
+   "verdict": "rework",
+   "fun": 3,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 2,
+   "why": "The misaddressed letter is the best physical, findable object in the slice, and reconciling siblings is moving. Steps 2-3 (joint purchase, tenant, 'reunion house', moving the tenant out) take three made-up effects for a contrived ending; spend the reconciliation on something bigger, such as a sibling who stays in town instead of leaving."
+  },
+  {
+   "id": "scenario-20261117-9711",
+   "run": "2026-11-17-1611",
+   "title": "The Wind Gauge on the Chicken Shed",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 3,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "A turbine turning at the edge of town is a nice visible landmark, but a 32-year chain from a school notebook is passive and the twist (a farmer's access strip) is minor. The chicken shed from the title never appears."
+  },
+  {
+   "id": "scenario-20261117-6571",
+   "run": "2026-11-17-1057",
+   "title": "The Instrument Nobody Could Afford",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "The gift → music store → hire a kid → hall chain makes sense, but the payoff is a rehearsal hall and the twist is losing 'the public handball wall'. The hook is a withdrawn ad no player would ever notice, and kid B has no reason to exist."
+  },
+  {
+   "id": "scenario-20261117-7471",
+   "run": "2026-11-17-1227",
+   "title": "The Roof Before the Scholarship",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "A family that would have left town stays, which is the right core, but it ends in an accessible school entrance. The 'twist' is that the architect paid a fifth of their savings."
+  },
+  {
+   "id": "scenario-20261117-7472",
+   "run": "2026-11-17-1227",
+   "title": "The Lie That Quieted the Landing",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "A cruel lie gives back a marsh, which is a decent moral irony with a visible change (reeds instead of a dock). The steps are procedural ('removed through the river authority's ordinary process') and it is not much fun to play."
+  },
+  {
+   "id": "scenario-20261117-7911",
+   "run": "2026-11-17-1311",
+   "title": "The Face Beneath the Label",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "A misattributed painting is a decent secrets hook, and C's line 'That does not make every good thing my family did imaginary' is one of the best in the set. But the payoff is a corrected plaque, and the hook gives the answer away: 'The underlying signature has never been examined.'"
+  },
+  {
+   "id": "scenario-20261117-8664",
+   "run": "2026-11-17-1426",
+   "title": "The Book That Skipped Its Author's Youth",
+   "verdict": "rework",
+   "fun": 3,
+   "stakes": 1,
+   "prose": 2,
+   "mechanics": 2,
+   "why": "Showing a young writer their own future book is the most inventive paradox here, and A's line is eerie. But the payoff is 'a public alternate-history quotation panel', and the text insists that everything be 'labeled speculative'. Let the book's predictions come true, or fail, in ways the town notices."
+  },
+  {
+   "id": "scenario-20261117-8823",
+   "run": "2026-11-17-1442",
+   "title": "The Witness Whom People Finally Heard",
+   "verdict": "rework",
+   "fun": 3,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "A wrongful conviction for a fire is a real mystery, but the player's act is a fact-checked 'truthful recommendation', the review takes 12-14 years, and the payoff is the freed person leaving town, with no culprit and nothing to see. The Gazette copy leaks 'the bound conviction' and 'the scenario window'."
+  },
+  {
+   "id": "scenario-20261117-9133",
+   "run": "2026-11-17-1513",
+   "title": "The Costume Nobody Clapped For",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "Late recognition for an old seamstress is warm, and 'I used to set up my racks where the curtain hangs' lands. But the payoff is a stage inside the hall and a merchant paying 10% to move; it needs a bigger ripple."
+  },
+  {
+   "id": "scenario-20261117-9413",
+   "run": "2026-11-17-1541",
+   "title": "The Scrap Bin Between the Shops",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "Waste cloth, then rag dolls, a toy workshop and a machine that ends the hand-stuffer's job: a believable arc with a good last line. But the town's only change is a workshop at the edge of town; it would land if the doll became what the town is known for."
+  },
+  {
+   "id": "scenario-20261117-9573",
+   "run": "2026-11-17-1557",
+   "title": "The Sparrow in the Shoebox",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "The teen who nursed a bird becomes the town vet with an aviary: sweet and fairly visible. But the cost (a neighbor pays 10% for a garden screen) is the same twist as several others, and the rumor shrinks to 'accurate credit ... without calling the teenager a veterinarian.'"
+  },
+  {
+   "id": "scenario-20261117-6723",
+   "run": "2026-11-17-1112",
+   "title": "A House for Two Late Beginnings",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 2,
+   "why": "A late-life marriage is a sweet idea. Step 3 needs both spouses alive at 81-87 and still owning an empty house, so it will almost never fire, and the payoff is a reading room. The 'spare chairs' notices make no sense as a hook."
+  },
+  {
+   "id": "scenario-20261117-7013",
+   "run": "2026-11-17-1141",
+   "title": "The Ledger Nobody Believed",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 3,
+   "why": "Exposing a crooked banker should be fun, but this plays as an account audit ('Collateral Receipt Prompts a Formal Account Review'), and the payoff is the victim moving away."
+  },
+  {
+   "id": "scenario-20261117-7174",
+   "run": "2026-11-17-1157",
+   "title": "The Petition That Never Arrived",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 3,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "Burning a demolition petition to save a hall as a library is a good verb and a visible result. It is filed as 'uncanny' with nothing uncanny in it, and the twist is a compensation award cutting library hours by 25%."
+  },
+  {
+   "id": "scenario-20261117-7913",
+   "run": "2026-11-17-1311",
+   "title": "A Kitchen They Could Not Share",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 1,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "Marriage then divorce is a fine monkey's paw, and 'We could not share a kitchen. We can share a wall.' is a genuinely good line. But the whole chain ends in 'a separate law-office street entrance'. A love scenario should leave children, a merged shop or a feud in the present."
+  },
+  {
+   "id": "scenario-20261117-8061",
+   "run": "2026-11-17-1326",
+   "title": "The Child Who Mapped the Dark",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 1,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "The irony is poetic: the child who loved the stars grows up to light the town and hide them. But the payoff is one lit bus stop. A bigger version would give the town an observatory or a famous astronomer, or relight the whole of Main Street."
+  },
+  {
+   "id": "scenario-20261117-8371",
+   "run": "2026-11-17-1357",
+   "title": "The Bill After the Funeral",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 2,
+   "why": "A warehouse turning into a row of homes is a visible change, but the twist doesn't work: in the original present the garden is already gone ('A former family parcel holds a warehouse'), so 'the old kitchen garden disappears' costs nothing. Bereavement is encoded as 'married: false'."
+  },
+  {
+   "id": "scenario-20261117-8521",
+   "run": "2026-11-17-1412",
+   "title": "The Sewing Machine on the Porch",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 1,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "This is the owner's own example (a gift to a poor parent who starts a shop), but the chain ends with the shop closed and the child gone, so the porch looks just like the original present. Let the dress shop grow (a Main Street store, a family name) before any twist."
+  },
+  {
+   "id": "scenario-20261117-8661",
+   "run": "2026-11-17-1426",
+   "title": "The First Month's Dues",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 3,
+   "prose": 2,
+   "mechanics": 1,
+   "why": "A small gift changes a mill's wages, and a closed mill is a big landmark change. But the rules deny the gift caused the closure ('do not imply labor rights universally close businesses'), so step 3 doesn't follow from anything. RULE1 and RULE2 are near-duplicates that contradict each other about a 'three percent wealth effect' that does not exist (fails.effects is empty), and 'mill' is not a listed business kind and is not flagged."
+  },
+  {
+   "id": "scenario-20261117-9872",
+   "run": "2026-11-17-1627",
+   "title": "The First Safe Scoop",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 3,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "Good monkey's-paw shape: a child you helped grows up to open the competing parlor that closes the original. But it depends on a 'genuinely diagnosed dairy allergy' the sim doesn't model, and the text spends its effort on disclaimers ('not an invented sole cause'). Rebuild it on traits and wealth the game actually has."
+  },
+  {
+   "id": "scenario-20261117-10321",
+   "run": "2026-11-17-1712",
+   "title": "The Exam Fee and the Locked School Gate",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 3,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "Right shape (a small exam fee ends at a locked school gate) and B's line is touching. But the link is a finance-office analyst feeding an 'independent public review', so no person drives it. Give the accountant a motive or a seat of power."
+  },
+  {
+   "id": "scenario-20261117-10621",
+   "run": "2026-11-17-1742",
+   "title": "The Hook Rack That Became a Menu",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 3,
+   "why": "A bait shop turning into a cafe is a visible sign change, and convert_business is a reusable effect worth building. But the twist (an angler buys bait elsewhere) is mild. Better as a generic 'sideline converts the shop' template than a headline scenario."
+  },
+  {
+   "id": "scenario-20261117-9261",
+   "run": "2026-11-17-1526",
+   "title": "The Duet Behind the Door",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 2,
+   "why": "Matchmaking two musicians is core fun, but the chain fizzles: they turn the shop into their retirement home and a student pays to take lessons elsewhere. One spouse 'hires' the other, and a rule points to 'the conditional alternate title stated in window.notes', which does not exist."
+  },
+  {
+   "id": "scenario-20261117-9263",
+   "run": "2026-11-17-1526",
+   "title": "The Photograph Nobody Collected",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 2,
+   "why": "The only sabotage, a cruelty that helps someone, is good in principle, but the change is just a photo studio becoming a shoe-repair shop. The uncollected portrait from the title never pays off, and the 16-18-year-old is taken on as an 'apprentice' at 28-32."
+  },
+  {
+   "id": "scenario-20261117-7772",
+   "run": "2026-11-17-1257",
+   "title": "The High-Water Notebook",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "The kernel is good: believe the town crank about the river. But the flood never happens. The payoff is a wall plus 'Flood Barrier Opens with a Costly Dock Detour', and present_day never says the damaged low street was saved. Rework it so the baseline flood hits and the player comes back to a dry street that used to be a ruin."
+  },
+  {
+   "id": "scenario-20261117-9874",
+   "run": "2026-11-17-1627",
+   "title": "The Footbridge Was Never Promised Forever",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "'An intervention has a lifespan' is a fresh idea, and B's line is good. But the best case tears the bridge down, so the present looks almost like the baseline (no bridge, plus a gate). It also needs A's natural death to land in a 2-year window. Let the bridge survive in the best case and make the gate the bitter branch."
+  },
+  {
+   "id": "scenario-20261117-10033",
+   "run": "2026-11-17-1643",
+   "title": "A Bedroom That Stayed in the Family",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "An adoption that wouldn't otherwise happen is a real family-graph change, and C's line ('The bedroom was mine long before the deed') lands. But the payoff is an invisible deed transfer, the headlines read like case files ('Public reporting withheld private case details'), and 'introduce' is used to reach a caseworker."
+  },
+  {
+   "id": "scenario-20261117-10174",
+   "run": "2026-11-17-1657",
+   "title": "The Winter Parade That Learned About June",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "A town that celebrates in a different season is visible, if parades are rendered. But the twist (a toy shop loses a 'finite winter window-tour booking') is minor contract admin, and the body text is permits ('Current weather and all operating requirements still applied')."
+  },
+  {
+   "id": "scenario-20261117-10471",
+   "run": "2026-11-17-1727",
+   "title": "The Computer on the Kitchen Table",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "A poor diligent kid becomes the town's computer-repair shop owner, which is the owner's 'gift to a poor kid' fantasy in miniature. But the twist (a printer loses the directory contract) is tiny. B's 'bookmark the job you used to do' line is good."
+  },
+  {
+   "id": "scenario-20261117-10474",
+   "run": "2026-11-17-1727",
+   "title": "The Coffee Tin That Turned Out to Be a Loan",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "The best adventure hook in the slice (a sketch of a cash tin under the bandstand), but it's defused. The player only 'reports' it, and the Gazette says 'The find created no private windfall or additional currency.' Let the player dig it up and choose who gets it (proposed:take)."
+  },
+  {
+   "id": "scenario-20261117-10783",
+   "run": "2026-11-17-1758",
+   "title": "The Garden Above the Chimneys",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "A rooftop garden above Main Street would show off the engine's lit geometry. But the best case moves it back to ground level for a roof repair, deleting the one visual payoff. Keep the roof garden in the best branch."
+  },
+  {
+   "id": "scenario-20261117-10171",
+   "run": "2026-11-17-1657",
+   "title": "The Words Above the Graduation Stage",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "There's heart here (a deaf student finally follows her own graduation and becomes a teacher). But the sim doesn't model deafness, the twist is another teacher changing rooms, and the Gazette body reads 'The ceremony changed no hearing or academic qualification.'"
+  },
+  {
+   "id": "scenario-20261117-10173",
+   "run": "2026-11-17-1657",
+   "title": "The Roller Floor with the Reserved Hours",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "A 70s roller floor is great period flavor, but the payoff is a timetable change and the twist is one skater losing drop-in hours. Make the rink its own building that changes the town's nightlife."
+  },
+  {
+   "id": "scenario-20261117-10322",
+   "run": "2026-11-17-1712",
+   "title": "The Second Name in the Probate File",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "Secret half-siblings is a juicy small-town secret, handled bloodlessly ('No living owner's property was transferred by genealogy alone'). The present payoff is a house sold to a stranger, and the parent's secret (the affair) is never touched."
+  },
+  {
+   "id": "scenario-20261117-10914",
+   "run": "2026-11-17-1811",
+   "title": "The Blue Ribbon That Made the Milk Expensive",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 1,
+   "why": "A county-fair blue ribbon is perfect small-town Americana, and B's line ('The cheese is lovely. The replacement milk invoice is also real') is funny. But it needs dairy farms, individually tracked goats and livestock aging, and the payoff is a procurement price difference. Put a creamery on Main Street instead."
+  },
+  {
+   "id": "scenario-20261117-8821",
+   "run": "2026-11-17-1442",
+   "title": "A Name Signed in Full",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "An old parent learning to read and writing a memoir that airs a family failure is a touching idea, but the payoff is one book in the library, and step 3 needs A alive at 83-90 (60-65 plus 23-25 years). The family secret should use the existing secret/knows levers and reveal something that changes the town."
+  },
+  {
+   "id": "scenario-20261117-10324",
+   "run": "2026-11-17-1712",
+   "title": "The Coin That Lost Its Miracle",
+   "verdict": "rework",
+   "fun": 2,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 1,
+   "why": "A lovely uncanny seed: a 2026 coin shown in 1950, and B, now 84-88, says the date 'is the year on the wall calendar'. But the payoff is a museum label update, after_years [76,76] hardcodes the present as 2026, and it explicitly refuses any 'proven miracle'. Let the coin grow town lore."
+  },
+  {
+   "id": "scenario-20261117-10911",
+   "run": "2026-11-17-1811",
+   "title": "Flowers in the Old Funeral Parlor",
+   "verdict": "rework",
+   "fun": 1,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "The funeral home becoming a florist is a visible, slightly eerie building change, and C's memory line is decent. But it never asks where the town now holds funerals, which is the obvious twist. Steps are generic supply-contract and premises-sale admin."
+  },
+  {
+   "id": "scenario-20261117-6572",
+   "run": "2026-11-17-1057",
+   "title": "Two Invitations, One Porch",
+   "verdict": "reject",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "A generic marry → toy store → play garden chain with a token twist (the bandstand). The hook is absurd: 'archived refusals ... displayed near a weathered bandstand'. 6723 and 7011 cover the same introduce-and-marry ground better."
+  },
+  {
+   "id": "scenario-20261117-7321",
+   "run": "2026-11-17-1212",
+   "title": "The Track Outside the Locked Gym",
+   "verdict": "reject",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "It repeats 6722's sabotage → closure → something better pattern with a weaker payoff (a running track). The twist is the obvious one: the trainer lost a job."
+  },
+  {
+   "id": "scenario-20261117-7623",
+   "run": "2026-11-17-1242",
+   "title": "The Siblings with Two Front Doors",
+   "verdict": "reject",
+   "fun": 2,
+   "stakes": 1,
+   "prose": 2,
+   "mechanics": 3,
+   "why": "Siblings meet, buy a house and add a second door. The scenario itself says the twist is that this is fine; there is no tension and nothing in the present changes."
+  },
+  {
+   "id": "scenario-20261117-8063",
+   "run": "2026-11-17-1326",
+   "title": "The Pool Between the Clinic and the Gym",
+   "verdict": "reject",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 3,
+   "why": "A public pool is a visible build, but the setup (two separate proposals in public-health records) can't be discovered by a player, and nobody is rescued despite the category. The twist is lost grass again: 'Public approval does not make the lost space imaginary.'"
+  },
+  {
+   "id": "scenario-20261117-7322",
+   "run": "2026-11-17-1212",
+   "title": "The Toys That Stopped Being Stock",
+   "verdict": "reject",
+   "fun": 2,
+   "stakes": 1,
+   "prose": 2,
+   "mechanics": 2,
+   "why": "Three new effect types (start_lending, expand_lending, donate_collection) for a toy library on a shelf, and the present barely changes."
+  },
+  {
+   "id": "scenario-20261117-7912",
+   "run": "2026-11-17-1311",
+   "title": "The Loan with Two Signatures",
+   "verdict": "reject",
+   "fun": 2,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "Investing a 'fortune' in a bank to fund one butcher's loan is the wrong scale, and the 'best' present is a foreclosure that shows up only in a deed. 'Following a final lawful process and funded rehousing, the guaranteed house passed from {C} to the lender' is the clearest example of compliance prose in the set."
+  },
+  {
+   "id": "scenario-20261117-8972",
+   "run": "2026-11-17-1457",
+   "title": "The Laundry That Took the Gossip Away",
+   "verdict": "reject",
+   "fun": 2,
+   "stakes": 1,
+   "prose": 2,
+   "mechanics": 2,
+   "why": "A lovely Our Town observation (convenience ends two friends' wash-day talks), but the only visible change is a laundromat and a lower meeting rate. Having the laundromat go self-service 13-15 years after it opens in the 1960s-70s gets the history wrong. Better used as NPC flavor than as a scenario."
+  },
+  {
+   "id": "scenario-20261117-6872",
+   "run": "2026-11-17-1127",
+   "title": "A Recommendation Nobody Else Would Give",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 3,
+   "why": "Property-title litigation that ends in a records room. The Gazette reads like a court notice: 'received relocation assistance and left under the court's schedule'."
+  },
+  {
+   "id": "scenario-20261117-6873",
+   "run": "2026-11-17-1127",
+   "title": "The Cold Room Truce",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 3,
+   "why": "A joint icehouse lease, then 'segregated cold-storage chambers', then a 'certified storm-refuge entrance'. Nothing in it is fun to cause or to find."
+  },
+  {
+   "id": "scenario-20261117-9411",
+   "run": "2026-11-17-1541",
+   "title": "The Cup with the Crooked Handle",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 2,
+   "prose": 2,
+   "mechanics": 2,
+   "why": "A bakery's cup order leads to a pottery whose evening classes are so loud the neighbor soundproofs her home. That is implausible and dull, and the crooked handle from the title never appears."
+  },
+  {
+   "id": "scenario-20261117-9574",
+   "run": "2026-11-17-1557",
+   "title": "The Last Week Before the Moving Van",
+   "verdict": "reject",
+   "fun": 2,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "A clerk about to leave town and a cupboard of records make a promising secrets hook, but the secret is 'an improper hiring preference' worth rep -0.2 thirty years later. fund_short_project just duplicates gift."
+  },
+  {
+   "id": "scenario-20261117-7622",
+   "run": "2026-11-17-1242",
+   "title": "What Went Down the Drain",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "Wastewater interceptors and utility tariffs, with four new effects, ending in 'Interceptor Project Fails Its Commissioning Check'. This is municipal engineering, not a game."
+  },
+  {
+   "id": "scenario-20261117-8522",
+   "run": "2026-11-17-1412",
+   "title": "The Oven That Heated the Block",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "Heating a whole block from a bakery oven in a 1960s American small town is implausible and joyless, and the only visible change is a closed fuel yard. Its fail headline is 'Bakery Recovery Pilot Produces No Usable Commissioned Output'."
+  },
+  {
+   "id": "scenario-20261117-10323",
+   "run": "2026-11-17-1712",
+   "title": "The Lawn Nobody Needed to Mow",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "A lawn becomes a meadow and a mowing contractor loses scope: pleasant ambient variation, not a time-travel payoff. The nice C line doesn't save it."
+  },
+  {
+   "id": "scenario-20261117-10473",
+   "run": "2026-11-17-1727",
+   "title": "The Dentist in the Doctor's Spare Room",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "The doctor's office becomes a dentist's, and the twist is the doctor 'did have other ideas for that spare room once.' The stakes and the twist barely exist."
+  },
+  {
+   "id": "scenario-20261117-8822",
+   "run": "2026-11-17-1442",
+   "title": "The Organ That Became a Wedding Business",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "Fixing an organ so that 28 years later couples have fewer free hall dates is neither fun to find nor visible. reserve_dates and establish_event are bookkeeping with no story behind them."
+  },
+  {
+   "id": "scenario-20261117-9132",
+   "run": "2026-11-17-1513",
+   "title": "A Bowl Worth Washing",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 2,
+   "mechanics": 2,
+   "why": "Reusable ice cream bowls lead to a shared kitchen whose 6-8am deliveries wake a neighbor who sleeps by day. No player would go looking for this or notice the result."
+  },
+  {
+   "id": "scenario-20261117-9572",
+   "run": "2026-11-17-1557",
+   "title": "The Telephone That Kept Ringing",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 2,
+   "mechanics": 2,
+   "why": "Paying a lonely old person's phone fee leads to a call circle that later stops calling one subscriber. The only change in the present is a number missing from a list."
+  },
+  {
+   "id": "scenario-20261117-7014",
+   "run": "2026-11-17-1141",
+   "title": "Who Paid for the Departure",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "The logic is muddled (C 'left' yet everyone is local), the payoff is removing a partition inside a house, and it has the worst Gazette text in the set: 'With consent from the relatives involved, the Gazette recorded...'."
+  },
+  {
+   "id": "scenario-20261117-7771",
+   "run": "2026-11-17-1257",
+   "title": "The Words on the Screen",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "A hearing aid leads to captioned film nights and a dance schedule cut by a quarter, so there is nothing for the player to walk up to. The headline 'Requested Hearing-Aid Fitting Receives Funding' reads like a grant report. It invents equip, establish_event and reduce_event_frequency for a calendar tweak, and it places an indoor caption display with build 'where: Main Street'."
+  },
+  {
+   "id": "scenario-20261117-7774",
+   "run": "2026-11-17-1257",
+   "title": "The Lawyer on the Loose Stair",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "Saving a young person's life is the heaviest act in the game, and here it pays off as a fence across a river shortcut. The clue 'The planned office and the later river-land case never followed' describes events no record could know about."
+  },
+  {
+   "id": "scenario-20261117-8062",
+   "run": "2026-11-17-1326",
+   "title": "The Files That Needed a Room",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "Investing in a law office's record keeping so that a reading corner becomes a secure research room is clerical work, not play. Sample body: 'Redaction and access checks separated public material from protected case details.'"
+  },
+  {
+   "id": "scenario-20261117-8223",
+   "run": "2026-11-17-1342",
+   "title": "The Fund with a Public List",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "It invents four effects (establish_fund, endow_fund, settle_arrears, publish_grant) to save one house, and the twist is that the grant appears in a ledger. C is 'poor' yet owns a Main Street home."
+  },
+  {
+   "id": "scenario-20261117-8372",
+   "run": "2026-11-17-1357",
+   "title": "The Caretaker and the Closing Gate",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "A positive rumor gets someone a caretaker job, and the cemetery gets posted opening hours. The fail headline is 'Recommendation Cannot Secure a Funded Caretaker Post'."
+  },
+  {
+   "id": "scenario-20261117-8373",
+   "run": "2026-11-17-1357",
+   "title": "The Bucket They Stopped Lowering",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "You introduce two households so a shared bucket well gets capped, and a bucket well on Main Street in 1965-85 is anachronistic. The payoff is a water connection; the loss is chatting at the well."
+  },
+  {
+   "id": "scenario-20261117-8662",
+   "run": "2026-11-17-1426",
+   "title": "The Song Behind the Shop Window",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "A local tune gets recorded, and the twist is a performance-licensing fee for the amateur group. It misses the fun version, where the song becomes a hit and puts {town} on the map."
+  },
+  {
+   "id": "scenario-20261117-8663",
+   "run": "2026-11-17-1426",
+   "title": "The Neighbors with Two Hives",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "You introduce two beekeepers so that an apiary eventually fences off part of a dog field. It invents three effect types for an outcome no player would seek out."
+  },
+  {
+   "id": "scenario-20261117-9873",
+   "run": "2026-11-17-1627",
+   "title": "The Warm Room and the Empty Boardinghouse",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 2,
+   "prose": 1,
+   "mechanics": 1,
+   "why": "The gift (insulation) has no causal link to the payoff (a hidden exit defect that already existed, closed after the inspector 'referred the potential conflict'). It needs four invented effects and baseline facts the sim can't produce."
+  },
+  {
+   "id": "scenario-20261117-10032",
+   "run": "2026-11-17-1643",
+   "title": "The Timecard Kept in a Lunch Tin",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "Rumor is used as an 'accurate documented' disclosure, and the chain ends with a claims desk publishing a correction about its own founding story. Nothing changes on the street, and step 3 is a compliance memo."
+  },
+  {
+   "id": "scenario-20261117-10622",
+   "run": "2026-11-17-1742",
+   "title": "The Anniversary Fund Under the Knitting Machine",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "Marriage, machine, divorce, buyout, and the present 'best' is 'the shop remains solely owned by {A}': no visible change from the baseline. Body text like 'No holiday was also paid for from the same savings' shows the problem."
+  },
+  {
+   "id": "scenario-20261117-10624",
+   "run": "2026-11-17-1742",
+   "title": "The Novel Shelved as Local History",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "Labeled 'uncanny' but nothing is uncanny. The notes forbid the interesting version ('Bind an actual catalog error rather than an intentionally ambiguous text'), so the result is a reshelved book and a family copy behind glass. A novel that predicts real town events would be the scenario to write instead."
+  },
+  {
+   "id": "scenario-20261117-10782",
+   "run": "2026-11-17-1758",
+   "title": "The Sunday Dinner with Paying Guests",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "A cook becomes a caterer, and sibling Sunday dinners drop via 'change_meeting_rate ... factor 0.25'. A one-off invented effect for a quarter of a dinner schedule is not a town-changing ripple."
+  },
+  {
+   "id": "scenario-20261117-10912",
+   "run": "2026-11-17-1811",
+   "title": "The Care Worker Who Sold the Business to Its Staff",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "A positive rumor leads to a supervisory post, an agency, then a worker cooperative. Ownership structure is invisible on the street, the twist is the founder losing 'unilateral control', and the title misdescribes who sells what."
+  },
+  {
+   "id": "scenario-20261117-10913",
+   "run": "2026-11-17-1811",
+   "title": "The Key That Stopped Opening the Hall",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "Paying a fee produces a locksmith, and decades later a volunteer's old key stops working. A poetic image with no stakes, wrapped in rules like 'it does not grant A independent entry rights or provide methods for unauthorized access.'"
+  },
+  {
+   "id": "scenario-20261117-8973",
+   "run": "2026-11-17-1457",
+   "title": "The Words on Both Sides of the Door",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "A lawyer meets an interpreter, and 25 years later some public signs are bilingual and both of them have paid 10% of their savings. Its headline, 'Public-Service Signs Add Verified Paired Wording', shows the whole problem."
+  },
+  {
+   "id": "scenario-20261117-9712",
+   "run": "2026-11-17-1611",
+   "title": "The Name on the New Front Door",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 2,
+   "mechanics": 1,
+   "why": "The scenario never says why the parent wants a new name. Step 2 does nothing: since 'B's name does not change automatically', B just keeps the surname B already had. What remains is a shop sign and a mild family disagreement."
+  },
+  {
+   "id": "scenario-20261117-9714",
+   "run": "2026-11-17-1611",
+   "title": "The Petition for Somewhere to Wash Your Hands",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 2,
+   "why": "Filing a restroom proposal costs a clothing store a stock room decades later. 'Reviewed Restroom Plan Secures a Real Capital Allocation' reads like council minutes, not a Gazette headline."
+  },
+  {
+   "id": "scenario-20261117-10623",
+   "run": "2026-11-17-1742",
+   "title": "The Child Who Wasn't on the Poster",
+   "verdict": "reject",
+   "fun": 1,
+   "stakes": 1,
+   "prose": 1,
+   "mechanics": 1,
+   "why": "Withdrawing consent for a publicity photo leads to a 'permission-aware local photo archive'. This is the purest compliance scenario in the slice: nothing to see, no drama, and a proposed verb whose whole description is limits."
+  }
+ ],
+ "content_items": [
+  {
+   "id": "story-20261117-1",
+   "kind": "story",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "Old resident and a young stranger repaint a bench. Warm and funny, and the two outcomes really differ: shared seat versus wet paint on a coat. Roles bind cleanly (A 65-95, B 18-30, non-kin). The third body of outcome 2 hardcodes 'the Gazette' (see integration risks)."
+  },
+  {
+   "id": "story-20261117-2",
+   "kind": "story",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "Leaning loaves versus salt refunds: concrete and good-humoured, with real effects. It is the only shop item whose kind exists ('bakery' is 'Bakery' in BUSINESS_KINDS; only the case differs). Its wealth effects should go to the shop's capital, not the owner's personal fortune: 15% of a person's total money for 'a morning's receipts' is out of scale."
+  },
+  {
+   "id": "rumor-20261117-3",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "keep",
+   "why": "Anonymous hymnbook donor, nice nosy variant. The church is off-screen, like the existing 'church social' in scenarios.ts, so that is acceptable. Same premise as rumor-190 (anonymous charity at the church); the two differ only in the object and the wealth band."
+  },
+  {
+   "id": "rumor-20261117-4",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "keep_with_edit",
+   "why": "Rival moving boundary stakes. The text assumes A and B are neighbours with land, which src/sim cannot see (homes live in src/town). It also overlaps the existing fence_dispute template ('a property line') and rumor-211. Either require neighbours via the housing layout or reword it."
+  },
+  {
+   "id": "rumor-20261117-5",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "A child loses a spelling contest on purpose: sweet and specific. Ages 10-17 bind from s.all, not s.adults."
+  },
+  {
+   "id": "rumor-20261117-6",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "keep_with_edit",
+   "why": "'Hardware store' is not in BUSINESS_KINDS, so it can never bind. The premise (a second price list for desperate customers) works for any shop: drop shop_kind, change 'before the nails' in the third variant, and fold in rumor-178's urgent-apology line, which is the same premise."
+  },
+  {
+   "id": "rumor-20261117-7",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep_with_edit",
+   "why": "An empty chair facing the river, spoken to before dawn: the best quiet-grief and uncanny hook in the set. It needs water (28% of seeds have none, and many have a lake rather than a river), so gate it or say 'the water'. Ideally require a dead spouse, which the condition vocabulary cannot express."
+  },
+  {
+   "id": "rumor-20261117-8",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "A friend's vegetable entered under A's name at the fair: classic small-town gossip. Mechanically it is the same as rumor-199 (A takes credit for friend B's work), but the texture differs enough to keep both."
+  },
+  {
+   "id": "story-20261117-149",
+   "kind": "story",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "Siblings cut a quilt into two blankets, or one keeps it. Warm, and the witty last body lands. '{A.last} Siblings' is safe because surnames never change at marriage in simulate.ts. A parent-alive counterpart to inheritance_dispute."
+  },
+  {
+   "id": "story-20261117-150",
+   "kind": "story",
+   "quality": 4,
+   "verdict": "keep_with_edit",
+   "why": "Duckling rescue from a drain, charming. Edit the first body ('returned to the river') for towns with no water or a lake. Cap the coat loss in absolute terms: 8% of a wealthy person's money for a coat is absurd."
+  },
+  {
+   "id": "rumor-20261117-151",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep_with_edit",
+   "why": "A barber rehearsing speeches for public office, which could link to the real mayor elections. 'Barbershop' is not a business kind. Retarget it to any shop (the 'mirrors' line still works for Dress Shop, Clothing Store or Gym) and require high ambition."
+  },
+  {
+   "id": "rumor-20261117-152",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "keep",
+   "why": "A child returning lost mittens in mismatched pairs: cute and low-stakes. Needs the school landmark (90% of towns)."
+  },
+  {
+   "id": "rumor-20261117-153",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "keep",
+   "why": "Reading a friend's private letter aloud for laughs: solid gossip with meaningful effects (bond -0.4, rep -0.16). One of 8 'friend wrongs friend' rumors that are mechanically alike."
+  },
+  {
+   "id": "rumor-20261117-154",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "keep_with_edit",
+   "why": "A poor elder's pride kept warm by a pretend trade is a good idea, but 'refuses firewood unless someone calls it payment for sharpening a pencil' is muddled. Clarify the wording, and consider limiting it to years when firewood heating is plausible."
+  },
+  {
+   "id": "rumor-20261117-155",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "keep",
+   "why": "A map in a fence post where every road ends at the church: a decent uncanny hook, but it opens no thread and leads to no legend, so it goes nowhere."
+  },
+  {
+   "id": "rumor-20261117-156",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "keep_with_edit",
+   "why": "Watering down the soup when the room fills: good gossip. 'Diner' is not a business kind, even though era() and other templates talk about 'the diner'. Either add a Diner kind (it needs shop-front art) or reword it for Bakery."
+  },
+  {
+   "id": "story-20261117-161",
+   "kind": "story",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "Rivals paired for the last dance: truce or a heel-stamping row. Funny, genuinely different outcomes, and the era_notes say not to imply romance."
+  },
+  {
+   "id": "story-20261117-162",
+   "kind": "story",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "A lost recipe box returned intact, or ruined by rain. The sad outcome ('the two sat quietly while {B} sorted them') is the quiet-tragedy tone the brief asked for."
+  },
+  {
+   "id": "rumor-20261117-163",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "A spouse secretly learning to whistle the other's favourite tune. Sweet, and uses {A.him} correctly."
+  },
+  {
+   "id": "rumor-20261117-164",
+   "kind": "rumor",
+   "quality": 2,
+   "verdict": "keep_with_edit",
+   "why": "'Repair shop' is not a business kind, and this is the 4th cheating-shopkeeper rumor (with 6, 156 and 178). It is only salvageable by retargeting to Music Store (instrument repair) or Bait Shop (reels); otherwise drop it."
+  },
+  {
+   "id": "rumor-20261117-165",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "A child reads seed-packet print for an elder and is paid in beans: lovely. Same role shape and effects as rumor-226 and story-174 (child plus elderly non-kin). Here 'strangers' has to mean 'not kin', because the text describes an ongoing arrangement."
+  },
+  {
+   "id": "rumor-20261117-166",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep_with_edit",
+   "why": "A train whistle from the river whenever the clock stops: strong uncanny with a time-travel echo. The town has a clock tower landmark (60% of towns), not a church clock. Retarget to 'the clock tower' and require that landmark and a river."
+  },
+  {
+   "id": "rumor-20261117-167",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "Letting a friend win at checkers. Nuanced (kindness that stings once exposed), with a small negative bond."
+  },
+  {
+   "id": "dialogue-20261117-168",
+   "kind": "dialogue",
+   "quality": 3,
+   "verdict": "keep_with_edit",
+   "why": "gift_thanks: serviceable and period-neutral, but none of the 12 lines uses a contraction ('I am just poor at showing it'), which sounds stilted when the voices speak it. Add contractions."
+  },
+  {
+   "id": "story-20261117-173",
+   "kind": "business",
+   "quality": 3,
+   "verdict": "keep_with_edit",
+   "why": "Quiet shopping hour: success, or the owner scolds customers into leaving. 'General store' is not a business kind; let it bind to any retail kind (a Music Store version would be funny). A quiet hour reads modern for the 1950s. Wealth effects belong on the shop's capital."
+  },
+  {
+   "id": "story-20261117-174",
+   "kind": "story",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "A teen's handwritten oral history with an elder: friendship, or a misquoted joke. Good. Outcome 2 criticises a 12-17-year-old in the paper (rep -0.08). That is mild, and the existing vandalism template already names minors."
+  },
+  {
+   "id": "rumor-20261117-175",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "A rival who keeps mending the other's loose button: warm irony, and the nosy variant ('how does A keep getting that coat') is excellent."
+  },
+  {
+   "id": "rumor-20261117-176",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "keep",
+   "why": "Hiding until the last heavy box was in: ordinary, fine. It implies B moved house, which the sim does not record; tolerable for a rumor."
+  },
+  {
+   "id": "rumor-20261117-177",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "A child's puddle ferry that charges pebbles: delightful Stardew-style whimsy."
+  },
+  {
+   "id": "rumor-20261117-178",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "reject",
+   "why": "'Florist' is not a business kind, and this is the same premise as rumor-6 (charging more by how desperate the customer is). Fold its best line ('urgent apologies cost more') into rumor-6 instead."
+  },
+  {
+   "id": "rumor-20261117-179",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "A blank envelope mailed to oneself every spring: poignant and uncanny. Uses {A.his} correctly; needs the post office (92% of towns)."
+  },
+  {
+   "id": "legend-20261117-180",
+   "kind": "legend",
+   "quality": 4,
+   "verdict": "keep_with_edit",
+   "why": "'The Stair That Answered' (always one knock short, explained by a loose pipe) is well written, but all 3 clues sit in a church cellar, church records and church steps, and the town has no church building. lore.ts places legend spots at a landmark or the fountain, so remap the spot. The truth is not a simulation event, so time travel cannot change it."
+  },
+  {
+   "id": "story-20261117-185",
+   "kind": "story",
+   "quality": 3,
+   "verdict": "keep_with_edit",
+   "why": "A shared umbrella. Filed as 'romance', but the text and era_notes are platonic. Both roles are 18-90 with no limit on the age gap, so an 18-year-old and an 88-year-old 'agree to meet again'. Add an age-gap limit in the binder or recategorise it as civic or friendship. Rain is assumed."
+  },
+  {
+   "id": "story-20261117-186",
+   "kind": "story",
+   "quality": 4,
+   "verdict": "keep_with_edit",
+   "why": "A clock face buried with its numbers down: a great uncanny hook for a time-travel game, with a mundane alternative (a painted plate). It opens 'buried_clock_face', but there is no sequel template. The engine's Story.open is a boolean and SEQUELS are keyed by template id, so a sequel must be written. Chance 0.004 is very rare."
+  },
+  {
+   "id": "rumor-20261117-187",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "keep",
+   "why": "A sibling answering B's letters without permission: works in every decade, decent stakes."
+  },
+  {
+   "id": "rumor-20261117-188",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "Gives a friend the lead in a backyard play and keeps the thunder pan: sweet. Child-friend roles bind from s.all."
+  },
+  {
+   "id": "rumor-20261117-189",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "keep",
+   "why": "Volunteering a friend to wash every dish at the church supper. Fine, but one of 8 friend-wrongs-friend rumors with nearly the same effects."
+  },
+  {
+   "id": "rumor-20261117-190",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "keep",
+   "why": "Leftover rummage-sale coats left at the church door: warm, with a nice price-tag detail. Same premise as rumor-3. The wealth band 'comfortable' leaves out wealthy residents; read the band as 'at least comfortable'."
+  },
+  {
+   "id": "rumor-20261117-191",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep_with_edit",
+   "why": "The bridge echo 'has started using a younger voice': eerie, and it fits time travel. Bridges exist only in river towns (about 44% of seeds), so gate it on that."
+  },
+  {
+   "id": "dialogue-20261117-192",
+   "kind": "dialogue",
+   "quality": 3,
+   "verdict": "keep_with_edit",
+   "why": "praise_reply: no contractions ('Let us leave it there', 'No need to make a gathering of it'), which reads stiffly aloud. 'That is decent of you to say' nearly repeats rumor-168's curt line."
+  },
+  {
+   "id": "story-20261117-197",
+   "kind": "story",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "An elderly parent teaches an adult child to ride a bike: sweet and slightly funny. The era_notes make A the parent; with A 60-85 and B 30-45, the binder must check that B is in A.children."
+  },
+  {
+   "id": "story-20261117-198",
+   "kind": "story",
+   "quality": 3,
+   "verdict": "keep",
+   "why": "A resident pays for street saplings, or a late frost kills them. Solid civic-nature story with real costs. The 'comfortable' band leaves out wealthy donors, the natural fit."
+  },
+  {
+   "id": "rumor-20261117-199",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "keep",
+   "why": "Taking credit for a friend's crossword answers: a near-duplicate of rumor-8 in mechanics and premise, saved by a good nosy line ('close enough to whisper')."
+  },
+  {
+   "id": "rumor-20261117-200",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "keep",
+   "why": "A child's dog carries the basket but won't return it: cute, though the effect is tiny (+0.04). The sim has no pets, but hero_dog already invents dogs the same way."
+  },
+  {
+   "id": "rumor-20261117-201",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "Spouses swap written complaints before arguing: warm, specific, and the nosy bonfire line is good."
+  },
+  {
+   "id": "rumor-20261117-202",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "keep",
+   "why": "Wrong directions given to protect a shortcut. In a small town, a stranger asking directions is a newcomer, so consider binding B to a recent arrival."
+  },
+  {
+   "id": "rumor-20261117-203",
+   "kind": "rumor",
+   "quality": 2,
+   "verdict": "keep",
+   "why": "Picks out a porch blindfolded by its smell: the weakest uncanny-elder item, low value but harmless. Its nosy variant about switching flowerpots is the best part."
+  },
+  {
+   "id": "dialogue-20261117-204",
+   "kind": "dialogue",
+   "quality": 3,
+   "verdict": "keep_with_edit",
+   "why": "secret_deflect: the curt lines are good ('You can ask. I can keep quiet.'), but there are no contractions anywhere. Use it only when knowledge.ts says this NPC holds a secret."
+  },
+  {
+   "id": "story-20261117-209",
+   "kind": "story",
+   "quality": 4,
+   "verdict": "keep_with_edit",
+   "why": "A relief collection exposed as fraud (0.35) or cleared by its ledger (0.65): genuinely different outcomes with weight (rep -0.25 / +0.18). Weight the fraud chance by A's traits and reputation rather than a flat 0.35, and ideally tie the 'relief' to a real storm, flood or fire story from the same year."
+  },
+  {
+   "id": "story-20261117-210",
+   "kind": "story",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "Child and parent build a big-eared 'Good Listener' scarecrow, or the parent takes the credit. Charming. The era_notes make B the parent. The autumn display is off-screen flavour."
+  },
+  {
+   "id": "rumor-20261117-211",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "Measuring a rival's fence shadow to prove it 'steals afternoon sunshine': funnier than rumor-4. Same neighbour-assumption problem."
+  },
+  {
+   "id": "rumor-20261117-212",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "An elder keeps polished trading stones for children who have none: warm, concrete."
+  },
+  {
+   "id": "rumor-20261117-213",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "keep",
+   "why": "A borrowed fishing rod snapped as a window prop. Fine, but another friend-wrongs-friend rumor with the same effect profile."
+  },
+  {
+   "id": "rumor-20261117-214",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "Kids share a sled by counting rides and pulls separately; the 'who audits the sled accounts' line is great. Assumes snow, which is plausible given the blizzard template."
+  },
+  {
+   "id": "rumor-20261117-215",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "keep",
+   "why": "A fresh wet footprint on the underside of a porch step: a good small uncanny image, but no thread or payoff."
+  },
+  {
+   "id": "dialogue-20261117-216",
+   "kind": "dialogue",
+   "quality": 3,
+   "verdict": "keep_with_edit",
+   "why": "farewell: natural enough, but no contractions. 'Mind the weather' asserts weather the scene may not have."
+  },
+  {
+   "id": "story-20261117-221",
+   "kind": "story",
+   "quality": 3,
+   "verdict": "keep_with_edit",
+   "why": "A bridge notice promising 'repairs of heart' is a charming pun. It needs a bridge (river towns only). Any 18-95-year-old writing official closure notices is odd, so bind A to the mayor or another civic figure."
+  },
+  {
+   "id": "story-20261117-222",
+   "kind": "story",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "A burst pipe soaks a lifetime of scrapbooks; a friend helps save some, or none. Real quiet tragedy without death, and a believable money cost."
+  },
+  {
+   "id": "rumor-20261117-223",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "Listening in on the shared party line, gated to 1950-1979: real period detail, one of the few era-specific items."
+  },
+  {
+   "id": "rumor-20261117-224",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "A weather forecast taped over a friend's only home movie, gated to 1980-1999: a perfect era beat with a good nosy line."
+  },
+  {
+   "id": "rumor-20261117-225",
+   "kind": "rumor",
+   "quality": 4,
+   "verdict": "keep",
+   "why": "Glowing reviews of one's own yard sales under invented names, 2000-2030: funny modern gossip. The 'same unusual spelling' clue is good. Uses {A.his}."
+  },
+  {
+   "id": "rumor-20261117-226",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "keep_with_edit",
+   "why": "Chalk-marking skipping stones for an elder: sweet, but it needs water (gate on a river or lake). Near-duplicate of rumor-165 in role shape (child plus elderly non-kin) and effects."
+  },
+  {
+   "id": "rumor-20261117-227",
+   "kind": "rumor",
+   "quality": 3,
+   "verdict": "keep_with_edit",
+   "why": "Siblings trading apologies under jar lids. The main text reads as if both are returning jars to other people; only the variants make it clear the apologies go between the two. Reword it to 'returning each other's borrowed jars'."
+  },
+  {
+   "id": "legend-20261117-228",
+   "kind": "legend",
+   "quality": 4,
+   "verdict": "keep_with_edit",
+   "why": "'The Mill's White Hands' (the building 'counting everyone it had ever employed', explained by marks from a removed platform) is evocative, but the game has no mill building. Mill-type towns exist (1 in 6 seeds), but none of their clue spots (wall, ledger, storeroom) are modelled. Gate it to mill towns and add a site, or remap the clues to a landmark."
+  }
+ ]
+}

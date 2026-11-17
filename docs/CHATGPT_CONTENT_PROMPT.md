@@ -32,8 +32,9 @@ batches in this conversation; go for variety (different categories, decades, moo
 
 - People: `{A}` full name, `{A.first}`, `{A.last}`, `{A.age}`, `{A.he}` `{A.him}` `{A.his}` (pronouns, the game picks
   he/she), `{A.job}`; likewise `{B}`, `{C}` for other roles.
-- Places and things: `{town}`, `{shop}` (a business name), `{shop.kind}` (bakery, hardware store ...), `{street}`,
-  `{year}`, `{decade}` (e.g. "the fifties"), `{years_ago}`.
+- Places and things: `{town}`, `{shop}` (a business name), `{shop.kind}` (bakery, butcher ...), `{street}`,
+  `{paper}` (the town paper's name that year: it changes with the decades, so never write "the Gazette"), `{year}`,
+  `{decade}` (e.g. "the fifties"), `{years_ago}`.
 - Use only these. Text with placeholders must read correctly whoever fills them.
 
 ## Conditions (who can fill a role / when an item can happen)
@@ -43,7 +44,11 @@ Combine any of these in a `when` object (all must hold):
 `owns_shop: true|false`, `wealth: "poor"|"getting_by"|"comfortable"|"wealthy"`, `reputation: "low"|"mid"|"high"`,
 `trait: {"ambition"|"charm"|"diligence": "high"|"low"}`, `years: [from, to]` (calendar years, 1950..2030),
 `relation`: for two-person roles `"spouses"|"siblings"|"parent_child"|"strangers"|"rivals"|"friends"`,
-`shop_kind: ["bakery", ...]`, `town_size: "small"|"medium"|"large"`.
+`shop_kind: ["bakery", ...]` (only these kinds exist: bakery, butcher, ice cream parlor, music store, bait shop,
+clothing store, dress shop, toy store, gym, bank, law office, doctor's office), `town_size: "small"|"medium"|"large"`,
+`town: {"water": "river"|"lake"|"none", "landmarks": [...]}` (landmarks from post office, school, fire station, police
+station, hospital, hotel, clock tower). A story that needs a river, a bridge, a church or a mill must say so in `town`
+or not rely on it: many towns have none.
 
 ## Effects (the only levers the simulation has)
 
@@ -102,6 +107,22 @@ someone a secret · `{"knows": ["B", "<secret of A>"]}` someone learns a secret.
    (2-3 sentences), `rules` (precise, numbered, in terms of the simulation: people, traits, bonds, reputation, wealth,
    businesses, years, the player's time-travel interventions), `content_needed` (what templates it would need), and
    `why_fun` (1-2 sentences).
+
+## Fixes from the review of the first runs (follow these)
+
+- **People talk like people:** use contractions ("I'd", "don't", "she's") in dialogue, rumors and quotes; the lines are
+  spoken aloud by a voice engine and sound stiff without them. Use pronoun placeholders (`{A.he}`) rather than "the
+  finder", "the collector".
+- **Use the eras:** most items should differ by decade (prices, things people own, how news travels); give
+  `headlines_by_decade` or era-specific variants where it matters. Items flat across 1950-2030 should be the minority.
+- **Use stronger levers when the story earns them:** deaths, secrets, `knows`, shop closures and reputation swings up to
+  ±0.3 are allowed; not everything is cozy. Business losses use the business's money (`{"capital": "shop", "by":
+  -0.5}`), not the owner's personal wealth.
+- **No near-duplicates:** before writing, if you can, read the titles already committed under `content/inbox/` and
+  avoid their premises (charging by desperation, credit stolen for a friend's work, anonymous church charity, a strange
+  voice by the river have all been done).
+- **Commit every item you write.** Earlier runs numbered more items than they committed; every id you issue should end up
+  in a committed file.
 
 ## Quality bar
 
