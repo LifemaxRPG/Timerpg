@@ -124,7 +124,9 @@ public:
     bool load(const std::string & path, int threads, int n_ctx);
     bool loaded() const { return ctx_ != nullptr; }
     /** Where the model runs from the next load: 0 the CPU, 1 the GPU, 2 the NPU (the CPU when there is no such device). */
-    void set_device(int kind) { device_ = kind; }
+    /** Bit 4 of [kind] (16): the CPU's fast repacked kernels (the weights copied into the process: faster prompts, but
+     *  the whole model in memory the system cannot reclaim); without it the weights stay mapped from the file. */
+    void set_device(int kind) { device_ = kind & 3; repack_ = (kind & 16) != 0; }
     /** Where the loaded model runs (0 / 1 / 2). */
     int device() const { return ctx_ && devs_.size() > 1 ? device_ : 0; }
     /** Frees the model and the context. */
@@ -172,6 +174,7 @@ private:
     };
     bool recurrent_ = false;
     int device_ = 0;
+    bool repack_ = false;
     std::vector<ggml_backend_dev_t> devs_;  // the devices it was loaded on, null-terminated          // the cache cannot be cut back to a shorter prefix (Mamba, Qwen3.5's delta net)
     std::vector<Snapshot> snapshots_;
     uint64_t clock_ = 0;

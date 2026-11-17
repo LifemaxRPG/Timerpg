@@ -259,6 +259,15 @@ class DialogueEngine private constructor(private val app: Context) {
         command { closeBackend(); loadModel() }
     }
 
+    /** The CPU's fast (repacked) kernels: off by default, see [com.timerpg.street.llm.NativeLlm.fastCpu]. */
+    fun setFastCpu(on: Boolean) {
+        app.getSharedPreferences("ai", Context.MODE_PRIVATE).edit().putBoolean("repack", on).apply()
+        lock.withLock { running?.let { cancelLocked(it) } }
+        command { closeBackend(); loadModel() }
+    }
+
+    val fastCpuWanted: Boolean get() = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getBoolean("repack", false)
+
     private val deviceWanted: Int get() = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getInt("device", 0)
     @Volatile private var gpuNote: String? = null
 
@@ -437,13 +446,20 @@ class DialogueEngine private constructor(private val app: Context) {
         var thrown: String? = null
         val native = b as? com.timerpg.street.llm.NativeLlm
         native?.device = deviceWanted
-        var ok = try { b.load(f.path, 0, CONTEXT_TOKENS) } catch (t: Throwable) { thrown = t.message ?: t.javaClass.simpleName; false }
+        native?.fastCpu = fastCpuWanted
+        // loading holds the AI lane: speech, memory and the voices do not load beside it (their memory added to a load's
+        // is what took the phone down)
+        var ok = com.timerpg.street.llm.AiLane.run("dialogue") {
+            try { b.load(f.path, 0, CONTEXT_TOKENS) } catch (t: Throwable) { thrown = t.message ?: t.javaClass.simpleName; false }
+        }
         if (!ok && native != null && native.device != com.timerpg.street.llm.NativeLlm.CPU && !closed) {
             // the GPU or NPU could not take it: the CPU then (and say so)
             val which = if (native.device == com.timerpg.street.llm.NativeLlm.NPU) "NPU" else "GPU"
             native.device = com.timerpg.street.llm.NativeLlm.CPU
             gpuNote = "The $which could not load the model (${native.error ?: "unknown"}); it runs on the CPU."
-            ok = try { b.load(f.path, 0, CONTEXT_TOKENS) } catch (t: Throwable) { thrown = t.message ?: t.javaClass.simpleName; false }
+            ok = com.timerpg.street.llm.AiLane.run("dialogue") {
+                try { b.load(f.path, 0, CONTEXT_TOKENS) } catch (t: Throwable) { thrown = t.message ?: t.javaClass.simpleName; false }
+            }
         }
         val acc = native?.accelerators ?: 0
         _status.update { it.copy(runsOn = native?.runsOn ?: 0, hasGpu = acc and 1 != 0, hasNpu = acc and 2 != 0, gpuNote = gpuNote) }

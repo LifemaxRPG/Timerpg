@@ -29,6 +29,9 @@ class NativeLlm(context: Context? = null) : LlmBackend {
 
     /** Where the model runs from the next [load]: [CPU], [GPU] (the Adreno, OpenCL) or [NPU] (Hexagon). */
     @Volatile var device = CPU
+    /** The CPU's repacked kernels from the next load: faster prompts, but the whole model copied into memory the system
+     *  cannot reclaim (off: the weights stay mapped from the file, so speech and the voices fit beside them). */
+    @Volatile var fastCpu = false
     /** Where the loaded model runs. */
     val runsOn: Int get() = if (handle == 0L) CPU else runCatching { nativeDevice(handle) }.getOrDefault(CPU)
     /** This phone and build's accelerators (after the native library loaded): bit 0 a GPU, bit 1 an NPU. */
@@ -111,7 +114,7 @@ class NativeLlm(context: Context? = null) : LlmBackend {
                 error = "cancelled"
                 return false
             }
-            runCatching { nativeSetDevice(handle, device) }
+            runCatching { nativeSetDevice(handle, device or (if (fastCpu) 16 else 0)) }
             loaded = false  // the native load frees the old model first
             val ok = try {
                 nativeLoad(handle, path.toByteArray(Charsets.UTF_8), t, ctx)

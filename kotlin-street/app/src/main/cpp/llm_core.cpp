@@ -426,6 +426,9 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
             mp.n_gpu_layers = 0;
         }
         mp.load_mode = LLAMA_LOAD_MODE_MMAP;
+        // no repacking unless asked: repacked weights are copied out of the mapped file (the 9B's 5.4 GB in memory the
+        // system cannot reclaim, read whole at load), which left no room for speech and the voices beside it
+        mp.use_extra_bufts = repack_;
         // cancel() also stops a load.
         mp.progress_callback = [](float, void * self) { return !static_cast<Engine *>(self)->cancel_.load(); };
         mp.progress_callback_user_data = this;

@@ -48,6 +48,7 @@ bool Asr::load(const std::string & model, const std::string & mmproj, int thread
     if (threads <= 0) threads = 4;
     llama_model_params mp = llama_model_default_params();
     mp.n_gpu_layers = 0;
+    mp.use_extra_bufts = false;   // weights stay mapped from the file (reclaimable), not copied and repacked
     model_ = llama_model_load_from_file(model.c_str(), mp);
     if (!model_) { error_ = "could not load the speech model"; return false; }
     llama_context_params cp = llama_context_default_params();

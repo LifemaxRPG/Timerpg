@@ -825,6 +825,11 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
                 engine.setDevice(order[(order.indexOf(s.runsOn).coerceAtLeast(0) + 1) % order.size])
             }
         }
+        // the CPU's fast kernels copy the whole model into memory (faster prompts; speech and the voices may not fit)
+        if (s.runsOn == 0) {
+            var fast by remember { mutableStateOf(engine.fastCpuWanted) }
+            Chip(if (fast) "CPU kernels: fast (model held in RAM)" else "CPU kernels: shared (model mapped)", fast) { fast = !fast; engine.setFastCpu(fast) }
+        }
         s.speed?.let { r ->
             if (r.totalMs == 0L && r.error != null) Text(r.error, 12.sp, color = DIM)
             else {
