@@ -111,8 +111,16 @@ private fun DrawScope.face(cam: Cam, img: ImageBitmap, h: Float, ax: Float, az: 
         0f, 0f, keep * 1.04f * TurnLight.current.b, 0f, TurnLight.current.hazeB * hz,
         0f, 0f, 0f, 1f, 0f,
     )))
-    // wide strips when the face is small or edge-on on screen: the same picture for far fewer draw calls
     val dA = cam.v(ax, az) + cam.dc; val dB = cam.v(bx, bz) + cam.dc
+    // behind the picture: the window openings cut into it show a dark room, not whatever stands behind the building
+    if (!glow && dA >= 40f && dB >= 40f) {
+        val plate = Path()
+        val ua = cam.sx(cam.u(ax, az), dA); val ub = cam.sx(cam.u(bx, bz), dB)
+        plate.moveTo(ua, cam.sy(h, dA)); plate.lineTo(ub, cam.sy(h, dB)); plate.lineTo(ub, cam.sy(0f, dB)); plate.lineTo(ua, cam.sy(0f, dA)); plate.close()
+        val l = TurnLight.current
+        drawPath(plate, Color(0xFF2b3550).let { Color(it.red * keep * l.r, it.green * keep * l.g, it.blue * keep * l.b, alpha) })
+    }
+    // wide strips when the face is small or edge-on on screen: the same picture for far fewer draw calls
     val span = if (dA < 40f || dB < 40f) 0f else abs(cam.sx(cam.u(bx, bz), dB) - cam.sx(cam.u(ax, az), dA))
     val step = when { span / n < .55f -> 4; span / n < 1.1f -> 2; else -> 1 }
     var k = -step
