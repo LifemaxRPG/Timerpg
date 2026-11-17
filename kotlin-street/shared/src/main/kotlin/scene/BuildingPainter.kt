@@ -2240,29 +2240,7 @@ internal class BuildingPainter {
         if (key == treeFilterKey) return treeFilterCache
         treeFilterKey = key
         if (a <= .02f && sn <= .02f && bl <= .02f && !nightOn) { treeFilterCache = null; return null }
-        // rows R, G, B, A of a 4x5 matrix (the last column an offset out of 255)
-        var r = floatArrayOf(1f, 0f, 0f, 0f, 0f)
-        var g = floatArrayOf(0f, 1f, 0f, 0f, 0f)
-        var b = floatArrayOf(0f, 0f, 1f, 0f, 0f)
-        fun mix(t: Float, tr: FloatArray, tg: FloatArray, tb: FloatArray) {
-            r = FloatArray(5) { r[it] + (tr[it] - r[it]) * t }
-            g = FloatArray(5) { g[it] + (tg[it] - g[it]) * t }
-            b = FloatArray(5) { b[it] + (tb[it] - b[it]) * t }
-        }
-        // autumn: the greens go to orange and amber
-        mix(a, floatArrayOf(.45f, 1.0f, 0f, 0f, 0f), floatArrayOf(.12f, .62f, 0f, 0f, 0f), floatArrayOf(0f, 0f, .35f, 0f, 0f))
-        // winter: frosted, pale and desaturated
-        mix(sn * .85f, floatArrayOf(.38f, .38f, .2f, 0f, 70f), floatArrayOf(.36f, .4f, .22f, 0f, 74f), floatArrayOf(.34f, .38f, .3f, 0f, 82f))
-        // blossom: pink among the green
-        mix(bl * .6f, floatArrayOf(1.0f, .55f, .2f, 0f, 20f), floatArrayOf(.1f, .75f, .15f, 0f, 8f), floatArrayOf(.25f, .25f, .8f, 0f, 14f))
-        val m = ColorMatrix(
-            floatArrayOf(
-                r[0] * night.red, r[1] * night.red, r[2] * night.red, 0f, r[4] * night.red,
-                g[0] * night.green, g[1] * night.green, g[2] * night.green, 0f, g[4] * night.green,
-                b[0] * night.blue, b[1] * night.blue, b[2] * night.blue, 0f, b[4] * night.blue,
-                0f, 0f, 0f, 1f, 0f,
-            )
-        )
+        val m = ColorMatrix(seasonTreeMatrix(a, sn, bl, night.red, night.green, night.blue))
         treeFilterCache = ColorFilter.colorMatrix(m)
         return treeFilterCache
     }
@@ -2473,7 +2451,12 @@ internal class BuildingPainter {
         }
         // lit at dusk: the glass glows
         val on = (sky.dark * Dusk.lightsOn(art.stack.id.hashCode(), hour, Dusk.SHOP)).coerceIn(0f, 1f)
-        if (on > .01f) picture2(sb.emis, -half, -hf, B.W, hf, FilterQuality.None, alpha = on * .55f)
+        if (on > .01f) {
+            // lit inside: the shop's own display brightened and warmed (overlay keeps what is in the window), and a little
+            // light added on top so the glass glows
+            picture2(sb.emis, -half, -hf, B.W, hf, FilterQuality.None, alpha = on * .9f, blend = BlendMode.Overlay)
+            picture2(sb.emis, -half, -hf, B.W, hf, FilterQuality.None, alpha = on * .22f, blend = BlendMode.Plus)
+        }
         drawRect(SceneInk.Highlight, Offset(-half, -hf), Size(B.W, 1f))
     }
 
@@ -5802,8 +5785,9 @@ internal class BuildingPainter {
 private val LAMP_K get() = SpriteArt.PIXEL
 private const val LAMP_FOOT_X = 15f
 private const val LAMP_FOOT_Y = 127f
-private const val LAMP_LENS_X = 36f
-private const val LAMP_LENS_Y = 16f
+// the lantern glass under the lamp's head (props/lamp_1.png is 64x128; the glass is the pale band at about 44-56, 46-50)
+private const val LAMP_LENS_X = 50f
+private const val LAMP_LENS_Y = 48f
 private val TREE_K get() = SpriteArt.PIXEL * 1.5f
 private const val TREE_FOOT_X = 31f
 private const val TREE_FOOT_Y = 95f
