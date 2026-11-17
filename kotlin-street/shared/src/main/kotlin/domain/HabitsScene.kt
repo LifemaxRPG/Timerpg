@@ -244,8 +244,9 @@ private fun spriteLayout(stack: HabitStack, sb: com.lifemax.rpg.feature.habits.p
     val b = BuildingSpec
     val k = b.W / com.lifemax.rpg.feature.habits.presentation.scene.SpriteArt.SRC_W
     val pieces = ArrayList<Piece>()
-    val floors = stack.blocks.filter { !it.cleared }
-    val bodyH = (sb.front.height - com.lifemax.rpg.feature.habits.presentation.scene.SpriteArt.MID_H * floors.size) * k
+    // the floors come from the art (the caller's block count may differ): the front's own middles, its own roofline
+    val floors = stack.blocks.filter { !it.cleared }.take(sb.middles)
+    val bodyH = (sb.front.height - com.lifemax.rpg.feature.habits.presentation.scene.SpriteArt.MID_H * sb.middles) * k
     pieces += Piece(PieceKind.LOBBY, stack.id, 0f, bodyH, b.W)
     var y = bodyH
     for (h in floors) {
@@ -253,7 +254,8 @@ private fun spriteLayout(stack: HabitStack, sb: com.lifemax.rpg.feature.habits.p
         pieces += Piece(PieceKind.FLOOR, h.id, y, tall, b.W, labelled = false, block = h)
         y += tall
     }
-    val roof = y
+    val roof = bodyH + com.lifemax.rpg.feature.habits.presentation.scene.SpriteArt.MID_H * k * sb.middles
+    y = roof
     val signH = ((sb.sign?.height ?: 0) * k).coerceAtLeast((sb.prop?.height ?: 0) * k * .8f)
     return BuildingLayout(stack.id, pieces, emptyList(), y + b.DY + signH, roof, b.W + b.DX)
 }

@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.PointMode
@@ -2317,20 +2318,23 @@ internal class BuildingPainter {
      * the lean is exact with no skew transform.
      */
     private fun DrawScope.sideStrips(img: ImageBitmap, ox: Float, oy: Float, ux: Float, uy: Float, h: Float, n: Int = 14) {
-        val sw = (img.width / n).coerceAtLeast(1)
         for (i in 0 until n) {
+            // proportional source columns: every column of the picture is used, whatever n divides
+            val sx0 = i * img.width / n
+            val sw = ((i + 1) * img.width / n - sx0).coerceAtLeast(1)
             val x0 = ox + ux * i / n
             // the strip reaches up to the top edge at its higher end (the edge rises across it), so no sky shows through
             // in the notch between the side and the roof; the roof is drawn after and covers the overlap
             val y0 = oy + uy * i / n + minOf(0f, uy / n)
             val dx = if (ux >= 0f) x0 else x0 + ux / n
-            val dw = abs(ux) / n + .6f
+            // overlap the neighbour to hide seams, but never past the back edge
+            val dw = abs(ux) / n + if (ux < 0f || i < n - 1) .6f else 0f
             val dh = h + abs(uy) / n
             withTransform({
                 translate(dx, y0)
                 scale(dw / sw, dh / img.height, Offset.Zero)
             }) {
-                drawImage(img, IntOffset(i * sw, 0), IntSize(sw, img.height), IntOffset.Zero, IntSize(sw, img.height), 1f, Fill, null, BlendMode.SrcOver, FilterQuality.None)
+                drawImage(img, IntOffset(sx0, 0), IntSize(sw, img.height), IntOffset.Zero, IntSize(sw, img.height), 1f, Fill, null, BlendMode.SrcOver, FilterQuality.None)
             }
         }
     }
@@ -2341,8 +2345,9 @@ internal class BuildingPainter {
      * horizontal strips, each a plain scaled and moved rectangle.
      */
     private fun DrawScope.roofStrips(img: ImageBitmap, x: Float, y: Float, w: Float, dy: Float, shift: Float, n: Int = 8) {
-        val sh = (img.height / n).coerceAtLeast(1)
         for (j in 0 until n) {
+            val sy0 = j * img.height / n
+            val sh = ((j + 1) * img.height / n - sy0).coerceAtLeast(1)
             // j = 0 is the far (back) strip
             val t = (j + 1f) / n
             val yy = y - dy * (1f - (j + 1f) / n)
@@ -2353,7 +2358,7 @@ internal class BuildingPainter {
                 translate(xx, yy - dy / n)
                 scale(ww / img.width, (dy / n + .6f) / sh, Offset.Zero)
             }) {
-                drawImage(img, IntOffset(0, j * sh), IntSize(img.width, sh), IntOffset.Zero, IntSize(img.width, sh), 1f, Fill, null, BlendMode.SrcOver, FilterQuality.None)
+                drawImage(img, IntOffset(0, sy0), IntSize(img.width, sh), IntOffset.Zero, IntSize(img.width, sh), 1f, Fill, null, BlendMode.SrcOver, FilterQuality.None)
             }
         }
     }
@@ -2399,13 +2404,13 @@ internal class BuildingPainter {
         val over = sb.sign
         if (over != null) {
             val h = over.height * k
-            picture2(over, -half, -hf - h, B.W, h, FilterQuality.None)
+            picture2(over, -half, -hf - h, B.W, h, FilterQuality.None, filter = signTint())
         } else {
             val bill = sb.prop
             if (bill != null) {
                 val w = 160f * k
                 val h = bill.height * k
-                picture2(bill, -w / 2f + s * .5f, -hf - dy * .5f - h, w, h, FilterQuality.None)
+                picture2(bill, -w / 2f + s * .5f, -hf - dy * .5f - h, w, h, FilterQuality.None, filter = signTint())
             }
         }
         // the windows are real openings: the room behind each (dark glass and a dim room by day, a warm lit room once
@@ -2795,6 +2800,21 @@ internal class BuildingPainter {
      */
     private val awningFilters = arrayOfNulls<ColorFilter>(AWNINGS.size)
     private val awningMatrix = FloatArray(20)
+    private var signFilter: ColorFilter? = null
+    private var signKey = Long.MIN_VALUE
+
+    /** The front's night and blue hour in one Modulate tint, for the partly transparent pictures above the roofline. */
+    private fun signTint(): ColorFilter? {
+        val b = (blue * 32f).toInt()
+        val key = (b.toLong() shl 32) or (nightInk.toArgb().toLong() and 0xFFFFFFFFL)
+        if (key == signKey) return signFilter
+        signKey = key
+        val cast = lerp(Color.White, BlueCast, .35f * b / 32f)   // what blueHour(..., .35f) multiplies over the front
+        val t = Color(nightInk.red * cast.red, nightInk.green * cast.green, nightInk.blue * cast.blue)
+        signFilter = if (t.red > .995f && t.green > .995f && t.blue > .995f) null else ColorFilter.tint(t, BlendMode.Modulate)
+        return signFilter
+    }
+
     private var nightFilter: ColorFilter? = null
 
     /**
