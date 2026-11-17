@@ -40,8 +40,23 @@ class TurnBuilding(
 
 /** The light of an hour: sky colours, and how much of each colour the walls keep. */
 internal class TurnLight(val top: Color, val bottom: Color, val ground: Color, val r: Float, val g: Float, val b: Float, val hazeR: Float, val hazeG: Float, val hazeB: Float) {
+    /** How misty the air is (0..1): the distance fades sooner. */
+    var mist = 0f
+
     /** 0 by day, 1 at night: windows and lamps glow. */
     val night: Float get() = ((.5f - (r + g) / 2f) / .3f).coerceIn(0f, 1f)
+
+    /** The same light under cloud, rain and mist: greyer sky, duller walls. */
+    fun weathered(cloud: Float, rain: Float, mist: Float): TurnLight {
+        val c = (cloud * .8f + rain * .2f).coerceIn(0f, 1f)
+        if (c < .01f && mist < .01f) return this
+        val grey = Color(0xFF7d8896)
+        val dim = 1f - .22f * c - .1f * rain
+        val t = TurnLight(androidx.compose.ui.graphics.lerp(top, grey, .75f * c), androidx.compose.ui.graphics.lerp(bottom, Color(0xFFa6b0bd), .7f * c + .25f * mist),
+            androidx.compose.ui.graphics.lerp(ground, Color(0xFF2a2d34), .4f * rain), r * dim, g * dim, b * (dim + .03f), hazeR, hazeG, hazeB)
+        t.mist = mist
+        return t
+    }
 
     companion object {
         var current = noon()
@@ -100,7 +115,10 @@ private fun DrawScope.ground(cam: Cam, pts: List<Pair<Float, Float>>, y: Float, 
 }
 
 /** One face of a box: a strip of the sprite per source column, each as tall as it is at its distance. */
-private fun haze(d: Float) = ((d - 900f) / 1900f).coerceIn(0f, .62f)
+private fun haze(d: Float): Float {
+    val m = TurnLight.current.mist
+    return ((d - 900f * (1f - .45f * m)) / (1900f * (1f - .25f * m))).coerceIn(0f, .62f + .1f * m)
+}
 
 private fun DrawScope.face(cam: Cam, img: ImageBitmap, h: Float, ax: Float, az: Float, bx: Float, bz: Float, flip: Boolean, tint: Float, alpha: Float, glow: Boolean = false) {
     val n = img.width
@@ -292,11 +310,23 @@ fun turnBuildings(art: TurnArt): List<TurnBuilding> {
 
 /** Draws the turn at [progress] (0 = looking along the street we came down, 1 = down the cross street). */
 fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float, hour: Float = 14f) {
-    TurnLight.current = TurnLight.at(hour)
+    val wx = com.lifemax.rpg.feature.habits.domain.WeatherOverride.forced
+    TurnLight.current = TurnLight.at(hour).weathered(wx?.cloudiness ?: 0f, wx?.rain ?: 0f, wx?.mist ?: 0f)
     val e = progress * progress * (3f - 2f * progress)
     val cam = Cam(-(Math.PI / 2).toFloat() * e, -100f + 420f * e, size.width, size.height)
     scene(cam, buildings, lamp, walker, progress)
-}
+    val rain = wx?.rain ?: 0f
+    if (rain > .02f) {
+        // streaks falling and slanting, the same ones every frame for a given moment
+        val t = progress * 3f
+        val n = (260 * rain).toInt()
+        for (i in 0 until n) {
+            val hx = ((i * 7919L) % 1000) / 1000f; val hy = ((i * 104729L) % 997) / 997f; val sp = .8f + ((i * 31L) % 7) / 10f
+            val x = hx * (size.width + 60f) - 30f
+            val y = ((hy * (size.height + 60f) + t * 900f * sp) % (size.height + 60f)) - 30f
+            drawLine(Color(0xFFdbe6f5).copy(alpha = .22f + .2f * rain), Offset(x, y), Offset(x - 6f, y + 22f * sp), 1.2f)
+        }
+    }}
 
 @Composable
 fun CornerTurn(art: TurnArt, progress: Float, modifier: Modifier = Modifier, hour: Float = 14f) {

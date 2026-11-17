@@ -17,7 +17,7 @@
 - Shop name and owner shown at the bottom while standing at a shop. Collisions: walk round lamps/trees/benches at the kerb (radii are guesses).
 - Corner turn (`shared/.../scene/CornerTurn.kt`; the "Turn the corner" button appears within ~110 units of either end of the street): the camera yaws 90 degrees round a crossroads built
   from our buildings (player walking, time-of-day light, lit windows and lamp glow at night), then fades to the other street
-  (the town's shops are split into two). It is a separate scene: it does not use the engine's sun/weather/reflections yet, and
+  (the town's shops are split into two). It follows time of day and the weather setting (overcast greying, rain streaks, mist haze). It is a separate scene: it does not use the engine's sun/weather/reflections yet, and
   the junction is not a real place in the world map.
 - Side walls: three windows per floor, pilasters, grain, brick courses. Night: only real glass glows (fixed blue walls glowing).
 - Engine cloud-shadow pass is off for sprite buildings (it drew pale boxes above roofs). A building with a missing PNG no longer
