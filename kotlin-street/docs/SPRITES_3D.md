@@ -48,18 +48,30 @@ Contact sheets were made with a throwaway script from the folders below (houses,
   roof's depth tall: each is the art's slope from above laid on its quad by one projective map (`QuadMap`), shown only
   where the view sees it from above (`RoofFaces`): from far to one side the other slope is behind the ridge. The art's
   rake is a staircase of pixels and a slope's front edge a straight line, so the roof's own edge colour fills between
-  them (no sky shows along the rake); the eave's board along the side is drawn after the wall carrying the face.
+  them (no sky shows along the rake), and a little above the line it is the verge, the roof's edge seen edge on, which
+  shows whether or not the slope does (a slope seen only as a sliver, or not at all, still has its edge); the eave's
+  board along the side is drawn after the wall carrying the face.
 - A hipped roof's front face is the art's face between the hips taken every other row, the rise chosen so each row is
-  one screen row (as the houses' slopes); its side faces are thin wedges over the hips (their art cut on the hips,
-  averaged along the depth so the squeeze does not sample it into hatching, and laid on their quads); a flat top (the
-  clock tower's lantern stands on it).
+  one screen row (as the houses' slopes); its side faces are wedges over the hips, laid on their quads. The art draws
+  those in the front's way (courses across the picture), which no view of a hip's side shows: they are tiled anew with
+  the front face's own tiles, each course along the depth at the height of the front's (the two meet at the hip), and
+  where the view sees a side so nearly edge on that its joints would fall closer than two pixels apart, each course is
+  one colour (the two fade into each other as the street scrolls). Along each hip a band of the art's crease (and the
+  school's lighter cap tiles) covers the steps of both faces' pixels: no sky through the hip. A flat top (the clock
+  tower's lantern stands on it).
 - A picture's round glass (a clock's dial) mirrors no square of sky; its night glow fills the whole dial. A clock's
-  painted hands are taken off the art and drawn at the game's hour.
+  painted hands are taken off the art and drawn at the game's hour. A window's night light is every shade of its glass
+  joined to its clean glass (its darker reflections too), not its frame or mullions, a little brighter where the art's
+  glass is lighter.
 - A building wider than a shop (a villa is 256 pixels, the school 768) takes a wider lot and stands in its middle.
 - The corner turn and the crossing put the villa's front gable on its box (`scene/TurnVilla.kt`): the same slopes laid
-  by one perspective map each, the gable ends the art's own triangle.
-- Still to do for these: the turn's villa deck, porch and small gable (its box's front shows them flat), the school's
-  back wing, the tower's corner pinnacles, lighting maps.
+  by one perspective map each, the gable ends the art's own triangle. The box's front picture carries the balcony, the
+  small gable over the door and the deck's railings as the street sees them from straight ahead (the wet road mirrors
+  them too).
+- Still to do for these: the turn's villa deck, porch and small gable as volumes (they are flat on its box's front
+  there), the school's back wing, the tower's corner pinnacles, lighting maps; the cross gable's slopes are slivers in
+  the street's nearly level view (the art draws them from high above), and the landmarks are taller than the street's
+  frame (their roofs above it) until they stand on a street with room for them.
 
 ## Easy: already boxes (the current pipeline, `tools/make_buildings.py`)
 
