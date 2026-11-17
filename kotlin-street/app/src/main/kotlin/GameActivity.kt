@@ -399,7 +399,17 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     val memory = remember { com.timerpg.street.dialogue.MemoryService(ctx.applicationContext) }
     // why the game stopped last time (if it crashed or was killed): shown once, with a copy button
     var lastCrash by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(Unit) { lastCrash = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { CrashReport.takeLast(ctx.applicationContext) } }
+    LaunchedEffect(Unit) {
+        lastCrash = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { CrashReport.takeLast(ctx.applicationContext) }
+        // then every 3 s, what the game is doing (for a kill that leaves no stack)
+        while (true) {
+            val a = engine.status.value
+            val what = "build ${BuildConfig.VERSION_NAME} · AI ${a.state} on ${listOf("CPU", "GPU", "NPU").getOrElse(a.runsOn) { "?" }} · lane ${com.timerpg.street.llm.AiLane.current ?: "idle"} · " +
+                "mic ${ears.state} · ${if (talk != null) "talking" else "walking"} · street $streetNo building #$near"
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { CrashReport.breadcrumb(ctx.applicationContext, what) }
+            kotlinx.coroutines.delay(3000)
+        }
+    }
     // updates from inside the game: a quiet look at start
     val updater = remember { AppUpdater(ctx.applicationContext) }
     LaunchedEffect(Unit) { updater.check(quiet = true) }
@@ -534,7 +544,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text("The game stopped unexpectedly last time", 15.sp)
-                Text(report.lines().take(6).joinToString("\n"), 11.sp, color = DIM)
+                Text(report.lines().take(14).joinToString("\n"), 11.sp, color = DIM)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Chip("Copy report", false) {
                         val cm = ctx.getSystemService(android.content.ClipboardManager::class.java)

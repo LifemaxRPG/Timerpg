@@ -31,6 +31,22 @@ object CrashReport {
         "RAM free ${mi.availMem shr 20} MB of ${mi.totalMem shr 20} MB, the game ${android.os.Debug.getPss() shr 10} MB"
     }.getOrDefault("")
 
+    private fun trail(ctx: Context) = File(ctx.filesDir, "trail.txt")
+
+    /**
+     * What the game is doing right now (the AI's state, the memory, where the player is), kept every few seconds: a kill
+     * for memory leaves no stack, so this is the last picture before it. Kept as the last [KEEP] lines.
+     */
+    fun breadcrumb(ctx: Context, what: String) {
+        runCatching {
+            val f = trail(ctx)
+            val lines = (if (f.isFile) f.readLines() else emptyList()).takeLast(KEEP - 1)
+            val t = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US).format(java.util.Date())
+            f.writeText((lines + "$t ${memory(ctx)} | $what").joinToString("\n"))
+        }
+    }
+    private const val KEEP = 8
+
     /** The report of the last time the game stopped abnormally (and clears it), or null if it ended normally. */
     fun takeLast(ctx: Context): String? {
         val sb = StringBuilder()
@@ -53,13 +69,22 @@ object CrashReport {
                     else -> null   // exited normally, or by the user
                 }
                 if (why != null) {
-                    sb.append("Last exit: $why. ${last.description ?: ""}\n")
+                    val time = java.text.SimpleDateFormat("MMM d HH:mm:ss", java.util.Locale.US).format(java.util.Date(last.timestamp))
+                    val where = when {
+                        last.importance <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND -> "while playing (on screen)"
+                        last.importance <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE -> "while partly visible"
+                        else -> "in the background (another app was open: normal for Android)"
+                    }
+                    sb.append("Last exit $time: $why, $where. ${last.description ?: ""}\n")
                     sb.append("Memory then: ${last.pss shr 10} MB in use, ${last.rss shr 10} MB resident\n")
                     if (last.reason == ApplicationExitInfo.REASON_CRASH_NATIVE || last.reason == ApplicationExitInfo.REASON_ANR)
                         last.traceInputStream?.use { sb.append(it.readBytes().decodeToString().take(8000)) }
                 }
             }
         }
+        val tf = trail(ctx)
+        if (sb.isNotEmpty() && tf.isFile) sb.append("Just before (time, memory, what the game was doing):\n").append(tf.readText()).append('\n')
+        tf.delete()
         return sb.toString().trim().ifEmpty { null }
     }
 }
