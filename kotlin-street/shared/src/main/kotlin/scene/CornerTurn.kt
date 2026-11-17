@@ -30,6 +30,8 @@ class TurnBuilding(
     val x0: Float, val x1: Float, val z0: Float, val z1: Float,
     /** The way the front faces: 0 = -Z (towards the first camera), 1 = +X, 2 = -X. */
     val frontN: Int,
+    /** A billboard standing on the roof, if it has one. */
+    val prop: ImageBitmap? = null,
 ) {
     val h: Float get() = front.height.toFloat()
     val cx: Float get() = (x0 + x1) / 2f
@@ -175,6 +177,20 @@ private fun DrawScope.building(cam: Cam, b: TurnBuilding) {
     // a building that is fading keeps its far walls, so it reads as a solid ghost and not an open box
     if (a < .98f) for (f in faces) if (!toward(f)) draw(f, .55f)
     for (f in faces) if (toward(f)) draw(f, 1f)
+    // a rooftop billboard: it always faces the camera
+    val pr = b.prop
+    if (pr != null && b.h < 330f) {
+        val d = cam.v(b.cx, b.cz) + cam.dc
+        if (d > 60f) {
+            val k = .82f * cam.f / d   // as big as in the street view (its sprite pixel is .82 of the building's)
+            val px = cam.sx(cam.u(b.cx, b.cz), d); val py = cam.sy(b.h, d)
+            val l = TurnLight.current
+            withTransform({ translate(px - pr.width * k / 2f, py - pr.height * k); scale(k, k, Offset.Zero) }) {
+                drawImage(pr, filterQuality = FilterQuality.None, alpha = a,
+                    colorFilter = ColorFilter.colorMatrix(ColorMatrix(floatArrayOf(l.r, 0f, 0f, 0f, 0f, 0f, l.g, 0f, 0f, 0f, 0f, 0f, l.b, 0f, 0f, 0f, 0f, 0f, 1f, 0f))))
+            }
+        }
+    }
     // lit windows at night, on the fronts
     val night = TurnLight.current.night
     val em = b.emis
@@ -253,7 +269,7 @@ private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?
 
 
 /** Our building art for the turn: the sprite pairs (front, side) and the lamp. */
-class TurnArt(val fronts: List<ImageBitmap>, val sides: List<ImageBitmap>, val lamp: ImageBitmap?, val walker: ImageBitmap? = null, val emis: List<ImageBitmap?> = emptyList())
+class TurnArt(val fronts: List<ImageBitmap>, val sides: List<ImageBitmap>, val lamp: ImageBitmap?, val walker: ImageBitmap? = null, val emis: List<ImageBitmap?> = emptyList(), val props: List<ImageBitmap?> = emptyList())
 
 fun turnBuildings(art: TurnArt): List<TurnBuilding> {
     val n = art.fronts.size
@@ -262,7 +278,7 @@ fun turnBuildings(art: TurnArt): List<TurnBuilding> {
     val d = 120f
     fun TurnBuilding(f: ImageBitmap, s: ImageBitmap, x0: Float, x1: Float, z0: Float, z1: Float, n: Int): TurnBuilding {
         val i = art.fronts.indexOf(f)
-        return TurnBuilding(f, s, art.emis.getOrNull(i), x0, x1, z0, z1, n)
+        return TurnBuilding(f, s, art.emis.getOrNull(i), x0, x1, z0, z1, n, art.props.getOrNull(i))
     }
     return listOf(
         TurnBuilding(f(1), s(1), -672f, -448f, 0f, d, 0), TurnBuilding(f(0), s(0), -448f, -224f, 0f, d, 0), TurnBuilding(f(2), s(2), -224f, 0f, 0f, d, 0),

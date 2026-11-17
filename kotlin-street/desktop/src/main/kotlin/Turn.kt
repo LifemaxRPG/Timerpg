@@ -20,6 +20,7 @@ fun renderTurn(out: String, assets: String) {
         try { load("props", "lamp_1.png") } catch (e: Exception) { null },
         try { load("characters", "char_02.png") } catch (e: Exception) { null },
         (0..8).map { load("buildings", "b${it}_emis.png") },
+        (0..8).map { try { load("buildings", "b${it}_prop.png") } catch (e: Exception) { null } },
     )
     File(out).mkdirs()
     val frames = 16
