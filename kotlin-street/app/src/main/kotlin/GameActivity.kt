@@ -575,7 +575,7 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             Chip("Pause", false) { voices.cancelDownload() }
         } else {
             if (voices.downloadNote.isNotEmpty()) Text(voices.downloadNote, 12.sp, color = DIM)
-            if (missing > 0) Chip("Download Qwen + Kokoro + Supertonic ($missing MB)", false) { voices.download { engine.reload() } }
+            if (missing > 0) Chip("Download everything: Qwen, voices, speech ($missing MB)", false) { voices.download { engine.reload() } }
             else Text("Qwen, Kokoro and Supertonic are installed.", 12.sp, color = DIM)
         }
         Chip(if (voices.enabled) "Voices: on" else "Voices: off", voices.enabled) { voices.enabled = !voices.enabled; if (!voices.enabled) voices.stop() }
