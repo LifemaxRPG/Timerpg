@@ -14,6 +14,14 @@ val localProps = Properties().apply {
 val llamaDir: File = localProps.getProperty("llama.dir")?.trim()?.takeIf { it.isNotEmpty() }?.let { rootProject.file(it) }
     ?: rootProject.file("third_party/llama.cpp")
 
+// Every build a new version: the number of commits (an update must have a higher versionCode than what is installed).
+val commitCount: Int = runCatching {
+    providers.exec { commandLine("git", "rev-list", "--count", "HEAD"); isIgnoreExitValue = true }.standardOutput.asText.get().trim().toInt()
+}.getOrDefault(1)
+val commitSha: String = runCatching {
+    providers.exec { commandLine("git", "rev-parse", "--short", "HEAD"); isIgnoreExitValue = true }.standardOutput.asText.get().trim()
+}.getOrDefault("dev")
+
 android {
     namespace = "com.timerpg.street"
     compileSdk = 34
@@ -22,8 +30,10 @@ android {
         applicationId = "com.timerpg.street"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1"
+        versionCode = commitCount
+        versionName = "0.1.$commitCount ($commitSha)"
+        // where the app looks for a newer build (tools/publish-apk.sh puts it there)
+        buildConfigField("String", "UPDATE_URL", "\"https://raw.githubusercontent.com/lifemaxrpg/timerpg/apk/update.json\"")
         // The model runs on 64-bit ARM phones only.
         ndk { abiFilters += "arm64-v8a" }
         externalNativeBuild {
@@ -44,10 +54,23 @@ android {
             version = "3.31.6"
         }
     }
-    buildTypes { release { isMinifyEnabled = false } }
+    // One key for every build, from any machine: app/signing/timerpg-dev.keystore (the key the first builds were signed
+    // with), so each new APK installs over the last as an update instead of being refused as a different app.
+    signingConfigs {
+        create("timerpg") {
+            storeFile = file("signing/timerpg-dev.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+    buildTypes {
+        getByName("debug") { signingConfig = signingConfigs.getByName("timerpg") }
+        release { isMinifyEnabled = false; signingConfig = signingConfigs.getByName("timerpg") }
+    }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }
-    buildFeatures { compose = true }
+    buildFeatures { compose = true; buildConfig = true }
     sourceSets["main"].java.srcDir("../shared/src/main/kotlin")
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"

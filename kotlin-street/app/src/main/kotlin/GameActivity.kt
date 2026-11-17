@@ -323,6 +323,9 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     val ears = remember { com.timerpg.street.voice.PlayerVoice(ctx.applicationContext) }
     // and what each person remembers of it
     val memory = remember { com.timerpg.street.dialogue.MemoryService(ctx.applicationContext) }
+    // updates from inside the game: a quiet look at start
+    val updater = remember { AppUpdater(ctx.applicationContext) }
+    LaunchedEffect(Unit) { updater.check(quiet = true) }
     androidx.compose.runtime.DisposableEffect(Unit) { onDispose { ears.release(); memory.release() } }
     val askMic = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     // the words to expect: the town's name and everyone's names, so the recognizer spells them as the game does
@@ -393,7 +396,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         // model file and the speed numbers
         Column(Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = 50.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Chip(aiChipLabel(ai), aiPanel) { aiPanel = !aiPanel }
-            if (aiPanel) AiPanel(ai, engine, voices, onPick = {
+            updater.available?.let { r -> if (!aiPanel) Chip("⬆ Update: ${r.versionName}", false) { aiPanel = true } }
+            if (aiPanel) AiPanel(ai, engine, voices, updater, onPick = {
                 try { pickModel.launch(arrayOf("*/*")) } catch (e: Exception) { /* no document picker on this device */ }
             })
         }
@@ -546,7 +550,7 @@ private fun f0(v: Float) = String.format(java.util.Locale.US, "%.0f", v)
 
 /** The model (its file and state) and the speed numbers. */
 @Composable
-private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.street.voice.NpcVoiceService, onPick: () -> Unit) {
+private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.street.voice.NpcVoiceService, updater: AppUpdater, onPick: () -> Unit) {
     Column(
         Modifier.width(340.dp).heightIn(max = 240.dp).background(PANEL, RoundedCornerShape(12.dp)).verticalScroll(rememberScrollState())
             .padding(12.dp),
@@ -580,6 +584,18 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             }
         }
         Text(ram, 11.sp, color = DIM)
+        // the game itself: this build, and a newer one if there is
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("Build ${updater.current}", 11.sp, color = DIM)
+            val r = updater.available
+            when {
+                updater.progress >= 0f -> Text("Downloading ${(updater.progress * 100).toInt()}%", 12.sp)
+                r != null -> Chip("Install update ${r.versionName}", false) { updater.install(r) }
+                else -> Chip("Check for update", false) { updater.check() }
+            }
+        }
+        if (updater.note.isNotEmpty()) Text(updater.note, 11.sp, color = DIM)
+        updater.available?.notes?.takeIf { it.isNotBlank() }?.let { Text(it, 11.sp, color = DIM) }
         if (s.state == ModelState.COPYING) {
             Box(Modifier.fillMaxWidth().height(4.dp).background(Color(0x66FFFFFF), RoundedCornerShape(2.dp))) {
                 Box(Modifier.fillMaxWidth((s.copyPercent.coerceIn(0, 100) / 100f).coerceAtLeast(.02f)).height(4.dp).background(AI_BLUE, RoundedCornerShape(2.dp)))
