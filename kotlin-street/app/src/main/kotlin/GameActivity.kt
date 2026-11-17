@@ -72,10 +72,18 @@ class GameActivity : ComponentActivity() {
             Bitmap.createBitmap(px, w, h, Bitmap.Config.ARGB_8888).apply { setHasMipMap(mip) }.asImageBitmap()
         }
         PlatformImages.update = { img: ImageBitmap, px, w, h -> img.asAndroidBitmap().setPixels(px, 0, w, 0, 0, w, h) }
-        // our characters
+        immersive()
+        // our characters: only the first 4 views x 6 frames (x < 768) of rows 0-2 (y < 192) are ever drawn, so only that is
+        // decoded (about 5 MB of bitmaps instead of 75)
         SpriteSheets.sheets = (1..8).map { n ->
-            assets.open("characters/char_0$n.png").use { BitmapFactory.decodeStream(it) }.asImageBitmap()
+            assets.open("characters/char_0$n.png").use { s ->
+                @Suppress("DEPRECATION") val d = android.graphics.BitmapRegionDecoder.newInstance(s, false)
+                if (d == null) BitmapFactory.decodeStream(assets.open("characters/char_0$n.png"))
+                else try { d.decodeRegion(android.graphics.Rect(0, 0, minOf(768, d.width), minOf(192, d.height)), null) } finally { d.recycle() }
+            }.asImageBitmap()
         }
+        // a recreated activity must not inherit a held direction
+        GameState.moveX = 0f; GameState.moveLane = 0f
         // our lamp, trees and bench
         fun prop(n: String) = assets.open("props/$n.png").use { BitmapFactory.decodeStream(it) }.asImageBitmap()
         SpriteArt.lamp = prop("lamp_1"); SpriteArt.bench = prop("bench_1"); SpriteArt.trees = listOf("tree_1", "tree_2", "tree_3").map { prop(it) }
@@ -86,6 +94,23 @@ class GameActivity : ComponentActivity() {
         val v = com.timerpg.street.voice.NpcVoiceService(applicationContext)
         voices = v
         setContent { GameScreen(engine, v) }
+    }
+
+    /** The whole screen: no system bars (a swipe shows them for a moment), drawn into the camera cutout, never dimming. */
+    private fun immersive() {
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
+        androidx.core.view.WindowInsetsControllerCompat(window, window.decorView).apply {
+            hide(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            systemBarsBehavior = androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+        if (android.os.Build.VERSION.SDK_INT >= 28)
+            window.attributes = window.attributes.apply { layoutInDisplayCutoutMode = android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES }
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) immersive()
     }
 
     override fun onStart() {
@@ -311,7 +336,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         if (near in shops.indices) {
             val st = shops[near]
             Text(st.cue + (owners.getOrNull(near)?.takeIf { it.isNotBlank() }?.let { "  ·  $it" } ?: ""), 15.sp,
-                Modifier.align(Alignment.BottomCenter).padding(bottom = 18.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
+                Modifier.align(Alignment.TopCenter).padding(top = 62.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
         }
         // someone to talk to here
         val open = talk
@@ -341,14 +366,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { WEATHERS.forEachIndexed { i, (l, _) -> Chip(l, weather == i) { weather = i } } }
         }
         // walking: left and right; in and out across the pavement
-        Row(Modifier.align(Alignment.BottomStart).padding(18.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            HoldButton("◀") { GameState.moveX = if (it) -1f else 0f }
-            HoldButton("▶") { GameState.moveX = if (it) 1f else 0f }
-        }
-        Row(Modifier.align(Alignment.BottomEnd).padding(18.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            HoldButton("▲") { GameState.moveLane = if (it) -1f else 0f }
-            HoldButton("▼") { GameState.moveLane = if (it) 1f else 0f }
-        }
+        HoldPad("◀", "▶", Modifier.align(Alignment.BottomStart).padding(18.dp)) { GameState.moveX = it }
+        HoldPad("▲", "▼", Modifier.align(Alignment.BottomEnd).padding(18.dp)) { GameState.moveLane = it }
         // the dialogue AI, under the street name (drawn last, so its panel is on top): its state at a glance; tap for the
         // model file and the speed numbers
         Column(Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = 50.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -537,6 +556,35 @@ private fun Chip(label: String, on: Boolean, modifier: Modifier = Modifier, onCl
         contentAlignment = Alignment.Center,
     ) { Text(label, 13.sp) }
 }
+
+/**
+ * Two keys under one thumb: the half the finger is over decides the direction (rolling from one key to the other switches,
+ * drifting off the pad keeps going), and lifting the finger, or the pad going away, always stops.
+ */
+@Composable
+private fun HoldPad(neg: String, pos: String, modifier: Modifier = Modifier, set: (Float) -> Unit) {
+    Row(
+        modifier.pointerInput(Unit) {
+            awaitEachGesture {
+                val d = awaitFirstDown(requireUnconsumed = false)
+                fun dirAt(x: Float) = if (x < size.width / 2f) -1f else 1f
+                try {
+                    set(dirAt(d.position.x))
+                    while (true) {
+                        val e = awaitPointerEvent()
+                        val c = e.changes.lastOrNull { it.pressed } ?: break
+                        set(dirAt(c.position.x))
+                    }
+                } finally { set(0f) }
+            }
+        },
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) { PadKey(neg); PadKey(pos) }
+}
+
+@Composable
+private fun PadKey(label: String) =
+    Box(Modifier.size(64.dp).background(Color(0x99101420), RoundedCornerShape(16.dp)), contentAlignment = Alignment.Center) { Text(label, fontSize = 26.sp) }
 
 /** A button that is "on" while a finger is on it. */
 @Composable
