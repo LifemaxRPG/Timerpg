@@ -23,8 +23,8 @@ def glass(a):
     r, g, b, al = (a[..., i].astype(int) for i in range(4))
     return (al > 200) & (b > r + 18) & (b > g - 8) & ((r + g + b) / 3 > 134)
 
-def components(mask):
-    """Bounding boxes of connected glass regions (4-neighbour flood fill)."""
+def components(mask, least=60):
+    """Bounding boxes of connected glass regions (4-neighbour flood fill) of more than `least` pixels."""
     h, w = mask.shape; seen = np.zeros_like(mask); out = []
     for y in range(h):
         for x in range(w):
@@ -36,7 +36,7 @@ def components(mask):
                     for ny, nx in ((cy+1, cx), (cy-1, cx), (cy, cx+1), (cy, cx-1)):
                         if 0 <= ny < h and 0 <= nx < w and mask[ny, nx] and not seen[ny, nx]:
                             seen[ny, nx] = True; st.append((ny, nx))
-                if n > 60: out.append((x0, y0, x1, y1))
+                if n > least: out.append((x0, y0, x1, y1))
     return out
 
 def dilate(m, r):
@@ -115,6 +115,7 @@ def relief_mask(im, spec):
 
 def build(shop, out):
     if shop['parts'][0]['key'].startswith(('house_small_', 'house_medium_')): return build_house(shop, out)
+    if shop['parts'][0]['key'].startswith(('villa_', 'landmark_clocktower_', 'landmark_school_')): return build_model(shop, out)
     parts = shop['parts']; ground = next(p for p in parts if not p['key'].startswith(('roof_', 'roofprop_', 'middle_')))
     mids = [p for p in parts if p['key'].startswith('middle_')]
     roof = next((p for p in parts if p['key'].startswith('roof_')), None)
@@ -286,6 +287,73 @@ def rgb_int(c):
 def shade(c, f):
     return tuple(int(max(0, min(255, round(v * f)))) for v in c[:3])
 
+def yard(rng, width, deep, grass, path, style, gaps, ground='earth'):
+    """A lot's front yard, `width` pixels along the street and `deep` back from it: its ground (one row per screen row,
+    the front first at the bottom), a path (x0, x1, how far back it reaches) to the gate, and its edge along the street
+    as the game fences it (src/town/layout.ts): a picket fence, a hedge for a formal yard, nothing for a natural one,
+    open across `gaps`. Also where snow lies on that fence or hedge. Draws from `rng` in a fixed order, so a yard is
+    the same every run."""
+    lrows = max(4, int(round(RISE_PER_120 * deep / 120)))
+    half = width // 2
+    if grass:
+        greens = np.array([(45, 114, 86), (55, 133, 78), (71, 151, 87), (50, 124, 82)])
+        pick = rng.integers(0, len(greens), (lrows, half)); pick = np.repeat(pick, 2, axis=1)
+        lawn = greens[pick]
+    elif ground == 'paving':
+        stone = np.array([(150, 140, 128), (140, 131, 120), (158, 148, 134), (146, 136, 124)])
+        pick = rng.integers(0, len(stone), (lrows, half)); pick = np.repeat(pick, 2, axis=1)
+        lawn = stone[pick]
+    else:
+        earth = np.array([(122, 104, 84), (110, 94, 76), (131, 113, 90), (116, 99, 80)])
+        pick = rng.integers(0, len(earth), (lrows, half)); pick = np.repeat(pick, 2, axis=1)
+        lawn = earth[pick]
+    lawn = np.concatenate([lawn, np.full((lrows, width, 1), 255)], axis=2).astype(np.uint8)
+    path_c = np.array([(168, 142, 108), (156, 130, 98), (176, 152, 118)])
+    px0, px1, reach = path
+    for t in range(lrows):
+        d = (lrows - t - .5) * deep / lrows                         # this row's depth from the street
+        if d <= reach:
+            for x in range(px0, px1, 2):
+                lawn[t, x:x + 2, :3] = path_c[rng.integers(0, 3)]
+    lawn[-1, :, :3] = shade(lawn[-1, 0], .8)                       # the kerb of the lot along the pavement
+
+    fence = None
+    if style != 'natural':
+        fence = np.zeros((32, width, 4), np.uint8)
+        def open_at(x0, x1): return any(x0 < g1 and x1 > g0 for (g0, g1) in gaps)
+        if style == 'formal':
+            bushes = [np.array(load(f'hedge_{i}')) for i in range(1, 6)]
+            x = -4
+            while x < width:
+                b = bushes[int(rng.integers(0, 5))]
+                if not open_at(x + 6, x + 26):
+                    tile = Image.fromarray(fence); tile.alpha_composite(Image.fromarray(b), (int(x), 0)) if x >= 0 else tile.alpha_composite(Image.fromarray(b[:, -x:]), (0, 0))
+                    fence = np.array(tile)
+                x += 18 + int(rng.integers(0, 4))
+        else:
+            # the art's two fence pieces (each drawn with an open end) laid end to end, alternating as the game does
+            pieces = [np.array(load('fence_9'))[:, 0:28], np.array(load('fence_10'))[:, 6:32]]
+            tx, i = 0, 0
+            while tx < width:
+                tile = pieces[i % 2]
+                for c in range(min(tile.shape[1], width - tx)):
+                    if not open_at(tx + c, tx + c + 1): fence[:, tx + c] = tile[:, c]
+                tx += tile.shape[1]; i += 1
+        if not (fence[..., 3] > 0).any(): fence = None
+    # the snow on it: the first pixels down from each of its top surfaces (a picket's point, a rail, a bush's crown),
+    # two of the art's pixels deep on a hedge and one on a fence, ragged pair by pair so it lies, not paints
+    fence_snow = None
+    if fence is not None:
+        solid = fence[..., 3] > 128
+        above = np.zeros_like(solid); above[1:] = solid[:-1]
+        deep_by = 2 + 2 * rng.integers(0, 2, fence.shape[1] // 2 + 1) + (2 if style == 'formal' else 0)
+        fence_snow = np.zeros_like(fence)
+        for (y, x) in zip(*np.nonzero(solid & ~above)):
+            for t in range(int(deep_by[x // 2])):
+                if y + t >= fence.shape[0] or not solid[y + t, x]: break
+                fence_snow[y + t, x] = (255, 255, 255, 255)
+    return lawn, fence, fence_snow
+
 def build_house(shop, out):
     """One of our mobile homes as the pictures and the shape (houses.json) the engine's pitched-roof house is built from."""
     key = shop['parts'][0]['key']; n = shop['sprite']
@@ -448,72 +516,17 @@ def build_house(shop, out):
         box((60, 100), (7, 14), (0, 8), tread_c, riser_c, shade(riser_c, .85))
         box((60, 100), (0, 7), (0, 16), tread_c, riser_c, shade(riser_c, .85))
 
-    # --- the lawn: grass in the art's own greens (or the bare earth the shadow designs stand on), and the dirt path from
-    # the steps to the street. In the lot's 224-pixel frame, one row per screen row (front first at the bottom)
+    # --- the lawn (grass in the art's own greens, or the bare earth the shadow designs stand on) and the dirt path from
+    # the steps to the street, and the yard's edge along the street, open at the gate and across the porch
     front_x = (224 - (rx1 - rx0)) // 2
     setback = int(shop.get('yard', {}).get('front', 2)) * 32
     setback = int(np.ceil(setback * PORCH_GAIN))
-    deep = setback + D
-    lrows = max(4, int(round(RISE_PER_120 * deep / 120)))
     grass = design in (1, 2, 5, 6)
-    if grass:
-        greens = np.array([(45, 114, 86), (55, 133, 78), (71, 151, 87), (50, 124, 82)])
-        pick = rng.integers(0, len(greens), (lrows, 112)); pick = np.repeat(pick, 2, axis=1)
-        lawn = greens[pick]
-    else:
-        earth = np.array([(122, 104, 84), (110, 94, 76), (131, 113, 90), (116, 99, 80)])
-        pick = rng.integers(0, len(earth), (lrows, 112)); pick = np.repeat(pick, 2, axis=1)
-        lawn = earth[pick]
-    lawn = np.concatenate([lawn, np.full((lrows, 224, 1), 255)], axis=2).astype(np.uint8)
-    path_c = np.array([(168, 142, 108), (156, 130, 98), (176, 152, 118)])
     if porch: px0, px1, reach = front_x + 126, front_x + 146, 36 * PORCH_GAIN
     else: px0, px1, reach = front_x + 64, front_x + 96, setback - 16 * PORCH_GAIN
-    for t in range(lrows):
-        d = (lrows - t - .5) * deep / lrows                         # this row's depth from the street
-        if d <= reach:
-            for x in range(px0, px1, 2):
-                lawn[t, x:x + 2, :3] = path_c[rng.integers(0, 3)]
-    lawn[-1, :, :3] = shade(lawn[-1, 0], .8)                       # the kerb of the lot along the pavement
-
-    # --- the yard's edge along the street, as the game fences it (src/town/layout.ts): a picket fence, a hedge for a
-    # formal yard, nothing for a natural one; open at the gate where the path meets the street, and across the porch
     style = shop.get('yard', {}).get('style', 'compact')
-    fence = None
-    if style != 'natural':
-        fence = np.zeros((32, 224, 4), np.uint8)
-        gaps = [(px0 - 6, px1 + 6)] + ([(front_x + 50, front_x + 128)] if porch else [])
-        def open_at(x0, x1): return any(x0 < g1 and x1 > g0 for (g0, g1) in gaps)
-        if style == 'formal':
-            bushes = [np.array(load(f'hedge_{i}')) for i in range(1, 6)]
-            x = -4
-            while x < 224:
-                b = bushes[int(rng.integers(0, 5))]
-                if not open_at(x + 6, x + 26):
-                    tile = Image.fromarray(fence); tile.alpha_composite(Image.fromarray(b), (int(x), 0)) if x >= 0 else tile.alpha_composite(Image.fromarray(b[:, -x:]), (0, 0))
-                    fence = np.array(tile)
-                x += 18 + int(rng.integers(0, 4))
-        else:
-            # the art's two fence pieces (each drawn with an open end) laid end to end, alternating as the game does
-            pieces = [np.array(load('fence_9'))[:, 0:28], np.array(load('fence_10'))[:, 6:32]]
-            tx, i = 0, 0
-            while tx < 224:
-                tile = pieces[i % 2]
-                for c in range(min(tile.shape[1], 224 - tx)):
-                    if not open_at(tx + c, tx + c + 1): fence[:, tx + c] = tile[:, c]
-                tx += tile.shape[1]; i += 1
-        if not (fence[..., 3] > 0).any(): fence = None
-    # the snow on it: the first pixels down from each of its top surfaces (a picket's point, a rail, a bush's crown),
-    # two of the art's pixels deep on a hedge and one on a fence, ragged pair by pair so it lies, not paints
-    fence_snow = None
-    if fence is not None:
-        solid = fence[..., 3] > 128
-        above = np.zeros_like(solid); above[1:] = solid[:-1]
-        deep_by = 2 + 2 * rng.integers(0, 2, fence.shape[1] // 2 + 1) + (2 if style == 'formal' else 0)
-        fence_snow = np.zeros_like(fence)
-        for (y, x) in zip(*np.nonzero(solid & ~above)):
-            for t in range(int(deep_by[x // 2])):
-                if y + t >= fence.shape[0] or not solid[y + t, x]: break
-                fence_snow[y + t, x] = (255, 255, 255, 255)
+    gaps = [(px0 - 6, px1 + 6)] + ([(front_x + 50, front_x + 128)] if porch else [])
+    lawn, fence, fence_snow = yard(rng, 224, setback + D, grass, (px0, px1, reach), style, gaps)
 
     for name, img in (('front', f), ('emis', em), ('side', side), ('slope', slope), ('ridge', ridge), ('back', back),
                       ('hitch', hitch), ('lawn', lawn)):
@@ -536,11 +549,418 @@ def build_house(shop, out):
         roofTint=rgb_int(art[s0 + 10, rx0 + 20]),
     )
 
+# ------------------------------------------------------------------------------------------------ modelled buildings
+# Our villas (villa_1..5) and two landmarks (landmark_clocktower_1/2, landmark_school_1) are drawn like the mobile homes,
+# in a 3/4 view from above, but each is more than one volume, and their roofs are not the houses' ridge along the
+# street: a villa has a FRONT-FACING gable (the triangle end faces the street, its slopes run back from it), a terrace
+# roof over its ground floor with a balcony and a small gable over the door, and a raised porch deck with railings and
+# steps; the clock tower and the school have HIPPED roofs (four sloped faces, a flat top), the school a cross gable over
+# its middle bay. The engine builds each from a list of parts, back to front (models.json): boxes (each face plain or
+# wearing a piece of the art, the front's windows listed), front gables (two slopes laid on their quads, a face) and
+# hipped roofs (the front face one screen row per row of the art's own pixels, the side faces laid on their quads). All
+# the art one building wears is packed in one picture, bN_atlas.png, and where it glows at night in bN_glow.png. The
+# places below are the art's own pixels (every variant of a sprite shares them: the villas differ only in their roofs'
+# colour, the clock towers only in the time on the clock).
+MODELS = {}
+GLOW = (255, 205, 120, 235)
+
+class Atlas:
+    """The pieces of art one modelled building wears, packed in shelves into one picture in the order they are added,
+    and where each glows at night in a second picture laid out the same."""
+    def __init__(self, width):
+        self.w, self.x, self.y, self.row, self.items = width, 0, 0, 0, []
+    def add(self, img, glow=None):
+        img = np.ascontiguousarray(img); h, w = img.shape[:2]
+        if self.x + w > self.w: self.x, self.y, self.row = 0, self.y + self.row + 1, 0
+        r = [self.x, self.y, w, h]
+        self.items.append((r, img, glow))
+        self.x += w + 1; self.row = max(self.row, h)
+        return r
+    def save(self, out, n):
+        a = np.zeros((self.y + self.row, self.w, 4), np.uint8); g = np.zeros_like(a)
+        for (x, y, w, h), img, glow in self.items:
+            a[y:y + h, x:x + w] = img
+            if glow is not None: g[y:y + h, x:x + w] = glow
+        Image.fromarray(a).save(f'{out}/{n}_atlas.png'); Image.fromarray(g).save(f'{out}/{n}_glow.png')
+
+def solid(a):
+    """The art without the half-transparent shadow it casts to the right and below (the engine casts its own)."""
+    a = a.copy(); a[a[..., 3] < 255] = 0
+    return a
+
+def panes_of(img, least=30):
+    """A front's window panes (x, y, w, h in its pixels, and 1 for a square pane, 0 for a round one, which mirrors no
+    square of sky): its clean blue glass, as the shops' windows are found; and where it glows at night (each row of a
+    pane from its first glass to its last, its glass and its light pixels: a clock's whole dial, not only its light
+    stripes, and not its hands)."""
+    gm = glass(img); out = []; glow = np.zeros_like(img); near = dilate(gm, 1)
+    light = img[..., :3].astype(int).sum(-1) > 360
+    for (x0, y0, x1, y1) in components(near, least):
+        sub = gm[y0:y1 + 1, x0:x1 + 1]; ys, xs = np.where(sub)
+        if len(xs) < least: continue
+        bx0, by0 = x0 + int(xs.min()), y0 + int(ys.min()); w, h = int(xs.max() - xs.min() + 1), int(ys.max() - ys.min() + 1)
+        if w < 4 or h < 4: continue
+        # a piece of a pane already found (a dial's glass falls apart round its hands)
+        if any(px <= bx0 and py <= by0 and bx0 + w <= px + pw and by0 + h <= py + ph for (px, py, pw, ph, _) in out): continue
+        square = near[by0:by0 + h, bx0:bx0 + w].mean() >= .85
+        out.append([bx0, by0, w, h, 1 if square else 0])
+        for y in range(by0, by0 + h):
+            row = np.where(near[y, bx0:bx0 + w])[0]
+            if len(row):
+                span = slice(bx0 + row.min(), bx0 + row.max() + 1)
+                glow[y, span][near[y, span] | light[y, span]] = GLOW
+    glow[img[..., 3] == 0] = 0
+    return out, glow
+
+def fill_rows(img, mask):
+    """What `mask` covers, painted with its own row's colour (the median of the rest of that row): a plank or a course
+    of tiles carried across where something else stood on it in the art."""
+    img = img.copy()
+    for y in range(img.shape[0]):
+        m = mask[y]
+        if not m.any(): continue
+        rest = img[y][~m & (img[y, :, 3] > 200)]
+        if len(rest): img[y][m] = np.median(rest, axis=0).astype(np.uint8)
+    return img
+
+def fill_period(img, mask, period):
+    """What `mask` covers, painted with the same row `period` pixels to its left (again and again until clear of the
+    mask): a roof's tiles, whose pattern repeats along a row, carried across where something stood on them."""
+    img = img.copy()
+    for (y, x) in zip(*np.nonzero(mask)):
+        sx = x - period
+        while sx >= 0 and mask[y, sx]: sx -= period
+        if sx >= 0: img[y, x] = img[y, sx]
+    return img
+
+def polygon(shape, pts):
+    """A mask of the polygon `pts` (x, y in pixels, the pixels' corners), edges included."""
+    m = Image.new('L', (shape[1], shape[0]), 0)
+    from PIL import ImageDraw
+    ImageDraw.Draw(m).polygon([tuple(p) for p in pts], fill=255, outline=255)
+    return np.array(m) > 0
+
+def cut(img, keep):
+    img = img.copy(); img[~keep] = 0
+    return img
+
+def column_rows(img, cols):
+    """Each row's colour over `cols` (the plain wall), the median: a side wall's courses taken from the front's."""
+    return np.median(img[:, cols].astype(int), axis=1).astype(np.uint8)
+
+def side_wall(rows, depth, window, wy, at, rng, corner):
+    """A side wall `depth` pixels deep: each row the front's own colour for that row, a window (the front's own, frame
+    and all) at each fraction of the depth in `at` with its top at row `wy`, darker corner boards and a fine grain.
+    Returns it and where its windows glow."""
+    h = len(rows)
+    side = np.repeat(rows[:, None, :], depth, axis=1).copy(); side[..., 3] = 255
+    glow = np.zeros_like(side)
+    if window is not None:
+        wh, ww = window.shape[:2]; m = window[..., 3] > 200; gm = dilate(glass(window), 1) & m
+        for f in at:
+            cx = int(depth * f) - ww // 2
+            side[wy:wy + wh, cx:cx + ww][m] = window[m]
+            glow[wy:wy + wh, cx:cx + ww][gm] = GLOW
+    for c in (0, 1, depth - 2, depth - 1): side[:, c, :3] = corner[:3]
+    grain = rng.integers(-4, 5, (h // 2 + 1, depth // 2 + 1))
+    grain = np.kron(grain, np.ones((2, 2), np.int32))[:h, :depth]
+    side[..., :3] = np.clip(side[..., :3].astype(int) + grain[..., None], 0, 255).astype(np.uint8)
+    return side, glow
+
+def open_balusters(pic, r0, r1, dark=(0x3a, 0x3a, 0x50)):
+    """A railing's picture open between its balusters (rows r0..r1): the art shows what is behind them as its dark
+    ink; a dark pixel with dark on both sides is a gap, one beside a baluster its outline."""
+    pic = pic.copy(); d = (pic[..., :3] == dark).all(-1)
+    for y in range(r0, r1):
+        for x in range(1, pic.shape[1] - 1):
+            if d[y, x] and d[y, x - 1] and d[y, x + 1]: pic[y, x] = 0
+    return pic
+
+def fl(v): return [round(float(a), 3) for a in v]
+
+def mbox(x, y, d, c, ft=None, fx=None, tt=None, st=None, card=False, panes=None, top=True, outline=False):
+    """A box of the model: x across the front picture, y up from the ground, d back from the front line (sprite pixels);
+    its top, front and side colours; the pieces of the atlas its front, top and side wear; its front's windows."""
+    p = dict(t='box', x=fl(x), y=fl(y), d=fl(d), c=[rgb_int(c[0]) if top else -1, rgb_int(c[1]), rgb_int(c[2])])
+    for k, v in (('ft', ft), ('tt', tt), ('st', st)):
+        if v is not None: p[k] = v
+    if fx is not None: p['fx'] = float(fx)
+    if card: p['card'] = True
+    if panes: p['panes'] = panes
+    if outline: p['out'] = True
+    return p
+
+def mgable(x, y, d, left, lp, right, rp, rake, roofc, de=None, face=None, fx=None, fy=None, panes=None):
+    """A front-facing gable: eaves x[0] and x[1], eave and ridge heights y, from its face d[0] back to d[1] (the eaves
+    back to de: where they meet another roof, if they do). Each slope wears an atlas piece laid on its quad by four of
+    its points: the front eave, the apex, the ridge's back end, the back eave (lp, rp)."""
+    p = dict(t='gable', x=fl(x), y=fl(y), d=fl(d), l=left, lp=fl(lp), r=right, rp=fl(rp), rake=[rgb_int(rake[0]), rgb_int(rake[1])], roof=rgb_int(roofc))
+    if de is not None: p['de'] = float(de)
+    if face is not None: p.update(face=face, fx=float(fx), fy=float(fy))
+    if panes: p['panes'] = panes
+    return p
+
+def mhip(x, y, d, top, front, left, lp, right, rp, roofc, flat=None):
+    """A hipped roof: eaves x and d, eave and ridge heights y, its flat top (or ridge) x top[0..1] by d top[2..3]; the
+    front face's piece (one screen row per row, ridge to eave), each side face's piece and its four points (the front
+    eave, the back eave, the top's back and front ends), the flat top's piece."""
+    p = dict(t='hip', x=fl(x), y=fl(y), d=fl(d), top=fl(top), front=front, l=left, lp=fl(lp), r=right, rp=fl(rp), roof=rgb_int(roofc))
+    if flat is not None: p['flat'] = flat
+    return p
+
+def rise_for(rows, run):
+    """The rise for which a face `run` deep shows exactly `rows` screen rows (one per row of its picture)."""
+    return rows - RISE_PER_120 * run / 120.0
+
+def villa(shop, rng):
+    key = shop['parts'][0]['key']
+    art = solid(np.array(load(key)))
+    # the roofs are the pixels the five villas colour differently
+    vs = [np.array(load(f'villa_{i}')) for i in range(1, 6)]
+    roofm = np.zeros(art.shape[:2], bool)
+    for o in vs[1:]: roofm |= (o != vs[0]).any(-1)
+    W = 256; at = Atlas(512)
+    wall_c = art[320, 40]; rake_c = art[198, 6]; edge_c = art[202, 6]; roof_c = art[150, 40]
+    # --- the main roof: where its slopes end and the gable's face begins, column by column (the ridge board, cols
+    # 122..133, is not roof-coloured: the face starts under its end)
+    top_cut = np.zeros(W, int)
+    for x in range(W):
+        c = np.where(roofm[:205, x])[0]
+        top_cut[x] = c.max() + 1 if len(c) > 4 else (132 if 100 < x < 156 else 196)
+    keep = np.zeros(art.shape[:2], bool)
+    for x in range(W): keep[:top_cut[x], x] = art[:top_cut[x], x, 3] > 0
+    left = at.add(cut(art[0:198, 0:128], keep[0:198, 0:128]))
+    right = at.add(cut(art[0:198, 128:256], keep[0:198, 128:256]))
+    # the upper floor's front and the gable over it: a true front elevation, used as drawn (the round window, the rake
+    # boards, the balcony's glass door)
+    up = art[130:236, 0:W].copy()
+    for x in range(W): up[:max(0, top_cut[x] - 130), x] = 0
+    # what stands in front of its foot in the art (the small gable's ridge, the balcony's side rails) is built new: the
+    # siding of a clear column beside each carried across behind it
+    up[86:106, 72:88] = up[86:106, 68:69]; up[86:106, 172:188] = up[86:106, 166:167]; up[86:106, 228:243] = up[86:106, 244:245]
+    up_panes, up_glow = panes_of(up)
+    up_r = at.add(up, up_glow)
+    # --- the ground floor's wall, its porch posts taken off (they are boxes standing in front of it) and the siding
+    # carried across behind them
+    gf = art[302:342, 2:254].copy()
+    gf[:, 18:30] = gf[:, 38:39]; gf[:, 222:234] = gf[:, 208:209]
+    gf_panes, gf_glow = panes_of(gf)
+    gf_r = at.add(gf, gf_glow)
+    # --- the side walls (the eave walls): each row the front's own siding, a window of the front's
+    win = art[196:230, 32:64]
+    corner = art[214, 4]
+    gfs, gfs_glow = side_wall(column_rows(art[302:342], list(range(36, 58)) + list(range(192, 222))), 167, win, 2, (.3, .7), rng, corner)
+    ups, ups_glow = side_wall(column_rows(art[196:236], list(range(64, 96)) + list(range(160, 186))), 131, win, 0, (.5,), rng, corner)
+    gfs_r = at.add(gfs, gfs_glow); ups_r = at.add(ups, ups_glow)
+    # --- the terrace roof over the ground floor: its fascia, and its boards (the small gable and the balcony that
+    # stand on it in the art painted out: the engine builds them)
+    fascia = art[296:302, 2:254]
+    deck_roof = art[238:296, 2:254].copy()
+    m = np.zeros(deck_roof.shape[:2], bool); m[:, 38:120] = True; m[:46, 172:240] = True
+    deck_roof = fill_rows(deck_roof, m)
+    fascia_r = at.add(fascia); roofdeck_r = at.add(deck_roof)
+    # --- the porch posts, the deck (its boards with the posts, rails and railing painted out; its front), the railings
+    post_l = at.add(art[302:342, 20:32]); post_r = at.add(art[302:342, 224:236])
+    deck = art[342:394, 2:254].copy()
+    m = np.zeros(deck.shape[:2], bool)
+    m[0:20, 18:30] = m[0:20, 222:234] = True; m[0:26, 0:8] = m[0:26, 244:252] = True; m[24:, 0:32] = m[24:, 126:252] = True
+    deck_r = at.add(fill_rows(deck, m)); deckf_r = at.add(art[396:408, 2:254])
+    rail = open_balusters(art[372:396], 4, 13)
+    rail_l = at.add(rail[:, 2:34]); rail_rr = at.add(rail[:, 128:254])
+    rail_side = at.add(rail[:, 140:193])
+    balc = open_balusters(art[258:282, 176:240], 4, 21)
+    balc_r = at.add(balc)
+    # --- the small gable over the door: its face as drawn, its slopes (28 rows deep in the art)
+    sg = art[252:292, 40:120].copy()
+    for x in range(80):
+        c = np.where(roofm[240:292, 40 + x])[0]
+        t = 240 + c.max() + 1 if len(c) else (258 if 36 <= x < 44 else 292)
+        sg[:max(0, t - 252), x] = 0
+    sg_panes, sg_glow = panes_of(sg, 12)
+    sg_r = at.add(sg, sg_glow)
+    keep2 = np.zeros(art.shape[:2], bool)
+    for x in range(40, 120):
+        c = np.where(roofm[240:292, x])[0]
+        if len(c): keep2[240 + max(0, c.min() - 2):240 + c.max() + 1, x] = True
+    keep2[224:258, 76:84] = True
+    keep2 &= art[..., 3] > 0
+    sl = at.add(cut(art[222:292, 40:80], keep2[222:292, 40:80])); sr = at.add(cut(art[222:292, 80:120], keep2[222:292, 80:120]))
+    rail_top = art[368, 20]; rail_c = art[388, 20]; post_c = art[320, 24]
+    deck_c = art[380, 80]; deck_front = art[400, 200]; tread = art[404, 80]; riser = art[400, 80]
+    parts = [
+        mbox((2, 254), (12, 52), (0, 167), (wall_c, wall_c, wall_c), ft=gf_r, st=gfs_r, panes=gf_panes, top=False),
+        # the floor between the storeys, behind the terrace: its edge along the shown side
+        mbox((2, 254), (52, 58), (36, 167), (art[298, 140], art[298, 140], art[298, 140]), top=False),
+        mgable((0, 256), (98, 161), (36, 171), left, (0, 197, 128, 133, 128, -2, 0, 62), right, (128, 197, 0, 133, 0, -2, 128, 62), (rake_c, edge_c), roof_c),
+        mbox((2, 254), (58, 98), (36, 167), (wall_c, wall_c, wall_c), ft=up_r, fx=0, st=ups_r, panes=up_panes, top=False),
+        mbox((2, 254), (0, 12), (-53, 0), (deck_c, deck_front, shade(deck_front, .8)), ft=deckf_r, tt=deck_r),
+        mbox((20, 32), (12, 52), (-18, -10), (rail_top, post_c, shade(post_c, .8)), ft=post_l),
+        mbox((224, 236), (12, 52), (-18, -10), (rail_top, post_c, shade(post_c, .8)), ft=post_r),
+        mbox((2, 254), (52, 58), (-22, 36), (art[260, 140], art[298, 140], shade(art[298, 140], .8)), ft=fascia_r, tt=roofdeck_r),
+        mbox((176, 184), (58, 82), (-8, 36), (rail_top, rail_c, shade(rail_c, .85)), outline=True),
+        mbox((232, 240), (58, 82), (-8, 36), (rail_top, rail_c, shade(rail_c, .85)), outline=True),
+        mbox((176, 240), (58, 82), (-8, -8), (rail_top, rail_c, rail_c), ft=balc_r, card=True),
+        mgable((41, 119), (61, 94), (-18, 10), sl, (1, 67, 40, 33, 40, 5, 1, 39), sr, (39, 67, 0, 33, 0, 5, 39, 39), (rake_c, edge_c), roof_c,
+               face=sg_r, fx=40, fy=58, panes=sg_panes),
+        mbox((2, 8), (12, 36), (-53, 0), (rail_top, rail_c, rail_c), st=rail_side),
+        mbox((248, 254), (12, 36), (-53, 0), (rail_top, rail_c, rail_c), st=rail_side),
+        mbox((2, 34), (12, 36), (-53, -53), (rail_top, rail_c, rail_c), ft=rail_l, card=True),
+        mbox((128, 254), (12, 36), (-53, -53), (rail_top, rail_c, rail_c), ft=rail_rr, card=True),
+        mbox((28, 34), (12, 40), (-53, -47), (rail_top, rail_c, shade(rail_c, .8)), outline=True),
+        mbox((128, 134), (12, 40), (-53, -47), (rail_top, rail_c, shade(rail_c, .8)), outline=True),
+        mbox((34, 128), (6, 12), (-59, -53), (tread, riser, shade(riser, .85)), outline=True),
+        mbox((34, 128), (0, 6), (-65, -53), (tread, riser, shade(riser, .85)), outline=True),
+    ]
+    # --- the yard: grass, the path from the steps to the gate, its fence or hedge. The house stands back by the game's
+    # front yard and a tile more, for its deck and steps
+    setback = int(shop.get('yard', {}).get('front', 2)) * 32 + 32
+    style = shop.get('yard', {}).get('style', 'compact')
+    px0, px1 = 66, 98
+    lawn, fence, fence_snow = yard(rng, W, setback + 167, True, (px0, px1, setback - 65), style, [(px0 - 6, px1 + 6)])
+    # the whole front for what does not build it (the corner turn: a box of the two storeys), its side and its glow
+    front = np.zeros((98, W, 4), np.uint8)
+    front[0:40] = art[196:236, 0:W]; front[40:46] = art[296:302, 0:W]; front[46:86] = art[302:342, 0:W]; front[86:98] = art[396:408, 0:W]
+    front = solid(front); front[:, :2] = 0; front[:, 254:] = 0
+    emis = np.zeros_like(front); emis[0:40] = panes_of(front[0:40])[1]; emis[46:86] = panes_of(front[46:86])[1]
+    side = np.zeros((98, 167, 4), np.uint8)
+    side[0:40, 36:] = ups; side[40:46, :, :3] = art[298, 140][:3]; side[40:46, :, 3] = 255; side[46:86] = gfs
+    side[86:98, :, :3] = deck_front[:3]; side[86:98, :, 3] = 255
+    model = dict(kind='villa', w=W, frontX=(224 - W) / 2, setback=setback, lawn='grass', style=style, parts=parts,
+                 fence=dict(d=3, foot=28 if style != 'formal' else 32) if fence is not None else None,
+                 roofTint=rgb_int(roof_c), lamp=[104, 40, 0], lights='home', smoke=[], fpx=0)
+    return model, at, front, side, emis, lawn, fence, fence_snow
+
+def tower(shop, rng):
+    key = shop['parts'][0]['key']
+    art = solid(np.array(load(key)))
+    W = 256; at = Atlas(512)
+    roof_c = art[100, 128]
+    # the tower: a square box wearing its front on every side (a clock on each face), the roof's eave fascia its top
+    body = art[138:460, 10:244]
+    b_panes, b_glow = panes_of(body)
+    body_r = at.add(body, b_glow)
+    # the hipped roof: its front face, the art's rows 61..137 between the hips, every other one (the artist's own
+    # pixels, one screen row each; the rise is chosen so)
+    E, run = 322, 58
+    face = cut(art[61:138, 34:220], polygon((77, 186), [(0, 77), (58, 0), (128, 0), (186, 77)]))
+    face = face[::2]
+    rise = rise_for(face.shape[0], run)
+    front_r = at.add(face)
+    lq = [(0, 134), (0, 0), (58, 26), (58, 57)]; rq = [(58, 134), (58, 0), (0, 26), (0, 57)]
+    left = at.add(cut(art[4:139, 34:93], polygon((135, 59), lq)))
+    right = at.add(cut(art[4:139, 162:221], polygon((135, 59), rq)))
+    lantern = at.add(art[50:61, 92:164])
+    stone = art[112, 16]
+    parts = [
+        mbox((10, 244), (0, E), (0, 234), (stone, art[300, 128], art[300, 128]), ft=body_r, st=body_r, panes=b_panes),
+        mhip((34, 220), (E, E + rise), (0, 234), (92, 162, run, 234 - run), front_r, left, [v for p in lq for v in p], right, [v for p in rq for v in p], roof_c),
+        mbox((92, 164), (E + rise, E + rise + 11), (run + 12, 234 - run - 12), (art[40, 128], art[55, 128], shade(art[55, 128], .8)), ft=lantern),
+    ]
+    setback = 32
+    lawn, fence, fence_snow = yard(rng, W, setback + 234, False, (0, 0, 0), 'natural', [], ground='paving')
+    model = dict(kind='tower', w=W, frontX=(224 - W) / 2, setback=setback, lawn='paving', style='natural', parts=parts,
+                 fence=None, roofTint=rgb_int(roof_c), lamp=None, lights='lamp', smoke=[], fpx=10)
+    front = np.zeros((E, 234, 4), np.uint8); front[:] = body
+    return model, at, front, body, b_glow, lawn, fence, fence_snow
+
+def school(shop, rng):
+    key = shop['parts'][0]['key']
+    art = solid(np.array(load(key)))
+    W = 768; at = Atlas(768)
+    roof_c = art[300, 100]
+    bottom = int(np.where(art[:, 30, 3] > 0)[0].max()) + 1
+    E = bottom - 398
+    # --- the walls: the long front as drawn, and the middle bay (standing 12 forward) with the cross gable's face over
+    # it, cut above its rake boards
+    body = art[398:bottom, 20:748]
+    b_panes, b_glow = panes_of(body)
+    body_r = at.add(body, b_glow)
+    bay = art[318:bottom, 258:510].copy()
+    for x in range(252):
+        r = 398 - (126 - abs(x - 126 + .5)) * 74 / 126                 # the rake's top edge, from the eaves to the apex
+        bay[:max(0, int(r) - 2 - 318), x] = 0
+    bay_panes, bay_glow = panes_of(bay)
+    bay_r = at.add(bay, bay_glow)
+    bay_side = at.add(art[398:bottom, 266:278])
+    # the side walls: each row the commonest colour of the front's wall clear of its windows and doors, an upper and an
+    # arched window of the front's own, frame and arch and all
+    rows = np.zeros((E, 4), np.uint8); gm = glass(body)
+    for y in range(E):
+        near = gm[max(0, y - 40):y + 40].any(0)
+        near = near | np.roll(near, 8) | np.roll(near, -8)               # and the frames beside the glass
+        px = [tuple(c) for c in body[y][(body[y, :, 3] > 200) & ~near]]
+        rows[y] = max(set(px), key=lambda c: (px.count(c), c)) if px else (190, 170, 140, 255)
+    side, side_glow = side_wall(rows, 272, None, 0, (), rng, art[600, 24])
+    for (y0, y1, x0, x1) in ((8, 86, 24, 94), (110, 228, 72, 172)):
+        crop = body[y0:y1, x0:x1]; m = crop[..., 3] > 200; g = dilate(glass(crop), 1) & m
+        for f in (.27, .73):
+            cx = int(272 * f) - crop.shape[1] // 2
+            side[y0:y1, cx:cx + crop.shape[1]][m] = crop[m]
+            side_glow[y0:y1, cx:cx + crop.shape[1]][g] = GLOW
+    side_r = at.add(side, side_glow)
+    # --- the hipped roof: the front face (rows 145..397 between the hips, every other one), the cross gable's slopes
+    # and the second chimney painted out with the tiles' own pattern (they repeat every 12 pixels along a row)
+    run = 122
+    region = art[145:398].copy()
+    m = np.zeros(region.shape[:2], bool); m[45:, 256:512] = True; m[:18, 552:610] = True
+    region = fill_period(region, m, 12)
+    face = cut(region[:, 14:754], polygon((253, 740), [(0, 253), (122, 0), (617, 0), (740, 253)]))[::2]
+    rise = rise_for(face.shape[0], run)
+    front_r = at.add(face)
+    flat = art[105:145, 136:631].copy()
+    fm = np.zeros(flat.shape[:2], bool); fm[:, 418:472] = True
+    flat_r = at.add(fill_period(flat, fm, 12)[::2])
+    lq = [(0, 350), (0, 0), (122, 57), (122, 97)]; rq = [(123, 350), (123, 0), (0, 57), (0, 97)]
+    left = at.add(cut(art[48:399, 14:137], polygon((351, 123), lq)))
+    right = at.add(cut(art[48:399, 631:755], polygon((351, 124), rq)))
+    # the cross gable's slopes: from its rake back to the valley where they meet the main roof
+    ridge2 = E + 72
+    clq = [(0, 201), (126, 129), (126, 2), (4, 113)]; crq = [(126, 201), (0, 129), (0, 2), (122, 113)]
+    cl = at.add(cut(art[195:398, 258:385], polygon((203, 127), clq)))
+    cr = at.add(cut(art[195:398, 384:511], polygon((203, 127), crq)))
+    R = E + rise
+    chim1 = at.add(art[62:104, 152:202]); chim2 = at.add(art[118:150, 556:606])
+    stone = art[700, 210]; tread = art[700, 300]; riser = art[405, 300]
+    parts = [
+        mbox((20, 748), (0, E), (0, 272), (stone, stone, stone), ft=body_r, st=side_r, panes=b_panes, top=False),
+        mbox((152, 202), (R - 22, R + 20), (172, 196), (art[50, 175], stone, stone), ft=chim1),
+        mhip((14, 754), (E, R), (-6, 278), (136, 631, -6 + run, 278 - run), front_r, left, [v for p in lq for v in p], right,
+             [v for p in rq for v in p], roof_c, flat=flat_r),
+        mbox((556, 606), (R - 10, R + 22), (104, 118), (art[110, 580], stone, stone), ft=chim2),
+        mgable((258, 510), (E, ridge2), (-12, 71), cl, [v for p in clq for v in p], cr, [v for p in crq for v in p], (roof_c, roof_c), roof_c, de=-6),
+        mbox((264, 504), (0, E), (-12, 0), (stone, stone, stone), ft=bay_r, fx=258, st=bay_side, panes=bay_panes, top=False),
+        mbox((198, 232), (0, 24), (-70, -12), (art[690, 210], art[720, 210], shade(art[720, 210], .85)), outline=True),
+        mbox((534, 568), (0, 24), (-70, -12), (art[690, 210], art[720, 210], shade(art[720, 210], .85)), outline=True),
+        mbox((232, 534), (0, 18), (-40, -12), (tread, riser, shade(riser, .85)), outline=True),
+        mbox((232, 534), (0, 12), (-46, -40), (tread, riser, shade(riser, .85)), outline=True),
+        mbox((232, 534), (0, 6), (-52, -40), (tread, riser, shade(riser, .85)), outline=True),
+    ]
+    setback = 80
+    lawn, fence, fence_snow = yard(rng, W, setback + 272, False, (0, 0, 0), 'natural', [], ground='paving')
+    model = dict(kind='school', w=W, frontX=(224 - W) / 2, setback=setback, lawn='paving', style='natural', parts=parts,
+                 fence=None, roofTint=rgb_int(roof_c), lamp=None, lights='shop',
+                 smoke=[[177, 184, R + 20], [581, 111, R + 22]], fpx=20)
+    return model, at, body, side, b_glow, lawn, fence, fence_snow
+
+def build_model(shop, out):
+    """One of our villas or landmarks as the parts the engine builds it from (models.json) and the pictures they wear."""
+    key = shop['parts'][0]['key']; n = shop['sprite']
+    rng = np.random.default_rng(zlib.crc32(n.encode()))
+    make = villa if key.startswith('villa_') else tower if key.startswith('landmark_clocktower_') else school
+    model, at, front, side, emis, lawn, fence, fence_snow = make(shop, rng)
+    at.save(out, n)
+    for name, img in (('front', front), ('side', side), ('emis', emis), ('lawn', lawn)):
+        Image.fromarray(np.ascontiguousarray(img)).save(f'{out}/{n}_{name}.png')
+    if fence is not None:
+        Image.fromarray(fence).save(f'{out}/{n}_fence.png'); Image.fromarray(fence_snow).save(f'{out}/{n}_fencesnow.png')
+    WINDOWS[n] = []
+    MODELS[n] = model
+
 # What this script writes for a sprite. Anything else in the folder is left alone: the lighting maps make_lighting.py
 # made from each front need a depth model that is not always on disk, so they must survive a re-run that does not
 # change their front.
 OUTPUTS = ('front', 'side', 'emis', 'roof', 'sign', 'prop', 'glass', 'over', 'slope', 'ridge', 'back', 'hitch', 'lawn', 'porch', 'fence',
-           'fencesnow')
+           'fencesnow', 'atlas', 'glow')
 MAPS = ('lit', 'shade')
 
 def pixels(path):
@@ -549,7 +969,8 @@ def pixels(path):
 def showcase(out):
     """Every house sprite (8 designs x 2 sizes x 10 colours) on a street.json of its own, in out/ (street.json and
     buildings/), for checking them by eye: street 0 has every design once in a colour each, street 1 every colour of
-    one design. The preview reads it with -Dassets=out -Dmode=houses."""
+    one design, street 2 the five villas, street 3 the clock towers and the school. The preview reads it with
+    -Dassets=out -Dmode=houses (or -Dmode=models for streets 2 and 3)."""
     shops, row, colours = [], [], []
     names = {}
     for tier in ('small', 'medium'):
@@ -563,9 +984,18 @@ def showcase(out):
     for i, (tier, design) in enumerate([(t, d) for t in ('small', 'medium') for d in range(1, 9)]):
         row.append(names[f'house_{tier}_{design}{cycle[(i * 3 + 1) % 10]}'])
     colours = [names[f'house_small_7{c}'] for c in cycle]
+    # the villas (each built with a front-facing gable), and the landmarks with hipped roofs, which no street has yet
+    def add(key, yard_style):
+        im = load(key); sprite = f'b{len(shops)}'
+        shops.append(dict(id=f'show:{key}', sprite=sprite, home=key.startswith('villa_'), name=key, kind='Home' if key.startswith('villa_') else 'Landmark',
+                          owner='', colour='base', parts=[dict(key=key, w=im.width, h=im.height, y=0)], yard=dict(front=2, style=yard_style)))
+        return sprite
+    villas = [add(f'villa_{i}', ('compact', 'formal', 'natural', 'flower', 'formal')[i - 1]) for i in range(1, 6)]
+    landmarks = [add(k, 'natural') for k in ('landmark_clocktower_1', 'landmark_school_1', 'landmark_clocktower_2')]
     os.makedirs(out + '/buildings', exist_ok=True)
     json.dump(dict(town='showcase', year=2025, type='every house sprite', shops=shops,
-                   streets=[dict(name='Every design', buildings=row), dict(name='Every colour', buildings=colours)]),
+                   streets=[dict(name='Every design', buildings=row), dict(name='Every colour', buildings=colours),
+                            dict(name='Villas', buildings=villas), dict(name='Landmarks', buildings=landmarks)]),
               open(out + '/street.json', 'w'), indent=1)
     return out + '/street.json', out + '/buildings'
 
@@ -592,4 +1022,7 @@ if __name__ == '__main__':
     # the houses' shapes in a file of their own: the app reads windows.json as lists only
     if HOUSES: json.dump(HOUSES, open(out + '/houses.json', 'w'), sort_keys=True)
     elif os.path.exists(out + '/houses.json'): os.remove(out + '/houses.json')
+    # and the villas' and landmarks' parts
+    if MODELS: json.dump(MODELS, open(out + '/models.json', 'w'), sort_keys=True)
+    elif os.path.exists(out + '/models.json'): os.remove(out + '/models.json')
     print('wrote', len(os.listdir(out)), 'files to', out, '; windows:', {k: len(v) for k, v in WINDOWS.items()})
