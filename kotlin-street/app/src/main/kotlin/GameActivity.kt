@@ -122,16 +122,22 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
 private fun GameScreen() {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val data = remember { loadStreet(ctx) }
+    // the town's shops make two streets; the corner turn leads from one to the other
+    var streetNo by remember { mutableIntStateOf(0) }
+    val half = (data.shops.size + 1) / 2
+    val range = if (streetNo == 0 || half >= data.shops.size) 0 until minOf(half, data.shops.size) else half until data.shops.size
+    val shops = remember(data, streetNo) { data.shops.slice(range) }
+    val owners = remember(data, streetNo) { data.owners.slice(range.first until minOf(range.last + 1, data.owners.size)) }
     var hour by remember { mutableFloatStateOf(17.6f) }
     var season by remember { mutableIntStateOf(1) }
     var weather by remember { mutableIntStateOf(0) }
-    val p = remember(hour, data, season, weather) {
+    val p = remember(hour, data, season, weather, streetNo) {
         // the date sets the season (leaf, blossom, snow); the weather is forced
         WeatherOverride.forced = WEATHERS[weather].second
         HabitsProjection(
             day = SEASONS[season].second, hour = hour, who = "", whoHint = "", rough = false, built = 0, due = 0,
             reducedMotion = false, haptics = null, problem = "", limits = HabitLimits(40, 40, 40, 40, 40, 1, 12, 12),
-            rules = HabitRules(10, 40, 100, 12), stacks = data.shops, lapse = emptyList(), tokens = emptyMap(), light = false,
+            rules = HabitRules(10, 40, 100, 12), stacks = shops, lapse = emptyList(), tokens = emptyMap(), light = false,
         )
     }
     // the faked corner turn: our buildings on boxes around a crossroads, the camera swinging a quarter turn
@@ -142,19 +148,24 @@ private fun GameScreen() {
     }
     var turn by remember { mutableFloatStateOf(-1f) }
     var turning by remember { mutableStateOf(false) }
+    var fade by remember { mutableFloatStateOf(0f) }
     LaunchedEffect(turning) {
         if (!turning) return@LaunchedEffect
         val start = androidx.compose.runtime.withFrameNanos { it }
         while (true) {
             val t = (androidx.compose.runtime.withFrameNanos { it } - start) / 1e9f
-            turn = when { t < 2.4f -> t / 2.4f; t < 3.4f -> 1f; t < 5.8f -> 1f - (t - 3.4f) / 2.4f; else -> -1f }
-            if (t >= 5.8f) break
+            if (t < 2.6f) { turn = (t / 2.4f).coerceAtMost(1f); fade = ((t - 2.0f) / .6f).coerceIn(0f, 1f) }
+            else {
+                if (turn >= 0f) { turn = -1f; streetNo = 1 - streetNo; GameState.x = 0f; GameState.lane = 7f }
+                fade = 1f - ((t - 2.6f) / .6f).coerceIn(0f, 1f)
+                if (t >= 3.2f) break
+            }
         }
         turning = false
     }
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         HabitsStage(
-            p = p, ui = HabitsUi(focus = data.shops[0].id), visible = true, top = 0f, bottom = 0f, cover = 0f, inset = 0f,
+            p = p, ui = HabitsUi(focus = shops[0].id), visible = true, top = 0f, bottom = 0f, cover = 0f, inset = 0f,
             accent = Color(0xFF6FA8FF), actions = StageActions(), modifier = Modifier.fillMaxSize(),
         )
         Text(data.title, 14.sp, Modifier.align(Alignment.TopStart).padding(14.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
@@ -163,12 +174,13 @@ private fun GameScreen() {
                 CornerTurn(turnArt, turn, Modifier.fillMaxSize(), hour)
             }
         }
+        if (fade > 0f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = fade)))
         if (turnArt != null && !turning) Chip("↰ Turn the corner", false, Modifier.align(Alignment.CenterStart).padding(start = 14.dp)) { turning = true }
         // the shop the player is standing at
         val near = GameState.nearest
-        if (near in data.shops.indices) {
-            val st = data.shops[near]
-            Text(st.cue + (data.owners.getOrNull(near)?.takeIf { it.isNotBlank() }?.let { "  ·  $it" } ?: ""), 15.sp,
+        if (near in shops.indices) {
+            val st = shops[near]
+            Text(st.cue + (owners.getOrNull(near)?.takeIf { it.isNotBlank() }?.let { "  ·  $it" } ?: ""), 15.sp,
                 Modifier.align(Alignment.BottomCenter).padding(bottom = 18.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
         }
         // time of day

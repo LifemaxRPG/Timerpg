@@ -33,3 +33,5 @@ The camera zoom is snapped so each sprite pixel is a whole, even number of scree
 
 ## Corner turn in the app
 The turn renderer now lives in `shared/.../scene/CornerTurn.kt` (the desktop preview uses it too). In the app, the "↰ Turn the corner" button (left edge) plays the turn over the street (2.4 s in, hold, 2.4 s back), tinted by the time of day. It is a separate scene for now: it does not yet use the engine's sun, weather or reflections, and the street you return to is the same one. Next step is to make the junction a real place in the world, with a different street on the other side.
+
+Update: the turn now leads somewhere. The town's shops are split into two streets; "Turn the corner" plays the turn (2.4 s), fades through black, and puts you at the start of the other street (press it again to come back). Not yet run on a phone, and the two streets are just halves of one shop list for now (no real junction in the world map).
