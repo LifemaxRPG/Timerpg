@@ -151,6 +151,9 @@ object CornerWalk {
      */
     fun walk(dt: Float, cr: Crossroads, rx: Float, rz: Float, dxv: Float, dzv: Float): Int {
         if (!active) return 0
+        // held at its end ([holdEnd]) and now let go: handed over with the player as the walk's last step drew them, as in
+        // the game, where the hand-over is in the step that reaches the end
+        if (p >= 1f && !holdEnd) { finish(cr, true); return 1 }
         // the keys: on (up, or left walking back out), back (down, or right), else on by itself
         val on = if (forward) GameState.moveLane < -.5f else (GameState.moveLane < -.5f || GameState.moveX < -.5f)
         val back = if (forward) GameState.moveLane > .5f else (GameState.moveX > .5f || GameState.moveLane > .5f)
