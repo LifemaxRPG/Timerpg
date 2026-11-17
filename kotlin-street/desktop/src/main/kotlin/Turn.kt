@@ -171,7 +171,7 @@ private fun DrawScope.scene(cam: Cam, bs: List<Bld>, lamp: ImageBitmap?) {
     // far to near
     for (b in bs.sortedByDescending { cam.v(it.cx, it.cz) }) building(cam, b)
     lamp?.let { l ->
-        for ((x, z) in listOf(30f to -30f, 170f to -30f, 30f to 190f, 170f to 190f, 30f to 450f, 170f to 450f, -300f to -30f, 450f to -30f)) {
+        for ((x, z) in listOf(30f to -30f, 170f to -30f, 30f to 330f, 170f to 650f, -300f to -30f, 450f to -30f)) {
             val d = cam.v(x, z) + cam.dc
             val la = nearFade(cam.v(x, z))
             if (d < 60f || la <= .02f) continue
