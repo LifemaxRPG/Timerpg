@@ -171,7 +171,7 @@ private fun GameScreen() {
         Text(data.title, 14.sp, Modifier.align(Alignment.TopStart).padding(14.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
         if (turn >= 0f && turnArt != null) {
             Box(Modifier.fillMaxSize()) {
-                CornerTurn(turnArt, turn, Modifier.fillMaxSize(), hour)
+                CornerTurn(turnArt, turn, Modifier.fillMaxSize(), hour, season)
             }
         }
         if (fade > 0f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = fade)))

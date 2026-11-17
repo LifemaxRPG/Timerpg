@@ -60,6 +60,8 @@ internal class TurnLight(val top: Color, val bottom: Color, val ground: Color, v
 
     companion object {
         var current = noon()
+        /** 0 spring, 1 summer, 2 autumn, 3 winter. */
+        var season = 1
         fun noon() = TurnLight(Color(0xFF4f9bf2), Color(0xFFbfdcfb), Color(0xFF30333b), 1f, 1f, 1f, 168f, 190f, 222f)
         private fun mix(a: TurnLight, b: TurnLight, t: Float): TurnLight {
             fun f(x: Float, y: Float) = x + (y - x) * t
@@ -184,7 +186,7 @@ private fun DrawScope.building(cam: Cam, b: TurnBuilding) {
     val camX = Cam.PX - cam.s * cam.dc; val camZ = cam.pz - cam.c * cam.dc
     fun toward(f: F) = f.nx * (camX - (f.ax + f.bx) / 2f) + f.nz * (camZ - (f.az + f.bz) / 2f) > 1f
     // the roof, seen from above (not at all from below, where only walls show)
-    if (b.h < cam.eye - 5f) ground(cam, listOf(b.x0 to b.z0, b.x1 to b.z0, b.x1 to b.z1, b.x0 to b.z1), b.h, Color(0xFF454852).copy(alpha = a))
+    if (b.h < cam.eye - 5f) ground(cam, listOf(b.x0 to b.z0, b.x1 to b.z0, b.x1 to b.z1, b.x0 to b.z1), b.h, (if (TurnLight.season == 3) Color(0xFFdde5ee) else Color(0xFF454852)).let { c -> val l = TurnLight.current; Color(c.red * (if (TurnLight.season == 3) l.r else 1f), c.green * (if (TurnLight.season == 3) l.g else 1f), c.blue * (if (TurnLight.season == 3) l.b else 1f), a) })
     val fnx = when (b.frontN) { 1 -> 1f; 2 -> -1f; else -> 0f }; val fnz = if (b.frontN == 0) -1f else 0f
     fun draw(f: F, k: Float) {
         val isFront = f.id == b.frontN
@@ -221,9 +223,11 @@ private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?
     drawRect(Brush.verticalGradient(listOf(TurnLight.current.bottom, TurnLight.current.ground), cam.hy, cam.hy + 150f), Offset(0f, cam.hy), androidx.compose.ui.geometry.Size(size.width, size.height - cam.hy))
     val far = 1400f
     // the two roads and their pavements
-    ground(cam, listOf(-far to -170f, far to -170f, far to -40f, -far to -40f), 0f, Color(0xFF3b3e47))
-    ground(cam, listOf(40f to -170f, 160f to -170f, 160f to far, 40f to far), 0f, Color(0xFF3b3e47))
-    val pave = Color(0xFF8d919c)
+    val winter = TurnLight.season == 3
+    val roadC = if (winter) Color(0xFF626873) else Color(0xFF3b3e47)
+    ground(cam, listOf(-far to -170f, far to -170f, far to -40f, -far to -40f), 0f, roadC)
+    ground(cam, listOf(40f to -170f, 160f to -170f, 160f to far, 40f to far), 0f, roadC)
+    val pave = if (winter) Color(0xFFd3dae4) else if (TurnLight.season == 2) Color(0xFF948b86) else Color(0xFF8d919c)
     ground(cam, listOf(-far to -40f, 40f to -40f, 40f to 0f, -far to 0f), 0f, pave)
     ground(cam, listOf(160f to -40f, far to -40f, far to 0f, 160f to 0f), 0f, pave)
     ground(cam, listOf(0f to 0f, 40f to 0f, 40f to far, 0f to far), 0f, pave)
@@ -309,12 +313,23 @@ fun turnBuildings(art: TurnArt): List<TurnBuilding> {
 }
 
 /** Draws the turn at [progress] (0 = looking along the street we came down, 1 = down the cross street). */
-fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float, hour: Float = 14f) {
+fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float, hour: Float = 14f, season: Int = 1) {
+    TurnLight.season = season
     val wx = com.lifemax.rpg.feature.habits.domain.WeatherOverride.forced
     TurnLight.current = TurnLight.at(hour).weathered(wx?.cloudiness ?: 0f, wx?.rain ?: 0f, wx?.mist ?: 0f)
     val e = progress * progress * (3f - 2f * progress)
     val cam = Cam(-(Math.PI / 2).toFloat() * e, -100f + 420f * e, size.width, size.height)
     scene(cam, buildings, lamp, walker, progress)
+    if (season == 3) {
+        // snow: slow, drifting flakes
+        val t = progress * 3f
+        for (i in 0 until 140) {
+            val hx = ((i * 7919L) % 1000) / 1000f; val hy = ((i * 104729L) % 997) / 997f; val sp = .5f + ((i * 31L) % 7) / 14f
+            val x = (hx * (size.width + 60f) + kotlin.math.sin((t + i) * 1.3f) * 14f) % (size.width + 60f) - 30f
+            val y = ((hy * (size.height + 60f) + t * 130f * sp) % (size.height + 60f)) - 30f
+            drawCircle(Color.White.copy(alpha = .75f), 1.3f + sp, Offset(x, y))
+        }
+    }
     val rain = wx?.rain ?: 0f
     if (rain > .02f) {
         // streaks falling and slanting, the same ones every frame for a given moment
@@ -329,7 +344,7 @@ fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, 
     }}
 
 @Composable
-fun CornerTurn(art: TurnArt, progress: Float, modifier: Modifier = Modifier, hour: Float = 14f) {
+fun CornerTurn(art: TurnArt, progress: Float, modifier: Modifier = Modifier, hour: Float = 14f, season: Int = 1) {
     val b = androidx.compose.runtime.remember(art) { turnBuildings(art) }
-    Canvas(modifier.fillMaxSize()) { drawCornerTurn(b, art.lamp, art.walker, progress, hour) }
+    Canvas(modifier.fillMaxSize()) { drawCornerTurn(b, art.lamp, art.walker, progress, hour, season) }
 }

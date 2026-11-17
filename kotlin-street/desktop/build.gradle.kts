@@ -27,6 +27,7 @@ tasks.register<JavaExec>("preview") {
     System.getProperty("mode")?.let { jvmArgs("-Dmode=$it") }
     System.getProperty("street")?.let { jvmArgs("-Dstreet=$it") }
     System.getProperty("wx")?.let { jvmArgs("-Dwx=$it") }
+    System.getProperty("season")?.let { jvmArgs("-Dseason=$it") }
     System.getProperty("hour")?.let { jvmArgs("-Dhour=$it") }
     System.getProperty("x")?.let { jvmArgs("-Dx=$it") }
     args(layout.buildDirectory.dir("preview").get().asFile.absolutePath, file("../../public/assets/characters").absolutePath)
