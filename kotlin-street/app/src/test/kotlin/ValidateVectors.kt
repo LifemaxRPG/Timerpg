@@ -3,6 +3,7 @@ package com.timerpg.street.llm
 
 object ValidateVectors {
     const val SELF = "Lois Fairchild"
+    const val KNOWN = "You are Lois Fairchild, 81. Married to Bob Lee. Children: Ann, Carl. Keep this quiet, but Walter Vance is in debt."
 
     class V(val raw: String, val must: List<String>, val expected: String?)
 
@@ -23,7 +24,7 @@ object ValidateVectors {
         V("Hi there.<|endoftext|><|im_end|>", listOf(), "Hi there."),
         V("<|im_end|>", listOf(), null),
         V("\u201cGood morning,\u201d she said.", listOf(), "Good morning,\u201d she said."),
-        V("\u201dOdd quotes\u201c", listOf(), "\u201dOdd quotes\u201c"),
+        V("\u201dOdd quotes\u201c", listOf(), null),
         V("'Tis a fine day.'", listOf(), "Tis a fine day."),
         V("\u2018Morning to you.\u2019", listOf(), "Morning to you."),
         V("\"'\"", listOf(), null),
@@ -82,7 +83,7 @@ object ValidateVectors {
         V("Walt is fine.", listOf("Walter"), null),
         V("The Fairchild store is mine.", listOf("Fairchild"), "The Fairchild store is mine."),
         V("I run the store.", listOf("Fairchild"), null),
-        V("Ray and Edna are well.", listOf("Ray", "Edna"), "Ray and Edna are well."),
+        V("Ray and Edna are well.", listOf("Ray", "Edna"), null),
         V("Ray is well.", listOf("Ray", "Edna"), null),
         V("Hm.", listOf(""), "Hm."),
         V("Hi.", listOf(), "Hi."),
@@ -91,7 +92,20 @@ object ValidateVectors {
         V("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", listOf(), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
         V("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", listOf(), null),
         V("Fine. bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", listOf(), null),
-        V("\ud83d\ude42 Lovely day. Truly. Yes.", listOf(), "\ud83d\ude42 Lovely day. Truly."),
+        V("\ud83d\ude42 Lovely day. Truly. Yes.", listOf(), null),
         V("Lovely day \ud83d\ude42. Truly \ud83d\ude42 lovely. Yes.", listOf(), "Lovely day \ud83d\ude42. Truly \ud83d\ude42 lovely."),
+        V("I talk curtly to strangers.", listOf(), null),
+        V("A curt, measured response: It is a nice day.", listOf(), null),
+        V("An answer: fine.", listOf(), null),
+        V("A fine day, Maple Hollow, 2025.", listOf(), null),
+        V("Maple Hollow,2025 is home.", listOf(), null),
+        V("We have two kids, Jake and Lisa.", listOf(), null),
+        V("Married to Bob, with Ann and Carl.", listOf("Bob"), "Married to Bob, with Ann and Carl."),
+        V("Ann is grown now. Carl too.", listOf(), "Ann is grown now. Carl too."),
+        V("Between you and Walter, money is tight.", listOf(), "Between you and Walter, money is tight."),
+        V("On Sunday, Mr Vance came by.", listOf(), "On Sunday, Mr Vance came by."),
+        V("Heard from Bobby lately?", listOf(), null),
+        V("Caf\u00e9 is open. \"Vernon\" said so.", listOf(), "Caf\u00e9 is open. \"Vernon\" said so."),
+        V("It is a nice day, Vernon.", listOf(), null),
     )
 }

@@ -174,7 +174,7 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
     val windows = HashMap<String, List<FloatArray>>()
     try {
         val wj = org.json.JSONObject(ctx.assets.open("buildings/windows.json").bufferedReader().use { it.readText() })
-        for (key in wj.keys()) { val a = wj.getJSONArray(key); windows[key] = (0 until a.length()).map { k -> val r = a.getJSONArray(k); FloatArray(4) { r.getDouble(it).toFloat() } } }
+        for (key in wj.keys()) { val a = wj.getJSONArray(key); windows[key] = (0 until a.length()).map { k -> val r = a.getJSONArray(k); FloatArray(r.length()) { r.getDouble(it).toFloat() } } }
     } catch (e: Exception) { }
     // every building once, by its sprite name
     class Entry(val stack: HabitStack, val owner: String, val art: SpriteBuilding?)
@@ -188,7 +188,8 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
         // engine's painted version, and the rest of the street is unaffected
         val front = img("${n}_front"); val side = img("${n}_side"); val emis = img("${n}_emis")
         val art = if (front != null && side != null && emis != null)
-            SpriteBuilding(front, side, emis, img("${n}_roof"), img("${n}_sign"), img("${n}_prop"), mids, windows[n].orEmpty(), windows[n + "_shop"].orEmpty(), img("${n}_glass"))
+            SpriteBuilding(front, side, emis, img("${n}_roof"), img("${n}_sign"), img("${n}_prop"), mids, windows[n].orEmpty(), windows[n + "_shop"].orEmpty(), img("${n}_glass"),
+                img("${n}_relief"), windows[n + "_relief"]?.firstOrNull()?.getOrNull(4) ?: 0f)
         else null
         if (art != null) SpriteArt.buildings[id] = art
         bySprite[n] = Entry(shop(id, o.getString("name"), "", HabitMaterial.CLAY, maxOf(1, mids)), o.optString("owner"), art)

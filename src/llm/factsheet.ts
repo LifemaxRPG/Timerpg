@@ -26,7 +26,7 @@ function family(c: TalkCtx): string[] {
   const spouse = p.spouse ? w.people[p.spouse] : undefined;
   if (spouse) out.push(spouse.deathYear === undefined ? `Married to ${fullName(spouse)}.` : 'Widowed.');
   const kids = p.children.map((id) => w.people[id]).filter((k): k is Person => !!k && k.deathYear === undefined);
-  if (kids.length) out.push(`Children: ${kids.slice(0, 4).map((k) => k.first).join(', ')}.`);
+  if (kids.length) out.push(`Children: ${kids.slice(0, 5).map((k) => k.first).join(', ')}.`);
   return out;
 }
 
@@ -63,6 +63,8 @@ export function brief(c: TalkCtx, intent: string, template: string, facts: strin
     : intent === 'work' ? [`Your job: ${c.job}.`, `You are ${wealthWord(p.wealth)}.`]
     : intent === 'town' ? [`The town is ${c.townName}.`, mayor ? `The mayor is ${fullName(mayor)}.` : 'The town has no mayor.']
     : intent === 'gift' || intent === 'praise' ? [`You are ${wealthWord(p.wealth)}.`]
+    // nothing to share (the game decided): say so, or a small model happily answers "Yes, I'm hiding something."
+    : (intent === 'secret' || intent === 'rumors') && !facts.length ? ['You do not share private matters with the player yet. Politely keep it to yourself.']
     : [];
   // The answer must contain the real fact it is about (a name or the shop), or the template is used.
   const spouse = p.spouse ? w.people[p.spouse] : undefined;
@@ -71,7 +73,9 @@ export function brief(c: TalkCtx, intent: string, template: string, facts: strin
     : intent === 'work' && c.job.includes(' ') && !/^(retired|at school|out about|works from home)/.test(c.job) ? c.job.replace(/^works at /, '').split(/[\s']/)[0] : undefined;
   if (anchor) must = [...must, anchor];
   const sheet = [
-    `You are ${fullName(p)}, ${w.year - p.birthYear}, ${p.sex === 'F' ? 'a woman' : 'a man'} in ${c.townName}, ${w.year}. You are ${warm ? 'warm and chatty' : 'gruff and guarded'}.`,
+    // the personality as a way of speaking, not a fact (a small model repeats facts word for word: "I'm just gruff and guarded")
+    `You are ${fullName(p)}, ${w.year - p.birthYear}, ${p.sex === 'F' ? 'a woman' : 'a man'} who lives in ${c.townName}. The year is ${w.year}.`,
+    warm ? 'You talk warmly and like to chat.' : 'You talk curtly and are wary of strangers.',
     `The player is ${know}.`,
     ...(c.wanted ? ['The player is wanted for a crime. You are afraid of them.'] : []),
     ...relevant,
@@ -86,6 +90,11 @@ export function brief(c: TalkCtx, intent: string, template: string, facts: strin
 export const toPrompt = (b: Brief): string =>
   `<|im_start|>system\n${b.system}<|im_end|>\n<|im_start|>user\n${b.user}<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n`;
 
+/** Capitalized words a reply may use without the facts naming them. */
+const COMMON = new Set(['Mr', 'Mrs', 'Ms', 'Miss', 'Mister', 'Dr', 'Sir', 'Madam', 'God', 'Lord', 'Monday', 'Tuesday', 'Wednesday',
+  'Thursday', 'Friday', 'Saturday', 'Sunday', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
+  'September', 'October', 'November', 'December', 'Christmas', 'Easter', 'English', 'American']);
+
 /** Clean the model's reply, or null if it should not be used. */
 export function validate(raw: string, b: Brief): string | null {
   let t = raw.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/<\|[^|]*\|>/g, '').trim();
@@ -98,7 +107,17 @@ export function validate(raw: string, b: Brief): string | null {
   // Stage directions, assistant-speak and self-introductions are not how a neighbor talks.
   if (/\b(i say|i respond|i reply|i smile|smiles?|nods?|my eyes|flickers?|let me know|how can i (help|assist)|anything else)\b/i.test(t)) return null;
   if (b.self && t.toLowerCase().includes(b.self.toLowerCase())) return null;
+  // the fact sheet read back: its personality words, or its "<town>, <year>" tag
+  if (/\b(warm and chatty|gruff and guarded|talk warmly|talk curtly)\b/i.test(t) || /,\s*(1[89]|20)\d\d\b/.test(t)
+    || /^an? [a-z ,]*\b(response|reply|answer|tone|voice)\b/i.test(t)) return null;
   const low = t.toLowerCase();
   if (b.must.some((m) => !low.includes(m.toLowerCase()))) return null;
+  // a name the facts never mention ("We have two kids, Jake and Lisa."): a capitalized word in mid-sentence the prompt lacks
+  const known = b.system + '\n' + b.user;
+  if (b.system) for (const m of t.matchAll(/\b[A-Z][a-z]+\b/g)) {
+    const before = t.slice(0, m.index).trimEnd();
+    if (!before || /[.!?"“‘(]$/.test(before) || COMMON.has(m[0])) continue;
+    if (!new RegExp(`\\b${m[0]}\\b`).test(known)) return null;
+  }
   return t;
 }

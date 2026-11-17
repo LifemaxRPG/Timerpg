@@ -39,12 +39,24 @@ object Dialogue {
         B0 + "(?:" + ci("i say|i respond|i reply|i smile|smiles?|nods?|my eyes|flickers?|let me know|how can i (?:help|assist)|anything else") + ")" + B1,
     )
 
+    // the fact sheet read back: its personality words, its "<town>, <year>" tag, or its way of speaking as a stage
+    // direction ("A curt, measured response: ...")
+    private val SHEET_WORDS = Regex(B0 + "(?:" + ci("warm and chatty|gruff and guarded|talk warmly|talk curtly") + ")" + B1)
+    private val SHEET_YEAR = Regex(",[$WS]*(?:1[89]|20)[0-9][0-9]" + B1)
+    private val SHEET_STYLE = Regex("^" + ci("an?") + " [a-zA-Z ,]*" + B0 + "(?:" + ci("response|reply|answer|tone|voice") + ")" + B1)
+    private val CAPITALIZED = Regex(B0 + "[A-Z][a-z]+" + B1)
+    /** Capitalized words a reply may use without the facts naming them. */
+    private val COMMON = setOf("Mr", "Mrs", "Ms", "Miss", "Mister", "Dr", "Sir", "Madam", "God", "Lord", "Monday", "Tuesday", "Wednesday",
+        "Thursday", "Friday", "Saturday", "Sunday", "January", "February", "March", "April", "May", "June", "July", "August",
+        "September", "October", "November", "December", "Christmas", "Easter", "English", "American")
+
     /**
      * Cleans the model's reply, or returns null if it must not be used (the template line is shown instead).
      * [must]: words the reply has to contain (a name from the fact sheet); [self]: the speaker's full name, which a
-     * reply may not contain (no self-introductions).
+     * reply may not contain (no self-introductions); [known]: the prompt, so a name it never mentions is rejected
+     * (empty: not checked).
      */
-    fun validate(raw: String, must: List<String>, self: String): String? {
+    fun validate(raw: String, must: List<String>, self: String, known: String = ""): String? {
         var t = jsTrim(SPECIAL.replace(THINK.replace(raw, ""), ""))
         t = jsTrim(SPACES.replace(ACTION.replace(QUOTES.replace(t, ""), ""), " "))
         if (t.length < 3 || t.length > 320) return null
@@ -55,8 +67,16 @@ object Dialogue {
         // Stage directions, assistant-speak and self-introductions are not how a neighbor talks.
         if (STAGE.containsMatchIn(t)) return null
         if (self.isNotEmpty() && t.lowercase().contains(self.lowercase())) return null
+        // the fact sheet read back: its personality words, or its "<town>, <year>" tag
+        if (SHEET_WORDS.containsMatchIn(t) || SHEET_YEAR.containsMatchIn(t) || SHEET_STYLE.containsMatchIn(t)) return null
         val low = t.lowercase()
         if (must.any { !low.contains(it.lowercase()) }) return null
+        // a name the facts never mention ("We have two kids, Jake and Lisa."): a capitalized word in mid-sentence the prompt lacks
+        if (known.isNotEmpty()) for (m in CAPITALIZED.findAll(t)) {
+            val before = t.substring(0, m.range.first).trimEnd(::isJsSpace)
+            if (before.isEmpty() || before.last() in ".!?\"“‘(" || m.value in COMMON) continue
+            if (!Regex(B0 + m.value + B1).containsMatchIn(known)) return null
+        }
         return t
     }
 

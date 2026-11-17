@@ -3,7 +3,7 @@
 street.json by export-street.ts): for each shop `bN_front.png` (storefront + middle floors), `bN_side.png` (a matching
 side wall made from the same trim and windows), `bN_emis.png` (window glass, for night glow), `bN_roof.png`,
 and `bN_sign.png` / `bN_prop.png` (rooftop signs).  Usage: python3 make_buildings.py street.json out_dir"""
-import glob, json, os, sys
+import glob, json, os, sys, zlib
 import numpy as np
 from PIL import Image
 
@@ -92,6 +92,24 @@ def side_segment(seg, windows):
     arr[..., :3] = np.clip(arr[..., :3] + g[..., None], 0, 255)
     return Image.fromarray(arr.astype(np.uint8))
 
+# What sticks out of a middle floor (drawn by the artist seen from above, as a flat picture on the wall): its region in the
+# part's own pixels, the rows above which only the given columns belong to it (a balcony's side rails rise past the
+# windows), and how far it stands out from the wall in sprite pixels. The engine draws it as a box: it slides off the
+# wall with the view, shows its side and its thickness, and throws a shadow on the wall.
+RELIEF = {'middle_8': dict(box=(14, 50, 212, 118), arms_below=68, arms=((14, 34), (190, 212)), depth=44)}
+
+def relief_mask(im, spec):
+    """The part's pixels that belong to what sticks out: everything in the box that is not the plain wall colour."""
+    a = np.array(im).astype(int); h, w = a.shape[:2]
+    x0, y0, x1, y1 = spec['box']
+    wall = a[..., 2] >= a[..., 0] + 30                       # the blue-grey wall (and the window glass)
+    m = np.zeros((h, w), bool)
+    m[y0:y1, x0:x1] = ~wall[y0:y1, x0:x1] & (a[y0:y1, x0:x1, 3] > 40)
+    top = np.zeros((h, w), bool)
+    for (c0, c1) in spec['arms']: top[y0:spec['arms_below'], c0:c1] = True
+    m[y0:spec['arms_below'], :] &= top[y0:spec['arms_below'], :]
+    return m
+
 def build(shop, out):
     parts = shop['parts']; ground = next(p for p in parts if not p['key'].startswith(('roof_', 'roofprop_', 'middle_')))
     mids = [p for p in parts if p['key'].startswith('middle_')]
@@ -105,8 +123,11 @@ def build(shop, out):
     body = g.crop((0, g.height - body_h, 224, g.height))
     side.alpha_composite(side_segment(body, False), (0, H - body_h))
     y = H - body_h                                # the middle floors stack on top of the storefront
+    relief = np.zeros((H, 224), bool); depth = 0
     for m in mids:
         im = load(m['key']); y -= MID
+        if m['key'] in RELIEF:
+            relief[y:y + MID, :] |= relief_mask(im, RELIEF[m['key']]); depth = max(depth, RELIEF[m['key']]['depth'])
         front.alpha_composite(im, (0, extra + y)); side.alpha_composite(side_segment(im, True), (0, y))
     # the upper floors alone (before the storefront's sign is laid over them), to find their real windows in
     mids_only = front.crop((0, extra, 224, extra + H))
@@ -129,7 +150,23 @@ def build(shop, out):
         else: kept.append((bx, by, bw, bh))
     boxes = kept
     cut &= ~overlay
-    fa = np.array(front); fa[cut] = (0, 0, 0, 0); front = Image.fromarray(fa)
+    fa = np.array(front); fa[cut] = (0, 0, 0, 0)
+    # what sticks out comes off the wall into its own picture (where the storefront's sign hangs over it, the sign stays
+    # on the front), and the wall behind it is filled in with the wall's own colour, row by row
+    relief &= ~overlay
+    if relief.any():
+        mo = np.array(mids_only)
+        rimg = np.zeros((H, 224, 4), np.uint8); rimg[relief] = mo[relief]
+        Image.fromarray(rimg).save(f'{out}/{shop["sprite"]}_relief.png')
+        ys, xs = np.where(relief)
+        WINDOWS[shop['sprite'] + '_relief'] = [(int(xs.min()), int(ys.min()), int(xs.max() - xs.min() + 1), int(ys.max() - ys.min() + 1), depth)]
+        wallc = (fa[..., 2].astype(int) >= fa[..., 0].astype(int) + 30) & (fa[..., 3] > 200) & ~glass(fa)
+        fallback = np.median(fa[wallc][:, :4], axis=0).astype(np.uint8) if wallc.any() else np.array((110, 130, 160, 255), np.uint8)
+        for yy in np.unique(ys):
+            row = wallc[yy] & ~relief[yy]
+            c = np.median(fa[yy][row], axis=0).astype(np.uint8) if row.sum() > 6 else fallback
+            fa[yy][relief[yy]] = c
+    front = Image.fromarray(fa)
     WINDOWS[shop['sprite']] = boxes
     # the shopfront glass (the display shows through it): nothing is cut; the engine lays a faint reflection over this mask
     # (big panes only, so signs, lettering and walls are left alone, and the display items stay clean)
@@ -156,7 +193,7 @@ def build(shop, out):
     # a flat roof (gravel with a parapet in the building's own trim colour); our roof sprites are drawn from above with
     # transparent margins, which read as a faint strip on a side-on box
     rim = tuple(int(v) for v in np.median(fa[0:4, 8:216].reshape(-1, 4), axis=0)[:3])
-    rng = np.random.default_rng(abs(hash(shop['sprite'])) % 2**32)
+    rng = np.random.default_rng(zlib.crc32(shop["sprite"].encode()))
     roof_img = np.zeros((64, 224, 4), np.uint8); roof_img[:, :] = (74, 78, 87, 255)
     noise = rng.integers(-14, 14, (64, 224, 1)); roof_img[..., :3] = np.clip(roof_img[..., :3].astype(int) + noise, 0, 255)
     roof_img[:5, :, :3] = rim; roof_img[:, :5, :3] = rim; roof_img[:, -5:, :3] = rim; roof_img[-5:, :, :3] = rim

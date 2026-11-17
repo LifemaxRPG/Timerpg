@@ -18,7 +18,12 @@ describe('LLM fact sheet', () => {
   });
   it('cleans replies and rejects bad ones', () => {
     const b = brief(ctx, 'chat', narrate(ctx, 'chat'));
-    expect(validate('"I\'m married to Bob." <|im_end|>', b)).toBe("I'm married to Bob.");
+    expect(validate('"Lovely day, isn\'t it?" <|im_end|>', b)).toBe("Lovely day, isn't it?");
+    // a name the facts never mention is made up
+    expect(validate('I\'m married to Bob.', b)).toBeNull();
+    expect(validate('We have two kids, Jake and Lisa.', b)).toBeNull();
+    expect(validate('It rained on Sunday, Mr Lee.', b)).toBeNull();
+    expect(validate('It rained on Sunday, sadly.', b)).toBe('It rained on Sunday, sadly.');
     expect(validate('As an AI language model, I cannot', b)).toBeNull();
     expect(validate('', b)).toBeNull();
     expect(validate('x'.repeat(400), b)).toBeNull();

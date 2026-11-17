@@ -120,7 +120,13 @@ export function narrate(c: TalkCtx, intent: string): string {
       const bits: string[] = [];
       if (spouse && spouse.deathYear === undefined) bits.push(`I'm married to ${fullName(spouse)}.`);
       else if (p.spouse) bits.push('I lost my spouse.');
-      if (kids.length) bits.push(`${kids.length === 1 ? 'One child' : `${kids.length} children`}: ${kids.slice(0, 3).map((k) => k.first).join(', ')}.`);
+      if (kids.length) {
+        // said aloud, so the count is a word and the names a natural list ("Four children: Carl, Irene, Helen and Stanley.")
+        const n = kids.length, names = kids.slice(0, 5).map((k) => k.first);
+        const count = ['One child', 'Two children', 'Three children', 'Four children', 'Five children', 'Six children', 'Seven children', 'Eight children'][n - 1] ?? 'A lot of children';
+        const list = n > 5 ? `${names.join(', ')} and more` : names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0];
+        bits.push(`${count}: ${list}.`);
+      }
       return bits.length ? bits.join(' ') : ageIn(p, w.year) < 18 ? 'I live with my folks.' : 'It\'s just me.';
     }
     case 'work':

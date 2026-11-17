@@ -2363,6 +2363,38 @@ internal class BuildingPainter {
         }
     }
 
+    private val reliefSide = ColorFilter.lighting(Color(0xFF9C98A4), Color.Black)
+    private var reliefShadow: ColorFilter? = null
+    private var reliefShadowInk = Color.Unspecified
+
+    /**
+     * What sticks out of the front ([SpriteBuilding.relief], a balcony the artist drew flat on the wall), as a box on the
+     * engine's view: its shadow on the wall, under it and away from the light; its body, the picture stacked from the wall
+     * out to its front (the box's own lean, [s] and [dy] for the building's whole depth, taken backwards: what stands out
+     * comes towards the viewer), which shows its thickness and the side the building shows; and its front at the end.
+     */
+    private fun DrawScope.relief(img: ImageBitmap, depth: Float, k: Float, half: Float, hf: Float, s: Float, dy: Float) {
+        if (depth <= 0f) return
+        val f = depth / SIDE_SRC_DEPTH
+        val ox = -s * f
+        val oy = dy * f
+        if (reliefShadowInk != castInk) { reliefShadowInk = castInk; reliefShadow = ColorFilter.tint(castInk, BlendMode.SrcIn) }
+        // the shadow: always a little (the sky's light is shut out under it), more in sun, leaning away from the light
+        val sx = -sunSide * depth * k * .3f
+        val sy = depth * k * (.2f + .16f * direct)
+        clipRect(-half, -hf, half, 0f) {
+            picture2(img, -half + sx + ox * .5f, -hf + sy, B.W, hf, FilterQuality.None, alpha = .26f + .3f * direct, filter = reliefShadow)
+        }
+        // the body: one copy per half pixel of travel, darkened as its sides are
+        val travel = kotlin.math.hypot(ox, oy) / k
+        val n = kotlin.math.ceil(travel * 2f).toInt().coerceIn(1, 24)
+        for (i in 0 until n) {
+            val t = i.toFloat() / n
+            picture2(img, -half + ox * t, -hf + oy * t, B.W, hf, FilterQuality.None, filter = reliefSide)
+        }
+        picture2(img, -half + ox, -hf + oy, B.W, hf, FilterQuality.None)
+    }
+
     /**
      * One of OUR buildings ([SpriteArt]): its pixel-art front, a side face and a roof built from our sprites, put on
      * the engine's box (the side face and roof lean with where it stands in the view, [sideShift]) and lit by the
@@ -2451,6 +2483,7 @@ internal class BuildingPainter {
         }
         // the front never moves
         picture2(sb.front, -half, -hf, B.W, hf, FilterQuality.None)
+        sb.relief?.let { relief(it, sb.reliefDepth, k, half, hf, s, dy) }
         facadeLight(-hf, 0f, 1f)
         blueHour(-half, -hf, B.W, hf, .35f)
         drawRect(aoWall, Offset(-half, -14f), Size(B.W, 14f))
@@ -5829,6 +5862,8 @@ internal class BuildingPainter {
 
 // where our prop sprites stand, and how big they are drawn (street units per sprite pixel)
 private val LAMP_K get() = SpriteArt.PIXEL
+/** The side face's width in sprite pixels (tools/make_buildings.py D): the box's depth in the front's pixels. */
+private const val SIDE_SRC_DEPTH = 120f
 private const val LAMP_FOOT_X = 15f
 private const val LAMP_FOOT_Y = 127f
 // the lantern glass under the lamp's head (props/lamp_1.png is 64x128; the glass is the pale band at about 44-56, 46-50)

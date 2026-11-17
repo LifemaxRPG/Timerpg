@@ -532,7 +532,7 @@ class DialogueEngine private constructor(private val app: Context) {
             if (g.cancelled || closed) { end = End.CANCELLED; break }
             if (raw == null) { end = End.ERROR; break }
             lastRaw = raw
-            text = Dialogue.validate(raw, topic.must, topic.self)
+            text = Dialogue.validate(raw, topic.must, topic.self, topic.prompt ?: "")
             if (text != null) { end = End.OK; break }
         }
         val ms = SystemClock.elapsedRealtime() - t0

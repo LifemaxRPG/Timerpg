@@ -4,6 +4,8 @@
 import { validate, type Brief } from '../../src/llm/factsheet';
 
 const SELF = 'Lois Fairchild';
+/** The prompt's text, for the check on names it never mentions. */
+const KNOWN = 'You are Lois Fairchild, 81. Married to Bob Lee. Children: Ann, Carl. Keep this quiet, but Walter Vance is in debt.';
 type Case = [raw: string, must: string[]];
 const cases: Case[] = [
   // the TypeScript tests' own cases
@@ -98,9 +100,24 @@ const cases: Case[] = [
   ['Fine. ' + 'b'.repeat(330), []],
   ['🙂 Lovely day. Truly. Yes.', []],
   ['Lovely day 🙂. Truly 🙂 lovely. Yes.', []],
+  // the fact sheet read back
+  ['I talk curtly to strangers.', []],
+  ['A curt, measured response: It is a nice day.', []],
+  ['An answer: fine.', []],
+  ['A fine day, Maple Hollow, 2025.', []],
+  ['Maple Hollow,2025 is home.', []],
+  // names the facts never mention
+  ['We have two kids, Jake and Lisa.', []],
+  ['Married to Bob, with Ann and Carl.', ['Bob']],
+  ['Ann is grown now. Carl too.', []],
+  ['Between you and Walter, money is tight.', []],
+  ['On Sunday, Mr Vance came by.', []],
+  ['Heard from Bobby lately?', []],
+  ['Café is open. "Vernon" said so.', []],
+  ['It is a nice day, Vernon.', []],
 ];
 
-const brief = (must: string[]): Brief => ({ system: '', user: '', must, self: SELF });
+const brief = (must: string[]): Brief => ({ system: KNOWN, user: '', must, self: SELF });
 /** A Kotlin string literal. */
 const kt = (s: string): string => '"' + [...s].map((ch) => {
   const out: string[] = [];
@@ -121,6 +138,7 @@ package com.timerpg.street.llm
 
 object ValidateVectors {
     const val SELF = ${kt(SELF)}
+    const val KNOWN = ${kt(KNOWN)}
 
     class V(val raw: String, val must: List<String>, val expected: String?)
 

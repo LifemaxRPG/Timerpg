@@ -5,7 +5,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { validate, type Brief } from '../../src/llm/factsheet';
 
-interface Reply { label: string; raw: string; must: string[]; self: string; template: string; ts?: string | null }
+interface Reply { label: string; raw: string; prompt: string; must: string[]; self: string; template: string; ts?: string | null }
 
 const file = process.argv[2];
 if (!file) {
@@ -15,7 +15,8 @@ if (!file) {
 const doc = JSON.parse(readFileSync(file, 'utf8')) as { replies: Reply[] };
 let passed = 0;
 for (const r of doc.replies) {
-  const b: Brief = { system: '', user: '', must: r.must, self: r.self };
+  // the whole prompt as the known text, as the app passes it (validate() only searches it for names)
+  const b: Brief = { system: r.prompt, user: '', must: r.must, self: r.self };
   r.ts = validate(r.raw, b);
   if (r.ts !== null) passed++;
 }

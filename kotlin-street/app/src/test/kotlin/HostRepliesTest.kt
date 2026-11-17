@@ -54,7 +54,7 @@ class HostRepliesTest {
             expect(r.optBoolean("promptTokensOk")) { "$label: the prompt is not tokenized as one ChatML conversation" }
             expect(r.optString("error").isEmpty()) { "$label: the engine failed: ${r.optString("error")}" }
             val raw = r.optString("raw")
-            val line = Dialogue.validate(raw, topic.must, topic.self)
+            val line = Dialogue.validate(raw, topic.must, topic.self, topic.prompt ?: "")
             if (r.has("ts")) {
                 tsChecked++
                 val ts = if (r.isNull("ts")) null else r.optString("ts")
@@ -80,6 +80,7 @@ class HostRepliesTest {
             missing.isNotEmpty() -> "missing ${missing.joinToString { "\"$it\"" }}"
             t.self.isNotEmpty() && low.contains(t.self.lowercase()) -> "says the speaker's own full name"
             raw.trim().length < 3 -> "too short"
+            Dialogue.validate(raw, t.must, t.self) != null -> "names someone the facts never mention"
             else -> "stage direction or assistant talk"
         }
     }
