@@ -1,0 +1,689 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-7771",
+      "kind": "scenario",
+      "title": "The Words on the Screen",
+      "category": "family",
+      "pitch": "Fund the hearing aid a parent has requested but cannot afford. A child's experience of clearer family communication may grow into captioned public evenings, paid for partly by fewer dance nights.",
+      "present_hook": {
+        "what_you_notice": "An old family letter mentions an unaffordable hearing-aid fitting. The public hall has a screen but no caption equipment, and its calendar is filled by weekly dances.",
+        "where": "the public hall",
+        "clues": [
+          {
+            "who": "the family papers",
+            "line": "{A} asked about a hearing aid in {year}. Child {B} kept writing the important parts of conversations on scraps."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            50,
+            55
+          ],
+          "wealth": "poor",
+          "has_children": true
+        },
+        "B": {
+          "age": [
+            10,
+            12
+          ],
+          "relation": "parent_child",
+          "trait": {
+            "diligence": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1985
+        ],
+        "notes": "A is B's parent. Require A's own documented request, a qualified fitting service, B's recorded written communication help and an actual public-hall budget that can support either the planned access program or its full old dance schedule. Present must be at least 27 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "large",
+          "how_it_looks": "Pay the requested fitting and device shortfall without making participation compulsory."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "equip": "A",
+              "device": "the prescribed hearing aid"
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.2
+            }
+          ],
+          "headline": "Requested Hearing-Aid Fitting Receives Funding",
+          "body": "{A} completed a requested hearing-aid fitting. Child {B} continued helping with written communication when it was useful."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_event": "a captioned public film evening",
+              "organizer": "B"
+            }
+          ],
+          "headline": "Former Family Helper Organizes Captioned Film Nights",
+          "body": "{B} organized a licensed film evening with checked captions. The program offered another way to follow the same story together."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            25,
+            27
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a permanent hall caption-display installation",
+              "where": "Main Street"
+            },
+            {
+              "wealth": "B",
+              "by": -0.15
+            },
+            {
+              "reduce_event_frequency": "the bound weekly hall dance",
+              "fraction": 0.25
+            }
+          ],
+          "headline": "Permanent Caption Equipment Changes the Hall Calendar",
+          "body": "A funded caption-display installation expanded the hall's access program. Its operating allocation reduced the previous dance schedule by a quarter."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": 0.05
+          }
+        ],
+        "headline": "Funded Fitting Does Not Produce a Suitable Device",
+        "body": "The funded fitting for {A} did not identify a suitable device within the project's window. The family retained its existing communication methods and any unspent funds."
+      },
+      "present_day": {
+        "best": "In {now}, the public hall has working caption equipment and a funded accessible film program. Its posted dance schedule is smaller unless later budgets restore it; A's later health and device use follow actual history.",
+        "worst": "On first-step failure, no device benefit is recorded and no scenario film program follows. Written communication remains valid, and unspent gift money is not silently lost.",
+        "twist": "More residents can follow public films, while dancers lose part of their regular calendar. Better access requires continuing resources, not just a donated machine."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I wanted the words to be there for anyone who needed them. I wish we had found room for every dance too."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose event years and independent rolls keyed by seed, scenario ID, intervention year, roles and step. after_years is elapsed from intervention. Roll only after eligibility checks; failure or ineligibility stops descendants without reversing earlier effects. fails is the first-step complementary result, never another roll. Apply direct intervention effects once. Persist people, sites, money, facts and knowledge and invalidate descendants on replay. Recheck survival, permissions, resources and ownership. Gate present text and after-lines by actual surviving outcomes and informed living speakers. No forced unrelated events or repeat rewards.",
+        "Add equip: require A's informed choice, an era-appropriate prescribed device, a real fitting and maintenance funding. Record actual assisted hearing without promising perfect hearing or replacing written/sign communication. Debit gift funds only for real services and equipment.",
+        "Add establish_event with licensed film exhibition, verified captions, trained operation and a sustainable budget; B must be adult. A need not remain alive for B's later work.",
+        "Step 3 requires an active film program, a Main Street hall, technical compatibility, public approval and an installation quote funded by B's fifteen percent donation plus recorded funds. Add reduce_event_frequency: reduce the identified weekly dance's annual scheduled sessions by 25 percent using explicit calendar rounding and a real budget reallocation. Do not erase other events. Gate B's line on step 3, B alive and retained family memories."
+      ],
+      "era_notes": "Use hearing-aid and caption technologies actually available in each event year. Earlier film programs may use captioned prints rather than modern electronic subtitles.",
+      "why_fun": "A family purchase changes who can share an evening at the hall. The calendar makes the remaining cost visible."
+    },
+    {
+      "id": "scenario-20261117-7772",
+      "kind": "scenario",
+      "title": "The High-Water Notebook",
+      "category": "place",
+      "pitch": "Publicly support an older resident whose river measurements were dismissed. The notebook may help protect one neighborhood, while its resulting floodworks leave another business with costly access problems.",
+      "present_hook": {
+        "what_you_notice": "A damaged low street has an unbuilt flood-barrier plan in its archive. A private notebook contains measurements that were never included in the engineering review.",
+        "where": "the river",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} kept high-water marks in {year}. The review dismissed the notebook without checking its dates."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            60,
+            65
+          ],
+          "reputation": "low",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bait shop"
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "bait shop"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "shop belongs to B. Require a genuine calibrated notebook, an incomplete flood review, an approved possible barrier corridor and B's dock-dependent shop whose access would be altered. Present must be at least 29 years later."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": 0.4,
+          "how_it_looks": "Spread the truthful recommendation that the notebook deserves an independent technical check."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "archive_work": "the bound high-water notebook",
+              "recorder": "A"
+            },
+            {
+              "rep": "A",
+              "by": 0.12
+            }
+          ],
+          "headline": "Independent Check Validates a River Notebook",
+          "body": "An independent review validated the dated measurements kept by {A}. The notebook entered the public engineering record with its limits clearly stated."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "approve_plan": "the bound neighborhood flood barrier"
+            }
+          ],
+          "headline": "Flood Review Approves a Limited Neighborhood Barrier",
+          "body": "A revised technical review approved a funded barrier plan using the preserved measurements. The plan documented both its protection limits and changes to river access."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            27,
+            29
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "the reviewed neighborhood flood barrier",
+              "where": "the river"
+            },
+            {
+              "restrict_access": "shop",
+              "route": "the bound original dock route"
+            },
+            {
+              "wealth": "B",
+              "by": -0.15
+            }
+          ],
+          "headline": "Flood Barrier Opens with a Costly Dock Detour",
+          "body": "The reviewed barrier opened with an approved alternative dock route. The bait shop run by {B} paid for the required access conversion."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [
+          {
+            "rep": "A",
+            "by": -0.03
+          }
+        ],
+        "headline": "Notebook Review Stalls on Missing Corroboration",
+        "body": "Reviewers could not complete corroboration of the notebook kept by {A} within the allotted period. The measurements remained unadopted rather than disproved."
+      },
+      "present_day": {
+        "best": "In {now}, a physical barrier protects the modeled neighborhood up to its design limits, and the former direct dock route is closed. The replacement route and B's conversion costs are recorded; protection is never immunity.",
+        "worst": "First-step failure produces no scenario-approved barrier. The notebook retains its true measurements, but those facts have not become an adopted public plan.",
+        "twist": "Taking a dismissed resident seriously can help a neighborhood. The resulting infrastructure still places a real cost on a shop that did not dismiss anyone."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I wanted those houses safe. I had not counted on moving my whole working route around their wall."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose event years and independent rolls keyed by seed, scenario ID, intervention year, roles and step. after_years is elapsed from intervention. Roll only after eligibility checks; failure or ineligibility stops descendants without reversing earlier effects. fails is the first-step complementary result, never another roll. Apply direct intervention effects once. Persist people, sites, money, facts and knowledge and invalidate descendants on replay. Recheck survival, permissions, resources and ownership. Gate present text and after-lines by actual surviving outcomes and informed living speakers. No forced unrelated events or repeat rewards.",
+        "The positive rumor concerns A's documented diligence and need for review, not certainty that every conclusion is right. Add archive_work for the genuine notebook with provenance, calibration and uncertainty; the additional reputation gain is from completed validation, not a duplicate rumor.",
+        "Add approve_plan: require qualified independent engineering, modeled upstream/downstream effects, public consultation, lawful corridor rights and committed construction/maintenance funding. If adverse effects cannot be mitigated within the plan, stop rather than handwave them.",
+        "Step 3 requires the approved design still valid and B owning the open shop. Add restrict_access: replace only the identified route edge after a lawful compensated access process, with a safe viable alternative. B's fifteen percent debit is the agreed remaining conversion cost after any assistance, backed by an actual quote. Gate the line on step 3, B alive and actual experience of the new route."
+      ],
+      "era_notes": "Keep the notebook physical; review instruments and flood-design standards depend on the event decade. Later construction must reassess newer climate and flow information.",
+      "why_fun": "An ignored notebook becomes a wall you can walk beside. The access detour reminds you that listening well does not eliminate tradeoffs."
+    },
+    {
+      "id": "scenario-20261117-7773",
+      "kind": "scenario",
+      "title": "The Map Drawn on a Napkin",
+      "category": "politics",
+      "pitch": "Introduce a careful organizer to an aspiring local candidate. Their sketch of a walkable center may eventually remove cars from a block, while costing a shop the customers who depended on loading at its door.",
+      "present_hook": {
+        "what_you_notice": "Main Street's central block remains congested. An unused pedestrian-block sketch and an abandoned campaign leaflet sit in separate archive folders.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} proposed a traffic change in {year}. {B} had an organizing plan, but they never worked together."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "trait": {
+            "ambition": "high"
+          }
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "trait": {
+            "diligence": "high"
+          },
+          "relation": "strangers"
+        },
+        "C": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "clothing store"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1975,
+          1990
+        ],
+        "notes": "B is a stranger to A. Require A's genuine pedestrian-block proposal, B's unused organizing plan, a candidate-eligible A and C's original store dependent on doorstep loading. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Put the proposal and organizing notes on the same table and introduce their authors."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.35
+            },
+            {
+              "run_for_mayor": "A"
+            }
+          ],
+          "headline": "Street Proposal Becomes a Joint Campaign",
+          "body": "{A} entered a mayoral campaign with organizing help from {B}. The proposed pedestrian block became a public issue rather than an unused sketch."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            7,
+            9
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "win_election": "A"
+            },
+            {
+              "approve_plan": "the bound pedestrian block"
+            }
+          ],
+          "headline": "Candidate Wins a Term and Secures a Street Review",
+          "body": "{A} won an elected term and secured lawful approval for a funded pedestrian-block plan. The review included delivery access and emergency routes."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "pedestrianize": "the bound Main Street block"
+            },
+            {
+              "close_owned_business": "C",
+              "kind": "clothing store"
+            }
+          ],
+          "headline": "Pedestrian Block Opens as a Longtime Store Closes",
+          "body": "The approved block opened to pedestrians with scheduled delivery access. The clothing store run by {C} closed after its changed customer and loading pattern proved financially unsustainable."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": -0.1
+          }
+        ],
+        "headline": "Campaign Partnership Ends Before an Announcement",
+        "body": "{A} and {B} could not agree on a workable organizing plan. The proposed joint campaign did not proceed."
+      },
+      "present_day": {
+        "best": "In {now}, the central block has pedestrian paving, controlled vehicle entries and a posted delivery schedule. C's store has a recorded closure; current shopfront use follows replay.",
+        "worst": "First-step failure creates no joint candidacy, approved plan or scenario street conversion. Other campaigns and traffic changes remain possible.",
+        "twist": "More people can stroll safely through the center, while a particular retailer loses a viable way of serving customers. A good public route need not preserve every existing business model."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "The street looks lovely at walking speed. My customers used to collect things they could not carry that far."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose event years and independent rolls keyed by seed, scenario ID, intervention year, roles and step. after_years is elapsed from intervention. Roll only after eligibility checks; failure or ineligibility stops descendants without reversing earlier effects. fails is the first-step complementary result, never another roll. Apply direct intervention effects once. Persist people, sites, money, facts and knowledge and invalidate descendants on replay. Recheck survival, permissions, resources and ownership. Gate present text and after-lines by actual surviving outcomes and informed living speakers. No forced unrelated events or repeat rewards.",
+        "Step 1 requires voluntary cooperation and A's legal candidacy. Step 2 must coincide with an actual election; use the conditional roll within the election model, not a replacement for an already certified result.",
+        "approve_plan requires real public review, budget, accessibility, delivery arrangements, emergency access and land rights after the election, not a mayor's unilateral sketch. A may leave office before later implementation; successor governments must continue the approved project lawfully.",
+        "Add pedestrianize: update the identified block's road and foot routing, timed delivery exceptions, paving and access signs after funded construction. Step 3 requires the original plan still approved and C still owning the bound store. close_owned_business requires sustained actual losses after feasible adaptations and any support, not an automatic penalty for policy disagreement. Gate C's line on step 3, C alive and the recorded customer change."
+      ],
+      "era_notes": "Use period-valid traffic review and street furniture. Do not assume a pedestrian block permits no vehicles at any time.",
+      "why_fun": "The same block changes how the player moves through town. A boarded shop can complicate an otherwise pleasant walk."
+    },
+    {
+      "id": "scenario-20261117-7774",
+      "kind": "scenario",
+      "title": "The Lawyer on the Loose Stair",
+      "category": "rescue",
+      "pitch": "Warn a newly qualified lawyer about a fatal stair defect. The saved career may later settle a legitimate river-land claim, leaving the town with an honest ruling and one fewer public-looking shortcut.",
+      "present_hook": {
+        "what_you_notice": "An obituary records a young lawyer's stair fall before a first office opened. A river path remains informally used because the later land-title dispute was never brought to court.",
+        "where": "the Gazette archive",
+        "clues": [
+          {
+            "who": "the accident record",
+            "line": "{A} used the defective stair in {year}. The planned office and the later river-land case never followed."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            30
+          ],
+          "wealth": "comfortable",
+          "owns_shop": false,
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "wealth": "comfortable"
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1985
+        ],
+        "notes": "Require A already licensed to practice, a recorded avoidable stair death later in the intervention year, B's authentic unresolved river-parcel title and an informal path with no established public access right under the modeled law. Present must be at least 27 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:warn",
+          "target": "A",
+          "how_it_looks": "Show the unsafe stair before the scheduled visit and identify a safe alternative entrance."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "law office"
+            }
+          ],
+          "headline": "Newly Qualified Lawyer Opens a Local Office",
+          "body": "{A} opened a licensed law office after avoiding the recorded stair accident. The first clients found a practitioner who had nearly never reached opening day."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "settle_title": "B",
+              "parcel": "the bound river parcel"
+            },
+            {
+              "rep": "A",
+              "by": 0.1
+            }
+          ],
+          "headline": "Final Ruling Confirms a Disputed River Title",
+          "body": "A final ruling in a case handled by {A} confirmed the river-parcel title held by {B}. The court found no established public right along the informal path."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            25,
+            27
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "close_path": "the bound informal river path"
+            },
+            {
+              "build": "a lawful private boundary fence",
+              "where": "the river"
+            }
+          ],
+          "headline": "River Parcel Owner Fences an Informal Shortcut",
+          "body": "{B} completed an authorized boundary fence after the title ruling. Walkers were directed to an existing lawful alternative route."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "wealth": "A",
+            "by": -0.06
+          }
+        ],
+        "headline": "Office Plan Stalls After the Stair Escape",
+        "body": "{A} survived the avoided stair accident but could not complete the planned office opening. Setup expenses consumed part of the available savings."
+      },
+      "present_day": {
+        "best": "In {now}, the river parcel has a boundary fence and the informal shortcut is unavailable. A's original accident death is absent, while A's later life and office history follow ordinary replay.",
+        "worst": "If the warning is accepted but the first ripple fails, A survives that particular hazard without gaining a guaranteed practice. The scenario creates no title ruling or fence.",
+        "twist": "A saved life produces competent work for a rightful owner, yet residents lose an accustomed walk. The legal outcome can be honest without making everyone glad the case existed."
+      },
+      "npc_lines_after": [
+        {
+          "who": "anyone",
+          "mood": "bitter",
+          "line": "I know the ruling was proper. I still miss the turn by the water."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "warn",
+          "does": "Before the bound stair accident, give A the verifiable defect information and a physically safe alternative entrance. On A's accepted route change, cancel only the pending death from that stair fall. Preserve the dangerous stair for inspection and repair, all unrelated hazards and normal later mortality. Refusal or late arrival does not activate the chain."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose event years and independent rolls keyed by seed, scenario ID, intervention year, roles and step. after_years is elapsed from intervention. Roll only after eligibility checks; failure or ineligibility stops descendants without reversing earlier effects. fails is the first-step complementary result, never another roll. Apply direct intervention effects once. Persist people, sites, money, facts and knowledge and invalidate descendants on replay. Recheck survival, permissions, resources and ownership. Gate present text and after-lines by actual surviving outcomes and informed living speakers. No forced unrelated events or repeat rewards.",
+        "This warn variant changes the selected route, not general luck or A's legal qualifications. Its accepted intervention saves A before the first ripple; fails is only the complementary office-opening result. Record how A learned of the hazard without giving NPCs automatic knowledge of the player's original timeline.",
+        "Step 1 requires an existing valid legal license, sufficient funds and a permitted office site. The six percent failure cost is actual setup expense, not a second consequence of warning.",
+        "Add settle_title: require real admissible evidence, funded legal work, completed appeals and the modeled jurisdiction's check of easements, customary access and all other public rights. If any public right exists, stop this scenario's closure branch rather than erase it.",
+        "Step 3 requires B still owning the parcel, a funded permitted fence, ecological clearance and an available safe alternative walk. close_path removes only the legally private informal route edge; update routing without teleporting or trapping anyone. Gate the line on step 3 and a living former path user who knows the ruling."
+      ],
+      "era_notes": "Apply the actual property and access law of the modeled era. Keep the safety warning concrete; it cannot grant future legal knowledge.",
+      "why_fun": "The rescue is plainly humane, but its professional ripple changes a familiar walk. You can be grateful for a life and regret one of its consequences."
+    }
+  ]
+}

@@ -1,0 +1,723 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-6571",
+      "kind": "scenario",
+      "title": "The Instrument Nobody Could Afford",
+      "category": "money",
+      "pitch": "Give an ambitious teenager enough money to turn instrument repair into a livelihood. Return decades later to hear what the town gained, and see which gathering place paid for it.",
+      "present_hook": {
+        "what_you_notice": "A public handball wall stands beside a vacant commercial plot; an old repair advertisement describes a venture that never found its opening money.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} advertised instrument repairs in {year}, then withdrew the notice before taking a single order."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            16,
+            20
+          ],
+          "wealth": "poor",
+          "owns_shop": false,
+          "trait": {
+            "ambition": "high"
+          }
+        },
+        "B": {
+          "age": [
+            8,
+            12
+          ],
+          "wealth": "poor"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1975
+        ],
+        "notes": "Require the baseline withdrawn advertisement, no music store owned by A, the vacant shop plot and an adjacent public handball wall. B is an unrelated local child. Present must be at least 28 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "large",
+          "how_it_looks": "Pay for the repair tools and initial stock described in the withdrawn advertisement."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            3,
+            4
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "music store"
+            }
+          ],
+          "headline": "Repair Bench Becomes a Music Store",
+          "body": "{A} opened a music store after several years of instrument repairs. A former vacant storefront now has strings, reeds and customers."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            10,
+            12
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "hire": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.3
+            }
+          ],
+          "headline": "Music Store Takes On a Local Repairer",
+          "body": "{A} hired {B} to repair instruments and run practice sessions. The extra pair of hands made room for a regular evening program."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            25,
+            28
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "tear_down": "the public handball wall"
+            },
+            {
+              "build": "a community rehearsal hall",
+              "where": "Main Street"
+            },
+            {
+              "rep": "A",
+              "by": 0.15
+            }
+          ],
+          "headline": "Rehearsal Hall Replaces the Handball Wall",
+          "body": "A community rehearsal hall opened beside the music store founded by {A}. Its new entrance occupies the site of the demolished public handball wall."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [
+          {
+            "wealth": "A",
+            "by": -0.1
+          }
+        ],
+        "headline": "Repair Venture Ends Before a Shop Opens",
+        "body": "{A} spent money on tools but could not secure enough repair orders to open a store. Some equipment was sold at a loss."
+      },
+      "present_day": {
+        "best": "In {now}, a community rehearsal hall stands beside the site of the music store founded by {A}; current shop ownership and operation come from the replay. The public handball wall is gone.",
+        "worst": "If step 1 fails and no unrelated event changes the site, the original vacant plot and handball wall remain; the gift has produced a recorded failed venture.",
+        "twist": "The hall is a real gain for musicians, but people who used the free handball wall lose their gathering place. The intervention funds one kind of play at the expense of another."
+      },
+      "npc_lines_after": [
+        {
+          "who": "anyone",
+          "mood": "bitter",
+          "line": "The hall has a roof and proper lights. The old wall never charged us to hit a ball."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Roll once per step using seed, scenario ID, intervention year, bound IDs and step number. after_years is measured from intervention, not the previous step; choose a keyed year within each range. A failed or ineligible step stops its descendants without undoing prior effects. fails is exclusively the complement of step 1's roll after prerequisites pass; never roll it separately. Apply direct intervention effects once. Reserve required sites at activation; build/tear_down changes the physical map. Recheck living participants, ownership and vacancies before effects. Render best only after all steps, worst only on the stated failure, and other outcomes from recorded partial history. After-lines require their cited step, a living speaker if named, and surviving referenced places. Persist facts and invalidate descendants on replay; repeated visits cannot repeat rewards.",
+        "Bind B independently of A; hire only at age 18 or above, with A still owning the scenario-founded open music store and B not in incompatible employment. Record the store ID at step 1 and bind later steps to it.",
+        "The gift is the player's transfer; step-1 failure loses 10 percent of A's post-gift money through the failed venture. Founding spends the venture budget under the business system; do not credit the gift again.",
+        "Step 3 requires town permission, the reserved adjacent wall site and a funded hall project using the store's accumulated surplus; reject if resources are insufficient. Preserve the wall until construction commits atomically. Gate the after-line on completed step 3 and an existing hall."
+      ],
+      "era_notes": "Use handwritten repair notices in early years and printed advertisements later. Keep instruments and the hall unbranded.",
+      "why_fun": "An ordinary gift becomes a place you can enter decades later. The missing wall makes the cost of success visible."
+    },
+    {
+      "id": "scenario-20261117-6572",
+      "kind": "scenario",
+      "title": "Two Invitations, One Porch",
+      "category": "love",
+      "pitch": "Introduce two young strangers who have each stopped coming to town gatherings. Their shared life may eventually give the town a toy shop and a garden, while silencing an old stage.",
+      "present_hook": {
+        "what_you_notice": "Two separate archived refusals to attend the same social are displayed near a weathered bandstand; a nearby commercial lot remains empty.",
+        "where": "the church",
+        "clues": [
+          {
+            "who": "the church records",
+            "line": "{A} and {B} both declined the same gathering in {year}. Nobody thought to invite them together."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            24
+          ],
+          "married": false,
+          "owns_shop": false,
+          "trait": {
+            "ambition": "high"
+          }
+        },
+        "B": {
+          "age": [
+            18,
+            24
+          ],
+          "married": false,
+          "relation": "strangers",
+          "trait": {
+            "diligence": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1985
+        ],
+        "notes": "B is a stranger to A. Require recorded declined invitations, both residents living locally, a vacant commercial lot and a publicly owned bandstand eligible for redevelopment. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Invite both residents to the same porch table and make the introduction."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "marry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Porch Acquaintance Leads to a Wedding",
+          "body": "{A} and {B} married after meeting at a shared porch table. Both recalled nearly declining the invitation."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            8,
+            10
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "toy store"
+            },
+            {
+              "hire": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Married Partners Open a Toy Store",
+          "body": "{A} opened a toy store with {B} working alongside. A long-empty commercial lot finally has a working door and a bright display."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.5,
+          "effects": [
+            {
+              "tear_down": "the old public bandstand"
+            },
+            {
+              "build": "a public play garden",
+              "where": "Main Street"
+            },
+            {
+              "rep": "A",
+              "by": 0.1
+            },
+            {
+              "rep": "B",
+              "by": 0.1
+            }
+          ],
+          "headline": "Play Garden Takes the Old Bandstand's Place",
+          "body": "{A} and {B} helped fund a public play garden on the bandstand site. The swings opened after the old stage was removed."
+        }
+      ],
+      "fails": {
+        "chance": 0.4,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": -0.15
+          }
+        ],
+        "headline": "Porch Meeting Ends in an Awkward Farewell",
+        "body": "{A} and {B} found little common ground at their first meeting. Both declined an offer to arrange another."
+      },
+      "present_day": {
+        "best": "In {now}, a public play garden occupies the former bandstand site, and the toy-store building exists on the once-vacant lot. Check replayed business history before describing its current proprietor.",
+        "worst": "On step-1 failure, this introduction produces no marriage, store or garden; unrelated future relationships remain possible.",
+        "twist": "Children gain a place to climb while amateur performers lose the town's free stage. The garden does not secretly provide a replacement bandstand."
+      },
+      "npc_lines_after": [
+        {
+          "who": "anyone",
+          "mood": "unaware",
+          "line": "I like the swings. I do wish there were still somewhere to put on a little show."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Roll once per step using seed, scenario ID, intervention year, bound IDs and step number. after_years is measured from intervention, not the previous step; choose a keyed year within each range. A failed or ineligible step stops its descendants without undoing prior effects. fails is exclusively the complement of step 1's roll after prerequisites pass; never roll it separately. Apply direct intervention effects once. Reserve required sites at activation; build/tear_down changes the physical map. Recheck living participants, ownership and vacancies before effects. Render best only after all steps, worst only on the stated failure, and other outcomes from recorded partial history. After-lines require their cited step, a living speaker if named, and surviving referenced places. Persist facts and invalidate descendants on replay; repeated visits cannot repeat rewards.",
+        "The introduction changes the bond once; the marriage roll is a later conditional event, not a second introduction. Both must still be unmarried adults, locally resident and mutually eligible at step 1; otherwise stop without forcing divorce.",
+        "Step 2 requires A and B still married, sufficient pooled savings, the reserved vacant lot and neither owning an incompatible business. Hire B into the newly created store; retain its ID for later funding checks.",
+        "Step 3 requires an open solvent scenario store, both founders' consent, a funded donation and lawful public approval to replace the reserved bandstand. Apply donation costs through the funding rule and prohibit building from nothing. Gate the after-line on completed step 3 and the garden still existing."
+      ],
+      "era_notes": "A porch introduction needs no era-specific technology. Toy stock can change by decade without naming brands.",
+      "why_fun": "The first change is personal, but the payoff has a front door and a playground. You can like the new town and still miss its old stage."
+    },
+    {
+      "id": "scenario-20261117-6573",
+      "kind": "scenario",
+      "title": "The Wrong Person to Distrust",
+      "category": "politics",
+      "pitch": "Spread a damaging rumor about an honest candidate to give a younger rival an opening. A future riverside improvement may be useful and still leave the town poorer in another way.",
+      "present_hook": {
+        "what_you_notice": "The town displays a portrait of a former mayor while the riverbank remains a public wildflower meadow. An archived election report identifies the rival who never gained a foothold.",
+        "where": "the town hall",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} won public trust in {year}; {B} never found enough support to enter the next race."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "reputation": "high"
+        },
+        "B": {
+          "age": [
+            18,
+            24
+          ],
+          "reputation": "mid",
+          "relation": "rivals",
+          "trait": {
+            "ambition": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1980,
+          1990
+        ],
+        "notes": "B is A's rival. Require verified honesty of A regarding the allegation, the baseline electoral account and an undeveloped public river meadow. Intervention year must precede an eligible election; present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": -0.6,
+          "how_it_looks": "Repeat an unsupported allegation that the candidate favors private friends."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "run_for_mayor": "B"
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": -0.35
+            }
+          ],
+          "headline": "Young Rival Enters Race After Trust Collapses",
+          "body": "{B} announced a campaign after allegations weakened support for {A}. The allegations remain unsubstantiated."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            3,
+            4
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "win_election": "B"
+            }
+          ],
+          "headline": "New Mayor Wins on a Promise of Visible Change",
+          "body": "{B} won an eligible mayoral election. Supporters called for public works to match the campaign's promises."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            22,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.5,
+          "effects": [
+            {
+              "tear_down": "the public river meadow"
+            },
+            {
+              "build": "a paved riverside promenade",
+              "where": "the river"
+            }
+          ],
+          "headline": "Promenade Opens Where the Meadow Once Grew",
+          "body": "A paved riverside promenade approved during the administration of {B} opened to walkers. Construction removed the public wildflower meadow."
+        }
+      ],
+      "fails": {
+        "chance": 0.3,
+        "effects": [
+          {
+            "rep": "A",
+            "by": 0.12
+          }
+        ],
+        "headline": "Unsupported Allegation Strengthens Its Target",
+        "body": "Residents rallied behind {A} after no evidence emerged for a widely repeated allegation. The younger rival found no new opening."
+      },
+      "present_day": {
+        "best": "In {now}, the successful alternate mayoral term appears in the town's portrait record and a paved promenade replaces the meadow. The route gives walkers firm footing beside the river.",
+        "worst": "On step-1 failure, the smear has hurt an honest person even if support later rebounds; the rival gains no scenario election or construction chain.",
+        "twist": "A cruel lie can help build an accessible walking route. It also removes the meadow, and the completed promenade never makes the original allegation true."
+      },
+      "npc_lines_after": [
+        {
+          "who": "anyone",
+          "mood": "bitter",
+          "line": "I use the paved walk. I still want to know who decided that honest person deserved the lie."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Roll once per step using seed, scenario ID, intervention year, bound IDs and step number. after_years is measured from intervention, not the previous step; choose a keyed year within each range. A failed or ineligible step stops its descendants without undoing prior effects. fails is exclusively the complement of step 1's roll after prerequisites pass; never roll it separately. Apply direct intervention effects once. Reserve required sites at activation; build/tear_down changes the physical map. Recheck living participants, ownership and vacancies before effects. Render best only after all steps, worst only on the stated failure, and other outcomes from recorded partial history. After-lines require their cited step, a living speaker if named, and surviving referenced places. Persist facts and invalidate descendants on replay; repeated visits cannot repeat rewards.",
+        "Use an explicitly false allegation with a simulation truth flag; belief, knowledge and public reputation are separate. Apply the rumor amount under the existing verb conversion once. Never promote the allegation into an NPC fact sheet as true.",
+        "Step 1 requires A still alive locally and B eligible to run. Step 2 occurs at the first actual election within its range and only while B remains a legal candidate; do not overwrite a separately resolved election or award office without recording the race.",
+        "Step 3 requires B alive, locally resident and legally mayor again at the chosen year under ordinary re-election simulation. The scenario grants no automatic intervening victories. Require a funded public works budget, site permission and the original meadow still present; removal and construction are atomic. Record the elected term/portrait even if B later dies or loses. Gate the after-line on completed step 3."
+      ],
+      "era_notes": "Use face-to-face gossip in all decades; campaign materials may differ. Never give the false allegation technological details it cannot have.",
+      "why_fun": "You can walk on an improvement created by your own dishonest intervention. The terrain and the archives disagree about whether it was worth it."
+    },
+    {
+      "id": "scenario-20261117-6574",
+      "kind": "scenario",
+      "title": "The Warning Before Closing",
+      "category": "rescue",
+      "pitch": "Warn a shopkeeper about a lethal closing-time fire. A saved parent may help a child build a career that eventually brings a bridge to the river—and displaces another livelihood.",
+      "present_hook": {
+        "what_you_notice": "A repaired music-store facade bears a memorial plaque, and the river has a bait shop but no footbridge. The fire report records why the proprietor went back inside.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} returned for the account book during the fire in {year}. The alarm had already been raised."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            40,
+            48
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "music store"
+          ],
+          "has_children": true
+        },
+        "B": {
+          "age": [
+            14,
+            17
+          ],
+          "relation": "parent_child",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "C": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bait shop"
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "bait shop"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1975,
+          1985
+        ],
+        "notes": "A is B's parent; shop is C's open bait shop, not A's music store. Require a recorded lethal fire scheduled later in the intervention year, A's avoidable re-entry death, B's baseline departure after bereavement and the bait-shop parcel blocking the only approved footbridge approach. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:warn",
+          "target": "A",
+          "how_it_looks": "Describe the coming fire and urge the proprietor to leave the account book behind."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            4,
+            5
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "hire": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "move_in": "B"
+            }
+          ],
+          "headline": "Saved Shopkeeper Gives Adult Child a Local Start",
+          "body": "{A} hired adult child {B} after the music store recovered from its fire. {B} chose to stay in town rather than leave."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "B",
+              "kind": "law office"
+            }
+          ],
+          "headline": "Former Shop Assistant Opens a Law Office",
+          "body": "After completing the required legal training, {B} opened a local law office. Years of work and saved wages had helped pay for the change."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.45,
+          "effects": [
+            {
+              "close_shop": "shop"
+            },
+            {
+              "wealth": "C",
+              "by": 0.15
+            },
+            {
+              "build": "a public footbridge and approach",
+              "where": "the river"
+            },
+            {
+              "rep": "B",
+              "by": 0.12
+            }
+          ],
+          "headline": "Footbridge Opens After Bait-Shop Buyout",
+          "body": "{B} helped complete a funded public footbridge project after a compensated purchase of the bait-shop site. The new approach opened as the shop closed."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": 0.1
+          }
+        ],
+        "headline": "Recovered Shop Cannot Provide a Family Job",
+        "body": "{A} survived the fire, but the repaired store could not afford another employee. Parent and child remained close while plans for a local job fell through."
+      },
+      "present_day": {
+        "best": "In {now}, a public footbridge occupies the former bait-shop approach, and a law-office building marks the career started after the rescue. A's original fire death is absent from the replay; later survival remains subject to ordinary history.",
+        "worst": "If the warning is accepted but step 1 fails, A escapes that particular death while B receives no guaranteed local career. The bridge does not appear through this chain, and later departures follow ordinary simulation.",
+        "twist": "Saving a parent can eventually make crossing the river easier while closing C's bait shop. Compensation helps C financially but does not preserve a counter, a routine or a livelihood."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "They paid me for the site. I still miss opening the shop in the morning."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "warn",
+          "does": "For this scenario only, an explicit accepted warning before the recorded fire sets A to evacuate without re-entry. Cancel only the pending death caused by that re-entry; keep the fire, damage, repair costs and unrelated hazards. It cannot revive an already dead resident or grant general immunity. Refusal or arrival after ignition leaves the baseline event and does not activate the chain."
+        }
+      ],
+      "new_rules_needed": [
+        "Roll once per step using seed, scenario ID, intervention year, bound IDs and step number. after_years is measured from intervention, not the previous step; choose a keyed year within each range. A failed or ineligible step stops its descendants without undoing prior effects. fails is exclusively the complement of step 1's roll after prerequisites pass; never roll it separately. Apply direct intervention effects once. Reserve required sites at activation; build/tear_down changes the physical map. Recheck living participants, ownership and vacancies before effects. Render best only after all steps, worst only on the stated failure, and other outcomes from recorded partial history. After-lines require their cited step, a living speaker if named, and surviving referenced places. Persist facts and invalidate descendants on replay; repeated visits cannot repeat rewards.",
+        "Activate only on an accepted timely warning. fails.chance is the 20 percent complement of the later job step, not a chance of warning refusal or death. Re-simulate ordinary household consequences after cancelling the specific fire death; do not separately cancel other deaths.",
+        "A's music store must reopen through ordinary repair simulation before step 1. B is at least 18 then; move_in records a cancelled departure or lawful return without duplicating the person. Hire only with a real vacancy and wages. If A or the store fails earlier, stop descendants without applying a spurious job-failure headline.",
+        "Before step 2 require accredited legal training, eligibility to practice, adequate saved funds and a vacant commercial site. Track these through an explicit education/licensing rule; a hire effect alone grants no legal qualification.",
+        "At step 3 B must have a solvent open law office and coordinate a funded lawful bridge project. C must still own the bound open bait shop and consent to the site sale. Pay the existing appraisal from the project budget plus compensation of 15 percent of C's pre-sale wealth; the wealth effect represents that extra compensation, not the entire sale price. Close the shop and clear its parcel atomically before construction. Preserve the bridge under normal map rules. Gate C's line on step 3, C's survival and no later replacement shop restoring that routine."
+      ],
+      "era_notes": "Deliver the warning face to face in all decades. Fire reports, account books and legal education remain period-appropriate without named institutions.",
+      "why_fun": "A precise rescue changes one family first, then a walkable part of the town. The former bait-shop site makes the far end of the butterfly effect impossible to overlook."
+    }
+  ]
+}

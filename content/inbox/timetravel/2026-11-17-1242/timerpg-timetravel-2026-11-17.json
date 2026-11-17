@@ -1,0 +1,683 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-7621",
+      "kind": "scenario",
+      "title": "The Empty Chair Becomes a Statue",
+      "category": "crime",
+      "pitch": "Kill a powerful officeholder to end a political hold on the town. The death may instead give an adult child a cause, a successful campaign and a memorial larger than anything the parent built while alive.",
+      "present_hook": {
+        "what_you_notice": "An old portrait and voting record show a long-serving mayor who eventually retired. A public square has no family memorial, and the adult child's old campaign folder was never used.",
+        "where": "the town hall",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} remained in office after {year}. Child {C} never entered the race discussed in these papers."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            45,
+            55
+          ],
+          "reputation": "high",
+          "has_children": true
+        },
+        "C": {
+          "age": [
+            22,
+            28
+          ],
+          "relation": "parent_child",
+          "trait": {
+            "ambition": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1985
+        ],
+        "notes": "A is C's parent and the actual incumbent mayor. Require a baseline retirement without a dynasty, C's unused political interest, a vacant approved memorial site and a present at least 27 years later. This is a rare irreversible violent intervention, not a consequence-free succession trick."
+      },
+      "interventions": [
+        {
+          "verb": "kill",
+          "target": "A",
+          "how_it_looks": "Cause the officeholder's death in the intervention year; the empty family chair and criminal investigation remain real consequences."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "run_for_mayor": "C"
+            },
+            {
+              "secret": "C",
+              "kind": "ambition"
+            }
+          ],
+          "headline": "Bereaved Adult Child Announces a Campaign",
+          "body": "{C} entered politics after the killing of parent {A}. The campaign invoked the former mayor's record alongside its own proposals."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            7,
+            9
+          ],
+          "if": {
+            "step": 1,
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "win_election": "C"
+            }
+          ],
+          "headline": "Former Mayor's Child Wins an Elected Term",
+          "body": "{C} won a mayoral election after building a local political organization. Voters returned the family name to the town-hall record."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            25,
+            27
+          ],
+          "if": {
+            "step": 2,
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a memorial statue of the murdered former mayor",
+              "where": "Main Street"
+            },
+            {
+              "wealth": "C",
+              "by": -0.2
+            }
+          ],
+          "headline": "Private Donation Funds a Former Mayor's Memorial",
+          "body": "{C} funded a permitted memorial to murdered parent {A}. The new statue made a family loss a permanent part of the public square."
+        }
+      ],
+      "fails": {
+        "chance": 0.35,
+        "effects": [
+          {
+            "rep": "C",
+            "by": 0.05
+          }
+        ],
+        "headline": "Bereaved Family Member Declines a Political Campaign",
+        "body": "{C} declined suggestions of running after the killing of {A}. Neighbors offered support without receiving a campaign announcement."
+      },
+      "present_day": {
+        "best": "In {now}, C has an elected term in the town-hall record and a statue of A occupies the square. A remains dead; the original political hold may have acquired a successor and a permanent symbol.",
+        "worst": "If the first step fails, A is still dead and the crime remains in history, but no scenario dynasty or statue follows. Other lawful succession and investigations continue.",
+        "twist": "The intervention meant to erase political influence can enlarge its public memory. C may achieve power while still wishing the parent were alive instead of memorialized."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "People talk about the statue as a victory. I would rather have the chair filled at supper."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Use independent keyed rolls and selected years per seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Test prerequisites before rolls; failure or ineligibility stops descendants without undoing earlier effects. fails is the first-step complementary result, never a separate roll. Apply the intervention once, persist specific people/objects/sites/funds and invalidate dependent records on replay. Recheck survival, residence, ownership, consent and resources. Present text and after-lines require recorded outcomes, current surviving features and informed living speakers. Do not force unrelated deaths or marriages; no repeated rewards.",
+        "The kill verb creates A's murdered death exactly once and activates ordinary vacancy succession, bereavement and criminal investigation. Do not roll another death or erase witnesses, evidence, player culpability or justice because the player time-travels.",
+        "Step 1 requires C legally eligible to run; ambition is a privately recorded motivation, not proof grief is insincere. Step 2 occurs only at a real election within its range, with C a valid candidate. The conditional scenario roll participates in that election and cannot overwrite a separately certified result.",
+        "Step 3 requires lawful public permission, an available named square parcel and a statue quote covered by C's stated twenty percent donation. C need not still be mayor and gains no automatic re-elections. Bind the monument to A's actual identity and death record. Gate C's line on step 3, C alive and the memorial still existing."
+      ],
+      "era_notes": "Use period-appropriate election and memorial processes. Keep the death description non-graphic and the family response individual rather than automatic hereditary entitlement.",
+      "why_fun": "It tests whether removing a person can remove an idea. The changed square may tell the opposite story from the one you intended."
+    },
+    {
+      "id": "scenario-20261117-7622",
+      "kind": "scenario",
+      "title": "What Went Down the Drain",
+      "category": "business",
+      "pitch": "Invest in a butcher's unfunded waste-treatment plan. A cleaner river could follow years later, while the required service charges push a fragile shop toward closure.",
+      "present_hook": {
+        "what_you_notice": "A discolored outfall lies downstream of a butcher. Archived inspection papers show a lawful but inadequate old waste arrangement and a treatment proposal left unfunded.",
+        "where": "the river",
+        "clues": [
+          {
+            "who": "the inspection archive",
+            "line": "{A} priced an interceptor in {year}. The proposal was shelved, and the permitted outfall remained in use."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "butcher"
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bakery"
+          ],
+          "wealth": "getting_by"
+        },
+        "shop": {
+          "shop_kind": [
+            "butcher"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1975
+        ],
+        "notes": "shop belongs to A. B owns a separate bakery on the same service line. Require the recorded outfall problem, a viable treatment design, public expansion permission and B's bakery already financially vulnerable to real added utility costs. Present must be at least 29 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Fund the first inspected interceptor and its maintenance reserve."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "install_treatment": "shop",
+              "system": "the bound waste interceptor"
+            }
+          ],
+          "headline": "Butcher Installs an Inspected Waste Interceptor",
+          "body": "{A} installed the funded waste interceptor. Inspection recorded reduced discharge from the shop rather than an immediate cure for the whole river."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a shared wastewater treatment annex",
+              "where": "the river"
+            },
+            {
+              "establish_charge": "the bound shared treatment service"
+            }
+          ],
+          "headline": "Shared Treatment Service Replaces an Old Outfall",
+          "body": "A funded treatment annex extended the original interceptor project to the shared service line. Connected premises received a published charge for operating and maintaining it."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            27,
+            29
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "improve_water": "the bound downstream reach"
+            },
+            {
+              "close_owned_business": "B",
+              "kind": "bakery"
+            }
+          ],
+          "headline": "Cleaner Water Recorded as a Small Bakery Closes",
+          "body": "Monitoring recorded sustained improvement downstream of the shared treatment service. The bakery run by {B} closed after documented operating costs, including treatment charges, exceeded its resources."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "rep": "A",
+            "by": -0.04
+          }
+        ],
+        "headline": "Interceptor Project Fails Its Commissioning Check",
+        "body": "The proposed interceptor at the butcher run by {A} did not pass commissioning. Unspent capital remained available, but no treatment benefit was recorded."
+      },
+      "present_day": {
+        "best": "In {now}, a treatment annex and its service works stand by the river, and monitoring supports the cleaner downstream reach. B's bakery counter has a recorded closure; later building use follows replay.",
+        "worst": "First-step failure produces no treatment effect, shared annex or scenario bakery closure. The original outfall continues only under actual later regulation.",
+        "twist": "A cleaner common resource can impose real costs unevenly. The bakery did not cause the whole river problem, but its narrow margins make its loss visible."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I wanted the river cleaner too. Wanting it did not make the service bill smaller."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Use independent keyed rolls and selected years per seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Test prerequisites before rolls; failure or ineligibility stops descendants without undoing earlier effects. fails is the first-step complementary result, never a separate roll. Apply the intervention once, persist specific people/objects/sites/funds and invalidate dependent records on replay. Recheck survival, residence, ownership, consent and resources. Present text and after-lines require recorded outcomes, current surviving features and informed living speakers. Do not force unrelated deaths or marriages; no repeated rewards.",
+        "Add install_treatment: bind A's actual shop and waste stream, spend investment through an inspected quote, track pollutant reduction and maintenance. Failed commissioning records no benefit and preserves unspent funds after real costs.",
+        "Step 2 requires a funded public utility plan, lawful connections and an approved river parcel. Add establish_charge: set an actual published cost-recovery tariff, bill only connected premises and pay maintenance from collected revenue. Include era-valid hardship assistance; do not assign arbitrary punitive charges.",
+        "Add improve_water: require sustained operational treatment and actual monitored pollutant improvement after accounting for other sources and river conditions. It is not universal fish recovery or immunity from later pollution.",
+        "Add close_owned_business: identify B's original bakery, require B still owning it and demonstrable insolvency under real revenue, charges and available assistance. Settle creditors and employment normally. Gate B's line on step 3, B alive and knowledge of the actual bills."
+      ],
+      "era_notes": "Use the treatment technology, discharge rules and utility process available in each event decade. An old permit does not imply the discharge was harmless.",
+      "why_fun": "The river and the high street give different readings of the same investment. The practical maintenance bill matters as much as the first good intention."
+    },
+    {
+      "id": "scenario-20261117-7623",
+      "kind": "scenario",
+      "title": "The Siblings with Two Front Doors",
+      "category": "family",
+      "pitch": "Introduce adult siblings who grew up apart and have never met. They may pool resources for a shared home, then discover that staying close works better with a wall and separate doors.",
+      "present_hook": {
+        "what_you_notice": "A family register links two separate households, while an old shared-house proposal bears only one signature. The eligible property was eventually sold without division.",
+        "where": "the family records",
+        "clues": [
+          {
+            "who": "the family register",
+            "line": "{A} and {B} were siblings in {year}, but their contact records show no meeting. The proposed shared address never became theirs."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            26
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            20,
+            26
+          ],
+          "wealth": "getting_by",
+          "relation": "siblings"
+        }
+      },
+      "window": {
+        "years": [
+          1975,
+          1990
+        ],
+        "notes": "B is A's sibling, established by parent records; they grew up in different households and have not met. Require both consenting to contact, a lawful shared-home purchase option on Main Street and a structure suitable for a future two-unit conversion. Present must be at least 25 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange a first meeting after both adults agree to make contact."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.4
+            }
+          ],
+          "headline": "Adult Siblings Meet After Growing Up Apart",
+          "body": "{A} and {B} met after agreeing to contact through the family records. Both chose to continue the acquaintance at their own pace."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            9,
+            11
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "buy_shared_home": [
+                "A",
+                "B"
+              ],
+              "home": "the bound Main Street house"
+            }
+          ],
+          "headline": "Reunited Siblings Purchase a Shared Home",
+          "body": "{A} and {B} purchased a house together under a written ownership agreement. Separate pasts acquired a shared front door."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "divide_home": "the scenario shared house",
+              "households": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "wealth": "A",
+              "by": -0.1
+            },
+            {
+              "wealth": "B",
+              "by": -0.1
+            }
+          ],
+          "headline": "Shared House Gains Two Doors and Clearer Boundaries",
+          "body": "{A} and {B} converted their shared house into two permitted homes. Separate entrances gave both siblings more privacy while keeping them next door."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": 0.05
+          }
+        ],
+        "headline": "First Meeting Leads to Occasional Letters",
+        "body": "{A} and {B} agreed to occasional contact after their first meeting. Neither committed to a shared household or closer routine."
+      },
+      "present_day": {
+        "best": "In {now}, the identified house has two legal dwelling entrances and separate household records. Current occupants follow replay; the division remains visible unless later redevelopment changes it.",
+        "worst": "On first-step failure, the siblings keep only their agreed limited contact. They do not owe each other a shared home, and no conversion follows through this chain.",
+        "twist": "Reunion makes a joint purchase possible, but the best long-term arrangement consumes savings to restore privacy. Affection does not make one front door enough."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "We spent years finding each other. The second door helped us stay."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Use independent keyed rolls and selected years per seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Test prerequisites before rolls; failure or ineligibility stops descendants without undoing earlier effects. fails is the first-step complementary result, never a separate roll. Apply the intervention once, persist specific people/objects/sites/funds and invalidate dependent records on replay. Recheck survival, residence, ownership, consent and resources. Present text and after-lines require recorded outcomes, current surviving features and informed living speakers. Do not force unrelated deaths or marriages; no repeated rewards.",
+        "The sibling relationship predates the introduction; do not falsely require strangers or invent biological links. Both adults must consent, and later decisions remain independent of that first consent.",
+        "Add buy_shared_home: require both households' consent, compatible partners/dependents, a funded lawful purchase, no displaced protected occupants and an explicit ownership/debt agreement. Debit actual savings and financing, credit the seller and update deed and residence IDs.",
+        "Add divide_home: require both owners still holding the house, planning approval, independent safe access, utilities and habitable units. Use the two stated ten percent contributions plus identified financing to cover the quote. Atomically create legal unit IDs and update household addresses without duplicating people or evicting dependents. Gate A's line on step 3, A alive and memory of both the reunion and shared-door period."
+      ],
+      "era_notes": "Use period-valid family records, title rules and building standards. Correspondence can remain by letter throughout.",
+      "why_fun": "The architectural payoff is small enough to feel personal. A second door can be the happy ending rather than a sign the reunion failed."
+    },
+    {
+      "id": "scenario-20261117-7624",
+      "kind": "scenario",
+      "title": "The Invitation in the Drawer",
+      "category": "love",
+      "pitch": "Hide the invitation that would bring two future parents together. A different marriage and shop may emerge decades later, while a familiar name quietly disappears from the original family register.",
+      "present_hook": {
+        "what_you_notice": "A family photograph names the supper where its parents met, and their child's birth appears in the next register. An invitation draft identifies the single meeting that started the chain.",
+        "where": "the family records",
+        "clues": [
+          {
+            "who": "the family papers",
+            "line": "{A} and {B} first met at the supper in {year}. The invitation was the reason {B} attended."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            22
+          ],
+          "married": false
+        },
+        "B": {
+          "age": [
+            18,
+            22
+          ],
+          "married": false
+        },
+        "C": {
+          "age": [
+            18,
+            24
+          ],
+          "married": false,
+          "trait": {
+            "diligence": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1985
+        ],
+        "notes": "A and B have not met at intervention; C is an unrelated local adult. Require the identified supper invitation, a baseline A/B child born 5–7 years later and a present at least 28 years later. C must not be a guaranteed replacement partner."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:hide",
+          "how_it_looks": "Move the sole accessible supper invitation into a drawer before its recipient reads it."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "open_thread": "unread_supper_invitation"
+            }
+          ],
+          "headline": "Missed Supper Leaves Two Lives on Separate Courses",
+          "body": "{B} missed the gathering at which an introduction to {A} had been planned. Their subsequent records showed separate social circles."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            5,
+            7
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "no_child": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Household Registers Record Separate Adult Lives",
+          "body": "The household registers continued to list {A} and {B} separately. Neither record contained a shared child."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            26,
+            28
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.5,
+          "effects": [
+            {
+              "marry": [
+                "B",
+                "C"
+              ]
+            },
+            {
+              "found_business": "C",
+              "kind": "bakery"
+            }
+          ],
+          "headline": "Newly Married Partners Open a Bakery",
+          "body": "{B} and {C} married after forming a later relationship. A bakery founded by {C} gave their shared plans a public address."
+        }
+      ],
+      "fails": {
+        "chance": 0.3,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": 0.1
+          }
+        ],
+        "headline": "A Second Invitation Brings Guests Together Anyway",
+        "body": "{B} learned of the supper through another guest and met {A}. The hidden paper did not prevent an acquaintance."
+      },
+      "present_day": {
+        "best": "In {now}, the bakery founded by C exists and B/C have a recorded marriage. The identified original A/B child has no birth or death record in this altered branch; only the player can compare the absent name with the original timeline.",
+        "worst": "If the first step fails, A and B still meet and ordinary history determines their relationship. Later partial branches may contain no bakery, no alternative marriage or an A/B reunion.",
+        "twist": "The new household can be content while the player remembers someone who was never born here. The alternate life is not a repayment for the missing one."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "unaware",
+          "line": "We came to this later than we expected. I am glad we found a plan that was ours."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "hide",
+          "does": "Move the identified unread physical invitation to a specific reachable drawer, preserving the object, ownership and text. Prevent only delivery from that original location until it is found or the supper passes. Other invitations, reminders and meetings remain possible; this cannot erase an existing relationship or person."
+        }
+      ],
+      "new_rules_needed": [
+        "Use independent keyed rolls and selected years per seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Test prerequisites before rolls; failure or ineligibility stops descendants without undoing earlier effects. fails is the first-step complementary result, never a separate roll. Apply the intervention once, persist specific people/objects/sites/funds and invalidate dependent records on replay. Recheck survival, residence, ownership, consent and resources. Present text and after-lines require recorded outcomes, current surviving features and informed living speakers. Do not force unrelated deaths or marriages; no repeated rewards.",
+        "Step 1 checks actual missed attendance and no replacement A/B meeting in its range. Failure means another guest supplied a genuine reminder before the supper; it does not conjure a duplicate hidden object.",
+        "Bind the original child by baseline parent IDs and conception event for comparison, not as an intervention-year role. no_child records the absence of that specific birth only if no corresponding conception has occurred in the altered history. It never deletes a living child, ends an existing pregnancy or suppresses unrelated children. If the parents reunite and the conception proceeds, step 2 is ineligible and descendants stop.",
+        "Public Gazette text and NPC knowledge describe only actual household records; nobody automatically remembers the uncreated child. Player timeline comparison may show the missing entry without calling it a death.",
+        "Step 3 requires B and C both still unmarried consenting adults in an actual developed relationship, lawful household arrangements, C's baking skill, sufficient capital and an approved vacant shop site. Marriage and founding complete atomically only after both sets of requirements are met. Gate C's line on step 3, C alive, the relationship intact and the bakery operating."
+      ],
+      "era_notes": "Use a physical invitation only when that object is actually decisive in the era. Later phone reminders can make step 1 fail rather than being silently disabled.",
+      "why_fun": "A tiny missing paper changes who appears in the family album. The new bakery can be welcoming while the player alone notices the absent name."
+    }
+  ]
+}

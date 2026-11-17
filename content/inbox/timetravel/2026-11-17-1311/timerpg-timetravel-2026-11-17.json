@@ -1,0 +1,724 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-7911",
+      "kind": "scenario",
+      "title": "The Face Beneath the Label",
+      "category": "secrets",
+      "pitch": "Fund a young resident's conservation training. An old painting may reveal its real artist, changing a public dedication and embarrassing the family that claimed the credit.",
+      "present_hook": {
+        "what_you_notice": "A town-hall painting bears a patron's attribution plate, while an unfunded conservation application lies in the archive. The underlying signature has never been examined.",
+        "where": "the town hall",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} sought conservation training in {year}. The painting attributed by {C} remained untouched."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            22
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            55,
+            65
+          ]
+        },
+        "C": {
+          "age": [
+            30,
+            40
+          ],
+          "reputation": "high"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "Require B truly authoring the bound painting, C's publicly recorded mistaken attribution to C's family, an obscured genuine signature, A's eligible unfunded application and an existing plaque honoring the wrong family. Present must be at least 27 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "large",
+          "how_it_looks": "Fund the verified training shortfall and essential conservation tools."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            5,
+            7
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "qualify": "A",
+              "profession": "painting conservator"
+            }
+          ],
+          "headline": "Local Applicant Completes Conservation Training",
+          "body": "{A} qualified in painting conservation after funded study and supervised practice. The town-hall painting became eligible for a properly commissioned examination."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "attribute_work": "the bound painting",
+              "artist": "B"
+            }
+          ],
+          "headline": "Conservation Reveals a Different Artist's Signature",
+          "body": "Examination by {A} established that the town-hall painting was made by {B}. The earlier family attribution was corrected in the accession record."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            25,
+            27
+          ],
+          "if": {
+            "step": 2,
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "rededicate": "the bound public art plaque",
+              "honoree": "B"
+            },
+            {
+              "rep": "C",
+              "by": -0.15
+            }
+          ],
+          "headline": "Public Plaque Corrected After Artist Identification",
+          "body": "The public art plaque was rededicated to artist {B}. The correction drew criticism of the unchecked family attribution previously promoted by {C}."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [
+          {
+            "wealth": "A",
+            "by": -0.05
+          }
+        ],
+        "headline": "Conservation Course Ends Before Qualification",
+        "body": "{A} left the conservation course without qualifying. Some equipment was sold at a documented loss."
+      },
+      "present_day": {
+        "best": "In {now}, the actual painting's label and public plaque name B as artist. B may be deceased; the revised attribution survives without resurrecting its subject.",
+        "worst": "First-step failure produces no qualified conservator or scenario attribution correction. The painting's true authorship remains true even while unrecognized.",
+        "twist": "An overlooked artist gains credit while C loses public standing for a mistaken claim. Correcting history can hurt a living person who inherited the error rather than invented a fraud."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "I was wrong about the name. That does not make every good thing my family did imaginary."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Select event years and independent rolls keyed by seed, scenario ID, intervention year, roles and step. after_years is measured from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing earlier effects. fails is the first roll's complement, never a separate roll. Apply interventions once. Persist people, objects, sites, funds and knowledge; replay invalidates dependent history. Recheck survival, ownership, consent and resources. Gate present text and after-lines on recorded outcomes, surviving features and informed living speakers. No forced unrelated events or repeated rewards.",
+        "Add qualify for painting conservator: require funded study, supervised practice and period-valid professional eligibility. The gift pays actual costs once; the five percent failure debit is separately documented equipment resale loss.",
+        "Add attribute_work: identify the existing painting object and genuine signature through non-destructive examination, corroborated provenance and owner permission. Update attribution knowledge, never create a new signature or change the actual author.",
+        "Add rededicate: replace only the identified public plaque inscription after lawful review and funded work, retaining its earlier attribution in the archive. Step 3 requires C alive and a public connection to the mistaken claim; do not imply knowing fraud. Gate C's line on step 3 and C's memory of the correction."
+      ],
+      "era_notes": "Use examination methods available in the event year. No miraculous modern imaging before its availability.",
+      "why_fun": "The same picture stays on the wall while its meaning changes. The player can compare the old nameplate with the corrected one."
+    },
+    {
+      "id": "scenario-20261117-7912",
+      "kind": "scenario",
+      "title": "The Loan with Two Signatures",
+      "category": "business",
+      "pitch": "Invest in a bank's small-business lending pilot. A new butcher may open with a parent's guarantee, only for a later default to put the parent's house into the bank's ownership.",
+      "present_hook": {
+        "what_you_notice": "An unused butcher-shop lease sits beside a declined guaranteed-loan application. The prospective guarantor's house remains in the family in the original present.",
+        "where": "the bank",
+        "clues": [
+          {
+            "who": "the loan archive",
+            "line": "{B} applied in {year}. Parent {C} offered a guarantee, but the bank run by {A} had no funded pilot."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bank"
+          ]
+        },
+        "B": {
+          "age": [
+            20,
+            25
+          ],
+          "wealth": "poor",
+          "owns_shop": false,
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "C": {
+          "age": [
+            45,
+            55
+          ],
+          "wealth": "comfortable",
+          "relation": "parent_child"
+        },
+        "shop": {
+          "shop_kind": [
+            "bank"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "C is B's parent; shop belongs to A. Require a genuine declined pilot loan, C owning the identified house, a suitable vacant butcher site and informed voluntary collateral terms. Present must be at least 27 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "fortune",
+          "how_it_looks": "Supply capital for the bank's documented guaranteed small-business lending pilot."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "issue_loan": "B",
+              "lender": "shop",
+              "guarantor": "C"
+            }
+          ],
+          "headline": "Funded Bank Pilot Approves a Guaranteed Business Loan",
+          "body": "The bank run by {A} approved a loan to {B} after reviewing a voluntary guarantee from parent {C}. The signed terms identified the house at risk."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            8,
+            10
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "B",
+              "kind": "butcher"
+            }
+          ],
+          "headline": "Borrower Opens the Planned Butcher Shop",
+          "body": "{B} opened a licensed butcher shop using the approved financing and saved capital. The parent's guarantee remained a real contingent obligation."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            25,
+            27
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.5,
+          "effects": [
+            {
+              "close_owned_business": "B",
+              "kind": "butcher"
+            },
+            {
+              "foreclose_home": "C",
+              "lender": "shop"
+            }
+          ],
+          "headline": "Business Default Ends in a Guarantor's House Transfer",
+          "body": "The butcher shop run by {B} closed after a documented default. Following a final lawful process and funded rehousing, the guaranteed house passed from {C} to the lender."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "bond": [
+              "B",
+              "C"
+            ],
+            "by": 0.08
+          }
+        ],
+        "headline": "Family Declines Final Collateral Terms",
+        "body": "{B} and parent {C} declined the final guaranteed-loan offer. The bank retained its unused pilot capital after actual review expenses."
+      },
+      "present_day": {
+        "best": "In {now}, a butcher premises has a recorded opening and closure, and the original house's deed records a transfer to the lender. C's current safe residence follows the actual rehousing record.",
+        "worst": "On first-step failure, no scenario loan or business follows and C's house receives no guarantee lien. Ordinary later property history still applies.",
+        "twist": "The capital makes B's ambition possible by putting another person's home at risk. A real opportunity can fail without either borrower or parent being foolish or dishonest."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "I understood the signature. Understanding did not make leaving that house easy."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Select event years and independent rolls keyed by seed, scenario ID, intervention year, roles and step. after_years is measured from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing earlier effects. fails is the first roll's complement, never a separate roll. Apply interventions once. Persist people, objects, sites, funds and knowledge; replay invalidates dependent history. Recheck survival, ownership, consent and resources. Gate present text and after-lines on recorded outcomes, surviving features and informed living speakers. No forced unrelated events or repeated rewards.",
+        "Add issue_loan: require independent affordability review, B and C's informed consent, era-valid collateral law, actual disbursement from bank capital and a recorded repayment schedule. The fortune investment enters bank capital once, not B's wallet directly.",
+        "Step 2 requires a properly funded staged business plan, B's training, licensing and actual shop lease. Loan proceeds reserved for commissioning are disbursed against milestones, not left idle without accounting until opening.",
+        "Step 3 requires the original bank operating, B's actual business insolvency, a valid outstanding guaranteed debt, exhausted lawful mitigation and appeal processes and the identified house still owned by C. Add foreclose_home: transfer title only after a final order, creditor settlement and safe funded rehousing; do not erase household members or make the debt perpetual. No default is invented merely to satisfy the scenario chance. Gate C's line on step 3, C alive and memory of the home."
+      ],
+      "era_notes": "Use the jurisdiction's actual guarantee, lending and foreclosure protections for each event year. A business investment does not bypass borrower rights.",
+      "why_fun": "Two signatures create a shop and a distant change of house key. The family can have made an informed choice and still regret the result."
+    },
+    {
+      "id": "scenario-20261117-7913",
+      "kind": "scenario",
+      "title": "A Kitchen They Could Not Share",
+      "category": "love",
+      "pitch": "Introduce a music-shop owner to a lawyer at the next supper. They may marry, separate, and eventually find that sharing a business wall works better than sharing a kitchen.",
+      "present_hook": {
+        "what_you_notice": "Two neighboring businesses have separate histories and an unused connecting doorway. Their owners' archived supper invitations name different tables.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the supper records",
+            "line": "{A} and {B} sat apart in {year}. The neighboring premises never acquired the proposed second entrance."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            30
+          ],
+          "married": false,
+          "owns_shop": true,
+          "shop_kind": [
+            "music store"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            30
+          ],
+          "married": false,
+          "owns_shop": true,
+          "shop_kind": [
+            "law office"
+          ],
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1975,
+          1990
+        ],
+        "notes": "B is a stranger to A. Require B licensed, neighboring businesses with lawful independent leases, a voluntary relationship opportunity and a connecting doorway eligible for an office-entrance conversion. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the two neighboring proprietors before the supper tables fill."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "marry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Neighboring Proprietors Form a Shared Household",
+          "body": "{A} and {B} married after becoming acquainted at a community supper. Their separate businesses continued beside one another."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            10,
+            12
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "divorce": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": -0.2
+            }
+          ],
+          "headline": "Proprietors End Marriage but Keep Their Own Shops",
+          "body": "{A} and {B} completed an agreed divorce and separate household arrangements. Both retained independent businesses under the settlement."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "build": "a separate law-office street entrance",
+              "where": "Main Street"
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.25
+            },
+            {
+              "wealth": "A",
+              "by": -0.08
+            },
+            {
+              "wealth": "B",
+              "by": -0.08
+            }
+          ],
+          "headline": "Former Spouses Agree on Separate Doors and Shared Repairs",
+          "body": "{A} and {B} funded a permitted entrance conversion and shared boundary repairs. The neighboring businesses gained clearer separation and a workable maintenance agreement."
+        }
+      ],
+      "fails": {
+        "chance": 0.4,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": 0.1
+          }
+        ],
+        "headline": "Supper Acquaintance Remains a Neighborly Friendship",
+        "body": "{A} and {B} enjoyed their introduction without forming a romantic partnership. Their separate households continued."
+      },
+      "present_day": {
+        "best": "In {now}, the law office has an independent street entrance beside the music store, and records show a marriage followed by divorce and later cooperation. Current proprietors follow replay.",
+        "worst": "First-step failure creates no marriage, divorce or scenario entrance conversion. A friendly meeting is not a failed life.",
+        "twist": "The introduction creates both intimacy and a painful separation. Later kindness costs savings and construction work; it does not retroactively make the marriage permanent."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "We could not share a kitchen. We can share a wall."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Select event years and independent rolls keyed by seed, scenario ID, intervention year, roles and step. after_years is measured from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing earlier effects. fails is the first roll's complement, never a separate roll. Apply interventions once. Persist people, objects, sites, funds and knowledge; replay invalidates dependent history. Recheck survival, ownership, consent and resources. Gate present text and after-lines on recorded outcomes, surviving features and informed living speakers. No forced unrelated events or repeated rewards.",
+        "Step 1 requires both unmarried consenting adults in an actual developed relationship. Step 2 requires them still married and both choosing a lawful separation; settle actual assets, housing and any dependents fairly. Do not force divorce after death or an existing unrelated separation.",
+        "Step 3 requires both alive, no continuing coercion or unsafe conflict, both still controlling the original open businesses and valid landowner permissions. Do not assume divorce makes cooperation inevitable.",
+        "Fund the actual entrance and repair quote from the two eight percent contributions plus identified business capital if needed. Preserve independent ownership and professional confidentiality. Gate A's line on step 3, A alive and a currently cooperative boundary arrangement."
+      ],
+      "era_notes": "Use era-valid marriage, divorce, title and building rules without assuming equal legal conditions in every decade.",
+      "why_fun": "A changed present can contain a divorce and still be a hopeful outcome. Separate doors make the earned compromise visible."
+    },
+    {
+      "id": "scenario-20261117-7914",
+      "kind": "scenario",
+      "title": "The Haunted Lease",
+      "category": "uncanny",
+      "pitch": "Spread a false haunting story about a property owner's shopfront. Empty premises may eventually become a tour office, making an invented fear profitable while the displaced business never returns.",
+      "present_hook": {
+        "what_you_notice": "A leased music-store frontage has no ghost-tour sign in the original present. A fire-safety report explains the ordinary knocking noises that once prompted jokes.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the inspection archive",
+            "line": "The knocking heard in {year} came from a loose pipe. The report for the building owned by {A} says nothing supernatural happened."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            45
+          ],
+          "wealth": "comfortable"
+        },
+        "B": {
+          "age": [
+            20,
+            28
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "music store"
+          ]
+        },
+        "C": {
+          "age": [
+            20,
+            25
+          ],
+          "owns_shop": false,
+          "trait": {
+            "ambition": "high"
+          }
+        },
+        "shop": {
+          "shop_kind": [
+            "music store"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1985
+        ],
+        "notes": "A owns the building, B leases and owns shop, C is an unrelated prospective guide. Require ordinary pipe noises verified by inspection, no real haunting, a financially vulnerable tenant and a lawful future sale option. Present must be at least 28 years later."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": -0.4,
+          "how_it_looks": "Spread the false allegation that the owner concealed a haunting to keep a tenant in place."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "close_shop": "shop"
+            },
+            {
+              "open_thread": "haunted_lease_story"
+            }
+          ],
+          "headline": "Music Store Closes Amid an Unsupported Haunting Story",
+          "body": "The music store run by {B} closed after custom fell amid an allegation about landlord {A}. Inspectors continued to identify a loose pipe as the source of the noises."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "C",
+              "kind": "walking tour service"
+            }
+          ],
+          "headline": "Guide Builds a Tour Around a Local Ghost Story",
+          "body": "{C} established a licensed walking-tour service that described the haunting as local folklore. The empty frontage became a regular exterior stop."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            26,
+            28
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "buy_property": [
+                "A",
+                "C"
+              ],
+              "property": "the bound former shop building"
+            },
+            {
+              "build": "a folklore tour office",
+              "where": "Main Street"
+            }
+          ],
+          "headline": "Former Music Store Becomes a Folklore Tour Office",
+          "body": "{C} bought the former shop building from {A} and opened a funded tour office inside. An exhibition included the inspection report explaining the original pipe noises."
+        }
+      ],
+      "fails": {
+        "chance": 0.35,
+        "effects": [
+          {
+            "rep": "A",
+            "by": 0.08
+          }
+        ],
+        "headline": "Inspection Report Checks a Landlord Haunting Allegation",
+        "body": "Residents checked the pipe inspection and rejected the allegation against {A}. The tenant retained enough trade to remain open."
+      },
+      "present_day": {
+        "best": "In {now}, the former music-store frontage has a tour-office sign and an exhibit explaining the pipe. Tours preserve the story as folklore, not as proof of a haunting; the original music business has closed.",
+        "worst": "First-step failure creates no scenario vacancy or tour-office chain. The rumor's initial reputation damage remains separate from the later partial correction.",
+        "twist": "The inventor of the scare harms a tenant while a later guide profits from carefully labeling it fiction. Correct interpretation does not restore B's lost counter."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "They sell tickets to hear the story now. I used to sell instruments behind that same window."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Select event years and independent rolls keyed by seed, scenario ID, intervention year, roles and step. after_years is measured from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing earlier effects. fails is the first roll's complement, never a separate roll. Apply interventions once. Persist people, objects, sites, funds and knowledge; replay invalidates dependent history. Recheck survival, ownership, consent and resources. Gate present text and after-lines on recorded outcomes, surviving features and informed living speakers. No forced unrelated events or repeated rewards.",
+        "Target A's alleged concealment through the existing rumor effect once. Keep the haunting false, pipe cause true and individual NPC beliefs separately recorded. Step 1 requires real customer losses and B's lawful insolvency closure; no automatic property confiscation.",
+        "Add walking tour service as a business kind requiring guiding permissions, funded staffing, insurance and a viable route. Present folklore explicitly as folklore; do not add supernatural facts to the simulation or allow trespass into the empty building.",
+        "Add buy_property: require A still owning the specific building, C's actual funds or approved financing, a fair voluntary sale and clear legal possession. Debit buyer funds and credit seller funds. Step 3 needs an active solvent guide business, funded conversion, permissions and safe access. Include the true inspection report only if its evidence survives. Gate B's line on step 3, B alive and knowledge of the new use."
+      ],
+      "era_notes": "Use physical inspections and ordinary exterior tours throughout. A later attraction may add modern signs without changing what caused the original noises.",
+      "why_fun": "You can recognize a familiar window selling a story you invented. The profitable present does not settle the human cost of the vacancy."
+    }
+  ]
+}

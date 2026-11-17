@@ -1,0 +1,737 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-7011",
+      "kind": "scenario",
+      "title": "One Extra Name on the Roll",
+      "category": "family",
+      "pitch": "Introduce two young residents whose paths never crossed. Decades later, a person absent from your original history may become mayor, while an established candidate loses a race that once seemed certain.",
+      "present_hook": {
+        "what_you_notice": "Two separate family photographs hang in the archive beside an election portrait. The photographs show lives that never joined, and the election had no challenger from their generation of descendants.",
+        "where": "the Gazette archive",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} and {B} attended different gatherings in {year}. Their household records never intersected."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            22
+          ],
+          "sex": "F",
+          "married": false,
+          "has_children": false
+        },
+        "B": {
+          "age": [
+            18,
+            24
+          ],
+          "sex": "M",
+          "married": false,
+          "has_children": false,
+          "relation": "strangers"
+        },
+        "D": {
+          "age": [
+            8,
+            12
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "B is a stranger to A; D is unrelated. Require a baseline with no shared A/B child, both residents free to form a family and an eventual ordinary candidacy by D. Present must be at least 32 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Invite both residents to help set the same table at a community supper."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "marry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Supper Acquaintances Begin a Shared Household",
+          "body": "{A} and {B} married after meeting while helping at a community supper. Both chose to remain in town."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            5,
+            7
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "child": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A New Birth Adds a Name to the Town Records",
+          "body": "A child was born to {A} and {B}. The household register gained a name absent from the town's earlier family histories."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            30,
+            32
+          ],
+          "if": {
+            "step": 2,
+            "D": {
+              "alive": true
+            }
+          },
+          "chance": 0.45,
+          "effects": [
+            {
+              "elect_scenario_child": true
+            },
+            {
+              "wealth": "D",
+              "by": -0.15
+            }
+          ],
+          "headline": "First-Time Candidate Defeats an Established Rival",
+          "body": "The adult child of {A} and {B} won a mayoral election against {D}. The losing campaign left its organizer with personal expenses as well as disappointment."
+        }
+      ],
+      "fails": {
+        "chance": 0.4,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": 0.08
+          }
+        ],
+        "headline": "Supper Meeting Leaves Two Friendly Acquaintances",
+        "body": "{A} and {B} enjoyed the introduction but did not form a shared household. Their separate plans continued."
+      },
+      "present_day": {
+        "best": "In {now}, the town hall has a portrait and recorded elected term for the newly born resident. If that person remains alive locally, the player can meet someone who did not exist in the original replay.",
+        "worst": "First-step failure creates no scenario marriage or child. Later unrelated families follow ordinary simulation; do not describe a nonexistent child as dead.",
+        "twist": "A new life enriches the town but makes D's once-successful campaign a loss. The child's existence is not a mistake simply because another resident pays a price."
+      },
+      "npc_lines_after": [
+        {
+          "who": "D",
+          "mood": "bitter",
+          "line": "I had the speeches ready years before that candidate was born. It turns out that is not the same as winning."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose event years and independent rolls by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Roll after prerequisites pass; failed or ineligible steps stop descendants without undoing earlier history. fails is the first-step roll's complement, not a separate roll. Apply the intervention once. Persist people, sites, funds, facts and belief separately; replay invalidates descendants. Recheck survival, ownership, residence and resources. Gate present text and after-lines by actual completed steps and surviving speakers/features. Never force unrelated marriages, deaths or election results; no duplicate rewards.",
+        "The sex conditions reflect this scenario's modeled birth prerequisites, not a restriction on other relationships. Step 1 requires both still unmarried and consenting; step 2 requires the marriage intact, parental eligibility and a voluntary modeled birth.",
+        "child creates exactly one seed-derived person at the selected birth year, assigned a stable ID keyed to scenario, parents and birth event. Store that ID as the scenario child, not as an intervention-year role; derive names normally and remove dependent records if the birth is undone.",
+        "Add elect_scenario_child effect: the stored child must be alive, adult, locally eligible, already registered as a candidate and competing against D in an actual election within step 3's range. Run the campaign through the normal election model with the scenario roll as its conditional outcome, never overwrite another resolved result. Debit D's documented personal campaign contribution of 15 percent once. Record the winner's term and portrait without promising continuous office. D's line requires step 3, D alive and campaign memory."
+      ],
+      "era_notes": "Use generic supper invitations and period-appropriate campaign material. Avoid future technologies in the child's childhood.",
+      "why_fun": "The biggest ripple is a person rather than a building. Their portrait makes a changed family tree visible to everyone."
+    },
+    {
+      "id": "scenario-20261117-7012",
+      "kind": "scenario",
+      "title": "The Pocket Orchard",
+      "category": "place",
+      "pitch": "Give a child enough money to begin a supervised planting project. The saplings may become a public orchard, though the open ground where people once flew kites will disappear beneath its shade.",
+      "present_hook": {
+        "what_you_notice": "A public kite meadow has a faded planting proposal pinned nearby. An old school notice says a child's orchard project ended for lack of tools and seedlings.",
+        "where": "the edge of town",
+        "clues": [
+          {
+            "who": "the school records",
+            "line": "{A} drew rows of trees in {year}. The list of donated seedlings stayed blank."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            10,
+            14
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            40,
+            50
+          ],
+          "wealth": "comfortable"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1975
+        ],
+        "notes": "Require A's recorded school project, B as an approved unrelated adult project steward, a publicly owned kite meadow suitable for fruit trees and a community willing to consider changed use. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the project seed money through the child's supervised planting fund."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "plant_orchard": "the bound kite meadow"
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.2
+            }
+          ],
+          "headline": "Supervised School Project Puts Saplings in the Ground",
+          "body": "With adult stewardship from {B}, {A} helped plant the first approved orchard rows. The project began converting part of the kite meadow to trees."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            15
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "protect_site": "the scenario orchard"
+            },
+            {
+              "rep": "A",
+              "by": 0.12
+            }
+          ],
+          "headline": "Maturing Orchard Receives a Public-Use Agreement",
+          "body": "After years of maintenance led by {A}, the orchard received a public-use agreement. Established trees now occupied the former open flying ground."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "an orchard harvest shelter",
+              "where": "the edge of town"
+            },
+            {
+              "wealth": "A",
+              "by": -0.15
+            }
+          ],
+          "headline": "Harvest Shelter Opens Beneath the Old School Trees",
+          "body": "{A} funded a harvest shelter beside the mature orchard. Residents gained a place to sort fruit and sit out a shower."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": 0.1
+          }
+        ],
+        "headline": "Planting Fund Buys Lessons but No Orchard",
+        "body": "{A} and adult steward {B} discovered that the proposed ground could not receive permission in time. Unspent project money remained in the supervised fund."
+      },
+      "present_day": {
+        "best": "In {now}, mature orchard rows and a harvest shelter occupy the identified meadow parcel. The open kite-flying space is gone; fruit yield still follows the actual climate and maintenance record.",
+        "worst": "On first-step failure, the meadow is not planted through this scenario. A retains only the recorded supervised fund and the experience of a project that did not proceed.",
+        "twist": "Shade and fruit are public benefits, but the same trees remove the long clear run needed to fly a kite. The older generation's gift becomes a younger kite-flyer's obstacle."
+      },
+      "npc_lines_after": [
+        {
+          "who": "anyone",
+          "mood": "bitter",
+          "line": "The apples are lovely. There used to be room here to run until a kite finally caught."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose event years and independent rolls by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Roll after prerequisites pass; failed or ineligible steps stop descendants without undoing earlier history. fails is the first-step roll's complement, not a separate roll. Apply the intervention once. Persist people, sites, funds, facts and belief separately; replay invalidates descendants. Recheck survival, ownership, residence and resources. Gate present text and after-lines by actual completed steps and surviving speakers/features. Never force unrelated marriages, deaths or election results; no duplicate rewards.",
+        "A is a child at activation; B is the adult steward, not a randomly implied parent. Hold the gift as A's supervised project balance and spend it only on approved seedlings and tools. No child signs a land contract.",
+        "Add plant_orchard effect: bind the public meadow parcel, obtain public permission, debit actual funded costs and create age-tracked trees with species suited to the seed's climate. Mature growth occupies the kite ground incrementally. Failure before planting retains unspent money.",
+        "Add protect_site effect: register a public-use and maintenance agreement only if sufficient living trees and lawful public consent remain after the recorded years. It prevents incompatible private use under its terms, not fire, disease or all future redevelopment.",
+        "Step 3 requires surviving orchard trees, safe public access, a permitted shelter site and a construction quote covered by A's stated 15 percent donation. Debit once. Gate the after-line on step 3 and an actual former meadow user who remembers the open parcel."
+      ],
+      "era_notes": "Use local seedling stock and ordinary hand tools. Choose fruit species through town climate data rather than assuming every town grows the same apples.",
+      "why_fun": "The payoff grows slowly enough to watch over several visits. A child's tiny planting budget changes the skyline of a familiar field."
+    },
+    {
+      "id": "scenario-20261117-7013",
+      "kind": "scenario",
+      "title": "The Ledger Nobody Believed",
+      "category": "crime",
+      "pitch": "Spread a true allegation about a bank owner's falsified collateral records. A trapped borrower might finally leave town with a clean account, while innocent bank employees lose their counter jobs.",
+      "present_hook": {
+        "what_you_notice": "A borrower still occupies a house marked for collection despite an old receipt. The bank's archived accounts contain a discrepancy that never reached public attention.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{B} disputed the collateral entry in {year}. The receipt was filed without a public correction."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            45
+          ],
+          "wealth": "wealthy",
+          "reputation": "high",
+          "owns_shop": true,
+          "shop_kind": [
+            "bank"
+          ]
+        },
+        "B": {
+          "age": [
+            20,
+            30
+          ],
+          "wealth": "poor"
+        },
+        "shop": {
+          "shop_kind": [
+            "bank"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1985
+        ],
+        "notes": "shop belongs to A. Require a simulation-verified deliberately falsified collateral entry by A, B's authentic receipt, a continuing collection restriction that blocks B's documented departure plan and protected depositor accounts. Present must be at least 25 years later."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": -0.5,
+          "how_it_looks": "Publicly repeat the verifiable discrepancy and tell residents where to inspect the receipt."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "open_thread": "falsified_collateral_entry"
+            },
+            {
+              "knows": [
+                "B",
+                "the verified collateral fraud of A"
+              ]
+            }
+          ],
+          "headline": "Collateral Receipt Prompts a Formal Account Review",
+          "body": "A receipt supplied by {B} prompted a formal review of collateral records at the bank run by {A}. Investigators confirmed that the discrepancy required examination."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            8,
+            10
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "clear_claim": "B",
+              "claim": "the bound false collateral claim"
+            },
+            {
+              "resolve_thread": "falsified_collateral_entry"
+            },
+            {
+              "rep": "A",
+              "by": -0.25
+            }
+          ],
+          "headline": "Final Ruling Clears Borrower of False Collateral Claim",
+          "body": "A final ruling cleared the disputed claim against {B} and identified falsification by {A}. The collection restriction was lifted."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.5,
+          "effects": [
+            {
+              "close_shop": "shop"
+            },
+            {
+              "move_away": "B"
+            }
+          ],
+          "headline": "Bank Closes as Cleared Borrower Finally Leaves",
+          "body": "The bank operated by {A} closed after its license review and settlement. With the false claim resolved, {B} completed a long-planned move out of town."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": -0.2
+          }
+        ],
+        "headline": "Public Dispute Fails to Secure an Account Review",
+        "body": "The collateral allegation did not obtain a formal review after the complaint missed its filing requirements. The underlying discrepancy remained unresolved."
+      },
+      "present_day": {
+        "best": "In {now}, the identified bank counter is closed and B is absent as a living out-of-town resident, unless ordinary later history records another move. Gazette corrections explain why the departure became possible.",
+        "worst": "If step 1 fails, the evidence remains true but no scenario judgment follows. B's restriction and the bank's operation continue only as ordinary replay permits.",
+        "twist": "A truthful intervention frees B from a false claim and from the town. It also closes a workplace for staff who did not falsify anything, and removes a resident the player may have wanted to keep nearby."
+      },
+      "npc_lines_after": [
+        {
+          "who": "anyone",
+          "mood": "bitter",
+          "line": "The borrower deserved to be free. The people behind those counters deserved honest work, too."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose event years and independent rolls by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Roll after prerequisites pass; failed or ineligible steps stop descendants without undoing earlier history. fails is the first-step roll's complement, not a separate roll. Apply the intervention once. Persist people, sites, funds, facts and belief separately; replay invalidates descendants. Recheck survival, ownership, residence and resources. Gate present text and after-lines by actual completed steps and surviving speakers/features. Never force unrelated marriages, deaths or election results; no duplicate rewards.",
+        "At activation bind the existing verified fraud fact to A and its secret/knowledge ID; knows reveals that fact, never fabricates it. The rumor changes reputation once and directs people toward evidence without automatically proving the public allegation.",
+        "Step 1 requires an admissible complaint and preserved receipt. Roll failure describes missed filing requirements, not disappearance of true evidence. Step 2 requires lawful adjudication, no competing resolved case and the identified collection restriction still applying to B.",
+        "Add clear_claim effect: remove only the bound fraudulent lien and collection restriction, correct the property/account record and retain the finding; transfer no house or unrelated debt. Resolve the matching thread once.",
+        "Step 3 requires shop still open under A, a final lawful license revocation, funded protected-deposit settlement and B still consenting to the bound departure plan with an actual destination. Closure dismisses the recorded staff; move_away preserves B's identity and history. Gate the after-line on step 3 and a surviving informed former employee or family member."
+      ],
+      "era_notes": "Use a period-valid complaint process, bank records and receipt format. Never give the player a modern database search in an earlier decade.",
+      "why_fun": "The successful present includes someone missing for a good reason. Exposing a villain does not make everyone around the villain a winner."
+    },
+    {
+      "id": "scenario-20261117-7014",
+      "kind": "scenario",
+      "title": "Who Paid for the Departure",
+      "category": "secrets",
+      "pitch": "Privately tell a grandchild why the oldest family member disappeared from the household story. The truth may bring three generations under one roof, while destroying the quiet room that once kept them apart.",
+      "present_hook": {
+        "what_you_notice": "A family home has a sealed upstairs room and a cropped photograph. An old receipt contradicts the story that the oldest relative abandoned the family without helping.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the family papers",
+            "line": "The receipt bears the name of {A}. The money arrived before {C} left in {year}, not after."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            65,
+            70
+          ],
+          "has_children": true
+        },
+        "C": {
+          "age": [
+            40,
+            45
+          ],
+          "has_children": true
+        },
+        "B": {
+          "age": [
+            18,
+            20
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1975,
+          1985
+        ],
+        "notes": "A is C's parent and C is B's parent. All are local residents at intervention. Require A's verified private payment that protected C from debt, C's mistaken belief of abandonment, C's scheduled local-household separation and an owned Main Street family home with a safe sealed room. Present must be at least 24 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:tell",
+          "target": "B",
+          "how_it_looks": "Show the grandchild the authentic payment receipt and explain the verified family account privately."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "knows": [
+                "B",
+                "the verified family payment of A"
+              ]
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.35
+            }
+          ],
+          "headline": "Family Receipt Reopens an Old Conversation",
+          "body": "With consent from the relatives involved, the Gazette recorded that {A} and grandchild {B} had renewed contact. The private contents of their conversation were not published."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            7,
+            9
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "C"
+              ],
+              "by": 0.4
+            },
+            {
+              "reunite_household": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "Three Generations Choose a Shared Household",
+          "body": "{A}, {B} and {C} agreed to share the family home after years of separate routines. The arrangement followed a reconciliation rather than a change in ownership."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            22,
+            24
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "tear_down": "the sealed-room partition in the bound family home"
+            },
+            {
+              "build": "an accessible family living room",
+              "where": "Main Street"
+            },
+            {
+              "wealth": "B",
+              "by": -0.1
+            },
+            {
+              "wealth": "C",
+              "by": -0.1
+            }
+          ],
+          "headline": "Long-Sealed Family Room Becomes Shared Living Space",
+          "body": "{B} and {C} funded a conversion of the family's sealed room into accessible living space. The old partition and its private retreat were removed."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": -0.1
+          }
+        ],
+        "headline": "A Receipt Proves Too Much to Discuss at Once",
+        "body": "An attempted renewal of contact between {A} and grandchild {B} ended awkwardly. Both declined further public comment."
+      },
+      "present_day": {
+        "best": "In {now}, the family home has a shared accessible room instead of a sealed upstairs retreat. Current residents come from the replay; the scenario never promises that A survives to see the renovation.",
+        "worst": "On step-1 failure, B has still received the private evidence but does not reconcile through this chain. The attempted disclosure does not automatically become town gossip.",
+        "twist": "A truthful explanation can heal an old grievance and still cost a family its place for solitude. The shared room is brighter, but the old retreat cannot be walked into again."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I understand the receipt now. Sometimes I still wish we had kept one room where nobody had to explain anything."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "tell",
+          "does": "Privately disclose the bound authentic family-payment fact and receipt to B, adding B to that fact's knowledge holders immediately. Do not change its truth, publish it, force forgiveness or tell C automatically. A refusal to inspect the evidence leaves the chain inactive."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose event years and independent rolls by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Roll after prerequisites pass; failed or ineligible steps stop descendants without undoing earlier history. fails is the first-step roll's complement, not a separate roll. Apply the intervention once. Persist people, sites, funds, facts and belief separately; replay invalidates descendants. Recheck survival, ownership, residence and resources. Gate present text and after-lines by actual completed steps and surviving speakers/features. Never force unrelated marriages, deaths or election results; no duplicate rewards.",
+        "Parent links must establish A as grandparent of B through C; use no unrelated residents. The payment is an existing true fact of kind past attached to A. tell reveals it once; step 1's knows effect is an idempotent confirmation of retained knowledge, not a second disclosure or a fabricated secret.",
+        "Step 1 success requires B accepting the evidence and A consenting to contact and to the minimal public notice. Failure applies only to the subsequent reconciliation roll after a successful private disclosure; require consent for that limited failure notice too, otherwise keep it in family history without a Gazette item.",
+        "Add reunite_household effect: require all three living adults' consent, compatible existing partners/dependents, sufficient bedrooms and no displacement of protected occupants. Atomically update residence IDs in the identified home without duplicating people or transferring ownership; retain the reconciliation fact.",
+        "Step 3 requires B and C still resident and authorized to alter the home, no person occupying the sealed retreat, a safe permitted accessible design and a quote covered by their two 10 percent contributions. Remove only the partition, preserve the house and record the lost private-room layout. A's death never accelerates this step or erases the earlier reconciliation. Gate B's line on step 3, B alive and B having memory of the original room."
+      ],
+      "era_notes": "Use a physical receipt and consented conversation in every decade. Accessibility must be designed for the actual house rather than assumed from a label.",
+      "why_fun": "The ripple begins as information held by one person. The final room lets you walk through a family argument that ended differently."
+    }
+  ]
+}

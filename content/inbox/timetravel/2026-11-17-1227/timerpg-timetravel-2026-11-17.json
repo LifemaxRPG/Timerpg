@@ -1,0 +1,689 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-7471",
+      "kind": "scenario",
+      "title": "The Roof Before the Scholarship",
+      "category": "money",
+      "pitch": "Pay for a parent's leaking roof before the household must leave town. A child who stays may eventually redesign the school entrance, although the family will spend years repaying the opportunity in work and savings.",
+      "present_hook": {
+        "what_you_notice": "A shuttered family house stands near a school with steep entrance steps. A relocation notice names a roof repair that never happened.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} left with child {B} after the roof estimate in {year}. The house was not repaired before the move."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            42
+          ],
+          "wealth": "poor",
+          "has_children": true
+        },
+        "B": {
+          "age": [
+            10,
+            13
+          ],
+          "relation": "parent_child",
+          "trait": {
+            "diligence": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1985
+        ],
+        "notes": "A is B's parent. Require A owning the repairable Main Street home, a scheduled cost-driven departure, B's documented interest in design and a school entrance eligible for funded access improvements. Present must be at least 28 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "large",
+          "how_it_looks": "Cover the verified roof-repair shortfall before the scheduled household departure."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "repair_home": "A",
+              "part": "the bound leaking roof"
+            },
+            {
+              "move_in": "A"
+            },
+            {
+              "move_in": "B"
+            }
+          ],
+          "headline": "Roof Repair Lets a Family Stay in Town",
+          "body": "{A} completed the roof repair and canceled the planned household departure. Child {B} remained at the local school."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "qualify": "B",
+              "profession": "architect"
+            }
+          ],
+          "headline": "Former Local Pupil Qualifies as an Architect",
+          "body": "{B} completed funded architectural training after years of study and paid work. The repaired family house remained part of the graduate's account of learning to notice buildings."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            26,
+            28
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "an accessible school entrance",
+              "where": "Main Street"
+            },
+            {
+              "wealth": "B",
+              "by": -0.2
+            }
+          ],
+          "headline": "School Entrance Rebuilt with Help from Former Pupil",
+          "body": "A funded access project designed by {B} replaced the school's steep-only entrance arrangement. The architect contributed personal savings as well as professional work."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "wealth": "A",
+            "by": -0.08
+          }
+        ],
+        "headline": "Repair Attempt Cannot Meet the Family's Deadline",
+        "body": "{A} paid for temporary roof work, but the full repair could not be completed before the housing deadline. The family's departure decision returned to its ordinary course."
+      },
+      "present_day": {
+        "best": "In {now}, the school has a step-free entrance and the identified house has a recorded sound-roof repair. Current residents follow replay; the scenario does not promise the original family still lives there.",
+        "worst": "First-step failure leaves the actual temporary work and expenses in history, but creates no guaranteed stay, architectural qualification or new school entrance.",
+        "twist": "A helpful transfer removes an immediate barrier, but the later public benefit consumes a fifth of B's savings. The gift does not make the child's years of training or labor free."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "Someone paid to keep rain out of our house. I wanted the school door to be easier for the next family."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Select years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years counts from intervention. Check eligibility before rolls; failure or ineligibility stops descendants but retains prior effects. fails is the first roll's complementary branch, never an additional roll. Apply interventions once. Persist participants, businesses, sites, budgets and knowledge; replay invalidates descendants. Recheck survival, ownership, residence and resources. Gate all present text and dialogue on recorded outcomes, surviving features and informed living speakers. Never force unrelated deaths, relationships or later survival; no repeat rewards.",
+        "Add repair_home: bind A's owned roof and an actual funded contractor quote, meet the housing deadline and remove the identified leak after inspection. move_in cancels the specific scheduled departure for both linked household members, never duplicates them. Failure's eight percent debit is temporary work beyond the gift's accounted expenditure; require enough remaining funds.",
+        "Add qualify for architect: require accredited study, examinations, licensing, tuition support and recorded paid work compatible with attendance. A roof repair alone grants no degree; B must be adult and alive at qualification.",
+        "Step 3 requires B licensed, a permitted school site, safe construction scheduling and a quote funded by public money plus the stated twenty percent donation. Build a real accessible route without removing necessary stairs or exits. Gate B's line on step 3, B alive and knowledge of the original gift."
+      ],
+      "era_notes": "Use the repair, education and access rules of the relevant decades. A later step-free entrance can improve on earlier standards without claiming every earlier school had no access.",
+      "why_fun": "The first payoff is a dry ceiling; the last is a door another family can use. You can trace a public improvement back to one private bill."
+    },
+    {
+      "id": "scenario-20261117-7472",
+      "kind": "scenario",
+      "title": "The Lie That Quieted the Landing",
+      "category": "place",
+      "pitch": "Spread a false poaching allegation about an honest bait-shop owner. The lost landing may eventually recover as marsh habitat, but that quieter riverbank will still carry the cost of the lie.",
+      "present_hook": {
+        "what_you_notice": "A busy licensed boat landing interrupts a damaged reed bed. The bait-shop permit and wildlife records show that its owner complied with the rules.",
+        "where": "the river",
+        "clues": [
+          {
+            "who": "the wildlife permit records",
+            "line": "{A} kept valid permits in {year}. The damaged reeds came from lawful landing traffic, not the poaching people whispered about."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bait shop"
+          ],
+          "reputation": "mid"
+        },
+        "shop": {
+          "shop_kind": [
+            "bait shop"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "shop belongs to A. Require A verified innocent of poaching, a financially vulnerable bait shop, its lawful landing lease and a recoverable reed bed affected by recorded boat traffic. Present must be at least 29 years later."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": -0.6,
+          "how_it_looks": "Repeat the false allegation that the permit-holding owner poaches wildlife."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "close_shop": "shop"
+            }
+          ],
+          "headline": "Bait Shop Closes After Unsupported Allegation Spreads",
+          "body": "The bait shop run by {A} closed after a damaging boycott. The poaching allegation remained unsupported, and the permit record showed no violation."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            10,
+            12
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "move_away": "A"
+            },
+            {
+              "tear_down": "the bound disused landing dock"
+            }
+          ],
+          "headline": "Former Shopkeeper Leaves as Landing Lease Ends",
+          "body": "{A} completed a planned move after the landing lease ended. The disused dock was removed through the river authority's ordinary process."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            27,
+            29
+          ],
+          "if": {
+            "step": 2
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "restore_habitat": "the bound reed bed"
+            }
+          ],
+          "headline": "Former Landing Returns to Reeds After Restoration",
+          "body": "A funded restoration re-established native reeds at the former landing. Monitoring recorded reduced bank disturbance at the site."
+        }
+      ],
+      "fails": {
+        "chance": 0.35,
+        "effects": [
+          {
+            "rep": "A",
+            "by": 0.1
+          }
+        ],
+        "headline": "Permit Record Checks a False Poaching Story",
+        "body": "Residents inspected the permit record and rejected the allegation against {A}. The bait shop retained enough custom to continue."
+      },
+      "present_day": {
+        "best": "In {now}, native reeds occupy the former landing and its dock is absent. A's shop has closed and A's later life is recorded separately; no restored habitat makes the original allegation true.",
+        "worst": "On first-step failure, the boycott fails to close the shop through this chain. The rumor's initial harm and later partial reputation recovery remain actual events.",
+        "twist": "The restored riverbank can be good for wildlife while its origin remains cruel to an innocent resident. Anglers also lose a lawful public-facing service and a familiar access point."
+      },
+      "npc_lines_after": [
+        {
+          "who": "anyone",
+          "mood": "bitter",
+          "line": "The reeds came back. That does not mean the story about the shopkeeper was ever true."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Select years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years counts from intervention. Check eligibility before rolls; failure or ineligibility stops descendants but retains prior effects. fails is the first roll's complementary branch, never an additional roll. Apply interventions once. Persist participants, businesses, sites, budgets and knowledge; replay invalidates descendants. Recheck survival, ownership, residence and resources. Gate all present text and dialogue on recorded outcomes, surviving features and informed living speakers. Never force unrelated deaths, relationships or later survival; no repeat rewards.",
+        "Persist the poaching allegation as false and the permit compliance as true. Apply the negative rumor once; step 1 requires actual boycott losses crossing the store's closure threshold, not a new automatic reputation penalty.",
+        "Step 2 requires A alive, a voluntary funded departure plan, expired lawful lease and authorized removal of only the bound dock. If another operator takes over the landing before expiry, stop the chain rather than erasing its rights.",
+        "Add restore_habitat: require funded native planting, suitable water levels, reduced physical disturbance, land permission and monitored survival. Update reed-bed geometry and habitat suitability, not guaranteed species populations. Gate the line on step 3 and a living informed resident who knows the false allegation's status."
+      ],
+      "era_notes": "Use the actual permit and restoration practices of the era. The wildlife benefit never retroactively changes the allegation's truth.",
+      "why_fun": "The changed place can be beautiful without vindicating what you did. Its empty counter is as much a consequence as its living reeds."
+    },
+    {
+      "id": "scenario-20261117-7473",
+      "kind": "scenario",
+      "title": "The Person Named as Guardian",
+      "category": "family",
+      "pitch": "Introduce a parent to a trusted prospective caregiver before a known illness ends the parent's life. A child may grow up locally and open a shop from a family recipe, while the caregiver gives up savings and a quieter household.",
+      "present_hook": {
+        "what_you_notice": "A child's departure appears beside a parent's obituary, and a recipe notebook survives in storage. An unsigned guardianship draft names no agreed local caregiver.",
+        "where": "the family papers",
+        "clues": [
+          {
+            "who": "the family papers",
+            "line": "{A} asked about a local guardian in {year}. The draft was never completed before child {C} left."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            42
+          ],
+          "has_children": true
+        },
+        "B": {
+          "age": [
+            30,
+            38
+          ],
+          "wealth": "comfortable"
+        },
+        "C": {
+          "age": [
+            5,
+            7
+          ],
+          "relation": "parent_child",
+          "trait": {
+            "diligence": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1985
+        ],
+        "notes": "A is C's parent; B is unrelated and not yet acquainted with A. Require A's ordinary recorded illness death 8–9 years later, no other available legal parent or prior guardian, a genuine family ice-cream recipe and B's baseline eligibility and willingness to consider care. Present must be at least 27 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange an ordinary meeting so the parent and potential caregiver can decide whether to build trust."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.35
+            },
+            {
+              "bond": [
+                "B",
+                "C"
+              ],
+              "by": 0.2
+            }
+          ],
+          "headline": "Parent Completes a Local Care Plan with a New Friend",
+          "body": "{A} and {B} completed a conditional care plan after getting to know one another. Child {C} took part in the age-appropriate planning."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            8,
+            9
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "guardian": [
+                "B",
+                "C"
+              ]
+            },
+            {
+              "wealth": "B",
+              "by": -0.25
+            }
+          ],
+          "headline": "Child Stays Locally After Parent's Natural Death",
+          "body": "After the natural death of {A}, approved caregiver {B} welcomed child {C} into the household. The move required substantial household spending."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            25,
+            27
+          ],
+          "if": {
+            "step": 2,
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "C",
+              "kind": "ice cream parlor"
+            }
+          ],
+          "headline": "Family Recipe Finds a New Home in an Ice Cream Parlor",
+          "body": "{C} opened an ice cream parlor using a legally retained family recipe among its offerings. The owner's account of the venture included the household that made staying in town possible."
+        }
+      ],
+      "fails": {
+        "chance": 0.3,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": 0.1
+          }
+        ],
+        "headline": "New Friends Decline to Make a Guardianship Commitment",
+        "body": "{A} and {B} remained on friendly terms but did not complete the proposed care plan. The child's future care remained subject to ordinary family and legal arrangements."
+      },
+      "present_day": {
+        "best": "In {now}, the ice-cream parlor premises exist and C's local upbringing is recorded. A's actual death remains in the archive; the scenario changes care and continuity rather than curing the illness.",
+        "worst": "On first-step failure, ordinary lawful care arrangements still apply. Do not portray an alternative caregiver as cruel or leave the child without protection for dramatic effect.",
+        "twist": "C gains a local household and a possible business, while B spends a quarter of personal wealth and changes daily life around care. The child's success does not erase the caregiver's sacrifices."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I like seeing that recipe on a shop counter. I remember how much smaller our quiet evenings became."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Select years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years counts from intervention. Check eligibility before rolls; failure or ineligibility stops descendants but retains prior effects. fails is the first roll's complementary branch, never an additional roll. Apply interventions once. Persist participants, businesses, sites, budgets and knowledge; replay invalidates descendants. Recheck survival, ownership, residence and resources. Gate all present text and dialogue on recorded outcomes, surviving features and informed living speakers. Never force unrelated deaths, relationships or later survival; no repeat rewards.",
+        "Step 1 requires genuine trust, B's informed willingness, a valid conditional legal plan and C's age-appropriate participation. The introduction itself is not legal appointment; record the signed care-plan fact with normal legal costs.",
+        "Step 2 waits for A's actual natural death within the range; never force death or guardianship if A survives. Add guardian: require C still a minor, no available higher-priority parent, independent approval, safe housing, consent and appropriate oversight. Update household and legal guardian IDs without changing biological parentage. The twenty-five percent debit is documented adaptation and care spending, not a payment to acquire a child.",
+        "Step 3 requires C adult, licensed food handling, adequate saved capital, a lawful vacant site and actual access/right to the preserved recipe. Care alone does not guarantee business skill or funds. Gate B's line on step 3, B alive, the parlor open and retained care memories."
+      ],
+      "era_notes": "Use age-appropriate guardianship and food-business rules for the event decades. Preserve the recipe through a physical notebook rather than assumed digital storage.",
+      "why_fun": "The intervention changes who is there after a loss it cannot prevent. The eventual shop is a visible continuation of an ordinary family's work."
+    },
+    {
+      "id": "scenario-20261117-7474",
+      "kind": "scenario",
+      "title": "The Money Meant for Leaving",
+      "category": "money",
+      "pitch": "Steal the savings a young resident meant to use for a move. Staying may lead to owning a bakery, but a successful local life does not turn the theft into a kindness.",
+      "present_hook": {
+        "what_you_notice": "A bakery remains small after its planned successor leaves town. An archived departure notice mentions the savings that made the move possible.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} left in {year}. Baker {B} later retired without completing the proposed local succession."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            24
+          ],
+          "wealth": "getting_by",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            50,
+            55
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bakery"
+          ]
+        },
+        "C": {
+          "age": [
+            30,
+            40
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "bakery"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "shop belongs to B. A has a real departure fund and planned move; B has a paid vacancy and a documented succession interest. C lives in the identified neighboring house. Require an expandable bakery parcel. Present must be at least 28 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:take",
+          "target": "A",
+          "amount": "large",
+          "how_it_looks": "Take the identified departure savings before the resident can pay for the planned move."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "hire": [
+                "B",
+                "A"
+              ]
+            },
+            {
+              "move_in": "A"
+            }
+          ],
+          "headline": "Postponed Departure Leads to a Bakery Job",
+          "body": "After losing the savings intended for a move, {A} accepted paid work from baker {B}. The departure was postponed while the worker rebuilt a reserve."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "buy_business": [
+                "B",
+                "A"
+              ],
+              "business": "shop"
+            }
+          ],
+          "headline": "Longtime Worker Buys Bakery as Owner Retires",
+          "body": "{A} purchased the bakery from {B} through an agreed succession sale. The former worker became the person responsible for wages, ovens and opening the door."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            26,
+            28
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "build": "a night-baking annex",
+              "where": "Main Street"
+            },
+            {
+              "night_noise": "the bound neighboring house",
+              "source": "the scenario bakery annex"
+            }
+          ],
+          "headline": "Bakery Expands Overnight Production Beside Homes",
+          "body": "The bakery owned by {A} opened a permitted night-production annex. Overnight work increased deliveries and sound at the boundary with neighboring homes."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [
+          {
+            "rep": "B",
+            "by": 0.04
+          }
+        ],
+        "headline": "Bakery Offers Work but No Suitable Agreement Emerges",
+        "body": "{B} offered paid work to {A}, but the terms did not suit both parties. The resident's plans after losing the departure fund remained unsettled."
+      },
+      "present_day": {
+        "best": "In {now}, the bakery has a night-production annex and a recorded succession from B to A. Later ownership follows replay; the neighboring house has a documented nighttime sound exposure while production operates.",
+        "worst": "If step 1 fails, the stolen savings are still missing and no bakery career is guaranteed. The failed job match does not undo the theft.",
+        "twist": "Theft may accidentally keep a talented resident in town, then expose another household to night work. Neither the thriving bakery nor the new wages justify taking the original choice away."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I made something of staying. That does not make the missing money a favor."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "take",
+          "does": "Remove the specified large, year-wage amount from A's identified liquid departure fund and credit the player's inventory once. Require actual accessible funds at least that large; otherwise reject the action. Record theft and knowledge separately, cancel only the now-unaffordable departure booking and allow A to make later plans. Do not manufacture debt or guarantee employment."
+        }
+      ],
+      "new_rules_needed": [
+        "Select years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years counts from intervention. Check eligibility before rolls; failure or ineligibility stops descendants but retains prior effects. fails is the first roll's complementary branch, never an additional roll. Apply interventions once. Persist participants, businesses, sites, budgets and knowledge; replay invalidates descendants. Recheck survival, ownership, residence and resources. Gate all present text and dialogue on recorded outcomes, surviving features and informed living speakers. Never force unrelated deaths, relationships or later survival; no repeat rewards.",
+        "Activate only when the completed theft makes the bound departure unaffordable. move_in at step 1 cancels that specific departure or records continued residence, never duplicates A or forbids later travel.",
+        "Step 1 requires the actual bakery vacancy, negotiated wages and A's voluntary acceptance. Failure leaves the money loss intact; B's small reputation gain reflects the genuine publicly known offer, not blame of A.",
+        "Add buy_business: require B alive and consenting to retirement, A adult with actual savings or approved affordable financing, a fair priced sale and a solvent open bakery. Debit buyer funds, credit seller funds, transfer the exact shop ID and settle employment without inventing new capital.",
+        "Step 3 requires A still owning the solvent bakery, a funded permitted expansion and compliance with applicable noise rules. Add night_noise: calculate persistent sound at C's original house from real annex operations and delivery schedules, updating sleep/complaint conditions only for actual occupants. It is not permission for illegal noise. Gate A's line on step 3, A alive and memory of the missing fund."
+      ],
+      "era_notes": "Use an era-appropriate physical savings fund and departure booking. The amount is a year's local wages, not a fixed modern dollar sum.",
+      "why_fun": "The town can profit from an act the beneficiary still condemns. A familiar bakery becomes evidence of a life you redirected without asking."
+    }
+  ]
+}

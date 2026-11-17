@@ -1,0 +1,647 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-7321",
+      "kind": "scenario",
+      "title": "The Track Outside the Locked Gym",
+      "category": "rivalry",
+      "pitch": "Sabotage a costly private gym. Its displaced trainer may eventually organize a public running track, though the new welcome begins with a business and its employees losing their place.",
+      "present_hook": {
+        "what_you_notice": "A private gym displays expensive membership terms beside an abandoned proposal for a public track. A trainer's archived resignation mentions no affordable place to hold classes.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{B} left the gym run by {A} in {year}. The proposed public track never received an organizer."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "gym"
+          ]
+        },
+        "B": {
+          "age": [
+            20,
+            28
+          ],
+          "wealth": "getting_by",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "shop": {
+          "shop_kind": [
+            "gym"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1985
+        ],
+        "notes": "shop belongs to A; B is its qualified employed trainer. Require an expensive membership policy, a financially vulnerable gym and a vacant publicly owned sports parcel. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "sabotage",
+          "business": "shop",
+          "how_it_looks": "Undermine the gym's business prospects during its membership renewal year."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "close_shop": "shop"
+            },
+            {
+              "wealth": "B",
+              "by": -0.1
+            }
+          ],
+          "headline": "Private Gym Closes and Its Trainers Lose Work",
+          "body": "The gym operated by {A} closed after its business setback. Trainer {B} lost paid work and used part of a savings reserve while seeking another position."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            9,
+            11
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "establish_event": "a free weekly walking and running group",
+              "organizer": "B"
+            },
+            {
+              "rep": "B",
+              "by": 0.12
+            }
+          ],
+          "headline": "Former Trainer Organizes Free Outdoor Sessions",
+          "body": "{B} established free weekly walking and running sessions. Participants used an approved public route rather than buying a gym membership."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "build": "a public walking and running track",
+              "where": "the edge of town"
+            },
+            {
+              "wealth": "B",
+              "by": -0.15
+            }
+          ],
+          "headline": "Public Track Opens After Years of Outdoor Sessions",
+          "body": "A funded public track opened after years of sessions organized by {B}. The organizer contributed personal savings to the project."
+        }
+      ],
+      "fails": {
+        "chance": 0.35,
+        "effects": [
+          {
+            "wealth": "A",
+            "by": -0.12
+          }
+        ],
+        "headline": "Gym Owner Covers Losses and Retains the Staff",
+        "body": "{A} used personal funds to keep the gym open after the setback. The existing membership terms remained in force."
+      },
+      "present_day": {
+        "best": "In {now}, a marked public track offers free entry on the sports parcel. The original private gym has a recorded closure; later use of its building follows replay.",
+        "worst": "If the first step fails, the gym survives this setback and the scenario creates no free sessions or track. Sabotage still costs A money.",
+        "twist": "Affordable exercise grows from the destruction of an employer. B eventually gives more than a tenth of personal savings to a project that never repays the lost job."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I am proud of the track. I would rather have built it without losing my job first."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario, intervention year, roles and step. after_years is measured from intervention. Check prerequisites before rolling; failed or ineligible steps stop descendants but preserve earlier consequences. fails is the complementary first-step result, never a second roll. Apply intervention effects once. Persist people, site, business, funding and knowledge IDs; invalidate dependent history on replay. Recheck survival, ownership, residence and resources. Render only recorded outcomes; gate after-lines by completed steps, actual memories and surviving speakers/features. No forced unrelated events or repeated rewards.",
+        "Bind B's real trainer employment and qualifications. Sabotage changes business prospects once; closure occurs only once through the resulting insolvency. B's ten percent loss is documented unemployment living cost, not a second loss of hypothetical wages.",
+        "Add establish_event for a free weekly supervised group: record organizer, permitted route, recurring staffing and a sustainable operating budget. It can lapse; do not guarantee attendance forever.",
+        "Step 3 requires an active group, B's current coaching eligibility, land permission and funded construction and maintenance. B's fifteen percent donation plus real public funding must cover the quote. Preserve other park users' rights. Gate B's line on step 3 and memory of the original job loss."
+      ],
+      "era_notes": "Use ordinary walking and running equipment. The public track and program must accommodate the access standards of their opening decade.",
+      "why_fun": "A locked door becomes an open route across town. The former employee can value the outcome without thanking you for causing the hardship."
+    },
+    {
+      "id": "scenario-20261117-7322",
+      "kind": "scenario",
+      "title": "The Toys That Stopped Being Stock",
+      "category": "business",
+      "pitch": "Invest in a toy store's lending plan. The collection may outlive the shop as a public toy library, while the owner loses the retail business that made it possible.",
+      "present_hook": {
+        "what_you_notice": "A toy-store shelf holds dusty loan forms that were never used. A public notice says the town has no shared toy collection.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} proposed lending sturdy toys in {year}. The store could not afford to set inventory aside."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "toy store"
+          ],
+          "wealth": "getting_by"
+        },
+        "shop": {
+          "shop_kind": [
+            "toy store"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "shop belongs to A. Require the unfunded lending proposal, suitable durable safe toys, unmet local demand and a public hall with space for a later donated collection. Present must be at least 27 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Finance a separate stock of durable lending toys and their maintenance budget."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "start_lending": "shop",
+              "collection": "the scenario toy stock"
+            }
+          ],
+          "headline": "Toy Store Opens a Maintained Lending Collection",
+          "body": "{A} opened a toy-lending collection with separate stock and repair funds. Borrowers could use sturdy toys without purchasing them."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            10,
+            12
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "expand_lending": "the scenario toy stock"
+            },
+            {
+              "rep": "A",
+              "by": 0.15
+            }
+          ],
+          "headline": "Lending Collection Grows as Retail Sales Weaken",
+          "body": "The lending collection at the store run by {A} expanded. Maintenance and storage demands grew while purchases by some borrowers declined."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            25,
+            27
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.5,
+          "effects": [
+            {
+              "close_shop": "shop"
+            },
+            {
+              "donate_collection": "the scenario toy stock",
+              "to": "the bound public hall"
+            },
+            {
+              "wealth": "A",
+              "by": -0.2
+            }
+          ],
+          "headline": "Toy Store Closes, Collection Becomes a Public Library",
+          "body": "{A} closed the toy store after sustained retail losses and donated the intact lending collection to a funded public program. Closure debts consumed part of the owner's remaining savings."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "rep": "A",
+            "by": -0.04
+          }
+        ],
+        "headline": "Toy-Lending Proposal Withdrawn Before Opening",
+        "body": "The store run by {A} could not establish an insured maintenance plan within budget. The proposed lending service did not open."
+      },
+      "present_day": {
+        "best": "In {now}, the public hall contains identified toy-library shelves and a borrowing desk, while the original toy store has closed. Available toys depend on real repairs and later inventory history.",
+        "worst": "On first-step failure, no lending collection is created; unspent capital remains in business accounts after actual planning expenses.",
+        "twist": "Families keep access to toys after the business fails. The owner's generosity survives in public property, but the owner loses the shop and pays its closure debts."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "The toys still go home with children. I miss having a shop to unlock."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario, intervention year, roles and step. after_years is measured from intervention. Check prerequisites before rolling; failed or ineligible steps stop descendants but preserve earlier consequences. fails is the complementary first-step result, never a second roll. Apply intervention effects once. Persist people, site, business, funding and knowledge IDs; invalidate dependent history on replay. Recheck survival, ownership, residence and resources. Render only recorded outcomes; gate after-lines by completed steps, actual memories and surviving speakers/features. No forced unrelated events or repeated rewards.",
+        "Add start_lending: purchase identified lending inventory from the investment, separate it from sale stock, track loans, wear, repairs, returns and safety checks. No unlimited duplicate toys; require insurance and a funded maintenance plan.",
+        "Add expand_lending: use actual accumulated funds to increase the same collection and record customer substitution away from retail sales. Step 2 requires safe operating stock and demand; it cannot arbitrarily declare retail failure.",
+        "Step 3 requires insolvency or a voluntary funded closure under real accounts, A's consent and clear ownership after creditors. Add donate_collection: transfer the surviving unencumbered object IDs to an approved staffed public hall; do not copy inventory. The twenty percent debit is A's defined personal closure settlement, not duplicate business loss. Accept the donation only with maintenance funding and available hall space. Gate A's line on step 3, A alive and the toy library operating."
+      ],
+      "era_notes": "Select toys whose materials and safety checks fit the decade. Loan cards and physical shelves work throughout.",
+      "why_fun": "The objects remember an act of kindness longer than the business does. You can borrow from the collection you indirectly cost someone a shop."
+    },
+    {
+      "id": "scenario-20261117-7323",
+      "kind": "scenario",
+      "title": "The Voice in the School Exercise Book",
+      "category": "family",
+      "pitch": "Introduce a patient child to an older resident with poems nobody has written down. Their notebooks may become a public collection, though preserving the work can turn a private doorstep into a tourist stop.",
+      "present_hook": {
+        "what_you_notice": "An empty literary display mentions poems lost when their author died. A school exercise book records an unfinished assignment to interview an older resident.",
+        "where": "the school",
+        "clues": [
+          {
+            "who": "the school records",
+            "line": "{B} never found an interview subject in {year}. The poems remembered by {A} were not written down."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            70,
+            75
+          ]
+        },
+        "B": {
+          "age": [
+            10,
+            13
+          ],
+          "trait": {
+            "diligence": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1985
+        ],
+        "notes": "Require original unpublished poems actually remembered by A, B's supervised school assignment, A owning the identified Main Street home and no existing written archive of these poems. Present must be at least 28 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange a supervised afternoon interview and provide an exercise book through the school."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "archive_work": "the bound original poems",
+              "recorder": "B"
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.3
+            }
+          ],
+          "headline": "School Interview Preserves a Resident's Unwritten Poems",
+          "body": "With permission from {A}, pupil {B} wrote down a set of original poems. The author checked the pages before the school kept a copy."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "publish_work": "the scenario poem archive",
+              "editor": "B"
+            },
+            {
+              "rep": "B",
+              "by": 0.12
+            }
+          ],
+          "headline": "Former Pupil Edits a Local Poetry Collection",
+          "body": "{B} edited the preserved poems for a licensed publication. The edition acknowledged its author and the original school interview."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            26,
+            28
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "designate_landmark": "the bound author's house"
+            },
+            {
+              "build": "a literary visitor panel",
+              "where": "Main Street"
+            }
+          ],
+          "headline": "Poet's House Joins a Public Literary Walk",
+          "body": "The house associated with the preserved poems joined an approved literary walk. A public information panel drew visitors to a doorstep that had once been private."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": 0.08
+          }
+        ],
+        "headline": "Friendly Interview Leaves No Checked Manuscript",
+        "body": "{A} and {B} enjoyed the school visit but did not complete a checked written collection. The conversation remained a personal memory."
+      },
+      "present_day": {
+        "best": "In {now}, a real library copy of the poetry collection and a visitor panel identify the preserved work. The author's house may still be occupied privately; a landmark panel does not open its interior.",
+        "worst": "If the first step fails, no authentic manuscript is created by this scenario. Do not invent poems later merely because the interview occurred.",
+        "twist": "The work survives beyond the author, but recognition brings strangers to the current household's boundary. Public memory changes the privacy of people who did not write the poems."
+      },
+      "npc_lines_after": [
+        {
+          "who": "anyone",
+          "mood": "bitter",
+          "line": "I like knowing the words survived. I would like people to stop leaning over our gate to ask about them."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario, intervention year, roles and step. after_years is measured from intervention. Check prerequisites before rolling; failed or ineligible steps stop descendants but preserve earlier consequences. fails is the complementary first-step result, never a second roll. Apply intervention effects once. Persist people, site, business, funding and knowledge IDs; invalidate dependent history on replay. Recheck survival, ownership, residence and resources. Render only recorded outcomes; gate after-lines by completed steps, actual memories and surviving speakers/features. No forced unrelated events or repeated rewards.",
+        "The interview involves a supervised child and a consenting author. Add archive_work: transcribe only actual authored content, retain authorship, corrections and consent, and create unique manuscript/copy IDs. Do not generate factual biographical claims from verse.",
+        "Add publish_work: at step 2 require B adult, verified manuscript provenance, a funded publisher and valid copyright permission from A or the lawful estate. Pay actual royalties and expenses under a documented contract; A's survival is not required if estate authorization exists.",
+        "Add designate_landmark: require the actual house still standing and its current owner's informed consent to an exterior-only public route. Fund the panel through the publication project and public permission. Record visitor footfall and household privacy impacts; no trespass or access rights arise. Gate the line on step 3 and a living current resident of that house with actual visitor experience."
+      ],
+      "era_notes": "Handwritten exercise books work across the window. Use a print edition initially; later formats cannot replace the need for an authentic source.",
+      "why_fun": "The ripple is a voice surviving rather than a life being extended. The same doorstep becomes a different place once strangers know its story."
+    },
+    {
+      "id": "scenario-20261117-7324",
+      "kind": "scenario",
+      "title": "The One Ballot and the Long Way Round",
+      "category": "politics",
+      "pitch": "Cast one lawful ballot in an election decided by a tie. The winner's bus plan may eventually give the town a depot, while closing a shortcut pedestrians used for decades.",
+      "present_hook": {
+        "what_you_notice": "An election archive records a tied race settled against a transit-minded candidate. A disused route plan crosses a public footpath behind the proposed depot site.",
+        "where": "the town hall",
+        "clues": [
+          {
+            "who": "the election record",
+            "line": "The vote in {year} ended level. {A} lost the tie procedure, and the bus proposal was shelved."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "reputation": "mid",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            18,
+            25
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1985,
+          1995
+        ],
+        "notes": "Require an actual tied baseline mayoral election, A's documented transit platform, an existing legal path and a reserved vacant depot parcel on Main Street. B is a local pedestrian with a recorded use of that path. Present must be at least 25 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:vote",
+          "target": "A",
+          "how_it_looks": "Cast one valid ballot for the tied candidate before polling closes, if the player is legally eligible."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            0,
+            0
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 1,
+          "effects": [
+            {
+              "win_election": "A"
+            }
+          ],
+          "headline": "One Added Ballot Changes a Tied Mayoral Result",
+          "body": "A valid additional ballot gave {A} a one-vote majority in the previously tied race. The ordinary tie procedure was no longer needed."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            8,
+            10
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_transit": "the funded town bus route"
+            }
+          ],
+          "headline": "Town Opens the Bus Route Planned Years Earlier",
+          "body": "A funded bus route opened under the approved long-term transit plan. The project originated in the administration elected by a one-vote margin."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a public bus depot",
+              "where": "Main Street"
+            },
+            {
+              "close_path": "the bound depot shortcut"
+            }
+          ],
+          "headline": "Bus Depot Opens as an Old Walking Shortcut Closes",
+          "body": "A bus depot opened on the reserved site after a lawful access review. Its secured vehicle yard closed the old pedestrian shortcut."
+        }
+      ],
+      "fails": {
+        "chance": 0,
+        "effects": [],
+        "headline": "Original Tie Procedure Remains Unchanged",
+        "body": "Without a valid additional ballot, the original tied election followed its existing legal procedure."
+      },
+      "present_day": {
+        "best": "In {now}, the depot has an active bus entrance and a secured yard blocking the former shortcut. Actual route schedules and later funding determine whether buses still run.",
+        "worst": "An invalid or ineligible attempted ballot does not activate the chain; it leaves the original tie procedure intact. If later transit steps fail, preserve the actual election result without inventing a depot.",
+        "twist": "Passengers gain a dependable boarding place while walkers must take the longer public route. A single vote can make the town easier to cross for one resident and harder for another."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I can catch a bus there now. Getting to the stop takes longer than my old walk through the yard."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "vote",
+          "does": "Add exactly one legally valid ballot for A in the bound election after verifying player registration, residence, polling time and no earlier ballot. Recount against the actual baseline tie before certification. It cannot mint extra votes, establish eligibility retroactively or change an already certified election."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario, intervention year, roles and step. after_years is measured from intervention. Check prerequisites before rolling; failed or ineligible steps stop descendants but preserve earlier consequences. fails is the complementary first-step result, never a second roll. Apply intervention effects once. Persist people, site, business, funding and knowledge IDs; invalidate dependent history on replay. Recheck survival, ownership, residence and resources. Render only recorded outcomes; gate after-lines by completed steps, actual memories and surviving speakers/features. No forced unrelated events or repeated rewards.",
+        "Activate only after a legal ballot in the bound genuine tie. Step 1 is deterministic with chance 1; fails chance 0 is a non-executable explanatory baseline, not a second outcome. Any changed tally from other interventions requires a normal recount and disables this specific tied-election scenario if its prerequisites no longer hold.",
+        "Step 2 requires a legally approved plan initiated during A's actual term, real public funding, route permission, vehicles, staff and viable demand. A need not still hold office or be alive; later governments must lawfully continue the project. Add establish_transit with tracked routes, operating budgets, fares and service frequency.",
+        "Step 3 requires the route still operating, a funded permitted depot on the identified vacant parcel, approved legal path closure and an available safe alternative pedestrian route. Add close_path: remove the identified public route edge and its legal access only after completion of the closure process; recompute pedestrian routing rather than teleport residents. Gate B's line on step 3, B alive and locally resident, B still using the changed route, and the bus service operating."
+      ],
+      "era_notes": "Use the real election and registration rules modeled for the event year. The player's time-travel presence alone does not confer voting eligibility.",
+      "why_fun": "The intervention is as small as one legitimate ballot. Decades later, a locked gate and a bus timetable show how far it traveled."
+    }
+  ]
+}

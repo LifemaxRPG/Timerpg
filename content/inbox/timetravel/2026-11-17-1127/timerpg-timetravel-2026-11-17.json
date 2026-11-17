@@ -1,0 +1,733 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-6871",
+      "kind": "scenario",
+      "title": "The Tuition Receipt",
+      "category": "rescue",
+      "pitch": "Pay a teenager's medical-school savings shortfall. A person who died young in your original present may someday answer a door, but the care that saves them will cost the new doctor dearly.",
+      "present_hook": {
+        "what_you_notice": "A medical-school rejection for lack of funds sits in the archive, and a later obituary describes a young adult dying without timely local treatment.",
+        "where": "the Gazette archive",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} abandoned medical training after the funding refusal in {year}. A later report says {C} could not reach suitable care in time."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            16,
+            18
+          ],
+          "wealth": "poor",
+          "owns_shop": false,
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "C": {
+          "age": [
+            1,
+            5
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1980
+        ],
+        "notes": "Require A's recorded academic eligibility and funding refusal, a vacant clinic site and C's baseline medically treatable death 22–24 years after intervention. Present must be at least 24 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "fortune",
+          "how_it_looks": "Fund the documented education shortfall without promising what the student must become."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            9,
+            10
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "qualify": "A",
+              "profession": "doctor"
+            }
+          ],
+          "headline": "Former Scholarship Applicant Qualifies as a Doctor",
+          "body": "{A} completed medical training and qualified to practice. An old plan once abandoned for lack of funds became a profession."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "doctor's office"
+            }
+          ],
+          "headline": "New Medical Office Opens in Town",
+          "body": "{A} opened a local medical office. Residents gained a qualified practitioner closer to home."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            22,
+            24
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "prevent_death": "C",
+              "event": "the bound treatable medical crisis"
+            },
+            {
+              "wealth": "A",
+              "by": -0.25
+            },
+            {
+              "bond": [
+                "A",
+                "C"
+              ],
+              "by": 0.4
+            }
+          ],
+          "headline": "Local Doctor Funds Care That Saves a Resident",
+          "body": "Timely treatment coordinated by {A} saved {C} during a medical crisis. The doctor personally covered a substantial share of the care costs."
+        }
+      ],
+      "fails": {
+        "chance": 0.3,
+        "effects": [
+          {
+            "rep": "A",
+            "by": -0.03
+          }
+        ],
+        "headline": "Funded Student Leaves Medical Training",
+        "body": "{A} left the funded course before qualifying to practice. The unfinished education became a source of disappointment rather than a local medical service."
+      },
+      "present_day": {
+        "best": "In {now}, the clinic premises exist and C's original crisis death is absent from history. If C survives subsequent ordinary events, the player can meet C in person; otherwise show the longer intervening life in the archive.",
+        "worst": "On first-step failure, the funded education does not create a doctor. C's later fate follows the replay rather than receiving a scripted rescue.",
+        "twist": "The successful chain saves a life by consuming a quarter of the doctor's personal money. A generous career creates a real financial burden, not free universal care."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "grateful",
+          "line": "I know what the treatment cost. I cannot put a price on the years after it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Use independent keyed rolls per seed, scenario ID, intervention year, bound IDs and step. Choose years within after_years measured from intervention. Roll only when all prerequisites hold; a failed or ineligible step stops descendants and preserves earlier effects. fails is the first-step roll's complement, not a separate event. Apply the intervention once. Record participants, business and parcel IDs, funding, eligibility and facts; invalidate dependent history on replay. Recheck survival, residence, ownership and available funds. Do not grant immunity or override unrelated events. Gate present descriptions and after-lines on recorded steps, current map state and speaker survival; no repeated rewards.",
+        "Add qualify effect: persist completed accredited training and a valid medical license only after required years, attendance, examinations and funded tuition. Gift funds are spent through education accounting, never credited twice; a failed qualification consumes only recorded actual education costs.",
+        "Step 2 requires a current license, adequate remaining funds, an available clinic parcel and lawful approval. Bind the office ID and require it still operating under A at step 3.",
+        "Add prevent_death effect: before the bound future crisis resolves, cancel only its death outcome if A provides the specified effective treatment. Do not revive C or cancel unrelated hazards. Select the third-step year from the actual bound crisis date within the range; unavailable treatment stops the step. Require and debit A's 25 percent personal contribution once, with the remaining cost covered by a recorded funded care plan. C's line requires step 3, C alive and C informed about the treatment."
+      ],
+      "era_notes": "Keep the illness generic but explicitly treatable with the medicine available in its event year. Do not use future treatment knowledge to bypass training.",
+      "why_fun": "The payoff can be a living resident whose original obituary you remember. Their existence has a receipt attached."
+    },
+    {
+      "id": "scenario-20261117-6872",
+      "kind": "scenario",
+      "title": "A Recommendation Nobody Else Would Give",
+      "category": "secrets",
+      "pitch": "Publicly recommend an unpopular but qualified lawyer. The resulting work could uncover a wrongful property claim and restore a family home, while ending another household's comfortable arrangement.",
+      "present_hook": {
+        "what_you_notice": "A disputed house carries the wrong ownership history, while a qualified local lawyer's archived notice shows a practice that closed for lack of clients.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} offered to examine the claim in {year}. Nobody trusted the practice enough to bring the papers."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "reputation": "low",
+          "owns_shop": true,
+          "shop_kind": [
+            "law office"
+          ],
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "poor"
+        },
+        "C": {
+          "age": [
+            30,
+            40
+          ],
+          "wealth": "comfortable"
+        },
+        "shop": {
+          "shop_kind": [
+            "law office"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1985
+        ],
+        "notes": "shop belongs to licensed lawyer A. Require B's valid documented claim to a specific house, C's lawful occupancy under a defective title, no fraud by C, a preserved case file and the baseline closure of A's practice. Present must be at least 25 years later."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": 0.5,
+          "how_it_looks": "Spread a truthful recommendation of the lawyer's documented diligence rather than inventing a victory."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.3
+            },
+            {
+              "open_thread": "disputed_house_title"
+            }
+          ],
+          "headline": "Unpopular Lawyer Takes a Neglected Property Case",
+          "body": "{B} retained {A} to examine an old house-title dispute. The file received its first serious legal review in years."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            8,
+            10
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "transfer_home": [
+                "C",
+                "B"
+              ],
+              "home": "the bound disputed house"
+            },
+            {
+              "resolve_thread": "disputed_house_title"
+            },
+            {
+              "rep": "A",
+              "by": 0.18
+            }
+          ],
+          "headline": "Court Restores House Title After Long Review",
+          "body": "A final ruling restored the disputed house to {B}. Occupant {C}, who had relied on a defective title, received relocation assistance and left under the court's schedule."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "build": "a public-access local records room",
+              "where": "Main Street"
+            },
+            {
+              "wealth": "B",
+              "by": -0.15
+            }
+          ],
+          "headline": "Recovered Home Gains a Room for Local Records",
+          "body": "{B} funded a public-access records room attached to the recovered house. The collection includes the papers that established the ownership claim."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [
+          {
+            "rep": "A",
+            "by": -0.04
+          }
+        ],
+        "headline": "Recommendation Fails to Bring a Property Case Forward",
+        "body": "The property claim remained unexamined after {B} declined to retain {A}. Public praise could not substitute for trust between lawyer and client."
+      },
+      "present_day": {
+        "best": "In {now}, the house's ownership record names B and a records-room entrance is visible beside it. Household members and later transfers follow ordinary replay.",
+        "worst": "If the first step fails, no scenario ruling or records room is created. The baseline disputed ownership persists only if unrelated history has not resolved it.",
+        "twist": "Correcting a wrong removes C from a home held in good faith. Relocation assistance prevents homelessness but does not restore the familiar rooms."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "The papers were wrong. The years I spent making that house a home were real."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Use independent keyed rolls per seed, scenario ID, intervention year, bound IDs and step. Choose years within after_years measured from intervention. Roll only when all prerequisites hold; a failed or ineligible step stops descendants and preserves earlier effects. fails is the first-step roll's complement, not a separate event. Apply the intervention once. Record participants, business and parcel IDs, funding, eligibility and facts; invalidate dependent history on replay. Recheck survival, residence, ownership and available funds. Do not grant immunity or override unrelated events. Gate present descriptions and after-lines on recorded steps, current map state and speaker survival; no repeated rewards.",
+        "Recommendations are true assertions about recorded diligence, not fabricated legal outcomes. Apply the positive rumor once under the existing reputation conversion.",
+        "Add transfer_home effect with an identified parcel, a final enforceable title judgment, appeal completion, compensation funding and completed lawful relocation. C must hold the defective title and consent to or lawfully comply with the ruling; recheck no protected occupant is left unhoused. Update deed and household residence IDs atomically, transferring no unrelated assets.",
+        "Before step 2 require A still licensed with the scenario case active, all three residents alive and the house unchanged. This is a civil title correction, not a criminal conviction of C. Step 3 requires B still owning the Main Street house, enough funds, planning approval and an accessible extension site. Debit the stated 15 percent donation once and require the quoted extension cost to fit it. C's line requires step 2, C alive and the displacement memory retained."
+      ],
+      "era_notes": "Use paper deeds and physical court records in all decades. Legal time limits and available remedies must be checked by the era-specific property rule.",
+      "why_fun": "An encouraging word changes who holds a real front-door key. The former occupant gives you a reason to think beyond the correctness of the paperwork."
+    },
+    {
+      "id": "scenario-20261117-6873",
+      "kind": "scenario",
+      "title": "The Cold Room Truce",
+      "category": "place",
+      "pitch": "Introduce two shopkeepers who each discard stock for lack of storage. Their cooperation could preserve an old icehouse, then turn it into a storm refuge at the cost of their own business space.",
+      "present_hook": {
+        "what_you_notice": "An unused icehouse stands at the edge of town; two old shop ledgers record separate spoilage losses in the same summer.",
+        "where": "the edge of town",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} and {B} both paid for spoiled stock after the heat in {year}. The old icehouse stood empty."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "butcher"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bait shop"
+          ],
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1975
+        ],
+        "notes": "B is a stranger to A. Require separate stock suitable for safely segregated cooling, an unused structurally sound icehouse with a lawful purchase option, recorded spoilage losses and a present lacking a nearby storm refuge. Present must be at least 28 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Bring the two owners together with their spoilage figures and the icehouse sale notice."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.35
+            },
+            {
+              "wealth": "A",
+              "by": -0.1
+            },
+            {
+              "wealth": "B",
+              "by": -0.1
+            }
+          ],
+          "headline": "Shopkeepers Pool Savings for an Icehouse Lease",
+          "body": "{A} and {B} jointly leased the unused icehouse. Their plan called for separate storage chambers and shared maintenance."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            9,
+            11
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "build": "segregated cold-storage chambers",
+              "where": "the edge of town"
+            },
+            {
+              "rep": "A",
+              "by": 0.1
+            },
+            {
+              "rep": "B",
+              "by": 0.1
+            }
+          ],
+          "headline": "Old Icehouse Reopens with Separate Cold Chambers",
+          "body": "A funded refit organized by {A} and {B} reopened the icehouse for segregated storage. The old outer walls remained in use."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            26,
+            28
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.5,
+          "effects": [
+            {
+              "tear_down": "the scenario cold-storage chambers"
+            },
+            {
+              "build": "a public storm refuge inside the old icehouse",
+              "where": "the edge of town"
+            },
+            {
+              "wealth": "A",
+              "by": -0.15
+            },
+            {
+              "wealth": "B",
+              "by": -0.15
+            }
+          ],
+          "headline": "Icehouse Storage Makes Way for a Storm Refuge",
+          "body": "{A} and {B} funded conversion of their shared storage space into a public storm refuge. Both businesses gave up their cold chambers to complete the project."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": -0.15
+          }
+        ],
+        "headline": "Icehouse Talks Break Down over Maintenance Costs",
+        "body": "{A} and {B} could not agree on responsibility for an icehouse lease. Neither signed the contract."
+      },
+      "present_day": {
+        "best": "In {now}, the old icehouse has a marked, certified storm-refuge entrance and its original outer walls. The two business cold chambers are gone.",
+        "worst": "On first-step failure, there is no shared lease or scenario-funded refuge. The empty icehouse remains subject to ordinary maintenance and redevelopment.",
+        "twist": "The town gains a safe public interior while the original partners lose useful storage and personal savings. Their generosity does not automatically leave the businesses profitable."
+      },
+      "npc_lines_after": [
+        {
+          "who": "anyone",
+          "mood": "grateful",
+          "line": "Those walls used to keep stock cold. Now there is room for us behind them."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Use independent keyed rolls per seed, scenario ID, intervention year, bound IDs and step. Choose years within after_years measured from intervention. Roll only when all prerequisites hold; a failed or ineligible step stops descendants and preserves earlier effects. fails is the first-step roll's complement, not a separate event. Apply the intervention once. Record participants, business and parcel IDs, funding, eligibility and facts; invalidate dependent history on replay. Recheck survival, residence, ownership and available funds. Do not grant immunity or override unrelated events. Gate present descriptions and after-lines on recorded steps, current map state and speaker survival; no repeated rewards.",
+        "Bind each owner's original open business ID. Require both businesses still open under those owners before steps 1 and 2. The two 10 percent wealth debits must cover the actual initial lease and be paid to the property owner; reject insufficient pooled funds.",
+        "Record a joint lease and later lawful acquisition or long-term conversion right. Step 2 requires funded refrigeration, physically separate food-safe and bait-safe chambers, inspections and solvent businesses; never imply food and bait share a chamber. Construction consumes accumulated business capital under an explicit quote.",
+        "Step 3 requires both alive and consenting, current lawful site rights, an approved public refuge plan, a safe inspected structure and a quote covered by the two 15 percent contributions plus recorded public funding. Evacuate stored goods before removing only the internal chambers; retain outer walls. Track lost storage benefits and business consequences. Gate the line on completed step 3 and a still-certified accessible refuge."
+      ],
+      "era_notes": "Cooling technology and safety requirements depend on the event decade. Preserve the old shell without assuming its original insulation alone satisfies modern refuge standards.",
+      "why_fun": "One reused building tells three different economic stories. You can step through the same door and feel the change in what the town needs."
+    },
+    {
+      "id": "scenario-20261117-6874",
+      "kind": "scenario",
+      "title": "One More Winter at Home",
+      "category": "family",
+      "pitch": "Ask an adult child to postpone a departure for one year. The last winter together may shape an inheritance and a public workshop, while costing the child an opportunity that will not wait.",
+      "present_hook": {
+        "what_you_notice": "A family house stands empty, and its sale listing mentions a locked woodworking room. An archived departure notice predates the parent's death by only a few winters.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{B} left in {year}. The tools belonging to {A} were sold later, still laid out for a visitor who never arrived."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            80,
+            85
+          ],
+          "has_children": true,
+          "wealth": "comfortable"
+        },
+        "B": {
+          "age": [
+            40,
+            45
+          ],
+          "relation": "parent_child",
+          "wealth": "getting_by"
+        }
+      },
+      "window": {
+        "years": [
+          1980,
+          1990
+        ],
+        "notes": "A is B's parent. Require B's scheduled departure for a real nontransferable job offer, A's owned workshop and documented wish to leave it to B, an ordinary baseline natural death 2–4 years later and no competing heir entitled to this workshop. Present must be at least 24 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:delay",
+          "target": "B",
+          "how_it_looks": "Ask the departing adult to stay through one more winter, making the lost job offer explicit."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            1
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.4
+            },
+            {
+              "wealth": "B",
+              "by": -0.15
+            }
+          ],
+          "headline": "An Extra Winter Leaves Tools in Familiar Hands",
+          "body": "{A} and adult child {B} spent a final shared winter working at the family bench. Remaining in town cost {B} the planned outside job and part of a savings reserve."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            2,
+            4
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "inherit": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Family Workshop Passes Intact to Adult Child",
+          "body": "After the natural death of {A}, a settled estate transferred the workshop and its tools to {B}. The collection avoided the separate sale described in earlier plans."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            22,
+            24
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "build": "a public-access woodworking room",
+              "where": "Main Street"
+            },
+            {
+              "wealth": "B",
+              "by": -0.2
+            }
+          ],
+          "headline": "Inherited Workshop Opens Its Bench to the Town",
+          "body": "{B} funded a public-access woodworking room using the inherited tools. The family bench became a place for supervised lessons."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": -0.1
+          }
+        ],
+        "headline": "A Postponed Departure Brings an Uneasy Winter",
+        "body": "The extra winter strained relations between {A} and {B}. Staying nearby did not produce the hoped-for time at the family bench."
+      },
+      "present_day": {
+        "best": "In {now}, a public woodworking-room entrance on Main Street leads to the preserved family bench. A's natural death remains in history, while the tools have a different destination.",
+        "worst": "If the first step fails, no inheritance preservation or public room is guaranteed. The accepted delay still costs the outside job; it does not promise family closeness.",
+        "twist": "The town's shared bench grows from a lost outside opportunity. B may treasure the winter and still resent the career that disappeared."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I would not trade that winter away. I still wonder who I might have been if I had gone."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "delay",
+          "does": "With B's informed consent before the scheduled departure, postpone that specific departure by one simulation year and expire the identified outside job offer. Do not imprison B, change A's lifespan or prevent B from choosing a later departure. Activate the ripple chain only on accepted postponement; refusal leaves the original schedule."
+        }
+      ],
+      "new_rules_needed": [
+        "Use independent keyed rolls per seed, scenario ID, intervention year, bound IDs and step. Choose years within after_years measured from intervention. Roll only when all prerequisites hold; a failed or ineligible step stops descendants and preserves earlier effects. fails is the first-step roll's complement, not a separate event. Apply the intervention once. Record participants, business and parcel IDs, funding, eligibility and facts; invalidate dependent history on replay. Recheck survival, residence, ownership and available funds. Do not grant immunity or override unrelated events. Gate present descriptions and after-lines on recorded steps, current map state and speaker survival; no repeated rewards.",
+        "The accepted delay expires the outside offer regardless of the first-step result. The 15 percent wealth loss in step 1 is the recorded shared-winter living expense, not a duplicate loss of hypothetical future wages. Apply actual ordinary expenses on failure without inventing a percentage effect absent from fails.",
+        "Step 2 waits for A's actual natural death within its range and completed estate settlement; do not force that death to match baseline or inherit while A lives. B must be the lawful beneficiary, and the workshop must remain intact and solvent after creditors and protected heirs. The inheritance roll represents preservation in kind rather than mandatory sale; if it fails use ordinary estate rules.",
+        "Step 3 requires B still owning the tools, a funded accessible Main Street room, public-use approval, insurance and supervised instruction. The 20 percent wealth debit is the entire earmarked donation and must cover the construction quote alongside identified grants. Move identified tools to the room without duplicating them. Gate B's line on completed step 3, B alive and a remembered lost offer."
+      ],
+      "era_notes": "Use a generic outside job offer and ordinary hand tools. Match workshop accessibility and supervision to the opening decade.",
+      "why_fun": "Time travel cannot make the parent live forever here. It can change what an ordinary last winter leaves behind."
+    }
+  ]
+}

@@ -1,0 +1,673 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-7171",
+      "kind": "scenario",
+      "title": "The Surveyor's First Boots",
+      "category": "money",
+      "pitch": "Fund a young resident's surveying education. The maps may open new homes above the floodplain, but the first safe neighborhood could cost an established household its hilltop view.",
+      "present_hook": {
+        "what_you_notice": "A low-lying housing row bears old water marks. An archived training application was abandoned before anyone surveyed the unused ridge.",
+        "where": "the edge of town",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} sought survey training in {year}. The ridge remained unmapped after the funding fell through."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            17,
+            21
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ],
+          "wealth": "comfortable"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "Require A's academic eligibility, the abandoned application, undeveloped ridge land owned by a willing seller and B's existing downhill house with a legally unprotected ridge view. Present must be at least 27 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "large",
+          "how_it_looks": "Pay the documented training and field-equipment shortfall."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            5,
+            7
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "qualify": "A",
+              "profession": "surveyor"
+            }
+          ],
+          "headline": "Young Resident Completes Survey Training",
+          "body": "{A} qualified as a surveyor after completing the funded training. Local ridge parcels became a possible first assignment."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "survey_site": "the bound ridge",
+              "purpose": "flood-safe housing"
+            }
+          ],
+          "headline": "Ridge Survey Identifies Land Above Flood Level",
+          "body": "A survey completed by {A} identified suitable ridge parcels above the modeled flood level. The report also recorded drainage limits and access requirements."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            25,
+            27
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "build": "a permitted ridge housing row",
+              "where": "the edge of town"
+            },
+            {
+              "obstruct_view": "B",
+              "site": "the bound ridge"
+            }
+          ],
+          "headline": "Ridge Homes Open Beyond the Floodplain",
+          "body": "A funded housing row opened on the surveyed ridge. Its roofs now interrupt the formerly open view from the downhill house."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [
+          {
+            "wealth": "A",
+            "by": -0.08
+          }
+        ],
+        "headline": "Survey Training Ends Before Qualification",
+        "body": "{A} left the training course before qualifying and sold some field equipment at a loss. The ridge received no survey from the proposed graduate."
+      },
+      "present_day": {
+        "best": "In {now}, a mapped row of homes stands on the ridge beyond the recorded floodplain. From B's original house, roofs interrupt the former open horizon; current occupants follow normal housing simulation.",
+        "worst": "On first-step failure, the gift creates no qualified surveyor or scenario housing. The lower homes receive no automatic flood protection.",
+        "twist": "New households gain safer ground while an existing home loses a cherished view. Safe housing does not give its neighbors the landscape they preferred."
+      },
+      "npc_lines_after": [
+        {
+          "who": "anyone",
+          "mood": "bitter",
+          "line": "I am glad those homes sit above the water. I miss seeing the ridge without counting roofs."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Use keyed independent rolls and event-year selection by seed, scenario ID, intervention year, role IDs and step. after_years is elapsed from intervention. Roll after prerequisites pass; failure or ineligibility stops descendants without undoing prior history. fails is the first-step roll's complement, never another roll. Apply direct interventions once. Persist parcel, business, object, funding and knowledge records; replay invalidates dependent events. Recheck life, residence, permissions, ownership and resources. Gate present descriptions by actual surviving features and after-lines by actual knowledge and speaker survival. No duplicate rewards or forced unrelated events.",
+        "Add qualify for surveyor: require funded accredited training, examinations, field practice and the period's license. Spend the gift through actual education costs; failure's eight percent loss is an equipment resale loss, not a second tuition charge.",
+        "Add survey_site: persist terrain measurements and flood-model clearance; it changes available planning knowledge, not the terrain or flood probability. Require a lawful commissioned survey, access and a real qualified A.",
+        "Step 3 needs lawful purchase, funded utilities, drainage review, road access and approved construction; no free houses or eviction. Add obstruct_view as a persistent sightline change at B's bound house caused by actual roof geometry, not a wealth penalty. A surviving householder with before-and-after memory may speak the line even if B has died."
+      ],
+      "era_notes": "Use the surveying instruments and licensing rules available in the event decade. Avoid describing ridge homes as immune to all future flooding.",
+      "why_fun": "Your investment changes which ground people can confidently build on. Two viewpoints of the same roofs make the tradeoff easy to see."
+    },
+    {
+      "id": "scenario-20261117-7172",
+      "kind": "scenario",
+      "title": "The Freezer Route",
+      "category": "business",
+      "pitch": "Invest in an ice cream parlor's unreliable freezer. The improvement could grow into a delivery network that keeps treats affordable while making another shop's front counter unnecessary.",
+      "present_hook": {
+        "what_you_notice": "A parlor keeps an old freezer out of service, and canceled delivery notices line a storeroom wall. The town's butcher still serves a scattered set of small wholesale accounts.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} canceled the frozen delivery trial in {year}. The machine would not hold a safe temperature."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "ice cream parlor"
+          ],
+          "trait": {
+            "ambition": "high"
+          }
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "butcher"
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "ice cream parlor"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1975
+        ],
+        "notes": "shop belongs to A. Bind B's open butcher separately. Require the failed freezer trial, demand for shared refrigerated deliveries and B's butcher relying on wholesale accounts vulnerable to a new distribution contract. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Finance a safe replacement freezer and the documented delivery trial."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "build": "a licensed parlor cold room",
+              "where": "Main Street"
+            }
+          ],
+          "headline": "Parlor Completes Cold-Room Replacement",
+          "body": "{A} opened an inspected cold room behind the ice cream parlor. A canceled delivery trial could finally proceed safely."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            10,
+            12
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "refrigerated delivery service"
+            }
+          ],
+          "headline": "Parlor Owner Establishes a Refrigerated Route",
+          "body": "{A} established a licensed refrigerated delivery service with segregated loads. Wholesale contracts extended the venture beyond the original parlor."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.5,
+          "effects": [
+            {
+              "close_owned_business": "B",
+              "kind": "butcher"
+            },
+            {
+              "wealth": "B",
+              "by": -0.15
+            },
+            {
+              "rep": "A",
+              "by": 0.08
+            }
+          ],
+          "headline": "Wholesale Shift Closes a Familiar Butcher Counter",
+          "body": "The butcher operated by {B} closed after losing its essential wholesale accounts to the delivery network. The new route remained convenient for customers who no longer needed the old counter."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "rep": "A",
+            "by": -0.05
+          }
+        ],
+        "headline": "Freezer Investment Fails to Revive Delivery Plans",
+        "body": "The parlor run by {A} failed to complete its replacement project within the agreed budget. Advertised delivery plans were withdrawn again."
+      },
+      "present_day": {
+        "best": "In {now}, the parlor cold-room annex exists and the bound butcher counter is closed. Current operation of the parlor and delivery business follows ordinary replay rather than guaranteed ownership by A.",
+        "worst": "On first-step failure, the capital has only the actual recorded project expenses and no licensed new cold room. No scenario distribution network or butcher closure follows.",
+        "twist": "The investment improves handling and delivery while removing a place where customers used to ask a butcher for advice. Convenience and local livelihoods do not always rise together."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "The deliveries arrive cold and on time. They do not ask how my week has been."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Use keyed independent rolls and event-year selection by seed, scenario ID, intervention year, role IDs and step. after_years is elapsed from intervention. Roll after prerequisites pass; failure or ineligibility stops descendants without undoing prior history. fails is the first-step roll's complement, never another roll. Apply direct interventions once. Persist parcel, business, object, funding and knowledge records; replay invalidates dependent events. Recheck life, residence, permissions, ownership and resources. Gate present descriptions by actual surviving features and after-lines by actual knowledge and speaker survival. No duplicate rewards or forced unrelated events.",
+        "Step 1 spends the investment through an approved quote, inspection and food-safe installation. Preserve any unspent business capital on failure. A must still own the open parlor.",
+        "Add refrigerated delivery service as a new business kind. Permit A to own it alongside the parlor, with separate capital, licensing, vehicles, staff and temperature-controlled compartments; never imply ice cream and raw meat share unsafe storage.",
+        "Step 2 requires funded transport and voluntary customer contracts. Record which wholesale accounts change supplier and model price/service benefits and revenue losses explicitly.",
+        "Add close_owned_business: resolve B's original bound butcher ID, require B still owning it and sustained insolvency caused by the recorded contract losses. The fifteen percent wealth effect is personal closure liability after business accounts settle, not duplicate lost revenue. Gate B's line on step 3, B alive and the butcher not subsequently restored."
+      ],
+      "era_notes": "Use era-appropriate cold-chain equipment and road access. Do not assume modern refrigerated vehicles are available in the earliest years.",
+      "why_fun": "An innocent equipment purchase grows into a recognizable commercial change. The shuttered counter explains who paid for the better route."
+    },
+    {
+      "id": "scenario-20261117-7173",
+      "kind": "scenario",
+      "title": "The Prize Nobody Wanted Back",
+      "category": "rivalry",
+      "pitch": "Introduce a young organizer to the resident who keeps losing the town's amateur talent contest. Their unlikely collaboration may turn a recurring embarrassment into an annual event, while making a favorite free evening cost money.",
+      "present_hook": {
+        "what_you_notice": "A battered contest trophy sits in a cupboard, and old notices show the same entrant repeatedly mocked. The town's informal talent evening never acquired an organizer.",
+        "where": "the church hall",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} entered again in {year}. {B} offered to organize the evening, but nobody made the introduction."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            45,
+            55
+          ],
+          "reputation": "low"
+        },
+        "B": {
+          "age": [
+            18,
+            24
+          ],
+          "trait": {
+            "diligence": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1975,
+          1990
+        ],
+        "notes": "Require repeated recorded good-faith amateur entries by A, B's unused organizing offer, a free public talent evening and an available Main Street hall with capacity for a licensed event. Present must be at least 24 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the enthusiastic entrant to the person willing to organize a kinder evening."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.35
+            },
+            {
+              "rep": "A",
+              "by": 0.12
+            }
+          ],
+          "headline": "Contest Veteran Helps Plan a Kinder Talent Evening",
+          "body": "{A} and {B} organized an amateur evening that welcomed beginners without a public ranking. The familiar entrant received applause without having to win."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            9,
+            11
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_event": "the unranked annual talent evening",
+              "organizer": "B"
+            }
+          ],
+          "headline": "Unranked Talent Evening Becomes a Town Tradition",
+          "body": "The amateur evening organized by {B} gained a regular annual date. Its format retained the welcome for first attempts."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            22,
+            24
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "build": "a licensed talent-hall stage",
+              "where": "Main Street"
+            },
+            {
+              "charge_event_admission": "the scenario annual talent evening"
+            }
+          ],
+          "headline": "Improved Stage Brings Tickets to a Formerly Free Night",
+          "body": "A funded stage refit gave the annual talent evening better access and lighting. Admission tickets replaced its old free entry to cover operating costs."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": -0.1
+          }
+        ],
+        "headline": "Talent-Evening Plans Stall over the Meaning of Winning",
+        "body": "{A} and {B} could not agree on a format for the amateur evening. The proposed partnership ended before a new program was announced."
+      },
+      "present_day": {
+        "best": "In {now}, the hall has a fitted accessible stage and a current annual-event listing with a published ticket price. The old ranking trophy remains an archived object rather than an award still being competed for.",
+        "worst": "If the first step fails, the original free evening and contest format change only through ordinary town history. The introduction creates no automatic public humiliation or victory.",
+        "twist": "A warmer event gains an improved venue, but a free town night becomes a paid outing. Better access inside the hall does not erase the new barrier at the ticket desk."
+      },
+      "npc_lines_after": [
+        {
+          "who": "anyone",
+          "mood": "bitter",
+          "line": "The stage is easier to reach now. I liked it when reaching the door did not require buying a ticket."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Use keyed independent rolls and event-year selection by seed, scenario ID, intervention year, role IDs and step. after_years is elapsed from intervention. Roll after prerequisites pass; failure or ineligibility stops descendants without undoing prior history. fails is the first-step roll's complement, never another roll. Apply direct interventions once. Persist parcel, business, object, funding and knowledge records; replay invalidates dependent events. Recheck life, residence, permissions, ownership and resources. Gate present descriptions by actual surviving features and after-lines by actual knowledge and speaker survival. No duplicate rewards or forced unrelated events.",
+        "Step 1 requires both adults' consent, funded hall permission, a real program and retirement of rankings for this event; no fabricated artistic skill or guaranteed public affection.",
+        "Add establish_event: create an annually scheduled unranked event with a persistent organizer, hall, operating budget and turnout checks. It can lapse under ordinary finances; it is not guaranteed to recur forever.",
+        "Step 3 requires an active solvent event, B organizing, lawful hall rights and a fully funded accessible stage quote. Add charge_event_admission: set a published nonzero price from operating costs divided by conservative attendance, with capacity and affordability effects. Apply ticket expenses only to actual attendees and create no unlimited revenue. Gate the line on a paid event after step 3 and a speaker who attended the earlier free format."
+      ],
+      "era_notes": "Use paper programs and ordinary amateur acts throughout. Lighting and access work must match the refit's decade and actual building.",
+      "why_fun": "An introduction changes the social rules before changing the room. You can enjoy the kinder applause and still regret the ticket price."
+    },
+    {
+      "id": "scenario-20261117-7174",
+      "kind": "scenario",
+      "title": "The Petition That Never Arrived",
+      "category": "uncanny",
+      "pitch": "Destroy a demolition petition before its hearing. The delay may preserve a hall as a library, but the missing paper can stain an innocent clerk's career and later drain the new institution's budget.",
+      "present_hook": {
+        "what_you_notice": "An empty Main Street parcel appears in a demolition photograph. A docket identifies the petition that made the old hall's removal routine.",
+        "where": "the Gazette archive",
+        "clues": [
+          {
+            "who": "the hearing docket",
+            "line": "{B} requested demolition in {year}. Clerk {A} logged the petition before passing it to the hearing office."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "reputation": "mid"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "wealth": "wealthy"
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1980
+        ],
+        "notes": "Require B owning the unoccupied hall, a valid demolition petition logged by clerk A, a documented handoff before hearing, and a pending funded library lease offer that loses in baseline. Present must be at least 27 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:burn",
+          "how_it_looks": "Destroy the identified hearing copy after its logged handoff and before the scheduled hearing."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "open_thread": "missing_hall_petition"
+            },
+            {
+              "rep": "A",
+              "by": -0.1
+            }
+          ],
+          "headline": "Missing Petition Delays Hall Demolition Hearing",
+          "body": "The hall demolition hearing was delayed when the logged petition could not be produced. Clerk {A} faced criticism while the last recorded handoff remained unexamined."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            10,
+            12
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a public lending library inside the old hall",
+              "where": "Main Street"
+            },
+            {
+              "wealth": "B",
+              "by": -0.2
+            }
+          ],
+          "headline": "Hall Owner Accepts a Library Lease and Funds Repairs",
+          "body": "{B} accepted a funded public library lease and contributed to repairing the old hall. Demolition plans gave way to shelves and a lending desk."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            25,
+            27
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "resolve_thread": "missing_hall_petition"
+            },
+            {
+              "rep": "A",
+              "by": 0.12
+            },
+            {
+              "wealth": "B",
+              "by": 0.1
+            },
+            {
+              "reduce_service": "the scenario library",
+              "fraction": 0.25
+            }
+          ],
+          "headline": "Old Handoff Record Clears Clerk, Costs Library Hours",
+          "body": "A recovered handoff record cleared {A} of responsibility for the missing petition. A valid compensation award to {B} reduced the library's available operating budget and opening hours."
+        }
+      ],
+      "fails": {
+        "chance": 0.3,
+        "effects": [
+          {
+            "rep": "A",
+            "by": 0.05
+          }
+        ],
+        "headline": "Duplicate Petition Keeps Demolition Hearing on Schedule",
+        "body": "Clerk {A} supplied a valid duplicate when the hearing copy went missing. The hearing proceeded under its ordinary rules."
+      },
+      "present_day": {
+        "best": "In {now}, the old hall is a lending library, with its opening board showing the reduced hours unless later funding has restored them. The archive clears A's handling of the petition without explaining who destroyed it.",
+        "worst": "On first-step failure, a duplicate permits the original hearing; demolition and the resulting parcel follow its lawful ordinary outcome. Destroying one copy does not guarantee a saved building.",
+        "twist": "A public library survives because of a concealed destructive act. An innocent clerk suffers first, and a later correction makes readers pay through lost service hours."
+      },
+      "npc_lines_after": [
+        {
+          "who": "anyone",
+          "mood": "uncanny",
+          "line": "The building stayed because a paper vanished. Now there is a paper explaining why the doors are shut this afternoon."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "burn",
+          "does": "Destroy only the identified accessible physical hearing copy before the hearing, removing that object's legibility and availability. Keep logged handoffs, lawful duplicates and all other records intact. This cannot revoke ownership or erase the petition's legal existence; future effects depend on normal recovery and hearing rules."
+        }
+      ],
+      "new_rules_needed": [
+        "Use keyed independent rolls and event-year selection by seed, scenario ID, intervention year, role IDs and step. after_years is elapsed from intervention. Roll after prerequisites pass; failure or ineligibility stops descendants without undoing prior history. fails is the first-step roll's complement, never another roll. Apply direct interventions once. Persist parcel, business, object, funding and knowledge records; replay invalidates dependent events. Recheck life, residence, permissions, ownership and resources. Gate present descriptions by actual surviving features and after-lines by actual knowledge and speaker survival. No duplicate rewards or forced unrelated events.",
+        "The player must physically access the identified copy after A's completed logged handoff; A is innocent of the destruction. Step 1 success means no valid duplicate reaches the initial rescheduled hearing deadline. Failure means A produces one, not that the destroyed copy reappears.",
+        "Step 2 requires the hall still standing, B's voluntary change of plan, enforceable library lease, funded repairs and no protected occupants displaced. B's 20 percent contribution is the complete repair donation; debit once and preserve the exterior shell.",
+        "Step 3 requires an authentic surviving handoff record, A and B alive, a final valid compensation award for documented procedural costs and a library budget legally liable for that award. Award value equals the stated 10 percent of B's pre-award wealth; require adequate reserves and debit those reserves when crediting B, never mint money.",
+        "Add reduce_service: lower this library's scheduled weekly opening hours by 25 percent from its pre-award schedule because the settlement removes funded staffing capacity. Preserve staff contracts and use lawful reductions rather than unpaid labor. Later real replacement funding may restore hours. Resolution proves A's handoff, not the player's identity or intent. Gate the after-line on step 3 and currently reduced posted hours."
+      ],
+      "era_notes": "Use a period-valid physical-copy and docket process; later eras may have duplicates that make the missing-copy branch ineligible. Never erase an electronic record by burning paper.",
+      "why_fun": "The uncanny object is an absence with a long administrative shadow. The saved facade and closed library door can both be consequences of your intervention."
+    }
+  ]
+}
