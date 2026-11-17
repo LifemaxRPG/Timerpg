@@ -912,7 +912,8 @@ private fun StageCanvas(
                     )
                 }
             }
-            cloudShade(light, backdrop, layouts, street, f, horizon, d, shadePath, shadeBrush)
+            // (the engine's cloud shadows are sized for its own buildings: over ours they show as pale boxes above the roofs)
+            if (SpriteArt.buildings.isEmpty()) cloudShade(light, backdrop, layouts, street, f, horizon, d, shadePath, shadeBrush)
             if (backlight.amount > 0f) {
                 // exposed for the sky: the street dark in front of it, then its lights given back
                 with(backlight) { expose(sky) }
