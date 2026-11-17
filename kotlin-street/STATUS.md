@@ -12,26 +12,25 @@
   (spring/summer/autumn/winter) and weather (clear/overcast/rain/mist) buttons; trees are tinted by season.
 - `gradle :desktop:preview -Dmode=pano|weather|rooms|walk` renders PNGs without a phone (see desktop/build/preview).
 
+## Added since (all verified by headless renders only)
+- Pixel-perfect scaling (zoom snapped to whole pixels; `StageTuning.pixelPerfect`), props/characters at 1x/1.5x pixel scale.
+- Shop name and owner shown at the bottom while standing at a shop. Collisions: walk round lamps/trees/benches at the kerb (radii are guesses).
+- Corner turn (`shared/.../scene/CornerTurn.kt`, button "Turn the corner"): the camera yaws 90 degrees round a crossroads built
+  from our buildings (player walking, time-of-day light, lit windows and lamp glow at night), then fades to the other street
+  (the town's shops are split into two). It is a separate scene: it does not use the engine's sun/weather/reflections yet, and
+  the junction is not a real place in the world map.
+- Side walls: three windows per floor, pilasters, grain, brick courses. Night: only real glass glows (fixed blue walls glowing).
+- Engine cloud-shadow pass is off for sprite buildings (it drew pale boxes above roofs). A building with a missing PNG no longer
+  drops the whole street to the fallback.
+- Preview modes: `gradle :desktop:preview -Dmode=pano|weather|rooms|walk|turn [-Dstreet=0|1] [-Dhour=H]`.
+
 ## Known rough edges / not done
-- Untested on a real device (touch, speed, memory). The Android-only code is the image helper, asset loading, and controls.
-- Pixel art is scaled by the engine's smooth zoom, so pixel sizes are slightly uneven in places.
-- Only about a third of buildings have clean window floors (others are single-storey or have ornate/arched windows).
-- Windows on side faces, people in shop windows, corner turns, doors/interiors, NPC schedules and dialogue are not
-  connected to this renderer yet. The street is a fixed snapshot (re-run the two tools to change town: `export-street.ts <seed> <year>`).
-- Demo town is "eta" (has more window floors); "alpha" works too.
+- Untested on a real device (touch, speed, memory, the turn's draw cost). Android-only code: image helper, asset loading, controls.
+- Collision radii and the "near the kerb" band are guesses. The turn's far buildings show the striped side art at grazing angles.
+- Storefront glass lights as a flat warm panel at night; sign letters that are pale blue also light up (mask treats them as glass).
+- People in shop windows, doors/interiors, NPC schedules and dialogue are not connected to this renderer. The street is a fixed
+  snapshot (re-run `tools/export-street.ts <seed> <year>` and `tools/make_buildings.py` to change town).
 
 ## Ideas for next
-- Feed the street from live game logic (port the TS logic to Kotlin, or export on demand).
-- Residents appear in their own windows at the times their schedules put them home.
-- Walkable pavement collisions with props; entering shops; the camera-rotating corner turn.
-
-## Pixel-perfect scaling
-The camera zoom is snapped so each sprite pixel is a whole, even number of screen pixels, the camera translate is rounded to whole pixels, and props and characters are drawn at 1x or 1.5x the building pixel scale. Pixel art stays crisp while moving. Toggle with `StageTuning.pixelPerfect`.
-
-## Corner turn preview
-`gradle :desktop:preview -Dmode=turn` renders `desktop/build/preview/turn_NN.png` (code: `desktop/src/main/kotlin/Turn.kt`). It is a standalone scene, not wired into the app yet: our building art on boxes around a crossroads, and a camera that yaws 90 degrees while travelling from the junction down the cross street. Each face is drawn as vertical sprite strips; buildings that end up between the camera and the player fade out; distance haze. `export/corner-turn-preview.gif` and `export/corner-turn-sheet.png` show it.
-
-## Corner turn in the app
-The turn renderer now lives in `shared/.../scene/CornerTurn.kt` (the desktop preview uses it too). In the app, the "↰ Turn the corner" button (left edge) plays the turn over the street (2.4 s in, hold, 2.4 s back), tinted by the time of day. It is a separate scene for now: it does not yet use the engine's sun, weather or reflections, and the street you return to is the same one. Next step is to make the junction a real place in the world, with a different street on the other side.
-
-Update: the turn now leads somewhere. The town's shops are split into two streets; "Turn the corner" plays the turn (2.4 s), fades through black, and puts you at the start of the other street (press it again to come back). Not yet run on a phone, and the two streets are just halves of one shop list for now (no real junction in the world map).
+- Feed the street from live game logic (port the TS logic to Kotlin, or export on demand); a real junction between streets.
+- Residents appear in their own windows at the times their schedules put them home. Entering shops.
