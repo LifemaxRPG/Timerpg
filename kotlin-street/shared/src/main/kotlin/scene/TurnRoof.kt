@@ -22,8 +22,14 @@ import kotlin.math.sin
  * perspective matrix; the gable ends are triangles in the wall's own colour.
  */
 
-/** What the turn builds a house's roof from: its shape, its slopes' pictures and its gable's colour. */
-class TurnRoofArt(val shape: HouseShape, val near: ImageBitmap, val far: ImageBitmap?, val gable: Color)
+/**
+ * What the turn builds a house's roof from (its shape, its slopes' pictures and its gable's colour), and what stands in
+ * its yard as the street shows it (TurnHouse.kt): its fence or hedge (and where snow lies on it), its porch's pictures.
+ */
+class TurnRoofArt(
+    val shape: HouseShape, val near: ImageBitmap, val far: ImageBitmap?, val gable: Color,
+    val fence: ImageBitmap? = null, val fenceSnow: ImageBitmap? = null, val porch: ImageBitmap? = null,
+)
 
 /** The perspective, the path, the corners (drawing happens on one thread). */
 private val roofM = Matrix()
@@ -31,14 +37,21 @@ private val roofPath = Path()
 private val roofPx = FloatArray(2)
 private val roofQ = FloatArray(8)
 
-/** The roofs' tints by (light kept, haze), as the walls' ([wallFilter]), remade when the light changes. */
+/**
+ * The roofs' tints by (light kept, haze), as the walls' ([wallFilter]), remade only when the light's values change: the
+ * turn and the crossing hand [TurnLight.current] a new object every frame (TurnLight.at makes one each call), so the
+ * cache is kept by what the light is, not by which object carries it.
+ */
 private val roofFilters = HashMap<Int, androidx.compose.ui.graphics.ColorFilter>()
 private var roofLight: TurnLight? = null
 
-private fun roofFilter(keep: Float, hz: Float): androidx.compose.ui.graphics.ColorFilter {
+internal fun roofFilter(keep: Float, hz: Float): androidx.compose.ui.graphics.ColorFilter {
     val l = TurnLight.current
-    if (roofLight !== l) { roofFilters.clear(); roofLight = l }
+    val was = roofLight
+    if (was == null || was.r != l.r || was.g != l.g || was.b != l.b || was.hazeR != l.hazeR || was.hazeG != l.hazeG || was.hazeB != l.hazeB) { roofFilters.clear(); roofLight = l }
     val key = ((keep.coerceIn(0f, 1.5f) * 255f).toInt() shl 9) or (hz * 255f).toInt()
+    // (the keys follow the distance as the camera moves: a long walk under one light would otherwise keep them all)
+    if (roofFilters.size > 256 && key !in roofFilters) roofFilters.clear()
     return roofFilters.getOrPut(key) {
         androidx.compose.ui.graphics.ColorFilter.colorMatrix(androidx.compose.ui.graphics.ColorMatrix(floatArrayOf(
             keep * l.r, 0f, 0f, 0f, l.hazeR * hz,
@@ -73,7 +86,7 @@ internal fun quadMatrix(m: Matrix, w: Float, h: Float, x0: Float, y0: Float, x1:
 }
 
 /** The colour [c] in the turn's light, [keep] of it kept and hazed by [hz], as its walls are ([wallFilter]). */
-private fun turnLit(c: Color, keep: Float, hz: Float): Color {
+internal fun turnLit(c: Color, keep: Float, hz: Float): Color {
     val l = TurnLight.current
     return Color(
         (c.red * keep * l.r + l.hazeR / 255f * hz).coerceIn(0f, 1f),

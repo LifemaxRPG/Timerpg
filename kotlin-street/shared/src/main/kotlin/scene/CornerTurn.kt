@@ -40,6 +40,8 @@ class TurnBuilding(
     val fadeInLate: Boolean = false,
     /** A pitched roof instead of the flat one (one of our houses: TurnRoof.kt). */
     val roof: TurnRoofArt? = null,
+    /** How far in front of a house the slot's front is: its front yard (TurnHouse.kt). */
+    val yard: Float = 0f,
 ) {
     val h: Float get() = front.height.toFloat()
     val cx: Float get() = (x0 + x1) / 2f
@@ -252,8 +254,9 @@ private fun DrawScope.buildingBody(cam: Cam, b: TurnBuilding) {
         val flip = !isFront && (f.ax * fnx + f.az * fnz) < (f.bx * fnx + f.bz * fnz)
         face(cam, img, b.h, f.ax, f.az, f.bx, f.bz, flip, k * (.66f + .34f * max(0f, f.nx * sun[0] + f.nz * sun[1])), a)
     }
+    b.roof?.let { turnHouseParts(cam, b, false, camX, camZ) }
     for (f in faces) if (toward(f)) draw(f, 1f)
-    b.roof?.let { turnHouseRoof(cam, b, it, camX, camZ) }
+    b.roof?.let { turnHouseRoof(cam, b, it, camX, camZ); turnHouseParts(cam, b, true, camX, camZ) }
     // a rooftop billboard: a panel parallel to the front, standing halfway back over the roof (one sprite pixel to a
     // building pixel, as in the street); seen from behind it is not drawn
     val pr = b.prop
@@ -336,6 +339,8 @@ private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?
         val dist2 = (x - camX) * (x - camX) + (z - camZ) * (z - camZ)
     }
     val items = ArrayList<Item>()
+    // our houses' yards: ground, under everything that stands on it
+    for (b in bs) if (b.roof != null) turnHouseYard(cam, b, buildingFade(cam, b, e))
     for (b in bs) items += Item(b.cx, b.cz) { building(cam, b, e) }
     val lt0 = TurnLight.current
     fun propFilter(x: Float, z: Float, m: FloatArray) = ColorFilter.colorMatrix(ColorMatrix(hazed(m, haze(cam.v(x, z) + cam.dc), lt0.hazeR, lt0.hazeG, lt0.hazeB)))
@@ -437,7 +442,7 @@ class TurnFacade(val front: ImageBitmap, val side: ImageBitmap, val emis: ImageB
 private fun slotted(f: TurnFacade, x0: Float, x1: Float, z0: Float, z1: Float, n: Int, nearSide: Boolean = false, fadeInLate: Boolean = false): TurnBuilding {
     val h = f.house ?: return TurnBuilding(f.front, f.side, f.emis, x0, x1, z0, z1, n, f.prop, nearSide, fadeInLate)
     val b = houseSlot(h, f.front.width.toFloat(), x0, x1, z0, z1, n)
-    return TurnBuilding(f.front, f.side, f.emis, b[0], b[1], b[2], b[3], n, f.prop, nearSide, fadeInLate, f.roof)
+    return TurnBuilding(f.front, f.side, f.emis, b[0], b[1], b[2], b[3], n, f.prop, nearSide, fadeInLate, f.roof, b[4])
 }
 
 /**

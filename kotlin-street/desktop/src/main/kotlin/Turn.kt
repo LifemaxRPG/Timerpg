@@ -56,7 +56,8 @@ fun turnRows(assets: String, img: (String) -> ImageBitmap?): TurnRows? {
     val houses = com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuildingLoad.houses(File(assets, "buildings/houses.json").takeIf { it.exists() }?.readText())
     fun facades(list: List<String>) = list.mapNotNull { n ->
         val fr = img("${n}_front.png"); val sd = img("${n}_side.png")
-        if (fr == null || sd == null) null else com.lifemax.rpg.feature.habits.presentation.scene.turnFacade(fr, sd, img("${n}_emis.png"), img("${n}_prop.png"), houses[n], houses[n]?.let { img("${n}_slope.png") }, houses[n]?.let { img("${n}_back.png") })
+        if (fr == null || sd == null) null else com.lifemax.rpg.feature.habits.presentation.scene.turnFacade(fr, sd, img("${n}_emis.png"), img("${n}_prop.png"), houses[n], houses[n]?.let { img("${n}_slope.png") }, houses[n]?.let { img("${n}_back.png") },
+            houses[n]?.let { img("${n}_fence.png") }, houses[n]?.let { img("${n}_fencesnow.png") }, houses[n]?.let { img("${n}_porch.png") })
     }
     return TurnRows(facades(names(st.getJSONObject(0).optJSONArray("buildings"))), facades(names(jn.optJSONArray("mainEast"))),
         facades(names(st.getJSONObject(1).optJSONArray("buildings"))), facades(names(jn.optJSONArray("crossEast"))))
