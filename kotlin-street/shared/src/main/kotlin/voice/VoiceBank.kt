@@ -57,16 +57,18 @@ class VoiceBank(private val models: File, private val cache: File, private val l
         return null
     }
 
-    private fun kokoroVoice(name: String) = kokoroVoices.getOrPut(name) {
+    private fun kokoroVoice(name: String): KokoroVoice? {
+        kokoroVoices[name]?.let { return it }
         val f = File(models, "kokoro/voices/$name.bin")
         if (!f.isFile) return null
-        KokoroVoice.read(f.readBytes())
+        return KokoroVoice.read(f.readBytes()).also { kokoroVoices[name] = it }
     }
 
-    private fun supertonicStyle(name: String) = supertonicStyles.getOrPut(name) {
+    private fun supertonicStyle(name: String): SupertonicStyle? {
+        supertonicStyles[name]?.let { return it }
         val f = File(models, "supertonic/voice_styles/$name.json")
         if (!f.isFile) return null
-        SupertonicStyle.parse(f.readText())
+        return SupertonicStyle.parse(f.readText()).also { supertonicStyles[name] = it }
     }
 
     override fun close() { kokoro?.close(); supertonic?.close(); kokoro = null; supertonic = null }
