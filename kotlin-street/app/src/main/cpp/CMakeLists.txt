@@ -90,7 +90,7 @@ endif()
 # EXCLUDE_FROM_ALL: only what our targets need gets built.
 add_subdirectory("${LLAMA_DIR}" llama.cpp EXCLUDE_FROM_ALL)
 
-add_library(llm_core STATIC llm_core.cpp asr_core.cpp)
+add_library(llm_core STATIC llm_core.cpp asr_core.cpp embed_core.cpp)
 target_include_directories(llm_core PUBLIC "${CMAKE_CURRENT_LIST_DIR}")
 target_link_libraries(llm_core PUBLIC llama mtmd)
 set_target_properties(llm_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -122,4 +122,7 @@ else()
     # speech to text on a computer: tools/asr-host-test.sh
     add_executable(asr_host_test asr_host_test.cpp)
     target_link_libraries(asr_host_test PRIVATE llm_core Threads::Threads)
+    # memory search on a computer
+    add_executable(embed_host_test embed_host_test.cpp)
+    target_link_libraries(embed_host_test PRIVATE llm_core Threads::Threads)
 endif()
