@@ -91,6 +91,8 @@ class HouseArt(
     val porch: ImageBitmap?,
     /** The yard's fence or hedge along the street (the game's own fence and hedge sprites), with its gate. */
     val fence: ImageBitmap? = null,
+    /** Where snow lies on [fence]: the first pixels down from each of its top surfaces (white, drawn tinted). */
+    val fenceSnow: ImageBitmap? = null,
 )
 
 /** All of the game's own art that replaces the habit scene's procedural art, installed by the platform. */
@@ -110,9 +112,8 @@ object SpriteArt {
         for (b in buildings.values) {
             val h = b.house
             if (h != null) {
-                // a house: its ridge (or its flue) over the lift of standing back in its yard
-                val sh = h.shape
-                best = maxOf(best, (maxOf(sh.ridge + 2f, sh.flueTop) + 10f / PIXEL * sh.setback / 120f) * PIXEL)
+                // a house: its ridge or its flue, lifted by standing back in its yard (as its layout reckons it)
+                best = maxOf(best, h.shape.screenTop)
                 continue
             }
             val over = b.sign?.height?.toFloat() ?: b.prop?.let { it.height + com.lifemax.rpg.feature.habits.domain.BuildingSpec.DY * .5f / PIXEL } ?: 0f

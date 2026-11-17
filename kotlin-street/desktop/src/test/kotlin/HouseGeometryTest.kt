@@ -83,6 +83,42 @@ class HouseGeometryTest {
         assertTrue(abs(snapped.oy * unit - kotlin.math.round(snapped.oy * unit)) < 1e-3f)
     }
 
+    @Test fun oneViewSetAgainIsTheSameAsANewOne() {
+        // the painter keeps one view and sets it for each house in turn
+        val v = HouseView(houses["b8"]!!, -9f, 2.4f)
+        for ((_, h) in houses) for (s in floatArrayOf(-14f, 0f, 11.3f)) {
+            val fresh = HouseView(h, s, 2.4f)
+            v.set(h, s, 2.4f)
+            assertEquals(fresh.x(40f, 30f), v.x(40f, 30f), 0f)
+            assertEquals(fresh.y(20f, 30f), v.y(20f, 30f), 0f)
+            assertEquals(fresh.rightSide, v.rightSide)
+        }
+    }
+
+    @Test fun thePorchIsDrawnBackToFrontFromEitherSide() {
+        val h = houses["b9"]!!
+        for (s in floatArrayOf(-14f, 0f, 14f)) {
+            val o = h.boxesInOrder(s)
+            assertEquals(h.boxes.size, o.size)
+            // the deck before the railing standing on it
+            assertTrue(o.indexOf(h.boxes[0]) < o.indexOf(h.boxes[1]))
+        }
+        // worked out once for each side
+        assertTrue(h.boxesInOrder(3f) === h.boxesInOrder(14f))
+    }
+
+    @Test fun theHousesTopIsItsRidgeOrItsFlueOverItsYard() {
+        for ((_, h) in houses) {
+            val k = BuildingSpec.W / 224f
+            val lift = BuildingSpec.DY / HouseView.DEPTH
+            // on screen: the ridge cap at mid-depth, the flue's top behind it, both lifted by where they stand
+            val ridge = (h.ridge + 2f) * k + lift * (h.setback + h.depth / 2f)
+            val flue = h.flueTop * k + lift * (h.setback + h.flueD1)
+            assertEquals(maxOf(ridge, flue), h.screenTop, 1e-4f)
+            assertTrue(h.screenTop > h.h * k + lift * h.setback)
+        }
+    }
+
     @Test fun theCommittedHousesMatchTheView() {
         // the app's houses.json, if the street has houses: every slope picture must be as tall as the view makes it
         val dir = File("../app/src/main/assets/buildings").takeIf { it.exists() } ?: File("app/src/main/assets/buildings")

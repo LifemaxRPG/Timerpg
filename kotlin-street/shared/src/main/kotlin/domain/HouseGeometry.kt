@@ -84,8 +84,37 @@ class HouseShape(
         return h + rise * (m / run).coerceIn(0f, 1f)
     }
 
+    /**
+     * How high its highest point shows above the pavement line (street units): the ridge cap at mid-depth or the flue's
+     * top further back, each lifted by how far back it stands.
+     */
+    val screenTop: Float get() {
+        val k = BuildingSpec.W / 224f
+        val lift = BuildingSpec.DY / HouseView.DEPTH
+        return kotlin.math.max((ridge + 2f) * k + lift * (setback + depth / 2f), flueTop * k + lift * (setback + flueD1))
+    }
+
     /** The gable's top edge (the end wall under the roof slab) at depth [dd] behind the front wall. */
     fun gableTop(dd: Float): Float = roofTop(dd) - slab
+
+    /** The porch's or steps' boxes in the order they are drawn, back to front, seen from the right (side shift >= 0). */
+    private val fromRight: List<HouseBox> by lazy { inOrder(true) }
+    private val fromLeft: List<HouseBox> by lazy { inOrder(false) }
+
+    /**
+     * [boxes] back to front for side shift [s]: the order depends only on which side the view is from, so each is
+     * worked out once and kept.
+     */
+    fun boxesInOrder(s: Float): List<HouseBox> = if (s >= 0f) fromRight else fromLeft
+
+    private fun inOrder(right: Boolean): List<HouseBox> {
+        val o = boxes.toMutableList()
+        // a few boxes: the simplest sort that keeps every pair in order
+        for (i in o.indices) for (j in i + 1 until o.size) {
+            if (precedes(o[j], o[i], right) && !precedes(o[i], o[j], right)) { val t = o[i]; o[i] = o[j]; o[j] = t }
+        }
+        return o
+    }
 
     companion object {
         /** Every house in houses.json, by sprite name (bN). A malformed entry is skipped. */
@@ -102,6 +131,16 @@ class HouseShape(
 
         private fun org.json.JSONArray.f(i: Int): Float = getDouble(i).toFloat()
         private fun ints(a: org.json.JSONArray?): IntArray? = a?.let { IntArray(it.length()) { i -> it.getInt(i) } }
+
+        /** Which of two of a house's boxes must be drawn first: the one behind, else the one below, else the one away from the view. */
+        fun precedes(p: HouseBox, q: HouseBox, fromRight: Boolean): Boolean {
+            val e = .01f
+            if (p.z1 <= q.z0 + e) return true
+            if (q.z1 <= p.z0 + e) return false
+            if (p.y1 <= q.y0 + e) return true
+            if (q.y1 <= p.y0 + e) return false
+            return if (fromRight) p.x1 <= q.x0 + e else p.x0 >= q.x1 - e
+        }
 
         fun parse(o: org.json.JSONObject): HouseShape? = try {
             val wall = o.getJSONArray("wall"); val over = o.getJSONArray("over"); val fl = o.getJSONObject("flue")
@@ -132,16 +171,29 @@ class HouseShape(
 /**
  * Where a house's points land on screen ([BuildingSpec]'s oblique view), for a house drawn with side shift [s]. The
  * offset of its front wall (it stands [HouseShape.setback] back) is snapped to whole screen pixels when [unitPx] (screen
- * pixels per unit) is known, as the camera is, so the art's pixels stay on the screen's grid.
+ * pixels per unit) is known, as the camera is, so the art's pixels stay on the screen's grid. One view can be [set] again
+ * for the next house, so the painter keeps one instead of making one per house per frame.
  */
-class HouseView(val shape: HouseShape, val s: Float, unitPx: Float = 0f) {
+class HouseView(shape: HouseShape, s: Float, unitPx: Float = 0f) {
     /** Units per sprite pixel. */
     val k: Float = BuildingSpec.W / 224f
-    private val leanBack = s * shape.setback / DEPTH
-    private val liftBack = BuildingSpec.DY * shape.setback / DEPTH
+    var shape: HouseShape = shape; private set
+    var s: Float = s; private set
     /** The front wall's offset from where a shop's front stands (units): to the shown side and up. */
-    val ox: Float = if (unitPx > 0f) kotlin.math.round(leanBack * unitPx) / unitPx else leanBack
-    val oy: Float = if (unitPx > 0f) -kotlin.math.round(liftBack * unitPx) / unitPx else -liftBack
+    var ox: Float = 0f; private set
+    var oy: Float = 0f; private set
+
+    init { set(shape, s, unitPx) }
+
+    /** This view for house [shape] at side shift [s]; returns itself. */
+    fun set(shape: HouseShape, s: Float, unitPx: Float = 0f): HouseView {
+        this.shape = shape; this.s = s
+        val leanBack = s * shape.setback / DEPTH
+        val liftBack = BuildingSpec.DY * shape.setback / DEPTH
+        ox = if (unitPx > 0f) kotlin.math.round(leanBack * unitPx) / unitPx else leanBack
+        oy = if (unitPx > 0f) -kotlin.math.round(liftBack * unitPx) / unitPx else -liftBack
+        return this
+    }
 
     /** Screen x of the point [x] across the front picture, [dd] behind the front wall (negative: in front of it). */
     fun x(x: Float, dd: Float): Float = -BuildingSpec.W / 2f + (shape.frontX + x) * k + ox + s * dd / DEPTH

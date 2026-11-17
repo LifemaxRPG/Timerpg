@@ -1127,6 +1127,9 @@ private fun sunClear(
     return clear
 }
 
+/** One view of a house, set again for each house [sunEdge] sweeps (drawing happens on one thread). */
+private var edgeView: com.lifemax.rpg.feature.habits.domain.HouseView? = null
+
 /**
  * The buildings in view as [SunEdge] boxes on the screen, for the sun's glare at their edges: each
  * one's front (its lobby and storeys, then its cornice a little wider) swept along its shown side
@@ -1159,7 +1162,7 @@ private fun sunEdge(
         val house = sb?.house
         if (house != null) {
             // one of OUR houses, back in its yard: its wall swept back through its depth, and its roof up to the ridge
-            val v = com.lifemax.rpg.feature.habits.domain.HouseView(house.shape, f.sideShift(cx))
+            val v = edgeView?.set(house.shape, f.sideShift(cx)) ?: com.lifemax.rpg.feature.habits.domain.HouseView(house.shape, f.sideShift(cx)).also { edgeView = it }
             val sh = house.shape
             fun hx(px: Float, dd: Float) = x(v.x(px, dd))
             fun hy(up: Float, dd: Float) = f.ground + v.y(up, dd) * u
@@ -1231,8 +1234,7 @@ private fun DrawScope.cloudShade(
         val x0 = f.screenX(cx + Perspective.left(shift))
         val x1 = f.screenX(cx + Perspective.right(shift))
         if (x1 < 0f || x0 > w) continue
-        // (a house's real top: its layout's height, its ridge and flue over its yard's lift)
-        val top = f.ground - (if (SpriteArt.buildings[layouts[i].stackId]?.house != null) layouts[i].height else layouts[i].roof + B.CORNICE + B.DY) * f.unit
+        val top = f.ground - (layouts[i].roof + B.CORNICE + B.DY) * f.unit
         path.addRect(Rect(x0, top, x1, f.ground))
     }
     val drop = SceneLight.cloudDrop(light) * d

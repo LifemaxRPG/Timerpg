@@ -43,6 +43,7 @@ import com.lifemax.rpg.feature.habits.domain.Furniture
 import com.lifemax.rpg.feature.habits.domain.FurnitureKind
 import com.lifemax.rpg.feature.habits.domain.Gait
 import com.lifemax.rpg.feature.habits.domain.HabitMaterial
+import com.lifemax.rpg.feature.habits.domain.HouseView
 import com.lifemax.rpg.feature.habits.domain.KeyLight
 import com.lifemax.rpg.feature.habits.domain.Looks
 import com.lifemax.rpg.feature.habits.domain.PeopleActivities
@@ -1850,11 +1851,26 @@ internal class BuildingPainter {
             val sbr = SpriteArt.buildings[art.stack.id]
             if (sbr != null) {
                 // one of OUR buildings, mirrored in the wet: its own front, darkened and cooled, and its lit glass at night
+                val house = sbr.house
                 withTransform({
                     translate(cx + ox, 0f)
                     scale(1f, -SQUASH, Offset.Zero)
                 }) {
-                    val hf = sbr.front.height * (B.W / SpriteArt.SRC_W)
+                    val k = B.W / SpriteArt.SRC_W
+                    val hf = sbr.front.height * k
+                    if (house != null) {
+                        // a house: its own front at its own width, where it stands back in its yard (further back, so
+                        // its image lies further down in the wet), and its roof's near slope over it
+                        val sh = house.shape
+                        val x0 = -half + sh.frontX * k + s * sh.setback / HouseView.DEPTH
+                        val w = sbr.front.width * k
+                        val y0 = -hf - B.DY * sh.setback / HouseView.DEPTH
+                        val rh = house.slope.height * k
+                        picture2(house.slope, x0, y0 - rh, w, rh, FilterQuality.None, alpha = a * .7f, filter = wetMirror)
+                        picture2(sbr.front, x0, y0, w, hf, FilterQuality.None, alpha = a * .8f, filter = wetMirror)
+                        if (dark > .2f) picture2(sbr.emis, x0, y0, w, hf, FilterQuality.None, alpha = a * .45f * dark, blend = BlendMode.Plus)
+                        return@withTransform
+                    }
                     picture2(sbr.front, -half, -hf, B.W, hf, FilterQuality.None, alpha = a * .8f, filter = wetMirror)
                     if (dark > .2f) picture2(sbr.emis, -half, -hf, B.W, hf, FilterQuality.None, alpha = a * .45f * dark, blend = BlendMode.Plus)
                 }
@@ -2706,7 +2722,12 @@ internal class BuildingPainter {
         castFilterKey = castInk
         return ColorFilter.tint(castInk, BlendMode.SrcIn).also { castFilterNow = it }
     }
-    private val houseOrder = ArrayList<com.lifemax.rpg.feature.habits.domain.HouseBox>()
+    /** One view of a house, set again for each house drawn ([HouseView.set]). */
+    private var houseView: HouseView? = null
+
+    /** The porch light's glow on the wall, and its pool on the ground: unit circles under a transform, as [halo]. */
+    private val porchGlow = Brush.radialGradient(listOf(SceneInk.LampLight.copy(alpha = .55f), Color.Transparent), Offset.Zero, 1f)
+    private val porchPool = Brush.radialGradient(listOf(SceneInk.LampLight.copy(alpha = .4f), Color.Transparent), Offset.Zero, 1f)
 
     private fun quadPath(ax: Float, ay: Float, bx: Float, by: Float, cx: Float, cy: Float, dx: Float, dy: Float): Path {
         housePath.rewind(); housePath.moveTo(ax, ay); housePath.lineTo(bx, by); housePath.lineTo(cx, cy); housePath.lineTo(dx, dy); housePath.close()
@@ -2754,16 +2775,6 @@ internal class BuildingPainter {
     }
 
     private fun rgb(c: Int): Color = Color(0xFF000000.toInt() or c)
-
-    /** Which of two of a house's boxes must be drawn first: the one behind, else the one below, else the one away from the view. */
-    private fun housePrecedes(p: com.lifemax.rpg.feature.habits.domain.HouseBox, q: com.lifemax.rpg.feature.habits.domain.HouseBox, s: Float): Boolean {
-        val e = .01f
-        if (p.z1 <= q.z0 + e) return true
-        if (q.z1 <= p.z0 + e) return false
-        if (p.y1 <= q.y0 + e) return true
-        if (q.y1 <= p.y0 + e) return false
-        return if (s >= 0f) p.x1 <= q.x0 + e else p.x0 >= q.x1 - e
-    }
 
     /**
      * One of a house's boxes (its porch's deck, rails and legs, its steps, its flue): its front, its top and the side the
@@ -2823,7 +2834,7 @@ internal class BuildingPainter {
     private fun DrawScope.houseBuilding(art: BuildingArt, sb: SpriteBuilding, ha: HouseArt, sky: SkyColors, seconds: Float) {
         val sh = ha.shape
         val s = sideShift
-        val v = com.lifemax.rpg.feature.habits.domain.HouseView(sh, s, unitPx)
+        val v = houseView?.set(sh, s, unitPx) ?: HouseView(sh, s, unitPx).also { houseView = it }
         val k = v.k
         val half = B.W / 2f
         val picW = sb.front.width.toFloat()
@@ -2843,10 +2854,12 @@ internal class BuildingPainter {
         // the house's own shade over its yard (its shadow on the pavement is drawn with the other buildings'): the light
         // is behind the houses, so the yard in front of the wall is in shade, its edges leaning away from the light
         val wl = v.x(sh.wall0, 0f); val wr = v.x(sh.wall1, 0f); val foot = v.y(0f, 0f)
+        var yardShade = 0f
         if (key != null && key.strength > .02f && key.reach > .05f) {
             val lean = (SceneLight.lean(key, offset(buildingX)) / key.reach * -foot).coerceIn(-40f, 40f)
             val a = (if (key.cool > .5f) MOON_SHADE else SUN_SHADE) * key.strength * (1f - .6f * key.flat)
             drawPath(quadPath(wl, foot, wr, foot, wr + lean, 0f, wl + lean, 0f), shade(key, sky), alpha = a)
+            yardShade = a
         }
         // the contact shadow along the house's foot
         withTransform({ translate(0f, foot); scale(1f, .45f, Offset.Zero) }) { drawRect(aoGround, Offset(wl - k, 0f), Size(wr - wl + 2f * k, 8f)) }
@@ -2887,9 +2900,9 @@ internal class BuildingPainter {
             val xv = if (v.rightSide) sh.wall1 + sh.verge else sh.wall0 - sh.verge
             val rakeC = houseInk(if (toSun > .02f) lerp(rgb(sh.rake), Color.White, .2f * toSun) else lerp(rgb(sh.rake), Color.Black, .15f))
             val edgeC = houseInk(rgb(sh.rakeEdge))
-            val ends = floatArrayOf(-eo, sh.depth / 2f, sh.depth + eo)
             for (i in 0..1) {
-                val a0 = ends[i]; val a1 = ends[i + 1]
+                // from the front eave to the ridge, then from the ridge to the back eave
+                val a0 = if (i == 0) -eo else sh.depth / 2f; val a1 = if (i == 0) sh.depth / 2f else sh.depth + eo
                 val t0 = sh.roofTop(a0); val t1 = sh.roofTop(a1)
                 drawPath(quadPath(v.x(xv, a0), v.y(t0, a0), v.x(xv, a1), v.y(t1, a1), v.x(xv, a1), v.y(t1 - sh.slab - 1f, a1), v.x(xv, a0), v.y(t0 - sh.slab - 1f, a0)), rakeC)
                 drawPath(quadPath(v.x(xv, a0), v.y(t0, a0), v.x(xv, a1), v.y(t1, a1), v.x(xv, a1), v.y(t1 - 1f, a1), v.x(xv, a0), v.y(t0 - 1f, a0)), edgeC)
@@ -2923,9 +2936,13 @@ internal class BuildingPainter {
         if (snow > .01f) drawPath(slope, snowInk(sky), alpha = .85f * snow)
         if (blue > .01f) drawPath(slope, BlueCast, alpha = .35f * blue, blendMode = BlendMode.Multiply)
         if (nightOn) drawPath(slope, nightInk, blendMode = BlendMode.Multiply)
-        // the ridge cap, astride the ridge
+        // the ridge cap, astride the ridge; under snow, white with the slope (the cap's own shape) and heaped on top
         part(ha.ridge, 0, 0, ha.ridge.width, ha.ridge.height, rx, ry - 2f * k, picW * k, ha.ridge.height * k, filter = signTint())
-        if (snow > .01f) cap(rx, ry - 2.6f * k, picW * k, 2.2f * k, .95f * snow)
+        if (snow > .01f) {
+            snowInk(sky)
+            part(ha.ridge, 0, 0, ha.ridge.width, ha.ridge.height, rx, ry - 2f * k, picW * k, ha.ridge.height * k, alpha = .85f * snow, filter = snowFilter)
+            cap(rx, ry - 2.6f * k, picW * k, 2.2f * k, .95f * snow)
+        }
 
         // --- the front: the wall, and the eave's edge (the roof slab's front, overhanging the wall)
         val fasc = sh.fascia.toInt()
@@ -2961,14 +2978,9 @@ internal class BuildingPainter {
         }
 
         // --- the porch or the steps, back to front
-        houseOrder.clear(); houseOrder.addAll(sh.boxes)
-        // a few boxes: the simplest sort that keeps every pair in order
-        for (i in houseOrder.indices) for (j in i + 1 until houseOrder.size) {
-            if (housePrecedes(houseOrder[j], houseOrder[i], s) && !housePrecedes(houseOrder[i], houseOrder[j], s)) {
-                val t = houseOrder[i]; houseOrder[i] = houseOrder[j]; houseOrder[j] = t
-            }
-        }
-        for (b in houseOrder) {
+        val order = sh.boxesInOrder(s)
+        for (i in order.indices) {
+            val b = order[i]
             houseBox(v, b.x0, b.x1, b.y0, b.y1, -b.z1, if (b.card) -b.z1 + .01f else -b.z0, rgb(b.top), rgb(b.front), rgb(b.side), sky,
                 ha.porch, b.frontTex, b.topTex, outline = b.frontTex == null)
         }
@@ -2978,10 +2990,15 @@ internal class BuildingPainter {
             val dd = sh.fenceD - sh.setback
             val fx = v.x(-sh.frontX, dd); val fy = v.y(sh.fenceFoot, dd)
             part(fe, 0, 0, fe.width, fe.height, fx, fy, fe.width * k, fe.height * k, filter = signTint())
-            if (direct > .02f) part(fe, 0, 0, fe.width, fe.height, fx, fy, fe.width * k, fe.height * k, alpha = .12f * direct, filter = castFilter())
+            // it stands in the house's shade as the yard does (the light is behind the houses: deepest in a low sun),
+            // so it goes with the wall behind it instead of staying a bright green in the evening
+            val cast = max(.12f * direct, .85f * yardShade)
+            if (cast > .01f) part(fe, 0, 0, fe.width, fe.height, fx, fy, fe.width * k, fe.height * k, alpha = cast, filter = castFilter())
             if (snow > .01f) {
+                // snow along every top it has (a picket's point, a rail, a bush's crown), and a dusting over the rest
                 snowInk(sky)
-                part(fe, 0, 0, fe.width, 5, fx, fy, fe.width * k, 5f * k, alpha = .75f * snow, filter = snowFilter)
+                ha.fenceSnow?.let { fs -> part(fs, 0, 0, fs.width, fs.height, fx, fy, fe.width * k, fe.height * k, alpha = .92f * snow, filter = snowFilter) }
+                part(fe, 0, 0, fe.width, fe.height, fx, fy, fe.width * k, fe.height * k, alpha = .22f * snow, filter = snowFilter)
             }
         }
 
@@ -3015,11 +3032,13 @@ internal class BuildingPainter {
             if (on > .02f) {
                 val c = Offset(x + 1.5f * k, y + 1.5f * k)
                 val r = 16f * k
-                drawCircle(Brush.radialGradient(listOf(SceneInk.LampLight.copy(alpha = .55f * on), Color.Transparent), c, r), r, c, blendMode = BlendMode.Plus)
+                withTransform({ translate(c.x, c.y); scale(r, r, Offset.Zero) }) {
+                    drawCircle(porchGlow, 1f, Offset.Zero, alpha = on, blendMode = BlendMode.Plus)
+                }
                 // its pool on the ground in front of the door
                 val gy = v.y(0f, -10f)
-                withTransform({ translate(c.x, gy); scale(1f, .28f, Offset.Zero) }) {
-                    drawCircle(Brush.radialGradient(listOf(SceneInk.LampLight.copy(alpha = .4f * on), Color.Transparent), Offset.Zero, 22f * k), 22f * k, Offset.Zero, blendMode = BlendMode.Plus)
+                withTransform({ translate(c.x, gy); scale(22f * k, .28f * 22f * k, Offset.Zero) }) {
+                    drawCircle(porchPool, 1f, Offset.Zero, alpha = on, blendMode = BlendMode.Plus)
                 }
             }
         }

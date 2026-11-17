@@ -251,8 +251,12 @@ private fun spriteLayout(stack: HabitStack, sb: com.lifemax.rpg.feature.habits.p
         val sh = h.shape
         val lift = b.DY * sh.setback / HouseView.DEPTH
         val roof = sh.h * k
-        val top = maxOf(sh.ridge + 2f, sh.flueTop) * k + b.DY * (sh.setback + sh.depth * .63f) / HouseView.DEPTH
-        val pieces = listOf(Piece(PieceKind.LOBBY, stack.id, 0f, roof + lift, b.W))
+        val top = sh.screenTop
+        // what a tap finds: the house's own front (its picture's width, standing on its yard's lift, not the whole lot,
+        // so the sky and the yard beside it are not the house), then its roof up to the ridge
+        val w = sb.front.width * k
+        val ridge = (sh.ridge + 2f) * k + b.DY * (sh.setback + sh.depth / 2f) / HouseView.DEPTH
+        val pieces = listOf(Piece(PieceKind.LOBBY, stack.id, lift, roof, w), Piece(PieceKind.LOBBY, stack.id, lift + roof, (ridge - lift - roof).coerceAtLeast(1f), w))
         return BuildingLayout(stack.id, pieces, emptyList(), maxOf(top, roof + lift + b.DY), roof, b.W + b.DX)
     }
     val pieces = ArrayList<Piece>()

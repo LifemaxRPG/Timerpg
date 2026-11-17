@@ -257,9 +257,28 @@ def house_rise(rows, depth):
     return rows - RISE_PER_120 * (depth / 2 + EAVE_OVER) / 120.0
 
 def grassy(a):
-    """The ground strip's grass in the art (and its semi-transparent shadow), not the house."""
+    """Green or semi-transparent pixels: the ground strip's grass in the art and its shadow (see ground())."""
     r, g, b, al = (a[..., i].astype(int) for i in range(4))
     return ((g > r + 25) & (g > b + 10)) | (al < 250)
+
+def ground(a, base):
+    """The art's ground (its grass and its shadow), not the house: green or semi-transparent in the grey base design and
+    the same pixel in this colour variant. Colour alone is not enough: the green variants (c2, c7) paint the hitch and
+    the wheels green, and the ground is the one thing every variant draws alike."""
+    return grassy(base) & ((a == base).all(-1) | (a[..., 3] < 250))
+
+def siding_rows(wall, rows):
+    """Each of the first `rows` rows of the wall's siding colour: the median over the columns that are plain siding all
+    the way down, so the door, the window frames and the blinds do not colour the end walls, which have none of them.
+    Plain siding is the column most repeated near the wall's two ends (no design has a window or a door within 12
+    pixels of a corner; a blind repeats its column too, so the whole wall cannot be asked), and every column that
+    matches it in nearly every row."""
+    w = wall[:rows, :, :3]
+    cols = [w[:, c].tobytes() for c in range(w.shape[1])]
+    ends = cols[:12] + cols[-12:]
+    mode = np.frombuffer(max(set(ends), key=lambda c: (ends.count(c), c)), np.uint8).reshape(-1, 3)
+    plain = [c for c in range(w.shape[1]) if (w[:, c] == mode).all(-1).mean() >= .85]
+    return np.median(w[:, plain], axis=1).astype(np.uint8) if plain else mode
 
 def rgb_int(c):
     return int(c[0]) << 16 | int(c[1]) << 8 | int(c[2])
@@ -276,6 +295,9 @@ def build_house(shop, out):
     art = np.array(load(key))
     # a porch design is its steps twin with a porch in front: the wall behind it comes from the twin, pixel for pixel
     twin = np.array(load(key.replace(f'_{design}', f'_{design - 4}', 1))) if porch else art
+    # the grey base design of each (the colour variants repaint only the house): what tells the ground from the house
+    base = np.array(load(f'house_{tier}_{design}'))
+    twin_base = np.array(load(f'house_{tier}_{design - 4}')) if porch else base
     rx0, rx1 = spec['roof']; wx0, wx1 = spec['wall']; D = spec['depth']
     rng = np.random.default_rng(zlib.crc32(n.encode()))
 
@@ -294,7 +316,7 @@ def build_house(shop, out):
     f[72:74, wx0:wx1] = np.round(floor_line).astype(np.uint8)       # the floor's edge, across where the steps were too
     sub = twin[174:186, rx0:rx1]
     for (a0, a1) in spec['wheels']:
-        w = sub[:, a0:a1]; keep = ~grassy(w)
+        w = sub[:, a0:a1]; keep = ~ground(w, twin_base[174:186, rx0:rx1][:, a0:a1])
         f[74:86, a0:a1][keep] = w[keep]
     # the window panes: kept as drawn (curtains or blinds behind the glass); the engine lays the sky's reflection, the
     # rain and the night's glow over them
@@ -317,9 +339,11 @@ def build_house(shop, out):
     top = FRONT_ROWS + int(np.ceil(rise))
     side = np.zeros((top, D, 4), np.uint8)
     wall = f[:, wx0:wx1]
-    rows = np.zeros((FRONT_ROWS, 4), np.uint8)
-    for r in range(FRONT_ROWS):
-        px = wall[r][(wall[r, :, 3] > 200) & ~glass(wall[r:r + 1])[0]]
+    rows = np.zeros((FRONT_ROWS, 4), np.uint8); rows[:, 3] = 255
+    # the siding down to the floor's edge (inset from the corner boards); under the floor, the dark space as it is
+    rows[:74, :3] = siding_rows(wall[:, 2:-2], 74)
+    for r in range(74, FRONT_ROWS):
+        px = wall[r][wall[r, :, 3] > 200]
         rows[r] = np.median(px, axis=0) if len(px) else (60, 60, 70, 255)
     trim = rows[7]                                                  # the band under the eave, in the variant's trim colour
     # the siding's repeat (its lap boards), found from the wall's own rows, carried up the triangle
@@ -361,7 +385,7 @@ def build_house(shop, out):
     # --- the hitch: a card from the art, its foot on the ground beside the house at mid-depth
     hx0, hx1, hy0, hy1 = spec['hitch']
     hitch = art[hy0:hy1, hx0:hx1].copy()
-    hitch[grassy(hitch)] = 0
+    hitch[ground(hitch, base[hy0:hy1, hx0:hx1])] = 0
     hys = np.where(hitch[..., 3] > 0)[0]
     hitch = hitch[:hys.max() + 1] if len(hys) else hitch
 
@@ -386,8 +410,15 @@ def build_house(shop, out):
         boards = art[172:222, 56:104]
         deck_row = np.median(boards, axis=0).astype(np.uint8)                       # each board's colour, front to back
         deck_c = np.median(boards.reshape(-1, 4), axis=0)
-        rail = art[224:236, 50:108]; fascia_p = art[236:242, 52:108]
+        rail = art[224:236, 50:108].copy(); fascia_p = art[236:242, 52:108]
         rail_c = np.median(art[160:220, 52:54].reshape(-1, 4), axis=0)            # the side rail's light face
+        # between the balusters the art shows the deck's boards (seen from above): open there, so the deck and the
+        # door behind show through the railing as they would
+        boards_px = {tuple(p) for p in boards.reshape(-1, 4)[:, :3]}
+        rail_px = {tuple(p) for p in rail[:4].reshape(-1, 4)[:, :3]}
+        for (y, x) in np.ndindex(6, rail.shape[1]):
+            c = tuple(rail[6 + y, x, :3])
+            if c in boards_px and c not in rail_px: rail[6 + y, x] = 0
         atlas[0:12, 0:58] = rail; atlas[12:18, 0:56] = fascia_p
         atlas[18:24, 0:48] = deck_row[None, :, :]
         steps = art[186:236, 108:128]
@@ -395,11 +426,14 @@ def build_house(shop, out):
         lum_s = steps[..., :3].astype(int).sum(-1)
         tread_c = np.median(steps[(steps[..., 3] > 200) & (lum_s >= np.percentile(lum_s[steps[..., 3] > 200], 60))][:, :3], axis=0)
         riser_c = shade(tread_c, .72)
-        # the legs under the deck's front, the deck (its top the boards, its front the art's fascia), the side rails,
+        # the dark space under the deck (so it reads as a platform, not a bench on legs), the legs under the deck's
+        # front, the deck (its top the boards, its front the art's six rows of fascia, one pixel each), the side rails,
         # the steps down to the right, the front railing standing on the deck's edge
-        box((52, 56), (0, 10), (58, 64), dark, dark, dark)
-        box((100, 106), (0, 10), (58, 64), dark, dark, dark)
-        box((52, 108), (10, 14), (0, 64), deck_c, deck_c, shade(deck_c, .7), ft=[0, 12, 56, 6], tt=[0, 18, 48, 6])
+        under = shade(void, .8)
+        box((54, 106), (0, 8), (0, 62), under, under, under)
+        box((52, 56), (0, 8), (58, 64), dark, dark, dark)
+        box((100, 106), (0, 8), (58, 64), dark, dark, dark)
+        box((52, 108), (8, 14), (0, 64), deck_c, deck_c, shade(deck_c, .7), ft=[0, 12, 56, 6], tt=[0, 18, 48, 6])
         box((50, 56), (14, 26), (0, 64), rail_c, rail_c, shade(rail_c, .8))
         box((102, 108), (14, 26), (0, 28), rail_c, rail_c, shade(rail_c, .8))
         for i, h in enumerate((10.5, 7, 3.5)):
@@ -468,12 +502,25 @@ def build_house(shop, out):
                     if not open_at(tx + c, tx + c + 1): fence[:, tx + c] = tile[:, c]
                 tx += tile.shape[1]; i += 1
         if not (fence[..., 3] > 0).any(): fence = None
+    # the snow on it: the first pixels down from each of its top surfaces (a picket's point, a rail, a bush's crown),
+    # two of the art's pixels deep on a hedge and one on a fence, ragged pair by pair so it lies, not paints
+    fence_snow = None
+    if fence is not None:
+        solid = fence[..., 3] > 128
+        above = np.zeros_like(solid); above[1:] = solid[:-1]
+        deep_by = 2 + 2 * rng.integers(0, 2, fence.shape[1] // 2 + 1) + (2 if style == 'formal' else 0)
+        fence_snow = np.zeros_like(fence)
+        for (y, x) in zip(*np.nonzero(solid & ~above)):
+            for t in range(int(deep_by[x // 2])):
+                if y + t >= fence.shape[0] or not solid[y + t, x]: break
+                fence_snow[y + t, x] = (255, 255, 255, 255)
 
     for name, img in (('front', f), ('emis', em), ('side', side), ('slope', slope), ('ridge', ridge), ('back', back),
                       ('hitch', hitch), ('lawn', lawn)):
         Image.fromarray(img).save(f'{out}/{n}_{name}.png')
     if porch: Image.fromarray(atlas).save(f'{out}/{n}_porch.png')
-    if fence is not None: Image.fromarray(fence).save(f'{out}/{n}_fence.png')
+    if fence is not None:
+        Image.fromarray(fence).save(f'{out}/{n}_fence.png'); Image.fromarray(fence_snow).save(f'{out}/{n}_fencesnow.png')
     # its windows are not cut out (their curtains and blinds are the art's own), so it has no rooms behind them
     WINDOWS[n] = []
     r3 = lambda v: round(float(v), 3)
@@ -492,7 +539,8 @@ def build_house(shop, out):
 # What this script writes for a sprite. Anything else in the folder is left alone: the lighting maps make_lighting.py
 # made from each front need a depth model that is not always on disk, so they must survive a re-run that does not
 # change their front.
-OUTPUTS = ('front', 'side', 'emis', 'roof', 'sign', 'prop', 'glass', 'over', 'slope', 'ridge', 'back', 'hitch', 'lawn', 'porch', 'fence')
+OUTPUTS = ('front', 'side', 'emis', 'roof', 'sign', 'prop', 'glass', 'over', 'slope', 'ridge', 'back', 'hitch', 'lawn', 'porch', 'fence',
+           'fencesnow')
 MAPS = ('lit', 'shade')
 
 def pixels(path):
