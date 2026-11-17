@@ -43,12 +43,15 @@ android {
                 // the Adreno GPU backend, when the OpenCL headers and link stub are there (tools/get-opencl.sh)
                 localProps.getProperty("opencl.headers")?.let { arguments += "-DTIMERPG_OPENCL_HEADERS=${rootProject.file(it).absolutePath}" }
                 localProps.getProperty("opencl.lib")?.let { arguments += "-DTIMERPG_OPENCL_LIB=${rootProject.file(it).absolutePath}" }
+                // and the Hexagon NPU, with the Hexagon SDK (tools/get-hexagon.sh)
+                localProps.getProperty("hexagon.sdk")?.let { arguments += "-DTIMERPG_HEXAGON_SDK=${rootProject.file(it).absolutePath}" }
                 // Only what the app loads: our JNI library, llama.cpp's shared libraries and three CPU kernel variants.
                 targets += listOf(
                     "timerpg_llm", "llama", "ggml", "ggml-base", "mtmd",
                     "ggml-cpu-android_armv8.6_1", "ggml-cpu-android_armv8.2_2", "ggml-cpu-android_armv8.0_1",
                 )
                 if (localProps.getProperty("opencl.lib") != null) targets += "ggml-opencl"
+                if (localProps.getProperty("hexagon.sdk") != null) targets += "ggml-hexagon"
             }
         }
     }
@@ -76,6 +79,8 @@ android {
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose = true; buildConfig = true }
     sourceSets["main"].java.srcDir("../shared/src/main/kotlin")
+    // the NPU's own code (libggml-htp-vNN.so, built for the Hexagon DSP by the native build) goes into the APK beside the rest
+    sourceSets["main"].jniLibs.srcDir(layout.buildDirectory.dir("htp"))
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
         // the OpenCL link stub is not shipped: the phone's own driver (libOpenCL.so, a public vendor library) is used
@@ -83,6 +88,20 @@ android {
         // Native libraries compressed in the APK and extracted at install: the APK grows ~3.5 MB instead of ~8.6 MB.
         // (llm_core loads its CPU kernel library by name, which works either way.)
         jniLibs.useLegacyPackaging = true
+    }
+}
+
+// The DSP libraries the Hexagon build makes are not CMake targets Gradle packages itself: copied after each native build.
+tasks.matching { it.name.startsWith("buildCMake") }.configureEach {
+    doLast {
+        copy {
+            from(fileTree(projectDir.resolve(".cxx")) { include("**/arm64-v8a/**/libggml-htp-v*.so") })
+            into(layout.buildDirectory.dir("htp/arm64-v8a"))
+            eachFile { path = name }
+            includeEmptyDirs = false
+            // each one is there twice (the build's and its install copy): one is enough
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        }
     }
 }
 

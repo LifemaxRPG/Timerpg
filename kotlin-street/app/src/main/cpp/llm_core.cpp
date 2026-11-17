@@ -234,11 +234,20 @@ std::vector<std::string> cpu_variant_libs() {
     return libs;
 }
 
-bool has_gpu() {
-    for (size_t i = 0; i < ggml_backend_dev_count(); ++i)
-        if (ggml_backend_dev_type(ggml_backend_dev_get(i)) == GGML_BACKEND_DEVICE_TYPE_GPU) return true;
-    return false;
+/** The accelerators of a kind: 1 the GPU (OpenCL), 2 the NPU (Hexagon's HTP sessions). */
+std::vector<ggml_backend_dev_t> devices_of(int kind) {
+    std::vector<ggml_backend_dev_t> out;
+    for (size_t i = 0; i < ggml_backend_dev_count(); ++i) {
+        ggml_backend_dev_t d = ggml_backend_dev_get(i);
+        if (ggml_backend_dev_type(d) == GGML_BACKEND_DEVICE_TYPE_CPU) continue;
+        const bool npu = std::string(ggml_backend_dev_name(d)).rfind("HTP", 0) == 0;
+        if ((kind == 2) == npu) out.push_back(d);
+    }
+    return out;
 }
+
+bool has_gpu() { return !devices_of(1).empty(); }
+bool has_npu() { return !devices_of(2).empty(); }
 
 bool init_backend(const std::vector<std::string> & cpu_libs, std::string * info) {
     static std::once_flag once;
@@ -266,12 +275,14 @@ bool init_backend(const std::vector<std::string> & cpu_libs, std::string * info)
                 }
             }
 #if defined(__ANDROID__)
-            // the Adreno GPU (OpenCL), if this build has it and the phone's OpenCL driver loads; else the CPU alone
-            if (ggml_backend_load("libggml-opencl.so")) {
-                for (size_t i = 0; i < ggml_backend_dev_count(); ++i) {
-                    ggml_backend_dev_t d = ggml_backend_dev_get(i);
-                    if (ggml_backend_dev_type(d) == GGML_BACKEND_DEVICE_TYPE_GPU) { msg += std::string("; GPU ") + ggml_backend_dev_description(d); break; }
-                }
+            // the Adreno GPU (OpenCL) and the Hexagon NPU, if this build has them and the phone's drivers load; else the
+            // CPU alone. The NPU opens two sessions (each holds ~3.5 GB of weights: the 9B model is split over both).
+            setenv("GGML_HEXAGON_NDEV", "2", 0);
+            ggml_backend_load("libggml-opencl.so");
+            ggml_backend_load("libggml-hexagon.so");
+            for (size_t i = 0; i < ggml_backend_dev_count(); ++i) {
+                ggml_backend_dev_t d = ggml_backend_dev_get(i);
+                if (ggml_backend_dev_type(d) != GGML_BACKEND_DEVICE_TYPE_CPU) msg += std::string("; ") + ggml_backend_dev_name(d) + " " + ggml_backend_dev_description(d);
             }
 #endif
             llama_backend_init();
@@ -405,8 +416,15 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
 
         clear_log_errors();
         llama_model_params mp = llama_model_default_params();
-        // on the GPU when asked and there is one (all layers: the S25's Adreno shares the phone's memory)
-        mp.n_gpu_layers = gpu_ && has_gpu() ? 999 : 0;
+        // on the GPU or the NPU when asked and there is one (all layers: they share the phone's memory)
+        devs_ = device_ > 0 ? devices_of(device_) : std::vector<ggml_backend_dev_t>();
+        if (!devs_.empty()) {
+            devs_.push_back(nullptr);
+            mp.devices = devs_.data();
+            mp.n_gpu_layers = 999;
+        } else {
+            mp.n_gpu_layers = 0;
+        }
         mp.load_mode = LLAMA_LOAD_MODE_MMAP;
         // cancel() also stops a load.
         mp.progress_callback = [](float, void * self) { return !static_cast<Engine *>(self)->cancel_.load(); };

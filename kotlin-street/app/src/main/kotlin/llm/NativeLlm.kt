@@ -27,12 +27,12 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     @Volatile override var loaded: Boolean = false
         private set
 
-    /** Run the model on the phone's GPU (the Adreno, through OpenCL) from the next [load], when it has one. */
-    @Volatile var useGpu = false
-    /** Whether the loaded model runs on the GPU. */
-    val onGpu: Boolean get() = handle != 0L && runCatching { nativeOnGpu(handle) }.getOrDefault(false)
-    /** Whether this phone and build have a GPU backend at all (after the native library loaded). */
-    val hasGpu: Boolean get() = runCatching { nativeHasGpu() }.getOrDefault(false)
+    /** Where the model runs from the next [load]: [CPU], [GPU] (the Adreno, OpenCL) or [NPU] (Hexagon). */
+    @Volatile var device = CPU
+    /** Where the loaded model runs. */
+    val runsOn: Int get() = if (handle == 0L) CPU else runCatching { nativeDevice(handle) }.getOrDefault(CPU)
+    /** This phone and build's accelerators (after the native library loaded): bit 0 a GPU, bit 1 an NPU. */
+    val accelerators: Int get() = runCatching { nativeAccelerators() }.getOrDefault(0)
     @Volatile override var error: String? = null
         private set
     @Volatile override var stats: LlmStats = LlmStats()
@@ -111,7 +111,7 @@ class NativeLlm(context: Context? = null) : LlmBackend {
                 error = "cancelled"
                 return false
             }
-            runCatching { nativeSetGpu(handle, useGpu) }
+            runCatching { nativeSetDevice(handle, device) }
             loaded = false  // the native load frees the old model first
             val ok = try {
                 nativeLoad(handle, path.toByteArray(Charsets.UTF_8), t, ctx)
@@ -278,15 +278,18 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     private external fun nativeDestroy(handle: Long)
     private external fun nativeLoad(handle: Long, path: ByteArray, threads: Int, contextTokens: Int): Boolean
     private external fun nativeError(handle: Long): String?
-    private external fun nativeSetGpu(handle: Long, on: Boolean)
-    private external fun nativeOnGpu(handle: Long): Boolean
-    private external fun nativeHasGpu(): Boolean
+    private external fun nativeSetDevice(handle: Long, kind: Int)
+    private external fun nativeDevice(handle: Long): Int
+    private external fun nativeAccelerators(): Int
     private external fun nativeArm(handle: Long)
     private external fun nativeCancel(handle: Long)
     private external fun nativeGenerate(handle: Long, prompt: ByteArray, maxTokens: Int, temperature: Float, sink: TokenSink?): String?
     private external fun nativeStats(handle: Long): LongArray?
 
     companion object {
+        const val CPU = 0
+        const val GPU = 1
+        const val NPU = 2
         private const val TAG = "NativeLlm"
         /** Qwen3-0.6B's KV cache in f16: 28 layers x 8 heads x 128 x 2 (K and V) x 2 bytes, rounded up. */
         private const val KV_BYTES_PER_TOKEN = 120L * 1024

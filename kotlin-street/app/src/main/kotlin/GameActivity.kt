@@ -69,6 +69,11 @@ class GameActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         AndroidFx.install()
+        // the Hexagon NPU's code (libggml-htp-v79.so) is in this app's native library folder: tell the DSP loader
+        runCatching {
+            val dsp = applicationInfo.nativeLibraryDir + ";/vendor/dsp/cdsp;/vendor/lib/rfsa/adsp;/system/lib/rfsa/adsp;/dsp"
+            android.system.Os.setenv("ADSP_LIBRARY_PATH", dsp, true)
+        }
         super.onCreate(savedInstanceState)
         // the scene's two platform-specific image calls
         PlatformImages.create = { px, w, h, mip ->
@@ -706,7 +711,14 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
         s.working?.let { Text("Writing: $it", 12.sp, color = DIM) }
         Chip(if (s.speedTesting) "Testing…" else "Speed test", s.speedTesting) { if (!s.speedTesting) engine.speedTest() }
         // where the dialogue model runs: the phone's GPU (Adreno) or its CPU; run the speed test each way to compare
-        if (s.hasGpu || s.onGpu) Chip(if (s.onGpu) "Runs on: GPU" else "Runs on: CPU", s.onGpu) { engine.setGpu(!s.onGpu) }
+        if (s.hasGpu || s.hasNpu) {
+            val names = listOf("CPU", "GPU", "NPU")
+            Chip("Runs on: ${names[s.runsOn.coerceIn(0, 2)]}", s.runsOn != 0) {
+                // the next one this phone has: CPU, then the GPU, then the NPU
+                val order = listOf(0) + (if (s.hasGpu) listOf(1) else emptyList()) + (if (s.hasNpu) listOf(2) else emptyList())
+                engine.setDevice(order[(order.indexOf(s.runsOn).coerceAtLeast(0) + 1) % order.size])
+            }
+        }
         s.speed?.let { r ->
             if (r.totalMs == 0L && r.error != null) Text(r.error, 12.sp, color = DIM)
             else {

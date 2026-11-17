@@ -69,6 +69,21 @@ if (ANDROID AND TIMERPG_OPENCL_HEADERS AND TIMERPG_OPENCL_LIB AND EXISTS "${TIME
     set(OpenCL_LIBRARY "${TIMERPG_OPENCL_LIB}" CACHE FILEPATH "" FORCE)
     message(STATUS "OpenCL (Adreno) backend: on")
 endif()
+# And the Hexagon NPU (llama.cpp's ggml-hexagon) when the Hexagon SDK is given (-DTIMERPG_HEXAGON_SDK=...; Gradle passes
+# hexagon.sdk from local.properties; tools/get-hexagon.sh fetches it from Qualcomm's public Snapdragon toolchain image).
+# It builds the ARM side (libggml-hexagon.so) and the DSP code for each Hexagon generation (libggml-htp-vNN.so, v79 is the
+# S25 Ultra's), which Gradle copies into the APK.
+set(TIMERPG_HEXAGON OFF)
+if (ANDROID AND TIMERPG_HEXAGON_SDK AND EXISTS "${TIMERPG_HEXAGON_SDK}/build/cmake/hexagon_fun.cmake")
+    set(TIMERPG_HEXAGON ON)
+    force(GGML_HEXAGON ON)
+    set(HEXAGON_SDK_ROOT "${TIMERPG_HEXAGON_SDK}" CACHE PATH "" FORCE)
+    file(GLOB _hex_tools LIST_DIRECTORIES true "${TIMERPG_HEXAGON_SDK}/tools/HEXAGON_Tools/*")
+    list(GET _hex_tools 0 _hex_tool)
+    set(HEXAGON_TOOLS_ROOT "${_hex_tool}" CACHE PATH "" FORCE)
+    set(PREBUILT_LIB_DIR "android_aarch64" CACHE STRING "" FORCE)
+    message(STATUS "Hexagon NPU backend: on (${HEXAGON_TOOLS_ROOT})")
+endif()
 # ggml's own thread pool (no OpenMP runtime to ship); no llamafile sgemm (not used by our Q4_K model, saves size);
 # no KleidiAI (it is downloaded at configure time and mostly speeds up Q4_0).
 force(GGML_OPENMP       OFF)
@@ -123,6 +138,15 @@ if (ANDROID)
     add_dependencies(timerpg_llm ${TIMERPG_CPU_VARIANTS})
     if (TIMERPG_OPENCL)
         add_dependencies(timerpg_llm ggml-opencl)
+    endif()
+    if (TIMERPG_HEXAGON)
+        # the ARM side, and the DSP code for each Hexagon generation (ExternalProject builds, not built otherwise)
+        add_dependencies(timerpg_llm ggml-hexagon)
+        foreach (v v73 v75 v79 v81 v85)
+            if (TARGET htp-${v})
+                add_dependencies(timerpg_llm htp-${v})
+            endif()
+        endforeach()
     endif()
     # Smaller: drop unused code and do not export anything but the JNI entry points.
     set_target_properties(timerpg_llm PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON)

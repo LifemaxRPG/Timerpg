@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "llama.h"
+#include "ggml-backend.h"
 
 namespace llm {
 
@@ -63,8 +64,9 @@ std::string cpu_features();
 /** The CPU kernel libraries to try on this phone, best first (Android arm64). */
 std::vector<std::string> cpu_variant_libs();
 
-/** Whether a GPU backend (the Adreno, through OpenCL) is loaded. */
+/** Whether a GPU backend (the Adreno, through OpenCL) / an NPU backend (Hexagon) is loaded. */
 bool has_gpu();
+bool has_npu();
 
 // ---------------------------------------------------------------------------------------------------- engine
 
@@ -121,9 +123,10 @@ public:
     /** Loads a GGUF model (replacing any loaded one). threads <= 0: a default. False on failure, see error(). */
     bool load(const std::string & path, int threads, int n_ctx);
     bool loaded() const { return ctx_ != nullptr; }
-    /** Run the model on the GPU (from the next load), when there is one. */
-    void set_gpu(bool on) { gpu_ = on; }
-    bool on_gpu() const { return gpu_ && has_gpu() && ctx_ != nullptr; }
+    /** Where the model runs from the next load: 0 the CPU, 1 the GPU, 2 the NPU (the CPU when there is no such device). */
+    void set_device(int kind) { device_ = kind; }
+    /** Where the loaded model runs (0 / 1 / 2). */
+    int device() const { return ctx_ && devs_.size() > 1 ? device_ : 0; }
     /** Frees the model and the context. */
     void unload();
 
@@ -168,7 +171,8 @@ private:
         uint64_t used = 0;
     };
     bool recurrent_ = false;
-    bool gpu_ = false;          // the cache cannot be cut back to a shorter prefix (Mamba, Qwen3.5's delta net)
+    int device_ = 0;
+    std::vector<ggml_backend_dev_t> devs_;  // the devices it was loaded on, null-terminated          // the cache cannot be cut back to a shorter prefix (Mamba, Qwen3.5's delta net)
     std::vector<Snapshot> snapshots_;
     uint64_t clock_ = 0;
 

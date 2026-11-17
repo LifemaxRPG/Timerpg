@@ -84,16 +84,17 @@ extern "C" JNIEXPORT jboolean JNICALL FN(nativeLoad)(JNIEnv * env, jobject, jlon
     }
 }
 
-extern "C" JNIEXPORT void JNICALL FN(nativeSetGpu)(JNIEnv *, jobject, jlong h, jboolean on) {
-    if (h) engine(h)->set_gpu(on == JNI_TRUE);
+extern "C" JNIEXPORT void JNICALL FN(nativeSetDevice)(JNIEnv *, jobject, jlong h, jint kind) {
+    if (h) engine(h)->set_device(kind);
 }
 
-extern "C" JNIEXPORT jboolean JNICALL FN(nativeOnGpu)(JNIEnv *, jobject, jlong h) {
-    return h && engine(h)->on_gpu() ? JNI_TRUE : JNI_FALSE;
+extern "C" JNIEXPORT jint JNICALL FN(nativeDevice)(JNIEnv *, jobject, jlong h) {
+    return h ? engine(h)->device() : 0;
 }
 
-extern "C" JNIEXPORT jboolean JNICALL FN(nativeHasGpu)(JNIEnv *, jobject) {
-    try { return llm::has_gpu() ? JNI_TRUE : JNI_FALSE; } catch (...) { return JNI_FALSE; }
+/** Which accelerators there are: bit 0 the GPU, bit 1 the NPU. */
+extern "C" JNIEXPORT jint JNICALL FN(nativeAccelerators)(JNIEnv *, jobject) {
+    try { return (llm::has_gpu() ? 1 : 0) | (llm::has_npu() ? 2 : 0); } catch (...) { return 0; }
 }
 
 extern "C" JNIEXPORT jstring JNICALL FN(nativeError)(JNIEnv * env, jobject, jlong h) {
