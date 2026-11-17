@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.timerpg.street.dialogue.ModelDownloads
+import com.timerpg.street.llm.AiLane
 import com.timerpg.street.llm.NativeAsr
 import java.io.File
 import java.util.concurrent.Executors
@@ -56,7 +57,8 @@ class PlayerVoice(private val ctx: Context) {
         problem = null
         if (!installed) { problem = "Download the speech model in the AI panel first."; return }
         if (!hasPermission()) { problem = "The game needs the microphone to hear you."; return }
-        if (!asr.loaded) worker.execute { if (!asr.loaded && !asr.load(modelFile, mmprojFile)) main.post { problem = asr.error } }
+        main.removeCallbacks(idle)
+        if (!asr.loaded) worker.execute { loadNow() }
         val rate = SAMPLE_RATE
         val min = AudioRecord.getMinBufferSize(rate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_FLOAT)
         val rec = try {
@@ -104,11 +106,12 @@ class PlayerVoice(private val ctx: Context) {
             val pcm = samples.toArray()
             val text = when {
                 pcm.size < SAMPLE_RATE / 4 -> ""                         // a tap, not a sentence
-                !asr.loaded && !asr.load(modelFile, mmprojFile) -> null
-                else -> asr.transcribe(trimSilence(pcm), context)
+                !asr.loaded && !loadNow() -> null
+                else -> AiLane.run("speech") { asr.transcribe(trimSilence(pcm), context) }
             }
             main.post {
                 state = State.IDLE
+                touch()
                 when {
                     text == null -> problem = asr.error ?: "Could not hear that."
                     text.isBlank() -> problem = "Didn't catch that. Hold the button while you talk."
@@ -116,6 +119,24 @@ class PlayerVoice(private val ctx: Context) {
                 }
             }
         }
+    }
+
+    private val idle = Runnable { worker.execute { asr.close() } }
+    private fun touch() { main.removeCallbacks(idle); main.postDelayed(idle, IDLE_MS) }
+
+    /** Worker thread: the speech model, loaded in the lane (it takes the CPU while it reads its files). */
+    private fun loadNow(): Boolean {
+        if (asr.loaded) return true
+        val ok = AiLane.run("speech") { asr.loaded || asr.load(modelFile, mmprojFile) }
+        if (!ok) main.post { problem = asr.error }
+        return ok
+    }
+
+    /** Someone to talk to is near: load the speech model now, so it is ready when the mic is held. */
+    fun prewarm() {
+        if (!installed) return
+        touch()
+        if (!asr.loaded) worker.execute { loadNow() }
     }
 
     /** Lets go of the speech model (the panel closed for a while, or memory is short). */
@@ -155,6 +176,8 @@ class PlayerVoice(private val ctx: Context) {
     companion object {
         const val SAMPLE_RATE = 16000
         const val MAX_SECONDS = 20
+        /** The speech model is let go this long after it was last needed. */
+        private const val IDLE_MS = 60_000L
         const val ASR_MODEL = "asr/Qwen3-ASR-1.7B-Q8_0.gguf"
         const val ASR_MMPROJ = "asr/mmproj-Qwen3-ASR-1.7B-Q8_0.gguf"
     }

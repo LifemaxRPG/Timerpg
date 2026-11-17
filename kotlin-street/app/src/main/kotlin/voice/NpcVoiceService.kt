@@ -29,6 +29,9 @@ class NpcVoiceService(private val ctx: Context) {
     private val main = Handler(Looper.getMainLooper())
     private var player: MediaPlayer? = null
     @Volatile private var generation = 0
+    // the voice engines (loaded whole into RAM) are let go when nothing has been spoken for a while
+    private val idle = Runnable { worker.execute { bank.close() } }
+    private fun touch() { main.removeCallbacks(idle); main.postDelayed(idle, 30_000L) }
 
     /** Voices on or off (the player's choice). */
     var enabled by mutableStateOf(true)
@@ -44,11 +47,12 @@ class NpcVoiceService(private val ctx: Context) {
     fun say(npc: Npc, text: String) {
         stop()
         if (!enabled || text.isBlank()) return
+        touch()
         val g = generation
         worker.execute {
             if (g != generation) return@execute
             val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@execute
-            val f = try { bank.speak(v, text) } catch (e: Throwable) { null } ?: return@execute
+            val f = try { com.timerpg.street.llm.AiLane.run("voice") { bank.speak(v, text) } } catch (e: Throwable) { null } ?: return@execute
             main.post { if (g == generation) play(f) }
         }
     }
@@ -56,9 +60,10 @@ class NpcVoiceService(private val ctx: Context) {
     /** Make [text] in [npc]'s voice now (no playback), so it is ready when asked: the voices' own pre-generation. */
     fun prepare(npc: Npc, text: String) {
         if (!enabled || text.isBlank() || !installed) return
+        touch()
         worker.execute {
             val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@execute
-            try { bank.speak(v, text) } catch (e: Throwable) { }
+            try { com.timerpg.street.llm.AiLane.run("voice") { bank.speak(v, text) } } catch (e: Throwable) { }
         }
     }
 
@@ -81,7 +86,7 @@ class NpcVoiceService(private val ctx: Context) {
         player = null
     }
 
-    /** Fetch the dialogue model and both voice engines (about 1.1 GB), resuming a stopped download. */
+    /** Fetch every model (dialogue, voices, speech, memory), resuming a stopped download. */
     fun download(onDone: () -> Unit) {
         if (downloading >= 0f) return
         cancelDownload = false

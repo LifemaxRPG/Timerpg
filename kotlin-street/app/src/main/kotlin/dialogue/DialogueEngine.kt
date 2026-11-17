@@ -173,10 +173,11 @@ class DialogueEngine private constructor(private val app: Context) {
      * those words, in the person's own fact sheet for the topic they are nearest ([topicFor]). The template of that topic
      * is the fallback, as for any line. Returns the topic answered and the request.
      */
-    fun askFree(npc: Npc, said: String, onLine: (Line) -> Unit): Pair<Topic, Request>? {
+    fun askFree(npc: Npc, said: String, remembered: List<String> = emptyList(), onLine: (Line) -> Unit): Pair<Topic, Request>? {
         val topic = topicFor(npc, said) ?: return null
-        val words = said.replace("<|", "<").replace("|>", ">").replace("\n", " ").trim().take(400)
-        val prompt = topic.prompt?.let { withQuestion(it, words) }
+        fun clean(s: String) = s.replace("<|", "<").replace("|>", ">").replace("\n", " ").trim()
+        val words = clean(said).take(400)
+        val prompt = topic.prompt?.let { withMemories(withQuestion(it, words), remembered.map { m -> clean(m).take(600) }) }
         val asked = topic.copy(prompt = prompt)
         return topic to ask(npc, asked, onLine)
     }
@@ -560,7 +561,7 @@ class DialogueEngine private constructor(private val app: Context) {
             val watchdog = Runnable { g.timedOut = true; lock.withLock { cancelLocked(g) } }
             main.postDelayed(watchdog, TIMEOUT_MS)
             var raw: String? = try {
-                b.generate(prompt, MAX_TOKENS, TEMPERATURE) { piece ->
+                com.timerpg.street.llm.AiLane.run("dialogue") { b.generate(prompt, MAX_TOKENS, TEMPERATURE) { piece ->
                     // the worker's own thread: someone began waiting for this line, so it gets full speed now
                     if (g.wanted && !raised) { raised = true; priority(Process.THREAD_PRIORITY_DEFAULT) }
                     sb.append(piece)
@@ -569,7 +570,7 @@ class DialogueEngine private constructor(private val app: Context) {
                         if (s.isNotEmpty() && s != g.shown) { g.shown = s; g.send(Line(s, true, false, "AI · writing…")) }
                     }
                     !g.cancelled && !closed
-                }
+                } }
             } catch (t: Throwable) {
                 error = t.message ?: t.javaClass.simpleName
                 null
@@ -715,6 +716,16 @@ class DialogueEngine private constructor(private val app: Context) {
             }
             val voiced = npc.topics.filter { it.prompt != null }
             return voiced.firstOrNull { it.intent == intent } ?: voiced.firstOrNull { it.intent == "chat" } ?: voiced.firstOrNull() ?: npc.topics.firstOrNull()
+        }
+
+        /** [prompt] with [facts] (what the person remembers) added to its fact sheet, before the example answer. */
+        fun withMemories(prompt: String, facts: List<String>): String {
+            if (facts.isEmpty()) return prompt
+            // someone who remembers talking with the player does not take them for a stranger any more
+            val p0 = prompt
+            val prompt = p0.replace("The player is a stranger.", "The player is an acquaintance; you have talked before.")
+            val at = prompt.indexOf("\nExample of the kind of answer:").takeIf { it >= 0 } ?: prompt.indexOf("<|im_end|>").takeIf { it >= 0 } ?: return prompt
+            return prompt.substring(0, at) + "\n" + facts.joinToString("\n") + prompt.substring(at)
         }
 
         /** [prompt] (ChatML) with the player's turn replaced by [words]. */

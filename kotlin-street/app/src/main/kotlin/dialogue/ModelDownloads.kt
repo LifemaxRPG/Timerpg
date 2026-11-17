@@ -15,6 +15,8 @@ object ModelDownloads {
     private const val KOKORO = "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/"
     private const val SUPERTONIC = "https://huggingface.co/Supertone/supertonic-3/resolve/main/"
     private const val ASR = "https://huggingface.co/ggml-org/Qwen3-ASR-1.7B-GGUF/resolve/main/"
+    private const val EMBED_URL = "https://huggingface.co/Qwen/Qwen3-Embedding-0.6B-GGUF/resolve/main/Qwen3-Embedding-0.6B-Q8_0.gguf"
+    private const val EMBED_BYTES = 639_150_592L
     private const val QWEN = "https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-Q4_K_M.gguf"
 
     /** One file: where it comes from, where it goes (under filesDir/models), and its size in bytes. */
@@ -33,6 +35,8 @@ object ModelDownloads {
         // hearing the player: Qwen3-ASR 1.7B and its audio encoder
         add(Item(ASR + "Qwen3-ASR-1.7B-Q8_0.gguf", com.timerpg.street.voice.PlayerVoice.ASR_MODEL, 2_165_034_944L))
         add(Item(ASR + "mmproj-Qwen3-ASR-1.7B-Q8_0.gguf", com.timerpg.street.voice.PlayerVoice.ASR_MMPROJ, 355_709_344L))
+        // the people's memories: Qwen3-Embedding
+        add(Item(EMBED_URL, MemoryService.MODEL, EMBED_BYTES))
         add(Item(KOKORO + "onnx/model.onnx", "kokoro/model.onnx", 325_532_232L))
         add(Item(KOKORO + "tokenizer.json", "kokoro/tokenizer.json", 3_497L))
         for (v in KOKORO_VOICES) add(Item(KOKORO + "voices/$v.bin", "kokoro/voices/$v.bin", 522_240L))

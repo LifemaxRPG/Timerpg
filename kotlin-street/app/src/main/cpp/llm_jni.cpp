@@ -199,3 +199,46 @@ extern "C" JNIEXPORT jlongArray JNICALL ASR(nativeTimes)(JNIEnv * env, jobject, 
     if (a) env->SetLongArrayRegion(a, 0, 2, v);
     return a;
 }
+
+// ------------------------------------------------------------------------------------------------ memory embeddings
+// JNI for com.timerpg.street.llm.NativeEmbedder: llm::Embedder (Qwen3-Embedding).
+#include "embed_core.h"
+
+#define EMB(name) Java_com_timerpg_street_llm_NativeEmbedder_##name
+
+namespace { llm::Embedder * emb(jlong h) { return reinterpret_cast<llm::Embedder *>(h); } }
+
+extern "C" JNIEXPORT jlong JNICALL EMB(nativeCreate)(JNIEnv *, jobject) {
+    try {
+        llm::init_backend(llm::cpu_variant_libs(), nullptr);
+        return reinterpret_cast<jlong>(new (std::nothrow) llm::Embedder());
+    } catch (...) {
+        return 0;
+    }
+}
+
+extern "C" JNIEXPORT void JNICALL EMB(nativeDestroy)(JNIEnv *, jobject, jlong h) {
+    try { delete emb(h); } catch (...) {}
+}
+
+extern "C" JNIEXPORT jboolean JNICALL EMB(nativeLoad)(JNIEnv * env, jobject, jlong h, jbyteArray model, jint threads) {
+    if (!h) return JNI_FALSE;
+    try { return emb(h)->load(from_bytes(env, model), threads) ? JNI_TRUE : JNI_FALSE; } catch (...) { return JNI_FALSE; }
+}
+
+extern "C" JNIEXPORT jstring JNICALL EMB(nativeError)(JNIEnv * env, jobject, jlong h) {
+    return h ? to_jstring(env, emb(h)->error()) : nullptr;
+}
+
+extern "C" JNIEXPORT jfloatArray JNICALL EMB(nativeEmbed)(JNIEnv * env, jobject, jlong h, jbyteArray text) {
+    if (!h) return nullptr;
+    try {
+        const std::vector<float> v = emb(h)->embed(from_bytes(env, text));
+        if (v.empty()) return nullptr;
+        jfloatArray a = env->NewFloatArray((jsize) v.size());
+        if (a) env->SetFloatArrayRegion(a, 0, (jsize) v.size(), v.data());
+        return a;
+    } catch (...) {
+        return nullptr;
+    }
+}

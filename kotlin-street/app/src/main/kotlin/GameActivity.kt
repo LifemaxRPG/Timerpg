@@ -321,7 +321,9 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     val pickModel = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) engine.importModel(uri) }
     // the player's voice: hold the mic in a conversation, say something, let go
     val ears = remember { com.timerpg.street.voice.PlayerVoice(ctx.applicationContext) }
-    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { ears.release() } }
+    // and what each person remembers of it
+    val memory = remember { com.timerpg.street.dialogue.MemoryService(ctx.applicationContext) }
+    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { ears.release(); memory.release() } }
     val askMic = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     // the words to expect: the town's name and everyone's names, so the recognizer spells them as the game does
     val names = remember(engine.data.value) {
@@ -356,11 +358,13 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                     if (down) {
                         if (!ears.hasPermission()) askMic.launch(android.Manifest.permission.RECORD_AUDIO)
                         else { voices.stop(); engine.pause("listening"); ears.start() }
-                    } else ears.stop(names) { said -> engine.resume("listening"); open.askSaid(engine, said, voices) }
+                    } else ears.stop(names) { said -> engine.resume("listening"); open.askSaid(engine, said, voices, memory) }
                     if (!down && ears.state == com.timerpg.street.voice.PlayerVoice.State.IDLE) engine.resume("listening")
                 },
                 modifier = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 92.dp))
         } else if (!turning && turn < 0f && atHere.isNotEmpty()) {
+            // someone to talk to: the speech and memory models get ready now, before the mic is held
+            LaunchedEffect(atHere) { ears.prewarm(); memory.prewarm() }
             Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 56.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 for (npc in atHere) Chip("Talk to ${npc.first}", false) {
                     talk = Talk(npc).also { t -> npc.topics.firstOrNull()?.let { t.ask(engine, it, voices) } }
@@ -419,16 +423,28 @@ private class Talk(val npc: Npc) {
     var said by mutableStateOf<String?>(null)
 
     /** The player said [text]: the person answers those words (the topic they are nearest is marked). */
-    fun askSaid(engine: DialogueEngine, text: String, voices: com.timerpg.street.voice.NpcVoiceService? = null) {
+    fun askSaid(engine: DialogueEngine, text: String, voices: com.timerpg.street.voice.NpcVoiceService? = null,
+                memory: com.timerpg.street.dialogue.MemoryService? = null) {
         request?.close()
         said = text
         var spoken: String? = null
-        fun heard(l: Line) { if (l.final && l.text != spoken) { spoken = l.text; voices?.say(npc, l.text) } }
-        val (tp, r) = engine.askFree(npc, text) { line = it; heard(it) } ?: return
-        topic = tp
-        request = r
-        line = r.first
-        heard(r.first)
+        fun heard(l: Line) {
+            if (!l.final || l.text == spoken) return
+            spoken = l.text
+            voices?.say(npc, l.text)
+            // they remember what was said, and what they answered
+            memory?.remember(npc.id, text, l.text)
+        }
+        fun go(remembered: List<String>) {
+            if (said != text) return   // something else was asked meanwhile
+            val (tp, r) = engine.askFree(npc, text, remembered) { line = it; heard(it) } ?: return
+            topic = tp
+            request = r
+            line = r.first
+            heard(r.first)
+        }
+        // what they remember that bears on it goes into their fact sheet first
+        if (memory != null && memory.installed) memory.recall(npc.id, text) { go(it) } else go(emptyList())
     }
 
     fun close(voices: com.timerpg.street.voice.NpcVoiceService? = null) {
@@ -550,6 +566,20 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             }, 13.sp,
         )
         if (s.detail.isNotEmpty()) Text(s.detail, 12.sp, color = DIM)
+        // the phone's memory now, and what the AI lane is doing (to measure the models' footprint on a real phone)
+        val ctx = androidx.compose.ui.platform.LocalContext.current
+        var ram by remember { mutableStateOf("") }
+        LaunchedEffect(Unit) {
+            val am = ctx.getSystemService(android.app.ActivityManager::class.java)
+            while (true) {
+                val mi = android.app.ActivityManager.MemoryInfo().also { am?.getMemoryInfo(it) }
+                val mine = android.os.Debug.getPss() shr 10
+                val busy = com.timerpg.street.llm.AiLane.current ?: "idle"
+                ram = "RAM: ${mi.availMem shr 20} MB free of ${mi.totalMem shr 20} MB · the game ${mine} MB · AI: $busy"
+                kotlinx.coroutines.delay(1000)
+            }
+        }
+        Text(ram, 11.sp, color = DIM)
         if (s.state == ModelState.COPYING) {
             Box(Modifier.fillMaxWidth().height(4.dp).background(Color(0x66FFFFFF), RoundedCornerShape(2.dp))) {
                 Box(Modifier.fillMaxWidth((s.copyPercent.coerceIn(0, 100) / 100f).coerceAtLeast(.02f)).height(4.dp).background(AI_BLUE, RoundedCornerShape(2.dp)))

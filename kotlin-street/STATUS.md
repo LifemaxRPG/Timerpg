@@ -45,6 +45,21 @@
 - The AI panel's download fetches the speech model with the rest (about 8.9 GB in all). The microphone permission is
   asked the first time the button is held.
 
+## People remember (verified on a computer; NOT yet run on a phone)
+- Every exchange said out loud is remembered by that person (`dialogue/NpcMemory.kt`, `MemoryService.kt`; saved in
+  `filesDir/memories.json`, 200 per person): the player's words and the answer, with a vector from **Qwen3-Embedding-0.6B**
+  (native, `cpp/embed_core.cpp`), made once when stored. When the player speaks, the memories that stand out for those
+  words (2 standard deviations above the person's mean likeness; a floor with few memories) and the last exchange (10
+  minutes) go into the fact sheet, and someone who remembers the player no longer calls them a stranger.
+- Measured (`embed_host_test`, 12 memories with look-alikes, 15 questions): 0.6B 12 of 12 right, small talk under the
+  cut-off, 70 ms per text on the 4-core server; the 4B also found 12 but separated small talk worse, 4x slower and 4x
+  bigger, so the 0.6B is used. Qwen3.5-9B uses them: "Any news about my dog?" -> "No sightings yet. I told you, keep your
+  eyes open too."; "Clara's wedding is coming up soon." -> "I hope the preparations go smoothly for her."
+- RAM: every model runs in one lane (`llm/AiLane.kt`: dialogue, speech, memory, voices take turns), weights are mapped
+  from their files (an idle model's pages can be dropped), the speech and memory models load when someone to talk to is
+  near and are let go after a minute idle, the voice engines after 30 s. The AI panel shows the phone's free RAM, the
+  game's own and what the lane is running, to measure it on the S25.
+
 ## Dialogue and the native dialogue AI (verified on a computer; NOT yet run on a phone)
 - `tools/export-dialogue.ts` -> `assets/dialogue.json`: the people at each building of both streets (shop owners; a home's
   head and one other adult), with the game's template lines and the model's prompts for each topic (see README).
