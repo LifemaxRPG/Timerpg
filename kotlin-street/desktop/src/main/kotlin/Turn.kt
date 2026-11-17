@@ -22,10 +22,11 @@ fun renderTurn(out: String, assets: String) {
     )
     File(out).mkdirs()
     val frames = 16
+    val hour = (System.getProperty("hour") ?: "14").toFloat()
     for (i in 0 until frames) {
-        val sc = ImageComposeScene(width = 960, height = 480, density = Density(1f)) { CornerTurn(art, i / (frames - 1f), Modifier.fillMaxSize()) }
+        val sc = ImageComposeScene(width = 960, height = 480, density = Density(1f)) { CornerTurn(art, i / (frames - 1f), Modifier.fillMaxSize(), hour) }
         val img = sc.render(0L)
-        File(out, "turn_%02d.png".format(i)).writeBytes(img.encodeToData(EncodedImageFormat.PNG)!!.bytes)
+        File(out, if (hour == 14f) "turn_%02d.png".format(i) else "turn_h${hour.toInt()}_%02d.png".format(i)).writeBytes(img.encodeToData(EncodedImageFormat.PNG)!!.bytes)
         sc.close()
         println("turn frame $i")
     }

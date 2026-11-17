@@ -25,6 +25,7 @@ tasks.register<JavaExec>("preview") {
     jvmArgs("-Djava.awt.headless=true", "-Xmx3g")
     System.getProperty("skip")?.let { jvmArgs("-Dskip=$it", "-Donlyone=1") }
     System.getProperty("mode")?.let { jvmArgs("-Dmode=$it") }
+    System.getProperty("hour")?.let { jvmArgs("-Dhour=$it") }
     System.getProperty("x")?.let { jvmArgs("-Dx=$it") }
     args(layout.buildDirectory.dir("preview").get().asFile.absolutePath, file("../../public/assets/characters").absolutePath)
 }

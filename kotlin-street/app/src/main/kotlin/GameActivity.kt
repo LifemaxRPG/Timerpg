@@ -160,10 +160,7 @@ private fun GameScreen() {
         Text(data.title, 14.sp, Modifier.align(Alignment.TopStart).padding(14.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
         if (turn >= 0f && turnArt != null) {
             Box(Modifier.fillMaxSize()) {
-                CornerTurn(turnArt, turn, Modifier.fillMaxSize())
-                // the time of day tints the turn too
-                val night = when { hour < 5f || hour > 21f -> .6f; hour < 7f -> .6f * (7f - hour) / 2f; hour > 19f -> .6f * (hour - 19f) / 2f; else -> 0f }
-                Box(Modifier.fillMaxSize().background(Color(0xFF070b24).copy(alpha = night)))
+                CornerTurn(turnArt, turn, Modifier.fillMaxSize(), hour)
             }
         }
         if (turnArt != null && !turning) Chip("↰ Turn the corner", false, Modifier.align(Alignment.CenterStart).padding(start = 14.dp)) { turning = true }

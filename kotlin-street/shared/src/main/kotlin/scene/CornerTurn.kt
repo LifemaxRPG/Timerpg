@@ -36,6 +36,33 @@ class TurnBuilding(
     val cz: Float get() = (z0 + z1) / 2f
 }
 
+/** The light of an hour: sky colours, and how much of each colour the walls keep. */
+internal class TurnLight(val top: Color, val bottom: Color, val ground: Color, val r: Float, val g: Float, val b: Float, val hazeR: Float, val hazeG: Float, val hazeB: Float) {
+    companion object {
+        var current = noon()
+        fun noon() = TurnLight(Color(0xFF4f9bf2), Color(0xFFbfdcfb), Color(0xFF30333b), 1f, 1f, 1f, 168f, 190f, 222f)
+        private fun mix(a: TurnLight, b: TurnLight, t: Float): TurnLight {
+            fun f(x: Float, y: Float) = x + (y - x) * t
+            return TurnLight(androidx.compose.ui.graphics.lerp(a.top, b.top, t), androidx.compose.ui.graphics.lerp(a.bottom, b.bottom, t), androidx.compose.ui.graphics.lerp(a.ground, b.ground, t),
+                f(a.r, b.r), f(a.g, b.g), f(a.b, b.b), f(a.hazeR, b.hazeR), f(a.hazeG, b.hazeG), f(a.hazeB, b.hazeB))
+        }
+        fun at(hour: Float): TurnLight {
+            val day = noon()
+            val gold = TurnLight(Color(0xFF6a8fd8), Color(0xFFffc98a), Color(0xFF3a3436), 1.08f, .9f, .72f, 235f, 170f, 120f)
+            val night = TurnLight(Color(0xFF070c26), Color(0xFF1a2447), Color(0xFF0c0e18), .32f, .38f, .62f, 30f, 38f, 70f)
+            return when {
+                hour < 5f || hour >= 21.5f -> night
+                hour < 7f -> mix(night, gold, (hour - 5f) / 2f)
+                hour < 9f -> mix(gold, day, (hour - 7f) / 2f)
+                hour < 16f -> day
+                hour < 18.5f -> mix(day, gold, (hour - 16f) / 2.5f)
+                hour < 20f -> mix(gold, mix(gold, night, .6f), (hour - 18.5f) / 1.5f)
+                else -> mix(mix(gold, night, .6f), night, (hour - 20f) / 1.5f)
+            }
+        }
+    }
+}
+
 internal class Cam(val phi: Float, val pz: Float, val w: Float, val h: Float) {
     val c = cos(phi); val s = sin(phi)
     val dc = 820f          // how far behind the middle of the junction the camera stands
@@ -76,9 +103,9 @@ private fun DrawScope.face(cam: Cam, img: ImageBitmap, h: Float, ax: Float, az: 
     val dMid = cam.v((ax + bx) / 2f, (az + bz) / 2f) + cam.dc
     val k = haze(dMid); val keep = tint * (1f - k)
     val filter = ColorFilter.colorMatrix(ColorMatrix(floatArrayOf(
-        keep, 0f, 0f, 0f, 168f * k,
-        0f, keep, 0f, 0f, 190f * k,
-        0f, 0f, keep * 1.04f, 0f, 222f * k,
+        keep * TurnLight.current.r, 0f, 0f, 0f, TurnLight.current.hazeR * k,
+        0f, keep * TurnLight.current.g, 0f, 0f, TurnLight.current.hazeG * k,
+        0f, 0f, keep * 1.04f * TurnLight.current.b, 0f, TurnLight.current.hazeB * k,
         0f, 0f, 0f, 1f, 0f,
     )))
     for (k in 0 until n) {
@@ -133,8 +160,8 @@ private fun DrawScope.building(cam: Cam, b: TurnBuilding) {
 }
 
 private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float) {
-    drawRect(Brush.verticalGradient(listOf(Color(0xFF4f9bf2), Color(0xFFbfdcfb)), 0f, cam.hy), size = androidx.compose.ui.geometry.Size(size.width, cam.hy + 2f))
-    drawRect(Brush.verticalGradient(listOf(Color(0xFFa8bede), Color(0xFF30333b)), cam.hy, cam.hy + 150f), Offset(0f, cam.hy), androidx.compose.ui.geometry.Size(size.width, size.height - cam.hy))
+    drawRect(Brush.verticalGradient(listOf(TurnLight.current.top, TurnLight.current.bottom), 0f, cam.hy), size = androidx.compose.ui.geometry.Size(size.width, cam.hy + 2f))
+    drawRect(Brush.verticalGradient(listOf(TurnLight.current.bottom, TurnLight.current.ground), cam.hy, cam.hy + 150f), Offset(0f, cam.hy), androidx.compose.ui.geometry.Size(size.width, size.height - cam.hy))
     val far = 1400f
     // the two roads and their pavements
     ground(cam, listOf(-far to -170f, far to -170f, far to -40f, -far to -40f), 0f, Color(0xFF3b3e47))
@@ -216,14 +243,15 @@ fun turnBuildings(art: TurnArt): List<TurnBuilding> {
 }
 
 /** Draws the turn at [progress] (0 = looking along the street we came down, 1 = down the cross street). */
-fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float) {
+fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float, hour: Float = 14f) {
+    TurnLight.current = TurnLight.at(hour)
     val e = progress * progress * (3f - 2f * progress)
     val cam = Cam(-(Math.PI / 2).toFloat() * e, -100f + 420f * e, size.width, size.height)
     scene(cam, buildings, lamp, walker, progress)
 }
 
 @Composable
-fun CornerTurn(art: TurnArt, progress: Float, modifier: Modifier = Modifier) {
+fun CornerTurn(art: TurnArt, progress: Float, modifier: Modifier = Modifier, hour: Float = 14f) {
     val b = androidx.compose.runtime.remember(art) { turnBuildings(art) }
-    Canvas(modifier.fillMaxSize()) { drawCornerTurn(b, art.lamp, art.walker, progress) }
+    Canvas(modifier.fillMaxSize()) { drawCornerTurn(b, art.lamp, art.walker, progress, hour) }
 }
