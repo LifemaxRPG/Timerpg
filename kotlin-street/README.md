@@ -24,6 +24,21 @@ gradle :desktop:preview                                                         
 ```
 (In the cloud sandbox Maven Central is rate-limited, so `settings.gradle.kts` uses Google's mirror of it.)
 
+## Dialogue AI (native llama.cpp)
+NPC lines can be voiced by Qwen3-0.6B (`qwen3-0.6b-q4_k_m.gguf`, ~400 MB, never in git or the APK) running natively:
+- `app/src/main/cpp/llm_core.{h,cpp}` – the engine: load, generate with KV-cache prefix reuse (the shared rules and an
+  NPC's fact sheet are processed once), the old sampler settings (temp 0.3, top-k 40, top-p 0.9, repeat penalty 1.15),
+  stop at end-of-turn, cancel, timings. Plain C++, also built on a computer.
+- `app/src/main/cpp/llm_jni.cpp` + `app/src/main/kotlin/llm/NativeLlm.kt` – the app side (`LlmBackend`).
+- Build: the app's CMake builds llama.cpp from `llama.dir` in `local.properties` (else `third_party/llama.cpp`, fetched
+  by `tools/get-llama.sh`), arm64-v8a only, always optimised. The CPU kernels come in three variants (armv8.0;
+  armv8.2 + dotprod + fp16; armv8.6 + i8mm) and the best one the phone supports is loaded at run time.
+- `tools/llm-host-test.sh [model.gguf]` builds the engine for this computer and runs `host_test.cpp`: real NPC prompts
+  from our game logic, timings, prefix reuse, cancellation and the failure paths (missing/invalid model).
+- Threads: by default the big cores, at most 4, leaving two cores for the game. llama.cpp's threads spin-wait for each
+  other at every step, so if one loses its core everything stalls (4 threads on a 4-core machine with other work
+  running: 0.1-0.4 tok/s; 2 threads: ~11 tok/s).
+
 ## What was changed in the upstream engine
 The three files that tied it to habit tracking were stubbed or adapted; `HabitsStage` gained a camera that follows
 `GameState`; `BuildingPainter.spriteBuilding` draws our building sprites on the engine's box (side face and roof lean with

@@ -33,6 +33,12 @@
   "Back to Main Street"), and turning back plays the turn in reverse and leaves you at the junction end of Main Street.
 - Demo town is still "eta" (Main Street: 8 shops; Orchard Lane: 6 homes). Checked on 9 seeds: all give 7-8 on Main Street, 2-6 on the cross street.
 
+## Native dialogue AI (engine only; verified on a computer with tools/llm-host-test.sh, NOT yet on a phone)
+- llama.cpp built into the APK (arm64-v8a; CPU kernels armv8.0 / armv8.2+dotprod+fp16 / armv8.6+i8mm, best one picked
+  at run time), `NativeLlm` implements `LlmBackend`: KV prefix reuse, old sampler settings, streaming, cancel, errors
+  instead of crashes (missing/invalid model, no native library, low memory), frees the model on memory pressure.
+- Not connected to the UI yet (no dialogue screen uses it), and nothing ships or downloads the model file.
+
 ## Known rough edges / not done
 - Untested on a real device (touch, speed, memory, the turn's draw cost). Android-only code: image helper, asset loading, controls.
 - Collision radii and the "near the kerb" band are guesses. The turn's far buildings show the striped side art at grazing angles.
