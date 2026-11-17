@@ -280,4 +280,70 @@ class CornerWalkTest {
         val y = CornerWalk.yaw
         CornerWalk.walk(1f / 60f, CR, kotlin.math.cos(y), kotlin.math.sin(y), -kotlin.math.sin(y), kotlin.math.cos(y))
     }
+
+    /**
+     * Every frame of the walk, either way and from either side of the mouth: the player is drawn (not cut away) and no
+     * building left standing after the cut is between the camera and them. The camera's eye is below every roof, so a
+     * building whose footprint the line of sight crosses (beyond the cut) would hide them.
+     */
+    @Test fun nothingLeftStandingHidesThePlayerMidTurn() {
+        val unit = 2.4364f
+        val half = 1560f / 2f / unit
+        for (forward in listOf(true, false)) for (at in listOf(-60f, 0f, 60f)) {
+            reset()
+            if (forward) stand(0, CR.mouthMid + at) else stand(1, CR.arriveX)
+            GameState.moveLane = -1f
+            assertTrue(hold(10, if (forward) 0 else 1))
+            GameState.moveLane = 0f
+            // the camera's two ends, as the stage sets them: each street's own view of where the player is
+            val mainView = (if (forward) GameState.x else CR.returnX) - CR.westEdge
+            val crossView = maxOf(CR.arriveX, CR.cross.start + half) + CR.zOff
+            CornerWalk.fromX = if (forward) mainView else 0f; CornerWalk.fromZ = if (forward) 0f else crossView
+            CornerWalk.toX = if (forward) 0f else mainView; CornerWalk.toZ = if (forward) crossView else 0f
+            CornerWalk.holdEnd = true
+            val cam = StageCamera().apply { cx = 780f; cy = 552f; this.unit = unit; eye = 60f / unit; r = TurnTuning.R; cutBack = TurnTuning.CUT }
+            var frames = 0
+            while (CornerWalk.p < 1f && frames++ < 2000) {
+                walkOne()
+                val e = CornerWalk.ease
+                if (e <= 0f || e >= 1f) continue
+                cam.yaw = CornerWalk.yaw
+                cam.tx = CornerWalk.fromX + (CornerWalk.toX - CornerWalk.fromX) * e
+                cam.tz = CornerWalk.fromZ + (CornerWalk.toZ - CornerWalk.fromZ) * e
+                cam.update()
+                val px = CornerWalk.wx
+                val pz = CornerWalk.wz
+                val where = "forward=$forward at=$at p=${CornerWalk.p}"
+                assertTrue("the player is cut away ($where)", cam.kept(px, pz))
+                for (bx in CR.boxes) {
+                    if (!cam.kept(bx.x0, bx.z0) && !cam.kept(bx.x1, bx.z0) && !cam.kept(bx.x0, bx.z1) && !cam.kept(bx.x1, bx.z1)) continue
+                    assertFalse("building ${bx.street}/${bx.index} hides the player ($where)", sightCrosses(cam, px, pz, bx))
+                }
+            }
+        }
+    }
+
+    /** True if the line of sight from [cam] to ground point ([px], [pz]), beyond the cut, crosses box [bx]'s footprint. */
+    private fun sightCrosses(cam: StageCamera, px: Float, pz: Float, bx: Crossroads.Box): Boolean {
+        var t0 = 0f
+        var t1 = 1f
+        val ax = cam.camX; val az = cam.camZ
+        val dx = px - ax; val dz = pz - az
+        // the part of the line beyond the cut (depth grows along it)
+        val d0 = cam.depth(ax, az) - cam.cutDepth
+        val d1 = cam.depth(px, pz) - cam.cutDepth
+        if (d1 < 0f) return false
+        if (d0 < 0f) t0 = maxOf(t0, d0 / (d0 - d1))
+        // against the footprint, a little inside its edges (standing against a wall is not behind it)
+        val inset = .5f
+        for ((o, d, lo, hi) in listOf(arrayOf(ax, dx, bx.x0 + inset, bx.x1 - inset), arrayOf(az, dz, bx.z0 + inset, bx.z1 - inset))) {
+            if (abs(d) < 1e-6f) { if (o < lo || o > hi) return false; continue }
+            var a = (lo - o) / d
+            var b = (hi - o) / d
+            if (a > b) { val s = a; a = b; b = s }
+            t0 = maxOf(t0, a); t1 = minOf(t1, b)
+            if (t0 > t1) return false
+        }
+        return true
+    }
 }

@@ -162,8 +162,10 @@ object CornerWalk {
         }
         v += (want - v) * min(1f, dt * 16f)
         if (want == 0f && abs(v) < .5f) v = 0f
-        val step = v * dt
-        p = (p + step / length).coerceIn(0f, 1f)
+        // (the stride follows what was really walked: nothing past the end)
+        val was = p
+        p = (p + v * dt / length).coerceIn(0f, 1f)
+        val step = (p - was) * length
         GameState.travel += abs(step)
         GameState.walking = abs(step) > 1e-3f
         GameState.vx = v

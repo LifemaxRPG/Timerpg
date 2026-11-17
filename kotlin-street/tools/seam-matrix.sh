@@ -26,4 +26,4 @@ else
   for d in fwd back; do run -Dhour=13 -Dsize=phone -Ddir=$d; run -Dhour=21.5 -Dwx=rain -Dseason=winter -Dsize=phone -Ddir=$d; done
   run -Ddir=abort -Dsize=phone
 fi
-echo "matrix done: $(grep -c 'ALL PASS' "$log") pass, $(grep -c ' FAIL ' "$log") fail" | tee -a "$log"
+echo "matrix done: $(grep -c "^ALL PASS" "$log") runs pass, $(grep -c "^[0-9]* FAIL" "$log") fail" | tee -a "$log"

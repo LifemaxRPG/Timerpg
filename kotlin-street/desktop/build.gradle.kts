@@ -54,7 +54,7 @@ tasks.register<JavaExec>("preview") {
     System.getProperty("rooms")?.let { jvmArgs("-Drooms=$it") }
     System.getProperty("noLit")?.let { jvmArgs("-DnoLit=$it") }
     // the crossroads and the seam test: where along the mouth, which screen, which way round, the whole sequence, a name
-    for (k in listOf("at", "size", "dir", "seq", "tag", "frames"))
+    for (k in listOf("at", "size", "dir", "seq", "tag", "shots"))
         System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     args(layout.buildDirectory.dir("preview").get().asFile.absolutePath, file("../../public/assets/characters").absolutePath)
 }

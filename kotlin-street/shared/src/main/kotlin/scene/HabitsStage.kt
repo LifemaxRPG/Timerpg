@@ -905,6 +905,7 @@ private fun StageCanvas(
             life.lightX = sd.lightX
             life.lightFrom = sd.lightFrom
             life.withPlayer = sd.k == CornerWalk.playerStreet()
+            life.turn = (if (sd.k == 0) 0f else (Math.PI / 2).toFloat()) - world.cam.yaw
             life.update(seconds, seed, sd.street)
         }
         val from = f.streetX(0f) - B.GAP
@@ -922,8 +923,9 @@ private fun StageCanvas(
             world.measure(cr, sides!!, this.size.width, f.ground)
             reach = if (world.topY == Float.MAX_VALUE) 0f else (f.ground - world.topY) / f.unit
         }
-        backdrop.sunClear = if (cr != null && world.restStreet >= 0) sides!![world.restStreet].let { rs ->
-            sunClear(orbX, orb.second * d, rs.layouts, rs.street, world.ox, f.ground, f.unit, world.from, world.to, d) {
+        backdrop.sunClear = if (cr != null && world.nearRest >= 0) sides!![world.nearRest].let { rs ->
+            val half = this.size.width / 2f / f.unit
+            sunClear(orbX, orb.second * d, rs.layouts, rs.street, world.nearOrigin(rs.viewX), f.ground, f.unit, rs.viewX - half - B.GAP, rs.viewX + half + B.GAP, d) {
                 Perspective.shift(Perspective.sideAt(it, rs.viewX, this.size.width / f.unit, Perspective.k(f.zoom)))
             }
         } else if (cr != null) 1f else sunClear(orbX, orb.second * d, layouts, street, f, from, to, d)
@@ -947,15 +949,16 @@ private fun StageCanvas(
         // the buildings' outlines round the sun, for its glare where it peeks past an edge: none
         // over the heading, nor where the fade under it has rubbed them out (half way down it)
         if (skyOnly) sunGlare.edge.clear()
-        else if (cr != null && world.restStreet < 0) with(world) { edges(cr, sides!!, sunGlare.edge, this@Canvas.size.width, own = false) }
+        else if (cr != null && world.nearRest < 0) with(world) { edges(cr, sides!!, sunGlare.edge, this@Canvas.size.width, own = -1) }
         else if (cr != null) {
-            // the street at rest by its own frame (the one the walk is about to hand over to, at its last step), the rest
-            // of the crossroads through the camera
-            val rs = sides!![world.restStreet]
-            sunEdge(sunGlare.edge, rs.layouts, rs.arts, rs.street, world.ox, f.ground, f.unit, world.from, world.to) {
+            // the street in (or all but in) its own view by its own frame (at the walk's ends, the one it starts from or
+            // hands over to), the rest of the crossroads through the camera
+            val rs = sides!![world.nearRest]
+            val half = this.size.width / 2f / f.unit
+            sunEdge(sunGlare.edge, rs.layouts, rs.arts, rs.street, world.nearOrigin(rs.viewX), f.ground, f.unit, rs.viewX - half - B.GAP, rs.viewX + half + B.GAP) {
                 Perspective.shift(Perspective.sideAt(it, rs.viewX, this.size.width / f.unit, Perspective.k(f.zoom)))
             }
-            with(world) { edges(cr, sides, sunGlare.edge, this@Canvas.size.width, own = true) }
+            with(world) { edges(cr, sides, sunGlare.edge, this@Canvas.size.width, own = world.nearRest) }
         } else sunEdge(sunGlare.edge, layouts, arts, street, f, from, to)
         sunGlare.edge.ceiling = if (fades) f.top + TOP_FADE * d * .5f else f.top
         val sunR = SunMoonSprites.SUN_R * d

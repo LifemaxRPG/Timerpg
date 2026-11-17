@@ -73,6 +73,13 @@ internal class StreetLifePainter {
 
     /** Draw only the passer at this index ([people]), so the crossroads can sort each one among the buildings; -1 all. */
     var only = -1
+
+    /**
+     * How far the camera is turned from this street's own view (radians: the street's own yaw less the camera's), at a
+     * crossroads: people walking along the street are then seen walking away or towards it, and those standing at their
+     * doors side on. 0 on the street's own view.
+     */
+    var turn = 0f
     val cars = Array(StreetLife.CAR_MOST) { CarPass() }
     var carCount = 0
 
@@ -346,8 +353,17 @@ internal class StreetLifePainter {
         // the sheet's views: 0 right, 1 back, 2 left, 3 front. The player uses its own (party() mirrors every figure by its
         // direction, so that is cancelled for the player); passers walk the right view mirrored as before
         val keeper = p.slot >= KEEPER
-        val view = if (keeper) 3 else if (!me) 0 else if (GameState.facing == 0 && p.dir < 0f) 2 else GameState.facing
-        val flip = if (me || keeper) p.dir else 1f
+        var view = if (keeper) 3 else if (!me) 0 else if (GameState.facing == 0 && p.dir < 0f) 2 else GameState.facing
+        var flip = if (me || keeper) p.dir else 1f
+        if (!me && turn != 0f) {
+            // the way they walk (or, at a door, face: towards the street's own camera) as the turned camera sees it; a
+            // side view mirrored to the way they go, a back or front view never mirrored ([party] mirrors by p.dir)
+            val a = (if (keeper) -Math.PI.toFloat() / 2f else if (p.dir >= 0f) 0f else Math.PI.toFloat()) + turn
+            val across = kotlin.math.cos(a)
+            val away = kotlin.math.sin(a)
+            if (kotlin.math.abs(away) > kotlin.math.abs(across)) { view = if (away > 0f) 1 else 3; flip = p.dir }
+            else { view = 0; flip = (if (across >= 0f) 1f else -1f) * p.dir }
+        }
         // each sprite pixel is one of the buildings' (the same grid as the street; a whole number of screen pixels when
         // the zoom is snapped), whatever lane they are in: the figure transform here already scales by perspective and unit
         val k = SpriteArt.PIXEL / (perspective(p.lane) * unit)

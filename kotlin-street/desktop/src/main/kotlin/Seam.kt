@@ -63,6 +63,8 @@ fun renderSeam(out: String) {
     // settle: the baked sprites are made off the main thread
     GameState.street = 0; GameState.x = 1500f; GameState.lane = 7f; GameState.dir = 1f; keys(0f, 0f)
     repeat(30) { nanos += 33_333_333L; Thread.sleep(60); scene.render(nanos) }
+    // -Dshots=.3,.5,.7: only the walk's frames at those points (seam/shot_<dir>_<p>.png), nothing measured; for looking
+    val shots = System.getProperty("shots")?.split(",")?.mapNotNull { it.trim().toFloatOrNull() }?.sorted()?.toMutableList()
     // W95: ordinary walking along the main street, well clear of the mouth
     var last = frame()
     val mid = GameState.junctionX
@@ -70,7 +72,7 @@ fun renderSeam(out: String) {
     repeat(5) { last = frame() }
     keys(1f, 0f)
     val walkMads = ArrayList<Double>()
-    repeat(120) { val f = frame(); walkMads += stats(last, f).mad; last = f }
+    repeat(if (shots != null) 1 else 120) { val f = frame(); walkMads += stats(last, f).mad; last = f }
     keys(0f, 0f)
     val w95 = walkMads.sorted()[(walkMads.size * .95).toInt().coerceAtMost(walkMads.size - 1)]
     line("W95 (consecutive-frame MAD while walking, 95th percentile) = %.3f   median %.3f".format(w95, walkMads.sorted()[walkMads.size / 2]))
@@ -81,7 +83,7 @@ fun renderSeam(out: String) {
     GameState.x = if (way == "back") crossOf().arriveX else mid + at
     GameState.lane = 7f; GameState.dir = 1f; GameState.facing = 0
     // let everything that eases from frame to frame (the sun's glare) settle, every frame drawn
-    repeat(40) { GameState.travel += 1e-4f; last = frame() }
+    repeat(if (shots != null) 4 else 40) { GameState.travel += 1e-4f; last = frame() }
     // hold the key: the walk starts after it has been held a moment
     keys(0f, -1f)
     val frames = ArrayList<IntArray>()
@@ -116,6 +118,10 @@ fun renderSeam(out: String) {
         if (t1 == null) t1 = f
         frames += f; ps += CornerWalk.p
         if (way == "abort" && CornerWalk.p >= .5f) abortBack = true
+        if (shots != null) {
+            while (shots.isNotEmpty() && CornerWalk.p >= shots[0]) savePng(File(dir, "shot_${way}_%.2f.png".format(shots.removeAt(0))), f, scene)
+            if (shots.isEmpty()) { scene.close(); return }
+        }
         if (CornerWalk.p >= 1f) { tn1 = tPrev; tn = f; break }
         tPrev = f
     }

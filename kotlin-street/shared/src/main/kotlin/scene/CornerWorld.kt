@@ -241,10 +241,10 @@ internal class CornerWorld {
      * stage measures them ([own], by its own frame); the rest of the crossroads, and everything mid-turn, as the
      * screen bounds of their fronts and roofs.
      */
-    fun edges(cr: Crossroads, sides: List<CrossSide>, edge: com.lifemax.rpg.feature.habits.domain.SunEdge, w: Float, own: Boolean) {
-        if (!own) edge.clear()
+    fun edges(cr: Crossroads, sides: List<CrossSide>, edge: com.lifemax.rpg.feature.habits.domain.SunEdge, w: Float, own: Int) {
+        if (own < 0) edge.clear()
         for (bx in cr.boxes) {
-            if (own && bx.street == restStreet) continue
+            if (bx.street == own) continue
             val s = sides.getOrNull(bx.street) ?: continue
             val l = s.layouts.getOrNull(bx.index) ?: continue
             if (cam.cutBack > 0f && !cam.kept(bx.x0, bx.z0) && !cam.kept(bx.x1, bx.z0) && !cam.kept(bx.x0, bx.z1) && !cam.kept(bx.x1, bx.z1)) continue
@@ -277,7 +277,7 @@ internal class CornerWorld {
             if (!exact) beyond(s.k, sky, a, b, depth, reach)
             if (s.k == 0) mouth(cr, sky, a, b)
             pools(s.street.furniture, a, b, sky.dark)
-            shadows(light, sky, s.layouts, s.street, a, b, min(reach, depth + 18.5f), seconds)
+            shadows(light, sky, s.layouts, s.street, a, b, min(reach, depth), seconds)
             val life = s.life
             if (life != null) with(life) { lampShadows(sky.dark, s.street.furniture, a, b) }
         }
@@ -595,6 +595,16 @@ internal class CornerWorld {
         com.lifemax.rpg.feature.habits.domain.Perspective.shift(
             com.lifemax.rpg.feature.habits.domain.Perspective.sideAt(x, s.viewX, cam.unitSpan, perspectiveK))
 
+    /**
+     * The street still all but in its own look (0 or 1, -1 for neither): its buildings' outlines round the sun are
+     * measured as the stage measures them, so the sun's glare does not change as the camera starts or ends its turn.
+     */
+    val nearRest: Int get() = if (leanMain > NEAR_REST) 0 else if (leanCross > NEAR_REST) 1 else -1
+
+    /** That street's origin on screen: its resting origin, slid by as much as the camera has turned from its own view. */
+    fun nearOrigin(viewX: Float): Float =
+        kotlin.math.round(cam.cx - viewX * cam.unit) + cam.f * (cam.yaw - (if (nearRest == 0) 0f else (Math.PI / 2).toFloat()))
+
     /** The cross street's own view's middle (its x), for the west corner seen as its first lot; the stage's side-face rate. */
     var crossView = 0f
     var perspectiveK = com.lifemax.rpg.feature.habits.domain.Perspective.K_FOCUS
@@ -685,7 +695,7 @@ internal class CornerWorld {
             // walking round the footprint anticlockwise seen from above, the inner face's picture runs along the edge
             face(bx, true, xs[c], hf, zs[c], ex / sw, 0f, ez / sw, 0f, -hf / sh, 0f, sw, sh, true) {
                 with(painter) { sideFace(sb, right = true) }
-                drawRect(room, Offset.Zero, Size(sw, sh), alpha = .62f)
+                drawRect(room, Offset.Zero, Size(sw, sh), alpha = .45f)
             }
         }
         // the floors, the ones farthest above or below the eye first

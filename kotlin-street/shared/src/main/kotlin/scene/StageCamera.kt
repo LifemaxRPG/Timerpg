@@ -136,8 +136,12 @@ object TurnTuning {
     var R = 700f
     /** Over how much of the yaw (degrees) a street's own cabinet look gives way to plain perspective, at either end. */
     var LEAN_BAND = 32f
-    /** How far in front of the target the near block is cut away (street units): the road's middle. */
-    var CUT = 92f
+    /**
+     * How far in front of the corner the near block is cut away (street units). Short of the cross street's far row
+     * (178), so that row is gone by the cross street's own view; and near enough that what is left of the bank's block
+     * never stands between the camera and the player (CornerWalkTest: 130 or less).
+     */
+    var CUT = 120f
     /** Once started, the turn walks itself to the end if the key is let go (false: hold to walk, let go to pause). */
     var autoWalk = true
 }
