@@ -343,21 +343,36 @@ internal class StreetLifePainter {
         // each sprite pixel is one of the buildings' (the same grid as the street; a whole number of screen pixels when
         // the zoom is snapped), whatever lane they are in: the figure transform here already scales by perspective and unit
         val k = SpriteArt.PIXEL / (perspective(p.lane) * unit)
-        // running, seen from the side: the sheet's raised frames (1 and 4, already drawn a pixel up) spring higher, a whole
-        // sprite pixel, so the walk row reads as a run
-        val hop = if (me && !standing && view != 1 && view != 3 && (i == 1 || i == 4)) GameState.hop.toInt() else 0
+        // running, seen from the side: the run's frames (the legs splayed to a runner's stride), and the raised frames (1 and
+        // 4, already drawn a pixel up) spring a pixel of the art higher
+        val side = view == 0 || view == 2
+        val run = me && !standing && side && GameState.runPose
+        val hop = if (run && (i == 1 || i == 4)) GameState.hop.toInt() else 0
+        val src = if (run) RunFrames.of(sheet) else sheet
+        val sx = (view * 6 + i) * 32
+        val sy = if (run) 0 else (if (standing) 1 else 2) * 64
+        // the player's lean, by whole pixels of the art: the body above the hips drawn ahead of the legs (forward is the
+        // way they walk; this transform does not mirror the player)
+        val lean = if (me && !standing && side) GameState.leanPixels * 2 * (if (p.dir < 0f) -1 else 1) else 0
         withTransform({ scale(k * flip, k, Offset.Zero) }) {
-            drawImage(
-                sheet,
-                srcOffset = IntOffset((view * 6 + i) * 32, (if (standing) 1 else 2) * 64),
-                srcSize = IntSize(32, 64),
-                dstOffset = IntOffset(-16, -63 - hop),
-                dstSize = IntSize(32, 64),
+            fun rows(from: Int, to: Int, dx: Int) = drawImage(
+                src,
+                srcOffset = IntOffset(sx, sy + from),
+                srcSize = IntSize(32, to - from),
+                dstOffset = IntOffset(-16 + dx, -63 - hop + from),
+                dstSize = IntSize(32, to - from),
                 alpha = alpha,
                 colorFilter = filter,
                 blendMode = blend,
                 filterQuality = FilterQuality.None,
             )
+            if (lean == 0) rows(0, 64, 0)
+            else {
+                // the hips: the art's row 27 (26 on the raised frames)
+                val hip = if (i == 1 || i == 4) 52 else 54
+                rows(0, hip, lean)
+                rows(hip, 64, 0)
+            }
         }
     }
 
@@ -582,8 +597,9 @@ internal class StreetLifePainter {
     ) {
         blend = mode
         val s = persp * unit
-        // a brisk walker leans into it a little: the whole figure, sheared about the feet
-        skew = p.dir * tan(p.lean * (Math.PI.toFloat() / 180f))
+        // a brisk walker leans into it a little: the whole figure, sheared about the feet (the player leans by whole pixels
+        // of the art instead, in [pixelWalker])
+        skew = if (p.slot == 9999) 0f else p.dir * tan(p.lean * (Math.PI.toFloat() / 180f))
         withTransform({ transform(placed(p.x, p.lane, how)) }) {
             scale(p.dir * s, s, Offset.Zero) { figure(p, alpha, filter) }
         }

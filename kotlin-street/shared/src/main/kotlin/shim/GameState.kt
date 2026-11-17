@@ -4,6 +4,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.lifemax.rpg.feature.habits.domain.Furniture
+import com.lifemax.rpg.feature.habits.domain.FurnitureKind
+import kotlin.math.abs
 import kotlin.math.round
 
 /**
@@ -66,10 +69,16 @@ object GameState {
     var footfalls = 0
     /** Running (a full push), for the footsteps and the stick. */
     var running = false
-    /** How far the figure leans into its walk (degrees, forward positive). */
+    /** How far the figure leans into its walk (degrees, forward positive) ... */
     val lean get() = motion.lean
+    /** ... drawn as whole pixels of the art: the body above the hips this far ahead of the legs. */
+    val leanPixels get() = motion.leanPixels()
+    /** Fast enough to show the run's frames (a runner's splayed stride) and its spring. */
+    val runPose get() = motion.runPose
     /** The run's spring: sheet pixels the raised frames of the cycle lift (0 at a walk). */
-    val hop get() = if (motion.runShare > .5f) MoveTuning.hop else 0f
+    val hop get() = if (motion.runPose) MoveTuning.hop else 0f
+    /** The player or the camera moved this frame (the stage redraws every frame then, and the street's clock ticks with it). */
+    var inMotion = false
     /** The camera's look ahead of the player (street units along the street; see [CameraLead]). */
     val camera = CameraLead()
     private var x0 = 0f
@@ -105,6 +114,41 @@ object GameState {
         if (lane != nl) motion.stopY()                  // against the wall or the kerb
         edge = if (x <= from + 20.01f) -1 else if (x >= to - 20.01f) 1 else 0
     }
+
+    /**
+     * After [step]: keeps the player out of the lamps, trees and benches at the back of the pavement (lane 0), from where
+     * they were ([before] along, [laneBefore] across). A step in beside a piece is refused (x never jumps); walking into one
+     * along the inner band steps out round it, looking further ahead and stepping out quicker the faster they go (so a
+     * runner still gets round a lamp, and a push in towards the wall meanwhile does not hold them against it); only
+     * crossing a piece's edge stops the walk.
+     */
+    fun avoid(furniture: List<Furniture>, before: Float, laneBefore: Float, dt: Float) {
+        if (laneBefore >= FRONT && lane < FRONT && furniture.any { abs(x - it.x) < reach(it) }) {
+            lane = FRONT; motion.stopY()
+        }
+        val speed = abs(vx)
+        if (abs(moveX) > .05f && lane < FRONT &&
+            furniture.any { val d = (it.x - before) * dir; d > -reach(it) && d < reach(it) + maxOf(24f, .2f * speed) }) {
+            lane = (maxOf(lane, laneBefore) + maxOf(17.5f, .15f * speed) * dt.coerceAtMost(MoveTuning.dtMax)).coerceAtMost(FRONT)
+            if (motion.vy < 0f) motion.stopY()
+        }
+        if (lane < FRONT) {
+            for (f in furniture) {
+                val r = reach(f)
+                if ((before <= f.x - r && x > f.x - r) || (before >= f.x + r && x < f.x + r)) {
+                    x = if (before < f.x) f.x - r else f.x + r
+                    vx = 0f
+                    break
+                }
+            }
+        }
+    }
+
+    /** Where the furniture line ends: further out than this, nothing at the back of the pavement is in the way. */
+    const val FRONT = 6.5f
+
+    /** How near a piece's middle the player can come: its drawn half-width plus the player's (about 10). */
+    fun reach(f: Furniture) = when (f.kind) { FurnitureKind.TREE -> 12f; FurnitureKind.BENCH -> 34f; else -> 14f }
 
     /** After the stage has kept the player out of the furniture: the legs follow only what was really walked. */
     fun settle() {

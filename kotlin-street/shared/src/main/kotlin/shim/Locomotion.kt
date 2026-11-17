@@ -47,14 +47,35 @@ object MoveTuning {
     var leanRun = 6f
     var leanAccel = 3f
     var leanTime = .08f
-    /** The run's spring: the sheet's raised frames (1 and 4) lift this many more sheet pixels once the run is half under way. */
+    /** Leaning is drawn by whole pixels of the art: the body above the hips moves tan(lean) x this many art pixels forward. */
+    var leanLever = 10f
+    /**
+     * From this share of the way from a walk to a run (0 walk .. 1 full run) the figure shows the run's frames (the legs
+     * splayed to a runner's stride, see [RunFrames]) and springs on its raised frames.
+     */
+    var runPose = .3f
+    /** The run's spring: the sheet's raised frames (1 and 4) lift this many more sheet pixels (one pixel of the art). */
     var hop = 2f
-    /** The camera looks ahead of a moving player: this share of the view's width at a full run (none standing). */
+    /** The camera looks ahead of a moving player: this share of the view's width at a full run (in proportion to speed). */
     var lead = .08f
-    /** It gets there with this smoothing time (s), never faster than [leadBase] + [leadPerSpeed] x the walking speed. */
+    /** It gets there with this smoothing time (s), never faster than [leadBase] + [leadPerSpeed] x the player's speed ... */
     var leadTime = .45f
     var leadBase = 20f
     var leadPerSpeed = .4f
+    /**
+     * ... and when the player slows, the lead shrinks at most this share of their speed, so the view still moves their way
+     * (only slower): it never runs back against them. Standing, it stays where it is.
+     */
+    var leadBack = .5f
+    /** On stopping, what the lead was still doing dies out with this time constant (s): the view stops with the player. */
+    var leadSettle = .06f
+    /** The camera eases into the street's ends over this many units instead of stopping dead against them. */
+    var endEase = 80f
+    /**
+     * Inside, the legs go this much faster than on the street (in sprite pixels a second; the stride grows with them, so the
+     * cadence is the street's): a walk of 105 room pixels a second (the old fixed speed was 96) and a run of 219.
+     */
+    var roomPace = 1.2f
     /** The longest frame the movement steps in one go (s): a hitch never jumps the player far. */
     var dtMax = .05f
 }
@@ -137,6 +158,12 @@ class Locomotion(val scale: Float = 1f) {
         lean += (want - lean) * (1f - exp(-dt / MoveTuning.leanTime))
     }
 
+    /** Showing the run's frames (and its spring): past [MoveTuning.runPose] of the way from a walk to a run. */
+    val runPose get() = runShare > MoveTuning.runPose
+
+    /** The lean in whole pixels of the art (forward positive): how far the body above the hips is drawn ahead of the legs. */
+    fun leanPixels(): Int = kotlin.math.round(kotlin.math.tan(lean * (PI.toFloat() / 180f)) * MoveTuning.leanLever).toInt()
+
     /** Ground covered by a walk cycle at the speed now: [MoveTuning.stride] up to a walk, longer (a runner's stride) beyond. */
     fun stride(): Float {
         val r = speed / (MoveTuning.walk * scale)
@@ -198,8 +225,10 @@ class Locomotion(val scale: Float = 1f) {
 
 /**
  * The camera's look ahead of a moving player (street units, signed along the street): a share of the view in the way they
- * are going, in proportion to their speed, none standing (so a conversation is centred). It follows with a critically
- * damped spring whose speed is held down, so the player drifts on the screen gently rather than being thrown about.
+ * are going, in proportion to their speed. It follows with a critically damped spring whose speed is held down, so the
+ * player drifts on the screen gently rather than being thrown about. It never moves the view back against the player, and
+ * when they stop it stops with them and stays (the street does not slide on after a stop, or behind a conversation); it
+ * changes again once they walk.
  */
 class CameraLead {
     var lead = 0f
@@ -212,22 +241,32 @@ class CameraLead {
     fun step(dt0: Float, vx: Float, view: Float): Float {
         val dt = min(dt0, MoveTuning.dtMax)
         if (dt <= 0f) return lead
-        val target = MoveTuning.lead * view * (vx / MoveTuning.run).coerceIn(-1f, 1f)
+        val full = MoveTuning.lead * view
+        if (abs(vx) < STILL) {
+            // standing: whatever the lead was still doing dies out within a tenth of a second, never turning back
+            rate *= exp(-dt / MoveTuning.leadSettle)
+            if (abs(rate) < .5f) rate = 0f
+            lead = (lead + rate * dt).coerceIn(-full, full)
+            return lead
+        }
+        val target = full * (vx / MoveTuning.run).coerceIn(-1f, 1f)
         // a critically damped spring (as game engines' smooth-damp), settling in about [leadTime]
         val omega = 2f / MoveTuning.leadTime
         val x = omega * dt
         val e = 1f / (1f + x + .48f * x * x + .235f * x * x * x)
         val change = lead - target
         val temp = (rate + omega * change) * dt
-        rate = (rate - omega * temp) * e
+        var r = (rate - omega * temp) * e
         var next = target + (change + temp) * e
         // never past the target
-        if ((target - lead > 0f) == (next > target)) { next = target; rate = 0f }
-        // and never faster than the cap: the player's drift across the screen stays gentle
-        val cap = MoveTuning.leadBase + MoveTuning.leadPerSpeed * abs(vx)
+        if ((change < 0f && next > target) || (change > 0f && next < target)) { next = target; r = 0f }
+        // how fast: ahead of them (the lead growing the way they go) at most the cap; back towards them (they slowed) at
+        // most [MoveTuning.leadBack] of their speed, so the view keeps moving their way
         val step = next - lead
-        if (abs(step) > cap * dt) { next = lead + sign(step) * cap * dt; rate = sign(step) * cap }
+        val cap = if (step * vx >= 0f) MoveTuning.leadBase + MoveTuning.leadPerSpeed * abs(vx) else MoveTuning.leadBack * abs(vx)
+        if (abs(step) > cap * dt) { next = lead + sign(step) * cap * dt; r = sign(step) * cap }
         lead = next
+        rate = r
         return lead
     }
 
@@ -236,4 +275,25 @@ class CameraLead {
 
     /** [lead] snapped to whole device pixels ([unit] pixels a street unit), so the player never flickers a pixel either way. */
     fun snapped(unit: Float): Float = if (unit > 0f) kotlin.math.round(lead * unit) / unit else lead
+
+    companion object {
+        /** Slower than this (units a second) the player is standing, as far as the camera is concerned. */
+        const val STILL = 1f
+
+        /**
+         * The camera's place [cx] kept within [lo]..[hi] (where the street's built ends reach the screen's edges), easing
+         * into each end over [MoveTuning.endEase] units: the view slows to a stop instead of halting in one frame, and its
+         * speed and place stay continuous as the player walks into and back out of an end.
+         */
+        fun withinEnds(cx: Float, lo: Float, hi: Float): Float {
+            if (lo >= hi) return (lo + hi) / 2f
+            val w = min(MoveTuning.endEase, (hi - lo) / 2f)
+            if (w <= 0f) return cx.coerceIn(lo, hi)
+            return when {
+                cx > hi - w -> hi - w * exp(-(cx - (hi - w)) / w)
+                cx < lo + w -> lo + w * exp(-((lo + w) - cx) / w)
+                else -> cx
+            }
+        }
+    }
 }

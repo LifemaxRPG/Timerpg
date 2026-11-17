@@ -5,6 +5,7 @@ import com.lifemax.rpg.feature.habits.presentation.scene.InteriorRoom
 import com.lifemax.rpg.feature.habits.presentation.scene.Locomotion
 import com.lifemax.rpg.feature.habits.presentation.scene.MoveTuning
 import com.lifemax.rpg.feature.habits.presentation.scene.RoomWalker
+import com.lifemax.rpg.feature.habits.presentation.scene.RunFrames
 import com.lifemax.rpg.feature.habits.presentation.scene.SpriteArt
 import com.lifemax.rpg.feature.habits.presentation.scene.Stick
 import org.junit.Assert.assertEquals
@@ -187,6 +188,13 @@ class MovementTest {
         assertEquals(41.4f, r.m.stride(), .3f)
         val cadence = r.m.speed / r.m.stride()
         assertTrue("$cadence cycles a second", cadence <= 3.8f)
+        // against the art: a cycle is two steps of the planted foot (art pixels, two sheet pixels each). The run's frames
+        // splay the legs, so at a full run they carry at least as much of the ground as the walk's do at a walk
+        fun drawn(step: Float) = 2f * step * 2f * SpriteArt.PIXEL
+        val walkCarried = drawn(RunFrames.WALK_STEP) / MoveTuning.stride
+        val runCarried = drawn(RunFrames.RUN_STEP) / r.m.stride()
+        assertTrue("the legs carry $walkCarried of a walk, $runCarried of a run", runCarried >= walkCarried && runCarried in .75f..1.05f)
+        assertTrue(r.m.runPose)
         // walking straight in across the pavement: the same ground cadence (the lanes are deep ground)
         assertEquals(hypot(3f, 1f / MoveTuning.laneRatio), Locomotion.streetDistance(3f, 1f), 1e-4f)
     }
@@ -217,11 +225,18 @@ class MovementTest {
         val k = Walker(); k.go(1f, .7f) { it.m.tilt(it.dt, 1f, true) }
         assertEquals(0f, k.m.runShare, 1e-4f)
         assertTrue(abs(k.m.lean) < .1f)
+        // drawn by whole pixels of the art: a pixel forward at a run, none at a walk
+        val r = Walker(); r.go(1.5f, 1f) { it.m.tilt(it.dt, 1f, true) }
+        assertEquals(1, r.m.leanPixels())
+        assertEquals(0, k.m.leanPixels())
+        assertFalse(k.m.runPose)
     }
 
     @Test fun roomsUseTheSameLegs() {
         val room = InteriorRoom("t", "t", "t", "home", 640, 576, "floorWood", emptyList(), emptyList(), emptyList(), 320f, 300f, 320f, 560f)
-        val perPixel = 1f / SpriteArt.PIXEL
+        // rooms are short walks: a little quicker than the street, in sprite pixels (and not slower than the old 96 a second)
+        val perPixel = MoveTuning.roomPace / SpriteArt.PIXEL
+        assertTrue(WALK * perPixel >= 96f)
         fun speedAfter(mx: Float, my: Float): Float {
             val w = RoomWalker(320f, 300f)
             repeat(120) { w.step(room, mx, my, 1f / 120f) }
@@ -263,8 +278,66 @@ class MovementTest {
         val unit = 2.4348f
         val px = c.snapped(unit) * unit
         assertEquals(round(px), px, 1e-3f)
-        // standing again: it drifts back to the middle (gently: at most 20 units a second, about 4 s from a full lead)
-        w.go(5f, 0f) { c.step(it.dt, it.m.vx, view) }
-        assertEquals(0f, c.lead, .5f)
+    }
+
+    /** The view's place (the player plus the lead) through [plan], frame by frame: each frame's (time, player x, view). */
+    private fun viewThrough(hz: Int, warm: Float, warmPush: Float, plan: List<Pair<Float, Float>>): List<Triple<Float, Float, Float>> {
+        val view = 961f
+        val c = CameraLead()
+        val w = Walker(hz)
+        w.go(warm, warmPush) { c.step(it.dt, it.m.vx, view) }
+        val out = ArrayList<Triple<Float, Float, Float>>()
+        val t0 = w.t
+        for ((secs, mx) in plan) w.go(secs, mx) { out += Triple(it.t - t0, it.x, it.x + c.step(it.dt, it.m.vx, view)) }
+        return out
+    }
+
+    @Test fun theViewStopsWithThePlayer() {
+        for (hz in listOf(60, 120)) for (push in listOf(.7f, 1f)) {
+            val f = viewThrough(hz, 2f, push, listOf(4f to 0f))
+            // the player is still within about a third of a second; the view stops within a tenth of a second of them
+            val playerStill = f.indexOfFirst { (_, x, _) -> x == f.last().second }
+            val viewStill = f.indexOfFirst { (_, _, v) -> abs(v - f.last().third) < .05f }
+            assertTrue("$hz Hz, push $push: player still at ${f[playerStill].first} s", f[playerStill].first <= .35f)
+            assertTrue("$hz Hz, push $push: view still at ${f[viewStill].first} s", f[viewStill].first <= f[playerStill].first + .1f)
+            // and it never once moves back against them (no slide back, no overshoot)
+            for (i in 1 until f.size) assertTrue("$hz Hz: the view moved back at ${f[i].first} s", f[i].third >= f[i - 1].third - 1e-4f)
+        }
+    }
+
+    @Test fun slowingNeverRunsTheViewBack() {
+        // a run, a slow walk on (the lead shrinks towards it), a run back the other way, stops
+        for (hz in listOf(60, 120)) {
+            val f = viewThrough(hz, 2f, 1f, listOf(3f to .2f, .5f to 0f, 2f to -1f, 1f to 0f))
+            var prevX = f[0].second; var prevV = f[0].third
+            for (i in 1 until f.size) {
+                val (t, x, v) = f[i]
+                val dx = x - prevX; val dv = v - prevV
+                // the view goes the player's way or stands; never the other way while they move
+                if (abs(dx) > 1e-4f) assertTrue("$hz Hz at $t s: player $dx, view $dv", dv * dx >= -1e-5f)
+                prevX = x; prevV = v
+            }
+        }
+    }
+
+    @Test fun theEndsAreEasedInto() {
+        val lo = 500f; val hi = 3000f
+        // never past an end, the same as before in the middle, and continuous with no jump in speed
+        var prev = CameraLead.withinEnds(2000f, lo, hi)
+        assertEquals(2000f, prev, 0f)
+        var prevSpeed = 1f
+        var cx = 2000f
+        while (cx < hi + 1000f) {
+            cx += 1f
+            val v = CameraLead.withinEnds(cx, lo, hi)
+            assertTrue(v <= hi && v >= prev)
+            val speed = v - prev
+            assertTrue("a jump in the camera's speed at $cx: $prevSpeed to $speed", abs(speed - prevSpeed) < .02f)
+            prev = v; prevSpeed = speed
+        }
+        assertEquals(hi, prev, .01f)
+        assertEquals(lo, CameraLead.withinEnds(-1e4f, lo, hi), .01f)
+        // a street shorter than the screen: its middle
+        assertEquals(1000f, CameraLead.withinEnds(5f, 1200f, 800f), 0f)
     }
 }

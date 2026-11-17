@@ -110,10 +110,10 @@ class RoomWalker(var x: Float, var y: Float) {
     /** Ground walked (room pixels). */
     var travel = 0f
     /**
-     * The same legs as on the street, in room pixels (one is a sprite pixel, as on the street's figure): the same speeds,
-     * starts and stops on the screen, within a few percent, and the same stride against the floor.
+     * The same legs as on the street, in room pixels (one is a sprite pixel, as on the street's figure), a little quicker
+     * ([MoveTuning.roomPace]: rooms are short walks): the same starts, stops and cadence, the stride grown with the speed.
      */
-    val motion = Locomotion(1f / SpriteArt.PIXEL)
+    val motion = Locomotion(MoveTuning.roomPace / SpriteArt.PIXEL)
 
     /** One frame: the push [mx], [my] (-1..1, as the stick gives it; its strength sets the speed), [dt] seconds; slides along walls. */
     fun step(room: InteriorRoom, mx: Float, my: Float, dt: Float) {
@@ -301,7 +301,7 @@ fun DrawScope.drawRoom(room: InteriorRoom, walker: RoomWalker, hour: Float, keep
         val sheets = SpriteSheets.sheets
         if (sheets.isNotEmpty()) {
             val me = sheets[GameState.look.mod(sheets.size)]
-            list += Drawn(walker.y) { person(me, walker.x, walker.y, walker.dir, walker.walking, walker.motion.gait, clock) }
+            list += Drawn(walker.y) { person(me, walker.x, walker.y, walker.dir, walker.walking, walker.motion.gait, clock, walker.motion.runPose) }
             if (keeper != null) {
                 // they face the player when the player is near
                 val dx = walker.x - spot.first; val dy = walker.y - spot.second
@@ -355,12 +355,15 @@ private fun DrawScope.tile(name: String, x: Float, y: Float, w: Float, h: Float)
 
 /**
  * One of our character sheets (32 x 64 frames: row 1 idle, row 2 walk; right, up, left, down, 6 frames each); walking,
- * the frame is where in its cycle the walker's legs are ([gait], 0..1), so the feet move with the floor.
+ * the frame is where in its cycle the walker's legs are ([gait], 0..1), so the feet move with the floor. Running ([run])
+ * sideways, the run's frames (a runner's splayed stride, [RunFrames]).
  */
-private fun DrawScope.person(sheet: ImageBitmap, x: Float, y: Float, dir: Int, walking: Boolean, gait: Float, clock: Float) {
+private fun DrawScope.person(sheet: ImageBitmap, x: Float, y: Float, dir: Int, walking: Boolean, gait: Float, clock: Float, run: Boolean = false) {
     val f = if (walking) ((gait * 6f).toInt().coerceIn(0, 5)) else ((clock * 6f).toInt() % 6)
-    val row = if (walking) 2 else 1
+    val running = walking && run && (dir == 0 || dir == 2)
+    val src = if (running) RunFrames.of(sheet) else sheet
+    val row = if (running) 0 else if (walking) 2 else 1
     drawOval(Color(0x50000000), Offset(x - 10f, y - 5f), Size(20f, 8f))
-    drawImage(sheet, srcOffset = IntOffset((dir * 6 + f) * 32, row * 64), srcSize = IntSize(32, 64),
+    drawImage(src, srcOffset = IntOffset((dir * 6 + f) * 32, row * 64), srcSize = IntSize(32, 64),
         dstOffset = IntOffset((x - 16f).roundToInt(), (y - 62f).roundToInt()), dstSize = IntSize(32, 64), filterQuality = FilterQuality.None)
 }
