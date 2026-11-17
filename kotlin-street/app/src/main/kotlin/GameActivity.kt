@@ -40,6 +40,9 @@ import com.lifemax.rpg.feature.habits.presentation.HabitsUi
 import com.lifemax.rpg.feature.habits.presentation.scene.GameState
 import com.lifemax.rpg.feature.habits.presentation.scene.CornerTurn
 import com.lifemax.rpg.feature.habits.presentation.scene.TurnArt
+import androidx.compose.ui.graphics.graphicsLayer
+import com.lifemax.rpg.feature.habits.presentation.scene.turnSkyPan
+import com.lifemax.rpg.feature.habits.presentation.scene.TurnFrame
 import com.lifemax.rpg.feature.habits.presentation.scene.TurnFacade
 import com.lifemax.rpg.feature.habits.presentation.scene.TurnRows
 import com.lifemax.rpg.feature.habits.presentation.scene.HabitsStage
@@ -224,11 +227,22 @@ private fun GameScreen(engine: DialogueEngine) {
     var fade by remember { mutableFloatStateOf(0f) }
     // which way the turn plays: forwards from the main street, backwards from the cross street
     var turnBack by remember { mutableStateOf(false) }
+    // the turn's own clock (for its rain and snow) and how much of it is shown (it fades in over the street)
+    var turnClock by remember { mutableFloatStateOf(0f) }
+    var turnAlpha by remember { mutableFloatStateOf(0f) }
+    val density = androidx.compose.ui.platform.LocalDensity.current.density
     LaunchedEffect(turning) {
         if (!turning) return@LaunchedEffect
         val start = androidx.compose.runtime.withFrameNanos { it }
+        try {
         while (true) {
             val t = (androidx.compose.runtime.withFrameNanos { it } - start) / 1e9f
+            turnClock = t
+            // the turn fades in over the live street, then the stage draws only its sky behind the turn, panning with it
+            turnAlpha = (t / .35f).coerceIn(0f, 1f)
+            StageTuning.skyOnly = turn >= 0f && t > .35f
+            GameState.skyPan = if (StageTuning.skyOnly && GameState.framePx > 0f)
+                turnSkyPan(turn.coerceIn(0f, 1f), TurnFrame(GameState.frameGround, GameState.frameHorizon, GameState.framePx), density) else 0f
             if (t < 2.6f) { val q = (t / 2.4f).coerceAtMost(1f); turn = if (turnBack) 1f - q else q; fade = ((t - 2.0f) / .6f).coerceIn(0f, 1f) }
             else {
                 if (turn >= 0f) {
@@ -242,6 +256,7 @@ private fun GameScreen(engine: DialogueEngine) {
                 if (t >= 3.2f) break
             }
         }
+        } finally { StageTuning.skyOnly = false; GameState.skyPan = 0f }
         turning = false
     }
     // GameState is plain vars the stage updates every frame: copy them into Compose state so the HUD follows them
@@ -280,8 +295,8 @@ private fun GameScreen(engine: DialogueEngine) {
         )
         Text("${street.name} · ${data.town}", 14.sp, Modifier.align(Alignment.TopStart).padding(14.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
         if (turn >= 0f && turnArt != null) {
-            Box(Modifier.fillMaxSize()) {
-                CornerTurn(turnArt, turn, Modifier.fillMaxSize(), hour, season, reverse = turnBack)
+            Box(Modifier.fillMaxSize().graphicsLayer { alpha = turnAlpha }) {
+                CornerTurn(turnArt, turn, Modifier.fillMaxSize(), hour, season, reverse = turnBack, clock = turnClock, skyBehind = true)
             }
         }
         if (fade > 0f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = fade)))
