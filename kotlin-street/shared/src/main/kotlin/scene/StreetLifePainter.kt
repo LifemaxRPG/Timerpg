@@ -764,7 +764,9 @@ internal class StreetLifePainter {
                     key.strength * (1f - .5f * key.cool) * (1f - dark * .5f) * (1f - .55f * day)
                 else 0f
             // (under a lamp, its light takes the place of the key light's rim, below)
-            if (rim > .03f && lamp < rim) {
+            // (not for our pixel people: a sub-pixel nudged copy shows as a pale fringe off the sprite grid)
+            val pixelFigures = StageTuning.pixelPeople && SpriteSheets.sheets.isNotEmpty()
+            if (!pixelFigures && rim > .03f && lamp < rim) {
                 val filter = if (key != null && key.cool > .5f) moonRimFilter else dayRimFilter
                 nudgeX = lightFrom * .5f
                 nudgeY = -.15f

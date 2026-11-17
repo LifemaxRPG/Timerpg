@@ -236,7 +236,16 @@ private class Frame(
     val middle: Float = if (GameState.enabled) scroll else lerp(scroll, view.middle, zoom)
 
     /** The pavement line, lowered by the camera's pan and raised to clear a sheet. */
-    val ground: Float = window.ground * density - lift + camera.pan * (1f - zoom) * density
+    val ground: Float = (window.ground * density - lift + camera.pan * (1f - zoom) * density).let { g ->
+        if (!GameState.enabled) g
+        else {
+            // the game: low enough that the tallest building and its rooftop billboard fit under the top of the screen
+            // (a little air above it), but never so low that the road goes
+            val need = window.windowTop * density + SpriteArt.tallest * scale * density + 6f * density
+            val lowest = size.height - (BuildingPainter.PAVEMENT + 26f) * scale * density
+            if (need > g) minOf(need, lowest).coerceAtLeast(g) else g
+        }
+    }
 
     /** Under the heading's band, where the sky's own things stay. */
     val skyTop: Float = window.windowTop * density

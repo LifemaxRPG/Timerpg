@@ -59,5 +59,15 @@ object SpriteArt {
     const val SRC_W = 224f
     /** Street units per sprite pixel (a building's front is B.W units for its 224 pixels). */
     val PIXEL: Float get() = com.lifemax.rpg.feature.habits.domain.BuildingSpec.W / SRC_W
+
+    /** The highest point of any of our buildings above the pavement, in street units: its front, then its sign or rooftop billboard. */
+    val tallest: Float get() {
+        var best = 0f
+        for (b in buildings.values) {
+            val over = b.sign?.height?.toFloat() ?: b.prop?.let { it.height + com.lifemax.rpg.feature.habits.domain.BuildingSpec.DY * .5f / PIXEL } ?: 0f
+            best = maxOf(best, (b.front.height + over) * PIXEL)
+        }
+        return best
+    }
     const val MID_H = 128f
 }
