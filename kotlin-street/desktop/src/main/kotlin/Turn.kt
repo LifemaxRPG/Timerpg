@@ -123,8 +123,10 @@ private fun DrawScope.building(cam: Cam, b: Bld) {
         F(b.x0, b.z1, b.x0, b.z0, -1f, 0f, 2),   // -X
         F(b.x1, b.z0, b.x1, b.z1, 1f, 0f, 1),    // +X
     )
-    // which way the camera looks: (sin, cos)
-    val fx = cam.s; val fz = cam.c
+    // a wall faces the camera when the camera is on its outer side (the camera's position, not just where it looks:
+    // the walls of a street off to one side are still seen)
+    val camX = Cam.PX - cam.s * cam.dc; val camZ = cam.pz - cam.c * cam.dc
+    fun toward(f: F) = f.nx * (camX - (f.ax + f.bx) / 2f) + f.nz * (camZ - (f.az + f.bz) / 2f) > 1f
     // the roof, seen from above (not at all from below, where only walls show)
     if (b.h < cam.eye - 5f) ground(cam, listOf(b.x0 to b.z0, b.x1 to b.z0, b.x1 to b.z1, b.x0 to b.z1), b.h, Color(0xFF454852).copy(alpha = a))
     val fnx = when (b.frontN) { 1 -> 1f; 2 -> -1f; else -> 0f }; val fnz = if (b.frontN == 0) -1f else 0f
@@ -135,8 +137,8 @@ private fun DrawScope.building(cam: Cam, b: Bld) {
         face(cam, img, b.h, f.ax, f.az, f.bx, f.bz, flip, k * (.66f + .34f * max(0f, f.nx * sun[0] + f.nz * sun[1])), a)
     }
     // a building that is fading keeps its far walls, so it reads as a solid ghost and not an open box
-    if (a < .98f) for (f in faces) if (f.nx * fx + f.nz * fz >= -.02f) draw(f, .55f)
-    for (f in faces) if (f.nx * fx + f.nz * fz < -.02f) draw(f, 1f)
+    if (a < .98f) for (f in faces) if (!toward(f)) draw(f, .55f)
+    for (f in faces) if (toward(f)) draw(f, 1f)
 }
 
 private fun DrawScope.scene(cam: Cam, bs: List<Bld>, lamp: ImageBitmap?) {
