@@ -8,7 +8,8 @@
   Signs sit over the front face as one piece (only the part above the roofline goes on the roof).
 - Upper-floor windows are real openings showing plain reflective glass (engine sky reflection + sun glint); the habit scene's furnished rooms/people in the windows are off (`StageTuning.interiors`); the buildings themselves can now be entered (see Interiors below). Shopfront glass keeps its painted display and gets a faint reflection through a mask (`bN_glass.png`, display panes at ~40% strength). Arched/ornate upper windows are left as sprites.
   reflections and sun glints over. Shopfront glass keeps its painted display and gets a faint reflection through a mask (`bN_glass.png`, display panes at ~40% strength). Arched/ornate upper windows are left as sprites.
-- Walking: hold ◀ ▶; ▲ ▼ step in/out across the pavement (back/front views); camera follows. Time slider; season
+- Walking: a floating on-screen stick under the left thumb (see "Movement and controls" below); camera follows with a
+  look-ahead. Time slider; season
   (spring/summer/autumn/winter) and weather (clear/overcast/rain/mist) buttons; trees are tinted by season.
 - `gradle :desktop:preview -Dmode=pano|weather|rooms|walk` renders PNGs without a phone (see desktop/build/preview).
 
@@ -22,7 +23,62 @@
 - Side walls: three windows per floor, pilasters, grain, brick courses. Night: only real glass glows (fixed blue walls glowing).
 - Engine cloud-shadow pass is off for sprite buildings (it drew pale boxes above roofs). A building with a missing PNG no longer
   drops the whole street to the fallback.
-- Preview modes: `gradle :desktop:preview -Dmode=pano|weather|rooms|walk|turn [-Dstreet=0|1] [-Dhour=H]`.
+- Preview modes: `gradle :desktop:preview -Dmode=pano|weather|rooms|walk|turn|move|stick [-Dstreet=0|1] [-Dhour=H]`.
+
+## Movement and controls (verified by unit tests and headless renders; NOT yet run on a phone)
+
+- **The stick** (`shared/.../scene/MoveStick.kt`, maths in `shim/Stick.kt`, tests `app/src/test/kotlin/StickTest.kt`): one
+  floating stick replaces the four arrow keys. It rests faint (35%) at its home 84 dp in from the lower-left corner; a thumb
+  landing in the left 45% of the screen (at most 380 dp), below its top 30%, brings it there at rest, so every start is
+  deliberate whatever the grip. Knob travel 48 dp (about 9 mm), ring 60 dp; a 12% dead zone (the push starts from 0 at its
+  edge, no jump); within 15 degrees of the street a push is straight along it, within 10 of vertical straight in or out
+  (the rest of each quarter is stretched, so sweeping round stays smooth); dragged 16 dp past the rim its centre follows
+  the thumb, so turning round is never a long drag back. At the rim the knob turns blue and one light haptic tick marks the
+  run. Buttons and panels drawn over it get their taps first (panels are opaque to touches); the right side has no
+  controls. It is still (and hidden) while the corner turns, a door fades, the AI panel, the crash report or the NPU tuning
+  is open, but a held thumb keeps its place and picks up again after; after a door and when a conversation opens a held
+  push counts again only once the thumb is back in the middle (`MoveInput.holdUntilNeutral()`). Focus loss and pause let
+  go of everything. The bottom 200 dp of its corner is excluded from the system's back gesture. Leaving a room needs a
+  push mostly down (moveLane > 0.5 and more than sideways). A keyboard (arrows/WASD walk, Shift runs) or a game pad's
+  stick and D-pad drive the same input. `GameState.moveX`/`moveLane` stay the interface (-1..1; up is moveLane < 0).
+- **The legs** (`shim/Locomotion.kt`, tunable live in `MoveTuning`; tests `app/src/test/kotlin/MovementTest.kt`): the push's
+  strength sets the speed: up to half way it scales a slow walk (lining up at a door), then a flat walk band, and from 85%
+  a run that lasts until the push drops below 75% (the old 0.6 s hold-to-run timer is gone). One ground velocity eases
+  towards it (time constant 0.05 s, at most 1100 units/s² into a walk, 480 into a run, 1400 slowing or turning), shared by
+  both axes so a diagonal stays straight. Across the pavement a lane is 1/0.16 of a unit of ground, so walking in or out
+  moves the legs truthfully (no treading water). The walk cycle's phase comes from the ground really walked (after
+  furniture), 26.7 units a cycle up to a walk and a runner's longer stride beyond (x (speed/walk)^0.6); footfalls are
+  counted at the cycle's landing frames and each plays one footstep (in sync with the drawn steps, street and rooms). The
+  view (side, back, front) comes from the push's angle: side within 60 degrees of the street, back/front beyond 70,
+  unchanged between. Running, the figure leans up to 6 degrees (plus up to 3 from speeding up or braking) and the sheet's
+  raised frames lift one more sprite pixel (there is no run art yet: the walk row plays faster).
+- **The camera** (`CameraLead`, HabitsStage's game loop): looks ahead of a moving player by 8% of the view at a full run
+  (in proportion below, none standing, so a conversation is centred), through a critically damped spring (0.45 s) capped
+  at 20 + 0.4 x speed units/s, snapped to whole device pixels so the player never flickers.
+- **Rooms**: `RoomWalker` uses the same legs in room pixels (1 room pixel = 1 sprite pixel): same on-screen speeds within
+  a few percent, speed from the push, the feet no longer skate (stride 32.5 room px a cycle, was 60), a blocked axis stops
+  dead (no stored speed bursting out along a wall), facing by the dominant axis with 1.25x hysteresis.
+
+Old against new (street units: 1 unit = 2.43 device pixels at FHD+ and QHD+ alike; the figure is 36 units, 88 px tall).
+All "new" numbers are from the integrator run at 120 and 60 Hz on a computer (`-Dmode=move` prints them), not the phone:
+
+| | before | now |
+|---|---|---|
+| Walk | 46 u/s (21 s to cross a 2340-px screen, 5.1 s a building) | 72 u/s (13.3 s a screen, 3.3 s a building) |
+| Run | 87 u/s after holding one way 0.6 s, then a ~80 ms jolt (11 s a screen) | 150 u/s at the rim (6.4 s a screen at FHD+, 8.5 s at QHD+, 1.6 s a building) |
+| 0 to 90% of a walk / of a run | 0.13 s / 0.70 s (incl. the hold) | 0.125 s / 0.20 s (0.133 s / 0.20 s at 60 Hz) |
+| Stop | from a run 4-5 units | from a walk 3.3 units, still at 0.25 s; from a run 9.1 units (a quarter body), still at 0.31 s |
+| In and out (kerb to wall, 11 lanes) | 7 lanes/s linear, 1.57 s | eased, 11.5 lanes/s walking (0.95 s), 24 running (0.46 s) |
+| Cadence | walk 1.73 cycles/s, run 3.28 (legs patter, world creeps; in-depth legs slid) | walk 2.7 cycles/s (5.4 steps/s), run 3.6 (7.2 steps/s, stride 41.4 u); feet match the ground |
+| Footstep sounds | one per 17 units against a drawn step every 13.3 | one per drawn footfall |
+| Camera | locked on the player | up to 77 units (187 px) ahead at a run (FHD+), 103 at QHD+; 90% there within 1.5 s of a run from standing, 0.75 s from a walk |
+| Rooms | 96 px/s whatever the push, feet skating 2x | 87.7 px/s walking, 182.6 running, from the push |
+
+Still to measure on the S25 (all estimates now): the real frame rate (the AI panel now shows frame times and the refresh
+asked for; the app asks for the display's fastest mode); whether 48 dp of knob travel suits the thumb; whether 5.4 steps/s
+at a walk reads brisk or pattering (lower `MoveTuning.walk` if it patters); the look of the 6-degree pixel shear and the
+hop in motion; heat at 120 Hz with continuous redraw. Passers still step on the 30 Hz ambient clock against the camera's
+every-frame motion (not changed; measure first).
 
 ## Real crossroads (tools/export-street.ts v2)
 - street.json now holds named streets from the town's real layout: Main Street (the buildings on the main road west of a real
@@ -112,7 +168,8 @@
   landscape screens.
 
 ## Known rough edges / not done
-- Untested on a real device (touch, speed, memory, the turn's draw cost). Android-only code: image helper, asset loading, controls.
+- Untested on a real device (touch, speed, memory, the turn's draw cost). Android-only code: image helper, asset loading,
+  the stick's back-gesture exclusion, keyboard and game pad input, the refresh-rate request.
 - Collision radii and the "near the kerb" band are guesses. The turn's far buildings show the striped side art at grazing angles.
 - Storefront glass lights as a flat warm panel at night; sign letters that are pale blue also light up (mask treats them as glass).
 - People in shop windows, doors/interiors, NPC schedules and dialogue are not connected to this renderer. The street is a fixed
@@ -136,7 +193,7 @@
 - `tools/export-interiors.ts eta 2025 > app/src/main/assets/interiors.json`; sprites in `app/src/main/assets/interior/`.
 - Kotlin: `shared/.../scene/Interior.kt` draws the room fitted to the screen, top-down 3/4: our furniture sprites with
   contact shadows, walls/windows/skirting as geometry, daylight shafts by the hour, a night tint with warm lamp pools; the
-  player walks with the same pads (feet collide with footprints), the shop keeper or resident stands by their counter or
+  player walks with the same stick and the same legs as on the street (feet collide with footprints), the shop keeper or resident stands by their counter or
   sofa and can be talked to when near; walking out of the door or "Leave" returns to the street.
   Desktop preview: `gradle :desktop:preview -Dmode=inside -Drooms=b0,b5`.
 - Not yet: outdoor sound is not muffled inside; upstairs/large civic buildings are not on the two streets.
