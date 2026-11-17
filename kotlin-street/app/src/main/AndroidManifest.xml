@@ -5,6 +5,11 @@
     <!-- talking to the people in the street: held while the mic button is down, heard on the phone only -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+    <!-- the phone's own speech recognition, when ours does not fit in memory beside the dialogue model -->
+    <queries>
+        <intent><action android:name="android.speech.RecognitionService" /></intent>
+    </queries>
+
     <application
         android:label="Timerpg Street"
         android:allowBackup="false"

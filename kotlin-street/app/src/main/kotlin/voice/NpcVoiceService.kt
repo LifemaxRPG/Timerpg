@@ -55,6 +55,8 @@ class NpcVoiceService(private val ctx: Context) {
         worker.execute {
             if (g != generation) return@execute
             val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@execute
+            // memory short (the dialogue model on the NPU): one voice engine at a time
+            if (com.timerpg.street.llm.Ram.freeMb(ctx) < 1600) bank.keepOnly(v)
             val f = try { com.timerpg.street.llm.AiLane.run("voice") { bank.speak(v, text) } } catch (e: Throwable) { null } ?: return@execute
             main.post { if (g == generation) play(f) }
         }
@@ -66,6 +68,8 @@ class NpcVoiceService(private val ctx: Context) {
         touch()
         worker.execute {
             val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@execute
+            // made ahead only with room to spare
+            if (com.timerpg.street.llm.Ram.freeMb(ctx) < 1600) return@execute
             try { com.timerpg.street.llm.AiLane.run("voice") { bank.speak(v, text) } } catch (e: Throwable) { }
         }
     }

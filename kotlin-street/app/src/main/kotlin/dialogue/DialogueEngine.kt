@@ -268,7 +268,9 @@ class DialogueEngine private constructor(private val app: Context) {
 
     val fastCpuWanted: Boolean get() = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getBoolean("repack", false)
 
-    private val deviceWanted: Int get() = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getInt("device", 0)
+    /** The device chosen in the AI panel; -1 until one is: the NPU then when there is one (fastest on the S25 Ultra:
+     *  8.8 tok/s and a 2.4 s line, against 4.1 tok/s on the CPU and 4.2 on the GPU, measured on the phone). */
+    private val deviceWanted: Int get() = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getInt("device", -1)
     @Volatile private var gpuNote: String? = null
 
     /** Loads the model again (after an error, or after it was unloaded). */
@@ -445,7 +447,7 @@ class DialogueEngine private constructor(private val app: Context) {
         setState(ModelState.LOADING, "Loading the model (${f.length() shr 20} MB)…")
         var thrown: String? = null
         val native = b as? com.timerpg.street.llm.NativeLlm
-        native?.device = deviceWanted
+        native?.device = deviceWanted.let { if (it >= 0) it else if ((native?.accelerators ?: 0) and 2 != 0) com.timerpg.street.llm.NativeLlm.NPU else com.timerpg.street.llm.NativeLlm.CPU }
         native?.fastCpu = fastCpuWanted
         // loading holds the AI lane: speech, memory and the voices do not load beside it (their memory added to a load's
         // is what took the phone down)

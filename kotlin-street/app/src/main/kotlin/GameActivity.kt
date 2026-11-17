@@ -673,6 +673,7 @@ private fun DialoguePanel(t: Talk, onTopic: (Topic) -> Unit, onClose: () -> Unit
             for (tp in t.npc.topics) Chip(chipLabel(tp), t.topic === tp) { onTopic(tp) }
         }
         ears?.problem?.let { Text(it, 11.sp, color = Color(0xFFFFB4A0)) }
+        if (ears?.usingPhone == true) Text("Heard by the phone's own speech recognition (ours does not fit in memory beside the AI on the NPU).", 11.sp, color = DIM)
     }
 }
 

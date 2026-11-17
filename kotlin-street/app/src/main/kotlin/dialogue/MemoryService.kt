@@ -34,7 +34,9 @@ class MemoryService(private val ctx: Context) {
             loadedFile = true
             runCatching { if (file.isFile) memory.load(file.readText()) }.onFailure { Log.w(TAG, "memories unreadable: $it") }
         }
-        if (!embedder.loaded && installed) AiLane.run("memory") { embedder.load(modelFile) }
+        // only with room for it (on the NPU the dialogue model holds most of the phone's memory)
+        if (!embedder.loaded && installed && freeMb() >= (modelFile.length() shr 20) + com.timerpg.street.llm.Ram.MARGIN_MB)
+            AiLane.run("memory") { embedder.load(modelFile) }
         return embedder.loaded
     }
 

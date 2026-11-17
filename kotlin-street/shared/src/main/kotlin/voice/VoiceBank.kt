@@ -71,6 +71,11 @@ class VoiceBank(private val models: File, private val cache: File, private val l
         return SupertonicStyle.parse(f.readText()).also { supertonicStyles[name] = it }
     }
 
+    /** Lets go of the engine [voice] does not use (memory is short: one engine at a time). */
+    fun keepOnly(voice: NpcVoices.Voice) {
+        if (voice.engine == NpcVoices.Engine.KOKORO) { supertonic?.close(); supertonic = null } else { kokoro?.close(); kokoro = null }
+    }
+
     override fun close() { kokoro?.close(); supertonic?.close(); kokoro = null; supertonic = null }
 
     private fun digest(s: String): String =
