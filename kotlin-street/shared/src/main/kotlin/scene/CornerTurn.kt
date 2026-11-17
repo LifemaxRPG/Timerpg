@@ -26,7 +26,7 @@ import kotlin.math.sin
  * about the middle of the junction while travelling down the cross street. See desktop Turn.kt for the preview.
  */
 class TurnBuilding(
-    val front: ImageBitmap, val side: ImageBitmap,
+    val front: ImageBitmap, val side: ImageBitmap, val emis: ImageBitmap? = null,
     val x0: Float, val x1: Float, val z0: Float, val z1: Float,
     /** The way the front faces: 0 = -Z (towards the first camera), 1 = +X, 2 = -X. */
     val frontN: Int,
@@ -38,6 +38,9 @@ class TurnBuilding(
 
 /** The light of an hour: sky colours, and how much of each colour the walls keep. */
 internal class TurnLight(val top: Color, val bottom: Color, val ground: Color, val r: Float, val g: Float, val b: Float, val hazeR: Float, val hazeG: Float, val hazeB: Float) {
+    /** 0 by day, 1 at night: windows and lamps glow. */
+    val night: Float get() = ((.5f - (r + g) / 2f) / .3f).coerceIn(0f, 1f)
+
     companion object {
         var current = noon()
         fun noon() = TurnLight(Color(0xFF4f9bf2), Color(0xFFbfdcfb), Color(0xFF30333b), 1f, 1f, 1f, 168f, 190f, 222f)
@@ -97,12 +100,12 @@ private fun DrawScope.ground(cam: Cam, pts: List<Pair<Float, Float>>, y: Float, 
 /** One face of a box: a strip of the sprite per source column, each as tall as it is at its distance. */
 private fun haze(d: Float) = ((d - 900f) / 1900f).coerceIn(0f, .62f)
 
-private fun DrawScope.face(cam: Cam, img: ImageBitmap, h: Float, ax: Float, az: Float, bx: Float, bz: Float, flip: Boolean, tint: Float, alpha: Float) {
+private fun DrawScope.face(cam: Cam, img: ImageBitmap, h: Float, ax: Float, az: Float, bx: Float, bz: Float, flip: Boolean, tint: Float, alpha: Float, glow: Boolean = false) {
     val n = img.width
     // one filter per face, hazed by the distance of its middle
     val dMid = cam.v((ax + bx) / 2f, (az + bz) / 2f) + cam.dc
     val k = haze(dMid); val keep = tint * (1f - k)
-    val filter = ColorFilter.colorMatrix(ColorMatrix(floatArrayOf(
+    val filter = if (glow) ColorFilter.colorMatrix(ColorMatrix(floatArrayOf(1f, 0f, 0f, 0f, 0f, 0f, .82f, 0f, 0f, 0f, 0f, 0f, .52f, 0f, 0f, 0f, 0f, 0f, 1f, 0f))) else ColorFilter.colorMatrix(ColorMatrix(floatArrayOf(
         keep * TurnLight.current.r, 0f, 0f, 0f, TurnLight.current.hazeR * k,
         0f, keep * TurnLight.current.g, 0f, 0f, TurnLight.current.hazeG * k,
         0f, 0f, keep * 1.04f * TurnLight.current.b, 0f, TurnLight.current.hazeB * k,
@@ -121,7 +124,7 @@ private fun DrawScope.face(cam: Cam, img: ImageBitmap, h: Float, ax: Float, az: 
         val left = minOf(sx0, sx1); val wid = abs(sx1 - sx0) + .7f
         withTransform({ translate(left, top); scale(wid, (bot - top) / img.height, Offset.Zero) }) {
             drawImage(img, srcOffset = IntOffset(c, 0), srcSize = IntSize(1, img.height), dstOffset = IntOffset(0, 0), dstSize = IntSize(1, img.height),
-                filterQuality = FilterQuality.None, colorFilter = filter, alpha = alpha)
+                filterQuality = FilterQuality.None, colorFilter = filter, alpha = alpha, blendMode = androidx.compose.ui.graphics.BlendMode.SrcOver)
         }
     }
 }
@@ -157,6 +160,11 @@ private fun DrawScope.building(cam: Cam, b: TurnBuilding) {
     // a building that is fading keeps its far walls, so it reads as a solid ghost and not an open box
     if (a < .98f) for (f in faces) if (!toward(f)) draw(f, .55f)
     for (f in faces) if (toward(f)) draw(f, 1f)
+    // lit windows at night, on the fronts
+    val night = TurnLight.current.night
+    val em = b.emis
+    if (night > .02f && em != null)
+        for (f in faces) if (toward(f) && f.id == b.frontN) face(cam, em, b.h, f.ax, f.az, f.bx, f.bz, false, 1f, a * night * .7f, glow = true)
 }
 
 private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float) {
@@ -198,6 +206,11 @@ private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?
             val k = .9f * cam.f / d
             val px = cam.sx(cam.u(x, z), d); val py = cam.sy(0f, d)
             withTransform({ translate(px - 15f * k, py - 127f * k); scale(k, k, Offset.Zero) }) { drawImage(l, filterQuality = FilterQuality.None, alpha = la) }
+            val nt = TurnLight.current.night
+            if (nt > .02f) {
+                val c = Offset(px + 21f * k, py - 111f * k); val rad = 70f * k
+                drawCircle(Brush.radialGradient(listOf(Color(0xFFffd9a0).copy(alpha = .75f * nt * la), Color.Transparent), c, rad), rad, c, blendMode = androidx.compose.ui.graphics.BlendMode.Plus)
+            }
         }
     }
     // the player: along the pavement to the corner, then round it and away down the cross street
@@ -225,13 +238,17 @@ private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?
 
 
 /** Our building art for the turn: the sprite pairs (front, side) and the lamp. */
-class TurnArt(val fronts: List<ImageBitmap>, val sides: List<ImageBitmap>, val lamp: ImageBitmap?, val walker: ImageBitmap? = null)
+class TurnArt(val fronts: List<ImageBitmap>, val sides: List<ImageBitmap>, val lamp: ImageBitmap?, val walker: ImageBitmap? = null, val emis: List<ImageBitmap?> = emptyList())
 
 fun turnBuildings(art: TurnArt): List<TurnBuilding> {
     val n = art.fronts.size
     fun f(i: Int) = art.fronts[i % n]
     fun s(i: Int) = art.sides[i % n]
     val d = 120f
+    fun TurnBuilding(f: ImageBitmap, s: ImageBitmap, x0: Float, x1: Float, z0: Float, z1: Float, n: Int): TurnBuilding {
+        val i = art.fronts.indexOf(f)
+        return TurnBuilding(f, s, art.emis.getOrNull(i), x0, x1, z0, z1, n)
+    }
     return listOf(
         TurnBuilding(f(1), s(1), -672f, -448f, 0f, d, 0), TurnBuilding(f(0), s(0), -448f, -224f, 0f, d, 0), TurnBuilding(f(2), s(2), -224f, 0f, 0f, d, 0),
         TurnBuilding(f(3), s(3), 200f, 424f, 0f, d, 0), TurnBuilding(f(4), s(4), 424f, 648f, 0f, d, 0),
