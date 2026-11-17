@@ -46,8 +46,18 @@
   armv8.2+dotprod+fp16 / armv8.6+i8mm, best one picked at run time), KV prefix reuse, old sampler settings, streaming,
   cancel, errors instead of crashes (missing/invalid model, no native library, low memory).
 - Nothing ships or downloads the model file: it is picked from the phone's storage once.
+- Measured on a computer (4-core x86 cloud machine, NOT the S25), `tools/llm-dialogue-check.sh`, all 75 distinct
+  prompts in dialogue.json, the app's settings: every prompt is one ChatML conversation as Qwen3 expects (no double
+  wrapping, no BOS), every reply ended at `<|im_end|>` (none ran into the 56-token limit, no `<think>` output), the
+  Kotlin and TypeScript `validate()` agree on all 75. 70 of 75 pass on the first try (73 within the app's two tries);
+  rejected: "A warm smile." for warm people's small talk (4), one secret that names the speaker herself. 2 threads:
+  ~290 tok/s prompt processing, ~26 tok/s generation, ~0.2 s to the first token, ~0.7 s per line; 59% of prompt tokens
+  come from the KV cache. 4 threads with other work on the machine collapses to 2-11 tok/s (spin-waiting threads).
+- What passes but reads badly: the model often copies the example line, and some replies echo the fact sheet ("No,
+  I'm just gruff and guarded.", "I'm just a man in Maple Hollow, 2025.").
 - Guesses to check on a device: the free-memory thresholds for loading, the 45 s reply timeout, two tries per line, the
-  thread count, the panel sizes on small landscape screens.
+  thread count (4 on the S25 Ultra by its cpu_capacity, 2 if only clocks can be read), the panel sizes on small
+  landscape screens.
 
 ## Known rough edges / not done
 - Untested on a real device (touch, speed, memory, the turn's draw cost). Android-only code: image helper, asset loading, controls.

@@ -114,6 +114,8 @@ if (ANDROID)
 else()
     add_executable(llm_host_test host_test.cpp)
     target_link_libraries(llm_host_test PRIVATE llm_core)
+    # nlohmann/json.hpp (llama.cpp's vendored copy) to read the app's dialogue.json
+    target_include_directories(llm_host_test PRIVATE "${LLAMA_DIR}/vendor")
     find_package(Threads REQUIRED)
     target_link_libraries(llm_host_test PRIVATE Threads::Threads)
 endif()

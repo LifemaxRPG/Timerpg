@@ -23,7 +23,7 @@ npx tsx kotlin-street/tools/export-street.ts eta 2025 > kotlin-street/app/src/ma
 npx tsx kotlin-street/tools/export-dialogue.ts eta 2025 > kotlin-street/app/src/main/assets/dialogue.json
 python3 kotlin-street/tools/make_buildings.py kotlin-street/app/src/main/assets/street.json kotlin-street/app/src/main/assets/buildings
 cd kotlin-street && ANDROID_HOME=/opt/android-sdk gradle :app:assembleDebug     # app/build/outputs/apk/debug/
-gradle :app:testDebugUnitTest                                                     # the validate() port, the pre-generation queue
+gradle :app:testDebugUnitTest                                                     # the validate() port, the pre-generation queue, threads
 gradle :desktop:preview                                                           # desktop/build/preview/*.png
 ```
 (In the cloud sandbox Maven Central is rate-limited, so `settings.gradle.kts` uses Google's mirror of it.)
@@ -40,7 +40,7 @@ family, town; rumors and secrets, asked as a friend, for people who have any) `d
 (`narrate` / `ask` in `src/game/dialogue.ts`) and, for the topics the model may voice (`VOICED`), the full ChatML prompt
 built from the fact sheet (`brief` / `toPrompt` in `src/llm/factsheet.ts`) with the words the reply must contain.
 
-The language model (Qwen3-0.6B through llama.cpp, `llm/LlmBackend.kt`; `llm/Backends.kt` says which engine the app uses)
+The language model (Qwen3-0.6B through llama.cpp, `llm/LlmBackend.kt`; `llm/Backends.kt` makes it `NativeLlm`)
 only ever voices those facts. `dialogue/DialogueEngine.kt` runs it on one low-priority worker thread:
 - the template shows at once; the model's reply streams in and replaces it if it passes `validate()` (ported exactly to
   `llm/Dialogue.kt`), else the template stays and is remembered as such (two tries per line);
@@ -53,7 +53,8 @@ The model file is NOT in the APK. Tap the "AI" chip (top left), "Choose model fi
 `qwen3-0.6b-q4_k_m.gguf` (about 400 MB, e.g. from Downloads): it is checked (GGUF header) and copied to
 `filesDir/models/qwen3-0.6b.gguf` once. The same panel shows the model's state and speed (threads, load time, prompt
 tokens reused, prefill and generation tokens per second, time to first token, lines written ahead / queued) and has a
-speed test. Without an engine or a model everything works with the template lines.
+speed test. Without a model, or on a phone that cannot run the engine (the panel then says so and offers no model
+picker), everything works with the template lines.
 
 ## Dialogue AI (native llama.cpp)
 NPC lines can be voiced by Qwen3-0.6B (`qwen3-0.6b-q4_k_m.gguf`, ~400 MB, never in git or the APK) running natively:
@@ -66,9 +67,18 @@ NPC lines can be voiced by Qwen3-0.6B (`qwen3-0.6b-q4_k_m.gguf`, ~400 MB, never 
   armv8.2 + dotprod + fp16; armv8.6 + i8mm) and the best one the phone supports is loaded at run time.
 - `tools/llm-host-test.sh [model.gguf]` builds the engine for this computer and runs `host_test.cpp`: real NPC prompts
   from our game logic, timings, prefix reuse, cancellation and the failure paths (missing/invalid model).
-- Threads: by default the big cores, at most 4, leaving two cores for the game. llama.cpp's threads spin-wait for each
-  other at every step, so if one loses its core everything stalls (4 threads on a 4-core machine with other work
-  running: 0.1-0.4 tok/s; 2 threads: ~11 tok/s).
+  `--dialogue app/src/main/assets/dialogue.json [--npc b0 --npc Ray ...]` uses the app's own prompts instead (every
+  topic the model may voice, as the app sends it) and checks that each is tokenized as one ChatML conversation (no
+  BOS, special tokens parsed, `<|im_end|>` ends the turn); `--json-out FILE` writes the replies with their timings.
+- `tools/llm-dialogue-check.sh [model.gguf] [options]` does all of that and then judges every reply twice: with the
+  game's TypeScript `validate()` (`tools/check-replies.ts`) and with the app's Kotlin code (`HostRepliesTest`:
+  `DialogueData` must read the very same prompts, `Dialogue.validate()` must give the same verdicts). Report in
+  `/tmp/llm-dialogue-check/report.txt` (`$LLM_OUT`). Needs `ANDROID_HOME` and tsx (`$TSX`, default `npx tsx`).
+- Threads: by default the big cores, at most 4, leaving two cores for the game. Big cores are those with at least half
+  the fastest core's `cpu_capacity` (so the S25 Ultra's 8 Elite, which has no little cores, gets 4), else those faster
+  than the slowest cluster by clock. llama.cpp's threads spin-wait for each other at every step, so if one loses its
+  core everything stalls (4 threads on a 4-core machine with other work running: 0.1-0.4 tok/s, at times 10; 2 threads:
+  11-26 tok/s).
 
 ## What was changed in the upstream engine
 The three files that tied it to habit tracking were stubbed or adapted; `HabitsStage` gained a camera that follows

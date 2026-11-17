@@ -37,6 +37,11 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     val backendInfo: String get() = libraryError ?: runCatching { nativeBackendInfo() }.getOrNull() ?: "unknown"
     /** Refuse to load when the phone has clearly too little free memory for the model (see [load]). */
     @Volatile var memoryCheck: Boolean = true
+    /**
+     * Null if the engine can run on this phone (its native libraries load); otherwise why not. Loads the libraries the
+     * first time (a few MB, tens of ms): call it off the main thread. Lets the game say so before anyone copies a model.
+     */
+    val unavailable: String? get() = libraryError
 
     /** The native engine; only touched while holding [genLock] (except [nativeCancel], see [cancel]). */
     @Volatile private var handle = 0L
@@ -285,26 +290,38 @@ class NativeLlm(context: Context? = null) : LlmBackend {
         }
 
         /**
-         * Threads for the model: the phone's big cores (those faster than its slowest cluster, from
-         * /sys/devices/system/cpu/cpu N/cpufreq/cpuinfo_max_freq, or cpu_capacity), at most 4, and always leaving two
-         * cores for the game's own main and render threads. Running on the little cores as well only slows every step
-         * down to their pace, and llama.cpp's threads spin-wait for each other at every step, so one of them losing its
-         * core to another thread stalls them all (measured on a 4-core machine with one core busy: 4 threads 0.3 tok/s,
-         * 2 threads 12-14 tok/s).
+         * Threads for the model: the phone's big cores (from /sys/devices/system/cpu/cpu N/cpu_capacity, else
+         * cpufreq/cpuinfo_max_freq), at most 4, and always leaving two cores for the game's own main and render threads.
+         * See [threadsFor].
          */
         fun defaultThreads(): Int {
             val n = Runtime.getRuntime().availableProcessors().coerceAtLeast(1)
-            val cap = minOf(4, n - 2).coerceAtLeast(1)
-            for (name in listOf("cpufreq/cpuinfo_max_freq", "cpu_capacity")) {
-                val v = (0 until 32).mapNotNull { cpu ->
-                    runCatching { File("/sys/devices/system/cpu/cpu$cpu/$name").readText().trim().toLong() }.getOrNull()?.takeIf { it > 0 }
-                }
-                if (v.size < 2) continue
-                val slowest = v.min()
-                val big = v.count { it > slowest }
-                return (if (big == 0) v.size else big).coerceIn(1, cap)
+            fun read(name: String) = (0 until 32).mapNotNull { cpu ->
+                runCatching { File("/sys/devices/system/cpu/cpu$cpu/$name").readText().trim().toLong() }.getOrNull()?.takeIf { it > 0 }
             }
-            return cap
+            return threadsFor(n, read("cpu_capacity"), read("cpufreq/cpuinfo_max_freq"))
+        }
+
+        /**
+         * [defaultThreads] for [cores] cores, given each core's [capacities] (the kernel's cpu_capacity: its design and
+         * clock together, the fastest core 1024) and max [clocks]; either may be empty (unknown).
+         * Big cores: with capacities, those with at least half the fastest one's. The S25 Ultra's Snapdragon 8 Elite has
+         * no little cores (6 x 3.53 GHz cores of the same design as its 2 x 4.47 GHz ones, so about 800 of 1024): all 8
+         * count and it gets 4 threads, where "faster than the slowest cluster" would give it 2; little A5x cores are at
+         * a third of the fastest or less. With clocks only: those faster than the slowest cluster (a clock alone cannot
+         * tell a little core from a slower big one, e.g. 1.9 GHz A55s next to 2.4 GHz A78s).
+         * Running on little cores as well only slows every step down to their pace, and llama.cpp's threads spin-wait for
+         * each other at every step, so one of them losing its core to another thread stalls them all (measured on a
+         * 4-core machine with one core busy: 4 threads 0.3 tok/s, 2 threads 12-14 tok/s): hence two cores for the game.
+         */
+        fun threadsFor(cores: Int, capacities: List<Long>, clocks: List<Long> = emptyList()): Int {
+            val cap = minOf(4, cores - 2).coerceAtLeast(1)
+            val big = when {
+                capacities.size >= 2 -> capacities.max().let { top -> capacities.count { it * 2 >= top } }
+                clocks.size >= 2 -> clocks.min().let { low -> clocks.count { it > low } }.takeIf { it > 0 } ?: clocks.size
+                else -> return cap
+            }
+            return big.coerceIn(1, cap)
         }
 
         /** MemAvailable from /proc/meminfo in MB, or -1 if unknown. */

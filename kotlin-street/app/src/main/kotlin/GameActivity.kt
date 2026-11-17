@@ -432,7 +432,7 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, onPick: () -> Unit) {
         Text(
             when (s.state) {
                 ModelState.STARTING -> "Starting…"
-                ModelState.NO_ENGINE -> "No AI engine in this build"
+                ModelState.NO_ENGINE -> "No AI engine on this phone"
                 ModelState.NO_MODEL -> "No model"
                 ModelState.COPYING -> if (s.copyPercent >= 0) "Copying the model: ${s.copyPercent}%" else "Copying the model: ${s.copiedMb} MB"
                 ModelState.LOADING -> "Loading the model…"

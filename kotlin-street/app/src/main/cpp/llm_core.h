@@ -65,6 +65,19 @@ std::vector<std::string> cpu_variant_libs();
 
 // ---------------------------------------------------------------------------------------------------- engine
 
+/** Why the last generate() stopped (for tests and logs; not passed to Kotlin). */
+enum class End : int32_t {
+    none,       // no reply was generated (error before sampling, or max_tokens 0)
+    eog,        // the model ended its turn (<|im_end|> or another end-of-generation token)
+    stop_text,  // a stop string arrived as plain text
+    limit,      // max_tokens reached
+    callback,   // the caller's on_text returned false
+    cancelled,
+    context,    // the context is full
+    error,
+};
+const char * end_name(End e);
+
 struct Stats {
     int64_t load_ms = 0;
     int32_t prompt_tokens = 0;
@@ -74,6 +87,7 @@ struct Stats {
     int64_t gen_ms = 0;
     int64_t first_token_ms = 0;
     int32_t threads = 0;
+    End end = End::none;
 };
 
 /** How replies are sampled: the settings the WebAssembly version used. */
@@ -127,10 +141,12 @@ public:
     /** Tokens currently in the KV cache (for tests). */
     size_t cached_tokens() const { return cached_.size(); }
     const llama_vocab * vocab() const { return vocab_; }
+    /** The prompt as generate() tokenizes it: special tokens (<|im_start|>, <think>...) parsed, BOS only if the model
+     *  asks for one (Qwen3 does not). False if it cannot be tokenized. */
+    bool tokenize(const std::string & text, std::vector<int32_t> & out);
 
 private:
     static bool abort_cb(void * self);
-    bool tokenize(const std::string & text, std::vector<int32_t> & out);
     bool decode_tokens(const std::vector<int32_t> & toks, size_t from, size_t to, bool logits_last);
     void resync_cache(const std::vector<int32_t> & attempted);
 

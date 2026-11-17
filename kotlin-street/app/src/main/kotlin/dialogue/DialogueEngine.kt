@@ -13,6 +13,7 @@ import com.timerpg.street.llm.Backends
 import com.timerpg.street.llm.Dialogue
 import com.timerpg.street.llm.LlmBackend
 import com.timerpg.street.llm.LlmStats
+import com.timerpg.street.llm.NativeLlm
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -379,7 +380,8 @@ class DialogueEngine private constructor(private val app: Context) {
         val problem = ModelFiles.problem(f)
         _status.update { it.copy(hasModel = problem == null, modelMb = if (f.isFile) f.length() shr 20 else 0) }
         val b = backend ?: createBackend()
-            ?: return setState(ModelState.NO_ENGINE, "This build has no AI engine${engineError?.let { " ($it)" } ?: ""}, so people use their built-in lines.")
+            ?: return setState(ModelState.NO_ENGINE, engineError?.let { "$it People use their built-in lines." }
+                ?: "This build has no AI engine, so people use their built-in lines.")
         if (problem == ModelFiles.MISSING) return setState(ModelState.NO_MODEL, NO_MODEL_TEXT)
         if (problem != null) return setState(ModelState.ERROR, problem)
         memoryProblem(f.length())?.let { return setState(ModelState.ERROR, it) }
@@ -506,7 +508,7 @@ class DialogueEngine private constructor(private val app: Context) {
             val sb = StringBuilder()
             val watchdog = Runnable { g.timedOut = true; lock.withLock { cancelLocked(g) } }
             main.postDelayed(watchdog, TIMEOUT_MS)
-            val raw: String? = try {
+            var raw: String? = try {
                 b.generate(prompt, MAX_TOKENS, TEMPERATURE) { piece ->
                     sb.append(piece)
                     if (g.listeners.isNotEmpty()) {
@@ -521,6 +523,10 @@ class DialogueEngine private constructor(private val app: Context) {
             } finally {
                 main.removeCallbacks(watchdog)
             }
+            // NativeLlm reports failures (decode error, no model, prompt too long) as an empty or partial reply plus
+            // lastGenerateError, not by throwing: that is an error to retry, not a reply to judge and cache as rejected.
+            val nativeError = (b as? NativeLlm)?.lastGenerateError
+            if (raw != null && nativeError != null && nativeError != "cancelled") { error = nativeError; raw = null }
             stats(b)
             if (g.timedOut) { end = End.TIMEOUT; break }
             if (g.cancelled || closed) { end = End.CANCELLED; break }

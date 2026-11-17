@@ -292,6 +292,20 @@ void Engine::unload() {
     n_batch_ = 0;
 }
 
+const char * end_name(End e) {
+    switch (e) {
+        case End::none: return "none";
+        case End::eog: return "end of turn";
+        case End::stop_text: return "stop text";
+        case End::limit: return "max tokens";
+        case End::callback: return "stopped by caller";
+        case End::cancelled: return "cancelled";
+        case End::context: return "context full";
+        case End::error: return "error";
+    }
+    return "?";
+}
+
 bool Engine::abort_cb(void * self) { return static_cast<Engine *>(self)->cancel_.load(std::memory_order_relaxed); }
 
 bool Engine::load(const std::string & path, int threads, int n_ctx) {
@@ -484,6 +498,7 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
         stats_.prefill_ms = tg - tp;
         if (!prefilled) {
             if (cancel_.load()) error_ = "cancelled";
+            stats_.end = cancel_.load() ? End::cancelled : End::error;
             return {};
         }
         if (max_tokens == 0) return {};  // prefill only (warms the cache for this prompt)
@@ -514,9 +529,9 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
         std::vector<int32_t> seq = toks;  // prompt + reply so far, as in the cache
         char buf[256];
         for (int n = 0; n < max_tokens; ++n) {
-            if (cancel_.load()) { error_ = "cancelled"; break; }
+            if (cancel_.load()) { error_ = "cancelled"; stats_.end = End::cancelled; break; }
             const llama_token tok = llama_sampler_sample(smpl, ctx_, -1);
-            if (llama_vocab_is_eog(vocab_, tok)) break;
+            if (llama_vocab_is_eog(vocab_, tok)) { stats_.end = End::eog; break; }
             if (++stats_.gen_tokens == 1) stats_.first_token_ms = now_ms() - t0;
             int32_t len = llama_token_to_piece(vocab_, tok, buf, sizeof buf, 0, /*special*/ true);
             std::string piece;
@@ -528,12 +543,16 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
                 piece.assign(buf, (size_t) len);
             }
             emit(stop.push(joiner.push(piece.data(), piece.size()), &stopped));
-            if (stopped || halted || n + 1 == max_tokens) break;
+            if (stopped || halted || n + 1 == max_tokens) {
+                stats_.end = stopped ? End::stop_text : halted ? End::callback : End::limit;
+                break;
+            }
             // Feed the token back for the next one.
             seq.push_back(tok);
-            if (seq.size() > n_ctx) break;
+            if (seq.size() > n_ctx) { stats_.end = End::context; break; }
             if (!decode_tokens(seq, seq.size() - 1, seq.size(), true)) {
                 if (cancel_.load()) error_ = "cancelled";
+                stats_.end = cancel_.load() ? End::cancelled : End::error;
                 break;
             }
         }
