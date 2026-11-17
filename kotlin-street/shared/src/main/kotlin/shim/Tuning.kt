@@ -78,7 +78,8 @@ class SpriteBuilding(
 /**
  * The pictures a pitched-roof house wears besides its front ([SpriteBuilding.front], the wall under the eave's edge) and
  * its gable end ([SpriteBuilding.side]): the near slope, the ridge cap and the far slope, each one screen row per row of
- * the art's own pixels; the hitch (a card beside it); its yard's ground; its porch's railing, fascia and deck boards.
+ * the art's own pixels; the hitch (a card beside it); its yard's ground and its fence; its porch's railing, fascia and
+ * deck boards.
  */
 class HouseArt(
     val shape: com.lifemax.rpg.feature.habits.domain.HouseShape,
@@ -88,6 +89,8 @@ class HouseArt(
     val hitch: ImageBitmap?,
     val lawn: ImageBitmap?,
     val porch: ImageBitmap?,
+    /** The yard's fence or hedge along the street (the game's own fence and hedge sprites), with its gate. */
+    val fence: ImageBitmap? = null,
 )
 
 /** All of the game's own art that replaces the habit scene's procedural art, installed by the platform. */

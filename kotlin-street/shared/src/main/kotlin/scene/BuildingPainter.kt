@@ -2696,6 +2696,16 @@ internal class BuildingPainter {
     var unitPx = 0f
 
     private val housePath = Path()
+    private var castFilterKey = Color.Unspecified
+    private var castFilterNow: ColorFilter? = null
+
+    /** The cast shadow's colour as a filter (a picture's own shape in it), kept while the colour holds. */
+    private fun castFilter(): ColorFilter {
+        val f = castFilterNow
+        if (f != null && castFilterKey == castInk) return f
+        castFilterKey = castInk
+        return ColorFilter.tint(castInk, BlendMode.SrcIn).also { castFilterNow = it }
+    }
     private val houseOrder = ArrayList<com.lifemax.rpg.feature.habits.domain.HouseBox>()
 
     private fun quadPath(ax: Float, ay: Float, bx: Float, by: Float, cx: Float, cy: Float, dx: Float, dy: Float): Path {
@@ -2958,6 +2968,18 @@ internal class BuildingPainter {
         for (b in houseOrder) {
             houseBox(v, b.x0, b.x1, b.y0, b.y1, -b.z1, if (b.card) -b.z1 + .01f else -b.z0, rgb(b.top), rgb(b.front), rgb(b.side), sky,
                 ha.porch, b.frontTex, b.topTex, outline = b.frontTex == null)
+        }
+
+        // --- the yard's fence or hedge along the street, open at the gate: in front of the house's foot
+        ha.fence?.let { fe ->
+            val dd = sh.fenceD - sh.setback
+            val fx = v.x(-sh.frontX, dd); val fy = v.y(sh.fenceFoot, dd)
+            part(fe, 0, 0, fe.width, fe.height, fx, fy, fe.width * k, fe.height * k, filter = signTint())
+            if (direct > .02f) part(fe, 0, 0, fe.width, fe.height, fx, fy, fe.width * k, fe.height * k, alpha = .12f * direct, filter = castFilter())
+            if (snow > .01f) {
+                snowInk(sky)
+                part(fe, 0, 0, fe.width, 5, fx, fy, fe.width * k, 5f * k, alpha = .75f * snow, filter = snowFilter)
+            }
         }
 
         // --- the windows: the sky and the street mirrored in the glass, the rain on it, and the lamp lit inside at dusk

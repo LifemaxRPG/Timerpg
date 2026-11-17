@@ -43,7 +43,7 @@ object SpriteBuildingLoad {
             // the rise was chosen so the slope shows one screen row per picture row; a changed view (BuildingSpec's W or
             // DY) needs tools/make_buildings.py run again
             if (kotlin.math.abs(rows - slope.height) > .05f) println("houses.json: $sprite's slope is ${slope.height} rows, the view makes it $rows: run make_buildings.py again")
-            val art = HouseArt(shape, slope, ridge, img("${sprite}_back"), img("${sprite}_hitch"), img("${sprite}_lawn"), img("${sprite}_porch"))
+            val art = HouseArt(shape, slope, ridge, img("${sprite}_back"), img("${sprite}_hitch"), img("${sprite}_lawn"), img("${sprite}_porch"), img("${sprite}_fence"))
             return SpriteBuilding(front, side, emis, null, null, null, 0, emptyList(), emptyList(), null, null, null, null, null, art)
         }
         return SpriteBuilding(

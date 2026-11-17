@@ -9,8 +9,10 @@
 //  - junction: what the corner-turn scene needs besides those: the first buildings east of the crossroads on the main
 //    street, and the buildings on the east side of the cross street;
 //  - shops: every building above, once, for tools/make_buildings.py (each has its sprite name bN).
-// Shops are drawn as the game draws them (shopFacade). Homes are stood in by a modular condo front in the district's
-// colour (our house sprites are drawn from above, not front on), named after the household that really lives there.
+// Shops are drawn as the game draws them (shopFacade). A small or medium home wears the very mobile home the game draws
+// on its lot (the engine builds it as a pitched-roof house: tools/make_buildings.py); the other homes (villas, estates,
+// terraced houses, apartments) are still stood in by a modular condo front in the district's colour, until the engine can
+// build them too. Every home is named after the household that really lives there.
 import { runTimeline, worldAt } from '../../src/sim';
 import { archetypeOf } from '../../src/sim/archetype';
 import { layoutTown, type Lot, type TownLayout } from '../../src/town/layout';
@@ -18,6 +20,7 @@ import { fullName, type World } from '../../src/sim/types';
 import { shopFacade } from '../../src/town/facade';
 import { stack, type Colour } from '../../src/town/buildings';
 import { neighborhoodOf } from '../../src/town/neighborhoods';
+import { houseArt } from '../../src/town/housing';
 import { rand } from '../../src/sim/rng';
 import type { Road } from '../../src/town/kinds';
 
@@ -122,7 +125,16 @@ export function townStreets(seed: string, year: number): TownStreets {
   const lotOf = new Map<string, Lot>();
   const entries: object[] = [];
   /** What each building was made from, so a repeat along a street can be made again differently (see vary()). */
-  const made = new Map<string, { kind: string; look: number; colour: Colour; home: boolean; residents: number; parts: { key: string; w: number; h: number; y: number }[] }>();
+  type Part = { key: string; w: number; h: number; y: number };
+  type House = { tier: 'small' | 'medium'; design: number; colour: string };
+  const made = new Map<string, { kind: string; look: number; colour: Colour; home: boolean; residents: number; parts: Part[];
+    /** A mobile home (built by the engine as a pitched-roof house), with its lot's palette, and its street.json entry's house. */
+    house?: House; palette?: Parameters<typeof houseArt>[3]; entry?: { house?: House } }>();
+  /** Which mobile home a sprite key is: house_small_7_c9 -> small, 7, c9 (the grey original has no colour). */
+  const houseOf = (key: string): House | undefined => {
+    const m = key.match(/^house_(small|medium)_(\d+)(?:_(c\d+))?$/);
+    return m ? { tier: m[1] as 'small' | 'medium', design: Number(m[2]), colour: m[3] ?? '' } : undefined;
+  };
   function entry(l: Lot): string {
     const had = seen.get(l);
     if (had) return had;
@@ -142,12 +154,18 @@ export function townStreets(seed: string, year: number): TownStreets {
     } else {
       const head = w.people[l.refId];
       const surname = head ? fullName(head).split(' ').slice(-1)[0] : '';
-      const art = homeFacade(colour, l.look, l.residents.length);
+      // a small or medium home: the mobile home the game itself draws on this lot; any other: the condo stand-in
+      const mobile = (l.tier === 'small' || l.tier === 'medium') ? houseOf(l.art.layers[0]?.key ?? '') : undefined;
+      const art = mobile ? l.art : homeFacade(colour, l.look, l.residents.length);
       const parts = art.layers.map((ly) => ({ key: ly.key, w: ly.w, h: ly.h, y: ly.y }));
-      made.set(sprite, { kind: 'Home', look: l.look, colour, home: true, residents: l.residents.length, parts });
-      entries.push({ id: `home:${l.slot}`, sprite, home: true, name: l.residents.length > 2 ? `${surname} House`.trim() : `The ${surname} home`.trim(),
+      const nb = neighborhoodOf(layout.plan, l.neighborhood);
+      const e: Record<string, unknown> & { house?: House } = { id: `home:${l.slot}`, sprite, home: true, name: l.residents.length > 2 ? `${surname} House`.trim() : `The ${surname} home`.trim(),
         kind: 'Home', owner: head ? fullName(head) : '', residents: l.residents.map((id) => (w.people[id] ? fullName(w.people[id]!) : id)), colour,
-        parts });
+        parts };
+      // the house the engine builds, and its yard (the game's: how deep its front yard is, and how it is fenced)
+      if (mobile) { e.house = mobile; e.yard = { front: l.front, style: nb.yard }; }
+      made.set(sprite, { kind: 'Home', look: l.look, colour, home: true, residents: l.residents.length, parts, house: mobile, palette: nb.palette, entry: e });
+      entries.push(e);
     }
     return sprite;
   }
@@ -162,8 +180,27 @@ export function townStreets(seed: string, year: number): TownStreets {
     const usedGround = new Set<string>(); const usedMid = new Set<string>();
     const COLOURS: Colour[] = ['red', 'blue', 'gray'];
     const ground = (parts: { key: string }[]) => parts.find((p) => !p.key.startsWith('middle_') && !p.key.startsWith('roof'))?.key ?? '';
+    /** The designs of the last two mobile homes along the row (a colour of the same home is still the same home). */
+    const recent: string[] = [];
+    const designOf = (h: House): string => `${h.tier}_${h.design}`;
     for (const sprite of row) {
       const m = made.get(sprite); if (!m) continue;
+      if (m.house) {
+        // no mobile home repeats either of the two before it: another of its size in its district's colours instead
+        // (as the game might have stood there), so a row of homes reads as neighbours, not copies. Deterministic.
+        if (recent.includes(designOf(m.house))) {
+          for (let a = 1; a <= 24; a++) {
+            const art = houseArt(m.house.tier, (m.look + a * 0.6180339) % 1, year, m.palette);
+            const h = houseOf(art.layers[0]?.key ?? '');
+            if (!h || recent.includes(designOf(h))) continue;
+            m.parts.splice(0, m.parts.length, ...art.layers.map((ly) => ({ key: ly.key, w: ly.w, h: ly.h, y: ly.y })));
+            m.house = h; if (m.entry) m.entry.house = h;
+            break;
+          }
+        }
+        recent.push(designOf(m.house)); if (recent.length > 2) recent.shift();
+        continue;
+      }
       if (usedGround.has(ground(m.parts))) {
         let found: { key: string; w: number; h: number; y: number }[] | null = null;
         const order = [m.colour, ...COLOURS.filter((c) => c !== m.colour)];

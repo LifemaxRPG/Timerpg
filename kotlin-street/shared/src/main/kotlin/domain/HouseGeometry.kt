@@ -65,6 +65,9 @@ class HouseShape(
     val style: String,
     /** The roof's colour (0xRRGGBB), for what is drawn new on it. */
     val roofTint: Int,
+    /** The fence (or hedge) along the yard's front: how far back from the pavement it stands, and its picture's foot row. */
+    val fenceD: Float = 0f,
+    val fenceFoot: Float = 0f,
 ) {
     /** The near slope's run: from the eave (overhanging the wall) back to the ridge at mid-depth. */
     val run: Float get() = depth / 2f + eaveOver
@@ -119,7 +122,8 @@ class HouseShape(
                     HouseBox(x.f(0), x.f(1), y.f(0), y.f(1), z.f(0), z.f(1), c.getInt(0), c.getInt(1), c.getInt(2),
                         ints(b.optJSONArray("ft")), ints(b.optJSONArray("tt")), b.optBoolean("card"))
                 },
-                o.optString("lawn") == "grass", o.optString("style", "picket"), o.optInt("roofTint"),
+                o.optString("lawn") == "grass", o.optString("style", "compact"), o.optInt("roofTint"),
+                o.optJSONObject("fence")?.optDouble("d")?.toFloat() ?: 0f, o.optJSONObject("fence")?.optDouble("foot")?.toFloat() ?: 0f,
             )
         } catch (e: Exception) { null }
     }

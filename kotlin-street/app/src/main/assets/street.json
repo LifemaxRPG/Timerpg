@@ -290,30 +290,21 @@
       "colour": "blue",
       "parts": [
         {
-          "key": "condo_ground_5",
-          "w": 224,
-          "h": 96,
-          "y": 0
-        },
-        {
-          "key": "middle_10",
-          "w": 224,
-          "h": 128,
-          "y": 96
-        },
-        {
-          "key": "middle_7",
-          "w": 224,
-          "h": 128,
-          "y": 224
-        },
-        {
-          "key": "roof_4",
-          "w": 224,
+          "key": "house_medium_2_c9",
+          "w": 256,
           "h": 192,
-          "y": 352
+          "y": 0
         }
-      ]
+      ],
+      "house": {
+        "tier": "medium",
+        "design": 2,
+        "colour": "c9"
+      },
+      "yard": {
+        "front": 2,
+        "style": "compact"
+      }
     },
     {
       "id": "home:small:185,116",
@@ -328,24 +319,21 @@
       "colour": "blue",
       "parts": [
         {
-          "key": "condo_ground_8",
-          "w": 224,
-          "h": 96,
+          "key": "house_small_7_c9",
+          "w": 192,
+          "h": 256,
           "y": 0
-        },
-        {
-          "key": "middle_11",
-          "w": 224,
-          "h": 128,
-          "y": 96
-        },
-        {
-          "key": "roof_4",
-          "w": 224,
-          "h": 192,
-          "y": 224
         }
-      ]
+      ],
+      "house": {
+        "tier": "small",
+        "design": 7,
+        "colour": "c9"
+      },
+      "yard": {
+        "front": 2,
+        "style": "compact"
+      }
     },
     {
       "id": "home:small:173,104",
@@ -363,30 +351,21 @@
       "colour": "blue",
       "parts": [
         {
-          "key": "condo_ground_1",
-          "w": 224,
-          "h": 96,
+          "key": "house_small_8_c2",
+          "w": 192,
+          "h": 256,
           "y": 0
-        },
-        {
-          "key": "middle_6",
-          "w": 224,
-          "h": 128,
-          "y": 96
-        },
-        {
-          "key": "middle_1",
-          "w": 224,
-          "h": 128,
-          "y": 224
-        },
-        {
-          "key": "roof_2",
-          "w": 224,
-          "h": 192,
-          "y": 352
         }
-      ]
+      ],
+      "house": {
+        "tier": "small",
+        "design": 8,
+        "colour": "c2"
+      },
+      "yard": {
+        "front": 2,
+        "style": "compact"
+      }
     },
     {
       "id": "home:small:173,93",
@@ -402,24 +381,21 @@
       "colour": "gray",
       "parts": [
         {
-          "key": "condo_ground_12",
-          "w": 224,
-          "h": 96,
+          "key": "house_small_5_c3",
+          "w": 192,
+          "h": 256,
           "y": 0
-        },
-        {
-          "key": "middle_17",
-          "w": 224,
-          "h": 128,
-          "y": 96
-        },
-        {
-          "key": "roof_6",
-          "w": 224,
-          "h": 192,
-          "y": 224
         }
-      ]
+      ],
+      "house": {
+        "tier": "small",
+        "design": 5,
+        "colour": "c3"
+      },
+      "yard": {
+        "front": 2,
+        "style": "formal"
+      }
     },
     {
       "id": "home:small:173,79",
@@ -436,30 +412,21 @@
       "colour": "gray",
       "parts": [
         {
-          "key": "condo_ground_9",
-          "w": 224,
-          "h": 96,
-          "y": 0
-        },
-        {
-          "key": "middle_13",
-          "w": 224,
-          "h": 128,
-          "y": 96
-        },
-        {
-          "key": "middle_14",
-          "w": 224,
-          "h": 128,
-          "y": 224
-        },
-        {
-          "key": "roof_6",
-          "w": 224,
+          "key": "house_small_4_c3",
+          "w": 192,
           "h": 192,
-          "y": 352
+          "y": 0
         }
-      ]
+      ],
+      "house": {
+        "tier": "small",
+        "design": 4,
+        "colour": "c3"
+      },
+      "yard": {
+        "front": 2,
+        "style": "formal"
+      }
     },
     {
       "id": "home:small:173,70",
@@ -474,24 +441,21 @@
       "colour": "gray",
       "parts": [
         {
-          "key": "condo_ground_4",
-          "w": 224,
-          "h": 96,
-          "y": 0
-        },
-        {
-          "key": "middle_2",
-          "w": 224,
-          "h": 128,
-          "y": 96
-        },
-        {
-          "key": "roof_2",
-          "w": 224,
+          "key": "house_small_3_c7",
+          "w": 192,
           "h": 192,
-          "y": 224
+          "y": 0
         }
-      ]
+      ],
+      "house": {
+        "tier": "small",
+        "design": 3,
+        "colour": "c7"
+      },
+      "yard": {
+        "front": 2,
+        "style": "formal"
+      }
     },
     {
       "id": "b:imm:1988:0:2016",
@@ -564,24 +528,21 @@
       "colour": "blue",
       "parts": [
         {
-          "key": "condo_ground_8",
-          "w": 224,
-          "h": 96,
+          "key": "house_small_8_c2",
+          "w": 192,
+          "h": 256,
           "y": 0
-        },
-        {
-          "key": "middle_8",
-          "w": 224,
-          "h": 128,
-          "y": 96
-        },
-        {
-          "key": "roof_4",
-          "w": 224,
-          "h": 192,
-          "y": 224
         }
-      ]
+      ],
+      "house": {
+        "tier": "small",
+        "design": 8,
+        "colour": "c2"
+      },
+      "yard": {
+        "front": 2,
+        "style": "compact"
+      }
     },
     {
       "id": "home:apartment:185,93",
