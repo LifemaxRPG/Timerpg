@@ -25,6 +25,7 @@ android {
 dependencies {
     val bom = platform("androidx.compose:compose-bom:2024.10.01")
     implementation(bom)
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.22.0")   // NPC voices: Kokoro and Supertonic
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.foundation:foundation")

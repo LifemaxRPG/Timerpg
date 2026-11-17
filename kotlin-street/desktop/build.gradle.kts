@@ -5,6 +5,7 @@ plugins {
 }
 dependencies {
     implementation(compose.desktop.currentOs)
+    implementation("com.microsoft.onnxruntime:onnxruntime:1.22.0")   // NPC voices (the same API as on Android)
     implementation(compose.ui)
     implementation(compose.foundation)
     implementation(compose.runtime)
