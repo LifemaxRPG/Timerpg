@@ -12,7 +12,20 @@ object SoundRules {
     /** Music by mood: one plays at a time, crossfading when it changes. */
     val TRACKS = listOf("morning", "day", "evening", "night", "rain")
 
-    class Mix(val beds: Map<String, Float>, val music: String, val musicGain: Float)
+    /**
+     * Short sounds scattered over the beds ([Mix.scatter]: how many a minute), each picked from its files in
+     * assets/audio/sfx (made with MOSS-SoundEffect).
+     */
+    val SCATTER_FILES = mapOf(
+        "birds" to listOf("bird_1", "bird_2", "bird_3"),
+        "dog" to listOf("dog_far"),
+        "car" to listOf("car_pass"),
+        "bell" to listOf("bell_church"),
+        "chatter" to listOf("chatter_1"),
+        "thunder" to listOf("thunder"),
+    )
+
+    class Mix(val beds: Map<String, Float>, val music: String, val musicGain: Float, val scatter: Map<String, Float> = emptyMap())
 
     private fun smooth(a: Float, b: Float, x: Float): Float { val t = ((x - a) / (b - a)).coerceIn(0f, 1f); return t * t * (3f - 2f * t) }
 
@@ -39,6 +52,14 @@ object SoundRules {
             hour < 17.5f -> "day"
             else -> "evening"
         }
-        return Mix(beds, music, if (music == "night") .45f else .55f)
+        val scatter = mapOf(
+            "birds" to 9f * (dawn + .25f * day) * dry * (if (season == 3) .2f else 1f),
+            "dog" to .6f * (.4f + .6f * night),
+            "car" to 2.2f * day * (1f - .4f * rain),
+            "chatter" to 1.5f * day * dry,
+            "bell" to (if (hour in 11.9f..12.2f || hour in 17.9f..18.2f) 6f else .08f) * day,
+            "thunder" to 1.2f * smooth(.7f, .95f, rain),
+        )
+        return Mix(beds, music, if (music == "night") .45f else .55f, scatter)
     }
 }

@@ -31,6 +31,10 @@ class SoundScape(private val ctx: Context) {
     private val playing = ArrayList<Shot>()
     private val sfx = HashMap<String, Pcm?>()
 
+    private val synth = Synth()
+    private var rnd = java.util.Random(7)
+    @Volatile private var scatter: Map<String, Float> = emptyMap()
+
     @Volatile private var ducked = false
     @Volatile var enabled = true
     @Volatile var musicOn = true
@@ -40,6 +44,7 @@ class SoundScape(private val ctx: Context) {
     /** The mood now (from [SoundRules.at]); called as often as the game likes. */
     fun set(mix: SoundRules.Mix) {
         bedTarget = mix.beds
+        scatter = mix.scatter
         musicTarget = mix.musicGain
         if (mix.music != musicKey) musicKey = mix.music
     }
@@ -90,7 +95,14 @@ class SoundScape(private val ctx: Context) {
                     val target = (bedTarget[name] ?: 0f) * duck
                     var g = bedGain[name] ?: 0f
                     if (g < .002f && target < .002f) continue
-                    val p = bed(name) ?: continue
+                    // a recorded bed if there is one, else made live
+                    val p = bed(name)
+                    if (p == null) {
+                        g += (target - g) * (1f - Math.pow(1.0 - .00004, frames.toDouble()).toFloat())
+                        synth.render(name, buf, frames, g)
+                        bedGain[name] = g
+                        continue
+                    }
                     var pos = bedPos[name] ?: 0
                     for (k in 0 until frames) {
                         g += (target - g) * .00004f
@@ -98,6 +110,14 @@ class SoundScape(private val ctx: Context) {
                         pos++; if (pos >= p.frames) pos = 0
                     }
                     bedGain[name] = g; bedPos[name] = pos
+                }
+                // the town's scattered sounds: each kind at its rate a minute, somewhere left or right, near or far
+                for ((name, perMinute) in scatter) {
+                    if (perMinute <= 0f || rnd.nextFloat() > perMinute * frames / (Pcm.RATE * 60f)) continue
+                    val variants = SoundRules.SCATTER_FILES[name] ?: listOf(name)
+                    val file = variants[rnd.nextInt(variants.size)]
+                    val pc = synchronized(sfx) { sfx.getOrPut(file) { Pcm.load(ctx.assets, "audio/sfx/$file.ogg") } } ?: continue
+                    playing += Shot(pc, (.25f + rnd.nextFloat() * .35f) * duck, rnd.nextFloat() * 1.6f - .8f)
                 }
                 // music: a new mood crossfades over a few seconds
                 val key = musicKey
