@@ -73,7 +73,7 @@ describe('seeded enterable interiors',()=>{
    expect(interiorBlocked(r,r.exit.x,r.exit.y),e.title).toBe(false);
    const end=moveSafely(r.spawn,r.exit.x-r.spawn.x,r.exit.y-r.spawn.y,(x,y)=>interiorBlocked(r,x,y));
    expect(end).toEqual(r.exit);
-   for(const f of r.furniture){
+   for(const f of r.furniture.map(f=>f.foot??f)){
     expect(f.x,e.title).toBeGreaterThanOrEqual(32);expect(f.y,e.title).toBeGreaterThanOrEqual(96);
     expect(f.x+f.w,e.title).toBeLessThanOrEqual(r.width-32);expect(f.y+f.h,e.title).toBeLessThanOrEqual(r.height-24);
    }
@@ -117,7 +117,7 @@ describe('seeded enterable interiors',()=>{
  it('places solid furniture clear of walls and other furniture in every building type',()=>{
   const overlap=(a:{x:number;y:number;w:number;h:number},b:typeof a)=>a.x<b.x+b.w&&b.x<a.x+a.w&&a.y<b.y+b.h&&b.y<a.y+a.h;
   for(const e of typedEntrances){
-   const room=planInterior(fixtureWorld,e),solid=room.furniture.filter(f=>f.solid);
+   const room=planInterior(fixtureWorld,e),solid=room.furniture.filter(f=>f.solid).map(f=>({...f,...(f.foot??{})}));
    for(let i=0;i<solid.length;i++){
     for(const wall of room.walls)expect(overlap(solid[i]!,wall),`${e.title}: ${solid[i]!.key} overlaps a wall`).toBe(false);
     for(let j=i+1;j<solid.length;j++)expect(overlap(solid[i]!,solid[j]!),`${e.title}: ${solid[i]!.key} overlaps ${solid[j]!.key}`).toBe(false);
@@ -128,6 +128,24 @@ describe('seeded enterable interiors',()=>{
   const e=entrances.find(e=>e.lot?.kind==='house')!;
   const a=planInterior(world,e);
   const altered=structuredClone(world);altered.year=1950;for(const p of Object.values(altered.people))p.wealth+=10000;
-  expect(planInterior(altered,e)).toEqual(a);
+  const b=planInterior(altered,e);
+  expect([b.walls,b.areas,b.floor,b.width,b.height]).toEqual([a.walls,a.areas,a.floor,a.width,a.height]);
+ });
+ it('furnishes homes for the household that lives there, by wave function collapse',()=>{
+  const homes=entrances.filter(e=>e.lot?.kind==='house');
+  let kidsRooms=0,solved=0;
+  for(const e of homes){
+   const r=planInterior(world,e),keys=r.furniture.map(f=>f.key);
+   if(r.furniture.every(f=>f.foot))solved++;
+   expect(keys.filter(k=>k==='interior_bed'||k==='interior_bedGreen').length,e.title).toBeGreaterThan(0);
+   for(const k of ['interior_stove','interior_fridge','interior_sink','interior_toilet'])expect(keys,`${e.title}: ${k}`).toContain(k);
+   const kids=e.lot!.residents.filter(id=>world.people[id]&&world.people[id]!.deathYear===undefined&&world.year-world.people[id]!.birthYear<13).length;
+   if(kids&&keys.includes('interior_bedGreen'))kidsRooms++;
+  }
+  expect(solved/homes.length).toBeGreaterThan(0.95);
+  expect(kidsRooms).toBeGreaterThan(0);
+  // not one layout repeated: the rooms differ between homes of the same size
+  const sigs=new Set(homes.map(e=>JSON.stringify(planInterior(world,e).furniture.map(f=>[f.key,f.x,f.y]))));
+  expect(sigs.size).toBeGreaterThan(homes.length*0.8);
  });
 });

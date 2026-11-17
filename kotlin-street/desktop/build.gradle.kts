@@ -32,6 +32,7 @@ tasks.register<JavaExec>("preview") {
     System.getProperty("hour")?.let { jvmArgs("-Dhour=$it") }
     System.getProperty("x")?.let { jvmArgs("-Dx=$it") }
     System.getProperty("junctionNoClip")?.let { jvmArgs("-DjunctionNoClip=$it") }
+    System.getProperty("rooms")?.let { jvmArgs("-Drooms=$it") }
     System.getProperty("noLit")?.let { jvmArgs("-DnoLit=$it") }
     args(layout.buildDirectory.dir("preview").get().asFile.absolutePath, file("../../public/assets/characters").absolutePath)
 }

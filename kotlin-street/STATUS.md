@@ -6,7 +6,7 @@
 - Buildings are the exact ones our TypeScript game draws for each shop (`tools/export-street.ts` -> `street.json`),
   composed into boxes by `tools/make_buildings.py`: front, matching side wall, flat roof, window-glow mask, rooftop sign.
   Signs sit over the front face as one piece (only the part above the roofline goes on the roof).
-- Upper-floor windows are real openings showing plain reflective glass (engine sky reflection + sun glint); the habit scene's furnished rooms/people are off (`StageTuning.interiors`) until our own 2D interiors go in. Shopfront glass keeps its painted display and gets a faint reflection through a mask (`bN_glass.png`, display panes at ~40% strength). Arched/ornate upper windows are left as sprites.
+- Upper-floor windows are real openings showing plain reflective glass (engine sky reflection + sun glint); the habit scene's furnished rooms/people in the windows are off (`StageTuning.interiors`); the buildings themselves can now be entered (see Interiors below). Shopfront glass keeps its painted display and gets a faint reflection through a mask (`bN_glass.png`, display panes at ~40% strength). Arched/ornate upper windows are left as sprites.
   reflections and sun glints over. Shopfront glass keeps its painted display and gets a faint reflection through a mask (`bN_glass.png`, display panes at ~40% strength). Arched/ornate upper windows are left as sprites.
 - Walking: hold ◀ ▶; ▲ ▼ step in/out across the pavement (back/front views); camera follows. Time slider; season
   (spring/summer/autumn/winter) and weather (clear/overcast/rain/mist) buttons; trees are tinted by season.
@@ -121,3 +121,22 @@
 ## Ideas for next
 - Feed the street from live game logic (port the TS logic to Kotlin, or export on demand); a real junction between streets.
 - Residents appear in their own windows at the times their schedules put them home. Entering shops.
+
+
+## Interiors (Wave Function Collapse)
+
+- "Go inside" at a building opens its room: `src/town/interiors.ts` plans the walls and room divisions (keyed to the
+  property), `src/town/furnish.ts` furnishes each area by Wave Function Collapse (`src/town/wfc.ts`): cells in a
+  superposition of "empty" and every placement that could cover them, lowest-entropy cell collapsed by seeded chance,
+  overlaps/blocked walkways/counts propagated, neighbour affinities in the weights (kitchen runs, chairs only under
+  tables), required pieces first, the finished room checked for reachability and re-solved from another branch of the
+  seed if it fails. Homes follow the household (a bed per couple/single, green beds and toys for children, a piano or
+  guitar for a musical resident, desk and books for a studious one); shop stock grows with capital. The large public
+  buildings keep their drawn layouts.
+- `tools/export-interiors.ts eta 2025 > app/src/main/assets/interiors.json`; sprites in `app/src/main/assets/interior/`.
+- Kotlin: `shared/.../scene/Interior.kt` draws the room fitted to the screen, top-down 3/4: our furniture sprites with
+  contact shadows, walls/windows/skirting as geometry, daylight shafts by the hour, a night tint with warm lamp pools; the
+  player walks with the same pads (feet collide with footprints), the shop keeper or resident stands by their counter or
+  sofa and can be talked to when near; walking out of the door or "Leave" returns to the street.
+  Desktop preview: `gradle :desktop:preview -Dmode=inside -Drooms=b0,b5`.
+- Not yet: outdoor sound is not muffled inside; upstairs/large civic buildings are not on the two streets.

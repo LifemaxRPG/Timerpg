@@ -1,6 +1,7 @@
 @file:OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 
 import com.lifemax.rpg.feature.habits.presentation.scene.junctionView
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.ImageComposeScene
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -177,6 +178,7 @@ fun main(args: Array<String>) {
     if (System.getProperty("mode") == "voice") { renderVoices(args.getOrElse(0) { "build/preview" }); return }
     if (System.getProperty("mode") == "cross") { loadSheets(args.getOrElse(1) { "../public/assets/characters" }); loadProps(File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path); GameState.enabled = true; GameState.look = 1; StageTuning.zoom = 0.2f; GameState.lane = 7f; renderCrossing(args.getOrElse(0) { "build/preview" }, File("../app/src/main/assets").absolutePath); return }
     if (System.getProperty("mode") == "turnsky") { loadSheets(args.getOrElse(1) { "../public/assets/characters" }); loadProps(File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path); GameState.enabled = true; GameState.look = 1; StageTuning.zoom = 0.2f; GameState.lane = 7f; renderTurnOverStreet(args.getOrElse(0) { "build/preview" }, File("../app/src/main/assets").absolutePath); return }
+    if (System.getProperty("mode") == "inside") { loadSheets(args.getOrElse(1) { "../public/assets/characters" }); renderInsides(args.getOrElse(0) { "build/preview" }); return }
     if (System.getProperty("mode") == "turn") { renderTurn(args.getOrElse(0) { "build/preview" }, File("../app/src/main/assets").absolutePath); return }
     loadSheets(args.getOrElse(1) { "../public/assets/characters" })
     loadProps(File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path)
@@ -257,5 +259,31 @@ fun main(args: Array<String>) {
             GameState.x = i * 380f; GameState.lane = 7f; GameState.dir = 1f
             render("$out/pan_$i.png", 780, 360, 16.8f, "2026-06-14", first, false, bottom = 40f, ambient = 100f)
         }
+    }
+}
+
+
+/** The rooms inside the street's buildings (assets/interiors.json), at a few hours, the player by the door. */
+fun renderInsides(out: String) {
+    val assets = File("../app/src/main/assets").takeIf { File(it, "interiors.json").exists() } ?: File("app/src/main/assets")
+    val rooms = com.lifemax.rpg.feature.habits.presentation.scene.InteriorRoom.parseAll(File(assets, "interiors.json").readText())
+    com.lifemax.rpg.feature.habits.presentation.scene.InteriorArt.images = File(assets, "interior").listFiles()!!.filter { it.extension == "png" }
+        .associate { it.nameWithoutExtension to SkiaImage.makeFromEncoded(it.readBytes()).toComposeImageBitmap() }
+    GameState.look = 1
+    val pick = (System.getProperty("rooms") ?: "b0,b5,b8,b17").split(",")
+    for (id in pick) {
+        val room = rooms[id] ?: continue
+        for ((tag, hour) in listOf("day" to 13f, "dusk" to 19f, "night" to 22.5f)) {
+            val w = com.lifemax.rpg.feature.habits.presentation.scene.RoomWalker(room.spawnX, room.spawnY - 40f)
+            val scene = ImageComposeScene(width = 1560, height = 720, density = Density(2f)) {
+                androidx.compose.foundation.Canvas(androidx.compose.ui.Modifier.fillMaxSize()) {
+                    with(com.lifemax.rpg.feature.habits.presentation.scene.InteriorPainter) { draw(room, w, hour, SpriteSheets.sheets.getOrNull(3), room.keeperSpot(), 1f) }
+                }
+            }
+            val img = scene.render(0L)
+            File("$out/in_${id}_$tag.png").also { it.parentFile.mkdirs() }.writeBytes(img.encodeToData(EncodedImageFormat.PNG)!!.bytes)
+            scene.close()
+        }
+        println("wrote $out/in_$id")
     }
 }

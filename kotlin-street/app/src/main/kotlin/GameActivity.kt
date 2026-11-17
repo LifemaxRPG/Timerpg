@@ -411,8 +411,71 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     val names = remember(engine.data.value) {
         engine.data.value?.let { d -> (listOf(d.townName) + d.npcs.map { it.name }).distinct().joinToString(", ") } ?: ""
     }
+    // inside a building: the rooms our game logic planned and furnished (assets/interiors.json), by sprite name
+    val rooms = remember {
+        try {
+            val all = com.lifemax.rpg.feature.habits.presentation.scene.InteriorRoom.parseAll(ctx.assets.open("interiors.json").bufferedReader().use { it.readText() })
+            com.lifemax.rpg.feature.habits.presentation.scene.InteriorArt.images = (ctx.assets.list("interior") ?: emptyArray()).filter { it.endsWith(".png") }
+                .associate { f -> f.removeSuffix(".png") to ctx.assets.open("interior/$f").use { BitmapFactory.decodeStream(it) }.asImageBitmap() }
+            all
+        } catch (e: Exception) { emptyMap() }
+    }
+    var inside by remember { mutableStateOf<com.lifemax.rpg.feature.habits.presentation.scene.InteriorRoom?>(null) }
+    var walker by remember { mutableStateOf(com.lifemax.rpg.feature.habits.presentation.scene.RoomWalker(0f, 0f)) }
+    var door by remember { mutableFloatStateOf(0f) }
+    // going in or out: a short fade through black, the room (or the street) swapped at its darkest
+    var doorTo by remember { mutableStateOf<Pair<Boolean, com.lifemax.rpg.feature.habits.presentation.scene.InteriorRoom?>?>(null) }
+    LaunchedEffect(doorTo) {
+        val go = doorTo ?: return@LaunchedEffect
+        val start = androidx.compose.runtime.withFrameNanos { it }
+        var swapped = false
+        while (true) {
+            val t = (androidx.compose.runtime.withFrameNanos { it } - start) / 1e9f
+            door = if (t < .25f) t / .25f else (1f - (t - .25f) / .3f).coerceAtLeast(0f)
+            if (!swapped && t >= .25f) {
+                swapped = true
+                GameState.moveX = 0f; GameState.moveLane = 0f
+                val room = go.second
+                if (go.first && room != null) { walker = com.lifemax.rpg.feature.habits.presentation.scene.RoomWalker(room.spawnX, room.spawnY); inside = room } else inside = null
+                sound?.play("door_bell", .45f, 0f)
+            }
+            if (t >= .55f) break
+        }
+        door = 0f; doorTo = null
+    }
+    // walking out through the door leaves
+    LaunchedEffect(inside) {
+        val room = inside ?: return@LaunchedEffect
+        while (inside === room) {
+            androidx.compose.runtime.withFrameNanos { }
+            if (doorTo == null && walker.y > room.exitY - 6f && kotlin.math.abs(walker.x - room.exitX) < 26f && GameState.moveLane > 0f) doorTo = false to null
+        }
+    }
+    // the person who lives or works here, standing inside (the same look as at their door)
+    val keeperSheet = remember(inside, near) {
+        val sheets = SpriteSheets.sheets
+        val seed = GameState.keepers.firstOrNull { it.first == near }?.second
+        if (inside == null || seed == null || sheets.isEmpty()) null
+        else {
+            val mine = GameState.look.mod(sheets.size)
+            val others = sheets.indices.filter { it != mine }
+            if (others.isEmpty()) null else sheets[others[seed.mod(others.size)]]
+        }
+    }
+    val keeperSpot = remember(inside) { inside?.keeperSpot() }
+    var nearKeeper by remember { mutableStateOf(false) }
+    LaunchedEffect(inside) {
+        while (inside != null) {
+            androidx.compose.runtime.withFrameNanos { }
+            val k = keeperSpot ?: break
+            val dx = walker.x - k.first; val dy = walker.y - k.second
+            nearKeeper = dx * dx + dy * dy < 90f * 90f
+        }
+    }
     Box(Modifier.fillMaxSize().background(Color.Black)) {
-        HabitsStage(
+        val room = inside
+        if (room != null) com.lifemax.rpg.feature.habits.presentation.scene.InteriorStage(room, walker, hour, keeperSheet, Modifier.fillMaxSize())
+        else HabitsStage(
             p = p, ui = HabitsUi(focus = shops[0].id), visible = true, top = 0f, bottom = 0f, cover = 0f, inset = 0f,
             accent = Color(0xFF6FA8FF), actions = StageActions(), modifier = Modifier.fillMaxSize(),
         )
@@ -424,7 +487,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             }
         }
         if (fade > 0f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = fade)))
-        if (turnArt != null && !turning && atCorner) Chip(if (streetNo == 0) "↰ Turn onto ${data.streets.getOrNull(1)?.name ?: "the side street"}" else "↳ Back to ${data.streets[0].name}", false,
+        if (door > 0f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = door)))
+        if (turnArt != null && !turning && atCorner && inside == null) Chip(if (streetNo == 0) "↰ Turn onto ${data.streets.getOrNull(1)?.name ?: "the side street"}" else "↳ Back to ${data.streets[0].name}", false,
             Modifier.align(if (streetNo == 0) Alignment.CenterEnd else Alignment.CenterStart).padding(horizontal = 14.dp)) {
                 turnBack = streetNo == 1
                 // the camera's place along the main street from the junction's middle (turn units), where the view is now
@@ -432,7 +496,10 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 turning = true
             }
         // the shop the player is standing at
-        if (near in shops.indices) {
+        if (inside != null) {
+            Text(inside!!.title + (inside!!.use.takeIf { it != inside!!.title && it != "Home" }?.let { "  ·  $it" } ?: ""), 15.sp,
+                Modifier.align(Alignment.TopCenter).padding(top = 62.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
+        } else if (near in shops.indices) {
             val st = shops[near]
             Text(st.cue + (owners.getOrNull(near)?.takeIf { it.isNotBlank() }?.let { "  ·  $it" } ?: ""), 15.sp,
                 Modifier.align(Alignment.TopCenter).padding(top = 62.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
@@ -450,12 +517,15 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                     if (!down && ears.state == com.timerpg.street.voice.PlayerVoice.State.IDLE) engine.resume("listening")
                 },
                 modifier = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 92.dp))
-        } else if (!turning && turn < 0f && atHere.isNotEmpty()) {
-            // someone to talk to: the speech and memory models get ready now, before the mic is held
+        } else if (!turning && turn < 0f && doorTo == null) {
+            // someone to talk to (inside: when standing near them); the way in and out
+            val roomHere = street.sprites.getOrNull(near)?.let { rooms[it] }
             Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 56.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                for (npc in atHere) Chip("Talk to ${npc.first}", false) {
+                if (inside == null || nearKeeper) for (npc in atHere) Chip("Talk to ${npc.first}", false) {
                     talk = Talk(npc).also { t -> npc.topics.firstOrNull()?.let { t.ask(engine, it, voices) } }
                 }
+                if (inside != null) Chip("Leave", false) { doorTo = false to null }
+                else if (roomHere != null) Chip("Go inside", false) { doorTo = true to roomHere }
             }
         }
         lastCrash?.let { report ->

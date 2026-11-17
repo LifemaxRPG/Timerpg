@@ -3,6 +3,7 @@ import { rand } from '../sim/rng';
 import type { World } from '../sim/types';
 import { feetHit, type Point } from './collision';
 import { INTERIOR_ASSETS } from './interiorAssets';
+import { furnish } from './furnish';
 import type { Rect } from './kinds';
 import type { LandmarkPlot } from './landmarks';
 import type { Lot } from './layout';
@@ -10,7 +11,9 @@ import type { Lot } from './layout';
 export interface Entrance {
   id: string; title: string; door: Point; lot?: Lot; landmark?: LandmarkPlot;
 }
-export interface Furnishing extends Rect { key: string; solid: boolean; stock?: boolean }
+/** A piece of furniture: its sprite's rect, and [foot], the part standing on the floor (what collides; the whole sprite
+ * when absent). */
+export interface Furnishing extends Rect { key: string; solid: boolean; stock?: boolean; foot?: Rect }
 export interface InteriorConnection {
   id: string; label: string; at: Point; target: string; arrival: string;
   kind: 'stairs' | 'door'; doorRect?: Rect;
@@ -204,8 +207,12 @@ export function planInterior(w: World, e: Entrance, zoneId?: string): RoomPlan {
       default: throw new Error(`No interior template for ${template}`);
     }
   }
+  // Homes, shops and offices are furnished by Wave Function Collapse for the people who use them (furnish.ts); the large
+  // public buildings, and any room the solver cannot fit, keep the drawn layout above.
+  const solved = furnish(w, e.id, lot, {width:W,height:H,walls,areas,exit:{x:W/2,y:H-40},template,home});
+  const all: Furnishing[] = solved ?? furniture;
   // Vacant properties retain the same shell and room divisions; loose goods are absent.
-  const contents = lot?.vacantSince === undefined ? furniture : furniture.filter((f) => !f.stock);
+  const contents = lot?.vacantSince === undefined ? all : all.filter((f) => !f.stock);
   return {id:e.id,title:e.title,use,template,width:W,height:H,floor,walls,furniture:contents,areas,
     spawn:{x:W/2,y:H-64},exit:{x:W/2,y:H-40},zoneId:'main',outsideExit:true,
     connections:template==='police'?[{id:'stairs-up',label:'Upstairs: offices & records',at:{x:64,y:H-80},target:'police:upper',arrival:'stairs-down',kind:'stairs'}]:[]};
@@ -213,5 +220,5 @@ export function planInterior(w: World, e: Entrance, zoneId?: string): RoomPlan {
 
 export function interiorBlocked(room: RoomPlan, x: number, y: number): boolean {
   if (x-7 < 0 || y-8 < 0 || x+7 > room.width || y > room.height) return true;
-  return room.walls.some((r) => feetHit(x,y,r)) || room.furniture.some((f) => f.solid && feetHit(x,y,f));
+  return room.walls.some((r) => feetHit(x,y,r)) || room.furniture.some((f) => f.solid && feetHit(x,y,f.foot ?? f));
 }
