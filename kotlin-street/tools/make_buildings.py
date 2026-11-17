@@ -742,8 +742,8 @@ def villa(shop, rng):
     up_r = at.add(up, up_glow)
     # --- the ground floor's wall, its porch posts taken off (they are boxes standing in front of it) and the siding
     # carried across behind them
-    gf = art[302:342, 2:254].copy()
-    gf[:, 18:30] = gf[:, 38:39]; gf[:, 222:234] = gf[:, 208:209]
+    gf = art[302:342, 4:252].copy()                                     # its wall is cols 4..251 (the storey above, 2..253)
+    gf[:, 16:28] = gf[:, 36:37]; gf[:, 220:232] = gf[:, 206:207]
     gf_panes, gf_glow = panes_of(gf)
     gf_r = at.add(gf, gf_glow)
     # --- the side walls (the eave walls): each row the front's own siding, a window of the front's
@@ -788,9 +788,9 @@ def villa(shop, rng):
     rail_top = art[368, 20]; rail_c = art[388, 20]; post_c = art[320, 24]
     deck_c = art[380, 80]; deck_front = art[400, 200]; tread = art[404, 80]; riser = art[400, 80]
     parts = [
-        mbox((2, 254), (12, 52), (0, 167), (wall_c, wall_c, wall_c), ft=gf_r, st=gfs_r, panes=gf_panes, top=False),
+        mbox((4, 252), (12, 52), (0, 167), (wall_c, wall_c, wall_c), ft=gf_r, st=gfs_r, panes=gf_panes, top=False),
         # the floor between the storeys, behind the terrace: its edge along the shown side
-        mbox((2, 254), (52, 58), (36, 167), (art[298, 140], art[298, 140], art[298, 140]), top=False),
+        mbox((4, 252), (52, 58), (36, 167), (art[298, 140], art[298, 140], art[298, 140]), top=False),
         mgable((0, 256), (98, 161), (36, 171), left, (0, 197, 128, 133, 128, -2, 0, 62), right, (128, 197, 0, 133, 0, -2, 128, 62), (rake_c, edge_c), roof_c),
         mbox((2, 254), (58, 98), (36, 167), (wall_c, wall_c, wall_c), ft=up_r, fx=0, st=ups_r, panes=up_panes, top=False),
         mbox((2, 254), (0, 12), (-53, 0), (deck_c, deck_front, shade(deck_front, .8)), ft=deckf_r, tt=deck_r),

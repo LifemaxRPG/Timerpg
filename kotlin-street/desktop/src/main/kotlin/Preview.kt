@@ -185,10 +185,10 @@ fun main(args: Array<String>) {
     System.setProperty("java.awt.headless", "true")
     installDesktopImages()
     if (System.getProperty("mode") == "voice") { renderVoices(args.getOrElse(0) { "build/preview" }); return }
-    if (System.getProperty("mode") == "cross") { loadSheets(args.getOrElse(1) { "../public/assets/characters" }); loadProps(File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path); GameState.enabled = true; GameState.look = 1; StageTuning.zoom = 0.2f; GameState.lane = 7f; renderCrossing(args.getOrElse(0) { "build/preview" }, File("../app/src/main/assets").absolutePath); return }
-    if (System.getProperty("mode") == "turnsky") { loadSheets(args.getOrElse(1) { "../public/assets/characters" }); loadProps(File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path); GameState.enabled = true; GameState.look = 1; StageTuning.zoom = 0.2f; GameState.lane = 7f; renderTurnOverStreet(args.getOrElse(0) { "build/preview" }, File("../app/src/main/assets").absolutePath); return }
+    if (System.getProperty("mode") == "cross") { loadSheets(args.getOrElse(1) { "../public/assets/characters" }); loadProps(File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path); GameState.enabled = true; GameState.look = 1; StageTuning.zoom = 0.2f; GameState.lane = 7f; renderCrossing(args.getOrElse(0) { "build/preview" }, assetsDir().absolutePath); return }
+    if (System.getProperty("mode") == "turnsky") { loadSheets(args.getOrElse(1) { "../public/assets/characters" }); loadProps(File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path); GameState.enabled = true; GameState.look = 1; StageTuning.zoom = 0.2f; GameState.lane = 7f; renderTurnOverStreet(args.getOrElse(0) { "build/preview" }, assetsDir().absolutePath); return }
     if (System.getProperty("mode") == "inside") { loadSheets(args.getOrElse(1) { "../public/assets/characters" }); renderInsides(args.getOrElse(0) { "build/preview" }); return }
-    if (System.getProperty("mode") == "turn") { renderTurn(args.getOrElse(0) { "build/preview" }, File("../app/src/main/assets").absolutePath); return }
+    if (System.getProperty("mode") == "turn") { renderTurn(args.getOrElse(0) { "build/preview" }, assetsDir().absolutePath); return }
     loadSheets(args.getOrElse(1) { "../public/assets/characters" })
     loadProps(File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path)
     val out = args.getOrElse(0) { "build/preview" }
