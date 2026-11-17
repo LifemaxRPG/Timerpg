@@ -26,9 +26,11 @@ Contact sheets were made with a throwaway script from the folders below (houses,
   its shadow, the sun's edge, the cloud shade's clip and the framing follow it.
 - Glass panes are kept as drawn (curtains and blinds), with the engine's reflection laid faintly over and a lamp lit
   behind at dusk on a home's hours; nothing is cut out (the glass mask covers less than half of each pane).
-- The corner turn and the crossing build them too: a box of their own width set back in its slot, and a roof prism
-  wearing the near and far slopes (`scene/TurnRoof.kt`).
-- Dressing done: the yard's fence or hedge with its gate, the path, a porch light at dusk, flue smoke in the cold months.
+- The corner turn and the crossing build them too: a box of their own width set back in its slot, a roof prism
+  wearing the near and far slopes (`scene/TurnRoof.kt`), and the yard, fence, porch or steps and flue the street shows
+  (`scene/TurnHouse.kt`).
+- Dressing done: the yard's fence or hedge with its gate (snow along its tops, in the house's shade at dusk), the path, a
+  porch light at dusk, flue smoke in the cold months.
   Still to do for these: hedges down the yards' sides, pigeons on the ridges, eave drips in rain, side-window glow.
 
 ## Easy: already boxes (the current pipeline, `tools/make_buildings.py`)
