@@ -1,0 +1,696 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-9411",
+      "kind": "scenario",
+      "title": "The Cup with the Crooked Handle",
+      "category": "business",
+      "pitch": "Invest in a bakery's plan to commission handmade serving cups. A potter may build a lasting trade from that first order, while the neighbor beside the eventual teaching kiln pays to keep the house quiet.",
+      "present_hook": {
+        "what_you_notice": "A bakery displays a single handmade sample cup beside an unaccepted production quote. A nearby unused workshop has never housed a kiln.",
+        "where": "the bakery",
+        "clues": [
+          {
+            "who": "the bakery accounts",
+            "line": "{A} liked the sample from {B} in {year}. The quoted first order never found its deposit."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bakery"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": false,
+          "wealth": "getting_by",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "C": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "bakery"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1985
+        ],
+        "notes": "shop belongs to A. Require B's verified food-safe ceramic skills, the actual quote and sample, available legal production facilities, and a viable later workshop beside C's occupied home. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Fund the bakery's quoted serving-cup order through its business account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "commission": "B",
+              "work": "the bakery's bound serving-cup order"
+            }
+          ],
+          "headline": "Bakery Commissions a Local Potter's Serving Cups",
+          "body": "The bakery operated by {A} placed and paid for its agreed serving-cup order with {B}. Inspection confirmed the delivered cups were suitable for their intended use."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "B",
+              "kind": "pottery workshop"
+            }
+          ],
+          "headline": "First Cup Order Leads to a Pottery Workshop",
+          "body": "With a real order history and sufficient capital, {B} opened a licensed pottery workshop. Its premises and equipment entered the business accounts."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "establish_service": "the workshop's permitted evening pottery classes"
+            },
+            {
+              "soundproof_home": "C",
+              "site": "the bound neighboring home"
+            },
+            {
+              "wealth": "C",
+              "by": -0.1
+            }
+          ],
+          "headline": "Pottery Classes Open Beside a Newly Quieted Home",
+          "body": "Permitted evening classes began at the workshop run by {B}. Neighbor {C} completed an agreed soundproofing project and paid its documented net contribution."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Bakery's Cup Order Does Not Reach Acceptance",
+        "body": "The commissioned order involving {B} did not reach compliant accepted delivery. Actual deposits, refunds and work expenses followed the contract."
+      },
+      "present_day": {
+        "best": "In {now}, the workshop has an established teaching room, and the neighboring home has actual soundproofing improvements. Current classes depend on continued qualified staffing and permits.",
+        "worst": "First-step failure creates no accepted order or workshop through this chain. The sample cup and actual financial records remain.",
+        "twist": "An encouraging first order becomes a place to learn, but {C} pays a tenth of personal funds toward living comfortably beside its evening activity."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "The cups are lovely. The window that lets me sleep cost more than a cupboard full of them."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose elapsed timing and independent chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Recheck every stated prerequisite before the roll. Apply the intervention once. fails.chance complements step 1; it is not independently rolled. Ineligibility reports its actual reason. Stop dependent steps on failure, preserving earlier changes. Resolve concurrent events in stable scenario-ID order with atomic fund, job and site reservations. Never create funds, qualifications, consent or public rights from prose. Ordinary later history continues; present text requires the recorded result still extant. After-lines require the specified step, actual knowledge and a living speaker.",
+        "commission creates a funded voluntary contract between the bakery and B, paying only for actual work and accepted goods. The bakery investment is debited once; B receives contract income, not a second gift. Food-contact testing and production access must be real.",
+        "Add pottery workshop as a business kind. Step 2 needs a lawful available site, actual accumulated capital or credit, appropriate kiln equipment, ventilation, fire approval and skill. The first order does not guarantee later demand.",
+        "The evening-class service needs qualified teachers, safe capacity, ventilation and funded operation. Step 3 requires C still occupying the neighboring home, measured lawful but disruptive noise, consent to a feasible acoustic project and funding. soundproof_home installs the priced approved improvements at that home; the ten-percent debit is C's net share after any workshop contribution, not a duplicate charge. Gate C's line on step 3 and actual knowledge of the cup order and work."
+      ],
+      "era_notes": "Use period-available kiln controls and acoustic materials. Serving cups require actual food-safe production in every decade.",
+      "why_fun": "A sample on a counter becomes a trade the player can visit. Its encouraging story is also written into a neighbor's windows."
+    },
+    {
+      "id": "scenario-20261117-9412",
+      "kind": "scenario",
+      "title": "The Snow Shovel in the Campaign Photograph",
+      "category": "politics",
+      "pitch": "Spread truthful praise for someone who cleared the public steps. That small reputation boost may grow into a political career and a sheltered market whose rules shut out a familiar seller.",
+      "present_hook": {
+        "what_you_notice": "An old photograph shows an uncredited volunteer beside cleared steps. Main Street's open market still has no permanent shelter.",
+        "where": "the town hall",
+        "clues": [
+          {
+            "who": "the Gazette photograph archive",
+            "line": "That was {A} clearing the steps in {year}. The published caption never named the volunteer."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "reputation": "mid",
+          "trait": {
+            "ambition": "high",
+            "charm": "high"
+          }
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "poor"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1985
+        ],
+        "notes": "Bind A's verified public-step clearing, genuine interest in elected office, and B's lawful recurring small-market stall. Require a feasible Main Street market parcel and a baseline open-air market. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": 0.4,
+          "how_it_looks": "Tell neighbors who actually cleared the steps and point them to the photograph."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "run_for_mayor": "A"
+            }
+          ],
+          "headline": "Recognized Volunteer Enters Mayoral Race",
+          "body": "After the recorded public recognition, {A} filed a voluntary eligible mayoral candidacy. Clearing steps did not decide the election."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "win_election": "A"
+            }
+          ],
+          "headline": "Former Step-Clearing Volunteer Wins Mayoral Election",
+          "body": "Eligible candidate {A} won the actual contested mayoral election. Its recorded result followed the lawful voting process."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a sheltered public market",
+              "where": "Main Street"
+            },
+            {
+              "end_stall_permission": "B",
+              "site": "the bound open-air market stall"
+            }
+          ],
+          "headline": "Sheltered Market Opens without a Familiar Stall",
+          "body": "A funded sheltered market opened after the approved public process. Seller {B} could not meet its published eligibility requirements, and the old temporary stall permission expired."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "Public Recognition Does Not Lead to a Candidacy",
+        "body": "{A} did not file an eligible candidacy during the proposal window. The truthful recognition and its actual standing change remained."
+      },
+      "present_day": {
+        "best": "In {now}, Main Street has a sheltered market with an actual eligibility register. The old temporary stall used by {B} is absent; any current mayor and operating stalls follow real later history.",
+        "worst": "Failure gives no candidacy or market through this chain. Praise for actual work does not guarantee an office.",
+        "twist": "Shoppers gain a roof while {B} loses an affordable lawful place to sell. The rules are consistently applied, but a public improvement can still narrow who belongs inside."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I wanted the market out of the rain too. I thought my table would be coming with it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose elapsed timing and independent chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Recheck every stated prerequisite before the roll. Apply the intervention once. fails.chance complements step 1; it is not independently rolled. Ineligibility reports its actual reason. Stop dependent steps on failure, preserving earlier changes. Resolve concurrent events in stable scenario-ID order with atomic fund, job and site reservations. Never create funds, qualifications, consent or public rights from prose. Ordinary later history continues; present text requires the recorded result still extant. After-lines require the specified step, actual knowledge and a living speaker.",
+        "The positive rumor applies only its existing standing change once. Candidacy requires age, residency, nomination, consent and actual campaign resources. Step 1 does not guarantee a win or continuous candidacy.",
+        "Step 2 must occur at a real scheduled election within range. Require A independently renominated, eligible and an actual viable candidate; the keyed chance is the scenario's conditional election-outcome roll, not an override of another winner. Reconcile one election result atomically and record lawful votes. No victory is inferred from charm alone.",
+        "Step 3 requires A to have independently regained or retained a lawful current policy role, public approval, an available acquired parcel, an actual funded design and enough construction time. Never infer decades of uninterrupted mayoral service. Add end_stall_permission: let only the bound temporary permission expire on its legal date; require B still selling there, uniformly applied real eligibility requirements B cannot meet, appropriate notice and no enforceable renewal right. Do not erase B's possessions or other sales rights. Gate B's line on step 3 and actual participation in the old market."
+      ],
+      "era_notes": "Campaign methods and market standards follow each decade. The photograph supplies credit for a real action, never proof of political virtue.",
+      "why_fun": "The player can recognize a campaign origin in a humble photograph, then walk under the roof that outgrew its promise."
+    },
+    {
+      "id": "scenario-20261117-9413",
+      "kind": "scenario",
+      "title": "The Scrap Bin Between the Shops",
+      "category": "business",
+      "pitch": "Introduce a toy maker to a dressmaker with useful cloth offcuts. Their rag dolls may eventually support a larger workshop, while the worker who stuffed them by hand loses a paid place in the process.",
+      "present_hook": {
+        "what_you_notice": "A toy-store prototype lacks affordable fabric, while a dress shop's records show usable offcuts being discarded. Neither supplier book contains the other's name.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the shop supply books",
+            "line": "{A} could not price the doll's cloth in {year}. The offcuts from {B} were leaving by the bin."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "toy store"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "dress shop"
+          ]
+        },
+        "C": {
+          "age": [
+            18,
+            25
+          ],
+          "wealth": "getting_by"
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1985
+        ],
+        "notes": "Bind A's toy store and B's separate dress shop, verified toy-making competence, unused suitable traceable offcuts, a real safe doll design and C's voluntary interest in paid hand-stuffing work. A and B are distinct suppliers who have not met. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange a meeting with the actual doll pattern and samples of suitable offcuts."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "supply_contract": [
+                "B",
+                "A"
+              ],
+              "goods": "the bound suitable cloth offcuts"
+            }
+          ],
+          "headline": "Two Shops Agree on Cloth for a Rag-Doll Line",
+          "body": "{A} and {B} signed a paid supply agreement for suitable traced cloth offcuts. The accepted doll line passed the applicable product checks."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "hire": [
+                "A",
+                "C"
+              ]
+            }
+          ],
+          "headline": "Rag-Doll Orders Create a Paid Hand-Stuffing Job",
+          "body": "The toy business operated by {A} hired {C} for paid hand-stuffing work. Real orders and safe working conditions supported the job."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a funded toy-production workshop",
+              "where": "the edge of town"
+            },
+            {
+              "automate_task": "the scenario doll-stuffing work"
+            },
+            {
+              "end_employment": [
+                "A",
+                "C"
+              ]
+            }
+          ],
+          "headline": "New Toy Workshop Ends a Hand-Stuffing Post",
+          "body": "The toy business opened a funded workshop with approved equipment for the recorded stuffing task. The specific hand-stuffing post held by {C} ended after its lawful transition process."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Offcut Meeting Does Not Produce a Workable Supply Deal",
+        "body": "{A} and {B} did not agree on a viable safe supply arrangement. Neither shop gained free inventory from the introduction."
+      },
+      "present_day": {
+        "best": "In {now}, a real toy-production workshop stands at the edge of town, and the recorded hand-stuffing post no longer exists. Its current production follows actual orders, safety and ownership.",
+        "worst": "Failure supplies no contract or paid doll-work job through this chain. Both original businesses continue their ordinary histories.",
+        "twist": "Turning waste into toys creates genuine paid work, then expansion removes the very task that gave {C} a place there. New production capacity is no promise of a replacement job."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "I used to know how every one of those dolls felt before it went into the box."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose elapsed timing and independent chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Recheck every stated prerequisite before the roll. Apply the intervention once. fails.chance complements step 1; it is not independently rolled. Ineligibility reports its actual reason. Stop dependent steps on failure, preserving earlier changes. Resolve concurrent events in stable scenario-ID order with atomic fund, job and site reservations. Never create funds, qualifications, consent or public rights from prose. Ordinary later history continues; present text requires the recorded result still extant. After-lines require the specified step, actual knowledge and a living speaker.",
+        "Add supply_contract: record quantities, material traceability, negotiated price and payments between B's dress shop and A's toy store. Require suitability for the actual product and applicable safety checks; waste status does not make cloth safe or free.",
+        "The hiring step requires the doll line still operating, priced orders, wages, safe working conditions, C's consent and actual required training. No childhood labor or invented steady demand is implied.",
+        "Step 3 requires an available lawful parcel, funded construction, safe era-valid stuffing equipment, actual demand and an economically feasible plan. Add automate_task: assign only the identified task to inspected equipment and record its real capacity and operating costs. Add end_employment: terminate only C's still-current hand-stuffing contract with required notice, owed wages and severance; require no mutually accepted suitable reassignment exists. C remains free to pursue other employment. All expansion and employment effects apply atomically after prerequisites. Gate C's line on step 3 and actual former work."
+      ],
+      "era_notes": "Use machinery and product standards available at the expansion date. The dolls need no brand, electronic feature or fashionable character.",
+      "why_fun": "A scrap bin becomes a supply chain the player can trace across town. An ordinary worker remembers its texture better than its sales figures."
+    },
+    {
+      "id": "scenario-20261117-9414",
+      "kind": "scenario",
+      "title": "The Apology with the Wrong House Number",
+      "category": "family",
+      "pitch": "Deliver a sibling's genuine apology to the intended address. A repaired relationship may grow into a reunion house, while its eventual conversion displaces the tenant who kept it occupied between visits.",
+      "present_hook": {
+        "what_you_notice": "An undelivered apology sits among a house's retained papers. Two siblings' separate family records show no later reunion at the old rental house.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the retained mail",
+            "line": "{A} addressed this to {B} in {year}. The house number was wrong, and the envelope came back unopened."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "comfortable"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "comfortable",
+          "relation": "siblings"
+        },
+        "C": {
+          "age": [
+            18,
+            25
+          ],
+          "wealth": "poor"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1985
+        ],
+        "notes": "B is A's sibling. Bind a genuine undelivered noncoercive apology, an actual estrangement both could voluntarily reconsider, and an identifiable rental house available for a future voluntary joint purchase. C is a distinct potential later tenant, not assumed family. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:deliver_letter",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "With the sender's permission, deliver the unchanged returned envelope to the correct recipient."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.4
+            }
+          ],
+          "headline": "Delivered Apology Begins a Sibling Reconciliation",
+          "body": "After reading the genuine apology, {B} chose to reopen contact with {A}. Both agreed to a gradual reconciliation."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "purchase_joint_home": [
+                "A",
+                "B"
+              ],
+              "site": "the bound rental house"
+            },
+            {
+              "lease_home": "C",
+              "site": "the bound rental house"
+            }
+          ],
+          "headline": "Reconciled Siblings Buy a House and Take a Tenant",
+          "body": "{A} and {B} completed a funded joint purchase of the identified house. Tenant {C} accepted a lawful rental agreement while the siblings planned occasional future visits."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "convert_use": "the bound rental house",
+              "to": "the siblings' permitted reunion house"
+            },
+            {
+              "relocate_household": "C",
+              "to": "the bound consented replacement rental"
+            },
+            {
+              "wealth": "C",
+              "by": -0.1
+            }
+          ],
+          "headline": "Reunion House Opens after a Tenant's Agreed Move",
+          "body": "The siblings completed the approved conversion after {C} voluntarily moved under a lawful funded agreement. {C} paid the documented net moving and setup contribution."
+        }
+      ],
+      "fails": {
+        "chance": 0.3,
+        "effects": [],
+        "headline": "Delivered Letter Does Not Repair the Estrangement",
+        "body": "{B} received the genuine letter but did not agree to renewed contact with {A}. Delivery did not create forgiveness."
+      },
+      "present_day": {
+        "best": "In {now}, the identified house is a permitted reunion house rather than C's former rental home. C's replacement address and the building's current use follow actual later residence and ownership.",
+        "worst": "Failure leaves no invented reconciliation or joint purchase. The delivered letter remains a real part of what each recipient knows.",
+        "twist": "Two siblings recover somewhere to gather, while {C} gives up a familiar home and part of a limited reserve. Consent and an available replacement do not erase the personal cost of moving."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "I am glad they found each other again. I lived there on all the days they were still deciding when to visit."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "deliver_letter",
+          "does": "With A's permission and B's consent to accept delivery, transfer the existing returned envelope unchanged into B's possession and record its actual reading if B chooses. Correct only the delivery address. Do not invent its contents, compel reading, alter bonds directly or cancel a recipient's boundary."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose elapsed timing and independent chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Recheck every stated prerequisite before the roll. Apply the intervention once. fails.chance complements step 1; it is not independently rolled. Ineligibility reports its actual reason. Stop dependent steps on failure, preserving earlier changes. Resolve concurrent events in stable scenario-ID order with atomic fund, job and site reservations. Never create funds, qualifications, consent or public rights from prose. Ordinary later history continues; present text requires the recorded result still extant. After-lines require the specified step, actual knowledge and a living speaker.",
+        "Step 1 requires B actually choosing to read the bound apology and both siblings voluntarily reopening contact; the bond effect represents that recorded interaction, not delivery alone. Do not instantiate this scenario where renewed contact would contradict an established refusal or coercion boundary.",
+        "Add purchase_joint_home: execute a voluntary priced purchase of the identified house into explicitly recorded shares held by A and B, with real funds and available title. Add lease_home: grant C a real residential contract at an affordable agreed rent and record exclusive possession; relatives gain no unannounced entry rights.",
+        "Step 3 requires continued mutual reconciliation, actual demand for a reunion house, both owners' consent, planning approval, C still the lawful tenant, a voluntary settlement or valid lawful end of term, and an inspected affordable replacement C chooses. Add relocate_household: move C's real household and belongings to that specifically bound replacement only after its lease and possession are secured; never generate vacant housing by prose. The ten-percent debit is C's actual net moving/setup contribution after owners' compensation, affordable from available funds. Conversion and relocation are atomic; no eviction into homelessness. Gate C's line on step 3 and knowledge of the prior visiting plans."
+      ],
+      "era_notes": "The envelope, ownership documents and tenancy protections follow the relevant years. No digital communication is needed to make a wrong address matter.",
+      "why_fun": "A number on an envelope can change the address of a future home. The final reunion has a history somebody else spent living inside."
+    }
+  ]
+}

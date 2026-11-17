@@ -1,0 +1,666 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-8221",
+      "kind": "scenario",
+      "title": "The Reunion with Two More Chairs",
+      "category": "rescue",
+      "pitch": "Invest in a clinic's unfunded vaccine-storage project. Two children in the original class photograph may survive a later outbreak and grow into the adults missing from its reunion.",
+      "present_hook": {
+        "what_you_notice": "A class photograph and later outbreak obituaries identify two absent reunion guests. The clinic archive records a storage project canceled for lack of capital.",
+        "where": "the school archive",
+        "clues": [
+          {
+            "who": "the clinic records",
+            "line": "{A} canceled the vaccine-storage upgrade in {year}. The later prevention program never began."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "doctor's office"
+          ]
+        },
+        "C": {
+          "age": [
+            2,
+            5
+          ]
+        },
+        "D": {
+          "age": [
+            2,
+            5
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "doctor's office"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1980
+        ],
+        "notes": "shop belongs to licensed doctor A. Require an era-available effective vaccine, actual storage shortfall, C and D eligible for the modeled schedule and their baseline preventable outbreak deaths 26–28 years later. Present must be at least 28 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Fund inspected vaccine storage and its maintenance reserve through the clinic."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "install_cold_chain": "shop"
+            }
+          ],
+          "headline": "Clinic Completes Inspected Vaccine-Storage Upgrade",
+          "body": "The clinic run by {A} completed its funded vaccine-storage upgrade. The installation passed temperature and maintenance checks."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            9,
+            11
+          ],
+          "if": {
+            "step": 1,
+            "C": {
+              "alive": true
+            },
+            "D": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "immunize": [
+                "C",
+                "D"
+              ],
+              "program": "the bound validated vaccine schedule"
+            }
+          ],
+          "headline": "Prevention Program Reaches Two Local Pupils",
+          "body": "The clinic program completed eligible, consented prevention schedules for {C} and {D}. Their records retained the product, timing and follow-up details."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            26,
+            28
+          ],
+          "if": {
+            "step": 2,
+            "C": {
+              "alive": true
+            },
+            "D": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "prevent_outbreak_deaths": [
+                "C",
+                "D"
+              ],
+              "event": "the bound later outbreak"
+            },
+            {
+              "wealth": "A",
+              "by": -0.2
+            }
+          ],
+          "headline": "Earlier Prevention Changes Outcomes During an Outbreak",
+          "body": "During the outbreak, retained protection prevented the otherwise fatal outcomes for {C} and {D}. A pre-funded care reserve established by {A} helped cover the clinic's response."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "rep": "A",
+            "by": -0.03
+          }
+        ],
+        "headline": "Clinic Upgrade Cannot Pass Commissioning in Time",
+        "body": "The storage project at the clinic run by {A} failed commissioning within its funded window. No usable vaccine stock was recorded from the failed installation."
+      },
+      "present_day": {
+        "best": "In {now}, C and D have no death record from the bound outbreak. If each survives unrelated later events, both can attend the class reunion; the original outbreak memorial has two fewer names.",
+        "worst": "On first-step failure, the scenario grants no storage benefit or immunization. Later health outcomes follow the actual replay rather than a scripted death punishment.",
+        "twist": "Two more chairs can be filled, but the response uses a fifth of A's reserved personal funds. Prevention requires money and maintenance over decades, not one miraculous refrigerator."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "grateful",
+          "line": "I used to think a class photograph was just a photograph. I am glad we can still gather the people in it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing earlier effects. fails is the first-step roll's complement, not another roll. Apply interventions once. Persist people, objects, sites, funds and knowledge; invalidate dependent history on replay. Recheck survival, ownership, permission and resources. Gate present text and after-lines on actual surviving outcomes and informed living speakers. No forced unrelated events or repeated rewards.",
+        "Add install_cold_chain: purchase actual inspected storage, reliable power and funded maintenance; spoil stock after real failures. Do not imply a generic refrigerator makes any vaccine effective.",
+        "Add immunize: require qualified clinical staff, individual consent, era-appropriate eligibility, actual available product and a validated schedule with protection extending to the bound outbreak through documented boosters. Model actual efficacy, contraindications and adverse events; no immunity to unrelated disease.",
+        "Add prevent_outbreak_deaths: select the actual outbreak year in range, evaluate retained protection and cancel only the two identified fatal outcomes before death resolves. Both must still be alive and eligible; no resurrection. A's twenty percent contribution is reserved by an authorized funded care agreement while alive and debited exactly once on activation; if A has died require a legally funded estate reserve rather than spending a dead person's nonexistent wallet. Gate C's line on step 3, C alive and actual reunion participation."
+      ],
+      "era_notes": "Bind a disease and vaccine actually supported by the event decade and simulation evidence; if no valid durable schedule exists, reject the scenario.",
+      "why_fun": "The payoff is an ordinary reunion with more people in the room. The changed names on a memorial make prevention visible without pretending it was effortless."
+    },
+    {
+      "id": "scenario-20261117-8222",
+      "kind": "scenario",
+      "title": "The Clock That Kept the Square Awake",
+      "category": "money",
+      "pitch": "Fund a young repairer's tools. A trade learned at a kitchen table may eventually restore the town clock, while its renewed chimes become unwelcome to people living beside it.",
+      "present_hook": {
+        "what_you_notice": "The square's clock has stopped, and a repairer's old apprenticeship application records an unaffordable tool list. Nearby bedrooms face the silent tower.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} withdrew the repair apprenticeship application in {year}. The tower clock later fell silent."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            22
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "Require A's actual offered clock-repair apprenticeship, a tool shortfall, a repairable public tower clock and B's bound neighboring house. Present must be at least 27 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "large",
+          "how_it_looks": "Cover the apprenticeship tools and initial travel costs without buying a qualification."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            4,
+            6
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "qualify": "A",
+              "profession": "clock repairer"
+            }
+          ],
+          "headline": "Apprentice Completes Clock-Repair Training",
+          "body": "{A} completed supervised clock-repair training after acquiring the required tools. The new repairer returned with a trade rather than merely a toolbox."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "clock repair shop"
+            }
+          ],
+          "headline": "Clock Repair Shop Opens on Main Street",
+          "body": "{A} opened a funded clock-repair shop. The business began with household repairs and an application to inspect the tower mechanism."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            25,
+            27
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "restore_clock": "the bound public tower clock",
+              "repairer": "A"
+            },
+            {
+              "restore_chimes": "the bound public tower clock"
+            }
+          ],
+          "headline": "Restored Tower Clock Rings Across the Square Again",
+          "body": "A permitted restoration completed by {A} returned the tower clock to service. Its approved chime schedule brought a familiar sound back to nearby homes."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [
+          {
+            "wealth": "A",
+            "by": -0.05
+          }
+        ],
+        "headline": "Tool Purchase Does Not Lead to a Completed Apprenticeship",
+        "body": "{A} left the apprenticeship before completing the required work. Some tools were sold at a documented loss."
+      },
+      "present_day": {
+        "best": "In {now}, the tower clock shows time and sounds chimes on its actual operating schedule. Its mechanism and nearby sound levels remain subject to maintenance and later policy.",
+        "worst": "First-step failure creates no qualified repairer or scenario restoration. The tower remains silent unless ordinary later events repair it.",
+        "twist": "Residents regain a useful landmark and familiar sound, while nearby households lose the quiet they had grown used to. A restored tradition can still be a new disturbance."
+      },
+      "npc_lines_after": [
+        {
+          "who": "anyone",
+          "mood": "bitter",
+          "line": "I wanted the clock working. I had forgotten how close my bedroom is to its bell."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing earlier effects. fails is the first-step roll's complement, not another roll. Apply interventions once. Persist people, objects, sites, funds and knowledge; invalidate dependent history on replay. Recheck survival, ownership, permission and resources. Gate present text and after-lines on actual surviving outcomes and informed living speakers. No forced unrelated events or repeated rewards.",
+        "Add qualify for clock repairer: require actual supervised apprenticeship, demonstrated competence and funded travel/materials. The gift pays actual costs once; the five percent failure debit is equipment resale loss.",
+        "Add clock repair shop as a new business kind requiring funded premises and real repair demand. Step 2 records its business ID and A's continuing qualifications.",
+        "Add restore_clock and restore_chimes: require a repairable identified mechanism, qualified A, public permission, funded work and maintenance, inspection and an era-valid lawful chime schedule. Repair and sound restoration are separate persistent states. Recompute sound at B's original house for actual occupants. Gate the line on step 3, operating chimes and a resident who lived there during the silence."
+      ],
+      "era_notes": "Use mechanical work appropriate to the existing clock; do not replace its history with a modern mechanism without a documented approved alteration.",
+      "why_fun": "A gift changes what the player hears on returning to the square. The same chime can sound like home to one neighbor and lost sleep to another."
+    },
+    {
+      "id": "scenario-20261117-8223",
+      "kind": "scenario",
+      "title": "The Fund with a Public List",
+      "category": "money",
+      "pitch": "Introduce two neighbors whose separate emergency-fund proposals never joined. Their pooled effort may keep a family in its home, while the public accounting makes private hardship a lasting town record.",
+      "present_hook": {
+        "what_you_notice": "An empty family house has an old forced-sale notice. Separate proposals for a transparent emergency fund were filed by two residents who never organized together.",
+        "where": "the public hall",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} and {B} each proposed a hardship fund in {year}. Neither gathered the full committee."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "comfortable"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "comfortable",
+          "relation": "strangers",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "C": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "poor",
+          "has_children": true
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1985
+        ],
+        "notes": "B is a stranger to A. Require genuine unfunded proposals, C owning a recoverable distressed Main Street home and a baseline sale 24–26 years later. The proposed fund's recipient-reporting terms must be lawful and disclosed in advance. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the proposal authors and let them decide whether to pool their organizing work."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "establish_fund": "the transparent neighborhood hardship fund"
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.25
+            }
+          ],
+          "headline": "Neighbors Establish an Audited Emergency Fund",
+          "body": "{A} and {B} organized a funded neighborhood hardship reserve with an independent committee. Its published terms explained how grants and recipient names would be reported."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "endow_fund": "the scenario hardship fund"
+            }
+          ],
+          "headline": "Small Reserve Gains a Funded Long-Term Endowment",
+          "body": "The neighborhood fund acquired a lawful endowment after audited fundraising. Its committee retained independent eligibility and accounting rules."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "settle_arrears": "C",
+              "home": "the bound distressed house"
+            },
+            {
+              "publish_grant": "C",
+              "fund": "the scenario hardship fund"
+            }
+          ],
+          "headline": "Emergency Grant Stops a Scheduled Home Sale",
+          "body": "A verified grant settled the eligible arrears on the home of {C} before the scheduled sale. The fund's lawful public grant record included the recipient's name."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": 0.05
+          }
+        ],
+        "headline": "Hardship-Fund Proposals Remain Separate",
+        "body": "{A} and {B} found no workable funded committee arrangement. No joint reserve was opened."
+      },
+      "present_day": {
+        "best": "In {now}, C's house has no transfer from the prevented sale, subject to later ordinary title history. A public grant ledger contains the real aid entry and its disclosed recipient name.",
+        "worst": "On first-step failure, this fund supplies no grant. Other aid, repayment and housing protections still apply normally; do not force a sale merely because this proposal failed.",
+        "twist": "The family can keep its familiar door while losing control of who knows it needed help. Transparent accounting serves donors and can still feel exposing to recipients."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "The fund kept our door ours. I wish needing it had not become something anyone could look up."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing earlier effects. fails is the first-step roll's complement, not another roll. Apply interventions once. Persist people, objects, sites, funds and knowledge; invalidate dependent history on replay. Recheck survival, ownership, permission and resources. Gate present text and after-lines on actual surviving outcomes and informed living speakers. No forced unrelated events or repeated rewards.",
+        "Add establish_fund: require actual donations, a lawful independent committee, governing terms, auditing and no implied entitlement for friends. Consent to an introduction is not consent to donate; debit only explicit funded commitments.",
+        "Add endow_fund: transfer real donated assets under lawful stewardship, track returns and expenses and permit insolvency or closure under ordinary history. Founders need not survive; later trustees must maintain the actual reserve.",
+        "Add settle_arrears: require C still owning the home, verified eligible arrears, exhaustion of applicable protections, C's voluntary grant acceptance and sufficient unencumbered fund assets. Pay the actual creditor and cancel only the identified sale after documented settlement; retain unrelated debt.",
+        "Add publish_grant: record only the legally required and clearly disclosed recipient name, date and amount after C's informed acceptance, with applicable correction/redaction rights. Never reveal medical or unrelated family facts. Gate C's line on step 3, C alive and actual knowledge that the grant entry remains public."
+      ],
+      "era_notes": "Use the charity, title and reporting rules of each event decade. Paper ledgers can remain available without inventing an online search service in early years.",
+      "why_fun": "The saved house is a visible success, while a plain ledger preserves its uncomfortable price. A recipient can value the help and dislike the exposure."
+    },
+    {
+      "id": "scenario-20261117-8224",
+      "kind": "scenario",
+      "title": "The Fair Took the Wrong Turn",
+      "category": "uncanny",
+      "pitch": "Turn one temporary fair sign before the vendors arrive. An improvised gathering may become a permanent market hall, while a shop on the original route loses the trade the fair once promised.",
+      "present_hook": {
+        "what_you_notice": "A faded fairground sign points toward the old field. A vacant Main Street parcel has no market hall, and an old vendor map shows where the arrival routes split.",
+        "where": "the edge of town",
+        "clues": [
+          {
+            "who": "the fair committee papers",
+            "line": "The vendors followed the field arrow in {year}. The empty Main Street parcel was listed only as an emergency assembly site."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "ice cream parlor"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "A is the recorded fair organizer; B owns the shop beside the original field approach. Require a single decisive temporary sign, the actual vendor arrival event, a lawful safe emergency Main Street assembly parcel and ordinary baseline field-route trade. Present must be at least 28 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:turn_sign",
+          "how_it_looks": "Rotate the identified temporary arrow toward the approved emergency assembly parcel before the vendor group reaches it."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            0,
+            1
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "relocate_event": "the bound fair",
+              "site": "the emergency Main Street parcel"
+            },
+            {
+              "wealth": "B",
+              "by": -0.08
+            }
+          ],
+          "headline": "Misrouted Vendors Prompt an Improvised Town Fair",
+          "body": "Organizer {A} obtained emergency permission to hold the arriving fair group on Main Street. The field-route shop run by {B} lost trade after ordering for the expected crowd."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "establish_event": "the annual Main Street market fair",
+              "organizer": "A"
+            }
+          ],
+          "headline": "Improvised Fair Site Becomes an Annual Market Date",
+          "body": "A licensed annual market fair adopted the Main Street site after years of local organizing. The old field route was no longer its advertised approach."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            26,
+            28
+          ],
+          "if": {
+            "step": 2
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a covered public market hall",
+              "where": "Main Street"
+            },
+            {
+              "restrict_access": "the bound fair-day loading lane",
+              "route": "the former field approach"
+            }
+          ],
+          "headline": "Covered Market Opens on the Once-Empty Parcel",
+          "body": "A funded covered market hall opened on the approved Main Street parcel. Its delivery plan formalized the changed fair route and loading arrangements."
+        }
+      ],
+      "fails": {
+        "chance": 0.3,
+        "effects": [
+          {
+            "rep": "A",
+            "by": 0.05
+          }
+        ],
+        "headline": "Organizer Corrects a Turned Sign Before the Fair Arrives",
+        "body": "{A} noticed the misdirected temporary sign and corrected it before the vendor group arrived. The fair used its ordinary permitted field site."
+      },
+      "present_day": {
+        "best": "In {now}, a covered market hall stands on the original emergency parcel, with the changed fair loading route on its noticeboard. The original field-side shop has no guaranteed fair-day crowd.",
+        "worst": "If the first step fails, the sign is corrected and no scenario route change or market hall follows. Later fairs follow normal permission and demand.",
+        "twist": "The wrong turn may create a useful gathering place, but B's prepared stock and anticipated customers are real losses. A popular tradition can begin with a mistake that was not harmless."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "They call it the fair's lucky turn. I still remember the stock waiting for people who never came."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "turn_sign",
+          "does": "Rotate only the identified temporary directional sign before the bound arrival event. Change the route information available to the arriving vendor group until corrected; preserve the sign object, actual roads and all other knowledge. It cannot authorize a fair on private land, alter fixed maps or guarantee that drivers obey."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing earlier effects. fails is the first-step roll's complement, not another roll. Apply interventions once. Persist people, objects, sites, funds and knowledge; invalidate dependent history on replay. Recheck survival, ownership, permission and resources. Gate present text and after-lines on actual surviving outcomes and informed living speakers. No forced unrelated events or repeated rewards.",
+        "Step 1 resolves at the actual fair arrival within its range. It requires vendors following the mistaken sign, A's timely lawful emergency approval, safe capacity and willing vendors; otherwise the event returns to its normal plan without invented permission. B's eight percent debit is documented unsold perishables after mitigation, not duplicate lost hypothetical profit.",
+        "Add relocate_event: change only the bound fair's actual permitted venue, routes and attendance records. Keep participant identities and original reservations for cancellation accounting.",
+        "Add establish_event: require funded local approval, staffing, demand and a qualified consenting organizer. A may delegate to a lawful successor if no longer active; do not resurrect A when later events occur.",
+        "Step 3 requires an active viable market, lawful parcel acquisition, funded construction/maintenance and a permitted loading scheme. The restrict_access effect changes only the identified event-day loading-route assignment; it does not close the general public road or appropriate B's premises. Gate B's line on step 3, B alive and memory of the original unsold stock."
+      ],
+      "era_notes": "A hand-painted temporary arrow works throughout the window. If other route information makes it non-decisive, let the first step fail rather than disabling that information.",
+      "why_fun": "One crooked arrow can leave a building on the map decades later. The old field approach helps the player see who was left out of the new tradition."
+    }
+  ]
+}

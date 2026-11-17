@@ -1,0 +1,676 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-8521",
+      "kind": "scenario",
+      "title": "The Sewing Machine on the Porch",
+      "category": "family",
+      "pitch": "Help a parent start a small dress shop at home. The work may give an adult child a trade and the savings to leave, closing the household business your gift once made busy.",
+      "present_hook": {
+        "what_you_notice": "A porch has an unused sewing-machine space, and old papers record a parent who could not afford the start-up work. The adult child's later departure came without a shared local business.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the family papers",
+            "line": "{A} priced a sewing venture in {year}. Child {B} never worked at the proposed shop."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            40,
+            45
+          ],
+          "wealth": "poor",
+          "has_children": true,
+          "owns_shop": false,
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            12,
+            14
+          ],
+          "relation": "parent_child",
+          "trait": {
+            "ambition": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1985
+        ],
+        "notes": "A is B's parent. Require A's verified sewing skill, an approved Main Street home-workspace plan, actual unmet demand and B's later interest in the trade. Present must be at least 28 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "large",
+          "how_it_looks": "Fund the documented equipment and approved home-workspace shortfall."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "dress shop"
+            }
+          ],
+          "headline": "Home Dress Shop Opens Beside a Family Porch",
+          "body": "{A} opened a permitted dress shop in the approved home workspace. Customers began bringing fitting appointments to a formerly quiet porch."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            9,
+            11
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "hire": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.25
+            }
+          ],
+          "headline": "Adult Child Joins the Family Dress Shop",
+          "body": "{A} hired adult child {B} on agreed wages. The new worker gained paid experience and a personal savings reserve."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            26,
+            28
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "move_away": "B"
+            },
+            {
+              "close_founded_business": "A",
+              "kind": "dress shop"
+            },
+            {
+              "wealth": "A",
+              "by": -0.1
+            }
+          ],
+          "headline": "Child Takes an Outside Offer as Home Dress Shop Retires",
+          "body": "{B} accepted a verified job outside town while {A} chose retirement. The home dress shop closed after settling its final orders and expenses."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "wealth": "A",
+            "by": -0.05
+          }
+        ],
+        "headline": "Home Sewing Venture Stops Before Opening",
+        "body": "The venture planned by {A} did not secure enough paid orders within its opening window. Some equipment was resold at a loss."
+      },
+      "present_day": {
+        "best": "In {now}, the porch has no operating dress-shop counter and the business records show a productive run followed by retirement. B has a recorded voluntary departure, not a scripted death or abandonment.",
+        "worst": "First-step failure creates no family employer. The actual gift balance and equipment expenses remain accounted for, and B's later choices follow ordinary history.",
+        "twist": "The gift can help the child afford a life elsewhere rather than preserve a busy family home. A successful upbringing does not promise lifelong proximity."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I am proud of the work that got my child that offer. The porch is quieter than I expected."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing earlier effects. fails is the first-step complement, never an additional roll. Apply direct interventions once. Persist people, objects, businesses, sites, funds and knowledge; invalidate descendants on replay. Recheck survival, ownership and resources. Gate present text and after-lines by recorded outcomes, surviving features and informed living speakers. No forced unrelated events or duplicate rewards.",
+        "Step 1 requires A's actual skill, viable paid demand, funded equipment and lawful home-business use. Record the founded shop ID and separate it from household ownership.",
+        "Step 2 requires B adult, consenting and qualified for the paid tasks, with real wages and available work. Neither biological relation nor high ambition guarantees employment.",
+        "Add close_founded_business: resolve only the scenario dress shop, require A still owning it and voluntarily retiring, settle orders, staff and creditors and remove its operating signage. B's move requires a real outside offer, affordable relocation and voluntary acceptance; A's ten percent debit is actual uncovered closure expense, not punishment for the child leaving. Gate A's line on step 3, A alive and B still living elsewhere."
+      ],
+      "era_notes": "Use sewing equipment and garment demand available in the relevant decade. Keep the outside employer unnamed.",
+      "why_fun": "The same porch changes from quiet to busy and back again. The empty counter can mark a successful chapter rather than a failed gift."
+    },
+    {
+      "id": "scenario-20261117-8522",
+      "kind": "scenario",
+      "title": "The Oven That Heated the Block",
+      "category": "business",
+      "pitch": "Invest in a bakery's heat-recovery proposal. Warmth that once escaped through the roof may eventually serve nearby buildings, while the old fuel yard loses its customers.",
+      "present_hook": {
+        "what_you_notice": "A bakery vents unused heat beside buildings using separate boilers. An unfunded recovery proposal sits near the fuel yard's old delivery map.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the utility archive",
+            "line": "{A} proposed recovering oven heat in {year}. The financing failed, and every building kept its separate fuel deliveries."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bakery"
+          ]
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "fuel merchant"
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "bakery"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "shop belongs to A; B owns the bound local fuel yard. Require a technically feasible heat-recovery design, suitable nearby demand, viable backup heating and B's real reliance on the affected delivery accounts. Present must be at least 29 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Fund the inspected pilot recovery equipment and its maintenance reserve."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "recover_heat": "shop"
+            }
+          ],
+          "headline": "Bakery Pilot Captures Heat Once Lost Through the Roof",
+          "body": "The bakery run by {A} commissioned an inspected heat-recovery pilot. Measured usable output replaced estimates in the project file."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a limited shared heating connection",
+              "where": "Main Street"
+            }
+          ],
+          "headline": "Measured Bakery Heat Supports a Shared Heating Line",
+          "body": "A funded shared connection supplied suitable nearby buildings with recovered heat. Independent backup heating remained part of the approved design."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            27,
+            29
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "close_owned_business": "B",
+              "kind": "fuel merchant"
+            }
+          ],
+          "headline": "Fuel Yard Closes After Its Delivery Base Shrinks",
+          "body": "The fuel yard run by {B} closed after sustained losses of delivery accounts to the functioning shared heating service. Customers retained the service and backup arrangements recorded in their contracts."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "rep": "A",
+            "by": -0.03
+          }
+        ],
+        "headline": "Bakery Recovery Pilot Produces No Usable Commissioned Output",
+        "body": "The proposed recovery installation at the bakery run by {A} failed its commissioning tests. Actual project expenses remained recorded, but no heating benefit was credited."
+      },
+      "present_day": {
+        "best": "In {now}, a shared heating connection and its service equipment are visible on the block, while the bound fuel yard has closed. Actual warmth depends on current supply, operation and backup systems.",
+        "worst": "First-step failure produces no shared heat or scenario fuel-yard closure. Later heating improvements remain possible through ordinary history.",
+        "twist": "Less wasted heat can reduce a whole block's fuel demand while removing a local livelihood. Efficiency does not create replacement work automatically."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I understand why they wanted the warmth. I used to know every door on that delivery route."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing earlier effects. fails is the first-step complement, never an additional roll. Apply direct interventions once. Persist people, objects, businesses, sites, funds and knowledge; invalidate descendants on replay. Recheck survival, ownership and resources. Gate present text and after-lines by recorded outcomes, surviving features and informed living speakers. No forced unrelated events or duplicate rewards.",
+        "Add fuel merchant as a business kind with real inventory, delivery accounts, staff and prices; bind B's original yard ID.",
+        "Add recover_heat: require era-supported engineering, actual measured output, food-safe separation, inspection and funded operation. Debit investment through actual costs once and preserve unspent capital on failure.",
+        "Step 2 requires an active viable heat source, lawful connections, a funded costed design, adequate temperatures and independent safe backups. Use actual recovered energy; never multiply heat or promise a warm block after the bakery closes.",
+        "close_owned_business requires B still owning the yard and actual sustained insolvency after customer shifts and reasonable adaptations. Settle staff, stock and creditors normally. Gate B's line on step 3, B alive and the original delivery memories."
+      ],
+      "era_notes": "Use only technically supported heat-recovery and distribution designs for the event decade; otherwise reject the scenario.",
+      "why_fun": "The ripple travels through pipes rather than a family tree. A quiet fuel yard makes a successful efficiency project less abstract."
+    },
+    {
+      "id": "scenario-20261117-8523",
+      "kind": "scenario",
+      "title": "The Chess Table by the Door",
+      "category": "family",
+      "pitch": "Introduce a lonely older player to a child who wants to learn chess. The lessons may become a toy-shop club and then an indoor venue, while the original free drop-in table becomes a reserved space.",
+      "present_hook": {
+        "what_you_notice": "A scratched chess table sits unused outside a public hall. A school request for a volunteer teacher never found a match.",
+        "where": "the public hall",
+        "clues": [
+          {
+            "who": "the school records",
+            "line": "{B} asked for chess lessons in {year}. {A} offered to teach, but the requests were never paired."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            65,
+            70
+          ]
+        },
+        "B": {
+          "age": [
+            10,
+            13
+          ],
+          "trait": {
+            "diligence": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1985
+        ],
+        "notes": "Require A's real willingness and chess competence, B's supervised request, the existing free public table and a later viable vacant toy-shop site. Present must be at least 28 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange a supervised lesson at the public table after both agree."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.3
+            },
+            {
+              "teach_skill": "B",
+              "skill": "chess"
+            }
+          ],
+          "headline": "Volunteer and Pupil Give the Hall Table a New Routine",
+          "body": "{A} began supervised chess lessons with pupil {B}. The outdoor table acquired regular games without an entry fee."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "B",
+              "kind": "toy store"
+            },
+            {
+              "establish_event": "the toy-shop chess club",
+              "organizer": "B"
+            }
+          ],
+          "headline": "Former Pupil Opens a Toy Store with a Chess Club",
+          "body": "{B} opened a funded toy store and organized a regular chess club. The remembered lessons provided a beginning, not a guarantee of business success."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            26,
+            28
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "an indoor chess-club room",
+              "where": "Main Street"
+            },
+            {
+              "reserve_table": "the bound free hall chess table",
+              "for": "the scenario club sessions"
+            }
+          ],
+          "headline": "Indoor Chess Room Adds Scheduled Reservations",
+          "body": "The club organized by {B} opened a funded indoor room with a permitted use agreement for the old hall table during scheduled sessions. Casual users lost unrestricted access at those times."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": 0.05
+          }
+        ],
+        "headline": "Friendly First Lesson Does Not Become a Regular Arrangement",
+        "body": "{A} and {B} enjoyed a supervised game but could not arrange continuing lessons. The public table remained available under its existing rules."
+      },
+      "present_day": {
+        "best": "In {now}, a toy-store premises and indoor chess room exist, with a posted reservation schedule at the original public table. Current club activity and ownership follow replay.",
+        "worst": "First-step failure creates no taught chess proficiency, store or club through this chain. B can learn elsewhere and A can teach others under ordinary history.",
+        "twist": "A free intergenerational lesson grows into a better-equipped institution, but institutional scheduling limits the table that originally welcomed anyone."
+      },
+      "npc_lines_after": [
+        {
+          "who": "anyone",
+          "mood": "bitter",
+          "line": "I like that people still play. I used to be able to sit down here without checking whose session it was."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing earlier effects. fails is the first-step complement, never an additional roll. Apply direct interventions once. Persist people, objects, businesses, sites, funds and knowledge; invalidate descendants on replay. Recheck survival, ownership and resources. Gate present text and after-lines by recorded outcomes, surviving features and informed living speakers. No forced unrelated events or duplicate rewards.",
+        "Add teach_skill: track actual supervised lessons and incremental proficiency, never grant mastery from one meeting. Require appropriate child safeguarding and consent; no invented parental relationship.",
+        "Step 2 requires B adult, adequate business skill and capital, a lawful site and actual club demand. establish_event records staffing, venue, budget and recurring sessions that may lapse.",
+        "Step 3 requires an active funded club, lawful construction and a public authority's reviewed limited table-use agreement, with accessible public hours retained. Add reserve_table: restrict only listed club-session slots, update signage and interactions and expire reservations when the club closes. The indoor room does not swallow the outdoor table or duplicate it. The after-line requires a living former casual user and an active reservation."
+      ],
+      "era_notes": "Use physical chess sets and posted schedules throughout. Online play is optional later and never required for the chain.",
+      "why_fun": "A scratched tabletop becomes a place with a history the player helped create. Its reservation sign shows how even a welcoming tradition can change as it grows."
+    },
+    {
+      "id": "scenario-20261117-8524",
+      "kind": "scenario",
+      "title": "The Numbers Before the Drawing",
+      "category": "money",
+      "pitch": "Tell a resident the winning number you learned from the original town raffle. A funded department store may follow, while a smaller shop loses customers to a fortune that arrived by an impossible route.",
+      "present_hook": {
+        "what_you_notice": "The raffle archive records a winning number and an unclaimed prize. A never-funded department-store proposal sits beside an open small bakery.",
+        "where": "the Gazette archive",
+        "clues": [
+          {
+            "who": "the raffle records",
+            "line": "The number drawn in {year} went unclaimed. {A} never found capital for the larger store."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            25
+          ],
+          "wealth": "poor",
+          "owns_shop": false,
+          "trait": {
+            "ambition": "high"
+          }
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bakery"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "Require a lawful fixed-number raffle with the baseline prize unclaimed, A able to afford the available numbered ticket, the actual drawing unaffected by intervening choices, a vacant department-store site and B's bakery competing with its planned food counter. Present must be at least 27 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:tell_number",
+          "target": "A",
+          "how_it_looks": "Disclose the verified original drawing number before its still-available ticket can be bought."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            0,
+            1
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "award_prize": "A",
+              "drawing": "the bound town raffle"
+            }
+          ],
+          "headline": "Previously Unclaimed Raffle Number Gains a Buyer",
+          "body": "{A} bought the available winning-number ticket and lawfully claimed the funded raffle prize. The buyer declined to explain the unusual confidence behind the purchase."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            8,
+            10
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "department store"
+            }
+          ],
+          "headline": "Raffle Winner Opens the Long-Proposed Department Store",
+          "body": "{A} opened a funded department store after years of planning and capital management. Its licensed food counter joined the clothing and household departments."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            25,
+            27
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "close_owned_business": "B",
+              "kind": "bakery"
+            },
+            {
+              "rep": "A",
+              "by": 0.08
+            }
+          ],
+          "headline": "Small Bakery Closes as Department-Store Counter Expands",
+          "body": "The bakery run by {B} closed after sustained customer losses to the department store founded by {A}. The larger store's success left a smaller counter empty."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": 0.03
+          }
+        ],
+        "headline": "Resident Declines an Unexplained Raffle Tip",
+        "body": "{A} declined the unusual number tip and discussed the odd encounter with neighbor {B}. The bound winning ticket remained unclaimed under the baseline drawing."
+      },
+      "present_day": {
+        "best": "In {now}, a department-store building occupies the proposed site and B's bakery has a recorded closure. The raffle register records a legitimate claim where the original branch recorded none.",
+        "worst": "On first-step failure, A receives no prize and no scenario store follows. The player cannot obtain a payout merely by repeating the same information.",
+        "twist": "An unexplained windfall can finance useful shops while displacing an existing baker. The lucky resident's prosperity does not make the original small business obsolete by moral right."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "uncanny",
+          "line": "I still have the number written down. I cannot explain why that visitor knew it before the drawing."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "tell_number",
+          "does": "Privately disclose one verified original-branch raffle result to A before ticket sales close. Add that communicated fact and its uncertain provenance to A's knowledge; do not force a purchase, create a ticket or alter the drawing. Reject if the ticket is sold, the drawing has changed or the player lacks the actual prior result."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing earlier effects. fails is the first-step complement, never an additional roll. Apply direct interventions once. Persist people, objects, businesses, sites, funds and knowledge; invalidate descendants on replay. Recheck survival, ownership and resources. Gate present text and after-lines by recorded outcomes, surviving features and informed living speakers. No forced unrelated events or duplicate rewards.",
+        "Bind the raffle event, available numbered ticket, fixed seeded drawing and a real escrowed prize. The first-step roll represents A voluntarily purchasing that exact ticket; the drawing is not rerolled. award_prize debits escrow, verifies the legal ticket and claims the existing prize once, never mints a fraction of A's money.",
+        "Keep original-branch knowledge separate from current-branch facts. A knows what the player said, not all erased history; changes that alter the actual drawing invalidate the prediction. Track ticket identity and claims so visits and object transfers cannot duplicate payouts.",
+        "Add department store as a business kind with separately costed departments, food licensing, staffing and actual demand. Founding requires saved prize capital after real living costs and a permitted vacant site, not automatic growth from winning.",
+        "Step 3 requires both original owners still operating their bound businesses and actual sustained competitive losses at B's bakery after adaptations. close_owned_business settles staff and creditors normally. Gate A's line on step 3, A alive and the retained memory of the tip."
+      ],
+      "era_notes": "Use a simple local numbered raffle with a genuinely fixed drawing supported by the simulation. If raffle law or mechanics do not support this setup, reject rather than guarantee magical gambling knowledge.",
+      "why_fun": "The player uses remembered history rather than a larger wallet. The claimed-prize entry and changed storefronts expose the cost of that unfair advantage."
+    }
+  ]
+}

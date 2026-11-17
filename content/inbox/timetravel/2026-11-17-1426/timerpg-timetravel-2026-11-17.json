@@ -1,0 +1,619 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-8661",
+      "kind": "scenario",
+      "title": "The First Month's Dues",
+      "category": "money",
+      "pitch": "Give a mill worker the small sum needed to join a proposed bargaining association. Better pay may follow, while a later downturn leaves a closed mill and a record of wages worth defending.",
+      "present_hook": {
+        "what_you_notice": "The mill still operates at low wages in the original present. An old membership form shows a worker who never joined the organizing group because the initial fee was out of reach.",
+        "where": "the mill",
+        "clues": [
+          {
+            "who": "the workers' records",
+            "line": "{A} left the membership line blank in {year}. The bargaining proposal never gathered the required support."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            28
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "mill"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "A is B's actual paid mill employee. Require a lawful organizing effort with an independently verified support threshold, A's fee shortfall and a mill that remains viable initially but faces a modeled demand downturn 27\u201329 years later. Present must be at least 29 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Cover the initial fee while leaving the worker free to decide whether to join."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "join_association": "A",
+              "association": "the bound mill bargaining group"
+            }
+          ],
+          "headline": "Worker Joins a Bargaining Group with Enough Support to Proceed",
+          "body": "{A} joined the lawful mill bargaining group after paying its initial fee. Verified participation reached the threshold for the next organizing stage."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            10,
+            12
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "adopt_contract": "the bound mill",
+              "terms": "the negotiated funded wage and safety agreement"
+            }
+          ],
+          "headline": "Mill Adopts a Negotiated Wage and Safety Agreement",
+          "body": "The mill adopted a funded negotiated agreement after lawful bargaining. Workers received the recorded wage and safety changes rather than an assumed prosperity windfall."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            27,
+            29
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.5,
+          "effects": [
+            {
+              "close_owned_business": "B",
+              "kind": "mill"
+            }
+          ],
+          "headline": "Mill Closes After Demand Falls Below Sustainable Output",
+          "body": "The mill run by {B} closed after a sustained demand downturn exhausted its resources. Its negotiated obligations remained part of the final settlement."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Worker Keeps the Gift but Declines Membership",
+        "body": "{A} declined to join the proposed group and retained the unspent gift. The required organizing threshold was not reached through this effort."
+      },
+      "present_day": {
+        "best": "In {now}, the mill has a recorded closure and its posted labor agreement survives in the archive. Former workers' actual earnings and subsequent lives reflect the earlier contract years.",
+        "worst": "First-step failure creates no scenario contract or closure. The mill's later survival follows actual demand and costs, not a guarantee that low wages preserve jobs.",
+        "twist": "Higher wages can matter for many years even when the employer eventually fails. The worker's gain and the town's later empty mill are both real; neither alone explains the whole history."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "The mill is shut. Those better pay envelopes still fed us while it was open."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, roles and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without undoing prior effects. fails is the first-step complementary result, never a separate roll. Apply interventions once. Persist people, objects, sites, funds and knowledge; replay invalidates descendants. Recheck survival, ownership, consent and resources. Present text and after-lines require recorded outcomes, surviving features and informed living speakers. No forced unrelated events or duplicate rewards.",
+        "Add join_association: require voluntary membership, lawful dues and real independent participation. The gift enters A's money once. On refusal, preserve the actual unspent gift balance without any additional wealth effect.",
+        "Add join_association: require voluntary membership, lawful dues and real independent participation. The gift enters A's money once. On refusal, the three percent wealth effect is an idempotent presentation of retained gift balance capped to the actual unspent gift, not an additional cash award.",
+        "Add adopt_contract: require legal bargaining, verified representation, negotiated consent where required and a financially feasible agreement. Track real wages, safety spending and employee earnings annually; do not simply label the contract expensive.",
+        "Step 3 requires B still owning the mill, actual demand losses and insolvency after feasible adaptations. Compare the baseline cost path before attributing any difference to this intervention; do not imply labor rights universally close businesses. Settle employees and creditors under actual rules. A's line requires step 3, A alive and real contract-period earnings."
+      ],
+      "era_notes": "Use period-valid organizing, employment and settlement rules. Keep the association unnamed and avoid real labor organizations.",
+      "why_fun": "A very small gift changes years of pay rather than instantly creating a landmark. The empty mill does not erase those intervening lives."
+    },
+    {
+      "id": "scenario-20261117-8662",
+      "kind": "scenario",
+      "title": "The Song Behind the Shop Window",
+      "category": "business",
+      "pitch": "Invest in a music store's recording booth. A local songwriter may gain an audience and income, while the town's amateur group loses its free permission to perform a favorite tune.",
+      "present_hook": {
+        "what_you_notice": "A music-store booth plan remains unbuilt. A handwritten local tune is freely used by the amateur group but has no recorded edition.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the music-store papers",
+            "line": "{A} priced a recording booth in {year}. The tune later written by {B} remained an unrecorded local favorite."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "music store"
+          ]
+        },
+        "B": {
+          "age": [
+            10,
+            14
+          ],
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "shop": {
+          "shop_kind": [
+            "music store"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1985
+        ],
+        "notes": "shop belongs to A. Require a viable recording-booth plan, B's baseline later original composition, an actual revocable no-fee performance permission and a voluntary later publishing offer. Present must be at least 28 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Fund the quoted booth, safe electrical work and its operating reserve."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "build": "a licensed music-store recording booth",
+              "where": "Main Street"
+            }
+          ],
+          "headline": "Music Store Opens a Funded Recording Booth",
+          "body": "{A} opened an inspected recording booth at the music store. Local musicians gained a real place to make paid recordings."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "record_work": "the bound original tune",
+              "artist": "B"
+            }
+          ],
+          "headline": "Local Songwriter Records a Familiar Tune",
+          "body": "{B} recorded an original tune after agreeing to the studio terms. Authorship and the existing amateur performance permission were entered in the contract file."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            26,
+            28
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "license_work": "the scenario recording",
+              "artist": "B"
+            },
+            {
+              "change_performance_permission": "the bound amateur group",
+              "work": "the bound tune"
+            }
+          ],
+          "headline": "Publishing Deal Changes Terms for a Local Favorite",
+          "body": "{B} accepted a funded publishing deal with actual royalty payments. After the lawful end of its revocable no-fee permission, the amateur group removed the tune rather than pay for a new license."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "rep": "A",
+            "by": -0.03
+          }
+        ],
+        "headline": "Recording-Booth Project Cannot Complete Commissioning",
+        "body": "The booth proposed by {A} did not pass commissioning within the funded window. No working studio or recordings were credited to the failed installation."
+      },
+      "present_day": {
+        "best": "In {now}, the music-store booth has a recorded opening and B's licensed recording exists in the collection. The amateur group's current program omits the formerly free tune unless permission has later been renewed.",
+        "worst": "First-step failure creates no recording or publishing chain. B still owns any actual composition and may develop it elsewhere.",
+        "twist": "Professional recognition can pay its creator while making a shared local pleasure less freely available. The old audience and the songwriter can both have legitimate interests."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I am glad the song finally paid me. I miss hearing the hall sing it without a discussion about terms."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, roles and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without undoing prior effects. fails is the first-step complementary result, never a separate roll. Apply interventions once. Persist people, objects, sites, funds and knowledge; replay invalidates descendants. Recheck survival, ownership, consent and resources. Present text and after-lines require recorded outcomes, surviving features and informed living speakers. No forced unrelated events or duplicate rewards.",
+        "Step 1 requires actual equipment, funds, inspection, acoustic suitability and operating staff. Spend investment once; do not create free ongoing recordings.",
+        "Add record_work: require B adult, the original tune actually composed and owned by B, trained performers, a funded session and a specific recording object. Never create a composition from childhood diligence alone; retain the existing permission's actual terms.",
+        "Add license_work: require B's informed contract, a real publisher, lawful rights, market demand and actual royalty transfers from sales or advances. Add change_performance_permission: only alter a genuinely revocable permission after its proper termination and notice; never override public-domain status or irrevocable licenses. Record the amateur group's voluntary program change after a real unaffordable quote. Gate B's line on step 3, B alive and knowledge of both royalties and the changed program."
+      ],
+      "era_notes": "Use recording media and rights rules appropriate to each year; no brand names, real songs or future formats in an early booth.",
+      "why_fun": "The same tune sounds different when it becomes someone's livelihood. A changed program on the hall door makes the commercial ripple visible."
+    },
+    {
+      "id": "scenario-20261117-8663",
+      "kind": "scenario",
+      "title": "The Neighbors with Two Hives",
+      "category": "place",
+      "pitch": "Introduce two inexperienced hive keepers before both abandon their projects. Their shared apiary may later move away from homes, preserving the bees while taking space from an informal dog-exercise field.",
+      "present_hook": {
+        "what_you_notice": "Two empty hive stands appear in old garden photographs. A public edge-of-town field remains an informal place to exercise dogs.",
+        "where": "the edge of town",
+        "clues": [
+          {
+            "who": "the garden-club papers",
+            "line": "{A} and {B} asked separate hive-care questions in {year}. Neither found a partner before giving up."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by",
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "B is a stranger to A. Require actual permitted hive projects, available qualified instruction, appropriate forage and a later approved apiary lease option on part of the informal public dog field. Present must be at least 29 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the two project holders at a qualified local hive-care session."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.25
+            },
+            {
+              "establish_agreement": "the jointly supervised hive-care plan"
+            }
+          ],
+          "headline": "Neighbors Combine Their Hive-Care Plans",
+          "body": "{A} and {B} agreed to shared costs and qualified supervision for their permitted hives. The two small projects gained a workable care schedule."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_apiary": "the bound neighborhood hive collection"
+            }
+          ],
+          "headline": "Shared Hive Project Becomes a Maintained Apiary",
+          "body": "The surviving supervised hives became a maintained apiary with recorded health checks and a funded care plan. Expansion remained limited by forage and neighborhood conditions."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            27,
+            29
+          ],
+          "if": {
+            "step": 2
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "relocate_apiary": "the scenario hive collection",
+              "to": "the approved edge-of-town field parcel"
+            },
+            {
+              "repurpose_space": "the bound field portion",
+              "use": "the scenario managed apiary"
+            }
+          ],
+          "headline": "Apiary Moves to Reviewed Edge-of-Town Site",
+          "body": "A permitted relocation moved the managed apiary away from the residential plots. Its leased field portion was fenced, reducing the area available for informal dog exercise."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": 0.05
+          }
+        ],
+        "headline": "Friendly Hive-Care Meeting Produces No Shared Plan",
+        "body": "{A} and {B} could not arrange a funded care schedule after their introduction. Each project followed its actual later husbandry decisions."
+      },
+      "present_day": {
+        "best": "In {now}, a managed fenced apiary occupies the approved field portion, and the original home plots have no scenario hives. Colony survival and current operation follow real husbandry and climate.",
+        "worst": "First-step failure creates no cooperative apiary. It does not force bee deaths or deny ordinary qualified help.",
+        "twist": "Moving the hives can reduce residential conflicts while removing a patch of easy space for dog walkers. Care for one use does not leave every other use untouched."
+      },
+      "npc_lines_after": [
+        {
+          "who": "anyone",
+          "mood": "bitter",
+          "line": "I am glad the hives found a proper place. My dog and I used to use that corner."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, roles and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without undoing prior effects. fails is the first-step complementary result, never a separate roll. Apply interventions once. Persist people, objects, sites, funds and knowledge; replay invalidates descendants. Recheck survival, ownership, consent and resources. Present text and after-lines require recorded outcomes, surviving features and informed living speakers. No forced unrelated events or duplicate rewards.",
+        "establish_agreement requires real voluntary contributions, permitted hive locations, qualified instruction and care obligations. Track actual colonies, disease, forage and seasonal survival, never unlimited bees or guaranteed honey.",
+        "Add establish_apiary: consolidate only the surviving identified colony and equipment records, with actual funds, competent operators and era-valid biosecurity. A qualified successor may continue if either founder dies.",
+        "Add relocate_apiary: require approved land rights, ecological and neighbor review, safe separation, a funded move and enough forage; transfer actual colonies rather than copying them. repurpose_space affects only the leased portion after public review, retaining a safe lawful alternative dog-exercise area where required. Gate the line on step 3 and an actual former user of that corner."
+      ],
+      "era_notes": "Use region-appropriate bee management and local rules rather than claiming every town supports the same species or disease controls.",
+      "why_fun": "The ripple moves living things instead of simply constructing a new shop. Two empty stands become a fenced corner with a different kind of activity."
+    },
+    {
+      "id": "scenario-20261117-8664",
+      "kind": "scenario",
+      "title": "The Book That Skipped Its Author's Youth",
+      "category": "uncanny",
+      "pitch": "Show a young writer a book the same person authored in the original present. A new early edition may borrow that future voice, while later corrections expose which passages belong to a history the town never lived.",
+      "present_hook": {
+        "what_you_notice": "A locally authored book records ordinary streets, losses and meetings from the original timeline. Its early-draft note dates the author's first abandoned attempt.",
+        "where": "the library",
+        "clues": [
+          {
+            "who": "the book's draft note",
+            "line": "{A} abandoned an early draft in {year}. The finished book came decades later, after the events it describes."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            22
+          ],
+          "trait": {
+            "ambition": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1985
+        ],
+        "notes": "Require a real original-branch book authored by older A, a preserved lawful player copy, a known abandoned early draft and at least one dated passage invalidated by this intervention's altered A history. Present must be at least 29 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:show_book",
+          "target": "A",
+          "how_it_looks": "Let the young writer inspect the actual carried later-life book, making clear that its described future is not guaranteed."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "compile_work": "the alternate draft",
+              "writer": "A",
+              "source": "the carried original-branch book"
+            }
+          ],
+          "headline": "Young Writer Completes a Draft from an Unusual Source",
+          "body": "{A} completed an early draft using an attributed book of uncertain temporal provenance. Dated descriptions were labeled speculative rather than verified future facts."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "publish_work": "the scenario alternate draft",
+              "editor": "A"
+            }
+          ],
+          "headline": "Local Writer Publishes an Alternate Town Chronicle",
+          "body": "{A} published a funded alternate chronicle with the source and speculative dates disclosed. Readers encountered streets they recognized and events that had not happened as described."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            27,
+            29
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "build": "a public alternate-history quotation panel",
+              "where": "Main Street"
+            },
+            {
+              "annotate_work": "the scenario published chronicle",
+              "status": "compared with actual replay"
+            }
+          ],
+          "headline": "Town Exhibit Sets an Alternate Chronicle Beside Actual Records",
+          "body": "A funded panel quoted the chronicle alongside checked current records. Annotations distinguished imagined or displaced events from the history residents had actually lived."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [
+          {
+            "rep": "A",
+            "by": 0.02
+          }
+        ],
+        "headline": "Young Writer Declines to Borrow a Later Voice",
+        "body": "{A} declined to build the early draft around the unfamiliar later-life book. The actual subsequent writing career remained open."
+      },
+      "present_day": {
+        "best": "In {now}, the library holds the early alternate chronicle and a quotation panel compares it with real town records. The player's source copy retains original-branch provenance rather than becoming proof every dated passage occurred here.",
+        "worst": "On first-step failure, the shown book exists only under its recorded carried-copy provenance and no scenario edition or panel follows. A may write a different book normally.",
+        "twist": "The gift of a future voice can spare years of uncertainty while replacing the younger author's own path of discovery. The town gains a strange book but cannot recover the life that originally produced it merely by printing its words."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "uncanny",
+          "line": "I recognize the sentences. I do not recognize having lived long enough to write them when I first saw them."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "show_book",
+          "does": "Temporarily show A the actual lawfully carried original-branch book, preserving its stable object ID and player custody. Add only the inspected passages and disclosed provenance to A's knowledge. Do not transfer copyright, guarantee the predicted events, create another physical book or grant memories of the original branch."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, roles and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without undoing prior effects. fails is the first-step complementary result, never a separate roll. Apply interventions once. Persist people, objects, sites, funds and knowledge; replay invalidates descendants. Recheck survival, ownership, consent and resources. Present text and after-lines require recorded outcomes, surviving features and informed living speakers. No forced unrelated events or duplicate rewards.",
+        "Record the source edition's original-branch author ID, text hash, dated claims and lawful access. Inspection copies knowledge, not a physical object or guaranteed truth; the player's carried copy may persist even if its original edition is never written in the new branch.",
+        "Add compile_work: require A voluntarily creating and revising an actual text with sources identified. All facts in the original book are branch-scoped; map only independently checked current facts into NPC world knowledge. The chronicle may use displaced dates only as clearly labeled speculative or alternate material.",
+        "publish_work requires a real publisher, funded production, valid rights/consent and accurate source attribution. No automatic commercial success or professional skill from seeing a book. The younger author's copyright cannot simply be assumed from cross-branch identity; define a valid license before publication.",
+        "Add annotate_work: compare specific dated assertions against actual replay records without inventing missing events or witnesses. Step 3 requires A's consent, public permission, funded construction and a surviving edition. Panel quotations retain their alternate-history label. Gate A's line on step 3, A alive and real memory of the earlier inspection."
+      ],
+      "era_notes": "A physical book works throughout the window. Later editing and display methods must fit the event year, and no real author or title is named.",
+      "why_fun": "The player changes the source of a story about changing history. A familiar sentence can become the evidence that the writer's life went another way."
+    }
+  ]
+}

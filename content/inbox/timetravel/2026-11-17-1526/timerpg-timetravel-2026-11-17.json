@@ -1,0 +1,701 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-9261",
+      "kind": "scenario",
+      "title": "The Duet Behind the Door",
+      "category": "love",
+      "pitch": "Introduce two single adults who keep missing each other's music evenings. A shared life may fill an empty shop with lessons, then leave its last student looking for somewhere else to play.",
+      "present_hook": {
+        "what_you_notice": "Two separate home inventories contain complementary duet parts. A vacant shop between the houses never became the lesson room described in an unsigned proposal.",
+        "where": "the Gazette archive",
+        "clues": [
+          {
+            "who": "the music-evening notices",
+            "line": "{A} attended one evening in {year}; {B} attended the other. Neither signed up for the duet."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            40
+          ],
+          "married": false,
+          "wealth": "comfortable",
+          "owns_shop": false
+        },
+        "B": {
+          "age": [
+            35,
+            40
+          ],
+          "married": false,
+          "wealth": "comfortable",
+          "owns_shop": false
+        },
+        "C": {
+          "age": [
+            8,
+            12
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "Require A and B unrelated, mutually compatible adults with verified teaching-level musical skill, distinct homes, voluntary interest in a partner, and no existing partnership that this plot conceals. Bind a lawfully available Main Street music-shop premises and C's genuine later interest in lessons. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Bring the two musicians together with the duet parts and let them choose whether to stay."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "marry": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.3
+            }
+          ],
+          "headline": "Two Music-Evening Regulars Marry",
+          "body": "{A} and {B} married after a mutual courtship. The pair chose their own household arrangements."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "music store"
+            },
+            {
+              "hire": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "enroll_lessons": "C",
+              "provider": "A"
+            }
+          ],
+          "headline": "Duet Partners Open a Music Shop and Lesson Room",
+          "body": "{A} opened a funded music shop employing {B} under agreed terms. Adult learner {C} enrolled in its paid lessons."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "close_scenario_business": "A"
+            },
+            {
+              "convert_use": "the scenario music-shop premises",
+              "to": "a permitted accessible home for A and B"
+            },
+            {
+              "wealth": "C",
+              "by": -0.1
+            }
+          ],
+          "headline": "Music Shop Becomes the Teachers' Accessible Home",
+          "body": "The retiring teachers closed their shop and completed a funded residential conversion. Continuing learner {C} paid the documented net cost of moving lessons elsewhere."
+        }
+      ],
+      "fails": {
+        "chance": 0.3,
+        "effects": [],
+        "headline": "Duet Introduction Leads to Separate Plans",
+        "body": "{A} and {B} did not choose a shared courtship in the allotted window. Neither person's existing life was treated as a failed marriage."
+      },
+      "present_day": {
+        "best": "In {now}, the former lesson-room window belongs to an accessible home. A residential entrance replaces the music shop's public door; current occupancy follows the residents' actual later lives.",
+        "worst": "Failure creates no marriage or jointly inspired shop. The vacant premises may still change through ordinary history.",
+        "twist": "The teachers gain a home suited to retirement, while {C} loses a familiar lesson room and pays to continue elsewhere. Their happy ending closes someone else's weekly door."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "I am glad they can stay there. I still miss being allowed to knock and carry my instrument in."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key; roll independently using seed, scenario ID, intervention year, role IDs and step. All prerequisites are AND conditions. Check them before rolling. Apply the intervention once. First-roll failure uses fails.chance as its complement, never a separate roll; ineligibility reports the actual reason instead. Stop dependent steps after failure without undoing earlier effects. Resolve concurrent events in stable scenario-ID order with atomic resource and parcel reservations. Recheck survival, age, consent, funds and ownership. Later history remains active. Present descriptions require surviving recorded changes; dialogue requires its stated outcome, a living speaker and actual knowledge.",
+        "Marriage requires renewed mutual consent and both currently unmarried, unrelated and eligible. Do not infer an earlier spouse or bereavement; use the conditional alternate title stated in window.notes.",
+        "The music store requires the bound premises, priced purchase or lease, inventory, permits and sufficient actual capital; no grant accompanies marriage. B must consent to a real paid job. Add enroll_lessons: record C's voluntary funded lesson enrollment with the qualified provider, without inventing ability.",
+        "Add close_scenario_business: close only A's store created in step 2, identified by immutable business ID. Step 3 requires A and B still spouses, actual retirement consent, continuing ownership or lawful purchase of residential rights, funding, residential permission and safe accessible design. convert_use changes that exact premises; it cannot evict other occupants. C must still attend, voluntarily choose a qualified alternative, and have a priced relocation cost equal to the net ten-percent debit; otherwise step 3 is ineligible. Gate C's line on step 3 and memory of the room."
+      ],
+      "era_notes": "Use era-appropriate music inventory and accessibility construction. No particular instrument, prior spouse or lifelong teaching career is inferred.",
+      "why_fun": "The same doorway can mean a public welcome in one decade and a private refuge in another. A romance changes an ordinary weekly habit."
+    },
+    {
+      "id": "scenario-20261117-9262",
+      "kind": "scenario",
+      "title": "The Lure That Bought the Shore",
+      "category": "business",
+      "pitch": "Invest in a bait shop's tested lure design. A successful license may eventually buy its owner a private boathouse, on the shore where a poorer neighbor used to fish for free.",
+      "present_hook": {
+        "what_you_notice": "A bait-shop drawer contains a tested prototype and an unsigned manufacturing offer. Nearby, a privately owned shore parcel still permits free fishing by revocable permission.",
+        "where": "the bait shop",
+        "clues": [
+          {
+            "who": "the shop correspondence",
+            "line": "The offer to {A} expired in {year}. The prototype never reached the proposed production run."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bait shop"
+          ],
+          "trait": {
+            "ambition": "high"
+          }
+        },
+        "B": {
+          "age": [
+            20,
+            30
+          ],
+          "wealth": "poor"
+        },
+        "shop": {
+          "shop_kind": [
+            "bait shop"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1980
+        ],
+        "notes": "shop belongs to A. Bind an actual tested design, lawful licensing rights, a credible unaccepted offer needing development capital, and B's recorded free use of the shore parcel. Require a feasible future purchase and boating use, not public land that can simply be seized. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Finance the quoted tooling and testing needed for the bait shop's actual licensing offer."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "license_design": "shop",
+              "design": "the bound fishing lure"
+            }
+          ],
+          "headline": "Bait Shop Signs a Lure Manufacturing License",
+          "body": "The bait shop operated by {A} signed a verified manufacturing license for its developed lure. Payment depended on the actual contract and sales."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "purchase_parcel": "A",
+              "site": "the bound privately owned fishing shore"
+            }
+          ],
+          "headline": "Lure Earnings Help Pay for Shore Purchase",
+          "body": "{A} completed a voluntary market purchase of the identified shore parcel. Verified retained earnings paid the documented share of its price."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "build": "a private boathouse",
+              "where": "the river"
+            },
+            {
+              "revoke_permission": "B",
+              "site": "the bound fishing shore",
+              "activity": "free bank fishing"
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": -0.25
+            }
+          ],
+          "headline": "Private Boathouse Ends a Neighbor's Free Fishing Access",
+          "body": "A permitted private boathouse opened on the purchased shore. {A} lawfully ended the revocable free-fishing permission used by {B}, following an unsuccessful negotiation."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Lure Development Does Not Secure the License",
+        "body": "The funded development at the bait shop did not produce the proposed licensing agreement. Actual expenses remained expenses rather than imaginary royalties."
+      },
+      "present_day": {
+        "best": "In {now}, the identified shore parcel has a private boathouse and restricted access at its former free fishing entrance, if those rights and structures remain in force.",
+        "worst": "First-step failure creates no license or shore purchase. Fishing permission can still change through the real owner's ordinary decisions.",
+        "twist": "An investment in a fishing business ultimately takes a fishing place away from {B}. The useful invention and the closed gate belong to the same success."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I bought hooks there for years. The lure did fine; it was my place on the bank that disappeared."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key; roll independently using seed, scenario ID, intervention year, role IDs and step. All prerequisites are AND conditions. Check them before rolling. Apply the intervention once. First-roll failure uses fails.chance as its complement, never a separate roll; ineligibility reports the actual reason instead. Stop dependent steps after failure without undoing earlier effects. Resolve concurrent events in stable scenario-ID order with atomic resource and parcel reservations. Recheck survival, age, consent, funds and ownership. Later history remains active. Present descriptions require surviving recorded changes; dialogue requires its stated outcome, a living speaker and actual knowledge.",
+        "Add license_design: validate the bound intellectual-property rights and consensual manufacturing contract, debit real development costs and record only actual net royalties as sales occur. Step 2 requires sufficient retained funds, no insolvency or legal prohibition, and a consenting seller; deduct the actual purchase price. No automatic wealth multiplier is awarded.",
+        "Add purchase_parcel: transfer the specified existing privately owned parcel, price and encumbrances into A's ownership. Preserve public paths, easements and other people's rights. Step 3 requires A still owning it, a funded permitted boathouse, ecological approval and genuinely revocable permission to B rather than an enforceable access right.",
+        "Add revoke_permission: remove only the bound voluntary free bank-fishing permission after required notice. B must still use that permission, and the failed negotiation must occur before the one-time bond decrement. Never close public water or erase a lawful right of passage. Gate B's line on step 3, awareness of the ownership change and actual earlier hook purchases."
+      ],
+      "era_notes": "Manufacturing methods and license paperwork follow their decades. A private boathouse requires period-valid permits and never implies ownership of an entire river.",
+      "why_fun": "The player can follow a small invention from a shop drawer to a physical locked gate. Business success acquires an awkward human address."
+    },
+    {
+      "id": "scenario-20261117-9263",
+      "kind": "scenario",
+      "title": "The Photograph Nobody Collected",
+      "category": "rivalry",
+      "pitch": "Sabotage a photography studio during its fragile opening year. Its owner may turn a genuine second skill into a shoe-repair business, while an apprentice gives up the portrait work they hoped to learn.",
+      "present_hook": {
+        "what_you_notice": "A studio's display shows an uncollected opening-year portrait. A repair-course certificate in the owner's old records hints at another trade that never became a business.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the business archive",
+            "line": "{A} opened the studio in {year}. The earlier shoe-repair qualification was still valid, but the portrait trade kept {A.him} busy."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "photography studio"
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            16,
+            18
+          ],
+          "wealth": "poor"
+        },
+        "shop": {
+          "shop_kind": [
+            "photography studio"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1985
+        ],
+        "notes": "shop belongs to A. Require A's independently verified shoe-repair competence, a narrowly viable opening-year studio, a lawful feasible later repair-shop plan and B's real interest in a portrait apprenticeship. No equipment destruction, fire or physical injury is part of the sabotage. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "sabotage",
+          "business": "shop",
+          "how_it_looks": "Disrupt the studio's opening-year bookings through the game's existing business sabotage action."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "close_shop": "shop"
+            }
+          ],
+          "headline": "Opening-Year Losses Close the Portrait Studio",
+          "body": "The portrait studio operated by {A} closed after its actual opening-year losses made continued trading unviable. Its unsettled bookings followed the real refund process."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "shoe repair shop"
+            },
+            {
+              "hire": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Former Photographer Opens a Shoe-Repair Shop",
+          "body": "Using verified repair skills and newly secured capital, {A} opened a shoe-repair shop. {B} accepted a real paid repair apprenticeship rather than the old portrait plan."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "transfer_business": [
+                "A",
+                "B"
+              ],
+              "business": "the scenario shoe-repair shop"
+            },
+            {
+              "end_training_plan": "B",
+              "field": "the bound portrait apprenticeship"
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.2
+            }
+          ],
+          "headline": "Repair Apprentice Takes Over the Shop",
+          "body": "{B} completed a funded voluntary takeover of the repair shop from {A}. The old portrait-training plan was formally abandoned."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "Portrait Studio Survives the Disrupted Opening Year",
+        "body": "The studio operated by {A} remained viable after the recorded disruption. The lost bookings were still real; survival did not refund the harm."
+      },
+      "present_day": {
+        "best": "In {now}, a shoe-repair shop occupies its actual leased or purchased premises, with {B} recorded as its successor owner if still operating. The original photography studio is closed.",
+        "worst": "If step 1 fails, the studio survives that year's viability check and the scenario repair chain stops. Sabotage still costs the business its actual bookings.",
+        "twist": "A useful repair shop can grow from a cruel act without making that act kind. {A} lost a chosen business, and {B}'s paid succession comes with a portrait apprenticeship that never happened."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "I can keep a sole on a boot now. I still wonder whether I would have been any good with a portrait camera."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key; roll independently using seed, scenario ID, intervention year, role IDs and step. All prerequisites are AND conditions. Check them before rolling. Apply the intervention once. First-roll failure uses fails.chance as its complement, never a separate roll; ineligibility reports the actual reason instead. Stop dependent steps after failure without undoing earlier effects. Resolve concurrent events in stable scenario-ID order with atomic resource and parcel reservations. Recheck survival, age, consent, funds and ownership. Later history remains active. Present descriptions require surviving recorded changes; dialogue requires its stated outcome, a living speaker and actual knowledge.",
+        "Add photography studio and shoe repair shop as business kinds. Apply sabotage through the existing intervention once; step 1 tests resulting actual viability and closes only the bound studio. Failure means survival, not cancellation of the intervention's losses.",
+        "Step 2 requires A's skill still adequate, actual tools, permits, premises, capital raised without duplicating compensation, and B at least 18 with voluntary interest in paid repair training. B must independently choose this alternative; poverty does not force consent. Record the paused portrait plan and its real opportunity cost.",
+        "Add transfer_business: execute a lawful paid sale or otherwise explicitly funded transfer of the identified repair business, assets and obligations, requiring A's consent and B's completed relevant training and sufficient funds. Add end_training_plan: close only the recorded unstarted portrait apprenticeship, not B's ability to take photographs or study later. No death or inheritance is implied. Gate B's line on step 3 and memory of the earlier portrait ambition."
+      ],
+      "era_notes": "Use photography and repair equipment available in each decade. Digital tools may change costs later, but do not erase training or business accounts.",
+      "why_fun": "A storefront changes trades and then owners. The player meets a competent successor whose unrealized ambition is still small enough to talk about."
+    },
+    {
+      "id": "scenario-20261117-9264",
+      "kind": "scenario",
+      "title": "The Tunnel Under the Pantry",
+      "category": "uncanny",
+      "pitch": "Have an old cold-storage tunnel inspected before it is sealed. Preserving its harmless echo may eventually draw visitors, while the homeowner upstairs discovers that a local legend can keep very practical business hours.",
+      "present_hook": {
+        "what_you_notice": "A house has a bricked pantry stair and a repair invoice describing a voice-like echo. The original inspection request was never completed.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the house repair records",
+            "line": "The stair was sealed in {year}. Owner {A} called the sound a whisper, but nobody recorded an inspection."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "wealth": "comfortable"
+        },
+        "B": {
+          "age": [
+            8,
+            12
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1980
+        ],
+        "notes": "A owns the identified house and cold-storage tunnel; B is a distinct resident with no assumed family relation. Bind a genuine safe-to-investigate tunnel, an imminent voluntary sealing decision and a physically plausible acoustic effect. No burial, trapped person or supernatural fact is implied. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:commission_inspection",
+          "target": "A",
+          "how_it_looks": "Offer to pay a qualified inspector, with the homeowner's consent, before the pantry stair is sealed."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "retain_structure": "the bound cold-storage tunnel",
+              "condition": "inspected safe with required repairs"
+            },
+            {
+              "record_acoustics": "the bound tunnel echo"
+            }
+          ],
+          "headline": "Inspection Keeps the Pantry Tunnel Accessible",
+          "body": "An authorized inspection and funded repairs kept the old tunnel accessible. Recorded tests traced its voice-like echo to the actual shape of the passage."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_service": "the permitted tunnel acoustic tour"
+            },
+            {
+              "qualify": "B",
+              "profession": "trained site guide"
+            }
+          ],
+          "headline": "Old Tunnel Gains a Licensed Listening Tour",
+          "body": "Following paid training and site approval, adult guide {B} joined a permitted acoustic tour. Its account described the measured echo without claiming a ghost."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a separate tunnel visitor entrance",
+              "where": "the edge of town"
+            },
+            {
+              "restrict_use": "the bound private side yard",
+              "reason": "the agreed visitor-access route"
+            },
+            {
+              "wealth": "A",
+              "by": -0.1
+            }
+          ],
+          "headline": "Tunnel Visitors Gain an Entrance Beside the House",
+          "body": "A funded separate entrance opened under the approved access agreement. Homeowner {A} paid the agreed share and surrendered private use of the marked side-yard route."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Inspection Finds No Viable Way to Keep Tunnel Open",
+        "body": "The commissioned assessment found no affordable approved preservation plan for the tunnel at the home of {A}. Its real findings remained in the records before lawful closure."
+      },
+      "present_day": {
+        "best": "In {now}, the preserved tunnel has a separate visitor entrance and a physically modeled echo. The marked access route crosses what was once the house's private side yard, while current tours depend on actual staffing and safety.",
+        "worst": "First-step failure leaves an honest inspection report and no invented attraction. The homeowner's later lawful sealing decision follows actual conditions.",
+        "twist": "The mystery survives because it becomes understandable and visitable. {A} pays toward the separate entrance and gives up the quiet private side-yard route that made home feel separate from town."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "uncanny",
+          "line": "The whisper never bothered me. The visitors asking whether it whispers on Sundays take more getting used to."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "commission_inspection",
+          "does": "With A's consent, pay the actual quoted fee directly to a qualified independent inspector for the identified tunnel. Record the report and measurements. Temporarily defer only A's voluntary sealing decision until the report, without overriding mandatory safety closure; buy no favorable findings and create no structural safety."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key; roll independently using seed, scenario ID, intervention year, role IDs and step. All prerequisites are AND conditions. Check them before rolling. Apply the intervention once. First-roll failure uses fails.chance as its complement, never a separate roll; ineligibility reports the actual reason instead. Stop dependent steps after failure without undoing earlier effects. Resolve concurrent events in stable scenario-ID order with atomic resource and parcel reservations. Recheck survival, age, consent, funds and ownership. Later history remains active. Present descriptions require surviving recorded changes; dialogue requires its stated outcome, a living speaker and actual knowledge.",
+        "Add retain_structure: implement only inspected, permitted and fully funded repairs to the existing tunnel; retain its immutable structure ID. Add record_acoustics: store measured geometry, conditions and reproducible sound behavior. The inspection is paid once by the intervention; first-step funds cover separate actual repairs. No ghosts, invented voices or guaranteed safety are generated.",
+        "Step 2 requires the tunnel still safe, lawful public-tour access, insurance, sanitation, trained paid staff and viable demand. qualify records B's completed actual site-guide training, not a universal license. B is at least 21 at the earliest step-2 date. Any house ownership changes must preserve real consent or an enforceable agreement.",
+        "Step 3 requires A still owning and occupying the edge-of-town house, B still participating, valid planning approval and construction funding. Add restrict_use: mark only the voluntarily agreed visitor route as nonprivate during specified operating hours while preserving emergency and homeowner access. The ten-percent debit is A's priced net contribution after other funds; refuse the step if resources do not suffice. Construction and access changes are atomic. Gate A's line on step 3, awareness of actual tours and actual Sunday visitor inquiries."
+      ],
+      "era_notes": "Use inspection, recording and access arrangements available in each event year. The measured echo may inspire folklore in any decade without becoming evidence of the supernatural.",
+      "why_fun": "The player returns to hear the same strange sound through a different entrance. A harmless local mystery becomes both a destination and somebody's neighbor."
+    }
+  ]
+}

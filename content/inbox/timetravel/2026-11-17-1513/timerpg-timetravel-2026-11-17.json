@@ -1,0 +1,623 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-9131",
+      "kind": "scenario",
+      "title": "The Stone in the Schoolbag",
+      "category": "place",
+      "pitch": "Pay for a child's serious interest in rocks. A trained eye may eventually keep people out of a dangerous quarry, leaving its owner with a safe public park where a livelihood used to be.",
+      "present_hook": {
+        "what_you_notice": "A fenced quarry carries an unresolved ground-safety notice. The school archive holds a child's careful stone drawings and an abandoned study-fund application.",
+        "where": "the quarry fence",
+        "clues": [
+          {
+            "who": "the school archive",
+            "line": "{A} drew these layers in {year}. The study application stopped at the cost of travel and materials."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            12,
+            15
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            20,
+            30
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "stone quarry"
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "stone quarry"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1950,
+          1975
+        ],
+        "notes": "shop is B's quarry. Bind an actual unaddressed geological hazard, A's voluntary study plan, available education and a baseline unresolved safety notice. Require at least 34 elapsed years by the present; do not require an accident."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "large",
+          "how_it_looks": "Contribute to the child's supervised study account with the guardian's consent."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            10,
+            12
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "qualify": "A",
+              "profession": "geologist"
+            }
+          ],
+          "headline": "Local Student Completes Geology Training",
+          "body": "{A} completed the required geology education and supervised field training. The old study account paid only its documented share."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            21,
+            23
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "document_hazard": "shop",
+              "hazard": "the bound unstable quarry face"
+            }
+          ],
+          "headline": "Quarry Survey Confirms an Unstable Face",
+          "body": "A commissioned survey by qualified geologist {A} confirmed the specified quarry hazard. Its findings entered the public inspection record."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            32,
+            34
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "close_shop": "shop"
+            },
+            {
+              "build": "a stabilized quarry geology park",
+              "where": "the edge of town"
+            },
+            {
+              "wealth": "B",
+              "by": -0.2
+            }
+          ],
+          "headline": "Stabilized Quarry Opens as a Geology Park",
+          "body": "After the funded closure and stabilization process, the former quarry opened as a public geology park. {B} paid the agreed net remediation contribution."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "Study Fund Does Not Lead to a Geology Qualification",
+        "body": "The funded study path involving {A} did not reach a completed qualification. Recorded education expenses and remaining funds stayed accounted for."
+      },
+      "present_day": {
+        "best": "In {now}, a walkable stabilized geology park occupies the former quarry, with its survey findings on display. Its operating stone business is closed.",
+        "worst": "Failure leaves no invented geologist or park. The unresolved hazard remains subject to ordinary inspection and any independent action.",
+        "twist": "The safer landscape replaces a real business. {B} loses the quarry's future trading income and a fifth of personal funds under the lawful remediation agreement."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "It is safer now. I still catch myself calling it going to work when I walk past."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Use independent keyed rolls for seed, scenario ID, intervention year, bound IDs and step; choose one eligible year in each elapsed range with a separate timing key. All listed prerequisites are AND conditions. Apply the intervention once. Resolve same-year events in stable ID order with atomic resource and site reservations. Step failure or ineligibility stops dependent steps without undoing prior effects. fails.chance is the complement of the first roll, not another roll; ineligibility instead reports its actual cause. Recheck living participants, current ages, ownership, lawful access, funding and site availability. Present descriptions require recorded effects still extant; after-lines require the stated step, knowledge and a living speaker. Ordinary later history remains active.",
+        "Add stone quarry as a business kind, located at the edge of town. qualify records a geologist credential only after actual admission, tuition, completed study and any required licensing; no gift bypasses these. A is at least 22 at the earliest qualification step.",
+        "Add document_hazard: record a real commissioned professional survey with verified findings for the bound face; it neither creates instability nor closes the business immediately.",
+        "Step 3 requires the same quarry still owned by B, a lawful closure decision, consented public acquisition, independently funded compensation and stabilization, environmental approval and safe public access. Deduct B's net twenty-percent remediation contribution after accounting for compensation; require enough actual funds. Reserve the parcel, close the business and build the park atomically. Gate B's line on step 3 and B's retained memory. No forced death or automatic accident is introduced."
+      ],
+      "era_notes": "Use available field tools and educational routes. The geological facts do not change with the decade, while inspection and public acquisition procedures do.",
+      "why_fun": "A schoolbag full of stones becomes a place the player can explore. The person who lost a business can stand at its new gate."
+    },
+    {
+      "id": "scenario-20261117-9132",
+      "kind": "scenario",
+      "title": "A Bowl Worth Washing",
+      "category": "business",
+      "pitch": "Invest in an ice cream parlor's plan to wash and reuse its serving bowls. The savings may grow into a busy shared kitchen, but its extra deliveries can cost a neighbor precious sleep.",
+      "present_hook": {
+        "what_you_notice": "A parlor storeroom holds an unused wash-station estimate. Next door, a residential courtyard is still quiet in the mornings.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the parlor accounts",
+            "line": "{A} priced the wash station in {year}. The fit-out never found the capital."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "ice cream parlor"
+          ],
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "ice cream parlor"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1985
+        ],
+        "notes": "shop belongs to A. B lives beside its existing commercial service alley and sleeps during the day because of a real work schedule. Bind a viable wash-station plan, measured disposable-serving costs and an eligible vacant kitchen room on the same parcel. Present must be at least 29 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Fund the quoted wash station and initial reusable serving inventory."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "install_equipment": "shop",
+              "kind": "a compliant serving-bowl wash station"
+            }
+          ],
+          "headline": "Parlor Opens a Reusable-Bowl Service",
+          "body": "The parlor operated by {A} installed an inspected wash station and reusable serving inventory. Its actual washing and replacement costs entered the accounts."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_service": "the parlor's licensed shared commercial kitchen"
+            }
+          ],
+          "headline": "Parlor Savings Help Fit Out a Shared Kitchen",
+          "body": "Retained verified savings and additional contracted funding paid for a licensed shared kitchen at the parlor. Independent food businesses could book paid preparation time."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            27,
+            29
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "set_delivery_schedule": "shop",
+              "hours": [
+                6,
+                8
+              ]
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": -0.2
+            }
+          ],
+          "headline": "Shared Kitchen Gains Early Deliveries and a Complaint",
+          "body": "The shared kitchen adopted an approved early delivery schedule. Neighbor {B} recorded repeated sleep disruption and a personal dispute with {A}."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Reusable-Bowl Fit-Out Stalls Before Opening",
+        "body": "The parlor's fit-out did not reach a compliant operating service. Its actual project spending and unspent investment remained in the accounts."
+      },
+      "present_day": {
+        "best": "In {now}, the parlor parcel has a real wash station and a licensed shared kitchen. Morning deliveries use the existing service alley if the service remains active.",
+        "worst": "First-step failure supplies no equipment or savings. The quiet courtyard remains baseline unless ordinary events change its use.",
+        "twist": "Less disposable waste and more kitchen access can mean worse mornings next door. {B}'s recorded dispute is part of the successful expansion, not proof that every neighbor opposed it."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I like the bowls. I would like the delivery cart better after I wake up."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Use independent keyed rolls for seed, scenario ID, intervention year, bound IDs and step; choose one eligible year in each elapsed range with a separate timing key. All listed prerequisites are AND conditions. Apply the intervention once. Resolve same-year events in stable ID order with atomic resource and site reservations. Step failure or ineligibility stops dependent steps without undoing prior effects. fails.chance is the complement of the first roll, not another roll; ineligibility instead reports its actual cause. Recheck living participants, current ages, ownership, lawful access, funding and site availability. Present descriptions require recorded effects still extant; after-lines require the stated step, knowledge and a living speaker. Ordinary later history remains active.",
+        "Add install_equipment: debit actual business capital for inspected plumbing, equipment and inventory at the bound premises; enable reusable service only after operating approval. Compute savings from actual purchases, water, energy, wages and breakage rather than granting a fixed windfall.",
+        "Add establish_service for a shared commercial kitchen: require the bound room still vacant and lawfully available, paid fit-out, sanitation approval, insurance, demand and a sustainable operator. Record bookings and actual paid users without generating unnamed businesses for prose.",
+        "Add set_delivery_schedule: schedule only real contracted kitchen deliveries in the stated hours if locally permitted and safe; record measured noise reaching the bound residence. Step 3 also requires A alive, still operating the kitchen, B still resident with the same conflicting sleep schedule, repeated disruption and a real failed negotiation. Apply the bond decrement once. Gate B's line on step 3 and continuing delivery knowledge."
+      ],
+      "era_notes": "Use period-available washing equipment and commercial licensing. No packaging policy or delivery app is assumed.",
+      "why_fun": "A humble serving bowl changes the sound of a street. The player can visit both the useful kitchen and the neighbor paying its quieter cost."
+    },
+    {
+      "id": "scenario-20261117-9133",
+      "kind": "scenario",
+      "title": "The Costume Nobody Clapped For",
+      "category": "family",
+      "pitch": "Spread deserved praise for an older resident's neglected costume work. A late paid commission may eventually leave the town a permanent stage, taking over the room where a younger neighbor once earned a living.",
+      "present_hook": {
+        "what_you_notice": "A community hall displays unsigned costumes beside a rejected commission letter. Its floor is still rented for regular sales by a clothing merchant.",
+        "where": "the community hall",
+        "clues": [
+          {
+            "who": "the hall archive",
+            "line": "The costume committee never followed up with {A} in {year}. The stitching was already there for anyone to inspect."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            65,
+            70
+          ],
+          "wealth": "getting_by",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            20,
+            30
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "clothing store"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "Bind A's verified costume-making portfolio, a rejected but still fundable theatrical commission and the actual hall. B holds a renewable hall-sales rental; the room has no permanent stage in baseline. Present must be at least 28 years later."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": 0.4,
+          "how_it_looks": "Tell neighbors about the inspectable workmanship and ask the committee to look at it."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "commission": "A",
+              "work": "the bound paid theatre costumes"
+            }
+          ],
+          "headline": "Older Costume Maker Wins a Paid Commission",
+          "body": "After inspecting the portfolio, the committee awarded {A} the paid costume commission. Its contract covered materials, labor and delivery."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_service": "the hall's funded costume collection"
+            }
+          ],
+          "headline": "Costume Collection Gains a Permanent Fund",
+          "body": "With recorded permission and a funded care agreement, the hall established a shared costume collection including the commissioned pieces. The collection gained a lawful custodian."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            26,
+            28
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a permanent community-hall stage",
+              "where": "Main Street"
+            },
+            {
+              "end_lease": "B",
+              "site": "the bound hall-sales floor"
+            },
+            {
+              "wealth": "B",
+              "by": -0.1
+            }
+          ],
+          "headline": "Permanent Stage Takes the Hall's Sales Floor",
+          "body": "A funded permanent stage opened inside the hall after the sales rental ended lawfully. {B} paid documented relocation costs for the displaced sales sessions."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Praise Does Not Secure the Costume Commission",
+        "body": "The committee did not award the funded commission to {A}. The inspected portfolio remained work worth discussing without inventing a theatrical career."
+      },
+      "present_day": {
+        "best": "In {now}, the hall contains a permanent stage and a maintained costume collection with verified attribution. Its former sales floor is unavailable for the old rental.",
+        "worst": "Failure creates no commission or collection. The merchant's sales rental continues only as ordinary contracts and history allow.",
+        "twist": "A late round of applause survives its maker through real costumes. The stage carrying that legacy displaces {B}'s paid sales sessions and costs a tenth of personal funds to relocate."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "The costumes are beautiful. I used to set up my racks where the curtain hangs."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Use independent keyed rolls for seed, scenario ID, intervention year, bound IDs and step; choose one eligible year in each elapsed range with a separate timing key. All listed prerequisites are AND conditions. Apply the intervention once. Resolve same-year events in stable ID order with atomic resource and site reservations. Step failure or ineligibility stops dependent steps without undoing prior effects. fails.chance is the complement of the first roll, not another roll; ineligibility instead reports its actual cause. Recheck living participants, current ages, ownership, lawful access, funding and site availability. Present descriptions require recorded effects still extant; after-lines require the stated step, knowledge and a living speaker. Ordinary later history remains active.",
+        "Add commission: create a voluntary funded work contract and debit the commissioning institution, pay A only for accepted work and actual materials. Positive rumor changes standing through the existing verb once; it never proves skill or awards a contract by itself.",
+        "establish_service requires actual surviving commissioned garments, lawful donation or purchase, attribution, storage and maintenance funds. A need not survive step 2; ownership and consent must already be recorded, or a lawful estate representative must approve. Never attribute new work to a dead person.",
+        "Add end_lease: end only B's specific hall-sales rental after its lawful term or compensated agreement, preserving the clothing store itself. Step 3 requires B still holding that rental, a priced feasible relocation, appropriate notice, consent where required and available funds. Debit the net ten-percent relocation cost once. build is an interior stage conversion of the existing Main Street hall, not a new free parcel; require approval, accessible safe design and funded construction. Gate B's line on step 3 and actual former sales use."
+      ],
+      "era_notes": "Costume materials, contracts and venue standards follow the event years. The older maker's reputation is not treated as a present-day living speaker.",
+      "why_fun": "The player gives an overlooked craft a durable stage. Its curtain also marks the exact spot where somebody else's work no longer fits."
+    },
+    {
+      "id": "scenario-20261117-9134",
+      "kind": "scenario",
+      "title": "The Last Ride After Closing",
+      "category": "money",
+      "pitch": "Introduce a night worker to a garage owner with an unused passenger vehicle. Their modest paid ride may grow into a bus cooperative whose terminal occupies the town's free parking lot.",
+      "present_hook": {
+        "what_you_notice": "A workplace notice lists night shifts that end after the last available ride. Garage papers describe an unused legal passenger-service proposal.",
+        "where": "the garage",
+        "clues": [
+          {
+            "who": "the workplace notices",
+            "line": "{A} needed a ride after closing in {year}. The passenger-service proposal from {B} never reached the workers."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            25
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "garage"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1975,
+          1990
+        ],
+        "notes": "A and B have not met. Bind A's real night job and transport problem, B's actual available compliant vehicle and legal passenger-service proposal, and a Main Street public parking parcel with a feasible future terminal plan. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange a meeting about the posted late-shift journey and the garage's actual transport proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "establish_service": "the licensed late-shift paid ride"
+            }
+          ],
+          "headline": "Licensed Late Ride Connects Workers with Home",
+          "body": "The service proposed by {B} began carrying paying night workers, including {A}, under its approved operating plan. Fares and contracted support covered actual costs."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_service": "the worker-owned bus cooperative"
+            }
+          ],
+          "headline": "Late-Shift Riders Establish a Bus Cooperative",
+          "body": "After funded vehicle purchases and licensing, a worker-owned bus cooperative extended the recorded service. {A} joined through an actual paid membership agreement."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a licensed cooperative bus terminal",
+              "where": "Main Street"
+            },
+            {
+              "convert_use": "the bound free public parking parcel",
+              "to": "the cooperative bus terminal"
+            }
+          ],
+          "headline": "Bus Terminal Replaces the Free Parking Lot",
+          "body": "The cooperative opened a funded terminal on the approved public parcel. The former free parking spaces closed under the recorded land-use agreement."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Late-Ride Proposal Cannot Cover Its Operating Costs",
+        "body": "The meeting between {A} and {B} did not produce a viable licensed ride in the proposal window. Neither fares nor vehicles appeared without a working agreement."
+      },
+      "present_day": {
+        "best": "In {now}, a bus terminal stands on the former free parking parcel. Actual routes and schedules appear at the terminal if the cooperative still operates; no particular resident is guaranteed lifelong employment.",
+        "worst": "Failure creates no ride or cooperative through this chain. A's job and commuting choices follow actual subsequent events.",
+        "twist": "Workers can gain a real route home while drivers lose the free spaces they used for errands. The better connection leaves less room for people arriving another way."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I used to count the cost of getting home before I counted my wages. Now there is a timetable to argue with."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Use independent keyed rolls for seed, scenario ID, intervention year, bound IDs and step; choose one eligible year in each elapsed range with a separate timing key. All listed prerequisites are AND conditions. Apply the intervention once. Resolve same-year events in stable ID order with atomic resource and site reservations. Step failure or ineligibility stops dependent steps without undoing prior effects. fails.chance is the complement of the first roll, not another roll; ineligibility instead reports its actual cause. Recheck living participants, current ages, ownership, lawful access, funding and site availability. Present descriptions require recorded effects still extant; after-lines require the stated step, knowledge and a living speaker. Ordinary later history remains active.",
+        "Add garage as a business kind. For the paid ride, require B still operating, qualified licensed drivers, compliant insured vehicle, inspected maintenance, approved routes, sufficient actual fares or contracted subsidy and voluntary rider participation. The introduction supplies no vehicle or driving qualification.",
+        "For the worker-owned cooperative, require the earlier service to remain viable, consenting real members, priced membership, lawful governance, purchased vehicles, trained drivers and operating reserves. It is a service institution, not a new person; B may retire or die without automatically ending a lawfully transferred operation.",
+        "Add convert_use: change the identified parcel's permitted and navigable use, remove its actual free parking spaces and bind the terminal to that same parcel. Require public approval, lawful transfer or lease, safe pedestrian access and full construction funding; build and conversion are atomic, not two land grants. No guarantee of current routes if the operator later closes. Gate A's line on step 3, A alive and memory of the original commuting burden."
+      ],
+      "era_notes": "Use paper notices and a posted timetable in early years; later booking methods may vary without changing the physical route or its costs.",
+      "why_fun": "A conversation after closing becomes a terminal the player can walk into. The vanished parking spaces make public convenience a trade rather than a universal reward."
+    }
+  ]
+}

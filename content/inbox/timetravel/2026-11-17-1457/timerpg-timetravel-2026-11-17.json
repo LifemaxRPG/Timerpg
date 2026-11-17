@@ -1,0 +1,678 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-8971",
+      "kind": "scenario",
+      "title": "The Voice Before the Water",
+      "category": "rescue",
+      "pitch": "Fund a young resident's radio project. A later licensed warning service may reach two households before a flood, while the volunteer who keeps it alive spends savings that were meant for retirement.",
+      "present_hook": {
+        "what_you_notice": "A flood memorial names residents whose homes received no timely warning. An earlier radio-club proposal records a missing equipment fund.",
+        "where": "the Gazette archive",
+        "clues": [
+          {
+            "who": "the radio-club papers",
+            "line": "{A} abandoned the equipment plan in {year}. The later warning service never reached the proposed coverage area."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            16,
+            20
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            8,
+            12
+          ]
+        },
+        "C": {
+          "age": [
+            8,
+            12
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "Require a real permitted youth radio project with adult supervision, a viable future licensed warning service and baseline flood deaths of B and C 27–29 years later caused by absent timely warnings. Present must be at least 29 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "large",
+          "how_it_looks": "Fund the documented equipment shortfall through the supervised project account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            2,
+            4
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "qualify": "A",
+              "profession": "licensed radio operator"
+            }
+          ],
+          "headline": "Funded Radio Project Produces a Qualified Operator",
+          "body": "{A} completed the relevant training and license requirements through the supervised project. The equipment became part of a maintained local station."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_service": "the licensed local flood-warning relay"
+            }
+          ],
+          "headline": "Local Radio Relay Joins an Approved Flood-Warning Plan",
+          "body": "A licensed relay coordinated by {A} joined the approved warning plan. Coverage tests included the two previously unserved households."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            27,
+            29
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "evacuate": [
+                "B",
+                "C"
+              ],
+              "event": "the bound flood"
+            },
+            {
+              "wealth": "A",
+              "by": -0.2
+            }
+          ],
+          "headline": "Timely Relay Helps Two Households Leave Before Flooding",
+          "body": "A verified warning relayed through the maintained service reached {B} and {C} in time for safe evacuation. {A} paid a documented emergency operating contribution."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Funded Radio Project Does Not Complete Licensing",
+        "body": "The project involving {A} did not complete its license requirements in the allotted window. No unlicensed warning service was treated as operational."
+      },
+      "present_day": {
+        "best": "In {now}, the licensed relay has a real operating history and {B} and {C} have no deaths from the bound flood. Their later lives and the relay's current operation follow ordinary replay.",
+        "worst": "First-step failure creates no license or scenario warning coverage. Other emergency services and evacuation opportunities continue normally.",
+        "twist": "The missing memorial names are a profound gain, but the service survives through maintenance and a fifth of {A.his} personal reserve. A lifesaving voice still belongs to someone who pays its bills."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I had other plans for that money. I am glad those two households had somewhere to go."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Select years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing earlier effects. fails is the complementary first-step result, never a separate roll. Apply interventions once; persist actual people, objects, sites, funds and knowledge. Replay invalidates descendants. Recheck survival, ownership and resources. Gate present text and dialogue on surviving recorded outcomes and informed living speakers. No forced unrelated events or duplicate rewards.",
+        "Add qualify with profession licensed radio operator: after verified training and a passed legal licensing process, record the credential and its actual expiration and renewal requirements. Require real equipment, supervised learning where appropriate and maintained competence. The gift pays actual costs once; create and bind the station equipment from those priced purchases, never from a trait alone.",
+        "Add establish_service: require licensed spectrum use, authorized emergency coordination, staffed monitoring, tested coverage, reliable power and a funded operating plan. A radio relay cannot invent a flood forecast.",
+        "Add evacuate: resolve at the actual flood within range before the two bound fatalities, with verified warning, receipt, consent, safe transport and an available shelter. Cancel only those flood deaths when the route truly succeeds; grant no later immunity. Debit A's twenty percent actual emergency contribution once against a priced shortfall. Gate A's line on step 3, A alive and knowledge of both safe evacuations.",
+        "Resolve same-year events in stable scenario-ID and step order, atomically checking and reserving required sites, funds, equipment and employment before applying a step. A conflicting earlier event makes this step ineligible; do not retry its roll. Failure copy requiring living participants is shown only when those facts hold; otherwise report the actual eligibility failure. Reserve the relevant site only while legally funded; later present-day descriptions require the resulting structure or service still to exist."
+      ],
+      "era_notes": "Use radio equipment, licensing and warning networks available in the event decade. Do not assume mobile phones in the early project.",
+      "why_fun": "A childhood equipment bill can become a voice the player hears during the changed town's emergency. The reunion with actual survivors is the payoff."
+    },
+    {
+      "id": "scenario-20261117-8972",
+      "kind": "scenario",
+      "title": "The Laundry That Took the Gossip Away",
+      "category": "business",
+      "pitch": "Invest in a clothing store's small laundry-service proposal. Easier washing may eventually mean fewer shared chores, leaving two old friends with clean clothes and fewer reasons to meet.",
+      "present_hook": {
+        "what_you_notice": "A clothing store has an unused laundry-service plan, while neighbors still share regular washing sessions. Their friendship calendar is full of the same practical errand.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the shop papers",
+            "line": "{A} proposed the laundry service in {year}. {B} and {C} kept arranging their wash days together."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "clothing store"
+          ]
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        },
+        "C": {
+          "age": [
+            30,
+            40
+          ],
+          "relation": "friends"
+        },
+        "shop": {
+          "shop_kind": [
+            "clothing store"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "shop belongs to A; C is B's friend. Require a feasible laundry subsidiary, B and C's actual recurring shared wash-day routine and demand for later unattended machines. Present must be at least 29 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Fund the clothing store's costed laundry-service subsidiary plan."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "laundromat"
+            }
+          ],
+          "headline": "Clothing-Store Owner Opens a Laundry Subsidiary",
+          "body": "{A} opened a funded laundry service through the approved subsidiary plan. Customers gained a new place to handle a recurring household chore."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "automate_service": "the scenario laundromat"
+            }
+          ],
+          "headline": "Laundry Adopts Inspected Self-Service Machines",
+          "body": "The laundry adopted funded self-service machines and a safe monitored operating plan. Users could choose separate visits rather than arrange a shared wash day."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            27,
+            29
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "change_meeting_rate": [
+                "B",
+                "C"
+              ],
+              "activity": "the bound shared wash day",
+              "factor": 0.25
+            },
+            {
+              "bond": [
+                "B",
+                "C"
+              ],
+              "by": -0.15
+            }
+          ],
+          "headline": "Clean Clothes Leave Two Neighbors Less Time Together",
+          "body": "{B} and {C} moved to separate laundry visits after using the automated service. Their recorded shared wash-day meetings became less frequent."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Laundry Subsidiary Plan Does Not Reach Opening",
+        "body": "The laundry plan proposed by {A} did not secure a workable funded installation. Actual expenses and unspent capital remained in the business accounts."
+      },
+      "present_day": {
+        "best": "In {now}, an actual laundromat premises and self-service installation exist. {B} and {C}'s schedules show fewer shared wash-day meetings if both remain local users; their other friendships and choices are unchanged by decree.",
+        "worst": "First-step failure creates no machines or forced loneliness. Existing washing routines may still change through ordinary history.",
+        "twist": "Labor saved can also be company lost. The service improves a chore without automatically supplying a replacement reason to spend an afternoon together."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "The washing is easier. I did not realize how much of our talking was waiting for it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Select years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing earlier effects. fails is the complementary first-step result, never a separate roll. Apply interventions once; persist actual people, objects, sites, funds and knowledge. Replay invalidates descendants. Recheck survival, ownership and resources. Gate present text and dialogue on surviving recorded outcomes and informed living speakers. No forced unrelated events or duplicate rewards.",
+        "Add laundromat as a business kind. Fund the subsidiary through a documented lawful capital transfer or loan from the invested clothing store; record both accounts and allow multiple owned businesses without duplicating the investment.",
+        "Add automate_service: require actual era-available machines, safe water/electricity, waste handling, accessibility, monitoring and maintenance funds. It changes labor and scheduling needs, not social bonds directly.",
+        "Step 3 requires B and C alive, locally resident, actual service users and voluntarily choosing separate visits. Add change_meeting_rate: multiply only opportunities for their identified shared wash-day activity by 0.25, not all interaction. The fifteen-percent bond decrement is a one-time recorded estrangement event, separate from subsequent ordinary social updates. Permit new chosen meetings to repair the relationship. Gate B's line on step 3 and retained memory of the old routine.",
+        "Resolve same-year events in stable scenario-ID and step order, atomically checking and reserving required sites, funds, equipment and employment before applying a step. A conflicting earlier event makes this step ineligible; do not retry its roll. Failure copy requiring living participants is shown only when those facts hold; otherwise report the actual eligibility failure. Reserve the relevant site only while legally funded; later present-day descriptions require the resulting structure or service still to exist."
+      ],
+      "era_notes": "Use washing technology available in the event years. No app or remote booking system is required.",
+      "why_fun": "The ripple changes NPC schedules rather than only buildings. A convenient place on Main Street can make two homes feel farther apart."
+    },
+    {
+      "id": "scenario-20261117-8973",
+      "kind": "scenario",
+      "title": "The Words on Both Sides of the Door",
+      "category": "place",
+      "pitch": "Introduce a lawyer to a qualified interpreter whose service proposal never found a partner. Their work may eventually put two languages on public-service signs, while consuming savings they hoped to keep.",
+      "present_hook": {
+        "what_you_notice": "Public-service doors have signs in only one of the town's actual community languages. A lawyer's unused interpreter budget and a separate service proposal sit in different archive folders.",
+        "where": "the town hall",
+        "clues": [
+          {
+            "who": "the service records",
+            "line": "{A} requested interpretation help in {year}. The qualified proposal from {B} never reached the practice."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "law office"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by",
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1985
+        ],
+        "notes": "B is a stranger to A. Require A licensed, B actually qualified in the two recorded community languages, unmet interpretation demand and period-valid public authority for paired signs. Present must be at least 27 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the two professionals and show each the other's actual service proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "hire": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.2
+            }
+          ],
+          "headline": "Law Practice Employs a Qualified Interpreter",
+          "body": "{A} employed qualified interpreter {B} on agreed paid terms. Clients gained interpretation within the service's actual language coverage."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_service": "the qualified community interpretation cooperative"
+            }
+          ],
+          "headline": "Interpretation Service Gains a Funded Cooperative",
+          "body": "A qualified cooperative extended the interpretation work begun by {B}. Its contracts recorded scope, confidentiality and paid staffing."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            25,
+            27
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "display_languages": "the bound public-service signs",
+              "mode": "paired verified community languages"
+            },
+            {
+              "wealth": "A",
+              "by": -0.1
+            },
+            {
+              "wealth": "B",
+              "by": -0.1
+            }
+          ],
+          "headline": "Public-Service Signs Add Verified Paired Wording",
+          "body": "A reviewed project added verified paired-language wording to the selected public-service signs. {A} and {B} contributed savings toward design, checking and installation."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": 0.05
+          }
+        ],
+        "headline": "Professional Introduction Does Not Produce a Funded Post",
+        "body": "{A} and {B} could not agree on a funded interpretation post in the proposal window. Their separate work continued."
+      },
+      "present_day": {
+        "best": "In {now}, the selected doors display two checked versions of the same service information. The cooperative's current staffing and availability follow actual operating history.",
+        "worst": "First-step failure creates no interpreter employment or signs through this chain. Existing language knowledge and any independent access rights remain real.",
+        "twist": "A more legible town can be a lasting benefit paid for partly from two people's private reserves. Better public access does not make their donated time and money appear from nowhere."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I can point to both versions now. I still remember counting what we could afford to put on each door."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Select years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing earlier effects. fails is the complementary first-step result, never a separate roll. Apply interventions once; persist actual people, objects, sites, funds and knowledge. Replay invalidates descendants. Recheck survival, ownership and resources. Gate present text and dialogue on surviving recorded outcomes and informed living speakers. No forced unrelated events or duplicate rewards.",
+        "Bind the town's actual language facts and B's independently verified competence. hire requires a real paid vacancy and appropriate professional safeguards; no automatic fluency, accent stereotype or language inferred from a resident's name.",
+        "establish_service requires qualified paid staff, contracts, sustainable funding and real demand; it may outlive either founder through lawful successors. Interpretation cannot invent legal advice or disclose protected client information.",
+        "Add display_languages: replace only identified service-sign text with equivalent verified translations, preserving accessibility, readable layout and service facts. Use actual language resources, not invented words or untranslated placeholders. The two ten-percent donations must fit the priced project alongside recorded public funds and be debited once. Gate B's line on step 3, B alive and actual participation.",
+        "Resolve same-year events in stable scenario-ID and step order, atomically checking and reserving required sites, funds, equipment and employment before applying a step. A conflicting earlier event makes this step ineligible; do not retry its roll. Failure copy requiring living participants is shown only when those facts hold; otherwise report the actual eligibility failure. Reserve the relevant site only while legally funded; later present-day descriptions require the resulting structure or service still to exist."
+      ],
+      "era_notes": "Use the actual local languages and public-service rules of each era. Paired physical signs work without assuming digital translation.",
+      "why_fun": "The town becomes visibly easier to navigate through words rather than new streets. The player can recognize a professional relationship in the lettering over a door."
+    },
+    {
+      "id": "scenario-20261117-8974",
+      "kind": "scenario",
+      "title": "The Gate That Would Not Close",
+      "category": "rescue",
+      "pitch": "Repair a jammed mill sluice before a known damaging surge. Preserving the working site may lead to a small hydro project, followed by an expensive fish passage that reduces its output.",
+      "present_hook": {
+        "what_you_notice": "A demolished mill site has a flood-damage report and an unused water-power proposal. The report identifies the failed sluice that made the damage severe.",
+        "where": "the mill",
+        "clues": [
+          {
+            "who": "the damage report",
+            "line": "The sluice failed to close in {year}. Owner {B} never commissioned the later water-power plan."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "mill"
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "mill"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "shop belongs to B; A is the qualified assigned maintenance worker. Require a specific accessible mechanical jam, B's authorized repair order, a known surge later that year and a technically viable later small hydro proposal with a modeled fish-passage issue. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:repair",
+          "how_it_looks": "Complete the authorized repair of the identified sluice mechanism before the recorded surge."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "cancel_closure": "shop",
+              "cause": "the bound avoidable surge damage"
+            }
+          ],
+          "headline": "Repaired Sluice Lets Mill Survive the Surge",
+          "body": "The repaired sluice limited damage during the recorded surge. The mill run by {B} remained viable and avoided the closure attributed to that specific damage."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a permitted small hydro installation",
+              "where": "the river"
+            }
+          ],
+          "headline": "Preserved Mill Site Adds a Reviewed Hydro Installation",
+          "body": "A funded reviewed hydro installation opened at the preserved mill site. Its output and river conditions entered a continuing monitoring plan."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a reviewed fish-passage channel",
+              "where": "the river"
+            },
+            {
+              "reduce_output": "the scenario hydro installation",
+              "fraction": 0.15
+            },
+            {
+              "wealth": "B",
+              "by": -0.2
+            }
+          ],
+          "headline": "Fish Passage Opens with Lower Hydro Output",
+          "body": "A monitored fish-passage channel opened beside the hydro installation. The operator's agreed flow changes reduced its modeled output, and {B} paid a documented share of the works."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "rep": "A",
+            "by": 0.03
+          }
+        ],
+        "headline": "Sluice Repair Cannot Offset the Full Surge Damage",
+        "body": "The authorized repair by {A} worked, but other verified surge damage still prevented the mill's recovery within the scenario window. The repair itself was not erased."
+      },
+      "present_day": {
+        "best": "In {now}, the preserved mill site has a hydro installation and fish-passage channel, with actual flow and output records. The plant's later survival and ecological results remain subject to monitoring.",
+        "worst": "First-step failure preserves the completed repair and its actual physical benefit, but no scenario hydro project follows. Other damage and possible redevelopment follow ordinary history.",
+        "twist": "Saving a productive site creates a later obligation to protect the river around it. The owner can keep the project while losing a fifth of personal funds and part of its output."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I am glad the wheel kept turning. I did not know how much learning to share the river would cost."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "repair",
+          "does": "Using the recorded authorization, required tools and genuine maintenance competence, remove the identified mechanical jam and restore the existing sluice's rated operation before the surge. Preserve the same structure ID and its ordinary wear; do not change river weather, erase other damage or grant the player unearned engineering skill."
+        }
+      ],
+      "new_rules_needed": [
+        "Select years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing earlier effects. fails is the complementary first-step result, never a separate roll. Apply interventions once; persist actual people, objects, sites, funds and knowledge. Replay invalidates descendants. Recheck survival, ownership and resources. Gate present text and dialogue on surviving recorded outcomes and informed living speakers. No forced unrelated events or duplicate rewards.",
+        "Add mill as a business kind if not implemented. Require the actual assigned worker, legal access, isolated safe work conditions and the specified repair completion; otherwise the intervention does not activate this chain.",
+        "cancel_closure suppresses only the previously scheduled damage-driven closure after a real post-surge viability check. The repair is not rerolled; first-step failure means independent remaining damage defeats recovery. Credit A's small reputation gain only for the verified successful repair.",
+        "Step 2 requires the mill site still lawfully available, actual surveyed flow, funded era-valid engineering, environmental approval, power demand and maintenance. Never create energy without water or promise that saving the mill guarantees hydro viability.",
+        "Step 3 requires B still liable and consenting to the funded share, an actual monitored passage problem and an approved safe design. reduce_output changes modeled generation by 15 percent under the specified flow agreement, not an arbitrary cash loss; fish recovery is measured, not guaranteed. Debit B's twenty percent net contribution once against real works. Gate B's line on step 3, B alive and actual knowledge of the project costs.",
+        "Resolve same-year events in stable scenario-ID and step order, atomically checking and reserving required sites, funds, equipment and employment before applying a step. A conflicting earlier event makes this step ineligible; do not retry its roll. Failure copy requiring living participants is shown only when those facts hold; otherwise report the actual eligibility failure. Reserve the relevant site only while legally funded; later present-day descriptions require the resulting structure or service still to exist.",
+        "At the intervention, place only the bound surge-damage closure into pending review; the step-1 decision at one to two years confirms recovery or executes that pending closure. This is not resurrection of an already demolished site. Ineligibility caused by other events uses their actual outcome instead. Bind the repair target to the identified sluice at shop and A to the competent worker assisting the player; the action requires tools, materials and authorized payment before completion."
+      ],
+      "era_notes": "Use the actual mill mechanism and hydro technology of the event decade. Later ecological review can impose obligations absent from the earlier repair decision.",
+      "why_fun": "The player repairs one moving part and later returns to a changed river system. The fish channel makes the long tail of a successful rescue physical."
+    }
+  ]
+}

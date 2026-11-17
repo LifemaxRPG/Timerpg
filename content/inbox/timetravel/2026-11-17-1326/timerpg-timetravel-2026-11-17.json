@@ -1,0 +1,681 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-8061",
+      "kind": "scenario",
+      "title": "The Child Who Mapped the Dark",
+      "category": "money",
+      "pitch": "Fund a child's supervised stargazing project. The child may later make the town's night routes easier to see, while the new lights hide some of the stars that started it all.",
+      "present_hook": {
+        "what_you_notice": "A dark bus stop stands near an unfinished school sky chart. The archive records a telescope project that never acquired equipment.",
+        "where": "the school",
+        "clues": [
+          {
+            "who": "the school records",
+            "line": "{A} proposed a sky chart in {year}. Adult supervisor {B} could not find the equipment money."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            12,
+            14
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1985
+        ],
+        "notes": "Require A's real project, B as its approved unrelated adult supervisor, a permitted observing site, a dark unserved bus stop and a later viable public lighting plan. Present must be at least 29 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Fund the supervised project's equipment shortfall and let the child choose whether to continue."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "equip_project": "the school sky chart",
+              "supervisor": "B"
+            },
+            {
+              "archive_work": "the completed sky chart",
+              "recorder": "A"
+            }
+          ],
+          "headline": "School Stargazing Project Completes Its First Chart",
+          "body": "With supervision from {B}, pupil {A} completed a checked chart of the visible sky. The observations were kept with the school project."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "qualify": "A",
+              "profession": "lighting engineer"
+            }
+          ],
+          "headline": "Former Stargazing Pupil Qualifies in Lighting Design",
+          "body": "{A} completed the study and professional training required for lighting design. The former sky-chart project remained an early entry in the engineer's work history."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            27,
+            29
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a funded bus-stop and approach lighting system",
+              "where": "Main Street"
+            },
+            {
+              "change_sky_visibility": "the bound observing site",
+              "cause": "the scenario lighting"
+            }
+          ],
+          "headline": "New Stop Lights Make the Night Route Easier to Follow",
+          "body": "A permitted system designed by {A} lit the bus stop and its approach. Monitoring also recorded reduced visibility of faint stars from the old observing site."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": 0.05
+          }
+        ],
+        "headline": "Sky-Chart Project Ends Without Checked Observations",
+        "body": "{A} and supervisor {B} could not complete reliable observations during the project window. Any unspent funds remained in the supervised account."
+      },
+      "present_day": {
+        "best": "In {now}, working lights mark the bus stop and walking approach. At the original observing site, the modeled faint-star visibility is lower while those lights operate.",
+        "worst": "On first-step failure, the child gains no invented observations, degree or lighting career. Other education and town improvements remain possible.",
+        "twist": "The project helps produce a useful night route, but its bright payoff makes the original view harder to recover. Neither access nor darkness is an unlimited resource."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I can see the stop from here now. I used to see more stars above it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without undoing earlier effects. fails is the first-step roll's complement, never a separate roll. Apply direct actions once. Persist object, person, site, funding and knowledge IDs and invalidate descendants on replay. Recheck survival, permissions, ownership and resources. Gate present descriptions and dialogue on recorded outcomes, surviving features and informed living speakers. No forced unrelated events or duplicate rewards.",
+        "Add equip_project: buy actual age-appropriate equipment through B's supervised account, keep inventory and safety records and return unspent money. archive_work stores only completed checked observations, not imaginary astronomical facts.",
+        "Add qualify for lighting engineer: require real education, funded study, examinations and period-valid licensing. A child's hobby is a motivation, not an automatic credential.",
+        "Step 3 requires public approval, funded installation/maintenance, safe lighting levels and era-valid glare controls. Add change_sky_visibility: calculate actual skyglow and sightlines at the bound site under the system's operating schedule; it is not a permanent deletion of stars. Require measurable residual light spill despite legal design constraints. Gate A's line on step 3, A alive and observing the lights while they operate."
+      ],
+      "era_notes": "Use the telescope and public-lighting technology available in each year. Compare modeled darkness, not modern satellite measurements in an early decade.",
+      "why_fun": "The child's first view and the engineer's final project can be inspected from the same spot. A good improvement changes what the player can no longer see."
+    },
+    {
+      "id": "scenario-20261117-8062",
+      "kind": "scenario",
+      "title": "The Files That Needed a Room",
+      "category": "secrets",
+      "pitch": "Invest in a law office's neglected records project. Preserved case files may become a public research collection, though confidentiality and storage costs can displace the hall's informal reading corner.",
+      "present_hook": {
+        "what_you_notice": "A public hall has a freely used reading corner, while an archive notice lists destroyed old legal files. A lawyer's preservation proposal was never funded.",
+        "where": "the public hall",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} priced a records-preservation project in {year}. The case boxes were later lost in routine clearance."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "law office"
+          ],
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            10,
+            14
+          ],
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "shop": {
+          "shop_kind": [
+            "law office"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "shop belongs to licensed lawyer A. Require eligible files scheduled for lawful disposal, preservation consent where needed, a potential public-interest collection and a Main Street hall whose reading corner is the only feasible funded archive space. Present must be at least 28 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Fund conservation and lawful review of the identified boxes before their scheduled clearance."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "preserve_records": "the bound eligible case boxes",
+              "custodian": "A"
+            }
+          ],
+          "headline": "Law Office Preserves Eligible Records Before Clearance",
+          "body": "The office run by {A} preserved eligible old records after checking ownership and retention rules. Confidential material remained restricted."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            14,
+            16
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "catalog_records": "the scenario preserved boxes",
+              "cataloger": "B"
+            }
+          ],
+          "headline": "Trained Cataloger Prepares a Restricted Local Collection",
+          "body": "Qualified cataloger {B} prepared the preserved records for a lawful research collection. Redaction and access checks separated public material from protected case details."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            26,
+            28
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a secure local-records research room",
+              "where": "Main Street"
+            },
+            {
+              "repurpose_space": "the bound hall reading corner",
+              "use": "the scenario records room"
+            }
+          ],
+          "headline": "Research Room Replaces the Hall's Informal Reading Corner",
+          "body": "A funded secure research room opened in the hall's former reading corner. Researchers gained supervised access, while casual readers lost their familiar open seating space."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "rep": "A",
+            "by": -0.03
+          }
+        ],
+        "headline": "Records Project Cannot Complete Its Eligibility Review",
+        "body": "The preservation project at the office run by {A} failed to finish its review before the relevant deadline. Later retention and disposal followed ordinary legal rules."
+      },
+      "present_day": {
+        "best": "In {now}, the hall has a secure research-room entrance and a checked catalog of actual surviving public files. The former informal reading corner is no longer available in that space.",
+        "worst": "On first-step failure, no scenario archive appears. Protected records are not made public merely because preservation was attempted.",
+        "twist": "The town gains reliable history while losing a casual place to sit without an appointment. Preserving knowledge also creates costs and boundaries around its use."
+      },
+      "npc_lines_after": [
+        {
+          "who": "anyone",
+          "mood": "bitter",
+          "line": "I am glad the papers survived. I miss being able to sit there without asking for a file."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without undoing earlier effects. fails is the first-step roll's complement, never a separate roll. Apply direct actions once. Persist object, person, site, funding and knowledge IDs and invalidate descendants on replay. Recheck survival, permissions, ownership and resources. Gate present descriptions and dialogue on recorded outcomes, surviving features and informed living speakers. No forced unrelated events or duplicate rewards.",
+        "Add preserve_records: bind actual existing file objects; require retention legality, ownership, consent and funded conservation. Keep client privilege, seals and privacy metadata. Spend the investment once and preserve unspent funds.",
+        "Add catalog_records: require B adult with actual archival training, a funded appointment, proper access and still-surviving boxes. Do not invent educational qualifications from B's childhood trait or reveal protected case facts in NPC prompts.",
+        "Step 3 requires public review, lawful hall rights, secure conservation conditions, accessible alternative general seating elsewhere if required and actual staffing/maintenance funds. Add repurpose_space: change only the identified reading corner's function and route/access rules, without duplicating floor area or destroying its books. After-line requires a living former user with memory of the open corner."
+      ],
+      "era_notes": "Physical boxes and paper catalogs work throughout; later digitization cannot bypass confidentiality or create files already lawfully destroyed.",
+      "why_fun": "The altered present contains evidence you can investigate. Its locked door also explains why good preservation can feel less welcoming."
+    },
+    {
+      "id": "scenario-20261117-8063",
+      "kind": "scenario",
+      "title": "The Pool Between the Clinic and the Gym",
+      "category": "rescue",
+      "pitch": "Introduce a doctor to a trainer whose supervised exercise plan never found clinical support. Their collaboration may produce a public rehabilitation pool, while using the open recreation patch nearby.",
+      "present_hook": {
+        "what_you_notice": "A clinic has an unused supervised-exercise proposal, and a gym keeps a separate list of residents seeking water-based sessions. A nearby public recreation patch remains open grass.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the public-health records",
+            "line": "{A} and {B} submitted separate proposals in {year}. Neither could supply the full supervised program alone."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "doctor's office"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "gym"
+          ],
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1985
+        ],
+        "notes": "B is a stranger to A. Require A licensed, B qualified within a trainer's actual scope, genuine demand, separate incomplete proposals and a publicly owned recreation patch eligible for a reviewed pool project. Present must be at least 28 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange a meeting about the two incomplete proposals without promising medical outcomes."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.3
+            },
+            {
+              "establish_program": "the jointly supervised exercise pilot"
+            }
+          ],
+          "headline": "Doctor and Trainer Agree on a Supervised Pilot",
+          "body": "{A} and {B} opened a funded supervised-exercise pilot with clear professional responsibilities. Participation and medical suitability were assessed individually."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "approve_plan": "the public rehabilitation pool"
+            }
+          ],
+          "headline": "Reviewed Exercise Program Secures a Pool Plan",
+          "body": "An independent review of the supervised program supported a funded public pool plan. The proposal included access, staffing and long-term operating costs."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            26,
+            28
+          ],
+          "if": {
+            "step": 2
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "build": "a public supervised rehabilitation pool",
+              "where": "Main Street"
+            },
+            {
+              "repurpose_space": "the bound recreation patch",
+              "use": "the pool site"
+            }
+          ],
+          "headline": "Supervised Pool Opens on Former Recreation Grass",
+          "body": "A funded supervised pool opened on the approved recreation patch. Residents gained a new program while losing that patch's open grass."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": 0.05
+          }
+        ],
+        "headline": "Professional Meeting Produces No Joint Pilot",
+        "body": "{A} and {B} found no workable funded division of responsibilities for the proposed program. Their separate professional practices continued."
+      },
+      "present_day": {
+        "best": "In {now}, an accessible pool building and a supervised schedule occupy the former recreation patch. Actual health outcomes and current staffing follow program records, not narrative promises.",
+        "worst": "First-step failure creates no shared pilot or pool through this chain. No resident is denied ordinary care to make the failure dramatic.",
+        "twist": "A useful new form of recreation consumes the open grass used by residents who may never need or want a pool. Public approval does not make the lost space imaginary."
+      },
+      "npc_lines_after": [
+        {
+          "who": "anyone",
+          "mood": "bitter",
+          "line": "I like knowing the pool is there. I used to stretch out on that grass without checking a timetable."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without undoing earlier effects. fails is the first-step roll's complement, never a separate roll. Apply direct actions once. Persist object, person, site, funding and knowledge IDs and invalidate descendants on replay. Recheck survival, permissions, ownership and resources. Gate present descriptions and dialogue on recorded outcomes, surviving features and informed living speakers. No forced unrelated events or duplicate rewards.",
+        "Add establish_program: require qualified separate staff, real consent and medical eligibility, insurance, funds and measurable participation. Training never substitutes for medical licensing and no cure is guaranteed.",
+        "Step 2 requires independently reviewed evidence and a lawful publicly funded plan with safe water, accessibility, staffing, construction and maintenance budgets. Later qualified staff may continue the project if A or B dies; do not force founders to survive.",
+        "Step 3 requires plan validity, current demand, funded operation and lawful recreation-land conversion. repurpose_space removes only the named open patch from general use and creates no extra land. Gate the line on step 3 and a living resident who actually used the old grass."
+      ],
+      "era_notes": "Use rehabilitation practices and pool-safety standards valid in the event decade. Earlier pilots need not use equipment invented later.",
+      "why_fun": "The change combines two incomplete ambitions into a place you can enter. The old grass gives the new building a visible cost."
+    },
+    {
+      "id": "scenario-20261117-8064",
+      "kind": "scenario",
+      "title": "The Ring Carried Back",
+      "category": "uncanny",
+      "pitch": "Carry a lost wedding ring from the original present back to its actual loss year. Restored trust may create a child and a later home that changes where the ring could ever be found again.",
+      "present_hook": {
+        "what_you_notice": "A recovered ring lies in the town's lost-property collection beside a separation notice. The original register contains no child shared by its owners after that separation.",
+        "where": "the lost-property office",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "{A} and {B} separated after the ring went missing in {year}. Its recovery was recorded much later."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            24
+          ],
+          "married": true,
+          "has_children": false
+        },
+        "B": {
+          "age": [
+            20,
+            24
+          ],
+          "married": true,
+          "has_children": false,
+          "relation": "spouses"
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1985
+        ],
+        "notes": "A and B are spouses. Require the uniquely identified ring lost earlier in the intervention year, both adults wrongly interpreting its absence as rejection, a baseline separation with no shared child and a lawful vacant family-owned Main Street home site. Present must be at least 28 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:return",
+          "target": "A",
+          "how_it_looks": "Return the uniquely identified ring after its actual loss and explain its known recovery provenance without inventing another person's intent."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.35
+            },
+            {
+              "cancel_separation": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Recovered Ring Helps Spouses Resolve a Misunderstanding",
+          "body": "{A} and {B} canceled their planned separation after the missing ring was returned and its loss discussed. Neither had intended the ring's absence as rejection."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            3,
+            5
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "child": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Reconciled Household Welcomes a Child",
+          "body": "A child was born to {A} and {B}. Their register now contained a new family entry after the reconciliation."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            26,
+            28
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "house_scenario_child": "the bound Main Street family site"
+            },
+            {
+              "wealth": "A",
+              "by": -0.25
+            },
+            {
+              "wealth": "B",
+              "by": -0.25
+            }
+          ],
+          "headline": "Family Funds a First Home for an Adult Child",
+          "body": "{A} and {B} funded a permitted small home for their adult child. The project used the family's vacant site and a substantial part of both parents' savings."
+        }
+      ],
+      "fails": {
+        "chance": 0.3,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": 0.05
+          }
+        ],
+        "headline": "Returned Ring Does Not Resolve a Planned Separation",
+        "body": "{A} and {B} acknowledged the ring's return but did not cancel their planned separation. Finding an object did not settle every reason for leaving."
+      },
+      "present_day": {
+        "best": "In {now}, a small home exists on the family site for the scenario-born child, subject to later ordinary occupancy. The ring's altered custody record no longer places it in the original lost-property drawer.",
+        "worst": "First-step failure leaves the returned ring with its lawful owner while ordinary separation proceeds. There is no guaranteed child or new house.",
+        "twist": "The new household is real, but its home consumes the parents' savings and vacant site. The player also loses the original place to find the ring again; changed history cannot supply endless copies."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "uncanny",
+          "line": "We kept the ring. I still cannot explain how someone found it before the record says it was recovered."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "return",
+          "does": "Transfer the single player-carried ring to its verified lawful owner A after the bound loss event. Remove that object from player inventory, preserve its stable identity and record actual custody and time-travel provenance. It changes no intentions, marriages or memories automatically and cannot place a second ring in the world."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without undoing earlier effects. fails is the first-step roll's complement, never a separate roll. Apply direct actions once. Persist object, person, site, funding and knowledge IDs and invalidate descendants on replay. Recheck survival, permissions, ownership and resources. Gate present descriptions and dialogue on recorded outcomes, surviving features and informed living speakers. No forced unrelated events or duplicate rewards.",
+        "Require lawful access to the original recovered object and an actual loss before return. Maintain cross-timeline object identity: remove its future lost-property instance on replay and mark the carried object as imported from the prior branch. Never require the original future recovery to occur again or allow duplicate pickup/rewards.",
+        "Add cancel_separation: require both living spouses' informed voluntary decision before final divorce, based on a real discussion of the verified loss. It does not erase other grievances, force fidelity or undo a completed divorce.",
+        "child creates one stable seed-derived person keyed to scenario, parent IDs and birth event, only with valid consenting parental eligibility. Store the result as the scenario child rather than an intervention-year role. Delete dependent records if the birth is undone.",
+        "Add house_scenario_child: require that child alive, adult and consenting, lawful family site ownership, funded permits and a construction quote covered by the two twenty-five percent contributions. Transfer or grant residence rights under a documented agreement; debit funds once and create no duplicate person. B's line requires step 3, B alive and genuine knowledge of the ring's contradictory original recovery record without automatic access to other erased-timeline facts."
+      ],
+      "era_notes": "Use a plain ring and physical custody records in all decades. The temporal inconsistency belongs to the player's object transfer, not to invented supernatural facts.",
+      "why_fun": "The returned object changes the history of its own discovery. A new front door makes the family ripple visible while the empty drawer makes the paradox tangible."
+    }
+  ]
+}

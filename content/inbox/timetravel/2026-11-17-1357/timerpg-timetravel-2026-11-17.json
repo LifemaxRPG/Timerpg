@@ -1,0 +1,635 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-8371",
+      "kind": "scenario",
+      "title": "The Bill After the Funeral",
+      "category": "family",
+      "pitch": "Help a bereaved resident settle a funeral bill before the family parcel must be sold. The preserved inheritance may later become homes for other families, while the old kitchen garden disappears.",
+      "present_hook": {
+        "what_you_notice": "A former family parcel holds a warehouse in the original present. A sale notice links its loss to an unpaid funeral bill rather than a wish to leave.",
+        "where": "the Gazette archive",
+        "clues": [
+          {
+            "who": "the sale records",
+            "line": "{A} sold the garden parcel after the funeral debt in {year}. Child {B} inherited no land there."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            65,
+            70
+          ],
+          "married": false,
+          "wealth": "poor",
+          "has_children": true
+        },
+        "B": {
+          "age": [
+            25,
+            30
+          ],
+          "relation": "parent_child"
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1985
+        ],
+        "notes": "A is B's parent and is bereaved under actual prior death records, not merely unmarried. Require a valid funeral debt, a threatened sale of A's unoccupied Main Street garden parcel, B's lawful prospective inheritance and A's ordinary baseline natural death 8–10 years later. Present must be at least 28 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "large",
+          "how_it_looks": "Cover the verified debt shortfall before the garden-parcel sale becomes binding."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "settle_debt": "A",
+              "debt": "the bound funeral bill"
+            },
+            {
+              "cancel_sale": "the bound garden parcel"
+            }
+          ],
+          "headline": "Settled Funeral Bill Lets Resident Keep a Family Parcel",
+          "body": "{A} settled the verified funeral bill and withdrew the uncompleted parcel sale. The kitchen garden remained in family ownership."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            8,
+            10
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "inherit": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Garden Parcel Passes to Adult Child After Estate Settlement",
+          "body": "After the natural death of {A}, the settled estate transferred the garden parcel to adult child {B}. The land had avoided the earlier debt-driven sale."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            26,
+            28
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "build": "a small permitted housing row",
+              "where": "Main Street"
+            },
+            {
+              "repurpose_space": "the bound kitchen garden",
+              "use": "the scenario housing row"
+            }
+          ],
+          "headline": "Inherited Garden Becomes a Row of New Homes",
+          "body": "{B} completed a funded housing project on the inherited parcel. New households gained homes where the family once grew vegetables."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": 0.08
+          }
+        ],
+        "headline": "Gift Cannot Resolve the Full Parcel-Sale Deadline",
+        "body": "The gift to {A} did not clear all verified obligations before the legal deadline. Parent and child discussed the sale while ordinary debt and housing protections continued."
+      },
+      "present_day": {
+        "best": "In {now}, a small housing row occupies the identified garden parcel instead of the original warehouse. Tenants and ownership follow actual replay, and the family garden is gone.",
+        "worst": "First-step failure does not force a sale or waste the gift; apply actual creditors, protections and later decisions. No scenario inheritance or housing project is guaranteed.",
+        "twist": "Keeping land in a family can give its heir the freedom to change it completely. The gift preserves a choice, not the giver's preferred landscape."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "There are people living there now. I still remember which corner held the beans."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing prior effects. fails is the first-step roll's complement, not another roll. Apply the intervention once. Persist people, objects, sites, budgets and knowledge and invalidate dependent history on replay. Recheck survival, ownership, permission and resources. Gate present text and after-lines by actual surviving outcomes and informed living speakers. No forced unrelated deaths or repeated rewards.",
+        "settle_debt pays only the identified valid funeral creditor from actual available gift funds; preserve any remainder. cancel_sale applies only before a binding sale and after all required obligations are satisfied, without erasing unrelated debts.",
+        "Step 2 waits for A's actual natural death and completed lawful estate settlement within range. Do not cause death, bypass creditors or dispossess other heirs; if B cannot inherit this parcel, stop the chain.",
+        "Step 3 requires B still owning the vacant garden parcel, funded lawful construction, utilities and permits; no protected occupant is displaced. repurpose_space changes the same land rather than creating a second parcel. Gate B's line on step 3, B alive and real childhood memory of that garden."
+      ],
+      "era_notes": "Use period-valid funeral, debt, estate and housing rules. No named cemetery, funeral company or real institution is required.",
+      "why_fun": "You prevent one forced sale without controlling what the heir later does. The new doors are a success that still leaves a remembered garden missing."
+    },
+    {
+      "id": "scenario-20261117-8372",
+      "kind": "scenario",
+      "title": "The Caretaker and the Closing Gate",
+      "category": "place",
+      "pitch": "Recommend a capable resident for cemetery maintenance. Restored names and safe paths may follow, while the later conservation plan ends a shortcut people used after dark.",
+      "present_hook": {
+        "what_you_notice": "Several cemetery markers are unreadable and the grounds have no regular caretaker. An informal night shortcut crosses the neglected plot.",
+        "where": "the churchyard",
+        "clues": [
+          {
+            "who": "the maintenance records",
+            "line": "{A} offered qualified grounds work in {year}. The committee left the post unfilled."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "reputation": "low",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            18,
+            25
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "Require A's actual grounds-maintenance competence, an unfunded appointment later made viable by donations, identifiable damaged markers and B's regular use of the informal cemetery shortcut. Present must be at least 27 years later."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": 0.4,
+          "how_it_looks": "Spread a truthful recommendation based on the resident's documented work, without promising the appointment."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "appoint": "A",
+              "job": "cemetery caretaker"
+            }
+          ],
+          "headline": "Committee Fills Cemetery Caretaker Post",
+          "body": "After reviewing qualifications and funding, the committee appointed {A} as caretaker. A neglected maintenance schedule gained a named responsible worker."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "restore_site": "the bound cemetery markers and paths"
+            }
+          ],
+          "headline": "Conservation Work Restores Markers and Safer Paths",
+          "body": "A funded conservation program restored verified inscriptions and repaired cemetery paths. Unknown names remained unknown rather than being guessed."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            25,
+            27
+          ],
+          "if": {
+            "step": 2
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a permitted cemetery entrance gate",
+              "where": "the edge of town"
+            },
+            {
+              "set_access_hours": "the bound cemetery",
+              "hours": "daylight with authorized exceptions"
+            }
+          ],
+          "headline": "Conservation Plan Introduces Cemetery Closing Hours",
+          "body": "A reviewed conservation plan added a gate and posted access hours. The old informal night shortcut no longer formed a lawful through-route."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [
+          {
+            "rep": "A",
+            "by": -0.02
+          }
+        ],
+        "headline": "Recommendation Cannot Secure a Funded Caretaker Post",
+        "body": "The committee could not fund the proposed appointment of {A}. The recommendation remained on file without creating a maintenance job."
+      },
+      "present_day": {
+        "best": "In {now}, legible verified markers, repaired paths and an entrance gate are visible. Posted access hours remove the former night shortcut while preserving lawful visits and exceptions.",
+        "worst": "First-step failure creates no appointment or conservation chain. Existing burial access and later maintenance duties continue under ordinary rules.",
+        "twist": "The grounds become more dignified and easier to visit, while nearby walkers lose their familiar after-dark cut-through. Preservation changes use as well as appearance."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I am glad the names can be read again. I still take the longer road home at night."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing prior effects. fails is the first-step roll's complement, not another roll. Apply the intervention once. Persist people, objects, sites, budgets and knowledge and invalidate dependent history on replay. Recheck survival, ownership, permission and resources. Gate present text and after-lines by actual surviving outcomes and informed living speakers. No forced unrelated deaths or repeated rewards.",
+        "Add appoint: require a lawful funded employer, reviewed competence and A's voluntary paid employment. The positive rumor changes reputation once; it cannot award a job without the committee decision.",
+        "Add restore_site: bind actual marker and path objects, require conservation expertise, descendant consultation when needed and funded work. Copy only independently verified inscriptions; create no invented ancestry or deaths. Qualified successors may continue if A later dies.",
+        "Add set_access_hours: require lawful authority, consultation, accessible visiting periods, burial obligations, emergency exceptions and no established public through-right. Update gates and timed routing, never trap occupants at closing. Place the gate only on the actually bound edge-of-town cemetery parcel. Gate B's line on step 3, B alive and a current nighttime route affected by the change."
+      ],
+      "era_notes": "Conservation methods and access obligations follow the relevant decades. A caretaker is not automatically the owner of the cemetery.",
+      "why_fun": "You can read names that were blurred in the original present. The gate makes the price of that quieter, cared-for place tangible."
+    },
+    {
+      "id": "scenario-20261117-8373",
+      "kind": "scenario",
+      "title": "The Bucket They Stopped Lowering",
+      "category": "rescue",
+      "pitch": "Introduce two households struggling with the same unreliable well. Their shared work may eventually bring a safer water connection, while sealing the old meeting place where neighbors used to linger.",
+      "present_hook": {
+        "what_you_notice": "Two homes share an unreliable well, but their separate maintenance requests never became a joint project. A public-water extension remained unbuilt.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the water committee records",
+            "line": "{A} and {B} each reported the well problem in {year}. Their requests were never combined."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "wealth": "getting_by",
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1985
+        ],
+        "notes": "B is a stranger to A despite their separate legal access to the well. Require actual reliability or tested quality problems, cooperative maintenance rights, a feasible public-water extension and an old well on a Main Street common parcel. Present must be at least 29 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Put the two maintenance requests together and introduce the residents who filed them."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.3
+            },
+            {
+              "establish_agreement": "the shared well-maintenance plan"
+            }
+          ],
+          "headline": "Households Agree on Shared Well Maintenance",
+          "body": "{A} and {B} signed a funded maintenance agreement after comparing their requests. Testing and repairs replaced separate guesses about the well."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "approve_plan": "the bound public-water extension"
+            }
+          ],
+          "headline": "Combined Water Records Support an Extension Plan",
+          "body": "The shared maintenance record supported a reviewed public-water extension. Approval included quality testing, connection costs and long-term service duties."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            27,
+            29
+          ],
+          "if": {
+            "step": 2
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "build": "the funded public-water connection",
+              "where": "Main Street"
+            },
+            {
+              "cap_well": "the bound old well"
+            }
+          ],
+          "headline": "New Water Connection Opens as the Old Well Is Capped",
+          "body": "An inspected public-water connection entered service after testing. The old well was safely capped, ending the need and permission to lower buckets there."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": -0.08
+          }
+        ],
+        "headline": "Shared Well Talks Fail over Repair Responsibilities",
+        "body": "{A} and {B} could not agree on repair responsibilities within the proposal window. Their existing legal access and maintenance duties remained in place."
+      },
+      "present_day": {
+        "best": "In {now}, the identified households' service route has an inspected public-water connection and the old well is capped. Quality still depends on actual testing and maintenance, not a blanket promise.",
+        "worst": "On first-step failure, this shared project creates no water extension. Ordinary repairs, testing and safety duties still apply; do not script illness because cooperation failed.",
+        "twist": "The safer service removes a chore and a risk while ending a daily gathering around the bucket. Neighbors may gain convenience and lose an excuse to stop together."
+      },
+      "npc_lines_after": [
+        {
+          "who": "anyone",
+          "mood": "bitter",
+          "line": "I do not miss carrying the bucket. I miss the conversations that took longer than filling it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing prior effects. fails is the first-step roll's complement, not another roll. Apply the intervention once. Persist people, objects, sites, budgets and knowledge and invalidate dependent history on replay. Recheck survival, ownership, permission and resources. Gate present text and after-lines by actual surviving outcomes and informed living speakers. No forced unrelated deaths or repeated rewards.",
+        "Add establish_agreement: require both households' consent, real cost shares, lawful water rights and a funded maintenance contractor. It changes obligations, not water quality by declaration.",
+        "approve_plan requires tested need, engineering, lawful easements, public funding and an affordable connection scheme; successors may continue the approved project if either original organizer dies.",
+        "Add cap_well: seal only the identified disused source after the inspected replacement serves all rights holders, with groundwater protection and heritage recording. Update the actual water graph and bucket interaction; never remove another household's sole supply. The after-line requires a living former well user with real memories, not an NPC borrowing another resident's past."
+      ],
+      "era_notes": "Use the water testing, piping and public utility standards available at each step. Do not claim every old well is unsafe merely because it is old.",
+      "why_fun": "The first intervention is a conversation that makes a shared record possible. The covered well lets the player notice both the improvement and the missing routine."
+    },
+    {
+      "id": "scenario-20261117-8374",
+      "kind": "scenario",
+      "title": "The Tree at the Wrong Corner",
+      "category": "place",
+      "pitch": "Plant an approved sapling where a child's sketch places it. The shade may become a protected landmark, while roots decades later make the neighboring household pay for repairs.",
+      "present_hook": {
+        "what_you_notice": "A bare corner appears in a child's planting sketch, beside a house with an undamaged old foundation. The original permission never led to a tree.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the school project papers",
+            "line": "{A} drew the tree beside the house in {year}. Adult steward {B} obtained permission, but no sapling arrived."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            10,
+            13
+          ]
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ]
+        },
+        "C": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1980
+        ],
+        "notes": "B is the unrelated approved planting steward; C owns the bound neighboring house. Require lawful corner planting permission, a climate-suitable sapling, a root-compatible initial site review and a modeled later foundation vulnerability that was not evident at planting. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:plant",
+          "how_it_looks": "Use the approved site and adult steward's help to plant the actual carried sapling from the child's sketch."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            2,
+            4
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "establish_tree": "the bound planted sapling"
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.15
+            }
+          ],
+          "headline": "School-Project Sapling Survives Its First Seasons",
+          "body": "The sapling planted for the project of {A} survived its first seasons under stewardship from {B}. The bare corner began to carry real shade."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            14,
+            16
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "protect_tree": "the scenario corner tree"
+            }
+          ],
+          "headline": "Growing Corner Tree Receives a Reviewed Landmark Status",
+          "body": "After review and consultation, the established corner tree received protection as a local landmark. Its condition and neighboring structures remained subject to inspection."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "build": "a root barrier and repaired house foundation",
+              "where": "Main Street"
+            },
+            {
+              "wealth": "C",
+              "by": -0.2
+            }
+          ],
+          "headline": "Landmark Tree Retained During Costly Foundation Repairs",
+          "body": "A verified root-related problem required a permitted barrier and foundation repair at the house of {C}. The funded work retained the tree while protecting the home."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [
+          {
+            "bond": [
+              "A",
+              "B"
+            ],
+            "by": 0.05
+          }
+        ],
+        "headline": "Planted Sapling Does Not Survive the Project Window",
+        "body": "The project sapling failed during its early seasons despite the recorded care. {A} and steward {B} kept the sketch but gained no living landmark."
+      },
+      "present_day": {
+        "best": "In {now}, a mature protected tree shades the corner and the neighboring house has recorded foundation work and a root barrier. Later tree health and occupancy follow replay.",
+        "worst": "On first-step failure, the planted tree dies and no scenario landmark or root damage follows. Do not replace it with an identical mature tree to preserve the story.",
+        "twist": "A beloved public shade tree can create a private repair bill. Keeping the tree and keeping the house safe both require money from someone who did not draw the original sketch."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "I like the shade. I would have liked the roots to stop at the fence."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "plant",
+          "does": "Consume one actual climate-suitable sapling from player inventory and place it at the specifically permitted corner under B's approved supervision. Record species, age, root traits, placement and care obligations. Planting guarantees neither survival, protection nor future damage and creates no duplicate tree."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose years and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. after_years is elapsed from intervention. Check prerequisites before rolling; failure or ineligibility stops descendants without reversing prior effects. fails is the first-step roll's complement, not another roll. Apply the intervention once. Persist people, objects, sites, budgets and knowledge and invalidate dependent history on replay. Recheck survival, ownership, permission and resources. Gate present text and after-lines by actual surviving outcomes and informed living speakers. No forced unrelated deaths or repeated rewards.",
+        "Add establish_tree: run actual seasonal survival and growth on the planted tree ID; the first-step roll represents that supported survival outcome, not an extra sapling. Preserve actual care costs even if it dies.",
+        "Add protect_tree: require a living established tree, legal review, owner and neighbor consultation and inspection obligations. Protection never blocks emergency safety work or makes the tree immortal.",
+        "Step 3 requires C still owning the house, a living protected tree, modeled root interaction with an actual vulnerable foundation and an engineer-confirmed problem. Require a safe affordable repair plan, relevant assistance and C's informed agreement to remaining costs. C's twenty percent debit is the verified net contribution, not arbitrary damage by reputation. If affordable safe retention is impossible, stop this branch and allow ordinary safety decisions. Gate C's line on step 3, C alive and actual repair experience."
+      ],
+      "era_notes": "Use species, arboriculture and foundation methods supported by the town climate and repair decade. Later protections do not excuse negligent initial planting.",
+      "why_fun": "The player can watch one small object grow into part of the skyline. The repaired house keeps the long cost of that growth visible."
+    }
+  ]
+}
