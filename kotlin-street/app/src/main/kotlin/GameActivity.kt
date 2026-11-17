@@ -110,7 +110,7 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
         // a building whose art is missing keeps the engine's painted version; the rest of the street is unaffected
         val front = img("${n}_front"); val side = img("${n}_side"); val emis = img("${n}_emis")
         if (front != null && side != null && emis != null)
-            SpriteArt.buildings[id] = SpriteBuilding(front, side, emis, img("${n}_roof"), img("${n}_sign"), img("${n}_prop"), mids, windows[n].orEmpty())
+            SpriteArt.buildings[id] = SpriteBuilding(front, side, emis, img("${n}_roof"), img("${n}_sign"), img("${n}_prop"), mids, windows[n].orEmpty(), windows[n + "_shop"].orEmpty(), img("${n}_glass"))
         shop(id, o.getString("name"), "", HabitMaterial.CLAY, mids)
     }
     StreetData("${j.getString("town")} · ${j.getString("type")} · ${j.getInt("year")}", shops, (0 until arr.length()).map { arr.getJSONObject(it).optString("owner") })

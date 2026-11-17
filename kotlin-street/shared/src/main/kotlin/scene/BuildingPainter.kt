@@ -2460,6 +2460,17 @@ internal class BuildingPainter {
             mirrorSky(x, y, ww, hh, min(1f, FacadeLook.reflection(if (StageTuning.interiors) lampOn else 0f, sky.dark) * mirror * (if (StageTuning.interiors) 1f else 1.35f)) * (1f - .5f * (if (StageTuning.interiors) lampOn else 0f)), pane, 1f - .7f * (if (StageTuning.interiors) lampOn else 0f))
             if (StageTuning.interiors && lampOn > .02f && sky.dark > .2f) roomOnReveals(x, y, ww, hh, .3f * lampOn * sky.dark)
         }
+        // the shopfront glass: the display shows through, with the sky and the sun's glint faintly over the real panes only
+        val gm = sb.glass
+        if (gm != null && sb.shop.isNotEmpty()) {
+            val band = sb.shop[0]
+            drawIntoCanvas { it.saveLayer(androidx.compose.ui.geometry.Rect(-half, -hf, half, 0f), Paint()) }
+            val pane = wseed * 17 + 500
+            val mirror = fresnel * (1f + PANE_FRESNEL * GlassMap.tilt(pane))
+            mirrorSky(-half + band[0] * k, -hf + band[1] * k, band[2] * k, band[3] * k, min(1f, FacadeLook.reflection(0f, sky.dark) * mirror * .75f), pane, 1f)
+            picture2(gm, -half, -hf, B.W, hf, FilterQuality.None, blend = BlendMode.DstIn)
+            drawIntoCanvas { it.restore() }
+        }
         // lit at dusk: the glass glows
         val on = (sky.dark * Dusk.lightsOn(art.stack.id.hashCode(), hour, Dusk.SHOP)).coerceIn(0f, 1f)
         if (on > .01f) picture2(sb.emis, -half, -hf, B.W, hf, FilterQuality.None, alpha = on * .55f)

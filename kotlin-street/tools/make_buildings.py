@@ -118,6 +118,20 @@ def build(shop, out):
     boxes, cut = find_windows(front, H - body_h)
     fa = np.array(front); fa[cut] = (0, 0, 0, 0); front = Image.fromarray(fa)
     WINDOWS[shop['sprite']] = boxes
+    # the shopfront glass (the display shows through it): nothing is cut; the engine lays a faint reflection over this mask
+    # (big panes only, so signs, lettering and walls are left alone, and the display items stay clean)
+    sg = glass(fa); sg[:H - body_h, :] = False
+    keep = np.zeros_like(sg); soft = np.zeros_like(sg)
+    for (x0, y0, x1, y1) in components(dilate(sg, 1)):
+        sub = sg[y0:y1 + 1, x0:x1 + 1]; n = int(sub.sum())
+        ys, xs = np.where(sub)
+        if n < 40: continue
+        bw, bh = int(xs.max() - xs.min() + 1), int(ys.max() - ys.min() + 1)
+        if n >= 150 and n / float(bw * bh) >= .6: keep[y0:y1 + 1, x0:x1 + 1] |= sub                    # a clean pane: its glass
+        elif 30 <= bw <= 170 and bh >= 24: soft[y0 + ys.min():y0 + ys.max() + 1, x0 + xs.min():x0 + xs.max() + 1] = True   # a display window: the whole pane, fainter, items showing through
+    gimg = np.zeros((H, 224, 4), np.uint8); gimg[soft & ~keep] = (255, 255, 255, 105); gimg[keep] = (255, 255, 255, 255)
+    Image.fromarray(gimg).save(f'{out}/{shop["sprite"]}_glass.png')
+    WINDOWS[shop['sprite'] + '_shop'] = [(0, int(H - body_h), 224, int(body_h))]
     em = np.zeros((H, 224, 4), np.uint8); gm = glass(fa); em[gm] = (255, 205, 120, 235)
     n = shop['sprite']
     front.save(f'{out}/{n}_front.png'); side.save(f'{out}/{n}_side.png'); Image.fromarray(em).save(f'{out}/{n}_emis.png')

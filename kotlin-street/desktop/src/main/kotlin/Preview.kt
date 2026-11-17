@@ -74,7 +74,7 @@ fun streetOfShops(): List<HabitStack> {
         if (SpriteArt.buildings[id] == null) img("${n}_front")?.let { front ->
             val wj = File(dir, "buildings/windows.json").takeIf { it.exists() }?.let { org.json.JSONObject(it.readText()) }
             val ws = wj?.optJSONArray(n)?.let { a -> (0 until a.length()).map { k -> val r = a.getJSONArray(k); FloatArray(4) { r.getDouble(it).toFloat() } } }.orEmpty()
-            SpriteArt.buildings[id] = SpriteBuilding(front, img("${n}_side")!!, img("${n}_emis")!!, img("${n}_roof"), img("${n}_sign"), img("${n}_prop"), mids, ws)
+            SpriteArt.buildings[id] = SpriteBuilding(front, img("${n}_side")!!, img("${n}_emis")!!, img("${n}_roof"), img("${n}_sign"), img("${n}_prop"), mids, ws, wj?.optJSONArray(n + "_shop")?.let { a -> (0 until a.length()).map { k -> val r = a.getJSONArray(k); FloatArray(4) { r.getDouble(it).toFloat() } } }.orEmpty(), img("${n}_glass"))
         }
         building(id, o.getString("name"), "", HabitMaterial.CLAY, mids)
     }

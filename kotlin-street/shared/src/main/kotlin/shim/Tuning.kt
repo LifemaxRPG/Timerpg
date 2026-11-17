@@ -43,6 +43,10 @@ class SpriteBuilding(
     val middles: Int,
     /** The real windows (x, y, w, h in front-sprite pixels): their glass is cut out of [front]; the engine draws the rooms behind. */
     val windows: List<FloatArray> = emptyList(),
+    /** The shopfront glass (x, y, w, h): not cut out (the display shows through); the engine lays a faint reflection over it. */
+    val shop: List<FloatArray> = emptyList(),
+    /** A mask (white where the shopfront has real glass) to lay that reflection through. */
+    val glass: ImageBitmap? = null,
 )
 
 /** All of the game's own art that replaces the habit scene's procedural art, installed by the platform. */
