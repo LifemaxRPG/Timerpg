@@ -34,5 +34,7 @@ tasks.register<JavaExec>("preview") {
     System.getProperty("junctionNoClip")?.let { jvmArgs("-DjunctionNoClip=$it") }
     System.getProperty("rooms")?.let { jvmArgs("-Drooms=$it") }
     System.getProperty("noLit")?.let { jvmArgs("-DnoLit=$it") }
+    System.getProperty("assets")?.let { jvmArgs("-Dassets=$it") }
+    System.getProperty("day")?.let { jvmArgs("-Dday=$it") }
     args(layout.buildDirectory.dir("preview").get().asFile.absolutePath, file("../../public/assets/characters").absolutePath)
 }

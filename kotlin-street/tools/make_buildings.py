@@ -214,11 +214,32 @@ def build(shop, out):
     roof_img[:5, :, :3] = rim; roof_img[:, :5, :3] = rim; roof_img[:, -5:, :3] = rim; roof_img[-5:, :, :3] = rim
     Image.fromarray(roof_img).save(f'{out}/{n}_roof.png')
 
+# What this script writes for a sprite. Anything else in the folder is left alone: the lighting maps make_lighting.py
+# made from each front need a depth model that is not always on disk, so they must survive a re-run that does not
+# change their front.
+OUTPUTS = ('front', 'side', 'emis', 'roof', 'sign', 'prop', 'glass', 'over')
+MAPS = ('lit', 'shade')
+
+def pixels(path):
+    return np.array(Image.open(path).convert('RGBA')) if os.path.exists(path) else None
+
 if __name__ == '__main__':
     src, out = sys.argv[1], sys.argv[2]
     os.makedirs(out, exist_ok=True)
-    for f in glob.glob(out + '/*.png'): os.remove(f)
-    for shop in json.load(open(src))['shops']:
+    shops = json.load(open(src))['shops']
+    names = {s['sprite'] for s in shops}
+    # each front as it was, so a lighting map is kept only while it still fits its front
+    before = {n: pixels(f'{out}/{n}_front.png') for n in names}
+    for f in glob.glob(out + '/b*_*.png'):
+        sprite, suffix = os.path.basename(f)[:-4].split('_', 1)
+        # a sprite no longer on the streets loses everything; one still there only what is made again below
+        if suffix in OUTPUTS or sprite not in names: os.remove(f)
+    for shop in shops:
         build(shop, out)
+    for n in names:
+        now, was = pixels(f'{out}/{n}_front.png'), before[n]
+        if was is None or now is None or was.shape != now.shape or (was != now).any():
+            for m in MAPS:
+                if os.path.exists(f'{out}/{n}_{m}.png'): os.remove(f'{out}/{n}_{m}.png')
     json.dump(WINDOWS, open(out + '/windows.json', 'w'))
     print('wrote', len(os.listdir(out)), 'files to', out, '; windows:', {k: len(v) for k, v in WINDOWS.items()})

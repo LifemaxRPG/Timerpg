@@ -60,9 +60,13 @@ private fun building(id: String, shop: String, sign: String, material: HabitMate
     blocks = (1..floors).map { floor("$id-$it", "Flat $it", material, if (it % 2 == 0) 2 else 1) },
 )
 
+/** The app's asset folder (street.json, buildings/), or another laid out the same way (-Dassets=, e.g. a showcase street). */
+fun assetsDir(): File = System.getProperty("assets")?.let { File(it) }
+    ?: File("../app/src/main/assets").takeIf { File(it, "street.json").exists() } ?: File("app/src/main/assets")
+
 /** The same exported town the Android app loads (app/src/main/assets/street.json), with our building sprites. */
 fun streetOfShops(): List<HabitStack> {
-    val dir = File("../app/src/main/assets").takeIf { File(it, "street.json").exists() } ?: File("app/src/main/assets")
+    val dir = assetsDir()
     val arr = org.json.JSONObject(File(dir, "street.json").readText()).getJSONArray("shops")
     fun img(n: String): androidx.compose.ui.graphics.ImageBitmap? =
         File(dir, "buildings/$n.png").takeIf { it.exists() }?.let { SkiaImage.makeFromEncoded(it.readBytes()).toComposeImageBitmap() }
@@ -76,16 +80,13 @@ fun streetOfShops(): List<HabitStack> {
     val idx = (0 until arr.length()).filter { wanted == null || arr.getJSONObject(it).getString("sprite") in wanted }
         .sortedBy { order?.indexOf(arr.getJSONObject(it).getString("sprite")) ?: it }
     val eastIdx = east.mapNotNull { n -> (0 until arr.length()).firstOrNull { arr.getJSONObject(it).getString("sprite") == n } }
+    val windows = com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuildingLoad.windows(File(dir, "buildings/windows.json").takeIf { it.exists() }?.readText())
     fun one(i: Int): HabitStack {
         val o = arr.getJSONObject(i)
         val id = o.getString("id"); val n = o.getString("sprite")
         val mids = (0 until o.getJSONArray("parts").length()).count { o.getJSONArray("parts").getJSONObject(it).getString("key").startsWith("middle_") }
-        if (SpriteArt.buildings[id] == null) img("${n}_front")?.let { front ->
-            val wj = File(dir, "buildings/windows.json").takeIf { it.exists() }?.let { org.json.JSONObject(it.readText()) }
-            val ws = wj?.optJSONArray(n)?.let { a -> (0 until a.length()).map { k -> val r = a.getJSONArray(k); FloatArray(4) { r.getDouble(it).toFloat() } } }.orEmpty()
-            SpriteArt.buildings[id] = SpriteBuilding(front, img("${n}_side")!!, img("${n}_emis")!!, img("${n}_roof"), img("${n}_sign"), img("${n}_prop"), mids, ws, wj?.optJSONArray(n + "_shop")?.let { a -> (0 until a.length()).map { k -> val r = a.getJSONArray(k); FloatArray(4) { r.getDouble(it).toFloat() } } }.orEmpty(), img("${n}_glass"),
-                wj?.optJSONArray(n + "_relief")?.optJSONArray(0)?.let { r -> FloatArray(r.length()) { r.getDouble(it).toFloat() } }?.takeIf { it.size >= 7 }, img("${n}_over"), img("${n}_lit"), img("${n}_shade"))
-        }
+        if (SpriteArt.buildings[id] == null)
+            com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuildingLoad.load(n, mids, windows) { img(it) }?.let { SpriteArt.buildings[id] = it }
         return building(id, o.getString("name"), "", HabitMaterial.CLAY, mids)
     }
     val west = idx.map { one(it) }
