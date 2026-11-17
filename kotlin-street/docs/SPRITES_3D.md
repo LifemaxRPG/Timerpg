@@ -22,6 +22,11 @@ Contact sheets were made with a throwaway script from the folders below (houses,
   the ridge in the street (kept for the corner turn).
 - The art never drew the gable ends (the ridge runs along the street): they are made from the wall's own row colours,
   its siding carried up into the triangle, a vent under the apex, the front's first window on it.
+- Seen from the street's nearly level view a gable is almost edge on: the roof slab's end (the rake boards, standing
+  out by the verge) and, behind the ridge, the soffit under it (the far slope is steeper than the view, so its
+  underside faces the camera) are steep bands a pixel or two wide. Drawn as paths they came out as blended slivers with
+  sky between them; they are filled one whole screen pixel per row instead (`PixelRows`), stepped like pixel art and
+  never thinner than a pixel. The corner turn, which looks from higher, lays the end wall's own picture on the gable.
 - The house stands back in its yard (the game's own 2 tiles), so it moves against the pavement as the street scrolls;
   its shadow, the sun's edge, the cloud shade's clip and the framing follow it.
 - Glass panes are kept as drawn (curtains and blinds), with the engine's reflection laid faintly over and a lamp lit

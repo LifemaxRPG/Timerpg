@@ -45,28 +45,35 @@
   fence) and writes the shape to
   `buildings/houses.json`; `--showcase DIR` builds all 160 sprites. `BuildingPainter.houseBuilding` builds it: back in its
   2-tile front yard (it moves against the pavement as the street scrolls), a ridge along the street (the slope one screen
-  row per row of the art, about 21 degrees), a gable end with rake boards on the shown side, the flue behind the ridge,
+  row per row of the art, about 21 degrees), a gable end on the shown side under the roof slab's end (its rake boards
+  standing out by the verge, and behind the ridge the soffit under them in shade: thin steep bands, filled one whole
+  screen pixel per row, `domain/HouseGeometry.kt` `PixelRows`, so they step like the art's own lines), the flue behind the ridge,
   the hitch, the porch or steps as lit boxes, the yard (grass or bare earth, the path to the gate, the game's fence or a
   hedge for a formal yard). The gable end is the front's plain siding carried round the corner (the columns that are
   siding all the way down, so no door, frame or blind colours it). The art's ground is told from the house by the grey
   base design (the green variants paint the hitch and the wheels green). The porch is a platform: its deck's front over
   the dark space under it, the railing open between its balusters. Light: the slope catches a high sun and is in shade
   at golden hour, the gable by its side, the verge's shadow, the eaves' shade, the house's shade over its yard, its fence
-  or hedge and (shorter) the pavement. Snow on the roof and the ridge cap, a lip and icicles, a white yard, along the
-  fence's and the hedge's tops. Windows keep their drawn curtains and blinds with the sky mirrored faintly over them,
+  or hedge and (shorter) the pavement. Snow on the roof, the ridge cap and the rake boards, a lip and icicles, a white
+  yard, along the fence's and the hedge's tops. A house's wall stands on the screen's own pixels (its place along the
+  street counted in, not only whole pixels from its middle). Windows keep their drawn curtains and blinds with the sky mirrored faintly over them,
   rain on the glass, and a lamp lit behind at dusk on a home's hours. The wet road mirrors a house where it stands (its
-  own width, back in its yard, its roof over it); a car's headlights light only its front wall; a tap finds its front or
-  its roof, not the sky beside it.
+  own width, back in its yard, its roof over it, mirrored about its own foot); a car's headlights light only its front
+  wall, and the lamp posts' shadows they throw land on that wall where it stands back; a tap finds its yard (porch,
+  steps), its front or its roof, each leaning with the view as far as it stands back, not the sky beside or above it.
 - The corner turn and the street crossing slot a house at its own width, back in its slot, with its pitched roof as a
-  prism (`scene/TurnRoof.kt`: both slopes wear the art's slopes through one perspective matrix each, gable triangles in
-  the siding's colour), and what the street shows round it, so nothing pops in or out as the view turns
-  (`scene/TurnHouse.kt`): its yard's ground, its fence or hedge (snow on it in winter), its porch or steps (the railing
-  and the deck's front wearing the art) and its flue as lit boxes. A porch light beside each door comes on at dusk; the
+  prism (`scene/TurnRoof.kt`: both slopes wear the art's slopes through one perspective matrix each, the gables the end
+  wall's own picture above the wall, its trim and vent, under a band of the rake's colour), and what the street shows
+  round it, so nothing pops in or out as the view turns (`scene/TurnHouse.kt`): its yard's ground, its fence or hedge
+  (snow on it in winter), its porch or steps (the railing and the deck's front wearing the art) and its flue as lit
+  boxes (the flue between the slopes, so the ridge hides its foot from the front). The turn's tints are kept in a table
+  of plain ints, so looking one up makes no garbage. A porch light beside each door comes on at dusk; the
   flues smoke in the cold months (the turn has neither yet).
 - Not done yet: Main Street's own pitched roofs (`roof_2/4/6`, `roof_8/9/11`, the same machinery at 120 deep), villas
   (a front-facing gable), the clocktower's and the school's hipped roofs; hedges down the yards' sides, pigeons on the
-  ridges, eave drips in rain. The turn's houses stand 40 back in its 120-deep slots against 64 in the street (their
-  porches shortened to fit), and its roofs have no ridge cap.
+  ridges, eave drips in rain. The street's view is nearly level, so a porch's deck boards hide behind its railing (only
+  between the balusters do they show); the crossing, from higher, shows them. The turn's houses stand 40 back in its
+  120-deep slots against 64 in the street (their porches shortened to fit), and its roofs have no ridge cap.
 - Checks: `gradle :desktop:preview -Dmode=houses -Dstreet=1` (each house beside its sprite at the left, middle and right
   of the view, and the lane at day, dusk, night and in snow; `-Dassets=DIR -Dstreet=0` for the showcase);
   `gradle :desktop:test -DtestOnly=HouseGeometryTest`; `npx vitest run kotlin-street/tools/town-streets.test.ts`.
