@@ -139,17 +139,37 @@ private fun haze(d: Float): Float {
     return ((d - 900f * (1f - .45f * m)) / (1900f * (1f - .25f * m))).coerceIn(0f, .62f + .1f * m)
 }
 
+/** The face's perspective (drawing happens on one thread). */
+private val faceM = androidx.compose.ui.graphics.Matrix()
+
+/** The night glow's warm tint, made once. */
+private val glowFilter = ColorFilter.colorMatrix(ColorMatrix(floatArrayOf(1f, 0f, 0f, 0f, 0f, 0f, .82f, 0f, 0f, 0f, 0f, 0f, .52f, 0f, 0f, 0f, 0f, 0f, 1f, 0f)))
+
+/** The walls' tints by (light kept, haze), remade only when the light changes (it holds through a turn). */
+private val faceFilters = HashMap<Int, ColorFilter>()
+private var faceLight: TurnLight? = null
+
+private fun wallFilter(keep: Float, hz: Float): ColorFilter {
+    val l = TurnLight.current
+    val was = faceLight
+    if (was == null || was.r != l.r || was.g != l.g || was.b != l.b || was.hazeR != l.hazeR || was.hazeG != l.hazeG || was.hazeB != l.hazeB) { faceFilters.clear(); faceLight = l }
+    val key = ((keep * 255f).toInt() shl 8) or (hz * 255f).toInt()
+    return faceFilters.getOrPut(key) {
+        ColorFilter.colorMatrix(ColorMatrix(floatArrayOf(
+            keep * l.r, 0f, 0f, 0f, l.hazeR * hz,
+            0f, keep * l.g, 0f, 0f, l.hazeG * hz,
+            0f, 0f, keep * 1.04f * l.b, 0f, l.hazeB * hz,
+            0f, 0f, 0f, 1f, 0f,
+        )))
+    }
+}
+
 private fun DrawScope.face(cam: Cam, img: ImageBitmap, h: Float, ax: Float, az: Float, bx: Float, bz: Float, flip: Boolean, tint: Float, alpha: Float, glow: Boolean = false, base: Float = 0f, plate: Boolean = true) {
     val n = img.width
     // one filter per face, hazed by the distance of its middle
     val dMid = cam.v((ax + bx) / 2f, (az + bz) / 2f) + cam.dc
     val hz = haze(dMid); val keep = tint * (1f - hz)
-    val filter = if (glow) ColorFilter.colorMatrix(ColorMatrix(floatArrayOf(1f, 0f, 0f, 0f, 0f, 0f, .82f, 0f, 0f, 0f, 0f, 0f, .52f, 0f, 0f, 0f, 0f, 0f, 1f, 0f))) else ColorFilter.colorMatrix(ColorMatrix(floatArrayOf(
-        keep * TurnLight.current.r, 0f, 0f, 0f, TurnLight.current.hazeR * hz,
-        0f, keep * TurnLight.current.g, 0f, 0f, TurnLight.current.hazeG * hz,
-        0f, 0f, keep * 1.04f * TurnLight.current.b, 0f, TurnLight.current.hazeB * hz,
-        0f, 0f, 0f, 1f, 0f,
-    )))
+    val filter = if (glow) glowFilter else wallFilter(keep, hz)
     val dA = cam.v(ax, az) + cam.dc; val dB = cam.v(bx, bz) + cam.dc
     // behind the picture: the window openings cut into it show a dark room, not whatever stands behind the building
     if (plate && !glow && dA >= 40f && dB >= 40f) {
@@ -160,28 +180,23 @@ private fun DrawScope.face(cam: Cam, img: ImageBitmap, h: Float, ax: Float, az: 
         val glassC = androidx.compose.ui.graphics.lerp(Color(0xFF2b3550), l.bottom, .38f * (1f - l.night))
         drawPath(plate, Color(glassC.red * keep * l.r, glassC.green * keep * l.g, glassC.blue * keep * l.b, alpha))
     }
-    // wide strips when the face is small or edge-on on screen: the same picture for far fewer draw calls
-    val span = if (dA < 40f || dB < 40f) 0f else abs(cam.sx(cam.u(bx, bz), dB) - cam.sx(cam.u(ax, az), dA))
-    val step = when { span / n < .55f -> 4; span / n < 1.1f -> 2; else -> 1 }
-    var k = -step
-    while (k + step < n) {
-        k += step
-        val c = if (flip) n - k - step else k
-        val t0 = k / n.toFloat(); val t1 = (k + step) / n.toFloat()
-        val x0 = ax + (bx - ax) * t0; val z0 = az + (bz - az) * t0
-        val x1 = ax + (bx - ax) * t1; val z1 = az + (bz - az) * t1
-        val d0 = cam.v(x0, z0) + cam.dc; val d1 = cam.v(x1, z1) + cam.dc
-        if (d0 < 40f || d1 < 40f) continue
-        val sx0 = cam.sx(cam.u(x0, z0), d0); val sx1 = cam.sx(cam.u(x1, z1), d1)
-        val dm = (d0 + d1) / 2f
-        val top = cam.sy(base + h, dm); val bot = cam.sy(base, dm)
-        // strips meet on whole pixels: no gaps and no overlap (an overlap blends twice when the face is translucent)
-        val left = kotlin.math.round(minOf(sx0, sx1)); val wid = kotlin.math.round(maxOf(sx0, sx1)) - left
-        if (wid <= 0f) continue
-        withTransform({ translate(left, top); scale(wid / step, (bot - top) / img.height, Offset.Zero) }) {
-            drawImage(img, srcOffset = IntOffset(c, 0), srcSize = IntSize(step, img.height), dstOffset = IntOffset(0, 0), dstSize = IntSize(step, img.height),
-                filterQuality = FilterQuality.None, colorFilter = filter, alpha = alpha, blendMode = androidx.compose.ui.graphics.BlendMode.SrcOver)
-        }
+    // one draw for the whole face: a face is a flat quad, so a single perspective matrix maps the picture onto it exactly
+    // (x' = (w/2 d + f u) / d and y' = (hy d + f (eye - y)) / d, with u and d linear along the face; w = depth)
+    if (dA < 40f || dB < 40f) return
+    val uA = cam.u(ax, az); val uB = cam.u(bx, bz)
+    // the picture's column 0 is at A (at B when flipped); X runs along the face, Y down from its top
+    val u0 = if (flip) uB else uA; val d0 = if (flip) dB else dA
+    val du = if (flip) uA - uB else uB - uA; val dd = if (flip) dA - dB else dB - dA
+    val nf = img.width.toFloat(); val hh = img.height.toFloat()
+    val m = faceM.values
+    m.fill(0f)
+    m[0] = (cam.w / 2f * dd + cam.f * du) / nf; m[12] = cam.w / 2f * d0 + cam.f * u0
+    m[1] = cam.hy * dd / nf; m[5] = cam.f * h / hh; m[13] = cam.hy * d0 + cam.f * (cam.eye - base - h)
+    m[3] = dd / nf; m[15] = d0
+    m[10] = 1f
+    withTransform({ transform(faceM) }) {
+        drawImage(img, IntOffset.Zero, IntSize(img.width, img.height), IntOffset.Zero, IntSize(img.width, img.height),
+            alpha = alpha, colorFilter = filter, filterQuality = FilterQuality.None)
     }
 }
 
