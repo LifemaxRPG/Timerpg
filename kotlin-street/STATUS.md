@@ -53,7 +53,7 @@
 - Measured on a computer (4-core x86 cloud machine, NOT the S25), `tools/llm-dialogue-check.sh`, all 75 prompts:
   Qwen3.5-9B: 73 of 75 (97%) pass `validate()` (Qwen3-0.6B: 67-68 of 75, ~89%), replies in character ("Get off my
   porch before I call the sheriff."); ~33-44 tok/s prompt processing, ~2.5-5 tok/s generation, ~12 s per line before the
-  snapshots; with them about 60% of each prompt is skipped. The S25 Ultra's 8 Oryon cores (6 threads) should be several
+  snapshots; with them 58% of prompt tokens come from a snapshot and a line takes ~6.4 s (first token ~2 s). The S25 Ultra's 8 Oryon cores (6 threads) should be several
   times faster: an estimate until measured there. Kotlin and TypeScript `validate()` agree on all 75.
 - `validate()` (both copies) also rejects a name the prompt never mentions (a capitalized word mid-sentence), the fact
   sheet's way of speaking read back ("A curt, measured response: ..."), and the "<town>, <year>" tag.
