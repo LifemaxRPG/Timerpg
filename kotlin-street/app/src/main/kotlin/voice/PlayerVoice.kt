@@ -59,6 +59,12 @@ class PlayerVoice(private val ctx: Context) {
 
     fun hasPermission() = ctx.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
 
+    /** How long writing down the last thing said took (ms, from letting go of the button), and by whom. */
+    var lastHeard by mutableStateOf<String?>(null)
+        private set
+    private var letGo = 0L
+    @Volatile private var loadedJustNow = false
+
     /** The phone's own recognizer is hearing the player (ours does not fit in memory beside the dialogue model now). */
     var usingPhone by mutableStateOf(false)
         private set
@@ -119,6 +125,7 @@ class PlayerVoice(private val ctx: Context) {
      */
     fun stop(context: String, onText: (String) -> Unit) {
         if (!recording) return
+        letGo = android.os.SystemClock.elapsedRealtime()
         if (phone != null) { stopPhone(onText); return }
         recording = false
         level = 0f
@@ -127,6 +134,7 @@ class PlayerVoice(private val ctx: Context) {
         worker.execute {
             mic?.join(1000)
             val pcm = samples.toArray()
+            loadedJustNow = !asr.loaded
             val text = when {
                 pcm.size < SAMPLE_RATE / 4 -> ""                         // a tap, not a sentence
                 !asr.loaded && !loadNow() -> null
@@ -138,7 +146,10 @@ class PlayerVoice(private val ctx: Context) {
                 when {
                     text == null -> problem = asr.error ?: "Could not hear that."
                     text.isBlank() -> problem = "Didn't catch that. Hold the button while you talk."
-                    else -> onText(text)
+                    else -> {
+                        lastHeard = "heard in %.1f s (our speech model%s)".format((android.os.SystemClock.elapsedRealtime() - letGo) / 1000.0, if (loadedJustNow) ", loaded first" else "")
+                        onText(text)
+                    }
                 }
             }
         }
@@ -201,7 +212,10 @@ class PlayerVoice(private val ctx: Context) {
         state = State.IDLE
         val t = phoneResult
         when {
-            !t.isNullOrBlank() -> want(t)
+            !t.isNullOrBlank() -> {
+                lastHeard = "heard in %.1f s (the phone's recognizer)".format((android.os.SystemClock.elapsedRealtime() - letGo) / 1000.0)
+                want(t)
+            }
             phoneProblem.isNullOrEmpty() -> problem = "Didn't catch that. Hold the button while you talk."
             else -> problem = phoneProblem
         }

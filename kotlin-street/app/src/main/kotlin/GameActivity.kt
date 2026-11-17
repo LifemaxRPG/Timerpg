@@ -550,7 +550,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                     if (down) {
                         if (!ears.hasPermission()) askMic.launch(android.Manifest.permission.RECORD_AUDIO)
                         else { voices.stop(); engine.pause("listening"); ears.start() }
-                    } else ears.stop(names) { said -> engine.resume("listening"); open.askSaid(engine, said, voices, memory) }
+                    } else ears.stop(names) { said -> engine.resume("listening"); open.heardNote = ears.lastHeard; open.askSaid(engine, said, voices, memory) }
                     if (!down && ears.state == com.timerpg.street.voice.PlayerVoice.State.IDLE) engine.resume("listening")
                 },
                 modifier = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 92.dp))
@@ -646,6 +646,10 @@ private class Talk(val npc: Npc) {
 
     /** What the player last said out loud, shown above the answer. */
     var said by mutableStateOf<String?>(null)
+    /** How long each step of the last spoken question took (hearing, memories, the model), shown under the answer. */
+    var timing by mutableStateOf<String?>(null)
+    /** Set by the caller before [askSaid]: how the words were heard and how long it took. */
+    var heardNote: String? = null
 
     /** The player said [text]: the person answers those words (the topic they are nearest is marked). */
     fun askSaid(engine: DialogueEngine, text: String, voices: com.timerpg.street.voice.NpcVoiceService? = null,
@@ -653,15 +657,25 @@ private class Talk(val npc: Npc) {
         request?.close()
         said = text
         var spoken: String? = null
+        val t0 = android.os.SystemClock.elapsedRealtime()
+        var tAsk = 0L; var tFirst = 0L
+        val heardBy = heardNote
         fun heard(l: Line) {
+            if (l.ai && tFirst == 0L && tAsk > 0L) tFirst = android.os.SystemClock.elapsedRealtime()
             if (!l.final || l.text == spoken) return
             spoken = l.text
+            if (l.ai) {
+                val end = android.os.SystemClock.elapsedRealtime()
+                timing = listOfNotNull(heardBy, "memories %.1f s".format((tAsk - t0) / 1000.0),
+                    "first words %.1f s".format((tFirst.coerceAtLeast(tAsk) - tAsk) / 1000.0), "line done %.1f s".format((end - tAsk) / 1000.0)).joinToString(" · ")
+            }
             voices?.say(npc, l.text)
             // they remember what was said, and what they answered
             memory?.remember(npc.id, text, l.text)
         }
         fun go(remembered: List<String>) {
             if (said != text) return   // something else was asked meanwhile
+            tAsk = android.os.SystemClock.elapsedRealtime()
             val (tp, r) = engine.askFree(npc, text, remembered) { line = it; heard(it) } ?: return
             topic = tp
             request = r
@@ -709,6 +723,7 @@ private fun DialoguePanel(t: Talk, onTopic: (Topic) -> Unit, onClose: () -> Unit
                 Text(l.note, 11.sp, color = DIM)
             }
         }
+        t.timing?.let { Text(it, 11.sp, color = DIM) }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             if (ears != null) MicButton(ears, onTalk)
             for (tp in t.npc.topics) Chip(chipLabel(tp), t.topic === tp) { onTopic(tp) }
