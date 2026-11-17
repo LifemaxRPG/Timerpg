@@ -4,6 +4,13 @@ import androidx.compose.ui.graphics.ImageBitmap
 
 /** Switches that turn the habit-tracker's scene into the game's street. */
 object StageTuning {
+    /**
+     * Draws the side street into the gap where it opens off the main street (the app sets it: the corner turn's scene).
+     * [dx]: the camera's place along the main street from the middle of the junction, in the turn's units (sprite pixels).
+     */
+    @Volatile var junctionView: (androidx.compose.ui.graphics.drawscope.DrawScope.(dx: Float) -> Unit)? = null
+    /** The buildings either side of the junction: their side faces are the side street's walls, which its view draws. */
+    @Volatile var cornerIds: Set<String> = emptySet()
     /** The habit-name plaques on every floor. Off for the game. */
     var plaques = false
     /** The dashed "FOR RENT" outline above the front building. Off for the game. */

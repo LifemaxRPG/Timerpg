@@ -38,6 +38,15 @@ object GameState {
     var edge by mutableIntStateOf(0)
     /** Where this street's crossroads is: at its far (east) end, or at its start. */
     var cornerAtEnd = true
+    /** The middle of the junction's opening along this street (street units), or NaN if the side street does not open here. */
+    @Volatile var junctionX = Float.NaN
+    /** Where the middle of the view is along the street (street units), as the stage last drew it. */
+    @Volatile var viewMiddle = 0f
+    /**
+     * The people the player can talk to, standing at their buildings: (building index along this street, a look seed from
+     * who they are). Drawn by the door, facing the street, so "Talk to ..." has someone to talk to.
+     */
+    @Volatile var keepers: List<Pair<Int, Int>> = emptyList()
     /** Half the screen's width in street units (set by the stage as it draws), so the camera can stop at the street's ends. */
     var halfView = 0f
     /** Device pixels per street unit, as the stage last drew (0 until it has drawn). */

@@ -185,6 +185,8 @@ fun buildingLayout(
     ghost: Boolean = false,
 ): BuildingLayout {
     val b = BuildingSpec
+    // where the side street opens: an empty lot, as wide (with its two gaps) as the side street in the turn's scene
+    if (stack.id == JUNCTION_ID) return BuildingLayout(stack.id, listOf(Piece(PieceKind.LOBBY, stack.id, 0f, 0f, JUNCTION_LOT)), emptyList(), 0f, 0f, JUNCTION_LOT)
     com.lifemax.rpg.feature.habits.presentation.scene.SpriteArt.buildings[stack.id]?.let { return spriteLayout(stack, it) }
     val pieces = ArrayList<Piece>()
     pieces += Piece(PieceKind.LOBBY, stack.id, 0f, b.LOBBY_H, b.W)
@@ -344,6 +346,14 @@ data class StreetLayout(
  * Lays [buildings] along one street, the first one's middle at 0. Each gap holds one piece of
  * furniture, by turns a lamp, a tree, a lamp, a bench; a lamp and a tree finish either end.
  */
+/** The stack id of the gap where the side street opens off the main street. */
+const val JUNCTION_ID = "junction"
+/**
+ * Its lot: with the gap on either side the opening is 164 street units, the turn's 200 sprite pixels (its side street,
+ * x 0 to 200, between the corner buildings) at 184 units per 224 pixels.
+ */
+const val JUNCTION_LOT = 164f - 2f * BuildingSpec.GAP
+
 fun streetLayout(buildings: List<BuildingLayout>): StreetLayout {
     val b = BuildingSpec
     val centers = ArrayList<Float>(buildings.size)
@@ -354,7 +364,8 @@ fun streetLayout(buildings: List<BuildingLayout>): StreetLayout {
         lefts += left
         centers += left + b.W / 2f
         left += l.lot + b.GAP
-        if (i < buildings.size - 1)
+        // (no lamp or tree in the mouth of the side street)
+        if (i < buildings.size - 1 && l.stackId != JUNCTION_ID && buildings[i + 1].stackId != JUNCTION_ID)
             furniture += Furniture(CYCLE[i % CYCLE.size], left - b.GAP / 2f, i)
     }
     val start = -b.W / 2f - b.GAP

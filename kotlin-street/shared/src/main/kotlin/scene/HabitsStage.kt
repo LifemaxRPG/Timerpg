@@ -612,6 +612,7 @@ private fun StageCanvas(
 
     // the game: the camera follows the player instead of settling on a building
     val streetNow = rememberUpdatedState(street)
+    val layoutsNow = rememberUpdatedState(layouts)
     LaunchedEffect(GameState.enabled) {
         if (!GameState.enabled) return@LaunchedEffect
         var last = 0L
@@ -620,8 +621,14 @@ private fun StageCanvas(
             val dt = if (last == 0L) 0f else ((t - last) / 1e9f).coerceAtMost(.1f)
             last = t
             val s = streetNow.value
+            // the middle of the side street's mouth on this street, if it opens here
+            val jx = s.lefts.indices.firstOrNull { layoutsNow.value.getOrNull(it)?.stackId == com.lifemax.rpg.feature.habits.domain.JUNCTION_ID }
+                ?.let { s.lefts[it] + layoutsNow.value[it].lot / 2f } ?: Float.NaN
+            GameState.junctionX = jx
             // arriving back round the corner: stand just short of the junction end of this street
             if (GameState.x > s.end + 500f) GameState.x = s.end - 150f
+            // arriving back from the side street: at the junction, where it opens
+            if (GameState.x < -1e8f) GameState.x = if (!jx.isNaN()) jx else s.end - 150f
             val before = GameState.x
             val laneBefore = GameState.lane
             GameState.step(dt, s.start, s.end, BuildingPainter.PAVEMENT - 2f)
@@ -649,9 +656,11 @@ private fun StageCanvas(
             val lo = s.start + half; val hi = s.end - half
             val cx = GameState.drawnX()
             scroll.snapTo(if (half <= 0f) cx else if (lo < hi) cx.coerceIn(lo, hi) else (s.start + s.end) / 2f)
-            GameState.atCorner = if (GameState.cornerAtEnd) GameState.x > s.end - 110f else GameState.x < s.start + 110f
+            // at the corner: in the mouth of the side street where it opens off this street, else at the junction end
+            GameState.atCorner = if (!jx.isNaN()) kotlin.math.abs(GameState.x - jx) < 95f
+                else if (GameState.cornerAtEnd) GameState.x > s.end - 110f else GameState.x < s.start + 110f
             // the shop stays named across the gaps between buildings (no blinking off between them); cleared past the ends
-            val at = s.lefts.indices.firstOrNull { GameState.x >= s.lefts[it] && GameState.x <= s.lefts[it] + B.W }
+            val at = s.lefts.indices.firstOrNull { GameState.x >= s.lefts[it] && GameState.x <= s.lefts[it] + (layoutsNow.value.getOrNull(it)?.lot ?: B.W) }
             if (at != null) GameState.nearest = at
             else if (s.lefts.isEmpty() || GameState.x < s.lefts.first() || GameState.x > s.lefts.last() + B.W) GameState.nearest = -1
         }
@@ -776,6 +785,7 @@ private fun StageCanvas(
         val f = frame()
         if (GameState.enabled && f.unit > 0f) {
             GameState.halfView = size.width / 2f / f.unit
+            GameState.viewMiddle = f.middle
             GameState.unit = f.unit
             GameState.groundPx = f.ground
         }
@@ -880,6 +890,15 @@ private fun StageCanvas(
         if (layered)
             drawIntoCanvas { it.saveLayer(Rect(0f, 0f, this.size.width, this.size.height), layer) }
         clipRect(0f, f.top, this.size.width, this.size.height) {
+            // where the side street opens: its own view, through the gap between the corner buildings (they are drawn over
+            // its edges), from the camera's place along the street
+            val jv = StageTuning.junctionView
+            val j = layouts.indexOfFirst { it.stackId == com.lifemax.rpg.feature.habits.domain.JUNCTION_ID }
+            if (jv != null && j >= 0) {
+                val mid = street.lefts[j] + layouts[j].lot / 2f
+                val l = f.screenX(street.lefts[j] - B.GAP); val r = f.screenX(street.lefts[j] + layouts[j].lot + B.GAP)
+                if (r > 0f && l < this.size.width) { if (System.getProperty("junctionNoClip") != null) jv((f.middle - mid) * SpriteArt.SRC_W / B.W) else clipRect(l, 0f, r, f.ground + 1f) { jv((f.middle - mid) * SpriteArt.SRC_W / B.W) } }
+            }
             withTransform({
                 translate(kotlin.math.round(this@Canvas.size.width / 2f - f.middle * f.unit), kotlin.math.round(f.ground))
                 scale(f.unit, f.unit, Offset.Zero)

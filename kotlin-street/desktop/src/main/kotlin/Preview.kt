@@ -1,5 +1,6 @@
 @file:OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 
+import com.lifemax.rpg.feature.habits.presentation.scene.junctionView
 import androidx.compose.ui.ImageComposeScene
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -69,9 +70,12 @@ fun streetOfShops(): List<HabitStack> {
     val which = System.getProperty("street")?.toIntOrNull()
     val wanted: Set<String>? = root.optJSONArray("streets")?.let { st -> which?.let { k -> st.optJSONObject(k)?.optJSONArray("buildings")?.let { b -> (0 until b.length()).map { b.getString(it) } } } }?.toSet()
     val order = wanted?.let { w -> root.getJSONArray("streets").getJSONObject(which!!).getJSONArray("buildings").let { b -> (0 until b.length()).map { b.getString(it) } } }
+    // the main street goes on past the junction (as in the app): the side street's mouth, then the buildings east of it
+    val east = if (which == 0) root.optJSONObject("junction")?.optJSONArray("mainEast")?.let { b -> (0 until b.length()).map { b.getString(it) } }.orEmpty() else emptyList()
     val idx = (0 until arr.length()).filter { wanted == null || arr.getJSONObject(it).getString("sprite") in wanted }
         .sortedBy { order?.indexOf(arr.getJSONObject(it).getString("sprite")) ?: it }
-    return idx.map { i ->
+    val eastIdx = east.mapNotNull { n -> (0 until arr.length()).firstOrNull { arr.getJSONObject(it).getString("sprite") == n } }
+    fun one(i: Int): HabitStack {
         val o = arr.getJSONObject(i)
         val id = o.getString("id"); val n = o.getString("sprite")
         val mids = (0 until o.getJSONArray("parts").length()).count { o.getJSONArray("parts").getJSONObject(it).getString("key").startsWith("middle_") }
@@ -81,8 +85,13 @@ fun streetOfShops(): List<HabitStack> {
             SpriteArt.buildings[id] = SpriteBuilding(front, img("${n}_side")!!, img("${n}_emis")!!, img("${n}_roof"), img("${n}_sign"), img("${n}_prop"), mids, ws, wj?.optJSONArray(n + "_shop")?.let { a -> (0 until a.length()).map { k -> val r = a.getJSONArray(k); FloatArray(4) { r.getDouble(it).toFloat() } } }.orEmpty(), img("${n}_glass"),
                 wj?.optJSONArray(n + "_relief")?.optJSONArray(0)?.let { r -> FloatArray(r.length()) { r.getDouble(it).toFloat() } }?.takeIf { it.size >= 7 }, img("${n}_over"))
         }
-        building(id, o.getString("name"), "", HabitMaterial.CLAY, mids)
+        return building(id, o.getString("name"), "", HabitMaterial.CLAY, mids)
     }
+    val west = idx.map { one(it) }
+    if (eastIdx.isEmpty()) return west
+    val after = eastIdx.map { one(it) }
+    StageTuning.cornerIds = setOfNotNull(west.lastOrNull()?.id, after.firstOrNull()?.id)
+    return west + building(com.lifemax.rpg.feature.habits.domain.JUNCTION_ID, "Orchard Lane", "", HabitMaterial.CLAY, 1) + after
 }
 
 fun fallbackShops() = listOf(
@@ -211,6 +220,32 @@ fun main(args: Array<String>) {
         com.lifemax.rpg.feature.habits.domain.WeatherOverride.forced = null
         return
     }
+    if (mode == "junction") {
+        // walking past the junction: the side street seen through its mouth, from either side and straight on
+        val assets = File("../app/src/main/assets").absolutePath
+        fun load(dir: String, name: String): androidx.compose.ui.graphics.ImageBitmap = SkiaImage.makeFromEncoded(File(File(assets, dir), name).readBytes()).toComposeImageBitmap()
+        val art = com.lifemax.rpg.feature.habits.presentation.scene.TurnArt(emptyList(), emptyList(),
+            runCatching { load("props", "lamp_1.png") }.getOrNull(), null,
+            trees = (1..3).map { load("props", "tree_$it.png") }, bench = runCatching { load("props", "bench_1.png") }.getOrNull(),
+            rows = turnRows(assets) { n -> runCatching { load("buildings", n) }.getOrNull() })
+        val tb = com.lifemax.rpg.feature.habits.presentation.scene.turnBuildings(art)
+        StageTuning.junctionView = { dx ->
+            if (GameState.framePx > 0f) junctionView(art, tb, dx, 16.8f, 1, com.lifemax.rpg.feature.habits.presentation.scene.TurnFrame(GameState.frameGround, GameState.frameHorizon, GameState.framePx))
+        }
+        val shops = streetOfShops()
+        val j = shops.indexOfFirst { it.id == com.lifemax.rpg.feature.habits.domain.JUNCTION_ID }
+        // the junction's middle along the street, as the stage measures it (one frame to find it)
+        GameState.x = 1500f
+        render("$out/junction_probe.png", 780, 360, 16.8f, "2026-06-14", first, false, bottom = 40f, ambient = 100f)
+        val jx = GameState.junctionX
+        for ((k, off) in listOf(-420f, -200f, 0f, 200f, 420f).withIndex()) {
+            GameState.x = jx + off; GameState.lane = 7f; GameState.dir = 1f
+            render("$out/junction_$k.png", 780, 360, 16.8f, "2026-06-14", first, false, bottom = 40f, ambient = 100f)
+        }
+        return
+    }
+    // the people to talk to, one at each building (the app takes them from dialogue.json)
+    GameState.keepers = (0 until 12).map { it to it * 7919 }
     if (mode == "pano") {
         for (i in 0..8) {
             GameState.x = i * 380f; GameState.lane = 7f; GameState.dir = 1f

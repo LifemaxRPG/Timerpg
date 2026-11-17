@@ -42,6 +42,7 @@ import com.lifemax.rpg.feature.habits.presentation.scene.CornerTurn
 import com.lifemax.rpg.feature.habits.presentation.scene.TurnArt
 import androidx.compose.ui.graphics.graphicsLayer
 import com.lifemax.rpg.feature.habits.presentation.scene.turnSkyPan
+import com.lifemax.rpg.feature.habits.presentation.scene.junctionView
 import com.lifemax.rpg.feature.habits.presentation.scene.TurnFrame
 import com.lifemax.rpg.feature.habits.presentation.scene.TurnFacade
 import com.lifemax.rpg.feature.habits.presentation.scene.TurnRows
@@ -162,7 +163,7 @@ private val SHOPS = listOf(
 private class StreetInfo(val name: String, val shops: List<HabitStack>, val owners: List<String>, val sprites: List<String> = emptyList())
 
 /** Our game's town streets, exported by tools/export-street.ts (falls back to a built-in street). */
-private class StreetData(val town: String, val streets: List<StreetInfo>, val rows: TurnRows? = null)
+private class StreetData(val town: String, val streets: List<StreetInfo>, val rows: TurnRows? = null, val cornerIds: Set<String> = emptySet())
 
 private fun loadStreet(ctx: android.content.Context): StreetData = try {
     val j = org.json.JSONObject(ctx.assets.open("street.json").bufferedReader().use { it.readText() })
@@ -213,8 +214,20 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
         facades(names(streetsJ.getJSONObject(0).optJSONArray("buildings"))), facades(names(jn.optJSONArray("mainEast"))),
         facades(names(streetsJ.getJSONObject(1).optJSONArray("buildings"))), facades(names(jn.optJSONArray("crossEast"))),
     ) else null
-    if (streets.isEmpty()) StreetData("built-in street", listOf(StreetInfo("Main Street", SHOPS, emptyList())))
-    else StreetData("${j.getString("town")} · ${j.getString("type")} · ${j.getInt("year")}", streets, rows)
+    // the main street does not end at the junction: the side street opens off it (a gap where it is seen, walked past or
+    // turned into), and the main street goes on beyond with the buildings east of it
+    var corners = emptySet<String>()
+    val walked = if (jn != null && streets.size >= 2) streets.mapIndexed { k, st ->
+        if (k != 0) st else {
+            val east = names(jn.optJSONArray("mainEast")).filter { bySprite[it] != null }
+            val mouth = shop(com.lifemax.rpg.feature.habits.domain.JUNCTION_ID, streets[1].name, "", HabitMaterial.CLAY, 1)
+            corners = setOfNotNull(st.shops.lastOrNull()?.id, east.firstOrNull()?.let { bySprite[it]!!.stack.id })
+            StreetInfo(st.name, st.shops + mouth + east.map { bySprite[it]!!.stack }, st.owners + "" + east.map { bySprite[it]!!.owner },
+                st.sprites + com.lifemax.rpg.feature.habits.domain.JUNCTION_ID + east)
+        }
+    } else streets
+    if (walked.isEmpty()) StreetData("built-in street", listOf(StreetInfo("Main Street", SHOPS, emptyList())))
+    else StreetData("${j.getString("town")} · ${j.getString("type")} · ${j.getInt("year")}", walked, rows, corners)
 } catch (e: Exception) {
     StreetData("built-in street", listOf(StreetInfo("Main Street", SHOPS, emptyList())))
 }
@@ -253,6 +266,22 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             if (ids.isEmpty()) null else TurnArt(ids.map { img("buildings/b${it}_front.png")!! }, ids.map { img("buildings/b${it}_side.png")!! }, img("props/lamp_1.png"), img("characters/char_02.png"), ids.map { img("buildings/b${it}_emis.png") }, ids.map { img("buildings/b${it}_prop.png") }, (1..3).mapNotNull { img("props/tree_$it.png") }, img("props/bench_1.png"))
         }
     }
+    // the side street seen through the junction's gap as the player walks the main street (the turn's scene, first frame)
+    val turnScene = remember(turnArt) { turnArt?.let { com.lifemax.rpg.feature.habits.presentation.scene.turnBuildings(it) } }
+    val viewNow = androidx.compose.runtime.rememberUpdatedState(hour to season)
+    androidx.compose.runtime.DisposableEffect(turnArt, streetNo) {
+        val art = turnArt; val tb = turnScene
+        StageTuning.cornerIds = if (streetNo == 0) data.cornerIds else emptySet()
+        StageTuning.junctionView = if (art == null || tb == null || streetNo != 0) null else { dx ->
+            if (GameState.framePx > 0f) {
+                val (h, s) = viewNow.value
+                junctionView(art, tb, dx, h, s, TurnFrame(GameState.frameGround, GameState.frameHorizon, GameState.framePx))
+            }
+        }
+        onDispose { StageTuning.junctionView = null; StageTuning.cornerIds = emptySet() }
+    }
+    // the turn starts from wherever the player stands in the junction's mouth, and swings round from there
+    var turnDx by remember { mutableFloatStateOf(0f) }
     var turn by remember { mutableFloatStateOf(-1f) }
     var turning by remember { mutableStateOf(false) }
     var fade by remember { mutableFloatStateOf(0f) }
@@ -279,7 +308,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 if (turn >= 0f) {
                     turn = -1f
                     // round the corner: the start of the cross street, or back to the junction end of the main street
-                    GameState.x = if (turnBack) 1e9f else 150f
+                    GameState.x = if (turnBack) -1e9f else 150f
                     streetNo = if (turnBack) 0 else 1
                     GameState.lane = 7f
                 }
@@ -307,6 +336,12 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     var aiPanel by remember { mutableStateOf(false) }
     val here = street.sprites.getOrNull(near)
     val atHere = remember(people, here) { people?.at(here).orEmpty() }
+    // everyone the player can talk to on this street stands at their building (the first of each building's people)
+    LaunchedEffect(people, streetNo) {
+        GameState.keepers = street.sprites.mapIndexedNotNull { i, sp ->
+            people?.at(sp)?.firstOrNull()?.let { npc -> i to (npc.id.hashCode() and 0x7fffffff) }
+        }
+    }
     // lines are written ahead of time nearest the player first; re-sorted as they walk or turn the corner
     LaunchedEffect(streetNo, near) { engine.setPlayer(streetNo, near) }
     // the corner turn: no writing ahead while it plays (it needs the CPU), no conversation across it
@@ -340,12 +375,18 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         Text("${street.name} · ${data.town}", 14.sp, Modifier.align(Alignment.TopStart).padding(14.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
         if (turn >= 0f && turnArt != null) {
             Box(Modifier.fillMaxSize().graphicsLayer { alpha = turnAlpha }) {
-                CornerTurn(turnArt, turn, Modifier.fillMaxSize(), hour, season, reverse = turnBack, clock = turnClock, skyBehind = true)
+                CornerTurn(turnArt, turn, Modifier.fillMaxSize(), hour, season, reverse = turnBack, clock = turnClock, skyBehind = true,
+                    camX = { p -> val e = p * p * (3f - 2f * p); 100f + turnDx * (1f - e) })
             }
         }
         if (fade > 0f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = fade)))
         if (turnArt != null && !turning && atCorner) Chip(if (streetNo == 0) "↰ Turn onto ${data.streets.getOrNull(1)?.name ?: "the side street"}" else "↳ Back to ${data.streets[0].name}", false,
-            Modifier.align(if (streetNo == 0) Alignment.CenterEnd else Alignment.CenterStart).padding(horizontal = 14.dp)) { turnBack = streetNo == 1; turning = true }
+            Modifier.align(if (streetNo == 0) Alignment.CenterEnd else Alignment.CenterStart).padding(horizontal = 14.dp)) {
+                turnBack = streetNo == 1
+                // the camera's place along the main street from the junction's middle (turn units), where the view is now
+                turnDx = if (streetNo == 0 && !GameState.junctionX.isNaN()) (GameState.viewMiddle - GameState.junctionX) * 224f / 184f else 0f
+                turning = true
+            }
         // the shop the player is standing at
         if (near in shops.indices) {
             val st = shops[near]

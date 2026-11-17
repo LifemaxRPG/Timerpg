@@ -57,6 +57,9 @@ import kotlin.math.tan
  * the schedule fills ([update]), so nothing is made while drawing. Street units, the pavement line
  * at y = 0, the kerb at [BuildingPainter.PAVEMENT].
  */
+/** Passer slots from here up are the people to talk to (at building slot - KEEPER). */
+private const val KEEPER = 10000
+
 internal class StreetLifePainter {
     /** This frame's passers and cars (far lane first), filled by [update]. */
     val passers = Array(StreetLife.MOST + 2) { Passer() }
@@ -293,6 +296,18 @@ internal class StreetLifePainter {
             var i = count - 1
             while (i > 0 && passers[i - 1].lane > passers[i].lane) { val t = passers[i]; passers[i] = passers[i - 1]; passers[i - 1] = t; i-- }
         }
+        // the people to talk to: each at their building's door, standing, facing the street (near the wall, behind passers)
+        if (GameState.enabled) for ((b, seed) in GameState.keepers) {
+            if (count >= passers.size || b !in street.centers.indices) continue
+            val k = passers[count]
+            k.on = true; k.slot = KEEPER + b; k.kind = Stroller.WALKER
+            k.x = street.centers[b] + 30f; k.lane = 3.6f; k.lane0 = k.lane; k.dir = 1f
+            k.look = seed; k.size = 1f; k.lean = 0f; k.halt = Halt.NONE
+            k.frame = 0; k.next = 0; k.mix = 0f; k.still = 1f
+            count++
+            var i = count - 1
+            while (i > 0 && passers[i - 1].lane > passers[i].lane) { val t = passers[i]; passers[i] = passers[i - 1]; passers[i - 1] = t; i-- }
+        }
         val busy = StreetLife.traffic(painter?.hour ?: 12f)
         carCount = if (StageTuning.cars) StreetLife.cars(seconds, seed, street.start, street.end, busy, cars) else 0
         if (!StageTuning.cars) for (i in 0 until count) if (passers[i].kind == Stroller.CYCLIST || passers[i].kind == Stroller.DOG_WALKER) passers[i].kind = Stroller.WALKER
@@ -321,8 +336,9 @@ internal class StreetLifePainter {
         val i = if (standing) ((clock * 5f).toInt() + p.slot * 3).mod(6) else (frame % StreetGait.FRAMES) * 6 / StreetGait.FRAMES
         // the sheet's views: 0 right, 1 back, 2 left, 3 front. The player uses its own (party() mirrors every figure by its
         // direction, so that is cancelled for the player); passers walk the right view mirrored as before
-        val view = if (!me) 0 else if (GameState.facing == 0 && p.dir < 0f) 2 else GameState.facing
-        val flip = if (me) p.dir else 1f
+        val keeper = p.slot >= KEEPER
+        val view = if (keeper) 3 else if (!me) 0 else if (GameState.facing == 0 && p.dir < 0f) 2 else GameState.facing
+        val flip = if (me || keeper) p.dir else 1f
         // each sprite pixel is one of the buildings' (the same grid as the street; a whole number of screen pixels when
         // the zoom is snapped), whatever lane they are in: the figure transform here already scales by perspective and unit
         val k = SpriteArt.PIXEL / (perspective(p.lane) * unit)
@@ -352,6 +368,8 @@ internal class StreetLifePainter {
         val others = sheets.indices.filter { it != mine }
         if (others.isEmpty()) return sheets[mine]
         val n = others.size
+        // someone to talk to: always the same look, from who they are
+        if (p.slot >= KEEPER) return sheets[others[p.look.mod(n)]]
         val first = (p.slot * 7 + 3).mod(n)
         val second = look != p.look
         return sheets[others[if (!second) first else (first + 1 + p.slot.mod(maxOf(1, n - 1))).mod(n)]]

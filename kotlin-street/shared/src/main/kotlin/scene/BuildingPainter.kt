@@ -2443,7 +2443,7 @@ internal class BuildingPainter {
         val s = sideShift
         val dy = B.DY
         // the side face the camera sees: a parallelogram hung from the front's edge
-        if (abs(s) > .02f) {
+        if (abs(s) > .02f && art.stack.id !in StageTuning.cornerIds) {
             val xe = if (s > 0f) half else -half
             sideStrips(sb.side, xe, -hf, s, -dy, hf)
             spritePath.rewind()
@@ -2578,6 +2578,8 @@ internal class BuildingPainter {
         lod: PeopleLod = if (detailed) PeopleLod.FULL else PeopleLod.NONE,
         x: Float = 0f,
     ) {
+        // the mouth of the side street: no building, no lot (the stage draws the side street there)
+        if (art.stack.id == com.lifemax.rpg.feature.habits.domain.JUNCTION_ID) return
         val seconds = motion.seconds
         val half = B.W / 2f
         // which side of it the light finds, and how hard (the moon lights a little, the sun a lot)

@@ -99,7 +99,7 @@ internal class TurnLight(val top: Color, val bottom: Color, val ground: Color, v
  */
 class TurnFrame(val ground: Float, val horizon: Float, val px: Float)
 
-internal class Cam(val phi: Float, val pz: Float, val w: Float, val h: Float, frame: TurnFrame? = null) {
+internal class Cam(val phi: Float, val pz: Float, val w: Float, val h: Float, frame: TurnFrame? = null, val px0: Float = PX) {
     val c = cos(phi); val s = sin(phi)
     val dc = 820f          // how far behind the middle of the junction the camera stands
     // with the street's framing: the main street's fronts (at the first frame's distance) are as big as in the street, their
@@ -108,8 +108,8 @@ internal class Cam(val phi: Float, val pz: Float, val w: Float, val h: Float, fr
     val eye = 205f   // eye height above the street (the street view's own "horizon" is only its far city's foot)
     // the horizon where the main street's foot lands on the street's ground line at the first frame's distance
     val hy = if (frame != null) frame.ground - eye * frame.px else h * .27f
-    fun u(x: Float, z: Float) = (x - PX) * c - (z - pz) * s
-    fun v(x: Float, z: Float) = (x - PX) * s + (z - pz) * c
+    fun u(x: Float, z: Float) = (x - px0) * c - (z - pz) * s
+    fun v(x: Float, z: Float) = (x - px0) * s + (z - pz) * c
     fun sx(u: Float, d: Float) = w / 2f + u * f / d
     fun sy(y: Float, d: Float) = hy + (eye - y) * f / d
     companion object { const val PX = 100f }
@@ -239,7 +239,7 @@ private fun DrawScope.buildingBody(cam: Cam, b: TurnBuilding) {
     )
     // a wall faces the camera when the camera is on its outer side (the camera's position, not just where it looks:
     // the walls of a street off to one side are still seen)
-    val camX = Cam.PX - cam.s * cam.dc; val camZ = cam.pz - cam.c * cam.dc
+    val camX = cam.px0 - cam.s * cam.dc; val camZ = cam.pz - cam.c * cam.dc
     fun toward(f: F) = f.nx * (camX - (f.ax + f.bx) / 2f) + f.nz * (camZ - (f.az + f.bz) / 2f) > 1f
     // the roof, seen from above (not at all from below, where only walls show)
     if (b.h < cam.eye - 5f) ground(cam, listOf(b.x0 to b.z0, b.x1 to b.z0, b.x1 to b.z1, b.x0 to b.z1), b.h, (if (TurnLight.season == 3) Color(0xFFdde5ee) else Color(0xFF454852)).let { c -> val l = TurnLight.current; Color(c.red * (if (TurnLight.season == 3) l.r else 1f), c.green * (if (TurnLight.season == 3) l.g else 1f), c.blue * (if (TurnLight.season == 3) l.b else 1f), a) })
@@ -272,13 +272,14 @@ private fun DrawScope.buildingBody(cam: Cam, b: TurnBuilding) {
         for (f in faces) if (toward(f) && f.id == b.frontN) face(cam, em, b.h, f.ax, f.az, f.bx, f.bz, false, 1f, night * .7f, glow = true)
 }
 
-private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float, trees: List<ImageBitmap> = emptyList(), bench: ImageBitmap? = null, skyBehind: Boolean = false) {
+private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float, trees: List<ImageBitmap> = emptyList(), bench: ImageBitmap? = null, skyBehind: Boolean = false, open: Boolean = false) {
     val e = progress * progress * (3f - 2f * progress)
     // the street's own sky is behind (the stage draws it, panning as we turn): then no sky of our own
     if (!skyBehind) drawRect(Brush.verticalGradient(listOf(TurnLight.current.top, TurnLight.current.bottom), 0f, cam.hy), size = androidx.compose.ui.geometry.Size(size.width, cam.hy + 2f))
     // below the horizon, beyond where the ground is drawn: the far ground (own sky), or a thin strip of the sky's own low haze
     // over the street's sky (a dark band there would show above every low roof)
-    if (skyBehind) drawRect(Brush.verticalGradient(listOf(TurnLight.current.bottom.copy(alpha = 0f), TurnLight.current.bottom), cam.hy - 10f, cam.hy + 30f), Offset(0f, cam.hy - 10f), androidx.compose.ui.geometry.Size(size.width, size.height - cam.hy + 10f))
+    // (seen through the junction's gap ([open]): the street's own distance shows where the side street ends)
+    if (skyBehind && !open) drawRect(Brush.verticalGradient(listOf(TurnLight.current.bottom.copy(alpha = 0f), TurnLight.current.bottom), cam.hy - 10f, cam.hy + 30f), Offset(0f, cam.hy - 10f), androidx.compose.ui.geometry.Size(size.width, size.height - cam.hy + 10f))
     else drawRect(Brush.verticalGradient(listOf(TurnLight.current.bottom, TurnLight.current.ground), cam.hy, cam.hy + 150f), Offset(0f, cam.hy), androidx.compose.ui.geometry.Size(size.width, size.height - cam.hy))
     val far = 1400f
     // the two roads and their pavements
@@ -326,7 +327,7 @@ private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?
     }
     // far to near: buildings, lamps and trees together, so a lamp is hidden by a building that stands in front of it.
     // Sorted by depth (rounded), then by distance from the camera: in a row seen straight on, the farther box first.
-    val camX = Cam.PX - cam.s * cam.dc; val camZ = cam.pz - cam.c * cam.dc
+    val camX = cam.px0 - cam.s * cam.dc; val camZ = cam.pz - cam.c * cam.dc
     class Item(x: Float, z: Float, val draw: DrawScope.() -> Unit) {
         val v = kotlin.math.round(cam.v(x, z) * 16f)
         val dist2 = (x - camX) * (x - camX) + (z - camZ) * (z - camZ)
@@ -480,14 +481,14 @@ private fun hash01(i: Int, salt: Int): Float {
  * Draws the turn at [progress] (0 = looking along the street we came down, 1 = down the cross street). [clock] is seconds
  * since the turn began, for the rain and snow, which keep falling whichever way the turn plays and while it holds.
  */
-fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float, hour: Float = 14f, season: Int = 1, trees: List<ImageBitmap> = emptyList(), bench: ImageBitmap? = null, reverse: Boolean = false, clock: Float = progress * 2.4f, frame: TurnFrame? = null, skyBehind: Boolean = false) {
+fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float, hour: Float = 14f, season: Int = 1, trees: List<ImageBitmap> = emptyList(), bench: ImageBitmap? = null, reverse: Boolean = false, clock: Float = progress * 2.4f, frame: TurnFrame? = null, skyBehind: Boolean = false, camX: Float = Cam.PX, open: Boolean = false) {
     TurnLight.reverse = reverse
     TurnLight.season = season
     val wx = com.lifemax.rpg.feature.habits.domain.WeatherOverride.forced
     TurnLight.current = TurnLight.at(hour).weathered(wx?.cloudiness ?: 0f, wx?.rain ?: 0f, wx?.mist ?: 0f)
     val e = progress * progress * (3f - 2f * progress)
-    val cam = Cam(-(Math.PI / 2).toFloat() * e, -100f + 420f * e, size.width, size.height, frame)
-    scene(cam, buildings, lamp, walker, progress, trees, bench, skyBehind)
+    val cam = Cam(-(Math.PI / 2).toFloat() * e, -100f + 420f * e, size.width, size.height, frame, camX)
+    scene(cam, buildings, lamp, walker, progress, trees, bench, skyBehind, open)
     val wrapW = size.width + 60f; val wrapH = size.height + 60f
     // the particles pan with the camera as it turns (about half the speed of the street, as if a little nearer)
     val pan = cam.phi * cam.f * .6f
@@ -518,13 +519,22 @@ fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, 
 }
 
 @Composable
-fun CornerTurn(art: TurnArt, progress: Float, modifier: Modifier = Modifier, hour: Float = 14f, season: Int = 1, reverse: Boolean = false, clock: Float = progress * 2.4f, frame: TurnFrame? = null, skyBehind: Boolean = false) {
+fun CornerTurn(art: TurnArt, progress: Float, modifier: Modifier = Modifier, hour: Float = 14f, season: Int = 1, reverse: Boolean = false, clock: Float = progress * 2.4f, frame: TurnFrame? = null, skyBehind: Boolean = false, camX: (Float) -> Float = { Cam.PX }) {
     val b = androidx.compose.runtime.remember(art) { turnBuildings(art) }
     Canvas(modifier.fillMaxSize()) {
         // over the stage's sky: take the stage's framing as it has just drawn (it draws first, every frame)
         val fr = frame ?: if (skyBehind && GameState.framePx > 0f) TurnFrame(GameState.frameGround, GameState.frameHorizon, GameState.framePx) else null
-        drawCornerTurn(b, art.lamp, art.walker, progress, hour, season, art.trees, art.bench, reverse, clock, fr, skyBehind)
+        drawCornerTurn(b, art.lamp, art.walker, progress, hour, season, art.trees, art.bench, reverse, clock, fr, skyBehind, camX(progress))
     }
+}
+
+/**
+ * The side street seen through the gap in the main street where it opens ([JUNCTION_ID]): the turn's scene at its first
+ * frame, its camera [dx] turn units along the main street from the middle of the junction (the player's place), drawn
+ * where the stage clips it. The buildings of the turn are made once per [art].
+ */
+fun DrawScope.junctionView(art: TurnArt, buildings: List<TurnBuilding>, dx: Float, hour: Float, season: Int, frame: TurnFrame) {
+    drawCornerTurn(buildings, art.lamp, null, 0f, hour, season, art.trees, art.bench, false, 0f, frame, skyBehind = true, camX = Cam.PX + dx, open = true)
 }
 
 /**
@@ -581,7 +591,7 @@ fun DrawScope.drawCrossing(buildings: List<TurnBuilding>, lamp: ImageBitmap?, wa
     for (i in -30..30) { val x = i * 60f; ground(cam, listOf(x to -107f, x + 25f to -107f, x + 25f to -103f, x to -103f), 0f, stripe) }
     // a crossing where the player crosses
     for (i in 0 until 7) { val x = 40f + i * 15f; ground(cam, listOf(x to -164f, x + 7f to -164f, x + 7f to -46f, x to -46f), 0f, stripe) }
-    val camX = Cam.PX - cam.s * cam.dc; val camZ = cam.pz - cam.c * cam.dc
+    val camX = cam.px0 - cam.s * cam.dc; val camZ = cam.pz - cam.c * cam.dc
     class Item(x: Float, z: Float, val draw: DrawScope.() -> Unit) {
         val v = kotlin.math.round(cam.v(x, z) * 16f)
         val dist2 = (x - camX) * (x - camX) + (z - camZ) * (z - camZ)
