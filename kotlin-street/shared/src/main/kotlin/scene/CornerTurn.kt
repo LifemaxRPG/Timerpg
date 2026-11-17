@@ -104,16 +104,22 @@ private fun DrawScope.face(cam: Cam, img: ImageBitmap, h: Float, ax: Float, az: 
     val n = img.width
     // one filter per face, hazed by the distance of its middle
     val dMid = cam.v((ax + bx) / 2f, (az + bz) / 2f) + cam.dc
-    val k = haze(dMid); val keep = tint * (1f - k)
+    val hz = haze(dMid); val keep = tint * (1f - hz)
     val filter = if (glow) ColorFilter.colorMatrix(ColorMatrix(floatArrayOf(1f, 0f, 0f, 0f, 0f, 0f, .82f, 0f, 0f, 0f, 0f, 0f, .52f, 0f, 0f, 0f, 0f, 0f, 1f, 0f))) else ColorFilter.colorMatrix(ColorMatrix(floatArrayOf(
-        keep * TurnLight.current.r, 0f, 0f, 0f, TurnLight.current.hazeR * k,
-        0f, keep * TurnLight.current.g, 0f, 0f, TurnLight.current.hazeG * k,
-        0f, 0f, keep * 1.04f * TurnLight.current.b, 0f, TurnLight.current.hazeB * k,
+        keep * TurnLight.current.r, 0f, 0f, 0f, TurnLight.current.hazeR * hz,
+        0f, keep * TurnLight.current.g, 0f, 0f, TurnLight.current.hazeG * hz,
+        0f, 0f, keep * 1.04f * TurnLight.current.b, 0f, TurnLight.current.hazeB * hz,
         0f, 0f, 0f, 1f, 0f,
     )))
-    for (k in 0 until n) {
-        val c = if (flip) n - 1 - k else k
-        val t0 = k / n.toFloat(); val t1 = (k + 1) / n.toFloat()
+    // wide strips when the face is small or edge-on on screen: the same picture for far fewer draw calls
+    val dA = cam.v(ax, az) + cam.dc; val dB = cam.v(bx, bz) + cam.dc
+    val span = if (dA < 40f || dB < 40f) 0f else abs(cam.sx(cam.u(bx, bz), dB) - cam.sx(cam.u(ax, az), dA))
+    val step = when { span / n < .55f -> 4; span / n < 1.1f -> 2; else -> 1 }
+    var k = -step
+    while (k + step < n) {
+        k += step
+        val c = if (flip) n - k - step else k
+        val t0 = k / n.toFloat(); val t1 = (k + step) / n.toFloat()
         val x0 = ax + (bx - ax) * t0; val z0 = az + (bz - az) * t0
         val x1 = ax + (bx - ax) * t1; val z1 = az + (bz - az) * t1
         val d0 = cam.v(x0, z0) + cam.dc; val d1 = cam.v(x1, z1) + cam.dc
@@ -122,8 +128,8 @@ private fun DrawScope.face(cam: Cam, img: ImageBitmap, h: Float, ax: Float, az: 
         val dm = (d0 + d1) / 2f
         val top = cam.sy(h, dm); val bot = cam.sy(0f, dm)
         val left = minOf(sx0, sx1); val wid = abs(sx1 - sx0) + .7f
-        withTransform({ translate(left, top); scale(wid, (bot - top) / img.height, Offset.Zero) }) {
-            drawImage(img, srcOffset = IntOffset(c, 0), srcSize = IntSize(1, img.height), dstOffset = IntOffset(0, 0), dstSize = IntSize(1, img.height),
+        withTransform({ translate(left, top); scale(wid / step, (bot - top) / img.height, Offset.Zero) }) {
+            drawImage(img, srcOffset = IntOffset(c, 0), srcSize = IntSize(step, img.height), dstOffset = IntOffset(0, 0), dstSize = IntSize(step, img.height),
                 filterQuality = FilterQuality.None, colorFilter = filter, alpha = alpha, blendMode = androidx.compose.ui.graphics.BlendMode.SrcOver)
         }
     }
