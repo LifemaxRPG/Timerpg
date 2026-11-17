@@ -25,7 +25,11 @@ class NpcVoiceService(private val ctx: Context) {
     private val models = File(ctx.filesDir, "models")
     private val bank = VoiceBank(models, File(ctx.filesDir, "voice-cache"),
         { ctx.assets.open("voices/kokoro_lexicon.tsv").bufferedReader().lineSequence() }, threads = 6)  // the dialogue model is on the NPU: the CPU's big cores are the voices'
-    init { com.timerpg.voice.VoiceBank.xnnpack = ctx.getSharedPreferences("voices", Context.MODE_PRIVATE).getBoolean("xnnpack", false) }
+    init {
+        val p = ctx.getSharedPreferences("voices", Context.MODE_PRIVATE)
+        com.timerpg.voice.VoiceBank.xnnpack = p.getBoolean("xnnpack", false)
+        com.timerpg.voice.VoiceBank.only = p.getInt("only", 0)
+    }
     private val worker = Executors.newSingleThreadExecutor { r -> Thread(r, "npc-voices").apply { isDaemon = true } }
     private val main = Handler(Looper.getMainLooper())
     private var player: MediaPlayer? = null
@@ -44,6 +48,16 @@ class NpcVoiceService(private val ctx: Context) {
             ctx.getSharedPreferences("voices", Context.MODE_PRIVATE).edit().putBoolean("xnnpack", on).apply()
             com.timerpg.voice.VoiceBank.xnnpack = on
             worker.execute { bank.close() }   // loaded again the new way on the next line
+        }
+
+    /** Which voice engines speak: 0 both, 1 Kokoro only, 2 Supertonic only (for comparing them). */
+    var only: Int
+        get() = ctx.getSharedPreferences("voices", Context.MODE_PRIVATE).getInt("only", 0)
+        set(v) {
+            ctx.getSharedPreferences("voices", Context.MODE_PRIVATE).edit().putInt("only", v).apply()
+            com.timerpg.voice.VoiceBank.only = v
+            stop()
+            worker.execute { bank.close() }
         }
 
     /** Voices on or off (the player's choice). */

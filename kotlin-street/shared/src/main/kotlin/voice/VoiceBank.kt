@@ -13,6 +13,8 @@ class VoiceBank(private val models: File, private val cache: File, private val l
     companion object {
         /** Run the voice models on ONNX Runtime's XNNPACK kernels (set before a model loads). */
         @Volatile var xnnpack = false
+        /** Which engines may speak: 0 both (each person gets one from who they are), 1 Kokoro only, 2 Supertonic only. */
+        @Volatile var only = 0
     }
 
     private var kokoro: KokoroTts? = null
@@ -20,8 +22,8 @@ class VoiceBank(private val models: File, private val cache: File, private val l
     private val kokoroVoices = HashMap<String, KokoroVoice>()
     private val supertonicStyles = HashMap<String, SupertonicStyle>()
 
-    val kokoroInstalled: Boolean get() = File(models, "kokoro/model.onnx").isFile && File(models, "kokoro/tokenizer.json").isFile
-    val supertonicInstalled: Boolean get() = File(models, "supertonic/onnx/vector_estimator.onnx").isFile
+    val kokoroInstalled: Boolean get() = only != 2 && File(models, "kokoro/model.onnx").isFile && File(models, "kokoro/tokenizer.json").isFile
+    val supertonicInstalled: Boolean get() = only != 1 && File(models, "supertonic/onnx/vector_estimator.onnx").isFile
 
     /** The cached file for [text] in [voice] (it may not exist yet). */
     fun cached(voice: NpcVoices.Voice, text: String): File = File(cache, digest(voice.key + "\u0000" + text) + ".wav")

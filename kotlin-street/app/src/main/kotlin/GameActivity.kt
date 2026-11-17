@@ -888,6 +888,8 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
         run {
             var x by remember { mutableStateOf(voices.xnnpack) }
             Chip("Voice kernels: " + (if (x) "XNNPACK" else "standard"), x) { x = !x; voices.xnnpack = x }
+            var o by remember { mutableIntStateOf(voices.only) }
+            Chip("Voices: " + listOf("Kokoro + Supertonic", "Kokoro only", "Supertonic only")[o], o != 0) { o = (o + 1) % 3; voices.only = o }
         }
         // MTP: the model guesses words ahead and checks them in one pass
         run {
