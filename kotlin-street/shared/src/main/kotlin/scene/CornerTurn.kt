@@ -218,7 +218,7 @@ private fun DrawScope.building(cam: Cam, b: TurnBuilding) {
         for (f in faces) if (toward(f) && f.id == b.frontN) face(cam, em, b.h, f.ax, f.az, f.bx, f.bz, false, 1f, a * night * .7f, glow = true)
 }
 
-private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float, trees: List<ImageBitmap> = emptyList()) {
+private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float, trees: List<ImageBitmap> = emptyList(), bench: ImageBitmap? = null) {
     drawRect(Brush.verticalGradient(listOf(TurnLight.current.top, TurnLight.current.bottom), 0f, cam.hy), size = androidx.compose.ui.geometry.Size(size.width, cam.hy + 2f))
     drawRect(Brush.verticalGradient(listOf(TurnLight.current.bottom, TurnLight.current.ground), cam.hy, cam.hy + 150f), Offset(0f, cam.hy), androidx.compose.ui.geometry.Size(size.width, size.height - cam.hy))
     val far = 1400f
@@ -295,6 +295,22 @@ private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?
             }
         }
     }
+    // benches in front of the buildings, facing the street (foot at (31, 61) of the sprite)
+    bench?.let { img ->
+        for ((x, z) in listOf(14f to 200f, 186f to 430f, -330f to -10f, 520f to -10f)) {
+            items += Item(cam.v(x, z)) {
+                val d = cam.v(x, z) + cam.dc
+                val ba = nearFade(cam.v(x, z))
+                if (d >= 60f && ba > .02f) {
+                    val k = 1.0f * cam.f / d; val lt = TurnLight.current
+                    val px = cam.sx(cam.u(x, z), d); val py = cam.sy(0f, d)
+                    withTransform({ translate(px - 31f * k, py - 61f * k); scale(k, k, Offset.Zero) }) {
+                        drawImage(img, filterQuality = FilterQuality.None, alpha = ba, colorFilter = ColorFilter.colorMatrix(ColorMatrix(floatArrayOf(lt.r, 0f, 0f, 0f, 0f, 0f, lt.g, 0f, 0f, 0f, 0f, 0f, lt.b, 0f, 0f, 0f, 0f, 0f, 1f, 0f))))
+                    }
+                }
+            }
+        }
+    }
     for (it in items.sortedByDescending { it.v }) with(it) { draw() }
     // the player: along the pavement to the corner, then round it and away down the cross street
     walker?.let { w ->
@@ -321,7 +337,7 @@ private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?
 
 
 /** Our building art for the turn: the sprite pairs (front, side) and the lamp. */
-class TurnArt(val fronts: List<ImageBitmap>, val sides: List<ImageBitmap>, val lamp: ImageBitmap?, val walker: ImageBitmap? = null, val emis: List<ImageBitmap?> = emptyList(), val props: List<ImageBitmap?> = emptyList(), val trees: List<ImageBitmap> = emptyList())
+class TurnArt(val fronts: List<ImageBitmap>, val sides: List<ImageBitmap>, val lamp: ImageBitmap?, val walker: ImageBitmap? = null, val emis: List<ImageBitmap?> = emptyList(), val props: List<ImageBitmap?> = emptyList(), val trees: List<ImageBitmap> = emptyList(), val bench: ImageBitmap? = null)
 
 fun turnBuildings(art: TurnArt): List<TurnBuilding> {
     val n = art.fronts.size
@@ -343,13 +359,13 @@ fun turnBuildings(art: TurnArt): List<TurnBuilding> {
 }
 
 /** Draws the turn at [progress] (0 = looking along the street we came down, 1 = down the cross street). */
-fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float, hour: Float = 14f, season: Int = 1, trees: List<ImageBitmap> = emptyList()) {
+fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float, hour: Float = 14f, season: Int = 1, trees: List<ImageBitmap> = emptyList(), bench: ImageBitmap? = null) {
     TurnLight.season = season
     val wx = com.lifemax.rpg.feature.habits.domain.WeatherOverride.forced
     TurnLight.current = TurnLight.at(hour).weathered(wx?.cloudiness ?: 0f, wx?.rain ?: 0f, wx?.mist ?: 0f)
     val e = progress * progress * (3f - 2f * progress)
     val cam = Cam(-(Math.PI / 2).toFloat() * e, -100f + 420f * e, size.width, size.height)
-    scene(cam, buildings, lamp, walker, progress, trees)
+    scene(cam, buildings, lamp, walker, progress, trees, bench)
     if (season == 3) {
         // snow: slow, drifting flakes
         val t = progress * 3f
@@ -376,5 +392,5 @@ fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, 
 @Composable
 fun CornerTurn(art: TurnArt, progress: Float, modifier: Modifier = Modifier, hour: Float = 14f, season: Int = 1) {
     val b = androidx.compose.runtime.remember(art) { turnBuildings(art) }
-    Canvas(modifier.fillMaxSize()) { drawCornerTurn(b, art.lamp, art.walker, progress, hour, season, art.trees) }
+    Canvas(modifier.fillMaxSize()) { drawCornerTurn(b, art.lamp, art.walker, progress, hour, season, art.trees, art.bench) }
 }
