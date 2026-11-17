@@ -276,8 +276,12 @@ internal class StreetLifePainter {
     private val leadStroke = Stroke(.45f, cap = StrokeCap.Round)
     private val wall = Matrix()
 
-    /** [lit]'s answer, reused: left, top, right, bottom (street units, y down). */
-    private val litBox = FloatArray(4)
+    /**
+     * [lit]'s answer, reused: left, top, right, bottom (street units, y down), then how far the wall's foot stands from
+     * the pavement line on screen (across, up): a house's front stands back in its yard, so what is thrown on it lands
+     * that much higher and leans with it.
+     */
+    private val litBox = FloatArray(6)
 
     /**
      * Where a passing car's light falls on building [i] (its middle at [cx], its side face [shift]): a shop's front and
@@ -288,6 +292,7 @@ internal class StreetLifePainter {
         val house = SpriteArt.buildings[l.stackId]?.house
         if (house == null) {
             litBox[0] = cx + Perspective.left(shift); litBox[1] = -l.height; litBox[2] = cx + Perspective.right(shift); litBox[3] = 0f
+            litBox[4] = 0f; litBox[5] = 0f
             return
         }
         val sh = house.shape
@@ -296,6 +301,7 @@ internal class StreetLifePainter {
         val x0 = cx - B.W / 2f + (sh.frontX + sh.wall0) * k + shift * back
         litBox[0] = x0; litBox[2] = x0 + (sh.wall1 - sh.wall0) * k
         litBox[3] = -B.DY * back; litBox[1] = litBox[3] - sh.h * k
+        litBox[4] = shift * back; litBox[5] = litBox[3]
     }
 
     /** Fills in who is on the street at [seconds]. */
@@ -1072,7 +1078,7 @@ internal class StreetLifePainter {
                     if (litBox[2] < from || litBox[0] > to) continue
                     if (NearLight.sweep(lampX, car.dir, cx) < .02f) continue
                     clipRect(litBox[0], litBox[1], litBox[2], litBox[3]) {
-                        withTransform({ transform(wall) }) {
+                        withTransform({ translate(litBox[4], litBox[5]); transform(wall) }) {
                             for (k in street.furniture.indices) {
                                 val f = street.furniture[k]
                                 if (f.kind == FurnitureKind.BENCH) continue

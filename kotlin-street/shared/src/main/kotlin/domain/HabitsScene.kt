@@ -100,7 +100,10 @@ enum class PieceKind {
 /**
  * One drawn part of a building: [bottom] and [height] above the pavement, [width] of its front.
  * [id] is the habit's id (the stack's for the lobby, the sign and the ghost). [labelled] is the
- * part that carries the habit's name (the top storey of a habit being broken).
+ * part that carries the habit's name (the top storey of a habit being broken). A part that stands
+ * back from the pavement (one of our houses, in its yard) leans with the view: its front is
+ * [lean] times the side shift to the shown side, and its side face [deep] as deep as a shop's.
+ * [roofFace]: a roof face lies on it (a house's roof part already reaches its ridge).
  */
 data class Piece(
     val kind: PieceKind,
@@ -110,6 +113,9 @@ data class Piece(
     val width: Float,
     val labelled: Boolean = true,
     val block: HabitBlock? = null,
+    val lean: Float = 0f,
+    val deep: Float = 1f,
+    val roofFace: Boolean = true,
 ) {
     val top: Float
         get() = bottom + height
@@ -256,7 +262,15 @@ private fun spriteLayout(stack: HabitStack, sb: com.lifemax.rpg.feature.habits.p
         // so the sky and the yard beside it are not the house), then its roof up to the ridge
         val w = sb.front.width * k
         val ridge = (sh.ridge + 2f) * k + b.DY * (sh.setback + sh.depth / 2f) / HouseView.DEPTH
-        val pieces = listOf(Piece(PieceKind.LOBBY, stack.id, lift, roof, w), Piece(PieceKind.LOBBY, stack.id, lift + roof, (ridge - lift - roof).coerceAtLeast(1f), w))
+        // each leaning with the view as far as it stands back: the yard in front of the wall (its porch or steps) by half
+        // its depth, the wall by the yard's, the roof by the yard's and a quarter of the house's (eave to ridge)
+        val back = sh.setback / HouseView.DEPTH
+        val deep = sh.depth / HouseView.DEPTH
+        val pieces = listOf(
+            Piece(PieceKind.LOBBY, stack.id, 0f, lift, w, lean = back / 2f, deep = 0f, roofFace = false),
+            Piece(PieceKind.LOBBY, stack.id, lift, roof, w, lean = back, deep = deep, roofFace = false),
+            Piece(PieceKind.LOBBY, stack.id, lift + roof, (ridge - lift - roof).coerceAtLeast(1f), w, lean = back + deep / 4f, deep = deep / 2f, roofFace = false),
+        )
         return BuildingLayout(stack.id, pieces, emptyList(), maxOf(top, roof + lift + b.DY), roof, b.W + b.DX)
     }
     val pieces = ArrayList<Piece>()
@@ -301,16 +315,18 @@ fun BuildingLayout.hit(x: Float, at: Float, shift: Float = BuildingSpec.DX): Hit
     val depth = abs(shift)
     for (p in pieces.asReversed()) {
         val half = p.width / 2f
-        val front = abs(x) <= half && at >= p.bottom && at <= p.top
+        // from the middle of this part's own front (which leans with the view when it stands back)
+        val px = x - p.lean * shift
+        val front = abs(px) <= half && at >= p.bottom && at <= p.top
         // the roof face leans with the shown side as it goes up; the side face rises as it goes out
         val up = at - p.top
         val onTop =
-            up > 0f && up <= b.DY && (x - up * shift / b.DY).let { it >= -half && it <= half }
-        val out = if (shift < 0f) -half - x else x - half
+            p.roofFace && up > 0f && up <= b.DY && (px - up * shift / b.DY).let { it >= -half && it <= half }
+        val out = if (shift < 0f) -half - px else px - half
         val onSide =
             depth > 0f &&
                 out > 0f &&
-                out <= depth &&
+                out <= depth * p.deep &&
                 (at - out * b.DY / depth).let { it >= p.bottom && it <= p.top }
         if (front || onTop || onSide)
             return Hit(

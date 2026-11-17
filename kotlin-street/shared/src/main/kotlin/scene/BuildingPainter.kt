@@ -1859,12 +1859,14 @@ internal class BuildingPainter {
                     val k = B.W / SpriteArt.SRC_W
                     val hf = sbr.front.height * k
                     if (house != null) {
-                        // a house: its own front at its own width, where it stands back in its yard (further back, so
-                        // its image lies further down in the wet), and its roof's near slope over it
+                        // a house: its own front at its own width, where it stands back in its yard, and its roof's
+                        // near slope over it. The wet mirrors it about its own foot, which stands a yard's depth up the
+                        // screen from the pavement line (a shop's), so its image starts that much higher: undo this
+                        // frame's squash for that lift
                         val sh = house.shape
                         val x0 = -half + sh.frontX * k + s * sh.setback / HouseView.DEPTH
                         val w = sbr.front.width * k
-                        val y0 = -hf - B.DY * sh.setback / HouseView.DEPTH
+                        val y0 = -hf + B.DY * sh.setback / HouseView.DEPTH / SQUASH
                         val rh = house.slope.height * k
                         picture2(house.slope, x0, y0 - rh, w, rh, FilterQuality.None, alpha = a * .7f, filter = wetMirror)
                         picture2(sbr.front, x0, y0, w, hf, FilterQuality.None, alpha = a * .8f, filter = wetMirror)
@@ -2734,6 +2736,33 @@ internal class BuildingPainter {
         return housePath
     }
 
+    /** Shapes filled row by row of the screen's pixels ([rowQuad]), gathered for one colour and drawn at once. */
+    private val rowsPath = Path()
+
+    /**
+     * Adds the convex quad (a, b, c, d) to [rowsPath] as whole-pixel spans, one per screen row ([PixelRows]): a thin
+     * steep band comes out as a stepped pixel line instead of a blended sliver. As a plain quad when the screen's
+     * scale is not known.
+     */
+    private fun rowQuad(ax: Float, ay: Float, bx: Float, by: Float, cx: Float, cy: Float, dx: Float, dy: Float) {
+        val p = rowsPath
+        if (unitPx <= 0f) { p.moveTo(ax, ay); p.lineTo(bx, by); p.lineTo(cx, cy); p.lineTo(dx, dy); p.close(); return }
+        com.lifemax.rpg.feature.habits.domain.PixelRows.quad(ax, ay, bx, by, cx, cy, dx, dy, unitPx, buildingX) { l, t, r, b ->
+            p.moveTo(l, t); p.lineTo(r, t); p.lineTo(r, b); p.lineTo(l, b); p.close()
+        }
+    }
+
+    /**
+     * A band along a house's gable (in the plane [xp] across its front picture) from depth [a0] to [a1] behind the
+     * wall, between [lo] and [hi] above the roof slab's top there ([HouseShape.roofTop]), added to [rowsPath]. [a0]
+     * and [a1] on the same side of the ridge, so the band is straight.
+     */
+    private fun rakeRows(v: com.lifemax.rpg.feature.habits.domain.HouseView, xp: Float, a0: Float, a1: Float, lo: Float, hi: Float) {
+        val sh = v.shape
+        val t0 = sh.roofTop(a0); val t1 = sh.roofTop(a1)
+        rowQuad(v.x(xp, a0), v.y(t0 + hi, a0), v.x(xp, a1), v.y(t1 + hi, a1), v.x(xp, a1), v.y(t1 + lo, a1), v.x(xp, a0), v.y(t0 + lo, a0))
+    }
+
     /** Part of a picture ([sx], [sy], [sw], [sh] of its pixels) drawn at ([x], [y]), [w] by [h]. */
     private fun DrawScope.part(img: ImageBitmap, sx: Int, sy: Int, sw: Int, sh: Int, x: Float, y: Float, w: Float, h: Float, alpha: Float = 1f, filter: ColorFilter? = null, blend: BlendMode = BlendMode.SrcOver) {
         if (sw <= 0 || sh <= 0) return
@@ -2834,7 +2863,7 @@ internal class BuildingPainter {
     private fun DrawScope.houseBuilding(art: BuildingArt, sb: SpriteBuilding, ha: HouseArt, sky: SkyColors, seconds: Float) {
         val sh = ha.shape
         val s = sideShift
-        val v = houseView?.set(sh, s, unitPx) ?: HouseView(sh, s, unitPx).also { houseView = it }
+        val v = (houseView ?: HouseView(sh, s).also { houseView = it }).set(sh, s, unitPx, buildingX)
         val k = v.k
         val half = B.W / 2f
         val picW = sb.front.width.toFloat()
@@ -2886,28 +2915,41 @@ internal class BuildingPainter {
             sideLight(housePath, 1f)
             if (blue > .01f) drawPath(housePath, BlueCast, alpha = .35f * blue, blendMode = BlendMode.Multiply)
             if (nightOn) drawPath(housePath, nightInk, blendMode = BlendMode.Multiply)
-            // the verge's shadow on the gable when the light is on this side: a band under the rake, wider in a low sun
+            // the verge's shadow on the gable when the light is on this side: a band under the soffit, wider in a low sun
             val toSun = if (s < 0f) -sunSide else sunSide
+            val d2 = sh.depth / 2f
             if (toSun > .02f) {
                 val band = 2f + 4f * gold
-                for (half2 in 0..1) {
-                    val a0 = if (half2 == 0) 0f else sh.depth / 2f; val a1 = if (half2 == 0) sh.depth / 2f else sh.depth
-                    drawPath(quadPath(v.x(xe, a0), v.y(sh.gableTop(a0), a0), v.x(xe, a1), v.y(sh.gableTop(a1), a1),
-                        v.x(xe, a1), v.y(sh.gableTop(a1) - band, a1), v.x(xe, a0), v.y(sh.gableTop(a0) - band, a0)), castInk, alpha = .28f * toSun)
-                }
+                rowsPath.rewind()
+                rakeRows(v, xe, 0f, d2, -sh.slab - band, -sh.slab); rakeRows(v, xe, d2, sh.depth, -sh.slab - band, -sh.slab)
+                drawPath(rowsPath, castInk, alpha = .28f * toSun)
             }
-            // the rake boards: the roof slab's end, along the gable's top from eave to ridge to eave
+            // the roof slab's end stands out past the wall by the verge. Seen from a little above, the near half's
+            // underside is hidden under the near slope, but the back half's faces the camera (the far slope is
+            // steeper than the view): its soffit, in shade, between the wall's top and the rake boards. Each is a steep
+            // band a pixel or two wide, so it is filled row by row of the screen's pixels (stepped like the art's own
+            // lines, never thinner than a pixel, no sky between them)
             val xv = if (v.rightSide) sh.wall1 + sh.verge else sh.wall0 - sh.verge
-            val rakeC = houseInk(if (toSun > .02f) lerp(rgb(sh.rake), Color.White, .2f * toSun) else lerp(rgb(sh.rake), Color.Black, .15f))
-            val edgeC = houseInk(rgb(sh.rakeEdge))
-            for (i in 0..1) {
-                // from the front eave to the ridge, then from the ridge to the back eave
-                val a0 = if (i == 0) -eo else sh.depth / 2f; val a1 = if (i == 0) sh.depth / 2f else sh.depth + eo
-                val t0 = sh.roofTop(a0); val t1 = sh.roofTop(a1)
-                drawPath(quadPath(v.x(xv, a0), v.y(t0, a0), v.x(xv, a1), v.y(t1, a1), v.x(xv, a1), v.y(t1 - sh.slab - 1f, a1), v.x(xv, a0), v.y(t0 - sh.slab - 1f, a0)), rakeC)
-                drawPath(quadPath(v.x(xv, a0), v.y(t0, a0), v.x(xv, a1), v.y(t1, a1), v.x(xv, a1), v.y(t1 - 1f, a1), v.x(xv, a0), v.y(t0 - 1f, a0)), edgeC)
-                drawPath(quadPath(v.x(xv, a0), v.y(t0 - sh.slab - .2f, a0), v.x(xv, a1), v.y(t1 - sh.slab - .2f, a1), v.x(xv, a1), v.y(t1 - sh.slab - 1f, a1), v.x(xv, a0), v.y(t0 - sh.slab - 1f, a0)), edgeC)
-                if (snow > .01f) drawPath(quadPath(v.x(xv, a0), v.y(t0 + 1.2f, a0), v.x(xv, a1), v.y(t1 + 1.2f, a1), v.x(xv, a1), v.y(t1 - .4f, a1), v.x(xv, a0), v.y(t0 - .4f, a0)), snowInk(sky), alpha = .9f * snow)
+            val dEnd = sh.depth + eo
+            rowsPath.rewind()
+            rowQuad(v.x(xe, d2), v.y(sh.gableTop(d2), d2), v.x(xv, d2), v.y(sh.gableTop(d2), d2),
+                v.x(xv, dEnd), v.y(sh.gableTop(dEnd), dEnd), v.x(xe, dEnd), v.y(sh.gableTop(dEnd), dEnd))
+            drawPath(rowsPath, houseInk(lerp(rgb(sh.rakeEdge), Color(0xFF15142A), .45f)))
+            // the rake boards, from the front eave up to the ridge and down to the back eave: lit by the side's light,
+            // and under snow white with the slope (snow caked on the verge, and a lip of it along the top)
+            var rakeC = if (toSun > .02f) lerp(rgb(sh.rake), Color.White, .2f * toSun) else lerp(rgb(sh.rake), Color.Black, .15f)
+            if (snow > .01f) rakeC = lerp(rakeC, snowInk(sky), .8f * snow)
+            rowsPath.rewind()
+            rakeRows(v, xv, -eo, d2, -sh.slab, 0f); rakeRows(v, xv, d2, dEnd, -sh.slab, 0f)
+            drawPath(rowsPath, houseInk(rakeC))
+            // its top edge against the sky behind the ridge (the near half's is the slope's own edge)
+            rowsPath.rewind()
+            rakeRows(v, xv, d2, dEnd, -.8f, 0f)
+            drawPath(rowsPath, houseInk(lerp(rgb(sh.rakeEdge), snowInk(sky), .8f * snow)))
+            if (snow > .01f) {
+                rowsPath.rewind()
+                rakeRows(v, xv, -eo, d2, 0f, 1.6f); rakeRows(v, xv, d2, dEnd, 0f, 1.6f)
+                drawPath(rowsPath, snowInk(sky), alpha = .9f * snow)
             }
         }
 
@@ -2921,8 +2963,9 @@ internal class BuildingPainter {
         // the screen's pixel grid: it is snapped back to it, and the ridge is exactly the slope's rows above it, so every
         // row of the art's slope lands on whole screen pixels (none blended with the next)
         val rows = ha.slope.height
-        fun snap(a: Float) = if (unitPx > 0f) kotlin.math.round(a * unitPx) / unitPx else a
-        val ex = snap(v.x(0f, -eo)); val ey = snap(v.y(sh.h, -eo))
+        // (across, the building's own middle need not be on a whole pixel: its place along the street is added first)
+        fun snap(a: Float, at: Float = 0f) = if (unitPx > 0f) kotlin.math.round((a + at) * unitPx) / unitPx - at else a
+        val ex = snap(v.x(0f, -eo), buildingX); val ey = snap(v.y(sh.h, -eo))
         val rx = ex + v.lean(sh.run); val ry = ey - rows * k
         levelStrips(ha.slope, 0, 0, ha.slope.width, rows, ex, ey, picW * k, ey - ry, rx - ex)
         val slope = quadPath(ex, ey, ex + picW * k, ey, rx + picW * k, ry, rx, ry)

@@ -1,11 +1,19 @@
+import com.lifemax.rpg.feature.habits.domain.BuildingLayout
 import com.lifemax.rpg.feature.habits.domain.BuildingSpec
+import com.lifemax.rpg.feature.habits.domain.Hit
+import com.lifemax.rpg.feature.habits.domain.HitKind
 import com.lifemax.rpg.feature.habits.domain.HouseShape
 import com.lifemax.rpg.feature.habits.domain.HouseView
+import com.lifemax.rpg.feature.habits.domain.Piece
+import com.lifemax.rpg.feature.habits.domain.PieceKind
+import com.lifemax.rpg.feature.habits.domain.PixelRows
+import com.lifemax.rpg.feature.habits.domain.hit
 import java.io.File
 import kotlin.math.abs
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -132,5 +140,62 @@ class HouseGeometryTest {
             assertEquals("$n's slope rows", rows.toFloat(), HouseView.slopeRows(h), .05f)
             assertNotNull(File(dir, "${n}_side.png").takeIf { it.exists() })
         }
+    }
+
+    @Test fun aWallSnappedWithItsPlaceAlongTheStreetLandsOnTheScreensPixels() {
+        // the building's middle need not be on a whole pixel: the wall's offset takes that into account
+        val h = houses["b9"]!!
+        val unit = 2.4347825f
+        for (at in floatArrayOf(0f, 103.37f, 2210.9f)) {
+            val v = HouseView(h, 0f).set(h, 7.7f, unit, at)
+            val wall = (v.x(0f, 0f) + at) * unit
+            assertEquals(kotlin.math.round(wall), wall, 2e-2f)
+        }
+    }
+
+    @Test fun aThinSteepBandIsFilledOnePixelSpanPerRowWithNoGaps() {
+        // a rake board seen almost edge on: 0.3 units wide, 20 tall, leaning 4 units over its height
+        val unit = 2.4347825f; val origin = 51.3f
+        val rows = ArrayList<FloatArray>()
+        PixelRows.quad(0f, -20f, .3f, -20f, 4.3f, 0f, 4f, 0f, unit, origin) { l, t, r, b -> rows += floatArrayOf(l, t, r, b) }
+        assertTrue(rows.size >= 48)
+        for (i in rows.indices) {
+            val (l, t, r, b) = rows[i].toList()
+            // whole screen pixels, at least one wide, one row tall
+            assertEquals(kotlin.math.round((l + origin) * unit), (l + origin) * unit, 2e-3f)
+            assertEquals(kotlin.math.round((r + origin) * unit), (r + origin) * unit, 2e-3f)
+            assertTrue((r - l) * unit > .99f)
+            assertEquals(1f, (b - t) * unit, 1e-3f)
+            if (i > 0) {
+                // each row the next one down, and touching the row above it (a stepped line, not dots)
+                assertEquals(rows[i - 1][3], t, 1e-4f)
+                assertTrue(l <= rows[i - 1][2] + 1e-4f && r >= rows[i - 1][0] - 1e-4f)
+            }
+        }
+        // nothing outside the band's own rows
+        PixelRows.quad(0f, 0f, 1f, 0f, 1f, .1f, 0f, .1f, unit, 0f) { _, _, _, _ -> throw AssertionError("a sliver between two rows' middles fills none") }
+    }
+
+    @Test fun aTapFindsAHouseWhereItStandsBackInItsYard() {
+        // a house's parts as the layout gives them: the yard (and its porch or steps), the wall, the roof up to its ridge
+        val back = 64f / HouseView.DEPTH; val deep = 80f / HouseView.DEPTH
+        val l = BuildingLayout("h", listOf(
+            Piece(PieceKind.LOBBY, "h", 0f, 5f, 130f, lean = back / 2f, deep = 0f, roofFace = false),
+            Piece(PieceKind.LOBBY, "h", 5f, 70f, 130f, lean = back, deep = deep, roofFace = false),
+            Piece(PieceKind.LOBBY, "h", 75f, 20f, 130f, lean = back + deep / 4f, deep = deep / 2f, roofFace = false),
+        ), emptyList(), 95f, 75f, BuildingSpec.W + BuildingSpec.DX)
+        val shift = 14f
+        val ox = shift * back
+        // the wall's right edge leans with the view: just inside it hits, and just outside the leaned wall it misses
+        assertEquals(Hit(HitKind.LOBBY, "h"), l.hit(65f + ox - 1f, 40f, shift))
+        assertEquals(Hit(HitKind.LOBBY, "h"), l.hit(-65f + ox + 1f, 40f, shift))
+        assertNull(l.hit(-65f + 2f, 40f, shift))      // (the lot's own front would have taken it)
+        // the yard in front of it (its porch, its steps)
+        assertEquals(Hit(HitKind.LOBBY, "h"), l.hit(0f, 2f, shift))
+        // no roof face over the ridge: the sky above it is not the house
+        assertNull(l.hit(ox, 95f + 3f, shift))
+        // the gable beside the wall, as deep as the house, not a shop's whole side
+        assertEquals(Hit(HitKind.LOBBY, "h"), l.hit(65f + ox + 2f, 45f, shift))
+        assertNull(l.hit(65f + ox + shift * deep + 1f, 60f, shift))
     }
 }

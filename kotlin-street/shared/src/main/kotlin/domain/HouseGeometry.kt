@@ -185,12 +185,16 @@ class HouseView(shape: HouseShape, s: Float, unitPx: Float = 0f) {
 
     init { set(shape, s, unitPx) }
 
-    /** This view for house [shape] at side shift [s]; returns itself. */
-    fun set(shape: HouseShape, s: Float, unitPx: Float = 0f): HouseView {
+    /**
+     * This view for house [shape] at side shift [s]; returns itself. [originX]: how far right of a whole screen pixel
+     * the building's middle stands (units), so its wall lands on the screen's pixels, not only on whole pixels from
+     * its middle.
+     */
+    fun set(shape: HouseShape, s: Float, unitPx: Float = 0f, originX: Float = 0f): HouseView {
         this.shape = shape; this.s = s
         val leanBack = s * shape.setback / DEPTH
         val liftBack = BuildingSpec.DY * shape.setback / DEPTH
-        ox = if (unitPx > 0f) kotlin.math.round(leanBack * unitPx) / unitPx else leanBack
+        ox = if (unitPx > 0f) kotlin.math.round((leanBack + originX) * unitPx) / unitPx - originX else leanBack
         oy = if (unitPx > 0f) -kotlin.math.round(liftBack * unitPx) / unitPx else -liftBack
         return this
     }
@@ -218,5 +222,47 @@ class HouseView(shape: HouseShape, s: Float, unitPx: Float = 0f) {
         /** How many sprite pixels high on screen the near slope is: its rise, and its run's depth rising with the view. */
         fun slopeRows(shape: HouseShape): Float =
             shape.rise + BuildingSpec.DY / (BuildingSpec.W / 224f) * shape.run / DEPTH
+    }
+}
+
+/**
+ * A thin convex quad filled on the screen's own pixel grid, one whole-pixel span per screen row. A house's gable end
+ * is seen almost edge on, so its rake boards and the soffit under them are steep bands a pixel or two wide: drawn as
+ * paths they come out as blended slivers with the sky between them; as spans they are pixel art's stepped lines, and
+ * never thinner than one pixel, so nothing shows through.
+ */
+object PixelRows {
+    /**
+     * Calls [span] (left, top, right, bottom, in units) for each screen row whose middle the quad (a, b, c, d: its
+     * corners in order) covers. [unitPx] is screen pixels per unit; [originX] is added to x before it is put on the
+     * pixel grid (the units' x 0 stands [originX] units right of a whole screen pixel; their y 0 is on one). A row the
+     * quad covers less than a pixel wide gets the pixel its middle is in.
+     */
+    inline fun quad(
+        ax: Float, ay: Float, bx: Float, by: Float, cx: Float, cy: Float, dx: Float, dy: Float,
+        unitPx: Float, originX: Float, span: (Float, Float, Float, Float) -> Unit,
+    ) {
+        val top = min(min(ay, by), min(cy, dy)); val bottom = kotlin.math.max(kotlin.math.max(ay, by), kotlin.math.max(cy, dy))
+        val r0 = kotlin.math.ceil(top * unitPx - .5f).toInt(); val r1 = kotlin.math.floor(bottom * unitPx - .5f).toInt()
+        for (r in r0..r1) {
+            val yc = (r + .5f) / unitPx
+            val lo = min(min(cross(ax, ay, bx, by, yc, true), cross(bx, by, cx, cy, yc, true)), min(cross(cx, cy, dx, dy, yc, true), cross(dx, dy, ax, ay, yc, true)))
+            val hi = kotlin.math.max(kotlin.math.max(cross(ax, ay, bx, by, yc, false), cross(bx, by, cx, cy, yc, false)), kotlin.math.max(cross(cx, cy, dx, dy, yc, false), cross(dx, dy, ax, ay, yc, false)))
+            if (lo > hi) continue
+            var l = kotlin.math.round((lo + originX) * unitPx); var rr = kotlin.math.round((hi + originX) * unitPx)
+            if (rr <= l) { l = kotlin.math.floor(((lo + hi) / 2f + originX) * unitPx); rr = l + 1f }
+            span(l / unitPx - originX, r / unitPx, rr / unitPx - originX, (r + 1) / unitPx)
+        }
+    }
+
+    /**
+     * Where the edge (p to q) crosses the row at [y]: its x, or (when it does not) +infinity for the [low] end and
+     * -infinity for the high one, so it drops out of a min or a max. An edge lying along the row gives its own end.
+     */
+    @PublishedApi internal fun cross(px: Float, py: Float, qx: Float, qy: Float, y: Float, low: Boolean): Float {
+        val miss = if (low) Float.POSITIVE_INFINITY else Float.NEGATIVE_INFINITY
+        if ((y < py && y < qy) || (y > py && y > qy)) return miss
+        if (py == qy) return if (low) min(px, qx) else kotlin.math.max(px, qx)
+        return px + (qx - px) * (y - py) / (qy - py)
     }
 }
