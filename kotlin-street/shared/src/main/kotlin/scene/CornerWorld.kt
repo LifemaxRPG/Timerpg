@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.lerp
@@ -284,9 +285,11 @@ internal class CornerWorld {
 
     /** The far side of a street's band, past what the stage's own band shows: the road on, the far kerb and pavement, then the verge. */
     private fun DrawScope.beyond(k: Int, sky: SkyColors, a: Float, b: Float, depth: Float, reach: Float) {
-        val roadEnd = (if (k == 0) MAIN_ROAD else MOUTH - PAVE - KERB) / LANE
-        val far = (if (k == 0) MAIN_WIDTH else MOUTH) / LANE
         val start = BuildingPainter.PAVEMENT + 2.5f + depth
+        // (the far kerb no nearer than the stage's own band reaches at rest, the bottom of its screen: what that shows
+        // as road stays road in every view between)
+        val roadEnd = max((if (k == 0) MAIN_ROAD else MOUTH - PAVE - KERB) / LANE, start)
+        val far = roadEnd + (PAVE + KERB) / LANE
         if (reach <= start) return
         val w = b - a
         val road = lerp(sky.road, Color.Black, .3f)
@@ -323,7 +326,8 @@ internal class CornerWorld {
         drawRect(SceneInk.Occlusion, Offset(r0, 0f), Size(1.4f, pv + 2.5f), alpha = .4f)
         drawRect(SceneInk.Occlusion, Offset(r0 + rw - 1.4f, 0f), Size(1.4f, pv + 2.5f), alpha = .4f)
         // the zebra: bars along the cross street, spaced across it
-        val zebra = lerp(Color.White, sky.pavement, .25f)
+        // (white paint in the pavement's own light: bright by day, dim at night)
+        val zebra = lerp(sky.pavement, Color.White, .55f * (1f - .6f * sky.dark))
         var x = r0 + 4f
         while (x + 7f < r0 + rw - 2f) {
             drawRect(zebra, Offset(x, 3f), Size(7f, pv - 5f), alpha = .85f)
@@ -343,6 +347,12 @@ internal class CornerWorld {
         if (main) { lo = cr.westEdge - FAR_ALONG; hi = cr.westEdge + FAR_ALONG }
         else { lo = -cr.zOff; hi = -cr.zOff + FAR_ALONG }
         val w = size.width
+        // all but at rest the band lies far in front of the camera: one piece, as the stage draws it (strips would show
+        // their joins); otherwise in strips, each as deep as it can go
+        val whole = (if (main) leanMain else leanCross) > NEAR_REST
+        var first = Float.NaN
+        var last = Float.NaN
+        var shallow = reach
         var a = lo
         while (a < hi) {
             // tiles meet at the corner, where the main street's band changes its lean
@@ -371,14 +381,29 @@ internal class CornerWorld {
                 if (pt[0] > -w * .1f) left = false
                 if (pt[0] < w * 1.1f) right = false
             }
-            if (ok && !left && !right && lim > 1f) {
+            if (ok && !left && !right && lim > 1f && whole) {
+                if (first.isNaN()) first = a
+                last = b
+                shallow = min(shallow, lim)
+            } else if (ok && !left && !right && lim > 1f) {
                 if (main) cam.plane(mat, -cr.westEdge, 0f, 0f, 1f, 0f, 0f, 0f, 0f, -LANE, hm)
                 else cam.plane(mat, 0f, 0f, cr.zOff, 0f, 0f, 1f, LANE, 0f, 0f, hm)
+                // (each strip only its own stretch: what crosses into the next one, a dash or a shadow, is drawn once)
                 withTransform({ transform(hm) }) {
-                    groundAt(cr, s, painter, sky, light, seconds, a, b, min(depth, max(0f, lim - BuildingPainter.PAVEMENT - 2.5f)), lim, exact = false)
+                    clipRect(a, -4f, b, lim + 4f) {
+                        groundAt(cr, s, painter, sky, light, seconds, a, b, min(depth, max(0f, lim - BuildingPainter.PAVEMENT - 2.5f)), lim, exact = false)
+                    }
                 }
             }
             a = b
+        }
+        if (whole && !first.isNaN()) {
+            val mat = if (main) g[0] else g[2]
+            if (main) cam.plane(mat, -cr.westEdge, 0f, 0f, 1f, 0f, 0f, 0f, 0f, -LANE, hm)
+            else cam.plane(mat, 0f, 0f, cr.zOff, 0f, 0f, 1f, LANE, 0f, 0f, hm)
+            withTransform({ transform(hm) }) {
+                groundAt(cr, s, painter, sky, light, seconds, first, last, min(depth, max(0f, shallow - BuildingPainter.PAVEMENT - 2.5f)), shallow, exact = false)
+            }
         }
     }
 
@@ -596,7 +621,15 @@ internal class CornerWorld {
         val cut = cam.cutBack > 0f && !(cam.kept(bx.x0, bx.z0) && cam.kept(bx.x1, bx.z0) && cam.kept(bx.x0, bx.z1) && cam.kept(bx.x1, bx.z1))
         // a street's own row keeps its crisp pixels while it still has most of its own look; otherwise each face is
         // sampled crisp where it is a screen pixel or more to a picture pixel, smoothed where it is seen small or edge on
-        crisp = when (s.k) { 0 -> leanMain > .5f; 1 -> leanCross > .5f; else -> false }
+        val lean = when (s.k) { 0 -> leanMain; 1 -> leanCross; else -> 0f }
+        crisp = lean > .5f
+        if (lean > NEAR_REST && !cut) {
+            // all but at rest: drawn as the stage draws it (its side face and roof as the cabinet's strips), through its
+            // front's transform, so the street's own drawing and the turn's meet without a step between them
+            cam.plane(bm, ox, 0f, oz, ax, 0f, az, 0f, -1f, 0f, hm)
+            withTransform({ transform(hm) }) { with(painter) { building(art, motionOf(s.k, i), null, accent, live, detailed, sky, lod, x) } }
+            return
+        }
         quality = painter
         painter.prepare(art, x, sky, seconds)
         if (cut) inside(bx, sb, ox, oz, hf, sky, painter)
@@ -767,6 +800,8 @@ internal class CornerWorld {
         const val FAR = 14000f
         const val FAR_ALONG = 9000f
         const val TILE = 220f
+        /** A row this close to its own look is drawn as the stage draws it (see [box]). */
+        const val NEAR_REST = .99f
         /** The main street's road ends this far out from its fronts (world units), and its far pavement here. */
         const val MAIN_ROAD = 152f
         const val MAIN_WIDTH = 190f

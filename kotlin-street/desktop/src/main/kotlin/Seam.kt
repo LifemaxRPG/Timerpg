@@ -140,6 +140,9 @@ fun renderSeam(out: String) {
         check("identity Tn/S1", eId.mad <= .10 && eId.p99 <= 1 && eId.share16 <= .0001 && eId.mad < 2.0, eId.toString())
         savePng(File(dir, "end_turn_$way.png"), tn, scene); savePng(File(dir, "end_stage_$way.png"), s1, scene); savePng(File(dir, "end_diff_$way.png"), diff(tn, s1), scene)
     } else check("identity Tn/S1", way == "abort", "(no end frame: walked back)")
+    // the first and the last step of the walk, where the drawing changes hands between the street's own and the turn's
+    if (t1 != null) savePng(File(dir, "step_first_$way.png"), diff(t0, t1), scene)
+    if (tn1 != null && tn != null) savePng(File(dir, "step_last_$way.png"), diff(tn1, tn), scene)
     val lim = maxOf(1.0, 1.5 * w95)
     fun motion(name: String, a: IntArray?, b: IntArray?) { if (a != null && b != null) { val m = stats(a, b); check("motion $name", m.mad <= lim, m.toString() + "  (limit %.2f)".format(lim)) } }
     motion("pre/S0", pre, s0)
