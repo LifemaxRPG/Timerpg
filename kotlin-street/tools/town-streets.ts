@@ -121,6 +121,8 @@ export function townStreets(seed: string, year: number): TownStreets {
   const seen = new Map<Lot, string>();
   const lotOf = new Map<string, Lot>();
   const entries: object[] = [];
+  /** What each building was made from, so a repeat along a street can be made again differently (see vary()). */
+  const made = new Map<string, { kind: string; look: number; colour: Colour; home: boolean; residents: number; parts: { key: string; w: number; h: number; y: number }[] }>();
   function entry(l: Lot): string {
     const had = seen.get(l);
     if (had) return had;
@@ -132,23 +134,71 @@ export function townStreets(seed: string, year: number): TownStreets {
       const b = w.businesses[l.refId]!;
       const owner = b.owner ? w.people[b.owner] : undefined;
       // the very building our game draws for this shop: its sprite parts, bottom to top
-      const art = shopFacade(b.kind, (hash(b.id) % 1000000) / 1000000, year, colour);
-      entries.push({ id: b.id, sprite, home: false, name: b.name, kind: b.kind, owner: owner ? fullName(owner) : '', colour: art.colour,
-        parts: art.layers.map((ly) => ({ key: ly.key, w: ly.w, h: ly.h, y: ly.y })) });
+      const look = (hash(b.id) % 1000000) / 1000000;
+      const art = shopFacade(b.kind, look, year, colour);
+      const parts = art.layers.map((ly) => ({ key: ly.key, w: ly.w, h: ly.h, y: ly.y }));
+      made.set(sprite, { kind: b.kind, look, colour, home: false, residents: 0, parts });
+      entries.push({ id: b.id, sprite, home: false, name: b.name, kind: b.kind, owner: owner ? fullName(owner) : '', colour: art.colour, parts });
     } else {
       const head = w.people[l.refId];
       const surname = head ? fullName(head).split(' ').slice(-1)[0] : '';
       const art = homeFacade(colour, l.look, l.residents.length);
+      const parts = art.layers.map((ly) => ({ key: ly.key, w: ly.w, h: ly.h, y: ly.y }));
+      made.set(sprite, { kind: 'Home', look: l.look, colour, home: true, residents: l.residents.length, parts });
       entries.push({ id: `home:${l.slot}`, sprite, home: true, name: l.residents.length > 2 ? `${surname} House`.trim() : `The ${surname} home`.trim(),
         kind: 'Home', owner: head ? fullName(head) : '', residents: l.residents.map((id) => (w.people[id] ? fullName(w.people[id]!) : id)), colour,
-        parts: art.layers.map((ly) => ({ key: ly.key, w: ly.w, h: ly.h, y: ly.y })) });
+        parts });
     }
     return sprite;
+  }
+
+  /**
+   * No two buildings along a street wear the same front: a storefront that repeats one already on the street becomes another
+   * of its kind's variants (or, if the kind has no other, the next colour family's); an upper floor that repeats becomes
+   * another of its colour's six. The buildings, their order and their kinds stay as the town has them; only which of the art
+   * pack's pictures each wears changes. Deterministic.
+   */
+  function vary(row: string[]): void {
+    const usedGround = new Set<string>(); const usedMid = new Set<string>();
+    const COLOURS: Colour[] = ['red', 'blue', 'gray'];
+    const ground = (parts: { key: string }[]) => parts.find((p) => !p.key.startsWith('middle_') && !p.key.startsWith('roof'))?.key ?? '';
+    for (const sprite of row) {
+      const m = made.get(sprite); if (!m) continue;
+      if (usedGround.has(ground(m.parts))) {
+        let found: { key: string; w: number; h: number; y: number }[] | null = null;
+        const order = [m.colour, ...COLOURS.filter((c) => c !== m.colour)];
+        for (const c of order) {
+          for (let a = 1; a <= 8 && !found; a++) {
+            const look = (m.look + a * 0.6180339) % 1;
+            const parts = m.home ? homeFacade(c, look, m.residents).layers : shopFacade(m.kind, look, year, c).layers;
+            const ps = parts.map((ly) => ({ key: ly.key, w: ly.w, h: ly.h, y: ly.y }));
+            if (!usedGround.has(ground(ps))) found = ps;
+          }
+          if (found) break;
+        }
+        if (found) m.parts.splice(0, m.parts.length, ...found);
+      }
+      usedGround.add(ground(m.parts));
+      // upper floors: another of the same colour's six middles when this one is already on the street
+      for (const p of m.parts) {
+        if (!p.key.startsWith('middle_')) continue;
+        if (usedMid.has(p.key)) {
+          const n = Number(p.key.slice(7)); const band = Math.floor((n - 1) / 6);
+          for (let k = 1; k < 6; k++) {
+            const alt = `middle_${band * 6 + 1 + ((n - 1 + k) % 6)}`;
+            if (!usedMid.has(alt)) { p.key = alt; break; }
+          }
+        }
+        usedMid.add(p.key);
+      }
+    }
   }
   const main = mainWest.map(entry);
   const cross = crossWest.slice(0, 8).map(entry);
   const east = mainEast.map(entry);
   const crossOpposite = crossEast.slice(0, 5).map(entry);
+  // the main street (with the buildings past the junction) and each side of the cross street, each without repeats
+  vary([...main, ...east]); vary(cross); vary(crossOpposite);
   const streets = [{ name: 'Main Street', buildings: main }, { name: crossName, buildings: cross }];
 
   return {

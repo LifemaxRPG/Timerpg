@@ -114,7 +114,7 @@
           "y": 0
         },
         {
-          "key": "middle_12",
+          "key": "middle_7",
           "w": 224,
           "h": 128,
           "y": 96
@@ -195,7 +195,7 @@
           "y": 0
         },
         {
-          "key": "middle_8",
+          "key": "middle_9",
           "w": 224,
           "h": 128,
           "y": 96
@@ -224,7 +224,7 @@
           "y": 0
         },
         {
-          "key": "middle_8",
+          "key": "middle_10",
           "w": 224,
           "h": 128,
           "y": 96
@@ -259,7 +259,7 @@
           "y": 0
         },
         {
-          "key": "middle_12",
+          "key": "middle_11",
           "w": 224,
           "h": 128,
           "y": 96
@@ -334,7 +334,7 @@
           "y": 0
         },
         {
-          "key": "middle_10",
+          "key": "middle_11",
           "w": 224,
           "h": 128,
           "y": 96
@@ -363,25 +363,25 @@
       "colour": "blue",
       "parts": [
         {
-          "key": "condo_ground_5",
+          "key": "condo_ground_1",
           "w": 224,
           "h": 96,
           "y": 0
         },
         {
-          "key": "middle_9",
+          "key": "middle_6",
           "w": 224,
           "h": 128,
           "y": 96
         },
         {
-          "key": "middle_10",
+          "key": "middle_1",
           "w": 224,
           "h": 128,
           "y": 224
         },
         {
-          "key": "roof_4",
+          "key": "roof_2",
           "w": 224,
           "h": 192,
           "y": 352
@@ -474,19 +474,19 @@
       "colour": "gray",
       "parts": [
         {
-          "key": "condo_ground_12",
+          "key": "condo_ground_4",
           "w": 224,
           "h": 96,
           "y": 0
         },
         {
-          "key": "middle_15",
+          "key": "middle_2",
           "w": 224,
           "h": 128,
           "y": 96
         },
         {
-          "key": "roof_6",
+          "key": "roof_2",
           "w": 224,
           "h": 192,
           "y": 224
@@ -503,28 +503,22 @@
       "colour": "blue",
       "parts": [
         {
-          "key": "classic_bank_7",
+          "key": "classic_bank_3",
           "w": 224,
           "h": 96,
           "y": 0
         },
         {
-          "key": "middle_7",
+          "key": "roof_8",
           "w": 224,
-          "h": 128,
+          "h": 224,
           "y": 96
-        },
-        {
-          "key": "roof_4",
-          "w": 224,
-          "h": 192,
-          "y": 224
         },
         {
           "key": "roofprop_14",
           "w": 160,
           "h": 96,
-          "y": 236
+          "y": 108
         }
       ]
     },
@@ -538,16 +532,22 @@
       "colour": "blue",
       "parts": [
         {
-          "key": "shop_Shop_21",
+          "key": "shop_Shop_9",
           "w": 224,
           "h": 96,
           "y": 0
         },
         {
-          "key": "roof_4",
+          "key": "middle_1",
+          "w": 224,
+          "h": 128,
+          "y": 96
+        },
+        {
+          "key": "roof_2",
           "w": 224,
           "h": 192,
-          "y": 96
+          "y": 224
         }
       ]
     },
@@ -613,7 +613,7 @@
           "y": 96
         },
         {
-          "key": "middle_10",
+          "key": "middle_11",
           "w": 224,
           "h": 128,
           "y": 224
