@@ -33,6 +33,18 @@
   "Back to Main Street"), and turning back plays the turn in reverse and leaves you at the junction end of Main Street.
 - Demo town is still "eta" (Main Street: 8 shops; Orchard Lane: 6 homes). Checked on 9 seeds: all give 7-8 on Main Street, 2-6 on the cross street.
 
+## Dialogue (built and unit-tested; NOT yet run on a phone, and no AI engine wired in yet)
+- `tools/export-dialogue.ts` -> `assets/dialogue.json`: the people at each building of both streets (shop owners; a home's
+  head and one other adult), with the game's template lines and the model's prompts for each topic (see README).
+- "Talk to <name>" at a building opens a dialogue panel (topics, the reply streaming in, a marker for AI vs built-in line);
+  walking away or turning the corner closes it. The "AI" chip (top left) opens the model and speed panel.
+- `dialogue/DialogueEngine.kt`: one low-priority worker owns the model; lines are written ahead nearest-first (paused in
+  the corner turn and in the background), questions jump the queue, replies pass the `validate()` port or the template
+  stays; results cached in `filesDir/dialogue-cache.json`. Model file picked once with the system picker (GGUF header
+  checked, copied with progress). `llm/Backends.kt` still returns no engine, so for now every line is the template.
+- Guesses to check on a device: the free-memory threshold for loading (file/2 + 300 MB), the 45 s reply timeout, two
+  tries per line, the panel sizes on small landscape screens.
+
 ## Known rough edges / not done
 - Untested on a real device (touch, speed, memory, the turn's draw cost). Android-only code: image helper, asset loading, controls.
 - Collision radii and the "near the kerb" band are guesses. The turn's far buildings show the striped side art at grazing angles.
