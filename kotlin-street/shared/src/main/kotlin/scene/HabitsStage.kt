@@ -764,6 +764,8 @@ private fun StageCanvas(
         if (GameState.enabled && f.unit > 0f) GameState.halfView = size.width / 2f / f.unit
         val d = density.density
         val horizon = f.ground - HORIZON_DP * d * f.scale.coerceAtMost(1f)
+        if (GameState.enabled) { GameState.frameGround = f.ground; GameState.frameHorizon = horizon; GameState.framePx = SpriteArt.PIXEL * f.unit }
+        val skyOnly = StageTuning.skyOnly
         // the sun or the moon stands beside the building in front
         val column = (B.W / 2f + B.DX) * f.camera.scale + 14f
         val orb =
@@ -816,7 +818,7 @@ private fun StageCanvas(
         val fades = layouts.isNotEmpty() && f.ground - reach * f.unit < f.top + TOP_FADE * d
         // the buildings' outlines round the sun, for its glare where it peeks past an edge: none
         // over the heading, nor where the fade under it has rubbed them out (half way down it)
-        sunEdge(sunGlare.edge, layouts, arts, street, f, from, to)
+        if (skyOnly) sunGlare.edge.clear() else sunEdge(sunGlare.edge, layouts, arts, street, f, from, to)
         sunGlare.edge.ceiling = if (fades) f.top + TOP_FADE * d * .5f else f.top
         val sunR = SunMoonSprites.SUN_R * d
         val sunAt = Offset(orb.first * d, orb.second * d)
@@ -845,7 +847,7 @@ private fun StageCanvas(
                 f.skyTop,
                 Offset(orb.first * d, orb.second * d),
                 ceiling,
-                f.middle,
+                f.middle + (if (skyOnly) GameState.skyPan else 0f),
                 seconds,
             )
         }
@@ -856,6 +858,8 @@ private fun StageCanvas(
         // the street in its own layer also when the weather lays a tone over it (only over the street, not the sky)
         val weatherTone = weather.cloudiness > .05f || weather.rain > .05f || weather.mist > .05f
         val layered = fades || backlight.amount > 0f || weatherTone
+        // (the corner turn draws its own street over the sky: then there is no street here)
+        if (!skyOnly) {
         if (layered)
             drawIntoCanvas { it.saveLayer(Rect(0f, 0f, this.size.width, this.size.height), layer) }
         clipRect(0f, f.top, this.size.width, this.size.height) {
@@ -988,6 +992,7 @@ private fun StageCanvas(
             )
         }
         if (layered) drawIntoCanvas { it.restore() }
+        }
         // the near layer: a few dark, soft things between the camera and the street, sliding
         // faster than it
         if (StageTuning.foreground) with(foregroundPainter) {

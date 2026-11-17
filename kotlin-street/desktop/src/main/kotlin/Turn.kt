@@ -60,3 +60,49 @@ fun turnRows(assets: String, img: (String) -> ImageBitmap?): TurnRows? {
     return TurnRows(facades(names(st.getJSONObject(0).optJSONArray("buildings"))), facades(names(jn.optJSONArray("mainEast"))),
         facades(names(st.getJSONObject(1).optJSONArray("buildings"))), facades(names(jn.optJSONArray("crossEast"))))
 }
+
+/**
+ * The turn as the app shows it: the stage drawing only its sky (panning with the turn) and the turn over it, framed by the
+ * stage. Frames turnsky_NN.png.
+ */
+fun renderTurnOverStreet(out: String, assets: String) {
+    fun load(dir: String, name: String): ImageBitmap = SkiaImage.makeFromEncoded(File(File(assets, dir), name).readBytes()).toComposeImageBitmap()
+    val art = TurnArt(emptyList(), emptyList(),
+        try { load("props", "lamp_1.png") } catch (e: Exception) { null },
+        try { load("characters", "char_02.png") } catch (e: Exception) { null },
+        trees = (1..3).map { load("props", "tree_$it.png") },
+        bench = try { load("props", "bench_1.png") } catch (e: Exception) { null },
+        rows = turnRows(assets) { n -> try { load("buildings", n) } catch (e: Exception) { null } })
+    val hour = (System.getProperty("hour") ?: "16.8").toFloat()
+    val first = streetOfShops().first().id
+    com.lifemax.rpg.feature.habits.presentation.scene.GameState.x = 1e9f   // the junction end of the street
+    val density = 2f
+    File(out).mkdirs()
+    val frames = 12
+    for (i in 0 until frames) {
+        val t = i / (frames - 1f)
+        com.lifemax.rpg.feature.habits.presentation.scene.StageTuning.skyOnly = true
+        val sc = ImageComposeScene(width = (780 * density).toInt(), height = (360 * density).toInt(), density = Density(density)) {
+            androidx.compose.foundation.layout.Box(Modifier.fillMaxSize()) {
+                com.lifemax.rpg.feature.habits.presentation.scene.HabitsStage(
+                    p = projection(hour, "2026-06-14"), ui = com.lifemax.rpg.feature.habits.presentation.HabitsUi(city = false, focus = first), visible = true,
+                    top = 0f, bottom = 40f * density, cover = 0f, inset = 0f, accent = androidx.compose.ui.graphics.Color(0xFF6FA8FF),
+                    actions = com.lifemax.rpg.feature.habits.presentation.scene.StageActions(), ambientAt = 100f,
+                )
+                CornerTurn(art, t, Modifier.fillMaxSize(), hour, 1, skyBehind = true)
+            }
+        }
+        var nanos = 0L
+        var img = sc.render(nanos)
+        for (k in 0 until 10) {
+            // the sky's pan follows the stage's framing as measured by the frame before
+            val gs = com.lifemax.rpg.feature.habits.presentation.scene.GameState
+            if (gs.framePx > 0f) gs.skyPan = com.lifemax.rpg.feature.habits.presentation.scene.turnSkyPan(t, com.lifemax.rpg.feature.habits.presentation.scene.TurnFrame(gs.frameGround, gs.frameHorizon, gs.framePx), density)
+            nanos += 16_666_667L; Thread.sleep(30); img = sc.render(nanos)
+        }
+        File(out, "turnsky_%02d.png".format(i)).writeBytes(img.encodeToData(EncodedImageFormat.PNG)!!.bytes)
+        sc.close()
+        println("turnsky frame $i")
+    }
+    com.lifemax.rpg.feature.habits.presentation.scene.StageTuning.skyOnly = false
+}

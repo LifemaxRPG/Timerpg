@@ -20,6 +20,8 @@ object StageTuning {
     var pixelPerfect = true
     /** Furnished rooms and people behind the upper windows (the habit scene's). Off: the windows are plain reflective glass, until our own 2D interiors go in. */
     var interiors = false
+    /** Draw only the sky, clouds and distant city (the corner turn draws the street over it, the same sky behind). */
+    @Volatile var skyOnly = false
     /** The habit scene's out-of-focus foreground (railings, sign posts, tree branches sliding past the camera). Its art, not ours: off. */
     var foreground = false
     /** How much bigger than the city-scale passers the people are drawn (a game wants a readable character). */

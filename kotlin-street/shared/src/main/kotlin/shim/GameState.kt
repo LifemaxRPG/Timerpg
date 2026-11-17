@@ -28,6 +28,12 @@ object GameState {
     var cornerAtEnd = true
     /** Half the screen's width in street units (set by the stage as it draws), so the camera can stop at the street's ends. */
     var halfView = 0f
+    /** The stage's framing as it last drew (screen pixels): its ground line, its horizon, and screen pixels per sprite pixel. */
+    var frameGround = 0f
+    var frameHorizon = 0f
+    var framePx = 0f
+    /** How far the sky has panned (street units) while the corner turn swings the camera; 0 otherwise. */
+    @Volatile var skyPan = 0f
 
     const val SPEED = 46f       // street units a second
     const val LANE_SPEED = 7f   // units a second in and out
