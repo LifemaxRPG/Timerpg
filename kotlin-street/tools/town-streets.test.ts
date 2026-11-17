@@ -1,5 +1,5 @@
-// The streets the Kotlin renderer is given (tools/town-streets.ts): our mobile homes wear their lot's own sprite, no row
-// repeats a house design, and the export is deterministic and matches what is committed.
+// The streets the Kotlin renderer is given (tools/town-streets.ts): our mobile homes and villas wear their lot's own
+// sprite, no row repeats a house design, and the export is deterministic and matches what is committed.
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -30,6 +30,25 @@ describe('town streets', () => {
       expect(e.yard).toEqual({ front: lot.front, style: neighborhoodOf(ts.layout.plan, lot.neighborhood).yard });
     }
     expect(houses).toBeGreaterThan(3);
+  });
+
+  it('dresses villa-tier homes in their own villas, with their yards', () => {
+    // eta has no villa on its streets; vale has two on and by Oak Street (a sage district: villa_2 is its only villa)
+    const v = townStreets('vale', YEAR);
+    const vj = v.json as typeof json;
+    let villas = 0;
+    for (const e of vj.shops) {
+      const lot = v.lotOf.get(e.sprite)!;
+      if (!e.home || lot.tier !== 'villa') continue;
+      villas++;
+      expect(e.parts).toHaveLength(1);
+      expect(e.parts[0]!.key).toMatch(/^villa_[1-5]$/);
+      expect(e.house).toBeUndefined();
+      expect(e.yard).toEqual({ front: lot.front, style: neighborhoodOf(v.layout.plan, lot.neighborhood).yard });
+    }
+    expect(villas).toBeGreaterThan(0);
+    // the other homes there keep what they wore: mobile homes their own, the rest the condo stand-in
+    for (const e of vj.shops) if (e.home && v.lotOf.get(e.sprite)!.tier !== 'villa') expect(e.parts[0]!.key).not.toMatch(/^villa_/);
   });
 
   it('never repeats a house design within two houses along a row', () => {
