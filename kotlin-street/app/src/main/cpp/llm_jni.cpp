@@ -8,6 +8,7 @@
 
 #include <new>
 #include <string>
+#include <vector>
 
 namespace {
 
@@ -133,5 +134,68 @@ extern "C" JNIEXPORT jlongArray JNICALL FN(nativeStats)(JNIEnv * env, jobject, j
         return nullptr;
     }
     env->SetLongArrayRegion(a, 0, 8, v);
+    return a;
+}
+
+// ------------------------------------------------------------------------------------------------ speech to text
+// JNI for com.timerpg.street.llm.NativeAsr: llm::Asr (Qwen3-ASR through mtmd).
+#include "asr_core.h"
+
+#define ASR(name) Java_com_timerpg_street_llm_NativeAsr_##name
+
+namespace { llm::Asr * asr(jlong h) { return reinterpret_cast<llm::Asr *>(h); } }
+
+extern "C" JNIEXPORT jlong JNICALL ASR(nativeCreate)(JNIEnv *, jobject) {
+    try {
+        llm::init_backend(llm::cpu_variant_libs(), nullptr);
+        return reinterpret_cast<jlong>(new (std::nothrow) llm::Asr());
+    } catch (...) {
+        return 0;
+    }
+}
+
+extern "C" JNIEXPORT void JNICALL ASR(nativeDestroy)(JNIEnv *, jobject, jlong h) {
+    try { delete asr(h); } catch (...) {}
+}
+
+extern "C" JNIEXPORT jboolean JNICALL ASR(nativeLoad)(JNIEnv * env, jobject, jlong h, jbyteArray model, jbyteArray mmproj, jint threads) {
+    if (!h) return JNI_FALSE;
+    try {
+        return asr(h)->load(from_bytes(env, model), from_bytes(env, mmproj), threads) ? JNI_TRUE : JNI_FALSE;
+    } catch (...) {
+        return JNI_FALSE;
+    }
+}
+
+extern "C" JNIEXPORT jint JNICALL ASR(nativeRate)(JNIEnv *, jobject, jlong h) {
+    return h ? asr(h)->sample_rate() : 0;
+}
+
+extern "C" JNIEXPORT jstring JNICALL ASR(nativeError)(JNIEnv * env, jobject, jlong h) {
+    return h ? to_jstring(env, asr(h)->error()) : nullptr;
+}
+
+extern "C" JNIEXPORT void JNICALL ASR(nativeCancel)(JNIEnv *, jobject, jlong h) {
+    if (h) asr(h)->cancel();
+}
+
+extern "C" JNIEXPORT jstring JNICALL ASR(nativeTranscribe)(JNIEnv * env, jobject, jlong h, jfloatArray pcm, jbyteArray context) {
+    if (!h || !pcm) return nullptr;
+    try {
+        const jsize n = env->GetArrayLength(pcm);
+        std::vector<float> samples((size_t) n);
+        if (n > 0) env->GetFloatArrayRegion(pcm, 0, n, samples.data());
+        const std::string text = asr(h)->transcribe(samples.data(), samples.size(), from_bytes(env, context));
+        return to_jstring(env, text);
+    } catch (...) {
+        return nullptr;
+    }
+}
+
+extern "C" JNIEXPORT jlongArray JNICALL ASR(nativeTimes)(JNIEnv * env, jobject, jlong h) {
+    if (!h) return nullptr;
+    jlong v[2] = { (jlong) asr(h)->encode_ms(), (jlong) asr(h)->total_ms() };
+    jlongArray a = env->NewLongArray(2);
+    if (a) env->SetLongArrayRegion(a, 0, 2, v);
     return a;
 }

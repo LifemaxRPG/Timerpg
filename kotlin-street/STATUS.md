@@ -33,6 +33,18 @@
   "Back to Main Street"), and turning back plays the turn in reverse and leaves you at the junction end of Main Street.
 - Demo town is still "eta" (Main Street: 8 shops; Orchard Lane: 6 homes). Checked on 9 seeds: all give 7-8 on Main Street, 2-6 on the cross street.
 
+## Talking to people out loud (verified on a computer; NOT yet run on a phone)
+- In a conversation, hold "Hold to talk", say anything, let go: `voice/PlayerVoice.kt` records 16 kHz mono (at most 20 s),
+  trims the silence and `llm/NativeAsr.kt` writes it down with **Qwen3-ASR 1.7B** (Q8_0, 2.2 GB + 356 MB encoder; llama.cpp's
+  mtmd library in the same native library, `cpp/asr_core.cpp`), with the town's and everyone's names as hints. The
+  NPC's topic nearest the words is chosen (`DialogueEngine.topicFor`) and Qwen answers the player's exact words in that
+  topic's fact sheet (`withQuestion`), checked by `validate()` as always, then spoken in the NPC's voice.
+- Writing ahead pauses while the player speaks and while the words are written down (the CPU is theirs).
+- Measured on the 4-core x86 server (`asr_host_test`, our Kokoro clips): every clip word for word, names included ("Ray
+  Vance", "Holloway's Bakery"); ~0.4x real time (a 5 s question in ~2 s) after a one-time load. The S25: not measured yet.
+- The AI panel's download fetches the speech model with the rest (about 8.9 GB in all). The microphone permission is
+  asked the first time the button is held.
+
 ## Dialogue and the native dialogue AI (verified on a computer; NOT yet run on a phone)
 - `tools/export-dialogue.ts` -> `assets/dialogue.json`: the people at each building of both streets (shop owners; a home's
   head and one other adult), with the game's template lines and the model's prompts for each topic (see README).

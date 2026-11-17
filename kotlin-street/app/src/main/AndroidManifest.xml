@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- once, to fetch the dialogue model and the voices from Hugging Face; the game itself is offline -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- talking to the people in the street: held while the mic button is down, heard on the phone only -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
         android:label="Timerpg Street"

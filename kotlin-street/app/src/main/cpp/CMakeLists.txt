@@ -35,7 +35,7 @@ macro(force name value)
     set(${name} ${value} CACHE BOOL "" FORCE)
 endmacro()
 
-# Only the library: no common utils (and so no curl/openssl/httplib), server, tools, examples, tests or web UI.
+# Only the libraries: no common utils (and so no curl/openssl/httplib), server, tools, examples, tests or web UI.
 force(LLAMA_BUILD_COMMON   OFF)
 force(LLAMA_BUILD_TESTS    OFF)
 force(LLAMA_BUILD_TOOLS    OFF)
@@ -43,7 +43,8 @@ force(LLAMA_BUILD_EXAMPLES OFF)
 force(LLAMA_BUILD_SERVER   OFF)
 force(LLAMA_BUILD_APP      OFF)
 force(LLAMA_BUILD_UI       OFF)
-force(LLAMA_BUILD_MTMD     OFF)
+# mtmd (llama.cpp's multimodal library) alone, for speech to text (asr_core: Qwen3-ASR)
+force(LLAMA_BUILD_MTMD     ON)
 force(LLAMA_OPENSSL        OFF)
 force(LLAMA_SUBPROCESS     OFF)
 force(LLAMA_ALL_WARNINGS   OFF)
@@ -89,9 +90,9 @@ endif()
 # EXCLUDE_FROM_ALL: only what our targets need gets built.
 add_subdirectory("${LLAMA_DIR}" llama.cpp EXCLUDE_FROM_ALL)
 
-add_library(llm_core STATIC llm_core.cpp)
+add_library(llm_core STATIC llm_core.cpp asr_core.cpp)
 target_include_directories(llm_core PUBLIC "${CMAKE_CURRENT_LIST_DIR}")
-target_link_libraries(llm_core PUBLIC llama)
+target_link_libraries(llm_core PUBLIC llama mtmd)
 set_target_properties(llm_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 if (ANDROID)
@@ -118,4 +119,7 @@ else()
     target_include_directories(llm_host_test PRIVATE "${LLAMA_DIR}/vendor")
     find_package(Threads REQUIRED)
     target_link_libraries(llm_host_test PRIVATE Threads::Threads)
+    # speech to text on a computer: tools/asr-host-test.sh
+    add_executable(asr_host_test asr_host_test.cpp)
+    target_link_libraries(asr_host_test PRIVATE llm_core Threads::Threads)
 endif()

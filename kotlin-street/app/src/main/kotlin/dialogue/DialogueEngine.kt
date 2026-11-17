@@ -168,6 +168,19 @@ class DialogueEngine private constructor(private val app: Context) {
         return req
     }
 
+    /**
+     * The player said [said] to [npc] (out loud, written down by [com.timerpg.street.voice.PlayerVoice]): the model answers
+     * those words, in the person's own fact sheet for the topic they are nearest ([topicFor]). The template of that topic
+     * is the fallback, as for any line. Returns the topic answered and the request.
+     */
+    fun askFree(npc: Npc, said: String, onLine: (Line) -> Unit): Pair<Topic, Request>? {
+        val topic = topicFor(npc, said) ?: return null
+        val words = said.replace("<|", "<").replace("|>", ">").replace("\n", " ").trim().take(400)
+        val prompt = topic.prompt?.let { withQuestion(it, words) }
+        val asked = topic.copy(prompt = prompt)
+        return topic to ask(npc, asked, onLine)
+    }
+
     /** Where the player is: building [index] (-1 between buildings) of [street]. Re-sorts the pre-generation queue. */
     fun setPlayer(street: Int, index: Int) {
         val changed = lock.withLock { queue.setPlayer(street, index) }
@@ -688,6 +701,30 @@ class DialogueEngine private constructor(private val app: Context) {
     }
 
     companion object {
+        /** The topic of [npc]'s that the player's own words [said] are about (chat when nothing more specific fits). */
+        fun topicFor(npc: Npc, said: String): Topic? {
+            val s = " " + said.lowercase().replace(Regex("[^a-z' ]"), " ") + " "
+            fun has(vararg w: String) = w.any { s.contains(" $it") }
+            val intent = when {
+                has("secret", "hiding", "hide ", "hidden") -> "secret"
+                has("rumor", "rumour", "gossip", "heard anything", "heard any", "news", "going on", "what's new", "whats new") -> "rumors"
+                has("family", "wife", "husband", "kids", "children", "child", "son ", "sons", "daughter", "married", "spouse", "parents") -> "family"
+                has("work", "job", "shop", "store", "business", "living", "trade", "sell") -> "work"
+                has("town", "mayor", "place like", "around here") -> "town"
+                else -> "chat"
+            }
+            val voiced = npc.topics.filter { it.prompt != null }
+            return voiced.firstOrNull { it.intent == intent } ?: voiced.firstOrNull { it.intent == "chat" } ?: voiced.firstOrNull() ?: npc.topics.firstOrNull()
+        }
+
+        /** [prompt] (ChatML) with the player's turn replaced by [words]. */
+        fun withQuestion(prompt: String, words: String): String {
+            val start = prompt.indexOf("<|im_start|>user\n").takeIf { it >= 0 } ?: return prompt
+            val from = start + "<|im_start|>user\n".length
+            val end = prompt.indexOf("<|im_end|>", from).takeIf { it >= 0 } ?: return prompt
+            return prompt.substring(0, from) + words + prompt.substring(end)
+        }
+
         private const val TAG = "Dialogue"
         const val MAX_TOKENS = 56
         const val TEMPERATURE = .3f

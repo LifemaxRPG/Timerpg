@@ -319,6 +319,14 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         if (t != null && t.npc.building != here) { t.close(voices); talk = null }
     }
     val pickModel = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) engine.importModel(uri) }
+    // the player's voice: hold the mic in a conversation, say something, let go
+    val ears = remember { com.timerpg.street.voice.PlayerVoice(ctx.applicationContext) }
+    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { ears.release() } }
+    val askMic = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    // the words to expect: the town's name and everyone's names, so the recognizer spells them as the game does
+    val names = remember(engine.data.value) {
+        engine.data.value?.let { d -> (listOf(d.townName) + d.npcs.map { it.name }).distinct().joinToString(", ") } ?: ""
+    }
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         HabitsStage(
             p = p, ui = HabitsUi(focus = shops[0].id), visible = true, top = 0f, bottom = 0f, cover = 0f, inset = 0f,
@@ -343,6 +351,14 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         val open = talk
         if (open != null) {
             DialoguePanel(open, onTopic = { open.ask(engine, it, voices) }, onClose = { open.close(voices); talk = null },
+                ears = ears,
+                onTalk = { down ->
+                    if (down) {
+                        if (!ears.hasPermission()) askMic.launch(android.Manifest.permission.RECORD_AUDIO)
+                        else { voices.stop(); engine.pause("listening"); ears.start() }
+                    } else ears.stop(names) { said -> engine.resume("listening"); open.askSaid(engine, said, voices) }
+                    if (!down && ears.state == com.timerpg.street.voice.PlayerVoice.State.IDLE) engine.resume("listening")
+                },
                 modifier = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 92.dp))
         } else if (!turning && turn < 0f && atHere.isNotEmpty()) {
             Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 56.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -389,6 +405,7 @@ private class Talk(val npc: Npc) {
     fun ask(engine: DialogueEngine, t: Topic, voices: com.timerpg.street.voice.NpcVoiceService? = null) {
         request?.close()
         topic = t
+        said = null
         // a line is spoken once it is final (the model's when it has passed the check, else the game's own)
         var spoken: String? = null
         fun heard(l: Line) { if (l.final && l.text != spoken) { spoken = l.text; voices?.say(npc, l.text) } }
@@ -396,6 +413,22 @@ private class Talk(val npc: Npc) {
         request = r
         line = r.first
         r.first?.let { heard(it) }
+    }
+
+    /** What the player last said out loud, shown above the answer. */
+    var said by mutableStateOf<String?>(null)
+
+    /** The player said [text]: the person answers those words (the topic they are nearest is marked). */
+    fun askSaid(engine: DialogueEngine, text: String, voices: com.timerpg.street.voice.NpcVoiceService? = null) {
+        request?.close()
+        said = text
+        var spoken: String? = null
+        fun heard(l: Line) { if (l.final && l.text != spoken) { spoken = l.text; voices?.say(npc, l.text) } }
+        val (tp, r) = engine.askFree(npc, text) { line = it; heard(it) } ?: return
+        topic = tp
+        request = r
+        line = r.first
+        heard(r.first)
     }
 
     fun close(voices: com.timerpg.street.voice.NpcVoiceService? = null) {
@@ -412,7 +445,8 @@ private val AI_BLUE = Color(0xFF6FA8FF)
 /** The conversation: who, where, what they said (and whose words: the model's or the game's), and what to ask next. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun DialoguePanel(t: Talk, onTopic: (Topic) -> Unit, onClose: () -> Unit, modifier: Modifier) {
+private fun DialoguePanel(t: Talk, onTopic: (Topic) -> Unit, onClose: () -> Unit, modifier: Modifier,
+                          ears: com.timerpg.street.voice.PlayerVoice? = null, onTalk: (Boolean) -> Unit = {}) {
     Column(
         modifier.widthIn(max = 560.dp).background(PANEL, RoundedCornerShape(14.dp)).padding(horizontal = 14.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -425,6 +459,7 @@ private fun DialoguePanel(t: Talk, onTopic: (Topic) -> Unit, onClose: () -> Unit
             Spacer(Modifier.width(8.dp))
             Chip("✕", false, onClick = onClose)
         }
+        t.said?.let { Text("You: \u201c$it\u201d", 13.sp, color = DIM) }
         t.line?.let { l ->
             Text(l.text, 15.sp)
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -434,9 +469,37 @@ private fun DialoguePanel(t: Talk, onTopic: (Topic) -> Unit, onClose: () -> Unit
             }
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (ears != null) MicButton(ears, onTalk)
             for (tp in t.npc.topics) Chip(chipLabel(tp), t.topic === tp) { onTopic(tp) }
         }
+        ears?.problem?.let { Text(it, 11.sp, color = Color(0xFFFFB4A0)) }
     }
+}
+
+/** Hold to talk: listening while held (a meter shows the voice), writing it down after. */
+@Composable
+private fun MicButton(ears: com.timerpg.street.voice.PlayerVoice, onTalk: (Boolean) -> Unit) {
+    val st = ears.state
+    val label = when (st) {
+        com.timerpg.street.voice.PlayerVoice.State.LISTENING -> "● Listening…"
+        com.timerpg.street.voice.PlayerVoice.State.THINKING -> "… Writing it down"
+        com.timerpg.street.voice.PlayerVoice.State.LOADING -> "… Loading"
+        else -> "🎤 Hold to talk"
+    }
+    val on = st == com.timerpg.street.voice.PlayerVoice.State.LISTENING
+    Box(
+        Modifier
+            .background(if (on) Color(0xFF8A2E2E).copy(alpha = .55f + .45f * ears.level) else Color(0x33FFFFFF), RoundedCornerShape(16.dp))
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    awaitFirstDown()
+                    onTalk(true)
+                    waitForUpOrCancellation()
+                    onTalk(false)
+                }
+            }
+            .padding(horizontal = 12.dp, vertical = 7.dp),
+    ) { Text(label, 13.sp) }
 }
 
 /** The game's menu labels are long for a landscape phone: short ones for the known topics, the game's for the rest. */

@@ -8,12 +8,13 @@ import java.net.URL
 
 /**
  * Everything the game's AI needs, fetched once from Hugging Face into the app's own storage: the dialogue model (Qwen3.5-9B, the strongest Qwen that fits a phone)
- * and both voice engines (Kokoro-82M and Supertonic-3), about 6.4 GB. Downloads resume where they stopped, every file's
+ * both voice engines (Kokoro-82M and Supertonic-3) and the speech recognizer (Qwen3-ASR), about 8.9 GB. Downloads resume where they stopped, every file's
  * size is checked, and nothing is used until it is complete. Blocking IO: run it off the main thread.
  */
 object ModelDownloads {
     private const val KOKORO = "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/"
     private const val SUPERTONIC = "https://huggingface.co/Supertone/supertonic-3/resolve/main/"
+    private const val ASR = "https://huggingface.co/ggml-org/Qwen3-ASR-1.7B-GGUF/resolve/main/"
     private const val QWEN = "https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-Q4_K_M.gguf"
 
     /** One file: where it comes from, where it goes (under filesDir/models), and its size in bytes. */
@@ -29,6 +30,9 @@ object ModelDownloads {
 
     val ITEMS: List<Item> = buildList {
         add(Item(QWEN, ModelFiles.NAME, 5_680_522_464L))
+        // hearing the player: Qwen3-ASR 1.7B and its audio encoder
+        add(Item(ASR + "Qwen3-ASR-1.7B-Q8_0.gguf", com.timerpg.street.voice.PlayerVoice.ASR_MODEL, 2_165_034_944L))
+        add(Item(ASR + "mmproj-Qwen3-ASR-1.7B-Q8_0.gguf", com.timerpg.street.voice.PlayerVoice.ASR_MMPROJ, 355_709_344L))
         add(Item(KOKORO + "onnx/model.onnx", "kokoro/model.onnx", 325_532_232L))
         add(Item(KOKORO + "tokenizer.json", "kokoro/tokenizer.json", 3_497L))
         for (v in KOKORO_VOICES) add(Item(KOKORO + "voices/$v.bin", "kokoro/voices/$v.bin", 522_240L))
