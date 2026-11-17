@@ -16,6 +16,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -458,7 +459,9 @@ private fun StageCanvas(
     }
 
     // the street's own time: stars, people, planes. It ticks about 30 times a second while the tab
-    // shows (the finger and the plays redraw on their own), and stands still otherwise
+    // shows (the finger and the plays redraw on their own), and stands still otherwise; in the game it ticks every frame
+    // while the player or the camera moves (the street is redrawn every frame then anyway, and the passers-by would
+    // otherwise judder against it)
     var seconds by remember { mutableFloatStateOf(ambientAt ?: 0f) }
     LaunchedEffect(visible, still, ambientAt) {
         if (ambientAt != null) seconds = ambientAt
@@ -466,7 +469,7 @@ private fun StageCanvas(
             val start = withFrameNanos { it }
             var last = 0L
             while (true) withFrameNanos {
-                if (it - last >= TICK_NANOS) {
+                if (it - last >= TICK_NANOS || (GameState.enabled && GameState.inMotion)) {
                     last = it
                     seconds = (it - start) / 1e9f + .001f
                 }
@@ -613,11 +616,14 @@ private fun StageCanvas(
     // the game: the camera follows the player instead of settling on a building
     val streetNow = rememberUpdatedState(street)
     val layoutsNow = rememberUpdatedState(layouts)
+    var playerFrame by remember { mutableIntStateOf(0) }
     LaunchedEffect(GameState.enabled) {
         if (!GameState.enabled) return@LaunchedEffect
         var last = 0L
         while (true) {
             val t = withFrameNanos { it }
+            // a frame at the same time again (no time passed): nothing moves, and the player is not taken for standing
+            if (last != 0L && t <= last) continue
             val dt = if (last == 0L) 0f else ((t - last) / 1e9f).coerceAtMost(.1f)
             last = t
             val s = streetNow.value
@@ -626,36 +632,33 @@ private fun StageCanvas(
                 ?.let { s.lefts[it] + layoutsNow.value[it].lot / 2f } ?: Float.NaN
             GameState.junctionX = jx
             // arriving back round the corner: stand just short of the junction end of this street
-            if (GameState.x > s.end + 500f) GameState.x = s.end - 150f
+            if (GameState.x > s.end + 500f) { GameState.x = s.end - 150f; GameState.camera.reset() }
             // arriving back from the side street: at the junction, where it opens
-            if (GameState.x < -1e8f) GameState.x = if (!jx.isNaN()) jx else s.end - 150f
+            if (GameState.x < -1e8f) { GameState.x = if (!jx.isNaN()) jx else s.end - 150f; GameState.camera.reset() }
             val before = GameState.x
             val laneBefore = GameState.lane
+            val walkingBefore = GameState.walking; val leanBefore = GameState.leanPixels
+            val facingBefore = GameState.facing; val dirBefore = GameState.dir; val poseBefore = GameState.runPose
             GameState.step(dt, s.start, s.end, BuildingPainter.PAVEMENT - 2f)
-            // lamps, trees and benches stand at the back of the pavement (lane 0); reach: the piece's drawn half-width plus the
-            // player's (~10). A step in beside one is refused (x never jumps), walking into one along the inner band steps out
-            // round it, and only crossing a piece's edge stops the walk
-            fun reach(f: com.lifemax.rpg.feature.habits.domain.Furniture) = when (f.kind) { FurnitureKind.TREE -> 12f; FurnitureKind.BENCH -> 34f; else -> 14f }
-            if (laneBefore >= 6.5f && GameState.lane < 6.5f && s.furniture.any { kotlin.math.abs(GameState.x - it.x) < reach(it) }) GameState.lane = 6.5f
-            if (kotlin.math.abs(GameState.moveX) > .05f && GameState.lane < 6.5f &&
-                s.furniture.any { val d = (it.x - before) * GameState.dir; d > -reach(it) && d < reach(it) + 24f })
-                GameState.lane = (GameState.lane + 2.5f * GameState.LANE_SPEED * dt).coerceAtMost(6.5f)
-            if (GameState.lane < 6.5f) {
-                for (f in s.furniture) {
-                    val r = reach(f)
-                    if ((before <= f.x - r && GameState.x > f.x - r) || (before >= f.x + r && GameState.x < f.x + r)) {
-                        GameState.x = if (before < f.x) f.x - r else f.x + r
-                        GameState.vx = 0f
-                        break
-                    }
-                }
-            }
+            // lamps, trees and benches stand at the back of the pavement: stepping round them, or stopped by them
+            GameState.avoid(s.furniture, before, laneBefore, dt)
             GameState.settle()
-            // the camera stops where the street's built ends reach the screen's edges; the player walks on to the end
+            // the camera stops where the street's built ends reach the screen's edges (easing into them); the player walks
+            // on to the end. It looks ahead of a moving player (more the faster; it stays put when they stop), by whole
+            // pixels so the player never flickers
             val half = GameState.halfView
             val lo = s.start + half; val hi = s.end - half
-            val cx = GameState.drawnX()
-            scroll.snapTo(if (half <= 0f) cx else if (lo < hi) cx.coerceIn(lo, hi) else (s.start + s.end) / 2f)
+            GameState.camera.step(dt, GameState.vx, 2f * half)
+            val cx = GameState.drawnX() + GameState.camera.snapped(GameState.unit)
+            val unit = GameState.unit
+            val view = if (half <= 0f) cx else CameraLead.withinEnds(cx, lo, hi).let { if (unit > 0f) kotlin.math.round(it * unit) / unit else it }
+            // the player redraws every frame they change, also when the camera stands still at an end (the street's draw
+            // otherwise follows only the camera and the ~30 Hz clock)
+            val changed = GameState.walking || walkingBefore != GameState.walking || leanBefore != GameState.leanPixels ||
+                facingBefore != GameState.facing || dirBefore != GameState.dir || poseBefore != GameState.runPose
+            if (changed) playerFrame++
+            GameState.inMotion = changed || view != scroll.value
+            scroll.snapTo(view)
             // at the corner: in the mouth of the side street where it opens off this street, else at the junction end
             GameState.atCorner = if (!jx.isNaN()) kotlin.math.abs(GameState.x - jx) < 95f
                 else if (GameState.cornerAtEnd) GameState.x > s.end - 110f else GameState.x < s.start + 110f
@@ -782,6 +785,8 @@ private fun StageCanvas(
             }
     ) {
         if (this.size.width <= 0f) return@Canvas
+        // read, so the player's every step redraws (see the game loop above)
+        @Suppress("UNUSED_VARIABLE") val player = playerFrame
         val f = frame()
         if (GameState.enabled && f.unit > 0f) {
             GameState.halfView = size.width / 2f / f.unit

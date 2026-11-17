@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,6 +39,8 @@ import com.lifemax.rpg.feature.habits.domain.WeatherOverride
 import com.lifemax.rpg.feature.habits.domain.WeatherState
 import com.lifemax.rpg.feature.habits.presentation.HabitsUi
 import com.lifemax.rpg.feature.habits.presentation.scene.GameState
+import com.lifemax.rpg.feature.habits.presentation.scene.MoveInput
+import com.lifemax.rpg.feature.habits.presentation.scene.MoveStick
 import com.lifemax.rpg.feature.habits.presentation.scene.CornerTurn
 import com.lifemax.rpg.feature.habits.presentation.scene.TurnArt
 import androidx.compose.ui.graphics.graphicsLayer
@@ -85,6 +88,7 @@ class GameActivity : ComponentActivity() {
         }
         PlatformImages.update = { img: ImageBitmap, px, w, h -> img.asAndroidBitmap().setPixels(px, 0, w, 0, 0, w, h) }
         immersive()
+        fastestRefresh()
         // our characters: only the first 4 views x 6 frames (x < 768) of rows 0-2 (y < 192) are ever drawn, so only that is
         // decoded (about 5 MB of bitmaps instead of 75)
         SpriteSheets.sheets = (1..8).map { n ->
@@ -95,7 +99,7 @@ class GameActivity : ComponentActivity() {
             }.asImageBitmap()
         }
         // a recreated activity must not inherit a held direction
-        GameState.moveX = 0f; GameState.moveLane = 0f
+        MoveInput.releaseAll()
         // our lamp, trees and bench
         fun prop(n: String) = assets.open("props/$n.png").use { BitmapFactory.decodeStream(it) }.asImageBitmap()
         SpriteArt.lamp = prop("lamp_1"); SpriteArt.bench = prop("bench_1"); SpriteArt.trees = listOf("tree_1", "tree_2", "tree_3").map { prop(it) }
@@ -129,6 +133,93 @@ class GameActivity : ComponentActivity() {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) immersive()
+        // a notification shade, a dialog, another app: the thumb's lift may never reach us, so nothing stays held
+        else letGo()
+    }
+
+    override fun onPause() {
+        getSystemService(android.hardware.input.InputManager::class.java)?.unregisterInputDeviceListener(devices)
+        letGo()
+        super.onPause()
+    }
+
+    /** Nothing held: the stick, the keys, and what the game pad last said (a later key must not bring back a stale push). */
+    private fun letGo() {
+        MoveInput.releaseAll(); keys.clear()
+        padStick[0] = 0f; padStick[1] = 0f; hatX = 0f; hatY = 0f
+    }
+
+    /** Arrow, WASD and D-pad keys held now (a keyboard with DeX, a game pad's D-pad), and a game pad's left stick and hat. */
+    private val keys = HashSet<Int>()
+    private val padStick = FloatArray(2)
+    private var hatX = 0f
+    private var hatY = 0f
+
+    override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+        val k = event.keyCode
+        if (k in LEFT_KEYS || k in RIGHT_KEYS || k in UP_KEYS || k in DOWN_KEYS || k in RUN_KEYS) {
+            when (event.action) {
+                android.view.KeyEvent.ACTION_DOWN -> keys += k
+                android.view.KeyEvent.ACTION_UP -> keys -= k
+            }
+            padToInput()
+            return true
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
+    override fun dispatchGenericMotionEvent(ev: android.view.MotionEvent): Boolean {
+        if (ev.isFromSource(android.view.InputDevice.SOURCE_JOYSTICK) && ev.action == android.view.MotionEvent.ACTION_MOVE) {
+            // the pad's stick shaped as the screen's is (its dead zone, the pull to the axes); its hat as arrow keys
+            com.lifemax.rpg.feature.habits.presentation.scene.Stick.shape(
+                ev.getAxisValue(android.view.MotionEvent.AXIS_X), ev.getAxisValue(android.view.MotionEvent.AXIS_Y), padStick)
+            hatX = ev.getAxisValue(android.view.MotionEvent.AXIS_HAT_X); hatY = ev.getAxisValue(android.view.MotionEvent.AXIS_HAT_Y)
+            padToInput()
+            return true
+        }
+        return super.dispatchGenericMotionEvent(ev)
+    }
+
+    /** Keys walk (a push in the walk band), with Shift or a shoulder button they run; a pad's stick pushes as far as it is pushed. */
+    private fun padToInput() {
+        var kx = hatX; var ky = hatY
+        if (keys.any { it in LEFT_KEYS }) kx -= 1f
+        if (keys.any { it in RIGHT_KEYS }) kx += 1f
+        if (keys.any { it in UP_KEYS }) ky -= 1f
+        if (keys.any { it in DOWN_KEYS }) ky += 1f
+        val h = kotlin.math.hypot(kx, ky)
+        if (h > .5f) {
+            val push = if (keys.any { it in RUN_KEYS }) 1f else .7f
+            MoveInput.pad(kx / h * push, ky / h * push)
+        } else MoveInput.pad(padStick[0], padStick[1])
+    }
+
+    /**
+     * A game pad or keyboard that goes away mid-push sends no last centred report: whatever it last said is forgotten, so
+     * the player does not walk on by themselves (and the screen's stick is not outvoted by a pad that is gone).
+     */
+    private val devices = object : android.hardware.input.InputManager.InputDeviceListener {
+        override fun onInputDeviceAdded(deviceId: Int) {}
+        override fun onInputDeviceChanged(deviceId: Int) {}
+        override fun onInputDeviceRemoved(deviceId: Int) {
+            keys.clear(); padStick[0] = 0f; padStick[1] = 0f; hatX = 0f; hatY = 0f
+            padToInput()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        getSystemService(android.hardware.input.InputManager::class.java)?.registerInputDeviceListener(devices, null)
+    }
+
+    /** Asks for the display's fastest refresh at its current resolution (120 Hz on the S25); the system may still choose less. */
+    private fun fastestRefresh() {
+        @Suppress("DEPRECATION") val d = windowManager.defaultDisplay ?: return
+        val now = d.mode
+        val best = d.supportedModes.filter { it.physicalWidth == now.physicalWidth && it.physicalHeight == now.physicalHeight }
+            .maxByOrNull { it.refreshRate } ?: return
+        window.attributes = window.attributes.apply { preferredDisplayModeId = best.modeId }
+        FrameStats.display = best.refreshRate
     }
 
     override fun onStart() {
@@ -312,6 +403,9 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     val density = androidx.compose.ui.platform.LocalDensity.current.density
     LaunchedEffect(turning) {
         if (!turning) return@LaunchedEffect
+        // a thumb still on the stick through the turn does not walk on round the corner: it counts again once it is back
+        // near the middle (or lifted), as after a door
+        MoveInput.holdUntilNeutral()
         val start = androidx.compose.runtime.withFrameNanos { it }
         try {
         while (true) {
@@ -330,6 +424,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                     GameState.x = if (turnBack) -1e9f else 150f
                     streetNo = if (turnBack) 0 else 1
                     GameState.lane = 7f
+                    // the view centred on them on the new street (not still looking ahead the way they walked before)
+                    GameState.camera.reset()
                 }
                 fade = 1f - ((t - 2.6f) / .6f).coerceIn(0f, 1f)
                 if (t >= 3.2f) break
@@ -342,8 +438,12 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     var near by remember { mutableIntStateOf(GameState.nearest) }
     var atCorner by remember { mutableStateOf(GameState.atCorner) }
     LaunchedEffect(Unit) {
+        var last = 0L
         while (true) {
-            androidx.compose.runtime.withFrameNanos { }
+            val now = androidx.compose.runtime.withFrameNanos { it }
+            // how long each frame took, for the AI panel's frame line (is it really 120 Hz on the phone?)
+            if (last != 0L) FrameStats.add((now - last) / 1e6f)
+            last = now
             near = GameState.nearest
             atCorner = GameState.atCorner
         }
@@ -378,22 +478,27 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         if (t != null && t.npc.building != here) { t.close(voices); talk = null }
     }
     val pickModel = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) engine.importModel(uri) }
-    // the sound follows the hour, the weather and the season; footsteps while walking (the stride's own cadence)
+    // the sound follows the hour, the weather and the season; a footstep each time a foot is put down (the drawn legs'
+    // own footfalls, on the street and in the rooms), a little louder running
     // the town's kind (harbor, farm, mill ...) picks its music
     val townKind = remember(data) { com.timerpg.street.audio.SoundRules.townOf(data.town) }
     LaunchedEffect(sound) {
         if (sound == null) return@LaunchedEffect
-        var stepAt = 0f; var foot = 0
+        var feet = GameState.footfalls; var foot = 0
         while (true) {
             androidx.compose.runtime.withFrameNanos { }
             val w = WEATHERS[weather].second
             sound.set(com.timerpg.street.audio.SoundRules.at(hour, w?.rain ?: 0f, w?.cloudiness ?: 0f, w?.mist ?: 0f, season, townKind))
-            if (GameState.walking) {
-                // a step every ~0.62 street units of stride... measured by the distance walked
-                if (GameState.travel - stepAt > 17f || GameState.travel < stepAt) {
-                    stepAt = GameState.travel; foot = (foot + 1) % 4
+            if (GameState.footfalls != feet) {
+                val fresh = GameState.footfalls - feet
+                feet = GameState.footfalls
+                if (fresh > 0) {
+                    foot = (foot + 1) % 4
                     val wet = (w?.wet ?: 0f) > .3f
-                    sound.play(if (wet) "step_wet_${foot + 1}" else "step_${foot + 1}", .5f, if (foot % 2 == 0) -.15f else .15f)
+                    // one foot a little softer than the other, as real steps are: the ear hears a stride (two steps) as one
+                    // beat, not a patter of equal ones
+                    val accent = if (foot % 2 == 0) 1f else .7f
+                    sound.play(if (wet) "step_wet_${foot + 1}" else "step_${foot + 1}", (if (GameState.running) .6f else .5f) * accent, if (foot % 2 == 0) -.15f else .15f)
                 }
             }
         }
@@ -451,7 +556,11 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             door = if (t < .25f) t / .25f else (1f - (t - .25f) / .3f).coerceAtLeast(0f)
             if (!swapped && t >= .25f) {
                 swapped = true
-                GameState.moveX = 0f; GameState.moveLane = 0f
+                // a thumb still on the stick does not walk the player straight back out: it counts again once it is back
+                // in the middle (or lifted)
+                MoveInput.holdUntilNeutral()
+                // and the view is centred on them again (coming back out, the street is not still looking where they went in)
+                GameState.camera.reset()
                 val room = go.second
                 if (go.first && room != null) { walker = com.lifemax.rpg.feature.habits.presentation.scene.RoomWalker(room.spawnX, room.spawnY); inside = room } else inside = null
                 sound?.play("door_bell", .45f, 0f)
@@ -465,7 +574,9 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         val room = inside ?: return@LaunchedEffect
         while (inside === room) {
             androidx.compose.runtime.withFrameNanos { }
-            if (doorTo == null && walker.y > room.exitY - 6f && kotlin.math.abs(walker.x - room.exitX) < 26f && GameState.moveLane > 0f) doorTo = false to null
+            // a deliberate push down through the doorway (not a sideways wobble near it)
+            if (doorTo == null && walker.y > room.exitY - 6f && kotlin.math.abs(walker.x - room.exitX) < 26f &&
+                GameState.moveLane > .5f && GameState.moveLane > kotlin.math.abs(GameState.moveX)) doorTo = false to null
         }
     }
     // the person who lives or works here, standing inside (the same look as at their door)
@@ -514,6 +625,24 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         }
         if (step < 0) return@LaunchedEffect
     }
+    // the back gesture closes what is open (the crash report, a conversation, the AI panel) or leaves the room; on the street
+    // it takes two within two seconds to leave the game. Android holds the edge's back swipe off only over the bottom 200 dp,
+    // so a left thumb landing higher on the very edge and pushing right to walk is a back swipe: it must not end the game
+    var backAt by remember { mutableLongStateOf(0L) }
+    var backHint by remember { mutableStateOf(false) }
+    androidx.activity.compose.BackHandler {
+        val t = talk
+        when {
+            lastCrash != null -> lastCrash = null
+            t != null -> { t.close(voices); talk = null }
+            aiPanel -> aiPanel = false
+            turning || doorTo != null -> {}
+            inside != null -> doorTo = false to null
+            System.nanoTime() - backAt < 2_000_000_000L -> { backHint = false; activity?.moveTaskToBack(true) }
+            else -> { backAt = System.nanoTime(); backHint = true }
+        }
+    }
+    LaunchedEffect(backHint, backAt) { if (backHint) { kotlinx.coroutines.delay(2000); backHint = false } }
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         val room = inside
         if (room != null) com.lifemax.rpg.feature.habits.presentation.scene.InteriorStage(room, walker, hour, keeperSheet, Modifier.fillMaxSize())
@@ -530,8 +659,19 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         }
         if (fade > 0f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = fade)))
         if (door > 0f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = door)))
+        // walking: one floating stick under the left thumb (it comes to where the thumb lands); under every button and
+        // panel, which get their taps first. Still while the corner turns, a door fades or a panel covers the street
+        MoveStick(enabled = !turning && doorTo == null && !aiPanel && lastCrash == null && !tuning, Modifier.fillMaxSize())
+        // the stick's corner is not the system's back gesture (Android allows 200 dp of an edge: the bottom of it, where a
+        // left thumb rests; a thumb landing higher on the very edge still swipes back, which the back handler above keeps
+        // from leaving the game)
+        Box(Modifier.align(Alignment.BottomStart).fillMaxWidth(.45f).height(200.dp).systemGestureExclusion())
+        // the turn, on the side of the screen it leads to, clear of where the left thumb lands to walk: on the right for the
+        // main street's corner; for the side street's way back, at its start, high on the left under the AI chip (and an
+        // update's, when there is one), above the stick's zone
         if (turnArt != null && !turning && atCorner && inside == null) Chip(if (streetNo == 0) "↰ Turn onto ${data.streets.getOrNull(1)?.name ?: "the side street"}" else "↳ Back to ${data.streets[0].name}", false,
-            Modifier.align(if (streetNo == 0) Alignment.CenterEnd else Alignment.CenterStart).padding(horizontal = 14.dp)) {
+            if (streetNo == 0) Modifier.align(Alignment.CenterEnd).padding(horizontal = 14.dp)
+            else Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = if (updater.available != null && !aiPanel) 122.dp else 86.dp)) {
                 turnBack = streetNo == 1
                 // the camera's place along the main street from the junction's middle (turn units), where the view is now
                 turnDx = if (streetNo == 0 && !GameState.junctionX.isNaN()) (GameState.viewMiddle - GameState.junctionX) * 224f / 184f else 0f
@@ -560,10 +700,13 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 },
                 modifier = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 92.dp))
         } else if (!turning && turn < 0f && doorTo == null) {
-            // someone to talk to (inside: when standing near them); the way in and out
+            // someone to talk to (inside: when standing near them); the way in and out. Under the right thumb, as a game
+            // pad's buttons are, clear of the stick's zone on the left
             val roomHere = street.sprites.getOrNull(near)?.let { rooms[it] }
-            Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 56.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.align(Alignment.BottomEnd).padding(end = 24.dp, bottom = 56.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (inside == null || nearKeeper) for (npc in atHere) Chip("Talk to ${npc.first}", false) {
+                    // a thumb on the stick stops walking (it would walk away and end the conversation) until it is moved again
+                    MoveInput.holdUntilNeutral()
                     talk = Talk(npc).also { t -> npc.topics.firstOrNull()?.let { t.ask(engine, it, voices) } }
                 }
                 if (inside != null) Chip("Leave", false) { doorTo = false to null }
@@ -572,7 +715,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         }
         lastCrash?.let { report ->
             Column(
-                Modifier.align(Alignment.Center).widthIn(max = 560.dp).background(PANEL, RoundedCornerShape(14.dp)).padding(14.dp),
+                Modifier.align(Alignment.Center).widthIn(max = 560.dp).background(PANEL, RoundedCornerShape(14.dp)).opaque().padding(14.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text("The game stopped unexpectedly last time", 15.sp)
@@ -601,11 +744,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { SEASONS.forEachIndexed { i, (l, _) -> Chip(l, season == i) { season = i } } }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { WEATHERS.forEachIndexed { i, (l, _) -> Chip(l, weather == i) { weather = i } } }
         }
-        // walking: left and right; in and out across the pavement
-        HoldPad("◀", "▶", Modifier.align(Alignment.BottomStart).padding(18.dp)) { GameState.moveX = it }
-        HoldPad("▲", "▼", Modifier.align(Alignment.BottomEnd).padding(18.dp)) { GameState.moveLane = it }
         if (tuning) Column(
-            Modifier.align(Alignment.Center).widthIn(max = 520.dp).background(PANEL, RoundedCornerShape(14.dp)).padding(14.dp),
+            Modifier.align(Alignment.Center).widthIn(max = 520.dp).background(PANEL, RoundedCornerShape(14.dp)).opaque().padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             val step = NpuTune.step(ctx)
@@ -618,6 +758,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             for (line in NpuTune.results(ctx)) Text(line, 11.sp, color = DIM)
             Chip("Stop tuning", false) { activity?.let { NpuTune.cancel(it) } }
         }
+        if (backHint) Text("Back again to leave the game", 14.sp, Modifier.align(Alignment.Center).background(PANEL, RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 8.dp))
         // the dialogue AI, under the street name (drawn last, so its panel is on top): its state at a glance; tap for the
         // model file and the speed numbers
         Column(Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = 50.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -744,7 +885,7 @@ private val AI_BLUE = Color(0xFF6FA8FF)
 private fun DialoguePanel(t: Talk, onTopic: (Topic) -> Unit, onClose: () -> Unit, modifier: Modifier,
                           ears: com.timerpg.street.voice.PlayerVoice? = null, onTalk: (Boolean) -> Unit = {}) {
     Column(
-        modifier.widthIn(max = 560.dp).background(PANEL, RoundedCornerShape(14.dp)).padding(horizontal = 14.dp, vertical = 10.dp),
+        modifier.widthIn(max = 560.dp).background(PANEL, RoundedCornerShape(14.dp)).opaque().padding(horizontal = 14.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -830,7 +971,7 @@ private fun f0(v: Float) = String.format(java.util.Locale.US, "%.0f", v)
 @Composable
 private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.street.voice.NpcVoiceService, updater: AppUpdater, onPick: () -> Unit) {
     Column(
-        Modifier.width(340.dp).heightIn(max = 240.dp).background(PANEL, RoundedCornerShape(12.dp)).verticalScroll(rememberScrollState())
+        Modifier.width(340.dp).heightIn(max = 240.dp).background(PANEL, RoundedCornerShape(12.dp)).opaque().verticalScroll(rememberScrollState())
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
@@ -852,6 +993,7 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
         // the phone's memory now, and what the AI lane is doing (to measure the models' footprint on a real phone)
         val ctx = androidx.compose.ui.platform.LocalContext.current
         var ram by remember { mutableStateOf("") }
+        var frames by remember { mutableStateOf("") }
         LaunchedEffect(Unit) {
             val am = ctx.getSystemService(android.app.ActivityManager::class.java)
             while (true) {
@@ -859,10 +1001,12 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
                 val mine = android.os.Debug.getPss() shr 10
                 val busy = com.timerpg.street.llm.AiLane.current ?: "idle"
                 ram = "RAM: ${mi.availMem shr 20} MB free of ${mi.totalMem shr 20} MB · the game ${mine} MB · AI: $busy"
+                frames = FrameStats.summary()
                 kotlinx.coroutines.delay(1000)
             }
         }
         Text(ram, 11.sp, color = DIM)
+        Text(frames, 11.sp, color = DIM)
         // the game itself: this build, and a newer one if there is
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Build ${updater.current}", 11.sp, color = DIM)
@@ -962,6 +1106,34 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
     }
 }
 
+private val LEFT_KEYS = setOf(android.view.KeyEvent.KEYCODE_DPAD_LEFT, android.view.KeyEvent.KEYCODE_A)
+private val RIGHT_KEYS = setOf(android.view.KeyEvent.KEYCODE_DPAD_RIGHT, android.view.KeyEvent.KEYCODE_D)
+private val UP_KEYS = setOf(android.view.KeyEvent.KEYCODE_DPAD_UP, android.view.KeyEvent.KEYCODE_W)
+private val DOWN_KEYS = setOf(android.view.KeyEvent.KEYCODE_DPAD_DOWN, android.view.KeyEvent.KEYCODE_S)
+private val RUN_KEYS = setOf(android.view.KeyEvent.KEYCODE_SHIFT_LEFT, android.view.KeyEvent.KEYCODE_SHIFT_RIGHT,
+    android.view.KeyEvent.KEYCODE_BUTTON_R1, android.view.KeyEvent.KEYCODE_BUTTON_R2)
+
+/** The last few seconds of frame times (ms), for the AI panel: is the street really drawn at the display's 120 Hz? */
+private object FrameStats {
+    private val ring = FloatArray(480)
+    private var n = 0
+    private var at = 0
+    /** The refresh rate asked for (Hz), 0 if none was. */
+    var display = 0f
+
+    @Synchronized fun add(ms: Float) { ring[at] = ms; at = (at + 1) % ring.size; if (n < ring.size) n++ }
+
+    @Synchronized fun summary(): String {
+        if (n < 10) return "Frames: measuring…"
+        val s = ring.copyOf(n).sorted()
+        val p50 = s[n / 2]; val p95 = s[(n * 95) / 100]
+        // a frame that took over one and a half times the usual one was late (one or more refreshes dropped)
+        val late = s.count { it > p50 * 1.5f } * 100f / n
+        return "Frames: %.1f ms (%.0f fps) · p95 %.1f ms · %.1f%% late".format(java.util.Locale.US, p50, 1000f / p50, p95, late) +
+            (if (display > 0f) " · display %.0f Hz".format(java.util.Locale.US, display) else "")
+    }
+}
+
 private val SEASONS = listOf("🌸" to "2026-04-20", "☀" to "2026-06-14", "🍂" to "2026-10-20", "❄" to "2026-01-20")
 private val WEATHERS = listOf<Pair<String, WeatherState?>>(
     "Clear" to null,
@@ -982,48 +1154,8 @@ private fun Chip(label: String, on: Boolean, modifier: Modifier = Modifier, onCl
     ) { Text(label, 13.sp) }
 }
 
-/**
- * Two keys under one thumb: the half the finger is over decides the direction (rolling from one key to the other switches,
- * drifting off the pad keeps going), and lifting the finger, or the pad going away, always stops.
- */
-@Composable
-private fun HoldPad(neg: String, pos: String, modifier: Modifier = Modifier, set: (Float) -> Unit) {
-    Row(
-        modifier.pointerInput(Unit) {
-            awaitEachGesture {
-                val d = awaitFirstDown(requireUnconsumed = false)
-                fun dirAt(x: Float) = if (x < size.width / 2f) -1f else 1f
-                try {
-                    set(dirAt(d.position.x))
-                    while (true) {
-                        val e = awaitPointerEvent()
-                        val c = e.changes.lastOrNull { it.pressed } ?: break
-                        set(dirAt(c.position.x))
-                    }
-                } finally { set(0f) }
-            }
-        },
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) { PadKey(neg); PadKey(pos) }
-}
-
-@Composable
-private fun PadKey(label: String) =
-    Box(Modifier.size(64.dp).background(Color(0x99101420), RoundedCornerShape(16.dp)), contentAlignment = Alignment.Center) { Text(label, fontSize = 26.sp) }
-
-/** A button that is "on" while a finger is on it. */
-@Composable
-private fun HoldButton(label: String, onHeld: (Boolean) -> Unit) {
-    Box(
-        Modifier.size(64.dp).background(Color(0x99101420), RoundedCornerShape(16.dp)).pointerInput(Unit) {
-            awaitEachGesture {
-                awaitFirstDown(); onHeld(true)
-                waitForUpOrCancellation(); onHeld(false)
-            }
-        },
-        contentAlignment = Alignment.Center,
-    ) { Text(label, fontSize = 26.sp) }
-}
+/** A panel over the street takes the touches on it: none of them fall through to the stick under it. */
+private fun Modifier.opaque(): Modifier = pointerInput(Unit) { awaitPointerEventScope { while (true) awaitPointerEvent() } }
 
 @Composable
 private fun Text(s: String, fontSize: androidx.compose.ui.unit.TextUnit = 15.sp, modifier: Modifier = Modifier, color: Color = Color.White) =
