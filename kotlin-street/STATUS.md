@@ -30,3 +30,6 @@ The camera zoom is snapped so each sprite pixel is a whole, even number of scree
 
 ## Corner turn preview
 `gradle :desktop:preview -Dmode=turn` renders `desktop/build/preview/turn_NN.png` (code: `desktop/src/main/kotlin/Turn.kt`). It is a standalone scene, not wired into the app yet: our building art on boxes around a crossroads, and a camera that yaws 90 degrees while travelling from the junction down the cross street. Each face is drawn as vertical sprite strips; buildings that end up between the camera and the player fade out; distance haze. `export/corner-turn-preview.gif` and `export/corner-turn-sheet.png` show it.
+
+## Corner turn in the app
+The turn renderer now lives in `shared/.../scene/CornerTurn.kt` (the desktop preview uses it too). In the app, the "↰ Turn the corner" button (left edge) plays the turn over the street (2.4 s in, hold, 2.4 s back), tinted by the time of day. It is a separate scene for now: it does not yet use the engine's sun, weather or reflections, and the street you return to is the same one. Next step is to make the junction a real place in the world, with a different street on the other side.

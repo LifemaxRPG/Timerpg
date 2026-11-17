@@ -33,6 +33,8 @@ import com.lifemax.rpg.feature.habits.domain.WeatherOverride
 import com.lifemax.rpg.feature.habits.domain.WeatherState
 import com.lifemax.rpg.feature.habits.presentation.HabitsUi
 import com.lifemax.rpg.feature.habits.presentation.scene.GameState
+import com.lifemax.rpg.feature.habits.presentation.scene.CornerTurn
+import com.lifemax.rpg.feature.habits.presentation.scene.TurnArt
 import com.lifemax.rpg.feature.habits.presentation.scene.HabitsStage
 import com.lifemax.rpg.feature.habits.presentation.scene.PlatformImages
 import com.lifemax.rpg.feature.habits.presentation.scene.SpriteArt
@@ -132,12 +134,39 @@ private fun GameScreen() {
             rules = HabitRules(10, 40, 100, 12), stacks = data.shops, lapse = emptyList(), tokens = emptyMap(), light = false,
         )
     }
+    // the faked corner turn: our buildings on boxes around a crossroads, the camera swinging a quarter turn
+    val turnArt = remember {
+        fun img(n: String): androidx.compose.ui.graphics.ImageBitmap? = try { ctx.assets.open(n).use { BitmapFactory.decodeStream(it) }.asImageBitmap() } catch (e: Exception) { null }
+        val ids = (0..8).filter { img("buildings/b${it}_front.png") != null && img("buildings/b${it}_side.png") != null }
+        if (ids.isEmpty()) null else TurnArt(ids.map { img("buildings/b${it}_front.png")!! }, ids.map { img("buildings/b${it}_side.png")!! }, img("props/lamp_1.png"))
+    }
+    var turn by remember { mutableFloatStateOf(-1f) }
+    var turning by remember { mutableStateOf(false) }
+    LaunchedEffect(turning) {
+        if (!turning) return@LaunchedEffect
+        val start = androidx.compose.runtime.withFrameNanos { it }
+        while (true) {
+            val t = (androidx.compose.runtime.withFrameNanos { it } - start) / 1e9f
+            turn = when { t < 2.4f -> t / 2.4f; t < 3.4f -> 1f; t < 5.8f -> 1f - (t - 3.4f) / 2.4f; else -> -1f }
+            if (t >= 5.8f) break
+        }
+        turning = false
+    }
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         HabitsStage(
             p = p, ui = HabitsUi(focus = data.shops[0].id), visible = true, top = 0f, bottom = 0f, cover = 0f, inset = 0f,
             accent = Color(0xFF6FA8FF), actions = StageActions(), modifier = Modifier.fillMaxSize(),
         )
         Text(data.title, 14.sp, Modifier.align(Alignment.TopStart).padding(14.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
+        if (turn >= 0f && turnArt != null) {
+            Box(Modifier.fillMaxSize()) {
+                CornerTurn(turnArt, turn, Modifier.fillMaxSize())
+                // the time of day tints the turn too
+                val night = when { hour < 5f || hour > 21f -> .6f; hour < 7f -> .6f * (7f - hour) / 2f; hour > 19f -> .6f * (hour - 19f) / 2f; else -> 0f }
+                Box(Modifier.fillMaxSize().background(Color(0xFF070b24).copy(alpha = night)))
+            }
+        }
+        if (turnArt != null && !turning) Chip("↰ Turn the corner", false, Modifier.align(Alignment.CenterStart).padding(start = 14.dp)) { turning = true }
         // the shop the player is standing at
         val near = GameState.nearest
         if (near in data.shops.indices) {
@@ -181,9 +210,9 @@ private val WEATHERS = listOf<Pair<String, WeatherState?>>(
 )
 
 @Composable
-private fun Chip(label: String, on: Boolean, onClick: () -> Unit) {
+private fun Chip(label: String, on: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Box(
-        Modifier.background(if (on) Color(0xCC3A6FD8) else Color(0x99101420), RoundedCornerShape(10.dp)).pointerInput(Unit) {
+        modifier.background(if (on) Color(0xCC3A6FD8) else Color(0x99101420), RoundedCornerShape(10.dp)).pointerInput(Unit) {
             awaitEachGesture { awaitFirstDown(); waitForUpOrCancellation()?.let { onClick() } }
         }.padding(horizontal = 10.dp, vertical = 6.dp),
         contentAlignment = Alignment.Center,
