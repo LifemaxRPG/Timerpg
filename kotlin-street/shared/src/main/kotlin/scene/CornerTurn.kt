@@ -132,7 +132,7 @@ private fun DrawScope.building(cam: Cam, b: TurnBuilding) {
     for (f in faces) if (toward(f)) draw(f, 1f)
 }
 
-private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?) {
+private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float) {
     drawRect(Brush.verticalGradient(listOf(Color(0xFF4f9bf2), Color(0xFFbfdcfb)), 0f, cam.hy), size = androidx.compose.ui.geometry.Size(size.width, cam.hy + 2f))
     drawRect(Brush.verticalGradient(listOf(Color(0xFFa8bede), Color(0xFF30333b)), cam.hy, cam.hy + 150f), Offset(0f, cam.hy), androidx.compose.ui.geometry.Size(size.width, size.height - cam.hy))
     val far = 1400f
@@ -173,11 +173,32 @@ private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?
             withTransform({ translate(px - 15f * k, py - 127f * k); scale(k, k, Offset.Zero) }) { drawImage(l, filterQuality = FilterQuality.None, alpha = la) }
         }
     }
+    // the player: along the pavement to the corner, then round it and away down the cross street
+    walker?.let { w ->
+        val p = progress.coerceIn(0f, 1f)
+        val a = ((p - .02f) / .36f).coerceIn(0f, 1f)          // along the first street
+        val b = ((p - .36f) / .62f).coerceIn(0f, 1f)          // down the cross street
+        val x = -150f + 170f * a
+        val z = -22f + 470f * b
+        val dx = if (b > 0f) 0f else 1f; val dz = if (b > 0f) 1f else 0f
+        val d = cam.v(x, z) + cam.dc
+        if (d > 60f) {
+            val right = dx * cam.c - dz * cam.s; val depth = dx * cam.s + dz * cam.c
+            val group = if (abs(right) >= abs(depth)) 0 else if (depth > 0f) 1 else 3
+            val flip = group == 0 && right < 0f
+            val frame = ((p * 14f).toInt()) % 6
+            val k = 1.6f * cam.f / d
+            val px = cam.sx(cam.u(x, z), d); val py = cam.sy(0f, d)
+            withTransform({ translate(px, py - 61f * k); scale(if (flip) -k else k, k, Offset.Zero) }) {
+                drawImage(w, srcOffset = IntOffset((group * 6 + frame) * 32, 128), srcSize = IntSize(32, 64), dstOffset = IntOffset(-16, 0), dstSize = IntSize(32, 64), filterQuality = FilterQuality.None)
+            }
+        }
+    }
 }
 
 
 /** Our building art for the turn: the sprite pairs (front, side) and the lamp. */
-class TurnArt(val fronts: List<ImageBitmap>, val sides: List<ImageBitmap>, val lamp: ImageBitmap?)
+class TurnArt(val fronts: List<ImageBitmap>, val sides: List<ImageBitmap>, val lamp: ImageBitmap?, val walker: ImageBitmap? = null)
 
 fun turnBuildings(art: TurnArt): List<TurnBuilding> {
     val n = art.fronts.size
@@ -195,14 +216,14 @@ fun turnBuildings(art: TurnArt): List<TurnBuilding> {
 }
 
 /** Draws the turn at [progress] (0 = looking along the street we came down, 1 = down the cross street). */
-fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, progress: Float) {
+fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float) {
     val e = progress * progress * (3f - 2f * progress)
     val cam = Cam(-(Math.PI / 2).toFloat() * e, -100f + 420f * e, size.width, size.height)
-    scene(cam, buildings, lamp)
+    scene(cam, buildings, lamp, walker, progress)
 }
 
 @Composable
 fun CornerTurn(art: TurnArt, progress: Float, modifier: Modifier = Modifier) {
     val b = androidx.compose.runtime.remember(art) { turnBuildings(art) }
-    Canvas(modifier.fillMaxSize()) { drawCornerTurn(b, art.lamp, progress) }
+    Canvas(modifier.fillMaxSize()) { drawCornerTurn(b, art.lamp, art.walker, progress) }
 }

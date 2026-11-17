@@ -138,7 +138,7 @@ private fun GameScreen() {
     val turnArt = remember {
         fun img(n: String): androidx.compose.ui.graphics.ImageBitmap? = try { ctx.assets.open(n).use { BitmapFactory.decodeStream(it) }.asImageBitmap() } catch (e: Exception) { null }
         val ids = (0..8).filter { img("buildings/b${it}_front.png") != null && img("buildings/b${it}_side.png") != null }
-        if (ids.isEmpty()) null else TurnArt(ids.map { img("buildings/b${it}_front.png")!! }, ids.map { img("buildings/b${it}_side.png")!! }, img("props/lamp_1.png"))
+        if (ids.isEmpty()) null else TurnArt(ids.map { img("buildings/b${it}_front.png")!! }, ids.map { img("buildings/b${it}_side.png")!! }, img("props/lamp_1.png"), img("characters/char_02.png"))
     }
     var turn by remember { mutableFloatStateOf(-1f) }
     var turning by remember { mutableStateOf(false) }

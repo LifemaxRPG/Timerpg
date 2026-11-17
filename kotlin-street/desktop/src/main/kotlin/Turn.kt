@@ -18,6 +18,7 @@ fun renderTurn(out: String, assets: String) {
     val art = TurnArt(
         (0..8).map { load("buildings", "b${it}_front.png") }, (0..8).map { load("buildings", "b${it}_side.png") },
         try { load("props", "lamp_1.png") } catch (e: Exception) { null },
+        try { load("characters", "char_02.png") } catch (e: Exception) { null },
     )
     File(out).mkdirs()
     val frames = 16
