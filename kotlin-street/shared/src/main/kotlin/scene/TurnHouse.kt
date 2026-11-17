@@ -34,9 +34,10 @@ fun turnFacade(
     val rows = minOf(side.height, house.h.toInt())
     val px = IntArray(side.width * rows)
     side.readPixels(px, 0, side.height - rows, side.width, rows)
-    // the gable's colour: the siding's, a quarter of the way along the end wall (clear of its window)
+    // the gable's colour, should its picture not do: the siding's, a quarter of the way along the end wall (clear of
+    // its window). The gable itself wears the side picture's rows above the wall's (the triangle, its trim and vent)
     val gable = Color(px[minOf(rows - 1, 24) * side.width + side.width / 5] or (0xFF shl 24))
-    val roof = slope?.let { TurnRoofArt(house, it, back, gable, fence, fenceSnow, porch) }
+    val roof = slope?.let { TurnRoofArt(house, it, back, gable, fence, fenceSnow, porch, side.takeIf { side.height > rows }, side.height - rows) }
     return TurnFacade(front, PlatformImages.create(px, side.width, rows, false), emis, prop, house, roof)
 }
 
@@ -142,10 +143,21 @@ internal fun DrawScope.turnHouseYard(cam: Cam, b: TurnBuilding, alpha: Float) {
 private val YARD = arrayOf(-1f to 1f, 1f to 1f, 1f to -1f, -1f to -1f)
 
 /**
- * What stands on house [b]'s roof and in front of it: its flue (after the roof: [front] false and [behind] the camera's
- * side does not matter), its porch or steps and its fence. Called twice from the house's drawing: before its walls with
- * [front] false (when the camera is behind the house, its front yard is hidden by it, so drawn first) and after its roof
- * with [front] true.
+ * House [b]'s flue, standing on its far slope: the roof draws it between its slopes ([turnHouseRoof]), so the ridge and
+ * the near slope hide its foot when the camera is on the front's side.
+ */
+internal fun DrawScope.turnHouseFlue(cam: Cam, b: TurnBuilding, camX: Float, camZ: Float) {
+    val r = b.roof ?: return
+    val sh = r.shape
+    val f = frame.of(b)
+    turnBox(cam, f, sh.flueX0, sh.flueX1, sh.roofTop(sh.flueD1) - 2f, sh.flueTop, -sh.flueD1, -sh.flueD0,
+        Color(0xFF000000.toInt() or sh.flueCap), Color(0xFF000000.toInt() or sh.flueBody), camX, camZ)
+}
+
+/**
+ * What stands in front of house [b]: its porch or steps and its fence. Called twice from the house's drawing: before
+ * its walls with [front] false (when the camera is behind the house, its front yard is hidden by it, so drawn first)
+ * and after its roof with [front] true; each time drawn only when that is the side the camera is on.
  */
 internal fun DrawScope.turnHouseParts(cam: Cam, b: TurnBuilding, front: Boolean, camX: Float, camZ: Float) {
     val r = b.roof ?: return
@@ -154,11 +166,6 @@ internal fun DrawScope.turnHouseParts(cam: Cam, b: TurnBuilding, front: Boolean,
     val w = b.front.width.toFloat()
     // the camera on the yard's side of the front wall, or behind the house
     val seesFront = -(f.ix * (camX - f.ax) + f.iz * (camZ - f.az)) > 1f
-    if (front) {
-        // the flue, standing on the far slope (drawn after the roof: the camera is above the ridges)
-        turnBox(cam, f, sh.flueX0, sh.flueX1, sh.roofTop(sh.flueD1) - 2f, sh.flueTop, -sh.flueD1, -sh.flueD0,
-            Color(0xFF000000.toInt() or sh.flueCap), Color(0xFF000000.toInt() or sh.flueBody), camX, camZ)
-    }
     if (front != seesFront) return
     // the porch or the steps: back to front for where the camera stands (farthest first)
     val k = porchScale(b, sh)

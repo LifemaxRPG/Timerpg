@@ -19,16 +19,19 @@ import kotlin.math.sin
  * Our pitched-roof houses' roofs in the corner turn and the street crossing: a prism on the house's box, its ridge along
  * the front at mid-depth. The turn's camera stands higher than the ridges (its eye at 205), so it sees both slopes: the
  * near one wears the art's near slope, the far one the art's far slope (with its flue), each laid on its quad by one
- * perspective matrix; the gable ends are triangles in the wall's own colour.
+ * perspective matrix; the gable ends wear the end wall's own picture above its wall (the triangle with its trim and
+ * vent), laid as the slopes are, under a band of the rake boards' colour up to the slopes' edges.
  */
 
 /**
- * What the turn builds a house's roof from (its shape, its slopes' pictures and its gable's colour), and what stands in
- * its yard as the street shows it (TurnHouse.kt): its fence or hedge (and where snow lies on it), its porch's pictures.
+ * What the turn builds a house's roof from (its shape, its slopes' pictures, its gable: the side picture's top
+ * [gableRows] rows, the triangle over the wall with its trim and vent, else a plain colour), and what stands in its yard
+ * as the street shows it (TurnHouse.kt): its fence or hedge (and where snow lies on it), its porch's pictures.
  */
 class TurnRoofArt(
     val shape: HouseShape, val near: ImageBitmap, val far: ImageBitmap?, val gable: Color,
     val fence: ImageBitmap? = null, val fenceSnow: ImageBitmap? = null, val porch: ImageBitmap? = null,
+    val gableArt: ImageBitmap? = null, val gableRows: Int = 0,
 )
 
 /** The perspective, the path, the corners (drawing happens on one thread). */
@@ -40,26 +43,39 @@ private val roofQ = FloatArray(8)
 /**
  * The roofs' tints by (light kept, haze), as the walls' ([wallFilter]), remade only when the light's values change: the
  * turn and the crossing hand [TurnLight.current] a new object every frame (TurnLight.at makes one each call), so the
- * cache is kept by what the light is, not by which object carries it.
+ * cache is kept by what the light is, not by which object carries it. An open-addressed table of plain ints (a map's
+ * boxed keys would make garbage on every look-up, for every slope, porch face and fence of every house each frame).
  */
-private val roofFilters = HashMap<Int, androidx.compose.ui.graphics.ColorFilter>()
+private const val ROOF_SLOTS = 512
+private val roofKeys = IntArray(ROOF_SLOTS) { -1 }
+private val roofTints = arrayOfNulls<androidx.compose.ui.graphics.ColorFilter>(ROOF_SLOTS)
+private var roofCount = 0
 private var roofLight: TurnLight? = null
 
 internal fun roofFilter(keep: Float, hz: Float): androidx.compose.ui.graphics.ColorFilter {
     val l = TurnLight.current
     val was = roofLight
-    if (was == null || was.r != l.r || was.g != l.g || was.b != l.b || was.hazeR != l.hazeR || was.hazeG != l.hazeG || was.hazeB != l.hazeB) { roofFilters.clear(); roofLight = l }
-    val key = ((keep.coerceIn(0f, 1.5f) * 255f).toInt() shl 9) or (hz * 255f).toInt()
-    // (the keys follow the distance as the camera moves: a long walk under one light would otherwise keep them all)
-    if (roofFilters.size > 256 && key !in roofFilters) roofFilters.clear()
-    return roofFilters.getOrPut(key) {
-        androidx.compose.ui.graphics.ColorFilter.colorMatrix(androidx.compose.ui.graphics.ColorMatrix(floatArrayOf(
-            keep * l.r, 0f, 0f, 0f, l.hazeR * hz,
-            0f, keep * l.g, 0f, 0f, l.hazeG * hz,
-            0f, 0f, keep * 1.04f * l.b, 0f, l.hazeB * hz,
-            0f, 0f, 0f, 1f, 0f,
-        )))
+    // (the keys follow the distance as the camera moves: a long walk under one light would otherwise fill the table)
+    if (was == null || was.r != l.r || was.g != l.g || was.b != l.b || was.hazeR != l.hazeR || was.hazeG != l.hazeG || was.hazeB != l.hazeB ||
+        roofCount > ROOF_SLOTS / 2) {
+        roofKeys.fill(-1); roofTints.fill(null); roofCount = 0; roofLight = l
     }
+    val key = ((keep.coerceIn(0f, 1.5f) * 255f).toInt() shl 9) or (hz.coerceIn(0f, 1f) * 255f).toInt()
+    var i = (key * -0x61c88647 ushr 23) and (ROOF_SLOTS - 1)
+    while (true) {
+        val at = roofKeys[i]
+        if (at == key) return roofTints[i]!!
+        if (at == -1) break
+        i = (i + 1) and (ROOF_SLOTS - 1)
+    }
+    val f = androidx.compose.ui.graphics.ColorFilter.colorMatrix(androidx.compose.ui.graphics.ColorMatrix(floatArrayOf(
+        keep * l.r, 0f, 0f, 0f, l.hazeR * hz,
+        0f, keep * l.g, 0f, 0f, l.hazeG * hz,
+        0f, 0f, keep * 1.04f * l.b, 0f, l.hazeB * hz,
+        0f, 0f, 0f, 1f, 0f,
+    )))
+    roofKeys[i] = key; roofTints[i] = f; roofCount++
+    return f
 }
 
 /**
@@ -135,48 +151,80 @@ internal fun DrawScope.turnHouseRoof(cam: Cam, b: TurnBuilding, r: TurnRoofArt, 
         if (!at(ex + ix * half, ridge, ez + iz * half)) continue
         val p1x = px[0]; val p1y = px[1]
         if (!at(ex + ix * depth, eave, ez + iz * depth)) continue
-        roofPath.rewind(); roofPath.moveTo(p0x, p0y); roofPath.lineTo(p1x, p1y); roofPath.lineTo(px[0], px[1]); roofPath.close()
+        val p2x = px[0]; val p2y = px[1]
         val k = .66f + .34f * max(0f, (nx * sun0 + nz * sun1) / len)
-        drawPath(roofPath, turnLit(r.gable, k * (1f - hz), hz))
+        // the side picture's gable rows on the end wall's rectangle from the eave up (its sky clear, so the triangle
+        // shows), its first column at the front as the end wall below it is laid. Its wall stops a slab under the roof's
+        // top, as the street's does: the triangle under it is the rake boards' (white in winter), which fill that band
+        // up to the slopes' edges
+        val art = r.gableArt
+        val rows = r.gableRows
+        val board = if (art == null) r.gable else if (TurnLight.season == 3) Color(0xFFdde5ee) else Color(0xFF000000.toInt() or sh.rake)
+        roofPath.rewind(); roofPath.moveTo(p0x, p0y); roofPath.lineTo(p1x, p1y); roofPath.lineTo(p2x, p2y); roofPath.close()
+        drawPath(roofPath, turnLit(board, k * (1f - hz), hz))
+        if (art != null && rows > 0) {
+            val q = roofQ
+            val ok = at(ex, eave + rows, ez).also { q[0] = px[0]; q[1] = px[1] } &&
+                at(ex + ix * depth, eave + rows, ez + iz * depth).also { q[2] = px[0]; q[3] = px[1] } &&
+                at(ex + ix * depth, eave, ez + iz * depth).also { q[4] = px[0]; q[5] = px[1] } &&
+                at(ex, eave, ez).also { q[6] = px[0]; q[7] = px[1] }
+            if (ok && quadMatrix(roofM, art.width.toFloat(), rows.toFloat(), q[0], q[1], q[2], q[3], q[4], q[5], q[6], q[7])) {
+                withTransform({ transform(roofM) }) {
+                    drawImage(art, IntOffset.Zero, IntSize(art.width, rows), IntOffset.Zero, IntSize(art.width, rows),
+                        colorFilter = roofFilter(k * (1f - hz), hz), filterQuality = FilterQuality.None)
+                }
+            }
+        }
     }
-    // the two slopes: the far one first
+    // the two slopes: the far one first. The flue stands on the slope behind the ridge: drawn after that slope, and
+    // before the near one when the camera is on the front's side (the ridge and the near slope hide its foot)
     val p = kotlin.math.atan(sh.rise / half)
     val camY = cam.eye
-    for (pass in 0..1) for (side in 0..1) {
-        // side 0 the near slope (towards the front), 1 the far one; the one nearer the camera drawn in the second pass
-        val out = if (side == 0) -1f else 1f                         // which way along the house's depth it faces
-        val nx = ix * out * sin(p); val nz = iz * out * sin(p); val ny = cos(p)
-        val mx = (ax + bx) / 2f + ix * (half + out * half / 2f); val mz = (az + bz) / 2f + iz * (half + out * half / 2f)
-        val my = (eave + ridge) / 2f
-        val facing = nx * (camX - mx) + ny * (camY - my) + nz * (camZ - mz)
-        if (facing <= 0f) continue
-        val near = (mx - camX) * (mx - camX) + (mz - camZ) * (mz - camZ) < run { val ox = (ax + bx) / 2f + ix * (half - out * half / 2f); val oz = (az + bz) / 2f + iz * (half - out * half / 2f); (ox - camX) * (ox - camX) + (oz - camZ) * (oz - camZ) }
-        if ((pass == 1) != near) continue
-        val img = if (side == 0) r.near else (r.far ?: r.near)
-        // corners: the picture's top-left, top-right, bottom-right, bottom-left
-        val q = roofQ
-        val ok = if (side == 0) {
-            at(ax + ix * half, ridge, az + iz * half).also { q[0] = px[0]; q[1] = px[1] } &&
-                at(bx + ix * half, ridge, bz + iz * half).also { q[2] = px[0]; q[3] = px[1] } &&
-                at(bx, eave, bz).also { q[4] = px[0]; q[5] = px[1] } &&
-                at(ax, eave, az).also { q[6] = px[0]; q[7] = px[1] }
-        } else {
-            at(ax + ix * depth, eave, az + iz * depth).also { q[0] = px[0]; q[1] = px[1] } &&
-                at(bx + ix * depth, eave, bz + iz * depth).also { q[2] = px[0]; q[3] = px[1] } &&
-                at(bx + ix * half, ridge, bz + iz * half).also { q[4] = px[0]; q[5] = px[1] } &&
-                at(ax + ix * half, ridge, az + iz * half).also { q[6] = px[0]; q[7] = px[1] }
-        }
-        if (!ok) continue
-        if (!quadMatrix(roofM, img.width.toFloat(), img.height.toFloat(), q[0], q[1], q[2], q[3], q[4], q[5], q[6], q[7])) continue
-        // the sky's light on a roof, and the sun's where the slope faces it
-        val k = .82f + .18f * max(0f, (nx * sun0 + nz * sun1)) + .1f * ny
-        withTransform({ transform(roofM) }) {
-            drawImage(img, IntOffset.Zero, IntSize(img.width, img.height), IntOffset.Zero, IntSize(img.width, img.height),
-                colorFilter = roofFilter(k * (1f - hz), hz), filterQuality = FilterQuality.None)
-        }
-        if (TurnLight.season == 3) {
-            roofPath.rewind(); roofPath.moveTo(q[0], q[1]); roofPath.lineTo(q[2], q[3]); roofPath.lineTo(q[4], q[5]); roofPath.lineTo(q[6], q[7]); roofPath.close()
-            drawPath(roofPath, turnLit(Color(0xFFdde5ee), 1f - hz, hz), alpha = .85f)
+    val flueFirst = run {
+        val cx = (ax + bx) / 2f; val cz = (az + bz) / 2f
+        val fx = cx + ix * half * 1.5f - camX; val fz = cz + iz * half * 1.5f - camZ
+        val nx0 = cx + ix * half * .5f - camX; val nz0 = cz + iz * half * .5f - camZ
+        fx * fx + fz * fz > nx0 * nx0 + nz0 * nz0
+    }
+    for (pass in 0..1) {
+        if (pass == 1 && flueFirst) turnHouseFlue(cam, b, camX, camZ)
+        for (side in 0..1) {
+            // side 0 the near slope (towards the front), 1 the far one; the one nearer the camera drawn in the second pass
+            val out = if (side == 0) -1f else 1f                         // which way along the house's depth it faces
+            val nx = ix * out * sin(p); val nz = iz * out * sin(p); val ny = cos(p)
+            val mx = (ax + bx) / 2f + ix * (half + out * half / 2f); val mz = (az + bz) / 2f + iz * (half + out * half / 2f)
+            val my = (eave + ridge) / 2f
+            val facing = nx * (camX - mx) + ny * (camY - my) + nz * (camZ - mz)
+            if (facing <= 0f) continue
+            val near = (mx - camX) * (mx - camX) + (mz - camZ) * (mz - camZ) < run { val ox = (ax + bx) / 2f + ix * (half - out * half / 2f); val oz = (az + bz) / 2f + iz * (half - out * half / 2f); (ox - camX) * (ox - camX) + (oz - camZ) * (oz - camZ) }
+            if ((pass == 1) != near) continue
+            val img = if (side == 0) r.near else (r.far ?: r.near)
+            // corners: the picture's top-left, top-right, bottom-right, bottom-left
+            val q = roofQ
+            val ok = if (side == 0) {
+                at(ax + ix * half, ridge, az + iz * half).also { q[0] = px[0]; q[1] = px[1] } &&
+                    at(bx + ix * half, ridge, bz + iz * half).also { q[2] = px[0]; q[3] = px[1] } &&
+                    at(bx, eave, bz).also { q[4] = px[0]; q[5] = px[1] } &&
+                    at(ax, eave, az).also { q[6] = px[0]; q[7] = px[1] }
+            } else {
+                at(ax + ix * depth, eave, az + iz * depth).also { q[0] = px[0]; q[1] = px[1] } &&
+                    at(bx + ix * depth, eave, bz + iz * depth).also { q[2] = px[0]; q[3] = px[1] } &&
+                    at(bx + ix * half, ridge, bz + iz * half).also { q[4] = px[0]; q[5] = px[1] } &&
+                    at(ax + ix * half, ridge, az + iz * half).also { q[6] = px[0]; q[7] = px[1] }
+            }
+            if (!ok) continue
+            if (!quadMatrix(roofM, img.width.toFloat(), img.height.toFloat(), q[0], q[1], q[2], q[3], q[4], q[5], q[6], q[7])) continue
+            // the sky's light on a roof, and the sun's where the slope faces it
+            val k = .82f + .18f * max(0f, (nx * sun0 + nz * sun1)) + .1f * ny
+            withTransform({ transform(roofM) }) {
+                drawImage(img, IntOffset.Zero, IntSize(img.width, img.height), IntOffset.Zero, IntSize(img.width, img.height),
+                    colorFilter = roofFilter(k * (1f - hz), hz), filterQuality = FilterQuality.None)
+            }
+            if (TurnLight.season == 3) {
+                roofPath.rewind(); roofPath.moveTo(q[0], q[1]); roofPath.lineTo(q[2], q[3]); roofPath.lineTo(q[4], q[5]); roofPath.lineTo(q[6], q[7]); roofPath.close()
+                drawPath(roofPath, turnLit(Color(0xFFdde5ee), 1f - hz, hz), alpha = .85f)
+            }
         }
     }
+    if (!flueFirst) turnHouseFlue(cam, b, camX, camZ)
 }
