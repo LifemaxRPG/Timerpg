@@ -33,6 +33,9 @@ data class Npc(
     val role: String,
     val job: String,
     val topics: List<Topic>,
+    /** For their voice: female or not, and how warm (0) gruff to (1) warm they are. */
+    val female: Boolean = false,
+    val warmth: Float = .5f,
 )
 
 /** assets/dialogue.json, written by tools/export-dialogue.ts from our game logic. */
@@ -93,6 +96,8 @@ class DialogueData(
                         role = o.optString("role"),
                         job = o.optString("job"),
                         topics = topics,
+                        female = o.optString("sex") == "F",
+                        warmth = o.optDouble("warmth", .5).toFloat(),
                     )
                 } catch (e: Exception) {
                     // skip this one

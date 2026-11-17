@@ -62,6 +62,8 @@ import com.timerpg.street.dialogue.Topic
 class GameActivity : ComponentActivity() {
     /** NPC dialogue (template lines, and the language model's when it has one); its own worker thread, never this one. */
     private var dialogue: DialogueEngine? = null
+    /** NPC voices (Kokoro and Supertonic), and the one-time model download. */
+    private var voices: com.timerpg.street.voice.NpcVoiceService? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,7 +83,9 @@ class GameActivity : ComponentActivity() {
         GameState.look = 1
         val engine = DialogueEngine.shared(applicationContext)
         dialogue = engine
-        setContent { GameScreen(engine) }
+        val v = com.timerpg.street.voice.NpcVoiceService(applicationContext)
+        voices = v
+        setContent { GameScreen(engine, v) }
     }
 
     override fun onStart() {
@@ -101,6 +105,7 @@ class GameActivity : ComponentActivity() {
 
     override fun onDestroy() {
         // the engine outlives a recreated activity, not a finished game
+        voices?.close()
         if (isFinishing) DialogueEngine.release()
         super.onDestroy()
     }
@@ -189,7 +194,7 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
 }
 
 @Composable
-private fun GameScreen(engine: DialogueEngine) {
+private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.NpcVoiceService) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val data = remember { loadStreet(ctx) }
     // the main street and the cross street; the corner turn leads from one to the other
@@ -280,12 +285,12 @@ private fun GameScreen(engine: DialogueEngine) {
     LaunchedEffect(streetNo, near) { engine.setPlayer(streetNo, near) }
     // the corner turn: no writing ahead while it plays (it needs the CPU), no conversation across it
     LaunchedEffect(turning) {
-        if (turning) { talk?.close(); talk = null; engine.pause("turn") } else engine.resume("turn")
+        if (turning) { talk?.close(voices); talk = null; engine.pause("turn") } else engine.resume("turn")
     }
     // walking away ends the conversation
     LaunchedEffect(here) {
         val t = talk
-        if (t != null && t.npc.building != here) { t.close(); talk = null }
+        if (t != null && t.npc.building != here) { t.close(voices); talk = null }
     }
     val pickModel = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) engine.importModel(uri) }
     Box(Modifier.fillMaxSize().background(Color.Black)) {
@@ -311,12 +316,12 @@ private fun GameScreen(engine: DialogueEngine) {
         // someone to talk to here
         val open = talk
         if (open != null) {
-            DialoguePanel(open, onTopic = { open.ask(engine, it) }, onClose = { open.close(); talk = null },
+            DialoguePanel(open, onTopic = { open.ask(engine, it, voices) }, onClose = { open.close(voices); talk = null },
                 modifier = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 92.dp))
         } else if (!turning && turn < 0f && atHere.isNotEmpty()) {
             Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 56.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 for (npc in atHere) Chip("Talk to ${npc.first}", false) {
-                    talk = Talk(npc).also { t -> npc.topics.firstOrNull()?.let { t.ask(engine, it) } }
+                    talk = Talk(npc).also { t -> npc.topics.firstOrNull()?.let { t.ask(engine, it, voices) } }
                 }
             }
         }
@@ -348,7 +353,7 @@ private fun GameScreen(engine: DialogueEngine) {
         // model file and the speed numbers
         Column(Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = 50.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Chip(aiChipLabel(ai), aiPanel) { aiPanel = !aiPanel }
-            if (aiPanel) AiPanel(ai, engine, onPick = {
+            if (aiPanel) AiPanel(ai, engine, voices, onPick = {
                 try { pickModel.launch(arrayOf("*/*")) } catch (e: Exception) { /* no document picker on this device */ }
             })
         }
@@ -361,17 +366,22 @@ private class Talk(val npc: Npc) {
     var line by mutableStateOf<Line?>(null)
     private var request: DialogueEngine.Request? = null
 
-    fun ask(engine: DialogueEngine, t: Topic) {
+    fun ask(engine: DialogueEngine, t: Topic, voices: com.timerpg.street.voice.NpcVoiceService? = null) {
         request?.close()
         topic = t
-        val r = engine.ask(npc, t) { line = it }
+        // a line is spoken once it is final (the model's when it has passed the check, else the game's own)
+        var spoken: String? = null
+        fun heard(l: Line) { if (l.final && l.text != spoken) { spoken = l.text; voices?.say(npc, l.text) } }
+        val r = engine.ask(npc, t) { line = it; heard(it) }
         request = r
         line = r.first
+        r.first?.let { heard(it) }
     }
 
-    fun close() {
+    fun close(voices: com.timerpg.street.voice.NpcVoiceService? = null) {
         request?.close()
         request = null
+        voices?.stop()
     }
 }
 
@@ -437,7 +447,7 @@ private fun f0(v: Float) = String.format(java.util.Locale.US, "%.0f", v)
 
 /** The model (its file and state) and the speed numbers. */
 @Composable
-private fun AiPanel(s: AiStatus, engine: DialogueEngine, onPick: () -> Unit) {
+private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.street.voice.NpcVoiceService, onPick: () -> Unit) {
     Column(
         Modifier.width(340.dp).heightIn(max = 240.dp).background(PANEL, RoundedCornerShape(12.dp)).verticalScroll(rememberScrollState())
             .padding(12.dp),
@@ -470,6 +480,22 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, onPick: () -> Unit) {
                 if (s.hasModel) Chip("Remove", false) { engine.removeModel() }
             }
         }
+        // the dialogue model and both voice engines, fetched once from Hugging Face
+        Spacer(Modifier.height(2.dp))
+        Text("Voices & AI download", 14.sp)
+        val missing = remember(voices.downloading) { voices.missingMb }
+        if (voices.downloading >= 0f) {
+            Text(voices.downloadNote, 12.sp, color = DIM)
+            Box(Modifier.fillMaxWidth().height(4.dp).background(Color(0x66FFFFFF), RoundedCornerShape(2.dp))) {
+                Box(Modifier.fillMaxWidth(voices.downloading.coerceIn(.02f, 1f)).height(4.dp).background(AI_BLUE, RoundedCornerShape(2.dp)))
+            }
+            Chip("Pause", false) { voices.cancelDownload() }
+        } else {
+            if (voices.downloadNote.isNotEmpty()) Text(voices.downloadNote, 12.sp, color = DIM)
+            if (missing > 0) Chip("Download Qwen + Kokoro + Supertonic ($missing MB)", false) { voices.download { engine.reload() } }
+            else Text("Qwen, Kokoro and Supertonic are installed.", 12.sp, color = DIM)
+        }
+        Chip(if (voices.enabled) "Voices: on" else "Voices: off", voices.enabled) { voices.enabled = !voices.enabled; if (!voices.enabled) voices.stop() }
         Spacer(Modifier.height(2.dp))
         Text("Speed", 14.sp)
         val st = s.stats

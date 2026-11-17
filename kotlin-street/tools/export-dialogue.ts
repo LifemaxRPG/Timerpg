@@ -74,7 +74,7 @@ const people = new Map<string, number>();
 t.streets.forEach((st, street) => st.buildings.forEach((sprite, index) => {
   const lot = t.lotOf.get(sprite)!;
   const add = (p: Person, role: string, building: string, job: string): void => {
-    npcs.push({ id: p.id, name: fullName(p), first: p.first, age: ageIn(p, w.year), building: sprite, buildingName: building, street, index, role, job, topics: topicsOf(ctxOf(p, job)) });
+    npcs.push({ id: p.id, name: fullName(p), first: p.first, age: ageIn(p, w.year), sex: p.sex, warmth: Math.round(p.traits.charm * 100) / 100, building: sprite, buildingName: building, street, index, role, job, topics: topicsOf(ctxOf(p, job)) });
   };
   if (lot.kind === 'shop') {
     const b = w.businesses[lot.refId]!;
