@@ -209,8 +209,11 @@ open class SetBackView {
     /** How far [dd] of depth rises on screen (units). */
     fun lift(dd: Float): Float = BuildingSpec.DY * dd / HouseView.DEPTH
 
+    /** Whether a side face may show at all (not at the mouth of the side street). */
+    protected var sideAllowed: Boolean = true
+
     /** Whether a side face shows (the side the view is from), and which: the right one when [s] > 0. */
-    val showsSide: Boolean get() = abs(s) > .02f
+    val showsSide: Boolean get() = sideAllowed && abs(s) > .02f
     val rightSide: Boolean get() = s > 0f
 }
 

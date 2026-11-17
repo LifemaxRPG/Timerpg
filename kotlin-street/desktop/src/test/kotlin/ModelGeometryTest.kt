@@ -1,5 +1,6 @@
 import com.lifemax.rpg.feature.habits.domain.BuildingLayout
 import com.lifemax.rpg.feature.habits.domain.BuildingSpec
+import com.lifemax.rpg.feature.habits.domain.ClockHands
 import com.lifemax.rpg.feature.habits.domain.HouseShape
 import com.lifemax.rpg.feature.habits.domain.HouseView
 import com.lifemax.rpg.feature.habits.domain.JUNCTION_ID
@@ -151,5 +152,46 @@ class ModelGeometryTest {
         // a street without wide buildings is laid out exactly as before
         val plain = streetLayout(listOf(shop, shop, shop))
         for (i in 0..2) assertEquals(i * (b.W + b.DX + b.GAP), plain.centers[i], 1e-3f)
+    }
+    @Test fun aGablesEaveBoardsWaitForTheWallThatCarriesItsFace() {
+        // the villa's order: its main gable, then the upper storey whose front carries the gable's face (drawn after it,
+        // its side wall would paint over the eave's board), then a box beside it that carries nothing
+        val m = ModelShape.parseAll("""
+            {"v": {"kind": "villa", "w": 256, "frontX": -16, "setback": 96, "lawn": "grass", "style": "formal", "fence": null,
+              "roofTint": 5, "lamp": null, "lights": "home", "smoke": [], "fpx": 0, "parts": [
+                {"t": "gable", "x": [0, 256], "y": [98, 161], "d": [36, 171], "l": [0, 0, 128, 198], "lp": [0, 197, 128, 133, 128, -2, 0, 62],
+                 "r": [129, 0, 128, 198], "rp": [128, 197, 0, 133, 0, -2, 128, 62], "rake": [3, 4], "roof": 5, "lip": 6},
+                {"t": "box", "x": [2, 254], "y": [58, 98], "d": [36, 167], "c": [-1, 1, 2], "ft": [0, 0, 256, 106], "fx": 0, "sg": true},
+                {"t": "box", "x": [176, 240], "y": [58, 98], "d": [-8, -8], "c": [1, 2, 3], "card": true}]}}
+        """.trimIndent())["v"]!!
+        assertEquals(0, m.eaveOn[1]); assertEquals(-1, m.eaveOn[2]); assertEquals(-1, m.eaveOn[0])
+        assertTrue(m.eaveLater[0]); assertFalse(m.eaveLater[1])
+        assertEquals(6, m.parts[0].lip); assertTrue(m.parts[1].sideGlow); assertFalse(m.parts[2].sideGlow)
+        assertNull(m.parts[1].clock)
+        // at the mouth of the side street no side face shows, from either side
+        for (s in floatArrayOf(-30f, 30f)) {
+            assertTrue(ModelView().set(m, s).showsSide)
+            assertFalse(ModelView().set(m, s, side = false).showsSide)
+        }
+    }
+
+    @Test fun aClocksHandsTellTheHourInTheDialsCells() {
+        val n = ClockHands.size(12)
+        val px = IntArray(n * n)
+        val ink = 0x3A3A50; val brown = 0x7E6151; val gold = 0xBDA766
+        fun at(x: Int, y: Int) = px[(n / 2 + y) * n + n / 2 + x] and 0xFFFFFF
+        fun empty(x: Int, y: Int) = px[(n / 2 + y) * n + n / 2 + x] == 0
+        // three o'clock: the minute hand up (ink down its middle, brown round it, gold at its tip), the hour hand right
+        ClockHands.paint(px, n, 15f, 12, 9, ink, brown, gold)
+        assertEquals(gold, at(0, 0)); assertEquals(brown, at(0, -1)); assertEquals(ink, at(-1, -1))
+        assertEquals(ink, at(0, -5)); assertEquals(brown, at(-1, -5)); assertEquals(brown, at(1, -5))
+        assertEquals(gold, at(0, -12)); assertTrue(empty(0, 5))
+        assertEquals(ink, at(5, 0)); assertEquals(gold, at(9, 0)); assertEquals(brown, at(10, 0)); assertTrue(empty(11, 0)); assertTrue(empty(-5, 0))
+        // half past ten: the minute hand straight down, the hour hand between ten and eleven, up and to the left
+        ClockHands.paint(px, n, 22.5f, 12, 9, ink, brown, gold)
+        assertEquals(gold, at(0, 12)); assertTrue(empty(0, -6))
+        var upLeft = 0
+        for (y in -9..-2) for (x in -9..-2) if (at(x, y) == ink) upLeft++
+        assertEquals(4, upLeft); assertEquals(gold, at(-6, -6)); assertTrue(empty(6, -6))
     }
 }

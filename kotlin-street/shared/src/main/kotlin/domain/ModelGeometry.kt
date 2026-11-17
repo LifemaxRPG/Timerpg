@@ -33,8 +33,21 @@ class ModelPart(
     /** A roof's left and right slope or face pieces, and their four points each (see [ModelShape]). */
     val left: IntArray? = null, val leftP: FloatArray? = null,
     val right: IntArray? = null, val rightP: FloatArray? = null,
+    /** A box whose side picture has windows that light at night (a railing's side has none: no light pass for it). */
+    val sideGlow: Boolean = false,
+    /**
+     * The clock a box's front and sides wear, its hands drawn at the hour (the art's painted ones are taken off): its
+     * hub's cell (x, y in the front piece's pixels, the cell's size: the art's doubled pixel), the minute and hour hands'
+     * lengths in cells, and their ink, brown and gold (0xRRGGBB); or null.
+     */
+    val clock: IntArray? = null,
     /** A gable's rake boards' face and edge colours; where its eaves end at the back ([d1] unless it meets another roof). */
     val rake: Int = 0, val rakeEdge: Int = 0, val eaveBack: Float = d1,
+    /**
+     * A gable's roof edge colour (the art's row of it just above the face's rake ink), or -1. The face's rake is the
+     * art's staircase of pixels and a slope's front edge a straight line from the eave to the apex: this fills between.
+     */
+    val lip: Int = -1,
     /** A gable's face piece standing on its front ([faceY] its foot's height, [fx] its left edge), if not a box's front. */
     val face: IntArray? = null, val faceY: Float = 0f,
     /** A hipped roof's front face piece (its rows the screen's, ridge to eave), its flat top's piece and extent. */
@@ -87,6 +100,27 @@ class ModelShape(
     /** How deep it is behind its front line. */
     val depth: Float = parts.maxOfOrNull { it.d1 } ?: 0f
 
+    /**
+     * For each part, the front gable whose eave boards are drawn right after it, or -1: the box the gable stands on,
+     * drawn after the gable (its front carries the gable's face), whose side wall would otherwise paint over the boards
+     * and the shade they throw on its top. [eaveLater] marks the gables whose eaves wait for such a box.
+     */
+    val eaveOn: IntArray = IntArray(parts.size) { -1 }
+    val eaveLater: BooleanArray = BooleanArray(parts.size)
+
+    init {
+        for (j in parts.indices) {
+            val g = parts[j]
+            if (g.type != ModelPart.GABLE) continue
+            for (i in j + 1 until parts.size) {
+                val b = parts[i]
+                val under = b.type == ModelPart.BOX && !b.card && kotlin.math.abs(b.y1 - g.y0) < .5f &&
+                    b.x0 >= g.x0 - .5f && b.x1 <= g.x1 + .5f && b.d0 < g.eaveBack && b.d1 > g.d0
+                if (under && eaveOn[i] < 0) { eaveOn[i] = j; eaveLater[j] = true; break }
+            }
+        }
+    }
+
     /** How high its highest point shows above the pavement line (street units), lifted by how far back it stands. */
     val screenTop: Float get() {
         val k = BuildingSpec.W / 224f
@@ -125,7 +159,8 @@ class ModelShape(
                     ModelPart(ModelPart.BOX, x.f(0), x.f(1), y.f(0), y.f(1), d.f(0), d.f(1), c.getInt(0), c.getInt(1), c.getInt(2),
                         ints(p.optJSONArray("ft")), p.optDouble("fx", x.getDouble(0)).toFloat(), ints(p.optJSONArray("tt")), ints(p.optJSONArray("st")),
                         p.optBoolean("card"), p.optBoolean("out"),
-                        if (pn == null) emptyList() else (0 until pn.length()).map { floats(pn.getJSONArray(it))!! })
+                        if (pn == null) emptyList() else (0 until pn.length()).map { floats(pn.getJSONArray(it))!! },
+                        sideGlow = p.optBoolean("sg"), clock = ints(p.optJSONArray("clock")))
                 }
                 "gable" -> {
                     val rk = p.getJSONArray("rake")
@@ -136,6 +171,7 @@ class ModelShape(
                         left = ints(p.getJSONArray("l")), leftP = floats(p.getJSONArray("lp")),
                         right = ints(p.getJSONArray("r")), rightP = floats(p.getJSONArray("rp")),
                         rake = rk.getInt(0), rakeEdge = rk.getInt(1), eaveBack = p.optDouble("de", d.getDouble(1)).toFloat(),
+                        lip = p.optInt("lip", -1),
                         face = ints(p.optJSONArray("face")), faceY = p.optDouble("fy", 0.0).toFloat())
                 }
                 "hip" -> {
@@ -169,9 +205,13 @@ class ModelShape(
 
 /** Where a modelled building's points land on screen ([SetBackView]); one is [set] again for each building drawn. */
 class ModelView : SetBackView() {
-    /** This view for model [shape] at side shift [s]; returns itself. */
-    fun set(shape: ModelShape, s: Float, unitPx: Float = 0f, originX: Float = 0f): ModelView {
+    /**
+     * This view for model [shape] at side shift [s]; returns itself. [side] false: no side face shows (it stands at the
+     * mouth of the side street, which the stage draws there).
+     */
+    fun set(shape: ModelShape, s: Float, unitPx: Float = 0f, originX: Float = 0f, side: Boolean = true): ModelView {
         place(shape.frontX, shape.setback, s, unitPx, originX)
+        sideAllowed = side
         return this
     }
 }
@@ -247,5 +287,60 @@ object QuadMap {
         val w = m[6] * x + m[7] * y + m[8]
         p[0] = ((m[0] * x + m[1] * y + m[2]) / w).toFloat()
         p[1] = ((m[3] * x + m[4] * y + m[5]) / w).toFloat()
+    }
+}
+
+/**
+ * A clock's hands at an hour, as pixel art in the dial's own cells ([ModelPart.clock]): each hand a line of cells from
+ * the hub, ink down its middle and brown either side, a gold cell at its tip (as the clock tower's art draws them), the
+ * minute hand over the hour hand, and the hub over both (gold, a brown cross, ink corners). Painted into a square
+ * picture [size] cells wide, the hub's cell in its middle.
+ */
+object ClockHands {
+    /** The picture's width and height for a minute hand [minuteLen] cells long. */
+    fun size(minuteLen: Int): Int = 2 * minuteLen + 3
+
+    /** The hands at [hour] (0..24, its fraction the minutes) into [px] (ARGB, [n] by [n], cleared first). */
+    fun paint(px: IntArray, n: Int, hour: Float, minuteLen: Int, hourLen: Int, ink: Int, brown: Int, gold: Int) {
+        px.fill(0)
+        val h12 = ((hour % 12f) + 12f) % 12f
+        hand(px, n, h12 / 12f, hourLen, ink, brown, gold)
+        hand(px, n, h12 - kotlin.math.floor(h12), minuteLen, ink, brown, gold)
+        val m = n / 2
+        for (dy in -1..1) for (dx in -1..1) {
+            px[(m + dy) * n + m + dx] = 0xFF000000.toInt() or when {
+                dx == 0 && dy == 0 -> gold
+                dx == 0 || dy == 0 -> brown
+                else -> ink
+            }
+        }
+    }
+
+    /** One hand [turn] of the way round from twelve, [len] cells long. */
+    private fun hand(px: IntArray, n: Int, turn: Float, len: Int, ink: Int, brown: Int, gold: Int) {
+        val a = turn * 2f * kotlin.math.PI.toFloat()
+        val dx = kotlin.math.sin(a); val dy = -kotlin.math.cos(a)
+        val m = n / 2
+        val shaft = BooleanArray(n * n)
+        var tip = -1
+        for (s in 4..len * 4) {
+            val t = s / 4f
+            val x = kotlin.math.floor(.5f + dx * t).toInt(); val y = kotlin.math.floor(.5f + dy * t).toInt()
+            if (kotlin.math.abs(x) <= 1 && kotlin.math.abs(y) <= 1) continue
+            val i = (m + y) * n + m + x
+            shaft[i] = true; tip = i
+        }
+        val b = 0xFF000000.toInt() or brown
+        for (i in shaft.indices) {
+            if (!shaft[i]) continue
+            val x = i % n; val y = i / n
+            for (j in intArrayOf(i - 1, i + 1, i - n, i + n)) {
+                if (j < 0 || j >= n * n || shaft[j]) continue
+                if ((j == i - 1 && x == 0) || (j == i + 1 && x == n - 1) || (j == i - n && y == 0) || (j == i + n && y == n - 1)) continue
+                px[j] = b
+            }
+        }
+        for (i in shaft.indices) if (shaft[i]) px[i] = 0xFF000000.toInt() or ink
+        if (tip >= 0) px[tip] = 0xFF000000.toInt() or gold
     }
 }
