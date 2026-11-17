@@ -69,15 +69,28 @@ def side_segment(seg, windows):
     for y in range(h):
         px = a[y][(a[y, :, 3] > 200) & ~gm[y]]
         rows[y] = np.median(px, axis=0) if len(px) else (60, 50, 50, 255)
+    if not windows:
+        # the ground floor's side wall: the wall's own colour with brick courses, not the shop display's bands
+        solid = a[(a[..., 3] > 200) & ~gm]
+        base = np.median(solid, axis=0)
+        rows = (rows * .25 + base * .75).astype(np.uint8)
+        rows[::6, :3] = (rows[::6, :3].astype(np.int32) * 86 // 100).astype(np.uint8)
     side = Image.fromarray(np.repeat(rows[:, None, :], D, axis=1))
     if windows:
         boxes = [b for b in components(gm) if (b[2]-b[0]) < 70]
         if boxes:
             x0, y0, x1, y1 = boxes[0]
             m = 3; crop = seg.crop((max(0, x0-m), max(0, y0-m), min(w, x1+m+1), min(h, y1+m+1)))
-            for fx in (0.22, 0.62):
+            for fx in (0.12, 0.42, 0.72):
                 side.alpha_composite(crop, (int(D * fx), max(0, y0-m)))
-    return side
+    # corner pilasters, and a fine grain so the wall reads as masonry and not as flat bands
+    arr = np.array(side).astype(np.int32)
+    arr[:, :5, :3] = arr[:, :5, :3] * 72 // 100; arr[:, -5:, :3] = arr[:, -5:, :3] * 72 // 100
+    arr[:, 5:7, :3] = arr[:, 5:7, :3] * 118 // 100; arr[:, -7:-5, :3] = arr[:, -7:-5, :3] * 118 // 100
+    g = np.random.default_rng(h * 7 + int(arr[0, 0, 0])).integers(-5, 6, (h // 3 + 1, D // 3 + 1))
+    g = np.kron(g, np.ones((3, 3), np.int32))[:h, :D]
+    arr[..., :3] = np.clip(arr[..., :3] + g[..., None], 0, 255)
+    return Image.fromarray(arr.astype(np.uint8))
 
 def build(shop, out):
     parts = shop['parts']; ground = next(p for p in parts if not p['key'].startswith(('roof_', 'roofprop_', 'middle_')))
