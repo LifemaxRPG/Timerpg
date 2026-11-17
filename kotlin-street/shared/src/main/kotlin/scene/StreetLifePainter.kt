@@ -64,6 +64,15 @@ internal class StreetLifePainter {
     /** This frame's passers and cars (far lane first), filled by [update]. */
     val passers = Array(StreetLife.MOST + 2) { Passer() }
     var count = 0
+
+    /** Which street of the crossroads these are the people of (0 the main street): whose keepers stand at the doors. */
+    var street = 0
+
+    /** Whether the player is one of them (the street the player walks; the other street's people are its own). */
+    var withPlayer = true
+
+    /** Draw only the passer at this index ([people]), so the crossroads can sort each one among the buildings; -1 all. */
+    var only = -1
     val cars = Array(StreetLife.CAR_MOST) { CarPass() }
     var carCount = 0
 
@@ -283,7 +292,7 @@ internal class StreetLifePainter {
     fun update(seconds: Float, seed: Int, street: StreetLayout) {
         clock = seconds
         count = StreetLife.passers(seconds, seed, street.start, street.end, passers, street.centers)
-        if (GameState.enabled && count < passers.size) {
+        if (GameState.enabled && withPlayer && count < passers.size) {
             // the player is one more person on the pavement, lit and shadowed like the rest (far lane first)
             val me = passers[count]
             me.on = true; me.slot = 9999; me.kind = Stroller.WALKER
@@ -297,7 +306,7 @@ internal class StreetLifePainter {
             while (i > 0 && passers[i - 1].lane > passers[i].lane) { val t = passers[i]; passers[i] = passers[i - 1]; passers[i - 1] = t; i-- }
         }
         // the people to talk to: each at their building's door, standing, facing the street (near the wall, behind passers)
-        if (GameState.enabled) for ((b, seed) in GameState.keepers) {
+        if (GameState.enabled) for ((b, seed) in GameState.keepersBy[this.street] ?: GameState.keepers.takeIf { this.street == GameState.street }.orEmpty()) {
             if (count >= passers.size || b !in street.centers.indices) continue
             val k = passers[count]
             k.on = true; k.slot = KEEPER + b; k.kind = Stroller.WALKER
@@ -757,6 +766,7 @@ internal class StreetLifePainter {
         val key = light
         val dark = sky.dark
         for (i in 0 until count) {
+            if (only >= 0 && i != only) continue
             val p = passers[i]
             if (p.x + 60f < from || p.x - 60f > to) continue
             val persp = perspective(p.lane)

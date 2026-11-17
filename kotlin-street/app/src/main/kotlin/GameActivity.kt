@@ -38,14 +38,8 @@ import com.lifemax.rpg.feature.habits.domain.WeatherOverride
 import com.lifemax.rpg.feature.habits.domain.WeatherState
 import com.lifemax.rpg.feature.habits.presentation.HabitsUi
 import com.lifemax.rpg.feature.habits.presentation.scene.GameState
-import com.lifemax.rpg.feature.habits.presentation.scene.CornerTurn
-import com.lifemax.rpg.feature.habits.presentation.scene.TurnArt
+import com.lifemax.rpg.feature.habits.presentation.scene.CornerWalk
 import androidx.compose.ui.graphics.graphicsLayer
-import com.lifemax.rpg.feature.habits.presentation.scene.turnSkyPan
-import com.lifemax.rpg.feature.habits.presentation.scene.junctionView
-import com.lifemax.rpg.feature.habits.presentation.scene.TurnFrame
-import com.lifemax.rpg.feature.habits.presentation.scene.TurnFacade
-import com.lifemax.rpg.feature.habits.presentation.scene.TurnRows
 import com.lifemax.rpg.feature.habits.presentation.scene.HabitsStage
 import com.lifemax.rpg.feature.habits.presentation.scene.PlatformImages
 import com.lifemax.rpg.feature.habits.presentation.scene.SpriteArt
@@ -182,13 +176,14 @@ private val SHOPS = listOf(
 private class StreetInfo(val name: String, val shops: List<HabitStack>, val owners: List<String>, val sprites: List<String> = emptyList())
 
 /** Our game's town streets, exported by tools/export-street.ts (falls back to a built-in street). */
-private class StreetData(val town: String, val streets: List<StreetInfo>, val rows: TurnRows? = null, val cornerIds: Set<String> = emptySet())
+private class StreetData(val town: String, val streets: List<StreetInfo>, val crossroads: com.lifemax.rpg.feature.habits.presentation.scene.CrossroadsStacks? = null)
 
 private fun loadStreet(ctx: android.content.Context): StreetData = try {
     val j = org.json.JSONObject(ctx.assets.open("street.json").bufferedReader().use { it.readText() })
     val arr = j.getJSONArray("shops")
+    // (mipmapped: the side street and the walk round the corner see the pictures small and edge on)
     fun img(n: String): androidx.compose.ui.graphics.ImageBitmap? = try {
-        ctx.assets.open("buildings/$n.png").use { BitmapFactory.decodeStream(it) }?.asImageBitmap()
+        ctx.assets.open("buildings/$n.png").use { BitmapFactory.decodeStream(it) }?.apply { setHasMipMap(true) }?.asImageBitmap()
     } catch (e: Exception) { null }
     // the real windows of each building (tools/make_buildings.py)
     val windows = HashMap<String, List<FloatArray>>()
@@ -226,27 +221,24 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
         val all = bySprite.entries.toList(); val half = (all.size + 1) / 2
         listOf(all.take(half), all.drop(half)).filter { it.isNotEmpty() }.mapIndexed { k, es -> StreetInfo(if (k == 0) "Main Street" else "Side Street", es.map { it.value.stack }, es.map { it.value.owner }, es.map { it.key }) }
     }
-    // the crossroads, for the corner turn: the same pictures the street uses (decoded once)
-    fun facades(list: List<String>) = list.mapNotNull { bySprite[it]?.art }.map { TurnFacade(it.front, it.side, it.emis, it.prop) }
     val jn = j.optJSONObject("junction")
-    val rows = if (streetsJ != null && streetsJ.length() >= 2 && jn != null) TurnRows(
-        facades(names(streetsJ.getJSONObject(0).optJSONArray("buildings"))), facades(names(jn.optJSONArray("mainEast"))),
-        facades(names(streetsJ.getJSONObject(1).optJSONArray("buildings"))), facades(names(jn.optJSONArray("crossEast"))),
-    ) else null
     // the main street does not end at the junction: the side street opens off it (a gap where it is seen, walked past or
     // turned into), and the main street goes on beyond with the buildings east of it
-    var corners = emptySet<String>()
     val walked = if (jn != null && streets.size >= 2) streets.mapIndexed { k, st ->
         if (k != 0) st else {
             val east = names(jn.optJSONArray("mainEast")).filter { bySprite[it] != null }
             val mouth = shop(com.lifemax.rpg.feature.habits.domain.JUNCTION_ID, streets[1].name, "", HabitMaterial.CLAY, 1)
-            corners = setOfNotNull(st.shops.lastOrNull()?.id, east.firstOrNull()?.let { bySprite[it]!!.stack.id })
             StreetInfo(st.name, st.shops + mouth + east.map { bySprite[it]!!.stack }, st.owners + "" + east.map { bySprite[it]!!.owner },
                 st.sprites + com.lifemax.rpg.feature.habits.domain.JUNCTION_ID + east)
         }
     } else streets
     if (walked.isEmpty()) StreetData("built-in street", listOf(StreetInfo("Main Street", SHOPS, emptyList())))
-    else StreetData("${j.getString("town")} · ${j.getString("type")} · ${j.getInt("year")}", walked, rows, corners)
+    else {
+        // the crossroads as one place: the main street with the mouth, the cross street, and the cross street's other side
+        val crossEast = names(jn?.optJSONArray("crossEast")).mapNotNull { bySprite[it]?.stack }
+        val cr = if (jn != null && walked.size >= 2) com.lifemax.rpg.feature.habits.presentation.scene.CrossroadsStacks(walked[0].shops, walked[1].shops, crossEast) else null
+        StreetData("${j.getString("town")} · ${j.getString("type")} · ${j.getInt("year")}", walked, cr)
+    }
 } catch (e: Exception) {
     StreetData("built-in street", listOf(StreetInfo("Main Street", SHOPS, emptyList())))
 }
@@ -255,8 +247,16 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
 private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.NpcVoiceService, sound: com.timerpg.street.audio.SoundScape? = null) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val data = remember { loadStreet(ctx) }
-    // the main street and the cross street; the corner turn leads from one to the other
+    // the main street and the cross street: one place, the stage draws whichever the player is on and walks them round
+    // the corner (the up key in the main street's mouth, or at the cross street's start); the HUD follows it
     var streetNo by remember { mutableIntStateOf(0) }
+    androidx.compose.runtime.DisposableEffect(data) {
+        StageTuning.crossroads = data.crossroads
+        StageTuning.cornerIds = emptySet()
+        GameState.street = 0
+        CornerWalk.reset()
+        onDispose { StageTuning.crossroads = null }
+    }
     val street = data.streets[streetNo.coerceIn(0, data.streets.size - 1)]
     val shops = street.shops
     val owners = street.owners
@@ -265,78 +265,16 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     var hour by remember { mutableFloatStateOf(17.6f) }
     var season by remember { mutableIntStateOf(1) }
     var weather by remember { mutableIntStateOf(0) }
-    val p = remember(hour, data, season, weather, streetNo) {
+    // (the stage takes both streets from the crossroads; the projection is the main street's, so turning the corner
+    // rebuilds nothing)
+    val p = remember(hour, data, season, weather) {
         // the date sets the season (leaf, blossom, snow); the weather is forced
         WeatherOverride.forced = WEATHERS[weather].second
         HabitsProjection(
             day = SEASONS[season].second, hour = hour, who = "", whoHint = "", rough = false, built = 0, due = 0,
             reducedMotion = false, haptics = null, problem = "", limits = HabitLimits(40, 40, 40, 40, 40, 1, 12, 12),
-            rules = HabitRules(10, 40, 100, 12), stacks = shops, lapse = emptyList(), tokens = emptyMap(), light = false,
+            rules = HabitRules(10, 40, 100, 12), stacks = data.streets[0].shops, lapse = emptyList(), tokens = emptyMap(), light = false,
         )
-    }
-    // the faked corner turn: our buildings on boxes around a crossroads, the camera swinging a quarter turn
-    val turnArt = remember {
-        fun img(n: String): androidx.compose.ui.graphics.ImageBitmap? = try { ctx.assets.open(n).use { BitmapFactory.decodeStream(it) }.asImageBitmap() } catch (e: Exception) { null }
-        val rows = data.rows
-        if (data.streets.size < 2) null
-        else if (rows != null) TurnArt(emptyList(), emptyList(), img("props/lamp_1.png"), img("characters/char_02.png"), trees = (1..3).mapNotNull { img("props/tree_$it.png") }, bench = img("props/bench_1.png"), rows = rows)
-        else {
-            val ids = (0..8).filter { img("buildings/b${it}_front.png") != null && img("buildings/b${it}_side.png") != null }
-            if (ids.isEmpty()) null else TurnArt(ids.map { img("buildings/b${it}_front.png")!! }, ids.map { img("buildings/b${it}_side.png")!! }, img("props/lamp_1.png"), img("characters/char_02.png"), ids.map { img("buildings/b${it}_emis.png") }, ids.map { img("buildings/b${it}_prop.png") }, (1..3).mapNotNull { img("props/tree_$it.png") }, img("props/bench_1.png"))
-        }
-    }
-    // the side street seen through the junction's gap as the player walks the main street (the turn's scene, first frame)
-    val turnScene = remember(turnArt) { turnArt?.let { com.lifemax.rpg.feature.habits.presentation.scene.turnBuildings(it) } }
-    val viewNow = androidx.compose.runtime.rememberUpdatedState(hour to season)
-    androidx.compose.runtime.DisposableEffect(turnArt, streetNo) {
-        val art = turnArt; val tb = turnScene
-        StageTuning.cornerIds = if (streetNo == 0) data.cornerIds else emptySet()
-        StageTuning.junctionView = if (art == null || tb == null || streetNo != 0) null else { dx ->
-            if (GameState.framePx > 0f) {
-                val (h, s) = viewNow.value
-                junctionView(art, tb, dx, h, s, TurnFrame(GameState.frameGround, GameState.frameHorizon, GameState.framePx))
-            }
-        }
-        onDispose { StageTuning.junctionView = null; StageTuning.cornerIds = emptySet() }
-    }
-    // the turn starts from wherever the player stands in the junction's mouth, and swings round from there
-    var turnDx by remember { mutableFloatStateOf(0f) }
-    var turn by remember { mutableFloatStateOf(-1f) }
-    var turning by remember { mutableStateOf(false) }
-    var fade by remember { mutableFloatStateOf(0f) }
-    // which way the turn plays: forwards from the main street, backwards from the cross street
-    var turnBack by remember { mutableStateOf(false) }
-    // the turn's own clock (for its rain and snow) and how much of it is shown (it fades in over the street)
-    var turnClock by remember { mutableFloatStateOf(0f) }
-    var turnAlpha by remember { mutableFloatStateOf(0f) }
-    val density = androidx.compose.ui.platform.LocalDensity.current.density
-    LaunchedEffect(turning) {
-        if (!turning) return@LaunchedEffect
-        val start = androidx.compose.runtime.withFrameNanos { it }
-        try {
-        while (true) {
-            val t = (androidx.compose.runtime.withFrameNanos { it } - start) / 1e9f
-            turnClock = t
-            // the turn fades in over the live street, then the stage draws only its sky behind the turn, panning with it
-            turnAlpha = (t / .35f).coerceIn(0f, 1f)
-            StageTuning.skyOnly = turn >= 0f && t > .35f
-            GameState.skyPan = if (StageTuning.skyOnly && GameState.framePx > 0f)
-                turnSkyPan(turn.coerceIn(0f, 1f), TurnFrame(GameState.frameGround, GameState.frameHorizon, GameState.framePx), density) else 0f
-            if (t < 2.6f) { val q = (t / 2.4f).coerceAtMost(1f); turn = if (turnBack) 1f - q else q; fade = ((t - 2.0f) / .6f).coerceIn(0f, 1f) }
-            else {
-                if (turn >= 0f) {
-                    turn = -1f
-                    // round the corner: the start of the cross street, or back to the junction end of the main street
-                    GameState.x = if (turnBack) -1e9f else 150f
-                    streetNo = if (turnBack) 0 else 1
-                    GameState.lane = 7f
-                }
-                fade = 1f - ((t - 2.6f) / .6f).coerceIn(0f, 1f)
-                if (t >= 3.2f) break
-            }
-        }
-        } finally { StageTuning.skyOnly = false; GameState.skyPan = 0f }
-        turning = false
     }
     // GameState is plain vars the stage updates every frame: copy them into Compose state so the HUD follows them
     var near by remember { mutableIntStateOf(GameState.nearest) }
@@ -346,6 +284,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             androidx.compose.runtime.withFrameNanos { }
             near = GameState.nearest
             atCorner = GameState.atCorner
+            // the walk round the corner swaps the street in the frame it ends: the HUD, the people, the lines follow
+            if (GameState.street != streetNo) streetNo = GameState.street
         }
     }
     // dialogue: who is at the building the player stands at, the open conversation, the AI panel
@@ -360,10 +300,15 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         GameState.keepers = street.sprites.mapIndexedNotNull { i, sp ->
             people?.at(sp)?.firstOrNull()?.let { npc -> i to (npc.id.hashCode() and 0x7fffffff) }
         }
+        // both streets' (the other is seen round the corner, and is there the moment the walk ends)
+        GameState.keepersBy = data.streets.take(2).mapIndexed { k, st ->
+            k to st.sprites.mapIndexedNotNull { i, sp -> people?.at(sp)?.firstOrNull()?.let { npc -> i to (npc.id.hashCode() and 0x7fffffff) } }
+        }.toMap()
     }
     // lines are written ahead of time nearest the player first; re-sorted as they walk or turn the corner
     LaunchedEffect(streetNo, near) { engine.setPlayer(streetNo, near) }
-    // the corner turn: no writing ahead while it plays (it needs the CPU), no conversation across it
+    // the walk round the corner: no writing ahead while the camera turns (it needs the CPU), no conversation across it
+    val turning = CornerWalk.active
     LaunchedEffect(turning) {
         if (turning) { talk?.close(voices); talk = null; engine.pause("turn") } else engine.resume("turn")
     }
@@ -514,34 +459,26 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         }
         if (step < 0) return@LaunchedEffect
     }
+    // the up key turns the corner only when nothing else holds the player: inside, a door, a conversation, the NPU tuning
+    androidx.compose.runtime.SideEffect { CornerWalk.blocked = inside != null || doorTo != null || talk != null || tuning }
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         val room = inside
         if (room != null) com.lifemax.rpg.feature.habits.presentation.scene.InteriorStage(room, walker, hour, keeperSheet, Modifier.fillMaxSize())
         else HabitsStage(
-            p = p, ui = HabitsUi(focus = shops[0].id), visible = true, top = 0f, bottom = 0f, cover = 0f, inset = 0f,
+            p = p, ui = HabitsUi(focus = data.streets[0].shops[0].id), visible = true, top = 0f, bottom = 0f, cover = 0f, inset = 0f,
             accent = Color(0xFF6FA8FF), actions = StageActions(), modifier = Modifier.fillMaxSize(),
         )
         Text("${street.name} · ${data.town}", 14.sp, Modifier.align(Alignment.TopStart).padding(14.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
-        if (turn >= 0f && turnArt != null) {
-            Box(Modifier.fillMaxSize().graphicsLayer { alpha = turnAlpha }) {
-                CornerTurn(turnArt, turn, Modifier.fillMaxSize(), hour, season, reverse = turnBack, clock = turnClock, skyBehind = true,
-                    camX = { p -> val e = p * p * (3f - 2f * p); 100f + turnDx * (1f - e) })
-            }
-        }
-        if (fade > 0f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = fade)))
         if (door > 0f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = door)))
-        if (turnArt != null && !turning && atCorner && inside == null) Chip(if (streetNo == 0) "↰ Turn onto ${data.streets.getOrNull(1)?.name ?: "the side street"}" else "↳ Back to ${data.streets[0].name}", false,
-            Modifier.align(if (streetNo == 0) Alignment.CenterEnd else Alignment.CenterStart).padding(horizontal = 14.dp)) {
-                turnBack = streetNo == 1
-                // the camera's place along the main street from the junction's middle (turn units), where the view is now
-                turnDx = if (streetNo == 0 && !GameState.junctionX.isNaN()) (GameState.viewMiddle - GameState.junctionX) * 224f / 184f else 0f
-                turning = true
-            }
         // the shop the player is standing at
         if (inside != null) {
             Text(inside!!.title + (inside!!.use.takeIf { it != inside!!.title && it != "Home" }?.let { "  ·  $it" } ?: ""), 15.sp,
                 Modifier.align(Alignment.TopCenter).padding(top = 62.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
-        } else if (near in shops.indices) {
+        } else if (atCorner && data.crossroads != null && !turning) {
+            // at the corner: which way the other street is (the up key turns into it; walking on at its start turns back)
+            Text(if (streetNo == 0) "▲  ${data.streets.getOrNull(1)?.name ?: "Side street"}" else "◀  ${data.streets[0].name}", 15.sp,
+                Modifier.align(Alignment.TopCenter).padding(top = 62.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
+        } else if (near in shops.indices && shops[near].id != com.lifemax.rpg.feature.habits.domain.JUNCTION_ID && !turning) {
             val st = shops[near]
             Text(st.cue + (owners.getOrNull(near)?.takeIf { it.isNotBlank() }?.let { "  ·  $it" } ?: ""), 15.sp,
                 Modifier.align(Alignment.TopCenter).padding(top = 62.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
@@ -559,7 +496,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                     if (!down && ears.state == com.timerpg.street.voice.PlayerVoice.State.IDLE) engine.resume("listening")
                 },
                 modifier = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 92.dp))
-        } else if (!turning && turn < 0f && doorTo == null) {
+        } else if (!turning && doorTo == null) {
             // someone to talk to (inside: when standing near them); the way in and out
             val roomHere = street.sprites.getOrNull(near)?.let { rooms[it] }
             Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 56.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

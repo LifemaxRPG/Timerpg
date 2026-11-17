@@ -47,6 +47,18 @@ object GameState {
      * who they are). Drawn by the door, facing the street, so "Talk to ..." has someone to talk to.
      */
     @Volatile var keepers: List<Pair<Int, Int>> = emptyList()
+    /** The same for each street of the crossroads (0 the main street, 1 the cross street), so both streets' doors are kept. */
+    @Volatile var keepersBy: Map<Int, List<Pair<Int, Int>>> = emptyMap()
+    /**
+     * Which street of the crossroads the player is on (0 the main street, 1 the cross street). The stage changes it in
+     * the frame the walk round the corner ends; the app follows it.
+     */
+    @Volatile var street = 0
+    /**
+     * Set when a walk round the corner ends with the up key still held: until it is let go it walks on along the new
+     * street (moveX +1) instead of stepping in across the pavement.
+     */
+    var upWalks = false
     /** Half the screen's width in street units (set by the stage as it draws), so the camera can stop at the street's ends. */
     var halfView = 0f
     /** Device pixels per street unit, as the stage last drew (0 until it has drawn). */
@@ -73,6 +85,12 @@ object GameState {
 
     fun step(dt: Float, from: Float, to: Float, laneMax: Float) {
         x0 = x; lane0 = lane
+        val heldX = moveX; val heldLane = moveLane
+        if (upWalks) { if (moveLane < -.05f) { moveX = 1f; moveLane = 0f } else upWalks = false }
+        try { stepHeld(dt, from, to, laneMax) } finally { moveX = heldX; moveLane = heldLane }
+    }
+
+    private fun stepHeld(dt: Float, from: Float, to: Float, laneMax: Float) {
         if (abs(moveX) > .05f) { dir = if (moveX > 0) 1f else -1f; facing = 0 }
         else if (moveLane < -.05f) facing = 1
         else if (moveLane > .05f) facing = 3

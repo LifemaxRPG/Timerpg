@@ -16,6 +16,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -550,14 +551,43 @@ private fun StageCanvas(
         }
     }
 
+    // the game's crossroads: both streets laid out once (so the walk round the corner swaps them in a frame, with nothing
+    // to build), drawn as one place through one camera
+    val crossStacks = if (GameState.enabled) StageTuning.crossroads else null
+    val sides =
+        remember(crossStacks, text, live, avail, size, density.density) {
+            crossStacks?.let { cs ->
+                listOf(cs.main, cs.cross, cs.east).mapIndexed { k, st ->
+                    val ls = st.map { buildingLayout(it, live, ghost = false) }
+                    val drawn = ls.mapIndexed { i, l -> buildingArt(l, st[i], text) }
+                    val laid = streetLayout(ls)
+                    val cams = ls.map { l -> focusCamera(l.height, avail, null, panRoom = window.panRoom, air = AIM_AIR) }
+                    val vw = streetView(laid, ls.map { it.height }, size.width / density.density, avail)
+                    val life = if (k < 2) StreetLifePainter().also { it.painter = painter; it.street = k } else null
+                    CrossSide(k, st, ls, drawn, laid, cams, vw, life)
+                }
+            }
+        }
+    val crossroads =
+        remember(sides) {
+            sides?.let { s ->
+                val j = s[0].layouts.indexOfFirst { it.stackId == com.lifemax.rpg.feature.habits.domain.JUNCTION_ID }
+                if (j <= 0 || s[1].layouts.isEmpty()) null
+                else com.lifemax.rpg.feature.habits.domain.Crossroads(s[0].street, j, s[1].street, s[2].street.takeIf { s[2].layouts.isNotEmpty() })
+            }
+        }
+    val world = remember { CornerWorld() }
+    /** The street the player is on, when the game has a crossroads (read every frame: the walk swaps it mid-frame). */
+    fun side(): CrossSide? = if (crossroads == null) null else sides?.getOrNull(GameState.street.coerceIn(0, 1))
+
     fun frame() =
         Frame(
             size,
             density.density,
             window,
-            street,
-            cameras,
-            view,
+            side()?.street ?: street,
+            side()?.cameras ?: cameras,
+            side()?.view ?: view,
             focus,
             scroll.value,
             zoom.value,
@@ -611,37 +641,75 @@ private fun StageCanvas(
         }
 
     // the game: the camera follows the player instead of settling on a building
+    // (read by the draw, so every frame the player or the camera moves in is drawn: see the game loop)
+    var moves by remember { mutableIntStateOf(0) }
     val streetNow = rememberUpdatedState(street)
     val layoutsNow = rememberUpdatedState(layouts)
+    val crossNow = rememberUpdatedState(crossroads)
+    val sidesNow = rememberUpdatedState(sides)
     LaunchedEffect(GameState.enabled) {
         if (!GameState.enabled) return@LaunchedEffect
         var last = 0L
+        var seen = Float.NaN
         while (true) {
             val t = withFrameNanos { it }
-            val dt = if (last == 0L) 0f else ((t - last) / 1e9f).coerceAtMost(.1f)
+            val first = last == 0L
+            val dt = if (first) 0f else ((t - last) / 1e9f).coerceAtMost(.1f)
             last = t
-            val s = streetNow.value
+            // (no time passed: nothing to step; a redraw of the same moment must show the same thing)
+            if (!first && dt <= 0f) continue
+            // a frame is drawn whenever the player or the camera moved (the walk round the corner every frame); standing
+            // still, the street's own clock redraws it
+            val moved = GameState.x + 7f * GameState.lane + 13f * GameState.facing + GameState.travel + 31f * GameState.street +
+                (if (CornerWalk.active) 1000f * CornerWalk.p + 1f else 0f)
+            if (moved != seen) { seen = moved; moves++ }
+            val cr = crossNow.value
+            val cs = if (cr == null) null else sidesNow.value?.getOrNull(GameState.street.coerceIn(0, 1))
+            val s = cs?.street ?: streetNow.value
+            val lays = cs?.layouts ?: layoutsNow.value
             // the middle of the side street's mouth on this street, if it opens here
-            val jx = s.lefts.indices.firstOrNull { layoutsNow.value.getOrNull(it)?.stackId == com.lifemax.rpg.feature.habits.domain.JUNCTION_ID }
-                ?.let { s.lefts[it] + layoutsNow.value[it].lot / 2f } ?: Float.NaN
+            val jx = if (cr != null) (if (GameState.street == 0) cr.mouthMid else Float.NaN)
+                else s.lefts.indices.firstOrNull { lays.getOrNull(it)?.stackId == com.lifemax.rpg.feature.habits.domain.JUNCTION_ID }
+                    ?.let { s.lefts[it] + lays[it].lot / 2f } ?: Float.NaN
             GameState.junctionX = jx
-            // arriving back round the corner: stand just short of the junction end of this street
-            if (GameState.x > s.end + 500f) GameState.x = s.end - 150f
-            // arriving back from the side street: at the junction, where it opens
-            if (GameState.x < -1e8f) GameState.x = if (!jx.isNaN()) jx else s.end - 150f
+            if (cr == null) {
+                // arriving back round the corner: stand just short of the junction end of this street
+                if (GameState.x > s.end + 500f) GameState.x = s.end - 150f
+                // arriving back from the side street: at the junction, where it opens
+                if (GameState.x < -1e8f) GameState.x = if (!jx.isNaN()) jx else s.end - 150f
+            } else {
+                // the up key held in the mouth (or at the cross street's start) walks the player round the corner
+                if (!CornerWalk.active && CornerWalk.arm(dt, cr, GameState.street)) {
+                    val sd = sidesNow.value!!
+                    turnEnds(cr, sd[0].street, sd[1].street, scroll.value)
+                    // the frame the walk starts in is the street's own view still: nothing moves until the next
+                    GameState.atCorner = false
+                    continue
+                }
+                if (CornerWalk.active) {
+                    val yaw = CornerWalk.yaw
+                    val done = CornerWalk.walk(dt, cr, kotlin.math.cos(yaw), kotlin.math.sin(yaw), -kotlin.math.sin(yaw), kotlin.math.cos(yaw))
+                    // round the corner: the other street's own view, in this same frame
+                    if (done == 1) scroll.snapTo(CornerWalk.toMiddle)
+                    GameState.atCorner = false
+                    // (the frame the walk ends in shows exactly where it ended; walking on starts with the next)
+                    continue
+                }
+            }
+            val s2 = s
             val before = GameState.x
             val laneBefore = GameState.lane
-            GameState.step(dt, s.start, s.end, BuildingPainter.PAVEMENT - 2f)
+            GameState.step(dt, s2.start, s2.end, BuildingPainter.PAVEMENT - 2f)
             // lamps, trees and benches stand at the back of the pavement (lane 0); reach: the piece's drawn half-width plus the
             // player's (~10). A step in beside one is refused (x never jumps), walking into one along the inner band steps out
             // round it, and only crossing a piece's edge stops the walk
             fun reach(f: com.lifemax.rpg.feature.habits.domain.Furniture) = when (f.kind) { FurnitureKind.TREE -> 12f; FurnitureKind.BENCH -> 34f; else -> 14f }
-            if (laneBefore >= 6.5f && GameState.lane < 6.5f && s.furniture.any { kotlin.math.abs(GameState.x - it.x) < reach(it) }) GameState.lane = 6.5f
+            if (laneBefore >= 6.5f && GameState.lane < 6.5f && s2.furniture.any { kotlin.math.abs(GameState.x - it.x) < reach(it) }) GameState.lane = 6.5f
             if (kotlin.math.abs(GameState.moveX) > .05f && GameState.lane < 6.5f &&
-                s.furniture.any { val d = (it.x - before) * GameState.dir; d > -reach(it) && d < reach(it) + 24f })
+                s2.furniture.any { val d = (it.x - before) * GameState.dir; d > -reach(it) && d < reach(it) + 24f })
                 GameState.lane = (GameState.lane + 2.5f * GameState.LANE_SPEED * dt).coerceAtMost(6.5f)
             if (GameState.lane < 6.5f) {
-                for (f in s.furniture) {
+                for (f in s2.furniture) {
                     val r = reach(f)
                     if ((before <= f.x - r && GameState.x > f.x - r) || (before >= f.x + r && GameState.x < f.x + r)) {
                         GameState.x = if (before < f.x) f.x - r else f.x + r
@@ -652,17 +720,15 @@ private fun StageCanvas(
             }
             GameState.settle()
             // the camera stops where the street's built ends reach the screen's edges; the player walks on to the end
-            val half = GameState.halfView
-            val lo = s.start + half; val hi = s.end - half
-            val cx = GameState.drawnX()
-            scroll.snapTo(if (half <= 0f) cx else if (lo < hi) cx.coerceIn(lo, hi) else (s.start + s.end) / 2f)
+            scroll.snapTo(restMiddle(s2, GameState.x))
             // at the corner: in the mouth of the side street where it opens off this street, else at the junction end
-            GameState.atCorner = if (!jx.isNaN()) kotlin.math.abs(GameState.x - jx) < 95f
-                else if (GameState.cornerAtEnd) GameState.x > s.end - 110f else GameState.x < s.start + 110f
+            GameState.atCorner = if (cr != null) (if (GameState.street == 0) cr.inMouth(GameState.x) else cr.atCrossStart(GameState.x))
+                else if (!jx.isNaN()) kotlin.math.abs(GameState.x - jx) < 95f
+                else if (GameState.cornerAtEnd) GameState.x > s2.end - 110f else GameState.x < s2.start + 110f
             // the shop stays named across the gaps between buildings (no blinking off between them); cleared past the ends
-            val at = s.lefts.indices.firstOrNull { GameState.x >= s.lefts[it] && GameState.x <= s.lefts[it] + (layoutsNow.value.getOrNull(it)?.lot ?: B.W) }
+            val at = s2.lefts.indices.firstOrNull { GameState.x >= s2.lefts[it] && GameState.x <= s2.lefts[it] + (lays.getOrNull(it)?.lot ?: B.W) }
             if (at != null) GameState.nearest = at
-            else if (s.lefts.isEmpty() || GameState.x < s.lefts.first() || GameState.x > s.lefts.last() + B.W) GameState.nearest = -1
+            else if (s2.lefts.isEmpty() || GameState.x < s2.lefts.first() || GameState.x > s2.lefts.last() + B.W) GameState.nearest = -1
         }
     }
 
@@ -782,7 +848,15 @@ private fun StageCanvas(
             }
     ) {
         if (this.size.width <= 0f) return@Canvas
+        if (moves < 0) return@Canvas
         val f = frame()
+        // the crossroads' street the player is on (the walk round the corner swaps it within a frame)
+        val cs = side()
+        val layouts = cs?.layouts ?: layouts
+        val arts = cs?.arts ?: arts
+        val street = cs?.street ?: street
+        val cameras = cs?.cameras ?: cameras
+        val cr = crossroads
         if (GameState.enabled && f.unit > 0f) {
             GameState.halfView = size.width / 2f / f.unit
             GameState.viewMiddle = f.middle
@@ -794,14 +868,20 @@ private fun StageCanvas(
         if (GameState.enabled) { GameState.frameGround = f.ground; GameState.frameHorizon = horizon; GameState.framePx = SpriteArt.PIXEL * f.unit }
         val skyOnly = StageTuning.skyOnly
         // the sun or the moon stands beside the building in front
-        val column = (B.W / 2f + B.DX) * f.camera.scale + 14f
+        // (at a crossroads by the street's fixed scale: one sun for both streets, wherever the player stands)
+        val column = (B.W / 2f + B.DX) * (if (cr != null) f.scale else f.camera.scale) + 14f
         val orb =
             orbSpot(p.hour, this.size.width / d, window.windowTop, horizon / d, column, f.zoom)
+        // the crossroads' camera: the street's own view, or as far round the corner as the walk has turned it; the sky
+        // turns with it, the sun and the moon too (a quarter turn takes them out of the cross street's view)
+        if (cr != null) aimWorld(world, cr, sides!!, f.middle, f.ground, horizon, f.unit, Perspective.k(f.zoom), this.size.width, orb.first * d)
+        val yawPx = if (cr != null) world.cam.f * world.cam.yaw else 0f
+        val orbX = orb.first * d + yawPx
         // the trees are lit from the side the sun or the moon stands on; the light stands where the
         // orb is drawn, so shadows swing and facades turn to it as the street scrolls under it
-        painter.lightFrom = if (orb.first * d < this.size.width / 2f) -1f else 1f
+        painter.lightFrom = if (orbX < this.size.width / 2f) -1f else 1f
         painter.light = light
-        painter.lightX = f.streetX(orb.first * d)
+        painter.lightX = f.streetX(orbX)
         painter.lightSpan = this.size.width / f.unit
         painter.viewX = f.middle
         painter.perspectiveK = Perspective.k(f.zoom)
@@ -818,6 +898,15 @@ private fun StageCanvas(
         streetLife.lightSpan = painter.lightSpan
         streetLife.lightFrom = painter.lightFrom
         streetLife.update(seconds, seed, street)
+        if (cr != null) for (sd in sides!!) {
+            val life = sd.life ?: continue
+            life.light = light
+            life.lightSpan = painter.lightSpan
+            life.lightX = sd.lightX
+            life.lightFrom = sd.lightFrom
+            life.withPlayer = sd.k == CornerWalk.playerStreet()
+            life.update(seconds, seed, sd.street)
+        }
         val from = f.streetX(0f) - B.GAP
         val to = f.streetX(this.size.width) + B.GAP
         // the tallest building in view: it decides how high the clouds hang (clear of its roof and
@@ -828,7 +917,16 @@ private fun StageCanvas(
             if (l + layouts[i].lot < from || l > to) continue
             reach = max(reach, layouts[i].height)
         }
-        backdrop.sunClear = sunClear(orb.first * d, orb.second * d, layouts, street, f, from, to, d)
+        if (cr != null) {
+            // everything the crossroads shows, the side street's tall buildings beyond the roofs too
+            world.measure(cr, sides!!, this.size.width, f.ground)
+            reach = if (world.topY == Float.MAX_VALUE) 0f else (f.ground - world.topY) / f.unit
+        }
+        backdrop.sunClear = if (cr != null && world.restStreet >= 0) sides!![world.restStreet].let { rs ->
+            sunClear(orbX, orb.second * d, rs.layouts, rs.street, world.ox, f.ground, f.unit, world.from, world.to, d) {
+                Perspective.shift(Perspective.sideAt(it, rs.viewX, this.size.width / f.unit, Perspective.k(f.zoom)))
+            }
+        } else if (cr != null) 1f else sunClear(orbX, orb.second * d, layouts, street, f, from, to, d)
         // the clouds hang under one ceiling for the whole street: the highest any building's roof
         // (with the "add a floor" outline on it) is drawn when it stands in front, so scrolling
         // from
@@ -836,6 +934,9 @@ private fun StageCanvas(
         var still = window.ground * d
         for (i in layouts.indices) still =
             min(still, window.ground * d - layouts[i].height * cameras[i].scale * d)
+        // (at a crossroads one ceiling for both streets, so turning the corner never moves the sky)
+        if (cr != null) for (sd in sides!!) for (i in sd.layouts.indices) still =
+            min(still, window.ground * d - sd.layouts[i].height * sd.cameras[i].scale * d)
         // but the sky always keeps a band for them: a street with one very tall tower would
         // otherwise have none at all, and a tall building simply stands in front of its clouds
         still = max(still, window.windowTop * d + CLOUD_BAND * d)
@@ -845,10 +946,20 @@ private fun StageCanvas(
         val fades = layouts.isNotEmpty() && f.ground - reach * f.unit < f.top + TOP_FADE * d
         // the buildings' outlines round the sun, for its glare where it peeks past an edge: none
         // over the heading, nor where the fade under it has rubbed them out (half way down it)
-        if (skyOnly) sunGlare.edge.clear() else sunEdge(sunGlare.edge, layouts, arts, street, f, from, to)
+        if (skyOnly) sunGlare.edge.clear()
+        else if (cr != null && world.restStreet < 0) with(world) { edges(cr, sides!!, sunGlare.edge, this@Canvas.size.width, own = false) }
+        else if (cr != null) {
+            // the street at rest by its own frame (the one the walk is about to hand over to, at its last step), the rest
+            // of the crossroads through the camera
+            val rs = sides!![world.restStreet]
+            sunEdge(sunGlare.edge, rs.layouts, rs.arts, rs.street, world.ox, f.ground, f.unit, world.from, world.to) {
+                Perspective.shift(Perspective.sideAt(it, rs.viewX, this.size.width / f.unit, Perspective.k(f.zoom)))
+            }
+            with(world) { edges(cr, sides, sunGlare.edge, this@Canvas.size.width, own = true) }
+        } else sunEdge(sunGlare.edge, layouts, arts, street, f, from, to)
         sunGlare.edge.ceiling = if (fades) f.top + TOP_FADE * d * .5f else f.top
         val sunR = SunMoonSprites.SUN_R * d
-        val sunAt = Offset(orb.first * d, orb.second * d)
+        val sunAt = Offset(orbX, orb.second * d)
         sunGlare.edge.measure(sunAt.x, sunAt.y, sunR)
         // how far the camera looks into the sun (the cloud across it as last drawn)
         backlight.update(
@@ -866,15 +977,17 @@ private fun StageCanvas(
             seconds,
         )
         backdrop.backlit = backlight.amount
+        backdrop.yaw = yawPx
         with(backdrop) {
             backdrop(
                 p.hour,
                 sky,
                 horizon,
                 f.skyTop,
-                Offset(orb.first * d, orb.second * d),
+                Offset(orbX, orb.second * d),
                 ceiling,
-                f.middle + (if (skyOnly) GameState.skyPan else 0f),
+                if (cr != null && CornerWalk.active) lerp(CornerWalk.fromMiddle, CornerWalk.toMiddle, CornerWalk.ease)
+                else f.middle + (if (skyOnly) GameState.skyPan else 0f),
                 seconds,
             )
         }
@@ -890,6 +1003,36 @@ private fun StageCanvas(
         if (layered)
             drawIntoCanvas { it.saveLayer(Rect(0f, 0f, this.size.width, this.size.height), layer) }
         clipRect(0f, f.top, this.size.width, this.size.height) {
+            if (cr != null) {
+                // the crossroads: both streets through the one camera
+                val sd = sides!!
+                val depth = (this@Canvas.size.height - f.ground) / f.unit + 4f
+                with(world) {
+                    draw(cr, sd, painter, sky, light, seconds, live, accent, f.scale > .55f, Silhouettes.lod(f.scale), from, to, depth) { k, i ->
+                        if (k == GameState.street && i == focus) motion.now(seconds, lively) else rest.still(seconds)
+                    }
+                }
+                // what falls and blows through the air: in the frame of the street in view (mid-turn the nearer one's,
+                // turned with the camera)
+                val near = if (world.restStreet >= 0) world.restStreet else if (world.cam.yaw < (Math.PI / 4).toFloat()) 0 else 1
+                val ns = sd[near]
+                val turnedBy = world.cam.f * (world.cam.yaw - (if (near == 0) 0f else (Math.PI / 2).toFloat()))
+                val nox = kotlin.math.round(this@Canvas.size.width / 2f - ns.viewX * f.unit) + turnedBy
+                val nfrom = ns.viewX - this@Canvas.size.width / 2f / f.unit - B.GAP
+                val nto = ns.viewX + this@Canvas.size.width / 2f / f.unit + B.GAP
+                withTransform({
+                    translate(nox, kotlin.math.round(f.ground))
+                    scale(f.unit, f.unit, Offset.Zero)
+                }) {
+                    with(painter) {
+                        with(seasonFall) { particles(season, ns.layouts, ns.street, nfrom, nto, (f.top - f.ground) / f.unit, depth, seconds, sky) }
+                        weather(sky, ns.layouts, ns.arts, ns.street, live, nfrom, nto, (f.top - f.ground) / f.unit, depth, seconds)
+                    }
+                }
+                // exposed for the sky: the street dark in front of it (our buildings keep no lights to give back)
+                if (backlight.amount > 0f) with(backlight) { expose(sky) }
+                return@clipRect
+            }
             // where the side street opens: its own view, through the gap between the corner buildings (they are drawn over
             // its edges), from the camera's place along the street
             val jv = StageTuning.junctionView
@@ -1100,23 +1243,38 @@ private fun sunClear(
     from: Float,
     to: Float,
     d: Float,
+): Float = sunClear(x, y, layouts, street, f.size.width / 2f - f.middle * f.unit, f.ground, f.unit, from, to, d) { f.sideShift(it) }
+
+/** [sunClear] for a street drawn with its origin at screen x [originX], its pavement at [ground], [u] px a unit. */
+private fun sunClear(
+    x: Float,
+    y: Float,
+    layouts: List<BuildingLayout>,
+    street: StreetLayout,
+    originX: Float,
+    ground: Float,
+    u: Float,
+    from: Float,
+    to: Float,
+    d: Float,
+    shiftOf: (Float) -> Float,
 ): Float {
     var clear = 1f
     for (i in layouts.indices) {
         val l = street.lefts[i]
         if (l + layouts[i].lot < from || l - B.DX > to) continue
         val cx = street.centers[i]
-        val shift = f.sideShift(cx)
+        val shift = shiftOf(cx)
         clear =
             min(
                 clear,
                 LensFlare.clear(
                     x,
                     y,
-                    f.screenX(cx + Perspective.left(shift)),
-                    f.ground - layouts[i].height * f.unit,
-                    f.screenX(cx + Perspective.right(shift)),
-                    f.ground,
+                    originX + (cx + Perspective.left(shift)) * u,
+                    ground - layouts[i].height * u,
+                    originX + (cx + Perspective.right(shift)) * u,
+                    ground,
                     24f * d,
                 ),
             )
@@ -1138,9 +1296,22 @@ private fun sunEdge(
     f: Frame,
     from: Float,
     to: Float,
+) = sunEdge(edge, layouts, arts, street, f.size.width / 2f - f.middle * f.unit, f.ground, f.unit, from, to) { f.sideShift(it) }
+
+/** [sunEdge] for a street drawn with its origin at screen x [originX], its pavement at [ground], [u] px a unit. */
+private fun sunEdge(
+    edge: SunEdge,
+    layouts: List<BuildingLayout>,
+    arts: List<BuildingArt>,
+    street: StreetLayout,
+    originX: Float,
+    ground: Float,
+    u: Float,
+    from: Float,
+    to: Float,
+    shiftOf: (Float) -> Float,
 ) {
     edge.clear()
-    val u = f.unit
     val half = B.W / 2f
     for (i in layouts.indices) {
         val l = street.lefts[i]
@@ -1148,29 +1319,29 @@ private fun sunEdge(
         val layout = layouts[i]
         val art = arts.getOrNull(i) ?: continue
         val cx = street.centers[i]
-        val s = f.sideShift(cx) * u
+        val s = shiftOf(cx) * u
         val dy = B.DY * u
-        fun x(at: Float) = f.screenX(cx + at)
-        fun y(up: Float) = f.ground - up * u
+        fun x(at: Float) = originX + (cx + at) * u
+        fun y(up: Float) = ground - up * u
         val roof = layout.roof
         val sb = SpriteArt.buildings[art.stack.id]
         if (sb != null) {
             // one of OUR buildings: its real silhouette (as spriteBuilding draws it), not the engine's cornice, tank and sign
             val k = B.W / SpriteArt.SRC_W
             val hf = sb.front.height * k
-            edge.box(x(-half), y(hf), x(half), f.ground, s, if (sb.roof != null) dy else 0f)
+            edge.box(x(-half), y(hf), x(half), ground, s, if (sb.roof != null) dy else 0f)
             val over = sb.sign
             val bill = sb.prop
             if (over != null) edge.box(x(-half), y(hf + over.height * k), x(half), y(hf))
             else if (bill != null) {
                 val w = 160f * k
-                val left = -w / 2f + f.sideShift(cx) * .5f
+                val left = -w / 2f + shiftOf(cx) * .5f
                 val bottom = hf + B.DY * .5f
                 edge.box(x(left), y(bottom + bill.height * k), x(left + w), y(bottom))
             }
             continue
         }
-        edge.box(x(-half), y(roof), x(half), f.ground, s, dy)
+        edge.box(x(-half), y(roof), x(half), ground, s, dy)
         if (art.floors.isEmpty()) continue
         edge.box(x(-half - 3f), y(roof + B.CORNICE), x(half + 3f), y(roof), s, dy)
         if (art.craneOn == null) {
@@ -1370,3 +1541,101 @@ private const val TICK_NANOS = 33_000_000L
  */
 private const val PINCH_OUT = .82f
 private const val PINCH_IN = 1.2f
+
+/**
+ * Where the camera stands along street [s] for a player at [x] (street units): with them, snapped to whole pixels, and
+ * stopped where the street's built ends reach the screen's edges.
+ */
+internal fun restMiddle(s: StreetLayout, x: Float): Float {
+    val half = GameState.halfView
+    val cx = if (GameState.unit > 0f) kotlin.math.round(x * GameState.unit) / GameState.unit else x
+    val lo = s.start + half
+    val hi = s.end - half
+    return if (half <= 0f) cx else if (lo < hi) cx.coerceIn(lo, hi) else (s.start + s.end) / 2f
+}
+
+/** The middle of the view the stage really draws for [middle]: its street is moved by whole pixels. */
+internal fun drawnMiddle(middle: Float): Float {
+    val u = GameState.unit
+    if (u <= 0f) return middle
+    val half = GameState.halfView * u
+    return (half - kotlin.math.round(half - middle * u)) / u
+}
+
+/** Sets the walk's two camera ends: the view the player is in now ([middle]), and the other street's own view where it ends. */
+internal fun turnEnds(cr: com.lifemax.rpg.feature.habits.domain.Crossroads, main: StreetLayout, cross: StreetLayout, middle: Float) {
+    CornerWalk.fromMiddle = middle
+    if (CornerWalk.forward) {
+        CornerWalk.toMiddle = restMiddle(cross, cr.arriveX)
+        CornerWalk.fromX = drawnMiddle(middle) - cr.westEdge; CornerWalk.fromZ = 0f
+        CornerWalk.toX = 0f; CornerWalk.toZ = drawnMiddle(CornerWalk.toMiddle) + cr.zOff
+    } else {
+        CornerWalk.toMiddle = restMiddle(main, cr.returnX)
+        CornerWalk.fromX = 0f; CornerWalk.fromZ = drawnMiddle(middle) + cr.zOff
+        CornerWalk.toX = drawnMiddle(CornerWalk.toMiddle) - cr.westEdge; CornerWalk.toZ = 0f
+    }
+}
+
+/**
+ * Aims [world]'s camera for this frame: at rest on the player's street (the view the stage draws, [middle] along it,
+ * whole-pixel origin), or as far round the corner as the walk has turned it; and gives each street of the crossroads the
+ * view and light it is drawn with (its own resting view, with the sun where that view sees it: [orb0] is its screen x
+ * looking up the main street, the cross street's view turned a quarter from it).
+ */
+internal fun aimWorld(
+    world: CornerWorld, cr: com.lifemax.rpg.feature.habits.domain.Crossroads, sides: List<CrossSide>,
+    middle: Float, ground: Float, horizon: Float, unit: Float, perspectiveK: Float, width: Float, orb0: Float,
+) {
+    val cam = world.cam
+    val k = GameState.street.coerceIn(0, 1)
+    cam.cx = width / 2f
+    cam.cy = horizon
+    cam.unit = unit
+    cam.r = TurnTuning.R
+    cam.cutBack = TurnTuning.CUT
+    val oy = kotlin.math.round(ground)
+    cam.eye = (oy - horizon) / unit
+    world.oy = oy
+    world.perspectiveK = perspectiveK
+    val quarter = (Math.PI / 2).toFloat()
+    var restMid = middle
+    if (CornerWalk.active) {
+        val e = CornerWalk.ease
+        cam.yaw = CornerWalk.yaw
+        cam.tx = if (e <= 0f) CornerWalk.fromX else if (e >= 1f) CornerWalk.toX else lerp(CornerWalk.fromX, CornerWalk.toX, e)
+        cam.tz = if (e <= 0f) CornerWalk.fromZ else if (e >= 1f) CornerWalk.toZ else lerp(CornerWalk.fromZ, CornerWalk.toZ, e)
+        world.restStreet = if (e <= 0f) k else if (e >= 1f) 1 - k else -1
+        restMid = if (e >= 1f) CornerWalk.toMiddle else CornerWalk.fromMiddle
+    } else {
+        cam.yaw = if (k == 0) 0f else quarter
+        val m = drawnMiddle(middle)
+        if (k == 0) { cam.tx = m - cr.westEdge; cam.tz = 0f } else { cam.tx = 0f; cam.tz = m + cr.zOff }
+        world.restStreet = k
+    }
+    world.leanMain = CornerWalk.leanMain(cam.yaw)
+    world.leanCross = CornerWalk.leanCross(cam.yaw)
+    world.ox = kotlin.math.round(width / 2f - restMid * unit)
+    world.from = restMid - width / 2f / unit - com.lifemax.rpg.feature.habits.domain.BuildingSpec.GAP
+    world.to = restMid + width / 2f / unit + com.lifemax.rpg.feature.habits.domain.BuildingSpec.GAP
+    cam.update()
+    // each street's own view: the one the player is on (or walks from) where it is, the other where the walk would end
+    // (the street walked away from eases from where the walk began to the view it keeps while the other is in view, so
+    // its light is the same at the walk's end as once the other street has taken over)
+    val away0 = restMiddle(sides[0].street, cr.returnX)
+    val away1 = restMiddle(sides[1].street, cr.arriveX)
+    for (s in sides) {
+        val st = s.k.coerceAtMost(1)
+        val away = if (st == 0) away0 else away1
+        val mid = when {
+            CornerWalk.active && st == k -> { val e = CornerWalk.ease; if (e <= 0f) CornerWalk.fromMiddle else if (e >= 1f) away else lerp(CornerWalk.fromMiddle, away, e) }
+            CornerWalk.active -> CornerWalk.toMiddle
+            st == k -> middle
+            else -> away
+        }
+        s.viewX = mid
+        val orbX = orb0 + cam.f * (if (st == 0) 0f else quarter)
+        s.lightX = mid + (orbX - width / 2f) / unit
+        s.lightFrom = if (orbX < width / 2f) -1f else 1f
+    }
+    world.crossView = sides[1].viewX
+}

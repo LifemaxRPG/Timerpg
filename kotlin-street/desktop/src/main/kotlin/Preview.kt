@@ -95,6 +95,56 @@ fun streetOfShops(): List<HabitStack> {
     return west + building(com.lifemax.rpg.feature.habits.domain.JUNCTION_ID, "Orchard Lane", "", HabitMaterial.CLAY, 1) + after
 }
 
+/** The stacks of the named buildings (sprite names) in street.json, in that order, their art installed. */
+fun stacksOf(names: List<String>): List<HabitStack> {
+    val dir = File("../app/src/main/assets").takeIf { File(it, "street.json").exists() } ?: File("app/src/main/assets")
+    val arr = org.json.JSONObject(File(dir, "street.json").readText()).getJSONArray("shops")
+    fun img(n: String): androidx.compose.ui.graphics.ImageBitmap? =
+        File(dir, "buildings/$n.png").takeIf { it.exists() }?.let { SkiaImage.makeFromEncoded(it.readBytes()).toComposeImageBitmap() }
+    val wj = File(dir, "buildings/windows.json").takeIf { it.exists() }?.let { org.json.JSONObject(it.readText()) }
+    fun rects(key: String) = wj?.optJSONArray(key)?.let { a -> (0 until a.length()).map { k -> val r = a.getJSONArray(k); FloatArray(4) { r.getDouble(it).toFloat() } } }.orEmpty()
+    return names.mapNotNull { n ->
+        val i = (0 until arr.length()).firstOrNull { arr.getJSONObject(it).getString("sprite") == n } ?: return@mapNotNull null
+        val o = arr.getJSONObject(i)
+        val id = o.getString("id")
+        val mids = (0 until o.getJSONArray("parts").length()).count { o.getJSONArray("parts").getJSONObject(it).getString("key").startsWith("middle_") }
+        if (SpriteArt.buildings[id] == null) img("${n}_front")?.let { front ->
+            SpriteArt.buildings[id] = SpriteBuilding(front, img("${n}_side")!!, img("${n}_emis")!!, img("${n}_roof"), img("${n}_sign"), img("${n}_prop"), mids, rects(n), rects(n + "_shop"), img("${n}_glass"),
+                wj?.optJSONArray(n + "_relief")?.optJSONArray(0)?.let { r -> FloatArray(r.length()) { r.getDouble(it).toFloat() } }?.takeIf { it.size >= 7 }, img("${n}_over"), img("${n}_lit"), img("${n}_shade"))
+        }
+        building(id, o.getString("name"), "", HabitMaterial.CLAY, mids)
+    }
+}
+
+/**
+ * The crossroads as the app loads it (GameActivity.loadStreet): the main street with the side street's mouth and the
+ * buildings east of it, the cross street, and its other side. Null if street.json has no junction.
+ */
+fun loadCrossroads(): com.lifemax.rpg.feature.habits.presentation.scene.CrossroadsStacks? {
+    val dir = File("../app/src/main/assets").takeIf { File(it, "street.json").exists() } ?: File("app/src/main/assets")
+    val root = org.json.JSONObject(File(dir, "street.json").readText())
+    val st = root.optJSONArray("streets") ?: return null
+    val jn = root.optJSONObject("junction") ?: return null
+    if (st.length() < 2) return null
+    fun names(a: org.json.JSONArray?) = if (a == null) emptyList() else (0 until a.length()).map { a.getString(it) }
+    val west = stacksOf(names(st.getJSONObject(0).optJSONArray("buildings")))
+    val east = stacksOf(names(jn.optJSONArray("mainEast")))
+    val mouth = building(com.lifemax.rpg.feature.habits.domain.JUNCTION_ID, st.getJSONObject(1).optString("name", "Side Street"), "", HabitMaterial.CLAY, 1)
+    return com.lifemax.rpg.feature.habits.presentation.scene.CrossroadsStacks(west + mouth + east,
+        stacksOf(names(st.getJSONObject(1).optJSONArray("buildings"))), stacksOf(names(jn.optJSONArray("crossEast"))))
+}
+
+/** The preview's options: hour (-Dhour), weather (-Dwx clear|overcast|rain|mist), season (-Dseason spring|summer|autumn|winter or 0..3). */
+fun previewHour(default: Float) = System.getProperty("hour")?.toFloatOrNull() ?: default
+fun previewDay(): String = when (System.getProperty("season")?.lowercase()) {
+    "spring", "0" -> "2026-04-20"; "autumn", "fall", "2" -> "2026-10-20"; "winter", "3" -> "2026-01-20"; else -> "2026-06-14"
+}
+fun previewWeather(): WeatherState? = when (System.getProperty("wx")?.lowercase()) {
+    "rain" -> WeatherState(.9f, .8f, .8f, 0f); "mist" -> WeatherState(.4f, 0f, 0f, .75f); "overcast" -> WeatherState(.85f, 0f, 0f, 0f); else -> null
+}
+/** The screen: -Dsize=preview (780x360 dp at density 2) or phone (the S25 Ultra's 2340x1080 px at density 2.625). */
+fun previewSize(): Triple<Float, Float, Float> = if (System.getProperty("size") == "phone") Triple(2340f / 2.625f, 1080f / 2.625f, 2.625f) else Triple(780f, 360f, 2f)
+
 fun fallbackShops() = listOf(
     building("bakery", "Garrity's Bakery", "FRESH BREAD", HabitMaterial.CLAY, 3),
     building("bank", "First Bank", "", HabitMaterial.STONE, 4),
@@ -106,12 +156,11 @@ fun fallbackShops() = listOf(
 fun projection(hour: Float, day: String) = HabitsProjection(
     day = day, hour = hour, who = "", whoHint = "", rough = false, built = 0, due = 0, reducedMotion = true, haptics = null,
     problem = "", limits = HabitLimits(40, 40, 40, 40, 40, 1, 12, 12), rules = HabitRules(10, 40, 100, 12),
-    stacks = streetOfShops(), lapse = emptyList(), tokens = emptyMap(), light = false,
+    stacks = StageTuning.crossroads?.main ?: streetOfShops(), lapse = emptyList(), tokens = emptyMap(), light = false,
 )
 
-fun render(path: String, w: Int, h: Int, hour: Float, day: String, focus: String, city: Boolean, bottom: Float = 0f, ambient: Float = 70f) {
-    val density = 2f
-    val scene = ImageComposeScene(width = (w * density).toInt(), height = (h * density).toInt(), density = Density(density)) {
+fun render(path: String, w: Int, h: Int, hour: Float, day: String, focus: String, city: Boolean, bottom: Float = 0f, ambient: Float = 70f, density: Float = 2f, wd: Float = w.toFloat(), hd: Float = h.toFloat()) {
+    val scene = ImageComposeScene(width = kotlin.math.round(wd * density).toInt(), height = kotlin.math.round(hd * density).toInt(), density = Density(density)) {
         HabitsStage(
             p = projection(hour, day), ui = HabitsUi(city = city, focus = focus), visible = true, top = 0f, bottom = bottom * density, cover = 0f, inset = 0f,
             accent = Color(0xFF6FA8FF), actions = StageActions(), ambientAt = ambient,
@@ -228,28 +277,28 @@ fun main(args: Array<String>) {
         com.lifemax.rpg.feature.habits.domain.WeatherOverride.forced = null
         return
     }
+    if (mode == "seam") { renderSeam(out); return }
     if (mode == "junction") {
         // walking past the junction: the side street seen through its mouth, from either side and straight on
-        val assets = File("../app/src/main/assets").absolutePath
-        fun load(dir: String, name: String): androidx.compose.ui.graphics.ImageBitmap = SkiaImage.makeFromEncoded(File(File(assets, dir), name).readBytes()).toComposeImageBitmap()
-        val art = com.lifemax.rpg.feature.habits.presentation.scene.TurnArt(emptyList(), emptyList(),
-            runCatching { load("props", "lamp_1.png") }.getOrNull(), null,
-            trees = (1..3).map { load("props", "tree_$it.png") }, bench = runCatching { load("props", "bench_1.png") }.getOrNull(),
-            rows = turnRows(assets) { n -> runCatching { load("buildings", n) }.getOrNull() })
-        val tb = com.lifemax.rpg.feature.habits.presentation.scene.turnBuildings(art)
-        StageTuning.junctionView = { dx ->
-            if (GameState.framePx > 0f) junctionView(art, tb, dx, 16.8f, 1, com.lifemax.rpg.feature.habits.presentation.scene.TurnFrame(GameState.frameGround, GameState.frameHorizon, GameState.framePx))
-        }
-        val shops = streetOfShops()
-        val j = shops.indexOfFirst { it.id == com.lifemax.rpg.feature.habits.domain.JUNCTION_ID }
-        // the junction's middle along the street, as the stage measures it (one frame to find it)
+        StageTuning.crossroads = loadCrossroads()
+        StageTuning.cornerIds = emptySet()
+        GameState.street = 0
+        GameState.keepers = (0 until 12).map { it to it * 7919 }
+        GameState.keepersBy = mapOf(0 to GameState.keepers, 1 to (0 until 8).map { it to it * 104729 })
+        val (w, h, dens) = previewSize()
+        val hour = previewHour(16.8f)
+        com.lifemax.rpg.feature.habits.domain.WeatherOverride.forced = previewWeather()
+        val cr = StageTuning.crossroads!!
+        // the mouth's middle along the main street, as the stage measures it (one frame to find it)
         GameState.x = 1500f
-        render("$out/junction_probe.png", 780, 360, 16.8f, "2026-06-14", first, false, bottom = 40f, ambient = 100f)
+        render("$out/junction_probe.png", w.toInt(), h.toInt(), hour, previewDay(), cr.main.first().id, false, bottom = 40f, ambient = 100f, density = dens, wd = w, hd = h)
         val jx = GameState.junctionX
-        for ((k, off) in listOf(-420f, -200f, 0f, 200f, 420f).withIndex()) {
+        val tag = System.getProperty("tag")?.let { "_$it" } ?: ""
+        for ((k, off) in listOf(-420f, -300f, -200f, -100f, 0f, 100f, 200f, 300f, 420f).withIndex()) {
             GameState.x = jx + off; GameState.lane = 7f; GameState.dir = 1f
-            render("$out/junction_$k.png", 780, 360, 16.8f, "2026-06-14", first, false, bottom = 40f, ambient = 100f)
+            render("$out/junction${tag}_$k.png", w.toInt(), h.toInt(), hour, previewDay(), cr.main.first().id, false, bottom = 40f, ambient = 100f, density = dens, wd = w, hd = h)
         }
+        com.lifemax.rpg.feature.habits.domain.WeatherOverride.forced = null
         return
     }
     // the people to talk to, one at each building (the app takes them from dialogue.json)

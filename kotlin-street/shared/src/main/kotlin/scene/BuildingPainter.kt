@@ -2510,6 +2510,55 @@ internal class BuildingPainter {
     }
 
     /**
+     * In the crossroads' camera ([StageCamera]) a building's side faces, roof and rooftop billboard stand on planes of
+     * their own, each drawn through its own projective transform ([sideFace], [roofFace], [roofBoard]): the front pass
+     * then leaves them out. Off on the stage at rest, which draws them as its cabinet parallelograms.
+     */
+    var planeFaces = false
+
+    /** How the building pictures are sampled: crisp pixels at rest, smoothed where a face is seen small or at a slant. */
+    var faceQuality = FilterQuality.None
+
+    /**
+     * A side face of the building [prepare]d last, in its own picture's pixels ([SpriteBuilding.side]: 0 at the front's
+     * edge to its width at the back, 0 at the top to its height at the pavement), lit as the stage lights its shown side:
+     * [right] the face on the front's right, [back] the wall at the back (darker, the light never full on it).
+     */
+    fun DrawScope.sideFace(sb: SpriteBuilding, right: Boolean, back: Boolean = false) {
+        val img = sb.side
+        val w = img.width.toFloat()
+        val h = img.height.toFloat()
+        drawImage(img, IntOffset.Zero, IntSize(img.width, img.height), IntOffset.Zero, IntSize(img.width, img.height), 1f, Fill, null, BlendMode.SrcOver, faceQuality)
+        drawRect(Color(0xFF0A1024), Offset.Zero, Size(w, h), alpha = if (back) .38f else .2f)
+        val lit = (if (right) sunSide else -sunSide) * (if (back) .4f else 1f)
+        if (lit > .02f) drawRect(Color.White, Offset.Zero, Size(w, h), alpha = .26f * lit)
+        else if (lit < -.02f) drawRect(Color.Black, Offset.Zero, Size(w, h), alpha = .18f * -lit)
+        if (nightOn) drawRect(nightInk, Offset.Zero, Size(w, h), blendMode = BlendMode.Multiply)
+    }
+
+    /** The roof of the building [prepare]d last, in its picture's pixels ([SpriteBuilding.roof]: its top row the back). */
+    fun DrawScope.roofFace(sb: SpriteBuilding, sky: SkyColors) {
+        val img = sb.roof ?: return
+        val w = img.width.toFloat()
+        val h = img.height.toFloat()
+        drawImage(img, IntOffset.Zero, IntSize(img.width, img.height), IntOffset.Zero, IntSize(img.width, img.height), 1f, Fill, null, BlendMode.SrcOver, faceQuality)
+        drawRect(Color(0xFFFFF2D0), Offset.Zero, Size(w, h), alpha = .1f * direct)
+        if (season.snow > .01f) {
+            drawRect(snowInk(sky), Offset.Zero, Size(w, h), alpha = .85f * season.snow)
+            drawRect(snowInk(sky), Offset(0f, h * .9f), Size(w, h * .1f), alpha = .8f * season.snow)
+        }
+        if (nightOn) drawRect(nightInk, Offset.Zero, Size(w, h), blendMode = BlendMode.Multiply)
+    }
+
+    /** The rooftop billboard ([SpriteBuilding.prop]) in its own pixels, lit as its sign is; false if it has none. */
+    fun DrawScope.roofBoard(sb: SpriteBuilding): Boolean {
+        if (sb.sign != null) return false
+        val img = sb.prop ?: return false
+        drawImage(img, IntOffset.Zero, IntSize(img.width, img.height), IntOffset.Zero, IntSize(img.width, img.height), 1f, Fill, signTint(), BlendMode.SrcOver, faceQuality)
+        return true
+    }
+
+    /**
      * One of OUR buildings ([SpriteArt]): its pixel-art front, a side face and a roof built from our sprites, put on
      * the engine's box (the side face and roof lean with where it stands in the view, [sideShift]) and lit by the
      * engine: the sun's wash and shade across the front and the side, the blue hour, the night, the contact shadow at
@@ -2522,7 +2571,7 @@ internal class BuildingPainter {
         val s = sideShift
         val dy = B.DY
         // the side face the camera sees: a parallelogram hung from the front's edge
-        if (abs(s) > .02f && art.stack.id !in StageTuning.cornerIds) {
+        if (!planeFaces && abs(s) > .02f && art.stack.id !in StageTuning.cornerIds) {
             val xe = if (s > 0f) half else -half
             sideStrips(sb.side, xe, -hf, s, -dy, hf)
             spritePath.rewind()
@@ -2533,7 +2582,7 @@ internal class BuildingPainter {
         }
         // the roof face, seen from a little above: our flat roof, leaning to the shown side
         val roof = sb.roof
-        if (roof != null) {
+        if (roof != null && !planeFaces) {
             roofStrips(roof, -half, -hf, B.W, dy, s)
             spritePath.rewind()
             spritePath.moveTo(-half, -hf); spritePath.lineTo(-half + s, -hf - dy); spritePath.lineTo(half + s, -hf - dy); spritePath.lineTo(half, -hf); spritePath.close()
@@ -2550,13 +2599,13 @@ internal class BuildingPainter {
         val over = sb.sign
         if (over != null) {
             val h = over.height * k
-            picture2(over, -half, -hf - h, B.W, h, FilterQuality.None, filter = signTint())
+            picture2(over, -half, -hf - h, B.W, h, faceQuality, filter = signTint())
         } else {
             val bill = sb.prop
-            if (bill != null) {
+            if (bill != null && !planeFaces) {
                 val w = 160f * k
                 val h = bill.height * k
-                picture2(bill, -w / 2f + s * .5f, -hf - dy * .5f - h, w, h, FilterQuality.None, filter = signTint())
+                picture2(bill, -w / 2f + s * .5f, -hf - dy * .5f - h, w, h, faceQuality, filter = signTint())
             }
         }
         // the windows are real openings: the room behind each (dark glass and a dim room by day, a warm lit room once
@@ -2596,11 +2645,11 @@ internal class BuildingPainter {
             }
         }
         // the front never moves
-        picture2(sb.front, -half, -hf, B.W, hf, FilterQuality.None)
+        picture2(sb.front, -half, -hf, B.W, hf, faceQuality)
         relief(sb, half, hf)
         sb.balcony?.let {
             balcony(it, k, half, hf, s, dy)
-            sb.overBalcony?.let { o -> picture2(o, -half, -hf, B.W, hf, FilterQuality.None) }
+            sb.overBalcony?.let { o -> picture2(o, -half, -hf, B.W, hf, faceQuality) }
         }
         facadeLight(-hf, 0f, 1f)
         blueHour(-half, -hf, B.W, hf, .35f)
@@ -2630,7 +2679,7 @@ internal class BuildingPainter {
             val mirror = fresnel * (1f + PANE_FRESNEL * GlassMap.tilt(pane))
             mirrorSky(-half + band[0] * k, -hf + band[1] * k, band[2] * k, band[3] * k, min(1f, FacadeLook.reflection(0f, sky.dark) * mirror * .75f), pane, 1f)
             glassRain(-half + band[0] * k, -hf + band[1] * k, band[2] * k, band[3] * k, glassSeconds, sky)
-            picture2(gm, -half, -hf, B.W, hf, FilterQuality.None, blend = BlendMode.DstIn)
+            picture2(gm, -half, -hf, B.W, hf, faceQuality, blend = BlendMode.DstIn)
             drawIntoCanvas { it.restore() }
         }
         // lit at dusk: the glass glows
@@ -2638,10 +2687,37 @@ internal class BuildingPainter {
         if (on > .01f) {
             // lit inside: the shop's own display brightened and warmed (overlay keeps what is in the window), and a little
             // light added on top so the glass glows
-            picture2(sb.emis, -half, -hf, B.W, hf, FilterQuality.None, alpha = on * .9f, blend = BlendMode.Overlay)
-            picture2(sb.emis, -half, -hf, B.W, hf, FilterQuality.None, alpha = on * .22f, blend = BlendMode.Plus)
+            picture2(sb.emis, -half, -hf, B.W, hf, faceQuality, alpha = on * .9f, blend = BlendMode.Overlay)
+            picture2(sb.emis, -half, -hf, B.W, hf, faceQuality, alpha = on * .22f, blend = BlendMode.Plus)
         }
         drawRect(SceneInk.Highlight, Offset(-half, -hf), Size(B.W, 1f))
+    }
+
+    /**
+     * Sets the light and view state for building [art] standing at [x] along its street (the sun's side on it, which
+     * side face it shows, its glass), which [building] and the crossroads' own faces ([sideFace], [roofFace],
+     * [roofBoard]) draw by.
+     */
+    fun prepare(art: BuildingArt, x: Float, sky: SkyColors, seconds: Float) {
+        // which side of it the light finds, and how hard (the moon lights a little, the sun a lot)
+        val key = light
+        buildingX = x
+        // the people seen through the windows are flat dark figures at every hour; only the lobby's
+        // keep the warm, back-lit look of a lit shopfront at night ([lobbyLife])
+        dayMix = 1f
+        sunSide =
+            if (key == null) 0f
+            else SceneLight.sunSide(offset(x)) * key.strength * (1f - .6f * key.cool)
+        direct = if (key == null) 0f else key.strength * (1f - key.flat) * (1f - .6f * key.cool)
+        inkDark = sky.dark
+        faceLit = lerp(Color.White, GoldLight, .6f * gold)
+        castInk = if (key == null) Color.Black else lerp(shade(key, sky), Color.Black, .3f)
+        glassTints(sky)
+        // and which of its side faces the camera sees from where it stands in the view
+        sideShift = shiftAt(x)
+        fresnel = FRESNEL_FACE + (1f - FRESNEL_FACE) * abs(Perspective.sideAt(x, viewX, lightSpan))
+        mirrorPhase = (art.stack.id.hashCode() and 0xFFFF) * .37f
+        glassSeconds = seconds
     }
 
     /**
@@ -2664,25 +2740,7 @@ internal class BuildingPainter {
         if (art.stack.id == com.lifemax.rpg.feature.habits.domain.JUNCTION_ID) return
         val seconds = motion.seconds
         val half = B.W / 2f
-        // which side of it the light finds, and how hard (the moon lights a little, the sun a lot)
-        val key = light
-        buildingX = x
-        // the people seen through the windows are flat dark figures at every hour; only the lobby's
-        // keep the warm, back-lit look of a lit shopfront at night ([lobbyLife])
-        dayMix = 1f
-        sunSide =
-            if (key == null) 0f
-            else SceneLight.sunSide(offset(x)) * key.strength * (1f - .6f * key.cool)
-        direct = if (key == null) 0f else key.strength * (1f - key.flat) * (1f - .6f * key.cool)
-        inkDark = sky.dark
-        faceLit = lerp(Color.White, GoldLight, .6f * gold)
-        castInk = if (key == null) Color.Black else lerp(shade(key, sky), Color.Black, .3f)
-        glassTints(sky)
-        // and which of its side faces the camera sees from where it stands in the view
-        sideShift = shiftAt(x)
-        fresnel = FRESNEL_FACE + (1f - FRESNEL_FACE) * abs(Perspective.sideAt(x, viewX, lightSpan))
-        mirrorPhase = (art.stack.id.hashCode() and 0xFFFF) * .37f
-        glassSeconds = seconds
+        prepare(art, x, sky, seconds)
         park(art, selected, accent, seconds, sky)
         // the building's shadow on the pavement, under its front and its shown side
         val l0 = Perspective.left(sideShift)
@@ -2775,6 +2833,8 @@ internal class BuildingPainter {
         val k = back.amount
         if (k <= 0f) return
         if (SpriteArt.buildings.containsKey(art.stack.id)) return
+        // the side street's mouth: no building, so no lobby name or sign tube (they floated over its road)
+        if (art.stack.id == com.lifemax.rpg.feature.habits.domain.JUNCTION_ID) return
         val seconds = motion.seconds
         val half = B.W / 2f
         val lit = lerp(SceneInk.WindowLitDay, SceneInk.WindowLit, sky.dark)

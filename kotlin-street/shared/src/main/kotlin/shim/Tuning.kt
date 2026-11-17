@@ -33,7 +33,24 @@ object StageTuning {
     var foreground = false
     /** How much bigger than the city-scale passers the people are drawn (a game wants a readable character). */
     var personScale = 3.0f
+    /**
+     * The crossroads, when the game's street has one (the app or the preview sets it before the stage is shown): the
+     * stage then lays out both streets as one place and draws whichever the player is on, the other seen through the
+     * corner, and the walk round the corner between them, through one camera ([StageCamera]).
+     */
+    @Volatile var crossroads: CrossroadsStacks? = null
 }
+
+/**
+ * The buildings of a crossroads, as the stage's stacks: [main] the main street with the side street's mouth as its
+ * junction lot ([com.lifemax.rpg.feature.habits.domain.JUNCTION_ID]), [cross] the cross street from the main street
+ * north, [east] the cross street's other side (may be empty).
+ */
+class CrossroadsStacks(
+    val main: List<com.lifemax.rpg.feature.habits.domain.HabitStack>,
+    val cross: List<com.lifemax.rpg.feature.habits.domain.HabitStack>,
+    val east: List<com.lifemax.rpg.feature.habits.domain.HabitStack> = emptyList(),
+)
 
 /** Our characters' sheets (32x64 frames, 6 per direction; row 1 idle, row 2 walk), installed by the platform. */
 object SpriteSheets {
