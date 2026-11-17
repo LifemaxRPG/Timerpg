@@ -19,7 +19,7 @@ class ControlsTest {
     private val T = 48f
 
     @Before fun reset() {
-        MoveInput.closed = false
+        MoveInput.closed = false; MoveInput.scripted = null
         MoveInput.releaseAll()
         MoveInput.stick.travel = T; MoveInput.stick.follow = 16f
         GameState.x = 1000f; GameState.lane = 7f; GameState.dir = 1f; GameState.facing = 0
@@ -27,7 +27,7 @@ class ControlsTest {
         GameState.moveX = 0f; GameState.moveLane = 0f
     }
 
-    @After fun tidy() { MoveInput.closed = false; MoveInput.releaseAll() }
+    @After fun tidy() { MoveInput.closed = false; MoveInput.scripted = null; MoveInput.releaseAll() }
 
     private fun thumb(dx: Float, dy: Float) { MoveInput.stick.move(500f + dx, 300f + dy); MoveInput.publish() }
 
@@ -64,10 +64,53 @@ class ControlsTest {
         assertEquals(1f, GameState.moveX, 1e-6f)
     }
 
+    @Test fun aHeldKeyOrPadIsHeldToo() {
+        // an arrow key held through a door: its repeats do not bring the push back
+        MoveInput.pad(0f, .7f)
+        assertEquals(.7f, GameState.moveLane, 0f)
+        MoveInput.holdUntilNeutral()
+        assertEquals(0f, GameState.moveLane, 0f)
+        MoveInput.pad(0f, .7f); MoveInput.pad(0f, .7f)
+        assertEquals(0f, GameState.moveLane, 0f)
+        // let go, then pressed again: it walks
+        MoveInput.pad(0f, 0f)
+        MoveInput.pad(.7f, 0f)
+        assertEquals(.7f, GameState.moveX, 0f)
+        // a game pad's stick only relaxed to a slow walk's push counts again from there
+        MoveInput.holdUntilNeutral()
+        MoveInput.pad(.6f, 0f); assertEquals(0f, GameState.moveX, 0f)
+        MoveInput.pad(.2f, 0f); assertEquals(.2f, GameState.moveX, 0f)
+        // a pad already near the middle is not held
+        MoveInput.holdUntilNeutral()
+        assertEquals(.2f, GameState.moveX, 0f)
+    }
+
+    @Test fun aThumbNearTheMiddleIsNotHeld() {
+        // resting at a slow walk's push when a conversation opens: its next push out counts at once
+        MoveInput.stick.down(1L, 500f, 300f)
+        thumb(T * .25f, 0f)
+        MoveInput.holdUntilNeutral()
+        assertFalse(MoveInput.stick.holding)
+        thumb(T, 0f)
+        assertEquals(1f, GameState.moveX, 1e-6f)
+    }
+
+    @Test fun aScriptedWalkIsNotOverwritten() {
+        // the game walking the player itself: every frame's publish keeps its push, even while the stick is closed
+        MoveInput.stick.down(1L, 500f, 300f)
+        thumb(T, 0f)
+        MoveInput.scripted = floatArrayOf(0f, -1f)
+        MoveInput.closed = true
+        MoveInput.publish(); thumb(-T, 0f)
+        assertEquals(0f, GameState.moveX, 0f); assertEquals(-1f, GameState.moveLane, 0f)
+        MoveInput.scripted = null; MoveInput.closed = false; MoveInput.publish()
+        assertEquals(-1f, GameState.moveX, 1e-6f)
+    }
+
     @Test fun lettingGoLeavesNothingHeld() {
         MoveInput.stick.down(1L, 500f, 300f)
         thumb(T, 0f)
-        MoveInput.padX = -.7f
+        MoveInput.pad(-.7f, 0f)
         MoveInput.releaseAll()
         assertEquals(0f, GameState.moveX, 0f); assertEquals(0f, GameState.moveLane, 0f)
         assertFalse(MoveInput.stick.active)
@@ -79,11 +122,11 @@ class ControlsTest {
     @Test fun whicheverIsPushedFurther() {
         MoveInput.stick.down(1L, 500f, 300f)
         thumb(T * .4f, 0f)
-        MoveInput.padX = -.7f; MoveInput.publish()
+        MoveInput.pad(-.7f, 0f)
         assertEquals(-.7f, GameState.moveX, 0f)
         thumb(T, 0f)
         assertEquals(1f, GameState.moveX, 1e-6f)
-        MoveInput.padX = 0f; MoveInput.publish()
+        MoveInput.pad(0f, 0f)
         assertEquals(1f, GameState.moveX, 1e-6f)
     }
 
@@ -95,6 +138,24 @@ class ControlsTest {
             GameState.avoid(furniture, before, laneBefore, 1f / 120f)
             GameState.settle()
         }
+    }
+
+    @Test fun turningRoundOnTheStreet() {
+        // running right, then pushed left: still facing right while sliding right, facing left once nearly stopped
+        steps(1.5f, 1f, 0f)
+        assertEquals(1f, GameState.dir, 0f)
+        GameState.moveX = -1f; GameState.moveLane = 0f
+        var turned = false
+        repeat(60) {
+            val before = GameState.x; val laneBefore = GameState.lane
+            GameState.step(1f / 120f, 0f, 3000f, 13f)
+            GameState.avoid(emptyList(), before, laneBefore, 1f / 120f)
+            GameState.settle()
+            if (GameState.dir < 0f) turned = true
+            if (GameState.dir < 0f) assertTrue("facing left while sliding right at ${GameState.vx}", GameState.vx < 12f)
+            if (GameState.vx > 20f) assertEquals(1f, GameState.dir, 0f)
+        }
+        assertTrue(turned)
     }
 
     @Test fun acrossThePavement() {

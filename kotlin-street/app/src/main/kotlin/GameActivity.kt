@@ -138,6 +138,7 @@ class GameActivity : ComponentActivity() {
     }
 
     override fun onPause() {
+        getSystemService(android.hardware.input.InputManager::class.java)?.unregisterInputDeviceListener(devices)
         letGo()
         super.onPause()
     }
@@ -189,9 +190,26 @@ class GameActivity : ComponentActivity() {
         val h = kotlin.math.hypot(kx, ky)
         if (h > .5f) {
             val push = if (keys.any { it in RUN_KEYS }) 1f else .7f
-            MoveInput.padX = kx / h * push; MoveInput.padY = ky / h * push
-        } else { MoveInput.padX = padStick[0]; MoveInput.padY = padStick[1] }
-        MoveInput.publish()
+            MoveInput.pad(kx / h * push, ky / h * push)
+        } else MoveInput.pad(padStick[0], padStick[1])
+    }
+
+    /**
+     * A game pad or keyboard that goes away mid-push sends no last centred report: whatever it last said is forgotten, so
+     * the player does not walk on by themselves (and the screen's stick is not outvoted by a pad that is gone).
+     */
+    private val devices = object : android.hardware.input.InputManager.InputDeviceListener {
+        override fun onInputDeviceAdded(deviceId: Int) {}
+        override fun onInputDeviceChanged(deviceId: Int) {}
+        override fun onInputDeviceRemoved(deviceId: Int) {
+            keys.clear(); padStick[0] = 0f; padStick[1] = 0f; hatX = 0f; hatY = 0f
+            padToInput()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        getSystemService(android.hardware.input.InputManager::class.java)?.registerInputDeviceListener(devices, null)
     }
 
     /** Asks for the display's fastest refresh at its current resolution (120 Hz on the S25); the system may still choose less. */
@@ -406,6 +424,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                     GameState.x = if (turnBack) -1e9f else 150f
                     streetNo = if (turnBack) 0 else 1
                     GameState.lane = 7f
+                    // the view centred on them on the new street (not still looking ahead the way they walked before)
+                    GameState.camera.reset()
                 }
                 fade = 1f - ((t - 2.6f) / .6f).coerceIn(0f, 1f)
                 if (t >= 3.2f) break
@@ -605,6 +625,24 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         }
         if (step < 0) return@LaunchedEffect
     }
+    // the back gesture closes what is open (the crash report, a conversation, the AI panel) or leaves the room; on the street
+    // it takes two within two seconds to leave the game. Android holds the edge's back swipe off only over the bottom 200 dp,
+    // so a left thumb landing higher on the very edge and pushing right to walk is a back swipe: it must not end the game
+    var backAt by remember { mutableLongStateOf(0L) }
+    var backHint by remember { mutableStateOf(false) }
+    androidx.activity.compose.BackHandler {
+        val t = talk
+        when {
+            lastCrash != null -> lastCrash = null
+            t != null -> { t.close(voices); talk = null }
+            aiPanel -> aiPanel = false
+            turning || doorTo != null -> {}
+            inside != null -> doorTo = false to null
+            System.nanoTime() - backAt < 2_000_000_000L -> { backHint = false; activity?.moveTaskToBack(true) }
+            else -> { backAt = System.nanoTime(); backHint = true }
+        }
+    }
+    LaunchedEffect(backHint, backAt) { if (backHint) { kotlinx.coroutines.delay(2000); backHint = false } }
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         val room = inside
         if (room != null) com.lifemax.rpg.feature.habits.presentation.scene.InteriorStage(room, walker, hour, keeperSheet, Modifier.fillMaxSize())
@@ -625,11 +663,15 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         // panel, which get their taps first. Still while the corner turns, a door fades or a panel covers the street
         MoveStick(enabled = !turning && doorTo == null && !aiPanel && lastCrash == null && !tuning, Modifier.fillMaxSize())
         // the stick's corner is not the system's back gesture (Android allows 200 dp of an edge: the bottom of it, where a
-        // left thumb rests; a thumb landing higher on the very edge still swipes back)
+        // left thumb rests; a thumb landing higher on the very edge still swipes back, which the back handler above keeps
+        // from leaving the game)
         Box(Modifier.align(Alignment.BottomStart).fillMaxWidth(.45f).height(200.dp).systemGestureExclusion())
-        // the turn, on the right (clear of where the left thumb lands to walk)
+        // the turn, on the side of the screen it leads to, clear of where the left thumb lands to walk: on the right for the
+        // main street's corner; for the side street's way back, at its start, high on the left under the AI chip (and an
+        // update's, when there is one), above the stick's zone
         if (turnArt != null && !turning && atCorner && inside == null) Chip(if (streetNo == 0) "↰ Turn onto ${data.streets.getOrNull(1)?.name ?: "the side street"}" else "↳ Back to ${data.streets[0].name}", false,
-            Modifier.align(Alignment.CenterEnd).padding(horizontal = 14.dp)) {
+            if (streetNo == 0) Modifier.align(Alignment.CenterEnd).padding(horizontal = 14.dp)
+            else Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = if (updater.available != null && !aiPanel) 122.dp else 86.dp)) {
                 turnBack = streetNo == 1
                 // the camera's place along the main street from the junction's middle (turn units), where the view is now
                 turnDx = if (streetNo == 0 && !GameState.junctionX.isNaN()) (GameState.viewMiddle - GameState.junctionX) * 224f / 184f else 0f
@@ -716,6 +758,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             for (line in NpuTune.results(ctx)) Text(line, 11.sp, color = DIM)
             Chip("Stop tuning", false) { activity?.let { NpuTune.cancel(it) } }
         }
+        if (backHint) Text("Back again to leave the game", 14.sp, Modifier.align(Alignment.Center).background(PANEL, RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 8.dp))
         // the dialogue AI, under the street name (drawn last, so its panel is on top): its state at a glance; tap for the
         // model file and the speed numbers
         Column(Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = 50.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {

@@ -136,6 +136,35 @@ class StickTest {
         assertEquals((.5f - Stick.DEAD) / (1f - Stick.DEAD), s.x, 1e-4f)
     }
 
+    @Test fun aThumbAlreadyNearTheMiddleIsNotHeld() {
+        val s = stick()
+        s.move(500f + T * .25f, 300f)
+        val slow = s.x
+        s.hold()
+        assertFalse(s.holding)
+        assertEquals(slow, s.x, 0f)
+        // a quick flick out from there counts at once
+        s.move(500f + T, 300f)
+        assertEquals(1f, s.x, 1e-6f)
+        // and one that had not moved yet (landed, then the door) is not held either
+        val t = stick(); t.hold(); assertFalse(t.holding)
+        t.move(500f - T, 300f); assertEquals(-1f, t.x, 1e-6f)
+    }
+
+    @Test fun theRunsRingFollowsTheEdges() {
+        val s = Stick(T, F).also { it.width = 832f; it.height = 384f; it.edge = 4f }
+        val r = FloatArray(4)
+        // in the open: the travel every way
+        s.reaches(400f, 200f, r)
+        for (v in r) assertEquals(T, v, 0f)
+        // 30 above the bottom: a full push down in 26; landing on the left edge itself, half the travel
+        s.reaches(2f, 354f, r)
+        assertEquals(T / 2f, r[0], 0f); assertEquals(T, r[1], 0f); assertEquals(T, r[2], 0f); assertEquals(26f, r[3], 1e-4f)
+        // and the stick's push agrees: the run's share of the way down is reached that much nearer
+        s.down(1L, 200f, 354f); s.move(200f, 354f + Stick.radiusFor(.95f) * 26f)
+        assertEquals(.95f, s.amount, 1e-3f)
+    }
+
     @Test fun holdingThenLiftingClears() {
         val s = stick()
         s.move(500f, 300f - T)

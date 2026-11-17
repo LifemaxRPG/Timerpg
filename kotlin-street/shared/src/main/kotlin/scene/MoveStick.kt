@@ -13,7 +13,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.changedToDown
@@ -46,6 +48,8 @@ fun MoveStick(enabled: Boolean, modifier: Modifier = Modifier) {
     val rim = remember(px) { Stroke(1.5f * px) }
     val runRing = remember(px) { Stroke(1f * px) }
     val knobRim = remember(px) { Stroke(2f * px) }
+    val runPath = remember { Path() }
+    val reach = remember { FloatArray(4) }
     SideEffect {
         stick.travel = TRAVEL * px
         stick.follow = FOLLOW * px
@@ -72,6 +76,8 @@ fun MoveStick(enabled: Boolean, modifier: Modifier = Modifier) {
             val dt = ((now - last) / 1e9f).coerceIn(0f, .05f); last = now
             MoveInput.publish()
             if (width <= 0f) continue
+            // the screen's edges, for a full push in the room left near one (and the run's ring drawn to match)
+            if (!stick.active) { stick.width = width; stick.height = height; stick.edge = EDGE * px }
             val homeX = HOME * px; val homeY = height - HOME * px
             if (baseX.isNaN()) { baseX = homeX; baseY = homeY }
             if (stick.active) {
@@ -137,11 +143,21 @@ fun MoveStick(enabled: Boolean, modifier: Modifier = Modifier) {
         val c = Offset(baseX, baseY)
         drawCircle(Color(0x55101420), r, c, alpha = a)
         drawCircle(Color(0x59FFFFFF), r, c, alpha = a, style = rim)
-        // where a run starts
-        drawCircle(Color(0x26FFFFFF), Stick.radiusFor(MoveTuning.runAt) * TRAVEL * px, c, alpha = a, style = runRing)
-        val k = c + Offset(knobX, knobY)
-        drawCircle(if (running) Color(0xCC3A6FD8) else Color(0x99101420), KNOB * px, k, alpha = a)
-        drawCircle(Color(0xB3FFFFFF), KNOB * px, k, alpha = a, style = knobRim)
+        // where a run starts: a circle, or by a screen edge, as much nearer the middle that way as a full push is (each
+        // quarter a quarter of an ellipse, the edges' reach left, right, up and down)
+        val k = Stick.radiusFor(MoveTuning.runAt)
+        stick.reaches(c.x, c.y, reach)
+        val (l, r0, u, d) = reach
+        runPath.reset()
+        runPath.arcTo(Rect(c.x - k * r0, c.y - k * d, c.x + k * r0, c.y + k * d), 0f, 90f, true)
+        runPath.arcTo(Rect(c.x - k * l, c.y - k * d, c.x + k * l, c.y + k * d), 90f, 90f, false)
+        runPath.arcTo(Rect(c.x - k * l, c.y - k * u, c.x + k * l, c.y + k * u), 180f, 90f, false)
+        runPath.arcTo(Rect(c.x - k * r0, c.y - k * u, c.x + k * r0, c.y + k * u), 270f, 90f, false)
+        runPath.close()
+        drawPath(runPath, Color(0x26FFFFFF), alpha = a, style = runRing)
+        val knob = c + Offset(knobX, knobY)
+        drawCircle(if (running) Color(0xCC3A6FD8) else Color(0x99101420), KNOB * px, knob, alpha = a)
+        drawCircle(Color(0xB3FFFFFF), KNOB * px, knob, alpha = a, style = knobRim)
     }
 }
 
