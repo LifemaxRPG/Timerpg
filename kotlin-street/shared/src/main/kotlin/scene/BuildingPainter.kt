@@ -2460,7 +2460,7 @@ internal class BuildingPainter {
         }
         // lit at dusk: the glass glows
         val on = (sky.dark * Dusk.lightsOn(art.stack.id.hashCode(), hour, Dusk.SHOP)).coerceIn(0f, 1f)
-        if (on > .01f) picture2(sb.emis, -half, -hf, B.W, hf, FilterQuality.None, alpha = on * .5f, blend = BlendMode.Plus)
+        if (on > .01f) picture2(sb.emis, -half, -hf, B.W, hf, FilterQuality.None, alpha = on * .55f)
         drawRect(SceneInk.Highlight, Offset(-half, -hf), Size(B.W, 1f))
     }
 
