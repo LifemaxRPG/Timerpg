@@ -15,3 +15,6 @@ prototypes/*/dist/
 kotlin-street/local.properties
 kotlin-street/**/build/
 kotlin-street/.gradle/
+
+# llama.cpp source (fetched by kotlin-street/tools/get-llama.sh)
+kotlin-street/third_party/
