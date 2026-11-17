@@ -50,7 +50,7 @@ class MovementTest {
     @Test fun topSpeeds() {
         Walker().also { it.go(2f, 1f); assertEquals(RUN, it.m.vx, .5f) }
         Walker().also { it.go(2f, .7f); assertEquals(WALK, it.m.vx, .01f) }
-        Walker().also { it.go(2f, .25f); assertEquals(WALK / 2f, it.m.vx, .01f) }
+        Walker().also { it.go(2f, MoveTuning.walkFrom / 2f); assertEquals(WALK / 2f, it.m.vx, .01f) }
         // a full push on a diagonal is as fast as along the street
         Walker().also { it.go(2f, .7071f, .7071f); assertEquals(RUN, it.m.speed, .5f) }
     }
@@ -106,10 +106,38 @@ class MovementTest {
     @Test fun stopping() {
         val (walkD, walkT) = stopFrom(.7f)
         assertTrue("stopped from a walk in $walkD units", walkD in 2f..5f)
-        assertTrue("still after $walkT s", walkT in 0f..0.3f)
+        // the legs show a stride only while the figure really moves: standing again within a tenth of a second of letting
+        // go of a walk, not frozen mid-stride on one frame for a quarter of a second while the last of the speed creeps out
+        assertTrue("still after $walkT s", walkT in 0f..0.1f)
         val (runD, runT) = stopFrom(1f)
         assertTrue("stopped from a run in $runD units", runD in 6f..12f)
-        assertTrue("still after $runT s", runT in 0f..0.35f)
+        assertTrue("still after $runT s", runT in 0f..0.17f)
+        // at 60 Hz too
+        for (push in listOf(.7f, 1f)) {
+            val w = Walker(60); w.go(1.5f, push)
+            var t = -1f; val t0 = w.t
+            w.go(.5f, 0f) { if (t < 0f && it.m.vx == 0f) t = it.t - t0 }
+            assertTrue("60 Hz, push $push: still after $t s", t in 0f..(if (push < 1f) .11f else .18f))
+        }
+    }
+
+    @Test fun turningRoundSkidsThenTurns() {
+        // pushed the other way from a run, the figure faces the way it is sliding until it has all but stopped
+        for (hz in listOf(60, 120)) for (push in listOf(.7f, 1f)) {
+            val w = Walker(hz); w.go(1.5f, push)
+            var dir = 1f
+            var turnedAt = -1f
+            val t0 = w.t
+            w.go(.6f, -push) {
+                if (it.m.mayFace(-1f, it.m.vx)) dir = -1f
+                if (dir < 0f && turnedAt < 0f) turnedAt = it.t - t0
+                // never facing left while still sliding right faster than a shuffle
+                if (dir < 0f) assertTrue("$hz Hz: facing left at ${it.m.vx}", it.m.vx < MoveTuning.turnBelow)
+            }
+            assertTrue("$hz Hz, push $push: turned after $turnedAt s", turnedAt in 0f..(if (push < 1f) .08f else .14f))
+        }
+        // standing, a push either way turns them at once
+        assertTrue(Locomotion().mayFace(-1f, 0f))
     }
 
     @Test fun turningRoundFromARun() {
@@ -143,13 +171,17 @@ class MovementTest {
 
     @Test fun theRunLatches() {
         val m = Locomotion()
-        assertFalse(m.running.also { m.targetSpeed(.8f) })
-        m.targetSpeed(.8f); assertFalse(m.running)
-        m.targetSpeed(.9f); assertTrue(m.running)
-        m.targetSpeed(.8f); assertTrue("a relaxing thumb keeps running", m.running)
-        assertEquals(RUN, m.targetSpeed(.78f), 0f)
-        m.targetSpeed(.7f); assertFalse(m.running)
-        assertEquals(WALK, m.targetSpeed(.7f), 0f)
+        val on = MoveTuning.runAt; val off = MoveTuning.runOff
+        m.targetSpeed(on - .03f); assertFalse(m.running)
+        m.targetSpeed(on + .03f); assertTrue(m.running)
+        m.targetSpeed((on + off) / 2f); assertTrue("a relaxing thumb keeps running", m.running)
+        assertEquals(RUN, m.targetSpeed(off + .01f), 0f)
+        m.targetSpeed(off - .03f); assertFalse(m.running)
+        assertEquals(WALK, m.targetSpeed(off - .03f), 0f)
+        // a full walk holds over a wide band of the stick (about 4 mm of the thumb's 9), the run only at the rim
+        val band = (Stick.radiusFor(on) - Stick.radiusFor(MoveTuning.walkFrom)) * 48f * .19f
+        assertTrue("a full walk over $band mm", band >= 4f)
+        assertTrue(Stick.radiusFor(on) >= .9f)
     }
 
     @Test fun facing() {
@@ -245,7 +277,7 @@ class MovementTest {
             return hypot(w.x - x0, w.y - y0) * 120f
         }
         assertEquals(WALK * perPixel, speedAfter(.7f, 0f), .5f)
-        assertEquals(WALK * perPixel / 2f, speedAfter(.25f, 0f), .5f)
+        assertEquals(WALK * perPixel / 2f, speedAfter(MoveTuning.walkFrom / 2f, 0f), .5f)
         assertEquals(WALK * perPixel, speedAfter(0f, -.7f), .5f)
         // a thumb resting in the stick's dead zone does not move them
         val out = FloatArray(2); Stick.shape(.08f, .05f, out)
@@ -337,6 +369,16 @@ class MovementTest {
         }
         assertEquals(hi, prev, .01f)
         assertEquals(lo, CameraLead.withinEnds(-1e4f, lo, hi), .01f)
+        // the ease has no tail: from as far past an end as it starts short of it, the view is exactly on the end
+        val w = MoveTuning.endEase
+        assertEquals(hi, CameraLead.withinEnds(hi + w, lo, hi), 0f)
+        assertEquals(lo, CameraLead.withinEnds(lo - w, lo, hi), 0f)
+        assertEquals(hi - w, CameraLead.withinEnds(hi - w, lo, hi), 0f)
+        // and a pixel short of the end (2.43 device pixels a unit) is only a few units of the player's walk before it
+        val pixel = 1f / 2.43f
+        var cx2 = hi - w
+        while (CameraLead.withinEnds(cx2, lo, hi) < hi - pixel) cx2 += .01f
+        assertTrue("the last pixel takes ${hi + w - cx2} units of walking", hi + w - cx2 < 12f)
         // a street shorter than the screen: its middle
         assertEquals(1000f, CameraLead.withinEnds(5f, 1200f, 800f), 0f)
     }

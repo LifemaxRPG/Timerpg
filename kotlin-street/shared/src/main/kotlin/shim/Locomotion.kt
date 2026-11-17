@@ -32,11 +32,27 @@ object MoveTuning {
     var accel = 1100f
     var accelRun = 480f
     var brake = 1400f
-    /** A push up to this far scales the walk (for lining up at a door or a person); beyond it, a full walk ... */
-    var walkFrom = .5f
-    /** ... and from here a run, which lasts until the push drops below [runOff] (a relaxing thumb does not drop out of it). */
-    var runAt = .85f
-    var runOff = .75f
+    /**
+     * Let go, the stop eases (quick at first) but never slows gentler than this (units a second each second): the last of
+     * it is a firm step down to standing, over in under a tenth of a second from a walk, not a glide on one frozen frame.
+     */
+    var halt = 900f
+    /**
+     * Pushed the other way, the figure turns round once it is sliding the old way slower than this (units a second): from a
+     * run it skids a moment facing the way it was going, instead of facing the new way while sliding backwards.
+     */
+    var turnBelow = 12f
+    /**
+     * A push up to this far scales the walk (for lining up at a door or a person); beyond it, a full walk ... On the 48 dp
+     * stick a full walk is then held anywhere from 4.3 to 8.5 mm out (it was 5.1 to 7.9, a band too narrow to stay in).
+     */
+    var walkFrom = .4f
+    /**
+     * ... and from here a run (the knob at the rim), which lasts until the push drops below [runOff] (a relaxing thumb
+     * does not drop out of it).
+     */
+    var runAt = .92f
+    var runOff = .8f
     /** Ground covered by one walk cycle (the sheet's 6 frames, two steps) at a walk and slower: the feet stay on the ground. */
     var stride = 26.67f
     /** Faster than a walk the stride lengthens (as a runner's does) and the cadence rises less: stride x (speed / walk)^this. */
@@ -69,7 +85,10 @@ object MoveTuning {
     var leadBack = .5f
     /** On stopping, what the lead was still doing dies out with this time constant (s): the view stops with the player. */
     var leadSettle = .06f
-    /** The camera eases into the street's ends over this many units instead of stopping dead against them. */
+    /**
+     * The camera eases into the street's ends instead of stopping dead against them: it starts slowing this many units
+     * short of an end and comes to rest exactly on it (a steady slowing while the player walks twice this, with no tail).
+     */
     var endEase = 80f
     /**
      * Inside, the legs go this much faster than on the street (in sprite pixels a second; the stride grows with them, so the
@@ -132,9 +151,20 @@ class Locomotion(val scale: Float = 1f) {
         val m = min(1f, h)
         amount = m
         val want = targetSpeed(m)
-        val tx = if (h > 1e-4f) want * mx / h else 0f
-        val ty = if (h > 1e-4f) want * my / h else 0f
         val k = 1f - exp(-dt / MoveTuning.ease)
+        if (h <= 1e-4f) {
+            // let go: slowing along the way they were going, eased but never gentler than [MoveTuning.halt] and never harder
+            // than the brake, down to a dead stop (no creep, and no long last glide with the legs frozen mid-stride)
+            val sp = speed
+            if (sp <= 0f) { accelX = 0f; return }
+            val drop = maxOf(min(sp * k, MoveTuning.brake * scale * dt), MoveTuning.halt * scale * dt)
+            val f = maxOf(0f, sp - drop) / sp
+            accelX = (vx * f - vx) / dt
+            if (f == 0f) { vx = 0f; vy = 0f } else { vx *= f; vy *= f }
+            return
+        }
+        val tx = want * mx / h
+        val ty = want * my / h
         var dvx = (tx - vx) * k
         var dvy = (ty - vy) * k
         // how hard it may change: speeding up (slower into a run than into a walk) or slowing and turning round
@@ -145,9 +175,14 @@ class Locomotion(val scale: Float = 1f) {
         if (dv > a * dt) { dvx *= a * dt / dv; dvy *= a * dt / dv }
         vx += dvx; vy += dvy
         accelX = dvx / dt
-        // let go: settle to a dead stop, never a creep
-        if (h <= 1e-4f && speed < .5f * scale) { vx = 0f; vy = 0f }
     }
+
+    /**
+     * Whether a figure moving [v] along one axis may turn to face [want] (1 or -1) on it yet: once it is not sliding the
+     * other way faster than [MoveTuning.turnBelow]. Turning round from a run it skids a moment facing the old way (leaning
+     * back into the brake), then turns: never a moonwalk, facing the new way while sliding the old.
+     */
+    fun mayFace(want: Float, v: Float) = v * want >= 0f || abs(v) < MoveTuning.turnBelow * scale
 
     /** The lean for a figure seen from the side ([side]) facing [dir] (1 right, -1 left); upright in the other views. */
     fun tilt(dt0: Float, dir: Float, side: Boolean) {
@@ -236,6 +271,8 @@ class CameraLead {
     /** How fast the lead is changing (units a second). */
     var rate = 0f
         private set
+    /** Which way the player last moved (1 right, -1 left, 0 not yet). */
+    private var way = 0f
 
     /** One step of [dt] s for a player moving at [vx] with [view] units of street on the screen. */
     fun step(dt0: Float, vx: Float, view: Float): Float {
@@ -243,12 +280,15 @@ class CameraLead {
         if (dt <= 0f) return lead
         val full = MoveTuning.lead * view
         if (abs(vx) < STILL) {
-            // standing: whatever the lead was still doing dies out within a tenth of a second, never turning back
+            // standing: whatever the lead was still doing the way they went dies out within a tenth of a second; shrinking
+            // back towards them (they were slowing) it stops with them, or the view would drift back against the stop
+            if (rate * way < 0f) rate = 0f
             rate *= exp(-dt / MoveTuning.leadSettle)
             if (abs(rate) < .5f) rate = 0f
             lead = (lead + rate * dt).coerceIn(-full, full)
             return lead
         }
+        way = sign(vx)
         val target = full * (vx / MoveTuning.run).coerceIn(-1f, 1f)
         // a critically damped spring (as game engines' smooth-damp), settling in about [leadTime]
         val omega = 2f / MoveTuning.leadTime
@@ -271,7 +311,7 @@ class CameraLead {
     }
 
     /** Back to the middle at once (the player was moved: round a corner, through a door). */
-    fun reset() { lead = 0f; rate = 0f }
+    fun reset() { lead = 0f; rate = 0f; way = 0f }
 
     /** [lead] snapped to whole device pixels ([unit] pixels a street unit), so the player never flickers a pixel either way. */
     fun snapped(unit: Float): Float = if (unit > 0f) kotlin.math.round(lead * unit) / unit else lead
@@ -282,16 +322,20 @@ class CameraLead {
 
         /**
          * The camera's place [cx] kept within [lo]..[hi] (where the street's built ends reach the screen's edges), easing
-         * into each end over [MoveTuning.endEase] units: the view slows to a stop instead of halting in one frame, and its
-         * speed and place stay continuous as the player walks into and back out of an end.
+         * into each end: from [MoveTuning.endEase] units short of it the view slows steadily (its speed falls in proportion
+         * to the ground left) and comes to rest exactly on the end once [cx] is as far past it. So it never halts in one
+         * frame, its speed and place stay continuous as the player walks into and back out of an end, and there is no tail
+         * creeping on by single pixels for seconds: the whole ease takes about 2.2 s walking in, 1.1 s running.
          */
         fun withinEnds(cx: Float, lo: Float, hi: Float): Float {
             if (lo >= hi) return (lo + hi) / 2f
             val w = min(MoveTuning.endEase, (hi - lo) / 2f)
             if (w <= 0f) return cx.coerceIn(lo, hi)
             return when {
-                cx > hi - w -> hi - w * exp(-(cx - (hi - w)) / w)
-                cx < lo + w -> lo + w * exp(-((lo + w) - cx) / w)
+                cx >= hi + w -> hi
+                cx > hi - w -> { val u = cx - (hi - w); hi - w + u - u * u / (4f * w) }
+                cx <= lo - w -> lo
+                cx < lo + w -> { val u = (lo + w) - cx; lo + w - u + u * u / (4f * w) }
                 else -> cx
             }
         }

@@ -118,7 +118,15 @@ class RoomWalker(var x: Float, var y: Float) {
     /** One frame: the push [mx], [my] (-1..1, as the stick gives it; its strength sets the speed), [dt] seconds; slides along walls. */
     fun step(room: InteriorRoom, mx: Float, my: Float, dt: Float) {
         motion.drive(dt, mx, my)
-        dir = Locomotion.roomFacing(dir, mx, my)
+        // a new way to face is taken once they are not still sliding the other way along it (a skid, not a moonwalk)
+        val turn = Locomotion.roomFacing(dir, mx, my)
+        val ready = when (turn) {
+            0 -> motion.mayFace(1f, motion.vx)
+            2 -> motion.mayFace(-1f, motion.vx)
+            1 -> motion.mayFace(-1f, motion.vy)
+            else -> motion.mayFace(1f, motion.vy)
+        }
+        if (ready) dir = turn
         val t = min(dt, MoveTuning.dtMax)
         val dx = motion.vx * t; val dy = motion.vy * t
         // in small steps, each axis on its own (so it slides along an edge instead of sticking); an axis that is blocked

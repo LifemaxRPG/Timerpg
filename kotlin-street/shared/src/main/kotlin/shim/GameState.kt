@@ -25,7 +25,8 @@ object GameState {
     var look = 0
     /**
      * The push (-1..1 each, at most 1 long together; its strength sets the speed): along the street (right +), and across
-     * it (up, away from us into the buildings, is negative; down towards the kerb positive).
+     * it (up, away from us into the buildings, is negative; down towards the kerb positive). [MoveInput.publish] writes
+     * them on every touch and every frame: to walk the player from code, set [MoveInput.scripted].
      */
     var moveX = 0f
     var moveLane = 0f
@@ -98,10 +99,11 @@ object GameState {
     fun step(dt: Float, from: Float, to: Float, laneMax: Float) {
         x0 = x; lane0 = lane
         // which view: from the side within 60 degrees of the street, the back or the front beyond 70, unchanged between;
-        // the way they face changes only with a push along the street
+        // the way they face changes only with a push along the street, and only once they are not still sliding the other
+        // way (turning round from a run they skid facing the way they were going, then turn)
         facing = Locomotion.streetFacing(facing, moveX, moveLane)
-        if (moveX != 0f) dir = if (moveX > 0f) 1f else -1f
         motion.drive(dt, moveX, moveLane)
+        if (moveX != 0f) { val want = if (moveX > 0f) 1f else -1f; if (motion.mayFace(want, motion.vx)) dir = want }
         motion.tilt(dt, dir, facing == 0)
         running = motion.running
         val t = kotlin.math.min(dt, MoveTuning.dtMax)
