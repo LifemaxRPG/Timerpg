@@ -134,12 +134,18 @@ class GameActivity : ComponentActivity() {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) immersive()
         // a notification shade, a dialog, another app: the thumb's lift may never reach us, so nothing stays held
-        else { MoveInput.releaseAll(); keys.clear() }
+        else letGo()
     }
 
     override fun onPause() {
-        MoveInput.releaseAll(); keys.clear()
+        letGo()
         super.onPause()
+    }
+
+    /** Nothing held: the stick, the keys, and what the game pad last said (a later key must not bring back a stale push). */
+    private fun letGo() {
+        MoveInput.releaseAll(); keys.clear()
+        padStick[0] = 0f; padStick[1] = 0f; hatX = 0f; hatY = 0f
     }
 
     /** Arrow, WASD and D-pad keys held now (a keyboard with DeX, a game pad's D-pad), and a game pad's left stick and hat. */
@@ -379,6 +385,9 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     val density = androidx.compose.ui.platform.LocalDensity.current.density
     LaunchedEffect(turning) {
         if (!turning) return@LaunchedEffect
+        // a thumb still on the stick through the turn does not walk on round the corner: it counts again once it is back
+        // near the middle (or lifted), as after a door
+        MoveInput.holdUntilNeutral()
         val start = androidx.compose.runtime.withFrameNanos { it }
         try {
         while (true) {
@@ -466,7 +475,10 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 if (fresh > 0) {
                     foot = (foot + 1) % 4
                     val wet = (w?.wet ?: 0f) > .3f
-                    sound.play(if (wet) "step_wet_${foot + 1}" else "step_${foot + 1}", if (GameState.running) .6f else .5f, if (foot % 2 == 0) -.15f else .15f)
+                    // one foot a little softer than the other, as real steps are: the ear hears a stride (two steps) as one
+                    // beat, not a patter of equal ones
+                    val accent = if (foot % 2 == 0) 1f else .7f
+                    sound.play(if (wet) "step_wet_${foot + 1}" else "step_${foot + 1}", (if (GameState.running) .6f else .5f) * accent, if (foot % 2 == 0) -.15f else .15f)
                 }
             }
         }
@@ -527,6 +539,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 // a thumb still on the stick does not walk the player straight back out: it counts again once it is back
                 // in the middle (or lifted)
                 MoveInput.holdUntilNeutral()
+                // and the view is centred on them again (coming back out, the street is not still looking where they went in)
+                GameState.camera.reset()
                 val room = go.second
                 if (go.first && room != null) { walker = com.lifemax.rpg.feature.habits.presentation.scene.RoomWalker(room.spawnX, room.spawnY); inside = room } else inside = null
                 sound?.play("door_bell", .45f, 0f)
@@ -610,10 +624,12 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         // walking: one floating stick under the left thumb (it comes to where the thumb lands); under every button and
         // panel, which get their taps first. Still while the corner turns, a door fades or a panel covers the street
         MoveStick(enabled = !turning && doorTo == null && !aiPanel && lastCrash == null && !tuning, Modifier.fillMaxSize())
-        // the stick's corner is not the system's back gesture (Android allows 200 dp of an edge)
+        // the stick's corner is not the system's back gesture (Android allows 200 dp of an edge: the bottom of it, where a
+        // left thumb rests; a thumb landing higher on the very edge still swipes back)
         Box(Modifier.align(Alignment.BottomStart).fillMaxWidth(.45f).height(200.dp).systemGestureExclusion())
+        // the turn, on the right (clear of where the left thumb lands to walk)
         if (turnArt != null && !turning && atCorner && inside == null) Chip(if (streetNo == 0) "↰ Turn onto ${data.streets.getOrNull(1)?.name ?: "the side street"}" else "↳ Back to ${data.streets[0].name}", false,
-            Modifier.align(if (streetNo == 0) Alignment.CenterEnd else Alignment.CenterStart).padding(horizontal = 14.dp)) {
+            Modifier.align(Alignment.CenterEnd).padding(horizontal = 14.dp)) {
                 turnBack = streetNo == 1
                 // the camera's place along the main street from the junction's middle (turn units), where the view is now
                 turnDx = if (streetNo == 0 && !GameState.junctionX.isNaN()) (GameState.viewMiddle - GameState.junctionX) * 224f / 184f else 0f
@@ -642,9 +658,10 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 },
                 modifier = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 92.dp))
         } else if (!turning && turn < 0f && doorTo == null) {
-            // someone to talk to (inside: when standing near them); the way in and out
+            // someone to talk to (inside: when standing near them); the way in and out. Under the right thumb, as a game
+            // pad's buttons are, clear of the stick's zone on the left
             val roomHere = street.sprites.getOrNull(near)?.let { rooms[it] }
-            Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 56.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.align(Alignment.BottomEnd).padding(end = 24.dp, bottom = 56.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (inside == null || nearKeeper) for (npc in atHere) Chip("Talk to ${npc.first}", false) {
                     // a thumb on the stick stops walking (it would walk away and end the conversation) until it is moved again
                     MoveInput.holdUntilNeutral()

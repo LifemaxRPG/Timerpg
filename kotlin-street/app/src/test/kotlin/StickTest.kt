@@ -106,6 +106,36 @@ class StickTest {
         assertEquals(0f, s.x, 0f)
     }
 
+    @Test fun aRelaxingThumbCountsAgain() {
+        // held at a run; the thumb relaxes back to a third of the way out: it counts again from there, a slow walk
+        val s = stick()
+        s.move(500f + T, 300f)
+        s.hold()
+        s.move(500f + T * .6f, 300f)
+        assertTrue(s.holding)
+        s.move(500f + T * .3f, 300f)
+        assertFalse(s.holding)
+        assertTrue("a slow walk: ${s.x}", s.x > 0f && s.x < .3f)
+    }
+
+    @Test fun nearTheEdgeAFullPushStillFits() {
+        // a thumb landing 30 units above the bottom of a 384-high screen: pushing down to 4 from the edge is a full push
+        val s = Stick(T, F).also { it.width = 832f; it.height = 384f; it.edge = 4f }
+        s.down(1L, 200f, 354f)
+        s.move(200f, 380f)
+        assertEquals(1f, s.y, 1e-5f)
+        // never more sensitive than half the travel: landing on the edge itself, half the travel is a full push
+        s.down(2L, 200f, 383f); s.move(200f, 383f + T / 2f)
+        assertEquals(1f, s.y, 1e-5f)
+        s.down(3L, 200f, 383f); s.move(200f, 383f + T / 4f)
+        assertTrue(s.y < 1f)
+        // the other ways, and away from the edges, the travel is as ever
+        s.down(4L, 200f, 354f); s.move(200f, 354f - T * .5f)
+        assertEquals(-(.5f - Stick.DEAD) / (1f - Stick.DEAD), s.y, 1e-4f)
+        s.down(5L, 400f, 200f); s.move(400f + T * .5f, 200f)
+        assertEquals((.5f - Stick.DEAD) / (1f - Stick.DEAD), s.x, 1e-4f)
+    }
+
     @Test fun holdingThenLiftingClears() {
         val s = stick()
         s.move(500f, 300f - T)

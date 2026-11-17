@@ -5,6 +5,7 @@ import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.hypot
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
 import kotlin.math.sin
@@ -44,13 +45,25 @@ class Stick(
     /** How hard the stick is pushed: 0 in the dead zone .. 1 at the rim. */
     var amount = 0f
         private set
-    /** Held at nothing until the thumb comes back to the middle (or lifts): see [hold]. */
+    /** Held at nothing until the thumb comes back near the middle (or lifts): see [hold]. */
     var holding = false
         private set
 
     val active get() = pointer != NONE
 
+    /**
+     * The screen (the stick's units) and how close to its edge a thumb can usefully push: a stick that starts nearer an
+     * edge than [travel] reaches a full push towards it in the room left (never less than [MIN_REACH] of the travel), so a
+     * thumb landing low still walks and runs down.
+     */
+    var width = Float.POSITIVE_INFINITY
+    var height = Float.POSITIVE_INFINITY
+    var edge = 0f
+
     private val out = FloatArray(2)
+
+    /** How far a push towards an edge [room] away goes before it is a full push. */
+    private fun reach(room: Float) = min(travel, max(travel * MIN_REACH, room - edge))
 
     /** A thumb [id] lands at ([px], [py]): the stick starts there, at rest. */
     fun down(id: Long, px: Float, py: Float) {
@@ -76,8 +89,12 @@ class Stick(
         }
         val r = hypot(dx, dy)
         if (r > travel) { knobX = dx * travel / r; knobY = dy * travel / r } else { knobX = dx; knobY = dy }
-        shape(dx / travel, dy / travel, out)
-        if (holding && out[0] == 0f && out[1] == 0f) holding = false
+        val ux = dx / reach(if (dx > 0f) width - baseX else baseX)
+        val uy = dy / reach(if (dy > 0f) height - baseY else baseY)
+        shape(ux, uy, out)
+        // held: it counts again once the thumb is back near the middle (a slow walk's push), not only in the dead zone,
+        // so a thumb that only relaxes does not have to find the exact spot it landed on
+        if (holding && hypot(ux, uy) <= REARM) holding = false
         if (holding) { x = 0f; y = 0f; amount = 0f } else { x = out[0]; y = out[1]; amount = min(1f, hypot(x, y)) }
     }
 
@@ -90,8 +107,8 @@ class Stick(
     }
 
     /**
-     * The push counts for nothing until the thumb comes back to the middle or lifts: after a door or when a conversation
-     * opens, so a thumb still held does not walk the player straight back out or away.
+     * The push counts for nothing until the thumb comes back within [REARM] of the middle or lifts: after a door, the corner
+     * turn or when a conversation opens, so a thumb still held does not walk the player straight back out or away.
      */
     fun hold() {
         if (!active) return
@@ -107,6 +124,10 @@ class Stick(
         const val SNAP_ALONG = 15f
         /** ... and this close to straight in or out as straight in or out (so walking up to a door never drifts sideways). */
         const val SNAP_ACROSS = 10f
+        /** A held push counts again once the thumb is back within this share of the travel (a push of about a quarter). */
+        const val REARM = .35f
+        /** Near a screen edge, a full push towards it needs at least this share of the travel. */
+        const val MIN_REACH = .5f
 
         /** How far from the centre (a share of the travel) a push of [amount] (0..1, after the dead zone) is. */
         fun radiusFor(amount: Float) = DEAD + amount * (1f - DEAD)
@@ -156,7 +177,7 @@ object MoveInput {
         else { GameState.moveX = stick.x; GameState.moveLane = stick.y }
     }
 
-    /** A push held now counts for nothing until the thumb comes back to the middle or lifts. */
+    /** A push held now counts for nothing until the thumb comes back near the middle or lifts. */
     fun holdUntilNeutral() {
         stick.hold()
         padX = 0f; padY = 0f

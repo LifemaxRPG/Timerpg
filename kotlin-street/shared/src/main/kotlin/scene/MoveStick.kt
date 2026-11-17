@@ -31,8 +31,9 @@ import kotlin.math.min
  *
  * Lay it over the whole screen, under every button and panel: a touch it does not want (outside its zone, or a second
  * finger) is left alone, and buttons drawn over it get their taps first. With [enabled] false (the corner turn, a door,
- * a panel over the street) it is hidden and the player does not move, but a thumb still held keeps its place, so the walk
- * picks up again when it comes back.
+ * a panel over the street) it is hidden and the player does not move, but a thumb still held keeps its place: after a
+ * panel the walk picks up again; after the turn or a door it waits for the thumb to come back near the middle
+ * ([MoveInput.holdUntilNeutral]).
  */
 @Composable
 fun MoveStick(enabled: Boolean, modifier: Modifier = Modifier) {
@@ -41,6 +42,10 @@ fun MoveStick(enabled: Boolean, modifier: Modifier = Modifier) {
     val haptics = LocalHapticFeedback.current
     val px = density.density
     val open by rememberUpdatedState(enabled)
+    // the drawing's strokes, made once (the stick redraws every frame while the thumb moves)
+    val rim = remember(px) { Stroke(1.5f * px) }
+    val runRing = remember(px) { Stroke(1f * px) }
+    val knobRim = remember(px) { Stroke(2f * px) }
     SideEffect {
         stick.travel = TRAVEL * px
         stick.follow = FOLLOW * px
@@ -100,7 +105,11 @@ fun MoveStick(enabled: Boolean, modifier: Modifier = Modifier) {
                             // a new thumb in the zone (not while closed: a touch then is not meant for walking)
                             if (open) {
                                 val d = e.changes.firstOrNull { it.changedToDown() && !it.isConsumed && inZone(it.position) }
-                                if (d != null) { stick.down(d.id.value, d.position.x, d.position.y); d.consume() }
+                                if (d != null) {
+                                    // near the screen's bottom or left edge, a push that way reaches full in the room left
+                                    stick.width = size.width.toFloat(); stick.height = size.height.toFloat(); stick.edge = EDGE * px
+                                    stick.down(d.id.value, d.position.x, d.position.y); d.consume()
+                                }
                             }
                         } else {
                             // only the thumb it follows; other fingers are left for the rest of the screen
@@ -124,17 +133,15 @@ fun MoveStick(enabled: Boolean, modifier: Modifier = Modifier) {
         val a = shown
         if (a <= .01f || baseX.isNaN()) return@Canvas
         val r = RING * px
-        // the ring stays whole on the screen (the stick's centre is still where the thumb landed)
-        val cx = baseX.coerceIn(r + 2f * px, size.width - r - 2f * px)
-        val cy = baseY.coerceIn(r + 2f * px, size.height - r - 2f * px)
-        val c = Offset(cx, cy)
+        // drawn where the thumb landed, so the knob is always under the thumb (by an edge, the ring runs off the screen)
+        val c = Offset(baseX, baseY)
         drawCircle(Color(0x55101420), r, c, alpha = a)
-        drawCircle(Color(0x59FFFFFF), r, c, alpha = a, style = Stroke(1.5f * px))
+        drawCircle(Color(0x59FFFFFF), r, c, alpha = a, style = rim)
         // where a run starts
-        drawCircle(Color(0x26FFFFFF), Stick.radiusFor(MoveTuning.runAt) * TRAVEL * px, c, alpha = a, style = Stroke(1f * px))
+        drawCircle(Color(0x26FFFFFF), Stick.radiusFor(MoveTuning.runAt) * TRAVEL * px, c, alpha = a, style = runRing)
         val k = c + Offset(knobX, knobY)
         drawCircle(if (running) Color(0xCC3A6FD8) else Color(0x99101420), KNOB * px, k, alpha = a)
-        drawCircle(Color(0xB3FFFFFF), KNOB * px, k, alpha = a, style = Stroke(2f * px))
+        drawCircle(Color(0xB3FFFFFF), KNOB * px, k, alpha = a, style = knobRim)
     }
 }
 
@@ -149,5 +156,7 @@ private const val HOME = 84f
 private const val ZONE_W = .45f
 private const val ZONE_MAX = 380f
 private const val ZONE_TOP = .3f
+/** How close to the screen's edge a thumb can usefully push (dp). */
+private const val EDGE = 4f
 /** How visible it is at rest. */
 private const val IDLE = .35f
