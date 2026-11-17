@@ -34,11 +34,15 @@
   edge, no jump); within 15 degrees of the street a push is straight along it, within 10 of vertical straight in or out
   (the rest of each quarter is stretched, so sweeping round stays smooth); dragged 16 dp past the rim its centre follows
   the thumb, so turning round is never a long drag back. At the rim the knob turns blue and one light haptic tick marks the
-  run. Buttons and panels drawn over it get their taps first (panels are opaque to touches); the right side has no
-  controls. It is still (and hidden) while the corner turns, a door fades, the AI panel, the crash report or the NPU tuning
-  is open, but a held thumb keeps its place and picks up again after; after a door and when a conversation opens a held
-  push counts again only once the thumb is back in the middle (`MoveInput.holdUntilNeutral()`). Focus loss and pause let
-  go of everything. The bottom 200 dp of its corner is excluded from the system's back gesture. Leaving a room needs a
+  run. The ring is drawn where the thumb landed (the knob always under the thumb; by an edge the ring runs off the screen),
+  and a thumb landing nearer the bottom or left edge than the travel reaches a full push that way in the room left (never
+  less than half the travel). Buttons and panels drawn over it get their taps first (panels are opaque to touches); the
+  game's buttons ("Talk to", "Go inside"/"Leave", the corner turn) sit on the right, under the right thumb, clear of its
+  zone. It is still (and hidden) while the corner turns, a door fades, the AI panel, the crash report or the NPU tuning
+  is open, but a held thumb keeps its place; after a door, when a conversation opens and when the corner turn starts, a
+  held push counts again only once the thumb is back within 35% of the travel or lifted (`MoveInput.holdUntilNeutral()`).
+  Focus loss and pause let go of everything (the game pad's last stick and D-pad values too). The bottom 200 dp of its
+  corner is excluded from the system's back gesture (Android allows no more of an edge). Leaving a room needs a
   push mostly down (moveLane > 0.5 and more than sideways). A keyboard (arrows/WASD walk, Shift runs) or a game pad's
   stick and D-pad drive the same input. `GameState.moveX`/`moveLane` stay the interface (-1..1; up is moveLane < 0).
 - **The legs** (`shim/Locomotion.kt`, tunable live in `MoveTuning`; tests `app/src/test/kotlin/MovementTest.kt`): the push's
@@ -50,14 +54,35 @@
   furniture), 26.7 units a cycle up to a walk and a runner's longer stride beyond (x (speed/walk)^0.6); footfalls are
   counted at the cycle's landing frames and each plays one footstep (in sync with the drawn steps, street and rooms). The
   view (side, back, front) comes from the push's angle: side within 60 degrees of the street, back/front beyond 70,
-  unchanged between. Running, the figure leans up to 6 degrees (plus up to 3 from speeding up or braking) and the sheet's
-  raised frames lift one more sprite pixel (there is no run art yet: the walk row plays faster).
+  unchanged between. Footstep sounds alternate a louder and a softer foot, so a stride is heard as one beat.
+- **The run's frames** (`scene/RunFrames.kt`): the sheets have no run, and the art's legs are four pixels tall: a walking
+  step carries a planted foot 6.5 of the art's pixels (21.4 units a cycle), so the walk's frames at a run's speed left
+  about half the ground sliding under the feet. Seen from the side, the run's frames splay the legs (the reaching foot two
+  art pixels further forward, the trailing one two further back, less higher up the leg; the passing frames unchanged),
+  made at load from each sheet by repeating the column between the legs, so outlines stay whole and every pixel stays on
+  the art's grid. A step then carries the foot 10.5 pixels (34.5 units a cycle): the legs carry 83% of the ground at a
+  full run, against 80% at a walk (26.7 units a cycle against the drawn 21.4). They show from 30% of the way from a walk to
+  a run, with the spring (the raised frames one art pixel higher). The lean is drawn by whole art pixels: the body above
+  the hips one pixel ahead of the legs at a run (tan(lean) x 10 art pixels, rounded), no shear, nothing off the grid.
 - **The camera** (`CameraLead`, HabitsStage's game loop): looks ahead of a moving player by 8% of the view at a full run
-  (in proportion below, none standing, so a conversation is centred), through a critically damped spring (0.45 s) capped
-  at 20 + 0.4 x speed units/s, snapped to whole device pixels so the player never flickers.
-- **Rooms**: `RoomWalker` uses the same legs in room pixels (1 room pixel = 1 sprite pixel): same on-screen speeds within
-  a few percent, speed from the push, the feet no longer skate (stride 32.5 room px a cycle, was 60), a blocked axis stops
-  dead (no stored speed bursting out along a wall), facing by the dominant axis with 1.25x hysteresis.
+  (in proportion below), through a critically damped spring (0.45 s) capped at 20 + 0.4 x speed units/s as it grows. When
+  the player slows it shrinks at most half their speed, so the view never runs back against them; when they stop, the view
+  stops with them (within a frame or two of their last step) and the lead stays where it is until they walk again, so the
+  street never slides on after a stop or behind a conversation. Through a door it is centred again. It is snapped to whole
+  device pixels so the player never flickers, and it eases into the street's ends over 80 units (the camera's speed stays
+  continuous; it used to stop dead from 365 px/s in one frame). The player is redrawn every frame they change, also while
+  the camera stands at an end (the street's draw used to follow only the camera and the 30 Hz clock there, so the player
+  moved 30 times a second), and while the player or the camera moves the street's clock (passers-by, cars) ticks every
+  frame instead of 30 times a second.
+- **Rooms**: `RoomWalker` uses the same legs in room pixels (1 room pixel = 1 sprite pixel), 1.2x quicker than the street
+  (`MoveTuning.roomPace`; rooms are short walks), the stride grown with the speed so the cadence is the street's; the
+  run's frames sideways; speed from the push; a blocked axis stops dead (no stored speed bursting out along a wall);
+  facing by the dominant axis with 1.25x hysteresis.
+- **Tests** (`app/src/test/kotlin`): `StickTest` (the stick's maths, re-arming, the edge reach), `MovementTest` (speeds,
+  starts, stops, the run, facing, the legs against the art, the camera's look ahead, stop and ends, rooms) and
+  `ControlsTest` (MoveInput's gating: closed, held until neutral, let go, the pad against the stick; GameState's steps
+  across the pavement and round the lamps). The stick's touch handling (several fingers, buttons over it) is checked only
+  by the desktop render `-Dmode=stick`.
 
 Old against new (street units: 1 unit = 2.43 device pixels at FHD+ and QHD+ alike; the figure is 36 units, 88 px tall).
 All "new" numbers are from the integrator run at 120 and 60 Hz on a computer (`-Dmode=move` prints them), not the phone:
@@ -69,16 +94,19 @@ All "new" numbers are from the integrator run at 120 and 60 Hz on a computer (`-
 | 0 to 90% of a walk / of a run | 0.13 s / 0.70 s (incl. the hold) | 0.125 s / 0.20 s (0.133 s / 0.20 s at 60 Hz) |
 | Stop | from a run 4-5 units | from a walk 3.3 units, still at 0.25 s; from a run 9.1 units (a quarter body), still at 0.31 s |
 | In and out (kerb to wall, 11 lanes) | 7 lanes/s linear, 1.57 s | eased, 11.5 lanes/s walking (0.95 s), 24 running (0.46 s) |
-| Cadence | walk 1.73 cycles/s, run 3.28 (legs patter, world creeps; in-depth legs slid) | walk 2.7 cycles/s (5.4 steps/s), run 3.6 (7.2 steps/s, stride 41.4 u); feet match the ground |
-| Footstep sounds | one per 17 units against a drawn step every 13.3 | one per drawn footfall |
-| Camera | locked on the player | up to 77 units (187 px) ahead at a run (FHD+), 103 at QHD+; 90% there within 1.5 s of a run from standing, 0.75 s from a walk |
-| Rooms | 96 px/s whatever the push, feet skating 2x | 87.7 px/s walking, 182.6 running, from the push |
+| Cadence | walk 1.73 cycles/s, run 3.28 (legs patter, world creeps; in-depth legs slid) | walk 2.7 cycles/s (5.4 steps/s), run 3.6 (7.2 steps/s, stride 41.4 u) |
+| Ground the drawn legs carry | walk about 80%, run about 52% (the walk's frames) | walk 80%, run 83% (the run's frames) |
+| Footstep sounds | one per 17 units against a drawn step every 13.3 | one per drawn footfall, alternating louder and softer |
+| Camera | locked on the player | up to 77 units (187 px) ahead at a run (FHD+), 103 at QHD+; 90% there within 1.5 s of a run from standing, 0.75 s from a walk; still when the player is (0.25 s after letting go of a walk, 0.31 s of a run), never moving back |
+| Street ends | the camera stopped dead (365 px/s to 40 in one frame at a run); the player drawn ~30 times a second there | eased in over 80 units (largest one-frame change 49 units/s, two pixels a frame at 60 Hz); the player drawn every frame |
+| Rooms | 96 px/s whatever the push, feet skating 2x | 105 px/s walking, 219 running, from the push |
 
 Still to measure on the S25 (all estimates now): the real frame rate (the AI panel now shows frame times and the refresh
 asked for; the app asks for the display's fastest mode); whether 48 dp of knob travel suits the thumb; whether 5.4 steps/s
-at a walk reads brisk or pattering (lower `MoveTuning.walk` if it patters); the look of the 6-degree pixel shear and the
-hop in motion; heat at 120 Hz with continuous redraw. Passers still step on the 30 Hz ambient clock against the camera's
-every-frame motion (not changed; measure first).
+at a walk reads brisk or pattering (the art's short legs leave a choice between a quick cadence and sliding feet:
+`MoveTuning.stride` longer means fewer steps and more slide); the run's splayed frames, the one-pixel lean and the hop in
+motion; heat at 120 Hz with continuous redraw while moving. The desktop render runs the game's frame loop a step out of
+time with its drawing (it renders each frame twice in `-Dmode=move` to measure); on the phone both happen in one frame.
 
 ## Real crossroads (tools/export-street.ts v2)
 - street.json now holds named streets from the town's real layout: Main Street (the buildings on the main road west of a real

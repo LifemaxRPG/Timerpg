@@ -9,8 +9,8 @@ night, lamp light and the window glow.
 - `shared/` – the engine's source (`domain/`, `scene/`) plus `shim/` (stand-ins for the habit tracker's types, the
   platform image helper, `StageTuning` switches, `GameState` (the player), `SpriteArt` (our art)).
 - `app/` – the Android app (Compose). Controls: a floating stick under the left thumb (put the thumb down anywhere in
-  the lower left and push: further is faster, the rim runs; up and down move in and out across the pavement), drag the
-  slider for the time of day. Arrow keys/WASD (Shift runs) and a game pad also walk. Landscape. See STATUS.md
+  the lower left and push: further is faster, the rim runs; up and down move in and out across the pavement); the
+  buttons to talk, go in and turn the corner sit on the right, under the right thumb; drag the slider for the time of day. Arrow keys/WASD (Shift runs) and a game pad also walk. Landscape. See STATUS.md
   ("Movement and controls") for the numbers and `MoveTuning` to tune them.
 - `desktop/` – a JVM module that renders the same scene to PNG without a phone: `gradle :desktop:preview`.
 - `tools/export-street.ts` – exports a real town's shops from OUR TypeScript game logic (`street.json`: the exact
