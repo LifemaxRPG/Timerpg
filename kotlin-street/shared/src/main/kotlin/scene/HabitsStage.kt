@@ -636,11 +636,17 @@ private fun StageCanvas(
             // player's (~10). A step in beside one is refused (x never jumps), walking into one along the inner band steps out
             // round it, and only crossing a piece's edge stops the walk
             fun reach(f: com.lifemax.rpg.feature.habits.domain.Furniture) = when (f.kind) { FurnitureKind.TREE -> 12f; FurnitureKind.BENCH -> 34f; else -> 14f }
-            if (laneBefore >= 6.5f && GameState.lane < 6.5f && s.furniture.any { kotlin.math.abs(GameState.x - it.x) < reach(it) }) GameState.lane = 6.5f
-            // (stepping out round a piece is quicker the faster they go, so a runner still gets round a lamp)
+            if (laneBefore >= 6.5f && GameState.lane < 6.5f && s.furniture.any { kotlin.math.abs(GameState.x - it.x) < reach(it) }) {
+                GameState.lane = 6.5f; GameState.motion.stopY()
+            }
+            // (stepping out round a piece looks further ahead and is quicker the faster they go, so a runner still gets round
+            // a lamp, and a push in towards the wall does not hold them against it meanwhile)
+            val speed = kotlin.math.abs(GameState.vx)
             if (kotlin.math.abs(GameState.moveX) > .05f && GameState.lane < 6.5f &&
-                s.furniture.any { val d = (it.x - before) * GameState.dir; d > -reach(it) && d < reach(it) + 24f })
-                GameState.lane = (GameState.lane + maxOf(17.5f, .15f * kotlin.math.abs(GameState.vx)) * dt.coerceAtMost(MoveTuning.dtMax)).coerceAtMost(6.5f)
+                s.furniture.any { val d = (it.x - before) * GameState.dir; d > -reach(it) && d < reach(it) + maxOf(24f, .2f * speed) }) {
+                GameState.lane = (maxOf(GameState.lane, laneBefore) + maxOf(17.5f, .15f * speed) * dt.coerceAtMost(MoveTuning.dtMax)).coerceAtMost(6.5f)
+                if (GameState.motion.vy < 0f) GameState.motion.stopY()
+            }
             if (GameState.lane < 6.5f) {
                 for (f in s.furniture) {
                     val r = reach(f)
