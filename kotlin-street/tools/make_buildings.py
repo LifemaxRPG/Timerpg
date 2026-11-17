@@ -18,7 +18,7 @@ def load(key):
 
 def glass(a):
     r, g, b, al = (a[..., i].astype(int) for i in range(4))
-    return (al > 200) & (b > r + 18) & (b > g - 8) & ((r + g + b) / 3 > 100)
+    return (al > 200) & (b > r + 18) & (b > g - 8) & ((r + g + b) / 3 > 134)
 
 def components(mask):
     """Bounding boxes of connected glass regions (4-neighbour flood fill)."""
