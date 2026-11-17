@@ -156,7 +156,7 @@ private fun GameScreen() {
             val t = (androidx.compose.runtime.withFrameNanos { it } - start) / 1e9f
             if (t < 2.6f) { turn = (t / 2.4f).coerceAtMost(1f); fade = ((t - 2.0f) / .6f).coerceIn(0f, 1f) }
             else {
-                if (turn >= 0f) { turn = -1f; streetNo = 1 - streetNo; GameState.x = 0f; GameState.lane = 7f }
+                if (turn >= 0f) { turn = -1f; streetNo = 1 - streetNo; GameState.x = 150f; GameState.lane = 7f }
                 fade = 1f - ((t - 2.6f) / .6f).coerceIn(0f, 1f)
                 if (t >= 3.2f) break
             }
@@ -175,7 +175,7 @@ private fun GameScreen() {
             }
         }
         if (fade > 0f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = fade)))
-        if (turnArt != null && !turning) Chip("↰ Turn the corner", false, Modifier.align(Alignment.CenterStart).padding(start = 14.dp)) { turning = true }
+        if (turnArt != null && !turning && GameState.atCorner) Chip("↰ Turn the corner", false, Modifier.align(Alignment.CenterStart).padding(start = 14.dp)) { turning = true }
         // the shop the player is standing at
         val near = GameState.nearest
         if (near in shops.indices) {

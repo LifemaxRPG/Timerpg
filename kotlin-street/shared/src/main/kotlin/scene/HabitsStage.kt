@@ -625,6 +625,7 @@ private fun StageCanvas(
                 }
             }
             scroll.snapTo(GameState.x)
+            GameState.atCorner = GameState.x < s.start + 110f || GameState.x > s.end - 110f
             GameState.nearest = s.lefts.indices.firstOrNull { GameState.x >= s.lefts[it] && GameState.x <= s.lefts[it] + B.W } ?: -1
         }
     }

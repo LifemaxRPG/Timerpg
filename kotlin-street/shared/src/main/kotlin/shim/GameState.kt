@@ -22,6 +22,8 @@ object GameState {
     var travel = 0f
     /** Index of the building the player is in front of (-1 between buildings). */
     var nearest = -1
+    /** True within reach of either end of the street, where the crossroads is. */
+    var atCorner = false
 
     const val SPEED = 46f       // street units a second
     const val LANE_SPEED = 7f   // units a second in and out

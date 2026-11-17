@@ -15,7 +15,7 @@
 ## Added since (all verified by headless renders only)
 - Pixel-perfect scaling (zoom snapped to whole pixels; `StageTuning.pixelPerfect`), props/characters at 1x/1.5x pixel scale.
 - Shop name and owner shown at the bottom while standing at a shop. Collisions: walk round lamps/trees/benches at the kerb (radii are guesses).
-- Corner turn (`shared/.../scene/CornerTurn.kt`, button "Turn the corner"): the camera yaws 90 degrees round a crossroads built
+- Corner turn (`shared/.../scene/CornerTurn.kt`; the "Turn the corner" button appears within ~110 units of either end of the street): the camera yaws 90 degrees round a crossroads built
   from our buildings (player walking, time-of-day light, lit windows and lamp glow at night), then fades to the other street
   (the town's shops are split into two). It is a separate scene: it does not use the engine's sun/weather/reflections yet, and
   the junction is not a real place in the world map.
