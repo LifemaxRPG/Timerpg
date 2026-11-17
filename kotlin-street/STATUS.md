@@ -27,11 +27,41 @@
 ## Real crossroads (tools/export-street.ts v2)
 - street.json now holds named streets from the town's real layout: Main Street (the buildings on the main road west of a real
   crossroads, in order) and the cross street (the buildings along the road that leaves the main street there, named from the seed),
-  plus the junction's other buildings for the turn scene. Homes are stood in by the modular condo front in the district's colour
-  (front door for a family, lobby for flats), named after the household really living there.
+  plus the junction's other buildings for the turn scene. Homes are named after the household really living there; small
+  and medium homes are now the game's own mobile homes (see Pitched-roof houses), the rest are stood in by the modular
+  condo front in the district's colour.
 - The turn shows the junction's real buildings; its button appears only at the junction end of each street ("Turn onto <name>" /
   "Back to Main Street"), and turning back plays the turn in reverse and leaves you at the junction end of Main Street.
 - Demo town is still "eta" (Main Street: 8 shops; Orchard Lane: 6 homes). Checked on 9 seeds: all give 7-8 on Main Street, 2-6 on the cross street.
+
+## Pitched-roof houses: the homes are mobile homes now (verified in the desktop preview only; NOT yet seen on a phone)
+- A small or medium home on the exported streets wears the very mobile home the game draws on its lot (`houseSmall`,
+  `houseMedium`, in its district's colours; `tools/town-streets.ts`), built by the engine as a real house instead of the
+  condo stand-in: Orchard Lane (b8-b13) and the junction's b16. No mobile home repeats either of the two before it in a
+  row (b10 and b12 are re-rolled to another of their size and palette, as shops already are). Apartments, villas,
+  estates and terraced homes keep the condo front (b17).
+- `tools/make_buildings.py` `build_house()` cuts the sprite into pictures (front wall, near slope / ridge / far slope
+  taken every other row, gable end, hitch, porch parts, the yard's ground and its fence or hedge) and writes the shape to
+  `buildings/houses.json`; `--showcase DIR` builds all 160 sprites. `BuildingPainter.houseBuilding` builds it: back in its
+  2-tile front yard (it moves against the pavement as the street scrolls), a ridge along the street (the slope one screen
+  row per row of the art, about 21 degrees), a gable end with rake boards on the shown side, the flue behind the ridge,
+  the hitch, the porch or steps as lit boxes, the yard (grass or bare earth, the path to the gate, the game's fence or a
+  hedge for a formal yard). Light: the slope catches a high sun and is in shade at golden hour, the gable by its side,
+  the verge's shadow, the eaves' shade, the house's shade over its yard and (shorter) on the pavement. Snow on the roof,
+  a lip and icicles, a white yard. Windows keep their drawn curtains and blinds with the sky mirrored faintly over them,
+  rain on the glass, and a lamp lit behind at dusk on a home's hours.
+- The corner turn and the street crossing slot a house at its own width, back in its slot, with its pitched roof as a
+  prism (`scene/TurnRoof.kt`: both slopes wear the art's slopes through one perspective matrix each, gable triangles in
+  the siding's colour). A porch light beside each door comes on at dusk; the flues smoke in the cold months.
+- Not done yet: Main Street's own pitched roofs (`roof_2/4/6`, `roof_8/9/11`, the same machinery at 120 deep), villas
+  (a front-facing gable), the clocktower's and the school's hipped roofs; hedges down the yards' sides, pigeons on the
+  ridges, eave drips in rain. The turn's houses stand 40 back in its 120-deep slots against 64 in the street.
+- Checks: `gradle :desktop:preview -Dmode=houses -Dstreet=1` (each house beside its sprite at the left, middle and right
+  of the view, and the lane at day, dusk, night and in snow; `-Dassets=DIR -Dstreet=0` for the showcase);
+  `gradle :desktop:test -DtestOnly=HouseGeometryTest`; `npx vitest run kotlin-street/tools/town-streets.test.ts`.
+- `make_buildings.py` no longer deletes the lighting maps (`_lit`, `_shade`) of fronts it did not change: the depth
+  model that makes them is not kept on disk. The houses have none (their relief is real geometry).
+- Draw cost: about 60-90 draw calls per house against about 40 per shop (an estimate; nothing measured on the S25).
 
 ## Talking to people out loud (verified on a computer; NOT yet run on a phone)
 - In a conversation, hold "Hold to talk", say anything, let go: `voice/PlayerVoice.kt` records 16 kHz mono (at most 20 s),

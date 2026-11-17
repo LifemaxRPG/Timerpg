@@ -15,7 +15,11 @@ night, lamp light and the window glow.
   sprite parts the game uses for each shop). The street and junction logic lives in `tools/town-streets.ts`.
 - `tools/export-dialogue.ts` – exports who the player can talk to on those same two streets and what they say
   (`dialogue.json`, see "Dialogue" below).
-- `tools/make_buildings.py` – composes box-building textures (front, side, window-glow, roof, sign) from our sprites.
+- `tools/make_buildings.py` – composes box-building textures (front, side, window-glow, roof, sign) from our sprites;
+  a home that wears one of our mobile homes is cut into the pictures of a pitched-roof house instead (front wall, roof
+  slope, ridge, gable end, hitch, porch, yard and fence) with its shape in `buildings/houses.json`. It keeps the
+  lighting maps (`_lit`, `_shade`) of fronts it does not change. `--showcase DIR` builds every house sprite for
+  `gradle :desktop:preview -Dmode=houses -Dassets=DIR -Dstreet=0`.
 
 ## Rebuild the street data and the APK
 ```
