@@ -576,6 +576,9 @@ class Atlas:
         self.items.append((r, img, glow))
         self.x += w + 1; self.row = max(self.row, h)
         return r
+    def glows(self, r):
+        """Whether the piece at `r` glows anywhere at night."""
+        return any(glow is not None and (glow[..., 3] > 0).any() for (q, _, glow) in self.items if q == r)
     def save(self, out, n):
         a = np.zeros((self.y + self.row, self.w, 4), np.uint8); g = np.zeros_like(a)
         for (x, y, w, h), img, glow in self.items:
@@ -604,6 +607,18 @@ def panes_of(img, least=30):
         if any(px <= bx0 and py <= by0 and bx0 + w <= px + pw and by0 + h <= py + ph for (px, py, pw, ph, _) in out): continue
         square = near[by0:by0 + h, bx0:bx0 + w].mean() >= .85
         out.append([bx0, by0, w, h, 1 if square else 0])
+        if not square:
+            # a round pane (a clock's dial) glows over its whole face: everything inside its ellipse that is the face's
+            # cool colour (its glass, its paint, the bezel's shading), not its ink, hands and marks, nor the warm wall
+            # the art shades below it. Row spans from the first glass to the last leave hard-edged notches where a
+            # row's face runs on past its glass.
+            ys, xs = np.mgrid[0:img.shape[0], 0:img.shape[1]]
+            cx, cy, rx, ry = bx0 + (w - 1) / 2, by0 + (h - 1) / 2, w / 2 + 1.5, h / 2 + 1.5
+            inside = ((xs - cx) / rx) ** 2 + ((ys - cy) / ry) ** 2 <= 1
+            rgb = img[..., :3].astype(int)
+            face = (rgb[..., 2] >= rgb[..., 0]) & (rgb.sum(-1) > 300)
+            glow[inside & face] = GLOW
+            continue
         for y in range(by0, by0 + h):
             row = np.where(near[y, bx0:bx0 + w])[0]
             if len(row):
@@ -611,6 +626,40 @@ def panes_of(img, least=30):
                 glow[y, span][near[y, span] | light[y, span]] = GLOW
     glow[img[..., 3] == 0] = 0
     return out, glow
+
+def clock_of(img, pane, reach=27):
+    """A clock's dial (the round `pane` of `img`) without its painted hands, which would show the art's one time of day
+    all day: the engine draws them at the hour. The hands are what is not the face's cool colour and joins the hub (the
+    gold cell nearest the dial's middle; the marks round the rim stand apart), each pixel painted with the face's pixel
+    opposite it across the hub (the face's rays are symmetric; where that is not the face, a hand or a mark, the
+    face's median colour).
+    Returns the dial without them, the hub's cell [x, y, size] (the art's pixels are doubled: a cell is its pixel), and
+    the hands' colours: the ink down their middle, the brown either side, the gold at their tips and the hub."""
+    bx0, by0, w, h, _ = pane
+    cx, cy = bx0 + (w - 1) / 2, by0 + (h - 1) / 2
+    rgb = img[..., :3].astype(int)
+    ys, xs = np.mgrid[0:img.shape[0], 0:img.shape[1]]
+    gold = (rgb[..., 0] > 150) & (rgb[..., 1] > 140) & (rgb[..., 2] < 130) & (np.hypot(xs - cx, ys - cy) < 8)
+    gy, gx = np.where(gold)
+    if not len(gx): return img, None, None
+    hx, hy = int(gx.min()), int(gy.min()); cell = int(gx.max() - gx.min() + 1)
+    ox, oy = hx + cell / 2, hy + cell / 2
+    near = np.hypot(xs + .5 - ox, ys + .5 - oy) < reach
+    face = (rgb[..., 2] >= rgb[..., 0]) & (rgb.sum(-1) > 300)
+    ink, brown, tip = img[hy - cell, hx - cell].copy(), img[hy, hx - cell].copy(), img[hy, hx].copy()
+    # the hands: flood from the hub through what is not the face
+    hands = np.zeros(face.shape, bool); st = [(hy, hx)]; hands[hy, hx] = True
+    while st:
+        y, x = st.pop()
+        for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
+            if near[ny, nx] and not face[ny, nx] and not hands[ny, nx]:
+                hands[ny, nx] = True; st.append((ny, nx))
+    med = np.median(img[face & near], axis=0).astype(np.uint8)
+    out = img.copy()
+    for y, x in zip(*np.where(hands)):
+        x2, y2 = int(2 * ox - x - 1), int(2 * oy - y - 1)
+        out[y, x] = img[y2, x2] if face[y2, x2] else med
+    return out, [hx, hy, cell], (ink, brown, tip)
 
 def fill_rows(img, mask):
     """What `mask` covers, painted with its own row's colour (the median of the rest of that row): a plank or a course
@@ -632,6 +681,20 @@ def fill_period(img, mask, period):
         while sx >= 0 and mask[y, sx]: sx -= period
         if sx >= 0: img[y, x] = img[y, sx]
     return img
+
+def soften_along(img, n):
+    """`img` with each pixel's colour the mean of the `n` along its column (its own alpha kept, the clear pixels left
+    out): a hipped roof's side face, seen from the street a few times narrower along its depth than its picture from
+    above, would sample its tiles' fine pattern into a hatching of stray pixels; its courses keep their stripes."""
+    m = (img[..., 3] > 0).astype(float)[..., None]
+    def rows(x):
+        pad = np.pad(x, ((n // 2, n - 1 - n // 2), (0, 0), (0, 0)), mode='edge')
+        c = np.concatenate([np.zeros_like(pad[:1]), np.cumsum(pad, axis=0)], 0)
+        return (c[n:] - c[:-n]) / n
+    rgb = rows(img[..., :3].astype(float) * m) / np.maximum(rows(m), 1e-6)
+    out = img.copy(); out[..., :3] = np.clip(np.round(rgb), 0, 255).astype(np.uint8)
+    out[img[..., 3] == 0] = 0
+    return out
 
 def polygon(shape, pts):
     """A mask of the polygon `pts` (x, y in pixels, the pixels' corners), edges included."""
@@ -678,10 +741,13 @@ def open_balusters(pic, r0, r1, dark=(0x3a, 0x3a, 0x50)):
 
 def fl(v): return [round(float(a), 3) for a in v]
 
-def mbox(x, y, d, c, ft=None, fx=None, tt=None, st=None, card=False, panes=None, top=True, outline=False):
+def mbox(x, y, d, c, ft=None, fx=None, tt=None, st=None, card=False, panes=None, top=True, outline=False, clock=None):
     """A box of the model: x across the front picture, y up from the ground, d back from the front line (sprite pixels);
-    its top, front and side colours; the pieces of the atlas its front, top and side wear; its front's windows."""
+    its top, front and side colours; the pieces of the atlas its front, top and side wear; its front's windows; the hands
+    of the clock its front and sides wear (`clock`: the hub's cell in the front piece, the hands' lengths in cells, their
+    colours)."""
     p = dict(t='box', x=fl(x), y=fl(y), d=fl(d), c=[rgb_int(c[0]) if top else -1, rgb_int(c[1]), rgb_int(c[2])])
+    if clock is not None: p['clock'] = clock
     for k, v in (('ft', ft), ('tt', tt), ('st', st)):
         if v is not None: p[k] = v
     if fx is not None: p['fx'] = float(fx)
@@ -690,11 +756,14 @@ def mbox(x, y, d, c, ft=None, fx=None, tt=None, st=None, card=False, panes=None,
     if outline: p['out'] = True
     return p
 
-def mgable(x, y, d, left, lp, right, rp, rake, roofc, de=None, face=None, fx=None, fy=None, panes=None):
+def mgable(x, y, d, left, lp, right, rp, rake, roofc, de=None, face=None, fx=None, fy=None, panes=None, lip=None):
     """A front-facing gable: eaves x[0] and x[1], eave and ridge heights y, from its face d[0] back to d[1] (the eaves
     back to de: where they meet another roof, if they do). Each slope wears an atlas piece laid on its quad by four of
-    its points: the front eave, the apex, the ridge's back end, the back eave (lp, rp)."""
+    its points: the front eave, the apex, the ridge's back end, the back eave (lp, rp). `lip` is the colour of the
+    roof's edge in the art, just above the face's rake: the engine fills the face's stepped rake up to the slope's
+    straight edge with it."""
     p = dict(t='gable', x=fl(x), y=fl(y), d=fl(d), l=left, lp=fl(lp), r=right, rp=fl(rp), rake=[rgb_int(rake[0]), rgb_int(rake[1])], roof=rgb_int(roofc))
+    if lip is not None: p['lip'] = rgb_int(lip)
     if de is not None: p['de'] = float(de)
     if face is not None: p.update(face=face, fx=float(fx), fy=float(fy))
     if panes: p['panes'] = panes
@@ -721,6 +790,7 @@ def villa(shop, rng):
     for o in vs[1:]: roofm |= (o != vs[0]).any(-1)
     W = 256; at = Atlas(512)
     wall_c = art[320, 40]; rake_c = art[198, 6]; edge_c = art[202, 6]; roof_c = art[150, 40]
+    lip_c = art[192, 6]                                                 # the roof's dark edge row above the rake's ink
     # --- the main roof: where its slopes end and the gable's face begins, column by column (the ridge board, cols
     # 122..133, is not roof-coloured: the face starts under its end)
     top_cut = np.zeros(W, int)
@@ -791,7 +861,7 @@ def villa(shop, rng):
         mbox((4, 252), (12, 52), (0, 167), (wall_c, wall_c, wall_c), ft=gf_r, st=gfs_r, panes=gf_panes, top=False),
         # the floor between the storeys, behind the terrace: its edge along the shown side
         mbox((4, 252), (52, 58), (36, 167), (art[298, 140], art[298, 140], art[298, 140]), top=False),
-        mgable((0, 256), (98, 161), (36, 171), left, (0, 197, 128, 133, 128, -2, 0, 62), right, (128, 197, 0, 133, 0, -2, 128, 62), (rake_c, edge_c), roof_c),
+        mgable((0, 256), (98, 161), (36, 171), left, (0, 197, 128, 133, 128, -2, 0, 62), right, (128, 197, 0, 133, 0, -2, 128, 62), (rake_c, edge_c), roof_c, lip=lip_c),
         mbox((2, 254), (58, 98), (36, 167), (wall_c, wall_c, wall_c), ft=up_r, fx=0, st=ups_r, panes=up_panes, top=False),
         mbox((2, 254), (0, 12), (-53, 0), (deck_c, deck_front, shade(deck_front, .8)), ft=deckf_r, tt=deck_r),
         mbox((20, 32), (12, 52), (-18, -10), (rail_top, post_c, shade(post_c, .8)), ft=post_l),
@@ -800,8 +870,8 @@ def villa(shop, rng):
         mbox((176, 184), (58, 82), (-8, 36), (rail_top, rail_c, shade(rail_c, .85)), outline=True),
         mbox((232, 240), (58, 82), (-8, 36), (rail_top, rail_c, shade(rail_c, .85)), outline=True),
         mbox((176, 240), (58, 82), (-8, -8), (rail_top, rail_c, rail_c), ft=balc_r, card=True),
-        mgable((41, 119), (61, 94), (-18, 10), sl, (1, 67, 40, 33, 40, 5, 1, 39), sr, (39, 67, 0, 33, 0, 5, 39, 39), (rake_c, edge_c), roof_c,
-               face=sg_r, fx=40, fy=58, panes=sg_panes),
+        mgable((41, 119), (61, 94), (-18, 36), sl, (1, 67, 40, 33, 40, 5, 1, 39), sr, (39, 67, 0, 33, 0, 5, 39, 39), (rake_c, edge_c), roof_c,
+               face=sg_r, fx=40, fy=58, panes=sg_panes, lip=lip_c),
         mbox((2, 8), (12, 36), (-53, 0), (rail_top, rail_c, rail_c), st=rail_side),
         mbox((248, 254), (12, 36), (-53, 0), (rail_top, rail_c, rail_c), st=rail_side),
         mbox((2, 34), (12, 36), (-53, -53), (rail_top, rail_c, rail_c), ft=rail_l, card=True),
@@ -819,11 +889,11 @@ def villa(shop, rng):
     lawn, fence, fence_snow = yard(rng, W, setback + 167, True, (px0, px1, setback - 65), style, [(px0 - 6, px1 + 6)])
     # the whole front for what does not build it (the corner turn: a box of the two storeys), its side and its glow
     front = np.zeros((98, W, 4), np.uint8)
-    front[0:40] = art[196:236, 0:W]; front[40:46] = art[296:302, 0:W]; front[46:86] = art[302:342, 0:W]; front[86:98] = art[396:408, 0:W]
+    front[0:40] = up[66:106]; front[40:46] = art[296:302, 0:W]; front[46:86] = art[302:342, 0:W]; front[86:98] = art[396:408, 0:W]
     front = solid(front); front[:, :2] = 0; front[:, 254:] = 0
     emis = np.zeros_like(front); emis[0:40] = panes_of(front[0:40])[1]; emis[46:86] = panes_of(front[46:86])[1]
     side = np.zeros((98, 167, 4), np.uint8)
-    side[0:40, 36:] = ups; side[40:46, :, :3] = art[298, 140][:3]; side[40:46, :, 3] = 255; side[46:86] = gfs
+    side[0:40] = np.concatenate([ups[:, :38], ups[:, 2:]], axis=1); side[40:46, :, :3] = art[298, 140][:3]; side[40:46, :, 3] = 255; side[46:86] = gfs
     side[86:98, :, :3] = deck_front[:3]; side[86:98, :, 3] = 255
     model = dict(kind='villa', w=W, frontX=(224 - W) / 2, setback=setback, lawn='grass', style=style, parts=parts,
                  fence=dict(d=3, foot=28 if style != 'formal' else 32) if fence is not None else None,
@@ -835,8 +905,25 @@ def tower(shop, rng):
     art = solid(np.array(load(key)))
     W = 256; at = Atlas(512)
     roof_c = art[100, 128]
-    # the tower: a square box wearing its front on every side (a clock on each face), the roof's eave fascia its top
-    body = art[138:460, 10:244]
+    # the tower: a square box wearing its front on every side (a clock on each face), the roof's eave fascia its top.
+    # Its upper storeys' brick piers stand two pixels in from the stone bands and the lower storey; on a box both the
+    # front's and the side's two outer columns would be empty there, a slit of sky down each corner. Those rows are
+    # widened to the box's edge: the pier's outline moved out to it and its brick carried after it.
+    body = art[138:460, 10:244].copy()
+    for y in range(body.shape[0]):
+        xs = np.where(body[y, :, 3] > 0)[0]
+        if not len(xs): continue
+        f, l = int(xs.min()), int(xs.max())
+        if 0 < f <= 2: body[y, 0:f + 2] = body[y, f:2 * f + 2].copy()
+        n = body.shape[1] - 1 - l
+        if 0 < n <= 2: body[y, l - 1:] = body[y, l - 1 - n:l + 1].copy()
+    # the clock's painted hands taken off its dial (the engine draws them at the hour: the minute hand as long as the
+    # art's, 12 of its doubled pixels, the hour hand 9), then where the face glows at night: all of it, hands' place too
+    clock = None
+    for q in panes_of(body)[0]:
+        if q[4] == 0 and clock is None:
+            body, hub, ink = clock_of(body, q)
+            if hub is not None: clock = hub + [12, 9] + [rgb_int(c) for c in ink]
     b_panes, b_glow = panes_of(body)
     body_r = at.add(body, b_glow)
     # the hipped roof: its front face, the art's rows 61..137 between the hips, every other one (the artist's own
@@ -847,12 +934,21 @@ def tower(shop, rng):
     rise = rise_for(face.shape[0], run)
     front_r = at.add(face)
     lq = [(0, 134), (0, 0), (58, 26), (58, 57)]; rq = [(58, 134), (58, 0), (0, 26), (0, 57)]
-    left = at.add(cut(art[4:139, 34:93], polygon((135, 59), lq)))
-    right = at.add(cut(art[4:139, 162:221], polygon((135, 59), rq)))
+    left = at.add(soften_along(cut(art[4:139, 34:93], polygon((135, 59), lq)), 12))
+    right = at.add(soften_along(cut(art[4:139, 162:221], polygon((135, 59), rq)), 12))
     lantern = at.add(art[50:61, 92:164])
     stone = art[112, 16]
+    # the box's top round the roof: the stone coping the art shows along the tower's edges from above (light stone
+    # outlined in ink over the grey course under it), its rows the top's depth from the back (one per 10 pixels)
+    cope, grey, ink = art[60, 28], art[140, 14], art[60, 22]
+    top = np.zeros((24, 234, 4), np.uint8); top[:] = grey
+    top[1:23, 2:12] = cope; top[1:23, 222:232] = cope; top[1:3, 2:232] = cope; top[21:23, 2:232] = cope
+    top[0, :] = ink; top[23, :] = ink; top[:, 0:2] = ink; top[:, 232:] = ink
+    grain = np.kron(rng.integers(-5, 6, (12, 117)), np.ones((2, 2), np.int64))
+    top[..., :3] = np.clip(top[..., :3].astype(int) + grain[..., None], 0, 255).astype(np.uint8)
+    top_r = at.add(top)
     parts = [
-        mbox((10, 244), (0, E), (0, 234), (stone, art[300, 128], art[300, 128]), ft=body_r, st=body_r, panes=b_panes),
+        mbox((10, 244), (0, E), (0, 234), (stone, art[300, 128], art[300, 128]), ft=body_r, tt=top_r, st=body_r, panes=b_panes, clock=clock),
         mhip((34, 220), (E, E + rise), (0, 234), (92, 162, run, 234 - run), front_r, left, [v for p in lq for v in p], right, [v for p in rq for v in p], roof_c),
         mbox((92, 164), (E + rise, E + rise + 11), (run + 12, 234 - run - 12), (art[40, 128], art[55, 128], shade(art[55, 128], .8)), ft=lantern),
     ]
@@ -871,17 +967,21 @@ def school(shop, rng):
     bottom = int(np.where(art[:, 30, 3] > 0)[0].max()) + 1
     E = bottom - 398
     # --- the walls: the long front as drawn, and the middle bay (standing 12 forward) with the cross gable's face over
-    # it, cut above its rake boards
+    # it, cut above its rake boards. The bay is as wide as the two doors' arches (cols 224..545), which reach out past
+    # the gable's eaves (258, 510): an edge through an arch would break it in two
     body = art[398:bottom, 20:748]
     b_panes, b_glow = panes_of(body)
     body_r = at.add(body, b_glow)
-    bay = art[318:bottom, 258:510].copy()
-    for x in range(252):
-        r = 398 - (126 - abs(x - 126 + .5)) * 74 / 126                 # the rake's top edge, from the eaves to the apex
-        bay[:max(0, int(r) - 2 - 318), x] = 0
+    BX0, BX1 = 222, 546
+    bay = art[318:bottom, BX0:BX1].copy()
+    for x in range(BX1 - BX0):
+        g = x + BX0 - 258                                               # across the cross gable, from its left eave
+        r = 398 - (126 - abs(g - 126 + .5)) * 74 / 126 - 2 if 0 <= g < 252 else 398   # its rake's top edge; else the wall's
+        bay[:max(0, int(r) - 318), x] = 0
     bay_panes, bay_glow = panes_of(bay)
     bay_r = at.add(bay, bay_glow)
-    bay_side = at.add(art[398:bottom, 266:278])
+    ret = column_rows(art[398:bottom], list(range(204, 222)))
+    bay_side = at.add(np.repeat(ret[:, None, :], 12, axis=1))
     # the side walls: each row the commonest colour of the front's wall clear of its windows and doors, an upper and an
     # arched window of the front's own, frame and arch and all
     rows = np.zeros((E, 4), np.uint8); gm = glass(body)
@@ -911,26 +1011,42 @@ def school(shop, rng):
     fm = np.zeros(flat.shape[:2], bool); fm[:, 418:472] = True
     flat_r = at.add(fill_period(flat, fm, 12)[::2])
     lq = [(0, 350), (0, 0), (122, 57), (122, 97)]; rq = [(123, 350), (123, 0), (0, 57), (0, 97)]
-    left = at.add(cut(art[48:399, 14:137], polygon((351, 123), lq)))
-    right = at.add(cut(art[48:399, 631:755], polygon((351, 124), rq)))
+    left = at.add(soften_along(cut(art[48:399, 14:137], polygon((351, 123), lq)), 12))
+    right = at.add(soften_along(cut(art[48:399, 631:755], polygon((351, 124), rq)), 12))
     # the cross gable's slopes: from its rake back to the valley where they meet the main roof
     ridge2 = E + 72
     clq = [(0, 201), (126, 129), (126, 2), (4, 113)]; crq = [(126, 201), (0, 129), (0, 2), (122, 113)]
     cl = at.add(cut(art[195:398, 258:385], polygon((203, 127), clq)))
     cr = at.add(cut(art[195:398, 384:511], polygon((203, 127), crq)))
     R = E + rise
-    chim1 = at.add(art[62:104, 152:202]); chim2 = at.add(art[118:150, 556:606])
+    # the chimneys: each a brick stack (its front the art's, the near one's carried up a few courses: more of it shows
+    # over the ridge than the art draws) under a wider stone cap, whose front is the art's band of courses and whose
+    # top the art's cap seen from above, its flue a dark hole (every other row: the art draws tops twice as deep)
+    stack1 = at.add(np.concatenate([art[88:98, 156:198], art[88:106, 156:198]])); cap1 = at.add(art[72:86, 152:202])
+    top1 = at.add(art[39:72, 152:202][::2])
+    stack2 = at.add(art[144:162, 560:602]); cap2 = at.add(art[130:142, 556:606]); top2 = at.add(art[96:130, 556:606][::2])
+    brick, cap_c = art[95, 175], art[78, 160]
     stone = art[700, 210]; tread = art[700, 300]; riser = art[405, 300]
+    # the steps' cheeks: the art's stone balusters along the stair, a coping on them
+    coping, ink = art[690, 230], art[650, 214]
+    cheek = np.repeat(art[690:691, 198:232], 24, axis=0); cheek[0:3] = coping; cheek[3] = ink
+    cheek[-1] = ink; cheek[:, :1] = ink; cheek[:, -1:] = ink
+    cheek[..., 3] = 255
+    cheek_r = at.add(cheek)
     parts = [
         mbox((20, 748), (0, E), (0, 272), (stone, stone, stone), ft=body_r, st=side_r, panes=b_panes, top=False),
-        mbox((152, 202), (R - 22, R + 20), (172, 196), (art[50, 175], stone, stone), ft=chim1),
+        mbox((156, 198), (R - 18, R + 10), (174, 194), (brick, brick, shade(brick, .8)), ft=stack1),
+        mbox((152, 202), (R + 10, R + 24), (170, 198), (cap_c, cap_c, shade(cap_c, .8)), ft=cap1, tt=top1),
         mhip((14, 754), (E, R), (-6, 278), (136, 631, -6 + run, 278 - run), front_r, left, [v for p in lq for v in p], right,
              [v for p in rq for v in p], roof_c, flat=flat_r),
-        mbox((556, 606), (R - 10, R + 22), (104, 118), (art[110, 580], stone, stone), ft=chim2),
+        mbox((560, 602), (R - 10, R + 8), (104, 118), (brick, brick, shade(brick, .8)), ft=stack2),
+        mbox((556, 606), (R + 8, R + 20), (101, 121), (cap_c, cap_c, shade(cap_c, .8)), ft=cap2, tt=top2),
         mgable((258, 510), (E, ridge2), (-12, 71), cl, [v for p in clq for v in p], cr, [v for p in crq for v in p], (roof_c, roof_c), roof_c, de=-6),
-        mbox((264, 504), (0, E), (-12, 0), (stone, stone, stone), ft=bay_r, fx=258, st=bay_side, panes=bay_panes, top=False),
-        mbox((198, 232), (0, 24), (-70, -12), (art[690, 210], art[720, 210], shade(art[720, 210], .85)), outline=True),
-        mbox((534, 568), (0, 24), (-70, -12), (art[690, 210], art[720, 210], shade(art[720, 210], .85)), outline=True),
+        # the ledge over the bay beside the gable (the bay itself has no top: the gable's face stands on it)
+        mbox((BX0, BX1), (E - 4, E), (-12, -6), (art[408, 230], art[406, 230], shade(art[406, 230], .8)), outline=True),
+        mbox((BX0, BX1), (0, E), (-12, 0), (stone, stone, stone), ft=bay_r, fx=BX0, st=bay_side, panes=bay_panes, top=False),
+        mbox((198, 232), (0, 24), (-70, -12), (coping, art[720, 210], shade(art[720, 210], .85)), ft=cheek_r),
+        mbox((534, 568), (0, 24), (-70, -12), (coping, art[720, 210], shade(art[720, 210], .85)), ft=cheek_r),
         mbox((232, 534), (0, 18), (-40, -12), (tread, riser, shade(riser, .85)), outline=True),
         mbox((232, 534), (0, 12), (-46, -40), (tread, riser, shade(riser, .85)), outline=True),
         mbox((232, 534), (0, 6), (-52, -40), (tread, riser, shade(riser, .85)), outline=True),
@@ -939,7 +1055,7 @@ def school(shop, rng):
     lawn, fence, fence_snow = yard(rng, W, setback + 272, False, (0, 0, 0), 'natural', [], ground='paving')
     model = dict(kind='school', w=W, frontX=(224 - W) / 2, setback=setback, lawn='paving', style='natural', parts=parts,
                  fence=None, roofTint=rgb_int(roof_c), lamp=None, lights='shop',
-                 smoke=[[177, 184, R + 20], [581, 111, R + 22]], fpx=20)
+                 smoke=[[177, 184, R + 24], [581, 111, R + 20]], fpx=20)
     return model, at, body, side, b_glow, lawn, fence, fence_snow
 
 def build_model(shop, out):
@@ -948,6 +1064,9 @@ def build_model(shop, out):
     rng = np.random.default_rng(zlib.crc32(n.encode()))
     make = villa if key.startswith('villa_') else tower if key.startswith('landmark_clocktower_') else school
     model, at, front, side, emis, lawn, fence, fence_snow = make(shop, rng)
+    # which boxes' sides have windows that light at night (the engine lights no other: a railing's side has none)
+    for p in model['parts']:
+        if 'st' in p and at.glows(p['st']): p['sg'] = True
     at.save(out, n)
     for name, img in (('front', front), ('side', side), ('emis', emis), ('lawn', lawn)):
         Image.fromarray(np.ascontiguousarray(img)).save(f'{out}/{n}_{name}.png')
