@@ -653,7 +653,7 @@ internal class CornerWorld {
                 if (sb.sign == null) {
                     val bw = 160f * kk
                     val bh = bill.height * kk
-                    face(bx, false, ox - ax * bw / 2f - nx * DEPTH / 2f, hf + bh, oz - az * bw / 2f - nz * DEPTH / 2f,
+                    face(bx, cut, ox - ax * bw / 2f - nx * DEPTH / 2f, hf + bh, oz - az * bw / 2f - nz * DEPTH / 2f,
                         ax * bw / bill.width, 0f, az * bw / bill.width, 0f, -kk, 0f, bill.width.toFloat(), bill.height.toFloat(), false) { roofBoard(sb) }
                 }
             }
@@ -673,7 +673,71 @@ internal class CornerWorld {
                 painter.planeFaces = false
             }
         }
+        if (cut) section(bx, sb, hf, sky)
         painter.faceQuality = FilterQuality.None
+    }
+
+    /** The heights of a building's floors (street units): the ground, each storey's, the roof's; [hf] its front's height. */
+    private fun floors(sb: SpriteBuilding, hf: Float): FloatArray {
+        val storey = SpriteArt.MID_H * B.W / SpriteArt.SRC_W
+        val body = hf - storey * sb.middles
+        return FloatArray(sb.middles + 2) { j -> when (j) { 0 -> 0f; sb.middles + 1 -> hf; else -> body + (j - 1) * storey } }
+    }
+
+    private val cutX = FloatArray(2)
+    private val cutZ = FloatArray(2)
+    private val band = Path()
+
+    /**
+     * The cut through a building the camera's cut has opened, drawn on the cut itself (it faces the camera): its outer
+     * walls, floors and roof as solid bands, as an architect's section shows them, so the open building reads as cut
+     * rather than as a strange wall. Drawn last: nothing of the building is nearer.
+     */
+    private fun DrawScope.section(bx: Crossroads.Box, sb: SpriteBuilding, hf: Float, sky: SkyColors) {
+        // where the cut crosses the footprint's edges
+        val xs = floatArrayOf(bx.x0, bx.x1, bx.x1, bx.x0)
+        val zs = floatArrayOf(bx.z0, bx.z0, bx.z1, bx.z1)
+        var m = 0
+        for (c in 0..3) {
+            val d = (c + 1) % 4
+            val da = cam.depth(xs[c], zs[c]) - cam.cutDepth
+            val db = cam.depth(xs[d], zs[d]) - cam.cutDepth
+            if ((da >= 0f) != (db >= 0f) && m < 2) {
+                val t = da / (da - db)
+                cutX[m] = xs[c] + (xs[d] - xs[c]) * t; cutZ[m] = zs[c] + (zs[d] - zs[c]) * t
+                m++
+            }
+        }
+        if (m < 2) return
+        val len = kotlin.math.hypot(cutX[1] - cutX[0], cutZ[1] - cutZ[0])
+        if (len < 1f) return
+        val ux = (cutX[1] - cutX[0]) / len
+        val uz = (cutZ[1] - cutZ[0]) / len
+        val solid = lerp(Color(0xFF26222A), sky.sky[2], .1f)
+        // the two outer walls the cut goes through, full height
+        val wall = min(SECTION_WALL, len / 2f)
+        sectionBand(cutX[0], cutZ[0], ux, uz, 0f, wall, 0f, hf, solid)
+        sectionBand(cutX[0], cutZ[0], ux, uz, len - wall, len, 0f, hf, solid)
+        // each floor, and the roof's slab (its parapet a little higher)
+        for (y in floors(sb, hf)) {
+            if (y <= 0f) continue
+            val top = if (y >= hf) hf else y + SECTION_SLAB / 2f
+            sectionBand(cutX[0], cutZ[0], ux, uz, 0f, len, top - SECTION_SLAB, top, solid)
+        }
+    }
+
+    /** A band on the cut: from [a0] to [a1] along ([ux], [uz]) from ground point ([px], [pz]), [y0] to [y1] up. */
+    private fun DrawScope.sectionBand(px: Float, pz: Float, ux: Float, uz: Float, a0: Float, a1: Float, y0: Float, y1: Float, color: Color) {
+        band.rewind()
+        for (c in 0..3) {
+            val a = if (c == 1 || c == 2) a1 else a0
+            val y = if (c >= 2) y1 else y0
+            cam.project(bm, px + ux * a, y, pz + uz * a, pt)
+            if (pt[2] < NEAR) return
+            if (c == 0) band.moveTo(pt[0], pt[1]) else band.lineTo(pt[0], pt[1])
+        }
+        band.close()
+        drawPath(band, color)
     }
 
     /**
@@ -695,17 +759,11 @@ internal class CornerWorld {
             // walking round the footprint anticlockwise seen from above, the inner face's picture runs along the edge
             face(bx, true, xs[c], hf, zs[c], ex / sw, 0f, ez / sw, 0f, -hf / sh, 0f, sw, sh, true) {
                 with(painter) { sideFace(sb, right = true) }
-                drawRect(room, Offset.Zero, Size(sw, sh), alpha = .45f)
+                drawRect(room, Offset.Zero, Size(sw, sh), alpha = .7f)
             }
         }
-        // the floors, the ones farthest above or below the eye first
-        val storey = SpriteArt.MID_H * B.W / SpriteArt.SRC_W
-        val body = hf - storey * sb.middles
-        val levels = ArrayList<Float>()
-        levels += 0f
-        for (j in 0 until sb.middles) levels += body + j * storey
-        levels += hf - 2f
-        levels.sortByDescending { kotlin.math.abs(it - cam.eye) }
+        // the floors, the ones farthest above or below the eye first (the roof's slab just under the roof)
+        val levels = floors(sb, hf).map { if (it >= hf) hf - 2f else it }.sortedByDescending { kotlin.math.abs(it - cam.eye) }
         val slab = lerp(Color(0xFF8B857C), sky.sky[2], .1f)
         val under = lerp(slab, Color.Black, .45f)
         for (y in levels) {
@@ -810,6 +868,9 @@ internal class CornerWorld {
         const val FAR = 14000f
         const val FAR_ALONG = 9000f
         const val TILE = 220f
+        /** The section's bands: an outer wall's thickness and a floor slab's (street units). */
+        const val SECTION_WALL = 6f
+        const val SECTION_SLAB = 5f
         /** A row this close to its own look is drawn as the stage draws it (see [box]). */
         const val NEAR_REST = .99f
         /** The main street's road ends this far out from its fronts (world units), and its far pavement here. */

@@ -1615,6 +1615,10 @@ internal fun aimWorld(
         if (k == 0) { cam.tx = m - cr.westEdge; cam.tz = 0f } else { cam.tx = 0f; cam.tz = m + cr.zOff }
         world.restStreet = k
     }
+    // the cut keeps clear of the player (and what stands round them) while they walk round the corner
+    cam.keepBack = if (CornerWalk.active) TurnTuning.KEEP else 0f
+    cam.keepX = CornerWalk.wx
+    cam.keepZ = CornerWalk.wz
     world.leanMain = CornerWalk.leanMain(cam.yaw)
     world.leanCross = CornerWalk.leanCross(cam.yaw)
     world.ox = kotlin.math.round(width / 2f - restMid * unit)

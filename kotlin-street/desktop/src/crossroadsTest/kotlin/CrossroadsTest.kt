@@ -301,7 +301,7 @@ class CornerWalkTest {
             CornerWalk.fromX = if (forward) mainView else 0f; CornerWalk.fromZ = if (forward) 0f else crossView
             CornerWalk.toX = if (forward) 0f else mainView; CornerWalk.toZ = if (forward) crossView else 0f
             CornerWalk.holdEnd = true
-            val cam = StageCamera().apply { cx = 780f; cy = 552f; this.unit = unit; eye = 60f / unit; r = TurnTuning.R; cutBack = TurnTuning.CUT }
+            val cam = StageCamera().apply { cx = 780f; cy = 552f; this.unit = unit; eye = 60f / unit; r = TurnTuning.R; cutBack = TurnTuning.CUT; keepBack = TurnTuning.KEEP }
             var frames = 0
             while (CornerWalk.p < 1f && frames++ < 2000) {
                 walkOne()
@@ -310,6 +310,7 @@ class CornerWalkTest {
                 cam.yaw = CornerWalk.yaw
                 cam.tx = CornerWalk.fromX + (CornerWalk.toX - CornerWalk.fromX) * e
                 cam.tz = CornerWalk.fromZ + (CornerWalk.toZ - CornerWalk.fromZ) * e
+                cam.keepX = CornerWalk.wx; cam.keepZ = CornerWalk.wz
                 cam.update()
                 val px = CornerWalk.wx
                 val pz = CornerWalk.wz

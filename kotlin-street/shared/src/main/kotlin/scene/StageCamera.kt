@@ -36,12 +36,19 @@ class StageCamera {
     var tz = 0f
     /**
      * The cut: nothing nearer the camera than [cutBack] in front of world point ([cutX], [cutZ]) (the corner the camera
-     * turns round) is drawn (0 for no cut). It clears the cross street's far side out of its own view, and the block
-     * the camera swings behind mid-turn.
+     * turns round) is drawn (0 for no cut). It clears the cross street's far side out of its own view, and the block the
+     * camera swings behind mid-turn. Past 30 degrees of the turn it moves on to [cutBack] in front of the target where
+     * that is farther (by 55 degrees all the way): the target slides up the cross street, and the cut with it, so that
+     * block is gone rather than left standing open between the camera and the street it turns to. Never nearer than
+     * [keepBack] in front of world point ([keepX], [keepZ]), the player (0 for no such limit), so what stands round the
+     * player stays.
      */
     var cutBack = 0f
     var cutX = 0f
     var cutZ = 0f
+    var keepBack = 0f
+    var keepX = 0f
+    var keepZ = 0f
     /** The cut's depth this frame (set by [update]). */
     var cutDepth = 0f; private set
 
@@ -67,7 +74,13 @@ class StageCamera {
         m[8] = dx; m[9] = 0f; m[10] = dz; m[11] = wc
         m[0] = f * rx + cx * dx; m[1] = 0f; m[2] = f * rz + cx * dz; m[3] = f * xc + cx * wc
         m[4] = cy * dx; m[5] = -f; m[6] = cy * dz; m[7] = f * eye + cy * wc
-        cutDepth = depth(cutX, cutZ) - cutBack
+        val corner = depth(cutX, cutZ)
+        // at a quarter turn the target is on the cross street's line through the corner, so the corner is r deep again
+        // and the cut there is the same as the corner's: the cross street's own view is unchanged
+        val deg = Math.toDegrees(kotlin.math.abs(yaw).toDouble()).toFloat()
+        val w = ((deg - 30f) / 25f).coerceIn(0f, 1f).let { it * it * (3f - 2f * it) }
+        cutDepth = corner + (kotlin.math.max(corner, r) - corner) * w - cutBack
+        if (keepBack > 0f) cutDepth = kotlin.math.min(cutDepth, depth(keepX, keepZ) - keepBack)
     }
 
     /** How deep in front of the camera world point ([x], [z]) is (street units). */
@@ -142,6 +155,8 @@ object TurnTuning {
      * never stands between the camera and the player (CornerWalkTest: 130 or less).
      */
     var CUT = 120f
+    /** The cut stays at least this far in front of the player (street units): the pavement's lamps and people round them. */
+    var KEEP = 30f
     /** Once started, the turn walks itself to the end if the key is let go (false: hold to walk, let go to pause). */
     var autoWalk = true
 }
