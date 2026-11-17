@@ -527,5 +527,13 @@ fun renderStick(out: String) {
     frames(20); save("stick_run")
     scene.sendPointerEvent(androidx.compose.ui.input.pointer.PointerEventType.Release, at(195f, 240f), timeMillis = t0 + 150, type = androidx.compose.ui.input.pointer.PointerType.Touch)
     frames(30); save("stick_released")
+    // a thumb landing low in the corner (26 dp in, 12 up): a full push left or down fits in the room left, and the run's
+    // ring comes in that way to match (a quarter ellipse each way)
+    scene.sendPointerEvent(androidx.compose.ui.input.pointer.PointerEventType.Press, at(26f, 372f), timeMillis = t0 + 2000, type = androidx.compose.ui.input.pointer.PointerType.Touch)
+    frames(3)
+    scene.sendPointerEvent(androidx.compose.ui.input.pointer.PointerEventType.Move, at(30f, 368f), timeMillis = t0 + 2050, type = androidx.compose.ui.input.pointer.PointerType.Touch)
+    frames(20); save("stick_edge")
+    scene.sendPointerEvent(androidx.compose.ui.input.pointer.PointerEventType.Release, at(30f, 368f), timeMillis = t0 + 2100, type = androidx.compose.ui.input.pointer.PointerType.Touch)
+    frames(5)
     scene.close()
 }

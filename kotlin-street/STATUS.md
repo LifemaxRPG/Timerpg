@@ -36,20 +36,31 @@
   the thumb, so turning round is never a long drag back. At the rim the knob turns blue and one light haptic tick marks the
   run. The ring is drawn where the thumb landed (the knob always under the thumb; by an edge the ring runs off the screen),
   and a thumb landing nearer the bottom or left edge than the travel reaches a full push that way in the room left (never
-  less than half the travel). Buttons and panels drawn over it get their taps first (panels are opaque to touches); the
-  game's buttons ("Talk to", "Go inside"/"Leave", the corner turn) sit on the right, under the right thumb, clear of its
-  zone. It is still (and hidden) while the corner turns, a door fades, the AI panel, the crash report or the NPU tuning
-  is open, but a held thumb keeps its place; after a door, when a conversation opens and when the corner turn starts, a
-  held push counts again only once the thumb is back within 35% of the travel or lifted (`MoveInput.holdUntilNeutral()`).
-  Focus loss and pause let go of everything (the game pad's last stick and D-pad values too). The bottom 200 dp of its
-  corner is excluded from the system's back gesture (Android allows no more of an edge). Leaving a room needs a
-  push mostly down (moveLane > 0.5 and more than sideways). A keyboard (arrows/WASD walk, Shift runs) or a game pad's
-  stick and D-pad drive the same input. `GameState.moveX`/`moveLane` stay the interface (-1..1; up is moveLane < 0).
+  less than half the travel); the faint inner ring that marks the run comes in that way to match (a quarter ellipse each
+  way). A full walk holds from 4.3 to 8.5 mm out (it was 5.1 to 7.9: too narrow a band to stay in), the run at the rim.
+  Buttons and panels drawn over it get their taps first (panels are opaque to touches); the game's buttons ("Talk to",
+  "Go inside"/"Leave", the main street's corner turn) sit on the right, under the right thumb, clear of its zone; the side
+  street's way back ("Back to ...", at the street's start) sits high on the left under the AI chip, above the zone. It is
+  still (and hidden) while the corner turns, a door fades, the AI panel, the crash report or the NPU tuning is open, but a
+  held thumb keeps its place; after a door, when a conversation opens and when the corner turn starts, a held push counts
+  again only once the thumb is back within 35% of the travel or lifted (`MoveInput.holdUntilNeutral()`; a thumb already
+  that near the middle is not held), and a held key or game pad stick likewise only once let go or back near the middle
+  (its repeats no longer bring the push back). Focus loss, pause and a game pad or keyboard going away let go of
+  everything. The bottom 200 dp of its corner is excluded from the system's back gesture (Android allows no more of an
+  edge); higher up the edge a back swipe still happens, so back is the game's: it closes the crash report, a conversation
+  or the AI panel, leaves a room, and on the street takes two within 2 s to leave the game. Leaving a room needs a push
+  mostly down (moveLane > 0.5 and more than sideways). A keyboard (arrows/WASD walk, Shift runs) or a game pad's stick and
+  D-pad drive the same input. `GameState.moveX`/`moveLane` stay the interface (-1..1; up is moveLane < 0); `MoveInput`
+  rewrites them every frame, so code that walks the player itself sets `MoveInput.scripted` instead.
 - **The legs** (`shim/Locomotion.kt`, tunable live in `MoveTuning`; tests `app/src/test/kotlin/MovementTest.kt`): the push's
-  strength sets the speed: up to half way it scales a slow walk (lining up at a door), then a flat walk band, and from 85%
-  a run that lasts until the push drops below 75% (the old 0.6 s hold-to-run timer is gone). One ground velocity eases
+  strength sets the speed: up to 40% it scales a slow walk (lining up at a door), then a flat walk band, and from 92% (the
+  rim) a run that lasts until the push drops below 80% (the old 0.6 s hold-to-run timer is gone). One ground velocity eases
   towards it (time constant 0.05 s, at most 1100 units/s² into a walk, 480 into a run, 1400 slowing or turning), shared by
-  both axes so a diagonal stays straight. Across the pavement a lane is 1/0.16 of a unit of ground, so walking in or out
+  both axes so a diagonal stays straight. Let go, the stop never slows gentler than 900 units/s², so it ends in a firm last
+  step and the figure stands within 0.08 s of letting go of a walk (it used to glide on one frozen walk frame, after a
+  run sometimes a raised one, for a quarter of a second). Pushed the other way, the figure keeps facing the way it slides
+  until that is under 12 units/s (a skid leaning back, 0.05 s from a walk, 0.1 s from a run), never a moonwalk; the rooms
+  turn the same way. Across the pavement a lane is 1/0.16 of a unit of ground, so walking in or out
   moves the legs truthfully (no treading water). The walk cycle's phase comes from the ground really walked (after
   furniture), 26.7 units a cycle up to a walk and a runner's longer stride beyond (x (speed/walk)^0.6); footfalls are
   counted at the cycle's landing frames and each plays one footstep (in sync with the drawn steps, street and rooms). The
@@ -59,8 +70,9 @@
   step carries a planted foot 6.5 of the art's pixels (21.4 units a cycle), so the walk's frames at a run's speed left
   about half the ground sliding under the feet. Seen from the side, the run's frames splay the legs (the reaching foot two
   art pixels further forward, the trailing one two further back, less higher up the leg; the passing frames unchanged),
-  made at load from each sheet by repeating the column between the legs, so outlines stay whole and every pixel stays on
-  the art's grid. A step then carries the foot 10.5 pixels (34.5 units a cycle): the legs carry 83% of the ground at a
+  made at load from each sheet. The art draws the legs as one block, so where they part the gap is left open with the
+  art's outline down each leg's inner side (stretching the block across the gap read as a plank under the body); every
+  pixel stays on the art's grid. A step then carries the foot 10.5 pixels (34.5 units a cycle): the legs carry 83% of the ground at a
   full run, against 80% at a walk (26.7 units a cycle against the drawn 21.4). They show from 30% of the way from a walk to
   a run, with the spring (the raised frames one art pixel higher). The lean is drawn by whole art pixels: the body above
   the hips one pixel ahead of the legs at a run (tan(lean) x 10 art pixels, rounded), no shear, nothing off the grid.
@@ -69,8 +81,10 @@
   the player slows it shrinks at most half their speed, so the view never runs back against them; when they stop, the view
   stops with them (within a frame or two of their last step) and the lead stays where it is until they walk again, so the
   street never slides on after a stop or behind a conversation. Through a door it is centred again. It is snapped to whole
-  device pixels so the player never flickers, and it eases into the street's ends over 80 units (the camera's speed stays
-  continuous; it used to stop dead from 365 px/s in one frame). The player is redrawn every frame they change, also while
+  device pixels so the player never flickers, and it eases into the street's ends: from 80 units short of one its speed
+  falls steadily and it rests exactly on the end once the player has walked 160 units into the ease (about 2.2 s walking,
+  1.1 s running; at first it stopped dead from 365 px/s in one frame, and the exponential ease that followed crept on by
+  single pixels for seconds). The player is redrawn every frame they change, also while
   the camera stands at an end (the street's draw used to follow only the camera and the 30 Hz clock there, so the player
   moved 30 times a second), and while the player or the camera moves the street's clock (passers-by, cars) ticks every
   frame instead of 30 times a second.
@@ -78,10 +92,11 @@
   (`MoveTuning.roomPace`; rooms are short walks), the stride grown with the speed so the cadence is the street's; the
   run's frames sideways; speed from the push; a blocked axis stops dead (no stored speed bursting out along a wall);
   facing by the dominant axis with 1.25x hysteresis.
-- **Tests** (`app/src/test/kotlin`): `StickTest` (the stick's maths, re-arming, the edge reach), `MovementTest` (speeds,
-  starts, stops, the run, facing, the legs against the art, the camera's look ahead, stop and ends, rooms) and
-  `ControlsTest` (MoveInput's gating: closed, held until neutral, let go, the pad against the stick; GameState's steps
-  across the pavement and round the lamps). The stick's touch handling (several fingers, buttons over it) is checked only
+- **Tests** (`app/src/test/kotlin`): `StickTest` (the stick's maths, re-arming, the edge reach and the run ring's),
+  `MovementTest` (speeds, starts, firm stops, the skid on turning round, the run and its band, facing, the legs against the
+  art, the camera's look ahead, stop and ends with no tail, rooms) and `ControlsTest` (MoveInput's gating: closed, held
+  until neutral for the stick and for keys and pads, let go, the pad against the stick, a scripted push; GameState's
+  steps across the pavement, turning round and round the lamps). The stick's touch handling (several fingers, buttons over it) is checked only
   by the desktop render `-Dmode=stick`.
 
 Old against new (street units: 1 unit = 2.43 device pixels at FHD+ and QHD+ alike; the figure is 36 units, 88 px tall).
@@ -92,17 +107,19 @@ All "new" numbers are from the integrator run at 120 and 60 Hz on a computer (`-
 | Walk | 46 u/s (21 s to cross a 2340-px screen, 5.1 s a building) | 72 u/s (13.3 s a screen, 3.3 s a building) |
 | Run | 87 u/s after holding one way 0.6 s, then a ~80 ms jolt (11 s a screen) | 150 u/s at the rim (6.4 s a screen at FHD+, 8.5 s at QHD+, 1.6 s a building) |
 | 0 to 90% of a walk / of a run | 0.13 s / 0.70 s (incl. the hold) | 0.125 s / 0.20 s (0.133 s / 0.20 s at 60 Hz) |
-| Stop | from a run 4-5 units | from a walk 3.3 units, still at 0.25 s; from a run 9.1 units (a quarter body), still at 0.31 s |
+| Stop | from a run 4-5 units | from a walk 2.2 units, standing at 0.075 s; from a run 8.1 units (a quarter body), standing at 0.13 s (60 Hz: 1.9 u at 0.08 s, 7.4 u at 0.13 s) |
+| Turning round | the figure turned at once and slid backwards | skids facing the old way, turns once under 12 u/s: 0.05 s (1.6 u) from a walk, 0.1 s (7.4 u) from a run |
 | In and out (kerb to wall, 11 lanes) | 7 lanes/s linear, 1.57 s | eased, 11.5 lanes/s walking (0.95 s), 24 running (0.46 s) |
 | Cadence | walk 1.73 cycles/s, run 3.28 (legs patter, world creeps; in-depth legs slid) | walk 2.7 cycles/s (5.4 steps/s), run 3.6 (7.2 steps/s, stride 41.4 u) |
 | Ground the drawn legs carry | walk about 80%, run about 52% (the walk's frames) | walk 80%, run 83% (the run's frames) |
 | Footstep sounds | one per 17 units against a drawn step every 13.3 | one per drawn footfall, alternating louder and softer |
-| Camera | locked on the player | up to 77 units (187 px) ahead at a run (FHD+), 103 at QHD+; 90% there within 1.5 s of a run from standing, 0.75 s from a walk; still when the player is (0.25 s after letting go of a walk, 0.31 s of a run), never moving back |
-| Street ends | the camera stopped dead (365 px/s to 40 in one frame at a run); the player drawn ~30 times a second there | eased in over 80 units (largest one-frame change 49 units/s, two pixels a frame at 60 Hz); the player drawn every frame |
+| Camera | locked on the player | up to 77 units (187 px) ahead at a run (FHD+), 103 at QHD+; 90% there within 1.5 s of a run from standing, 0.75 s from a walk; still when the player is (0.08 s after letting go of a walk, 0.13 s of a run), never moving back |
+| Street ends | the camera stopped dead (365 px/s to 40 in one frame at a run); the player drawn ~30 times a second there | eased in from 80 units short, at rest exactly on the end 1.0 s later running in (an earlier exponential ease crept on by single pixels for 2 s more); the player drawn every frame |
 | Rooms | 96 px/s whatever the push, feet skating 2x | 105 px/s walking, 219 running, from the push |
 
 Still to measure on the S25 (all estimates now): the real frame rate (the AI panel now shows frame times and the refresh
-asked for; the app asks for the display's fastest mode); whether 48 dp of knob travel suits the thumb; whether 5.4 steps/s
+asked for; the app asks for the display's fastest mode); whether 48 dp of knob travel and the walk band suit the thumb
+(`MoveTuning.walkFrom`, `runAt`, `runOff`); whether 5.4 steps/s
 at a walk reads brisk or pattering (the art's short legs leave a choice between a quick cadence and sliding feet:
 `MoveTuning.stride` longer means fewer steps and more slide); the run's splayed frames, the one-pixel lean and the hop in
 motion; heat at 120 Hz with continuous redraw while moving. The desktop render runs the game's frame loop a step out of
