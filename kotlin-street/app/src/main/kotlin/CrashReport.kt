@@ -52,6 +52,8 @@ object CrashReport {
         val sb = StringBuilder()
         val f = file(ctx)
         if (f.isFile) { sb.append(f.readText().take(6000)).append('\n'); f.delete() }
+        // the NPU tuner restarts the game on purpose: that exit is not a crash
+        val ours = NpuTune.takeRestarting(ctx)
         if (Build.VERSION.SDK_INT >= 30) runCatching {
             val am = ctx.getSystemService(ActivityManager::class.java)
             val last = am.getHistoricalProcessExitReasons(ctx.packageName, 0, 1).firstOrNull()
@@ -68,7 +70,7 @@ object CrashReport {
                     ApplicationExitInfo.REASON_OTHER -> "killed (other)"
                     else -> null   // exited normally, or by the user
                 }
-                if (why != null) {
+                if (why != null && !ours) {
                     val time = java.text.SimpleDateFormat("MMM d HH:mm:ss", java.util.Locale.US).format(java.util.Date(last.timestamp))
                     val where = when {
                         last.importance <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND -> "while playing (on screen)"

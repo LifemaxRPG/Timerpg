@@ -75,6 +75,8 @@ class GameActivity : ComponentActivity() {
             val dsp = applicationInfo.nativeLibraryDir + ";/vendor/dsp/cdsp;/vendor/lib/rfsa/adsp;/system/lib/rfsa/adsp;/dsp"
             android.system.Os.setenv("ADSP_LIBRARY_PATH", dsp, true)
         }
+        // the NPU backend's settings (the tuned ones, or the one being tried while tuning): before the library loads
+        NpuTune.apply(applicationContext)
         super.onCreate(savedInstanceState)
         // the scene's two platform-specific image calls
         PlatformImages.create = { px, w, h, mip ->
@@ -482,6 +484,31 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             nearKeeper = dx * dx + dy * dy < 90f * 90f
         }
     }
+    // tuning the NPU: each start loads the model on the NPU, runs the speed test twice, keeps the warm result, restarts
+    val activity = ctx as? android.app.Activity
+    val tuning = remember { NpuTune.active(ctx) }
+    var tuneRuns by remember { mutableIntStateOf(0) }
+    LaunchedEffect(ai.state, ai.speedTesting, ai.speed) {
+        if (!tuning || activity == null) return@LaunchedEffect
+        val step = NpuTune.step(ctx)
+        when {
+            ai.state == ModelState.ERROR -> NpuTune.record(activity, "could not load (${ai.detail.take(80)})", null)
+            ai.state == ModelState.READY && ai.runsOn != 2 -> NpuTune.record(activity, "the NPU could not take the model (${ai.gpuNote ?: "fell back to the CPU"})", null)
+            ai.state == ModelState.READY && !ai.speedTesting && ai.speed == null && tuneRuns == 0 -> { tuneRuns = 1; engine.speedTest() }
+            ai.state == ModelState.READY && !ai.speedTesting && ai.speed != null && tuneRuns == 1 -> { tuneRuns = 2; engine.speedTest() }
+            ai.state == ModelState.READY && !ai.speedTesting && ai.speed != null && tuneRuns == 2 -> {
+                val r = ai.speed!!; val st = r.stats
+                val gen = if (st.genMs > 0) st.genTokens * 1000f / st.genMs else 0f
+                val pre = if (st.prefillMs > 0) (st.promptTokens - st.reusedTokens) * 1000f / st.prefillMs else 0f
+                val ok = r.error == null && r.passed
+                val text = if (r.error != null) "failed (${r.error.take(80)})"
+                    else "%d ms a line · writing %.1f tok/s · prompt %.0f tok/s · %s%s".format(r.totalMs, gen, pre, if (ok) "reply passed" else "reply FAILED the check",
+                        ai.loadInfo?.let { " · $it" } ?: "")
+                NpuTune.record(activity, text, if (ok) r.totalMs else null)
+            }
+        }
+        if (step < 0) return@LaunchedEffect
+    }
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         val room = inside
         if (room != null) com.lifemax.rpg.feature.habits.presentation.scene.InteriorStage(room, walker, hour, keeperSheet, Modifier.fillMaxSize())
@@ -572,6 +599,20 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         // walking: left and right; in and out across the pavement
         HoldPad("◀", "▶", Modifier.align(Alignment.BottomStart).padding(18.dp)) { GameState.moveX = it }
         HoldPad("▲", "▼", Modifier.align(Alignment.BottomEnd).padding(18.dp)) { GameState.moveLane = it }
+        if (tuning) Column(
+            Modifier.align(Alignment.Center).widthIn(max = 520.dp).background(PANEL, RoundedCornerShape(14.dp)).padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            val step = NpuTune.step(ctx)
+            Text("Tuning the NPU: setting ${step + 1} of ${NpuTune.CONFIGS.size}", 15.sp)
+            Text(NpuTune.CONFIGS.getOrNull(step)?.name ?: "", 13.sp)
+            Text(when {
+                ai.state != ModelState.READY -> "Loading the model on the NPU…"
+                else -> "Speed test ${tuneRuns.coerceAtLeast(1)} of 2…"
+            } + " The game restarts between settings; leave it running (about half a minute each).", 12.sp, color = DIM)
+            for (line in NpuTune.results(ctx)) Text(line, 11.sp, color = DIM)
+            Chip("Stop tuning", false) { activity?.let { NpuTune.cancel(it) } }
+        }
         // the dialogue AI, under the street name (drawn last, so its panel is on top): its state at a glance; tap for the
         // model file and the speed numbers
         Column(Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = 50.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -825,6 +866,13 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
                 val order = listOf(0) + (if (s.hasGpu) listOf(1) else emptyList()) + (if (s.hasNpu) listOf(2) else emptyList())
                 engine.setDevice(order[(order.indexOf(s.runsOn).coerceAtLeast(0) + 1) % order.size])
             }
+        }
+        if (s.hasNpu) {
+            val act = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
+            val pc = androidx.compose.ui.platform.LocalContext.current
+            Text("NPU setting: ${NpuTune.chosen(pc) ?: "default"}" + (s.loadInfo?.let { " · $it" } ?: ""), 12.sp, color = DIM)
+            Chip("Tune the NPU (tries ${NpuTune.CONFIGS.size} settings, restarts the game)", false) { act?.let { NpuTune.begin(it) } }
+            for (line in NpuTune.results(pc)) Text(line, 11.sp, color = DIM)
         }
         // the CPU's fast kernels copy the whole model into memory (faster prompts; speech and the voices may not fit)
         if (s.runsOn == 0) {

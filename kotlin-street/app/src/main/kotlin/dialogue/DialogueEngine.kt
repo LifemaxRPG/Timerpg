@@ -65,6 +65,8 @@ data class AiStatus(
     val gpuNote: String? = null,
     val speedTesting: Boolean = false,
     val speed: SpeedResult? = null,
+    /** How the model's work splits between devices (fewer splits: less of it falls back to the CPU). */
+    val loadInfo: String? = null,
 )
 
 /** A line in the dialogue panel: the model's ([ai]) or the game's template; [final] once it will not change. */
@@ -464,7 +466,7 @@ class DialogueEngine private constructor(private val app: Context) {
             }
         }
         val acc = native?.accelerators ?: 0
-        _status.update { it.copy(runsOn = native?.runsOn ?: 0, hasGpu = acc and 1 != 0, hasNpu = acc and 2 != 0, gpuNote = gpuNote) }
+        _status.update { it.copy(runsOn = native?.runsOn ?: 0, hasGpu = acc and 1 != 0, hasNpu = acc and 2 != 0, gpuNote = gpuNote, loadInfo = native?.loadInfo) }
         if (closed) return
         if (!ok || !b.loaded) {
             val why = (try { b.error } catch (t: Throwable) { null }) ?: thrown ?: "unknown error"

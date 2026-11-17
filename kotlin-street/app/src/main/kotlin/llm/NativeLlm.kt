@@ -288,6 +288,10 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     private external fun nativeCancel(handle: Long)
     private external fun nativeGenerate(handle: Long, prompt: ByteArray, maxTokens: Int, temperature: Float, sink: TokenSink?): String?
     private external fun nativeStats(handle: Long): LongArray?
+    private external fun nativeLoadInfo(): String?
+
+    /** How the model's work splits between devices (llama.cpp's "graph splits" line; more: more fell back to the CPU). */
+    val loadInfo: String? get() = if (libraryError != null) null else runCatching { nativeLoadInfo() }.getOrNull()?.takeIf { it.isNotBlank() }
 
     companion object {
         const val CPU = 0

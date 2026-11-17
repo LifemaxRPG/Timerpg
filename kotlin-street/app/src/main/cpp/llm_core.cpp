@@ -67,6 +67,8 @@ bool valid_cont(unsigned char lead, int k, unsigned char b) {
 std::mutex g_log_mu;
 LogSink g_sink = nullptr;
 std::vector<std::string> g_errors;  // error lines since clear_log_errors(), to explain a failed load
+std::string g_splits;                // llama.cpp's "graph splits" line of the last context: how often a token's work
+                                     // crosses between devices (more splits: more of it fell back to the CPU)
 
 void default_sink(int level, const char * text) {
     if (level >= GGML_LOG_LEVEL_WARN) fputs(text, stderr);
@@ -77,6 +79,13 @@ void log_cb(ggml_log_level level, const char * text, void *) {
     int lv = level == GGML_LOG_LEVEL_CONT ? last : (int) level;
     last = lv;
     if (!text) return;
+    if (std::strstr(text, "graph splits")) {
+        std::string line(text);
+        while (!line.empty() && (line.back() == '\n' || line.back() == ' ')) line.pop_back();
+        const size_t at = line.find("graph splits");
+        std::lock_guard<std::mutex> lock(g_log_mu);
+        g_splits = line.substr(at);
+    }
     if (lv >= GGML_LOG_LEVEL_ERROR) {
         std::string line(text);
         while (!line.empty() && (line.back() == '\n' || line.back() == ' ')) line.pop_back();
@@ -91,6 +100,11 @@ void log_msg(int level, const std::string & msg) { (g_sink ? g_sink : default_si
 void clear_log_errors() {
     std::lock_guard<std::mutex> lock(g_log_mu);
     g_errors.clear();
+}
+
+std::string load_info() {
+    std::lock_guard<std::mutex> lock(g_log_mu);
+    return g_splits;
 }
 
 /** ": <what llama.cpp logged>" or "". */
@@ -112,6 +126,8 @@ int default_threads() {
 }
 
 }  // namespace
+
+std::string last_load_info() { return load_info(); }
 
 // ---------------------------------------------------------------------------------------------------- text helpers
 
@@ -277,7 +293,7 @@ bool init_backend(const std::vector<std::string> & cpu_libs, std::string * info)
 #if defined(__ANDROID__)
             // the Adreno GPU (OpenCL) and the Hexagon NPU, if this build has them and the phone's drivers load; else the
             // CPU alone. The NPU opens two sessions (each holds ~3.5 GB of weights: the 9B model is split over both).
-            setenv("GGML_HEXAGON_NDEV", "2", 0);
+            if (!getenv("GGML_HEXAGON_DEVICES")) setenv("GGML_HEXAGON_NDEV", "2", 0);
             ggml_backend_load("libggml-opencl.so");
             ggml_backend_load("libggml-hexagon.so");
             for (size_t i = 0; i < ggml_backend_dev_count(); ++i) {

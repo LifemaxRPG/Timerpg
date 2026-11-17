@@ -191,4 +191,7 @@ private:
     Sampling sampling_;
 };
 
+/** llama.cpp's "graph splits" line for the last model context created ("" if none). */
+std::string last_load_info();
+
 }  // namespace llm

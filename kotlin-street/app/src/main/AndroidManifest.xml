@@ -19,6 +19,13 @@
         <uses-native-library android:name="libOpenCL.so" android:required="false" />
         <!-- the Hexagon NPU's driver (FastRPC), for the dialogue model on the NPU (absent: the CPU or GPU) -->
         <uses-native-library android:name="libcdsprpc.so" android:required="false" />
+        <!-- restarts the game in a fresh process (the NPU tuner: the backend reads its settings once per process) -->
+        <activity
+            android:name="com.timerpg.street.RestartActivity"
+            android:process=":restart"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <activity
             android:name="com.timerpg.street.GameActivity"
             android:exported="true"
