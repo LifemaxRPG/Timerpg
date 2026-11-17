@@ -591,13 +591,18 @@ def solid(a):
     a = a.copy(); a[a[..., 3] < 255] = 0
     return a
 
-def panes_of(img, least=30):
+def panes_of(img, least=30, dial=False):
     """A front's window panes (x, y, w, h in its pixels, and 1 for a square pane, 0 for a round one, which mirrors no
-    square of sky): its clean blue glass, as the shops' windows are found; and where it glows at night (each row of a
-    pane from its first glass to its last, its glass and its light pixels: a clock's whole dial, not only its light
-    stripes, and not its hands)."""
+    square of sky): its clean blue glass, as the shops' windows are found; and where it glows at night: every shade of
+    its glass inside the pane (its darker reflections too, which left dark wedges in a lit pane; not its frame's ink, its
+    mullions or the wood round it, which made a ragged edge), a little brighter where the art's glass is lighter, so a
+    lit pane keeps the art's own shading rather than a flat fill. With `dial`, a round pane is a clock's dial and glows
+    over its whole face (below)."""
     gm = glass(img); out = []; glow = np.zeros_like(img); near = dilate(gm, 1)
-    light = img[..., :3].astype(int).sum(-1) > 360
+    rgb = img[..., :3].astype(int)
+    lum = rgb.sum(-1)
+    # the glass's shades: blue, and greener than red (the frames' and mullions' blue-greys are not: their green is their red)
+    shade = (rgb[..., 2] > rgb[..., 0] + 15) & (rgb[..., 1] >= rgb[..., 0] + 10) & (rgb[..., 2] >= rgb[..., 1]) & (lum > 240) & (img[..., 3] > 200)
     for (x0, y0, x1, y1) in components(near, least):
         sub = gm[y0:y1 + 1, x0:x1 + 1]; ys, xs = np.where(sub)
         if len(xs) < least: continue
@@ -607,7 +612,7 @@ def panes_of(img, least=30):
         if any(px <= bx0 and py <= by0 and bx0 + w <= px + pw and by0 + h <= py + ph for (px, py, pw, ph, _) in out): continue
         square = near[by0:by0 + h, bx0:bx0 + w].mean() >= .85
         out.append([bx0, by0, w, h, 1 if square else 0])
-        if not square:
+        if not square and dial:
             # a round pane (a clock's dial) glows over its whole face: everything inside its ellipse that is the face's
             # cool colour (its glass, its paint, the bezel's shading), not its ink, hands and marks, nor the warm wall
             # the art shades below it. Row spans from the first glass to the last leave hard-edged notches where a
@@ -615,15 +620,35 @@ def panes_of(img, least=30):
             ys, xs = np.mgrid[0:img.shape[0], 0:img.shape[1]]
             cx, cy, rx, ry = bx0 + (w - 1) / 2, by0 + (h - 1) / 2, w / 2 + 1.5, h / 2 + 1.5
             inside = ((xs - cx) / rx) ** 2 + ((ys - cy) / ry) ** 2 <= 1
-            rgb = img[..., :3].astype(int)
-            face = (rgb[..., 2] >= rgb[..., 0]) & (rgb.sum(-1) > 300)
+            face = (rgb[..., 2] >= rgb[..., 0]) & (lum > 300)
             glow[inside & face] = GLOW
             continue
-        for y in range(by0, by0 + h):
-            row = np.where(near[y, bx0:bx0 + w])[0]
-            if len(row):
-                span = slice(bx0 + row.min(), bx0 + row.max() + 1)
-                glow[y, span][near[y, span] | light[y, span]] = GLOW
+        # the pane: its clean glass and every shade of glass joined to it (4 neighbours), so the light fills it up to its
+        # frame and its mullions (a round window's darker shades reach well past its clean glass); the pane's box grows
+        # to it (the light is drawn in it). Should the glass's colours run on out of the window (to the box searched's
+        # edge), only the glass's own box and a pixel round it.
+        def flood(r):
+            m = np.zeros(img.shape[:2], bool)
+            ya, yb, xa, xb = max(0, by0 - r), min(img.shape[0], by0 + h + r), max(0, bx0 - r), min(img.shape[1], bx0 + w + r)
+            st = [(y + by0, x + bx0) for y, x in zip(*np.nonzero(gm[by0:by0 + h, bx0:bx0 + w] & shade[by0:by0 + h, bx0:bx0 + w]))]
+            for y, x in st: m[y, x] = True
+            while st:
+                y, x = st.pop()
+                for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
+                    if ya <= ny < yb and xa <= nx < xb and shade[ny, nx] and not m[ny, nx]:
+                        m[ny, nx] = True; st.append((ny, nx))
+            edge = m[ya, xa:xb].any() or m[yb - 1, xa:xb].any() or m[ya:yb, xa].any() or m[ya:yb, xb - 1].any()
+            return m, edge and (ya > 0 or yb < img.shape[0] or xa > 0 or xb < img.shape[1])
+        m, leaked = flood(24)
+        if leaked:
+            m = np.zeros(img.shape[:2], bool); box = (slice(max(0, by0 - 1), by0 + h + 1), slice(max(0, bx0 - 1), bx0 + w + 1))
+            m[box] = shade[box]
+        if not m.any(): continue
+        ys, xs = np.nonzero(m)
+        out[-1][:4] = [int(xs.min()), int(ys.min()), int(xs.max() - xs.min() + 1), int(ys.max() - ys.min() + 1)]
+        lo, hi = lum[m].min(), lum[m].max()
+        f = .8 + .2 * (lum[m] - lo) / max(1, hi - lo)
+        glow[m] = np.stack([np.round(GLOW[0] * f), np.round(GLOW[1] * f), np.round(GLOW[2] * f), np.full(f.shape, GLOW[3])], -1).astype(np.uint8)
     glow[img[..., 3] == 0] = 0
     return out, glow
 
@@ -682,18 +707,32 @@ def fill_period(img, mask, period):
         if sx >= 0: img[y, x] = img[y, sx]
     return img
 
-def soften_along(img, n):
-    """`img` with each pixel's colour the mean of the `n` along its column (its own alpha kept, the clear pixels left
-    out): a hipped roof's side face, seen from the street a few times narrower along its depth than its picture from
-    above, would sample its tiles' fine pattern into a hatching of stray pixels; its courses keep their stripes."""
-    m = (img[..., 3] > 0).astype(float)[..., None]
-    def rows(x):
-        pad = np.pad(x, ((n // 2, n - 1 - n // 2), (0, 0), (0, 0)), mode='edge')
-        c = np.concatenate([np.zeros_like(pad[:1]), np.cumsum(pad, axis=0)], 0)
-        return (c[n:] - c[:-n]) / n
-    rgb = rows(img[..., :3].astype(float) * m) / np.maximum(rows(m), 1e-6)
-    out = img.copy(); out[..., :3] = np.clip(np.round(rgb), 0, 255).astype(np.uint8)
-    out[img[..., 3] == 0] = 0
+def hip_side(face, w, h, quad, per_row, window, eave_left):
+    """A hipped roof's side face, `w` columns up the slope (eave to top) by `h` rows along its depth (the back eave in
+    row 0, the front one in row h - 1), each row `per_row` of depth, cut to `quad`: tiled with the front face's own
+    tiles. The art draws its side faces in the front's way, courses across the picture, which on a face whose courses
+    run along the street's depth sampled into hatching (squeezed a few times) or, averaged, into streaks. Here every
+    course runs along the depth at the height of the front face's course (the two meet at the hip), each column the
+    front face's row at its height, the tiles along it the front's along its row (from `window`, columns of the face
+    whose rows are whole, as wide as a whole number of tiles), one tile of the front per as much depth."""
+    rows = face.shape[0]
+    x0, x1 = window
+    u = np.arange(w) if eave_left else (w - 1 - np.arange(w))           # columns from the eave
+    rr = np.clip(rows - 1 - (u * rows) // w, 0, rows - 1)
+    depth = ((h - 1 - np.arange(h)) * per_row).astype(int)
+    xs = x0 + depth % (x1 - x0)
+    out = face[rr[None, :], xs[:, None]].copy()
+    out[..., 3] = 255
+    return cut(out, polygon((h, w), quad))
+
+def along_mean(img):
+    """`img` with each column one colour, the mean of its opaque pixels (its alpha kept): a hipped roof's side face
+    seen so nearly edge on that its tiles' joints along the depth fall closer than a pixel apart, where sampling them
+    would scatter them into hatching. Each course is then the stripe the eye sees there."""
+    m = img[..., 3] > 0
+    out = img.copy()
+    for x in range(img.shape[1]):
+        if m[:, x].any(): out[m[:, x], x, :3] = np.round(img[m[:, x], x, :3].astype(float).mean(0)).astype(np.uint8)
     return out
 
 def polygon(shape, pts):
@@ -769,12 +808,16 @@ def mgable(x, y, d, left, lp, right, rp, rake, roofc, de=None, face=None, fx=Non
     if panes: p['panes'] = panes
     return p
 
-def mhip(x, y, d, top, front, left, lp, right, rp, roofc, flat=None):
+def mhip(x, y, d, top, front, left, lp, right, rp, roofc, flat=None, hip=None, flush=None):
     """A hipped roof: eaves x and d, eave and ridge heights y, its flat top (or ridge) x top[0..1] by d top[2..3]; the
     front face's piece (one screen row per row, ridge to eave), each side face's piece and its four points (the front
-    eave, the back eave, the top's back and front ends), the flat top's piece."""
+    eave, the back eave, the top's back and front ends), the flat top's piece; the hips' colours as the art draws them
+    (their crease, and the cap tiles along them if the art draws a lighter row there); `flush` the side faces' pieces
+    with each course one colour along its depth, for a view that sees them nearly edge on."""
     p = dict(t='hip', x=fl(x), y=fl(y), d=fl(d), top=fl(top), front=front, l=left, lp=fl(lp), r=right, rp=fl(rp), roof=rgb_int(roofc))
     if flat is not None: p['flat'] = flat
+    if hip is not None: p['hip'] = [rgb_int(c) for c in hip]
+    if flush is not None: p['la'], p['ra'] = flush
     return p
 
 def rise_for(rows, run):
@@ -870,7 +913,9 @@ def villa(shop, rng):
         mbox((176, 184), (58, 82), (-8, 36), (rail_top, rail_c, shade(rail_c, .85)), outline=True),
         mbox((232, 240), (58, 82), (-8, 36), (rail_top, rail_c, shade(rail_c, .85)), outline=True),
         mbox((176, 240), (58, 82), (-8, -8), (rail_top, rail_c, rail_c), ft=balc_r, card=True),
-        mgable((41, 119), (61, 94), (-18, 36), sl, (1, 67, 40, 33, 40, 5, 1, 39), sr, (39, 67, 0, 33, 0, 5, 39, 39), (rake_c, edge_c), roof_c,
+        # (its ridge where the face's checkered rake boards meet, at 45 degrees from its eaves: the slopes' straight front
+        # edges then run along the boards' outer edge, and the verge the engine draws above them shows)
+        mgable((41, 119), (61, 100), (-18, 36), sl, (1, 67, 40, 33, 40, 5, 1, 39), sr, (39, 67, 0, 33, 0, 5, 39, 39), (rake_c, edge_c), roof_c,
                face=sg_r, fx=40, fy=58, panes=sg_panes, lip=lip_c),
         mbox((2, 8), (12, 36), (-53, 0), (rail_top, rail_c, rail_c), st=rail_side),
         mbox((248, 254), (12, 36), (-53, 0), (rail_top, rail_c, rail_c), st=rail_side),
@@ -891,6 +936,14 @@ def villa(shop, rng):
     front = np.zeros((98, W, 4), np.uint8)
     front[0:40] = up[66:106]; front[40:46] = art[296:302, 0:W]; front[46:86] = art[302:342, 0:W]; front[86:98] = art[396:408, 0:W]
     front = solid(front); front[:, :2] = 0; front[:, 254:] = 0
+    # and what stands in front of the storeys, as the street sees it from straight ahead (a row of this picture is 98
+    # less its height): the balcony's railing and the small gable over the door before the upper floor, the deck's
+    # railings before the ground floor (the porch posts are in its rows as drawn). The corner turn's box wears them
+    # flat, so the villa keeps them as the view comes round; the wet road mirrors them
+    def over(pic, x, y_top):
+        r0 = 98 - y_top; h, w = pic.shape[:2]; m = pic[..., 3] > 0
+        front[r0:r0 + h, x:x + w][m] = pic[m]
+    over(sg, 40, 98); over(balc, 176, 82); over(rail[:, 2:34], 2, 36); over(rail[:, 128:254], 128, 36)
     emis = np.zeros_like(front); emis[0:40] = panes_of(front[0:40])[1]; emis[46:86] = panes_of(front[46:86])[1]
     side = np.zeros((98, 167, 4), np.uint8)
     side[0:40] = np.concatenate([ups[:, :38], ups[:, 2:]], axis=1); side[40:46, :, :3] = art[298, 140][:3]; side[40:46, :, 3] = 255; side[46:86] = gfs
@@ -909,7 +962,7 @@ def tower(shop, rng):
     # Its upper storeys' brick piers stand two pixels in from the stone bands and the lower storey; on a box both the
     # front's and the side's two outer columns would be empty there, a slit of sky down each corner. Those rows are
     # widened to the box's edge: the pier's outline moved out to it and its brick carried after it.
-    body = art[138:460, 10:244].copy()
+    body = art[140:460, 10:244].copy()
     for y in range(body.shape[0]):
         xs = np.where(body[y, :, 3] > 0)[0]
         if not len(xs): continue
@@ -920,22 +973,24 @@ def tower(shop, rng):
     # the clock's painted hands taken off its dial (the engine draws them at the hour: the minute hand as long as the
     # art's, 12 of its doubled pixels, the hour hand 9), then where the face glows at night: all of it, hands' place too
     clock = None
-    for q in panes_of(body)[0]:
+    for q in panes_of(body, dial=True)[0]:
         if q[4] == 0 and clock is None:
             body, hub, ink = clock_of(body, q)
             if hub is not None: clock = hub + [12, 9] + [rgb_int(c) for c in ink]
-    b_panes, b_glow = panes_of(body)
+    b_panes, b_glow = panes_of(body, dial=True)
     body_r = at.add(body, b_glow)
-    # the hipped roof: its front face, the art's rows 61..137 between the hips, every other one (the artist's own
-    # pixels, one screen row each; the rise is chosen so)
-    E, run = 322, 58
-    face = cut(art[61:138, 34:220], polygon((77, 186), [(0, 77), (58, 0), (128, 0), (186, 77)]))
+    # the hipped roof: its front face, the art's rows 61..139 between the hips, every other one (the artist's own
+    # pixels, one screen row each; the rise is chosen so). Its last row is the tiles' ends along the eave, the roof's
+    # (on the wall's top they stayed red under the snow)
+    E, run = 320, 58
+    face = cut(art[61:140, 34:220], polygon((79, 186), [(0, 79), (58, 0), (128, 0), (186, 79)]))
     face = face[::2]
     rise = rise_for(face.shape[0], run)
     front_r = at.add(face)
     lq = [(0, 134), (0, 0), (58, 26), (58, 57)]; rq = [(58, 134), (58, 0), (0, 26), (0, 57)]
-    left = at.add(soften_along(cut(art[4:139, 34:93], polygon((135, 59), lq)), 12))
-    right = at.add(soften_along(cut(art[4:139, 162:221], polygon((135, 59), rq)), 12))
+    lpic = hip_side(face, 59, 135, lq, 234 / 134, (64, 124), True); rpic = hip_side(face, 59, 135, rq, 234 / 134, (64, 124), False)
+    left, right = at.add(lpic), at.add(rpic)
+    flush = [at.add(along_mean(lpic)), at.add(along_mean(rpic))]
     lantern = at.add(art[50:61, 92:164])
     stone = art[112, 16]
     # the box's top round the roof: the stone coping the art shows along the tower's edges from above (light stone
@@ -949,7 +1004,8 @@ def tower(shop, rng):
     top_r = at.add(top)
     parts = [
         mbox((10, 244), (0, E), (0, 234), (stone, art[300, 128], art[300, 128]), ft=body_r, tt=top_r, st=body_r, panes=b_panes, clock=clock),
-        mhip((34, 220), (E, E + rise), (0, 234), (92, 162, run, 234 - run), front_r, left, [v for p in lq for v in p], right, [v for p in rq for v in p], roof_c),
+        mhip((34, 220), (E, E + rise), (0, 234), (92, 162, run, 234 - run), front_r, left, [v for p in lq for v in p], right, [v for p in rq for v in p], roof_c,
+             hip=(art[80, 73], art[80, 73]), flush=flush),
         mbox((92, 164), (E + rise, E + rise + 11), (run + 12, 234 - run - 12), (art[40, 128], art[55, 128], shade(art[55, 128], .8)), ft=lantern),
     ]
     setback = 32
@@ -1011,8 +1067,9 @@ def school(shop, rng):
     fm = np.zeros(flat.shape[:2], bool); fm[:, 418:472] = True
     flat_r = at.add(fill_period(flat, fm, 12)[::2])
     lq = [(0, 350), (0, 0), (122, 57), (122, 97)]; rq = [(123, 350), (123, 0), (0, 57), (0, 97)]
-    left = at.add(soften_along(cut(art[48:399, 14:137], polygon((351, 123), lq)), 12))
-    right = at.add(soften_along(cut(art[48:399, 631:755], polygon((351, 124), rq)), 12))
+    lpic = hip_side(face, 123, 351, lq, 284 / 350, (126, 234), True); rpic = hip_side(face, 124, 351, rq, 284 / 350, (126, 234), False)
+    left, right = at.add(lpic), at.add(rpic)
+    flush = [at.add(along_mean(lpic)), at.add(along_mean(rpic))]
     # the cross gable's slopes: from its rake back to the valley where they meet the main roof
     ridge2 = E + 72
     clq = [(0, 201), (126, 129), (126, 2), (4, 113)]; crq = [(126, 201), (0, 129), (0, 2), (122, 113)]
@@ -1029,7 +1086,8 @@ def school(shop, rng):
     stone = art[700, 210]; tread = art[700, 300]; riser = art[405, 300]
     # the steps' cheeks: the art's stone balusters along the stair, a coping on them
     coping, ink = art[690, 230], art[650, 214]
-    cheek = np.repeat(art[690:691, 198:232], 24, axis=0); cheek[0:3] = coping; cheek[3] = ink
+    # (from the cheek's outline in: the two columns left of it are the art's half-clear shadow, which solid() clears)
+    cheek = np.repeat(art[690:691, 200:234], 24, axis=0); cheek[0:3] = coping; cheek[3] = ink
     cheek[-1] = ink; cheek[:, :1] = ink; cheek[:, -1:] = ink
     cheek[..., 3] = 255
     cheek_r = at.add(cheek)
@@ -1038,10 +1096,11 @@ def school(shop, rng):
         mbox((156, 198), (R - 18, R + 10), (174, 194), (brick, brick, shade(brick, .8)), ft=stack1),
         mbox((152, 202), (R + 10, R + 24), (170, 198), (cap_c, cap_c, shade(cap_c, .8)), ft=cap1, tt=top1),
         mhip((14, 754), (E, R), (-6, 278), (136, 631, -6 + run, 278 - run), front_r, left, [v for p in lq for v in p], right,
-             [v for p in rq for v in p], roof_c, flat=flat_r),
+             [v for p in rq for v in p], roof_c, flat=flat_r, hip=(art[200, 108], art[200, 106]), flush=flush),
         mbox((560, 602), (R - 10, R + 8), (104, 118), (brick, brick, shade(brick, .8)), ft=stack2),
         mbox((556, 606), (R + 8, R + 20), (101, 121), (cap_c, cap_c, shade(cap_c, .8)), ft=cap2, tt=top2),
-        mgable((258, 510), (E, ridge2), (-12, 71), cl, [v for p in clq for v in p], cr, [v for p in crq for v in p], (roof_c, roof_c), roof_c, de=-6),
+        mgable((258, 510), (E, ridge2), (-12, 71), cl, [v for p in clq for v in p], cr, [v for p in crq for v in p], (roof_c, roof_c), roof_c, de=-6,
+               lip=art[370, 300]),
         # the ledge over the bay beside the gable (the bay itself has no top: the gable's face stands on it)
         mbox((BX0, BX1), (E - 4, E), (-12, -6), (art[408, 230], art[406, 230], shade(art[406, 230], .8)), outline=True),
         mbox((BX0, BX1), (0, E), (-12, 0), (stone, stone, stone), ft=bay_r, fx=BX0, st=bay_side, panes=bay_panes, top=False),
