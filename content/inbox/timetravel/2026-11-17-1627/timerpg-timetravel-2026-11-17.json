@@ -1,0 +1,645 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-9871",
+      "kind": "scenario",
+      "title": "Two Lunchboxes on the Campaign Table",
+      "category": "rivalry",
+      "pitch": "Introduce two children who keep eating lunch alone. Their friendship may grow into a fiercely contested election, leaving a mayor's portrait beside a photograph neither campaign wants to throw away.",
+      "present_hook": {
+        "what_you_notice": "Two school lunch rosters show children eating in separate supervised groups. Later civic records show neither of the two entering the bound mayoral contest.",
+        "where": "the school archive",
+        "clues": [
+          {
+            "who": "the lunch-group records",
+            "line": "{A} and {B} were in different groups in {year}. The staff had already offered a shared table if both wanted it."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            12,
+            15
+          ],
+          "trait": {
+            "ambition": "high"
+          }
+        },
+        "B": {
+          "age": [
+            12,
+            15
+          ],
+          "trait": {
+            "charm": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1985
+        ],
+        "notes": "Bind distinct unrelated children, a permitted voluntary shared-lunch opportunity, and independently plausible later local political interests. Require a real election calendar and a baseline contest neither enters. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the two children at the offered supervised table if both choose to join."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.4
+            }
+          ],
+          "headline": "Shared Lunch Table Starts a School Friendship",
+          "body": "{A} and {B} formed a friendship through their voluntary shared lunches. Subsequent meetings followed their actual choices."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            14,
+            16
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "run_for_mayor": "A"
+            },
+            {
+              "run_for_mayor": "B"
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": -0.2
+            }
+          ],
+          "headline": "Former Lunch Companions Enter Opposing Mayoral Campaigns",
+          "body": "Eligible adult candidates {A} and {B} filed opposing campaigns. A recorded policy disagreement strained their surviving friendship."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "win_election": "B"
+            },
+            {
+              "display_record": "the retained shared-lunch photograph",
+              "where": "the civic portrait corridor"
+            }
+          ],
+          "headline": "Former Lunch Companion Wins a Later Contested Election",
+          "body": "Candidate {B} won the scheduled election contested by {A}. With both subjects' permission, the civic corridor displayed their retained school photograph beside the new official portrait."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Shared Lunch Does Not Become a Lasting Friendship",
+        "body": "{A} and {B} did not form the proposed continuing friendship. Neither child's future was decided by a single lunch."
+      },
+      "present_day": {
+        "best": "In {now}, the civic portrait corridor preserves the election portrait of {B} and the permitted shared-lunch photograph. The current mayor follows actual later elections.",
+        "worst": "First-step failure creates no friendship or political contest through this chain. Other friendships and civic careers remain available.",
+        "twist": "The introduction gives the children company, then gives two adult opponents unusually personal knowledge of one another. The recorded policy dispute reduces the bond even though both preserve the photograph."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "We could agree on whose lunch was better. Governing turned out to involve more questions."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Select one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Recheck all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll and is not separately rolled; ineligibility reports its actual cause. Failure stops descendants without undoing earlier effects. Resolve conflicts in stable scenario-ID order with atomic fund, site and contract reservations. Check current ages, survival, consent, ownership and resources. Ordinary later history continues. Present text needs extant recorded changes; after-lines need the specified result, knowledge and a living speaker.",
+        "The introduction does not grant ambitions, qualifications or permanent affection. Require real subsequent contact before the friendship effect. The shared-lunch photograph must actually be taken with appropriate permission and retained; do not invent an image from prose.",
+        "Both candidacy effects need consent, actual local eligibility, residency, campaign resources and a scheduled election. At step 3 require both independently eligible candidates again, real nominations, an actual contest and a lawful outcome process; do not infer fourteen years of continuous candidacy. The conditional roll selects B's win within the election simulation, never overwrites a separately decided winner.",
+        "win_election records one lawful result, office term and dated official portrait. Add display_record: install the actual retained photograph with both living subjects' permission and funded modest display space; retain it as historical evidence after terms end. Gate A's line on step 3 and memory of shared lunches; do not infer today's mayor from the historical portrait."
+      ],
+      "era_notes": "Lunch arrangements, campaign methods and portrait formats follow each decade. The contestants need no fixed political parties or real-world platforms.",
+      "why_fun": "The player can read a public rivalry in a school photograph. A small kindness creates history without keeping its beneficiaries on the same side."
+    },
+    {
+      "id": "scenario-20261117-9872",
+      "kind": "scenario",
+      "title": "The First Safe Scoop",
+      "category": "business",
+      "pitch": "Invest in a parlor's properly controlled dairy-free service. A child who finally has a suitable dessert may later open a competing shop, leaving the original owner facing a generous decision's commercial cost.",
+      "present_hook": {
+        "what_you_notice": "A parlor's rejected equipment plan describes a separate service area. A household diary records a child's disappointment at having no suitable option during visits.",
+        "where": "the ice cream parlor",
+        "clues": [
+          {
+            "who": "the parlor plans",
+            "line": "{A} priced the separate service area in {year}. Without the full controls, the plan could not serve the need recorded for {B}."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "ice cream parlor"
+          ]
+        },
+        "B": {
+          "age": [
+            8,
+            12
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "ice cream parlor"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1985
+        ],
+        "notes": "shop belongs to A. Bind B's genuinely diagnosed dairy allergy, a medically appropriate ingredient plan with qualified advice, feasible contamination controls and unmet local demand. Do not assume any food is universally allergy-safe. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Fund the complete priced separate-service plan rather than merely adding a new flavor label."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "install_service": "shop",
+              "kind": "the verified dairy-free preparation and serving controls"
+            }
+          ],
+          "headline": "Parlor Opens an Inspected Separate Dessert Service",
+          "body": "The parlor operated by {A} opened its fully implemented separate service. Under the actual medical and ingredient plan, {B} chose a suitable dessert."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            14,
+            16
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "B",
+              "kind": "ice cream parlor"
+            }
+          ],
+          "headline": "Former Young Customer Opens a Separate Dessert Shop",
+          "body": "After independent training and a funded business plan, adult owner {B} opened a competing parlor. Its actual service controls and menu were separately inspected."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "close_shop": "shop"
+            },
+            {
+              "end_business_service": "shop",
+              "service": "the original public dessert counter"
+            }
+          ],
+          "headline": "Original Parlor Closes after a Failed Viability Review",
+          "body": "The original parlor operated by {A} closed after actual trading losses made recovery unviable. Competition from the business run by {B} was a documented contributor, not an invented sole cause."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Separate Dessert Plan Does Not Reach an Approved Opening",
+        "body": "The funded plan at the parlor operated by {A} did not reach a compliant opening. Actual costs remained recorded and no suitability claim was made."
+      },
+      "present_day": {
+        "best": "In {now}, the original parlor's public counter is closed and the separately founded business of {B} exists if it survived subsequent trading. Its menu and medical suitability remain current facts, not lifetime promises.",
+        "worst": "First-step failure creates no controlled service or competing shop through this chain. The child's actual medical needs remain unchanged.",
+        "twist": "The original kindness can inspire an independent livelihood that takes customers from its source. {A} loses a business without making the welcome offered to {B} a mistake."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I am still glad that child could sit at the counter. I did not expect to be looking across the street at the competition."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Select one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Recheck all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll and is not separately rolled; ineligibility reports its actual cause. Failure stops descendants without undoing earlier effects. Resolve conflicts in stable scenario-ID order with atomic fund, site and contract reservations. Check current ages, survival, consent, ownership and resources. Ordinary later history continues. Present text needs extant recorded changes; after-lines need the specified result, knowledge and a living speaker.",
+        "Add install_service: debit actual invested capital for complete equipment, traceable ingredients, staff training, cleaning, separation and inspection. Suitability is individual and checked at the visit; no allergy cure, guaranteed absence of risk or automatic medical outcome is created.",
+        "Step 2 requires B at least 18, actual voluntary interest, completed relevant training, premises, capital, equipment, permits and a feasible independent plan. The new business receives its own immutable ID; founding it never transfers the original shop or its controls automatically.",
+        "Step 3 requires A still operating the original shop, actual insolvency or unviability, lawful closure and no viable funded recovery. Recheck B's shop still trading and evidence that its competition contributed. end_business_service removes only the original counter's availability and schedules as part of that same closure, not a second monetary loss. Gate A's line on step 3, remembered visit, current knowledge and the competitor genuinely being across the street; otherwise suppress the line."
+      ],
+      "era_notes": "Use ingredients, labeling, clinical advice and contamination controls actually available in the event years. Later standards can require reinvestment.",
+      "why_fun": "The player can revisit a childhood welcome as a changed shopping street. The grateful customer grows into someone with choices of their own."
+    },
+    {
+      "id": "scenario-20261117-9873",
+      "kind": "scenario",
+      "title": "The Warm Room and the Empty Boardinghouse",
+      "category": "family",
+      "pitch": "Help a parent pay for approved insulation in a rented room. The child may later become a building inspector whose work helps expose another serious defect in that same boardinghouse.",
+      "present_hook": {
+        "what_you_notice": "A boardinghouse file holds an unused approved insulation quote. A household note describes a child doing lessons in a cold room; a different concealed building defect remained unassessed.",
+        "where": "the boardinghouse",
+        "clues": [
+          {
+            "who": "the household papers",
+            "line": "{A} could not meet the insulation shortfall in {year}. The separate exit defect was not part of that quote."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            35
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            8,
+            12
+          ],
+          "relation": "parent_child"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1985
+        ],
+        "notes": "A is B's parent and the lawful tenant of the bound room. Require a landlord-approved feasible insulation project, real ongoing tenancy, B's voluntary later interest in building work, and a separately existing serious hidden exit defect that can warrant a future planned closure. Present must be at least 34 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "large",
+          "how_it_looks": "Give the parent's actual contribution toward the approved insulation work."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "insulate_room": "the bound rented room"
+            }
+          ],
+          "headline": "Approved Insulation Warms a Boardinghouse Room",
+          "body": "The approved funded insulation project improved the room rented by {A}. Actual temperature and energy effects entered the household history."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            20,
+            22
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "qualify": "B",
+              "profession": "licensed building inspector"
+            }
+          ],
+          "headline": "Former Boardinghouse Child Qualifies as an Inspector",
+          "body": "{B} completed the required actual training, supervised work and licensing. A remembered housing improvement supplied interest, not an automatic credential."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            32,
+            34
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "document_hazard": "the bound boardinghouse",
+              "hazard": "the separately verified serious exit defect"
+            },
+            {
+              "relocate_household": "A",
+              "to": "the bound lawful replacement home"
+            },
+            {
+              "close_residence": "the bound boardinghouse"
+            }
+          ],
+          "headline": "Independent Safety Review Closes an Occupied Boardinghouse",
+          "body": "After inspector {B} referred the potential conflict, an independent review substantiated the serious exit defect. A lawful planned closure followed secured replacement housing for the household of {A} and every other affected tenant."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Approved Insulation Project Does Not Reach Completion",
+        "body": "The room-improvement plan for {A} did not reach accepted completion. Actual expenditures and remaining gift funds stayed in the household accounts."
+      },
+      "present_day": {
+        "best": "In {now}, the boardinghouse is closed to residential occupation and the household of {A} has the actual replacement address, subject to later events. The former warm room remains inside a building that cannot presently be let.",
+        "worst": "Failure does not invent insulation or a career. It also does not remove the separate real defect or prevent another lawful inspection.",
+        "twist": "The childhood improvement can inspire work that ultimately helps close the remembered home. {A} gains a safer replacement while losing the familiar room that the family once worked so hard to warm."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I am proud of the work my child does. I still remember how pleased we were with that room."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Select one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Recheck all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll and is not separately rolled; ineligibility reports its actual cause. Failure stops descendants without undoing earlier effects. Resolve conflicts in stable scenario-ID order with atomic fund, site and contract reservations. Check current ages, survival, consent, ownership and resources. Ordinary later history continues. Present text needs extant recorded changes; after-lines need the specified result, knowledge and a living speaker.",
+        "Add insulate_room: complete the specified lawful priced project with landlord and tenant consent, safe materials, inspection and actual payments. Preserve the lease, landlord's obligations and the separate exit defect; insulation cannot create or cure it by implication.",
+        "qualify needs B's genuine continuing interest, admission or apprenticeship, actual funded training, supervised experience and current licensing. Step 3 requires a real authorized inspection trigger, B's mandatory conflict referral and an independent qualified decision rather than a child using public power to decide a parent's tenancy.",
+        "document_hazard records only verified findings under the applicable standards. Step 3 requires A still resident, no feasible approved repair preserving occupancy in the decision window, lawful notice and a planned closure process. relocate_household secures actual affordable inspected replacement possession, consent where required, moving resources and all occupants' arrangements before the atomic close_residence removes rental occupancy and access schedules. Never generate replacement housing or leave unbound tenants homeless through prose. A serious immediate emergency instead follows the ordinary emergency rules, not this delayed step. Gate A's line on step 3 and remembered improvement."
+      ],
+      "era_notes": "Use actual insulation practice, licensing and building-safety requirements of each year. No era is assumed to make a dangerous exit harmless.",
+      "why_fun": "A child can grow into the person who understands a home differently. The player can stand outside an empty window that once represented progress."
+    },
+    {
+      "id": "scenario-20261117-9874",
+      "kind": "scenario",
+      "title": "The Footbridge Was Never Promised Forever",
+      "category": "place",
+      "pitch": "Help a landowner withdraw a specific objection to a footbridge. A useful crossing may serve a generation, then disappear when the inheriting child chooses to end an explicitly temporary permission.",
+      "present_hook": {
+        "what_you_notice": "A bridge plan was refused because of one landowner's documented objection. The unbuilt crossing appears in school-route notes, but no public right of access was ever granted.",
+        "where": "the river",
+        "clues": [
+          {
+            "who": "the bridge correspondence",
+            "line": "The plan stalled after the objection from {A} in {year}. The proposed agreement offered a temporary crossing, not a permanent public path."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            45,
+            50
+          ]
+        },
+        "B": {
+          "age": [
+            12,
+            15
+          ],
+          "relation": "parent_child"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1985
+        ],
+        "notes": "A is B's parent and sole owner of the bound riverbank parcel. Bind an actual feasible bridge proposal, A genuinely willing to reconsider the specific objection, and a lawful finite crossing license with no automatic public-access conversion. The full final branch also requires A's ordinary natural death and a valid inheritance by B in the final step window; do not schedule a death to satisfy it. Present must be at least 32 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:withdraw_objection",
+          "target": "A",
+          "how_it_looks": "With the landowner's actual agreement, submit the withdrawal of the specified objection without promising permanent access."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "approve_crossing_license": "the bound finite riverbank agreement"
+            }
+          ],
+          "headline": "Temporary Riverbank License Clears a Bridge-Plan Obstacle",
+          "body": "Landowner {A} and the authorized project parties signed the reviewed finite crossing agreement. Other engineering and public approvals remained necessary."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            14,
+            16
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "build": "the licensed removable footbridge",
+              "where": "the river"
+            }
+          ],
+          "headline": "Licensed Footbridge Opens for Its Agreed Term",
+          "body": "The funded inspected footbridge opened under the still-valid finite access agreement. Its published notice stated the actual term and removal conditions."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            30,
+            32
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": false
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "inherit": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "end_crossing_license": "the bound finite riverbank agreement"
+            },
+            {
+              "tear_down": "the licensed removable footbridge"
+            },
+            {
+              "build": "a lawful riverbank boundary gate",
+              "where": "the river"
+            }
+          ],
+          "headline": "Inherited Riverbank Closes after the Crossing Term Ends",
+          "body": "Following the ordinary natural death of {A}, the estate lawfully transferred the parcel to {B}. On expiry of the actual temporary license, the agreed removal and boundary works ended the crossing."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Withdrawn Objection Does Not Produce a Crossing Agreement",
+        "body": "The reconsidered proposal involving {A} did not obtain a lawful signed crossing agreement. Withdrawing one objection did not grant a bridge or public access."
+      },
+      "present_day": {
+        "best": "In {now}, the removable bridge is gone and the inherited riverbank has its lawful boundary gate. The retained dated bridge records show a crossing that existed in the changed timeline and later ended.",
+        "worst": "First-step failure creates no license or crossing. If later steps stop, any already built bridge remains governed by its actual agreement and safety history.",
+        "twist": "A kindness gives a generation a route across the water, but it cannot silently bind the next owner forever. {B} gains the inherited parcel while former users lose the shortcut they had grown accustomed to."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "The agreement had an end date. People remember the bridge more clearly than the date."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "withdraw_objection",
+          "does": "With A's informed voluntary authorization, record withdrawal of only the bound land-use objection through the actual lawful process. Preserve ownership, other objections, engineering requirements and public rights. It grants no access, funds, license or consent beyond that specific withdrawal."
+        }
+      ],
+      "new_rules_needed": [
+        "Select one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Recheck all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll and is not separately rolled; ineligibility reports its actual cause. Failure stops descendants without undoing earlier effects. Resolve conflicts in stable scenario-ID order with atomic fund, site and contract reservations. Check current ages, survival, consent, ownership and resources. Ordinary later history continues. Present text needs extant recorded changes; after-lines need the specified result, knowledge and a living speaker.",
+        "approve_crossing_license requires a signed finite agreement among actual authorized parties, real authority and applicable notice. Persist its exact term, expiry, public-right status, maintenance duty and removal funding. The agreement must genuinely permit the chosen construction date and expire in the final range; earlier death, estate rules or legal changes can invalidate the chain.",
+        "Step 2 requires a lawful available crossing site, an approved era-valid design, real funding, environmental review, safety inspection and no conflicting rights. The municipality funds and owns the removable bridge superstructure under the recorded agreement; ownership of the riverbank remains separate.",
+        "Step 3 requires an independently occurring natural death of A within the final range, no prior distribution of this parcel, a valid will or succession rule making B its actual recipient, completed probate and B's informed voluntary refusal to renew. inherit transfers only the real distributable interest and obligations once. An earlier death stops this scenario's final branch and ordinary estate processing still applies.",
+        "end_crossing_license executes only a real lawful expiry without a surviving public easement or renewal right. Require all notices, a funded safe removal and an approved lawful boundary gate; preserve unrelated public passage and river access. tear_down targets only the scenario superstructure by immutable ID, not other bridges. All final effects require their prerequisites jointly and apply atomically; never cause A's death or revoke permanent rights to force the story. Gate B's line on step 3 and actual public discussion of the term."
+      ],
+      "era_notes": "Engineering, access law and estate procedure follow their event dates. A temporary agreement cannot magically defeat rights subsequently established by ordinary history.",
+      "why_fun": "The player can cross the bridge in one decade and find its gate in another. A successful intervention has a lifespan as well as an opening day."
+    }
+  ]
+}

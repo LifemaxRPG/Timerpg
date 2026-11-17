@@ -1,0 +1,651 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-10911",
+      "kind": "scenario",
+      "title": "Flowers in the Old Funeral Parlor",
+      "category": "business",
+      "pitch": "Invest in a funeral home's plan to buy flowers from a qualified local grower. That supplier may eventually buy the retired premises, changing what a familiar door means to someone who once came there to mourn.",
+      "present_hook": {
+        "what_you_notice": "A funeral home's unaccepted local-flower proposal is retained with its accounts. A family photograph records the same premises as the site of a child's actual earlier bereavement.",
+        "where": "the funeral home",
+        "clues": [
+          {
+            "who": "the business proposal",
+            "line": "{A} priced a qualified local supply agreement in {year}. The proposal from {B} never reached a funded order."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "funeral home"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "C": {
+          "age": [
+            8,
+            12
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "funeral home"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "shop belongs to A, who owns the bound premises. B is an actually qualified willing flower grower with suitable lawful supply capacity. C has a real retained memory of an earlier family funeral at this site; do not create a death for the story. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Fund the actual costed local-flower supply plan through the business account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "supply_contract": [
+                "B",
+                "A"
+              ],
+              "goods": "the bound suitable locally grown flowers"
+            }
+          ],
+          "headline": "Funeral Home Signs a Paid Local-Flower Agreement",
+          "body": "The funeral business operated by {A} signed a funded voluntary supply agreement with qualified grower {B}. Real orders, delivery capacity and payments governed the arrangement."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "B",
+              "kind": "florist"
+            }
+          ],
+          "headline": "Experienced Flower Supplier Opens an Independent Florist",
+          "body": "With actual trading experience and a funded plan, {B} opened an independent florist. Its premises, stock and obligations belonged to the new business."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "sell_premises": [
+                "A",
+                "B"
+              ],
+              "site": "the bound former funeral premises"
+            },
+            {
+              "close_shop": "shop"
+            },
+            {
+              "relocate_business": "the scenario florist",
+              "to": "the approved former funeral premises"
+            }
+          ],
+          "headline": "Florist Buys Former Funeral Premises after Owner Retires",
+          "body": "Retiring owner {A} completed a lawful funded premises sale to {B} after settling the funeral business's obligations. The florist moved in only after approved conversion and its own relocation arrangements."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Local-Flower Plan Does Not Reach a Viable Supply Contract",
+        "body": "The plan involving {A} and {B} did not reach a viable funded agreement. Actual project costs and remaining capital stayed recorded."
+      },
+      "present_day": {
+        "best": "In {now}, the former funeral premises has the actual florist entrance and display if that business remains. The old funeral business is closed; its confidential records and obligations were not sold as ordinary display stock.",
+        "worst": "Failure creates no local supply agreement or florist through this chain. Existing bereavements remain actual history rather than events the investment invents.",
+        "twist": "A useful business can give a building another life while changing a place someone used to associate with a family goodbye. C's remembered setting is no longer available in its old form."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "unaware",
+          "line": "I came through that door for a very different reason when I was small. I am glad I can buy flowers there now, but I still remember."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key. Use independent chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Recheck every stated prerequisite before rolling. Apply the intervention once. fails.chance complements the first eligible roll, never a separate roll; report actual ineligibility separately. Failure stops descendants without undoing earlier changes. Resolve conflicts in stable scenario-ID order with atomic resource, job and site reservations. Recheck ages, survival, consent, ownership and funds. Ordinary later history continues. Present text requires extant effects; after-lines require the specified result, actual knowledge and a living speaker.",
+        "Add funeral home and florist as business kinds. The initial supplier needs actual lawful growing capacity, acceptable flowers, seasonal supply, safe delivery and a priced consenting contract; no plant growth or sales are guaranteed by investment.",
+        "Founding the florist requires actual independent capital, qualified operation, premises and demand. The initial contract supplies only its actual earnings and experience, not automatic business success.",
+        "sell_premises transfers only A's real building interest and actual price once, preserving other occupants' rights. Step 3 needs voluntary retirement, B's affordable financing, supported valuation, lawful funeral-business closure, arrangements for existing clients and qualified custody of protected records. relocate_business requires an approved suitable converted site, funded actual move and lawful handling of the florist's former premises. No human remains or confidential files become retail inventory. Gate C's line on step 3, C alive and the actual prior memory."
+      ],
+      "era_notes": "Flower supply, professional requirements and premises conversion follow their event years. The emotional change of a doorway requires no graphic funeral details.",
+      "why_fun": "The player can recognize one address across two ordinary kinds of life. The new display does not wipe away what a resident remembers."
+    },
+    {
+      "id": "scenario-20261117-10912",
+      "kind": "scenario",
+      "title": "The Care Worker Who Sold the Business to Its Staff",
+      "category": "money",
+      "pitch": "Give deserved public credit to a trained care worker. A later agency may become owned by its actual staff, while its founder gives up the right to run every visit the old way.",
+      "present_hook": {
+        "what_you_notice": "A qualified worker's verified good work is omitted from an agency's public account. A later independent-care proposal remained in the worker's retained papers.",
+        "where": "the authorized care-service office",
+        "clues": [
+          {
+            "who": "the authorized employment account",
+            "line": "The documented work was done by {A} in {year}. The public account credited the service without naming the consenting worker."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            30
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A is an actually trained consenting care worker with verified appropriate work and voluntary interest in later enterprise. B is a distinct qualified potential coworker, not an assumed client. Public credit must disclose no protected client information. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": 0.3,
+          "how_it_looks": "Spread accurate consented credit for the verified work without identifying clients or promising medical outcomes."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "hire_institution": "A",
+              "institution": "the bound lawful paid supervisory vacancy"
+            }
+          ],
+          "headline": "Qualified Care Worker Takes an Actual Paid Supervisory Post",
+          "body": "After lawful recruitment and qualification checks, {A} accepted the real funded supervisory post. Public praise did not supply missing training or decide client outcomes."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "home-care agency"
+            },
+            {
+              "hire": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Experienced Supervisor Opens a Lawful Care Agency",
+          "body": "With required authorization and real capital, {A} opened a qualified home-care agency. Coworker {B} voluntarily accepted a suitable funded paid job."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "transfer_to_worker_cooperative": "the scenario care agency",
+              "founder": "A",
+              "members": "the actual consenting qualified employee membership"
+            },
+            {
+              "end_sole_management": "A",
+              "business": "the scenario care agency"
+            }
+          ],
+          "headline": "Care Agency Completes a Funded Staff-Cooperative Buyout",
+          "body": "An actual qualified employee cooperative completed the lawful funded purchase of the agency. Founder {A} received the agreed value and gave up sole management under the new governance."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "Public Credit Does Not Produce the Supervisory Appointment",
+        "body": "The accurate recognition of {A} did not lead to the specified appointment in the allotted window. Its direct standing effect remained separate from the vacancy decision."
+      },
+      "present_day": {
+        "best": "In {now}, the actual agency has recorded employee-cooperative ownership and its current qualified management if it remains operating. Real service rosters and agreements determine visits; no client care is improved by ownership wording alone.",
+        "worst": "Failure creates no supervisory job, agency or cooperative through this chain. Accurate recognition remains a real social event.",
+        "twist": "A gains a viable exit and staff gain real ownership, but the founder loses unilateral control of the enterprise built over years. The old owner cannot promise a favorite schedule on the cooperative's behalf."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I am glad they own it. I still sometimes start a sentence as if I were the only person who gets to decide."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key. Use independent chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Recheck every stated prerequisite before rolling. Apply the intervention once. fails.chance complements the first eligible roll, never a separate roll; report actual ineligibility separately. Failure stops descendants without undoing earlier changes. Resolve conflicts in stable scenario-ID order with atomic resource, job and site reservations. Recheck ages, survival, consent, ownership and funds. Ordinary later history continues. Present text requires extant effects; after-lines require the specified result, actual knowledge and a living speaker.",
+        "The positive rumor applies its direct standing effect once. The vacancy must actually exist, be funded and lawfully recruited, and match A's completed qualifications; client privacy and safety are not waived for reputation.",
+        "Add home-care agency as a business kind. It needs actual professional authorization, qualified staff, insurance, real client agreements, sustainable funds and lawful appropriate services. Hiring B requires actual current competence, a vacancy, consent and paid terms.",
+        "transfer_to_worker_cooperative requires actual consenting living qualified employee members, independent advice, lawful governance, supported valuation, real affordable financing, regulatory continuity and a funded plan honoring current staff and client obligations. Record members by existing resident IDs, shares totaling one, one real purchase payment and one transfer of actual assets and liabilities; create no employees or capital from prose.",
+        "end_sole_management removes only A's former unilateral authority after completed transfer; A may retain a properly agreed role but is bound by real cooperative decisions. The sale and governance change are atomic. Gate A's line on step 3 and actual acceptance of the buyout and habit of speaking as the former sole manager."
+      ],
+      "era_notes": "Care regulation, worker ownership and recruitment procedures follow their actual years. No client diagnosis or medical result is inferred.",
+      "why_fun": "The same service can have different people entitled to decide its future. A successful founder's retirement becomes a change in the town's ownership graph."
+    },
+    {
+      "id": "scenario-20261117-10913",
+      "kind": "scenario",
+      "title": "The Key That Stopped Opening the Hall",
+      "category": "place",
+      "pitch": "Help a trained apprentice meet the last lawful cost of qualification. A locksmith's later public-building contract may leave an old volunteer holding a familiar key that no longer works.",
+      "present_hook": {
+        "what_you_notice": "An apprentice's retained file has completed prerequisites and an unpaid qualification invoice. A public hall still uses an old recorded access arrangement and physical keys.",
+        "where": "the public hall",
+        "clues": [
+          {
+            "who": "the apprentice's retained file",
+            "line": "{A} had completed the prerequisites in {year}. The remaining lawful qualification cost stopped the application."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            25
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "Require A actually eligible after completed relevant training, a quoted fee shortfall, genuine interest in the lawful trade and no disqualifying circumstances. B is an actual authorized hall volunteer with a recorded old key; possession alone is not a property right. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the documented remaining lawful qualification-fee amount to the apprentice."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "qualify": "A",
+              "profession": "qualified lawful locksmith"
+            }
+          ],
+          "headline": "Trained Apprentice Completes the Required Trade Qualification",
+          "body": "{A} completed the actual assessment and lawful qualification process. The paid fee did not replace training, competence or required eligibility checks."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "locksmith shop"
+            }
+          ],
+          "headline": "Qualified Tradesperson Opens an Independent Locksmith Shop",
+          "body": "After real experience and a funded lawful business plan, {A} opened an independent shop. Its work required actual customer authorization and qualified practice."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "upgrade_authorized_access": "the bound public hall",
+              "contractor": "A"
+            },
+            {
+              "retire_key": "B",
+              "key": "the bound old hall key"
+            }
+          ],
+          "headline": "Authorized Hall Upgrade Retires the Old Volunteer Key",
+          "body": "Following a lawful funded access review, the hall completed an authorized upgrade by the business operated by {A}. Volunteer {B} received the agreed current access arrangement and the old retained key no longer operated the entrance."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Paid Qualification Application Does Not Reach Completion",
+        "body": "The application involving {A} did not reach completed lawful qualification. Actual expenses and remaining gift funds stayed recorded."
+      },
+      "present_day": {
+        "best": "In {now}, the hall has the actual upgraded entrance and access arrangements if still in service. The old key retained by {B} is an inactive object rather than a way through the door.",
+        "worst": "Failure creates no qualification or hall upgrade through this chain. It grants nobody access to any building.",
+        "twist": "The hall gains an accountable current access arrangement, while {B} loses the old informal freedom associated with one familiar key. Replacement access preserves lawful duties without restoring the old habit."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "I still know where that old key is. Remembering where to put it was easier than remembering it no longer opens anything."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key. Use independent chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Recheck every stated prerequisite before rolling. Apply the intervention once. fails.chance complements the first eligible roll, never a separate roll; report actual ineligibility separately. Failure stops descendants without undoing earlier changes. Resolve conflicts in stable scenario-ID order with atomic resource, job and site reservations. Recheck ages, survival, consent, ownership and funds. Ordinary later history continues. Present text requires extant effects; after-lines require the specified result, actual knowledge and a living speaker.",
+        "qualify requires completed actual training and assessments, eligibility, current authorization and fees as applicable. The gift confers no access permission or technical skill by itself. Add locksmith shop as a business kind with actual lawful premises, equipment, competence, capital and demand.",
+        "Step 3 needs a real authorized hall-management decision, funded lawful contract, independently justified access requirements, safe accessible entry and actual legitimate user arrangements. upgrade_authorized_access changes only the approved hall's controlled entrances and permissions; it does not grant A independent entry rights or provide methods for unauthorized access.",
+        "retire_key marks the identified old key inactive under the completed authorized upgrade, preserving B's ownership of the object if the hall permits retention. Require B still an authorized volunteer, real notice, lawful resolution of old permissions and an actually workable agreed replacement for legitimate duties. Do not extinguish enforceable rights or invent wrongdoing by the volunteer. Apply upgrade and replacement access atomically. Gate B's line on step 3, actual permitted retention and a real remembered habit."
+      ],
+      "era_notes": "Trade requirements and hall access equipment follow the event years. The story requires no brand, digital lock or technical bypass instructions.",
+      "why_fun": "The player can hold an unchanged object whose place in town has changed. A door remembers permission differently from the person who kept its key."
+    },
+    {
+      "id": "scenario-20261117-10914",
+      "kind": "scenario",
+      "title": "The Blue Ribbon That Made the Milk Expensive",
+      "category": "money",
+      "pitch": "Help a dairy farmer submit a genuine eligible fair entry. Recognition may support a specialty dairy that eventually stops supplying an old low-cost milk contract.",
+      "present_hook": {
+        "what_you_notice": "A farm file contains an eligible unsubmitted fair entry and actual animal-care records. A public buyer's later milk budget assumes the farm's ordinary supply continues.",
+        "where": "the farm office",
+        "clues": [
+          {
+            "who": "the retained fair-entry form",
+            "line": "{A} had the required actual records in {year}. The complete entry was never submitted."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "dairy farm"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A owns a real eligible dairy farm with an actually tracked healthy fair-entry goat and lawful food-production capability. B is an actual authorized public food buyer, not a generic individual patient. Bind the real fair, a viable specialty-dairy plan and an actual finite low-cost fluid-milk supply contract. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:submit_fair_entry",
+          "target": "A",
+          "how_it_looks": "With the farmer's permission, submit the authentic eligible animal entry and pay only its actual quoted filing cost."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "award_fair_prize": "A",
+              "entry": "the bound tracked goat",
+              "award": "the actual judged blue ribbon"
+            },
+            {
+              "rep": "A",
+              "by": 0.1
+            }
+          ],
+          "headline": "Eligible Dairy-Farm Entry Wins a Judged Blue Ribbon",
+          "body": "The real eligible entry submitted by {A} won the judged blue ribbon at the bound fair. Its actual result supplied recognition, not a magical increase in production."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "specialty dairy"
+            }
+          ],
+          "headline": "Farm Establishes a Licensed Specialty Dairy",
+          "body": "After actual demand, training, capital and approval, {A} established a specialty dairy. Its herd, sourcing, capacity and safe production were real operating facts."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "end_supply_contract": "A",
+              "contract": "the bound low-cost fluid-milk contract"
+            },
+            {
+              "replace_public_supply": "B",
+              "with": "the bound lawful adequate replacement milk supplier"
+            }
+          ],
+          "headline": "Specialty Dairy Ends an Old Milk Contract at Lawful Expiry",
+          "body": "The business operated by {A} ended its actual finite low-cost supply contract as its approved production plan changed. Buyer {B} secured the funded adequate lawful replacement under the real procurement rules."
+        }
+      ],
+      "fails": {
+        "chance": 0.4,
+        "effects": [],
+        "headline": "Eligible Fair Entry Does Not Win the Blue Ribbon",
+        "body": "The actual entry from {A} did not win the specified award. Filing conferred no prize, health change or guaranteed breeding outcome."
+      },
+      "present_day": {
+        "best": "In {now}, the actual specialty dairy has its licensed premises and supply obligations if still operating. The public buyer's real replacement contract has its actual higher supported price when the scenario's price comparison holds.",
+        "worst": "Failure creates no award or specialty dairy through this chain. The farm and its animals continue their actual ordinary histories.",
+        "twist": "A successful premium product can remove an affordable ordinary supply. {B} must fund the real higher replacement cost while maintaining adequate public provision; a ribbon does not pay that difference."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "The cheese is lovely. The replacement milk invoice is also real, and it arrives every month."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "submit_fair_entry",
+          "does": "With A's permission and lawful authority, submit the actual eligible tracked animal and authentic required records to the bound fair, covering real quoted entry costs. Do not forge eligibility, move an unfit animal, decide judging, award money or create livestock."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key. Use independent chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Recheck every stated prerequisite before rolling. Apply the intervention once. fails.chance complements the first eligible roll, never a separate roll; report actual ineligibility separately. Failure stops descendants without undoing earlier changes. Resolve conflicts in stable scenario-ID order with atomic resource, job and site reservations. Recheck ages, survival, consent, ownership and funds. Ordinary later history continues. Present text requires extant effects; after-lines require the specified result, actual knowledge and a living speaker.",
+        "Requires explicit dairy farm, specialty dairy and individually tracked livestock support. The entry goat must exist with actual age, ownership, health and eligibility records; suppress this proposal without that runtime support. The conditional fair roll is the real contest result within the judging system, not an override of another winner. The reputation effect is for actual public recognition, applied once.",
+        "The goat ages and dies under the ordinary animal model; later production cannot come from an immortal prize animal. Any later herd or sourced milk needs actual lawful purchases or independently simulated husbandry, veterinary welfare, feed, staff and funds. Prize recognition creates no additional animals, credentials or capital.",
+        "The specialty dairy requires real consumer demand, safe suitable production, qualified staff, lawful facilities, authorizations and full operating funds. Founding uses its own tracked business identity and actual rights to inputs; the prize alone cannot establish it.",
+        "Step 3 requires an independently viable production change, actual contract expiry or a lawful settled amendment, no surviving supply duty and B still the relevant authorized buyer. end_supply_contract closes only that obligation after payment and notice. replace_public_supply requires actual adequate lawful nutritional provision, a real consenting qualified supplier, funded approved procurement and a verified higher comparable delivered price; otherwise this branch is ineligible. The public account bears only the actual price difference, not a fabricated wealth fraction. Gate B's line on step 3, a real recurring monthly invoice and B's actual favorable cheese opinion."
+      ],
+      "era_notes": "Fair eligibility, food regulation, animal care and procurement follow actual event years. No breed, brand or real fair location is named.",
+      "why_fun": "A small ribbon can reshape the contents and price of a town's ordinary shopping basket. The prize animal's story and the public buyer's story need not have the same ending."
+    }
+  ]
+}

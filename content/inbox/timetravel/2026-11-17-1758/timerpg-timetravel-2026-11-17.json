@@ -1,0 +1,672 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-10781",
+      "kind": "scenario",
+      "title": "The Bank That Faced the Parking Lot",
+      "category": "business",
+      "pitch": "Invest in a bank's lawful drive-up service proposal. The convenient lane may eventually move the public entrance away from Main Street, leaving a neighboring shop without the same passing foot traffic.",
+      "present_hook": {
+        "what_you_notice": "A bank's unused drive-up plan marks a real rear parcel. The neighboring clothing store still benefits from customers walking past the bank's Main Street door.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the bank project file",
+            "line": "{A} priced the rear service lane in {year}. The deposit for the approved project was never paid."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bank"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "clothing store"
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "bank"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1985
+        ],
+        "notes": "shop belongs to A. B owns the neighboring clothing business. Bind a feasible approved rear lane with lawful land rights, real customer demand, the existing Main Street bank entrance and documented overlapping pedestrian trade. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Fund the bank's costed permitted rear-lane project through its actual capital account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "establish_service": "the bank's permitted staffed drive-up lane"
+            }
+          ],
+          "headline": "Bank Opens a Staffed Drive-Up Service Lane",
+          "body": "The bank operated by {A} opened its funded permitted drive-up lane. It retained actual staffed access and safe traffic arrangements."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            14,
+            16
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "relocate_entrance": "shop",
+              "from": "the bound Main Street public door",
+              "to": "the approved rear public entrance"
+            }
+          ],
+          "headline": "Bank Moves Its Public Entrance toward the Rear Lane",
+          "body": "After measured demand and a funded approved access plan, the bank moved its public entrance to the rear. The old Main Street door ceased being a customer route."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "close_owned_business": "B",
+              "kind": "clothing store",
+              "identity": "the bound neighboring clothing business"
+            }
+          ],
+          "headline": "Neighboring Clothing Store Closes after Trading Losses",
+          "body": "The clothing business operated by {B} closed after actual losses and an unsuccessful recovery review. Reduced passing trade from the changed bank route was a documented contributor."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Drive-Up Proposal Does Not Reach an Approved Opening",
+        "body": "The funded bank proposal associated with {A} did not reach a viable approved opening. Actual project expenses and remaining capital stayed in its accounts."
+      },
+      "present_day": {
+        "best": "In {now}, the bank has its real rear-facing public entrance and lane if still operating, while the neighboring clothing business is closed. Other occupants of either premises follow actual later history.",
+        "worst": "Failure creates no lane or shop closure through this chain. The investment does not guarantee customers or profits.",
+        "twist": "One business offers a more convenient route for some customers, while {B} loses the foot traffic on which another business depended. A successful entrance can make the next door quieter."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "The bank did not move away. It only turned around. It felt farther than that from my counter."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check every stated prerequisite before rolling. Apply the intervention once. fails.chance complements the first eligible roll, never a separate roll; report actual ineligibility separately. Failure stops descendants without undoing earlier effects. Resolve conflicts in stable scenario-ID order with atomic resource, site and contract reservations. Recheck survival, ages, consent, ownership and funds. Ordinary later history continues. Present text requires extant effects; after-lines require the specified result, actual knowledge and a living speaker.",
+        "The lane needs real land rights, capital, traffic approval, safe pedestrian circulation, trained paid staff and banking authorization. It grants no banking license, deposits or profits merely by construction.",
+        "relocate_entrance requires the bank still operating, actual customer-route evidence, lawful building works, a genuine accessible staffed public entrance and funded alternatives for users who cannot use a vehicle. Change only real navigable entrances and routing; do not assume every customer drives.",
+        "Step 3 requires B still owning the identified clothing store, actual unviability under its accounts, evidence of lost passing trade, no feasible funded recovery and lawful closure with staff, supplier and customer obligations handled. close_owned_business targets only that immutable business ID; the bank lane does not arbitrarily delete a viable shop. Gate B's line on step 3 and actual memory of the door change."
+      ],
+      "era_notes": "Lane equipment, traffic rules and access arrangements follow each event decade. The bank need not be automated or branchless.",
+      "why_fun": "A few steps saved at one door can change an entire walk along Main Street. The player can trace the ripple with their feet."
+    },
+    {
+      "id": "scenario-20261117-10782",
+      "kind": "scenario",
+      "title": "The Sunday Dinner with Paying Guests",
+      "category": "family",
+      "pitch": "Introduce a capable home cook to a bakery owner seeking a lawful meal partner. A genuine catering business may grow from it, eventually taking the weekly afternoon the cook once reserved for a sibling.",
+      "present_hook": {
+        "what_you_notice": "A bakery has an unfilled approved meal-service proposal. A household notebook contains a separate qualified cook's costed menu and a recurring family Sunday-dinner plan.",
+        "where": "the bakery",
+        "clues": [
+          {
+            "who": "the separate proposal files",
+            "line": "{A} had a costed menu in {year}. The bakery operated by {B} never received it."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            30
+          ],
+          "owns_shop": false
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bakery"
+          ]
+        },
+        "C": {
+          "age": [
+            25,
+            30
+          ],
+          "relation": "siblings"
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "C is A's sibling. A has actual appropriate food-service competence and voluntary interest in paid work; B owns the bound bakery with a suitable permitted kitchen arrangement. Bind A and C's genuine recurring Sunday meals, feasible demand and a real later Sunday catering opportunity. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange the wanted professional meeting with the actual menu and bakery proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "commission": "A",
+              "work": "the bound approved paid bakery meal service"
+            }
+          ],
+          "headline": "Bakery Contracts with a Qualified Local Cook",
+          "body": "The bakery operated by {B} contracted qualified cook {A} for the actual approved paid meal service. Ingredients, labor and kitchen responsibilities were priced and recorded."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "catering service"
+            }
+          ],
+          "headline": "Meal-Service Experience Supports an Independent Caterer",
+          "body": "With verified experience and a funded independent plan, {A} opened a catering service. The new business had its own lawful facilities and obligations."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "accept_contract": "A",
+              "contract": "the bound recurring Sunday catering work"
+            },
+            {
+              "change_meeting_rate": [
+                "A",
+                "C"
+              ],
+              "activity": "the bound shared Sunday dinners",
+              "factor": 0.25
+            },
+            {
+              "bond": [
+                "A",
+                "C"
+              ],
+              "by": -0.15
+            }
+          ],
+          "headline": "Sunday Catering Work Replaces Most Sibling Dinners",
+          "body": "Caterer {A} voluntarily accepted the priced recurring Sunday work. After an actual unsuccessful scheduling discussion, shared dinners with sibling {C} became less frequent and their relationship strained."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Cook and Bakery Do Not Reach a Viable Service Contract",
+        "body": "{A} and {B} did not agree on a viable lawful meal-service contract. The introduction provided neither free kitchen space nor guaranteed income."
+      },
+      "present_day": {
+        "best": "In {now}, the actual catering service has the Sunday booking if it remains active, while the siblings' real schedules contain fewer of their old dinners. Other chosen meetings and relationships continue normally.",
+        "worst": "Failure creates no service contract, business or family estrangement through this chain. The siblings may still change their routines independently.",
+        "twist": "Paid meals can provide a real livelihood while displacing a meal that was never priced. The sibling's loss is time together, not a legal claim to the cook's unpaid labor."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "I am glad people like the food. I miss being one of the people who got to sit down and eat it together."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check every stated prerequisite before rolling. Apply the intervention once. fails.chance complements the first eligible roll, never a separate roll; report actual ineligibility separately. Failure stops descendants without undoing earlier effects. Resolve conflicts in stable scenario-ID order with atomic resource, site and contract reservations. Recheck survival, ages, consent, ownership and funds. Ordinary later history continues. Present text requires extant effects; after-lines require the specified result, actual knowledge and a living speaker.",
+        "commission records a real consenting funded service contract with appropriate competence, food authorization, safe facilities, insurance and actual demand; no permit or unqualified skill comes from being a home cook.",
+        "Add catering service as a business kind. Founding requires actual independent premises or lawful kitchen rights, funding, qualified staff as needed, permits and a viable plan. The earlier contract gives only its real earnings and experience, not free ownership of B's bakery.",
+        "accept_contract requires actual affordable delivery resources, consent, legal scope and specific Sunday hours conflicting with A and C's still-active voluntary dinner routine. change_meeting_rate reduces only those actual shared-dinner opportunities to one quarter, not every social encounter. Apply the bond decrement only for the recorded unresolved interpersonal strain, never automatically for taking paid work. Allow later freely chosen meetings to repair it. Gate C's line on step 3, remembered shared meals and actual knowledge that customers like the food."
+      ],
+      "era_notes": "Menus, kitchen facilities and food-service requirements follow each event year. No particular cuisine or gendered cooking role is assumed.",
+      "why_fun": "The ripple appears on a household calendar as well as a business sign. An ordinary paid booking can be a large event in someone else's week."
+    },
+    {
+      "id": "scenario-20261117-10783",
+      "kind": "scenario",
+      "title": "The Garden Above the Chimneys",
+      "category": "place",
+      "pitch": "Introduce a willing building owner to a qualified engineer with a real rooftop-garden plan. A shared garden may flourish above Main Street before the roof's later repair needs bring it back to ground level.",
+      "present_hook": {
+        "what_you_notice": "An unused rooftop-garden proposal is filed separately from a building owner's offer of space. The roof has no authorized garden or public access in the baseline.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the proposal files",
+            "line": "{A} offered the roof in {year}. The qualified plan prepared by {B} never reached the owner."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            65,
+            70
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "clothing store"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "C": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A owns the bound Main Street building and clothing business; B is an actually qualified engineer and C a distinct willing garden organizer. Require a genuinely feasible surveyed roof, lawful public access, available funds and a real long-term garden agreement. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Connect the willing owner with the qualified engineer and the actual written plan."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "build": "the approved accessible rooftop garden",
+              "where": "Main Street"
+            },
+            {
+              "establish_service": "the funded rooftop garden association"
+            }
+          ],
+          "headline": "Approved Garden Opens above a Main Street Building",
+          "body": "A funded inspected garden opened on the building owned by {A} after qualified design by {B}. Organizer {C} joined its real lawful operating association."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_service": "the garden association's funded practical growing classes"
+            }
+          ],
+          "headline": "Rooftop Garden Adds a Real Teaching Program",
+          "body": "After actual maintained growing results and a funded staffing plan, the association opened its qualified practical classes. Real access and safe capacity limited attendance."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "relocate_service": "the scenario shared garden",
+              "to": "the bound approved ground-level replacement garden"
+            },
+            {
+              "end_public_access": "the bound roof garden",
+              "reason": "the independently verified roof-repair program"
+            }
+          ],
+          "headline": "Shared Garden Moves to Ground Level for Required Roof Work",
+          "body": "A lawful independently verified roof-repair plan required the rooftop operation to end. The association completed a funded agreed move to its actual safe ground-level replacement."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "Rooftop Meeting Does Not Become an Approved Garden",
+        "body": "The proposal discussed by {A} and {B} did not reach a funded approved opening. The actual building and its access rights remained unchanged."
+      },
+      "present_day": {
+        "best": "In {now}, the old rooftop has no public garden access and the shared garden occupies its real ground-level site. Classes continue only if actual staff, funds and cultivation support them.",
+        "worst": "Failure creates no structure, association or repair need through this chain. Actual roofs still age under the ordinary physical model.",
+        "twist": "The garden's community can survive while losing the view that first made it special. Its association spends real moving resources and gives up a place above the chimneys to retain a safe place to grow."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "grateful",
+          "line": "I miss the view. I am glad we brought the people with us instead of just the planters."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check every stated prerequisite before rolling. Apply the intervention once. fails.chance complements the first eligible roll, never a separate roll; report actual ineligibility separately. Failure stops descendants without undoing earlier effects. Resolve conflicts in stable scenario-ID order with atomic resource, site and contract reservations. Recheck survival, ages, consent, ownership and funds. Ordinary later history continues. Present text requires extant effects; after-lines require the specified result, actual knowledge and a living speaker.",
+        "The rooftop build needs actual structural capacity, qualified design, safe loads and materials, water and drainage, fire and access approval, accessible circulation, insurance and full funding. It changes only the bound roof, not an invented empty parcel. No unsafe condition is waived for a pleasant story.",
+        "The association needs a lawful recorded operating agreement whose genuine rights and duties survive only as actual property law allows. A need not remain alive after step 1; real lawful owners and officers must honor, renew or end the actual agreement. The classes require qualified paid or genuinely consenting volunteer staff, actual demand and sustainable funds.",
+        "Step 3 requires an independently arising real roof-repair need, actual qualified assessment, legal notice, lawful resolution of occupancy rights and an available consented funded ground-level site with safe access, soil, water and real planting capacity. relocate_service moves actual owned beds, usable stock and agreements, paying priced work once. end_public_access removes only the former garden's access after the move; it does not close the building's other spaces or cause a defect. Gate C's line on step 3 and actual continued member participation."
+      ],
+      "era_notes": "Roof engineering, cultivation methods and access standards follow the actual event years. A roof's eventual needs are physical history rather than a punishment for gardening.",
+      "why_fun": "The player can visit two locations in one community's history. A place can change altitude while the relationships built there persist."
+    },
+    {
+      "id": "scenario-20261117-10784",
+      "kind": "scenario",
+      "title": "The Parent Who Survived and Left",
+      "category": "rescue",
+      "pitch": "Warn a traveler about a specific real bridge-collapse danger. Saving the parent may preserve a life without preserving the marriage that the baseline tragedy left behind.",
+      "present_hook": {
+        "what_you_notice": "A retained death notice identifies a parent lost on a specific journey. Earlier engineering evidence establishes the actual hazard before that trip, while private authorized records show an already unresolved marital conflict.",
+        "where": "the Gazette archive",
+        "clues": [
+          {
+            "who": "the retained engineering and journey records",
+            "line": "The danger was documented before the journey taken by {A}. The family notice places that journey within two years of {year}."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            35
+          ],
+          "married": true,
+          "has_children": true
+        },
+        "B": {
+          "age": [
+            30,
+            35
+          ],
+          "married": true,
+          "relation": "spouses"
+        },
+        "C": {
+          "age": [
+            5,
+            8
+          ],
+          "relation": "parent_child"
+        },
+        "D": {
+          "age": [
+            25,
+            30
+          ],
+          "married": false
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1985
+        ],
+        "notes": "B is A's spouse and C their existing child. D is an unrelated distinct adult, not a predetermined future partner. Bind A's actual baseline fatal journey one to two years later, credible discoverable hazard evidence and a feasible safer travel choice. Do not invent marital wrongdoing; the actual continuing conflict must already be independently present. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:warn_traveler",
+          "target": "A",
+          "how_it_looks": "Give the traveler the real available hazard evidence and the practical safer options, without promising an outcome."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "avoid_event_death": "A",
+              "event": "the bound fatal collapse journey"
+            }
+          ],
+          "headline": "Traveler Avoids the Journey Identified in a Hazard Warning",
+          "body": "After the actual warning and a feasible voluntary change of plan, {A} avoided the bound fatal journey. The real collapse and other people's outcomes followed their own recorded history."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "divorce": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Surviving Couple Finalizes a Divorce after Continuing Conflict",
+          "body": "After a real continuing unresolved conflict, {A} and {B} completed a lawful divorce. The actual settlement preserved the child's support and other rights."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            },
+            "D": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "marry": [
+                "B",
+                "D"
+              ]
+            },
+            {
+              "form_household": [
+                "B",
+                "D"
+              ],
+              "home": "the bound available shared residence"
+            }
+          ],
+          "headline": "A Later Courtship Establishes a Different Household",
+          "body": "After an independently developed mutual courtship, {B} and {D} married and established their actual shared home. The later household did not erase the saved life or the earlier family history."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Warning Does Not Produce a Completed Safer Travel Outcome",
+        "body": "The warning given to {A} did not produce the specified completed safer outcome. The actual journey, hazard and survival records determined what happened; no rescue was inferred."
+      },
+      "present_day": {
+        "best": "In {now}, {A} has no death from the bound journey and the actual shared residence of {B} records the later marriage to {D}, subject to subsequent ordinary life events. The real parentage of {C} remains unchanged.",
+        "worst": "Failure provides no immunity from the actual journey. If the rescue succeeds but later steps fail, the saved life remains real without a forced divorce or remarriage.",
+        "twist": "The intervention can save a person without freezing a family in the relationship remembered from a memorial. C may have a living parent and a changed home rather than the simple reunion the player imagined."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "unaware",
+          "line": "My parent is alive. Our family also changed. Those are both things I grew up knowing."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "warn_traveler",
+          "does": "Deliver actual available credible evidence of the precisely bound journey hazard to A, with feasible safer choices and their real costs. Record receipt and A's actual decisions. Do not force obedience, change the bridge, cancel other deaths, guarantee survival or reveal unsupported future facts as current certainty."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check every stated prerequisite before rolling. Apply the intervention once. fails.chance complements the first eligible roll, never a separate roll; report actual ineligibility separately. Failure stops descendants without undoing earlier effects. Resolve conflicts in stable scenario-ID order with atomic resource, site and contract reservations. Recheck survival, ages, consent, ownership and funds. Ordinary later history continues. Present text requires extant effects; after-lines require the specified result, actual knowledge and a living speaker.",
+        "avoid_event_death resolves immediately before the actual bound trip and baseline fatal event in years 1–2. It requires A receiving and believing the credible evidence and actually completing a feasible safer plan; cancel only the fatal exposure thereby avoided. Preserve every other risk, journey cost and later mortality. The warning's first-roll outcome models real response and execution rather than rerolling a completed rescue.",
+        "Step 2 requires A and B still alive and married, actual continuing conflict independently simulated after survival, a lawful voluntary or otherwise legally valid divorce and realistic settlement, housing and child-support arrangements. Do not treat surviving a warning as causing a bad marriage or make divorce inevitable.",
+        "Step 3 requires B and D currently unmarried, unrelated, consenting and in an actual independent courtship; D may have married someone else or left town, making this branch ineligible. form_household requires a real affordable residence, lawful possession, consent of affected occupants and moving resources. Do not create a house or child by implication.",
+        "Gate C's line on step 3, C alive, actual knowledge and A still alive in the present; otherwise suppress the present-tense survival claim. NPCs know only their own actual branch. Player-facing comparisons may use retained source history without giving C memories of an alternate parent's death."
+      ],
+      "era_notes": "Travel evidence, warning methods and marriage procedures follow each event year. The body never supplies graphic accident details or a fixed gender role.",
+      "why_fun": "The player can speak to someone once memorialized and still discover a complicated household. A saved life stays valuable without becoming a promise about everything that follows."
+    }
+  ]
+}

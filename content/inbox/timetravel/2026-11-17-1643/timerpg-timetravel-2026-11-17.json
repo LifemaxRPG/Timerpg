@@ -1,0 +1,651 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-10031",
+      "kind": "scenario",
+      "title": "The Train That Outlived the Toy Store",
+      "category": "business",
+      "pitch": "Invest in a toy shop's little passenger railway. A novelty ride may become a lasting town attraction, while its owner eventually closes the shop that first paid its bills.",
+      "present_hook": {
+        "what_you_notice": "A toy shop has an unbuilt miniature-railway plan and a box of priced track samples. The proposed public ride never acquired operating equipment.",
+        "where": "the toy store",
+        "clues": [
+          {
+            "who": "the shop project folder",
+            "line": "{A} priced the little railway in {year}. The equipment deposit was where the plan stopped."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "toy store"
+          ]
+        },
+        "B": {
+          "age": [
+            8,
+            12
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "toy store"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1985
+        ],
+        "notes": "shop belongs to A. Bind a real supervised miniature passenger-railway proposal, lawful available initial site, qualified operators, sustainable demand and a later feasible public operating body. B is a distinct child whose actual interest may later lead to paid training. Present must be at least 32 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Finance the quoted railway equipment deposit through the toy shop's project account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "establish_service": "the toy shop's inspected miniature passenger railway"
+            }
+          ],
+          "headline": "Toy Shop Opens an Inspected Miniature Railway",
+          "body": "The toy shop operated by {A} opened its permitted supervised miniature passenger ride. Real fares and operating costs entered the project accounts."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            16,
+            18
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a permitted permanent miniature-railway circuit",
+              "where": "the edge of town"
+            },
+            {
+              "qualify": "B",
+              "profession": "trained miniature-railway operator"
+            },
+            {
+              "hire": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Little Railway Gains a Permanent Circuit and Paid Operator",
+          "body": "A funded permanent circuit opened under the railway's approved operating plan. Adult operator {B} completed the actual required training and accepted paid work."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            30,
+            32
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "transfer_service": "the scenario miniature railway",
+              "to": "the funded public railway trust"
+            },
+            {
+              "close_shop": "shop"
+            }
+          ],
+          "headline": "Public Trust Takes the Little Railway as Toy Shop Closes",
+          "body": "A qualified funded public trust accepted the railway under its lawful transfer agreement. Retiring owner {A} closed the toy shop after the completed handover."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Miniature-Railway Plan Does Not Reach an Approved Opening",
+        "body": "The project at the toy shop operated by {A} did not reach a viable inspected opening. Actual deposits, refunds and expenses remained in its accounts."
+      },
+      "present_day": {
+        "best": "In {now}, the permanent miniature-railway circuit belongs to the actual public trust, if it still operates, while the original toy shop is closed. Train movements and paid staff follow real maintenance, fares and rosters.",
+        "worst": "Failure creates no safe ride or permanent circuit through this chain. The actual investment still has its recorded financial outcome.",
+        "twist": "The little train survives its founding business, but {A} gives up the public counter and the shop's ongoing trading opportunity. The attraction that brings families to town no longer brings them through the original shop door."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "The shop is shut, but they still ask me how the little train is doing. I like that."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key. Use independent chance keys containing seed, scenario ID, intervention year, bound IDs and step. Check every stated prerequisite before rolling. Apply interventions once. fails.chance complements the first eligible roll, never a second roll; report actual ineligibility separately. Failed steps stop descendants without undoing prior changes. Resolve conflicts in stable scenario-ID order with atomic resource, site and contract reservations. Recheck survival, ages, consent, ownership and funds. Ordinary later history remains active. Present text requires extant effects; after-lines require the stated outcome, actual knowledge and a living speaker.",
+        "The railway is a service project owned by A's toy store, with separately recorded assets and accounts. It requires actual available land, inspected equipment, qualified operators, insurance, supervision, operating funds and era-valid public-ride approval. The investment creates no safety exemption.",
+        "Step 2 requires funded acquisition or lease of an available edge-of-town parcel and an approved circuit. qualify records B's actual completed paid or funded training; B is at least 24. hire requires real wages, safe duties and B's voluntary acceptance. Do not presume a childhood interest persists.",
+        "Add transfer_service: transfer the existing railway assets, liabilities, land rights and operating duties to a legally established public trust only after its actual funding and qualified management are secured. Record the agreed purchase or donation without duplicating its value. Step 3 requires A still controlling the railway and shop, voluntary retirement, settled staff and customer obligations, and a lawful shop closure; closing the shop does not close the independently transferred railway. Gate A's line on step 3 and actual visitor inquiries."
+      ],
+      "era_notes": "Railway equipment and inspection standards follow the operating years. No real manufacturer, gauge or model name is required.",
+      "why_fun": "A toy-shop drawing becomes something the player can ride. Returning to a locked shop beside a surviving attraction makes retirement visible."
+    },
+    {
+      "id": "scenario-20261117-10032",
+      "kind": "scenario",
+      "title": "The Timecard Kept in a Lunch Tin",
+      "category": "crime",
+      "pitch": "Spread a truthful account of an employer's unpaid wages. A worker may recover a real claim and later help others bring theirs, while the old employer loses money and standing rather than merely a good name.",
+      "present_hook": {
+        "what_you_notice": "A retained timecard and payroll ledger disagree. A worker's lunch tin holds an unpursued wage-claim form with the needed dates already written in.",
+        "where": "the business archive",
+        "clues": [
+          {
+            "who": "the payroll records",
+            "line": "The hours worked by {B} for {A} in {year} exceed the hours paid in this ledger. The difference was never adjudicated."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "clothing store"
+          ]
+        },
+        "B": {
+          "age": [
+            20,
+            25
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "shop": {
+          "shop_kind": [
+            "clothing store"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1985
+        ],
+        "notes": "shop belongs to A and actually employed B. Bind verified unpaid wages, lawfully available accurate evidence, a still-valid claim route and B's independent interest in paid claims-administration work. No invented accusation or assumed deliberate intent. Present must be at least 32 years later."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": -0.4,
+          "how_it_looks": "Tell the accurate documented wage discrepancy without inventing motives or additional victims."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "settle_wage_claim": [
+                "A",
+                "B"
+              ],
+              "claim": "the bound unpaid-hours claim"
+            }
+          ],
+          "headline": "Reviewed Timecard Leads to a Paid Wage Claim",
+          "body": "A lawful review upheld the actual unpaid-hours claim by {B}. Employer {A} paid the adjudicated amount under the recorded process."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            16,
+            18
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "qualify": "B",
+              "profession": "trained wage-claims administrator"
+            },
+            {
+              "establish_service": "the funded qualified wage-claims assistance desk"
+            }
+          ],
+          "headline": "Former Claimant Helps Staff a Wage-Claims Desk",
+          "body": "After actual training and supervised work, {B} joined a funded qualified claims-assistance desk. The service provided only the help its staff were authorized to give."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            30,
+            32
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "establish_service": "the claims desk's lawful employer-audit program"
+            },
+            {
+              "publish_correction": "the bound original payroll finding"
+            }
+          ],
+          "headline": "Claims Desk Adds Audits and Corrects Its Original Account",
+          "body": "The qualified desk added a funded lawful audit program. A reviewed correction clarified that the original evidence established unpaid wages but did not establish deliberate intent."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "Public Discussion Does Not Produce a Paid Wage Finding",
+        "body": "The discussed claim by {B} did not reach an upheld paid finding within the scenario window. The rumor's direct standing effect on {A} remained a separate recorded event."
+      },
+      "present_day": {
+        "best": "In {now}, the qualified claims desk has a lawful audit program and a corrected account of the original case. Real opening hours, resolved claims and current employer records follow actual decisions.",
+        "worst": "Failure invents no payment or intent finding. It neither clears the documented discrepancy nor converts rumor into a legal verdict.",
+        "twist": "{B} gains a route to earned money and a later vocation, while {A} pays the real obligation and suffers the disclosure. The desk eventually owes the town a correction about what its founding story actually proved."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "The tin kept the hours better than anybody's memory. We should have been just as careful about the rest of the story."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key. Use independent chance keys containing seed, scenario ID, intervention year, bound IDs and step. Check every stated prerequisite before rolling. Apply interventions once. fails.chance complements the first eligible roll, never a second roll; report actual ineligibility separately. Failed steps stop descendants without undoing prior changes. Resolve conflicts in stable scenario-ID order with atomic resource, site and contract reservations. Recheck survival, ages, consent, ownership and funds. Ordinary later history remains active. Present text requires extant effects; after-lines require the stated outcome, actual knowledge and a living speaker.",
+        "Add settle_wage_claim: adjudicate only the bound supported eligible claim with due process, response and available review. Debit the actually liable payer and credit B's actual net award after lawful deductions; use priced currency amounts, not invented fractions or a second rumor penalty. Require payment feasible within the window; insolvency follows ordinary law instead.",
+        "qualify requires actual completed funded training and supervised work, not merely personal experience. The assistance desk needs qualified staff, lawful scope, available premises and sustainable funding. It cannot practice law without authorized counsel or disclose protected payroll data.",
+        "The audit program requires real consenting or lawfully compelled employer access, qualified paid reviewers, evidence rules and funding. Add publish_correction: append a visible sourced correction to the identifiable founding account without erasing its true wage finding. Step 3 requires an actual earlier public account that overclaimed intent, independently reviewed contrary evidentiary limits, and a lawful correction process; otherwise this branch is ineligible. Do not invent or require a false statement as an intervention effect. Gate B's line on step 3 and actual knowledge."
+      ],
+      "era_notes": "Claim deadlines, worker protections, evidence formats and professional authorization follow the relevant years. A public wage discrepancy is never automatically a criminal conviction.",
+      "why_fun": "A lunch tin becomes the origin of an institution that must learn to examine its own story. The town changes through both recovery and correction."
+    },
+    {
+      "id": "scenario-20261117-10033",
+      "kind": "scenario",
+      "title": "A Bedroom That Stayed in the Family",
+      "category": "family",
+      "pitch": "Introduce an aspiring adoptive parent to the qualified worker handling an actual placement opportunity. A child's eventual ownership of a familiar home may begin there, while the parent gives up a property once counted on for retirement.",
+      "present_hook": {
+        "what_you_notice": "An unsubmitted inquiry appears in an applicant's retained papers. A separate authorized case summary records a child who needed a permanent family, without making private case details public.",
+        "where": "the authorized family-services office",
+        "clues": [
+          {
+            "who": "the authorized inquiry record",
+            "line": "{A} asked how to begin in {year}. The inquiry never reached the qualified worker {B}."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            35
+          ],
+          "wealth": "comfortable"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        },
+        "C": {
+          "age": [
+            5,
+            7
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1985
+        ],
+        "notes": "A is a genuine voluntary adoption applicant. B is the actual qualified authorized worker, not a person who can waive checks. C is an existing distinct child legally eligible for permanent placement, with no assumed relationship to A. Authorized access protects private information. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Connect the willing applicant with the actual authorized worker through the lawful application route."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "approve_placement": [
+                "A",
+                "C"
+              ]
+            }
+          ],
+          "headline": "Reviewed Application Leads to a Lawful Family Placement",
+          "body": "After all actual required assessments and the child's protected participation, a lawful placement joined the household of {A} with child {C}. Public reporting withheld private case details."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            6,
+            8
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "adopt": [
+                "A",
+                "C"
+              ]
+            }
+          ],
+          "headline": "Established Family Placement Becomes a Finalized Adoption",
+          "body": "The continuing placement involving {A} and {C} became a lawful finalized adoption. The decision followed the actual case process rather than a promise made at introduction."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "transfer_home": [
+                "A",
+                "C"
+              ],
+              "home": "the bound longtime family home",
+              "mode": "voluntary lifetime gift with A's protected occupancy"
+            }
+          ],
+          "headline": "Adult Child Receives the Family Home under a Protected Agreement",
+          "body": "Adult recipient {C} accepted a lawful lifetime transfer of the familiar home from {A}. The agreement secured the parent's actual continuing occupancy."
+        }
+      ],
+      "fails": {
+        "chance": 0.3,
+        "effects": [],
+        "headline": "An Introduction Does Not Become a Completed Placement",
+        "body": "The introduction involving {A} and {B} did not produce an approved placement in the allotted window. The child's actual care and other lawful opportunities continued."
+      },
+      "present_day": {
+        "best": "In {now}, the longtime home has the actual adult ownership of {C} and the recorded occupancy protection for {A}, subject to later lawful changes. The adoption relationship exists in the real family graph.",
+        "worst": "First-step failure creates no placement or adoption through this chain. It does not erase the existing child or close other routes to a family.",
+        "twist": "{C} gains title to a familiar home, while {A} gives up the independent right to sell or rent that property as a retirement asset. Love changes a real balance sheet without buying a child's gratitude."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "grateful",
+          "line": "The bedroom was mine long before the deed. I know the deed still cost something."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key. Use independent chance keys containing seed, scenario ID, intervention year, bound IDs and step. Check every stated prerequisite before rolling. Apply interventions once. fails.chance complements the first eligible roll, never a second roll; report actual ineligibility separately. Failed steps stop descendants without undoing prior changes. Resolve conflicts in stable scenario-ID order with atomic resource, site and contract reservations. Recheck survival, ages, consent, ownership and funds. Ordinary later history remains active. Present text requires extant effects; after-lines require the stated outcome, actual knowledge and a living speaker.",
+        "approve_placement requires actual legal eligibility, qualified independent assessments, safeguarding, the child's age-appropriate participation, required consents and a suitable funded household. B cannot shortcut rules, sell access or guarantee a match. Suppress identifiable public case details unless actual lawful publication permission exists.",
+        "adopt records only a lawfully finalized relationship after a continuing suitable placement and current required consents and decisions. Preserve immutable person IDs and accurate birth and prior family history; never generate a replacement child or imply the child's earlier life was empty. B need not survive or retain the role at step 2; actual authorized successors handle the case.",
+        "transfer_home requires A owning the identified occupied family home, independent informed advice, an affordable retirement plan using real other resources, a lawful uncoerced gift, C's acceptance, actual taxes and transaction costs and enforceable protected occupancy for A. Transfer the real asset once, preserve debts and other occupants' rights, and do not duplicate its value as a wealth effect. C is at least 33. Gate C's line on step 3 and actual shared-home memories."
+      ],
+      "era_notes": "Placement, adoption and property-transfer procedures follow their event years. No family structure, sex or marital status is inferred beyond actual lawful eligibility.",
+      "why_fun": "The player can enter the same bedroom at different points in a person's real family history. The eventual deed is a choice, not an automatic reward for parenthood."
+    },
+    {
+      "id": "scenario-20261117-10034",
+      "kind": "scenario",
+      "title": "The Eviction Notice with Tomorrow's Date",
+      "category": "uncanny",
+      "pitch": "Show a shop tenant an authentic eviction notice carried from the present. It may prompt an ordinary lease review that preserves the shop while tying up savings the owner hoped to use elsewhere.",
+      "present_hook": {
+        "what_you_notice": "A closed dress shop has a retained notice from the present and an earlier lease with a real unexercised renewal route. The notice identifies the same premises and parties.",
+        "where": "the former dress shop",
+        "clues": [
+          {
+            "who": "the retained tenancy file",
+            "line": "The notice is dated {now}. The lease signed in {year} offered a renewal route that {A} never used."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "dress shop"
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "dress shop"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1985
+        ],
+        "notes": "shop belongs to tenant-operator A, who does not own its building. Bind a genuine baseline present-day eviction notice caused by the same lease's unused renewal route, an actual earlier lawful renewal opportunity and a feasible later long lease. Present must be at least 32 years later. Never infer future facts in the changed branch from the carried notice alone."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:show_future_record",
+          "target": "A",
+          "how_it_looks": "Show the unchanged baseline notice and identify it honestly as a record carried from another future."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "review_contract": "the bound dress-shop lease"
+            }
+          ],
+          "headline": "Dress-Shop Tenant Obtains a Timely Lease Review",
+          "body": "Tenant {A} obtained qualified advice about the actual existing lease. The review identified a genuine renewal route without treating a strange document as current legal authority."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            15,
+            17
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "renew_lease": "the bound dress-shop tenancy",
+              "basis": "the verified current option and funded agreed terms"
+            }
+          ],
+          "headline": "Dress Shop Completes a Funded Long-Term Lease Renewal",
+          "body": "Operator {A} completed a lawful timely renewal under the actual current option and terms. The signed agreement recorded its real deposit, rent and obligations."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            30,
+            32
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "maintain_tenancy": "the bound dress-shop tenancy",
+              "cost": "the actual required reserve and compliance works"
+            },
+            {
+              "open_thread": "the notice from an abandoned future"
+            }
+          ],
+          "headline": "Renewed Lease Keeps Dress Shop in Its Premises",
+          "body": "The dress shop operated by {A} retained lawful possession after completing the required funded obligations. The old carried notice described a future that this lease history no longer supported."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "Unusual Notice Does Not Lead to a Completed Lease Review",
+        "body": "The document shown to {A} did not lead to a completed qualified review in the scenario window. It supplied neither a lease extension nor legal proof of the future."
+      },
+      "present_day": {
+        "best": "In {now}, the dress shop retains the premises under its actual valid renewed lease if its trading and compliance also survive. The carried notice remains labeled with its abandoned branch provenance rather than being filed as a current eviction.",
+        "worst": "First-step failure does not change contractual rights or guarantee the baseline eviction repeats. Later ordinary interventions can still alter that future.",
+        "twist": "Avoiding the recorded eviction requires real deposits, reserves and compliance spending. {A} keeps a familiar door open while losing the immediate use of savings reserved for those obligations."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "uncanny",
+          "line": "The paper says I leave. The lease says I can stay. I keep both where I can see them."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "show_future_record",
+          "does": "Display an existing unchanged record brought by the player from a previously simulated future, preserving its immutable source-branch ID, date, parties, premises and exact content. Record only A's actual exposure and chosen response. It proves no current legal right and does not copy money, reset an option or make its predictions inevitable."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key. Use independent chance keys containing seed, scenario ID, intervention year, bound IDs and step. Check every stated prerequisite before rolling. Apply interventions once. fails.chance complements the first eligible roll, never a second roll; report actual ineligibility separately. Failed steps stop descendants without undoing prior changes. Resolve conflicts in stable scenario-ID order with atomic resource, site and contract reservations. Recheck survival, ages, consent, ownership and funds. Ordinary later history remains active. Present text requires extant effects; after-lines require the stated outcome, actual knowledge and a living speaker.",
+        "The time-travel inventory needs explicit developer support for a source-labeled record surviving branch changes as a carried artifact, without spawning duplicates on repeated travel. The baseline notice must actually exist before the intervention is offered. If that support is absent, this scenario remains a proposal rather than silently creating evidence.",
+        "review_contract requires A's voluntary response, a qualified paid adviser, the actual current lease and lawful access. The renewal option must genuinely remain exercisable at step 2 under its original or validly amended timing; independently altered contracts invalidate this chain rather than being rewritten to fit.",
+        "renew_lease executes only an actual valid option or consensual agreement with the real landlord, affordable deposit, ongoing rent and signed terms. maintain_tenancy performs the priced required works and ring-fences actual reserves once; the blocked savings are unavailable for other spending but not deducted again as an arbitrary fraction. Recheck possession, solvency, rights and compliance through the present. It prevents only the bound option-expiry eviction while conditions hold, not unrelated closure.",
+        "The mystery thread stores the carried artifact's source and the changed legal history; it never tells NPCs a supernatural conclusion. Gate A's line on step 3, A alive, actual access to both documents and a current lease truly permitting continued occupation."
+      ],
+      "era_notes": "Lease advice and document formats follow the intervention decade. A future date is uncanny evidence of provenance, not a substitute for a signature or a current legal option.",
+      "why_fun": "The player can keep a real shop open and still hold the paper announcing its closure. The contradiction belongs to two recorded histories rather than an invented ghost."
+    }
+  ]
+}

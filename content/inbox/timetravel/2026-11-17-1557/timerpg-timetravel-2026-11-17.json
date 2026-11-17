@@ -1,0 +1,687 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-9571",
+      "kind": "scenario",
+      "title": "The Face Missing from the Class Picture",
+      "category": "family",
+      "pitch": "Introduce two single adults whose paths never crossed. Their possible child may become the artist who covers a blank public wall, while a neighbor pays to move an old advertisement out of the way.",
+      "present_hook": {
+        "what_you_notice": "A school photograph has no missing or ghostly face, but the archive shows two adults enrolled in separate evening groups. A later public-wall project stayed blank for lack of a suitable funded proposal.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the evening-group registers",
+            "line": "{A} and {B} signed different registers in {year}. There is no record of them meeting then."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            25
+          ],
+          "sex": "F",
+          "married": false
+        },
+        "B": {
+          "age": [
+            20,
+            25
+          ],
+          "sex": "M",
+          "married": false
+        },
+        "D": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "clothing store"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1980
+        ],
+        "notes": "A and B are unrelated eligible adults who have not met and could mutually choose a partnership. Bind a genuinely available future mural wall with a lawful removable advertisement rented by D's clothing store. C is not an intervention-year role: C may be created only by step 2. Present must be at least 40 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the evening-group participants during an event both actually chose to attend."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "marry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Evening-Group Acquaintances Choose to Marry",
+          "body": "{A} and {B} married after a voluntary courtship. Their future family remained a matter of real choices and circumstances."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            5,
+            7
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "child": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Child Joins a Household Begun at an Evening Group",
+          "body": "A child was born to {A} and {B}. The birth entered the actual household and school-age population history."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            30,
+            32
+          ],
+          "if": {
+            "step": 2,
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "qualify": "C",
+              "profession": "commission-ready mural artist"
+            }
+          ],
+          "headline": "Local Artist Completes a Public-Mural Portfolio",
+          "body": "{C} completed the training, paid practice and verified portfolio required for the open mural commission. Parentage alone supplied none of those skills."
+        },
+        {
+          "step": 4,
+          "after_years": [
+            38,
+            40
+          ],
+          "if": {
+            "step": 3,
+            "C": {
+              "alive": true
+            },
+            "D": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "commission": "C",
+              "work": "the bound funded public-wall mural"
+            },
+            {
+              "relocate_advertisement": "D",
+              "site": "the bound public wall"
+            },
+            {
+              "wealth": "D",
+              "by": -0.1
+            }
+          ],
+          "headline": "Public Mural Replaces a Shop's Old Advertisement",
+          "body": "Artist {C} completed the accepted public mural. Merchant {D} lawfully relocated the old advertisement and paid its documented net moving cost."
+        }
+      ],
+      "fails": {
+        "chance": 0.35,
+        "effects": [],
+        "headline": "An Introduction Leaves Two Separate Lives",
+        "body": "{A} and {B} did not choose a courtship in the allotted window. No child or artistic career was inferred from their meeting."
+      },
+      "present_day": {
+        "best": "In {now}, the public wall carries the actual commissioned mural by {C}, and the advertisement for {D} occupies its agreed replacement site. The birth of {C} changes class rosters only for the years {C} truly attended.",
+        "worst": "If step 1 fails, this chain creates no child or mural. The baseline has no person-shaped absence and no claim that a nonexistent child suffered.",
+        "twist": "A new family can bring a real artist into the town, but the chosen public wall was already useful to {D}. The mural's opening costs the merchant a tenth of personal funds to move the advertisement."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "unaware",
+          "line": "I spent years learning to paint a wall that size. My parents only remember being introduced."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Select one elapsed year per step and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check all stated prerequisites before rolling. Apply the intervention only once. fails.chance is the complement of the first eligible roll, never a separate roll; ineligibility reports its actual reason. Failure stops dependent steps without reversing earlier effects. Resolve conflicts in stable scenario-ID order with atomic reservations of funds, people and sites. Recheck ages, survival, consent, ownership and resources. Ordinary later history remains active. Present text needs extant recorded effects; after-lines need their stated outcome, actual knowledge and a living speaker.",
+        "Step 1 requires mutual consent and both still unmarried. Sex conditions exist only for this biological-birth chain. Step 2 requires the pair still consenting spouses, medically eligible consenting parents, an actual pregnancy and birth event under the fertility model, and no conflicting pregnancy. Do not create a child by overwriting an existing resident.",
+        "Bind the single newborn created by step 2 to future alias C with a deterministic new resident ID keyed to this scenario and birth. Do not select an existing intervention-year resident. C receives ordinary independently keyed traits, health, education and mortality; nothing guarantees artistic interest. If no birth occurs, all C-dependent text is suppressed. Replay removes derived records consistently without mourning prose for an uncreated person.",
+        "qualify requires C alive, voluntarily interested, sufficiently skilled, funded training and real paid practice; C is at least 23 at step 3. Step 4 needs an actual available commission, lawful wall access, design approval, safe work and a funded contract. commission pays for accepted completed work, not reputation alone.",
+        "Add relocate_advertisement: remove only D's still-current removable advertisement after its agreement lawfully expires or is settled, secure an approved replacement D accepts, and install it there. Preserve other advertising rights. The ten-percent debit is D's priced net contribution after compensation. Gate C's line on step 4, C alive and having actually heard the introduction story."
+      ],
+      "era_notes": "The birth and school records use their actual event years. Mural materials, training and sign agreements follow the later commission decade.",
+      "why_fun": "A newly generated classmate becomes someone whose work the player can stand beneath. The new face belongs to a life, not merely a time-travel trophy."
+    },
+    {
+      "id": "scenario-20261117-9572",
+      "kind": "scenario",
+      "title": "The Telephone That Kept Ringing",
+      "category": "family",
+      "pitch": "Help an older resident pay for a telephone connection. A welcome daily call may grow into a check-in service that must eventually stop calling one familiar number.",
+      "present_hook": {
+        "what_you_notice": "A house has an unused telephone-installation quote among otherwise ordinary bills. An older resident's dated notes describe evenings with nobody to call.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the household papers",
+            "line": "{A} saved the installation quote in {year}. The connection fee was more than the household could spare."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            60,
+            65
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            20,
+            25
+          ],
+          "wealth": "getting_by"
+        },
+        "C": {
+          "age": [
+            18,
+            25
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1985
+        ],
+        "notes": "Require A voluntarily wanting a feasible home telephone connection, enough ongoing household income for its service after the one-time fee, and B's actual willingness to join scheduled social calls. C is a distinct potential later subscriber. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the quoted connection-fee shortfall directly to the resident who wants the line."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "connect_phone": "A"
+            },
+            {
+              "schedule_social_calls": [
+                "A",
+                "B"
+              ],
+              "frequency": "daily by mutual agreement"
+            }
+          ],
+          "headline": "New Telephone Connection Begins a Daily Conversation",
+          "body": "{A} obtained the desired home connection and agreed on daily social calls with {B}. The calls were companionship, not emergency monitoring."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_service": "the funded voluntary social-call circle"
+            },
+            {
+              "enroll_service": "C",
+              "service": "the social-call circle"
+            }
+          ],
+          "headline": "Daily Conversations Inspire a Funded Call Circle",
+          "body": "A funded voluntary call circle grew from the earlier arrangement involving {B}. Subscriber {C} joined under an explicit contact agreement."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "end_service_membership": "C",
+              "service": "the social-call circle"
+            },
+            {
+              "bond": [
+                "B",
+                "C"
+              ],
+              "by": -0.15
+            }
+          ],
+          "headline": "Call Circle Honors a Subscriber's Request to Stop",
+          "body": "The call circle honored a recorded withdrawal from {C}. Organizer {B} and the former subscriber later recorded a personal disagreement about that decision."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Desired Telephone Connection Does Not Become Feasible",
+        "body": "The planned connection for {A} did not reach an affordable operating arrangement. Actual spending and unspent gift money remained in the household accounts."
+      },
+      "present_day": {
+        "best": "In {now}, the call circle has real service records and C's number is absent from its active list. A's original connection and later life follow ordinary history; no older resident is kept alive by a telephone.",
+        "worst": "First-step failure produces no connection or call circle through this chain. The gift remains a real financial event.",
+        "twist": "A kindness builds a habit of contact, but {C} eventually prefers fewer calls. Respecting that choice leaves {B} with a smaller list and a strained bond rather than a universally grateful town."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "I wanted company when I joined. Later I wanted a quiet evening, and that took longer to explain."
+        },
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "We started with one number and a time to call. It turned out to be a good place to begin."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Select one elapsed year per step and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check all stated prerequisites before rolling. Apply the intervention only once. fails.chance is the complement of the first eligible roll, never a separate roll; ineligibility reports its actual reason. Failure stops dependent steps without reversing earlier effects. Resolve conflicts in stable scenario-ID order with atomic reservations of funds, people and sites. Recheck ages, survival, consent, ownership and resources. Ordinary later history remains active. Present text needs extant recorded effects; after-lines need their stated outcome, actual knowledge and a living speaker.",
+        "Add connect_phone: pay actual installation costs from A's funds, including the once-applied gift, establish a real available residential connection and ongoing bills. schedule_social_calls creates only mutually agreed opportunities; callers may decline, move or die. Do not infer successful daily contact forever.",
+        "The social-call circle needs consenting real callers, paid administrative costs, sustainable funding, privacy rules and a lawful roster. It can outlive A through actual organizers; A's death cancels A's calls, not the whole institution. enroll_service records C's informed voluntary membership without emergency guarantees.",
+        "Add end_service_membership: remove C's contact permission and cancel scheduled circle calls after C's explicit withdrawal, without removing friendships or imposing penalties. The bond decrement is a separate actual later interpersonal disagreement requiring B and C both alive, B still involved, and a real conversation; it is not an automatic punishment for withdrawal. Gate C's line on step 3 and actual memory of joining.",
+        "Gate B's grateful line on step 2, B alive and memory of the original mutually agreed calls with A; A need not still be alive."
+      ],
+      "era_notes": "Use locally available landline service and paper call lists in early decades. Later technology changes cannot override a subscriber's contact choice.",
+      "why_fun": "The ripple is audible in the houses the player visits. A service can do real good while learning when to leave someone alone."
+    },
+    {
+      "id": "scenario-20261117-9573",
+      "kind": "scenario",
+      "title": "The Sparrow in the Shoebox",
+      "category": "rescue",
+      "pitch": "Spread deserved praise for a teenager who followed proper advice while caring for an injured bird. A veterinary career may eventually support a recovery aviary beside a neighbor's garden.",
+      "present_hook": {
+        "what_you_notice": "A school clipping shows a carefully ventilated shoebox and an unnamed teenage helper. A later wildlife-care proposal remained unfunded and the garden beside its proposed site has no aviary.",
+        "where": "the high school archive",
+        "clues": [
+          {
+            "who": "the school clipping",
+            "line": "{A} followed the qualified carer's instructions in {year}. The paper never gave the helper any credit."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            16,
+            18
+          ],
+          "wealth": "getting_by",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            30,
+            35
+          ],
+          "wealth": "comfortable"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1985
+        ],
+        "notes": "Bind a verified humane bird-care event supervised by a qualified authorized carer, A's voluntary interest in veterinary study and a feasible future licensed wildlife-care site beside B's actual home garden. No bird survival or medical competence is inferred from a clipping. Present must be at least 34 years later."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": 0.3,
+          "how_it_looks": "Give the teenager accurate credit for following the carer's instructions, without calling the teenager a veterinarian."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            10,
+            12
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "qualify": "A",
+              "profession": "licensed veterinarian"
+            }
+          ],
+          "headline": "Former Teenage Bird Helper Qualifies as a Veterinarian",
+          "body": "{A} completed the required funded education, supervised practice and veterinary licensing. The old clipping was encouragement rather than a credential."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            21,
+            23
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "veterinary clinic"
+            },
+            {
+              "establish_service": "the licensed wildlife-recovery program"
+            }
+          ],
+          "headline": "Veterinary Clinic Establishes a Wildlife-Recovery Program",
+          "body": "A funded clinic operated by {A} opened an authorized wildlife-recovery program. Its staffing, care limits and actual admissions entered the records."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            32,
+            34
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a permitted wildlife-recovery aviary",
+              "where": "the edge of town"
+            },
+            {
+              "install_garden_screen": "B",
+              "site": "the bound neighboring home garden"
+            },
+            {
+              "wealth": "B",
+              "by": -0.1
+            }
+          ],
+          "headline": "Recovery Aviary Opens Beside a Screened Garden",
+          "body": "The program opened a permitted recovery aviary with funded ongoing care. Neighbor {B} installed an agreed garden screen and paid a documented net share."
+        }
+      ],
+      "fails": {
+        "chance": 0.3,
+        "effects": [],
+        "headline": "Public Praise Does Not Become a Veterinary Qualification",
+        "body": "The study path involving {A} did not reach a completed veterinary qualification. The credited humane act remained real without becoming a professional license."
+      },
+      "present_day": {
+        "best": "In {now}, a real recovery aviary stands beside a garden with installed screening. Current animals, releases and staff depend on actual case histories; no permanently occupied shoebox or immortal sparrow is implied.",
+        "worst": "Failure creates no veterinary license or aviary through this chain. The original bird's recorded outcome stays whatever competent care and biology actually decided.",
+        "twist": "More animals can receive authorized care, while {B} spends a tenth of personal funds and changes the familiar open view of the garden. A recovery site is also a neighbor."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "I used to look straight across that garden. Now I hear practice flights before I see anything."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Select one elapsed year per step and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check all stated prerequisites before rolling. Apply the intervention only once. fails.chance is the complement of the first eligible roll, never a separate roll; ineligibility reports its actual reason. Failure stops dependent steps without reversing earlier effects. Resolve conflicts in stable scenario-ID order with atomic reservations of funds, people and sites. Recheck ages, survival, consent, ownership and resources. Ordinary later history remains active. Present text needs extant recorded effects; after-lines need their stated outcome, actual knowledge and a living speaker.",
+        "The positive rumor applies its standing change once; educational choices must still depend on A's real preferences, admission, sustained funding and performance. qualify records a veterinary license only after actual completed requirements, with renewal obligations.",
+        "Add veterinary clinic as a business kind. Step 2 requires a priced lawful site, actual capital and equipment, current professional registration and qualified staff. The wildlife program needs its separate authorization, sustainable care funding and real admissions; it cannot promise that every animal recovers.",
+        "Step 3 requires the bound aviary parcel lawfully available, disease-control and welfare approval, actual capacity and demand, maintenance funding and B still owning and occupying the garden. Add install_garden_screen: install an approved voluntarily agreed physical screen on B's property, preserving light and access requirements. The net ten-percent debit is B's actual contribution after program compensation. Gate B's line on step 3, current awareness and actual audible flight activity; suppress it when the aviary has no such birds."
+      ],
+      "era_notes": "Veterinary training, wildlife permits and enclosure standards follow each event decade. Never turn period enthusiasm into modern medical knowledge.",
+      "why_fun": "The player can connect an overlooked school clipping with a living care site decades later. Its wings, bills and fences are all part of the outcome."
+    },
+    {
+      "id": "scenario-20261117-9574",
+      "kind": "scenario",
+      "title": "The Last Week Before the Moving Van",
+      "category": "secrets",
+      "pitch": "Offer a departing resident one paid week to sort the town's neglected personnel records. A later records office may uncover an old patronage decision that another family preferred to leave in a box.",
+      "present_hook": {
+        "what_you_notice": "Unsorted personnel cartons remain in a store cupboard. A departing clerk's rejected one-week inventory proposal is tucked into the lid.",
+        "where": "the town hall cupboard",
+        "clues": [
+          {
+            "who": "the inventory proposal",
+            "line": "{A} offered to sort these before leaving in {year}. The proposal was never funded."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "reputation": "high"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1985
+        ],
+        "notes": "A is an actually qualified records clerk with a voluntary imminent move and a feasible paid one-week project. B is the living official responsible for a documented improper historical hiring preference, with real lawful public records that can substantiate it. Bind appropriate consent and retention authority; do not invent wrongdoing. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:fund_short_project",
+          "target": "A",
+          "how_it_looks": "Pay for the approved one-week inventory contract if the clerk voluntarily reschedules the move."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "catalog_records": "the bound personnel cartons"
+            }
+          ],
+          "headline": "Short Inventory Contract Produces a Usable Records Index",
+          "body": "The completed inventory work by {A} produced a verified index of the retained cartons. Its later audit confirmed the index matched the actual records."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_service": "the funded lawful personnel-records office"
+            }
+          ],
+          "headline": "Indexed Cartons Become Part of a Staffed Records Office",
+          "body": "The retained indexed records entered a funded records office with qualified staff. Public access followed the actual disclosure and privacy rules."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "publish_finding": "B",
+              "subject": "the bound substantiated improper hiring preference"
+            },
+            {
+              "rep": "B",
+              "by": -0.2
+            }
+          ],
+          "headline": "Reviewed Records Expose an Old Hiring Preference",
+          "body": "A lawful reviewed finding substantiated the earlier improper hiring preference involving {B}. The published account included the evidence and the official's actual response."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Short Inventory Project Does Not Produce a Verified Index",
+        "body": "The approved project involving {A} did not yield an accepted complete index. Actual paid work and any retained partial inventory stayed recorded."
+      },
+      "present_day": {
+        "best": "In {now}, a staffed records office has the actual retained index and a public reviewed finding about the bound hiring decision. Present staffing, opening hours and B's standing follow subsequent events.",
+        "worst": "First-step failure invents neither a complete index nor public proof. It does not destroy the actual records or make B innocent by decree.",
+        "twist": "A useful paid project preserves access to a difficult truth. {B} loses public standing because of documented conduct, and a family history once kept private becomes part of the lawful public record."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I thought nobody would ever need that box again. That was a poor way to think about other people's applications."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "fund_short_project",
+          "does": "With the town's lawful authorization and A's voluntary agreement, fund the quoted one-week records-inventory contract. A may reschedule the imminent move only if housing, transport and other obligations permit. Pay actual accepted work under the contract; do not compel A to stay, guarantee a completed index or grant access to restricted documents."
+        }
+      ],
+      "new_rules_needed": [
+        "Select one elapsed year per step and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check all stated prerequisites before rolling. Apply the intervention only once. fails.chance is the complement of the first eligible roll, never a separate roll; ineligibility reports its actual reason. Failure stops dependent steps without reversing earlier effects. Resolve conflicts in stable scenario-ID order with atomic reservations of funds, people and sites. Recheck ages, survival, consent, ownership and resources. Ordinary later history remains active. Present text needs extant recorded effects; after-lines need their stated outcome, actual knowledge and a living speaker.",
+        "The intervention funds work at the intervention date; step 1 audits its retained output one to two years later. Add catalog_records: create a verified searchable index and preservation locations for existing documents, preserving their contents, access restrictions and provenance. It does not disclose confidential applications automatically.",
+        "The records office requires actual retained records, a lawful existing room or priced premises, qualified paid custodians, retention authority and sustainable funding. A need not remain in town or survive step 2; a real institution can use the completed index through lawful custody.",
+        "Add publish_finding: publish only an independently reviewed, substantiated and lawfully disclosable finding about the already bound historical decision, with correction and response procedures. Do not expose protected applicant details. Step 3 needs B alive, genuine public relevance and actual evidence not destroyed by earlier events. Apply the one-time reputation effect for that finding, not for merely possessing a secret. Gate B's line on step 3 and B actually making that admission; otherwise use no invented confession."
+      ],
+      "era_notes": "Index cards, paper finding aids or later databases must reflect actual tools and disclosure rules. Earlier recordkeeping language can differ without inventing different underlying conduct.",
+      "why_fun": "A single paid week can determine whether a cupboard becomes a public institution. The player finds that preserving town history also preserves its uncomfortable decisions."
+    }
+  ]
+}

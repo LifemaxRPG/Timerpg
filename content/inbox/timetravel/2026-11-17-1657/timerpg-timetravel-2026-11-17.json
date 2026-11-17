@@ -1,0 +1,676 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-10171",
+      "kind": "scenario",
+      "title": "The Words Above the Graduation Stage",
+      "category": "family",
+      "pitch": "Help a student pay the actual shortfall for qualified interpretation at graduation. That experience may grow into a teaching career and a classroom arrangement that another teacher must make room for.",
+      "present_hook": {
+        "what_you_notice": "A graduation photograph shows an unused interpreter position beside the stage. A student's retained access request records the missing portion of an otherwise funded plan.",
+        "where": "the high school archive",
+        "clues": [
+          {
+            "who": "the access request",
+            "line": "{A} wanted to follow the ceremony in {year}. The approved interpretation plan never secured its remaining cost."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            20
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1975,
+          1995
+        ],
+        "notes": "Bind A as an actually graduating deaf student wanting the specified qualified sign-language interpretation, A's actual preferred language, lawful access approval and a real funding gap that the gift can cover without relieving another party of an existing duty. B is a distinct teacher with a later real room assignment. Present must be at least 24 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the documented remaining contribution for the student's chosen interpretation service."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "record_access_event": "the bound interpreted graduation"
+            }
+          ],
+          "headline": "Reviewed Access Record Confirms an Interpreted Graduation",
+          "body": "The retained record confirmed that graduating student {A} attended with the approved qualified interpretation. The ceremony changed no hearing or academic qualification."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            10,
+            12
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "qualify": "A",
+              "profession": "licensed teacher"
+            }
+          ],
+          "headline": "Former Graduate Completes Teacher Qualification",
+          "body": "{A} completed the actual funded teacher education, supervised practice and licensing requirements. The graduation experience remained encouragement rather than a credential."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            22,
+            24
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "hire_institution": "A",
+              "institution": "the bound school"
+            },
+            {
+              "establish_service": "the school's funded signed-language teaching provision"
+            },
+            {
+              "reassign_room": "B",
+              "from": "the bound teaching room",
+              "to": "the approved replacement teaching room"
+            }
+          ],
+          "headline": "School Adds Signed-Language Teaching and Reassigns a Room",
+          "body": "Qualified teacher {A} joined an actual funded school post with the approved signed-language provision. Teacher {B} moved a real existing class into its approved replacement room."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Planned Interpretation Does Not Reach a Completed Service",
+        "body": "The plan associated with {A} did not produce the approved completed service. Actual payments and refunds stayed recorded, and the student's access rights remained real."
+      },
+      "present_day": {
+        "best": "In {now}, the school has the actual signed-language provision and changed room assignments if those programs continue. Qualified current staff and pupils determine its real timetable.",
+        "worst": "Failure creates no service or career through this chain. It does not change A's hearing, graduation eligibility or existing access rights.",
+        "twist": "The school gains a real teaching provision while {B} gives up a familiar room and moves an established class. Making room for someone means an actual timetable and room change, not a magically larger school."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I wanted to understand one ceremony. I did not know I would one day help plan the lessons."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key. Roll independently using seed, scenario ID, intervention year, bound IDs and step. Recheck all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll, never a separate roll; report ineligibility by its actual cause. Failure stops descendants without undoing prior changes. Resolve conflicts in stable scenario-ID order with atomic fund, job and site reservations. Recheck ages, survival, consent, ownership and resources. Ordinary later history continues. Present text requires extant recorded changes; after-lines require their specified result, actual knowledge and a living speaker.",
+        "The intervention occurs before the bound ceremony; record_access_event is a one-to-two-year audit of the completed actual event, not a delayed graduation. Require consent, a qualified interpreter in A's actual language, correct scheduling and the full real budget. A gift cannot waive an institution's legal duties or substitute an unqualified helper.",
+        "qualify requires A's independent continuing interest, actual education funding, admission, completed study, practice and current licensing, with required access support. Do not infer universal language skill from deafness or create a medical cure.",
+        "hire_institution creates a consenting paid employment contract at the real school only after an appropriate vacancy, budget and qualification checks. The provision requires trained staff, enrolled demand and sustainable access resources. reassign_room changes only B's real current class assignment to an actually available approved suitable replacement, with notice and resources; do not displace pupils into nonexistent space. Gate A's line on step 3, A alive and actual memory of the ceremony."
+      ],
+      "era_notes": "Interpretation, teacher licensing and school access practice follow the actual event years and the resident's real preferred language.",
+      "why_fun": "A single ceremony can become a classroom the player visits decades later. Access appears in the timetable and room doors as well as in a personal memory."
+    },
+    {
+      "id": "scenario-20261117-10172",
+      "kind": "scenario",
+      "title": "The Job Left Empty",
+      "category": "crime",
+      "pitch": "Killing a mechanic leaves a vacancy another resident may fill. A later repair shop may even employ the dead mechanic's child, who still grows up without that parent.",
+      "present_hook": {
+        "what_you_notice": "A garage's old staff records show an unbroken job held by one mechanic. A second qualified applicant was turned away because there was no funded vacancy.",
+        "where": "the garage",
+        "clues": [
+          {
+            "who": "the retained staff file",
+            "line": "{C} had one funded post in {year}. It belonged to {A}, and the application from {B} went back unanswered."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            30
+          ],
+          "has_children": true
+        },
+        "B": {
+          "age": [
+            20,
+            25
+          ],
+          "wealth": "getting_by"
+        },
+        "C": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "garage"
+          ]
+        },
+        "D": {
+          "age": [
+            5,
+            8
+          ],
+          "relation": "parent_child"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1985
+        ],
+        "notes": "D is A's existing child. C owns the bound garage and actually employs A; B is a distinct qualified applicant seeking that same funded post. Require independent other caregiving and the ordinary bereavement process for D after a death, without assuming the child becomes available for adoption. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "kill",
+          "target": "A",
+          "how_it_looks": "The player kills the mechanic; the game records that irreversible death in this branch without graphic description."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": false
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "hire": [
+                "C",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Garage Fills a Vacancy after a Mechanic's Death",
+          "body": "Garage owner {C} hired qualified applicant {B} into the real vacant post after the recorded death of {A}. Hiring did not replace the person the family lost."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            14,
+            16
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "B",
+              "kind": "garage"
+            }
+          ],
+          "headline": "Experienced Mechanic Opens an Independent Garage",
+          "body": "After real paid experience and a funded business plan, {B} opened an independent garage. The new premises, equipment and obligations belonged to that actual business."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            },
+            "D": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "hire": [
+                "B",
+                "D"
+              ]
+            }
+          ],
+          "headline": "Independent Garage Hires a Late Mechanic's Adult Child",
+          "body": "Qualified adult worker {D} accepted an actual paid vacancy at the garage operated by {B}. The employment did not settle the history surrounding the death of parent {A}."
+        }
+      ],
+      "fails": {
+        "chance": 0.35,
+        "effects": [],
+        "headline": "Vacant Garage Post Does Not Become the Applicant's Job",
+        "body": "The vacancy left by the death of {A} did not lead to hiring {B} in the allotted window. The death, investigation and family consequences remained."
+      },
+      "present_day": {
+        "best": "In {now}, the independent garage founded by {B} has its actual premises and records of the paid employment of {D}, subject to later history. {A} remains dead in this branch and never appears as a present-day speaker.",
+        "worst": "First-step failure leaves the death and bereavement intact without creating the new job chain. No employment outcome reverses the killing.",
+        "twist": "The cruel act can improve B's employment prospects and later offer D paid work. None of those gains returns a parent or converts the death into a justified favor."
+      },
+      "npc_lines_after": [
+        {
+          "who": "D",
+          "mood": "bitter",
+          "line": "It is a good job. That is a different thing from the parent I do not have."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key. Roll independently using seed, scenario ID, intervention year, bound IDs and step. Recheck all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll, never a separate roll; report ineligibility by its actual cause. Failure stops descendants without undoing prior changes. Resolve conflicts in stable scenario-ID order with atomic fund, job and site reservations. Recheck ages, survival, consent, ownership and resources. Ordinary later history continues. Present text requires extant recorded changes; after-lines require their specified result, actual knowledge and a living speaker.",
+        "Add garage as a business kind if absent. The existing kill action applies A's murdered death once at intervention, with ordinary investigation, legal risk, estate processing, bereavement and dependent care. Never duplicate death in ripple effects or suppress its consequences to keep an employer available.",
+        "Step 1 requires the garage still operating, the post still genuinely vacant and funded, C and B eligible and consenting, and any conflict from the investigation resolved. Hire on qualifications and actual choice; no inherited ownership or moral reward is implied.",
+        "Step 2 requires real adequate experience, current required competence, independently raised capital, a lawful available site, permits, tools, insurance and a feasible plan. Found a new business with its own immutable ID; do not silently transfer C's garage.",
+        "Step 3 requires B's garage still operating, D at least 18 with independently acquired actual qualifications, a funded appropriate vacancy and voluntary acceptance. D may decline or pursue any other career. A's death alone gives no skill or obligation. Gate D's line on step 3, current positive assessment of the job and retained knowledge of the actual parent-child relationship."
+      ],
+      "era_notes": "Garage skills and equipment follow the vehicle technology of the employment years. The death is never softened into a natural absence by later wording.",
+      "why_fun": "The player sees a real economic ripple alongside a family loss that remains irreparable. A changed storefront cannot serve as moral bookkeeping."
+    },
+    {
+      "id": "scenario-20261117-10173",
+      "kind": "scenario",
+      "title": "The Roller Floor with the Reserved Hours",
+      "category": "business",
+      "pitch": "Invest in a gym's properly inspected roller-skating floor. A recreational opening may grow into coached competition that takes some of the old drop-in hours away from a regular skater.",
+      "present_hook": {
+        "what_you_notice": "A gym has a roller-floor estimate that never received its equipment deposit. Its current timetable contains no skating sessions.",
+        "where": "the gym",
+        "clues": [
+          {
+            "who": "the gym project papers",
+            "line": "{A} priced a supervised skating floor in {year}. There was no approved operating equipment when the proposal ended."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "gym"
+          ]
+        },
+        "B": {
+          "age": [
+            12,
+            15
+          ]
+        },
+        "C": {
+          "age": [
+            20,
+            25
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "gym"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "shop belongs to A. Bind a feasible inspected conversion with a sustainable recreational service and B's genuine potential interest in later coaching. C is a distinct prospective local recreational user. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Fund the priced floor, safety equipment and supervised operating plan through the gym account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "establish_service": "the gym's approved recreational roller sessions"
+            },
+            {
+              "enroll_service": "C",
+              "service": "the recreational roller sessions"
+            }
+          ],
+          "headline": "Gym Opens Inspected Recreational Roller Sessions",
+          "body": "The gym operated by {A} opened approved supervised skating sessions. Recreational user {C} voluntarily joined under the actual timetable and fees."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "qualify": "B",
+              "profession": "qualified roller-skating coach"
+            },
+            {
+              "hire": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Former Young Skater Becomes a Paid Qualified Coach",
+          "body": "After actual training and assessed competence, adult coach {B} accepted a funded gym post. The recreational floor gained an approved coached program."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "establish_service": "the gym's approved competitive roller team"
+            },
+            {
+              "reserve_session": "the bound former drop-in skating hours",
+              "for": "the competitive roller team"
+            },
+            {
+              "bond": [
+                "A",
+                "C"
+              ],
+              "by": -0.15
+            }
+          ],
+          "headline": "Competitive Team Takes Over Some Former Drop-In Hours",
+          "body": "The gym established its funded qualified competitive team and lawfully reassigned the specified sessions. Regular recreational skater {C} lost those drop-in hours and recorded a dispute with owner {A}."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Roller-Floor Project Does Not Reach Approved Operation",
+        "body": "The project at the gym operated by {A} did not become an approved service. Actual project costs and unspent investment remained in the accounts."
+      },
+      "present_day": {
+        "best": "In {now}, the gym has a skating floor, coached provision and team-reserved sessions if they remain operating. The old specified drop-in hours are absent from the current public timetable.",
+        "worst": "Failure creates no skating floor or coaching career through this chain. The gym continues only as its actual accounts and other decisions allow.",
+        "twist": "A new activity creates a skilled job and competitive opportunities, but {C} loses times that made ordinary participation possible. More prestigious sport is not more convenient sport for every resident."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "I was never trying to win anything. I just liked having somewhere to skate at that hour."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key. Roll independently using seed, scenario ID, intervention year, bound IDs and step. Recheck all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll, never a separate roll; report ineligibility by its actual cause. Failure stops descendants without undoing prior changes. Resolve conflicts in stable scenario-ID order with atomic fund, job and site reservations. Recheck ages, survival, consent, ownership and resources. Ordinary later history continues. Present text requires extant recorded changes; after-lines require their specified result, actual knowledge and a living speaker.",
+        "The recreational service requires an actual available suitable gym area, inspected floor and equipment, qualified supervision, insurance, actual demand and funded operation. Enroll C only by voluntary agreement and affordable real fees. B's childhood participation must actually occur before later prose calls B a former young skater.",
+        "qualify needs B's completed real training, assessed competence, appropriate certification and current authorization. hire requires a suitable funded vacancy, fair terms and consent; childhood interest does not assign a career.",
+        "The team needs qualified staff, voluntary real participants, safe capacity, an actual competition route and sustainable funding. Add reserve_session: reassign only the identified existing sessions after lawful member notice and refunds or other contractual remedies; preserve other sessions and any enforceable access rights. Step 3 requires C still a user of those times and an actual dispute before the one-time bond effect. Gate C's line on step 3 and remembered noncompetitive use."
+      ],
+      "era_notes": "Skates, surfaces, training and liability requirements follow the operating years. No brand or fixed sport federation is implied.",
+      "why_fun": "The player returns to the same floor and finds a different timetable. Success becomes visible in whose practice now fills the room."
+    },
+    {
+      "id": "scenario-20261117-10174",
+      "kind": "scenario",
+      "title": "The Winter Parade That Learned About June",
+      "category": "place",
+      "pitch": "Help an older organizer submit a real request to move a winter parade into early summer. The new tradition may outlive its sponsor while leaving a toy merchant without the old winter window-tour bookings.",
+      "present_hook": {
+        "what_you_notice": "Parade records show repeated weather cancellations and a complete but unsubmitted alternative-date request. A toy shop's winter window-tour contract depends on the old event calendar.",
+        "where": "the town hall",
+        "clues": [
+          {
+            "who": "the parade committee papers",
+            "line": "{A} proposed early summer in {year}. The request never reached a formal committee decision."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            65,
+            70
+          ]
+        },
+        "B": {
+          "age": [
+            8,
+            12
+          ]
+        },
+        "C": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "toy store"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1985
+        ],
+        "notes": "A is the actual willing organizer of a voluntary civic winter parade. Bind documented recurrent weather difficulties, a feasible lawful alternative summer date and C's real finite winter window-tour contract. B is a distinct young prospective participant, not an assumed successor. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:petition_event_date",
+          "target": "A",
+          "how_it_looks": "With the organizer's permission, submit the existing documented alternative-date request to the authorized committee."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "set_event_date": "the bound civic parade",
+              "date": "the second Saturday in June"
+            }
+          ],
+          "headline": "Committee Moves Civic Parade to an Approved June Date",
+          "body": "After the actual public review and committee vote, the civic parade adopted its approved early-summer date. Current weather and all operating requirements still applied."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            14,
+            16
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "hire_institution": "B",
+              "institution": "the funded parade committee"
+            },
+            {
+              "build": "a permitted parade-float storage shed",
+              "where": "the edge of town"
+            }
+          ],
+          "headline": "Summer Parade Gains a Paid Organizer and Float Storage",
+          "body": "A funded committee post went to qualified adult applicant {B}. The parade's approved funded float-storage shed opened on its actual available site."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "end_event_contract": "C",
+              "contract": "the bound winter window-tour booking"
+            }
+          ],
+          "headline": "New Parade Tradition Leaves an Old Winter Booking Behind",
+          "body": "The established summer parade continued under its actual budget and calendar. The toy shop operated by {C} lost the old winter window-tour booking when its finite contract expired without renewal."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "Submitted Request Does Not Move the Parade Calendar",
+        "body": "The request submitted with {A} did not obtain the required approved calendar change. The parade remained governed by its actual existing schedule."
+      },
+      "present_day": {
+        "best": "In {now}, the civic calendar shows the June parade and its actual float-storage shed. C's former winter window-tour booking is absent; summer operations still depend on real staff, permits, funds and weather.",
+        "worst": "Failure changes no official date or booking through this chain. An old parade remains free to face actual weather and later committee choices.",
+        "twist": "A more workable parade season can preserve a shared tradition while removing the seasonal booking that supported {C}. The organizer's good idea changes which shop windows belong to the celebration."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "I still dress the window for winter. It used to be a stop on the tour, not just something I liked doing."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "petition_event_date",
+          "does": "With A's permission, submit the existing accurate alternative-date proposal through the actual authorized review route, paying real quoted filing costs if any. Record receipt and any genuine support without inventing signatures, assigning votes, changing the calendar directly or promising favorable weather."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key. Roll independently using seed, scenario ID, intervention year, bound IDs and step. Recheck all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll, never a separate roll; report ineligibility by its actual cause. Failure stops descendants without undoing prior changes. Resolve conflicts in stable scenario-ID order with atomic fund, job and site reservations. Recheck ages, survival, consent, ownership and resources. Ordinary later history continues. Present text requires extant recorded changes; after-lines require their specified result, actual knowledge and a living speaker.",
+        "Add set_event_date: update only the identified recurring civic event after an actual lawful committee decision, necessary permits, conflict checks, budgets, notice and existing contract handling. The step-1 roll is the conditional decision outcome within that process, not an override of a separately completed vote.",
+        "Step 2 requires the parade genuinely continuing on that date, an actual paid vacancy, B's adult qualification and consent, real committee funds, a lawful available edge-of-town site, construction approval and actual floats needing storage. A need not remain alive; lawful continuing officers carry the event rather than an invented immortal organizer.",
+        "Step 3 requires the event still summer-based and operating and C still holding the bound finite booking, its lawful expiry, no renewal entitlement and an actual decision against continuing a separate winter tour. Add end_event_contract: end only that booking, pay outstanding obligations and update visitor schedules; do not close C's store, confiscate stock or invent a fixed income loss. Gate C's line on step 3 and C actually continuing to decorate the winter window."
+      ],
+      "era_notes": "Calendar review, floats and seasonal shop displays use period-appropriate methods. No religious affiliation, named holiday character or fixed town climate is assumed.",
+      "why_fun": "The town celebrates in a different season when the player returns. One warmly remembered improvement leaves a quieter winter shop window."
+    }
+  ]
+}

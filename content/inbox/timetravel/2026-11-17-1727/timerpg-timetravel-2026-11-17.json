@@ -1,0 +1,667 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-10471",
+      "kind": "scenario",
+      "title": "The Computer on the Kitchen Table",
+      "category": "business",
+      "pitch": "Help a young resident afford a real supervised computer-repair project. A later repair shop may support an online town directory that ends a printer's familiar recurring job.",
+      "present_hook": {
+        "what_you_notice": "A youth-project file contains an unfunded equipment quote. The town still distributes the bound printed directory because no viable maintained online replacement was established.",
+        "where": "the school project archive",
+        "clues": [
+          {
+            "who": "the project file",
+            "line": "{A} had permission to join the supervised project in {year}. The equipment shortfall stopped it."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            12,
+            15
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1980,
+          1995
+        ],
+        "notes": "Bind a genuine voluntary supervised computer project with an affordable usable equipment quote and B's real finite contract to print the town directory. Require an era-valid feasible later internet service and actual public directory demand. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "large",
+          "how_it_looks": "Contribute the documented equipment shortfall to the supervised project account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_training": "A",
+              "subject": "the bound supervised basic computer-repair course"
+            }
+          ],
+          "headline": "Supervised Project Produces Real Computer-Repair Skills",
+          "body": "{A} completed the actual supervised course and assessed practical work. The project granted no adult professional status or unsafe unsupervised duties."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "computer repair shop"
+            }
+          ],
+          "headline": "Former Project Student Opens a Computer-Repair Shop",
+          "body": "After further actual training and a funded plan, adult owner {A} opened a lawful computer-repair shop. Its equipment and premises entered the business accounts."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "establish_service": "the funded maintained online town directory"
+            },
+            {
+              "end_contract": "B",
+              "contract": "the bound printed-directory production contract"
+            }
+          ],
+          "headline": "Maintained Online Directory Replaces a Print Contract",
+          "body": "A qualified funded operator associated with {A} opened the approved online directory with the required access alternatives. Printer {B} lost the identified finite directory-production contract at lawful expiry."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Computer Project Does Not Reach Accepted Course Completion",
+        "body": "The funded project involving {A} did not reach accepted course completion. Actual equipment, expenditure and remaining funds stayed recorded."
+      },
+      "present_day": {
+        "best": "In {now}, the maintained directory has actual public access points and current permitted listings, if the service survives. The identified old print-production contract is no longer active.",
+        "worst": "Failure supplies no skills, business or directory through this chain. The gift does not create reliable internet infrastructure by itself.",
+        "twist": "Residents gain a maintained way to find current services while {B} loses recurring paid printing work. Better search does not automatically replace the printer's income."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I use the directory myself. It is a strange thing to bookmark the job you used to do."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key and independent chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check every stated prerequisite before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Ineligibility reports its actual reason. Failure stops descendants without reversing prior effects. Resolve conflicts in stable scenario-ID order with atomic resource, site and contract reservations. Recheck survival, ages, consent, ownership and actual funds. Ordinary later history continues. Present text needs extant recorded changes; after-lines need the specified outcome, knowledge and a living speaker.",
+        "complete_training records only actual supervised instruction and assessed skills, using priced usable equipment and safe age-appropriate tasks. Add computer repair shop as a business kind. Founding requires A at least 18, actual continuing interest, current competence, sufficient capital, lawful premises and a viable plan.",
+        "The online directory requires actual era-available connectivity, qualified paid maintainers, reliable hosting, permission-based accurate listings, privacy controls and sustainable funding. It must include real accessible noninternet assistance before it replaces an essential print service; do not invent devices or access for all households.",
+        "end_contract ends only B's still-current identified production contract after expiry or a lawful settled amendment, with required notice and outstanding payments. It does not close the print business or imply all paper use disappears. The replacement directory and contract change are atomic. Gate B's line on step 3 and B actually choosing to use an available device and bookmark."
+      ],
+      "era_notes": "Start with computer equipment actually available at the intervention date. An online directory is offered only after later local connectivity and access support genuinely exist.",
+      "why_fun": "A kitchen-table project changes how the player locates people and shops. The old printed booklet can remain as a dated object from another way the town worked."
+    },
+    {
+      "id": "scenario-20261117-10472",
+      "kind": "scenario",
+      "title": "The Wedding That Made a Different Family",
+      "category": "love",
+      "pitch": "Introduce two adults while one is still deciding about an existing engagement. If they choose a different partnership, the present may gain a different child and shop, while the original couple's planned family never forms.",
+      "present_hook": {
+        "what_you_notice": "A retained engagement announcement and an evening-class register show two paths that never crossed. The baseline family history contains an actual later child of the announced couple.",
+        "where": "the Gazette archive",
+        "clues": [
+          {
+            "who": "the engagement and class records",
+            "line": "{A} was engaged to {C} in {year}. The class attended by {B} ended before the two met."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            25
+          ],
+          "sex": "F",
+          "married": false
+        },
+        "B": {
+          "age": [
+            20,
+            25
+          ],
+          "sex": "M",
+          "married": false
+        },
+        "C": {
+          "age": [
+            20,
+            25
+          ],
+          "sex": "M",
+          "married": false
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1985
+        ],
+        "notes": "A and C have a genuine unfinalized engagement; A and B are unrelated adults who have not met. Require all contacts voluntary and no existing refusal. Bind a specific baseline future conception of A and C, with actual source-branch child records, rather than an imagined child. D is a future alias created only by step 2. Present must be at least 32 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Make an ordinary introduction without hiding the existing engagement or pressuring anyone to pursue a relationship."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "end_engagement": [
+                "A",
+                "C"
+              ]
+            },
+            {
+              "no_child": [
+                "A",
+                "C"
+              ]
+            },
+            {
+              "bond": [
+                "A",
+                "C"
+              ],
+              "by": -0.3
+            }
+          ],
+          "headline": "Engaged Couple Ends Its Plans after an Honest Reassessment",
+          "body": "{A} and {C} voluntarily ended their engagement after an actual reassessment. The decision left a real strain without declaring either person unworthy of a family."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            6,
+            8
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "marry": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "child": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Later Partnership Becomes a Marriage and a Birth",
+          "body": "Following a real courtship, {A} and {B} married. An actual eligible pregnancy and birth added their child to the family history."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            30,
+            32
+          ],
+          "if": {
+            "step": 2,
+            "D": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "D",
+              "kind": "barber shop"
+            }
+          ],
+          "headline": "Child of the Changed Partnership Opens a Barber Shop",
+          "body": "After actual adult training and a funded business plan, {D} opened a barber shop. The shop belonged to a real new resident's chosen career, not a guaranteed consequence of parentage."
+        }
+      ],
+      "fails": {
+        "chance": 0.45,
+        "effects": [],
+        "headline": "An Introduction Does Not Change the Engagement",
+        "body": "The introduction involving {A} and {B} did not end the existing engagement in the allotted window. No alternative marriage or birth was inferred."
+      },
+      "present_day": {
+        "best": "In {now}, the changed family graph contains the actual child {D} and the barber shop if it remains operating. The specific baseline child of {A} and {C} has no birth in this branch; no ghost, empty bed or grieving memory is assigned to residents for a person who never existed here.",
+        "worst": "Failure does not force the original wedding or birth either; ordinary choices still decide them. It creates no alternative child through this chain.",
+        "twist": "The player can meet a new adult who would not otherwise exist, while the source-branch child belongs to a different history. The new shop is no measure of which family's life was worth more."
+      },
+      "npc_lines_after": [
+        {
+          "who": "D",
+          "mood": "unaware",
+          "line": "My parents took their time getting together. I have only ever known the family I grew up in."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key and independent chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check every stated prerequisite before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Ineligibility reports its actual reason. Failure stops descendants without reversing prior effects. Resolve conflicts in stable scenario-ID order with atomic resource, site and contract reservations. Recheck survival, ages, consent, ownership and actual funds. Ordinary later history continues. Present text needs extant recorded changes; after-lines need the specified outcome, knowledge and a living speaker.",
+        "end_engagement requires A and C still engaged and their actual voluntary separation after honest communication; the introduction itself is not infidelity or consent to romance. The bond effect represents the real breakup. Preserve actual refunds, property and other obligations through ordinary systems.",
+        "no_child here cancels only the already bound source-branch conception that falls after the actual separation and before step 2; require that this specific conception truly did not occur under replay before applying the marker. It is not contraception, a universal ban on future children, deletion of a born resident or permission to override a later reunion. Later independently chosen conceptions remain possible.",
+        "Step 2 requires A and B currently unmarried, unrelated, consenting and in an independently sustained courtship. Both must remain medically eligible consenting parents; marriage must actually precede the eligible pregnancy/birth sequence within the range. The sex constraints serve only this biological-birth branch. Bind the single actual newborn to future alias D with a new deterministic resident ID; use ordinary traits, health, education and mortality.",
+        "Add barber shop as a business kind. Step 3 requires D at least 22, alive, voluntarily interested, actually trained and licensed as required, and able to fund premises, equipment and operation. Do not grant skills from birth. Replay must remove derived records for an uncreated person consistently, retain source-branch comparison records separately, and never tell an NPC about an unexperienced alternate family. Gate D's line on step 3 and actual knowledge of the parents' courtship."
+      ],
+      "era_notes": "Engagement, marriage and trade qualifications follow each event decade. The altered family is ordinary to its own residents even when it is startling to the player.",
+      "why_fun": "The player can walk into a shop whose owner exists because of the intervention. The yearbook comparison is moving precisely because neither history is treated as a score."
+    },
+    {
+      "id": "scenario-20261117-10473",
+      "kind": "scenario",
+      "title": "The Dentist in the Doctor's Spare Room",
+      "category": "business",
+      "pitch": "Invest in a doctor's plan to share a suitable spare room with a qualified dentist. The visiting service may become a permanent dental practice, leaving less room for the original doctor's retirement plans.",
+      "present_hook": {
+        "what_you_notice": "A doctor's office retains an unused shared-room fit-out quote. A qualified dentist's separate proposal identifies real unmet local demand.",
+        "where": "the doctor's office",
+        "clues": [
+          {
+            "who": "the practice papers",
+            "line": "{A} priced the shared room in {year}. The proposal from {B} never reached a funded opening."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "doctor's office"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "doctor's office"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "shop belongs to qualified doctor A, who also owns the bound premises. B is an actually licensed willing dentist with independent required competence. Bind a legally suitable separate room, a feasible costed fit-out and real dental demand. Present must be at least 24 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Fund the actual office fit-out plan through the practice's account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "establish_service": "the separately authorized visiting dental room"
+            }
+          ],
+          "headline": "Doctor's Spare Room Opens as an Authorized Dental Session",
+          "body": "The practice operated by {A} opened its properly separated approved dental room. Qualified visiting dentist {B} provided only the services actually authorized there."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            10,
+            12
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "B",
+              "kind": "dental practice"
+            },
+            {
+              "lease_room": [
+                "A",
+                "B"
+              ],
+              "site": "the bound dental room"
+            }
+          ],
+          "headline": "Visiting Dentist Establishes an Independent Local Practice",
+          "body": "Dentist {B} opened a funded independent practice under a lawful room lease from {A}. Professional responsibilities and patient records remained properly separated."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            22,
+            24
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "sell_premises": [
+                "A",
+                "B"
+              ],
+              "site": "the bound shared practice building"
+            },
+            {
+              "close_shop": "shop"
+            }
+          ],
+          "headline": "Dentist Buys Shared Building as Doctor Retires",
+          "body": "After a voluntary funded sale, {B} purchased the shared practice building. Retiring doctor {A} closed the original medical practice after actual patient-transition arrangements were secured."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Shared Dental Room Does Not Reach an Approved Opening",
+        "body": "The proposed room at the practice operated by {A} did not reach an approved funded service. Actual project spending and remaining capital stayed in its accounts."
+      },
+      "present_day": {
+        "best": "In {now}, the building has the actual ownership and dental practice of {B}, if both survive later history. The original doctor's practice is closed, with its records and patient transition handled by the real arrangements.",
+        "worst": "Failure creates no dental service or property transfer. It changes no professional license or patient's medical needs.",
+        "twist": "Local dental care gains a durable home, but {A} gives up both the medical practice and ownership of the building. Sale proceeds are real, while keeping the old rooms available for a different retirement use is no longer an option."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I am glad the building is still useful. I did have other ideas for that spare room once."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key and independent chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check every stated prerequisite before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Ineligibility reports its actual reason. Failure stops descendants without reversing prior effects. Resolve conflicts in stable scenario-ID order with atomic resource, site and contract reservations. Recheck survival, ages, consent, ownership and actual funds. Ordinary later history continues. Present text needs extant recorded changes; after-lines need the specified outcome, knowledge and a living speaker.",
+        "The room requires actual clinical suitability, independent professional licensing, safe equipment, sanitation, privacy, insurance and local authorization. A medical office's approval does not authorize dentistry automatically. Invested capital pays actual fit-out costs once; B's work is not an unqualified employee role.",
+        "Add dental practice as a business kind. Founding requires B's actual continuing competence, demand, capital and consent. lease_room records a real lawful paid lease between A's property interest and B's independent business, with explicit rooms, access, records separation and obligations.",
+        "sell_premises requires A still owning the real building, B's affordable actual financing, informed voluntary agreement, a supported price, title checks and all other occupants' rights. Transfer the asset and money once without duplicating value as wealth fractions. Step 3 also requires A voluntarily retiring, lawful closure, funded patient notice, records custody and genuinely available appropriate continuing medical care. Closure ends only A's original medical business, not B's independent dental practice. Gate A's line on step 3 and actual earlier plans."
+      ],
+      "era_notes": "Clinical facilities, licensing, tenancy and patient-transfer requirements follow each event year. No particular medical treatment or outcome is promised.",
+      "why_fun": "A spare-room experiment changes the building's owner and profession. The player can recognize the old consulting room inside a different kind of practice."
+    },
+    {
+      "id": "scenario-20261117-10474",
+      "kind": "scenario",
+      "title": "The Coffee Tin That Turned Out to Be a Loan",
+      "category": "money",
+      "pitch": "Report the location of a real forgotten association fund. Its lawful recovery may finance a bakery loan, and the eventual repayment can fund a public room while leaving the borrower with less ready cash.",
+      "present_hook": {
+        "what_you_notice": "An association ledger records a missing reserve kept in a labeled tin. A separate retained maintenance sketch identifies a recoverable location below the bandstand.",
+        "where": "the bandstand",
+        "clues": [
+          {
+            "who": "the association ledger",
+            "line": "Treasurer {A} was still trying to account for this reserve in {year}. The sketch was filed with the bandstand repairs instead."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            65,
+            70
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bakery"
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "bakery"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1985
+        ],
+        "notes": "A is the actual authorized treasurer of a real still-existing association. Bind an actual recoverable intact reserve, an accurate lawful location clue, association ownership and legal authority for a later voluntary lending program. shop belongs to B. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:report_cache",
+          "target": "A",
+          "how_it_looks": "Give the authorized treasurer the real maintenance sketch and location information without removing or claiming the fund."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "recover_owned_fund": "the bound association reserve"
+            }
+          ],
+          "headline": "Bandstand Repair Sketch Leads to a Recovered Association Fund",
+          "body": "Authorized recovery and accounting returned the actual reserve to the association represented by {A}. The find created no private windfall or additional currency."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "make_loan": "B",
+              "fund": "the association's actual lending reserve",
+              "purpose": "the bound costed bakery equipment plan"
+            }
+          ],
+          "headline": "Recovered Reserve Helps Finance a Bakery Equipment Loan",
+          "body": "Under an approved lawful lending policy, bakery owner {B} accepted an actual affordable equipment loan. The agreement recorded price, repayments, security and a real final due date."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "settle_loan": "the bound association-to-bakery loan"
+            },
+            {
+              "build": "a funded association meeting room",
+              "where": "Main Street"
+            }
+          ],
+          "headline": "Bakery Loan Repayment Helps Open an Association Meeting Room",
+          "body": "Borrower {B} completed the actually due affordable final repayment. The association combined its real available returned funds with the documented project budget to open its approved meeting room."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Reported Location Does Not Produce a Completed Lawful Recovery",
+        "body": "The information provided to treasurer {A} did not produce an accepted completed reserve recovery in the allotted window. Actual ownership and records remained unchanged."
+      },
+      "present_day": {
+        "best": "In {now}, the association's actual meeting room stands on its lawfully acquired site, and B's real loan is settled. The recovered fund and repayments remain traceable in the accounts.",
+        "worst": "First-step failure creates no reserve, loan or meeting room through this chain. A clue does not mint money or transfer somebody else's property.",
+        "twist": "The buried money is a recovery for its owner and a liability for its borrower. {B} gains useful equipment but must give up the actually due cash that helps make the meeting room possible."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "It was treasure to the association. To me, it was a loan. The room is nice, though."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "report_cache",
+          "does": "Record and deliver the actual existing location clue to authorized treasurer A. It initiates an ordinary lawful investigation and permission process, without excavating, transferring ownership, crediting money or guaranteeing recovery."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key and independent chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check every stated prerequisite before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Ineligibility reports its actual reason. Failure stops descendants without reversing prior effects. Resolve conflicts in stable scenario-ID order with atomic resource, site and contract reservations. Recheck survival, ages, consent, ownership and actual funds. Ordinary later history continues. Present text needs extant recorded changes; after-lines need the specified outcome, knowledge and a living speaker.",
+        "recover_owned_fund requires actual physical survival, lawful access, safe authorized recovery, verified ownership, priced recovery costs and an accepted inventory. Move only the verified net real funds into the association account; do not duplicate buried assets, assume historic face value equals modern spending power or ignore currency validity.",
+        "The association may survive A's ordinary death through actual lawful officers and account custody. make_loan requires a lawful qualified lending route, existing available capital, independent approved underwriting, B's informed consent, an affordable actual equipment plan and a priced contract. Debit lender funds and credit the specified borrower account once, tracking real assets and obligations rather than granting wealth twice.",
+        "Step 3 requires the actual contract's final due date within years 28–30, B still liable, real affordable payment funds and no prior settlement. settle_loan transfers only the outstanding legally due amount and closes that obligation; default or insolvency follows ordinary law and makes this branch ineligible. Build requires an actual available lawful Main Street site, approved safe design, sustainable operation and the full real project budget after preserving other obligations. Repayment alone cannot fund an arbitrarily large building. Gate B's line on step 3 and actual understanding of the original recovery."
+      ],
+      "era_notes": "Currency validity, accounting, lending authority and building costs follow their actual years. The old tin contains a tracked asset, not an inflation-proof magical fortune.",
+      "why_fun": "The player follows a tangible hidden object into two sets of accounts and a real public door. The treasure story stays human because someone has to pay it back."
+    }
+  ]
+}

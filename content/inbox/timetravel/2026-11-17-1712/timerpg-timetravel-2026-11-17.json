@@ -1,0 +1,637 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-10321",
+      "kind": "scenario",
+      "title": "The Exam Fee and the Locked School Gate",
+      "category": "politics",
+      "pitch": "Help an accounting candidate pay a final exam fee. The resulting career may eventually support a school-consolidation decision that leaves a familiar neighborhood building empty.",
+      "present_hook": {
+        "what_you_notice": "A candidate's retained papers contain a completed course record and an unpaid examination invoice. The neighborhood school remains open under a budget never subjected to the later proposed review.",
+        "where": "the neighborhood school",
+        "clues": [
+          {
+            "who": "the candidate's papers",
+            "line": "{A} had completed the required study in {year}. The remaining examination fee stopped the application."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            22,
+            25
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "Require A actually eligible for the accounting examination after completed prerequisites, a quoted shortfall and genuine interest in public finance. B is an actual teacher at the bound neighborhood school. A later feasible consolidation must have real receiving-school capacity and lawful safe transport. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the candidate the documented remaining examination-fee amount."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "qualify": "A",
+              "profession": "qualified accountant"
+            }
+          ],
+          "headline": "Accounting Candidate Completes the Required Qualification",
+          "body": "{A} passed the actual examination and completed the applicable qualification process. Paying the fee did not decide the result."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "hire_institution": "A",
+              "institution": "the funded public-school finance office"
+            }
+          ],
+          "headline": "Qualified Accountant Joins the School Finance Office",
+          "body": "Qualified applicant {A} accepted an actual funded school-finance post. Its duties included authorized budget analysis."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "close_institution": "the bound neighborhood school"
+            },
+            {
+              "transfer_school_population": "the approved receiving school"
+            },
+            {
+              "reassign_employee": "B",
+              "to": "the approved receiving school"
+            }
+          ],
+          "headline": "Approved Consolidation Closes a Neighborhood School",
+          "body": "After independent public review of the actual finances and alternatives, the school authority approved consolidation. Teacher {B} and the affected pupils moved to the prepared receiving school."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "Exam Payment Does Not Produce a Completed Qualification",
+        "body": "The examination path involving {A} did not reach a completed qualification. Actual costs and remaining gift funds stayed recorded."
+      },
+      "present_day": {
+        "best": "In {now}, the neighborhood school is closed and its gates display the actual closure notice. The receiving school holds the real transferred pupils, staff and capacity records, subject to later history.",
+        "worst": "Failure creates no qualification or closure through this chain. Other accountants and public decisions remain part of ordinary history.",
+        "twist": "A gains a real profession and the authority may reduce actual operating costs, while B and the neighborhood lose their familiar school. A sound calculation cannot preserve the old walk to its door."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "The new room has what I need. I still turn toward the old gate some mornings."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Recheck all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it independently. Ineligibility reports its actual cause. Failure stops dependent steps without undoing prior effects. Resolve conflicts in stable scenario-ID order with atomic resource, job and site reservations. Check ages, survival, consent, ownership and funds. Ordinary later history continues. Present descriptions require extant recorded changes; after-lines require the specified result, knowledge and a living speaker.",
+        "qualify requires the actual passed exam, required experience and current professional standing. hire_institution needs a real vacancy, lawful recruitment, qualification checks, wages and A's consent.",
+        "Step 3 requires A still authorized to contribute actual analysis, B still employed at the bound school, a substantiated feasible comparison, independent lawful public decision, notices and no predetermined political result. Evaluate learning, access, employment, transport and community alternatives, not costs alone.",
+        "close_institution closes only the identified school after legal approval. transfer_school_population updates all actually enrolled affected pupils only after real funded receiving capacity, safe transport and required access support exist. reassign_employee requires B's actual suitable funded post and applicable consent or employment process. Apply the three effects atomically; never create empty classrooms or waive other staff obligations. Gate B's line on step 3 and B's actual continuing route habit."
+      ],
+      "era_notes": "Accounting qualifications, school decision procedures and transport standards follow their event years. The old building is not automatically demolished or repurposed.",
+      "why_fun": "A small exam invoice can end at a large locked gate. The player can understand the practical case and still feel the neighborhood's loss."
+    },
+    {
+      "id": "scenario-20261117-10322",
+      "kind": "scenario",
+      "title": "The Second Name in the Probate File",
+      "category": "family",
+      "pitch": "Introduce two adults who do not know they share a parent. Verified kinship may bring a fair shared inheritance, then a disagreement about whether the inherited home should stay a family place at all.",
+      "present_hook": {
+        "what_you_notice": "Two separate retained family files point to the same living parent at the intervention date. Neither adult's baseline records show a later meeting with the other.",
+        "where": "the authorized family-records office",
+        "clues": [
+          {
+            "who": "the authorized family records",
+            "line": "The records for {A} and {B} identify {C} as a parent. The connection had not been verified or discussed between them in {year}."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            35
+          ]
+        },
+        "B": {
+          "age": [
+            30,
+            35
+          ],
+          "relation": "siblings"
+        },
+        "C": {
+          "age": [
+            60,
+            65
+          ],
+          "has_children": true
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1985
+        ],
+        "notes": "A and B are existing half-siblings who have not met and are unaware of the shared parent C. Bind actual lawful records and voluntary willingness to investigate, not a new generated family link. C owns the identified family home. The inheritance step requires C's independent natural death in its own window and actual equal heir interests. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the willing adults without declaring an unverified kinship or disclosing restricted records."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "verify_kinship": [
+                "A",
+                "B"
+              ],
+              "shared_parent": "C"
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.2
+            }
+          ],
+          "headline": "Consenting Adults Verify a Shared Parent",
+          "body": "Through lawful records and qualified review, {A} and {B} verified their existing shared parent {C}. Both chose to begin a sibling relationship."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": false
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "inherit": [
+                "C",
+                "A"
+              ]
+            },
+            {
+              "inherit": [
+                "C",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Verified Siblings Receive Their Actual Shared Inheritance",
+          "body": "After the ordinary natural death of {C}, the completed estate process distributed the actual equal interests in the family home to {A} and {B}. No living owner's property was transferred by genealogy alone."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "sell_joint_home": [
+                "A",
+                "B"
+              ],
+              "home": "the bound inherited family home"
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": -0.25
+            }
+          ],
+          "headline": "Jointly Inherited Home Is Sold after a Sibling Dispute",
+          "body": "After a real disagreement about use and upkeep, co-owners {A} and {B} completed a lawful consensual sale. The actual net proceeds followed their recorded shares and obligations."
+        }
+      ],
+      "fails": {
+        "chance": 0.3,
+        "effects": [],
+        "headline": "An Introduction Does Not Become Verified Family Contact",
+        "body": "{A} and {B} did not complete the voluntary verified-contact process in the allotted window. Existing biological and legal relationships were not erased."
+      },
+      "present_day": {
+        "best": "In {now}, the former family home belongs to its real purchaser and is no longer jointly available to the siblings. Their verified kinship and the estate and sale records remain.",
+        "worst": "Failure invents no kinship finding or inheritance. C's actual life, death and succession continue independently of this scenario.",
+        "twist": "Discovering a sibling can bring fair recognition and an actual inheritance, then create a co-ownership neither person would have chosen alone. The shared money survives a sale that strains the new bond."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I wanted to know the family. I did not know how much of that would be deciding what to do with a roof."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Recheck all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it independently. Ineligibility reports its actual cause. Failure stops dependent steps without undoing prior effects. Resolve conflicts in stable scenario-ID order with atomic resource, job and site reservations. Check ages, survival, consent, ownership and funds. Ordinary later history continues. Present descriptions require extant recorded changes; after-lines require the specified result, knowledge and a living speaker.",
+        "verify_kinship confirms only an existing generated relationship through lawful accessible records and actual qualified verification. It updates knowledge, not birth facts. Require both adults consenting to contact before the bond effect; no compulsory reunion or right to confidential information is implied.",
+        "Step 2 requires C's independently occurring natural death within years 13–15, completed lawful probate, no earlier distribution, and actual equal one-half distributable interests for A and B. The two inherit effects distribute nonoverlapping recorded halves of the same net asset atomically, never two full homes. Preserve debts, life interests and other lawful obligations. An earlier death makes this scenario step ineligible while ordinary succession still runs.",
+        "sell_joint_home requires continued recorded co-ownership, a real upkeep/use dispute, informed consent or a lawful resolved partition process, a consenting actual buyer, fair supported price, transaction funding and protected occupants' arrangements. Transfer title once and split actual net proceeds by the real shares. The bond decrement represents the actual dispute, not automatic hostility between unknown siblings. Gate A's line on step 3 and actual prior desire for family contact."
+      ],
+      "era_notes": "Use the actual privacy, kinship-verification and estate procedures of the event years. No specific parent sex, surname or motive for earlier separation is inferred.",
+      "why_fun": "The family graph changes what people know before it changes who owns a house. Finding each other does not tell two siblings how to share a roof."
+    },
+    {
+      "id": "scenario-20261117-10323",
+      "kind": "scenario",
+      "title": "The Lawn Nobody Needed to Mow",
+      "category": "place",
+      "pitch": "Introduce an older native-plant grower to a willing groundskeeper. Their practical trial may become a public meadow, leaving a mower's recurring contract smaller than it used to be.",
+      "present_hook": {
+        "what_you_notice": "An older grower's seed records never reached the grounds department. The bound public lawn still requires repeated mowing, with a real contractor's schedule posted in the maintenance file.",
+        "where": "the public grounds office",
+        "clues": [
+          {
+            "who": "the separate proposal files",
+            "line": "{A} offered the local seed records in {year}. The trial plan prepared by {B} never included them."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            65,
+            70
+          ],
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "C": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A is a verified experienced local native-plant grower, B an actual qualified willing groundskeeper, and C the real contractor maintaining the bound non-sports lawn. Require suitable native species, real source permissions, a viable trial area and a lawful public-land decision route. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange a voluntary meeting with the existing seed records and the groundskeeper's actual trial plan."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "establish_trial": "the bound native-meadow test plot"
+            }
+          ],
+          "headline": "Grower and Groundskeeper Begin a Native-Meadow Trial",
+          "body": "{A} and {B} began the permitted funded trial using verified suitable seed. Its actual establishment, costs and ecological results were measured."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_service": "the funded local native-seed propagation program"
+            }
+          ],
+          "headline": "Successful Measured Trial Supports a Seed Program",
+          "body": "After reviewed trial results and new funding, a qualified propagation program began producing traceable suitable seed. It preserved the grower's real records with permission."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "convert_use": "the bound public non-sports lawn",
+              "to": "a maintained native meadow with approved paths"
+            },
+            {
+              "reduce_contract": "C",
+              "contract": "the bound recurring lawn-mowing contract",
+              "scope": "the converted meadow's former routine mowing"
+            }
+          ],
+          "headline": "Public Meadow Replaces a Lawn and Its Routine Mowing",
+          "body": "An approved maintained native meadow replaced the identified non-sports lawn after actual site review. Contractor {C} lost the former routine mowing scope under the lawfully revised contract."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Meeting Does Not Produce a Viable Meadow Trial",
+        "body": "The plans discussed by {A} and {B} did not reach an approved viable trial. Existing seed records and land uses remained actual facts."
+      },
+      "present_day": {
+        "best": "In {now}, the identified public site has an actual maintained meadow and approved accessible paths rather than the old uniform lawn. Its current plants and maintenance follow observed ecology and funded care.",
+        "worst": "Failure creates no trial, seed program or meadow through this chain. Ordinary grounds management continues.",
+        "twist": "A different habitat can reduce routine mowing, but {C} loses real contracted work. The meadow still needs skilled care; those tasks are not automatically awarded to the former mower."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "unaware",
+          "line": "I used to be paid to keep it short. Now people take photographs of how tall it gets."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Recheck all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it independently. Ineligibility reports its actual cause. Failure stops dependent steps without undoing prior effects. Resolve conflicts in stable scenario-ID order with atomic resource, job and site reservations. Check ages, survival, consent, ownership and funds. Ordinary later history continues. Present descriptions require extant recorded changes; after-lines require the specified result, knowledge and a living speaker.",
+        "establish_trial requires an authorized funded test area, actual suitable local species, lawful seed sourcing, plant-health checks, qualified oversight and measured outcomes. No automatic biodiversity improvement, free seed or exemption from invasive-species controls is created.",
+        "The propagation program requires genuinely adequate trial results, traceable stock, actual propagation facilities and staff, source permissions, seasonal capacity and funding. It can retain lawfully transferred records after A's ordinary death; do not keep the older grower alive for decades.",
+        "convert_use needs current site suitability, public approval, accessible paths, safety and fire planning, actual establishment funds and a sustainable mowing/weeding regime. It may not consume sports fields or other protected uses. reduce_contract removes only the identified future mowing scope after notice, lawful expiry or negotiated amendment and settlement of actual obligations; apply no invented fixed wealth decrement. C must still hold that scope. Gate C's line on step 3 and actual public photography at the site."
+      ],
+      "era_notes": "Species choices, land-management standards and propagation methods follow local ecology and the actual event years. A meadow is not an unmanaged abandoned lot.",
+      "why_fun": "The player can watch a familiar patch change texture and sound. The same grass has a different meaning to a grower, a visitor and the person once paid to cut it."
+    },
+    {
+      "id": "scenario-20261117-10324",
+      "kind": "scenario",
+      "title": "The Coin That Lost Its Miracle",
+      "category": "uncanny",
+      "pitch": "Lend a collector a genuine coin carried back from the present. A carefully labeled curiosity may sustain a small exhibition, until the date stamped on it finally stops being in the future.",
+      "present_hook": {
+        "what_you_notice": "A collector's retained catalog has an empty loan slot for a future-themed display. No corresponding coin entered the baseline collection.",
+        "where": "the local collection room",
+        "clues": [
+          {
+            "who": "the collector's catalog",
+            "line": "{A} sought a loan for this display in {year}. The catalog records no completed loan."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "B": {
+          "age": [
+            8,
+            12
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1950,
+          1950
+        ],
+        "notes": "Bind A as an actual consenting competent collector with a lawful modest exhibit proposal. The player must possess a real coin minted in the present year {now}, carried from the already simulated source branch, with transferable ownership and lawful possession. B is a distinct child who may remember a permitted early visit. This chain's final event is exactly in the present year, 76 years after 1950."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:lend_future_object",
+          "target": "A",
+          "how_it_looks": "Lend the actual future-dated coin under a written ownership, custody and truthful-label agreement."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "catalog_object": "the bound carried coin",
+              "claim": "a source-labeled loan with an unexplained future date"
+            }
+          ],
+          "headline": "Collector Catalogs a Loaned Coin Bearing a Future Date",
+          "body": "Collector {A} cataloged the actual loaned coin, its markings and the lender's stated source. The label separated observable facts from an unverified public explanation."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            20,
+            22
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_service": "the funded future-date curiosity exhibition"
+            }
+          ],
+          "headline": "Retained Coin Becomes Part of a Funded Curiosity Exhibition",
+          "body": "A lawful funded exhibition took custody under the actual continuing loan agreement. Its display preserved the original observation record without advertising a proven miracle."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            76,
+            76
+          ],
+          "if": {
+            "step": 2
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "update_exhibit": "the bound carried coin",
+              "label": "the stamped year has arrived; source history remains a separate claim"
+            }
+          ],
+          "headline": "Calendar Catches Up with an Exhibition's Future-Dated Coin",
+          "body": "The year stamped on the retained coin arrived. The exhibition updated its label while preserving the earlier dated custody and observation records."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "Offered Coin Loan Does Not Become an Accepted Catalog Entry",
+        "body": "The loan offered to {A} did not reach an accepted catalog arrangement. Ownership and any actual custody still followed the player's real agreement."
+      },
+      "present_day": {
+        "best": "In {now}, the exhibition holds the actual loaned coin and its dated older records if custody survived. Its date is now contemporary, and the updated label makes that visible without declaring the earlier record false.",
+        "worst": "First-step failure creates no catalog or exhibition. The carried coin remains one tracked physical object, not a new source of duplicated currency.",
+        "twist": "The player gives a collector a remarkable display, but time eventually removes its simplest visible selling point. The exhibition must honestly give up the future-date claim even while its unusual provenance record survives."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "uncanny",
+          "line": "When I first saw it, that date seemed impossibly far away. Now it is the year on the wall calendar."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "lend_future_object",
+          "does": "Move one actually owned carried object into A's accepted loan custody while preserving the player's title, immutable artifact ID, physical state, exact source-branch metadata and return terms. Do not mint copies, pay money, create historical certainty or erase other ownership rights. Record only the real markings and the lender's actual statements."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Recheck all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it independently. Ineligibility reports its actual cause. Failure stops dependent steps without undoing prior effects. Resolve conflicts in stable scenario-ID order with atomic resource, job and site reservations. Check ages, survival, consent, ownership and funds. Ordinary later history continues. Present descriptions require extant recorded changes; after-lines require the specified result, knowledge and a living speaker.",
+        "Requires developer support for a uniquely tracked carried artifact surviving branch changes. Bind a real present-year minted coin already in inventory, not an invented image or a promise of one. Ownership and lawful cross-time possession must be modeled. Suppress the scenario when unavailable.",
+        "catalog_object records observable markings, date, material tests actually performed, custody and separately attributed source claims. The intervention establishes the loan once; cataloging does not transfer ownership again. No public scientific proof of time travel follows from a stamped date.",
+        "The exhibition needs actual premises, security, qualified custodians, funding and continuing lawful loan rights or an actual permitted renewal. Ordinary death, inheritance, loss, return and damage can end the chain; A need not survive step 2 or 3. Any later source-era counterpart is a separately tracked physical history, not a copied spendable reward.",
+        "update_exhibit changes only the actual retained display label at the present-year step. The updated label explicitly stops calling the stamp future-dated, preserves genuine old observations and does not resolve disputed provenance. Gate B's line on step 3, B alive at age 84–88, actual permitted childhood viewing and memory; otherwise use no first-person recollection. Never keep a visitor alive for the line."
+      ],
+      "era_notes": "The initial catalog uses 1950 methods and the exhibition changes its tools as time passes. The coin's actual physical facts remain recorded separately from what different decades believe about them.",
+      "why_fun": "The uncanny object becomes ordinary-looking because the player waits long enough. Its oldest visitor may be a more striking artifact of elapsed time than the coin."
+    }
+  ]
+}

@@ -1,0 +1,647 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-10621",
+      "kind": "scenario",
+      "title": "The Hook Rack That Became a Menu",
+      "category": "business",
+      "pitch": "Invest in a bait shop's lawful little coffee counter. The extra trade may eventually turn the building into a cafe, leaving a regular angler with somewhere to sit but nowhere nearby to buy bait.",
+      "present_hook": {
+        "what_you_notice": "A bait shop has an unused approved coffee-counter quote. Its early opening hours still serve anglers rather than a cafe crowd.",
+        "where": "the bait shop",
+        "clues": [
+          {
+            "who": "the shop accounts",
+            "line": "{A} priced the separate coffee counter in {year}. The equipment deposit was never paid."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bait shop"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "bait shop"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "shop belongs to A. Bind a costed lawful food-service area fully separated from bait handling, actual feasible customer demand and B's genuine recurring use of the early bait counter. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Fund the quoted separated coffee-counter fit-out through the shop account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "establish_service": "the bait shop's permitted separate coffee counter"
+            }
+          ],
+          "headline": "Bait Shop Opens a Properly Separated Coffee Counter",
+          "body": "The shop operated by {A} opened its approved separate coffee counter. Actual food-service costs and sales entered the accounts."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "expand_service": "the scenario coffee counter",
+              "scope": "the approved staffed cafe menu and seating"
+            }
+          ],
+          "headline": "Coffee Trade Supports an Expanded Menu and Paid Staffing",
+          "body": "Documented coffee demand and a funded plan supported a larger approved menu and seating area. The business operated by {A} employed actual qualified paid staff."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "convert_business": "shop",
+              "to": "cafe"
+            },
+            {
+              "end_service": "the bound early bait-sales counter"
+            }
+          ],
+          "headline": "Cafe Conversion Ends a Shop's Early Bait Counter",
+          "body": "After a voluntary funded business conversion, the premises operated by {A} became a cafe. Its real bait stock and obligations were settled, and the old early bait counter closed."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Coffee-Counter Plan Does Not Reach an Approved Opening",
+        "body": "The plan at the shop operated by {A} did not become an approved service. Actual project expenses and remaining investment stayed recorded."
+      },
+      "present_day": {
+        "best": "In {now}, the premises has a real cafe menu, seating and operating hours if the business survives. The old bait counter is absent and the retained hook rack is no longer sales stock.",
+        "worst": "Failure creates no cafe service or forced change of business kind. The original shop follows actual trading history.",
+        "twist": "The extra cups can keep a business viable while ending the reason {B} first needed it. Sitting longer in the cafe does not replace a nearby source of bait."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "I can get breakfast there now. I have to remember to buy the bait somewhere else first."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Ineligibility reports its actual cause. Failure stops descendants without reversing prior effects. Resolve conflicts in stable scenario-ID order with atomic fund, site and contract reservations. Recheck survival, ages, consent, ownership and actual resources. Ordinary later history continues. Present descriptions need extant recorded changes; after-lines need the stated outcome, actual knowledge and a living speaker.",
+        "Add cafe as a business kind. Initial food service requires actual suitable separate space, approved sanitation and food storage, permits, equipment, trained staff, insurance and sustainable funds. The investment buys only real priced assets and work.",
+        "expand_service requires measured demand, actual affordable space, safe capacity, real staffing, approval and capital; it cannot infer profit from a single cup. The bait trade remains active until a later actual conversion decision.",
+        "convert_business keeps the business's immutable identity and obligations while lawfully changing its active kind and inventory; settle suppliers, staff, member rights and unsold stock before end_service removes the specific bait counter and schedule. Require A still operating and consenting and B still an actual local user who loses this service. Retain the hook rack only if A actually chooses to keep it as an object. Gate B's line on step 3, remembered use and real availability of breakfast and an alternative bait seller."
+      ],
+      "era_notes": "Menus, equipment and opening times follow actual local demand and the event decade. Coffee sales imply no fixed regional fishing season.",
+      "why_fun": "The player revisits the same counter and has to order something different. A practical sideline quietly changes a town habit."
+    },
+    {
+      "id": "scenario-20261117-10622",
+      "kind": "scenario",
+      "title": "The Anniversary Fund Under the Knitting Machine",
+      "category": "love",
+      "pitch": "Introduce a dress-shop owner to a skilled technician. Their eventual marriage may put anniversary-trip savings into a knitting machine, then leave the surviving business facing an expensive division when the marriage ends.",
+      "present_hook": {
+        "what_you_notice": "A dress shop retains an unfunded machine proposal. An unrelated technician's separate records show the competence the owner never found locally.",
+        "where": "the dress shop",
+        "clues": [
+          {
+            "who": "the shop proposal",
+            "line": "{A} needed qualified technical help in {year}. The workshop record for {B} never reached the shop."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            30
+          ],
+          "married": false,
+          "owns_shop": true,
+          "shop_kind": [
+            "dress shop"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            30
+          ],
+          "married": false
+        },
+        "shop": {
+          "shop_kind": [
+            "dress shop"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "shop initially belongs solely to A. A and B are unrelated consenting adults who have not met; B has actual relevant technical competence. Require independently plausible mutual interest, a feasible later machine plan and a genuine shared savings choice. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange the wanted professional introduction without promising either work or a romance."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "marry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Shop Owner and Technician Marry after a Real Courtship",
+          "body": "{A} and {B} married after a voluntary mutual courtship. The introduction did not itself merge their property or assign either person a job."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            10,
+            12
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "install_equipment": "shop",
+              "kind": "the bound approved commercial knitting machine"
+            },
+            {
+              "joint_business_interest": [
+                "A",
+                "B"
+              ],
+              "business": "shop",
+              "shares": [
+                0.5,
+                0.5
+              ]
+            }
+          ],
+          "headline": "Couple Chooses a Knitting Machine over an Anniversary Trip",
+          "body": "With independent advice and real funds, {A} and {B} chose to spend the reserved trip money on the approved machine and a documented ownership agreement. No holiday was also paid for from the same savings."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "divorce": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "buy_business_share": [
+                "A",
+                "B"
+              ],
+              "business": "shop",
+              "share": 0.5
+            }
+          ],
+          "headline": "Divorce Settlement Leaves Dress Shop with One Owner",
+          "body": "After a real unresolved marital conflict and lawful settlement, {A} and {B} divorced. Under an independently valued funded agreement, {A} bought the actual half-interest held by {B} and continued the business."
+        }
+      ],
+      "fails": {
+        "chance": 0.4,
+        "effects": [],
+        "headline": "Professional Introduction Does Not Become a Marriage",
+        "body": "{A} and {B} did not choose the proposed courtship in the allotted window. Their separate professional choices remained their own."
+      },
+      "present_day": {
+        "best": "In {now}, the shop remains solely owned by {A} if it survives later trading, with the machine and buyout recorded in its actual history. The former spouses have separate actual households after their settlement.",
+        "worst": "First-step failure creates no marriage, shared savings or divorce through this chain. The shop may still obtain technical help independently.",
+        "twist": "The shared machine may help a real business last longer than the marriage. {A} keeps the shop by giving up actual buyout funds, while {B} receives the agreed value but gives up the ownership stake."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "The machine still works. Some days that feels like a compliment to us, and some days it does not."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Ineligibility reports its actual cause. Failure stops descendants without reversing prior effects. Resolve conflicts in stable scenario-ID order with atomic fund, site and contract reservations. Recheck survival, ages, consent, ownership and actual resources. Ordinary later history continues. Present descriptions need extant recorded changes; after-lines need the stated outcome, actual knowledge and a living speaker.",
+        "Marriage needs a real mutually chosen courtship and both still unmarried and eligible. Step 2 requires the marriage continuing, an actual agreed anniversary-trip reserve, a desired costed machine, current technical competence, lawful space, safe operation and sufficient funds; no skill or money comes from marriage.",
+        "install_equipment spends the real reserved funds and any documented additional capital once. joint_business_interest creates equal documented beneficial interests only through a lawful informed uncoerced agreement accounting for A's existing business value and B's actual contribution or an expressly recorded voluntary gift; do not treat marriage alone as consent to half-ownership.",
+        "Step 3 requires an independently developed actual unresolved marital conflict, a lawful divorce and enforceable settlement, real continued co-ownership, informed separately advised consent to the buyout, supported valuation, actual affordable funds and A's viable continuing plan. buy_business_share transfers only B's recorded half-interest to A and actual payment to B once; settle debts, staff rights, support and housing without inventing children or erasing obligations. Gate A's line on step 3, actual continuing machine operation and actual sentiment."
+      ],
+      "era_notes": "Marriage-property rules, machinery and business formalities follow each event year. No sex or customary household role determines who owns or buys the shop.",
+      "why_fun": "The player finds a long relationship recorded in a working machine and a settlement ledger. The building's continuity hides a substantial change inside it."
+    },
+    {
+      "id": "scenario-20261117-10623",
+      "kind": "scenario",
+      "title": "The Child Who Wasn't on the Poster",
+      "category": "family",
+      "pitch": "Help a family withdraw permission for a child's identifiable publicity photograph. That early experience may inform an adult photographer's career, ending with a real archive that preserves some events without showing every face.",
+      "present_hook": {
+        "what_you_notice": "A retained event poster uses a child's identifiable photograph under a permission the family wanted to withdraw. The unsubmitted request sits in the household file.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the household correspondence",
+            "line": "{A} asked how to withdraw the permission for {B} in {year}. The request never reached the organizer."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            35
+          ]
+        },
+        "B": {
+          "age": [
+            8,
+            12
+          ],
+          "relation": "parent_child"
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A is B's actual lawful parent; the bound parent-child relation must exist, not merely guardianship. Bind a genuine valid withdrawal route for the still-planned identifiable publicity use, B's actual age-appropriate wish and a later independent interest in photography. Do not assume a child can withdraw every historical fact or erase lawful existing publications. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:withdraw_publicity_permission",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "With the family and child's actual agreement, deliver the valid withdrawal request for the specified forthcoming poster use."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "remove_publicity_use": "the bound identifiable child portrait"
+            }
+          ],
+          "headline": "Reviewed Publicity Withdrawal Removes a Planned Child Portrait",
+          "body": "The review confirmed that the organizer honored the valid withdrawal concerning child {B}. Actual future poster stock and permitted replacements followed the recorded rights."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "B",
+              "kind": "photography studio"
+            }
+          ],
+          "headline": "Former Poster Subject Opens a Qualified Photography Studio",
+          "body": "After real adult training, experience and a funded plan, {B} opened a photography studio. Its actual agreements recorded the distinct permissions for taking, retaining and publishing images."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_service": "the funded permission-aware local photo archive"
+            },
+            {
+              "restrict_display": "the bound nonconsenting identifiable portraits",
+              "mode": "retain only as lawfully allowed; do not display"
+            }
+          ],
+          "headline": "Local Photo Archive Opens with Clear Display Permissions",
+          "body": "A qualified funded archive supported by {B} opened with verified custody and separate display permissions. Some events had lawful records but no displayed identifying portraits."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Requested Publicity Withdrawal Does Not Reach a Completed Remedy",
+        "body": "The request involving {A} and {B} did not obtain the specified completed remedy in the allotted window. Actual rights and any remaining dispute continued through ordinary processes."
+      },
+      "present_day": {
+        "best": "In {now}, the archive's actual displays show only permitted identifying photographs. Events with restricted portraits remain described by accurate available nonidentifying records, rather than invented blank faces.",
+        "worst": "Failure neither grants publication permission nor erases the child's rights. It creates no studio or archive through this chain.",
+        "twist": "The archive can preserve a fuller history of consent while offering fewer faces for visitors to recognize. Some real reunions and identifications become harder because the public display correctly leaves images unavailable."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I like photographs. I also like being asked what happens to them after the shutter closes."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "withdraw_publicity_permission",
+          "does": "Submit the family's actual lawful withdrawal for the precisely identified forthcoming publicity use, with the child's appropriate participation and the organizer's real review. Change only permissions legally withdrawable through that process; do not destroy photographs, retroactively alter public facts or fabricate the recipient's compliance."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Ineligibility reports its actual cause. Failure stops descendants without reversing prior effects. Resolve conflicts in stable scenario-ID order with atomic fund, site and contract reservations. Recheck survival, ages, consent, ownership and actual resources. Ordinary later history continues. Present descriptions need extant recorded changes; after-lines need the stated outcome, actual knowledge and a living speaker.",
+        "The intervention submits the actual request before the planned poster publication. Step 1 is a later audit of the real remedy, not permission left pending for years. remove_publicity_use cancels only that identified future use and handles actual stocks and lawful replacements; it does not erase every appearance or confer blanket authority on a parent indefinitely.",
+        "Add photography studio if not implemented. Step 2 requires B at least 18, actual voluntary career choice, training, competence, capital, equipment, lawful premises and demand. An unwelcome childhood poster does not grant a profession or require a lasting grievance.",
+        "The archive requires real lawfully held images, qualified paid custody, sustainable funding, actual rights and review procedures. restrict_display preserves only storage legally permitted and prevents unauthorized identifiable public display; follow actual deletion duties where applicable. Do not invent lost information when lawful public evidence remains elsewhere. Record the concrete identification opportunity lost from these actual displays as a limitation, not a universal ban on contact. Gate B's line on step 3 and B's actual continuing positive attitude toward consensual photography."
+      ],
+      "era_notes": "Image formats and legal permissions follow their event years. The same event can have an accurate written record without an identifiable public portrait.",
+      "why_fun": "The player finds a town archive whose omissions are deliberate facts rather than missing content. A person can love a medium and still choose how to appear in it."
+    },
+    {
+      "id": "scenario-20261117-10624",
+      "kind": "scenario",
+      "title": "The Novel Shelved as Local History",
+      "category": "uncanny",
+      "pitch": "Report a library's genuine mistake about a locally written novel. A corrected shelf may grow into a literary exhibition, while a family's cherished annotated copy spends its loan term behind glass instead of at home.",
+      "present_hook": {
+        "what_you_notice": "A locally written novel sits in verified local history despite its actual original fiction designation. An owned annotated copy and the publisher's retained catalog can establish the error.",
+        "where": "the library",
+        "clues": [
+          {
+            "who": "the publisher's retained catalog",
+            "line": "The book written by {A} was listed as fiction in {year}. The library's local-history entry says otherwise."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "C": {
+          "age": [
+            60,
+            65
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1985
+        ],
+        "notes": "A is the actual author of the bound fictional book, B owns its genuinely meaningful annotated family copy, and C is the authorized librarian. Bind an actual catalog error rather than an intentionally ambiguous text or a true accusation. No generated resident is named by the content. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:report_catalog_error",
+          "target": "C",
+          "how_it_looks": "Give the authorized librarian the actual publisher record and identify the incorrect catalog entry."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "reclassify_record": "the bound novel",
+              "from": "verified local history",
+              "to": "fiction"
+            }
+          ],
+          "headline": "Publisher Record Corrects a Novel's Library Classification",
+          "body": "Qualified review corrected the actual novel to fiction in the library's catalog. A public correction distinguished the text from verified town events."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_service": "the funded local literary society"
+            }
+          ],
+          "headline": "Corrected Novel Helps Begin a Local Literary Society",
+          "body": "After actual interested readers organized and found funding, a local literary society began its agreed program. Author {A} voluntarily took part without supplying historical claims the novel did not make."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "exhibit_object": "the bound annotated family copy",
+              "agreement": "B's actual limited-term loan with permitted annotation display"
+            }
+          ],
+          "headline": "Literary Exhibition Borrows a Family's Annotated Copy",
+          "body": "The funded exhibition accepted the actual annotated copy from {B} under its limited-term loan. The approved display preserved the fiction classification and only the annotations authorized for visitors."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Reported Catalog Error Does Not Reach a Completed Correction",
+        "body": "The information provided to librarian {C} did not produce an accepted completed correction in the allotted window. The actual book and publisher records remained available."
+      },
+      "present_day": {
+        "best": "In {now}, the book is correctly cataloged and the family copy is on its real active exhibition loan if that loan remains in force. The society's actual program and custody records determine what visitors can see.",
+        "worst": "Failure creates no verified catalog correction or literary society through this chain. It does not turn a fictional novel into factual history.",
+        "twist": "A better public account can give the book a new audience, but {B} temporarily loses private use of the cherished physical copy. The loan offers recognition while moving an ordinary family object behind glass."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "It is finally on the right shelf. Our copy is just rather harder to curl up with while the exhibition has it."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "report_catalog_error",
+          "does": "Submit the actual catalog discrepancy and authentic publisher evidence to authorized librarian C for qualified review. Record receipt without deciding the review, changing the book's contents or asserting that all statements in a novel are false."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Ineligibility reports its actual cause. Failure stops descendants without reversing prior effects. Resolve conflicts in stable scenario-ID order with atomic fund, site and contract reservations. Recheck survival, ages, consent, ownership and actual resources. Ordinary later history continues. Present descriptions need extant recorded changes; after-lines need the stated outcome, actual knowledge and a living speaker.",
+        "reclassify_record changes only the identified catalog classification after actual evidence review and authorized decision. Preserve original text, provenance and a visible correction history. Fiction status does not by itself disprove an independently verified real event; no NPC gains secret facts from a shelf label.",
+        "The literary society needs actual consenting readers, a lawful available meeting space, qualified administration, a costed program and sustainable funds. A's participation is voluntary and requires A alive and actually interested. C need not survive later stages; authorized successors use the retained records.",
+        "exhibit_object moves the one actual owned copy into qualified temporary custody under B's informed uncoerced loan, actual author/publisher rights, conservation, insurance, return date and permitted annotation scope. No duplicate copy or ownership transfer is created. Step 3 requires the loan legitimately lasting into the chosen present if present text describes active display; otherwise show its actual return history. Gate B's line on step 3, current active display, B alive and actual remembered use of that copy."
+      ],
+      "era_notes": "Catalogs, exhibits and publication rights follow each event year. Printed evidence may be uncanny in context without proving a prediction or a supernatural event.",
+      "why_fun": "The player changes how the town reads a book without changing a word of it. A small catalog correction becomes a public story about the difference between a story and a record."
+    }
+  ]
+}

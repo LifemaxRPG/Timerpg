@@ -1,0 +1,633 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-9711",
+      "kind": "scenario",
+      "title": "The Wind Gauge on the Chicken Shed",
+      "category": "place",
+      "pitch": "Fund a child's serious wind-measuring project. Its records may eventually support a small turbine, while a neighboring farmer gives up part of a familiar pasture to make the project possible.",
+      "present_hook": {
+        "what_you_notice": "A school notebook has careful wind observations followed by a note about broken equipment. A later energy study rejected the site for lack of reliable local measurements.",
+        "where": "the school archive",
+        "clues": [
+          {
+            "who": "the school notebook",
+            "line": "{A} stopped measuring in {year}. The replacement gauge cost more than the project fund held."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            12,
+            15
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1985
+        ],
+        "notes": "Bind a real supervised voluntary measurement project, an authorized instrument site and genuinely suitable wind conditions. B owns the identified neighboring pasture; legal turbine access would require a consenting easement across it. Present must be at least 32 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Pay the quoted replacement-gauge shortfall through the supervised project account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "record_measurements": "the bound local wind series"
+            }
+          ],
+          "headline": "School Wind Project Completes a Verified Measurement Series",
+          "body": "The supervised project involving {A} completed a calibrated local wind series. The retained records included gaps and uncertainty rather than invented perfect coverage."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            16,
+            18
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "approve_feasibility": "the bound small-wind proposal"
+            }
+          ],
+          "headline": "Retained Wind Records Support a Feasibility Study",
+          "body": "Qualified reviewers combined the retained measurements with current surveys. Their completed study supported the specific small-wind proposal within its documented limits."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            30,
+            32
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "a permitted small wind turbine",
+              "where": "the edge of town"
+            },
+            {
+              "grant_easement": "B",
+              "site": "the bound pasture access strip",
+              "use": "turbine maintenance access"
+            }
+          ],
+          "headline": "Small Turbine Opens with a Farmer's Agreed Access Strip",
+          "body": "A funded permitted turbine opened after its actual engineering and land agreements were completed. Landowner {B} granted the recorded maintenance route across the pasture."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Replacement Gauge Does Not Produce an Accepted Wind Series",
+        "body": "The project involving {A} did not complete a reliable accepted series. Actual partial observations and project expenses remained recorded."
+      },
+      "present_day": {
+        "best": "In {now}, the site has a real small turbine and a marked maintenance strip across the neighboring pasture. Current generation follows actual wind, condition and operating rights.",
+        "worst": "Failure supplies no verified series or turbine through this chain. The town's wind still follows its physical model.",
+        "twist": "The town gains an actual energy installation while {B} loses unrestricted use of the defined pasture strip. Agreed compensation does not restore the old unbroken grazing layout."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "I used to walk straight across there. Now I check whether the maintenance truck is due."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Ineligibility reports its actual cause. Failed steps stop descendants without reversing earlier effects. Resolve competing events in stable scenario-ID order with atomic resource and site reservations. Recheck survival, current ages, consent, ownership and actual funds. Ordinary later history continues. Present descriptions require extant recorded changes; after-lines require the specified outcome, knowledge and a living speaker.",
+        "record_measurements stores actual calibrated observations over the completed interval, authorized instrument access and real equipment costs. The gift replaces equipment once; it does not change weather or create professional credentials.",
+        "approve_feasibility requires paid qualified reviewers, recent physical surveys, era-valid technology, plausible demand, environmental review and an independently feasible funded plan. Old school measurements alone never authorize construction.",
+        "Step 3 requires the turbine parcel legally available, priced construction and maintenance funds, grid or local load approval, physical safety and B still owning the pasture. Add grant_easement: record B's voluntary negotiated maintenance-access right and actual compensation; mark only the agreed strip and allowed access times, preserving unrelated rights. Apply construction and land agreement atomically. Gate B's line on step 3 and actual familiarity with the schedule."
+      ],
+      "era_notes": "Use measurement and turbine technology available at each event year. Later surveys must retest old assumptions rather than treating childhood records as timeless engineering.",
+      "why_fun": "A repaired gauge can lead to a visible moving landmark. The access track shows exactly whose everyday landscape made room for it."
+    },
+    {
+      "id": "scenario-20261117-9712",
+      "kind": "scenario",
+      "title": "The Name on the New Front Door",
+      "category": "family",
+      "pitch": "Help a parent afford a lawful change of name. An adult child may later choose a different name again, leaving a familiar family business sign at the center of a gentle but lasting disagreement.",
+      "present_hook": {
+        "what_you_notice": "A household file contains an unfiled name-change application. The applicant's notes describe wanting a name chosen freely rather than continuing the existing one.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the household file",
+            "line": "{A} completed the application in {year}. The filing cost stopped it before the hearing."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            40
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            8,
+            12
+          ],
+          "relation": "parent_child"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1985
+        ],
+        "notes": "A is B's parent. Bind A's genuine voluntary lawful name-change application with an actual affordable ongoing life, no fraudulent purpose and a quoted fee shortfall. B's name does not change automatically. Require a feasible later clothing-store proposal for B. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the quoted filing-fee shortfall to the parent who wants to submit the application."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "choose_legal_name": "A",
+              "source": "the bound voluntary application"
+            }
+          ],
+          "headline": "Resident's Voluntary Name Change Becomes Official",
+          "body": "The lawful application by {A} was approved after the actual process. Historical records retained their proper links to the earlier name."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "choose_legal_name": "B",
+              "source": "a separate adult choice preserving the earlier family surname"
+            }
+          ],
+          "headline": "Adult Child Makes a Separate Choice of Family Name",
+          "body": "Adult resident {B} completed a separate lawful choice of name. The decision did not undo the parent's earlier change."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "B",
+              "kind": "clothing store"
+            },
+            {
+              "name_business": "B",
+              "source": "B's chosen legal surname"
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": -0.15
+            }
+          ],
+          "headline": "New Clothing Shop's Sign Revives a Family Disagreement",
+          "body": "{B} opened a funded clothing store under the chosen surname. A real discussion about its sign left {A} and {B} with a recorded disagreement."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Name-Change Application Does Not Reach Approval",
+        "body": "The application involving {A} did not complete a lawful approved change in the allotted window. Paid costs and the actual existing name stayed recorded."
+      },
+      "present_day": {
+        "best": "In {now}, the clothing-store sign uses the actual surname chosen by {B}, if the business still exists under that name. The two residents' name histories remain correctly linked to their immutable identities.",
+        "worst": "Failure changes no legal name through this chain. A monetary gift does not guarantee a court or administrative decision.",
+        "twist": "Helping {A} choose a name also gives {B} a family example of choosing independently. The new shop honors a surname the parent deliberately left behind, straining their bond without making either choice invalid."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I taught my child that a name could be a choice. I suppose I cannot insist the choice be mine."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Ineligibility reports its actual cause. Failed steps stop descendants without reversing earlier effects. Resolve competing events in stable scenario-ID order with atomic resource and site reservations. Recheck survival, current ages, consent, ownership and actual funds. Ordinary later history continues. Present descriptions require extant recorded changes; after-lines require the specified outcome, knowledge and a living speaker.",
+        "Add choose_legal_name: process a resident's actual lawful voluntary application, with priced fees, required approval and updated aliases. Keep immutable person IDs, genealogy, obligations and historical documents linked. Do not select a real-world specific surname in content; A's proposed name is deterministically generated and stored in the bound application.",
+        "Step 2 requires B at least 18 and independently wanting the earlier family surname, including a real process only if B's existing legal name needs changing. It records B's adult affirmed name choice, not an automatic change to a minor caused by the parent's action. All text resolves names from the speaker's referenced event year.",
+        "Step 3 requires B's actual funded business plan, skill, premises, inventory, permits and lawful available trading name. name_business creates and binds a generated business name based on B's chosen surname, without changing any other shop. The bond decrement requires A alive and an actual disagreement; it is not an automatic penalty for choosing a different name. Gate A's line on step 3 and actual knowledge of the sign."
+      ],
+      "era_notes": "Follow the actual name-change procedure in the chosen years. Do not infer gender, ethnicity, marriage or personal history from a chosen name.",
+      "why_fun": "A small filing fee can change names across the town's records and storefronts. The same freedom can mean different things to two generations."
+    },
+    {
+      "id": "scenario-20261117-9713",
+      "kind": "scenario",
+      "title": "The Debt Behind the Anniversary Notice",
+      "category": "secrets",
+      "pitch": "Spread the truth about a spouse's concealed debt. The disclosure may end a marriage and eventually allow a different household to form, without making the harm of public gossip disappear.",
+      "present_hook": {
+        "what_you_notice": "An anniversary notice praises a household's apparent stability. A lawfully available dated debt record shows a material obligation concealed from the other spouse.",
+        "where": "the Gazette archive",
+        "clues": [
+          {
+            "who": "the public debt record",
+            "line": "This obligation was already recorded against {A} in {year}. The household account kept by {B} did not include it."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            35
+          ],
+          "married": true
+        },
+        "B": {
+          "age": [
+            30,
+            35
+          ],
+          "married": true,
+          "relation": "spouses"
+        },
+        "C": {
+          "age": [
+            25,
+            30
+          ],
+          "married": false
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1985
+        ],
+        "notes": "B is A's spouse. Bind a real material debt, A's actual concealment from B, a lawful public source, and an existing marriage with a genuine financial conflict. C is an unrelated distinct adult with no assumed prior romance. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": -0.4,
+          "how_it_looks": "Spread the accurate public debt information without adding claims about its cause or other family members."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "knows": [
+                "B",
+                "A:debt"
+              ]
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": -0.3
+            }
+          ],
+          "headline": "Disclosed Debt Leads to a Documented Household Dispute",
+          "body": "{B} verified the actual concealed debt involving {A}. The spouses recorded a dispute about the concealment rather than merely the existence of debt."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "divorce": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Spouses Finalize a Divorce after an Unresolved Conflict",
+          "body": "{A} and {B} completed a lawful divorce after their continuing unresolved conflict. The actual settlement governed property and obligations."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "marry": [
+                "B",
+                "C"
+              ]
+            },
+            {
+              "form_household": [
+                "B",
+                "C"
+              ],
+              "home": "the bound available shared residence"
+            }
+          ],
+          "headline": "A Later Courtship Becomes a New Shared Household",
+          "body": "Following an independently developed mutual courtship, {B} and {C} married. They established a shared home through actual available housing and consent."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Public Gossip Does Not Produce a Verified Household Disclosure",
+        "body": "The rumor about {A} did not result in a verified disclosure to {B} during the scenario window. Its direct public-standing effect was not reversed."
+      },
+      "present_day": {
+        "best": "In {now}, the shared residence records the household actually formed by {B} and {C}, subject to later life events. The earlier marriage to {A} ended under its real settlement; no descendants are invented or erased by this template.",
+        "worst": "First-step failure does not clear the debt or restore reputation by decree. Existing marriage, obligations and later choices continue through ordinary history.",
+        "twist": "Public gossip harms {A} while giving {B} information needed to make independent choices. A later shared home does not reimburse the former household for exposure or guarantee that every affected person is happier."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I like the home I have now. I still wish I had heard the truth privately."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Ineligibility reports its actual cause. Failed steps stop descendants without reversing earlier effects. Resolve competing events in stable scenario-ID order with atomic resource and site reservations. Recheck survival, current ages, consent, ownership and actual funds. Ordinary later history continues. Present descriptions require extant recorded changes; after-lines require the specified outcome, knowledge and a living speaker.",
+        "The debt secret is a baseline fact keyed A:debt, already bound before intervention. knows reveals only verified facts to B. Step 1 also requires the spouses still married and a real confrontation; the bond change represents concealment and that interaction, not a universal reaction to indebtedness. Do not repeat the rumor's direct reputation effect.",
+        "Step 2 requires the pair still married, a continuing unresolved conflict and a voluntary or otherwise legally valid divorce process, with realistic filing, settlement, support and housing consequences. No forced blame, death, new debt or child-custody result is inferred.",
+        "Step 3 requires B and C currently unmarried, unrelated, eligible, actually acquainted through ordinary subsequent events, consenting and in a genuine independently simulated courtship. Do not guarantee C remains single for thirty years. form_household secures a specific existing affordable residence with lawful possession, consent of every affected occupant and actual moving resources; update only real household membership. Gate B's line on step 3, current contentment and knowledge of the public disclosure."
+      ],
+      "era_notes": "Debt disclosure, divorce and marriage processes follow the event years. Names and pronouns do not determine which spouse controls money or seeks separation.",
+      "why_fun": "The ripple appears in the occupants and records of an ordinary house. The player can help reveal a truth and still be responsible for how it traveled."
+    },
+    {
+      "id": "scenario-20261117-9714",
+      "kind": "scenario",
+      "title": "The Petition for Somewhere to Wash Your Hands",
+      "category": "place",
+      "pitch": "Help an older resident submit a properly documented public-restroom proposal. A campaign that outlives its first organizer may eventually turn part of a shop into a useful room, at a real cost to the owner.",
+      "present_hook": {
+        "what_you_notice": "Main Street has no publicly accessible restroom during the bound shopping hours. An older resident's complete proposal was returned for an unmet filing requirement.",
+        "where": "the town hall",
+        "clues": [
+          {
+            "who": "the returned proposal",
+            "line": "{A} supplied the site notes in {year}. The proposal never entered the official register."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            65,
+            70
+          ],
+          "reputation": "mid"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "clothing store"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1985
+        ],
+        "notes": "Require A genuinely wanting to submit the proposal, an actual unmet accessible-restroom need, a real lawful filing route, and a feasible room in B's Main Street shop available for a later voluntary public lease. Present must be at least 30 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:file_proposal",
+          "target": "A",
+          "how_it_looks": "With the organizer's permission, complete the actual filing requirement and submit the unchanged documented proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "register_proposal": "the bound public-restroom proposal"
+            }
+          ],
+          "headline": "Public-Restroom Proposal Enters the Civic Register",
+          "body": "The documented proposal led by {A} entered the lawful civic register. Registration created a reviewable request, not construction approval."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            15
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "fund_project": "the reviewed Main Street public-restroom plan"
+            }
+          ],
+          "headline": "Reviewed Restroom Plan Secures a Real Capital Allocation",
+          "body": "The retained proposal received current needs review and an actual approved capital allocation. Qualified staff accepted the funded plan for delivery."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "convert_use": "the bound room in B's clothing store",
+              "to": "a publicly leased accessible restroom"
+            },
+            {
+              "wealth": "B",
+              "by": -0.1
+            }
+          ],
+          "headline": "Shop Room Opens as a Publicly Leased Restroom",
+          "body": "An inspected accessible restroom opened in the voluntarily leased shop room with funded cleaning and operating hours. Owner {B} paid the documented net fit-out contribution."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Submitted Restroom Proposal Does Not Reach Valid Registration",
+        "body": "The submitted proposal associated with {A} did not meet the lawful registration requirements in the allotted window. Its actual papers and incurred filing costs remained."
+      },
+      "present_day": {
+        "best": "In {now}, the identified shop room is a publicly leased accessible restroom with actual opening hours and cleaning provision. Its entrance and circulation replace the former retail use of that room.",
+        "worst": "First-step failure gives no valid registration or construction through this chain. Other residents may independently seek a facility through ordinary civic processes.",
+        "twist": "Shoppers gain a needed place to stop, while {B} loses retail floor space and contributes a tenth of personal funds to the agreed conversion. A public convenience still occupies someone's room."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I miss the space for stock. I do not miss telling people there was nowhere they could go."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "file_proposal",
+          "does": "With A's permission, satisfy the actual lawful filing requirement and submit the existing supported proposal, paying only real quoted costs. Record receipt and review status. Do not forge signatures, invent support, alter its evidence or guarantee registration, approval or public funds."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Ineligibility reports its actual cause. Failed steps stop descendants without reversing earlier effects. Resolve competing events in stable scenario-ID order with atomic resource and site reservations. Recheck survival, current ages, consent, ownership and actual funds. Ordinary later history continues. Present descriptions require extant recorded changes; after-lines require the specified outcome, knowledge and a living speaker.",
+        "register_proposal records an accepted civic submission only after the real receipt and legal checks; the first-step roll represents successful valid registration. Its audit can occur one to two years after the submission. A's later death does not erase a retained lawful proposal or appoint an imaginary successor.",
+        "fund_project requires actual current demand, responsible living officers, lawful budget approval, costed design and reserved capital. Record source accounts and competing budget constraints. A capital allocation may lapse; step 3 requires it lawfully renewed or replaced by actual available funds, not money kept magically untouched.",
+        "Step 3 requires B still owning the shop, the room free of conflicting occupants or leases, voluntary compensation and access agreements, appropriate approvals, water and waste connections, a safe accessible design and sustainable public cleaning funds. convert_use affects only that room and its real circulation route. The net ten-percent debit is B's priced contribution after compensation, not a second charge for lost retail space. Gate B's line on step 3 and actual prior experience directing visitors elsewhere."
+      ],
+      "era_notes": "Filing routes, accessibility standards and facilities follow their event years. The original organizer is credited accurately without being kept alive for the opening.",
+      "why_fun": "The player returns decades later to a modest door that changes how long people can comfortably stay on Main Street."
+    }
+  ]
+}
