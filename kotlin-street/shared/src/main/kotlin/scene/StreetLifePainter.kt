@@ -288,8 +288,9 @@ internal class StreetLifePainter {
             val me = passers[count]
             me.on = true; me.slot = 9999; me.kind = Stroller.WALKER
             me.x = GameState.drawnX(); me.lane = GameState.lane; me.lane0 = GameState.lane; me.dir = GameState.dir
-            me.look = GameState.look; me.size = 1f; me.lean = 0f; me.halt = Halt.NONE
-            me.frame = ((GameState.travel * 2.4f).toInt() % StreetGait.FRAMES + StreetGait.FRAMES) % StreetGait.FRAMES
+            // the legs' cycle from the ground really walked (the feet stay put on the pavement), leaning into a run
+            me.look = GameState.look; me.size = 1f; me.lean = GameState.lean; me.halt = Halt.NONE
+            me.frame = ((GameState.gait * StreetGait.FRAMES).toInt()).coerceIn(0, StreetGait.FRAMES - 1)
             me.next = (me.frame + 1) % StreetGait.FRAMES; me.mix = 0f
             me.still = if (GameState.walking) 0f else 1f
             count++
@@ -342,12 +343,15 @@ internal class StreetLifePainter {
         // each sprite pixel is one of the buildings' (the same grid as the street; a whole number of screen pixels when
         // the zoom is snapped), whatever lane they are in: the figure transform here already scales by perspective and unit
         val k = SpriteArt.PIXEL / (perspective(p.lane) * unit)
+        // running, seen from the side: the sheet's raised frames (1 and 4, already drawn a pixel up) spring higher, a whole
+        // sprite pixel, so the walk row reads as a run
+        val hop = if (me && !standing && view != 1 && view != 3 && (i == 1 || i == 4)) GameState.hop.toInt() else 0
         withTransform({ scale(k * flip, k, Offset.Zero) }) {
             drawImage(
                 sheet,
                 srcOffset = IntOffset((view * 6 + i) * 32, (if (standing) 1 else 2) * 64),
                 srcSize = IntSize(32, 64),
-                dstOffset = IntOffset(-16, -63),
+                dstOffset = IntOffset(-16, -63 - hop),
                 dstSize = IntSize(32, 64),
                 alpha = alpha,
                 colorFilter = filter,

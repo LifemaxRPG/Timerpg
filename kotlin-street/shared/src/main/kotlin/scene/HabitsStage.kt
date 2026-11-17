@@ -626,9 +626,9 @@ private fun StageCanvas(
                 ?.let { s.lefts[it] + layoutsNow.value[it].lot / 2f } ?: Float.NaN
             GameState.junctionX = jx
             // arriving back round the corner: stand just short of the junction end of this street
-            if (GameState.x > s.end + 500f) GameState.x = s.end - 150f
+            if (GameState.x > s.end + 500f) { GameState.x = s.end - 150f; GameState.camera.reset() }
             // arriving back from the side street: at the junction, where it opens
-            if (GameState.x < -1e8f) GameState.x = if (!jx.isNaN()) jx else s.end - 150f
+            if (GameState.x < -1e8f) { GameState.x = if (!jx.isNaN()) jx else s.end - 150f; GameState.camera.reset() }
             val before = GameState.x
             val laneBefore = GameState.lane
             GameState.step(dt, s.start, s.end, BuildingPainter.PAVEMENT - 2f)
@@ -637,9 +637,10 @@ private fun StageCanvas(
             // round it, and only crossing a piece's edge stops the walk
             fun reach(f: com.lifemax.rpg.feature.habits.domain.Furniture) = when (f.kind) { FurnitureKind.TREE -> 12f; FurnitureKind.BENCH -> 34f; else -> 14f }
             if (laneBefore >= 6.5f && GameState.lane < 6.5f && s.furniture.any { kotlin.math.abs(GameState.x - it.x) < reach(it) }) GameState.lane = 6.5f
+            // (stepping out round a piece is quicker the faster they go, so a runner still gets round a lamp)
             if (kotlin.math.abs(GameState.moveX) > .05f && GameState.lane < 6.5f &&
                 s.furniture.any { val d = (it.x - before) * GameState.dir; d > -reach(it) && d < reach(it) + 24f })
-                GameState.lane = (GameState.lane + 2.5f * GameState.LANE_SPEED * dt).coerceAtMost(6.5f)
+                GameState.lane = (GameState.lane + maxOf(17.5f, .15f * kotlin.math.abs(GameState.vx)) * dt.coerceAtMost(MoveTuning.dtMax)).coerceAtMost(6.5f)
             if (GameState.lane < 6.5f) {
                 for (f in s.furniture) {
                     val r = reach(f)
@@ -651,10 +652,12 @@ private fun StageCanvas(
                 }
             }
             GameState.settle()
-            // the camera stops where the street's built ends reach the screen's edges; the player walks on to the end
+            // the camera stops where the street's built ends reach the screen's edges; the player walks on to the end.
+            // It looks ahead of a moving player (more the faster, none standing), by whole pixels so the player never flickers
             val half = GameState.halfView
             val lo = s.start + half; val hi = s.end - half
-            val cx = GameState.drawnX()
+            GameState.camera.step(dt, GameState.vx, 2f * half)
+            val cx = GameState.drawnX() + GameState.camera.snapped(GameState.unit)
             scroll.snapTo(if (half <= 0f) cx else if (lo < hi) cx.coerceIn(lo, hi) else (s.start + s.end) / 2f)
             // at the corner: in the mouth of the side street where it opens off this street, else at the junction end
             GameState.atCorner = if (!jx.isNaN()) kotlin.math.abs(GameState.x - jx) < 95f

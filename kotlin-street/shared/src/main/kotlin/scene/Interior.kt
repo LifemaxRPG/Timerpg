@@ -25,11 +25,11 @@ import androidx.compose.ui.unit.IntSize
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sin
-import kotlin.math.sqrt
 
 /**
  * The inside of a building, top-down in 3/4 view like our LimeZu furniture: the room our game logic planned and furnished
@@ -107,23 +107,35 @@ object InteriorArt {
 class RoomWalker(var x: Float, var y: Float) {
     var dir = 1
     var walking = false
+    /** Ground walked (room pixels). */
     var travel = 0f
+    /**
+     * The same legs as on the street, in room pixels (one is a sprite pixel, as on the street's figure): the same speeds,
+     * starts and stops on the screen, within a few percent, and the same stride against the floor.
+     */
+    val motion = Locomotion(1f / SpriteArt.PIXEL)
 
-    /** One frame: [mx], [my] in -1..1 (held keys), [dt] seconds; slides along walls. */
+    /** One frame: the push [mx], [my] (-1..1, as the stick gives it; its strength sets the speed), [dt] seconds; slides along walls. */
     fun step(room: InteriorRoom, mx: Float, my: Float, dt: Float) {
-        walking = mx != 0f || my != 0f
-        if (!walking) return
-        val len = sqrt(mx * mx + my * my)
-        val v = 96f * dt / len
-        val dx = mx * v; val dy = my * v
-        dir = if (abs(mx) > abs(my)) (if (mx > 0) 0 else 2) else (if (my < 0) 1 else 3)
-        // in small steps, each axis on its own (so it slides along an edge instead of sticking)
+        motion.drive(dt, mx, my)
+        dir = Locomotion.roomFacing(dir, mx, my)
+        val t = min(dt, MoveTuning.dtMax)
+        val dx = motion.vx * t; val dy = motion.vy * t
+        // in small steps, each axis on its own (so it slides along an edge instead of sticking); an axis that is blocked
+        // stops dead, so sliding along a wall never carries a stored burst of speed out past its end
         val n = max(1, (max(abs(dx), abs(dy)) / 3f).toInt() + 1)
+        val x0 = x; val y0 = y
+        var hitX = false; var hitY = false
         repeat(n) {
-            if (!room.blocked(x + dx / n, y)) x += dx / n
-            if (!room.blocked(x, y + dy / n)) y += dy / n
+            if (!room.blocked(x + dx / n, y)) x += dx / n else hitX = true
+            if (!room.blocked(x, y + dy / n)) y += dy / n else hitY = true
         }
-        travel += sqrt(dx * dx + dy * dy)
+        if (hitX) motion.stopX()
+        if (hitY) motion.stopY()
+        val moved = hypot(x - x0, y - y0)
+        walking = moved > 1e-3f
+        travel += moved
+        motion.advance(moved)
     }
 }
 
@@ -176,11 +188,12 @@ fun InteriorStage(room: InteriorRoom, walker: RoomWalker, hour: Float, keeper: I
         while (true) {
             val now = withFrameNanos { it }
             val dt = ((now - last) / 1e9f).coerceIn(0f, .05f); last = now
-            val before = walker.travel
+            val feet = walker.motion.footfalls
             walker.step(room, GameState.moveX, GameState.moveLane, dt)
-            // the game's footsteps follow the walk inside too (a step every ~20 px)
+            // the game's footsteps follow the walk inside too: one for each foot put down, as on the street
             GameState.walking = walker.walking
-            GameState.travel += (walker.travel - before) * .85f
+            GameState.running = walker.motion.running
+            GameState.footfalls += walker.motion.footfalls - feet
             frameNanos = now
         }
     }
@@ -288,7 +301,7 @@ fun DrawScope.drawRoom(room: InteriorRoom, walker: RoomWalker, hour: Float, keep
         val sheets = SpriteSheets.sheets
         if (sheets.isNotEmpty()) {
             val me = sheets[GameState.look.mod(sheets.size)]
-            list += Drawn(walker.y) { person(me, walker.x, walker.y, walker.dir, walker.walking, walker.travel, clock) }
+            list += Drawn(walker.y) { person(me, walker.x, walker.y, walker.dir, walker.walking, walker.motion.gait, clock) }
             if (keeper != null) {
                 // they face the player when the player is near
                 val dx = walker.x - spot.first; val dy = walker.y - spot.second
@@ -340,9 +353,12 @@ private fun DrawScope.tile(name: String, x: Float, y: Float, w: Float, h: Float)
     }
 }
 
-/** One of our character sheets (32 x 64 frames: row 1 idle, row 2 walk; right, up, left, down, 6 frames each). */
-private fun DrawScope.person(sheet: ImageBitmap, x: Float, y: Float, dir: Int, walking: Boolean, travel: Float, clock: Float) {
-    val f = if (walking) ((travel / 10f).toInt() % 6) else ((clock * 6f).toInt() % 6)
+/**
+ * One of our character sheets (32 x 64 frames: row 1 idle, row 2 walk; right, up, left, down, 6 frames each); walking,
+ * the frame is where in its cycle the walker's legs are ([gait], 0..1), so the feet move with the floor.
+ */
+private fun DrawScope.person(sheet: ImageBitmap, x: Float, y: Float, dir: Int, walking: Boolean, gait: Float, clock: Float) {
+    val f = if (walking) ((gait * 6f).toInt().coerceIn(0, 5)) else ((clock * 6f).toInt() % 6)
     val row = if (walking) 2 else 1
     drawOval(Color(0x50000000), Offset(x - 10f, y - 5f), Size(20f, 8f))
     drawImage(sheet, srcOffset = IntOffset((dir * 6 + f) * 32, row * 64), srcSize = IntSize(32, 64),

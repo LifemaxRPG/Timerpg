@@ -4,10 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import kotlin.math.abs
-import kotlin.math.min
 import kotlin.math.round
-import kotlin.math.sign
 
 /**
  * The game's player on the street. The platform's controls set [moveX] and [moveLane] (-1..1); each frame the
@@ -23,12 +20,16 @@ object GameState {
     var dir = 1f
     /** Which of our character sheets the player is. */
     var look = 0
+    /**
+     * The push (-1..1 each, at most 1 long together; its strength sets the speed): along the street (right +), and across
+     * it (up, away from us into the buildings, is negative; down towards the kerb positive).
+     */
     var moveX = 0f
     var moveLane = 0f
     var walking = false
     /** Which of the sheet's four views the player shows: 0 right (flipped for left), 1 back (walking away), 3 front (towards us). */
     var facing = 0
-    /** Distance walked, for the walk cycle. */
+    /** Ground walked (street units; across the pavement counts as deep ground). */
     var travel = 0f
     /** Index of the building the player is in front of (-1 past the street's ends). Snapshot state: the HUD recomposes when it changes. */
     var nearest by mutableIntStateOf(-1)
@@ -53,10 +54,24 @@ object GameState {
     var unit = 0f
     /** The pavement line in device pixels from the top of the stage, as last drawn (0 until it has drawn). */
     var groundPx = 0f
-    /** Walking speed along the street (street units a second): it eases in and out, and becomes a run when held. */
-    var vx = 0f
-    private var heldFor = 0f
-    private var heldDir = 0f
+    /** The legs: the push eased into a ground velocity, the run, the walk cycle and the lean (see [Locomotion]). */
+    val motion = Locomotion()
+    /** Walking speed along the street (street units a second): it eases in and out, and becomes a run at a full push. */
+    var vx: Float
+        get() = motion.vx
+        set(v) { motion.vx = v }
+    /** Where the legs are in their cycle (0..1, two steps), from the ground really walked; the walk's sprite frame follows it. */
+    val gait get() = motion.gait
+    /** Feet put down so far, on the street and in the rooms: one footstep sound each. */
+    var footfalls = 0
+    /** Running (a full push), for the footsteps and the stick. */
+    var running = false
+    /** How far the figure leans into its walk (degrees, forward positive). */
+    val lean get() = motion.lean
+    /** The run's spring: sheet pixels the raised frames of the cycle lift (0 at a walk). */
+    val hop get() = if (motion.runShare > .5f) MoveTuning.hop else 0f
+    /** The camera's look ahead of the player (street units along the street; see [CameraLead]). */
+    val camera = CameraLead()
     private var x0 = 0f
     private var lane0 = 0f
     /** The stage's framing as it last drew (screen pixels): its ground line, its horizon, and screen pixels per sprite pixel. */
@@ -66,35 +81,39 @@ object GameState {
     /** How far the sky has panned (street units) while the corner turn swings the camera; 0 otherwise. */
     @Volatile var skyPan = 0f
 
-    const val SPEED = 46f       // street units a second
-    const val RUN = 1.9f        // held one way for a moment: a run (a lot and its gap are ~236 units)
-    const val LANE_SPEED = 7f   // units a second in and out
+    /** Walking speeds along the street and in and out across it (street units, lanes a second); a run is faster (see [MoveTuning]). */
+    val SPEED get() = MoveTuning.walk
+    val LANE_SPEED get() = MoveTuning.walk * MoveTuning.laneRatio
     const val LANE_MIN = 3f
 
     fun step(dt: Float, from: Float, to: Float, laneMax: Float) {
         x0 = x; lane0 = lane
-        if (abs(moveX) > .05f) { dir = if (moveX > 0) 1f else -1f; facing = 0 }
-        else if (moveLane < -.05f) facing = 1
-        else if (moveLane > .05f) facing = 3
-        // held one way for a moment: break into a run; starting and stopping ease over ~60 ms
-        val want = if (abs(moveX) > .05f) sign(moveX) else 0f
-        heldFor = if (want != 0f && want == heldDir) heldFor + dt else 0f
-        heldDir = want
-        val target = moveX * SPEED * (if (heldFor > .6f) RUN else 1f)
-        vx += (target - vx) * min(1f, dt * 16f)
-        if (want == 0f && abs(vx) < .5f) vx = 0f
-        val nx = (x + vx * dt).coerceIn(from + 20f, to - 20f)
-        if (nx != x + vx * dt) vx = 0f            // against the street's end
+        // which view: from the side within 60 degrees of the street, the back or the front beyond 70, unchanged between;
+        // the way they face changes only with a push along the street
+        facing = Locomotion.streetFacing(facing, moveX, moveLane)
+        if (moveX != 0f) dir = if (moveX > 0f) 1f else -1f
+        motion.drive(dt, moveX, moveLane)
+        motion.tilt(dt, dir, facing == 0)
+        running = motion.running
+        val t = kotlin.math.min(dt, MoveTuning.dtMax)
+        val nx = (x + vx * t).coerceIn(from + 20f, to - 20f)
+        if (nx != x + vx * t) motion.stopX()            // against the street's end
         x = nx
-        lane = (lane + moveLane * LANE_SPEED * dt).coerceIn(LANE_MIN, laneMax)
+        // across: lanes are deep ground (MoveTuning.laneRatio), so the same push crosses the pavement in about a second
+        val nl = lane + motion.vy * MoveTuning.laneRatio * t
+        lane = nl.coerceIn(LANE_MIN, laneMax)
+        if (lane != nl) motion.stopY()                  // against the wall or the kerb
         edge = if (x <= from + 20.01f) -1 else if (x >= to - 20.01f) 1 else 0
     }
 
     /** After the stage has kept the player out of the furniture: the legs follow only what was really walked. */
     fun settle() {
-        val moved = abs(x - x0) + abs(lane - lane0) * 6.5f   // stepping in and out at about the street's cadence
+        val moved = Locomotion.streetDistance(x - x0, lane - lane0)
         walking = moved > 1e-3f
         travel += moved
+        val feet = motion.footfalls
+        motion.advance(moved)
+        footfalls += motion.footfalls - feet
     }
 
     /** [x] snapped to whole device pixels once the stage has drawn, for the camera and the player alike. */
