@@ -49,10 +49,14 @@ class SpriteBuilding(
     val shop: List<FloatArray> = emptyList(),
     /** A mask (white where the shopfront has real glass) to lay that reflection through. */
     val glass: ImageBitmap? = null,
-    /** What sticks out of the front (a balcony), cut off it into its own front-sized picture, or null. */
-    val relief: ImageBitmap? = null,
-    /** How far [relief] stands out from the wall, in sprite pixels (the side face's 120 pixels are the box's depth). */
-    val reliefDepth: Float = 0f,
+    /**
+     * A balcony the engine builds as boxes (the art's flat one is taken off [front]): x, y, w, h where the art had it
+     * (front-sprite pixels), how far it stands out (pixels; the side face's 120 are the building's depth), its stone and
+     * its floor colours (0xRRGGBB).
+     */
+    val balcony: FloatArray? = null,
+    /** The storefront's sign where it hangs in front of [balcony], drawn again over it. */
+    val overBalcony: ImageBitmap? = null,
 )
 
 /** All of the game's own art that replaces the habit scene's procedural art, installed by the platform. */

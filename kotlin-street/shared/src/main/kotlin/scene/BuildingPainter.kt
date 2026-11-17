@@ -2363,36 +2363,71 @@ internal class BuildingPainter {
         }
     }
 
-    private val reliefSide = ColorFilter.lighting(Color(0xFF9C98A4), Color.Black)
-    private var reliefShadow: ColorFilter? = null
-    private var reliefShadowInk = Color.Unspecified
+    private val balconyPath = Path()
 
     /**
-     * What sticks out of the front ([SpriteBuilding.relief], a balcony the artist drew flat on the wall), as a box on the
-     * engine's view: its shadow on the wall, under it and away from the light; its body, the picture stacked from the wall
-     * out to its front (the box's own lean, [s] and [dy] for the building's whole depth, taken backwards: what stands out
-     * comes towards the viewer), which shows its thickness and the side the building shows; and its front at the end.
+     * A balcony ([SpriteBuilding.balcony]: x, y, w, h of where the art had it on the front, how far it stands out, its
+     * stone and floor colours), built new as boxes on the engine's view: the floor slab, a parapet down each side and one
+     * across the front. Every box shows its front, its top (the view looks a little down, as on the roofs) and the side
+     * the building shows ([s], [dy]: the lean of the building's whole depth, taken backwards, since the balcony comes
+     * out towards the viewer), each lit as the building's own faces are, and the whole throws its shadow on the wall.
      */
-    private fun DrawScope.relief(img: ImageBitmap, depth: Float, k: Float, half: Float, hf: Float, s: Float, dy: Float) {
-        if (depth <= 0f) return
-        val f = depth / SIDE_SRC_DEPTH
-        val ox = -s * f
-        val oy = dy * f
-        if (reliefShadowInk != castInk) { reliefShadowInk = castInk; reliefShadow = ColorFilter.tint(castInk, BlendMode.SrcIn) }
-        // the shadow: always a little (the sky's light is shut out under it), more in sun, leaning away from the light
-        val sx = -sunSide * depth * k * .3f
-        val sy = depth * k * (.2f + .16f * direct)
-        clipRect(-half, -hf, half, 0f) {
-            picture2(img, -half + sx + ox * .5f, -hf + sy, B.W, hf, FilterQuality.None, alpha = .26f + .3f * direct, filter = reliefShadow)
+    private fun DrawScope.balcony(b: FloatArray, k: Float, half: Float, hf: Float, s: Float, dy: Float) {
+        val d = b[4] * BALCONY_GAIN
+        val stone = Color(0xFF000000.toInt() or b[5].toInt())
+        val tiles = Color(0xFF000000.toInt() or b[6].toInt())
+        val x0 = b[0]; val x1 = b[0] + b[2]
+        val yb = b[1] + b[3]                         // the slab's underside, where it meets the wall
+        val yf = yb - SLAB                           // the floor
+        val yt = yf - PARAPET                        // the parapets' tops
+        fun px(x: Float, z: Float) = -half + x * k - s * z / SIDE_SRC_DEPTH
+        fun py(y: Float, z: Float) = -hf + y * k + dy * z / SIDE_SRC_DEPTH
+        val lit = .5f + .5f * direct
+        val top = lerp(stone, Color.White, .18f * lit)
+        val sideInk = lerp(stone, Color(0xFF1A1830), .38f)
+        val front = lerp(stone, Color(0xFF1A1830), .06f * (1f - lit))
+        val edge = lerp(stone, Color(0xFF15142A), .62f)
+        fun quad(a: Offset, b2: Offset, c: Offset, e: Offset, color: Color, alpha: Float = 1f) {
+            balconyPath.rewind(); balconyPath.moveTo(a.x, a.y); balconyPath.lineTo(b2.x, b2.y); balconyPath.lineTo(c.x, c.y); balconyPath.lineTo(e.x, e.y); balconyPath.close()
+            drawPath(balconyPath, color, alpha = alpha)
         }
-        // the body: one copy per half pixel of travel, darkened as its sides are
-        val travel = kotlin.math.hypot(ox, oy) / k
-        val n = kotlin.math.ceil(travel * 2f).toInt().coerceIn(1, 24)
-        for (i in 0 until n) {
-            val t = i.toFloat() / n
-            picture2(img, -half + ox * t, -hf + oy * t, B.W, hf, FilterQuality.None, filter = reliefSide)
+        fun p(x: Float, y: Float, z: Float) = Offset(px(x, z), py(y, z))
+        // its shadow on the wall: always some (the sky's light is shut out under it), more in sun, away from the light
+        val drop = d * k * (.22f + .2f * direct)
+        val lean = -sunSide * d * k * .25f
+        quad(p(x0, yb, 0f), p(x1, yb, 0f), Offset(px(x1, 0f) + lean, py(yb, 0f) + drop), Offset(px(x0, 0f) + lean, py(yb, 0f) + drop), castInk, .3f + .3f * direct)
+        quad(p(x0, yt, 0f), p(x0 + T, yt, 0f), Offset(px(x0 + T, 0f) + lean, py(yb, 0f) + drop), Offset(px(x0, 0f) + lean, py(yb, 0f) + drop), castInk, .12f + .14f * direct)
+        quad(p(x1 - T, yt, 0f), p(x1, yt, 0f), Offset(px(x1, 0f) + lean, py(yb, 0f) + drop), Offset(px(x1 - T, 0f) + lean, py(yb, 0f) + drop), castInk, .12f + .14f * direct)
+        /** One box from xa to xb, ya (top) to yb2, z from za (back) to zb (front). */
+        fun box(xa: Float, xb: Float, ya: Float, yb2: Float, za: Float, zb: Float, topInk: Color, panel: Boolean = false) {
+            // the side the building shows: its right face when the back leans right ([s] > 0), so the left one here
+            val xs = if (s > 0f) xa else xb
+            if (abs(s) > .05f) quad(p(xs, ya, za), p(xs, ya, zb), p(xs, yb2, zb), p(xs, yb2, za), sideInk)
+            quad(p(xa, ya, za), p(xb, ya, za), p(xb, ya, zb), p(xa, ya, zb), topInk)
+            quad(p(xa, ya, zb), p(xb, ya, zb), p(xb, yb2, zb), p(xa, yb2, zb), front)
+            // the pixel art's dark line round the front, and a light one along its top edge
+            val o = p(xa, ya, zb); val e = p(xb, yb2, zb)
+            drawRect(edge, Offset(o.x, e.y - k), Size(e.x - o.x, k))
+            drawRect(edge, Offset(o.x, o.y), Size(k * .8f, e.y - o.y))
+            drawRect(edge, Offset(e.x - k * .8f, o.y), Size(k * .8f, e.y - o.y))
+            drawRect(lerp(top, Color.White, .25f), Offset(o.x, o.y), Size(e.x - o.x, k * .7f))
+            if (panel && e.x - o.x > 20f * k) {
+                // dressed stone: a cap along the top that throws a line of shade, and sunk panels between short piers
+                drawRect(edge, Offset(o.x, o.y + 3f * k), Size(e.x - o.x, k * .6f), alpha = .55f)
+                val n = ((e.x - o.x) / (34f * k)).toInt().coerceAtLeast(1)
+                val pw = (e.x - o.x - 4f * k) / n
+                for (i in 0 until n) {
+                    val qx = o.x + 2f * k + i * pw + 2.5f * k
+                    drawRect(sideInk, Offset(qx, o.y + 6f * k), Size(pw - 5f * k, e.y - o.y - 9f * k), alpha = .35f)
+                    drawRect(edge, Offset(qx, o.y + 6f * k), Size(pw - 5f * k, k * .6f), alpha = .5f)
+                }
+            }
         }
-        picture2(img, -half + ox, -hf + oy, B.W, hf, FilterQuality.None)
+        // back to front: the slab (its top is the tiled floor), the side parapets, the front parapet
+        box(x0, x1, yf, yb, 0f, d, lerp(tiles, Color.White, .1f * lit))
+        if (s > 0f) { box(x1 - T, x1, yt, yf, 0f, d - T, top); box(x0, x0 + T, yt, yf, 0f, d - T, top) }
+        else { box(x0, x0 + T, yt, yf, 0f, d - T, top); box(x1 - T, x1, yt, yf, 0f, d - T, top) }
+        box(x0, x1, yt, yf, d - T, d, top, panel = true)
     }
 
     /**
@@ -2483,7 +2518,10 @@ internal class BuildingPainter {
         }
         // the front never moves
         picture2(sb.front, -half, -hf, B.W, hf, FilterQuality.None)
-        sb.relief?.let { relief(it, sb.reliefDepth, k, half, hf, s, dy) }
+        sb.balcony?.let {
+            balcony(it, k, half, hf, s, dy)
+            sb.overBalcony?.let { o -> picture2(o, -half, -hf, B.W, hf, FilterQuality.None) }
+        }
         facadeLight(-hf, 0f, 1f)
         blueHour(-half, -hf, B.W, hf, .35f)
         drawRect(aoWall, Offset(-half, -14f), Size(B.W, 14f))
@@ -5864,6 +5902,12 @@ internal class BuildingPainter {
 private val LAMP_K get() = SpriteArt.PIXEL
 /** The side face's width in sprite pixels (tools/make_buildings.py D): the box's depth in the front's pixels. */
 private const val SIDE_SRC_DEPTH = 120f
+/** A balcony's depth against the art's (the engine's lean is gentle; a balcony has to read as standing out). */
+private const val BALCONY_GAIN = 1.6f
+/** Its slab's thickness, its parapets' height and thickness, in sprite pixels. */
+private const val SLAB = 6f
+private const val PARAPET = 24f
+private const val T = 7f
 private const val LAMP_FOOT_X = 15f
 private const val LAMP_FOOT_Y = 127f
 // the lantern glass under the lamp's head (props/lamp_1.png is 64x128; the glass is the pale band at about 44-56, 46-50)

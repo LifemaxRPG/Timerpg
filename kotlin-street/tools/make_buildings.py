@@ -96,7 +96,7 @@ def side_segment(seg, windows):
 # part's own pixels, the rows above which only the given columns belong to it (a balcony's side rails rise past the
 # windows), and how far it stands out from the wall in sprite pixels. The engine draws it as a box: it slides off the
 # wall with the view, shows its side and its thickness, and throws a shadow on the wall.
-RELIEF = {'middle_8': dict(box=(14, 50, 212, 118), arms_below=68, arms=((14, 34), (190, 212)), depth=44)}
+RELIEF = {'middle_8': dict(box=(14, 50, 212, 118), arms_below=68, arms=((14, 34), (190, 212)), depth=48, wall=100)}
 
 def relief_mask(im, spec):
     """The part's pixels that belong to what sticks out: everything in the box that is not the plain wall colour."""
@@ -127,7 +127,13 @@ def build(shop, out):
     for m in mids:
         im = load(m['key']); y -= MID
         if m['key'] in RELIEF:
-            relief[y:y + MID, :] |= relief_mask(im, RELIEF[m['key']]); depth = max(depth, RELIEF[m['key']]['depth'])
+            rm = relief_mask(im, RELIEF[m['key']]); relief[y:y + MID, :] |= rm; depth = max(depth, RELIEF[m['key']]['depth'])
+            wall_line = y + RELIEF[m['key']]['wall']        # where the new balcony's slab meets the wall (above the shop's sign)
+            # its colours, from the part itself: the stone's light face, and the floor tiles in the middle of the box
+            pa = np.array(im)[..., :3].astype(int); px = pa[rm]; lum = px.sum(1)
+            bx0, by0, bx1, by1 = RELIEF[m['key']]['box']
+            colours = (np.median(px[lum >= np.percentile(lum, 85)], axis=0),
+                       np.median(pa[by0 + 24:by1 - 24, bx0 + 40:bx1 - 40].reshape(-1, 3), axis=0))
         front.alpha_composite(im, (0, extra + y)); side.alpha_composite(side_segment(im, True), (0, y))
     # the upper floors alone (before the storefront's sign is laid over them), to find their real windows in
     mids_only = front.crop((0, extra, 224, extra + H))
@@ -156,10 +162,19 @@ def build(shop, out):
     relief &= ~overlay
     if relief.any():
         mo = np.array(mids_only)
-        rimg = np.zeros((H, 224, 4), np.uint8); rimg[relief] = mo[relief]
-        Image.fromarray(rimg).save(f'{out}/{shop["sprite"]}_relief.png')
         ys, xs = np.where(relief)
-        WINDOWS[shop['sprite'] + '_relief'] = [(int(xs.min()), int(ys.min()), int(xs.max() - xs.min() + 1), int(ys.max() - ys.min() + 1), depth)]
+        # the engine builds the balcony new, as a box, from this: its span, the line its floor meets the wall, how far it
+        # stands out, and the colours of its stone (the parapet's light face) and of its floor tiles
+        stone, floor = colours
+        # the storefront's sign where it hangs in front of the balcony: drawn again over the engine's box
+        near = np.zeros_like(relief); near[max(0, ys.min() - 8):ys.max() + 30, :] = True
+        ov = overlay & near
+        if ov.any():
+            oimg = np.zeros((H, 224, 4), np.uint8); oimg[ov] = fa[ov]
+            Image.fromarray(oimg).save(f'{out}/{shop["sprite"]}_over.png')
+        x0, x1, yb = int(xs.min()), int(xs.max() + 1), int(wall_line)
+        rgb = lambda c: int(c[0]) << 16 | int(c[1]) << 8 | int(c[2])
+        WINDOWS[shop['sprite'] + '_relief'] = [(x0, int(ys.min()), x1 - x0, yb - int(ys.min()), depth, rgb(stone), rgb(floor))]
         wallc = (fa[..., 2].astype(int) >= fa[..., 0].astype(int) + 30) & (fa[..., 3] > 200) & ~glass(fa)
         fallback = np.median(fa[wallc][:, :4], axis=0).astype(np.uint8) if wallc.any() else np.array((110, 130, 160, 255), np.uint8)
         for yy in np.unique(ys):
