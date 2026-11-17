@@ -67,6 +67,8 @@ data class AiStatus(
     val speed: SpeedResult? = null,
     /** How the model's work splits between devices (fewer splits: less of it falls back to the CPU). */
     val loadInfo: String? = null,
+    /** The last reply the check turned down, and why (it was written again). */
+    val rejected: String? = null,
 )
 
 /** A line in the dialogue panel: the model's ([ai]) or the game's template; [final] once it will not change. */
@@ -185,7 +187,8 @@ class DialogueEngine private constructor(private val app: Context) {
         fun clean(s: String) = s.replace("<|", "<").replace("|>", ">").replace("\n", " ").trim()
         val words = clean(said).take(400)
         val prompt = topic.prompt?.let { withMemories(withQuestion(it, words), remembered.map { m -> clean(m).take(600) }) }
-        val asked = topic.copy(prompt = prompt)
+        // the topic's fact sheet, but not its required words: a question of the player's own need not name them
+        val asked = topic.copy(prompt = prompt, must = emptyList())
         return topic to ask(npc, asked, onLine)
     }
 
@@ -656,6 +659,13 @@ class DialogueEngine private constructor(private val app: Context) {
             lastRaw = raw
             text = Dialogue.validate(raw, topic.must, topic.self, topic.prompt ?: "")
             if (text != null) { end = End.OK; break }
+            // its first sentence alone may be good (the slip was in the second): keep that rather than start over
+            FIRST.find(Dialogue.preview(raw))?.groupValues?.get(1)?.let { first ->
+                text = Dialogue.validate(first, topic.must, topic.self, topic.prompt ?: "")
+            }
+            if (text != null) { end = End.OK; break }
+            val why = Dialogue.whyRejected(raw, topic.must, topic.self, topic.prompt ?: "")
+            _status.update { it.copy(rejected = "${npc.first}: $why: \u201c${Dialogue.preview(raw).take(90)}\u201d") }
         }
         val ms = SystemClock.elapsedRealtime() - t0
         when (end) {
@@ -812,6 +822,7 @@ class DialogueEngine private constructor(private val app: Context) {
         const val CONTEXT_TOKENS = 1024
         /** Tries per line before it stays the template. */
         const val MAX_TRIES = 2
+        private val FIRST = Regex("""^(.{8,}?[.!?])(\s|$)""")
         /** A reply that takes longer than this is given up (the template stays). */
         const val TIMEOUT_MS = 45_000L
         /** Native errors that come from the prompt itself, not from the model: they would happen every time. */

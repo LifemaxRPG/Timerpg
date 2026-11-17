@@ -56,28 +56,35 @@ object Dialogue {
      * reply may not contain (no self-introductions); [known]: the prompt, so a name it never mentions is rejected
      * (empty: not checked).
      */
-    fun validate(raw: String, must: List<String>, self: String, known: String = ""): String? {
+    fun validate(raw: String, must: List<String>, self: String, known: String = ""): String? = check(raw, must, self, known).first
+
+    /** Why [validate] turns [raw] down (null: it passes); for the AI panel. */
+    fun whyRejected(raw: String, must: List<String>, self: String, known: String = ""): String? = check(raw, must, self, known).second
+
+    /** The line as [validate] keeps it, or null and why not. */
+    private fun check(raw: String, must: List<String>, self: String, known: String): Pair<String?, String?> {
         var t = jsTrim(SPECIAL.replace(THINK.replace(raw, ""), ""))
         t = jsTrim(SPACES.replace(ACTION.replace(QUOTES.replace(t, ""), ""), " "))
-        if (t.length < 3 || t.length > 320) return null
+        if (t.length < 3) return null to "empty"
+        if (t.length > 320) return null to "too long"
         // Keep at most the first two sentences.
         val sentences = SENTENCES.findAll(t).map { it.value }.toList()
         if (sentences.size > 2) t = jsTrim(sentences.take(2).joinToString(""))
-        if (AI_START.containsMatchIn(t) || AI_WORDS.containsMatchIn(t)) return null
+        if (AI_START.containsMatchIn(t) || AI_WORDS.containsMatchIn(t)) return null to "sounded like an AI assistant"
         // Stage directions, assistant-speak and self-introductions are not how a neighbor talks.
-        if (STAGE.containsMatchIn(t)) return null
-        if (self.isNotEmpty() && t.lowercase().contains(self.lowercase())) return null
+        if (STAGE.containsMatchIn(t)) return null to "stage directions"
+        if (self.isNotEmpty() && t.lowercase().contains(self.lowercase())) return null to "said their own full name"
         // the fact sheet read back: its personality words, or its "<town>, <year>" tag
-        if (SHEET_WORDS.containsMatchIn(t) || SHEET_YEAR.containsMatchIn(t) || SHEET_STYLE.containsMatchIn(t)) return null
+        if (SHEET_WORDS.containsMatchIn(t) || SHEET_YEAR.containsMatchIn(t) || SHEET_STYLE.containsMatchIn(t)) return null to "read the fact sheet back"
         val low = t.lowercase()
-        if (must.any { !low.contains(it.lowercase()) }) return null
+        must.firstOrNull { !low.contains(it.lowercase()) }?.let { return null to "left out \"$it\"" }
         // a name the facts never mention ("We have two kids, Jake and Lisa."): a capitalized word in mid-sentence the prompt lacks
         if (known.isNotEmpty()) for (m in CAPITALIZED.findAll(t)) {
             val before = t.substring(0, m.range.first).trimEnd(::isJsSpace)
             if (before.isEmpty() || before.last() in ".!?\"“‘(" || m.value in COMMON) continue
-            if (!Regex(B0 + m.value + B1).containsMatchIn(known)) return null
+            if (!Regex(B0 + m.value + B1).containsMatchIn(known)) return null to "made up a name (\"${m.value}\")"
         }
-        return t
+        return t to null
     }
 
     /** The reply so far, tidied for showing while it streams in (not a check: [validate] decides at the end). */

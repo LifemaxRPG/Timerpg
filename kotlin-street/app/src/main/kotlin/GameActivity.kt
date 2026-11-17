@@ -906,6 +906,7 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             }
         }
         voices.lastTiming?.let { Text("Voice: $it", 12.sp, color = DIM) }
+        s.rejected?.let { Text("Last line written again: $it", 12.sp, color = DIM) }
         run {
             var x by remember { mutableStateOf(voices.xnnpack) }
             Chip("Voice kernels: " + (if (x) "XNNPACK" else "standard"), x) { x = !x; voices.xnnpack = x }
