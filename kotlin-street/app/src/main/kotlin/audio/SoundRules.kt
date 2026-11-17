@@ -46,8 +46,9 @@ object SoundRules {
         val warm = if (season == 3) 0f else 1f                                       // no crickets in winter
         val dry = 1f - smooth(.15f, .5f, rain)
         val beds = mapOf(
-            "city_day" to .55f * day,
-            "night_quiet" to .5f * night,
+            // (the day's hum and the night's hush need recordings: made from noise they read as static on a phone)
+            "city_day" to 0f,
+            "night_quiet" to 0f,
             "birds_morning" to .6f * dawn * dry * (if (season == 3) .3f else 1f),
             "crickets_night" to .45f * night * warm * dry * (if (season == 1) 1f else .6f),
             "wind" to (.15f + .35f * cloud + .25f * mist).coerceAtMost(.7f) * (if (season == 3) 1.3f else 1f),

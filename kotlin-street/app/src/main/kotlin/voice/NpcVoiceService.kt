@@ -31,7 +31,7 @@ class NpcVoiceService(private val ctx: Context) {
     @Volatile private var generation = 0
     // the voice engines (loaded whole into RAM) are let go when nothing has been spoken for a while
     private val idle = Runnable { worker.execute { bank.close() } }
-    private fun touch() { main.removeCallbacks(idle); main.postDelayed(idle, 30_000L) }
+    private fun touch() { main.removeCallbacks(idle); main.postDelayed(idle, 180_000L) }
 
     /** Told when an NPC starts and stops speaking (the street's sound dips under the voice). */
     var onSpeaking: ((Boolean) -> Unit)? = null

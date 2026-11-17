@@ -74,6 +74,10 @@ class SoundScape(private val ctx: Context) {
     }
 
     private fun loop() {
+        try { mix() } catch (t: Throwable) { Log.e("SoundScape", "sound stopped", t); running = false }
+    }
+
+    private fun mix() {
         Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO)
         val frames = 960                                   // 20 ms blocks
         val min = AudioTrack.getMinBufferSize(Pcm.RATE, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_FLOAT)

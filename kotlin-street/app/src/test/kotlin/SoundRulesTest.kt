@@ -9,10 +9,10 @@ class SoundRulesTest {
     fun theStreetSoundsLikeItsHourAndWeather() {
         val noon = SoundRules.at(12f, 0f, 0f, 0f, 1)
         assertEquals("day", noon.music)
-        assertTrue(noon.beds["city_day"]!! > .4f && noon.beds["crickets_night"]!! < .01f && noon.beds["rain_light"]!! < .01f)
+        assertTrue(noon.beds["crickets_night"]!! < .01f && noon.beds["rain_light"]!! < .01f)
         val night = SoundRules.at(23f, 0f, 0f, 0f, 1)
         assertEquals("night", night.music)
-        assertTrue(night.beds["crickets_night"]!! > .3f && night.beds["city_day"]!! < .05f)
+        assertTrue(night.beds["crickets_night"]!! > .3f)
         val dawn = SoundRules.at(6.8f, 0f, 0f, 0f, 0)
         assertTrue(dawn.beds["birds_morning"]!! > .3f)
         val storm = SoundRules.at(15f, .9f, .9f, 0f, 1)

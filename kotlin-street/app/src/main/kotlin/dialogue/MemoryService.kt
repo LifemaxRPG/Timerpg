@@ -35,7 +35,6 @@ class MemoryService(private val ctx: Context) {
             runCatching { if (file.isFile) memory.load(file.readText()) }.onFailure { Log.w(TAG, "memories unreadable: $it") }
         }
         if (!embedder.loaded && installed) AiLane.run("memory") { embedder.load(modelFile) }
-        if (!judge.loaded && judgeFile.isFile) AiLane.run("memory") { judge.load(judgeFile) }
         return embedder.loaded
     }
 
@@ -67,15 +66,23 @@ class MemoryService(private val ctx: Context) {
      */
     private fun pick(npc: String, said: String, q: FloatArray): List<NpcMemory.Entry> {
         val now = System.currentTimeMillis()
-        if (!judge.loaded) return memory.recall(npc, q, now)
         val cands = memory.candidates(npc, q, 4).filter { it.second >= .2f && (it.third >= 1f || memory.countOf(npc) < 6) }
+        // the judge only when something comes close and the phone has room for it (it is 2.5 GB); it goes again right after
+        if (cands.isEmpty() || !judgeFile.isFile || freeMb() < 3500) return memory.recall(npc, q, now)
+        if (!judge.loaded && !AiLane.run("memory") { judge.load(judgeFile) }) return memory.recall(npc, q, now)
         val yes = cands.mapNotNull { (e, _, _) ->
             val p = AiLane.run("memory") { judge.score(JUDGE_TASK, said, "The player said: ${e.said} You answered: ${e.answered}") }
             if (p >= .5f) e to p else null
         }.sortedByDescending { it.second }.take(2).map { it.first }
+        judge.close()
         val last = memory.last(npc, now)
         return if (last != null && last !in yes) (listOf(last) + yes).take(3) else yes
     }
+
+    private fun freeMb(): Long = try {
+        val am = ctx.getSystemService(android.app.ActivityManager::class.java)
+        android.app.ActivityManager.MemoryInfo().also { am.getMemoryInfo(it) }.availMem shr 20
+    } catch (e: Exception) { 0L }
 
     /** [npc] will remember that the player said [said] and they answered [answered]. */
     fun remember(npc: String, said: String, answered: String) {

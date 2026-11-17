@@ -68,6 +68,7 @@ class GameActivity : ComponentActivity() {
     private var sound: com.timerpg.street.audio.SoundScape? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        CrashReport.install(applicationContext)
         AndroidFx.install()
         // the Hexagon NPU's code (libggml-htp-v79.so) is in this app's native library folder: tell the DSP loader
         runCatching {
@@ -361,6 +362,11 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     LaunchedEffect(turning) {
         if (turning) { talk?.close(voices); talk = null; engine.pause("turn") } else engine.resume("turn")
     }
+    // a conversation open: the speech model gets ready (it loads only now, not when walking past people), and the lines
+    // written ahead for others wait, so the phone's memory and the AI lane are the conversation's
+    LaunchedEffect(talk != null) {
+        if (talk != null) engine.pause("talking") else engine.resume("talking")
+    }
     // walking away ends the conversation
     LaunchedEffect(here) {
         val t = talk
@@ -391,10 +397,15 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     val ears = remember { com.timerpg.street.voice.PlayerVoice(ctx.applicationContext) }
     // and what each person remembers of it
     val memory = remember { com.timerpg.street.dialogue.MemoryService(ctx.applicationContext) }
+    // why the game stopped last time (if it crashed or was killed): shown once, with a copy button
+    var lastCrash by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) { lastCrash = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { CrashReport.takeLast(ctx.applicationContext) } }
     // updates from inside the game: a quiet look at start
     val updater = remember { AppUpdater(ctx.applicationContext) }
     LaunchedEffect(Unit) { updater.check(quiet = true) }
     androidx.compose.runtime.DisposableEffect(Unit) { onDispose { ears.release(); memory.release() } }
+    // the speech model loads when a conversation opens (not when walking past people)
+    LaunchedEffect(talk != null) { if (talk != null) ears.prewarm() }
     val askMic = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     // the words to expect: the town's name and everyone's names, so the recognizer spells them as the game does
     val names = remember(engine.data.value) {
@@ -441,10 +452,25 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 modifier = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 92.dp))
         } else if (!turning && turn < 0f && atHere.isNotEmpty()) {
             // someone to talk to: the speech and memory models get ready now, before the mic is held
-            LaunchedEffect(atHere) { ears.prewarm(); memory.prewarm() }
             Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 56.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 for (npc in atHere) Chip("Talk to ${npc.first}", false) {
                     talk = Talk(npc).also { t -> npc.topics.firstOrNull()?.let { t.ask(engine, it, voices) } }
+                }
+            }
+        }
+        lastCrash?.let { report ->
+            Column(
+                Modifier.align(Alignment.Center).widthIn(max = 560.dp).background(PANEL, RoundedCornerShape(14.dp)).padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text("The game stopped unexpectedly last time", 15.sp)
+                Text(report.lines().take(6).joinToString("\n"), 11.sp, color = DIM)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Chip("Copy report", false) {
+                        val cm = ctx.getSystemService(android.content.ClipboardManager::class.java)
+                        cm?.setPrimaryClip(android.content.ClipData.newPlainText("Timerpg crash", report))
+                    }
+                    Chip("Close", false) { lastCrash = null }
                 }
             }
         }
