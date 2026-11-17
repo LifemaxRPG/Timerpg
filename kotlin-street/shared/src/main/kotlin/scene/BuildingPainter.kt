@@ -2904,10 +2904,13 @@ internal class BuildingPainter {
             part(h, 0, 0, h.width, h.height, v.x(sh.wall1, sh.depth / 2f), v.y(0f, sh.depth / 2f) - hh, hw, hh, filter = signTint())
         }
 
-        // --- the roof's near slope, from the eave's edge up to the ridge
+        // --- the roof's near slope, from the eave's edge up to the ridge. The eave overhangs the wall, which puts it off
+        // the screen's pixel grid: it is snapped back to it, and the ridge is exactly the slope's rows above it, so every
+        // row of the art's slope lands on whole screen pixels (none blended with the next)
         val rows = ha.slope.height
-        val ex = v.x(0f, -eo); val ey = v.y(sh.h, -eo)
-        val rx = v.x(0f, sh.depth / 2f); val ry = v.y(sh.ridge, sh.depth / 2f)
+        fun snap(a: Float) = if (unitPx > 0f) kotlin.math.round(a * unitPx) / unitPx else a
+        val ex = snap(v.x(0f, -eo)); val ey = snap(v.y(sh.h, -eo))
+        val rx = ex + v.lean(sh.run); val ry = ey - rows * k
         levelStrips(ha.slope, 0, 0, ha.slope.width, rows, ex, ey, picW * k, ey - ry, rx - ex)
         val slope = quadPath(ex, ey, ex + picW * k, ey, rx + picW * k, ry, rx, ry)
         if (key != null) {
