@@ -74,12 +74,32 @@ class NpcVoiceService(private val ctx: Context) {
     var lastTiming by mutableStateOf<String?>(null)
         private set
 
+    // a line's first sentence spoken before the line is finished (see [sayFirst])
+    private var early: Pair<String, String>? = null   // npc id, the sentence
+
+    /**
+     * The model's first sentence of a line still being written, already checked: spoken now, so the person starts talking
+     * before the rest is written. [say] with the finished line then goes on after it (or starts over if it changed).
+     */
+    fun sayFirst(npc: Npc, sentence: String) {
+        say(npc, sentence)
+        early = npc.id to sentence.trim()
+    }
+
     /**
      * Speak [text] as [npc] (replacing whatever is playing). Quietly nothing if voices are off or not installed. Made a
      * sentence at a time: the first plays as soon as it is ready while the next ones are made, so the person starts
      * talking after one sentence's work, not the whole line's.
      */
     fun say(npc: Npc, text: String) {
+        val e = early
+        early = null
+        if (e != null && e.first == npc.id && text.trim().startsWith(e.second) && text.trim().length > e.second.length) {
+            // the first sentence is already being spoken: the rest after it, in the same turn
+            continueWith(npc, text.trim().substring(e.second.length).trim())
+            return
+        }
+        if (e != null && e.first == npc.id && text.trim() == e.second) return
         stop()
         if (!enabled || text.isBlank()) return
         touch()
@@ -108,6 +128,21 @@ class NpcVoiceService(private val ctx: Context) {
         }
     }
 
+    /** The rest of a line whose first sentence is playing: made and queued behind it. */
+    private fun continueWith(npc: Npc, rest: String) {
+        if (!enabled || rest.isBlank()) return
+        val g = generation
+        worker.execute {
+            if (g != generation) return@execute
+            val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@execute
+            for (part in sentences(rest)) {
+                if (g != generation) return@execute
+                val f = try { com.timerpg.street.llm.AiLane.run("voice") { bank.speak(v, part) } } catch (e: Throwable) { null } ?: continue
+                main.post { if (g == generation) enqueue(f) }
+            }
+        }
+    }
+
     /** Make [text] in [npc]'s voice now (no playback), so it is ready when asked: the voices' own pre-generation. */
     fun prepare(npc: Npc, text: String) {
         if (!enabled || text.isBlank() || !installed) return
@@ -127,7 +162,8 @@ class NpcVoiceService(private val ctx: Context) {
     private fun sentences(text: String): List<String> {
         val raw = Regex("""(?<=[.!?…])["')\]]?\s+""").split(text.trim()).map { it.trim() }.filter { it.isNotEmpty() }
         val out = ArrayList<String>()
-        for (s in raw) if (out.isNotEmpty() && out.last().length < 28) out[out.size - 1] = out.last() + " " + s else out += s
+        // the first sentence stays on its own (it is what the player waits for); a very short later one joins the one before
+        for (s in raw) if (out.size >= 2 && s.length < 16) out[out.size - 1] = out.last() + " " + s else out += s
         if (out.isNotEmpty() && out[0].length > 90) {
             val c = out[0].indexOf(", ", 30)
             if (c in 30..80) { val head = out[0].substring(0, c + 1); val rest = out[0].substring(c + 2); out[0] = head; out.add(1, rest) }
@@ -167,6 +203,7 @@ class NpcVoiceService(private val ctx: Context) {
     }
 
     fun stop() {
+        early = null
         if (player != null) onSpeaking?.invoke(false)
         generation++
         queue.clear()

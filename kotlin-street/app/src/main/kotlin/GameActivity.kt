@@ -639,11 +639,29 @@ private class Talk(val npc: Npc) {
         said = null
         // a line is spoken once it is final (the model's when it has passed the check, else the game's own)
         var spoken: String? = null
-        fun heard(l: Line) { if (l.final && l.text != spoken) { spoken = l.text; voices?.say(npc, l.text) } }
+        var early = false
+        fun heard(l: Line) {
+            if (!early && voices != null) early = earlyVoice(l, voices)
+            if (l.final && l.text != spoken) { spoken = l.text; voices?.say(npc, l.text) }
+        }
         val r = engine.ask(npc, t) { line = it; heard(it) }
         request = r
         line = r.first
         r.first?.let { heard(it) }
+    }
+
+    /**
+     * The model's line still being written: once its first sentence is complete (the model has gone on past it) and
+     * passes the same check as a whole line (bar the facts it must mention, which may come later), it is spoken at
+     * once, and the finished line goes on from there. True once spoken.
+     */
+    private fun earlyVoice(l: Line, voices: com.timerpg.street.voice.NpcVoiceService): Boolean {
+        if (l.final || !l.ai) return false
+        val m = FIRST_SENTENCE.find(l.text) ?: return false
+        val tp = topic ?: return false
+        val ok = com.timerpg.street.llm.Dialogue.validate(m.groupValues[1], emptyList(), tp.self, tp.prompt ?: "") ?: return false
+        voices.sayFirst(npc, ok)
+        return true
     }
 
     /** What the player last said out loud, shown above the answer. */
@@ -662,8 +680,10 @@ private class Talk(val npc: Npc) {
         val t0 = android.os.SystemClock.elapsedRealtime()
         var tAsk = 0L; var tFirst = 0L
         val heardBy = heardNote
+        var early = false
         fun heard(l: Line) {
             if (l.ai && tFirst == 0L && tAsk > 0L) tFirst = android.os.SystemClock.elapsedRealtime()
+            if (!early && voices != null) early = earlyVoice(l, voices)
             if (!l.final || l.text == spoken) return
             spoken = l.text
             if (l.ai) {
@@ -695,6 +715,7 @@ private class Talk(val npc: Npc) {
     }
 }
 
+private val FIRST_SENTENCE = Regex("""^(.{8,}?[.!?])\s+\S""")
 private val PANEL = Color(0xCC101420)
 private val DIM = Color(0xFFB8C2D6)
 private val AI_BLUE = Color(0xFF6FA8FF)
