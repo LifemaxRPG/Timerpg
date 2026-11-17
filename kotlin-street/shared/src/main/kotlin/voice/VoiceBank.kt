@@ -71,6 +71,9 @@ class VoiceBank(private val models: File, private val cache: File, private val l
         return SupertonicStyle.parse(f.readText()).also { supertonicStyles[name] = it }
     }
 
+    /** Whether [engine]'s model is in memory now (else the next line in it loads it first). */
+    fun isLoaded(engine: NpcVoices.Engine): Boolean = if (engine == NpcVoices.Engine.KOKORO) kokoro != null else supertonic != null
+
     /** Lets go of the engine [voice] does not use (memory is short: one engine at a time). */
     fun keepOnly(voice: NpcVoices.Voice) {
         if (voice.engine == NpcVoices.Engine.KOKORO) { supertonic?.close(); supertonic = null } else { kokoro?.close(); kokoro = null }

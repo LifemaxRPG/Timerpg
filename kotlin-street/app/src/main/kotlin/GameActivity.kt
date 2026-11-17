@@ -867,6 +867,7 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
                 engine.setDevice(order[(order.indexOf(s.runsOn).coerceAtLeast(0) + 1) % order.size])
             }
         }
+        voices.lastTiming?.let { Text("Voice: $it", 12.sp, color = DIM) }
         if (s.hasNpu) {
             val act = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
             val pc = androidx.compose.ui.platform.LocalContext.current

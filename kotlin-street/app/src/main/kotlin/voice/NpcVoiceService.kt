@@ -24,7 +24,7 @@ import java.util.concurrent.Executors
 class NpcVoiceService(private val ctx: Context) {
     private val models = File(ctx.filesDir, "models")
     private val bank = VoiceBank(models, File(ctx.filesDir, "voice-cache"),
-        { ctx.assets.open("voices/kokoro_lexicon.tsv").bufferedReader().lineSequence() }, threads = 4)
+        { ctx.assets.open("voices/kokoro_lexicon.tsv").bufferedReader().lineSequence() }, threads = 6)  // the dialogue model is on the NPU: the CPU's big cores are the voices'
     private val worker = Executors.newSingleThreadExecutor { r -> Thread(r, "npc-voices").apply { isDaemon = true } }
     private val main = Handler(Looper.getMainLooper())
     private var player: MediaPlayer? = null
@@ -46,19 +46,41 @@ class NpcVoiceService(private val ctx: Context) {
     val installed: Boolean get() = bank.kokoroInstalled || bank.supertonicInstalled
     val missingMb: Long get() = ModelDownloads.missing(ctx).sumOf { if (it.bytes > 0) it.bytes else 300_000L } shr 20
 
-    /** Speak [text] as [npc] (replacing whatever is playing). Quietly nothing if voices are off or not installed. */
+    /** The last line's timing, for the AI panel: how long its first sound took and how fast the voice was made. */
+    var lastTiming by mutableStateOf<String?>(null)
+        private set
+
+    /**
+     * Speak [text] as [npc] (replacing whatever is playing). Quietly nothing if voices are off or not installed. Made a
+     * sentence at a time: the first plays as soon as it is ready while the next ones are made, so the person starts
+     * talking after one sentence's work, not the whole line's.
+     */
     fun say(npc: Npc, text: String) {
         stop()
         if (!enabled || text.isBlank()) return
         touch()
         val g = generation
+        val t0 = android.os.SystemClock.elapsedRealtime()
         worker.execute {
             if (g != generation) return@execute
             val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@execute
             // memory short (the dialogue model on the NPU): one voice engine at a time
-            if (com.timerpg.street.llm.Ram.freeMb(ctx) < 1600) bank.keepOnly(v)
-            val f = try { com.timerpg.street.llm.AiLane.run("voice") { bank.speak(v, text) } } catch (e: Throwable) { null } ?: return@execute
-            main.post { if (g == generation) play(f) }
+            if (com.timerpg.street.llm.Ram.freeMb(ctx) < 1100) bank.keepOnly(v)
+            val wasLoaded = bank.isLoaded(v.engine)
+            var first = -1L; var made = 0L; var audio = 0.0
+            for (part in sentences(text)) {
+                if (g != generation) return@execute
+                val a = android.os.SystemClock.elapsedRealtime()
+                val f = try { com.timerpg.street.llm.AiLane.run("voice") { bank.speak(v, part) } } catch (e: Throwable) { null } ?: continue
+                made += android.os.SystemClock.elapsedRealtime() - a
+                audio += (f.length() - 44).coerceAtLeast(0) / 2.0 / wavRate(f)
+                if (first < 0) first = android.os.SystemClock.elapsedRealtime() - t0
+                main.post { if (g == generation) enqueue(f) }
+            }
+            val note = "%s: first sound after %.1f s%s · %.1f s of speech made in %.1f s".format(
+                v.engine.name.lowercase().replaceFirstChar { it.uppercase() }, first / 1000.0,
+                if (wasLoaded) "" else " (the voice model loaded first)", audio, made / 1000.0)
+            main.post { lastTiming = note }
         }
     }
 
@@ -70,9 +92,34 @@ class NpcVoiceService(private val ctx: Context) {
             val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@execute
             // made ahead only with room to spare
             if (com.timerpg.street.llm.Ram.freeMb(ctx) < 1600) return@execute
-            try { com.timerpg.street.llm.AiLane.run("voice") { bank.speak(v, text) } } catch (e: Throwable) { }
+            for (part in sentences(text)) try { com.timerpg.street.llm.AiLane.run("voice") { bank.speak(v, part) } } catch (e: Throwable) { }
         }
     }
+
+    /**
+     * A line in the pieces it is spoken in: its sentences, a short one joined to the next, and the first cut at a comma
+     * when it is long (the first piece is what the player waits for).
+     */
+    private fun sentences(text: String): List<String> {
+        val raw = Regex("""(?<=[.!?…])["')\]]?\s+""").split(text.trim()).map { it.trim() }.filter { it.isNotEmpty() }
+        val out = ArrayList<String>()
+        for (s in raw) if (out.isNotEmpty() && out.last().length < 28) out[out.size - 1] = out.last() + " " + s else out += s
+        if (out.isNotEmpty() && out[0].length > 90) {
+            val c = out[0].indexOf(", ", 30)
+            if (c in 30..80) { val head = out[0].substring(0, c + 1); val rest = out[0].substring(c + 2); out[0] = head; out.add(1, rest) }
+        }
+        return out
+    }
+
+    /** A WAV file's sample rate (its header). */
+    private fun wavRate(f: File): Double = try {
+        java.io.RandomAccessFile(f, "r").use { r -> r.seek(24); val b = ByteArray(4); r.readFully(b)
+            ((b[0].toInt() and 255) or ((b[1].toInt() and 255) shl 8) or ((b[2].toInt() and 255) shl 16) or ((b[3].toInt() and 255) shl 24)).toDouble() }
+    } catch (e: Exception) { 24000.0 }
+
+    private val queue = ArrayDeque<File>()
+
+    private fun enqueue(f: File) { if (player == null) play(f) else queue.addLast(f) }
 
     private fun play(f: File) {
         player?.release()
@@ -80,7 +127,14 @@ class NpcVoiceService(private val ctx: Context) {
             MediaPlayer().apply {
                 setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())
                 setDataSource(f.path)
-                setOnCompletionListener { it.release(); if (player === it) { player = null; onSpeaking?.invoke(false) } }
+                setOnCompletionListener {
+                    it.release()
+                    if (player === it) {
+                        player = null
+                        val next = queue.removeFirstOrNull()
+                        if (next != null) play(next) else onSpeaking?.invoke(false)
+                    }
+                }
                 prepare()
                 start()
                 onSpeaking?.invoke(true)
@@ -91,6 +145,7 @@ class NpcVoiceService(private val ctx: Context) {
     fun stop() {
         if (player != null) onSpeaking?.invoke(false)
         generation++
+        queue.clear()
         player?.let { try { it.stop() } catch (e: Exception) { }; it.release() }
         player = null
     }
