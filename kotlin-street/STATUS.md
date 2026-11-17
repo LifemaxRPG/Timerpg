@@ -15,22 +15,79 @@
 ## Added since (all verified by headless renders only)
 - Pixel-perfect scaling (zoom snapped to whole pixels; `StageTuning.pixelPerfect`), props/characters at 1x/1.5x pixel scale.
 - Shop name and owner shown at the bottom while standing at a shop. Collisions: walk round lamps/trees/benches at the kerb (radii are guesses).
-- Corner turn (`shared/.../scene/CornerTurn.kt`; the "Turn the corner" button appears within ~110 units of either end of the street): the camera yaws 90 degrees round a crossroads built
-  from our buildings (player walking, time-of-day light, lit windows and lamp glow at night), then fades to the other street
-  (the town's shops are split into two). It follows time of day, the weather setting (overcast greying, rain streaks, mist haze) and the season (winter: snowy roofs/pavement and flakes; autumn: warmer pavement). It is a separate scene: it does not use the engine's sun/weather/reflections yet, and
-  the junction is not a real place in the world map.
+- The corner turn is now the crossroads and the walk round it (see "The crossroads and the walk round the corner" below).
+  The old separate turn scene (`scene/CornerTurn.kt`) is no longer used by the app; the desktop `turn`/`turnsky`/`cross`
+  modes still render it, and its 180-degree street crossing is kept until it is ported.
 - Side walls: three windows per floor, pilasters, grain, brick courses. Night: only real glass glows (fixed blue walls glowing).
 - Engine cloud-shadow pass is off for sprite buildings (it drew pale boxes above roofs). A building with a missing PNG no longer
   drops the whole street to the fallback.
-- Preview modes: `gradle :desktop:preview -Dmode=pano|weather|rooms|walk|turn [-Dstreet=0|1] [-Dhour=H]`.
+- Preview modes: `gradle :desktop:preview -Dmode=pano|weather|rooms|walk|turn|junction|seam [-Dstreet=0|1] [-Dhour=H]`.
+
+## The crossroads and the walk round the corner (verified in the desktop preview; NOT yet run on a phone)
+- One place: `domain/Crossroads.kt` lays both streets on one ground plan (the main street's fronts on Z = 0, the cross
+  street's west row on X = 0 facing east, its east row across the 178-unit mouth), every building once. The stage builds
+  both streets once (`StageTuning.crossroads`, set by the app from street.json) and draws whichever the player is on,
+  with the other seen round the corner.
+- One camera: `scene/StageCamera.kt` is a pinhole 700 street units behind its target, its eye at the height that puts
+  the vanishing point on the stage's own horizon (~49 degrees across the preview, ~69 on the S25's screen). A row of
+  buildings or a stretch of ground can keep the stage's cabinet look (the camera's column for its depth axis leaned to
+  the stage's offset): at rest it is exactly the stage's drawing; mid-turn plain perspective.
+- One look: `scene/CornerWorld.kt` draws everything with the stage's own painters. Fronts go through
+  `BuildingPainter.building` (glass reflections, signs, relief maps, balconies, night windows) under the front's
+  projective transform; side faces, back walls, roofs and rooftop boards each on their own plane (`sideFace`,
+  `roofFace`, `roofBoard`; `planeFaces` leaves them out of the front pass); faces seen small or edge on are sampled
+  smoothly (mipmapped on Android), the rest crisp. The ground (the stage's pavement, kerb and road, lamp pools, shadows)
+  goes through the ground's transform in strips that stay in front of the camera; lamps, trees, benches and people stand
+  upright where they are. Everything is sorted front to back by the lines that part it. At rest the street in view is
+  drawn exactly as the stage always drew it.
+- The gap view (walking past the mouth) is now the real side street: Orchard Lane runs to the far city under the sky
+  (no flat block), both its rows are there with their glass and roofs, the corner buildings' side walls are real (no
+  floating eave, no hard cut, no strip of backdrop), the mouth has the cross street's asphalt with dropped kerbs and a
+  zebra on it, the side street takes the hour's light (dark at night), and no road name floats over it. Taller side
+  street buildings rise above the main street's roofs, and the top fade and cloud ceiling count them.
+- The walk (`shim/CornerWalk.kt`): hold the up key a tenth of a second in the mouth (within 77 units of its middle) and
+  the player walks a smooth curve into the cross street at walking pace (a run when held 0.6 s); the camera turns with
+  how far along they are (90 degrees, eased), the target slides from the main street's view to the cross street's own
+  view, and the sky turns with it (clouds, far city, stars, the sun or moon and its glare: a quarter turn takes the sun
+  out of the cross street's view; that street is lit by where the sun really is). In the frame the walk ends the stage
+  hands over to the cross street's own view: the same picture. Down walks it back (it ends where it began). Letting go
+  of up lets the walk carry on (`TurnTuning.autoWalk`); still held at the end, it walks on along the new street. Back:
+  up at the cross street's start (within 60 units) or walking on against its end (left held). Elsewhere up and down step
+  across the pavement as before. Not while inside, at a door, in a conversation or tuning the NPU.
+- The block the camera swings behind mid-turn (the bank's corner and the cross street's east row) is cut away nearer than
+  120 units in front of the corner; between 30 and 55 degrees of the turn the cut moves on to 120 units in front of the
+  camera's target as it slides up the cross street (the same place at a quarter turn, so the cross street's own view is
+  unchanged), never nearer than 30 units in front of the player. A building the cut goes through is shown open: its far
+  walls from inside, a floor at every storey, and its outer walls, slabs and roof as solid bands on the cut, like an
+  architect's section. That is the visible compromise (`TurnTuning.CUT`, `KEEP`); the alternatives (walls down, a closer
+  camera) are the owner's call.
+- The seam test (`gradle :desktop:preview -Dmode=seam [-Ddir=fwd|back|abort] [-Dat=west|mid|east] [-Dsize=phone]
+  [-Dhour, -Dwx, -Dseason] [-Dseq=1]`) renders the walk frame by frame at 60 fps, as the game steps it, and measures the
+  hand-overs; `tools/seam-matrix.sh` runs it over many views. Measured in the desktop preview (Skia, not the S25):
+  all 11 runs of `tools/seam-matrix.sh quick` pass (west/mid/east of the
+  mouth both ways at 17.6 h; 13 h and 21.5 h rain in winter on the phone's screen both ways; walking back halfway). The
+  street's own view and the walk's first frame, and the walk's last frame and the new street's own view, differ by a mean
+  of 0.000 (out of 255; no pixel by more than 1); one step either side of each end differs by a mean of 0.11 at most,
+  against 3.9-6.9 for one step of ordinary walking; no frame of any walk jumps against its neighbours; the walk takes
+  170 frames forward (127.6 units: 170.2 at walking pace) and 128 back (95.3 units). Outside the mouth the stage draws
+  as before (both streets' panoramas, weather and seasons against renders from before this work: a mean of 0.18 at
+  most, in the sun's glare round one building's outline on the cross street).
+- Desktop: `-Dmode=junction` walks past the mouth (nine frames) at any hour, weather, season and `-Dsize=phone`
+  (2340x1080 at density 2.625). Tests: `gradle :desktop:crossroadsTest` (camera at rest equals the stage's drawing within
+  0.05 px, the side street's vanishing point on the horizon, the ground plan, the walk's keys, path and hand-over).
+- Not done yet: the street name sign at the corner; lamp heads turned along their own street (the cross street's lamps
+  are the main street's picture, seen side on); the cut buildings' rooms are empty; generated corner walls from each
+  front's storeys (the side pictures are used); the 180-degree street crossing still uses the old turn scene (so
+  `StageTuning.skyOnly` and `GameState.skyPan` stay for the desktop `turnsky` mode); frame time, heat and HWUI's
+  perspective drawing on the S25 are unmeasured.
 
 ## Real crossroads (tools/export-street.ts v2)
 - street.json now holds named streets from the town's real layout: Main Street (the buildings on the main road west of a real
   crossroads, in order) and the cross street (the buildings along the road that leaves the main street there, named from the seed),
   plus the junction's other buildings for the turn scene. Homes are stood in by the modular condo front in the district's colour
   (front door for a family, lobby for flats), named after the household really living there.
-- The turn shows the junction's real buildings; its button appears only at the junction end of each street ("Turn onto <name>" /
-  "Back to Main Street"), and turning back plays the turn in reverse and leaves you at the junction end of Main Street.
+- Both streets, the side street's mouth and the cross street's other side (`junction.crossEast`) are one place in the
+  game now (below); there is no turn button any more.
 - Demo town is still "eta" (Main Street: 8 shops; Orchard Lane: 6 homes). Checked on 9 seeds: all give 7-8 on Main Street, 2-6 on the cross street.
 
 ## Talking to people out loud (verified on a computer; NOT yet run on a phone)
@@ -113,7 +170,7 @@
 
 ## Known rough edges / not done
 - Untested on a real device (touch, speed, memory, the turn's draw cost). Android-only code: image helper, asset loading, controls.
-- Collision radii and the "near the kerb" band are guesses. The turn's far buildings show the striped side art at grazing angles.
+- Collision radii and the "near the kerb" band are guesses.
 - Storefront glass lights as a flat warm panel at night; sign letters that are pale blue also light up (mask treats them as glass).
 - People in shop windows, doors/interiors, NPC schedules and dialogue are not connected to this renderer. The street is a fixed
   snapshot (re-run `tools/export-street.ts <seed> <year>` and `tools/make_buildings.py` to change town).
