@@ -274,13 +274,17 @@ internal class StreetLifePainter {
     private val wall = Matrix()
 
     /** Fills in who is on the street at [seconds]. */
+    /** The scene's clock, for the idle animation. */
+    private var clock = 0f
+
     fun update(seconds: Float, seed: Int, street: StreetLayout) {
+        clock = seconds
         count = StreetLife.passers(seconds, seed, street.start, street.end, passers, street.centers)
         if (GameState.enabled && count < passers.size) {
             // the player is one more person on the pavement, lit and shadowed like the rest (far lane first)
             val me = passers[count]
             me.on = true; me.slot = 9999; me.kind = Stroller.WALKER
-            me.x = GameState.x; me.lane = GameState.lane; me.lane0 = GameState.lane; me.dir = GameState.dir
+            me.x = GameState.drawnX(); me.lane = GameState.lane; me.lane0 = GameState.lane; me.dir = GameState.dir
             me.look = GameState.look; me.size = 1f; me.lean = 0f; me.halt = Halt.NONE
             me.frame = ((GameState.travel * 2.4f).toInt() % StreetGait.FRAMES + StreetGait.FRAMES) % StreetGait.FRAMES
             me.next = (me.frame + 1) % StreetGait.FRAMES; me.mix = 0f
@@ -311,15 +315,21 @@ internal class StreetLifePainter {
     /** Our pixel-art character, in place of the procedural walker: the right-facing frame ([party] flips it to walk left). */
     private fun DrawScope.pixelWalker(p: Passer, look: Int, frame: Int, alpha: Float, filter: ColorFilter?) {
         val sheet = sheetFor(p, look)
+        val me = p.slot == 9999
         val standing = p.still > .5f
-        val i = if (standing) 0 else (frame % StreetGait.FRAMES) * 6 / StreetGait.FRAMES
+        // standing: the sheet's idle row plays (5 frames a second, out of step between people); walking: the stride
+        val i = if (standing) ((clock * 5f).toInt() + p.slot * 3).mod(6) else (frame % StreetGait.FRAMES) * 6 / StreetGait.FRAMES
+        // the sheet's views: 0 right, 1 back, 2 left, 3 front. The player uses its own (party() mirrors every figure by its
+        // direction, so that is cancelled for the player); passers walk the right view mirrored as before
+        val view = if (!me) 0 else if (GameState.facing == 0 && p.dir < 0f) 2 else GameState.facing
+        val flip = if (me) p.dir else 1f
         // each sprite pixel is one of the buildings' (the same grid as the street; a whole number of screen pixels when
         // the zoom is snapped), whatever lane they are in: the figure transform here already scales by perspective and unit
         val k = SpriteArt.PIXEL / (perspective(p.lane) * unit)
-        withTransform({ scale(k, k, Offset.Zero) }) {
+        withTransform({ scale(k * flip, k, Offset.Zero) }) {
             drawImage(
                 sheet,
-                srcOffset = IntOffset(((if (p.slot == 9999) GameState.facing else 0) * 6 + i) * 32, (if (standing) 1 else 2) * 64),
+                srcOffset = IntOffset((view * 6 + i) * 32, (if (standing) 1 else 2) * 64),
                 srcSize = IntSize(32, 64),
                 dstOffset = IntOffset(-16, -63),
                 dstSize = IntSize(32, 64),
