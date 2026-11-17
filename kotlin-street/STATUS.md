@@ -96,29 +96,51 @@
 - The clock towers (`landmark_clocktower_1/2`, only the time differs) are a square tower wearing its front on every
   side (a clock on each face) under a HIPPED roof: the front face the art's rows between the hips, every other one (the
   artist's own pixels, one screen row each; the rise is chosen so, about 31 degrees), the side faces cut on the hips and
-  laid on their quads, a flat top with its lantern. The school (`landmark_school_1`) is its long front, a middle bay
-  standing 12 forward with the cross gable's face over it, a hipped roof (about 43 degrees, a flat ridge), the cross
-  gable's slopes back to the valley, two chimneys (smoking in the cold months) and its entrance steps; its side walls
-  are the front's wall colour clear of its windows, with an upper and an arched window of its own. They are not on the
-  two streets: `-Dmode=models -Dstreet=3` shows them in a preview row.
+  laid on their quads (their tiles averaged along the depth first: squeezed a few times, they sampled into hatching), a
+  flat top with its lantern, the box's top round it the stone coping the art shows from above. The brick piers' rows
+  are widened to the box's edge (they stood two pixels in: a slit of sky down each corner). The dial's painted hands are
+  taken off (`clock_of`) and the engine draws them at the game's hour on every face (`ClockHands`: pixel art in the
+  dial's doubled cells, ink down the middle, brown round it, gold tips and hub; a face seen from the left turns them the
+  other way, so they still go clockwise); at night the whole dial glows (its face's colour inside its ellipse) with the
+  hands dark on it. The school (`landmark_school_1`) is its long front, a middle bay standing 12 forward (as wide as the
+  two doors' arches, which reach past the cross gable's eaves: its edge no longer cuts an arch) with the cross gable's
+  face over it, a ledge beside the gable, a hipped roof (about 43 degrees, a flat ridge), the cross gable's slopes back
+  to the valley, two chimneys (a brick stack under a wider slate cap, the cap's top the art's from above; smoking in the
+  cold months), its entrance steps between stone cheeks with the art's balusters; its side walls are the front's wall
+  colour clear of its windows, with an upper and an arched window of its own. They are not on the two streets:
+  `-Dmode=models -Dstreet=3` shows them in a preview row.
 - The engine (`domain/ModelGeometry.kt`, `BuildingPainter.modelBuilding`) builds them back to front: boxes wearing the
   art's fronts (a front may reach above its box), sides and tops; front gables, each slope laid on its quad by one
   projective map where the view sees it from above (`RoofFaces`), lit by the side it faces, snow on it with a lip along
-  the rake, the eave's board and its shade along the shown side; hipped roofs (side wedges, flat top, front face with
-  its eave on the screen's pixels, lit as the houses' slopes are, snow with a lip along the eave). Windows mirror the sky
+  the rake; under each slope's straight front edge the roof's own edge colour (the art's row above the rake ink) fills
+  down past the face's stepped rake, so no staircase of sky shows between the gable and its slopes. The eave's board and
+  its shade along the shown side are drawn after the wall that carries the gable's face (`ModelShape.eaveOn`: that
+  wall's side would paint over them). Hipped roofs: side wedges (half the slopes' sunny wash: the full one turned their
+  dark red tiles pink), flat top, front face with its eave on the screen's pixels, lit as the houses' slopes are; snow on
+  each face's own pixels, along the hips and with a lip along the eave. Windows mirror the sky
   and gather rain (not a round dial, which would show a square) and light on the building's hours (a home's, a shop's,
   the clock's dial all night); the villa's lamp by the door. A building wider than a shop takes a wider lot and stands
   in its middle (`BuildingLayout.wide`); shops and the junction are laid out as before. Its shade on the pavement, the
-  wet road's mirror, the sun's glare at its edges, headlights and taps follow it where it stands back (as a house's).
-- Not done yet: the corner turn and the crossing show a villa as a flat-roofed box of its two storeys (its front-gable
-  roof, deck and porch are not built there yet; `CornerTurn.kt` is shared with the intersections branch); the villas'
-  storeys are as low as the art draws them (40 pixels: a shade lower than the mobile homes' wall); no lighting maps for
-  them; the school's back wing and the clock tower's corner pinnacles above the eave are not modelled.
+  wet road's mirror (culled by its own width), the sun's glare at its edges, headlights and taps follow it where it
+  stands back (as a house's). At the mouth of the side street it shows no side face (`StageTuning.cornerIds`, as the
+  shops and houses). Only a box whose side has windows gets the night's light pass on its side (`sg`; not a railing's).
+- The corner turn and the crossing build a villa's box of two storeys with its front gable (`scene/TurnVilla.kt`): a
+  prism on the box, its ridge from the middle of the front to the middle of the back, each slope its art from above
+  laid on its quad by one perspective map from the art's own four points (as the street lays it), each gable end the
+  upper storey's own triangle (the round window, the rake boards) over the roof's edge colour; lit by the side it faces,
+  white in winter. So a villa keeps its shape as the view comes round the corner. Its deck, porch and small gable are
+  not built there (the box's front still shows them as drawn).
+- Not done yet: the villas' storeys are as low as the art draws them (40 pixels: a shade lower than the mobile homes'
+  wall); no lighting maps for them; the school's back wing and the clock tower's corner pinnacles above the eave are not
+  modelled; the cross gable's rake ink stays dark in snow (the art's boards, under the lip of snow).
 - Checks: `python3 tools/make_buildings.py --showcase DIR`, then `gradle :desktop:preview -Dmode=models -Dassets=DIR
   -Dstreet=2` (villas) or `-Dstreet=3 -Dtall=760` (landmarks): each beside its sprite at the left, middle and right of
   the view, and the row at day, dusk, night and in snow; `-Dmode=turn|cross -Dassets=` now read another asset folder too.
   `gradle :desktop:test -DtestOnly=ModelGeometryTest,HouseGeometryTest`; `npx vitest run kotlin-street/tools/town-streets.test.ts`.
-- Draw cost: a villa is about 20 parts (an estimate of 120-160 draw calls), the school about 12; nothing measured on the S25.
+- Draw cost: a villa is about 20 parts (an estimate of 120-160 draw calls), the school about 12, a clock's hands one
+  more image per face (repainted only when the minute changes); nothing measured on the S25. Each projective piece
+  (a slope, a side wall) is a `withTransform`, which on Android allocates a matrix per call (Compose's
+  `AndroidCanvas.concat`), as the turn's houses and roofs already do: more of them now, still unmeasured.
 
 ## Talking to people out loud (verified on a computer; NOT yet run on a phone)
 - In a conversation, hold "Hold to talk", say anything, let go: `voice/PlayerVoice.kt` records 16 kHz mono (at most 20 s),

@@ -46,14 +46,20 @@ Contact sheets were made with a throwaway script from the folders below (houses,
 - A front-facing gable's triangle is a true front elevation in the art, so it is used as drawn (on the front of the
   storey under it). Its slopes, seen from the nearly level street, are bands over the rakes about a tenth of the
   roof's depth tall: each is the art's slope from above laid on its quad by one projective map (`QuadMap`), shown only
-  where the view sees it from above (`RoofFaces`): from far to one side the other slope is behind the ridge.
+  where the view sees it from above (`RoofFaces`): from far to one side the other slope is behind the ridge. The art's
+  rake is a staircase of pixels and a slope's front edge a straight line, so the roof's own edge colour fills between
+  them (no sky shows along the rake); the eave's board along the side is drawn after the wall carrying the face.
 - A hipped roof's front face is the art's face between the hips taken every other row, the rise chosen so each row is
-  one screen row (as the houses' slopes); its side faces are thin wedges over the hips (their art cut on the hips and
-  laid on their quads); a flat top (the clock tower's lantern stands on it).
-- A picture's round glass (a clock's dial) mirrors no square of sky; its night glow fills the whole dial.
+  one screen row (as the houses' slopes); its side faces are thin wedges over the hips (their art cut on the hips,
+  averaged along the depth so the squeeze does not sample it into hatching, and laid on their quads); a flat top (the
+  clock tower's lantern stands on it).
+- A picture's round glass (a clock's dial) mirrors no square of sky; its night glow fills the whole dial. A clock's
+  painted hands are taken off the art and drawn at the game's hour.
 - A building wider than a shop (a villa is 256 pixels, the school 768) takes a wider lot and stands in its middle.
-- Still to do for these: the corner turn and the crossing (a villa is a flat-roofed box of its storeys there), the
-  school's back wing, the tower's corner pinnacles, lighting maps.
+- The corner turn and the crossing put the villa's front gable on its box (`scene/TurnVilla.kt`): the same slopes laid
+  by one perspective map each, the gable ends the art's own triangle.
+- Still to do for these: the turn's villa deck, porch and small gable (its box's front shows them flat), the school's
+  back wing, the tower's corner pinnacles, lighting maps.
 
 ## Easy: already boxes (the current pipeline, `tools/make_buildings.py`)
 
