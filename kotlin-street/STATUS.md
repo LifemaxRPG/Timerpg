@@ -45,6 +45,13 @@
 - The AI panel's download fetches the speech model with the rest (about 8.9 GB in all). The microphone permission is
   asked the first time the button is held.
 
+## GPU rain (verified in the desktop preview with Skia's runtime shaders; NOT yet seen on a phone)
+- `scene/RainFx.kt`: shaders the platform runs (`StageFx`: Android 13+ RuntimeShader/AGSL via `AndroidFx`, the preview
+  Skia RuntimeEffect/SkSL via `SkiaFx`; the same source). `GLASS`: beads on every window pane and the shop glass (a bright
+  face, a dark lip) and drops running down with trails; `GROUND`: puddles that hold the sky in a wide, flat pattern
+  that grows with how wet the street is, and the rain's rings across the wet ground (thicker in the puddles). Pixel-crisp
+  on the sprites' grid, anchored to the street. Older phones keep the drawn rain only.
+
 ## Depth and light on the building fronts (verified in the desktop preview; NOT yet seen on a phone)
 - `tools/make_lighting.py` (run after `make_buildings.py`, on a computer): **Depth Anything V2 Small** (Apache-2.0, ONNX)
   estimates each front's depth; the scene-wide slope it reads into a picture is taken out, and the depth is snapped to

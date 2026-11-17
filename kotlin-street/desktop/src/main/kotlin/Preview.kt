@@ -191,6 +191,7 @@ fun main(args: Array<String>) {
     GameState.look = 1
     StageTuning.zoom = 0.2f
     val first = streetOfShops().first().id
+    com.lifemax.rpg.feature.habits.presentation.scene.StageFx.make = { src -> SkiaFx(src) }
     val mode = System.getProperty("mode", "pano")
     if (mode == "walk") {
         GameState.x = 300f; GameState.lane = 7f; GameState.dir = 1f

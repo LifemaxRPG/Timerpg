@@ -1734,6 +1734,27 @@ internal class BuildingPainter {
             x += 24f
         }
         puddles(sky, from, to, wet, rain, seconds)
+        groundFx(sky, from, to, depth, wet, rain, seconds)
+    }
+
+    /** On the GPU ([RainFx.GROUND]): the puddles that hold the sky and the rain's rings across the whole wet ground. */
+    private fun DrawScope.groundFx(sky: SkyColors, from: Float, to: Float, depth: Float, wet: Float, rain: Float, seconds: Float) {
+        val fx = StageFx.get(RainFx.GROUND) ?: return
+        val c = sky.sky.getOrElse(1) { sky.sky.last() }
+        fx.set("time", seconds); fx.set("rain", rain); fx.set("wet", wet); fx.set("px", SpriteArt.PIXEL)
+        fx.set("sky", c.red, c.green, c.blue)
+        drawRect(fx.brush(), Offset(from, 1f), Size(to - from, depth))
+    }
+
+    /** On the GPU ([RainFx.GLASS]): drops on the window glass in [x], [y], [w], [h] while it rains. */
+    private fun DrawScope.glassRain(x: Float, y: Float, w: Float, h: Float, seconds: Float, sky: SkyColors) {
+        val rain = weather.rain
+        if (rain < .02f) return
+        val fx = StageFx.get(RainFx.GLASS) ?: return
+        val c = sky.sky.getOrElse(1) { sky.sky.last() }
+        fx.set("time", seconds); fx.set("rain", rain); fx.set("px", SpriteArt.PIXEL)
+        fx.set("sky", c.red, c.green, c.blue)
+        drawRect(fx.brush(), Offset(x, y), Size(w, h))
     }
 
     /** What stands on the street, upside down in the wet, [ox] to the side at [a]. */
@@ -2580,6 +2601,7 @@ internal class BuildingPainter {
             val mirror = fresnel * (1f + PANE_FRESNEL * GlassMap.tilt(pane))
             mirrorSky(x, y, ww, hh, min(1f, FacadeLook.reflection(if (StageTuning.interiors) lampOn else 0f, sky.dark) * mirror * (if (StageTuning.interiors) 1f else 1.35f)) * (1f - .5f * (if (StageTuning.interiors) lampOn else 0f)), pane, 1f - .7f * (if (StageTuning.interiors) lampOn else 0f))
             if (StageTuning.interiors && lampOn > .02f && sky.dark > .2f) roomOnReveals(x, y, ww, hh, .3f * lampOn * sky.dark)
+            glassRain(x, y, ww, hh, glassSeconds, sky)
         }
         // the shopfront glass: the display shows through, with the sky and the sun's glint faintly over the real panes only
         val gm = sb.glass
@@ -2589,6 +2611,7 @@ internal class BuildingPainter {
             val pane = wseed * 17 + 500
             val mirror = fresnel * (1f + PANE_FRESNEL * GlassMap.tilt(pane))
             mirrorSky(-half + band[0] * k, -hf + band[1] * k, band[2] * k, band[3] * k, min(1f, FacadeLook.reflection(0f, sky.dark) * mirror * .75f), pane, 1f)
+            glassRain(-half + band[0] * k, -hf + band[1] * k, band[2] * k, band[3] * k, glassSeconds, sky)
             picture2(gm, -half, -hf, B.W, hf, FilterQuality.None, blend = BlendMode.DstIn)
             drawIntoCanvas { it.restore() }
         }

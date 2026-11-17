@@ -67,6 +67,7 @@ class GameActivity : ComponentActivity() {
     private var voices: com.timerpg.street.voice.NpcVoiceService? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        AndroidFx.install()
         super.onCreate(savedInstanceState)
         // the scene's two platform-specific image calls
         PlatformImages.create = { px, w, h, mip ->
