@@ -64,6 +64,13 @@ class SpriteBuilding(
     val balcony: FloatArray? = null,
     /** The storefront's sign where it hangs in front of [balcony], drawn again over it. */
     val overBalcony: ImageBitmap? = null,
+    /**
+     * Lighting maps from the front's depth (tools/make_lighting.py, Depth Anything V2): [lit] R, G, B how much brighter
+     * each pixel is with the sun from the left, the right and above than a flat wall; [shade] the same darker, and in its
+     * alpha the recesses (ambient occlusion).
+     */
+    val lit: ImageBitmap? = null,
+    val shade: ImageBitmap? = null,
 )
 
 /** All of the game's own art that replaces the habit scene's procedural art, installed by the platform. */

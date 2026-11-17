@@ -45,6 +45,16 @@
 - The AI panel's download fetches the speech model with the rest (about 8.9 GB in all). The microphone permission is
   asked the first time the button is held.
 
+## Depth and light on the building fronts (verified in the desktop preview; NOT yet seen on a phone)
+- `tools/make_lighting.py` (run after `make_buildings.py`, on a computer): **Depth Anything V2 Small** (Apache-2.0, ONNX)
+  estimates each front's depth; the scene-wide slope it reads into a picture is taken out, and the depth is snapped to
+  the art (each patch of one colour takes its median depth), so light and shade fall along the pixel art's own lines.
+  From its normals: `bN_lit.png` / `bN_shade.png` (R, G, B: brighter / darker than a flat wall with the sun from the
+  left, the right, above; shade's A: recesses). The shopfront glass is left out (the display is not the wall).
+- `BuildingPainter.relief`: by the sun's side and how direct it is, the maps are laid over the front (strength inside the
+  colour filter: a paint's alpha is applied before its filter); recesses stay a little dark at night. Windows read as
+  set into the wall, ledges and sills throw a thin shadow, signs and the gym's dumbbells have volume.
+
 ## People remember (verified on a computer; NOT yet run on a phone)
 - Every exchange said out loud is remembered by that person (`dialogue/NpcMemory.kt`, `MemoryService.kt`; saved in
   `filesDir/memories.json`, 200 per person): the player's words and the answer, with a vector from **Qwen3-Embedding-0.6B**

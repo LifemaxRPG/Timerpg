@@ -190,7 +190,7 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
         val front = img("${n}_front"); val side = img("${n}_side"); val emis = img("${n}_emis")
         val art = if (front != null && side != null && emis != null)
             SpriteBuilding(front, side, emis, img("${n}_roof"), img("${n}_sign"), img("${n}_prop"), mids, windows[n].orEmpty(), windows[n + "_shop"].orEmpty(), img("${n}_glass"),
-                windows[n + "_relief"]?.firstOrNull()?.takeIf { it.size >= 7 }, img("${n}_over"))
+                windows[n + "_relief"]?.firstOrNull()?.takeIf { it.size >= 7 }, img("${n}_over"), img("${n}_lit"), img("${n}_shade"))
         else null
         if (art != null) SpriteArt.buildings[id] = art
         bySprite[n] = Entry(shop(id, o.getString("name"), "", HabitMaterial.CLAY, maxOf(1, mids)), o.optString("owner"), art)

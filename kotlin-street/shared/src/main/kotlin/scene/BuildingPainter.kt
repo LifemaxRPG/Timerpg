@@ -2363,6 +2363,46 @@ internal class BuildingPainter {
         }
     }
 
+    /**
+     * A lighting map's channel [ch] as the alpha of [tint], times [k]. (The strength has to be in the filter: a paint's
+     * alpha is applied before its colour filter, and this filter makes its alpha from the map alone.)
+     */
+    private fun channel(ch: Int, tint: Color, k: Float): ColorFilter = ColorFilter.colorMatrix(ColorMatrix(floatArrayOf(
+        0f, 0f, 0f, 0f, tint.red * 255f,
+        0f, 0f, 0f, 0f, tint.green * 255f,
+        0f, 0f, 0f, 0f, tint.blue * 255f,
+        if (ch == 0) k else 0f, if (ch == 1) k else 0f, if (ch == 2) k else 0f, if (ch == 3) k else 0f, 0f,
+    )))
+    private val reliefCache = HashMap<Long, ColorFilter>()
+    private fun channelCached(ch: Int, tint: Color, k: Float): ColorFilter {
+        // tints change slowly with the hour, strengths with the light: keyed by the channel, the tint to 1/32, the strength to 1/64
+        val q = (k.coerceIn(0f, 1f) * 63).toLong()
+        val key = (ch.toLong() shl 28) or (q shl 16) or ((tint.red * 31).toLong() shl 10) or ((tint.green * 31).toLong() shl 5) or (tint.blue * 31).toLong()
+        return reliefCache.getOrPut(key) { if (reliefCache.size > 2048) reliefCache.clear(); channel(ch, tint, q / 63f) }
+    }
+
+    /**
+     * The front's own relief in the light ([SpriteBuilding.lit], [SpriteBuilding.shade]): what stands out catches the sun
+     * on its top and its sunny side and is dark below and on the far side, by the sun's side ([sunSide]) and how direct it
+     * is; recesses (window reveals, doorways, under ledges) are darker at every hour.
+     */
+    private fun DrawScope.relief(sb: SpriteBuilding, half: Float, hf: Float) {
+        val lit = sb.lit; val shade = sb.shade
+        if (lit == null || shade == null) return
+        val from = sunSide.coerceIn(-1f, 1f)
+        val w = floatArrayOf(maxOf(0f, -from), maxOf(0f, from), .25f + .55f * (1f - kotlin.math.abs(from)))
+        val sun = lerp(Color.White, faceLit, .7f)
+        val dark = lerp(castInk, Color.Black, .25f)
+        for (i in 0..2) {
+            val a = (direct * w[i]).coerceIn(0f, 1f)
+            if (a < .02f) continue
+            picture2(lit, -half, -hf, B.W, hf, FilterQuality.None, filter = channelCached(i, sun, LIT_K * a))
+            picture2(shade, -half, -hf, B.W, hf, FilterQuality.None, filter = channelCached(i, dark, SHADE_K * a))
+        }
+        // the recesses: under the sky's light by day, a little at night
+        picture2(shade, -half, -hf, B.W, hf, FilterQuality.None, filter = channelCached(3, dark, AO_K * (.6f + .4f * direct)))
+    }
+
     private val balconyPath = Path()
 
     /**
@@ -2518,6 +2558,7 @@ internal class BuildingPainter {
         }
         // the front never moves
         picture2(sb.front, -half, -hf, B.W, hf, FilterQuality.None)
+        relief(sb, half, hf)
         sb.balcony?.let {
             balcony(it, k, half, hf, s, dy)
             sb.overBalcony?.let { o -> picture2(o, -half, -hf, B.W, hf, FilterQuality.None) }
@@ -5904,6 +5945,10 @@ internal class BuildingPainter {
 private val LAMP_K get() = SpriteArt.PIXEL
 /** The side face's width in sprite pixels (tools/make_buildings.py D): the box's depth in the front's pixels. */
 private const val SIDE_SRC_DEPTH = 120f
+/** How strong the relief's light, shade and recesses are at full sun ([BuildingPainter.relief]). */
+private const val LIT_K = .3f
+private const val SHADE_K = .7f
+private const val AO_K = .45f
 /** A balcony's depth against the art's (the engine's lean is gentle; a balcony has to read as standing out). */
 private const val BALCONY_GAIN = 1.6f
 /** Its slab's thickness, its parapets' height and thickness, in sprite pixels. */
