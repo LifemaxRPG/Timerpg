@@ -92,6 +92,8 @@ class NpcVoiceService(private val ctx: Context) {
      * talking after one sentence's work, not the whole line's.
      */
     fun say(npc: Npc, text: String) {
+        // a filler is playing for them: the line follows it rather than cutting it off
+        val behindFiller = fillerFor == npc.id && player != null
         val e = early
         early = null
         if (e != null && e.first == npc.id && text.trim().startsWith(e.second) && text.trim().length > e.second.length) {
@@ -100,7 +102,7 @@ class NpcVoiceService(private val ctx: Context) {
             return
         }
         if (e != null && e.first == npc.id && text.trim() == e.second) return
-        stop()
+        if (behindFiller) { queue.clear(); fillerFor = null } else stop()
         if (!enabled || text.isBlank()) return
         touch()
         val g = generation
@@ -126,6 +128,48 @@ class NpcVoiceService(private val ctx: Context) {
                 if (wasLoaded) "" else " (the voice model loaded first)", audio, made / 1000.0)
             main.post { lastTiming = note }
         }
+    }
+
+    // ------------------------------------------------------------------------------------------------ fillers
+
+    /** Whose filler is playing (their line queues behind it). */
+    private var fillerFor: String? = null
+    private var fillerPrep = 0
+
+    /**
+     * Voices [lines] (the person's fillers, see Fillers) ahead of time, one at a time so a real line asked meanwhile
+     * waits for one short clip at most. Only when the voice is loaded or there is room for it.
+     */
+    fun prepareFillers(npc: Npc, lines: List<String>) {
+        if (!enabled || !installed) return
+        val run = ++fillerPrep
+        fun next(i: Int) {
+            if (i >= lines.size) return
+            worker.execute {
+                if (run != fillerPrep) return@execute
+                val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@execute
+                if (!bank.isLoaded(v.engine) && com.timerpg.street.llm.Ram.freeMb(ctx) < 1300) return@execute
+                if (!bank.cached(v, lines[i]).isFile) try { com.timerpg.street.llm.AiLane.run("voice") { bank.speak(v, lines[i]) } } catch (e: Throwable) { }
+                next(i + 1)
+            }
+        }
+        touch()
+        next(0)
+    }
+
+    /**
+     * Plays the first of [candidates] already voiced for [npc] at once (replacing whatever is playing): what they say
+     * while they think. False if none is ready (then nothing is said: a filler is never worth waiting for).
+     */
+    fun sayFiller(npc: Npc, candidates: List<String>): Boolean {
+        if (!enabled || !installed) return false
+        val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return false
+        val f = candidates.asSequence().map { bank.cached(v, it) }.firstOrNull { it.isFile && it.length() > 44 } ?: return false
+        stop()
+        fillerFor = npc.id
+        touch()
+        play(f)
+        return true
     }
 
     /** The rest of a line whose first sentence is playing: made and queued behind it. */
@@ -192,7 +236,8 @@ class NpcVoiceService(private val ctx: Context) {
                     if (player === it) {
                         player = null
                         val next = queue.removeFirstOrNull()
-                        if (next != null) play(next) else onSpeaking?.invoke(false)
+                        if (next != null) play(next) else { onSpeaking?.invoke(false) }
+                        if (next == null && queue.isEmpty()) fillerFor = null
                     }
                 }
                 prepare()
@@ -204,6 +249,7 @@ class NpcVoiceService(private val ctx: Context) {
 
     fun stop() {
         early = null
+        fillerFor = null
         if (player != null) onSpeaking?.invoke(false)
         generation++
         queue.clear()

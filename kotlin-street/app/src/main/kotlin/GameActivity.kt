@@ -58,6 +58,7 @@ import com.timerpg.street.dialogue.DialogueEngine
 import com.timerpg.street.dialogue.Line
 import com.timerpg.street.dialogue.ModelState
 import com.timerpg.street.dialogue.Npc
+import com.timerpg.street.dialogue.Fillers
 import com.timerpg.street.dialogue.Topic
 
 class GameActivity : ComponentActivity() {
@@ -418,6 +419,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     val updater = remember { AppUpdater(ctx.applicationContext) }
     LaunchedEffect(Unit) { updater.check(quiet = true) }
     androidx.compose.runtime.DisposableEffect(Unit) { onDispose { ears.release(); memory.release() } }
+    // what the people here say while they think, voiced ahead (so it plays at once)
+    LaunchedEffect(atHere.firstOrNull()?.id) { atHere.firstOrNull()?.let { voices.prepareFillers(it, Fillers.all(it.warmth)) } }
     // the speech model loads when a conversation opens (not when walking past people)
     LaunchedEffect(talk != null) { if (talk != null) ears.prewarm() }
     val askMic = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -647,7 +650,18 @@ private class Talk(val npc: Npc) {
         val r = engine.ask(npc, t) { line = it; heard(it) }
         request = r
         line = r.first
+        // the line is still being written: they say something while they think
+        if (r.first?.final != true) filler(t.label, voices)
         r.first?.let { heard(it) }
+    }
+
+    private var fillerSeed = (npc.id.hashCode() and 0xffff)
+
+    /** What they say at once while the real line is made (already voiced, else nothing). */
+    private fun filler(question: String, voices: com.timerpg.street.voice.NpcVoiceService?) {
+        if (voices == null) return
+        val seed = fillerSeed++
+        voices.sayFiller(npc, List(6) { Fillers.pick(question, npc.warmth, seed + it * 7) })
     }
 
     /**
@@ -702,6 +716,7 @@ private class Talk(val npc: Npc) {
             topic = tp
             request = r
             line = r.first
+            if (r.first?.final != true) filler(text, voices)
             heard(r.first)
         }
         // what they remember that bears on it goes into their fact sheet first
