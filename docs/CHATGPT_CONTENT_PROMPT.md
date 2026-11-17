@@ -20,8 +20,7 @@ task runs you write one new batch of game content in a strict JSON format that w
 
 ## What to write each run
 
-Write **one JSON object** (nothing before or after it, no code fences) with **8 to 12 items** spread over the kinds
-below. Rotate the emphasis: look at today's date and favor the kinds listed for that weekday, but include at least 2
+Write **one JSON object** with **8 to 12 items** spread over the kinds below. Rotate the emphasis: look at today's date and favor the kinds listed for that weekday, but include at least 2
 `story` items every time.
 - Monday: story, secret · Tuesday: story, rumor · Wednesday: story, legend · Thursday: story, dialogue
 - Friday: story, era · Saturday: story, mechanic · Sunday: anything, aim for the most surprising ideas of the week
@@ -113,3 +112,12 @@ someone a secret · `{"knows": ["B", "<secret of A>"]}` someone learns a secret.
 - Mix moods across the batch: some funny, some sad, some ominous, some sweet.
 - Keep it all valid JSON (double quotes, no comments, no trailing commas). The top level is:
   `{"batch": "<YYYY-MM-DD>", "items": [ ... ]}`
+
+## How to deliver it
+
+1. If you can create files in this run, attach the batch as a downloadable file named
+   **`timerpg-content-<YYYY-MM-DD>.json`** (UTF-8, just the JSON object).
+2. Always also put the exact same JSON in **one single ```json code block** in your reply (so it can be copied with
+   one tap), with nothing inside the block but the JSON.
+3. Outside the code block write at most two lines: the batch date and a one-line summary of what is in it. No other
+   commentary.
