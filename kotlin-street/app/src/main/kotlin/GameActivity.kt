@@ -108,6 +108,8 @@ class GameActivity : ComponentActivity() {
         val s = com.timerpg.street.audio.SoundScape(applicationContext)
         sound = s
         v.onSpeaking = { on -> s.duck(on) }
+        // lines written ahead get their voices made ahead too
+        engine.onWritten = { npc, text -> v.prepare(npc, text) }
         setContent { GameScreen(engine, v, s) }
     }
 
@@ -883,6 +885,17 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             }
         }
         voices.lastTiming?.let { Text("Voice: $it", 12.sp, color = DIM) }
+        run {
+            var x by remember { mutableStateOf(voices.xnnpack) }
+            Chip("Voice kernels: " + (if (x) "XNNPACK" else "standard"), x) { x = !x; voices.xnnpack = x }
+        }
+        // MTP: the model guesses words ahead and checks them in one pass
+        run {
+            var n by remember { mutableIntStateOf(engine.mtpWanted) }
+            val st = s.stats
+            Chip("Guess ahead (MTP): " + (if (n == 0) "off" else "$n words"), n > 0) { n = (n + 1) % 4; engine.setMtp(n) }
+            if (st.drafted > 0) Text("MTP: %d of %d guesses right (%.0f%%)".format(st.accepted, st.drafted, 100f * st.accepted / st.drafted), 12.sp, color = DIM)
+        }
         if (s.hasNpu) {
             val act = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
             val pc = androidx.compose.ui.platform.LocalContext.current

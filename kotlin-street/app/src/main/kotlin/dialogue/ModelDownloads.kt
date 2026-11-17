@@ -35,6 +35,8 @@ object ModelDownloads {
         // the same model in Q4_0, the format llama.cpp's Hexagon NPU code was first built around: tried by the NPU tuner,
         // used on the NPU when it is faster there (Q4_K_M stays for the CPU and the GPU)
         add(Item(QWEN.replace("Q4_K_M", "Q4_0"), ModelFiles.NPU_Q4_0, 5_379_417_312L))
+        // and with its MTP head: the model guesses a few words ahead and checks them in one pass (speculative decoding)
+        add(Item("https://huggingface.co/unsloth/Qwen3.5-9B-MTP-GGUF/resolve/main/Qwen3.5-9B-Q4_K_M.gguf", ModelFiles.MTP, ModelFiles.MTP_BYTES))
         // hearing the player: Qwen3-ASR 1.7B and its audio encoder
         add(Item(ASR + "Qwen3-ASR-1.7B-Q8_0.gguf", com.timerpg.street.voice.PlayerVoice.ASR_MODEL, 2_165_034_944L))
         add(Item(ASR + "mmproj-Qwen3-ASR-1.7B-Q8_0.gguf", com.timerpg.street.voice.PlayerVoice.ASR_MMPROJ, 355_709_344L))

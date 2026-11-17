@@ -17,6 +17,9 @@ object ModelFiles {
     const val NAME = "qwen3.5-9b.gguf"
     /** The same model in Q4_0 for the NPU (see NpuTune). */
     const val NPU_Q4_0 = "qwen3.5-9b-q4_0.gguf"
+    /** The same model with its multi-token prediction (MTP) head, for speculative decoding (unsloth's MTP build). */
+    const val MTP = "qwen3.5-9b-mtp.gguf"
+    const val MTP_BYTES = 5_868_826_976L
     /** What [problem] says when there is no model file. */
     const val MISSING = "missing"
     private const val MIN_BYTES = 16L shl 20

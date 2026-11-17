@@ -268,6 +268,18 @@ class DialogueEngine private constructor(private val app: Context) {
         command { closeBackend(); loadModel() }
     }
 
+    /** Told of every line written ahead of time (worker thread), so its voice can be made ahead too. */
+    @Volatile var onWritten: ((Npc, String) -> Unit)? = null
+
+    /** MTP speculative decoding: tokens to guess ahead (0 off; default 2), see [com.timerpg.street.llm.NativeLlm.mtp]. */
+    val mtpWanted: Int get() = app.getSharedPreferences("npu", Context.MODE_PRIVATE).getInt("mtp", 2)
+
+    fun setMtp(n: Int) {
+        app.getSharedPreferences("npu", Context.MODE_PRIVATE).edit().putInt("mtp", n).apply()
+        lock.withLock { running?.let { cancelLocked(it) } }
+        command { closeBackend(); loadModel() }
+    }
+
     val fastCpuWanted: Boolean get() = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getBoolean("repack", false)
 
     /** The device chosen in the AI panel; -1 until one is: the NPU then when there is one (fastest on the S25 Ultra:
@@ -444,7 +456,10 @@ class DialogueEngine private constructor(private val app: Context) {
         val q40 = java.io.File(ModelFiles.dir(app), ModelFiles.NPU_Q4_0)
         val wantsQ40 = app.getSharedPreferences("npu", Context.MODE_PRIVATE).getString("model", null) == "q4_0"
         val onNpu = (b as? com.timerpg.street.llm.NativeLlm)?.let { deviceWanted == 2 || (deviceWanted < 0 && it.accelerators and 2 != 0) } ?: false
-        val f = if (wantsQ40 && onNpu && q40.length() == 5_379_417_312L) q40 else ModelFiles.file(app)
+        // with MTP on and its build downloaded, that one (the same weights plus the prediction head)
+        val mtpFile = java.io.File(ModelFiles.dir(app), ModelFiles.MTP)
+        val useMtp = mtpWanted > 0 && mtpFile.length() == ModelFiles.MTP_BYTES && !(wantsQ40 && onNpu && q40.length() == 5_379_417_312L)
+        val f = if (wantsQ40 && onNpu && q40.length() == 5_379_417_312L) q40 else if (useMtp) mtpFile else ModelFiles.file(app)
         val problem = ModelFiles.problem(f)
         _status.update { it.copy(hasModel = problem == null, modelMb = if (f.isFile) f.length() shr 20 else 0) }
         if (problem == ModelFiles.MISSING) return setState(ModelState.NO_MODEL, NO_MODEL_TEXT)
@@ -455,6 +470,8 @@ class DialogueEngine private constructor(private val app: Context) {
         val native = b as? com.timerpg.street.llm.NativeLlm
         native?.device = deviceWanted.let { if (it >= 0) it else if ((native?.accelerators ?: 0) and 2 != 0) com.timerpg.street.llm.NativeLlm.NPU else com.timerpg.street.llm.NativeLlm.CPU }
         native?.fastCpu = fastCpuWanted
+        val mtpSet = app.getSharedPreferences("npu", Context.MODE_PRIVATE).contains("mtp")
+        native?.mtp = if (useMtp && (mtpSet || native?.device == com.timerpg.street.llm.NativeLlm.NPU)) mtpWanted else 0
         // loading holds the AI lane: speech, memory and the voices do not load beside it (their memory added to a load's
         // is what took the phone down)
         var ok = com.timerpg.street.llm.AiLane.run("dialogue") {
@@ -646,6 +663,8 @@ class DialogueEngine private constructor(private val app: Context) {
                 failures = 0
                 if (!g.speed) { cache.putLine(g.key, text!!); cache.save() }
                 g.finish(Line(text!!, true, true, "AI"))
+                // a line written ahead: its voice can be made ahead too
+                if (!g.speed && g.listeners.isEmpty()) onWritten?.invoke(npc, text!!)
             }
             End.REJECTED -> {
                 failures = 0

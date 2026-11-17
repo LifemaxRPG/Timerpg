@@ -164,6 +164,7 @@ long rss_kb(const char * key) {
 
 void print_stats(const llm::Stats & s) {
     const int fresh = s.prompt_tokens - s.reused_tokens;
+    if (s.drafted > 0) std::printf("  MTP: %d of %d guesses right\n", s.accepted, s.drafted);
     std::printf("  prompt %d tokens, reused %d from the KV cache, %d processed in %lld ms (%.1f tok/s)\n", s.prompt_tokens,
                 s.reused_tokens, fresh, (long long) s.prefill_ms, s.prefill_ms > 0 ? fresh * 1000.0 / s.prefill_ms : 0.0);
     std::printf("  generated %d tokens in %lld ms (%.1f tok/s); first token after %lld ms; %d threads\n", s.gen_tokens,
@@ -351,6 +352,7 @@ int main(int argc, char ** argv) {
         return 2;
     }
     std::string model = argv[1], prompts_file, dialogue_file, json_out;
+    int mtp = 0;
     std::vector<std::string> cpu_libs = llm::cpu_variant_libs(), who;
     // The app's settings (DialogueEngine: CONTEXT_TOKENS, MAX_TOKENS, TEMPERATURE).
     int threads = 0, n_ctx = 1024, max_tokens = 56;
@@ -373,6 +375,7 @@ int main(int argc, char ** argv) {
         else if (a == "--seed") seed = (uint32_t) std::strtoul(next().c_str(), nullptr, 10);
         else if (a == "--cpu-lib") cpu_libs.push_back(next());
         else if (a == "--verbose") verbose = true;
+        else if (a == "--mtp") mtp = std::atoi(next().c_str());
         else {
             std::fprintf(stderr, "unknown option %s\n", a.c_str());
             return 2;
@@ -404,6 +407,7 @@ int main(int argc, char ** argv) {
     llm::Engine e;
     e.sampling().seed = seed;
     e.arm();
+    e.set_device(mtp << 8);
     if (!e.load(model, threads, n_ctx)) {
         std::printf("  load failed: %s\n", e.error().c_str());
         return 1;

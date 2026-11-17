@@ -32,6 +32,8 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     /** The CPU's repacked kernels from the next load: faster prompts, but the whole model copied into memory the system
      *  cannot reclaim (off: the weights stay mapped from the file, so speech and the voices fit beside them). */
     @Volatile var fastCpu = false
+    /** Tokens the model's MTP head guesses ahead from the next load (0: off; needs a model file with the head). */
+    @Volatile var mtp = 0
     /** Where the loaded model runs. */
     val runsOn: Int get() = if (handle == 0L) CPU else runCatching { nativeDevice(handle) }.getOrDefault(CPU)
     /** This phone and build's accelerators (after the native library loaded): bit 0 a GPU, bit 1 an NPU. */
@@ -114,7 +116,7 @@ class NativeLlm(context: Context? = null) : LlmBackend {
                 error = "cancelled"
                 return false
             }
-            runCatching { nativeSetDevice(handle, device or (if (fastCpu) 16 else 0)) }
+            runCatching { nativeSetDevice(handle, device or (if (fastCpu) 16 else 0) or (mtp.coerceIn(0, 15) shl 8)) }
             loaded = false  // the native load frees the old model first
             val ok = try {
                 nativeLoad(handle, path.toByteArray(Charsets.UTF_8), t, ctx)
@@ -243,7 +245,8 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     private fun readStats(): LlmStats {
         val s = runCatching { nativeStats(handle) }.getOrNull() ?: return LlmStats()
         return LlmStats(loadMs = s[0], promptTokens = s[1].toInt(), reusedTokens = s[2].toInt(), prefillMs = s[3],
-            genTokens = s[4].toInt(), genMs = s[5], firstTokenMs = s[6], threads = s[7].toInt())
+            genTokens = s[4].toInt(), genMs = s[5], firstTokenMs = s[6], threads = s[7].toInt(),
+            drafted = s.getOrElse(8) { 0L }.toInt(), accepted = s.getOrElse(9) { 0L }.toInt())
     }
 
     private fun loadFailed(why: String): Boolean {

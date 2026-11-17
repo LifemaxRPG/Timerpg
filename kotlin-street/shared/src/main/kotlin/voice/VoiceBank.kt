@@ -10,6 +10,11 @@ import java.security.MessageDigest
  * owns it from one worker thread.
  */
 class VoiceBank(private val models: File, private val cache: File, private val lexicon: () -> Sequence<String>, private val threads: Int = 4) : AutoCloseable {
+    companion object {
+        /** Run the voice models on ONNX Runtime's XNNPACK kernels (set before a model loads). */
+        @Volatile var xnnpack = false
+    }
+
     private var kokoro: KokoroTts? = null
     private var supertonic: SupertonicTts? = null
     private val kokoroVoices = HashMap<String, KokoroVoice>()

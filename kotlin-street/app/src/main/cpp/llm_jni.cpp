@@ -144,13 +144,14 @@ extern "C" JNIEXPORT jstring JNICALL FN(nativeLoadInfo)(JNIEnv * env, jobject) {
 
 extern "C" JNIEXPORT jlongArray JNICALL FN(nativeStats)(JNIEnv * env, jobject, jlong h) {
     const llm::Stats s = h ? engine(h)->stats() : llm::Stats{};
-    const jlong v[8] = {s.load_ms, s.prompt_tokens, s.reused_tokens, s.prefill_ms, s.gen_tokens, s.gen_ms, s.first_token_ms, s.threads};
-    jlongArray a = env->NewLongArray(8);
+    const jlong v[10] = {s.load_ms, s.prompt_tokens, s.reused_tokens, s.prefill_ms, s.gen_tokens, s.gen_ms, s.first_token_ms, s.threads,
+                         s.drafted, s.accepted};
+    jlongArray a = env->NewLongArray(10);
     if (!a) {
         if (env->ExceptionCheck()) env->ExceptionClear();
         return nullptr;
     }
-    env->SetLongArrayRegion(a, 0, 8, v);
+    env->SetLongArrayRegion(a, 0, 10, v);
     return a;
 }
 

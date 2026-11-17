@@ -25,16 +25,26 @@ class NpcVoiceService(private val ctx: Context) {
     private val models = File(ctx.filesDir, "models")
     private val bank = VoiceBank(models, File(ctx.filesDir, "voice-cache"),
         { ctx.assets.open("voices/kokoro_lexicon.tsv").bufferedReader().lineSequence() }, threads = 6)  // the dialogue model is on the NPU: the CPU's big cores are the voices'
+    init { com.timerpg.voice.VoiceBank.xnnpack = ctx.getSharedPreferences("voices", Context.MODE_PRIVATE).getBoolean("xnnpack", false) }
     private val worker = Executors.newSingleThreadExecutor { r -> Thread(r, "npc-voices").apply { isDaemon = true } }
     private val main = Handler(Looper.getMainLooper())
     private var player: MediaPlayer? = null
     @Volatile private var generation = 0
-    // the voice engines (loaded whole into RAM) are let go when nothing has been spoken for a while
+    // the voice engines (loaded whole into RAM) are let go when nothing has been spoken or made ahead for ten minutes
     private val idle = Runnable { worker.execute { bank.close() } }
-    private fun touch() { main.removeCallbacks(idle); main.postDelayed(idle, 180_000L) }
+    private fun touch() { main.removeCallbacks(idle); main.postDelayed(idle, 600_000L) }
 
     /** Told when an NPC starts and stops speaking (the street's sound dips under the voice). */
     var onSpeaking: ((Boolean) -> Unit)? = null
+
+    /** The voice models on ONNX Runtime's XNNPACK kernels instead of its own CPU kernels (compare with the timing). */
+    var xnnpack: Boolean
+        get() = ctx.getSharedPreferences("voices", Context.MODE_PRIVATE).getBoolean("xnnpack", false)
+        set(on) {
+            ctx.getSharedPreferences("voices", Context.MODE_PRIVATE).edit().putBoolean("xnnpack", on).apply()
+            com.timerpg.voice.VoiceBank.xnnpack = on
+            worker.execute { bank.close() }   // loaded again the new way on the next line
+        }
 
     /** Voices on or off (the player's choice). */
     var enabled by mutableStateOf(true)
@@ -90,8 +100,8 @@ class NpcVoiceService(private val ctx: Context) {
         touch()
         worker.execute {
             val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@execute
-            // made ahead only with room to spare
-            if (com.timerpg.street.llm.Ram.freeMb(ctx) < 1600) return@execute
+            // made ahead when the voice is loaded, or there is room to load it
+            if (!bank.isLoaded(v.engine) && com.timerpg.street.llm.Ram.freeMb(ctx) < 1300) return@execute
             for (part in sentences(text)) try { com.timerpg.street.llm.AiLane.run("voice") { bank.speak(v, part) } } catch (e: Throwable) { }
         }
     }

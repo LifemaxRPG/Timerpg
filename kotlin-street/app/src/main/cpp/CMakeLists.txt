@@ -35,8 +35,11 @@ macro(force name value)
     set(${name} ${value} CACHE BOOL "" FORCE)
 endmacro()
 
-# Only the libraries: no common utils (and so no curl/openssl/httplib), server, tools, examples, tests or web UI.
-force(LLAMA_BUILD_COMMON   OFF)
+# The libraries and common (its speculative decoding drives the model's MTP head), without curl/openssl; no server,
+# tools, examples, tests or web UI.
+force(LLAMA_BUILD_COMMON   ON)
+force(LLAMA_CURL           OFF)
+force(LLAMA_OPENSSL        OFF)
 force(LLAMA_BUILD_TESTS    OFF)
 force(LLAMA_BUILD_TOOLS    OFF)
 force(LLAMA_BUILD_EXAMPLES OFF)
@@ -119,7 +122,7 @@ add_subdirectory("${LLAMA_DIR}" llama.cpp EXCLUDE_FROM_ALL)
 
 add_library(llm_core STATIC llm_core.cpp asr_core.cpp embed_core.cpp)
 target_include_directories(llm_core PUBLIC "${CMAKE_CURRENT_LIST_DIR}")
-target_link_libraries(llm_core PUBLIC llama mtmd)
+target_link_libraries(llm_core PUBLIC llama mtmd llama-common)
 set_target_properties(llm_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 if (ANDROID)

@@ -1,5 +1,9 @@
 #include "llm_core.h"
 
+#include "common.h"
+#include "sampling.h"
+#include "speculative.h"
+
 #include "llama.h"
 
 #include <algorithm>
@@ -325,7 +329,16 @@ Engine::Engine() = default;
 
 Engine::~Engine() { unload(); }
 
+void Engine::free_mtp() {
+    if (spec_) common_speculative_free(spec_);
+    spec_ = nullptr;
+    if (dft_) llama_free(dft_);
+    dft_ = nullptr;
+    dft_cached_.clear();
+}
+
 void Engine::unload() {
+    free_mtp();
     if (batch_.token) llama_batch_free(batch_);
     batch_ = {};
     if (ctx_) llama_free(ctx_);
@@ -445,6 +458,8 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
         // no repacking unless asked: repacked weights are copied out of the mapped file (the 9B's 5.4 GB in memory the
         // system cannot reclaim, read whole at load), which left no room for speech and the voices beside it
         mp.use_extra_bufts = repack_;
+        // the model's own next-token prediction head (MTP), when the file has one and it is wanted
+        mp.load_mtp = mtp_n_ > 0;
         // cancel() also stops a load.
         mp.progress_callback = [](float, void * self) { return !static_cast<Engine *>(self)->cancel_.load(); };
         mp.progress_callback_user_data = this;
@@ -474,6 +489,14 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
         // compute buffer is sized for n_batch x vocab logits: ~300 MB more for Qwen3's 152k vocabulary.
         cp.n_outputs_max = 1;
         cp.n_outputs_max_per_seq = 1;
+        // MTP: the guesses are checked in one batch (logits for each), and the recurrent state can step back over the
+        // ones that were wrong
+        const bool want_mtp = mtp_n_ > 0 && llama_model_n_layer_nextn(model_) > 0;
+        if (want_mtp) {
+            cp.n_outputs_max = (uint32_t) (mtp_n_ + 1);
+            cp.n_outputs_max_per_seq = (uint32_t) (mtp_n_ + 1);
+            cp.n_rs_seq = (uint32_t) mtp_n_;
+        }
         cp.n_threads = threads;
         cp.n_threads_batch = threads;
         cp.no_perf = true;
@@ -493,6 +516,29 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
         }
         recurrent_ = llama_model_is_recurrent(model_) || llama_model_is_hybrid(model_);
         n_batch_ = (int32_t) llama_n_batch(ctx_);
+        if (want_mtp) {
+            // the head's own context, sharing the main one's memory; any failure: plain generation
+            llama_context_params dp = cp;
+            dp.ctx_type = LLAMA_CONTEXT_TYPE_MTP;
+            dp.n_rs_seq = 0;
+            dp.ctx_other = ctx_;
+            dp.abort_callback = nullptr;
+            dp.abort_callback_data = nullptr;
+            dft_ = llama_init_from_model(model_, dp);
+            const auto rm = common_context_can_seq_rm(ctx_);
+            if (dft_ && rm != COMMON_CONTEXT_SEQ_RM_TYPE_FULL && rm != COMMON_CONTEXT_SEQ_RM_TYPE_NO) {
+                common_params_speculative sp;
+                sp.types = { COMMON_SPECULATIVE_TYPE_DRAFT_MTP };
+                sp.draft.n_max = mtp_n_;
+                sp.draft.ctx_tgt = ctx_;
+                sp.draft.ctx_dft = dft_;
+                spec_ = common_speculative_init(sp, 1);
+            }
+            if (!spec_) {
+                log_msg(GGML_LOG_LEVEL_WARN, "MTP could not be set up; generating without it");
+                free_mtp();
+            }
+        }
         batch_ = llama_batch_init(n_batch_, 0, 1);
         stats_.threads = threads;
         stats_.load_ms = now_ms() - t0;
@@ -614,6 +660,10 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
         stats_.prompt_tokens = (int32_t) toks.size();
         stats_.reused_tokens = (int32_t) reuse;
 
+        if (spec_ && max_tokens > 0) {
+            std::string r = generate_mtp(toks, reuse, max_tokens, temperature, on_text, t0);
+            return r;
+        }
         const int64_t tp = now_ms();
         bool prefilled = true;
         size_t at = reuse;
@@ -701,6 +751,165 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
         error_ = "generation failed";
     }
     if (smpl) llama_sampler_free(smpl);
+    return reply;
+}
+
+
+std::string Engine::generate_mtp(const std::vector<int32_t> & toks, size_t at, int max_tokens, float temperature,
+                                 const OnText & on_text, int64_t t0) {
+    std::string reply;
+    const size_t n = toks.size();
+    const size_t n_ctx = llama_n_ctx(ctx_);
+    llama_memory_t mem = llama_get_memory(ctx_);
+    llama_memory_t dmem = llama_get_memory(dft_);
+    // the head's cache keeps what it shares with this prompt, up to where the main cache goes on from
+    {
+        size_t keep = 0;
+        while (keep < dft_cached_.size() && keep < at && dft_cached_[keep] == toks[keep]) ++keep;
+        if (dmem && !llama_memory_seq_rm(dmem, 0, (llama_pos) keep, -1)) { llama_memory_clear(dmem, true); keep = 0; }
+        dft_cached_.resize(keep);
+    }
+    const int64_t tp = now_ms();
+    // the prompt but its last token: snapshots at the fact sheet's line ends as usual, the last stretch through the
+    // speculator too (the head needs the model's state at its end)
+    bool ok = true;
+    if (recurrent_) {
+        for (size_t b : line_ends(toks)) {
+            if (b <= at || b >= n - 1) continue;
+            if (!(ok = decode_tokens(toks, at, b, false))) break;
+            at = b;
+            take_snapshot();
+        }
+    }
+    common_batch cb(ctx_);
+    for (size_t i = at; ok && i < n - 1;) {
+        const size_t e = std::min(n - 1, i + (size_t) n_batch_);
+        cb.clear();
+        for (size_t k = i; k < e; ++k) cb.add(toks[k], (llama_pos) k, 0, false);
+        if (llama_process(ctx_, LLAMA_PROCESS_TYPE_DECODE, cb.get()) != 0) {
+            if (!cancel_.load()) error_ = "llama_process failed" + log_errors();
+            resync_cache(std::vector<int32_t>(toks.begin(), toks.begin() + (ptrdiff_t) e));
+            ok = false;
+            break;
+        }
+        cached_.insert(cached_.end(), toks.begin() + (ptrdiff_t) i, toks.begin() + (ptrdiff_t) e);
+        common_speculative_process(spec_, cb);
+        i = e;
+    }
+    const int64_t tg = now_ms();
+    stats_.prefill_ms = tg - tp;
+    if (!ok) {
+        if (cancel_.load()) error_ = "cancelled";
+        stats_.end = cancel_.load() ? End::cancelled : End::error;
+        return {};
+    }
+
+    common_params_sampling ps;
+    ps.seed = sampling_.seed;
+    ps.temp = temperature;
+    ps.top_k = sampling_.top_k;
+    ps.top_p = sampling_.top_p;
+    ps.min_p = 0.0f;
+    ps.penalty_repeat = sampling_.repeat_penalty;
+    ps.penalty_last_n = sampling_.repeat_last_n;
+    ps.no_perf = true;
+    common_sampler * smpl = common_sampler_init(model_, ps);
+    if (!smpl) { error_ = "could not set up sampling"; return {}; }
+
+    Utf8Joiner joiner;
+    StopFilter stop({"<|im_end|>", "<|im_start|>", "<|endoftext|>"});
+    bool stopped = false, halted = false, done = false;
+    auto emit = [&](const std::string & text) {
+        if (text.empty() || halted) return;
+        reply += text;
+        if (on_text && !on_text(text)) halted = true;
+    };
+    llama_token id_last = toks.back();
+    std::vector<llama_token> in_ctx(toks.begin(), toks.end() - 1);  // the tokens in the cache, position i = in_ctx[i]
+    std::vector<llama_token> draft;
+    common_speculative_begin(spec_, 0, in_ctx);
+    common_batch bt(ctx_);
+    char buf[256];
+    int produced = 0;
+    try {
+        while (!done) {
+            if (cancel_.load()) { error_ = "cancelled"; stats_.end = End::cancelled; break; }
+            const int n_past = (int) in_ctx.size();
+            int n_draft_max = std::min((int) n_ctx - n_past - 2, max_tokens - produced - 1);
+            draft.clear();
+            if (n_draft_max > 0) {
+                auto & dp = common_speculative_get_draft_params(spec_, 0);
+                dp.drafting = true;
+                dp.n_max = n_draft_max;
+                dp.pos0 = n_past;
+                dp.id_last = id_last;
+                dp.prompt = &in_ctx;
+                dp.result = &draft;
+                dp.temp = temperature;
+                common_speculative_draft(spec_);
+                // drafting ran the head ahead in its own cache: back to where the main model is before checking
+                if (dmem) llama_memory_seq_rm(dmem, 0, (llama_pos) n_past, -1);
+            }
+            // check [last, guess0, guess1, ...] in one pass
+            bt.clear();
+            bt.add(id_last, n_past, 0, true);
+            for (size_t i = 0; i < draft.size(); ++i) bt.add(draft[i], n_past + 1 + (llama_pos) i, 0, true);
+            if (llama_process(ctx_, LLAMA_PROCESS_TYPE_DECODE, bt.get()) != 0) {
+                if (!cancel_.load()) error_ = "llama_process failed" + log_errors();
+                stats_.end = cancel_.load() ? End::cancelled : End::error;
+                if (cancel_.load()) error_ = "cancelled";
+                break;
+            }
+            common_speculative_process(spec_, bt);
+            const std::vector<llama_token> ids = common_sampler_sample_and_accept_n(smpl, ctx_, draft);
+            if (ids.empty()) { error_ = "sampling failed"; stats_.end = End::error; break; }
+            common_speculative_accept(spec_, 0, (uint16_t) (ids.size() - 1));
+            stats_.drafted += (int32_t) draft.size();
+            stats_.accepted += (int32_t) ids.size() - 1;
+            in_ctx.push_back(id_last);  // now in the cache, with the accepted guesses after it
+            for (size_t i = 0; i < ids.size(); ++i) {
+                const llama_token tok = ids[i];
+                if (llama_vocab_is_eog(vocab_, tok)) { stats_.end = End::eog; done = true; break; }
+                if (++stats_.gen_tokens == 1) stats_.first_token_ms = now_ms() - t0;
+                ++produced;
+                int32_t len = llama_token_to_piece(vocab_, tok, buf, sizeof buf, 0, /*special*/ true);
+                std::string piece;
+                if (len < 0) {
+                    piece.resize((size_t) -len);
+                    len = llama_token_to_piece(vocab_, tok, piece.data(), (int32_t) piece.size(), 0, true);
+                    piece.resize(len > 0 ? (size_t) len : 0);
+                } else {
+                    piece.assign(buf, (size_t) len);
+                }
+                emit(stop.push(joiner.push(piece.data(), piece.size()), &stopped));
+                if (stopped || halted || produced >= max_tokens) {
+                    stats_.end = stopped ? End::stop_text : halted ? End::callback : End::limit;
+                    done = true;
+                    break;
+                }
+                if (i + 1 < ids.size()) in_ctx.push_back(tok);  // an accepted guess: already in the cache
+                id_last = tok;
+            }
+            // the wrong guesses (and anything past where we stopped) out of the cache
+            if (dmem) llama_memory_seq_rm(dmem, 0, (llama_pos) in_ctx.size(), -1);
+            if (!llama_memory_seq_rm(mem, 0, (llama_pos) in_ctx.size(), -1)) {
+                llama_memory_clear(mem, true);
+                in_ctx.clear();
+                if (!done) { error_ = "could not step back over a wrong guess"; stats_.end = End::error; }
+                done = true;
+            }
+            if (!done && in_ctx.size() + 2 >= n_ctx) { stats_.end = End::context; done = true; }
+        }
+    } catch (...) {
+        common_sampler_free(smpl);
+        throw;
+    }
+    common_sampler_free(smpl);
+    if (!stopped) emit(stop.push(joiner.flush(), &stopped));
+    if (!stopped) emit(stop.flush());
+    cached_ = in_ctx;
+    dft_cached_ = in_ctx;
+    stats_.gen_ms = now_ms() - tg;
     return reply;
 }
 

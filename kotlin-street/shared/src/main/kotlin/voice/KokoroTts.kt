@@ -49,8 +49,10 @@ class KokoroVoice(val styles: FloatArray) {
 class KokoroTts(model: File, vocabJson: String, private val lexicon: Map<String, String>, threads: Int = 4) : AutoCloseable {
     private val env = OrtEnvironment.getEnvironment()
     private val opts = OrtSession.SessionOptions().apply {
-        setIntraOpNumThreads(threads)
         setOptimizationLevel(OrtSession.SessionOptions.OptLevel.ALL_OPT)
+        // XNNPACK's own thread pool does the work then (ONNX Runtime's is kept to one, as its docs advise)
+        val xnn = VoiceBank.xnnpack && runCatching { addXnnpack(mapOf("intra_op_num_threads" to threads.toString())) }.isSuccess
+        setIntraOpNumThreads(if (xnn) 1 else threads)
     }
     private val session = env.createSession(model.path, opts)
     private val tokenInput = if ("input_ids" in session.inputNames) "input_ids" else "tokens"

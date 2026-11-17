@@ -68,8 +68,10 @@ class SupertonicTts(dir: File, threads: Int = 4) : AutoCloseable {
     private val ldim = cfg.getJSONObject("ttl").getInt("latent_dim")
     private val indexer: IntArray = org.json.JSONArray(File(onnx, "unicode_indexer.json").readText()).let { a -> IntArray(a.length()) { a.getInt(it) } }
     private val opts = OrtSession.SessionOptions().apply {
-        setIntraOpNumThreads(threads)
         setOptimizationLevel(OrtSession.SessionOptions.OptLevel.ALL_OPT)
+        // XNNPACK's own thread pool does the work then (ONNX Runtime's is kept to one, as its docs advise)
+        val xnn = VoiceBank.xnnpack && runCatching { addXnnpack(mapOf("intra_op_num_threads" to threads.toString())) }.isSuccess
+        setIntraOpNumThreads(if (xnn) 1 else threads)
     }
     private val dp = env.createSession(File(onnx, "duration_predictor.onnx").path, opts)
     private val enc = env.createSession(File(onnx, "text_encoder.onnx").path, opts)

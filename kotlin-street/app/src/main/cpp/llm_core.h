@@ -11,6 +11,8 @@
 #include "llama.h"
 #include "ggml-backend.h"
 
+struct common_speculative;
+
 namespace llm {
 
 // ---------------------------------------------------------------------------------------------------- text helpers
@@ -93,6 +95,9 @@ struct Stats {
     int64_t first_token_ms = 0;
     int32_t threads = 0;
     End end = End::none;
+    /** MTP speculative decoding: tokens the model's own prediction head guessed, and how many of them were right. */
+    int32_t drafted = 0;
+    int32_t accepted = 0;
 };
 
 /** How replies are sampled: the settings the WebAssembly version used. */
@@ -126,7 +131,9 @@ public:
     /** Where the model runs from the next load: 0 the CPU, 1 the GPU, 2 the NPU (the CPU when there is no such device). */
     /** Bit 4 of [kind] (16): the CPU's fast repacked kernels (the weights copied into the process: faster prompts, but
      *  the whole model in memory the system cannot reclaim); without it the weights stay mapped from the file. */
-    void set_device(int kind) { device_ = kind & 3; repack_ = (kind & 16) != 0; }
+    void set_device(int kind) { device_ = kind & 3; repack_ = (kind & 16) != 0; mtp_n_ = (kind >> 8) & 15; }
+    /** Whether the loaded model writes with MTP speculative decoding (it has the prediction head and it was asked for). */
+    bool mtp() const { return spec_ != nullptr; }
     /** Where the loaded model runs (0 / 1 / 2). */
     int device() const { return ctx_ && devs_.size() > 1 ? device_ : 0; }
     /** Frees the model and the context. */
@@ -163,6 +170,10 @@ private:
     /** Where a recurrent or hybrid model (Qwen3.5) can start: a snapshot whose tokens begin [toks], restored. 0 if none. */
     size_t restore_snapshot(const std::vector<int32_t> & toks);
     void take_snapshot();
+    /** generate() with MTP: the prompt from [at] on (all but its last token), then guess-and-check. */
+    std::string generate_mtp(const std::vector<int32_t> & toks, size_t at, int max_tokens, float temperature,
+                             const OnText & on_text, int64_t t0);
+    void free_mtp();
     /** The token positions after each line end of the system message: where snapshots are taken. */
     std::vector<size_t> line_ends(const std::vector<int32_t> & toks) const;
 
@@ -175,6 +186,10 @@ private:
     bool recurrent_ = false;
     int device_ = 0;
     bool repack_ = false;
+    int mtp_n_ = 0;                          // tokens to guess ahead with the MTP head (0: off)
+    llama_context * dft_ = nullptr;          // the MTP head's context (shares the main context's memory)
+    common_speculative * spec_ = nullptr;
+    std::vector<int32_t> dft_cached_;       // the tokens the head's own cache holds, position i = dft_cached_[i]
     std::vector<ggml_backend_dev_t> devs_;  // the devices it was loaded on, null-terminated          // the cache cannot be cut back to a shorter prefix (Mamba, Qwen3.5's delta net)
     std::vector<Snapshot> snapshots_;
     uint64_t clock_ = 0;
