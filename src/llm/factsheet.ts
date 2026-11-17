@@ -68,7 +68,7 @@ export function brief(c: TalkCtx, intent: string, template: string, facts: strin
   const spouse = p.spouse ? w.people[p.spouse] : undefined;
   const kid = p.children.map((id) => w.people[id]).find((k) => k && k.deathYear === undefined);
   const anchor = intent === 'family' ? (spouse && spouse.deathYear === undefined ? spouse.first : kid?.first)
-    : intent === 'work' && c.job.includes(' ') && !/^(retired|at school|out about)/.test(c.job) ? c.job.replace(/^works at /, '').split(/[\s']/)[0] : undefined;
+    : intent === 'work' && c.job.includes(' ') && !/^(retired|at school|out about|works from home)/.test(c.job) ? c.job.replace(/^works at /, '').split(/[\s']/)[0] : undefined;
   if (anchor) must = [...must, anchor];
   const sheet = [
     `You are ${fullName(p)}, ${w.year - p.birthYear}, ${p.sex === 'F' ? 'a woman' : 'a man'} in ${c.townName}, ${w.year}. You are ${warm ? 'warm and chatty' : 'gruff and guarded'}.`,

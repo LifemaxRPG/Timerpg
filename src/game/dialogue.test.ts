@@ -30,6 +30,11 @@ describe('talking to people', () => {
     expect(specFor('chat')).toBeNull();
     for (const i of ['greet', 'chat', 'town', 'family', 'work', 'praise', 'gift']) expect(narrate(ctx(), i).length).toBeGreaterThan(3);
   });
+  it('says what they do for work in plain English', () => {
+    expect(narrate(ctx(), 'work')).toBe('I work at Bakery.');
+    expect(narrate(ctx({ job: 'works from home' }), 'work')).toBe('I work from home.');
+    expect(narrate(ctx({ job: 'out about town' }), 'work')).toBe('I\'m out about town.');
+  });
 
   it('trust gates secrets; once trusted, someone with something to say tells you and it goes in the notebook', () => {
     const people = Object.values(w.people).filter(isAlive);

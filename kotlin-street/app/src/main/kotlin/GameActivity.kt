@@ -4,13 +4,18 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,8 +49,17 @@ import com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuilding
 import com.lifemax.rpg.feature.habits.presentation.scene.SpriteSheets
 import com.lifemax.rpg.feature.habits.presentation.scene.StageTuning
 import com.lifemax.rpg.feature.habits.presentation.scene.StageActions
+import com.timerpg.street.dialogue.AiStatus
+import com.timerpg.street.dialogue.DialogueEngine
+import com.timerpg.street.dialogue.Line
+import com.timerpg.street.dialogue.ModelState
+import com.timerpg.street.dialogue.Npc
+import com.timerpg.street.dialogue.Topic
 
 class GameActivity : ComponentActivity() {
+    /** NPC dialogue (template lines, and the language model's when it has one); its own worker thread, never this one. */
+    private var dialogue: DialogueEngine? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // the scene's two platform-specific image calls
@@ -62,7 +76,30 @@ class GameActivity : ComponentActivity() {
         SpriteArt.lamp = prop("lamp_1"); SpriteArt.bench = prop("bench_1"); SpriteArt.trees = listOf("tree_1", "tree_2", "tree_3").map { prop(it) }
         GameState.enabled = true
         GameState.look = 1
-        setContent { GameScreen() }
+        val engine = DialogueEngine.shared(applicationContext)
+        dialogue = engine
+        setContent { GameScreen(engine) }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        dialogue?.onForeground(true)
+    }
+
+    override fun onStop() {
+        dialogue?.onForeground(false)
+        super.onStop()
+    }
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        dialogue?.onTrimMemory(level)
+    }
+
+    override fun onDestroy() {
+        // the engine outlives a recreated activity, not a finished game
+        if (isFinishing) DialogueEngine.release()
+        super.onDestroy()
     }
 }
 
@@ -88,8 +125,8 @@ private val SHOPS = listOf(
     shop("toys", "Little Ones Toys", "TOYS", HabitMaterial.CLAY, 2),
 )
 
-/** One street of our town: its name, its buildings in order, and who owns or lives in each. */
-private class StreetInfo(val name: String, val shops: List<HabitStack>, val owners: List<String>)
+/** One street of our town: its name, its buildings in order, who owns or lives in each, and their sprite names (bN). */
+private class StreetInfo(val name: String, val shops: List<HabitStack>, val owners: List<String>, val sprites: List<String> = emptyList())
 
 /** Our game's town streets, exported by tools/export-street.ts (falls back to a built-in street). */
 private class StreetData(val town: String, val streets: List<StreetInfo>, val rows: TurnRows? = null)
@@ -127,12 +164,13 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
     val streetsJ = j.optJSONArray("streets")
     val streets = if (streetsJ != null) (0 until streetsJ.length()).mapNotNull { k ->
         val sj = streetsJ.getJSONObject(k)
-        val es = names(sj.optJSONArray("buildings")).mapNotNull { bySprite[it] }
-        if (es.isEmpty()) null else StreetInfo(sj.optString("name", "Street"), es.map { it.stack }, es.map { it.owner })
+        val ns = names(sj.optJSONArray("buildings")).filter { bySprite[it] != null }
+        val es = ns.map { bySprite[it]!! }
+        if (es.isEmpty()) null else StreetInfo(sj.optString("name", "Street"), es.map { it.stack }, es.map { it.owner }, ns)
     } else {
         // an older street.json: one list, split in two
-        val all = bySprite.values.toList(); val half = (all.size + 1) / 2
-        listOf(all.take(half), all.drop(half)).filter { it.isNotEmpty() }.mapIndexed { k, es -> StreetInfo(if (k == 0) "Main Street" else "Side Street", es.map { it.stack }, es.map { it.owner }) }
+        val all = bySprite.entries.toList(); val half = (all.size + 1) / 2
+        listOf(all.take(half), all.drop(half)).filter { it.isNotEmpty() }.mapIndexed { k, es -> StreetInfo(if (k == 0) "Main Street" else "Side Street", es.map { it.value.stack }, es.map { it.value.owner }, es.map { it.key }) }
     }
     // the crossroads, for the corner turn: the same pictures the street uses (decoded once)
     fun facades(list: List<String>) = list.mapNotNull { bySprite[it]?.art }.map { TurnFacade(it.front, it.side, it.emis, it.prop) }
@@ -148,7 +186,7 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
 }
 
 @Composable
-private fun GameScreen() {
+private fun GameScreen(engine: DialogueEngine) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val data = remember { loadStreet(ctx) }
     // the main street and the cross street; the corner turn leads from one to the other
@@ -206,6 +244,35 @@ private fun GameScreen() {
         }
         turning = false
     }
+    // GameState is plain vars the stage updates every frame: copy them into Compose state so the HUD follows them
+    var near by remember { mutableIntStateOf(GameState.nearest) }
+    var atCorner by remember { mutableStateOf(GameState.atCorner) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            androidx.compose.runtime.withFrameNanos { }
+            near = GameState.nearest
+            atCorner = GameState.atCorner
+        }
+    }
+    // dialogue: who is at the building the player stands at, the open conversation, the AI panel
+    val people by engine.data.collectAsState()
+    val ai by engine.status.collectAsState()
+    var talk by remember { mutableStateOf<Talk?>(null) }
+    var aiPanel by remember { mutableStateOf(false) }
+    val here = street.sprites.getOrNull(near)
+    val atHere = remember(people, here) { people?.at(here).orEmpty() }
+    // lines are written ahead of time nearest the player first; re-sorted as they walk or turn the corner
+    LaunchedEffect(streetNo, near) { engine.setPlayer(streetNo, near) }
+    // the corner turn: no writing ahead while it plays (it needs the CPU), no conversation across it
+    LaunchedEffect(turning) {
+        if (turning) { talk?.close(); talk = null; engine.pause("turn") } else engine.resume("turn")
+    }
+    // walking away ends the conversation
+    LaunchedEffect(here) {
+        val t = talk
+        if (t != null && t.npc.building != here) { t.close(); talk = null }
+    }
+    val pickModel = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) engine.importModel(uri) }
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         HabitsStage(
             p = p, ui = HabitsUi(focus = shops[0].id), visible = true, top = 0f, bottom = 0f, cover = 0f, inset = 0f,
@@ -218,14 +285,25 @@ private fun GameScreen() {
             }
         }
         if (fade > 0f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = fade)))
-        if (turnArt != null && !turning && GameState.atCorner) Chip(if (streetNo == 0) "↰ Turn onto ${data.streets.getOrNull(1)?.name ?: "the side street"}" else "↳ Back to ${data.streets[0].name}", false,
+        if (turnArt != null && !turning && atCorner) Chip(if (streetNo == 0) "↰ Turn onto ${data.streets.getOrNull(1)?.name ?: "the side street"}" else "↳ Back to ${data.streets[0].name}", false,
             Modifier.align(if (streetNo == 0) Alignment.CenterEnd else Alignment.CenterStart).padding(horizontal = 14.dp)) { turnBack = streetNo == 1; turning = true }
         // the shop the player is standing at
-        val near = GameState.nearest
         if (near in shops.indices) {
             val st = shops[near]
             Text(st.cue + (owners.getOrNull(near)?.takeIf { it.isNotBlank() }?.let { "  ·  $it" } ?: ""), 15.sp,
                 Modifier.align(Alignment.BottomCenter).padding(bottom = 18.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
+        }
+        // someone to talk to here
+        val open = talk
+        if (open != null) {
+            DialoguePanel(open, onTopic = { open.ask(engine, it) }, onClose = { open.close(); talk = null },
+                modifier = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 92.dp))
+        } else if (!turning && turn < 0f && atHere.isNotEmpty()) {
+            Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 56.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                for (npc in atHere) Chip("Talk to ${npc.first}", false) {
+                    talk = Talk(npc).also { t -> npc.topics.firstOrNull()?.let { t.ask(engine, it) } }
+                }
+            }
         }
         // time of day
         Row(
@@ -251,6 +329,151 @@ private fun GameScreen() {
             HoldButton("▲") { GameState.moveLane = if (it) -1f else 0f }
             HoldButton("▼") { GameState.moveLane = if (it) 1f else 0f }
         }
+        // the dialogue AI, under the street name (drawn last, so its panel is on top): its state at a glance; tap for the
+        // model file and the speed numbers
+        Column(Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = 50.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Chip(aiChipLabel(ai), aiPanel) { aiPanel = !aiPanel }
+            if (aiPanel) AiPanel(ai, engine, onPick = {
+                try { pickModel.launch(arrayOf("*/*")) } catch (e: Exception) { /* no document picker on this device */ }
+            })
+        }
+    }
+}
+
+/** An open conversation: who, the topic asked, and the line on screen (updated as the model writes it). */
+private class Talk(val npc: Npc) {
+    var topic by mutableStateOf<Topic?>(null)
+    var line by mutableStateOf<Line?>(null)
+    private var request: DialogueEngine.Request? = null
+
+    fun ask(engine: DialogueEngine, t: Topic) {
+        request?.close()
+        topic = t
+        val r = engine.ask(npc, t) { line = it }
+        request = r
+        line = r.first
+    }
+
+    fun close() {
+        request?.close()
+        request = null
+    }
+}
+
+private val PANEL = Color(0xCC101420)
+private val DIM = Color(0xFFB8C2D6)
+private val AI_BLUE = Color(0xFF6FA8FF)
+
+/** The conversation: who, where, what they said (and whose words: the model's or the game's), and what to ask next. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun DialoguePanel(t: Talk, onTopic: (Topic) -> Unit, onClose: () -> Unit, modifier: Modifier) {
+    Column(
+        modifier.widthIn(max = 560.dp).background(PANEL, RoundedCornerShape(14.dp)).padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(t.npc.name, 16.sp)
+                Text(t.npc.buildingName, 12.sp, color = DIM)
+            }
+            Spacer(Modifier.width(8.dp))
+            Chip("✕", false, onClick = onClose)
+        }
+        t.line?.let { l ->
+            Text(l.text, 15.sp)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(7.dp).background(if (l.ai) AI_BLUE else Color(0xFF8A93A6), CircleShape))
+                Spacer(Modifier.width(5.dp))
+                Text(l.note, 11.sp, color = DIM)
+            }
+        }
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            for (tp in t.npc.topics) Chip(chipLabel(tp), t.topic === tp) { onTopic(tp) }
+        }
+    }
+}
+
+/** The game's menu labels are long for a landscape phone: short ones for the known topics, the game's for the rest. */
+private fun chipLabel(t: Topic): String = when (t.intent) {
+    "greet" -> "Hello"
+    "chat" -> "Chat"
+    "work" -> "Their work"
+    "family" -> "Their family"
+    "town" -> t.label.removePrefix("Ask about ")
+    "rumors" -> "Heard anything?"
+    "secret" -> "Any secrets?"
+    else -> t.label
+}
+
+private fun aiChipLabel(s: AiStatus): String = when (s.state) {
+    ModelState.STARTING -> "AI …"
+    ModelState.NO_ENGINE -> "AI off"
+    ModelState.NO_MODEL -> "AI: no model"
+    ModelState.COPYING -> if (s.copyPercent >= 0) "AI: copying ${s.copyPercent}%" else "AI: copying ${s.copiedMb} MB"
+    ModelState.LOADING -> "AI: loading…"
+    ModelState.READY -> if (s.working != null) "AI ✓ writing" else "AI ✓"
+    ModelState.UNLOADED -> "AI: unloaded"
+    ModelState.ERROR -> "AI: error"
+}
+
+private fun f1(v: Float) = String.format(java.util.Locale.US, "%.1f", v)
+private fun f0(v: Float) = String.format(java.util.Locale.US, "%.0f", v)
+
+/** The model (its file and state) and the speed numbers. */
+@Composable
+private fun AiPanel(s: AiStatus, engine: DialogueEngine, onPick: () -> Unit) {
+    Column(
+        Modifier.width(340.dp).heightIn(max = 240.dp).background(PANEL, RoundedCornerShape(12.dp)).verticalScroll(rememberScrollState())
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text("Dialogue AI", 15.sp)
+        Text(
+            when (s.state) {
+                ModelState.STARTING -> "Starting…"
+                ModelState.NO_ENGINE -> "No AI engine on this phone"
+                ModelState.NO_MODEL -> "No model"
+                ModelState.COPYING -> if (s.copyPercent >= 0) "Copying the model: ${s.copyPercent}%" else "Copying the model: ${s.copiedMb} MB"
+                ModelState.LOADING -> "Loading the model…"
+                ModelState.READY -> "Ready (${s.modelMb} MB model)"
+                ModelState.UNLOADED -> "Unloaded (low memory)"
+                ModelState.ERROR -> "Error"
+            }, 13.sp,
+        )
+        if (s.detail.isNotEmpty()) Text(s.detail, 12.sp, color = DIM)
+        if (s.state == ModelState.COPYING) {
+            Box(Modifier.fillMaxWidth().height(4.dp).background(Color(0x66FFFFFF), RoundedCornerShape(2.dp))) {
+                Box(Modifier.fillMaxWidth((s.copyPercent.coerceIn(0, 100) / 100f).coerceAtLeast(.02f)).height(4.dp).background(AI_BLUE, RoundedCornerShape(2.dp)))
+            }
+            Chip("Cancel", false) { engine.cancelImport() }
+        } else if (s.state != ModelState.LOADING && s.state != ModelState.STARTING) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                // (no point copying 400 MB for a build that cannot run it)
+                if (s.state != ModelState.NO_ENGINE) Chip(if (s.hasModel) "Replace model…" else "Choose model file…", false, onClick = onPick)
+                if (s.hasModel && (s.state == ModelState.ERROR || s.state == ModelState.UNLOADED)) Chip(if (s.state == ModelState.UNLOADED) "Load" else "Retry", false) { engine.reload() }
+                if (s.hasModel) Chip("Remove", false) { engine.removeModel() }
+            }
+        }
+        Spacer(Modifier.height(2.dp))
+        Text("Speed", 14.sp)
+        val st = s.stats
+        Text("Threads ${st.threads} · model load ${f1(st.loadMs / 1000f)} s", 12.sp, color = DIM)
+        Text("Last prompt ${st.promptTokens} tokens (${st.reusedTokens} reused) · prefill ${f0(st.prefillPerSec)} tok/s", 12.sp, color = DIM)
+        Text("Generation ${st.genTokens} tokens · ${f1(st.genPerSec)} tok/s · first token ${st.firstTokenMs} ms", 12.sp, color = DIM)
+        Text("Written ahead: ${s.lines} lines (${s.builtIn} kept built-in) · queued ${s.queued}" + (if (s.paused.isNotEmpty()) " · paused: ${s.paused}" else ""), 12.sp, color = DIM)
+        s.pregenOff?.let { Text(it, 12.sp, color = DIM) }
+        s.working?.let { Text("Writing: $it", 12.sp, color = DIM) }
+        Chip(if (s.speedTesting) "Testing…" else "Speed test", s.speedTesting) { if (!s.speedTesting) engine.speedTest() }
+        s.speed?.let { r ->
+            if (r.totalMs == 0L && r.error != null) Text(r.error, 12.sp, color = DIM)
+            else {
+                Text("${r.who} (${r.intent}): ${r.totalMs} ms, ${if (r.passed) "passed the check" else "rejected"}" + (r.error?.let { " · $it" } ?: ""), 12.sp)
+                Text("${r.stats.promptTokens} prompt tokens (${r.stats.reusedTokens} reused) · prefill ${f0(r.stats.prefillPerSec)} tok/s · " +
+                    "${r.stats.genTokens} tokens at ${f1(r.stats.genPerSec)} tok/s · first token ${r.stats.firstTokenMs} ms", 12.sp, color = DIM)
+                if (r.reply.isNotEmpty()) Text("“${r.reply}”", 12.sp, color = DIM)
+            }
+        }
     }
 }
 
@@ -264,9 +487,11 @@ private val WEATHERS = listOf<Pair<String, WeatherState?>>(
 
 @Composable
 private fun Chip(label: String, on: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    // the gesture handler outlives recompositions: always call the latest onClick (a reused chip may now mean someone else)
+    val click by rememberUpdatedState(onClick)
     Box(
         modifier.background(if (on) Color(0xCC3A6FD8) else Color(0x99101420), RoundedCornerShape(10.dp)).pointerInput(Unit) {
-            awaitEachGesture { awaitFirstDown(); waitForUpOrCancellation()?.let { onClick() } }
+            awaitEachGesture { awaitFirstDown(); waitForUpOrCancellation()?.let { click() } }
         }.padding(horizontal = 10.dp, vertical = 6.dp),
         contentAlignment = Alignment.Center,
     ) { Text(label, 13.sp) }
@@ -287,10 +512,10 @@ private fun HoldButton(label: String, onHeld: (Boolean) -> Unit) {
 }
 
 @Composable
-private fun Text(s: String, fontSize: androidx.compose.ui.unit.TextUnit = 15.sp, modifier: Modifier = Modifier) =
+private fun Text(s: String, fontSize: androidx.compose.ui.unit.TextUnit = 15.sp, modifier: Modifier = Modifier, color: Color = Color.White) =
     androidx.compose.foundation.text.BasicText(
         s, modifier,
-        style = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = fontSize, fontWeight = FontWeight.SemiBold),
+        style = androidx.compose.ui.text.TextStyle(color = color, fontSize = fontSize, fontWeight = FontWeight.SemiBold),
     )
 
 @Composable

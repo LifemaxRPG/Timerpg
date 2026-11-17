@@ -126,7 +126,8 @@ export function narrate(c: TalkCtx, intent: string): string {
     case 'work':
       return c.job.includes('owner') ? `I run ${c.job.replace(' (owner)', '')}. ${p.wealth > 5000 ? 'Business is good.' : 'It keeps the lights on.'}`
         : c.job === 'retired' ? 'Retired. I sit in the plaza and watch the world go by.'
-        : c.job === 'at school' ? 'I\'m at school.' : `I ${c.job}.`;
+        : c.job === 'at school' ? 'I\'m at school.'
+        : c.job.startsWith('works ') ? `I work ${c.job.slice('works '.length)}.` : `I'm ${c.job}.`;
     case 'news':
       return c.news ? `${c.news.headline}. ${c.news.body.split(/(?<=[.!?])\s/)[0] ?? ''}` : 'Quiet lately. Nothing to report.';
     case 'legend':

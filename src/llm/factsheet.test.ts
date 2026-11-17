@@ -34,6 +34,11 @@ describe('LLM fact sheet', () => {
     expect(validate('I have a lovely family.', f)).toBeNull();
     expect(validate(`I'm married to ${spouse.first}.`, brief({ ...ctx, person: { ...person, children: [] } }, 'family', 'x'))).toMatch(spouse.first);
   });
+  it('work answers must name the workplace, when there is one', () => {
+    expect(brief(ctx, 'work', 'x').must).toEqual(['Bakery']);
+    expect(brief({ ...ctx, job: 'works from home' }, 'work', 'x').must).toEqual([]);
+    expect(validate('I work from home.', brief({ ...ctx, job: 'works from home' }, 'work', 'x'))).toBe('I work from home.');
+  });
   it('requires the facts that must be mentioned', () => {
     const s = brief(ctx, 'rumors', 'x', ['Secret: Ann Lee is in debt.'], ['Ann']);
     expect(validate('Between us, Ann is broke.', s)).toBe('Between us, Ann is broke.');
