@@ -157,6 +157,7 @@ fun renderWalk(prefix: String, w: Int, h: Int, hour: Float, focus: String, phase
 fun main(args: Array<String>) {
     System.setProperty("java.awt.headless", "true")
     installDesktopImages()
+    if (System.getProperty("mode") == "turn") { renderTurn(args.getOrElse(0) { "build/preview" }, File("../app/src/main/assets").absolutePath); return }
     loadSheets(args.getOrElse(1) { "../public/assets/characters" })
     loadProps(File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path)
     val out = args.getOrElse(0) { "build/preview" }

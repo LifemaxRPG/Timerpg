@@ -27,3 +27,6 @@
 
 ## Pixel-perfect scaling
 The camera zoom is snapped so each sprite pixel is a whole, even number of screen pixels, the camera translate is rounded to whole pixels, and props and characters are drawn at 1x or 1.5x the building pixel scale. Pixel art stays crisp while moving. Toggle with `StageTuning.pixelPerfect`.
+
+## Corner turn preview
+`gradle :desktop:preview -Dmode=turn` renders `desktop/build/preview/turn_NN.png` (code: `desktop/src/main/kotlin/Turn.kt`). It is a standalone scene, not wired into the app yet: our building art on boxes around a crossroads, and a camera that yaws 90 degrees while travelling from the junction down the cross street. Each face is drawn as vertical sprite strips; buildings that end up between the camera and the player fade out; distance haze. `export/corner-turn-preview.gif` and `export/corner-turn-sheet.png` show it.
