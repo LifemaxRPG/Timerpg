@@ -490,6 +490,7 @@ class DialogueEngine private constructor(private val app: Context) {
             }
         }
         val acc = native?.accelerators ?: 0
+        com.timerpg.street.llm.AiLane.dialogueOffCpu = (native?.runsOn ?: 0) != 0
         _status.update { it.copy(runsOn = native?.runsOn ?: 0, hasGpu = acc and 1 != 0, hasNpu = acc and 2 != 0, gpuNote = gpuNote, loadInfo = native?.loadInfo) }
         if (closed) return
         if (!ok || !b.loaded) {

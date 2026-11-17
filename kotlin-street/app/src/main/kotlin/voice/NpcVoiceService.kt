@@ -30,12 +30,24 @@ class NpcVoiceService(private val ctx: Context) {
         com.timerpg.voice.VoiceBank.xnnpack = p.getBoolean("xnnpack", false)
         com.timerpg.voice.VoiceBank.only = p.getInt("only", 0)
     }
-    private val worker = Executors.newSingleThreadExecutor { r -> Thread(r, "npc-voices").apply { isDaemon = true } }
+    /**
+     * One thread for the voices, its work by priority: what someone is about to say ([LIVE]) before their fillers
+     * ([FILLER]) before lines made ahead ([AHEAD]); first come first served within each.
+     */
+    private class Job(val prio: Int, val seq: Long, val block: () -> Unit) : Runnable, Comparable<Job> {
+        override fun run() = block()
+        override fun compareTo(other: Job) = compareValuesBy(this, other, { it.prio }, { it.seq })
+    }
+    private val pool = java.util.concurrent.ThreadPoolExecutor(1, 1, 0L, java.util.concurrent.TimeUnit.MILLISECONDS,
+        java.util.concurrent.PriorityBlockingQueue<Runnable>()) { r -> Thread(r, "npc-voices").apply { isDaemon = true } }
+    private val seq = java.util.concurrent.atomic.AtomicLong()
+    private fun run(prio: Int, block: () -> Unit) = pool.execute(Job(prio, seq.incrementAndGet(), block))
+        private fun workerExecute(block: () -> Unit) = run(LIVE, block)
     private val main = Handler(Looper.getMainLooper())
     private var player: MediaPlayer? = null
     @Volatile private var generation = 0
     // the voice engines (loaded whole into RAM) are let go when nothing has been spoken or made ahead for ten minutes
-    private val idle = Runnable { worker.execute { bank.close() } }
+    private val idle = Runnable { workerExecute { bank.close() } }
     private fun touch() { main.removeCallbacks(idle); main.postDelayed(idle, 600_000L) }
 
     /** Told when an NPC starts and stops speaking (the street's sound dips under the voice). */
@@ -47,7 +59,7 @@ class NpcVoiceService(private val ctx: Context) {
         set(on) {
             ctx.getSharedPreferences("voices", Context.MODE_PRIVATE).edit().putBoolean("xnnpack", on).apply()
             com.timerpg.voice.VoiceBank.xnnpack = on
-            worker.execute { bank.close() }   // loaded again the new way on the next line
+            workerExecute { bank.close() }   // loaded again the new way on the next line
         }
 
     /** Which voice engines speak: 0 both, 1 Kokoro only, 2 Supertonic only (for comparing them). */
@@ -57,7 +69,7 @@ class NpcVoiceService(private val ctx: Context) {
             ctx.getSharedPreferences("voices", Context.MODE_PRIVATE).edit().putInt("only", v).apply()
             com.timerpg.voice.VoiceBank.only = v
             stop()
-            worker.execute { bank.close() }
+            workerExecute { bank.close() }
         }
 
     /** Voices on or off (the player's choice). */
@@ -93,7 +105,7 @@ class NpcVoiceService(private val ctx: Context) {
      */
     fun say(npc: Npc, text: String) {
         // a filler is playing for them: the line follows it rather than cutting it off
-        val behindFiller = fillerFor == npc.id && player != null
+        val behindFiller = fillerFor == npc.id
         val e = early
         early = null
         if (e != null && e.first == npc.id && text.trim().startsWith(e.second) && text.trim().length > e.second.length) {
@@ -102,22 +114,22 @@ class NpcVoiceService(private val ctx: Context) {
             return
         }
         if (e != null && e.first == npc.id && text.trim() == e.second) return
-        if (behindFiller) { queue.clear(); fillerFor = null } else stop()
+        if (behindFiller) fillerFor = null else stop()
         if (!enabled || text.isBlank()) return
         touch()
         val g = generation
         val t0 = android.os.SystemClock.elapsedRealtime()
-        worker.execute {
-            if (g != generation) return@execute
-            val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@execute
+        workerExecute {
+            if (g != generation) return@workerExecute
+            val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@workerExecute
             // memory short (the dialogue model on the NPU): one voice engine at a time
             if (com.timerpg.street.llm.Ram.freeMb(ctx) < 1100) bank.keepOnly(v)
             val wasLoaded = bank.isLoaded(v.engine)
             var first = -1L; var made = 0L; var audio = 0.0
             for (part in sentences(text)) {
-                if (g != generation) return@execute
+                if (g != generation) return@workerExecute
                 val a = android.os.SystemClock.elapsedRealtime()
-                val f = try { com.timerpg.street.llm.AiLane.run("voice") { bank.speak(v, part) } } catch (e: Throwable) { null } ?: continue
+                val f = try { com.timerpg.street.llm.AiLane.voice { bank.speak(v, part) } } catch (e: Throwable) { null } ?: continue
                 made += android.os.SystemClock.elapsedRealtime() - a
                 audio += (f.length() - 44).coerceAtLeast(0) / 2.0 / wavRate(f)
                 if (first < 0) first = android.os.SystemClock.elapsedRealtime() - t0
@@ -142,14 +154,14 @@ class NpcVoiceService(private val ctx: Context) {
      */
     fun prepareFillers(npc: Npc, lines: List<String>) {
         if (!enabled || !installed) return
-        val run = ++fillerPrep
+        val mine = ++fillerPrep
         fun next(i: Int) {
             if (i >= lines.size) return
-            worker.execute {
-                if (run != fillerPrep) return@execute
-                val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@execute
-                if (!bank.isLoaded(v.engine) && com.timerpg.street.llm.Ram.freeMb(ctx) < 1300) return@execute
-                if (!bank.cached(v, lines[i]).isFile) try { com.timerpg.street.llm.AiLane.run("voice") { bank.speak(v, lines[i]) } } catch (e: Throwable) { }
+            run(FILLER) {
+                if (mine != fillerPrep) return@run
+                val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@run
+                if (!bank.isLoaded(v.engine) && com.timerpg.street.llm.Ram.freeMb(ctx) < 1300) return@run
+                if (!bank.cached(v, lines[i]).isFile) try { com.timerpg.street.llm.AiLane.voice { bank.speak(v, lines[i]) } } catch (e: Throwable) { }
                 next(i + 1)
             }
         }
@@ -172,16 +184,34 @@ class NpcVoiceService(private val ctx: Context) {
         return true
     }
 
+    /**
+     * Says [echo] (the player's question said back, see Fillers.echo) as soon as it is voiced, which starts now ahead of
+     * anything else; [npc]'s answer then follows it.
+     */
+    fun sayEcho(npc: Npc, echo: String) {
+        if (!enabled || !installed || echo.isBlank()) return
+        stop()
+        fillerFor = npc.id
+        touch()
+        val g = generation
+        run(LIVE) {
+            if (g != generation) return@run
+            val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@run
+            val f = try { com.timerpg.street.llm.AiLane.voice { bank.speak(v, echo) } } catch (e: Throwable) { null } ?: return@run
+            main.post { if (g == generation) enqueue(f) }
+        }
+    }
+
     /** The rest of a line whose first sentence is playing: made and queued behind it. */
     private fun continueWith(npc: Npc, rest: String) {
         if (!enabled || rest.isBlank()) return
         val g = generation
-        worker.execute {
-            if (g != generation) return@execute
-            val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@execute
+        workerExecute {
+            if (g != generation) return@workerExecute
+            val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@workerExecute
             for (part in sentences(rest)) {
-                if (g != generation) return@execute
-                val f = try { com.timerpg.street.llm.AiLane.run("voice") { bank.speak(v, part) } } catch (e: Throwable) { null } ?: continue
+                if (g != generation) return@workerExecute
+                val f = try { com.timerpg.street.llm.AiLane.voice { bank.speak(v, part) } } catch (e: Throwable) { null } ?: continue
                 main.post { if (g == generation) enqueue(f) }
             }
         }
@@ -191,11 +221,12 @@ class NpcVoiceService(private val ctx: Context) {
     fun prepare(npc: Npc, text: String) {
         if (!enabled || text.isBlank() || !installed) return
         touch()
-        worker.execute {
-            val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@execute
+        run(AHEAD) {
+            val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@run
             // made ahead when the voice is loaded, or there is room to load it
-            if (!bank.isLoaded(v.engine) && com.timerpg.street.llm.Ram.freeMb(ctx) < 1300) return@execute
-            for (part in sentences(text)) try { com.timerpg.street.llm.AiLane.run("voice") { bank.speak(v, part) } } catch (e: Throwable) { }
+            if (!bank.isLoaded(v.engine) && com.timerpg.street.llm.Ram.freeMb(ctx) < 1300) return@run
+            // a sentence per job, so what someone is about to say waits for one sentence at most
+            for (part in sentences(text)) run(AHEAD) { try { com.timerpg.street.llm.AiLane.voice { bank.speak(v, part) } } catch (e: Throwable) { } }
         }
     }
 
@@ -222,6 +253,12 @@ class NpcVoiceService(private val ctx: Context) {
     } catch (e: Exception) { 24000.0 }
 
     private val queue = ArrayDeque<File>()
+
+    private companion object {
+        const val LIVE = 0
+        const val FILLER = 1
+        const val AHEAD = 2
+    }
 
     private fun enqueue(f: File) { if (player == null) play(f) else queue.addLast(f) }
 
@@ -276,5 +313,5 @@ class NpcVoiceService(private val ctx: Context) {
 
     fun cancelDownload() { cancelDownload = true }
 
-    fun close() { stop(); worker.execute { bank.close() }; worker.shutdown() }
+    fun close() { stop(); workerExecute { bank.close() }; pool.shutdown() }
 }

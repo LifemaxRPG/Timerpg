@@ -16,6 +16,15 @@ object AiLane {
     @Volatile var current: String? = null
         private set
 
+    /**
+     * The dialogue model runs off the CPU (the NPU or the GPU): the voices need not wait for it, they run beside it on
+     * the CPU ([voice]). Set by the dialogue engine when it loads.
+     */
+    @Volatile var dialogueOffCpu = false
+
+    /** A voice's work: in the lane while the dialogue model shares the CPU, beside it when the model is on the NPU or GPU. */
+    fun <T> voice(block: () -> T): T = if (dialogueOffCpu) block() else run("voice", block)
+
     fun <T> run(what: String, block: () -> T): T = lock.withLock {
         val before = current
         current = what

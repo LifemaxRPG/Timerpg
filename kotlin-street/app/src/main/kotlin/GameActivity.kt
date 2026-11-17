@@ -693,6 +693,9 @@ private class Talk(val npc: Npc) {
         var spoken: String? = null
         val t0 = android.os.SystemClock.elapsedRealtime()
         var tAsk = 0L; var tFirst = 0L
+        // they say the question back at once (voiced now, beside the model writing the answer), the answer after it
+        val echo = com.timerpg.street.dialogue.Fillers.echo(text, npc.warmth, fillerSeed++)
+        if (echo != null) voices?.sayEcho(npc, echo)
         val heardBy = heardNote
         var early = false
         fun heard(l: Line) {
@@ -716,7 +719,7 @@ private class Talk(val npc: Npc) {
             topic = tp
             request = r
             line = r.first
-            if (r.first?.final != true) filler(text, voices)
+            if (r.first?.final != true && echo == null) filler(text, voices)
             heard(r.first)
         }
         // what they remember that bears on it goes into their fact sheet first

@@ -47,6 +47,45 @@ object Fillers {
         return pool[Math.floorMod(seed, pool.size)]
     }
 
+    private val QUESTION_START = Regex("""^(who|whom|whose|what|where|when|why|how|which|are|is|am|do|does|did|have|has|had|was|were|can|could|will|would|should|shall)\b""", RegexOption.IGNORE_CASE)
+    /** Words after which "you" is the subject ("are you", "where do you") and becomes "I"; elsewhere it becomes "me". */
+    private val BEFORE_SUBJECT = setOf("are", "were", "do", "did", "does", "can", "could", "will", "would", "should", "have", "has", "had",
+        "shall", "what", "who", "where", "when", "why", "how", "if", "that", "and", "but", "or", "so", "because")
+    private val PAIRS = listOf("are you" to "am I", "were you" to "was I", "aren't you" to "aren't I", "weren't you" to "wasn't I",
+        "you are" to "I am", "you were" to "I was", "you're" to "I'm", "you've" to "I've", "you'll" to "I'll", "you'd" to "I'd",
+        "am i" to "are you", "was i" to "were you", "i am" to "you are", "i was" to "you were", "i'm" to "you're", "i've" to "you've")
+    private val SWAP = mapOf("your" to "my", "yours" to "mine", "yourself" to "myself", "my" to "your", "mine" to "yours",
+        "myself" to "yourself", "me" to "you", "i" to "you", "us" to "you")
+
+    /**
+     * The player's question said back as the person would, to think out loud while the answer is made: "Who's the
+     * wealthiest person in this town? Well...", "How old am I? Ha, well..." (you and I swapped). Null when it is not a
+     * question or too long to say back naturally (a filler is used then).
+     */
+    fun echo(question: String, warmth: Float, seed: Int): String? {
+        var t = question.trim().trimEnd('?', '.', '!', ' ').trimStart('"', '\'')
+        val words = t.split(Regex("""\s+""")).filter { it.isNotEmpty() }
+        if (words.size !in 2..11 || !QUESTION_START.containsMatchIn(t)) return null
+        // you and I swapped: two-word forms first ("are you" -> "am I"), then single words
+        val out = ArrayList<String>()
+        var i = 0
+        while (i < words.size) {
+            val pair = if (i + 1 < words.size) PAIRS.firstOrNull { (a, _) -> a == "${words[i]} ${words[i + 1]}".lowercase() } else null
+            if (pair != null) { out += pair.second.split(' '); i += 2; continue }
+            val w = words[i]; val low = w.lowercase()
+            out += when {
+                low == "you" -> if (i > 0 && words[i - 1].lowercase() in BEFORE_SUBJECT) "I" else "me"
+                low in SWAP -> SWAP.getValue(low)
+                else -> w
+            }
+            i++
+        }
+        t = out.joinToString(" ")
+        t = t.replaceFirstChar { it.uppercase() }
+        val tails = if (warmth >= .45f) listOf("Oh, well...", "Hmm, well...", "Well now...", "Ha, well...") else listOf("Hm.", "Well.", "Hm. Well...")
+        return "$t? " + tails[Math.floorMod(seed, tails.size)]
+    }
+
     /** Every filler a person of [warmth] might say (to voice them all ahead of time). */
     fun all(warmth: Float): List<String> {
         val warm = warmth >= .45f

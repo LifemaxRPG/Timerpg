@@ -26,4 +26,15 @@ class FillersTest {
     fun noFillerAnswersTheQuestion() {
         for (w in listOf(.1f, .9f)) for (f in Fillers.all(w)) assertTrue(f, !f.contains("don't know") && !f.contains("Yes") && !f.contains("No,"))
     }
+
+    @Test
+    fun echoesSayTheQuestionBackFromTheirSide() {
+        assertTrue(Fillers.echo("who's the wealthiest person in this town", .9f, 0)!!.startsWith("Who's the wealthiest person in this town? "))
+        assertTrue(Fillers.echo("how old are you", .9f, 0)!!.startsWith("How old am I? "))
+        assertTrue(Fillers.echo("were you born here", .2f, 0)!!.startsWith("Was I born here? "))
+        assertTrue(Fillers.echo("what do you think of my hat", .9f, 0)!!.startsWith("What do I think of your hat? "))
+        assertTrue(Fillers.echo("do you know me", .9f, 0)!!.startsWith("Do I know you? "))
+        assertTrue(Fillers.echo("tell me about the mill", .9f, 0) == null)   // not a question
+        assertTrue(Fillers.echo("what", .9f, 0) == null)
+    }
 }
