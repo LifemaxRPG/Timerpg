@@ -94,6 +94,8 @@ class DialogueEngine private constructor(private val app: Context) {
         @Volatile var timedOut = false
         @Volatile var shown = ""
         @Volatile var done = false
+        /** Someone started waiting for it while it was being written ahead: the worker goes to full speed. */
+        @Volatile var wanted = false
     }
 
     private class Planned(val target: Target, val job: PregenQueue.Job)
@@ -114,6 +116,8 @@ class DialogueEngine private constructor(private val app: Context) {
     @Volatile private var planned: Map<String, Planned> = emptyMap()
     @Volatile private var pregenOff: String? = null
     @Volatile private var unloadedForMemory = false
+    @Volatile private var foreground = true
+    private val liftMemoryPause = Runnable { resume("memory") }
     // worker only
     private var failures = 0
     private var timeouts = 0
@@ -145,9 +149,10 @@ class DialogueEngine private constructor(private val app: Context) {
         val req = Request(template(topic, "built-in · the AI is writing…", final = false), onLine)
         lock.withLock {
             val cur = running
-            if (cur != null && cur.key == key && !cur.cancelled && !cur.speed) {
-                // already being written ahead of time: listen in
+            if (cur != null && cur.key == key && !cur.cancelled && !cur.speed && !cur.done) {
+                // already being written ahead of time: listen in (and the worker speeds up for it)
                 cur.listeners += req
+                cur.wanted = true
                 cur.shown.takeIf { it.isNotEmpty() }?.let { s -> post(req, Line(s, true, false, "AI · writing…")) }
             } else {
                 dropDemandLocked()
@@ -187,7 +192,13 @@ class DialogueEngine private constructor(private val app: Context) {
 
     /** The activity is visible ([on]) or not. Coming back reloads a model that was unloaded to free memory. */
     fun onForeground(on: Boolean) {
-        if (!on) { pause("background"); return }
+        foreground = on
+        if (!on) {
+            pause("background")
+            // a line the open panel was waiting for stops too (it goes back in the queue; the panel keeps the template)
+            lock.withLock { running?.let { if (!it.speed) cancelLocked(it) } }
+            return
+        }
         resume("background")
         resume("memory")
         if (unloadedForMemory) { unloadedForMemory = false; command { loadModel() } }
@@ -199,10 +210,16 @@ class DialogueEngine private constructor(private val app: Context) {
         when {
             level >= ComponentCallbacks2.TRIM_MEMORY_BACKGROUND || level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL -> {
                 pause("memory")
-                lock.withLock { running?.let { cancelLocked(it) } }
+                // stop what runs, including a model still loading (it would only be unloaded again)
+                lock.withLock { running?.let { cancelLocked(it) } ?: cancelBackendLocked() }
                 command { unloadForMemory() }
             }
-            level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW -> pause("memory")
+            level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW -> {
+                // a moment's pressure: hold the lines written ahead for a minute, then try again
+                pause("memory")
+                main.removeCallbacks(liftMemoryPause)
+                main.postDelayed(liftMemoryPause, 60_000L)
+            }
         }
     }
 
@@ -249,8 +266,9 @@ class DialogueEngine private constructor(private val app: Context) {
     fun close() {
         closed = true
         copyCancel = true
+        main.removeCallbacks(liftMemoryPause)
         lock.withLock {
-            running?.let { cancelLocked(it) }
+            running?.let { cancelLocked(it) } ?: cancelBackendLocked()
             wake.signal()
         }
     }
@@ -438,7 +456,8 @@ class DialogueEngine private constructor(private val app: Context) {
     } catch (e: Exception) { null }
 
     private fun unloadForMemory() {
-        if (backend == null) return
+        // the player came back before this ran: keep the model
+        if (backend == null || foreground) return
         closeBackend()
         unloadedForMemory = true
         setState(ModelState.UNLOADED, "The model was unloaded to free memory. It loads again when you come back (or tap Load).")
@@ -461,14 +480,31 @@ class DialogueEngine private constructor(private val app: Context) {
             }
             is ModelFiles.Copy.Done -> {
                 closeBackend()
-                if (!ModelFiles.install(r.part, ModelFiles.file(app))) {
-                    _status.update { it.copy(hasModel = false) }
-                    return setState(ModelState.ERROR, "Could not save the model file.")
+                // the working model is kept aside until the new one has loaded: a file that is a GGUF but not a model
+                // the game can use must not cost the player the one they had
+                val cur = ModelFiles.file(app)
+                val old = File(cur.path + ".old")
+                old.delete()
+                val hadOld = cur.isFile && cur.renameTo(old)
+                if (!ModelFiles.install(r.part, cur)) {
+                    if (hadOld) old.renameTo(cur)
+                    loadModel()
+                    return setState(if (backend?.loaded == true) ModelState.READY else ModelState.ERROR, "Could not save the model file.")
                 }
-                // a new model gets its own try at the lines the old one failed
-                cache.dropTemplates()
-                cache.save()
                 loadModel()
+                if (backend?.loaded == true) {
+                    old.delete()
+                    // a new model gets its own try at the lines the old one failed
+                    cache.dropTemplates()
+                    cache.save()
+                    enqueueAll()
+                } else if (hadOld) {
+                    val why = _status.value.detail
+                    cur.delete()
+                    old.renameTo(cur)
+                    loadModel()
+                    setState(_status.value.state, "That file could not be used ($why). The previous model is back.")
+                }
             }
         }
     }
@@ -495,7 +531,8 @@ class DialogueEngine private constructor(private val app: Context) {
             return
         }
         // someone is waiting: full speed; ahead of time: stay out of the game's way
-        priority(if (g.speed || g.listeners.isNotEmpty()) Process.THREAD_PRIORITY_DEFAULT else Process.THREAD_PRIORITY_BACKGROUND)
+        var raised = g.speed || g.listeners.isNotEmpty()
+        priority(if (raised) Process.THREAD_PRIORITY_DEFAULT else Process.THREAD_PRIORITY_BACKGROUND)
         _status.update { it.copy(working = if (g.speed) "speed test (${npc.name})" else "${npc.name} · ${topic.intent}") }
         val t0 = SystemClock.elapsedRealtime()
         var end = End.REJECTED
@@ -505,11 +542,14 @@ class DialogueEngine private constructor(private val app: Context) {
         for (attempt in 1..MAX_TRIES) {
             if (g.cancelled || closed) { end = End.CANCELLED; break }
             if (attempt > 1) { g.shown = ""; g.send(template(topic, "built-in · the AI is trying again…", final = false)) }
+            if (g.wanted && !raised) { raised = true; priority(Process.THREAD_PRIORITY_DEFAULT) }
             val sb = StringBuilder()
             val watchdog = Runnable { g.timedOut = true; lock.withLock { cancelLocked(g) } }
             main.postDelayed(watchdog, TIMEOUT_MS)
             var raw: String? = try {
                 b.generate(prompt, MAX_TOKENS, TEMPERATURE) { piece ->
+                    // the worker's own thread: someone began waiting for this line, so it gets full speed now
+                    if (g.wanted && !raised) { raised = true; priority(Process.THREAD_PRIORITY_DEFAULT) }
                     sb.append(piece)
                     if (g.listeners.isNotEmpty()) {
                         val s = Dialogue.preview(sb.toString())
@@ -557,7 +597,11 @@ class DialogueEngine private constructor(private val app: Context) {
             }
             End.ERROR -> {
                 g.finish(template(topic, "built-in · the AI failed"))
-                if (++failures >= 3) {
+                if (error != null && PROMPT_ERRORS.any { error!!.contains(it) }) {
+                    // this prompt will always fail (too long for the context, cannot be tokenized): the template it is,
+                    // without taking the model down for the rest of the town
+                    if (!g.speed) { cache.putTemplate(g.key); cache.save() }
+                } else if (++failures >= 3) {
                     closeBackend()
                     setState(ModelState.ERROR, "The model stopped working (${error ?: "unknown error"}). Tap Retry to load it again.")
                 } else requeue(g)
@@ -584,6 +628,11 @@ class DialogueEngine private constructor(private val app: Context) {
         old.finish(template(old.target.topic, "built-in"))
         if (old.speed) _status.update { it.copy(speedTesting = false, speed = SpeedResult(old.target.npc.name, old.target.topic.intent, "", false, 0, LlmStats(), "Speed test replaced by a question; try again.")) }
         else if (cache.get(old.key) == null) planned[old.key]?.let { queue.add(it.job) }
+    }
+
+    /** Stops whatever the backend is doing when no line is (a model being loaded). Under [lock]. */
+    private fun cancelBackendLocked() {
+        try { backend?.cancel() } catch (t: Throwable) { Log.w(TAG, "cancel: $t") }
     }
 
     /** Asks [g] to stop. Holding [lock] keeps this from racing with the backend being closed. */
@@ -647,8 +696,10 @@ class DialogueEngine private constructor(private val app: Context) {
         const val MAX_TRIES = 2
         /** A reply that takes longer than this is given up (the template stays). */
         const val TIMEOUT_MS = 45_000L
+        /** Native errors that come from the prompt itself, not from the model: they would happen every time. */
+        private val PROMPT_ERRORS = listOf("prompt too long", "could not tokenize", "empty prompt")
         private const val SETTINGS = "v1 tokens=$MAX_TOKENS temperature=$TEMPERATURE"
-        private const val NO_MODEL_TEXT = "No model yet: people use their built-in lines. Choose the model file (qwen3-0.6b-q4_k_m.gguf, about 400 MB) to give them their own words. It is copied into the game once."
+        private const val NO_MODEL_TEXT = "No model yet: people use their built-in lines. Download it from the AI panel, or choose the model file (Qwen3.5-9B-Q4_K_M.gguf, about 5.7 GB) to give them their own words. It is copied into the game once."
         private const val READY_TEXT = "Ready. Lines near you are written ahead of time."
 
         fun keyOf(prompt: String): String = ReplyCache.keyOf(prompt, SETTINGS)

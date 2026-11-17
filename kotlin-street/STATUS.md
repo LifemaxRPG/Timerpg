@@ -45,18 +45,20 @@
 - The engine is `NativeLlm` (`llm/Backends.kt`): llama.cpp built into the APK (arm64-v8a; CPU kernels armv8.0 /
   armv8.2+dotprod+fp16 / armv8.6+i8mm, best one picked at run time), KV prefix reuse, old sampler settings, streaming,
   cancel, errors instead of crashes (missing/invalid model, no native library, low memory).
-- Nothing ships or downloads the model file: it is picked from the phone's storage once.
-- Measured on a computer (4-core x86 cloud machine, NOT the S25), `tools/llm-dialogue-check.sh`, all 75 distinct
-  prompts in dialogue.json, the app's settings: every prompt is one ChatML conversation as Qwen3 expects (no double
-  wrapping, no BOS), every reply ended at `<|im_end|>` (none ran into the 56-token limit, no `<think>` output), the
-  Kotlin and TypeScript `validate()` agree on all 75. 70 of 75 pass on the first try (73 within the app's two tries);
-  rejected: "A warm smile." for warm people's small talk (4), one secret that names the speaker herself. 2 threads:
-  ~290 tok/s prompt processing, ~26 tok/s generation, ~0.2 s to the first token, ~0.7 s per line; 59% of prompt tokens
-  come from the KV cache. 4 threads with other work on the machine collapses to 2-11 tok/s (spin-waiting threads).
-- What passes but reads badly: the model often copies the example line, and some replies echo the fact sheet ("No,
-  I'm just gruff and guarded.", "I'm just a man in Maple Hollow, 2025.").
+- The model is **Qwen3.5-9B** (Q4_K_M, 5.7 GB; Apache-2.0), the strongest Qwen that fits a phone (Qwen3.6/3.8 are 27B
+  and up). The AI panel downloads it (and both voice engines) from Hugging Face with resume, or a file can be picked.
+  Qwen3.5 is a hybrid model (Gated DeltaNet + attention): its recurrent state cannot be cut back, so the engine saves
+  snapshots of the state at each line end of the fact sheet (`Engine::take_snapshot`, LRU of 8) and starts the next
+  prompt from the longest one it begins with (the shared rules for anyone, the person's lines for the same person).
+- Measured on a computer (4-core x86 cloud machine, NOT the S25), `tools/llm-dialogue-check.sh`, all 75 prompts:
+  Qwen3.5-9B: 73 of 75 (97%) pass `validate()` (Qwen3-0.6B: 67-68 of 75, ~89%), replies in character ("Get off my
+  porch before I call the sheriff."); ~33-44 tok/s prompt processing, ~2.5-5 tok/s generation, ~12 s per line before the
+  snapshots; with them about 60% of each prompt is skipped. The S25 Ultra's 8 Oryon cores (6 threads) should be several
+  times faster: an estimate until measured there. Kotlin and TypeScript `validate()` agree on all 75.
+- `validate()` (both copies) also rejects a name the prompt never mentions (a capitalized word mid-sentence), the fact
+  sheet's way of speaking read back ("A curt, measured response: ..."), and the "<town>, <year>" tag.
 - Guesses to check on a device: the free-memory thresholds for loading, the 45 s reply timeout, two tries per line, the
-  thread count (4 on the S25 Ultra by its cpu_capacity, 2 if only clocks can be read), the panel sizes on small
+  thread count (6 on the S25 Ultra by its cpu_capacity, 2 if only clocks can be read), the panel sizes on small
   landscape screens.
 
 ## Known rough edges / not done

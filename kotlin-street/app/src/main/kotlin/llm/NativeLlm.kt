@@ -76,6 +76,8 @@ class NativeLlm(context: Context? = null) : LlmBackend {
      */
     override fun load(path: String, threads: Int, contextTokens: Int): Boolean {
         if (isMainThread()) return loadFailed("load() was called on the main thread; call it from a background thread")
+        // from inside onToken the lock is this thread's own: a load would run under the generation still on the stack
+        check(!genLock.isHeldByCurrentThread) { "load() called from inside onToken; stop by returning false" }
         libraryError?.let { return loadFailed(it) }
         val file = File(path)
         if (!file.isFile) return loadFailed("Model file not found: $path")
@@ -83,7 +85,9 @@ class NativeLlm(context: Context? = null) : LlmBackend {
         if (file.length() < 1L shl 20) return loadFailed("Model file is too small to be a model (${file.length()} bytes): $path")
         val ctx = (if (contextTokens > 0) contextTokens else 1024).coerceIn(128, 32768)
         if (memoryCheck) {
-            val needMb = (file.length() + ctx * KV_BYTES_PER_TOKEN + OVERHEAD_BYTES) shr 20
+            // the weights are mapped from the file: clean pages the system can drop and read again, so half of them is
+            // what has to fit beside everything else; the cache and the buffers are the model's own memory
+            val needMb = (file.length() / 2 + ctx * KV_BYTES_PER_TOKEN + OVERHEAD_BYTES) shr 20
             val freeMb = availableMemoryMb()
             if (freeMb in 0 until needMb) {
                 return loadFailed("Not enough free memory for the dialogue AI: about $needMb MB needed, $freeMb MB free")
@@ -214,6 +218,8 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     }
 
     private fun unload(reason: String?) {
+        // from inside onToken the lock is this thread's own: destroying the engine under the running generation
+        check(!genLock.isHeldByCurrentThread) { "close() or load() called from inside onToken; stop by returning false" }
         cancel()
         genLock.withLock {
             if (handle != 0L) runCatching { nativeDestroy(handle) }
@@ -231,8 +237,9 @@ class NativeLlm(context: Context? = null) : LlmBackend {
 
     private fun loadFailed(why: String): Boolean {
         Log.w(TAG, "load failed: $why")
+        // [loaded] is left as it is: a check that fails before the native load leaves the model loaded before in place
+        // (still usable, and closed by close()); the native load itself clears it first, as it frees the old model
         error = why
-        loaded = false
         return false
     }
 
@@ -291,7 +298,7 @@ class NativeLlm(context: Context? = null) : LlmBackend {
 
         /**
          * Threads for the model: the phone's big cores (from /sys/devices/system/cpu/cpu N/cpu_capacity, else
-         * cpufreq/cpuinfo_max_freq), at most 4, and always leaving two cores for the game's own main and render threads.
+         * cpufreq/cpuinfo_max_freq), at most 6, and always leaving two cores for the game's own main and render threads.
          * See [threadsFor].
          */
         fun defaultThreads(): Int {
@@ -307,7 +314,7 @@ class NativeLlm(context: Context? = null) : LlmBackend {
          * clock together, the fastest core 1024) and max [clocks]; either may be empty (unknown).
          * Big cores: with capacities, those with at least half the fastest one's. The S25 Ultra's Snapdragon 8 Elite has
          * no little cores (6 x 3.53 GHz cores of the same design as its 2 x 4.47 GHz ones, so about 800 of 1024): all 8
-         * count and it gets 4 threads, where "faster than the slowest cluster" would give it 2; little A5x cores are at
+         * count and it gets 6 threads, where "faster than the slowest cluster" would give it 2; little A5x cores are at
          * a third of the fastest or less. With clocks only: those faster than the slowest cluster (a clock alone cannot
          * tell a little core from a slower big one, e.g. 1.9 GHz A55s next to 2.4 GHz A78s).
          * Running on little cores as well only slows every step down to their pace, and llama.cpp's threads spin-wait for
@@ -315,7 +322,7 @@ class NativeLlm(context: Context? = null) : LlmBackend {
          * 4-core machine with one core busy: 4 threads 0.3 tok/s, 2 threads 12-14 tok/s): hence two cores for the game.
          */
         fun threadsFor(cores: Int, capacities: List<Long>, clocks: List<Long> = emptyList()): Int {
-            val cap = minOf(4, cores - 2).coerceAtLeast(1)
+            val cap = minOf(6, cores - 2).coerceAtLeast(1)
             val big = when {
                 capacities.size >= 2 -> capacities.max().let { top -> capacities.count { it * 2 >= top } }
                 clocks.size >= 2 -> clocks.min().let { low -> clocks.count { it > low } }.takeIf { it > 0 } ?: clocks.size

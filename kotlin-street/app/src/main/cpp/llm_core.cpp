@@ -30,6 +30,9 @@ namespace llm {
 
 namespace {
 
+/** Saved states of a recurrent or hybrid model (Engine::take_snapshot): each is tens of MB for a 9B model. */
+constexpr size_t kMaxSnapshots = 8;
+
 int64_t now_ms() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
@@ -289,7 +292,59 @@ void Engine::unload() {
     model_ = nullptr;
     vocab_ = nullptr;
     cached_.clear();
+    snapshots_.clear();
+    recurrent_ = false;
     n_batch_ = 0;
+}
+
+std::vector<size_t> Engine::line_ends(const std::vector<int32_t> & toks) const {
+    std::vector<size_t> out;
+    char buf[64];
+    for (size_t i = 0; i < toks.size(); ++i) {
+        const int32_t n = llama_token_to_piece(vocab_, toks[i], buf, sizeof buf, 0, /*special*/ true);
+        if (n <= 0) continue;
+        const std::string piece(buf, (size_t) n);
+        if (piece == "<|im_end|>") break;                    // the system message ends: what follows is the question
+        if (piece.back() == '\n') out.push_back(i + 1);
+    }
+    return out;
+}
+
+size_t Engine::restore_snapshot(const std::vector<int32_t> & toks) {
+    Snapshot * best = nullptr;
+    const uint64_t now = ++clock_;
+    for (auto & s : snapshots_) {
+        if (s.tokens.size() >= toks.size() || !std::equal(s.tokens.begin(), s.tokens.end(), toks.begin())) continue;
+        // every snapshot this prompt starts with stays fresh (the shared rules most of all), not just the one used
+        s.used = now;
+        if (!best || s.tokens.size() > best->tokens.size()) best = &s;
+    }
+    if (!best) return 0;
+    llama_memory_clear(llama_get_memory(ctx_), true);
+    if (llama_state_seq_set_data(ctx_, best->state.data(), best->state.size(), 0) == 0) {
+        llama_memory_clear(llama_get_memory(ctx_), true);
+        return 0;
+    }
+    cached_ = best->tokens;
+    return cached_.size();
+}
+
+void Engine::take_snapshot() {
+    for (auto & s : snapshots_) if (s.tokens == cached_) { s.used = ++clock_; return; }
+    const size_t size = llama_state_seq_get_size(ctx_, 0);
+    if (size == 0) return;
+    Snapshot snap;
+    snap.state.resize(size);
+    if (llama_state_seq_get_data(ctx_, snap.state.data(), size, 0) == 0) return;
+    snap.tokens = cached_;
+    snap.used = ++clock_;
+    // a handful: the rules every prompt starts with stay (they are used every time), the rest come and go
+    if (snapshots_.size() >= kMaxSnapshots) {
+        auto old = std::min_element(snapshots_.begin(), snapshots_.end(), [](const Snapshot & a, const Snapshot & b) { return a.used < b.used; });
+        *old = std::move(snap);
+    } else {
+        snapshots_.push_back(std::move(snap));
+    }
 }
 
 const char * end_name(End e) {
@@ -377,6 +432,13 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
             unload();
             return false;
         }
+        if (!llama_get_memory(ctx_)) {
+            // an embedding model (BERT, nomic, ...): no cache, no logits to sample from
+            error_ = "unsupported model (not a chat model: it has no memory for a conversation)";
+            unload();
+            return false;
+        }
+        recurrent_ = llama_model_is_recurrent(model_) || llama_model_is_hybrid(model_);
         n_batch_ = (int32_t) llama_n_batch(ctx_);
         batch_ = llama_batch_init(n_batch_, 0, 1);
         stats_.threads = threads;
@@ -484,7 +546,14 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
         while (reuse < cached_.size() && reuse < toks.size() && cached_[reuse] == toks[reuse]) ++reuse;
         reuse = std::min(reuse, toks.size() - 1);
         llama_memory_t mem = llama_get_memory(ctx_);
-        if (!llama_memory_seq_rm(mem, 0, (llama_pos) reuse, -1)) {
+        if (recurrent_) {
+            // the state can only go on from where it is: when the cache holds exactly a start of this prompt, carry on
+            // from there; otherwise start from the longest saved snapshot that begins it
+            if (reuse != cached_.size()) {
+                reuse = restore_snapshot(toks);
+                if (reuse == 0) { llama_memory_clear(mem, true); cached_.clear(); }
+            }
+        } else if (!llama_memory_seq_rm(mem, 0, (llama_pos) reuse, -1)) {
             llama_memory_clear(mem, true);
             reuse = 0;
         }
@@ -493,7 +562,19 @@ std::string Engine::generate(const std::string & prompt, int max_tokens, float t
         stats_.reused_tokens = (int32_t) reuse;
 
         const int64_t tp = now_ms();
-        const bool prefilled = decode_tokens(toks, reuse, toks.size(), /*logits_last*/ true);
+        bool prefilled = true;
+        size_t at = reuse;
+        if (recurrent_) {
+            // stop at each line end of the facts to save the state there: the next prompt about this person (same lines
+            // first) or anyone (the same rules) starts from the longest one
+            for (size_t b : line_ends(toks)) {
+                if (b <= at || b >= toks.size()) continue;
+                if (!(prefilled = decode_tokens(toks, at, b, false))) break;
+                at = b;
+                take_snapshot();
+            }
+        }
+        if (prefilled) prefilled = decode_tokens(toks, at, toks.size(), /*logits_last*/ true);
         const int64_t tg = now_ms();
         stats_.prefill_ms = tg - tp;
         if (!prefilled) {

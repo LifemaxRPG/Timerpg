@@ -11,10 +11,10 @@ import java.io.RandomAccessFile
 
 /**
  * The model file. The APK does not carry it (about 400 MB): the player picks it once with the system file picker and it
- * is copied to filesDir/models/qwen3-0.6b.gguf. Everything here is blocking IO: call it off the main thread.
+ * is copied to filesDir/models/qwen3.5-9b.gguf. Everything here is blocking IO: call it off the main thread.
  */
 object ModelFiles {
-    const val NAME = "qwen3-0.6b.gguf"
+    const val NAME = "qwen3.5-9b.gguf"
     /** What [problem] says when there is no model file. */
     const val MISSING = "missing"
     private const val MIN_BYTES = 16L shl 20
@@ -44,7 +44,7 @@ object ModelFiles {
     /** Checks a GGUF header: the magic "GGUF", a version llama.cpp reads (2 or 3), and sane tensor and metadata counts. */
     fun headerProblem(h: ByteArray, n: Int): String? {
         if (n < 4 || h[0] != 'G'.code.toByte() || h[1] != 'G'.code.toByte() || h[2] != 'U'.code.toByte() || h[3] != 'F'.code.toByte())
-            return "That file is not a GGUF model (choose qwen3-0.6b-q4_k_m.gguf)."
+            return "That file is not a GGUF model (choose Qwen3.5-9B-Q4_K_M.gguf)."
         if (n < 24) return "The model file is cut short."
         val version = le(h, 4, 4)
         if (version !in 2..3) return "This GGUF version ($version) is not supported."

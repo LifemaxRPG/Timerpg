@@ -11,16 +11,16 @@ class ThreadsTest {
     private fun cores(vararg groups: Pair<Int, Long>) = groups.flatMap { (n, v) -> List(n) { v } }
 
     @Test
-    fun noLittleCoresGivesFourThreads() {
+    fun noLittleCoresGivesSixThreads() {
         // Snapdragon 8 Elite for Galaxy (S25 Ultra): 6 x 3.53 GHz + 2 x 4.47 GHz of one design
-        assertEquals(4, NativeLlm.threadsFor(8, cores(6 to 809L, 2 to 1024L), cores(6 to 3_532_800L, 2 to 4_473_600L)))
-        assertEquals(4, NativeLlm.threadsFor(8, cores(8 to 1024L)))
+        assertEquals(6, NativeLlm.threadsFor(8, cores(6 to 809L, 2 to 1024L), cores(6 to 3_532_800L, 2 to 4_473_600L)))
+        assertEquals(6, NativeLlm.threadsFor(8, cores(8 to 1024L)))
     }
 
     @Test
     fun littleCoresAreLeftOut() {
-        // Snapdragon 8 Gen 2: 3 x A510, 4 x A715/A710, 1 x X3 -> 5 big, at most 4
-        assertEquals(4, NativeLlm.threadsFor(8, cores(3 to 280L, 4 to 760L, 1 to 1024L)))
+        // Snapdragon 8 Gen 2: 3 x A510, 4 x A715/A710, 1 x X3 -> 5 big
+        assertEquals(5, NativeLlm.threadsFor(8, cores(3 to 280L, 4 to 760L, 1 to 1024L)))
         // 6 x A55 + 2 x A76 (Snapdragon 7-series), and 4 + 4
         assertEquals(2, NativeLlm.threadsFor(8, cores(6 to 350L, 2 to 1024L)))
         assertEquals(4, NativeLlm.threadsFor(8, cores(4 to 380L, 4 to 1024L)))
@@ -33,7 +33,7 @@ class ThreadsTest {
         assertEquals(2, NativeLlm.threadsFor(8, emptyList(), cores(6 to 1_804_800L, 2 to 2_400_000L)))
         // without capacities the S25 Ultra gets its 2 fastest cores (conservative)
         assertEquals(2, NativeLlm.threadsFor(8, emptyList(), cores(6 to 3_532_800L, 2 to 4_473_600L)))
-        assertEquals(4, NativeLlm.threadsFor(8, emptyList(), cores(8 to 2_000_000L)))
+        assertEquals(6, NativeLlm.threadsFor(8, emptyList(), cores(8 to 2_000_000L)))
     }
 
     @Test

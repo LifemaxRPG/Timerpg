@@ -54,7 +54,8 @@ class DialogueData(
 
     companion object {
         /** Prompts longer than this cannot be right (the model's context is 1024 tokens); such topics use the template. */
-        private const val MAX_PROMPT = 6000
+        /** About 850 tokens: room for the reply in the 1024-token context. */
+        private const val MAX_PROMPT = 3500
 
         /** Parses the file; a malformed NPC or topic is skipped, not fatal. Throws only if the file is not JSON at all. */
         fun parse(text: String): DialogueData {

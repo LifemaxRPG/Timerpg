@@ -1,7 +1,7 @@
 package com.timerpg.street.llm
 
 /**
- * The on-device language model that gives NPCs their words (Qwen3-0.6B through llama.cpp, natively). It only ever voices
+ * The on-device language model that gives NPCs their words (Qwen3.5-9B through llama.cpp, natively). It only ever voices
  * facts the simulation already decided: the prompts come ready-made from our game logic (tools/export-dialogue.ts), and
  * every reply is checked ([Dialogue.validate]) before it is shown, with the template line as the fallback.
  */

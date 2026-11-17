@@ -149,6 +149,21 @@ private:
     static bool abort_cb(void * self);
     bool decode_tokens(const std::vector<int32_t> & toks, size_t from, size_t to, bool logits_last);
     void resync_cache(const std::vector<int32_t> & attempted);
+    /** Where a recurrent or hybrid model (Qwen3.5) can start: a snapshot whose tokens begin [toks], restored. 0 if none. */
+    size_t restore_snapshot(const std::vector<int32_t> & toks);
+    void take_snapshot();
+    /** The token positions after each line end of the system message: where snapshots are taken. */
+    std::vector<size_t> line_ends(const std::vector<int32_t> & toks) const;
+
+    /** The model's state after the first tokens of a prompt (a recurrent state cannot be cut back, so it is saved). */
+    struct Snapshot {
+        std::vector<int32_t> tokens;
+        std::vector<uint8_t> state;
+        uint64_t used = 0;
+    };
+    bool recurrent_ = false;          // the cache cannot be cut back to a shorter prefix (Mamba, Qwen3.5's delta net)
+    std::vector<Snapshot> snapshots_;
+    uint64_t clock_ = 0;
 
     llama_model * model_ = nullptr;
     llama_context * ctx_ = nullptr;
