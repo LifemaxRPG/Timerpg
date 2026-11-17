@@ -613,10 +613,10 @@ private fun StageCanvas(
             val s = streetNow.value
             val before = GameState.x
             GameState.step(dt, s.start, s.end, BuildingPainter.PAVEMENT - 2f)
-            // lamps, trees and benches stand at the kerb: walk round them (further from the road), not through them
-            if (GameState.lane > BuildingPainter.PAVEMENT - 8f) {
+            // lamps, trees and benches stand at the back of the pavement (lane 0): walk round them (a step out), not through them
+            if (GameState.lane < 6.5f) {
                 for (f in s.furniture) {
-                    val r = if (f.kind == FurnitureKind.TREE) 9f else 5f
+                    val r = when (f.kind) { FurnitureKind.TREE -> 6f; FurnitureKind.BENCH -> 24f; else -> 4f }
                     if ((before <= f.x - r && GameState.x > f.x - r) || (before >= f.x + r && GameState.x < f.x + r) ||
                         (kotlin.math.abs(before - f.x) < r && kotlin.math.abs(GameState.x - f.x) < r)) {
                         GameState.x = if (before < f.x) f.x - r else f.x + r
