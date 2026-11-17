@@ -18,6 +18,8 @@ object StageTuning {
     var cars = false
     /** Snap the zoom so every sprite pixel is a whole (even) number of screen pixels, and the camera to whole pixels. */
     var pixelPerfect = true
+    /** Furnished rooms and people behind the upper windows (the habit scene's). Off: the windows are plain reflective glass, until our own 2D interiors go in. */
+    var interiors = false
     /** The habit scene's out-of-focus foreground (railings, sign posts, tree branches sliding past the camera). Its art, not ours: off. */
     var foreground = false
     /** How much bigger than the city-scale passers the people are drawn (a game wants a readable character). */

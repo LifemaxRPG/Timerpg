@@ -2424,7 +2424,9 @@ internal class BuildingPainter {
             val lampOn = Dusk.lightsOn(pane, hour)
             drawRect(glassDark, Offset(x, y), Size(ww, hh))
             val j = litIndex[i]
-            if (j >= 0) {
+            if (!StageTuning.interiors) {
+                // plain glass: the reflection below is all it shows
+            } else if (j >= 0) {
                 // a lit home: a furnished room, someone doing something in it now and then, its lamp at dusk
                 val c = sw.cast[j]
                 val bright = if (sw.here[j] <= 0f && seconds > 0f) .12f + .88f * Silhouettes.lamp(c.seed, seconds) else 1f
@@ -2455,8 +2457,8 @@ internal class BuildingPainter {
             val pane = wseed * 31 + i
             val lampOn = Dusk.lightsOn(pane, hour)
             val mirror = fresnel * (1f + PANE_FRESNEL * GlassMap.tilt(pane))
-            mirrorSky(x, y, ww, hh, min(1f, FacadeLook.reflection(lampOn, sky.dark) * mirror) * (1f - .5f * lampOn), pane, 1f - .7f * lampOn)
-            if (lampOn > .02f && sky.dark > .2f) roomOnReveals(x, y, ww, hh, .3f * lampOn * sky.dark)
+            mirrorSky(x, y, ww, hh, min(1f, FacadeLook.reflection(if (StageTuning.interiors) lampOn else 0f, sky.dark) * mirror * (if (StageTuning.interiors) 1f else 1.35f)) * (1f - .5f * (if (StageTuning.interiors) lampOn else 0f)), pane, 1f - .7f * (if (StageTuning.interiors) lampOn else 0f))
+            if (StageTuning.interiors && lampOn > .02f && sky.dark > .2f) roomOnReveals(x, y, ww, hh, .3f * lampOn * sky.dark)
         }
         // lit at dusk: the glass glows
         val on = (sky.dark * Dusk.lightsOn(art.stack.id.hashCode(), hour, Dusk.SHOP)).coerceIn(0f, 1f)

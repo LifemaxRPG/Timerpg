@@ -118,7 +118,8 @@ private fun DrawScope.face(cam: Cam, img: ImageBitmap, h: Float, ax: Float, az: 
         val ua = cam.sx(cam.u(ax, az), dA); val ub = cam.sx(cam.u(bx, bz), dB)
         plate.moveTo(ua, cam.sy(h, dA)); plate.lineTo(ub, cam.sy(h, dB)); plate.lineTo(ub, cam.sy(0f, dB)); plate.lineTo(ua, cam.sy(0f, dA)); plate.close()
         val l = TurnLight.current
-        drawPath(plate, Color(0xFF2b3550).let { Color(it.red * keep * l.r, it.green * keep * l.g, it.blue * keep * l.b, alpha) })
+        val glassC = androidx.compose.ui.graphics.lerp(Color(0xFF2b3550), l.bottom, .38f * (1f - l.night))
+        drawPath(plate, Color(glassC.red * keep * l.r, glassC.green * keep * l.g, glassC.blue * keep * l.b, alpha))
     }
     // wide strips when the face is small or edge-on on screen: the same picture for far fewer draw calls
     val span = if (dA < 40f || dB < 40f) 0f else abs(cam.sx(cam.u(bx, bz), dB) - cam.sx(cam.u(ax, az), dA))

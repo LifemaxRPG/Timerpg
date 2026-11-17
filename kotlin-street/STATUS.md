@@ -6,7 +6,7 @@
 - Buildings are the exact ones our TypeScript game draws for each shop (`tools/export-street.ts` -> `street.json`),
   composed into boxes by `tools/make_buildings.py`: front, matching side wall, flat roof, window-glow mask, rooftop sign.
   Signs sit over the front face as one piece (only the part above the roofline goes on the roof).
-- Upper-floor windows are real openings: furnished rooms with people/lamps/TV behind (engine presence logic), engine
+- Upper-floor windows are real openings showing plain reflective glass (engine sky reflection + sun glint); the habit scene's furnished rooms/people are off (`StageTuning.interiors`) until our own 2D interiors go in. Shop windows and arched/ornate windows are left as sprites.
   reflections and sun glints over. Shop windows and arched/ornate windows are left as sprites.
 - Walking: hold ◀ ▶; ▲ ▼ step in/out across the pavement (back/front views); camera follows. Time slider; season
   (spring/summer/autumn/winter) and weather (clear/overcast/rain/mist) buttons; trees are tinted by season.
