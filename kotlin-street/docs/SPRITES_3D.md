@@ -12,6 +12,8 @@ Contact sheets were made with a throwaway script from the folders below (houses,
 | Sprites | Count | How |
 |---|---|---|
 | `houseSmall`, `houseMedium` (the mobile homes) | 160 (8 designs x 2 sizes x 10 colours) | **Done** (pitched roofs, see below). `tools/make_buildings.py` `build_house()` cuts each into the pictures of a real house: the art's front wall (rows 100-185), the near slope, ridge cap and far slope taken every other row (the artist's own 1x pixels, one screen row each), a gable end made from the wall's own rows, the hitch as a card, the porch's railing, fascia and deck boards; its shape goes to `buildings/houses.json`. The engine (`BuildingPainter.houseBuilding`, `domain/HouseGeometry.kt`) builds it: set back in its front yard, a ridge along the street, gables with rake boards, a flue, the porch or steps as lit boxes. Small and medium homes on the exported streets wear their lot's own sprite (`tools/town-streets.ts`). `gradle :desktop:preview -Dmode=houses` shows each beside its sprite; `make_buildings.py --showcase DIR` builds all 160 for it |
+| `villa_1..5` | 5 | **Done** (front-facing gables, see below). `build_model()` cuts each into parts (`buildings/models.json`) and one atlas: the ground floor, the floor between the storeys, the upper floor whose front carries the gable (a true front elevation, used as drawn), the front gable's two slopes (the art's slopes from above), the terrace roof, the balcony, the small gable over the door, the posts, the deck, its railings and steps. The engine builds them (`BuildingPainter.modelBuilding`, `domain/ModelGeometry.kt`); villa-tier homes on the exported streets wear them (`tools/town-streets.ts`; none on eta's streets, two on vale's). `-Dmode=models -Dstreet=2` with the showcase |
+| `landmark_clocktower_1/2`, `landmark_school_1` | 3 | **Done** in a preview row (hipped roofs, see below), not on the two streets yet: the tower a square box wearing its front on every side under a hipped roof with a flat top and lantern; the school its long front, a middle bay standing forward under a cross gable, a hipped roof with a flat ridge, two chimneys, its steps. `-Dmode=models -Dstreet=3 -Dtall=760` |
 | `fence_9`, `fence_10`, `hedge_1..5` | 7 | **Done** for the houses' yards: laid end to end into one upright strip along the lot's front (a picket fence; a hedge for a formal yard; nothing for a natural one, as the game fences them), open at the gate and across a porch |
 
 ### How the pitched roof was done (and what it means for the rest)
@@ -38,6 +40,21 @@ Contact sheets were made with a throwaway script from the folders below (houses,
   porch light at dusk, flue smoke in the cold months.
   Still to do for these: hedges down the yards' sides, pigeons on the ridges, eave drips in rain, side-window glow.
 
+### How the front-facing gable and the hipped roof were done
+- A building of more than one volume is a list of parts drawn back to front (boxes, front gables, hipped roofs), each
+  wearing a piece of one atlas: the general shape the estates and the fire station will need too.
+- A front-facing gable's triangle is a true front elevation in the art, so it is used as drawn (on the front of the
+  storey under it). Its slopes, seen from the nearly level street, are bands over the rakes about a tenth of the
+  roof's depth tall: each is the art's slope from above laid on its quad by one projective map (`QuadMap`), shown only
+  where the view sees it from above (`RoofFaces`): from far to one side the other slope is behind the ridge.
+- A hipped roof's front face is the art's face between the hips taken every other row, the rise chosen so each row is
+  one screen row (as the houses' slopes); its side faces are thin wedges over the hips (their art cut on the hips and
+  laid on their quads); a flat top (the clock tower's lantern stands on it).
+- A picture's round glass (a clock's dial) mirrors no square of sky; its night glow fills the whole dial.
+- A building wider than a shop (a villa is 256 pixels, the school 768) takes a wider lot and stands in its middle.
+- Still to do for these: the corner turn and the crossing (a villa is a flat-roofed box of its storeys there), the
+  school's back wing, the tower's corner pinnacles, lighting maps.
+
 ## Easy: already boxes (the current pipeline, `tools/make_buildings.py`)
 
 | Sprites | Count | Why easy |
@@ -52,9 +69,9 @@ Contact sheets were made with a throwaway script from the folders below (houses,
 | Sprites | Count | What it needs |
 |---|---|---|
 | ~~`houseSmall`, `houseMedium`~~ | 160 | done (see above) |
-| `villa_1..5` | 5 | a **front-facing gable** (the triangle end faces the street), a balcony and a small gable roof over the door: a gable prism turned 90°, the balcony box we already have, a second small prism. Next: the houses' pitched-roof machinery (HouseView, the slope strips, the gable) turned 90 degrees; the villas' gable triangle is a true front elevation and can be used as drawn |
-| `landmark_clocktower` | 2 | a tall tower box with a **hipped roof** (four sloped faces, a pyramid on a box) |
-| `landmark_school` | 1 | long box, **hipped roof**, entrance steps and a central gable: hipped roof + steps box |
+| ~~`villa_1..5`~~ | 5 | done (see above) |
+| ~~`landmark_clocktower`~~ | 2 | done in a preview row (see above) |
+| ~~`landmark_school`~~ | 1 | done in a preview row (see above) |
 | `landmark_fire`, `landmark_hospital` | 2 | several boxes of different heights side by side (multi-volume), a garage set back; flat roofs (the hospital's helipad is a roof decal) |
 | `shop_Ice_Cream_Shop` | 3 | a shop front plus a **giant cone sign standing above it**: a card above the roof |
 | Ground art: `asphalt`, `sidewalk`, `dirtPath`, `grass`, `grassPatch`, `waterShore`, `waterDecor`, `flowers`, `clutter` | ~70 | drawn from above, which is right for a floor: they go onto the ground plane in perspective (decals), not upright |
@@ -77,8 +94,9 @@ Contact sheets were made with a throwaway script from the folders below (houses,
   materials (as was done for the gym's balcony) than converted from the pictures.
 - **Biggest win for the least work:** the pitched roof. It unlocks 160 small and medium houses (and the villas, school
   and clocktower with the gable and hipped variants), which is what the residential streets need. **Done for the small
-  and medium houses**: Orchard Lane is now a street of mobile homes. Villas, estates, terraced houses and apartments are
-  still stood in by condo fronts (on the exported streets only one: b17, an apartment block). Main Street's own roofs
+  and medium houses**: Orchard Lane is now a street of mobile homes. **Done for the villas** (front-facing gables) and
+  **the clock towers and the school** (hipped roofs, in a preview row). Estates, terraced houses and apartments are
+  still stood in by condo fronts (on eta's exported streets only one: b17, an apartment block). Main Street's own roofs
   (`roof_2/4/6`, `roof_8/9/11` are pitched in the game) could use the same machinery next.
 - **Cheap volume:** ground decals and upright prop cards (about 115 sprites) mostly need placement rules, not new
   rendering.

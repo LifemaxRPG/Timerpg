@@ -18,8 +18,11 @@ night, lamp light and the window glow.
 - `tools/make_buildings.py` – composes box-building textures (front, side, window-glow, roof, sign) from our sprites;
   a home that wears one of our mobile homes is cut into the pictures of a pitched-roof house instead (front wall, roof
   slope, ridge, gable end, hitch, porch, yard and fence) with its shape in `buildings/houses.json`. It keeps the
-  lighting maps (`_lit`, `_shade`) of fronts it does not change. `--showcase DIR` builds every house sprite for
-  `gradle :desktop:preview -Dmode=houses -Dassets=DIR -Dstreet=0`.
+  lighting maps (`_lit`, `_shade`) of fronts it does not change. A villa, the clock tower and the school are cut into
+  parts (boxes, front-facing gables, hipped roofs) with all their art in one atlas (`bN_atlas.png`, `bN_glow.png`) and
+  the parts in `buildings/models.json`. `--showcase DIR` builds every house sprite for
+  `gradle :desktop:preview -Dmode=houses -Dassets=DIR -Dstreet=0`, and the villas (`-Dmode=models -Dstreet=2`) and the
+  landmarks (`-Dmode=models -Dstreet=3 -Dtall=760`).
 
 ## Rebuild the street data and the APK
 ```

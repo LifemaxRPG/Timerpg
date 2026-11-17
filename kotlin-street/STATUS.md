@@ -28,8 +28,8 @@
 - street.json now holds named streets from the town's real layout: Main Street (the buildings on the main road west of a real
   crossroads, in order) and the cross street (the buildings along the road that leaves the main street there, named from the seed),
   plus the junction's other buildings for the turn scene. Homes are named after the household really living there; small
-  and medium homes are now the game's own mobile homes (see Pitched-roof houses), the rest are stood in by the modular
-  condo front in the district's colour.
+  and medium homes are now the game's own mobile homes (see Pitched-roof houses), villas the game's own villas (see
+  Villas and landmarks), the rest are stood in by the modular condo front in the district's colour.
 - The turn shows the junction's real buildings; its button appears only at the junction end of each street ("Turn onto <name>" /
   "Back to Main Street"), and turning back plays the turn in reverse and leaves you at the junction end of Main Street.
 - Demo town is still "eta" (Main Street: 8 shops; Orchard Lane: 6 homes). Checked on 9 seeds: all give 7-8 on Main Street, 2-6 on the cross street.
@@ -69,9 +69,8 @@
   boxes (the flue between the slopes, so the ridge hides its foot from the front). The turn's tints are kept in a table
   of plain ints, so looking one up makes no garbage. A porch light beside each door comes on at dusk; the
   flues smoke in the cold months (the turn has neither yet).
-- Not done yet: Main Street's own pitched roofs (`roof_2/4/6`, `roof_8/9/11`, the same machinery at 120 deep), villas
-  (a front-facing gable), the clocktower's and the school's hipped roofs; hedges down the yards' sides, pigeons on the
-  ridges, eave drips in rain. The street's view is nearly level, so a porch's deck boards hide behind its railing (only
+- Not done yet: Main Street's own pitched roofs (`roof_2/4/6`, `roof_8/9/11`, the same machinery at 120 deep; the
+  villas and the hipped roofs are done, below); hedges down the yards' sides, pigeons on the ridges, eave drips in rain. The street's view is nearly level, so a porch's deck boards hide behind its railing (only
   between the balusters do they show); the crossing, from higher, shows them. The turn's houses stand 40 back in its
   120-deep slots against 64 in the street (their porches shortened to fit), and its roofs have no ridge cap.
 - Checks: `gradle :desktop:preview -Dmode=houses -Dstreet=1` (each house beside its sprite at the left, middle and right
@@ -80,6 +79,46 @@
 - `make_buildings.py` no longer deletes the lighting maps (`_lit`, `_shade`) of fronts it did not change: the depth
   model that makes them is not kept on disk. The houses have none (their relief is real geometry).
 - Draw cost: about 60-90 draw calls per house against about 40 per shop (an estimate; nothing measured on the S25).
+
+## Villas and landmarks: front-facing gables and hipped roofs (verified in the desktop preview only; NOT yet seen on a phone)
+- A villa-tier home on the exported streets wears its own villa (`villa_1..5`, `tools/town-streets.ts`; a villa
+  repeating one of the two homes before it becomes another of its district's villas when there is one). eta has none
+  on its streets (its assets are unchanged); vale has two (one on Oak Street, one at the junction).
+- `tools/make_buildings.py` `build_model()` cuts a villa into parts (`buildings/models.json`), all its art in one atlas
+  (`bN_atlas.png`, where it glows at night in `bN_glow.png`): the ground floor (its porch posts taken off the wall, the
+  siding carried across), the floor between the storeys, the upper floor whose front carries the gable (a true front
+  elevation, used as drawn: the round window, the rake boards, the balcony's glass door), a FRONT-FACING gable (its two
+  slopes are the art's slopes from above, laid back from the rake), the terrace roof over the ground floor (its boards,
+  with the small gable and the balcony painted out), the balcony (rails and a card open between the balusters), the
+  small gable over the door (its face as drawn, its slopes), the posts, the raised deck, its railings (open between the
+  balusters) and steps. Side walls are each row of the front's own siding with one of its windows. Its yard (grass, the
+  path, the game's fence or a hedge) is the houses' helper.
+- The clock towers (`landmark_clocktower_1/2`, only the time differs) are a square tower wearing its front on every
+  side (a clock on each face) under a HIPPED roof: the front face the art's rows between the hips, every other one (the
+  artist's own pixels, one screen row each; the rise is chosen so, about 31 degrees), the side faces cut on the hips and
+  laid on their quads, a flat top with its lantern. The school (`landmark_school_1`) is its long front, a middle bay
+  standing 12 forward with the cross gable's face over it, a hipped roof (about 43 degrees, a flat ridge), the cross
+  gable's slopes back to the valley, two chimneys (smoking in the cold months) and its entrance steps; its side walls
+  are the front's wall colour clear of its windows, with an upper and an arched window of its own. They are not on the
+  two streets: `-Dmode=models -Dstreet=3` shows them in a preview row.
+- The engine (`domain/ModelGeometry.kt`, `BuildingPainter.modelBuilding`) builds them back to front: boxes wearing the
+  art's fronts (a front may reach above its box), sides and tops; front gables, each slope laid on its quad by one
+  projective map where the view sees it from above (`RoofFaces`), lit by the side it faces, snow on it with a lip along
+  the rake, the eave's board and its shade along the shown side; hipped roofs (side wedges, flat top, front face with
+  its eave on the screen's pixels, lit as the houses' slopes are, snow with a lip along the eave). Windows mirror the sky
+  and gather rain (not a round dial, which would show a square) and light on the building's hours (a home's, a shop's,
+  the clock's dial all night); the villa's lamp by the door. A building wider than a shop takes a wider lot and stands
+  in its middle (`BuildingLayout.wide`); shops and the junction are laid out as before. Its shade on the pavement, the
+  wet road's mirror, the sun's glare at its edges, headlights and taps follow it where it stands back (as a house's).
+- Not done yet: the corner turn and the crossing show a villa as a flat-roofed box of its two storeys (its front-gable
+  roof, deck and porch are not built there yet; `CornerTurn.kt` is shared with the intersections branch); the villas'
+  storeys are as low as the art draws them (40 pixels: a shade lower than the mobile homes' wall); no lighting maps for
+  them; the school's back wing and the clock tower's corner pinnacles above the eave are not modelled.
+- Checks: `python3 tools/make_buildings.py --showcase DIR`, then `gradle :desktop:preview -Dmode=models -Dassets=DIR
+  -Dstreet=2` (villas) or `-Dstreet=3 -Dtall=760` (landmarks): each beside its sprite at the left, middle and right of
+  the view, and the row at day, dusk, night and in snow; `-Dmode=turn|cross -Dassets=` now read another asset folder too.
+  `gradle :desktop:test -DtestOnly=ModelGeometryTest,HouseGeometryTest`; `npx vitest run kotlin-street/tools/town-streets.test.ts`.
+- Draw cost: a villa is about 20 parts (an estimate of 120-160 draw calls), the school about 12; nothing measured on the S25.
 
 ## Talking to people out loud (verified on a computer; NOT yet run on a phone)
 - In a conversation, hold "Hold to talk", say anything, let go: `voice/PlayerVoice.kt` records 16 kHz mono (at most 20 s),
