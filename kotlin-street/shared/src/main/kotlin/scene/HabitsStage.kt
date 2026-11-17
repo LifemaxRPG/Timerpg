@@ -844,7 +844,9 @@ private fun StageCanvas(
         with(backlight) { sky(sky, sunAt, horizon) }
         // the street in a layer of its own when the top fades out under the heading, or when it
         // is exposed for the sky behind it
-        val layered = fades || backlight.amount > 0f
+        // the street in its own layer also when the weather lays a tone over it (only over the street, not the sky)
+        val weatherTone = weather.cloudiness > .05f || weather.rain > .05f || weather.mist > .05f
+        val layered = fades || backlight.amount > 0f || weatherTone
         if (layered)
             drawIntoCanvas { it.saveLayer(Rect(0f, 0f, this.size.width, this.size.height), layer) }
         clipRect(0f, f.top, this.size.width, this.size.height) {
@@ -951,6 +953,19 @@ private fun StageCanvas(
                         }
                     }
                 }
+            }
+        }
+        if (weatherTone) {
+            // under cloud and rain the whole street sits darker and cooler (the sprites otherwise keep their sunny colours);
+            // in mist the street fades into a pale veil, thickest near the ground
+            val dim = (.28f * weather.cloudiness + .14f * weather.rain).coerceAtMost(.42f)
+            if (dim > .01f) drawRect(Color(0xFF232a38), Offset.Zero, this.size, alpha = dim, blendMode = BlendMode.SrcAtop)
+            if (weather.mist > .01f) {
+                val fog = androidx.compose.ui.graphics.lerp(sky.sky[2], Color.White, .55f)
+                drawRect(
+                    Brush.verticalGradient(listOf(fog.copy(alpha = .12f * weather.mist), fog.copy(alpha = .42f * weather.mist)), f.top, f.ground),
+                    Offset(0f, f.top), Size(this.size.width, this.size.height - f.top), blendMode = BlendMode.SrcAtop,
+                )
             }
         }
         if (fades) {

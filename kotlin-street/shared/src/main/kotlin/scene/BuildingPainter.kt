@@ -1736,6 +1736,9 @@ internal class BuildingPainter {
     }
 
     /** What stands on the street, upside down in the wet, [ox] to the side at [a]. */
+    /** Our buildings' colours as the wet pavement mirrors them: darker and cooler. */
+    private val wetMirror = ColorFilter.lighting(Color(0xFF6E7890), Color.Black)
+
     private fun DrawScope.reflections(
         sky: SkyColors,
         layouts: List<BuildingLayout>,
@@ -1758,6 +1761,19 @@ internal class BuildingPainter {
             val art = arts[i]
             val s = shiftAt(cx)
             val l0 = Perspective.left(s)
+            val sbr = SpriteArt.buildings[art.stack.id]
+            if (sbr != null) {
+                // one of OUR buildings, mirrored in the wet: its own front, darkened and cooled, and its lit glass at night
+                withTransform({
+                    translate(cx + ox, 0f)
+                    scale(1f, -SQUASH, Offset.Zero)
+                }) {
+                    val hf = sbr.front.height * (B.W / SpriteArt.SRC_W)
+                    picture2(sbr.front, -half, -hf, B.W, hf, FilterQuality.None, alpha = a * .8f, filter = wetMirror)
+                    if (dark > .2f) picture2(sbr.emis, -half, -hf, B.W, hf, FilterQuality.None, alpha = a * .45f * dark, blend = BlendMode.Plus)
+                }
+                continue
+            }
             withTransform({
                 translate(cx + ox, 0f)
                 scale(1f, -SQUASH, Offset.Zero)
@@ -2371,6 +2387,11 @@ internal class BuildingPainter {
             spritePath.rewind()
             spritePath.moveTo(-half, -hf); spritePath.lineTo(-half + s, -hf - dy); spritePath.lineTo(half + s, -hf - dy); spritePath.lineTo(half, -hf); spritePath.close()
             drawPath(spritePath, Color(0xFFFFF2D0), alpha = .1f * direct)
+            // snow lying on the roof, and a cap along the front's top edge
+            if (season.snow > .01f) {
+                drawPath(spritePath, snowInk(sky), alpha = .85f * season.snow)
+                drawRect(snowInk(sky), Offset(-half, -hf - 1.4f), Size(B.W, 1.6f), alpha = .8f * season.snow)
+            }
             if (nightOn) drawPath(spritePath, nightInk, blendMode = BlendMode.Multiply)
         }
         // what sticks up above the roofline: the part of the storefront's sign that does not fit over the front (it

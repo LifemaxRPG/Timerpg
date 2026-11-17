@@ -138,7 +138,7 @@ object StreetWeather {
             light.out,
             light.strength * (1f - .8f * w.cloudiness) * (1f - .5f * w.mist),
             light.cool,
-            max(light.flat, w.cloudiness),
+            max(light.flat, max(w.cloudiness, .6f * w.mist)),
         )
 
     private fun smooth(t: Float): Float {

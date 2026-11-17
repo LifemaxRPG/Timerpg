@@ -119,6 +119,8 @@ internal class SunLook {
         // the low sun's body shows as the bloom gives way to it: smoothly through the dusk hour
         val body = Px.smooth(.2f, .9f, w)
         val clear = 1f - c
+        // under a thick deck the disc, its core and rays go; a soft brightness stays (the veil below)
+        val g = 1f - Px.smooth(.4f, .85f, c)
         alpha[WIDE] = k * Px.mix(.42f, .5f, w) * (1f + .35f * c + .5f * m)
         grow[WIDE] = Px.mix(1f, .8f, w)
         alpha[BAND] = k * w * (.2f + .3f * Px.clamp01(low)) * (1f - .5f * c)
@@ -127,19 +129,19 @@ internal class SunLook {
         // the bloom's light added (its energy), then laid over (its whiteness)
         alpha[GLOW] = k * Px.mix(.2f, .38f, w) * (1f - .4f * c)
         grow[GLOW] = Px.mix(1.15f, .8f, w)
-        alpha[RAYS] = k * Px.mix(.1f, .07f, w) * clear * (1f - .6f * m)
+        alpha[RAYS] = k * Px.mix(.1f, .07f, w) * clear * (1f - .6f * m) * g
         grow[RAYS] = Px.mix(1f, .8f, w)
         // the light hugging the low sun's body, its own colour laid over the sky, so its limb
         // bleeds into the sky (and nothing round it is brighter than the limb)
-        alpha[HUG] = k * body * .75f * (1f - .8f * c)
+        alpha[HUG] = k * body * .75f * (1f - .8f * c) * g
         grow[HUG] = 2.3f
-        alpha[DISC] = k * body * (1f - .9f * c) * (1f - .5f * m)
+        alpha[DISC] = k * body * (1f - .9f * c) * (1f - .5f * m) * g
         alpha[DISC_LIGHT] = alpha[DISC] * .95f
         grow[DISC] = 1.3f
         grow[DISC_LIGHT] = 1.3f
-        alpha[BLOOM] = k * Px.mix(.92f, .55f, body) * (1f - .45f * c - .25f * m)
+        alpha[BLOOM] = k * Px.mix(.92f, .55f, body) * (1f - .45f * c - .25f * m) * (.15f + .85f * g)
         grow[BLOOM] = 1f
-        alpha[CORE] = k * Px.mix(1f, .88f, body) * (1f - .7f * c - .35f * m)
+        alpha[CORE] = k * Px.mix(1f, .88f, body) * (1f - .7f * c - .35f * m) * g
         grow[CORE] = Px.mix(1f, .85f, w)
         // over the overcast's veil: the sun a pale diffuse brightness through it
         alpha[VEIL] = k * c * Px.mix(.24f, .2f, w)
