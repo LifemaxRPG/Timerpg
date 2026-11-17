@@ -1,0 +1,373 @@
+{
+  "batch": "2026-11-17",
+  "items": [
+    {
+      "id": "story-20261117-185",
+      "kind": "story",
+      "category": "romance",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            90
+          ],
+          "married": false
+        },
+        "B": {
+          "age": [
+            18,
+            90
+          ],
+          "married": false,
+          "relation": "strangers"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "chance": 0.018,
+      "outcomes": [
+        {
+          "p": 0.65,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.4
+            }
+          ],
+          "headlines": [
+            "Shared Umbrella Leads to a Longer Walk",
+            "Rain Gives Two Strangers a Reason to Talk",
+            "One Umbrella Makes Room for Two"
+          ],
+          "bodies": [
+            "{A} offered {B} shelter beneath an umbrella during a downpour on {street}. They walked past both of their turns before agreeing to meet again.",
+            "A rainstorm introduced {A} and {B} under one umbrella. By the time the sky cleared, the two had arranged another walk in better weather.",
+            "{A} and {B} began a walk as strangers sharing cover from the rain. They ended it with an invitation to spend a dry afternoon together."
+          ]
+        },
+        {
+          "p": 0.35,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": -0.2
+            },
+            {
+              "rep": "A",
+              "by": -0.05
+            }
+          ],
+          "headlines": [
+            "Umbrella Invitation Ends in a Public Snub",
+            "A Dry Shoulder Comes at Someone Else's Expense",
+            "Shared Shelter Proves an Uneven Arrangement"
+          ],
+          "bodies": [
+            "{A} invited {B} beneath an umbrella on {street}, then kept pulling it away to stay dry. {B} abandoned the arrangement after a sharp exchange within earshot of passersby.",
+            "An offer of shelter from {A} left {B} standing in the rain anyway. A public argument over the umbrella ended their brief acquaintance.",
+            "{B} accepted an invitation to share an umbrella with {A}. The offer lost its charm when {A} refused to share the dry space, and witnesses heard an indignant farewell."
+          ]
+        }
+      ],
+      "era_notes": "Use an ordinary umbrella in every decade. Neither outcome establishes marriage or a lasting romantic relationship."
+    },
+    {
+      "id": "story-20261117-186",
+      "kind": "story",
+      "category": "uncanny",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "chance": 0.004,
+      "outcomes": [
+        {
+          "p": 0.55,
+          "effects": [
+            {
+              "rep": "A",
+              "by": 0.08
+            },
+            {
+              "open_thread": "buried_clock_face"
+            }
+          ],
+          "headlines": [
+            "Clock Face Unearthed with Numbers Facing Down",
+            "Garden Dig Reveals an Unusual Timepiece",
+            "Buried Dial Raises Questions in {town}"
+          ],
+          "bodies": [
+            "{A} uncovered a clock face beneath a garden path, its numbers pressed into the earth. No hands, workings, or maker's mark were found, leaving its purpose unsettled.",
+            "A garden repair by {A} revealed an unmarked clock dial buried face down. The finder preserved it for examination, and the Gazette invites information about its origin.",
+            "{A} brought an unusual find to public attention: a bare clock face beneath old paving stones. Without hands or a mechanism, it has supplied more questions than answers."
+          ]
+        },
+        {
+          "p": 0.45,
+          "effects": [
+            {
+              "wealth": "A",
+              "by": -0.07
+            },
+            {
+              "rep": "A",
+              "by": -0.04
+            }
+          ],
+          "headlines": [
+            "Buried 'Clock' Proves to Be a Painted Plate",
+            "Garden Mystery Ends at the Crockery Shelf",
+            "Excavation Finds More Expense Than History"
+          ],
+          "bodies": [
+            "{A} paid to lift paving stones around what appeared to be a buried clock. Cleaning revealed a cracked plate painted with numbers, and the cost of restoring the path exceeded the find's value.",
+            "A supposed clock unearthed by {A} proved to be a numbered plate after cleaning. Public speculation gave way to gentle teasing and a repair bill for the disturbed path.",
+            "{A} invited attention to a possible antique clock beneath a garden path. The object was a painted plate, leaving the finder with an ordinary piece of crockery and an unwelcome paving expense."
+          ]
+        }
+      ],
+      "era_notes": "Describe a printed Gazette notice in earlier decades and a Gazette request for information in later ones; do not assert supernatural causation.",
+      "sequel": "A later story may resolve buried_clock_face by identifying the dial's origin; require the thread to exist before resolving it."
+    },
+    {
+      "id": "rumor-20261117-187",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            95
+          ],
+          "relation": "siblings"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.5,
+      "text": "They say {A} has been answering letters addressed to {B} without asking permission.",
+      "effects": [
+        {
+          "bond": [
+            "A",
+            "B"
+          ],
+          "by": -0.35
+        },
+        {
+          "rep": "A",
+          "by": -0.12
+        }
+      ],
+      "variants": [
+        "I hope {A} meant to help with the letters for {B}, but permission matters even in a family.",
+        "Apparently {A} answers letters meant for {B}.",
+        "Who has been getting replies from {A} while thinking they were hearing from {B}?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-188",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            8,
+            16
+          ]
+        },
+        "B": {
+          "age": [
+            8,
+            16
+          ],
+          "relation": "friends"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.65,
+      "text": "I hear {A} gave {B} the lead in a backyard play and kept the job of making thunder with a pan.",
+      "effects": [
+        {
+          "bond": [
+            "A",
+            "B"
+          ],
+          "by": 0.2
+        },
+        {
+          "rep": "A",
+          "by": 0.05
+        }
+      ],
+      "variants": [
+        "They say {A} let {B} have the big part; making the thunder sounds like plenty of fun anyway.",
+        "{B} supposedly gets the lead, and {A} bangs the thunder pan.",
+        "Did {A} give {B} the lead out of kindness, or just discover that thunder gets the loudest applause?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-189",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            95
+          ],
+          "relation": "friends"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.3,
+      "text": "Word is {A} volunteered {B} to wash every dish after the church supper without mentioning it first.",
+      "effects": [
+        {
+          "bond": [
+            "A",
+            "B"
+          ],
+          "by": -0.25
+        },
+        {
+          "rep": "A",
+          "by": -0.08
+        }
+      ],
+      "variants": [
+        "I hope {A} and {B} sort out that dishwashing promise; a favor is nicer when someone agrees to it.",
+        "They say {A} signed {B} up for all the dishes without asking.",
+        "Was {A} planning to tell {B} about the washing before supper, or wait until everyone had used two plates?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-190",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ],
+          "wealth": "comfortable"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.55,
+      "text": "People say {A} buys the unclaimed winter coats at rummage sales and leaves them beside the church door.",
+      "effects": [
+        {
+          "rep": "A",
+          "by": 0.12
+        }
+      ],
+      "variants": [
+        "I hear {A} gets those leftover coats to people who need them; there are worse uses for spare money.",
+        "Supposedly {A} buys the leftover coats and leaves them at the church.",
+        "If {A} is behind the coats at the church, who keeps cutting the price tags off so carefully?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-191",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            60,
+            95
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.2,
+      "text": "They say {A} insists the echo under the bridge has started using a younger voice.",
+      "effects": [
+        {
+          "rep": "A",
+          "by": -0.04
+        }
+      ],
+      "variants": [
+        "I hear {A} thinks the bridge echo sounds younger; perhaps the river has changed how it carries a voice.",
+        "{A} supposedly says the bridge echo has changed its voice.",
+        "If {A} hears a younger voice under the bridge, whose voice do people think it is becoming?"
+      ]
+    },
+    {
+      "id": "dialogue-20261117-192",
+      "kind": "dialogue",
+      "intent": "praise_reply",
+      "warm": [
+        "Thank you. I had help, and I ought to say so.",
+        "That is kind of you to notice.",
+        "You have made the work feel a little lighter.",
+        "I will remember you said that when the next attempt goes crooked.",
+        "I did my best. It is good to hear that it showed.",
+        "Well, that is something pleasant to carry home."
+      ],
+      "curt": [
+        "Thanks. I worked at it.",
+        "It came out all right.",
+        "I appreciate that. Let us leave it there.",
+        "That is decent of you to say.",
+        "I did what I could.",
+        "Thank you. No need to make a gathering of it."
+      ]
+    }
+  ]
+}

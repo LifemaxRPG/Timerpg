@@ -1,0 +1,370 @@
+{
+  "batch": "2026-11-17",
+  "items": [
+    {
+      "id": "story-20261117-221",
+      "kind": "story",
+      "category": "civic",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "chance": 0.016,
+      "outcomes": [
+        {
+          "p": 0.7,
+          "effects": [
+            {
+              "rep": "A",
+              "by": 0.1
+            }
+          ],
+          "headlines": [
+            "Bridge Notice Promises Closure for 'Repairs of Heart'",
+            "A Stray Phrase Gives a Bridge Notice New Meaning",
+            "{A.last} Corrects Notice, Keeps the Town Laughing"
+          ],
+          "bodies": [
+            "A bridge notice prepared by {A} announced a closure for 'repairs of heart' after a draft of a personal poem became mixed into the copy. The author corrected it promptly and accepted the resulting jokes with good humor.",
+            "{A} accidentally gave a bridge closure notice the phrase 'repairs of heart.' A corrected notice followed, along with permission for the Gazette to keep the original for its humor column.",
+            "A personal verse strayed into a bridge notice written by {A}. The author posted the proper closure details and earned warm applause by reading the accidental version aloud."
+          ]
+        },
+        {
+          "p": 0.3,
+          "effects": [
+            {
+              "rep": "A",
+              "by": -0.16
+            },
+            {
+              "wealth": "A",
+              "by": -0.06
+            }
+          ],
+          "headlines": [
+            "Incorrect Bridge Notice Sends Travelers Back",
+            "Copying Error Makes Bridge Closure a Day Late",
+            "Notice Writer Pays for Replacement Signs"
+          ],
+          "bodies": [
+            "A bridge notice copied by {A} listed the closure a day late, sending travelers to a blocked crossing. The writer paid for replacement notices after the error was confirmed.",
+            "Travelers following a bridge notice prepared by {A} found the crossing already closed. A copied date was wrong, and the writer covered the cost of urgent corrections.",
+            "{A} paid to replace bridge notices after a date error caused needless trips to the closed crossing. Public complaints focused on an avoidable mistake rather than the repair work itself."
+          ]
+        }
+      ],
+      "era_notes": "Use handwritten or typeset notices in early decades; printed notices remain suitable later. Never supply an actual date beyond the simulation's closure facts."
+    },
+    {
+      "id": "story-20261117-222",
+      "kind": "story",
+      "category": "tragedy",
+      "roles": {
+        "A": {
+          "age": [
+            50,
+            95
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            95
+          ],
+          "relation": "friends"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "chance": 0.009,
+      "outcomes": [
+        {
+          "p": 0.65,
+          "effects": [
+            {
+              "wealth": "A",
+              "by": -0.1
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.35
+            }
+          ],
+          "headlines": [
+            "Friends Dry a Lifetime of Clippings After Leak",
+            "Kitchen Becomes a Rescue Room for Old Pages",
+            "Water-Damaged Scrapbooks Bring Friends Together"
+          ],
+          "bodies": [
+            "A burst pipe soaked the scrapbooks kept by {A}. Friend {B} helped separate the pages across a kitchen table, saving much of the collection while repairs consumed part of the household budget.",
+            "{A} paid for pipe repairs after a leak reached a collection of personal scrapbooks. With help from {B}, most of the clippings were dried before the pages stuck together.",
+            "Rows of damp clippings covered the kitchen of {A} following a pipe leak. {B} stayed to help salvage them, and most were saved despite the damage and repair expense."
+          ]
+        },
+        {
+          "p": 0.35,
+          "effects": [
+            {
+              "wealth": "A",
+              "by": -0.2
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.2
+            }
+          ],
+          "headlines": [
+            "Scrapbook Collection Lost to Burst Pipe",
+            "Old Clippings Cannot Be Saved After Leak",
+            "Friend Stays as Damaged Albums Are Cleared"
+          ],
+          "bodies": [
+            "A burst pipe destroyed the personal scrapbooks kept by {A}. Friend {B} helped clear the ruined pages and stayed after the repair workers had left.",
+            "{A} faced a repair bill and the loss of a scrapbook collection after a severe leak. {B} helped sort the damage, though none of the albums could be saved.",
+            "Water from a broken pipe left the scrapbooks of {A} unreadable. {B} stayed through the cleanup, offering company where restoration proved impossible."
+          ]
+        }
+      ],
+      "era_notes": "Keep the albums physical in every decade. Do not imply bereavement, particular relatives, or events absent from simulation history."
+    },
+    {
+      "id": "rumor-20261117-223",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            90
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          1979
+        ]
+      },
+      "true_chance": 0.4,
+      "text": "They say {A} stays on the shared telephone line to learn who is ordering what from the store.",
+      "effects": [
+        {
+          "rep": "A",
+          "by": -0.12
+        }
+      ],
+      "variants": [
+        "I hope {A} is not listening on that shared line; an order for flour ought to remain a small private matter.",
+        "They say {A} listens to store orders on the shared telephone line.",
+        "How does {A} supposedly know about an order before the customer has even collected it?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-224",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            95
+          ],
+          "relation": "friends"
+        }
+      },
+      "when": {
+        "years": [
+          1980,
+          1999
+        ]
+      },
+      "true_chance": 0.55,
+      "text": "I hear {A} recorded a local weather forecast over the only copy of a home movie lent by {B}.",
+      "effects": [
+        {
+          "bond": [
+            "A",
+            "B"
+          ],
+          "by": -0.3
+        },
+        {
+          "rep": "A",
+          "by": -0.07
+        }
+      ],
+      "variants": [
+        "I hope that home movie from {B} has another copy; they say {A} recorded the weather over it.",
+        "Apparently {A} taped the forecast over a home movie belonging to {B}.",
+        "Was the weather forecast at least right when {A} supposedly erased that movie from {B}?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-225",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          2000,
+          2030
+        ]
+      },
+      "true_chance": 0.3,
+      "text": "Word is {A} writes glowing reviews of {A.his} own yard sales under invented names.",
+      "effects": [
+        {
+          "rep": "A",
+          "by": -0.1
+        }
+      ],
+      "variants": [
+        "I hope {A} lets the bargains speak for themselves; those yard-sale reviews are beginning to sound awfully familiar.",
+        "They say {A} invents people to praise the yard sales.",
+        "Why do all those delighted yard-sale reviewers supposedly use the same unusual spelling as {A}?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-226",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            8,
+            16
+          ]
+        },
+        "B": {
+          "age": [
+            60,
+            95
+          ],
+          "relation": "strangers"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.65,
+      "text": "People say {A} marks the best skipping stones with chalk so {B} can find them without bending over every pebble.",
+      "effects": [
+        {
+          "bond": [
+            "A",
+            "B"
+          ],
+          "by": 0.2
+        },
+        {
+          "rep": "A",
+          "by": 0.08
+        }
+      ],
+      "variants": [
+        "I hear {A} scouts good skipping stones for {B}; that leaves more energy for the throwing.",
+        "{A} supposedly marks the flat stones for {B}.",
+        "Does {A} test those stones before marking them for {B}, or is there a refund if one sinks immediately?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-227",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            95
+          ],
+          "relation": "siblings"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.5,
+      "text": "They say {A} and {B} have begun returning borrowed jars with handwritten apologies tucked under the lids.",
+      "effects": [
+        {
+          "bond": [
+            "A",
+            "B"
+          ],
+          "by": 0.25
+        }
+      ],
+      "variants": [
+        "I hear {A} and {B} are sending apologies back with borrowed jars; some things are easier to write than say.",
+        "Apparently {A} and {B} exchange apologies under jar lids.",
+        "How many jars have {A} and {B} borrowed if they still have apologies waiting to go out?"
+      ]
+    },
+    {
+      "id": "legend-20261117-228",
+      "kind": "legend",
+      "title": "The Mill's White Hands",
+      "years": [
+        1950,
+        1975
+      ],
+      "told_as": "On damp mornings, white handprints used to appear high on the mill wall, too high for anyone standing on the floor. People said the building was counting everyone it had ever employed. Nobody liked to be the first to count back.",
+      "truth": "Workers had steadied themselves against the wall while standing on a movable loading platform, leaving flour and oil in the plaster. After the platform was removed, damp air made the old marks visible again above an apparently unreachable floor.",
+      "clues": [
+        {
+          "where": "the old mill wall",
+          "text": "The pale marks share a height with worn attachment holes left by a loading platform."
+        },
+        {
+          "where": "the mill maintenance ledger",
+          "text": "An entry records removal of a movable platform before the first reported sighting."
+        },
+        {
+          "where": "the old mill storeroom",
+          "text": "A chalk diagram shows where workers stood while shifting sacks beside the marked wall."
+        }
+      ]
+    }
+  ]
+}

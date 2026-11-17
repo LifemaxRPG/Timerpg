@@ -1,0 +1,366 @@
+{
+  "batch": "2026-11-17",
+  "items": [
+    {
+      "id": "story-20261117-209",
+      "kind": "story",
+      "category": "crime",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            90
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "chance": 0.006,
+      "outcomes": [
+        {
+          "p": 0.35,
+          "effects": [
+            {
+              "wealth": "A",
+              "by": -0.2
+            },
+            {
+              "rep": "A",
+              "by": -0.25
+            }
+          ],
+          "headlines": [
+            "Relief Collection Exposed as a Private Purse",
+            "False Charity Jar Brings Public Reckoning",
+            "{A.last} Returns Money from Invented Appeal"
+          ],
+          "bodies": [
+            "{A} collected money for a relief fund that did not exist. After the Gazette checked the appeal, the collector returned the donations and paid additional costs from personal funds.",
+            "A relief jar organized by {A} proved to have no fund behind it. Public exposure forced repayment, leaving the collector poorer and facing widespread distrust.",
+            "The Gazette found that a charitable appeal promoted by {A} was invented. The money was repaid at personal expense after donors demanded an accounting."
+          ]
+        },
+        {
+          "p": 0.65,
+          "effects": [
+            {
+              "rep": "A",
+              "by": 0.18
+            }
+          ],
+          "headlines": [
+            "Receipts Clear Relief Organizer of Suspicion",
+            "Relief Fund Books Answer a Town's Questions",
+            "{A.last} Opens Donation Ledger to Public View"
+          ],
+          "bodies": [
+            "Questions about a relief collection led {A} to make its receipts available for inspection. Every donation was accounted for, and the Gazette found no money diverted.",
+            "{A} answered suspicions about a relief jar by opening the collection ledger. Receipts confirmed that the full amount reached the intended aid fund.",
+            "A disputed relief appeal organized by {A} passed a public accounting. The Gazette inspected the receipts and found the accusations unsupported."
+          ]
+        }
+      ],
+      "era_notes": "Use paper ledgers and receipts throughout; name no outside charity or disaster. The simulation selects whether this appeal is fraudulent or legitimate."
+    },
+    {
+      "id": "story-20261117-210",
+      "kind": "story",
+      "category": "celebration",
+      "roles": {
+        "A": {
+          "age": [
+            8,
+            16
+          ]
+        },
+        "B": {
+          "age": [
+            35,
+            55
+          ],
+          "relation": "parent_child"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "chance": 0.018,
+      "outcomes": [
+        {
+          "p": 0.7,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.3
+            },
+            {
+              "rep": "A",
+              "by": 0.08
+            }
+          ],
+          "headlines": [
+            "A Scarecrow Wears Its Maker's Sense of Humor",
+            "Oversized Scarecrow Wins Small-Town Applause",
+            "Parent and Child Give Straw a Personality"
+          ],
+          "bodies": [
+            "{A} and parent {B} entered a scarecrow with enormous stuffed ears in the town's autumn display. The card beneath it read 'Good Listener,' and visitors supplied plenty of conversation.",
+            "An autumn scarecrow built by {A} with help from parent {B} drew delighted attention. Its outsized ears and 'Good Listener' label earned the young maker public praise.",
+            "{A} handled the design and parent {B} handled the knots for a scarecrow in the autumn display. Their big-eared creation became a favorite place for visitors to pose and laugh."
+          ]
+        },
+        {
+          "p": 0.3,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": -0.2
+            },
+            {
+              "rep": "B",
+              "by": -0.08
+            }
+          ],
+          "headlines": [
+            "Scarecrow Entry Becomes a Family Dispute",
+            "Young Maker Objects as Parent Claims the Credit",
+            "Autumn Display Reveals More Than Straw"
+          ],
+          "bodies": [
+            "{B} claimed sole credit for a scarecrow designed and built mostly by child {A}. After {A} objected in front of visitors, the display became the setting for an uncomfortable family argument.",
+            "A scarecrow in the autumn display brought {A} little pleasure after parent {B} dismissed the child's work as mere watching. Visitors heard a correction from the young maker.",
+            "{A} challenged parent {B} for taking credit for a scarecrow that was largely the child's work. The resulting argument drew more notice than the entry itself."
+          ]
+        }
+      ],
+      "era_notes": "Keep this a local autumn display rather than a branded or regional festival. B is A's parent; photographs are optional and absent from the base text."
+    },
+    {
+      "id": "rumor-20261117-211",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            95
+          ],
+          "relation": "rivals"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.4,
+      "text": "They say {A} has been measuring the shadow of a fence belonging to {B} to prove it steals afternoon sunshine.",
+      "effects": [
+        {
+          "bond": [
+            "A",
+            "B"
+          ],
+          "by": -0.2
+        },
+        {
+          "rep": "A",
+          "by": -0.05
+        }
+      ],
+      "variants": [
+        "I hear {A} is measuring the shade from the fence belonging to {B}; I hope they can talk before the ruler becomes evidence.",
+        "{A} supposedly measures the shade cast by the fence belonging to {B}.",
+        "Has {A} accounted for the sun moving, or is that going on the complaint against {B} too?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-212",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            65,
+            95
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.6,
+      "text": "I hear {A} keeps a jar of polished stones ready for children who arrive with nothing to trade.",
+      "effects": [
+        {
+          "rep": "A",
+          "by": 0.1
+        }
+      ],
+      "variants": [
+        "They say {A} makes sure every child has a stone worth trading; small kindnesses can fill a pocket.",
+        "{A} supposedly gives trading stones to children who have none.",
+        "How does {A} decide which stones are valuable, and why does everybody seem to want the plain striped ones?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-213",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            95
+          ],
+          "relation": "friends"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.3,
+      "text": "Word is {A} used a borrowed fishing rod from {B} to prop open a window and snapped it.",
+      "effects": [
+        {
+          "bond": [
+            "A",
+            "B"
+          ],
+          "by": -0.25
+        },
+        {
+          "rep": "A",
+          "by": -0.08
+        }
+      ],
+      "variants": [
+        "I hope {A} offers to replace that rod from {B}; borrowed things deserve better than a window frame.",
+        "They say {A} broke a rod borrowed from {B} by using it as a window prop.",
+        "Did {A} mention the window when returning the rod to {B}, or only complain that the fishing had been poor?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-214",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            8,
+            16
+          ]
+        },
+        "B": {
+          "age": [
+            8,
+            16
+          ],
+          "relation": "friends"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.55,
+      "text": "People say {A} and {B} have agreed to share one sled by counting downhill turns and uphill pulls separately.",
+      "effects": [
+        {
+          "bond": [
+            "A",
+            "B"
+          ],
+          "by": 0.15
+        }
+      ],
+      "variants": [
+        "I hear {A} and {B} found a fair way to share a sled; they even count the work of hauling it back.",
+        "{A} and {B} supposedly keep separate counts for sled rides and pulls.",
+        "Who audits the sled accounts for {A} and {B} when somebody claims the hill was shorter last time?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-215",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.18,
+      "text": "They say {A} found a fresh wet footprint on the underside of a porch step.",
+      "effects": [
+        {
+          "rep": "A",
+          "by": -0.03
+        }
+      ],
+      "variants": [
+        "I hear {A} found a footprint under a step; perhaps someone moved the board after it was marked.",
+        "{A} supposedly found a wet footprint beneath a porch stair.",
+        "If that print was really underneath the step, did {A} check whether it was pointing into the house or out?"
+      ]
+    },
+    {
+      "id": "dialogue-20261117-216",
+      "kind": "dialogue",
+      "intent": "farewell",
+      "warm": [
+        "Take care on your way. I enjoyed the company.",
+        "Come back when you have a little time to spare.",
+        "I had better get on. It was good talking with you.",
+        "May the rest of your day be an easy one.",
+        "We will have something new to discuss next time.",
+        "You know where to find me. Stop and say hello."
+      ],
+      "curt": [
+        "I need to get going.",
+        "That will do for today. Take care.",
+        "See you around.",
+        "I have kept you long enough.",
+        "Goodbye. Mind the weather.",
+        "I will leave you to it."
+      ]
+    }
+  ]
+}

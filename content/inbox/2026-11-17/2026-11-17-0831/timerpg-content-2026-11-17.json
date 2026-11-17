@@ -1,0 +1,371 @@
+{
+  "batch": "2026-11-17",
+  "items": [
+    {
+      "id": "story-20261117-197",
+      "kind": "story",
+      "category": "family",
+      "roles": {
+        "A": {
+          "age": [
+            60,
+            85
+          ]
+        },
+        "B": {
+          "age": [
+            30,
+            45
+          ],
+          "relation": "parent_child"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "chance": 0.014,
+      "outcomes": [
+        {
+          "p": 0.7,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.35
+            },
+            {
+              "rep": "B",
+              "by": 0.08
+            }
+          ],
+          "headlines": [
+            "A Grown Child Learns to Ride, a Parent Lets Go",
+            "Bicycle Lesson Comes Several Decades Late",
+            "{B.last} Finds Balance with Family Help"
+          ],
+          "bodies": [
+            "{A} helped adult child {B} learn to ride a bicycle on {street}. When the steadying hand finally lifted, both were surprised by how difficult it was to stop smiling.",
+            "A quiet stretch of {street} became a practice ground for {B}, with parent {A} holding the saddle. The lesson ended with an independent lap and applause from the sidewalk.",
+            "{B} completed a first solo bicycle ride after patient instruction from parent {A}. Neither considered the lesson too late, though both agreed on a shorter route home."
+          ]
+        },
+        {
+          "p": 0.3,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": -0.25
+            },
+            {
+              "rep": "A",
+              "by": -0.06
+            }
+          ],
+          "headlines": [
+            "Bicycle Lesson Ends with Words, Not Wheels",
+            "Family Practice Ride Breaks Down over Teasing",
+            "Public Teasing Cuts a Cycling Lesson Short"
+          ],
+          "bodies": [
+            "{A} turned a bicycle lesson for adult child {B} into a series of jokes for onlookers. {B} wheeled the bicycle home and declined further instruction.",
+            "A cycling lesson on {street} ended when {B} objected to public teasing from parent {A}. The bicycle remained upright, but the conversation took a sharp turn.",
+            "{B} abandoned a first bicycle lesson after parent {A} invited passersby to laugh at each wobble. Witnesses offered more sympathy than the instructor had managed."
+          ]
+        }
+      ],
+      "era_notes": "Use an ordinary bicycle and a quiet street throughout. A is B's parent; neither role requires a particular sex."
+    },
+    {
+      "id": "story-20261117-198",
+      "kind": "story",
+      "category": "nature",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            90
+          ],
+          "wealth": "comfortable"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "chance": 0.012,
+      "outcomes": [
+        {
+          "p": 0.6,
+          "effects": [
+            {
+              "wealth": "A",
+              "by": -0.08
+            },
+            {
+              "rep": "A",
+              "by": 0.18
+            }
+          ],
+          "headlines": [
+            "Young Trees Take Root Along {street}",
+            "Resident Pays for Shade a Town Must Wait For",
+            "New Saplings Give {town} a Long View"
+          ],
+          "bodies": [
+            "{A} paid for young shade trees along {street} and kept them watered through their first dry spell. The saplings are thriving, though the Gazette cannot yet recommend them for a picnic.",
+            "A row of saplings purchased by {A} has survived its first difficult season on {street}. Their care has earned public thanks and promises of help with the next round of watering.",
+            "{A} covered the cost of new trees on {street} and tended them until they took root. Neighbors praised a gift whose full shade will arrive years after the bill."
+          ]
+        },
+        {
+          "p": 0.4,
+          "effects": [
+            {
+              "wealth": "A",
+              "by": -0.18
+            },
+            {
+              "rep": "A",
+              "by": 0.05
+            }
+          ],
+          "headlines": [
+            "Late Frost Claims a Row of Young Trees",
+            "Sapling Project Ends in Bare Stakes",
+            "Tree Donor Faces a Second Planting Bill"
+          ],
+          "bodies": [
+            "A late frost killed the young trees {A} had purchased for {street}. The donor paid for replacements, earning sympathy even as the planting budget more than doubled.",
+            "New saplings along {street} failed after a hard frost. {A} covered a second planting and asked that the dead trees be cleared before anyone held a dedication.",
+            "{A} paid to replace a row of frost-killed saplings on {street}. Neighbors offered thanks, though the new trees will need another season before anyone can call the project secure."
+          ]
+        }
+      ],
+      "era_notes": "Keep costs as relative losses; use generic locally suitable shade trees without assuming a climate zone."
+    },
+    {
+      "id": "rumor-20261117-199",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            95
+          ],
+          "relation": "friends"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.5,
+      "text": "They say {A} has been taking credit for the crossword answers supplied by {B}.",
+      "effects": [
+        {
+          "bond": [
+            "A",
+            "B"
+          ],
+          "by": -0.2
+        },
+        {
+          "rep": "A",
+          "by": -0.08
+        }
+      ],
+      "variants": [
+        "I hope {A} remembers to thank {B} for those crossword answers; a shared pleasure need not become a quarrel.",
+        "Apparently {B} supplies the words and {A} takes the bows.",
+        "Does {A} know all those long words, or only when {B} is sitting close enough to whisper?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-200",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            8,
+            15
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.7,
+      "text": "I hear {A} has taught a dog to carry a basket but cannot persuade it to return the basket.",
+      "effects": [
+        {
+          "rep": "A",
+          "by": 0.04
+        }
+      ],
+      "variants": [
+        "They say {A} has the dog carrying a basket now; bringing it back may take another afternoon.",
+        "{A} supposedly trained half a fetching trick.",
+        "If {A} is such a good trainer, why does everyone say the dog gets custody of every basket?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-201",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            95
+          ],
+          "relation": "spouses"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.45,
+      "text": "Word is {A} and {B} settle arguments by writing complaints on paper and swapping them before speaking.",
+      "effects": [
+        {
+          "bond": [
+            "A",
+            "B"
+          ],
+          "by": 0.18
+        }
+      ],
+      "variants": [
+        "I hear {A} and {B} read each other's complaints before arguing; taking a breath seems worth the paper.",
+        "They say {A} and {B} exchange written complaints first.",
+        "Do {A} and {B} keep those complaint slips, or is there a little bonfire after every disagreement?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-202",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            95
+          ],
+          "relation": "strangers"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.3,
+      "text": "People say {A} gave {B} deliberately wrong directions to keep a shortcut from getting busy.",
+      "effects": [
+        {
+          "bond": [
+            "A",
+            "B"
+          ],
+          "by": -0.25
+        },
+        {
+          "rep": "A",
+          "by": -0.12
+        }
+      ],
+      "variants": [
+        "I hope {A} simply mixed up the directions for {B}; a quiet shortcut is no excuse to mislead someone.",
+        "They say {A} sent {B} the long way on purpose.",
+        "How many turns did {A} invent for {B} before that precious shortcut was safely out of the conversation?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-203",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            60,
+            95
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.15,
+      "text": "They say {A} can pick a particular house out of a row while wearing a blindfold, just by the smell of its porch.",
+      "effects": [
+        {
+          "rep": "A",
+          "by": 0.05
+        }
+      ],
+      "variants": [
+        "I hear {A} knows a porch by its smell; old wood and familiar gardens do hold memories.",
+        "{A} supposedly recognizes one porch without looking.",
+        "Who checked that blindfold on {A}, and did anyone try switching the flowerpots first?"
+      ]
+    },
+    {
+      "id": "dialogue-20261117-204",
+      "kind": "dialogue",
+      "intent": "secret_deflect",
+      "warm": [
+        "I know you are curious. I would rather keep that to myself.",
+        "That is a longer story than I want to tell today.",
+        "Let me have one quiet corner of my life.",
+        "I appreciate you asking kindly. I am still not ready to answer.",
+        "Could we leave that alone for now? I would enjoy the company more.",
+        "Some things need a little time before they can be said properly."
+      ],
+      "curt": [
+        "That stays with me.",
+        "I heard the question. I am not answering it.",
+        "Leave it there.",
+        "You can ask. I can keep quiet.",
+        "I have nothing to add.",
+        "We can discuss something else or finish talking."
+      ]
+    }
+  ]
+}

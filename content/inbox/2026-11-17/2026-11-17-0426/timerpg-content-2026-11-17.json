@@ -1,0 +1,382 @@
+{
+  "batch": "2026-11-17",
+  "items": [
+    {
+      "id": "story-20261117-149",
+      "kind": "story",
+      "category": "family",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            35
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            35
+          ],
+          "relation": "siblings"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "chance": 0.018,
+      "outcomes": [
+        {
+          "p": 0.6,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.4
+            }
+          ],
+          "headlines": [
+            "{A.last} Siblings Split a Quilt, Keep the Peace",
+            "Old Quilt Finds Room for Two",
+            "Family Keepsake Becomes Two Smaller Keepsakes"
+          ],
+          "bodies": [
+            "{A} and {B} settled a dispute over an old family quilt by dividing it into two lap blankets. Each insisted the other take the warmer half.",
+            "An argument over a family quilt ended when {A} suggested making two smaller blankets. {B} agreed, and the pair left together carrying matching bundles.",
+            "{A} and {B} brought scissors to a family disagreement and managed a peaceful ending. Their shared quilt is now two blankets, with the original border divided evenly."
+          ]
+        },
+        {
+          "p": 0.4,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": -0.35
+            },
+            {
+              "rep": "A",
+              "by": -0.08
+            }
+          ],
+          "headlines": [
+            "Family Quilt Dispute Unravels in Public",
+            "One Quilt, Two Claims, No Agreement",
+            "Keepsake Argument Leaves a Family Divided"
+          ],
+          "bodies": [
+            "{A} refused to share an old family quilt with {B}. Their argument spilled onto {street}, where neither found a sympathetic audience.",
+            "A disagreement over a family quilt brought {A} and {B} into a public quarrel. {A} kept the blanket, while {B} left empty-handed.",
+            "{A} carried away a disputed family quilt despite objections from {B}. Several witnesses suggested that keeping warm might now be easier than keeping company."
+          ]
+        }
+      ],
+      "era_notes": "Quilts and hand sewing work in every decade; do not imply either sibling has lost a parent."
+    },
+    {
+      "id": "story-20261117-150",
+      "kind": "story",
+      "category": "nature",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            90
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            90
+          ],
+          "relation": "strangers"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "chance": 0.012,
+      "outcomes": [
+        {
+          "p": 0.75,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.3
+            },
+            {
+              "rep": "A",
+              "by": 0.1
+            }
+          ],
+          "headlines": [
+            "{A.last} and {B.last} Rescue Stranded Ducklings",
+            "Drainpipe Rescue Brings Neighbors Together",
+            "Ducklings Leave Drain, Crowd Finally Leaves"
+          ],
+          "bodies": [
+            "{A} and {B} coaxed trapped ducklings from a roadside drain using a board and a trail of crumbs. The birds returned to the river without acknowledging the applause.",
+            "A roadside gathering watched {A} lower a board into a drain while {B} scattered crumbs above it. Every trapped duckling climbed out, and the two rescuers shook hands.",
+            "Traffic paused on {street} while {A} and {B} freed ducklings from a drain. The rescue required one borrowed board and considerably more patience than either expected."
+          ]
+        },
+        {
+          "p": 0.25,
+          "effects": [
+            {
+              "wealth": "A",
+              "by": -0.08
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.15
+            }
+          ],
+          "headlines": [
+            "Ducklings Escape; Rescuer Loses a Good Coat",
+            "Drain Rescue Costs a Coat, Gains a Friend",
+            "Small Birds Depart Before Help Arrives"
+          ],
+          "bodies": [
+            "{A} tore a coat reaching into a drain for trapped ducklings, which promptly escaped through another opening. {B} helped with the climb back out and offered a sympathetic walk home.",
+            "The ducklings in a roadside drain found their own exit while {A} was attempting a rescue. {B} helped {A} out, though a badly torn coat proved beyond saving.",
+            "A duckling rescue on {street} ended with the birds safe and a coat ruined. {B} stayed to help {A}, and the pair departed laughing at the ungrateful beneficiaries."
+          ]
+        }
+      ],
+      "era_notes": "Use foot traffic or generic traffic; avoid emergency services or technology assumptions."
+    },
+    {
+      "id": "rumor-20261117-151",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            90
+          ],
+          "owns_shop": true
+        },
+        "shop": {
+          "shop_kind": [
+            "barbershop"
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.4,
+      "text": "They say {A} practices speeches for a public office after closing {shop}.",
+      "effects": [
+        {
+          "rep": "A",
+          "by": 0.08
+        }
+      ],
+      "variants": [
+        "I hear {A} rehearses speeches at {shop}; it takes nerve to offer yourself up for everybody's complaints.",
+        "Word is {A} wants public office and practices at {shop}.",
+        "If {A} is only talking to the mirrors at {shop}, why do people say there are campaign speeches involved?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-152",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            8,
+            15
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.65,
+      "text": "I hear {A} has been returning lost mittens to the school steps in pairs that do not match.",
+      "effects": [
+        {
+          "rep": "A",
+          "by": 0.06
+        }
+      ],
+      "variants": [
+        "They say {A} is getting lost mittens back to school; two warm hands matter more than matching colors.",
+        "{A} supposedly returns the mittens, mismatched and all.",
+        "Who told {A} which mittens belong together, or is this supposedly a whole new system?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-153",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            95
+          ],
+          "relation": "friends"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.3,
+      "text": "Word is {A} copied a private letter from {B} and read it aloud for laughs.",
+      "effects": [
+        {
+          "bond": [
+            "A",
+            "B"
+          ],
+          "by": -0.4
+        },
+        {
+          "rep": "A",
+          "by": -0.16
+        }
+      ],
+      "variants": [
+        "I hope that story about {A} reading a letter from {B} is wrong; trust is hard to mend.",
+        "They say {A} made entertainment out of a private letter from {B}.",
+        "What was in that letter from {B} that {A} supposedly thought everybody needed to hear?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-154",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            60,
+            95
+          ],
+          "wealth": "poor"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.5,
+      "text": "People say {A} refuses firewood unless someone calls it payment for sharpening a pencil.",
+      "effects": [
+        {
+          "rep": "A",
+          "by": 0.07
+        }
+      ],
+      "variants": [
+        "They say {A} will trade pencil sharpening for firewood; everybody needs a way to keep their pride warm.",
+        "Apparently {A} takes wood for sharpening pencils and calls it square.",
+        "How sharp must a pencil be if people say {A} earns a whole armload of wood for it?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-155",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.12,
+      "text": "They say {A} found a folded map inside a hollow fence post, with every road ending at the church.",
+      "effects": [
+        {
+          "rep": "A",
+          "by": -0.04
+        }
+      ],
+      "variants": [
+        "I hear {A} found a strange map in a fence post; perhaps somebody just drew the routes they knew.",
+        "{A} supposedly found a map where every road ends at the church.",
+        "Why hide a map in a fence post, and why do people say {A} will not show anyone the other side?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-156",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            21,
+            85
+          ],
+          "owns_shop": true
+        },
+        "shop": {
+          "shop_kind": [
+            "diner"
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.55,
+      "text": "I hear {A} waters down the soup at {shop} whenever the lunch crowd looks bigger than expected.",
+      "effects": [
+        {
+          "rep": "A",
+          "by": -0.12
+        },
+        {
+          "wealth": "A",
+          "by": -0.06
+        }
+      ],
+      "variants": [
+        "They say {A} stretches the soup at {shop}; I hope it is worry about feeding everyone, though customers deserve to know.",
+        "Crowded room, thinner soup at {shop}; that is the word about {A}.",
+        "Has anybody watched the soup pot at {shop} when more customers arrive? People say {A} reaches straight for the water."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,151 @@
+{
+  "batch": "2026-11-17",
+  "items": [
+    {
+      "id": "story-20261117-1",
+      "kind": "story",
+      "category": "civic",
+      "roles": {"A": {"age": [65, 95]}, "B": {"age": [18, 30], "relation": "strangers"}},
+      "when": {"years": [1950, 2030]},
+      "chance": 0.025,
+      "outcomes": [
+        {
+          "p": 0.7,
+          "effects": [{"bond": ["A", "B"], "by": 0.35}, {"rep": "B", "by": 0.12}],
+          "headlines": ["Bench Gets a Fresh Coat and a New Friendship", "Two Generations Share One Paintbrush", "A Place to Sit, Thanks to Two Neighbors"],
+          "bodies": [
+            "{A} and {B} repainted a public bench on {street}. After disagreeing over the color, they agreed to share the first seat.",
+            "The bench on {street} is freshly painted, courtesy of {A} and {B}. The pair finished with paint on both sets of shoes and plans to meet there again.",
+            "{B} offered to help {A} paint a bench on {street}. The work ended with a handshake and a standing invitation to sit together."
+          ]
+        },
+        {
+          "p": 0.3,
+          "effects": [{"bond": ["A", "B"], "by": -0.25}, {"rep": "B", "by": -0.08}],
+          "headlines": ["Wet Paint Notice Arrives Too Late", "Bench Project Ends in a Colorful Dispute", "Fresh Bench Paint Spoils a Neighborly Gesture"],
+          "bodies": [
+            "{B} repainted a bench on {street} but neglected a wet-paint notice. {A} sat down and rose with a ruined coat and a grievance.",
+            "A freshly painted bench on {street} caught {A} by surprise. {B}, responsible for the paint and the missing warning, received a sharp public rebuke.",
+            "{A} discovered the new bench paint with the back of a coat. An argument with {B} followed, and the Gazette advises readers to inspect before sitting."
+          ]
+        }
+      ],
+      "era_notes": "Use the same wording throughout; the paint, bench and handwritten warning require no decade-specific technology."
+    },
+    {
+      "id": "story-20261117-2",
+      "kind": "story",
+      "category": "business",
+      "roles": {"A": {"age": [25, 85], "owns_shop": true}, "shop": {"shop_kind": ["bakery"]}},
+      "when": {"years": [1950, 2030]},
+      "chance": 0.02,
+      "outcomes": [
+        {
+          "p": 0.65,
+          "effects": [{"wealth": "A", "by": 0.12}, {"rep": "A", "by": 0.1}],
+          "headlines": ["Crooked Loaves Find a Loyal Following", "Bakery Turns a Baking Mishap into a Bargain", "Uneven Bread Draws an Even Longer Line"],
+          "bodies": [
+            "A batch of lopsided loaves at {shop} sold out after {A} offered them at a discount. Customers said the bread tasted better than it stood.",
+            "{A} labeled a crooked batch of bread 'leaning loaves' and lowered the price. The last one left {shop} before noon.",
+            "An uneven rise made this morning's bread at {shop} difficult to stack. {A} sold every loaf at a reduced price and took requests for another batch."
+          ]
+        },
+        {
+          "p": 0.35,
+          "effects": [{"wealth": "A", "by": -0.15}, {"rep": "A", "by": 0.08}],
+          "headlines": ["Bakery Refunds a Morning's Worth of Bread", "Salt Mix-Up Brings Refunds at the Bakery", "Baker Owns Up to an Unfortunate Batch"],
+          "bodies": [
+            "{A} discovered too much salt in a batch at {shop} and refunded every buyer who returned. The mistake cost a morning's receipts but earned thanks for the warning.",
+            "Customers at {shop} received an apology and their money back after an oversalted batch. {A} posted a notice before anyone had to ask.",
+            "A measuring error spoiled the morning bread at {shop}. {A} offered refunds and accepted the resulting jokes with visible effort."
+          ]
+        }
+      ],
+      "era_notes": "Keep notices on paper and transactions in unspecified currency. The story assumes A owns the bakery bound to shop."
+    },
+    {
+      "id": "rumor-20261117-3",
+      "kind": "rumor",
+      "roles": {"A": {"age": [18, 90], "wealth": "getting_by"}},
+      "when": {"years": [1950, 2030]},
+      "true_chance": 0.45,
+      "text": "They say {A} anonymously paid for the new hymnbooks at the church.",
+      "effects": [{"rep": "A", "by": 0.12}],
+      "variants": [
+        "I hear {A} paid for those hymnbooks; some people save up to do a kindness.",
+        "New hymnbooks, anonymous donor; people say it was {A}.",
+        "If {A} bought the hymnbooks, who let the secret slip, and why now?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-4",
+      "kind": "rumor",
+      "roles": {"A": {"age": [18, 95]}, "B": {"age": [18, 95], "relation": "rivals"}},
+      "when": {"years": [1950, 2030]},
+      "true_chance": 0.35,
+      "text": "Word is {A} has been moving the boundary stakes to steal a strip of land from {B}.",
+      "effects": [{"bond": ["A", "B"], "by": -0.35}, {"rep": "A", "by": -0.12}],
+      "variants": [
+        "I hope that talk about {A} shifting stakes on {B} is a misunderstanding.",
+        "They say {A} moved the stakes against {B}; get the land measured.",
+        "Funny how that boundary supposedly creeps toward {B} whenever {A} has a shovel out."
+      ]
+    },
+    {
+      "id": "rumor-20261117-5",
+      "kind": "rumor",
+      "roles": {"A": {"age": [10, 17]}},
+      "when": {"years": [1950, 2030]},
+      "true_chance": 0.6,
+      "text": "I hear {A} deliberately misspelled the last word in the spelling contest so another child could win.",
+      "effects": [{"rep": "A", "by": 0.08}],
+      "variants": [
+        "They say {A} gave away that spelling prize; I hope nobody makes a fuss and spoils the kindness.",
+        "Supposedly {A} missed the word on purpose.",
+        "{A} spelled every harder word, then missed that one; who was the prize really meant for?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-6",
+      "kind": "rumor",
+      "roles": {"A": {"age": [21, 90], "owns_shop": true}, "shop": {"shop_kind": ["hardware store"]}},
+      "when": {"years": [1950, 2030]},
+      "true_chance": 0.25,
+      "text": "They say {A} keeps a second price list at {shop} for customers who look desperate.",
+      "effects": [{"rep": "A", "by": -0.18}, {"wealth": "A", "by": -0.08}],
+      "variants": [
+        "I hate to think {A} charges more when someone badly needs a repair, but that is the talk about {shop}.",
+        "People say desperation costs extra at {shop}, courtesy of {A}.",
+        "Has anyone compared two receipts from {shop}? They say {A} prices the customer before the nails."
+      ]
+    },
+    {
+      "id": "rumor-20261117-7",
+      "kind": "rumor",
+      "roles": {"A": {"age": [40, 95]}},
+      "when": {"years": [1950, 2030]},
+      "true_chance": 0.15,
+      "text": "People say {A} leaves an empty chair facing the river and speaks to it before dawn.",
+      "effects": [{"rep": "A", "by": -0.06}],
+      "variants": [
+        "They say {A} talks to an empty chair by the river; perhaps it helps with something private.",
+        "An empty chair, the river, {A} talking before sunrise; that is what I heard.",
+        "If that chair by the river is empty, why do people say {A} pauses as though someone answers?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-8",
+      "kind": "rumor",
+      "roles": {"A": {"age": [18, 95]}, "B": {"age": [18, 95], "relation": "friends"}},
+      "when": {"years": [1950, 2030]},
+      "true_chance": 0.55,
+      "text": "I hear {A} entered a vegetable grown by {B} in the fair and claimed the ribbon.",
+      "effects": [{"bond": ["A", "B"], "by": -0.3}, {"rep": "A", "by": -0.1}],
+      "variants": [
+        "I hope {A} and {B} sort out whose vegetable won that ribbon before a friendship goes sour.",
+        "They say the ribbon went to {A} and the gardening was all {B}.",
+        "Did {A} grow that prize vegetable, or just carry it over from {B}? People are asking."
+      ]
+    }
+  ]
+}

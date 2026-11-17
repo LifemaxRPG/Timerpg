@@ -1,0 +1,376 @@
+{
+  "batch": "2026-11-17",
+  "items": [
+    {
+      "id": "story-20261117-173",
+      "kind": "story",
+      "category": "business",
+      "roles": {
+        "A": {
+          "age": [
+            21,
+            85
+          ],
+          "owns_shop": true
+        },
+        "shop": {
+          "shop_kind": [
+            "general store"
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "chance": 0.018,
+      "outcomes": [
+        {
+          "p": 0.6,
+          "effects": [
+            {
+              "wealth": "A",
+              "by": 0.1
+            },
+            {
+              "rep": "A",
+              "by": 0.12
+            }
+          ],
+          "headlines": [
+            "{shop} Sets Aside a Quiet Shopping Hour",
+            "Quiet Hour Finds Customers at {shop}",
+            "Store Turns Down the Noise, Draws New Trade"
+          ],
+          "bodies": [
+            "{A} introduced a quiet shopping hour at {shop}, with no music and no shouted sales pitches. Enough customers welcomed the change to make it a profitable experiment.",
+            "Customers seeking a calmer errand have a new option at {shop}. Owner {A} reported stronger receipts after setting aside an hour without music or sales patter.",
+            "{shop} tried an hour of quiet trade at the suggestion of owner {A}. The room grew calmer and the till busier, prompting plans to continue."
+          ]
+        },
+        {
+          "p": 0.4,
+          "effects": [
+            {
+              "wealth": "A",
+              "by": -0.12
+            },
+            {
+              "rep": "A",
+              "by": -0.06
+            }
+          ],
+          "headlines": [
+            "Quiet Hour Rule Sparks a Noisy Complaint",
+            "Store's Silence Experiment Costs Custom",
+            "{shop} Learns Quiet Can Be Too Strict"
+          ],
+          "bodies": [
+            "{A} enforced a new quiet hour at {shop} by scolding customers for ordinary conversation. Several left without buying, and the experiment ended in a very audible dispute.",
+            "A quiet shopping hour at {shop} became an argument when {A} demanded silence from chatting customers. Lost sales accompanied complaints about the treatment.",
+            "Customers abandoned purchases at {shop} after owner {A} treated a quiet-hour notice as a ban on speaking. The resulting complaints were easy to hear from the doorway."
+          ]
+        }
+      ],
+      "era_notes": "In early decades describe silence from the store radio; in later decades describe background music. The base text works throughout."
+    },
+    {
+      "id": "story-20261117-174",
+      "kind": "story",
+      "category": "civic",
+      "roles": {
+        "A": {
+          "age": [
+            12,
+            17
+          ]
+        },
+        "B": {
+          "age": [
+            60,
+            95
+          ],
+          "relation": "strangers"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "chance": 0.016,
+      "outcomes": [
+        {
+          "p": 0.7,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.35
+            },
+            {
+              "rep": "A",
+              "by": 0.12
+            }
+          ],
+          "headlines": [
+            "Young Interviewer Gives Old Memories Their Due",
+            "{town} Oral History Begins with One Conversation",
+            "A Patient Listener Wins a New Friend"
+          ],
+          "bodies": [
+            "{A} interviewed {B} for a handwritten history of {town} and brought the pages back for corrections. The interview grew into a friendship after both agreed that remembering and checking were different jobs.",
+            "A local history project paired young interviewer {A} with {B}. Returning to check each quotation earned the writer a welcome for another visit.",
+            "{B} praised {A} for correcting a handwritten interview before sharing it. The account of everyday life in {town} now includes fewer guesses and one new friendship."
+          ]
+        },
+        {
+          "p": 0.3,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": -0.3
+            },
+            {
+              "rep": "A",
+              "by": -0.08
+            }
+          ],
+          "headlines": [
+            "History Interview Turns a Joke into a False Claim",
+            "Misquoted Memory Sours a Local History Project",
+            "Interview Pages Withdrawn After Complaint"
+          ],
+          "bodies": [
+            "{A} circulated an interview with {B} that presented a joke as a factual claim. The pages were withdrawn after {B} complained, leaving the pair on poor terms.",
+            "A handwritten history project stumbled when {A} copied a joking remark from {B} without its explanation. Public corrections followed, but friendly conversation did not.",
+            "{B} objected after {A} shared an interview containing a misleading quotation. The young writer withdrew the pages and faced criticism for failing to check them."
+          ]
+        }
+      ],
+      "era_notes": "Use handwritten interviews rather than assuming access to recording equipment; no specific past event is asserted."
+    },
+    {
+      "id": "rumor-20261117-175",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            95
+          ],
+          "relation": "rivals"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.45,
+      "text": "They say {A} keeps replacing the loose button on a coat belonging to {B}, despite their quarrel.",
+      "effects": [
+        {
+          "bond": [
+            "A",
+            "B"
+          ],
+          "by": 0.2
+        }
+      ],
+      "variants": [
+        "I hear {A} still mends that button for {B}; perhaps the quarrel has a loose thread too.",
+        "Apparently {A} fixes a button for {B}, argument or no argument.",
+        "How does {A} keep getting that coat from {B} if they supposedly cannot stand each other?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-176",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            95
+          ],
+          "relation": "friends"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.35,
+      "text": "Word is {A} promised to help {B} move, then hid until the last heavy box was inside.",
+      "effects": [
+        {
+          "bond": [
+            "A",
+            "B"
+          ],
+          "by": -0.25
+        },
+        {
+          "rep": "A",
+          "by": -0.09
+        }
+      ],
+      "variants": [
+        "I hope {A} has a better explanation for missing the heavy work at the move for {B}.",
+        "They say {A} avoided helping {B} until the lifting was done.",
+        "Did {A} really appear just as {B} brought out the refreshments, or is that part getting improved in the telling?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-177",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            8,
+            16
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.6,
+      "text": "I hear {A} has been labeling puddles on {street} as oceans and charging pebbles for ferry service.",
+      "effects": [
+        {
+          "rep": "A",
+          "by": 0.05
+        }
+      ],
+      "variants": [
+        "They say {A} runs a puddle ferry for pebbles; it sounds like a fine afternoon's work.",
+        "{A} supposedly charges pebbles to float things across puddles.",
+        "If {A} owns the puddle ferries on {street}, who gets the pebbles when the oceans dry up?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-178",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            90
+          ],
+          "owns_shop": true
+        },
+        "shop": {
+          "shop_kind": [
+            "florist"
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.25,
+      "text": "People say {A} at {shop} charges more for flowers whenever an apology sounds urgent.",
+      "effects": [
+        {
+          "rep": "A",
+          "by": -0.14
+        },
+        {
+          "wealth": "A",
+          "by": -0.07
+        }
+      ],
+      "variants": [
+        "I hope {A} is not charging extra for embarrassment at {shop}; apologies are difficult enough.",
+        "They say urgent apologies cost more at {shop}, thanks to {A}.",
+        "Does {A} ask about the flowers first at {shop}, or about how much trouble the customer is in?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-179",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            65,
+            95
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.2,
+      "text": "They say {A} mails an envelope containing a blank sheet to {A.his} own address every spring.",
+      "effects": [
+        {
+          "rep": "A",
+          "by": -0.03
+        }
+      ],
+      "variants": [
+        "I hear {A} sends a blank letter home each spring; perhaps the arrival says enough.",
+        "{A} supposedly posts a blank sheet to the same address every spring.",
+        "If there is nothing on that sheet, why do people say {A} waits so carefully for the envelope?"
+      ]
+    },
+    {
+      "id": "legend-20261117-180",
+      "kind": "legend",
+      "title": "The Stair That Answered",
+      "years": [
+        1950,
+        1965
+      ],
+      "told_as": "They used to say the church cellar answered anyone who knocked three times on its bottom stair. The answer always came one knock short. People began saving their questions for daylight.",
+      "truth": "A loose pipe beneath the stair struck a joist when footsteps shook the landing. Three taps could leave it swinging long enough to strike twice, which gave a loose fitting a reputation for arithmetic.",
+      "clues": [
+        {
+          "where": "the church cellar",
+          "text": "The pipe beneath the bottom stair rests close to a joist marked by two shallow dents."
+        },
+        {
+          "where": "the church maintenance records",
+          "text": "A repair note mentions a rattling cellar pipe and a missing bracket."
+        },
+        {
+          "where": "the church steps",
+          "text": "An old account describes the answering knocks stopping whenever someone held the cellar pipe still."
+        }
+      ]
+    }
+  ]
+}

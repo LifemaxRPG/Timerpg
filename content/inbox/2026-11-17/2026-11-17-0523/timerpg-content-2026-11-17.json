@@ -1,0 +1,401 @@
+{
+  "batch": "2026-11-17",
+  "items": [
+    {
+      "id": "story-20261117-161",
+      "kind": "story",
+      "category": "celebration",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            95
+          ],
+          "relation": "rivals"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "chance": 0.015,
+      "outcomes": [
+        {
+          "p": 0.65,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.3
+            },
+            {
+              "rep": "A",
+              "by": 0.08
+            },
+            {
+              "rep": "B",
+              "by": 0.08
+            }
+          ],
+          "headlines": [
+            "Rivals Share the Last Dance",
+            "{town} Dance Ends with an Unexpected Duet",
+            "Two Rivals Call a Truce on the Dance Floor"
+          ],
+          "bodies": [
+            "{A} and {B} arrived at the town dance determined to avoid one another. When a partner dance left them paired, both finished the number and agreed to suspend their quarrel.",
+            "The final tune at the town dance brought longtime rivals {A} and {B} together. They managed the steps, exchanged a bow, and left their disagreement at the door.",
+            "{A} offered a hand to rival {B} during the last dance. Both accepted applause and agreed that one pleasant evening need not be their last."
+          ]
+        },
+        {
+          "p": 0.35,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": -0.3
+            },
+            {
+              "rep": "A",
+              "by": -0.1
+            },
+            {
+              "rep": "B",
+              "by": -0.1
+            }
+          ],
+          "headlines": [
+            "Dance Floor Becomes a Disputed Border",
+            "Rivals Turn a Dance into a Public Quarrel",
+            "Last Tune Ends Early After Argument"
+          ],
+          "bodies": [
+            "{A} and {B} disputed who had stepped on whose foot at the town dance. Their argument drowned out the final tune, and both were asked to leave.",
+            "A partner dance briefly paired rivals {A} and {B}, then unpaired them rather loudly. Organizers ended the music while the two argued over a misplaced heel.",
+            "The last dance stopped after {A} and {B} traded accusations about deliberate foot-stamping. Witnesses agreed only that neither behaved gracefully."
+          ]
+        }
+      ],
+      "era_notes": "In the 1950s favor a hall dance; in the 2020s favor a community dance. Keep music generic and do not imply romance."
+    },
+    {
+      "id": "story-20261117-162",
+      "kind": "story",
+      "category": "civic",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            95
+          ],
+          "relation": "strangers"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "chance": 0.02,
+      "outcomes": [
+        {
+          "p": 0.7,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.35
+            },
+            {
+              "rep": "A",
+              "by": 0.12
+            }
+          ],
+          "headlines": [
+            "Lost Recipe Box Returned with Cards in Order",
+            "{A.last} Returns a Box of Handwritten Recipes",
+            "Recipe Cards Find Their Way Home"
+          ],
+          "bodies": [
+            "{A} found a recipe box beside the road and returned it to {B}, whose name appeared inside the lid. {B} said the stained cards mattered more than any new cookbook.",
+            "A box of handwritten recipes lost on {street} was returned by {A} to {B}. Every card was accounted for, including one with measurements written in spoonfuls of uncertain size.",
+            "{B} recovered a lost recipe collection after {A} spotted a name inside its wooden box. The reunion ended with thanks and a lengthy explanation of which cards needed salt corrections."
+          ]
+        },
+        {
+          "p": 0.3,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.15
+            },
+            {
+              "wealth": "A",
+              "by": -0.06
+            }
+          ],
+          "headlines": [
+            "Rain Spares the Box but Ruins the Recipes",
+            "Returned Recipe Box Holds Blurred Memories",
+            "Finder Pays to Dry a Waterlogged Keepsake"
+          ],
+          "bodies": [
+            "{A} paid to have a roadside recipe box carefully dried before returning it to {B}. The handwritten cards remained unreadable, though {B} thanked the finder for trying.",
+            "A recipe box found in a rain-filled gutter reached {B} through the efforts of {A}. Drying expenses came out of the finder's pocket, but the ink could not be recovered.",
+            "{A} returned a rain-damaged recipe box to {B} after paying for drying materials. The cards were beyond reading, and the two sat quietly while {B} sorted them."
+          ]
+        }
+      ],
+      "era_notes": "Use handwritten cards in every decade; do not imply the recipes belonged to a deceased relative."
+    },
+    {
+      "id": "rumor-20261117-163",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            95
+          ],
+          "relation": "spouses"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.55,
+      "text": "They say {A} is secretly learning to whistle the tune that {B} always requests at dances.",
+      "effects": [
+        {
+          "bond": [
+            "A",
+            "B"
+          ],
+          "by": 0.18
+        }
+      ],
+      "variants": [
+        "I hear {A} is practicing that tune for {B}; a little effort can be a lovely present.",
+        "{A} is supposedly learning to whistle a tune for {B}.",
+        "If {A} is only out for a walk, why does everyone say the same three notes keep following {A.him}?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-164",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            90
+          ],
+          "owns_shop": true
+        },
+        "shop": {
+          "shop_kind": [
+            "repair shop"
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.3,
+      "text": "Word is {A} charges customers at {shop} for replacement parts that were only cleaned.",
+      "effects": [
+        {
+          "rep": "A",
+          "by": -0.18
+        },
+        {
+          "wealth": "A",
+          "by": -0.1
+        }
+      ],
+      "variants": [
+        "I hope that talk about {A} billing for old parts at {shop} can be cleared up with the receipts.",
+        "They say {A} cleans old parts at {shop} and bills them as new.",
+        "Has anyone asked {A} to show the discarded parts at {shop}, or do those supposedly vanish too?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-165",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            8,
+            16
+          ]
+        },
+        "B": {
+          "age": [
+            60,
+            95
+          ],
+          "relation": "strangers"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.7,
+      "text": "I hear {A} reads the tiny print on seed packets aloud for {B} and accepts payment only in beans.",
+      "effects": [
+        {
+          "bond": [
+            "A",
+            "B"
+          ],
+          "by": 0.25
+        },
+        {
+          "rep": "A",
+          "by": 0.08
+        }
+      ],
+      "variants": [
+        "They say {A} helps {B} read the seed packets; I like that the wages can grow.",
+        "{A} supposedly reads seed labels for {B} in exchange for beans.",
+        "How many beans does {B} owe {A} now, if the whole planting guide was part of the bargain?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-166",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.15,
+      "text": "People say {A} hears a train whistle from the river whenever the church clock stops.",
+      "effects": [
+        {
+          "rep": "A",
+          "by": -0.05
+        }
+      ],
+      "variants": [
+        "I hear {A} notices a whistle when the clock stops; sound does travel strangely over water.",
+        "{A} supposedly hears a train down by the river when the church clock fails.",
+        "Why does {A} hear that whistle only when nobody can agree what time it is?"
+      ]
+    },
+    {
+      "id": "rumor-20261117-167",
+      "kind": "rumor",
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            95
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            95
+          ],
+          "relation": "friends"
+        }
+      },
+      "when": {
+        "years": [
+          1950,
+          2030
+        ]
+      },
+      "true_chance": 0.4,
+      "text": "They say {A} taught {B} to play checkers while quietly allowing a winning move every game.",
+      "effects": [
+        {
+          "bond": [
+            "A",
+            "B"
+          ],
+          "by": -0.15
+        },
+        {
+          "rep": "A",
+          "by": -0.04
+        }
+      ],
+      "variants": [
+        "I hear {A} has been letting {B} win at checkers; kindness can sting when it gets explained in public.",
+        "Supposedly {A} hands {B} every checker game.",
+        "Has {B} noticed those convenient openings from {A}, or is everyone else supposed to keep admiring the victories?"
+      ]
+    },
+    {
+      "id": "dialogue-20261117-168",
+      "kind": "dialogue",
+      "intent": "gift_thanks",
+      "warm": [
+        "For me? I will find a good place for it.",
+        "You remembered. That means a great deal.",
+        "Come sit a minute so I can thank you properly.",
+        "I was having a plain sort of day. You have improved it.",
+        "I appreciate the trouble you took.",
+        "Well, look at that. Thank you for thinking of me."
+      ],
+      "curt": [
+        "Thank you. I mean it.",
+        "That was decent of you.",
+        "I appreciate it. I am just poor at showing it.",
+        "You did not have to. Thanks.",
+        "I will take care of it.",
+        "All right, you have caught me without a speech. Thank you."
+      ]
+    }
+  ]
+}

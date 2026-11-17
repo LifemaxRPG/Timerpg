@@ -1,0 +1,125 @@
+{
+  "batch_date": "2026-11-17",
+  "batch_count": 8,
+  "item_count": 64,
+  "counts": {
+    "story": 16,
+    "rumor": 42,
+    "dialogue": 4,
+    "legend": 2
+  },
+  "batches": [
+    {
+      "path": "content/inbox/2026-11-17/2026-11-17-0426/timerpg-content-2026-11-17.json",
+      "items": 8,
+      "ids": [
+        "story-20261117-149",
+        "story-20261117-150",
+        "rumor-20261117-151",
+        "rumor-20261117-152",
+        "rumor-20261117-153",
+        "rumor-20261117-154",
+        "rumor-20261117-155",
+        "rumor-20261117-156"
+      ]
+    },
+    {
+      "path": "content/inbox/2026-11-17/2026-11-17-0523/timerpg-content-2026-11-17.json",
+      "items": 8,
+      "ids": [
+        "story-20261117-161",
+        "story-20261117-162",
+        "rumor-20261117-163",
+        "rumor-20261117-164",
+        "rumor-20261117-165",
+        "rumor-20261117-166",
+        "rumor-20261117-167",
+        "dialogue-20261117-168"
+      ]
+    },
+    {
+      "path": "content/inbox/2026-11-17/2026-11-17-0632/timerpg-content-2026-11-17.json",
+      "items": 8,
+      "ids": [
+        "story-20261117-173",
+        "story-20261117-174",
+        "rumor-20261117-175",
+        "rumor-20261117-176",
+        "rumor-20261117-177",
+        "rumor-20261117-178",
+        "rumor-20261117-179",
+        "legend-20261117-180"
+      ]
+    },
+    {
+      "path": "content/inbox/2026-11-17/2026-11-17-0730/timerpg-content-2026-11-17.json",
+      "items": 8,
+      "ids": [
+        "story-20261117-185",
+        "story-20261117-186",
+        "rumor-20261117-187",
+        "rumor-20261117-188",
+        "rumor-20261117-189",
+        "rumor-20261117-190",
+        "rumor-20261117-191",
+        "dialogue-20261117-192"
+      ]
+    },
+    {
+      "path": "content/inbox/2026-11-17/2026-11-17-0831/timerpg-content-2026-11-17.json",
+      "items": 8,
+      "ids": [
+        "story-20261117-197",
+        "story-20261117-198",
+        "rumor-20261117-199",
+        "rumor-20261117-200",
+        "rumor-20261117-201",
+        "rumor-20261117-202",
+        "rumor-20261117-203",
+        "dialogue-20261117-204"
+      ]
+    },
+    {
+      "path": "content/inbox/2026-11-17/2026-11-17-0926/timerpg-content-2026-11-17.json",
+      "items": 8,
+      "ids": [
+        "story-20261117-209",
+        "story-20261117-210",
+        "rumor-20261117-211",
+        "rumor-20261117-212",
+        "rumor-20261117-213",
+        "rumor-20261117-214",
+        "rumor-20261117-215",
+        "dialogue-20261117-216"
+      ]
+    },
+    {
+      "path": "content/inbox/2026-11-17/2026-11-17-1023/timerpg-content-2026-11-17.json",
+      "items": 8,
+      "ids": [
+        "story-20261117-221",
+        "story-20261117-222",
+        "rumor-20261117-223",
+        "rumor-20261117-224",
+        "rumor-20261117-225",
+        "rumor-20261117-226",
+        "rumor-20261117-227",
+        "legend-20261117-228"
+      ]
+    },
+    {
+      "path": "content/inbox/2026-11-17/initial/timerpg-content-2026-11-17.json",
+      "items": 8,
+      "ids": [
+        "story-20261117-1",
+        "story-20261117-2",
+        "rumor-20261117-3",
+        "rumor-20261117-4",
+        "rumor-20261117-5",
+        "rumor-20261117-6",
+        "rumor-20261117-7",
+        "rumor-20261117-8"
+      ]
+    }
+  ]
+}
