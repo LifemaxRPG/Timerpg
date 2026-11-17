@@ -58,6 +58,10 @@ data class AiStatus(
     val pregenOff: String? = null,
     /** What the model is writing right now. */
     val working: String? = null,
+    /** The model runs on the GPU; this phone and build have one; why the GPU was not used. */
+    val onGpu: Boolean = false,
+    val hasGpu: Boolean = false,
+    val gpuNote: String? = null,
     val speedTesting: Boolean = false,
     val speed: SpeedResult? = null,
 )
@@ -246,6 +250,17 @@ class DialogueEngine private constructor(private val app: Context) {
 
     fun cancelImport() { copyCancel = true }
 
+    /** The model on the phone's GPU (the Adreno) or the CPU: saved, and the model reloads that way. */
+    fun setGpu(on: Boolean) {
+        app.getSharedPreferences("ai", Context.MODE_PRIVATE).edit().putBoolean("gpu", on).apply()
+        gpuNote = null
+        lock.withLock { running?.let { cancelLocked(it) } }
+        command { closeBackend(); loadModel() }
+    }
+
+    private val gpuWanted: Boolean get() = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getBoolean("gpu", false)
+    @Volatile private var gpuNote: String? = null
+
     /** Loads the model again (after an error, or after it was unloaded). */
     fun reload() = command { loadModel() }
 
@@ -419,7 +434,16 @@ class DialogueEngine private constructor(private val app: Context) {
         memoryProblem(f.length())?.let { return setState(ModelState.ERROR, it) }
         setState(ModelState.LOADING, "Loading the model (${f.length() shr 20} MB)…")
         var thrown: String? = null
-        val ok = try { b.load(f.path, 0, CONTEXT_TOKENS) } catch (t: Throwable) { thrown = t.message ?: t.javaClass.simpleName; false }
+        val native = b as? com.timerpg.street.llm.NativeLlm
+        native?.useGpu = gpuWanted
+        var ok = try { b.load(f.path, 0, CONTEXT_TOKENS) } catch (t: Throwable) { thrown = t.message ?: t.javaClass.simpleName; false }
+        if (!ok && native != null && native.useGpu && !closed) {
+            // the GPU could not take it: the CPU then (and say so)
+            native.useGpu = false
+            gpuNote = "The GPU could not load the model (${native.error ?: "unknown"}); it runs on the CPU."
+            ok = try { b.load(f.path, 0, CONTEXT_TOKENS) } catch (t: Throwable) { thrown = t.message ?: t.javaClass.simpleName; false }
+        }
+        _status.update { it.copy(onGpu = native?.onGpu == true, hasGpu = native?.hasGpu == true, gpuNote = gpuNote) }
         if (closed) return
         if (!ok || !b.loaded) {
             val why = (try { b.error } catch (t: Throwable) { null }) ?: thrown ?: "unknown error"

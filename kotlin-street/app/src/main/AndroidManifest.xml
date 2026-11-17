@@ -10,6 +10,8 @@
         android:allowBackup="false"
         android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen"
         android:hardwareAccelerated="true">
+        <!-- the phone's OpenCL driver, for the dialogue model on the Adreno GPU (absent: the CPU) -->
+        <uses-native-library android:name="libOpenCL.so" android:required="false" />
         <activity
             android:name="com.timerpg.street.GameActivity"
             android:exported="true"

@@ -63,6 +63,9 @@ std::string cpu_features();
 /** The CPU kernel libraries to try on this phone, best first (Android arm64). */
 std::vector<std::string> cpu_variant_libs();
 
+/** Whether a GPU backend (the Adreno, through OpenCL) is loaded. */
+bool has_gpu();
+
 // ---------------------------------------------------------------------------------------------------- engine
 
 /** Why the last generate() stopped (for tests and logs; not passed to Kotlin). */
@@ -118,6 +121,9 @@ public:
     /** Loads a GGUF model (replacing any loaded one). threads <= 0: a default. False on failure, see error(). */
     bool load(const std::string & path, int threads, int n_ctx);
     bool loaded() const { return ctx_ != nullptr; }
+    /** Run the model on the GPU (from the next load), when there is one. */
+    void set_gpu(bool on) { gpu_ = on; }
+    bool on_gpu() const { return gpu_ && has_gpu() && ctx_ != nullptr; }
     /** Frees the model and the context. */
     void unload();
 
@@ -161,7 +167,8 @@ private:
         std::vector<uint8_t> state;
         uint64_t used = 0;
     };
-    bool recurrent_ = false;          // the cache cannot be cut back to a shorter prefix (Mamba, Qwen3.5's delta net)
+    bool recurrent_ = false;
+    bool gpu_ = false;          // the cache cannot be cut back to a shorter prefix (Mamba, Qwen3.5's delta net)
     std::vector<Snapshot> snapshots_;
     uint64_t clock_ = 0;
 

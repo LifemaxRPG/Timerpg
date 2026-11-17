@@ -639,6 +639,7 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             }, 13.sp,
         )
         if (s.detail.isNotEmpty()) Text(s.detail, 12.sp, color = DIM)
+        s.gpuNote?.let { Text(it, 11.sp, color = Color(0xFFFFB4A0)) }
         // the phone's memory now, and what the AI lane is doing (to measure the models' footprint on a real phone)
         val ctx = androidx.compose.ui.platform.LocalContext.current
         var ram by remember { mutableStateOf("") }
@@ -704,6 +705,8 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
         s.pregenOff?.let { Text(it, 12.sp, color = DIM) }
         s.working?.let { Text("Writing: $it", 12.sp, color = DIM) }
         Chip(if (s.speedTesting) "Testing…" else "Speed test", s.speedTesting) { if (!s.speedTesting) engine.speedTest() }
+        // where the dialogue model runs: the phone's GPU (Adreno) or its CPU; run the speed test each way to compare
+        if (s.hasGpu || s.onGpu) Chip(if (s.onGpu) "Runs on: GPU" else "Runs on: CPU", s.onGpu) { engine.setGpu(!s.onGpu) }
         s.speed?.let { r ->
             if (r.totalMs == 0L && r.error != null) Text(r.error, 12.sp, color = DIM)
             else {

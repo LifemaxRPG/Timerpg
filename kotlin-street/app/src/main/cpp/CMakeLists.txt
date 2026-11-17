@@ -53,10 +53,22 @@ force(GGML_BUILD_TESTS     OFF)
 force(GGML_BUILD_EXAMPLES  OFF)
 force(GGML_ALL_WARNINGS    OFF)
 force(GGML_CCACHE          OFF)
-# CPU only: no GPU or accelerator backends.
+# No GPU or accelerator backends but OpenCL for the phone's Adreno GPU (when its headers and link stub are given:
+# -DTIMERPG_OPENCL_HEADERS=... -DTIMERPG_OPENCL_LIB=..., Gradle passes opencl.headers / opencl.lib from local.properties;
+# tools/get-opencl.sh makes them). The phone's own libOpenCL.so is used at run time.
 foreach (b CUDA HIP MUSA METAL VULKAN OPENCL SYCL WEBGPU HEXAGON RPC BLAS KOMPUTE CANN ZDNN ZENDNN OPENVINO VIRTGPU ET)
     force(GGML_${b} OFF)
 endforeach()
+set(TIMERPG_OPENCL OFF)
+if (ANDROID AND TIMERPG_OPENCL_HEADERS AND TIMERPG_OPENCL_LIB AND EXISTS "${TIMERPG_OPENCL_HEADERS}/CL/cl.h" AND EXISTS "${TIMERPG_OPENCL_LIB}")
+    set(TIMERPG_OPENCL ON)
+    force(GGML_OPENCL ON)
+    force(GGML_OPENCL_USE_ADRENO_KERNELS ON)
+    force(GGML_OPENCL_EMBED_KERNELS ON)
+    set(OpenCL_INCLUDE_DIR "${TIMERPG_OPENCL_HEADERS}" CACHE PATH "" FORCE)
+    set(OpenCL_LIBRARY "${TIMERPG_OPENCL_LIB}" CACHE FILEPATH "" FORCE)
+    message(STATUS "OpenCL (Adreno) backend: on")
+endif()
 # ggml's own thread pool (no OpenMP runtime to ship); no llamafile sgemm (not used by our Q4_K model, saves size);
 # no KleidiAI (it is downloaded at configure time and mostly speeds up Q4_0).
 force(GGML_OPENMP       OFF)
@@ -109,6 +121,9 @@ if (ANDROID)
     target_link_libraries(timerpg_llm PRIVATE llm_core log)
     # Building the JNI library builds the kernels it loads at run time.
     add_dependencies(timerpg_llm ${TIMERPG_CPU_VARIANTS})
+    if (TIMERPG_OPENCL)
+        add_dependencies(timerpg_llm ggml-opencl)
+    endif()
     # Smaller: drop unused code and do not export anything but the JNI entry points.
     set_target_properties(timerpg_llm PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON)
     target_link_options(timerpg_llm PRIVATE -Wl,--gc-sections -Wl,--exclude-libs,ALL)

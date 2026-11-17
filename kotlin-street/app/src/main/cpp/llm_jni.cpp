@@ -84,6 +84,18 @@ extern "C" JNIEXPORT jboolean JNICALL FN(nativeLoad)(JNIEnv * env, jobject, jlon
     }
 }
 
+extern "C" JNIEXPORT void JNICALL FN(nativeSetGpu)(JNIEnv *, jobject, jlong h, jboolean on) {
+    if (h) engine(h)->set_gpu(on == JNI_TRUE);
+}
+
+extern "C" JNIEXPORT jboolean JNICALL FN(nativeOnGpu)(JNIEnv *, jobject, jlong h) {
+    return h && engine(h)->on_gpu() ? JNI_TRUE : JNI_FALSE;
+}
+
+extern "C" JNIEXPORT jboolean JNICALL FN(nativeHasGpu)(JNIEnv *, jobject) {
+    try { return llm::has_gpu() ? JNI_TRUE : JNI_FALSE; } catch (...) { return JNI_FALSE; }
+}
+
 extern "C" JNIEXPORT jstring JNICALL FN(nativeError)(JNIEnv * env, jobject, jlong h) {
     return to_jstring(env, h ? engine(h)->error() : std::string("no engine"));
 }

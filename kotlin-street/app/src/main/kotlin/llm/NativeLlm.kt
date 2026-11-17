@@ -26,6 +26,13 @@ class NativeLlm(context: Context? = null) : LlmBackend {
 
     @Volatile override var loaded: Boolean = false
         private set
+
+    /** Run the model on the phone's GPU (the Adreno, through OpenCL) from the next [load], when it has one. */
+    @Volatile var useGpu = false
+    /** Whether the loaded model runs on the GPU. */
+    val onGpu: Boolean get() = handle != 0L && runCatching { nativeOnGpu(handle) }.getOrDefault(false)
+    /** Whether this phone and build have a GPU backend at all (after the native library loaded). */
+    val hasGpu: Boolean get() = runCatching { nativeHasGpu() }.getOrDefault(false)
     @Volatile override var error: String? = null
         private set
     @Volatile override var stats: LlmStats = LlmStats()
@@ -104,6 +111,7 @@ class NativeLlm(context: Context? = null) : LlmBackend {
                 error = "cancelled"
                 return false
             }
+            runCatching { nativeSetGpu(handle, useGpu) }
             loaded = false  // the native load frees the old model first
             val ok = try {
                 nativeLoad(handle, path.toByteArray(Charsets.UTF_8), t, ctx)
@@ -270,6 +278,9 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     private external fun nativeDestroy(handle: Long)
     private external fun nativeLoad(handle: Long, path: ByteArray, threads: Int, contextTokens: Int): Boolean
     private external fun nativeError(handle: Long): String?
+    private external fun nativeSetGpu(handle: Long, on: Boolean)
+    private external fun nativeOnGpu(handle: Long): Boolean
+    private external fun nativeHasGpu(): Boolean
     private external fun nativeArm(handle: Long)
     private external fun nativeCancel(handle: Long)
     private external fun nativeGenerate(handle: Long, prompt: ByteArray, maxTokens: Int, temperature: Float, sink: TokenSink?): String?

@@ -40,11 +40,15 @@ android {
             cmake {
                 // Release flags even in debug APKs: an unoptimised model is unusably slow.
                 arguments += listOf("-DLLAMA_DIR=${llamaDir.absolutePath}", "-DCMAKE_BUILD_TYPE=Release")
+                // the Adreno GPU backend, when the OpenCL headers and link stub are there (tools/get-opencl.sh)
+                localProps.getProperty("opencl.headers")?.let { arguments += "-DTIMERPG_OPENCL_HEADERS=${rootProject.file(it).absolutePath}" }
+                localProps.getProperty("opencl.lib")?.let { arguments += "-DTIMERPG_OPENCL_LIB=${rootProject.file(it).absolutePath}" }
                 // Only what the app loads: our JNI library, llama.cpp's shared libraries and three CPU kernel variants.
                 targets += listOf(
-                    "timerpg_llm", "llama", "ggml", "ggml-base",
+                    "timerpg_llm", "llama", "ggml", "ggml-base", "mtmd",
                     "ggml-cpu-android_armv8.6_1", "ggml-cpu-android_armv8.2_2", "ggml-cpu-android_armv8.0_1",
                 )
+                if (localProps.getProperty("opencl.lib") != null) targets += "ggml-opencl"
             }
         }
     }
@@ -74,6 +78,8 @@ android {
     sourceSets["main"].java.srcDir("../shared/src/main/kotlin")
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        // the OpenCL link stub is not shipped: the phone's own driver (libOpenCL.so, a public vendor library) is used
+        jniLibs.excludes += "**/libOpenCL.so"
         // Native libraries compressed in the APK and extracted at install: the APK grows ~3.5 MB instead of ~8.6 MB.
         // (llm_core loads its CPU kernel library by name, which works either way.)
         jniLibs.useLegacyPackaging = true

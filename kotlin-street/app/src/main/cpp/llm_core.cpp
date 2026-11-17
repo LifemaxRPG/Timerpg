@@ -234,6 +234,12 @@ std::vector<std::string> cpu_variant_libs() {
     return libs;
 }
 
+bool has_gpu() {
+    for (size_t i = 0; i < ggml_backend_dev_count(); ++i)
+        if (ggml_backend_dev_type(ggml_backend_dev_get(i)) == GGML_BACKEND_DEVICE_TYPE_GPU) return true;
+    return false;
+}
+
 bool init_backend(const std::vector<std::string> & cpu_libs, std::string * info) {
     static std::once_flag once;
     static bool ok = false;
@@ -259,6 +265,15 @@ bool init_backend(const std::vector<std::string> & cpu_libs, std::string * info)
                     return;
                 }
             }
+#if defined(__ANDROID__)
+            // the Adreno GPU (OpenCL), if this build has it and the phone's OpenCL driver loads; else the CPU alone
+            if (ggml_backend_load("libggml-opencl.so")) {
+                for (size_t i = 0; i < ggml_backend_dev_count(); ++i) {
+                    ggml_backend_dev_t d = ggml_backend_dev_get(i);
+                    if (ggml_backend_dev_type(d) == GGML_BACKEND_DEVICE_TYPE_GPU) { msg += std::string("; GPU ") + ggml_backend_dev_description(d); break; }
+                }
+            }
+#endif
             llama_backend_init();
             if (ggml_backend_dev_t cpu = ggml_backend_dev_by_type(GGML_BACKEND_DEVICE_TYPE_CPU)) {
                 msg += std::string(" (") + ggml_backend_dev_description(cpu) + ")";
@@ -390,7 +405,8 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
 
         clear_log_errors();
         llama_model_params mp = llama_model_default_params();
-        mp.n_gpu_layers = 0;
+        // on the GPU when asked and there is one (all layers: the S25's Adreno shares the phone's memory)
+        mp.n_gpu_layers = gpu_ && has_gpu() ? 999 : 0;
         mp.load_mode = LLAMA_LOAD_MODE_MMAP;
         // cancel() also stops a load.
         mp.progress_callback = [](float, void * self) { return !static_cast<Engine *>(self)->cancel_.load(); };
