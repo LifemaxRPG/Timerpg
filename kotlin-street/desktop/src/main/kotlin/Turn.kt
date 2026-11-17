@@ -109,7 +109,7 @@ private fun DrawScope.face(cam: Cam, img: ImageBitmap, h: Float, ax: Float, az: 
 }
 
 /** Buildings that end up between the camera and the middle of the junction fade away (they are behind the player). */
-private fun nearFade(v: Float) = (1f - (-v - 20f) / 130f).coerceIn(0f, 1f)
+private fun nearFade(v: Float) = (1f - (-v - 20f) / 60f).coerceIn(0f, 1f)
 
 private fun DrawScope.building(cam: Cam, b: Bld) {
     val a = nearFade(cam.v(b.cx, b.cz))
@@ -125,17 +125,18 @@ private fun DrawScope.building(cam: Cam, b: Bld) {
     )
     // which way the camera looks: (sin, cos)
     val fx = cam.s; val fz = cam.c
-    // the roof, seen from above: flat colour
-    ground(cam, listOf(b.x0 to b.z0, b.x1 to b.z0, b.x1 to b.z1, b.x0 to b.z1), b.h, Color(0xFF454852).copy(alpha = a))
-    for (f in faces) {
-        if (f.nx * fx + f.nz * fz >= -.02f) continue // turned away
+    // the roof, seen from above (not at all from below, where only walls show)
+    if (b.h < cam.eye - 5f) ground(cam, listOf(b.x0 to b.z0, b.x1 to b.z0, b.x1 to b.z1, b.x0 to b.z1), b.h, Color(0xFF454852).copy(alpha = a))
+    val fnx = when (b.frontN) { 1 -> 1f; 2 -> -1f; else -> 0f }; val fnz = if (b.frontN == 0) -1f else 0f
+    fun draw(f: F, k: Float) {
         val isFront = f.id == b.frontN
         val img = if (isFront) b.front else b.side
-        val fnx = when (b.frontN) { 1 -> 1f; 2 -> -1f; else -> 0f }; val fnz = if (b.frontN == 0) -1f else 0f
         val flip = !isFront && (f.ax * fnx + f.az * fnz) < (f.bx * fnx + f.bz * fnz)
-        val tint = .66f + .34f * max(0f, f.nx * sun[0] + f.nz * sun[1])
-        face(cam, img, b.h, f.ax, f.az, f.bx, f.bz, flip, tint, a)
+        face(cam, img, b.h, f.ax, f.az, f.bx, f.bz, flip, k * (.66f + .34f * max(0f, f.nx * sun[0] + f.nz * sun[1])), a)
     }
+    // a building that is fading keeps its far walls, so it reads as a solid ghost and not an open box
+    if (a < .98f) for (f in faces) if (f.nx * fx + f.nz * fz >= -.02f) draw(f, .55f)
+    for (f in faces) if (f.nx * fx + f.nz * fz < -.02f) draw(f, 1f)
 }
 
 private fun DrawScope.scene(cam: Cam, bs: List<Bld>, lamp: ImageBitmap?) {
