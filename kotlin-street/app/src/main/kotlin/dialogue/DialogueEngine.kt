@@ -437,12 +437,16 @@ class DialogueEngine private constructor(private val app: Context) {
     private fun loadModel() {
         if (closed) return
         if (backend?.loaded == true) { setState(ModelState.READY, READY_TEXT); enqueueAll(); return }
-        val f = ModelFiles.file(app)
-        val problem = ModelFiles.problem(f)
-        _status.update { it.copy(hasModel = problem == null, modelMb = if (f.isFile) f.length() shr 20 else 0) }
         val b = backend ?: createBackend()
             ?: return setState(ModelState.NO_ENGINE, engineError?.let { "$it People use their built-in lines." }
                 ?: "This build has no AI engine, so people use their built-in lines.")
+        // on the NPU, the Q4_0 copy when the tuner found it faster there (and it is downloaded)
+        val q40 = java.io.File(ModelFiles.dir(app), ModelFiles.NPU_Q4_0)
+        val wantsQ40 = app.getSharedPreferences("npu", Context.MODE_PRIVATE).getString("model", null) == "q4_0"
+        val onNpu = (b as? com.timerpg.street.llm.NativeLlm)?.let { deviceWanted == 2 || (deviceWanted < 0 && it.accelerators and 2 != 0) } ?: false
+        val f = if (wantsQ40 && onNpu && q40.length() == 5_379_417_312L) q40 else ModelFiles.file(app)
+        val problem = ModelFiles.problem(f)
+        _status.update { it.copy(hasModel = problem == null, modelMb = if (f.isFile) f.length() shr 20 else 0) }
         if (problem == ModelFiles.MISSING) return setState(ModelState.NO_MODEL, NO_MODEL_TEXT)
         if (problem != null) return setState(ModelState.ERROR, problem)
         memoryProblem(f.length())?.let { return setState(ModelState.ERROR, it) }

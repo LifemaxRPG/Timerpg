@@ -16,7 +16,7 @@ import org.json.JSONArray
  * setting whose reply passed the check is kept for every later start.
  */
 object NpuTune {
-    class Config(val name: String, val env: Map<String, String>)
+    class Config(val name: String, val env: Map<String, String>, val model: String? = null)
 
     val CONFIGS = listOf(
         Config("2 sessions (default)", mapOf("GGML_HEXAGON_DEVICES" to "2")),
@@ -25,6 +25,9 @@ object NpuTune {
         Config("2 sessions, sustained power", mapOf("GGML_HEXAGON_DEVICES" to "2", "GGML_HEXAGON_POWER_MODE" to "sustained_high_performance")),
         Config("2 sessions, no host buffers", mapOf("GGML_HEXAGON_DEVICES" to "2", "GGML_HEXAGON_HOSTBUF" to "0")),
         Config("2 sessions, vector units only (no HMX)", mapOf("GGML_HEXAGON_DEVICES" to "2", "GGML_HEXAGON_NHMX" to "0")),
+        // the Q4_0 copy of the model (when it is downloaded; skipped when not)
+        Config("Q4_0 model, 2 sessions", mapOf("GGML_HEXAGON_DEVICES" to "2"), "q4_0"),
+        Config("Q4_0 model, 3 sessions", mapOf("GGML_HEXAGON_DEVICES" to "3"), "q4_0"),
     )
 
     private fun prefs(ctx: Context) = ctx.getSharedPreferences("npu", Context.MODE_PRIVATE)
@@ -51,7 +54,17 @@ object NpuTune {
             p.edit().putInt("step", if (step < CONFIGS.size) step else -1).apply()
             if (step >= CONFIGS.size) finish(ctx)
         }
+        // a Q4_0 step with no Q4_0 file: skipped
+        val q40 = java.io.File(com.timerpg.street.dialogue.ModelFiles.dir(ctx), com.timerpg.street.dialogue.ModelFiles.NPU_Q4_0)
+        while (p.getInt("step", -1) >= 0 && CONFIGS[p.getInt("step", -1)].model == "q4_0" && q40.length() != 5_379_417_312L) {
+            val s = p.getInt("step", -1)
+            add(ctx, "${CONFIGS[s].name}: skipped (the Q4_0 model is not downloaded)", null)
+            p.edit().putInt("step", if (s + 1 < CONFIGS.size) s + 1 else -1).commit()
+            if (s + 1 >= CONFIGS.size) finish(ctx)
+        }
         step = p.getInt("step", -1)
+        val model = if (step >= 0) CONFIGS[step].model else p.getString("chosenModel", null)
+        p.edit().putString("model", model).commit()
         val env = if (step >= 0) CONFIGS[step].env
         else p.getString("chosenEnv", null)?.let { parse(it) } ?: emptyMap()
         if (step >= 0) p.edit().putInt("running", step).commit()
@@ -97,7 +110,7 @@ object NpuTune {
         val sc = JSONArray(p.getString("scores", "[]"))
         var best = -1; var bestMs = Long.MAX_VALUE
         for (i in 0 until minOf(sc.length(), CONFIGS.size)) { val ms = sc.getLong(i); if (ms in 1 until bestMs) { bestMs = ms; best = i } }
-        if (best >= 0) p.edit().putString("chosen", CONFIGS[best].name).putString("chosenEnv", CONFIGS[best].env.entries.joinToString(";") { "${it.key}=${it.value}" }).commit()
+        if (best >= 0) p.edit().putString("chosen", CONFIGS[best].name).putString("chosenModel", CONFIGS[best].model).putString("chosenEnv", CONFIGS[best].env.entries.joinToString(";") { "${it.key}=${it.value}" }).commit()
     }
 
     /** True once after a restart of ours (and clears it). */
