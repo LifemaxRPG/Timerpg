@@ -73,6 +73,22 @@ class SpriteBuilding(
     val shade: ImageBitmap? = null,
     /** A pitched-roof house (one of our mobile homes) instead of a box: its shape and the pictures its roof and yard wear. */
     val house: HouseArt? = null,
+    /** A villa or a landmark, built from boxes, front gables and hipped roofs instead of a box: its parts and their art. */
+    val model: ModelArt? = null,
+)
+
+/**
+ * What a modelled building (a villa, the clock tower, the school) wears: its parts ([shape]), the one picture all their
+ * art is packed in ([atlas]) and where it glows at night ([glow], laid out the same), its yard's ground and its fence or
+ * hedge (and where snow lies on that).
+ */
+class ModelArt(
+    val shape: com.lifemax.rpg.feature.habits.domain.ModelShape,
+    val atlas: ImageBitmap,
+    val glow: ImageBitmap?,
+    val lawn: ImageBitmap?,
+    val fence: ImageBitmap? = null,
+    val fenceSnow: ImageBitmap? = null,
 )
 
 /**
@@ -116,6 +132,8 @@ object SpriteArt {
                 best = maxOf(best, h.shape.screenTop)
                 continue
             }
+            val m = b.model
+            if (m != null) { best = maxOf(best, m.shape.screenTop); continue }
             val over = b.sign?.height?.toFloat() ?: b.prop?.let { it.height + com.lifemax.rpg.feature.habits.domain.BuildingSpec.DY * .5f / PIXEL } ?: 0f
             best = maxOf(best, (b.front.height + over) * PIXEL)
         }

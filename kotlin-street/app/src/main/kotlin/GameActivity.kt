@@ -195,6 +195,7 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
     val windows = SpriteBuildingLoad.windows(try { ctx.assets.open("buildings/windows.json").bufferedReader().use { it.readText() } } catch (e: Exception) { null })
     // the pitched-roof houses' shapes (our mobile homes)
     val houses = SpriteBuildingLoad.houses(try { ctx.assets.open("buildings/houses.json").bufferedReader().use { it.readText() } } catch (e: Exception) { null })
+    val models = SpriteBuildingLoad.models(try { ctx.assets.open("buildings/models.json").bufferedReader().use { it.readText() } } catch (e: Exception) { null })
     // every building once, by its sprite name
     class Entry(val stack: HabitStack, val owner: String, val art: SpriteBuilding?)
     val bySprite = LinkedHashMap<String, Entry>()
@@ -205,7 +206,7 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
         val mids = (0 until parts.length()).count { parts.getJSONObject(it).getString("key").startsWith("middle_") }
         // OUR building, composed from our sprites (tools/make_buildings.py); a building whose art is missing keeps the
         // engine's painted version, and the rest of the street is unaffected
-        val art = SpriteBuildingLoad.load(n, mids, windows, houses) { img(it) }
+        val art = SpriteBuildingLoad.load(n, mids, windows, houses, models) { img(it) }
         if (art != null) SpriteArt.buildings[id] = art
         bySprite[n] = Entry(shop(id, o.getString("name"), "", HabitMaterial.CLAY, maxOf(1, mids)), o.optString("owner"), art)
     }

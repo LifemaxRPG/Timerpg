@@ -285,11 +285,24 @@ internal class StreetLifePainter {
 
     /**
      * Where a passing car's light falls on building [i] (its middle at [cx], its side face [shift]): a shop's front and
-     * shown side up to its height; one of our houses, back in its yard, only its own front wall (not the sky beside
-     * and above it, which its lot's box would also take in). Into [litBox].
+     * shown side up to its height; one of our houses, villas or landmarks, back in its yard, only its own front wall
+     * (not the sky beside and above it, which its lot's box would also take in). Into [litBox].
      */
     private fun lit(l: BuildingLayout, cx: Float, shift: Float) {
-        val house = SpriteArt.buildings[l.stackId]?.house
+        val sb = SpriteArt.buildings[l.stackId]
+        val house = sb?.house
+        val model = sb?.model
+        if (model != null) {
+            // a villa or a landmark, back in its yard: its walls' span up to their top, where they stand
+            val m = model.shape
+            val k = B.W / SpriteArt.SRC_W
+            val back = m.setback / com.lifemax.rpg.feature.habits.domain.HouseView.DEPTH
+            val x0 = cx - B.W / 2f + (m.frontX + m.wall0) * k + shift * back
+            litBox[0] = x0; litBox[2] = x0 + (m.wall1 - m.wall0) * k
+            litBox[3] = -B.DY * back; litBox[1] = litBox[3] - m.wallTop * k
+            litBox[4] = shift * back; litBox[5] = litBox[3]
+            return
+        }
         if (house == null) {
             litBox[0] = cx + Perspective.left(shift); litBox[1] = -l.height; litBox[2] = cx + Perspective.right(shift); litBox[3] = 0f
             litBox[4] = 0f; litBox[5] = 0f

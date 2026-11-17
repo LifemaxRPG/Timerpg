@@ -3,7 +3,7 @@ package com.lifemax.rpg.feature.habits.presentation.scene
 import androidx.compose.ui.graphics.ImageBitmap
 
 /**
- * Reads one of our buildings as tools/make_buildings.py wrote it (buildings/bN_*.png, windows.json and houses.json), the
+ * Reads one of our buildings as tools/make_buildings.py wrote it (buildings/bN_*.png, windows.json, houses.json and models.json), the
  * same way for the app and the desktop preview: each only says how a picture is opened.
  */
 object SpriteBuildingLoad {
@@ -29,11 +29,19 @@ object SpriteBuildingLoad {
      */
     fun load(
         sprite: String, middles: Int, windows: Map<String, List<FloatArray>>,
-        houses: Map<String, com.lifemax.rpg.feature.habits.domain.HouseShape> = emptyMap(), img: (String) -> ImageBitmap?,
+        houses: Map<String, com.lifemax.rpg.feature.habits.domain.HouseShape> = emptyMap(),
+        models: Map<String, com.lifemax.rpg.feature.habits.domain.ModelShape> = emptyMap(), img: (String) -> ImageBitmap?,
     ): SpriteBuilding? {
         val front = img("${sprite}_front") ?: return null
         val side = img("${sprite}_side") ?: return null
         val emis = img("${sprite}_emis") ?: return null
+        val model = models[sprite]
+        if (model != null) {
+            // a villa or a landmark: without its atlas it cannot be built, and is better left to the engine
+            val atlas = img("${sprite}_atlas") ?: return null
+            val art = ModelArt(model, atlas, img("${sprite}_glow"), img("${sprite}_lawn"), img("${sprite}_fence"), img("${sprite}_fencesnow"))
+            return SpriteBuilding(front, side, emis, null, null, null, 0, emptyList(), emptyList(), null, null, null, null, null, null, art)
+        }
         val shape = houses[sprite]
         if (shape != null) {
             // a pitched-roof house: without its slope and ridge it cannot be built, and is better left to the engine
@@ -53,6 +61,10 @@ object SpriteBuildingLoad {
             img("${sprite}_lit"), img("${sprite}_shade"),
         )
     }
+
+    /** models.json: the villas' and landmarks' parts by sprite name (none when the file is missing). */
+    fun models(text: String?): Map<String, com.lifemax.rpg.feature.habits.domain.ModelShape> =
+        com.lifemax.rpg.feature.habits.domain.ModelShape.parseAll(text)
 
     /** houses.json: the pitched-roof houses' shapes by sprite name (none when the file is missing). */
     fun houses(text: String?): Map<String, com.lifemax.rpg.feature.habits.domain.HouseShape> =

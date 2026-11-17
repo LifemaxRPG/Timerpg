@@ -11,7 +11,8 @@ import org.jetbrains.skia.Surface
 import org.jetbrains.skia.Image as SkiaImage
 
 /*
- * The preview's houses mode (-Dmode=houses): our pitched-roof houses as the street draws them, beside the sprites they
+ * The preview's houses mode (-Dmode=houses), and its models mode (-Dmode=models: the villas and the landmarks, in a
+ * taller frame, models_*.png; -Dassets=<showcase> -Dstreet=2 for the villas, 3 for the clock towers and the school): our pitched-roof houses as the street draws them, beside the sprites they
  * were built from. Run it on the app's own street (-Dstreet=1 is the cross street, where the homes are) or on a showcase
  * of every house sprite (python3 tools/make_buildings.py --showcase DIR, then -Dassets=DIR -Dstreet=0 for every design,
  * -Dstreet=1 for every colour of one). Writes:
@@ -19,13 +20,13 @@ import org.jetbrains.skia.Image as SkiaImage
  *    the view, in the middle and at the right (its side faces coming round), at one in the afternoon;
  *  - houses_<day|dusk|night|snow>_N.png: the street at those hours (and in January's snow), a few frames along it.
  */
-fun renderHouses(out: String, publicAssets: String) {
+fun renderHouses(out: String, publicAssets: String, h: Int = 360, prefix: String = "houses") {
     if (System.getProperty("street") == null) System.setProperty("street", "0")
     val shops = streetOfShops()
     val first = shops.first().id
     GameState.enabled = true; GameState.look = 1; GameState.lane = 7f; GameState.dir = 1f
     GameState.keepers = emptyList()
-    val w = 780; val h = 360
+    val w = 780
     // one frame to lay the street out
     GameState.x = 0f
     renderImage(w, h, 13f, "2026-06-14", first, false, bottom = 40f, ambient = 100f)
@@ -43,9 +44,14 @@ fun renderHouses(out: String, publicAssets: String) {
     fun original(key: String): SkiaImage? = File(publicAssets).listFiles()?.firstNotNullOfOrNull { d -> File(d, "$key.png").takeIf { it.exists() } }
         ?.let { SkiaImage.makeFromEncoded(it.readBytes()) }
 
-    // --- the sheet: sprite | left | middle | right
-    val cellW = ((SpriteArt.SRC_W + 120f) * k).toInt(); val cellH = (300f * k).toInt()
+    // --- the sheet: sprite | left | middle | right; each row as wide as its building's lot (a villa's or the school's
+    // is wider than a shop's), as tall as the tallest sprite
     val n = shops.size
+    val lotW = shops.map { (SpriteArt.buildings[it.id]?.model?.shape?.width ?: 0f).coerceAtLeast(SpriteArt.SRC_W) }
+    val cellWs = lotW.map { ((it + 120f) * k).toInt() }
+    val cellW = cellWs.maxOrNull() ?: 1
+    val tallest = shops.mapNotNull { partOf[it.id]?.let { key -> original(key)?.height } }.maxOrNull() ?: 0
+    val cellH = (maxOf(300f, tallest + 50f) * k).toInt()
     val sheet = Surface.makeRasterN32Premul(cellW * 4, cellH * n)
     val c = sheet.canvas
     c.clear(0xFF202028.toInt())
@@ -57,8 +63,9 @@ fun renderHouses(out: String, publicAssets: String) {
             val img = renderImage(w, h, 13f, "2026-06-14", first, false, bottom = 40f, ambient = 100f)
             // where the building stands in this frame
             val sx = img.width / 2f + (centers[i] - GameState.viewMiddle) * unit
-            val src = Rect.makeXYWH(sx - cellW / 2f, GameState.groundPx - cellH + 30f * k, cellW.toFloat(), cellH.toFloat())
-            c.drawImageRect(img, src, Rect.makeXYWH(col * cellW.toFloat(), i * cellH.toFloat(), cellW.toFloat(), cellH.toFloat()), nearest, Paint(), true)
+            val cw = cellWs[i].toFloat()
+            val src = Rect.makeXYWH(sx - cw / 2f, GameState.groundPx - cellH + 30f * k, cw, cellH.toFloat())
+            c.drawImageRect(img, src, Rect.makeXYWH(col * cellW.toFloat() + (cellW - cw) / 2f, i * cellH.toFloat(), cw, cellH.toFloat()), nearest, Paint(), true)
         }
     }
     for (i in 0 until n) {
@@ -69,8 +76,8 @@ fun renderHouses(out: String, publicAssets: String) {
             Rect.makeXYWH((cellW - dw) / 2f, i * cellH + cellH - 30f * k - dh, dw, dh), nearest, Paint(), true)
     }
     File(out).mkdirs()
-    File(out, "houses_sheet.png").writeBytes(sheet.makeImageSnapshot().encodeToData(EncodedImageFormat.PNG)!!.bytes)
-    println("wrote $out/houses_sheet.png (${n} buildings)")
+    File(out, "${prefix}_sheet.png").writeBytes(sheet.makeImageSnapshot().encodeToData(EncodedImageFormat.PNG)!!.bytes)
+    println("wrote $out/${prefix}_sheet.png (${n} buildings)")
 
     // --- the street at the hours that matter to a house: day, dusk, night, snow
     val day = System.getProperty("day") ?: "2026-06-14"
@@ -79,7 +86,7 @@ fun renderHouses(out: String, publicAssets: String) {
     for ((tag, hour, date) in listOf(Triple("day", 13f, day), Triple("dusk", 19.2f, day), Triple("night", 22.3f, day), Triple("snow", 13f, "2026-01-20"))) {
         for (f in 0 until frames) {
             GameState.x = centers.first() + viewW * .3f + f * viewW * .8f
-            render("$out/houses_${tag}_$f.png", w, h, hour, date, first, false, bottom = 40f, ambient = if (hour > 20f) 160f else if (hour > 18f) 130f else 100f)
+            render("$out/${prefix}_${tag}_$f.png", w, h, hour, date, first, false, bottom = 40f, ambient = if (hour > 20f) 160f else if (hour > 18f) 130f else 100f)
         }
     }
     println("ground $ground unit $unit")

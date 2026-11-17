@@ -82,12 +82,13 @@ fun streetOfShops(): List<HabitStack> {
     val eastIdx = east.mapNotNull { n -> (0 until arr.length()).firstOrNull { arr.getJSONObject(it).getString("sprite") == n } }
     val windows = com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuildingLoad.windows(File(dir, "buildings/windows.json").takeIf { it.exists() }?.readText())
     val houses = com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuildingLoad.houses(File(dir, "buildings/houses.json").takeIf { it.exists() }?.readText())
+    val models = com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuildingLoad.models(File(dir, "buildings/models.json").takeIf { it.exists() }?.readText())
     fun one(i: Int): HabitStack {
         val o = arr.getJSONObject(i)
         val id = o.getString("id"); val n = o.getString("sprite")
         val mids = (0 until o.getJSONArray("parts").length()).count { o.getJSONArray("parts").getJSONObject(it).getString("key").startsWith("middle_") }
         if (SpriteArt.buildings[id] == null)
-            com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuildingLoad.load(n, mids, windows, houses) { img(it) }?.let { SpriteArt.buildings[id] = it }
+            com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuildingLoad.load(n, mids, windows, houses, models) { img(it) }?.let { SpriteArt.buildings[id] = it }
         return building(id, o.getString("name"), "", HabitMaterial.CLAY, mids)
     }
     val west = idx.map { one(it) }
@@ -237,6 +238,7 @@ fun main(args: Array<String>) {
         return
     }
     if (mode == "houses") { renderHouses(out, File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path); return }
+    if (mode == "models") { renderHouses(out, File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path, h = (System.getProperty("tall")?.toIntOrNull() ?: 520), prefix = "models"); return }
     if (mode == "junction") {
         // walking past the junction: the side street seen through its mouth, from either side and straight on
         val assets = File("../app/src/main/assets").absolutePath

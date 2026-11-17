@@ -169,51 +169,67 @@ class HouseShape(
 }
 
 /**
- * Where a house's points land on screen ([BuildingSpec]'s oblique view), for a house drawn with side shift [s]. The
- * offset of its front wall (it stands [HouseShape.setback] back) is snapped to whole screen pixels when [unitPx] (screen
- * pixels per unit) is known, as the camera is, so the art's pixels stay on the screen's grid. One view can be [set] again
- * for the next house, so the painter keeps one instead of making one per house per frame.
+ * Where the points of something standing back from the pavement land on screen ([BuildingSpec]'s oblique view), drawn
+ * with side shift [s]: a house in its yard ([HouseView]), a villa or a landmark ([ModelView]). x runs across its front
+ * picture (which stands [frontX] pixels into the lot's 224-pixel frame), y up from the ground, dd back from its front
+ * line, which stands [setback] back from the pavement. The offset of that line is snapped to whole screen pixels when
+ * [unitPx] (screen pixels per unit) is known, as the camera is, so the art's pixels stay on the screen's grid.
  */
-class HouseView(shape: HouseShape, s: Float, unitPx: Float = 0f) {
+open class SetBackView {
     /** Units per sprite pixel. */
     val k: Float = BuildingSpec.W / 224f
+    var s: Float = 0f; protected set
+    var frontX: Float = 0f; protected set
+    var setback: Float = 0f; protected set
+    /** The front line's offset from where a shop's front stands (units): to the shown side and up. */
+    var ox: Float = 0f; protected set
+    var oy: Float = 0f; protected set
+
+    /**
+     * This view at side shift [s]. [originX]: how far right of a whole screen pixel the building's middle stands
+     * (units), so its front lands on the screen's pixels, not only on whole pixels from its middle.
+     */
+    protected fun place(frontX: Float, setback: Float, s: Float, unitPx: Float, originX: Float) {
+        this.frontX = frontX; this.setback = setback; this.s = s
+        val leanBack = s * setback / HouseView.DEPTH
+        val liftBack = BuildingSpec.DY * setback / HouseView.DEPTH
+        ox = if (unitPx > 0f) kotlin.math.round((leanBack + originX) * unitPx) / unitPx - originX else leanBack
+        oy = if (unitPx > 0f) -kotlin.math.round(liftBack * unitPx) / unitPx else -liftBack
+    }
+
+    /** Screen x of the point [x] across the front picture, [dd] behind the front line (negative: in front of it). */
+    fun x(x: Float, dd: Float): Float = -BuildingSpec.W / 2f + (frontX + x) * k + ox + s * dd / HouseView.DEPTH
+
+    /** Screen y of the point [y] up from the ground, [dd] behind the front line. */
+    fun y(y: Float, dd: Float): Float = oy - y * k - BuildingSpec.DY * dd / HouseView.DEPTH
+
+    /** How far [dd] of depth leans on screen (units). */
+    fun lean(dd: Float): Float = s * dd / HouseView.DEPTH
+
+    /** How far [dd] of depth rises on screen (units). */
+    fun lift(dd: Float): Float = BuildingSpec.DY * dd / HouseView.DEPTH
+
+    /** Whether a side face shows (the side the view is from), and which: the right one when [s] > 0. */
+    val showsSide: Boolean get() = abs(s) > .02f
+    val rightSide: Boolean get() = s > 0f
+}
+
+/**
+ * Where a house's points land on screen, for a house drawn with side shift [s] ([SetBackView]: its front wall stands
+ * [HouseShape.setback] back). One view can be [set] again for the next house, so the painter keeps one instead of
+ * making one per house per frame.
+ */
+class HouseView(shape: HouseShape, s: Float, unitPx: Float = 0f) : SetBackView() {
     var shape: HouseShape = shape; private set
-    var s: Float = s; private set
-    /** The front wall's offset from where a shop's front stands (units): to the shown side and up. */
-    var ox: Float = 0f; private set
-    var oy: Float = 0f; private set
 
     init { set(shape, s, unitPx) }
 
-    /**
-     * This view for house [shape] at side shift [s]; returns itself. [originX]: how far right of a whole screen pixel
-     * the building's middle stands (units), so its wall lands on the screen's pixels, not only on whole pixels from
-     * its middle.
-     */
+    /** This view for house [shape] at side shift [s]; returns itself ([SetBackView.place]). */
     fun set(shape: HouseShape, s: Float, unitPx: Float = 0f, originX: Float = 0f): HouseView {
-        this.shape = shape; this.s = s
-        val leanBack = s * shape.setback / DEPTH
-        val liftBack = BuildingSpec.DY * shape.setback / DEPTH
-        ox = if (unitPx > 0f) kotlin.math.round((leanBack + originX) * unitPx) / unitPx - originX else leanBack
-        oy = if (unitPx > 0f) -kotlin.math.round(liftBack * unitPx) / unitPx else -liftBack
+        this.shape = shape
+        place(shape.frontX, shape.setback, s, unitPx, originX)
         return this
     }
-
-    /** Screen x of the point [x] across the front picture, [dd] behind the front wall (negative: in front of it). */
-    fun x(x: Float, dd: Float): Float = -BuildingSpec.W / 2f + (shape.frontX + x) * k + ox + s * dd / DEPTH
-
-    /** Screen y of the point [y] up from the ground, [dd] behind the front wall. */
-    fun y(y: Float, dd: Float): Float = oy - y * k - BuildingSpec.DY * dd / DEPTH
-
-    /** How far [dd] of depth leans on screen (units). */
-    fun lean(dd: Float): Float = s * dd / DEPTH
-
-    /** How far [dd] of depth rises on screen (units). */
-    fun lift(dd: Float): Float = BuildingSpec.DY * dd / DEPTH
-
-    /** Whether a gable end shows (the side the view is from), and which: the right one when [s] > 0. */
-    val showsSide: Boolean get() = abs(s) > .02f
-    val rightSide: Boolean get() = s > 0f
 
     companion object {
         /** The depth (sprite pixels) whose lean at full side is the side shift itself (a shop's side face is this deep). */

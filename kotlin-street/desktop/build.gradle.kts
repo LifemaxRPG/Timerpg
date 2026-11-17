@@ -42,5 +42,6 @@ tasks.register<JavaExec>("preview") {
     System.getProperty("noLit")?.let { jvmArgs("-DnoLit=$it") }
     System.getProperty("assets")?.let { jvmArgs("-Dassets=$it") }
     System.getProperty("day")?.let { jvmArgs("-Dday=$it") }
+    System.getProperty("tall")?.let { jvmArgs("-Dtall=$it") }
     args(layout.buildDirectory.dir("preview").get().asFile.absolutePath, file("../../public/assets/characters").absolutePath)
 }

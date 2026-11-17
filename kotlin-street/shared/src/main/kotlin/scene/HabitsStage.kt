@@ -1129,6 +1129,8 @@ private fun sunClear(
 
 /** One view of a house, set again for each house [sunEdge] sweeps (drawing happens on one thread). */
 private var edgeView: com.lifemax.rpg.feature.habits.domain.HouseView? = null
+/** And of a villa or a landmark. */
+private val modelEdgeView = com.lifemax.rpg.feature.habits.domain.ModelView()
 
 /**
  * The buildings in view as [SunEdge] boxes on the screen, for the sun's glare at their edges: each
@@ -1170,6 +1172,18 @@ private fun sunEdge(
             val w = sb.front.width.toFloat()
             edge.box(hx(0f, sh.depth / 2f), hy(sh.ridge, sh.depth / 2f), hx(w, sh.depth / 2f), hy(sh.h, sh.depth / 2f))
             edge.box(hx(sh.flueX0, sh.flueD0), hy(sh.flueTop, sh.flueD0), hx(sh.flueX1, sh.flueD0), hy(sh.ridge, sh.flueD0))
+            continue
+        }
+        val model = sb?.model
+        if (model != null) {
+            // a villa or a landmark, back in its yard: its walls swept back through their depth, and its roofs up to the
+            // highest ridge, over the walls' span
+            val v = modelEdgeView.set(model.shape, f.sideShift(cx))
+            val m = model.shape
+            fun mx(px: Float, dd: Float) = x(v.x(px, dd))
+            fun my(up: Float, dd: Float) = f.ground + v.y(up, dd) * u
+            edge.box(mx(m.wall0, 0f), my(m.wallTop, 0f), mx(m.wall1, 0f), my(0f, 0f), v.lean(m.depth) * u, v.lift(m.depth) * u)
+            if (m.ridge > m.wallTop) edge.box(mx(m.wall0, m.ridgeD), my(m.ridge, m.ridgeD), mx(m.wall1, m.ridgeD), my(m.wallTop, m.ridgeD))
             continue
         }
         if (sb != null) {

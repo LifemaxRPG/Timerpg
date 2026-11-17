@@ -139,6 +139,8 @@ data class BuildingLayout(
     val height: Float,
     val roof: Float,
     val lot: Float,
+    /** How wide its front is when wider than a shop's (a villa, the school): it stands in the middle of its wider lot. */
+    val wide: Float = 0f,
 ) {
     /** The part that carries habit [id]'s name. */
     fun labelled(id: String): Piece? =
@@ -273,6 +275,24 @@ private fun spriteLayout(stack: HabitStack, sb: com.lifemax.rpg.feature.habits.p
         )
         return BuildingLayout(stack.id, pieces, emptyList(), maxOf(top, roof + lift + b.DY), roof, b.W + b.DX)
     }
+    sb.model?.let { m ->
+        // a villa or a landmark, back in its yard and as wide as its picture (a lot wider than a shop's when it is): what
+        // a tap finds, each leaning with the view as far as it stands back: the yard (its porch, its steps), its walls
+        // swept back through their depth, then its roofs up to the highest ridge
+        val sh = m.shape
+        val lift = b.DY * sh.setback / HouseView.DEPTH
+        val w = sh.width * k
+        val wall = sh.wallTop * k
+        val ridge = sh.ridge * k + b.DY * (sh.setback + sh.ridgeD) / HouseView.DEPTH
+        val back = sh.setback / HouseView.DEPTH
+        val deep = sh.depth / HouseView.DEPTH
+        val pieces = listOf(
+            Piece(PieceKind.LOBBY, stack.id, 0f, lift, w, lean = back / 2f, deep = 0f, roofFace = false),
+            Piece(PieceKind.LOBBY, stack.id, lift, wall, w, lean = back, deep = deep, roofFace = false),
+            Piece(PieceKind.LOBBY, stack.id, lift + wall, (ridge - lift - wall).coerceAtLeast(1f), w, lean = back + deep / 4f, deep = deep / 2f, roofFace = false),
+        )
+        return BuildingLayout(stack.id, pieces, emptyList(), maxOf(sh.screenTop, wall + lift + b.DY), wall, maxOf(b.W, w) + b.DX, if (w > b.W) w else 0f)
+    }
     val pieces = ArrayList<Piece>()
     // the floors come from the art (the caller's block count may differ): the front's own middles, its own roofline
     val floors = stack.blocks.filter { !it.cleared }.take(sb.middles)
@@ -392,7 +412,8 @@ fun streetLayout(buildings: List<BuildingLayout>): StreetLayout {
     var left = -b.W / 2f
     for ((i, l) in buildings.withIndex()) {
         lefts += left
-        centers += left + b.W / 2f
+        // a building wider than a shop (a villa, the school) takes a wider lot and stands in its middle
+        centers += left + maxOf(b.W, l.wide) / 2f
         left += l.lot + b.GAP
         // (no lamp or tree in the mouth of the side street)
         if (i < buildings.size - 1 && l.stackId != JUNCTION_ID && buildings[i + 1].stackId != JUNCTION_ID)
