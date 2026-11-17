@@ -590,7 +590,7 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             val r = updater.available
             when {
                 updater.progress >= 0f -> Text("Downloading ${(updater.progress * 100).toInt()}%", 12.sp)
-                r != null -> Chip("Install update ${r.versionName}", false) { updater.install(r) }
+                r != null -> Chip("Get update ${r.versionName}", false) { updater.install(r) }
                 else -> Chip("Check for update", false) { updater.check() }
             }
         }

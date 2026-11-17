@@ -4,8 +4,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- talking to the people in the street: held while the mic button is down, heard on the phone only -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <!-- updating the game from inside it (Android asks the player to allow this once, and to confirm each update) -->
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
         android:label="Timerpg Street"
