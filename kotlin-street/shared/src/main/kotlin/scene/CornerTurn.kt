@@ -218,7 +218,7 @@ private fun DrawScope.building(cam: Cam, b: TurnBuilding) {
         for (f in faces) if (toward(f) && f.id == b.frontN) face(cam, em, b.h, f.ax, f.az, f.bx, f.bz, false, 1f, a * night * .7f, glow = true)
 }
 
-private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float) {
+private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float, trees: List<ImageBitmap> = emptyList()) {
     drawRect(Brush.verticalGradient(listOf(TurnLight.current.top, TurnLight.current.bottom), 0f, cam.hy), size = androidx.compose.ui.geometry.Size(size.width, cam.hy + 2f))
     drawRect(Brush.verticalGradient(listOf(TurnLight.current.bottom, TurnLight.current.ground), cam.hy, cam.hy + 150f), Offset(0f, cam.hy), androidx.compose.ui.geometry.Size(size.width, size.height - cam.hy))
     val far = 1400f
@@ -249,23 +249,53 @@ private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?
         val z = 80f + i * 60f
         if (z > 0f) ground(cam, listOf(98f to z, 102f to z, 102f to z + 25f, 98f to z + 25f), 0f, stripe)
     }
-    // far to near
-    for (b in bs.sortedByDescending { cam.v(it.cx, it.cz) }) building(cam, b)
+    // far to near: buildings, lamps and trees together, so a lamp is hidden by a building that stands in front of it
+    class Item(val v: Float, val draw: DrawScope.() -> Unit)
+    val items = ArrayList<Item>()
+    for (b in bs) items += Item(cam.v(b.cx, b.cz)) { building(cam, b) }
     lamp?.let { l ->
         for ((x, z) in listOf(30f to -30f, 170f to -30f, 30f to 330f, 170f to 650f, -300f to -30f, 450f to -30f)) {
-            val d = cam.v(x, z) + cam.dc
-            val la = nearFade(cam.v(x, z))
-            if (d < 60f || la <= .02f) continue
-            val k = .9f * cam.f / d
-            val px = cam.sx(cam.u(x, z), d); val py = cam.sy(0f, d)
-            withTransform({ translate(px - 15f * k, py - 127f * k); scale(k, k, Offset.Zero) }) { drawImage(l, filterQuality = FilterQuality.None, alpha = la) }
-            val nt = TurnLight.current.night
-            if (nt > .02f) {
-                val c = Offset(px + 21f * k, py - 111f * k); val rad = 70f * k
-                drawCircle(Brush.radialGradient(listOf(Color(0xFFffd9a0).copy(alpha = .75f * nt * la), Color.Transparent), c, rad), rad, c, blendMode = androidx.compose.ui.graphics.BlendMode.Plus)
+            items += Item(cam.v(x, z)) {
+                val d = cam.v(x, z) + cam.dc
+                val la = nearFade(cam.v(x, z))
+                if (d >= 60f && la > .02f) {
+                    val k = .9f * cam.f / d
+                    val px = cam.sx(cam.u(x, z), d); val py = cam.sy(0f, d)
+                    val lt = TurnLight.current
+                    withTransform({ translate(px - 15f * k, py - 127f * k); scale(k, k, Offset.Zero) }) {
+                        drawImage(l, filterQuality = FilterQuality.None, alpha = la, colorFilter = ColorFilter.colorMatrix(ColorMatrix(floatArrayOf(lt.r, 0f, 0f, 0f, 0f, 0f, lt.g, 0f, 0f, 0f, 0f, 0f, lt.b, 0f, 0f, 0f, 0f, 0f, 1f, 0f))))
+                    }
+                    val nt = lt.night
+                    if (nt > .02f) {
+                        val c = Offset(px + 21f * k, py - 111f * k); val rad = 70f * k
+                        drawCircle(Brush.radialGradient(listOf(Color(0xFFffd9a0).copy(alpha = .75f * nt * la), Color.Transparent), c, rad), rad, c, blendMode = androidx.compose.ui.graphics.BlendMode.Plus)
+                    }
+                }
             }
         }
     }
+    // trees at the back of the pavement, where two buildings meet (foot at (31, 95) of the sprite, 1.5x like the street's)
+    if (trees.isNotEmpty()) {
+        val spots = listOf(8f to 354f, 192f to 578f, 8f to 802f, 192f to 1026f, -224f to -8f, -448f to -8f, 424f to -8f)
+        for ((n, sp) in spots.withIndex()) {
+            val (x, z) = sp; val img = trees[n % trees.size]
+            items += Item(cam.v(x, z)) {
+                val d = cam.v(x, z) + cam.dc
+                val ta = nearFade(cam.v(x, z))
+                if (d >= 60f && ta > .02f) {
+                    val k = 1.5f * cam.f / d
+                    val px = cam.sx(cam.u(x, z), d); val py = cam.sy(0f, d)
+                    val lt = TurnLight.current
+                    val leaf = when (TurnLight.season) { 2 -> floatArrayOf(1.35f, 0f, 0f, 0f, 0f, 0f, .8f, 0f, 0f, 0f, 0f, 0f, .35f, 0f, 0f, 0f, 0f, 0f, 1f, 0f); 3 -> floatArrayOf(.9f, .2f, .2f, 0f, 70f, .2f, .9f, .2f, 0f, 70f, .2f, .2f, .95f, 0f, 80f, 0f, 0f, 0f, 1f, 0f); else -> floatArrayOf(1f, 0f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 0f, 1f, 0f) }
+                    for (q in 0 until 3) leaf[q * 5 + q] = leaf[q * 5 + q] * floatArrayOf(lt.r, lt.g, lt.b)[q]
+                    withTransform({ translate(px - 31f * k, py - 95f * k); scale(k, k, Offset.Zero) }) {
+                        drawImage(img, filterQuality = FilterQuality.None, alpha = ta, colorFilter = ColorFilter.colorMatrix(ColorMatrix(leaf)))
+                    }
+                }
+            }
+        }
+    }
+    for (it in items.sortedByDescending { it.v }) with(it) { draw() }
     // the player: along the pavement to the corner, then round it and away down the cross street
     walker?.let { w ->
         val p = progress.coerceIn(0f, 1f)
@@ -291,7 +321,7 @@ private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?
 
 
 /** Our building art for the turn: the sprite pairs (front, side) and the lamp. */
-class TurnArt(val fronts: List<ImageBitmap>, val sides: List<ImageBitmap>, val lamp: ImageBitmap?, val walker: ImageBitmap? = null, val emis: List<ImageBitmap?> = emptyList(), val props: List<ImageBitmap?> = emptyList())
+class TurnArt(val fronts: List<ImageBitmap>, val sides: List<ImageBitmap>, val lamp: ImageBitmap?, val walker: ImageBitmap? = null, val emis: List<ImageBitmap?> = emptyList(), val props: List<ImageBitmap?> = emptyList(), val trees: List<ImageBitmap> = emptyList())
 
 fun turnBuildings(art: TurnArt): List<TurnBuilding> {
     val n = art.fronts.size
@@ -313,13 +343,13 @@ fun turnBuildings(art: TurnArt): List<TurnBuilding> {
 }
 
 /** Draws the turn at [progress] (0 = looking along the street we came down, 1 = down the cross street). */
-fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float, hour: Float = 14f, season: Int = 1) {
+fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float, hour: Float = 14f, season: Int = 1, trees: List<ImageBitmap> = emptyList()) {
     TurnLight.season = season
     val wx = com.lifemax.rpg.feature.habits.domain.WeatherOverride.forced
     TurnLight.current = TurnLight.at(hour).weathered(wx?.cloudiness ?: 0f, wx?.rain ?: 0f, wx?.mist ?: 0f)
     val e = progress * progress * (3f - 2f * progress)
     val cam = Cam(-(Math.PI / 2).toFloat() * e, -100f + 420f * e, size.width, size.height)
-    scene(cam, buildings, lamp, walker, progress)
+    scene(cam, buildings, lamp, walker, progress, trees)
     if (season == 3) {
         // snow: slow, drifting flakes
         val t = progress * 3f
@@ -346,5 +376,5 @@ fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, 
 @Composable
 fun CornerTurn(art: TurnArt, progress: Float, modifier: Modifier = Modifier, hour: Float = 14f, season: Int = 1) {
     val b = androidx.compose.runtime.remember(art) { turnBuildings(art) }
-    Canvas(modifier.fillMaxSize()) { drawCornerTurn(b, art.lamp, art.walker, progress, hour, season) }
+    Canvas(modifier.fillMaxSize()) { drawCornerTurn(b, art.lamp, art.walker, progress, hour, season, art.trees) }
 }
