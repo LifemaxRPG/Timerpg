@@ -218,6 +218,11 @@ fun main(args: Array<String>) {
             com.lifemax.rpg.feature.habits.domain.WeatherOverride.forced = w
             render("$out/wx_$tag.png", 780, 360, 16.2f, day, first, false, bottom = 40f, ambient = 100f)
         }
+        // after dark: the lamps on the wet ground, and fog under the lamps
+        com.lifemax.rpg.feature.habits.domain.WeatherOverride.forced = com.lifemax.rpg.feature.habits.domain.WeatherState(.9f, .8f, .8f, 0f)
+        render("$out/wx_rain_night.png", 780, 360, 21.5f, "2026-06-14", first, false, bottom = 40f, ambient = 160f)
+        com.lifemax.rpg.feature.habits.domain.WeatherOverride.forced = com.lifemax.rpg.feature.habits.domain.WeatherState(.4f, 0f, .3f, .8f)
+        render("$out/wx_mist_night.png", 780, 360, 21.5f, "2026-06-14", first, false, bottom = 40f, ambient = 160f)
         com.lifemax.rpg.feature.habits.domain.WeatherOverride.forced = null
         return
     }

@@ -1734,6 +1734,7 @@ internal class BuildingPainter {
             x += 24f
         }
         puddles(sky, from, to, wet, rain, seconds)
+        sheenLamps = street.furniture.filter { it.kind == FurnitureKind.LAMP }
         groundFx(sky, from, to, depth, wet, rain, seconds)
     }
 
@@ -1744,7 +1745,24 @@ internal class BuildingPainter {
         fx.set("time", seconds); fx.set("rain", rain); fx.set("wet", wet); fx.set("px", SpriteArt.PIXEL)
         fx.set("sky", c.red, c.green, c.blue)
         drawRect(fx.brush(), Offset(from, 1f), Size(to - from, depth))
+        // at night the lamps' light lies in long broken streaks on the wet ground
+        val night = sky.dark
+        val sheen = StageFx.get(RainFx.SHEEN)
+        if (sheen != null && night > .15f) {
+            val xs = FloatArray(8) { -1e5f }
+            var n = 0
+            for (f in sheenLamps) if (n < 8 && f.x > from - 80f && f.x < to + 80f) xs[n++] = f.x + com.lifemax.rpg.feature.habits.domain.NearLight.LAMP_LENS
+            if (n > 0) {
+                sheen.set("time", seconds); sheen.set("night", night); sheen.set("wet", wet); sheen.set("rain", rain); sheen.set("px", SpriteArt.PIXEL)
+                sheen.set("lampsA", xs[0], xs[1], xs[2], xs[3]); sheen.set("lampsB", xs[4], xs[5], xs[6], xs[7])
+                sheen.set("warm", 1f, .78f, .45f)
+                drawRect(sheen.brush(), Offset(from, 1f), Size(to - from, depth), blendMode = BlendMode.Plus)
+            }
+        }
     }
+
+    /** The street lamps, for their reflections on the wet ground (set with the street's furniture). */
+    private var sheenLamps: List<Furniture> = emptyList()
 
     /** On the GPU ([RainFx.GLASS]): drops on the window glass in [x], [y], [w], [h] while it rains. */
     private fun DrawScope.glassRain(x: Float, y: Float, w: Float, h: Float, seconds: Float, sky: SkyColors) {

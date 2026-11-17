@@ -51,6 +51,9 @@
   face, a dark lip) and drops running down with trails; `GROUND`: puddles that hold the sky in a wide, flat pattern
   that grows with how wet the street is, and the rain's rings across the wet ground (thicker in the puddles). Pixel-crisp
   on the sprites' grid, anchored to the street. Older phones keep the drawn rain only.
+- `SHEEN`: at night on the wet ground each street lamp's light lies in a long, broken warm streak (up to eight lamps in
+  view). `FOG`: mist as banks drifting slowly along the street, thickest low down, over a lighter even veil; it takes the
+  light there is (pale by day, dark blue-grey at night).
 
 ## Depth and light on the building fronts (verified in the desktop preview; NOT yet seen on a phone)
 - `tools/make_lighting.py` (run after `make_buildings.py`, on a computer): **Depth Anything V2 Small** (Apache-2.0, ONNX)

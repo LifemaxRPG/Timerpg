@@ -72,6 +72,74 @@ half4 main(float2 p) {
 """
 
     /**
+     * At night on the wet ground: each street lamp's light mirrored as a long warm streak down the pavement and road, broken
+     * up by the wet surface (and the rain's ripples), as wet streets catch lamps. [lampsA], [lampsB]: up to eight lenses' x
+     * (street units; far away when unused), [night] 0..1, [wet] 0..1, [warm] the lamps' colour.
+     */
+    const val SHEEN = """
+uniform float time;
+uniform float night;
+uniform float wet;
+uniform float rain;
+uniform float px;
+uniform float4 lampsA;
+uniform float4 lampsB;
+uniform float3 warm;
+$HASH
+float streak(float x, float lx, float y, float row) {
+    float d = abs(x - lx);
+    // wider further down (nearer us), broken into short bright dashes by the wet surface
+    float w = 3.0 + y * 0.08;
+    float core = smoothstep(w, 0.0, d);
+    float broken = step(0.35, h(float2(floor(y / 2.0) + row, floor(lx))) * 0.6 + 0.4 * sin(y * 0.9 + time * (1.0 + rain * 3.0) + lx));
+    return core * broken * exp(-y * 0.025);
+}
+half4 main(float2 p) {
+    float2 s = floor(p / px);
+    float y = s.y;
+    float k = 0.0;
+    k = max(k, streak(s.x, lampsA.x / px, y, 1.0));
+    k = max(k, streak(s.x, lampsA.y / px, y, 2.0));
+    k = max(k, streak(s.x, lampsA.z / px, y, 3.0));
+    k = max(k, streak(s.x, lampsA.w / px, y, 4.0));
+    k = max(k, streak(s.x, lampsB.x / px, y, 5.0));
+    k = max(k, streak(s.x, lampsB.y / px, y, 6.0));
+    k = max(k, streak(s.x, lampsB.z / px, y, 7.0));
+    k = max(k, streak(s.x, lampsB.w / px, y, 8.0));
+    float a = clamp(k * night * wet * 1.1, 0.0, 0.9);
+    return half4(half3(warm * a), half(a));
+}
+"""
+
+    /**
+     * Fog that drifts: soft banks moving slowly along the street, thickest low down. Screen coordinates; [offset] the
+     * view's place along the street in screen pixels (so the banks stay on the street as it scrolls), [ground] the
+     * pavement's line, [mist] 0..1, [tint] the fog's colour.
+     */
+    const val FOG = """
+uniform float time;
+uniform float mist;
+uniform float offset;
+uniform float ground;
+uniform float top;
+uniform float3 tint;
+$HASH
+float noise(float2 x) {
+    float2 i = floor(x); float2 f = fract(x); f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(h(i), h(i + float2(1.0, 0.0)), f.x), mix(h(i + float2(0.0, 1.0)), h(i + float2(1.0, 1.0)), f.x), f.y);
+}
+half4 main(float2 p) {
+    float2 q = float2((p.x + offset) / 260.0 + time * 0.035, p.y / 140.0);
+    float n = noise(q) * 0.55 + noise(q * 2.1 + float2(time * 0.05, 0.0)) * 0.3 + noise(q * 4.3) * 0.15;
+    // thick near the ground, thinning upwards; the banks
+    float low = clamp((p.y - top) / max(ground - top, 1.0), 0.0, 1.0);
+    float a = mist * (0.06 + 0.2 * low) * (0.4 + 1.1 * n);
+    a = clamp(a, 0.0, 0.38);
+    return half4(half3(tint * a), half(a));
+}
+"""
+
+    /**
      * Rings where the rain hits the wet ground (squashed by the pavement's perspective), thicker in the puddles, which
      * hold the sky. [wet] how wet the street is, [sky] the sky's colour, [depthPx] the ground's depth in sprite pixels.
      */

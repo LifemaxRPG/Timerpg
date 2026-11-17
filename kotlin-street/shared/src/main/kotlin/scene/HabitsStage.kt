@@ -1010,9 +1010,17 @@ private fun StageCanvas(
             val dim = (.28f * weather.cloudiness + .14f * weather.rain).coerceAtMost(.42f)
             if (dim > .01f) drawRect(Color(0xFF232a38), Offset.Zero, this.size, alpha = dim, blendMode = BlendMode.SrcAtop)
             if (weather.mist > .01f) {
-                val fog = androidx.compose.ui.graphics.lerp(sky.sky[2], Color.White, .55f)
+                // the fog takes the light there is: pale by day, a dark blue-grey at night
+                val fog = androidx.compose.ui.graphics.lerp(androidx.compose.ui.graphics.lerp(sky.sky[2], Color.White, .55f), Color(0xFF2a3446), sky.dark * .8f)
+                // drifting banks on the GPU (a lighter even veil under them), else the even veil alone
+                val drift = StageFx.get(RainFx.FOG)
+                if (drift != null) {
+                    drift.set("time", seconds); drift.set("mist", weather.mist); drift.set("offset", f.middle * f.unit)
+                    drift.set("ground", f.ground); drift.set("top", f.top); drift.set("tint", fog.red, fog.green, fog.blue)
+                    drawRect(drift.brush(), Offset(0f, f.top), Size(this.size.width, this.size.height - f.top), blendMode = BlendMode.SrcAtop)
+                }
                 drawRect(
-                    Brush.verticalGradient(listOf(fog.copy(alpha = .12f * weather.mist), fog.copy(alpha = .42f * weather.mist)), f.top, f.ground),
+                    Brush.verticalGradient(listOf(fog.copy(alpha = (if (drift != null) .08f else .12f) * weather.mist), fog.copy(alpha = (if (drift != null) .26f else .42f) * weather.mist)), f.top, f.ground),
                     Offset(0f, f.top), Size(this.size.width, this.size.height - f.top), blendMode = BlendMode.SrcAtop,
                 )
             }
