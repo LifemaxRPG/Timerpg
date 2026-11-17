@@ -22,3 +22,6 @@ kotlin-street/third_party/
 # Python bytecode
 __pycache__/
 *.pyc
+
+# Kotlin compiler daemon logs
+.kotlin/

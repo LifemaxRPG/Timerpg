@@ -108,14 +108,27 @@ def build(shop, out):
     for m in mids:
         im = load(m['key']); y -= MID
         front.alpha_composite(im, (0, extra + y)); side.alpha_composite(side_segment(im, True), (0, y))
+    # the upper floors alone (before the storefront's sign is laid over them), to find their real windows in
+    mids_only = front.crop((0, extra, 224, extra + H))
     # the storefront goes on LAST, so its sign overlaps the floor above it, as in our game
     front.alpha_composite(g, (0, extra + H - g.height))
+    overlay = np.zeros((H, 224), bool)                # where the storefront (and its overhanging sign) covers the front
+    ga = np.array(g)[..., 3] > 40
+    top = H - g.height
+    overlay[max(0, top):, :] = ga[max(0, -top):, :]
     sign = front.crop((0, 0, 224, extra)) if extra > 0 else None
     front = front.crop((0, extra, 224, extra + H))
     prop = next((p for p in parts if p['key'].startswith('roofprop_')), None)
     # the upper floors' windows become real openings: their glass is cut out of the front (the engine draws the room
     # behind, the reflection and the glint over), and only the remaining glass (shop windows) glows from the mask
-    boxes, cut = find_windows(front, H - body_h)
+    boxes, cut = find_windows(mids_only, H - body_h)
+    # a window the storefront's sign hangs over is not a window any more (the gym's dumbbell, a bait shop's fish)
+    kept = []
+    for (bx, by, bw, bh) in boxes:
+        if overlay[by:by + bh, bx:bx + bw].mean() > .08: cut[by:by + bh, bx:bx + bw] = False
+        else: kept.append((bx, by, bw, bh))
+    boxes = kept
+    cut &= ~overlay
     fa = np.array(front); fa[cut] = (0, 0, 0, 0); front = Image.fromarray(fa)
     WINDOWS[shop['sprite']] = boxes
     # the shopfront glass (the display shows through it): nothing is cut; the engine lays a faint reflection over this mask
@@ -127,12 +140,15 @@ def build(shop, out):
         ys, xs = np.where(sub)
         if n < 40: continue
         bw, bh = int(xs.max() - xs.min() + 1), int(ys.max() - ys.min() + 1)
+        # real windows and doors reach down into the shopfront's window zone; signs, lettering and ledges end well above it
+        if y0 + ys.max() < H - 40 or bh < 14: continue
         if n >= 150 and n / float(bw * bh) >= .6: keep[y0:y1 + 1, x0:x1 + 1] |= sub                    # a clean pane: its glass
         elif 30 <= bw <= 170 and bh >= 24: soft[y0 + ys.min():y0 + ys.max() + 1, x0 + xs.min():x0 + xs.max() + 1] = True   # a display window: the whole pane, fainter, items showing through
     gimg = np.zeros((H, 224, 4), np.uint8); gimg[soft & ~keep] = (255, 255, 255, 105); gimg[keep] = (255, 255, 255, 255)
     Image.fromarray(gimg).save(f'{out}/{shop["sprite"]}_glass.png')
     WINDOWS[shop['sprite'] + '_shop'] = [(0, int(H - body_h), 224, int(body_h))]
-    em = np.zeros((H, 224, 4), np.uint8); gm = glass(fa); em[gm] = (255, 205, 120, 235)
+    # what glows at night: the shopfront's window panes only (not the sign's letters, the trim or the ledges)
+    em = np.zeros((H, 224, 4), np.uint8); em[keep | soft] = (255, 205, 120, 235)
     n = shop['sprite']
     front.save(f'{out}/{n}_front.png'); side.save(f'{out}/{n}_side.png'); Image.fromarray(em).save(f'{out}/{n}_emis.png')
     if sign is not None: sign.save(f'{out}/{n}_sign.png')
