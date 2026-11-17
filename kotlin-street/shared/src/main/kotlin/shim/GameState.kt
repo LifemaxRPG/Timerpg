@@ -24,6 +24,8 @@ object GameState {
     var nearest = -1
     /** True within reach of either end of the street, where the crossroads is. */
     var atCorner = false
+    /** Where this street's crossroads is: at its far (east) end, or at its start. */
+    var cornerAtEnd = true
 
     const val SPEED = 46f       // street units a second
     const val LANE_SPEED = 7f   // units a second in and out

@@ -64,9 +64,13 @@ fun streetOfShops(): List<HabitStack> {
     val arr = org.json.JSONObject(File(dir, "street.json").readText()).getJSONArray("shops")
     fun img(n: String): androidx.compose.ui.graphics.ImageBitmap? =
         File(dir, "buildings/$n.png").takeIf { it.exists() }?.let { SkiaImage.makeFromEncoded(it.readBytes()).toComposeImageBitmap() }
-    val half = (arr.length() + 1) / 2
-    val which = (System.getProperty("street") ?: "all")
-    val idx = when (which) { "0" -> 0 until half; "1" -> half until arr.length(); else -> 0 until arr.length() }
+    // which buildings: one of the named streets (-Dstreet=0|1), else every building in the file
+    val root = org.json.JSONObject(File(dir, "street.json").readText())
+    val which = System.getProperty("street")?.toIntOrNull()
+    val wanted: Set<String>? = root.optJSONArray("streets")?.let { st -> which?.let { k -> st.optJSONObject(k)?.optJSONArray("buildings")?.let { b -> (0 until b.length()).map { b.getString(it) } } } }?.toSet()
+    val order = wanted?.let { w -> root.getJSONArray("streets").getJSONObject(which!!).getJSONArray("buildings").let { b -> (0 until b.length()).map { b.getString(it) } } }
+    val idx = (0 until arr.length()).filter { wanted == null || arr.getJSONObject(it).getString("sprite") in wanted }
+        .sortedBy { order?.indexOf(arr.getJSONObject(it).getString("sprite")) ?: it }
     return idx.map { i ->
         val o = arr.getJSONObject(i)
         val id = o.getString("id"); val n = o.getString("sprite")

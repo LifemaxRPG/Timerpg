@@ -35,6 +35,8 @@ import com.lifemax.rpg.feature.habits.presentation.HabitsUi
 import com.lifemax.rpg.feature.habits.presentation.scene.GameState
 import com.lifemax.rpg.feature.habits.presentation.scene.CornerTurn
 import com.lifemax.rpg.feature.habits.presentation.scene.TurnArt
+import com.lifemax.rpg.feature.habits.presentation.scene.TurnFacade
+import com.lifemax.rpg.feature.habits.presentation.scene.TurnRows
 import com.lifemax.rpg.feature.habits.presentation.scene.HabitsStage
 import com.lifemax.rpg.feature.habits.presentation.scene.PlatformImages
 import com.lifemax.rpg.feature.habits.presentation.scene.SpriteArt
@@ -86,14 +88,17 @@ private val SHOPS = listOf(
     shop("toys", "Little Ones Toys", "TOYS", HabitMaterial.CLAY, 2),
 )
 
-/** Our game's town street, exported by tools/export-street.ts (falls back to a built-in street). */
-private class StreetData(val title: String, val shops: List<HabitStack>, val owners: List<String> = emptyList())
+/** One street of our town: its name, its buildings in order, and who owns or lives in each. */
+private class StreetInfo(val name: String, val shops: List<HabitStack>, val owners: List<String>)
+
+/** Our game's town streets, exported by tools/export-street.ts (falls back to a built-in street). */
+private class StreetData(val town: String, val streets: List<StreetInfo>, val rows: TurnRows? = null)
 
 private fun loadStreet(ctx: android.content.Context): StreetData = try {
     val j = org.json.JSONObject(ctx.assets.open("street.json").bufferedReader().use { it.readText() })
     val arr = j.getJSONArray("shops")
     fun img(n: String): androidx.compose.ui.graphics.ImageBitmap? = try {
-        ctx.assets.open("buildings/$n.png").use { BitmapFactory.decodeStream(it) }.asImageBitmap()
+        ctx.assets.open("buildings/$n.png").use { BitmapFactory.decodeStream(it) }?.asImageBitmap()
     } catch (e: Exception) { null }
     // the real windows of each building (tools/make_buildings.py)
     val windows = HashMap<String, List<FloatArray>>()
@@ -101,33 +106,58 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
         val wj = org.json.JSONObject(ctx.assets.open("buildings/windows.json").bufferedReader().use { it.readText() })
         for (key in wj.keys()) { val a = wj.getJSONArray(key); windows[key] = (0 until a.length()).map { k -> val r = a.getJSONArray(k); FloatArray(4) { r.getDouble(it).toFloat() } } }
     } catch (e: Exception) { }
-    val shops = (0 until arr.length()).map { i ->
+    // every building once, by its sprite name
+    class Entry(val stack: HabitStack, val owner: String, val art: SpriteBuilding?)
+    val bySprite = LinkedHashMap<String, Entry>()
+    for (i in 0 until arr.length()) {
         val o = arr.getJSONObject(i)
         val id = o.getString("id"); val n = o.getString("sprite")
         val parts = o.getJSONArray("parts")
         val mids = (0 until parts.length()).count { parts.getJSONObject(it).getString("key").startsWith("middle_") }
-        // OUR building, composed from our sprites (tools/make_buildings.py)
-        // a building whose art is missing keeps the engine's painted version; the rest of the street is unaffected
+        // OUR building, composed from our sprites (tools/make_buildings.py); a building whose art is missing keeps the
+        // engine's painted version, and the rest of the street is unaffected
         val front = img("${n}_front"); val side = img("${n}_side"); val emis = img("${n}_emis")
-        if (front != null && side != null && emis != null)
-            SpriteArt.buildings[id] = SpriteBuilding(front, side, emis, img("${n}_roof"), img("${n}_sign"), img("${n}_prop"), mids, windows[n].orEmpty(), windows[n + "_shop"].orEmpty(), img("${n}_glass"))
-        shop(id, o.getString("name"), "", HabitMaterial.CLAY, mids)
+        val art = if (front != null && side != null && emis != null)
+            SpriteBuilding(front, side, emis, img("${n}_roof"), img("${n}_sign"), img("${n}_prop"), mids, windows[n].orEmpty(), windows[n + "_shop"].orEmpty(), img("${n}_glass"))
+        else null
+        if (art != null) SpriteArt.buildings[id] = art
+        bySprite[n] = Entry(shop(id, o.getString("name"), "", HabitMaterial.CLAY, maxOf(1, mids)), o.optString("owner"), art)
     }
-    StreetData("${j.getString("town")} · ${j.getString("type")} · ${j.getInt("year")}", shops, (0 until arr.length()).map { arr.getJSONObject(it).optString("owner") })
+    fun names(a: org.json.JSONArray?): List<String> = if (a == null) emptyList() else (0 until a.length()).map { a.getString(it) }
+    val streetsJ = j.optJSONArray("streets")
+    val streets = if (streetsJ != null) (0 until streetsJ.length()).mapNotNull { k ->
+        val sj = streetsJ.getJSONObject(k)
+        val es = names(sj.optJSONArray("buildings")).mapNotNull { bySprite[it] }
+        if (es.isEmpty()) null else StreetInfo(sj.optString("name", "Street"), es.map { it.stack }, es.map { it.owner })
+    } else {
+        // an older street.json: one list, split in two
+        val all = bySprite.values.toList(); val half = (all.size + 1) / 2
+        listOf(all.take(half), all.drop(half)).filter { it.isNotEmpty() }.mapIndexed { k, es -> StreetInfo(if (k == 0) "Main Street" else "Side Street", es.map { it.stack }, es.map { it.owner }) }
+    }
+    // the crossroads, for the corner turn: the same pictures the street uses (decoded once)
+    fun facades(list: List<String>) = list.mapNotNull { bySprite[it]?.art }.map { TurnFacade(it.front, it.side, it.emis, it.prop) }
+    val jn = j.optJSONObject("junction")
+    val rows = if (streetsJ != null && streetsJ.length() >= 2 && jn != null) TurnRows(
+        facades(names(streetsJ.getJSONObject(0).optJSONArray("buildings"))), facades(names(jn.optJSONArray("mainEast"))),
+        facades(names(streetsJ.getJSONObject(1).optJSONArray("buildings"))), facades(names(jn.optJSONArray("crossEast"))),
+    ) else null
+    if (streets.isEmpty()) StreetData("built-in street", listOf(StreetInfo("Main Street", SHOPS, emptyList())))
+    else StreetData("${j.getString("town")} · ${j.getString("type")} · ${j.getInt("year")}", streets, rows)
 } catch (e: Exception) {
-    StreetData("built-in street", SHOPS)
+    StreetData("built-in street", listOf(StreetInfo("Main Street", SHOPS, emptyList())))
 }
 
 @Composable
 private fun GameScreen() {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val data = remember { loadStreet(ctx) }
-    // the town's shops make two streets; the corner turn leads from one to the other
+    // the main street and the cross street; the corner turn leads from one to the other
     var streetNo by remember { mutableIntStateOf(0) }
-    val half = (data.shops.size + 1) / 2
-    val range = if (streetNo == 0 || half >= data.shops.size) 0 until minOf(half, data.shops.size) else half until data.shops.size
-    val shops = remember(data, streetNo) { data.shops.slice(range) }
-    val owners = remember(data, streetNo) { data.owners.slice(range.first until minOf(range.last + 1, data.owners.size)) }
+    val street = data.streets[streetNo.coerceIn(0, data.streets.size - 1)]
+    val shops = street.shops
+    val owners = street.owners
+    // the crossroads is at the far end of the main street, and at the start of the cross street
+    GameState.cornerAtEnd = streetNo == 0
     var hour by remember { mutableFloatStateOf(17.6f) }
     var season by remember { mutableIntStateOf(1) }
     var weather by remember { mutableIntStateOf(0) }
@@ -143,20 +173,33 @@ private fun GameScreen() {
     // the faked corner turn: our buildings on boxes around a crossroads, the camera swinging a quarter turn
     val turnArt = remember {
         fun img(n: String): androidx.compose.ui.graphics.ImageBitmap? = try { ctx.assets.open(n).use { BitmapFactory.decodeStream(it) }.asImageBitmap() } catch (e: Exception) { null }
-        val ids = (0..8).filter { img("buildings/b${it}_front.png") != null && img("buildings/b${it}_side.png") != null }
-        if (ids.isEmpty()) null else TurnArt(ids.map { img("buildings/b${it}_front.png")!! }, ids.map { img("buildings/b${it}_side.png")!! }, img("props/lamp_1.png"), img("characters/char_02.png"), ids.map { img("buildings/b${it}_emis.png") }, ids.map { img("buildings/b${it}_prop.png") }, (1..3).mapNotNull { img("props/tree_$it.png") }, img("props/bench_1.png"))
+        val rows = data.rows
+        if (data.streets.size < 2) null
+        else if (rows != null) TurnArt(emptyList(), emptyList(), img("props/lamp_1.png"), img("characters/char_02.png"), trees = (1..3).mapNotNull { img("props/tree_$it.png") }, bench = img("props/bench_1.png"), rows = rows)
+        else {
+            val ids = (0..8).filter { img("buildings/b${it}_front.png") != null && img("buildings/b${it}_side.png") != null }
+            if (ids.isEmpty()) null else TurnArt(ids.map { img("buildings/b${it}_front.png")!! }, ids.map { img("buildings/b${it}_side.png")!! }, img("props/lamp_1.png"), img("characters/char_02.png"), ids.map { img("buildings/b${it}_emis.png") }, ids.map { img("buildings/b${it}_prop.png") }, (1..3).mapNotNull { img("props/tree_$it.png") }, img("props/bench_1.png"))
+        }
     }
     var turn by remember { mutableFloatStateOf(-1f) }
     var turning by remember { mutableStateOf(false) }
     var fade by remember { mutableFloatStateOf(0f) }
+    // which way the turn plays: forwards from the main street, backwards from the cross street
+    var turnBack by remember { mutableStateOf(false) }
     LaunchedEffect(turning) {
         if (!turning) return@LaunchedEffect
         val start = androidx.compose.runtime.withFrameNanos { it }
         while (true) {
             val t = (androidx.compose.runtime.withFrameNanos { it } - start) / 1e9f
-            if (t < 2.6f) { turn = (t / 2.4f).coerceAtMost(1f); fade = ((t - 2.0f) / .6f).coerceIn(0f, 1f) }
+            if (t < 2.6f) { val q = (t / 2.4f).coerceAtMost(1f); turn = if (turnBack) 1f - q else q; fade = ((t - 2.0f) / .6f).coerceIn(0f, 1f) }
             else {
-                if (turn >= 0f) { turn = -1f; streetNo = 1 - streetNo; GameState.x = 150f; GameState.lane = 7f }
+                if (turn >= 0f) {
+                    turn = -1f
+                    // round the corner: the start of the cross street, or back to the junction end of the main street
+                    GameState.x = if (turnBack) 1e9f else 150f
+                    streetNo = if (turnBack) 0 else 1
+                    GameState.lane = 7f
+                }
                 fade = 1f - ((t - 2.6f) / .6f).coerceIn(0f, 1f)
                 if (t >= 3.2f) break
             }
@@ -168,14 +211,15 @@ private fun GameScreen() {
             p = p, ui = HabitsUi(focus = shops[0].id), visible = true, top = 0f, bottom = 0f, cover = 0f, inset = 0f,
             accent = Color(0xFF6FA8FF), actions = StageActions(), modifier = Modifier.fillMaxSize(),
         )
-        Text(data.title, 14.sp, Modifier.align(Alignment.TopStart).padding(14.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
+        Text("${street.name} · ${data.town}", 14.sp, Modifier.align(Alignment.TopStart).padding(14.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
         if (turn >= 0f && turnArt != null) {
             Box(Modifier.fillMaxSize()) {
-                CornerTurn(turnArt, turn, Modifier.fillMaxSize(), hour, season)
+                CornerTurn(turnArt, turn, Modifier.fillMaxSize(), hour, season, reverse = turnBack)
             }
         }
         if (fade > 0f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = fade)))
-        if (turnArt != null && !turning && GameState.atCorner) Chip("↰ Turn the corner", false, Modifier.align(Alignment.CenterStart).padding(start = 14.dp)) { turning = true }
+        if (turnArt != null && !turning && GameState.atCorner) Chip(if (streetNo == 0) "↰ Turn onto ${data.streets.getOrNull(1)?.name ?: "the side street"}" else "↳ Back to ${data.streets[0].name}", false,
+            Modifier.align(if (streetNo == 0) Alignment.CenterEnd else Alignment.CenterStart).padding(horizontal = 14.dp)) { turnBack = streetNo == 1; turning = true }
         // the shop the player is standing at
         val near = GameState.nearest
         if (near in shops.indices) {

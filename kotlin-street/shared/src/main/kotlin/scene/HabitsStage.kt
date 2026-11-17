@@ -611,6 +611,8 @@ private fun StageCanvas(
             val dt = if (last == 0L) 0f else ((t - last) / 1e9f).coerceAtMost(.1f)
             last = t
             val s = streetNow.value
+            // arriving back round the corner: stand just short of the junction end of this street
+            if (GameState.x > s.end + 500f) GameState.x = s.end - 150f
             val before = GameState.x
             GameState.step(dt, s.start, s.end, BuildingPainter.PAVEMENT - 2f)
             // lamps, trees and benches stand at the back of the pavement (lane 0): walk round them (a step out), not through them
@@ -625,7 +627,7 @@ private fun StageCanvas(
                 }
             }
             scroll.snapTo(GameState.x)
-            GameState.atCorner = GameState.x < s.start + 110f || GameState.x > s.end - 110f
+            GameState.atCorner = if (GameState.cornerAtEnd) GameState.x > s.end - 110f else GameState.x < s.start + 110f
             GameState.nearest = s.lefts.indices.firstOrNull { GameState.x >= s.lefts[it] && GameState.x <= s.lefts[it] + B.W } ?: -1
         }
     }

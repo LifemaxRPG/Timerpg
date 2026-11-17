@@ -8,6 +8,8 @@ import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.unit.Density
 import com.lifemax.rpg.feature.habits.presentation.scene.CornerTurn
 import com.lifemax.rpg.feature.habits.presentation.scene.TurnArt
+import com.lifemax.rpg.feature.habits.presentation.scene.TurnFacade
+import com.lifemax.rpg.feature.habits.presentation.scene.TurnRows
 import java.io.File
 import org.jetbrains.skia.EncodedImageFormat
 import org.jetbrains.skia.Image as SkiaImage
@@ -23,6 +25,7 @@ fun renderTurn(out: String, assets: String) {
         (0..8).map { try { load("buildings", "b${it}_prop.png") } catch (e: Exception) { null } },
         (1..3).map { load("props", "tree_$it.png") },
         try { load("props", "bench_1.png") } catch (e: Exception) { null },
+        rows = turnRows(assets) { n -> try { load("buildings", n) } catch (e: Exception) { null } },
     )
     File(out).mkdirs()
     val frames = 16
@@ -40,4 +43,20 @@ fun renderTurn(out: String, assets: String) {
         sc.close()
         println("turn frame $i")
     }
+}
+
+/** The real crossroads from street.json (null for an older file without streets). */
+fun turnRows(assets: String, img: (String) -> ImageBitmap?): TurnRows? {
+    val f = File(assets, "street.json"); if (!f.exists()) return null
+    val j = org.json.JSONObject(f.readText())
+    val st = j.optJSONArray("streets") ?: return null
+    val jn = j.optJSONObject("junction") ?: return null
+    if (st.length() < 2) return null
+    fun names(a: org.json.JSONArray?) = if (a == null) emptyList() else (0 until a.length()).map { a.getString(it) }
+    fun facades(list: List<String>) = list.mapNotNull { n ->
+        val fr = img("${n}_front.png"); val sd = img("${n}_side.png")
+        if (fr == null || sd == null) null else TurnFacade(fr, sd, img("${n}_emis.png"), img("${n}_prop.png"))
+    }
+    return TurnRows(facades(names(st.getJSONObject(0).optJSONArray("buildings"))), facades(names(jn.optJSONArray("mainEast"))),
+        facades(names(st.getJSONObject(1).optJSONArray("buildings"))), facades(names(jn.optJSONArray("crossEast"))))
 }

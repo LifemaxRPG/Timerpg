@@ -60,6 +60,8 @@ internal class TurnLight(val top: Color, val bottom: Color, val ground: Color, v
 
     companion object {
         var current = noon()
+        /** The turn played backwards (coming back from the cross street): the player walks the other way. */
+        var reverse = false
         /** 0 spring, 1 summer, 2 autumn, 3 winter. */
         var season = 1
         fun noon() = TurnLight(Color(0xFF4f9bf2), Color(0xFFbfdcfb), Color(0xFF30333b), 1f, 1f, 1f, 168f, 190f, 222f)
@@ -319,7 +321,8 @@ private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?
         val b = ((p - .36f) / .62f).coerceIn(0f, 1f)          // down the cross street
         val x = -150f + 170f * a
         val z = -22f + 470f * b
-        val dx = if (b > 0f) 0f else 1f; val dz = if (b > 0f) 1f else 0f
+        val sgn = if (TurnLight.reverse) -1f else 1f
+        val dx = if (b > 0f) 0f else sgn; val dz = if (b > 0f) sgn else 0f
         val d = cam.v(x, z) + cam.dc
         if (d > 60f) {
             val right = dx * cam.c - dz * cam.s; val depth = dx * cam.s + dz * cam.c
@@ -337,10 +340,32 @@ private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?
 
 
 /** Our building art for the turn: the sprite pairs (front, side) and the lamp. */
-class TurnArt(val fronts: List<ImageBitmap>, val sides: List<ImageBitmap>, val lamp: ImageBitmap?, val walker: ImageBitmap? = null, val emis: List<ImageBitmap?> = emptyList(), val props: List<ImageBitmap?> = emptyList(), val trees: List<ImageBitmap> = emptyList(), val bench: ImageBitmap? = null)
+class TurnArt(val fronts: List<ImageBitmap>, val sides: List<ImageBitmap>, val lamp: ImageBitmap?, val walker: ImageBitmap? = null, val emis: List<ImageBitmap?> = emptyList(), val props: List<ImageBitmap?> = emptyList(), val trees: List<ImageBitmap> = emptyList(), val bench: ImageBitmap? = null, val rows: TurnRows? = null)
+
+/** One building's pictures, for the turn. */
+class TurnFacade(val front: ImageBitmap, val side: ImageBitmap, val emis: ImageBitmap?, val prop: ImageBitmap?)
+
+/**
+ * The real crossroads (tools/export-street.ts): the main street's buildings west of the junction (west to east), the first
+ * ones east of it, and the cross street's two rows (nearest the junction first). When given, the turn shows these.
+ */
+class TurnRows(val mainWest: List<TurnFacade>, val mainEast: List<TurnFacade>, val crossWest: List<TurnFacade>, val crossEast: List<TurnFacade>)
 
 fun turnBuildings(art: TurnArt): List<TurnBuilding> {
+    art.rows?.let { r ->
+        val d = 120f
+        fun b(f: TurnFacade, x0: Float, x1: Float, z0: Float, z1: Float, n: Int) = TurnBuilding(f.front, f.side, f.emis, x0, x1, z0, z1, n, f.prop)
+        val out = ArrayList<TurnBuilding>()
+        // the main street, ending at the corner (x = 0): the last three before the junction
+        r.mainWest.takeLast(3).reversed().forEachIndexed { i, f -> out += b(f, -224f * (i + 1), -224f * i, 0f, d, 0) }
+        r.mainEast.take(2).forEachIndexed { i, f -> out += b(f, 200f + 224f * i, 424f + 224f * i, 0f, d, 0) }
+        // the cross street: its west row faces +X (the camera ends up looking at it), its east row faces -X
+        r.crossWest.take(5).forEachIndexed { i, f -> out += b(f, -d, 0f, 130f + 224f * i, 354f + 224f * i, 1) }
+        r.crossEast.take(5).forEachIndexed { i, f -> out += b(f, 200f, 200f + d, 130f + 224f * i, 354f + 224f * i, 2) }
+        if (out.isNotEmpty()) return out
+    }
     val n = art.fronts.size
+    if (n == 0) return emptyList()
     fun f(i: Int) = art.fronts[i % n]
     fun s(i: Int) = art.sides[i % n]
     val d = 120f
@@ -359,7 +384,8 @@ fun turnBuildings(art: TurnArt): List<TurnBuilding> {
 }
 
 /** Draws the turn at [progress] (0 = looking along the street we came down, 1 = down the cross street). */
-fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float, hour: Float = 14f, season: Int = 1, trees: List<ImageBitmap> = emptyList(), bench: ImageBitmap? = null) {
+fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, walker: ImageBitmap?, progress: Float, hour: Float = 14f, season: Int = 1, trees: List<ImageBitmap> = emptyList(), bench: ImageBitmap? = null, reverse: Boolean = false) {
+    TurnLight.reverse = reverse
     TurnLight.season = season
     val wx = com.lifemax.rpg.feature.habits.domain.WeatherOverride.forced
     TurnLight.current = TurnLight.at(hour).weathered(wx?.cloudiness ?: 0f, wx?.rain ?: 0f, wx?.mist ?: 0f)
@@ -390,7 +416,7 @@ fun DrawScope.drawCornerTurn(buildings: List<TurnBuilding>, lamp: ImageBitmap?, 
     }}
 
 @Composable
-fun CornerTurn(art: TurnArt, progress: Float, modifier: Modifier = Modifier, hour: Float = 14f, season: Int = 1) {
+fun CornerTurn(art: TurnArt, progress: Float, modifier: Modifier = Modifier, hour: Float = 14f, season: Int = 1, reverse: Boolean = false) {
     val b = androidx.compose.runtime.remember(art) { turnBuildings(art) }
-    Canvas(modifier.fillMaxSize()) { drawCornerTurn(b, art.lamp, art.walker, progress, hour, season, art.trees, art.bench) }
+    Canvas(modifier.fillMaxSize()) { drawCornerTurn(b, art.lamp, art.walker, progress, hour, season, art.trees, art.bench, reverse) }
 }

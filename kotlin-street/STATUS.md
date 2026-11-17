@@ -24,6 +24,15 @@
   drops the whole street to the fallback.
 - Preview modes: `gradle :desktop:preview -Dmode=pano|weather|rooms|walk|turn [-Dstreet=0|1] [-Dhour=H]`.
 
+## Real crossroads (tools/export-street.ts v2)
+- street.json now holds named streets from the town's real layout: Main Street (the buildings on the main road west of a real
+  crossroads, in order) and the cross street (the buildings along the road that leaves the main street there, named from the seed),
+  plus the junction's other buildings for the turn scene. Homes are stood in by the modular condo front in the district's colour
+  (front door for a family, lobby for flats), named after the household really living there.
+- The turn shows the junction's real buildings; its button appears only at the junction end of each street ("Turn onto <name>" /
+  "Back to Main Street"), and turning back plays the turn in reverse and leaves you at the junction end of Main Street.
+- Demo town is still "eta" (Main Street: 8 shops; Orchard Lane: 6 homes). Checked on 9 seeds: all give 7-8 on Main Street, 2-6 on the cross street.
+
 ## Known rough edges / not done
 - Untested on a real device (touch, speed, memory, the turn's draw cost). Android-only code: image helper, asset loading, controls.
 - Collision radii and the "near the kerb" band are guesses. The turn's far buildings show the striped side art at grazing angles.
