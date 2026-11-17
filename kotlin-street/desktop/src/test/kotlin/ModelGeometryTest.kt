@@ -32,7 +32,8 @@ class ModelGeometryTest {
             {"t": "gable", "x": [0, 256], "y": [98, 161], "d": [36, 171], "l": [0, 0, 128, 198], "lp": [0, 197, 128, 133, 128, -2, 0, 62],
              "r": [129, 0, 128, 198], "rp": [128, 197, 0, 133, 0, -2, 128, 62], "rake": [3, 4], "roof": 5},
             {"t": "hip", "x": [34, 220], "y": [322, 355], "d": [0, 234], "top": [92, 162, 58, 176], "front": [0, 0, 186, 39],
-             "l": [0, 40, 59, 135], "lp": [0, 134, 0, 0, 58, 26, 58, 57], "r": [60, 40, 59, 135], "rp": [58, 134, 58, 0, 0, 26, 0, 57], "roof": 5},
+             "l": [0, 40, 59, 135], "lp": [0, 134, 0, 0, 58, 26, 58, 57], "r": [60, 40, 59, 135], "rp": [58, 134, 58, 0, 0, 26, 0, 57], "roof": 5,
+             "hip": [6369858, 6369858], "la": [120, 40, 59, 135], "ra": [180, 40, 59, 135]},
             {"t": "box", "x": [2, 34], "y": [12, 36], "d": [-53, -53], "c": [1, 2, 3], "ft": [0, 90, 32, 24], "card": true}]},
          "bad": {"kind": "villa"}}
     """.trimIndent()
@@ -52,6 +53,9 @@ class ModelGeometryTest {
         assertEquals(8, gable.leftP!!.size); assertNull(gable.face)
         val hip = m.parts[2]
         assertEquals(ModelPart.HIP, hip.type); assertEquals(58f, hip.td0); assertEquals(39, hip.frontPic!![3])
+        // its hips' crease and cap, and its side faces each course one colour along the depth, for a view nearly edge on
+        assertEquals(0x613242, hip.hip!![1]); assertEquals(120, hip.leftFlush!![0]); assertEquals(180, hip.rightFlush!![0])
+        assertNull(gable.hip); assertNull(gable.leftFlush)
         assertTrue(m.parts[3].card)
         assertNotNull(m.lamp); assertEquals("home", m.lights)
     }
@@ -188,6 +192,10 @@ class ModelGeometryTest {
         assertEquals(gold, at(0, -12)); assertTrue(empty(0, 5))
         assertEquals(ink, at(5, 0)); assertEquals(gold, at(9, 0)); assertEquals(brown, at(10, 0)); assertTrue(empty(11, 0)); assertTrue(empty(-5, 0))
         // half past ten: the minute hand straight down, the hour hand between ten and eleven, up and to the left
+        // (into a painter's scratch, as the street paints them again each minute: the same picture)
+        val again = IntArray(n * n)
+        ClockHands.paint(again, n, 15f, 12, 9, ink, brown, gold, BooleanArray(n * n))
+        assertTrue(again.contentEquals(px))
         ClockHands.paint(px, n, 22.5f, 12, 9, ink, brown, gold)
         assertEquals(gold, at(0, 12)); assertTrue(empty(0, -6))
         var upLeft = 0

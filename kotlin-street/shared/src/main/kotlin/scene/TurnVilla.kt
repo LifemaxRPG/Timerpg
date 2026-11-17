@@ -32,8 +32,13 @@ class TurnGableArt(
     val atlas: ImageBitmap, val gable: ModelPart, val face: IntArray?, val faceTop: Float, val faceX: Float, val width: Float,
 ) {
     companion object {
-        /** The tallest front gable of model [m] with the face of the box it stands on, or null when it has none. */
+        /**
+         * The tallest front gable of villa [m] with the face of the box it stands on, or null when it has none or is not
+         * a villa (a landmark's front gable, the school's cross gable, is not its whole roof: the turn would put it on
+         * the whole box).
+         */
         fun of(m: ModelShape, atlas: ImageBitmap): TurnGableArt? {
+            if (m.kind != "villa") return null
             var gi = -1
             for (i in m.parts.indices) {
                 val p = m.parts[i]

@@ -45,6 +45,9 @@ fun installDesktopImages() {
     }
     PlatformImages.update = { img: ImageBitmap, px, w, h ->
         val bm = img.asSkiaBitmap()
+        // as on Android, where a picture made from pixels (create) is immutable and setPixels on it throws: a picture to
+        // be written again is made blank (ImageBitmap(w, h)); the preview fails here rather than on the phone
+        check(!bm.isImmutable) { "PlatformImages.update on an immutable image: make it with ImageBitmap(w, h)" }
         bm.installPixels(ImageInfo.makeN32(w, h, ColorAlphaType.PREMUL), premulBytes(px), w * 4)
         bm.notifyPixelsChanged()
     }

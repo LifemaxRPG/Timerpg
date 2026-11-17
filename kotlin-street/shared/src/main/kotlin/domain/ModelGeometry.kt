@@ -53,6 +53,13 @@ class ModelPart(
     /** A hipped roof's front face piece (its rows the screen's, ridge to eave), its flat top's piece and extent. */
     val frontPic: IntArray? = null, val flat: IntArray? = null,
     val tx0: Float = 0f, val tx1: Float = 0f, val td0: Float = 0f, val td1: Float = 0f,
+    /** A hipped roof's hips as the art draws them: the cap tiles along each and the crease beside them (0xRRGGBB), or null. */
+    val hip: IntArray? = null,
+    /**
+     * A hipped roof's side faces with each course one colour along its depth ([left]'s and [right]'s points): for a view
+     * that sees them so nearly edge on that their tiles' joints fall closer than a pixel or two apart.
+     */
+    val leftFlush: IntArray? = null, val rightFlush: IntArray? = null,
 ) {
     /** A gable's or a hipped roof's apex x. */
     val apex: Float get() = (x0 + x1) / 2f
@@ -180,7 +187,8 @@ class ModelShape(
                         left = ints(p.getJSONArray("l")), leftP = floats(p.getJSONArray("lp")),
                         right = ints(p.getJSONArray("r")), rightP = floats(p.getJSONArray("rp")),
                         frontPic = ints(p.getJSONArray("front")), flat = ints(p.optJSONArray("flat")),
-                        tx0 = t.f(0), tx1 = t.f(1), td0 = t.f(2), td1 = t.f(3))
+                        tx0 = t.f(0), tx1 = t.f(1), td0 = t.f(2), td1 = t.f(3), hip = ints(p.optJSONArray("hip")),
+                        leftFlush = ints(p.optJSONArray("la")), rightFlush = ints(p.optJSONArray("ra")))
                 }
                 else -> throw IllegalArgumentException("unknown part ${p.getString("t")}")
             }
@@ -300,12 +308,15 @@ object ClockHands {
     /** The picture's width and height for a minute hand [minuteLen] cells long. */
     fun size(minuteLen: Int): Int = 2 * minuteLen + 3
 
-    /** The hands at [hour] (0..24, its fraction the minutes) into [px] (ARGB, [n] by [n], cleared first). */
-    fun paint(px: IntArray, n: Int, hour: Float, minuteLen: Int, hourLen: Int, ink: Int, brown: Int, gold: Int) {
+    /**
+     * The hands at [hour] (0..24, its fraction the minutes) into [px] (ARGB, [n] by [n], cleared first). [shaft] is
+     * scratch, [n] by [n] (the painter keeps one, so a repaint allocates nothing).
+     */
+    fun paint(px: IntArray, n: Int, hour: Float, minuteLen: Int, hourLen: Int, ink: Int, brown: Int, gold: Int, shaft: BooleanArray = BooleanArray(n * n)) {
         px.fill(0)
         val h12 = ((hour % 12f) + 12f) % 12f
-        hand(px, n, h12 / 12f, hourLen, ink, brown, gold)
-        hand(px, n, h12 - kotlin.math.floor(h12), minuteLen, ink, brown, gold)
+        hand(px, shaft, n, h12 / 12f, hourLen, ink, brown, gold)
+        hand(px, shaft, n, h12 - kotlin.math.floor(h12), minuteLen, ink, brown, gold)
         val m = n / 2
         for (dy in -1..1) for (dx in -1..1) {
             px[(m + dy) * n + m + dx] = 0xFF000000.toInt() or when {
@@ -317,11 +328,11 @@ object ClockHands {
     }
 
     /** One hand [turn] of the way round from twelve, [len] cells long. */
-    private fun hand(px: IntArray, n: Int, turn: Float, len: Int, ink: Int, brown: Int, gold: Int) {
+    private fun hand(px: IntArray, shaft: BooleanArray, n: Int, turn: Float, len: Int, ink: Int, brown: Int, gold: Int) {
         val a = turn * 2f * kotlin.math.PI.toFloat()
         val dx = kotlin.math.sin(a); val dy = -kotlin.math.cos(a)
         val m = n / 2
-        val shaft = BooleanArray(n * n)
+        shaft.fill(false, 0, n * n)
         var tip = -1
         for (s in 4..len * 4) {
             val t = s / 4f
@@ -331,16 +342,16 @@ object ClockHands {
             shaft[i] = true; tip = i
         }
         val b = 0xFF000000.toInt() or brown
-        for (i in shaft.indices) {
+        // brown round the shaft: its four neighbours, inside the picture, that are not shaft themselves
+        for (i in 0 until n * n) {
             if (!shaft[i]) continue
             val x = i % n; val y = i / n
-            for (j in intArrayOf(i - 1, i + 1, i - n, i + n)) {
-                if (j < 0 || j >= n * n || shaft[j]) continue
-                if ((j == i - 1 && x == 0) || (j == i + 1 && x == n - 1) || (j == i - n && y == 0) || (j == i + n && y == n - 1)) continue
-                px[j] = b
-            }
+            if (x > 0 && !shaft[i - 1]) px[i - 1] = b
+            if (x < n - 1 && !shaft[i + 1]) px[i + 1] = b
+            if (y > 0 && !shaft[i - n]) px[i - n] = b
+            if (y < n - 1 && !shaft[i + n]) px[i + n] = b
         }
-        for (i in shaft.indices) if (shaft[i]) px[i] = 0xFF000000.toInt() or ink
+        for (i in 0 until n * n) if (shaft[i]) px[i] = 0xFF000000.toInt() or ink
         if (tip >= 0) px[tip] = 0xFF000000.toInt() or gold
     }
 }
