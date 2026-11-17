@@ -428,7 +428,14 @@ private fun DrawScope.scene(cam: Cam, bs: List<TurnBuilding>, lamp: ImageBitmap?
 class TurnArt(val fronts: List<ImageBitmap>, val sides: List<ImageBitmap>, val lamp: ImageBitmap?, val walker: ImageBitmap? = null, val emis: List<ImageBitmap?> = emptyList(), val props: List<ImageBitmap?> = emptyList(), val trees: List<ImageBitmap> = emptyList(), val bench: ImageBitmap? = null, val rows: TurnRows? = null)
 
 /** One building's pictures, for the turn. */
-class TurnFacade(val front: ImageBitmap, val side: ImageBitmap, val emis: ImageBitmap?, val prop: ImageBitmap?)
+class TurnFacade(val front: ImageBitmap, val side: ImageBitmap, val emis: ImageBitmap?, val prop: ImageBitmap?, val house: com.lifemax.rpg.feature.habits.domain.HouseShape? = null)
+
+/** A building in its slot; a pitched-roof house in a box of its own size within it ([houseSlot]). */
+private fun slotted(f: TurnFacade, x0: Float, x1: Float, z0: Float, z1: Float, n: Int, nearSide: Boolean = false, fadeInLate: Boolean = false): TurnBuilding {
+    val h = f.house ?: return TurnBuilding(f.front, f.side, f.emis, x0, x1, z0, z1, n, f.prop, nearSide, fadeInLate)
+    val b = houseSlot(h, f.front.width.toFloat(), x0, x1, z0, z1, n)
+    return TurnBuilding(f.front, f.side, f.emis, b[0], b[1], b[2], b[3], n, f.prop, nearSide, fadeInLate)
+}
 
 /**
  * The real crossroads (tools/export-street.ts): the main street's buildings west of the junction (west to east), the first
@@ -439,7 +446,7 @@ class TurnRows(val mainWest: List<TurnFacade>, val mainEast: List<TurnFacade>, v
 fun turnBuildings(art: TurnArt): List<TurnBuilding> {
     art.rows?.let { r ->
         val d = 120f
-        fun b(f: TurnFacade, x0: Float, x1: Float, z0: Float, z1: Float, n: Int) = TurnBuilding(f.front, f.side, f.emis, x0, x1, z0, z1, n, f.prop, nearSide = x0 >= 200f)
+        fun b(f: TurnFacade, x0: Float, x1: Float, z0: Float, z1: Float, n: Int) = slotted(f, x0, x1, z0, z1, n, nearSide = x0 >= 200f)
         val out = ArrayList<TurnBuilding>()
         // the main street, ending at the corner (x = 0): the last three before the junction
         r.mainWest.takeLast(3).reversed().forEachIndexed { i, f -> out += b(f, -224f * (i + 1), -224f * i, 0f, d, 0) }
@@ -559,8 +566,8 @@ fun turnSkyPan(progress: Float, frame: TurnFrame, density: Float): Float {
 fun crossingBuildings(north: List<TurnFacade>, south: List<TurnFacade>): List<TurnBuilding> {
     val d = 120f
     val out = ArrayList<TurnBuilding>()
-    north.takeLast(5).forEachIndexed { i, f -> val x0 = -460f + 224f * i; out += TurnBuilding(f.front, f.side, f.emis, x0, x0 + 224f, 0f, d, 0, f.prop, nearSide = true) }
-    south.take(5).forEachIndexed { i, f -> val x0 = -460f + 224f * i; out += TurnBuilding(f.front, f.side, f.emis, x0, x0 + 224f, -218f - d, -218f, 3, f.prop, fadeInLate = true) }
+    north.takeLast(5).forEachIndexed { i, f -> val x0 = -460f + 224f * i; out += slotted(f, x0, x0 + 224f, 0f, d, 0, nearSide = true) }
+    south.take(5).forEachIndexed { i, f -> val x0 = -460f + 224f * i; out += slotted(f, x0, x0 + 224f, -218f - d, -218f, 3, fadeInLate = true) }
     return out
 }
 

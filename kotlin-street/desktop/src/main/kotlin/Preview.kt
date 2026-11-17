@@ -81,12 +81,13 @@ fun streetOfShops(): List<HabitStack> {
         .sortedBy { order?.indexOf(arr.getJSONObject(it).getString("sprite")) ?: it }
     val eastIdx = east.mapNotNull { n -> (0 until arr.length()).firstOrNull { arr.getJSONObject(it).getString("sprite") == n } }
     val windows = com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuildingLoad.windows(File(dir, "buildings/windows.json").takeIf { it.exists() }?.readText())
+    val houses = com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuildingLoad.houses(File(dir, "buildings/houses.json").takeIf { it.exists() }?.readText())
     fun one(i: Int): HabitStack {
         val o = arr.getJSONObject(i)
         val id = o.getString("id"); val n = o.getString("sprite")
         val mids = (0 until o.getJSONArray("parts").length()).count { o.getJSONArray("parts").getJSONObject(it).getString("key").startsWith("middle_") }
         if (SpriteArt.buildings[id] == null)
-            com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuildingLoad.load(n, mids, windows) { img(it) }?.let { SpriteArt.buildings[id] = it }
+            com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuildingLoad.load(n, mids, windows, houses) { img(it) }?.let { SpriteArt.buildings[id] = it }
         return building(id, o.getString("name"), "", HabitMaterial.CLAY, mids)
     }
     val west = idx.map { one(it) }
@@ -111,6 +112,13 @@ fun projection(hour: Float, day: String) = HabitsProjection(
 )
 
 fun render(path: String, w: Int, h: Int, hour: Float, day: String, focus: String, city: Boolean, bottom: Float = 0f, ambient: Float = 70f) {
+    val img = renderImage(w, h, hour, day, focus, city, bottom, ambient)
+    File(path).also { it.parentFile.mkdirs() }.writeBytes(img.encodeToData(EncodedImageFormat.PNG)!!.bytes)
+    println("wrote $path")
+}
+
+/** One settled frame of the street (as [render] saves it). */
+fun renderImage(w: Int, h: Int, hour: Float, day: String, focus: String, city: Boolean, bottom: Float = 0f, ambient: Float = 70f): SkiaImage {
     val density = 2f
     val scene = ImageComposeScene(width = (w * density).toInt(), height = (h * density).toInt(), density = Density(density)) {
         HabitsStage(
@@ -127,9 +135,8 @@ fun render(path: String, w: Int, h: Int, hour: Float, day: String, focus: String
         nanos += 16_666_667L; Thread.sleep(40)
         img = scene.render(nanos); settled++
     }
-    File(path).also { it.parentFile.mkdirs() }.writeBytes(img.encodeToData(EncodedImageFormat.PNG)!!.bytes)
     scene.close()
-    println("wrote $path")
+    return img
 }
 
 /** Our character sheets, read from the game's asset folder. */
@@ -229,6 +236,7 @@ fun main(args: Array<String>) {
         com.lifemax.rpg.feature.habits.domain.WeatherOverride.forced = null
         return
     }
+    if (mode == "houses") { renderHouses(out, File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path); return }
     if (mode == "junction") {
         // walking past the junction: the side street seen through its mouth, from either side and straight on
         val assets = File("../app/src/main/assets").absolutePath

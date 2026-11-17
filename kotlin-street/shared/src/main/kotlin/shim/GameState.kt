@@ -40,6 +40,8 @@ object GameState {
     var cornerAtEnd = true
     /** The middle of the junction's opening along this street (street units), or NaN if the side street does not open here. */
     @Volatile var junctionX = Float.NaN
+    /** The middle of each building along this street (street units), as the stage last laid it out. */
+    @Volatile var centers: List<Float> = emptyList()
     /** Where the middle of the view is along the street (street units), as the stage last drew it. */
     @Volatile var viewMiddle = 0f
     /**

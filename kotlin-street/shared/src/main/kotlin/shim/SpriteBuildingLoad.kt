@@ -3,8 +3,8 @@ package com.lifemax.rpg.feature.habits.presentation.scene
 import androidx.compose.ui.graphics.ImageBitmap
 
 /**
- * Reads one of our buildings as tools/make_buildings.py wrote it (buildings/bN_*.png and windows.json), the same way for
- * the app and the desktop preview: each only says how a picture is opened.
+ * Reads one of our buildings as tools/make_buildings.py wrote it (buildings/bN_*.png, windows.json and houses.json), the
+ * same way for the app and the desktop preview: each only says how a picture is opened.
  */
 object SpriteBuildingLoad {
     /**
@@ -27,10 +27,25 @@ object SpriteBuildingLoad {
      * own building there, and the rest of the street is unaffected). [img] opens a picture by name (bN_front, ...) or
      * gives null; [middles] is how many 128-row middle floors its front has.
      */
-    fun load(sprite: String, middles: Int, windows: Map<String, List<FloatArray>>, img: (String) -> ImageBitmap?): SpriteBuilding? {
+    fun load(
+        sprite: String, middles: Int, windows: Map<String, List<FloatArray>>,
+        houses: Map<String, com.lifemax.rpg.feature.habits.domain.HouseShape> = emptyMap(), img: (String) -> ImageBitmap?,
+    ): SpriteBuilding? {
         val front = img("${sprite}_front") ?: return null
         val side = img("${sprite}_side") ?: return null
         val emis = img("${sprite}_emis") ?: return null
+        val shape = houses[sprite]
+        if (shape != null) {
+            // a pitched-roof house: without its slope and ridge it cannot be built, and is better left to the engine
+            val slope = img("${sprite}_slope") ?: return null
+            val ridge = img("${sprite}_ridge") ?: return null
+            val rows = com.lifemax.rpg.feature.habits.domain.HouseView.slopeRows(shape)
+            // the rise was chosen so the slope shows one screen row per picture row; a changed view (BuildingSpec's W or
+            // DY) needs tools/make_buildings.py run again
+            if (kotlin.math.abs(rows - slope.height) > .05f) println("houses.json: $sprite's slope is ${slope.height} rows, the view makes it $rows: run make_buildings.py again")
+            val art = HouseArt(shape, slope, ridge, img("${sprite}_back"), img("${sprite}_hitch"), img("${sprite}_lawn"), img("${sprite}_porch"))
+            return SpriteBuilding(front, side, emis, null, null, null, 0, emptyList(), emptyList(), null, null, null, null, null, art)
+        }
         return SpriteBuilding(
             front, side, emis, img("${sprite}_roof"), img("${sprite}_sign"), img("${sprite}_prop"), middles,
             windows[sprite].orEmpty(), windows[sprite + "_shop"].orEmpty(), img("${sprite}_glass"),
@@ -38,4 +53,8 @@ object SpriteBuildingLoad {
             img("${sprite}_lit"), img("${sprite}_shade"),
         )
     }
+
+    /** houses.json: the pitched-roof houses' shapes by sprite name (none when the file is missing). */
+    fun houses(text: String?): Map<String, com.lifemax.rpg.feature.habits.domain.HouseShape> =
+        com.lifemax.rpg.feature.habits.domain.HouseShape.parseAll(text)
 }

@@ -71,6 +71,23 @@ class SpriteBuilding(
      */
     val lit: ImageBitmap? = null,
     val shade: ImageBitmap? = null,
+    /** A pitched-roof house (one of our mobile homes) instead of a box: its shape and the pictures its roof and yard wear. */
+    val house: HouseArt? = null,
+)
+
+/**
+ * The pictures a pitched-roof house wears besides its front ([SpriteBuilding.front], the wall under the eave's edge) and
+ * its gable end ([SpriteBuilding.side]): the near slope, the ridge cap and the far slope, each one screen row per row of
+ * the art's own pixels; the hitch (a card beside it); its yard's ground; its porch's railing, fascia and deck boards.
+ */
+class HouseArt(
+    val shape: com.lifemax.rpg.feature.habits.domain.HouseShape,
+    val slope: ImageBitmap,
+    val ridge: ImageBitmap,
+    val back: ImageBitmap?,
+    val hitch: ImageBitmap?,
+    val lawn: ImageBitmap?,
+    val porch: ImageBitmap?,
 )
 
 /** All of the game's own art that replaces the habit scene's procedural art, installed by the platform. */
@@ -88,6 +105,13 @@ object SpriteArt {
     val tallest: Float get() {
         var best = 0f
         for (b in buildings.values) {
+            val h = b.house
+            if (h != null) {
+                // a house: its ridge (or its flue) over the lift of standing back in its yard
+                val sh = h.shape
+                best = maxOf(best, (maxOf(sh.ridge + 2f, sh.flueTop) + 10f / PIXEL * sh.setback / 120f) * PIXEL)
+                continue
+            }
             val over = b.sign?.height?.toFloat() ?: b.prop?.let { it.height + com.lifemax.rpg.feature.habits.domain.BuildingSpec.DY * .5f / PIXEL } ?: 0f
             best = maxOf(best, (b.front.height + over) * PIXEL)
         }

@@ -625,6 +625,7 @@ private fun StageCanvas(
             val jx = s.lefts.indices.firstOrNull { layoutsNow.value.getOrNull(it)?.stackId == com.lifemax.rpg.feature.habits.domain.JUNCTION_ID }
                 ?.let { s.lefts[it] + layoutsNow.value[it].lot / 2f } ?: Float.NaN
             GameState.junctionX = jx
+            GameState.centers = s.centers
             // arriving back round the corner: stand just short of the junction end of this street
             if (GameState.x > s.end + 500f) GameState.x = s.end - 150f
             // arriving back from the side street: at the junction, where it opens
@@ -804,6 +805,7 @@ private fun StageCanvas(
         painter.lightX = f.streetX(orb.first * d)
         painter.lightSpan = this.size.width / f.unit
         painter.viewX = f.middle
+        painter.unitPx = f.unit
         painter.perspectiveK = Perspective.k(f.zoom)
         painter.lamps = street.furniture
         painter.weather = weather
@@ -1154,6 +1156,19 @@ private fun sunEdge(
         fun y(up: Float) = f.ground - up * u
         val roof = layout.roof
         val sb = SpriteArt.buildings[art.stack.id]
+        val house = sb?.house
+        if (house != null) {
+            // one of OUR houses, back in its yard: its wall swept back through its depth, and its roof up to the ridge
+            val v = com.lifemax.rpg.feature.habits.domain.HouseView(house.shape, f.sideShift(cx))
+            val sh = house.shape
+            fun hx(px: Float, dd: Float) = x(v.x(px, dd))
+            fun hy(up: Float, dd: Float) = f.ground + v.y(up, dd) * u
+            edge.box(hx(sh.wall0, 0f), hy(sh.h, 0f), hx(sh.wall1, 0f), hy(0f, 0f), v.lean(sh.depth) * u, v.lift(sh.depth) * u)
+            val w = sb.front.width.toFloat()
+            edge.box(hx(0f, sh.depth / 2f), hy(sh.ridge, sh.depth / 2f), hx(w, sh.depth / 2f), hy(sh.h, sh.depth / 2f))
+            edge.box(hx(sh.flueX0, sh.flueD0), hy(sh.flueTop, sh.flueD0), hx(sh.flueX1, sh.flueD0), hy(sh.ridge, sh.flueD0))
+            continue
+        }
         if (sb != null) {
             // one of OUR buildings: its real silhouette (as spriteBuilding draws it), not the engine's cornice, tank and sign
             val k = B.W / SpriteArt.SRC_W
@@ -1216,7 +1231,8 @@ private fun DrawScope.cloudShade(
         val x0 = f.screenX(cx + Perspective.left(shift))
         val x1 = f.screenX(cx + Perspective.right(shift))
         if (x1 < 0f || x0 > w) continue
-        val top = f.ground - (layouts[i].roof + B.CORNICE + B.DY) * f.unit
+        // (a house's real top: its layout's height, its ridge and flue over its yard's lift)
+        val top = f.ground - (if (SpriteArt.buildings[layouts[i].stackId]?.house != null) layouts[i].height else layouts[i].roof + B.CORNICE + B.DY) * f.unit
         path.addRect(Rect(x0, top, x1, f.ground))
     }
     val drop = SceneLight.cloudDrop(light) * d

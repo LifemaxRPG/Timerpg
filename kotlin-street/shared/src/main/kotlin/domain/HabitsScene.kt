@@ -245,6 +245,16 @@ fun buildingLayout(
 private fun spriteLayout(stack: HabitStack, sb: com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuilding): BuildingLayout {
     val b = BuildingSpec
     val k = b.W / com.lifemax.rpg.feature.habits.presentation.scene.SpriteArt.SRC_W
+    sb.house?.let { h ->
+        // a pitched-roof house: one storey, back in its yard; its roofline is the eave's edge, and above it stand the
+        // lift of its yard, the roof's rise, the ridge cap and the flue
+        val sh = h.shape
+        val lift = b.DY * sh.setback / HouseView.DEPTH
+        val roof = sh.h * k
+        val top = maxOf(sh.ridge + 2f, sh.flueTop) * k + b.DY * (sh.setback + sh.depth * .63f) / HouseView.DEPTH
+        val pieces = listOf(Piece(PieceKind.LOBBY, stack.id, 0f, roof + lift, b.W))
+        return BuildingLayout(stack.id, pieces, emptyList(), maxOf(top, roof + lift + b.DY), roof, b.W + b.DX)
+    }
     val pieces = ArrayList<Piece>()
     // the floors come from the art (the caller's block count may differ): the front's own middles, its own roofline
     val floors = stack.blocks.filter { !it.cleared }.take(sb.middles)
