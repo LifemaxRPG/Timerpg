@@ -1,0 +1,406 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1960,
+  "topic": "speech",
+  "facts": [
+    {
+      "id": "1960-speech-01",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Children answer teachers with yes ma'am or yes sir rather than using a first name.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-02",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A customer calls the shopkeeper mister or missus followed by a surname.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-03",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Neighbors meeting on Main Street usually exchange a greeting before discussing business.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-04",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A child asking to leave the dinner table says may I be excused.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-05",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A caller identifies herself when the person answering the telephone does not recognize her voice.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-06",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A young person politely asks whether someone is home before asking to speak with them.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-07",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Parents remind children to say please and thank you when accepting treats from neighbors.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-08",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A diner waitress may call a familiar customer hon without knowing the customer's full name.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-09",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Teenagers call an attractive person cute or good-looking when talking among friends.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-10",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A teenager might call something neat when impressed by it.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-11",
+      "year_from": 1960,
+      "year_to": 1965,
+      "text": "Early in the decade, young people sometimes say square about someone they consider old-fashioned.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-12",
+      "year_from": 1966,
+      "year_to": 1969,
+      "text": "By the later sixties, some young people call a good idea groovy.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-13",
+      "year_from": 1967,
+      "year_to": 1969,
+      "text": "Later in the decade, teenagers may say far out when something amazes them.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-14",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A teenager might tell a friend to cool it when an argument grows heated.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-15",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "An adult might say hold your horses when someone is being impatient.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-16",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "People often say excuse me before interrupting a conversation or passing through a crowd.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-17",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "An older neighbor may ask how the folks are doing, meaning someone's family.",
+      "ages": "elders",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-18",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A shop clerk asks whether a customer needs any help rather than immediately using the customer's first name.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-19",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A schoolchild addresses a teacher by title and surname, even when the teacher lives next door.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-20",
+      "year_from": 1965,
+      "year_to": 1969,
+      "text": "A teenager might call a strict parent a drag when complaining to friends.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-21",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A neighbor who hears surprising news may respond with no kidding.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-22",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Friends part with see you later when they expect to meet again soon.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-23",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A person making a request may soften it with would you mind.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-speech-24",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A parent warns a child to watch their language after a rude remark.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": [
+    {
+      "phrase": "yes ma'am",
+      "meaning": "respectful agreement to a woman",
+      "ages": "kids",
+      "from": 1960,
+      "to": 1969,
+      "tone": "polite"
+    },
+    {
+      "phrase": "yes sir",
+      "meaning": "respectful agreement to a man",
+      "ages": "kids",
+      "from": 1960,
+      "to": 1969,
+      "tone": "polite"
+    },
+    {
+      "phrase": "may I be excused",
+      "meaning": "request to leave the table",
+      "ages": "kids",
+      "from": 1960,
+      "to": 1969,
+      "tone": "polite"
+    },
+    {
+      "phrase": "how do you do",
+      "meaning": "formal greeting",
+      "ages": "adults",
+      "from": 1960,
+      "to": 1969,
+      "tone": "formal"
+    },
+    {
+      "phrase": "much obliged",
+      "meaning": "expression of thanks",
+      "ages": "elders",
+      "from": 1960,
+      "to": 1969,
+      "tone": "polite"
+    },
+    {
+      "phrase": "see you later",
+      "meaning": "casual farewell",
+      "ages": "all",
+      "from": 1960,
+      "to": 1969,
+      "tone": "casual"
+    },
+    {
+      "phrase": "no kidding",
+      "meaning": "expression of surprise or agreement",
+      "ages": "all",
+      "from": 1960,
+      "to": 1969,
+      "tone": "casual"
+    },
+    {
+      "phrase": "hold your horses",
+      "meaning": "request to wait or slow down",
+      "ages": "adults",
+      "from": 1960,
+      "to": 1969,
+      "tone": "casual"
+    },
+    {
+      "phrase": "cool it",
+      "meaning": "calm down",
+      "ages": "teens",
+      "from": 1960,
+      "to": 1969,
+      "tone": "casual"
+    },
+    {
+      "phrase": "neat",
+      "meaning": "very good or impressive",
+      "ages": "teens",
+      "from": 1960,
+      "to": 1969,
+      "tone": "casual"
+    },
+    {
+      "phrase": "square",
+      "meaning": "person considered conventional or unfashionable",
+      "ages": "teens",
+      "from": 1960,
+      "to": 1965,
+      "tone": "casual"
+    },
+    {
+      "phrase": "groovy",
+      "meaning": "excellent or pleasing",
+      "ages": "teens",
+      "from": 1966,
+      "to": 1969,
+      "tone": "casual"
+    },
+    {
+      "phrase": "far out",
+      "meaning": "remarkable or astonishing",
+      "ages": "teens",
+      "from": 1967,
+      "to": 1969,
+      "tone": "casual"
+    },
+    {
+      "phrase": "a drag",
+      "meaning": "something tiresome or disappointing",
+      "ages": "teens",
+      "from": 1965,
+      "to": 1969,
+      "tone": "casual"
+    },
+    {
+      "phrase": "what's happening",
+      "meaning": "casual inquiry or greeting",
+      "ages": "teens",
+      "from": 1965,
+      "to": 1969,
+      "tone": "casual"
+    },
+    {
+      "phrase": "right on",
+      "meaning": "strong approval or agreement",
+      "ages": "teens",
+      "from": 1968,
+      "to": 1969,
+      "tone": "casual"
+    }
+  ]
+}
