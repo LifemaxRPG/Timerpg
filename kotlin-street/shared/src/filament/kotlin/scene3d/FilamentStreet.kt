@@ -99,6 +99,8 @@ class FilamentStreet(
     private val vbs = ArrayList<VertexBuffer>()
     private val ibs = ArrayList<IndexBuffer>()
     private var builtFor: List<CrossSide>? = null
+    /** The street props (hydrants, mailboxes, signs...: [PropLayer]), placed by the rules along both streets. */
+    private var props: PropLayer? = null
     private lateinit var quad: Pair<VertexBuffer, IndexBuffer>
 
     /** How long the last [update] took to build the street (ms; 0 when nothing was built), for the frame line. */
@@ -218,6 +220,7 @@ class FilamentStreet(
                 t.windows?.update(f.hour)
             }
         }
+        props?.update(trueLook, f.dark, shown = !classic)
         placeCards(f, world, cr, sides, eyeCam, classic)
     }
 
@@ -378,6 +381,7 @@ class FilamentStreet(
             if (boards.isNotEmpty()) addThing(BOX, bx.street, boards, cx, l.height, cz, bx, s, 0, casts = true, windows = null).also { things.last().pull = DEPTH / 2f + 4f }
         }
         groundFaces(cr)
+        props = PropLayer(engine, scene, visibleMat, if (albedo) null else proxyMat, srgb = !albedo).also { it.add(PropLayer.crossroads(cr, sides)) }
         for (k in 0..1) {
             val s = sides.getOrNull(k) ?: continue
             for (fu in s.street.furniture) {
@@ -1099,6 +1103,7 @@ class FilamentStreet(
         }
         for (t in things) { for (mi in t.mis) engine.destroyMaterialInstance(mi); for (mi in t.proxyMis) engine.destroyMaterialInstance(mi) }
         for (c in cards) { engine.destroyMaterialInstance(c.mi); c.pmi?.let { engine.destroyMaterialInstance(it) } }
+        props?.destroy(); props = null
         things.clear(); cards.clear(); personCards.fill(0)
         lampMaskTex = null
         for (v in vbs) engine.destroyVertexBuffer(v)
