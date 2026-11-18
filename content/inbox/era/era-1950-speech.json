@@ -1,0 +1,426 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1950,
+  "topic": "speech",
+  "facts": [
+    {
+      "id": "1950-speech-01",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Children answer grown-ups with yes sir or yes ma'am when taught formal manners.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-02",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A child addressing a neighbor usually says mister or missus followed by the family name.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-03",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Schoolchildren call their teachers mister, miss, or missus rather than using first names.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-04",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A customer greets the shopkeeper with good morning before asking for something.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-05",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A shop clerk asks whether a customer needs anything else before finishing a sale.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-06",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "People meeting a stranger often introduce themselves with their first and last names.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-07",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A visitor asks whether it is a good time before settling in for a conversation.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-08",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Neighbors may address older residents as mister or missus even after knowing them for years.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-09",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A teenager calls an impressive car or outfit sharp.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-10",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Teenagers call something fashionable cool without needing to explain what they mean.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-11",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A teenager calls an exciting evening a blast.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1950-speech-12",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Young people may call an attractive person a dreamboat.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-13",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A teenager calls a dull gathering a drag.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-14",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Friends tell each other to take it easy when parting.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-15",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A person surprised by news may exclaim holy cow.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-16",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Someone agreeing eagerly may answer you bet.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-17",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "An adult asking for patience says hold your horses.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-18",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A neighbor dismissing a small worry says no big deal.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1950-speech-19",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A parent tells children to mind their manners before visiting another household.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-20",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A guest leaving a dinner table thanks the host for having them.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-21",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "People often use pardon me when interrupting or passing close to someone.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-22",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A worker speaking to the boss usually avoids the casual teasing used with friends.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-23",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A person answering a business telephone states the shop or office name before asking who is calling.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-24",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Teenagers may call a good song a real gone number.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1950-speech-25",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A neighbor offering help says give me a hand when asking someone to carry something.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-speech-26",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A parent warns a child not to talk back when the child argues rudely.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": [
+    {
+      "phrase": "yes sir",
+      "meaning": "respectful agreement to a man",
+      "ages": "kids",
+      "from": 1950,
+      "to": 1959,
+      "tone": "polite"
+    },
+    {
+      "phrase": "yes ma'am",
+      "meaning": "respectful agreement to a woman",
+      "ages": "kids",
+      "from": 1950,
+      "to": 1959,
+      "tone": "polite"
+    },
+    {
+      "phrase": "good morning",
+      "meaning": "a polite morning greeting",
+      "ages": "all",
+      "from": 1950,
+      "to": 1959,
+      "tone": "polite"
+    },
+    {
+      "phrase": "how do you do",
+      "meaning": "a formal greeting on introduction",
+      "ages": "adults",
+      "from": 1950,
+      "to": 1959,
+      "tone": "formal"
+    },
+    {
+      "phrase": "pardon me",
+      "meaning": "an apology or request to repeat something",
+      "ages": "all",
+      "from": 1950,
+      "to": 1959,
+      "tone": "polite"
+    },
+    {
+      "phrase": "much obliged",
+      "meaning": "thank you",
+      "ages": "adults",
+      "from": 1950,
+      "to": 1959,
+      "tone": "polite"
+    },
+    {
+      "phrase": "you bet",
+      "meaning": "certainly or gladly",
+      "ages": "all",
+      "from": 1950,
+      "to": 1959,
+      "tone": "casual"
+    },
+    {
+      "phrase": "holy cow",
+      "meaning": "an expression of surprise",
+      "ages": "all",
+      "from": 1950,
+      "to": 1959,
+      "tone": "casual"
+    },
+    {
+      "phrase": "hold your horses",
+      "meaning": "wait or slow down",
+      "ages": "all",
+      "from": 1950,
+      "to": 1959,
+      "tone": "casual"
+    },
+    {
+      "phrase": "take it easy",
+      "meaning": "goodbye or do not worry",
+      "ages": "all",
+      "from": 1950,
+      "to": 1959,
+      "tone": "casual"
+    },
+    {
+      "phrase": "cool",
+      "meaning": "fashionable or admirable",
+      "ages": "teens",
+      "from": 1950,
+      "to": 1959,
+      "tone": "casual"
+    },
+    {
+      "phrase": "sharp",
+      "meaning": "stylish or impressive",
+      "ages": "teens",
+      "from": 1950,
+      "to": 1959,
+      "tone": "casual"
+    },
+    {
+      "phrase": "dreamboat",
+      "meaning": "an especially attractive person",
+      "ages": "teens",
+      "from": 1950,
+      "to": 1959,
+      "tone": "casual"
+    },
+    {
+      "phrase": "a drag",
+      "meaning": "something boring or disappointing",
+      "ages": "teens",
+      "from": 1950,
+      "to": 1959,
+      "tone": "casual"
+    },
+    {
+      "phrase": "a blast",
+      "meaning": "an enjoyable time",
+      "ages": "teens",
+      "from": 1950,
+      "to": 1959,
+      "tone": "casual"
+    },
+    {
+      "phrase": "real gone",
+      "meaning": "especially exciting or appealing",
+      "ages": "teens",
+      "from": 1950,
+      "to": 1959,
+      "tone": "casual"
+    }
+  ]
+}
