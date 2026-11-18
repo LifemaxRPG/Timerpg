@@ -1,0 +1,381 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1980,
+  "topic": "tech",
+  "facts": [
+    {
+      "id": "1980-tech-01",
+      "year_from": 1982,
+      "year_to": 1989,
+      "text": "The family rents a movie on a video cassette and feeds it into the machine beneath the television.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-02",
+      "year_from": 1983,
+      "year_to": 1989,
+      "text": "A blinking clock on the video recorder often shows the wrong time after a power outage.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-03",
+      "year_from": 1983,
+      "year_to": 1989,
+      "text": "A child rewinds a rented videotape before taking it back to the shop.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-04",
+      "year_from": 1982,
+      "year_to": 1989,
+      "text": "The television remote disappears between sofa cushions just when someone wants to change channels.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-05",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Cable television brings extra channels to households that subscribe where service is available.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-06",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A rooftop antenna still brings broadcast television to homes without cable service.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-07",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Children gather around a television to play games using wired controllers.",
+      "ages": "kids",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-08",
+      "year_from": 1982,
+      "year_to": 1989,
+      "text": "A teenager carries a portable cassette player and listens through foam-covered headphones.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-09",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A car stereo may chew up a cassette tape and leave its ribbon tangled.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-10",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Families keep stacks of vinyl records beside their stereo cabinets.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-11",
+      "year_from": 1985,
+      "year_to": 1989,
+      "text": "A compact disc player appears in some homes later in the decade, though many families still play records and tapes.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-12",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A student copies a favorite song from the radio onto a blank cassette.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-13",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A corded telephone stretches from the kitchen wall while someone tries to talk privately.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-14",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Many households still use rotary telephones, while push-button models become increasingly familiar.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-15",
+      "year_from": 1983,
+      "year_to": 1989,
+      "text": "An answering machine records messages on a small cassette when nobody picks up the telephone.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-16",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A caller uses a pay telephone and keeps coins ready in case the call runs long.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-17",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "An office worker types letters on a typewriter and corrects mistakes with correction fluid or tape.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-18",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Office staff make copies on a photocopier and clear paper jams when the machine stops.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-19",
+      "year_from": 1983,
+      "year_to": 1989,
+      "text": "A clerk feeds paper into a dot-matrix printer and hears its loud buzzing.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-20",
+      "year_from": 1982,
+      "year_to": 1989,
+      "text": "A home computer may connect to the family television or a separate monitor.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-21",
+      "year_from": 1982,
+      "year_to": 1989,
+      "text": "Children load some computer games from floppy disks or cassette tapes.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-22",
+      "year_from": 1985,
+      "year_to": 1989,
+      "text": "A computer owner saves schoolwork onto a floppy disk and keeps the disk away from magnets.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-23",
+      "year_from": 1983,
+      "year_to": 1989,
+      "text": "A household computer often runs programs from disks without any internet connection.",
+      "ages": "all",
+      "use": [
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-24",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A cashier scans barcodes at some supermarkets, while smaller shops may still enter prices by hand.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-25",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A shopper waits while a clerk runs a credit card through a manual imprint machine.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-26",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A microwave oven heats leftovers quickly, and family members learn which dishes are safe to put inside.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-27",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A camera owner drops a roll of film at a photo counter and returns later for prints.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-tech-28",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A pocket calculator sits beside a shopkeeper's ledger for checking totals.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "internet access in most homes",
+      "first_common": 2000,
+      "say_instead": "a telephone call, a library, or an offline home computer"
+    },
+    {
+      "thing": "a smartphone",
+      "first_common": 2010,
+      "say_instead": "a corded home telephone or a pay telephone"
+    },
+    {
+      "thing": "a digital camera in ordinary homes",
+      "first_common": 2005,
+      "say_instead": "a film camera and developed prints"
+    },
+    {
+      "thing": "a wireless home internet network",
+      "first_common": 2010,
+      "say_instead": "a computer used offline or a telephone line"
+    },
+    {
+      "thing": "a streaming video subscription",
+      "first_common": 2015,
+      "say_instead": "a rented videotape or broadcast television"
+    },
+    {
+      "thing": "a digital video recorder for television",
+      "first_common": 2005,
+      "say_instead": "a video cassette recorder and a blank tape"
+    },
+    {
+      "thing": "a handheld GPS navigator in ordinary cars",
+      "first_common": 2005,
+      "say_instead": "a paper road map"
+    },
+    {
+      "thing": "a flat-screen television in most homes",
+      "first_common": 2010,
+      "say_instead": "a bulky picture-tube television"
+    },
+    {
+      "thing": "a portable digital music player in common use",
+      "first_common": 2005,
+      "say_instead": "a portable cassette player"
+    },
+    {
+      "thing": "a mobile phone carried by most adults",
+      "first_common": 2005,
+      "say_instead": "a home telephone or public pay telephone"
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
