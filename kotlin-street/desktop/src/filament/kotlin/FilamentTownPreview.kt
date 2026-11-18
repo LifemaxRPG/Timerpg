@@ -14,6 +14,9 @@ import com.lifemax.rpg.feature.habits.presentation.scene.GameState
 import com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuilding
 import com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuildingLoad
 import com.lifemax.rpg.feature.habits.presentation.scene.TownWalk
+import com.lifemax.rpg.feature.habits.presentation.scene.TownPlay
+import com.lifemax.rpg.feature.habits.presentation.scene.SpriteSheets
+import com.lifemax.rpg.feature.habits.presentation.scene3d.TownRun
 import com.lifemax.rpg.feature.habits.presentation.scene.skyColors
 import com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown
 import com.lifemax.rpg.feature.habits.presentation.scene3d.PlaceholderYards
@@ -64,7 +67,9 @@ fun renderFilamentTown(out: String) {
     }
     fun open(f: File) = f.takeIf { it.exists() }?.let { SkiaImage.makeFromEncoded(it.readBytes()).toComposeImageBitmap() }
     val loadMs = System.nanoTime()
-    val art = TownArt { path -> open(File(assets, path)) }
+    // (the pictures the town asks for are listed in art-paths.txt: the app ships exactly those, assets/town/art/)
+    val asked = java.util.concurrent.ConcurrentSkipListSet<String>()
+    val art = TownArt { path -> asked += path; open(File(assets, path)) }
     val building: (String) -> SpriteBuilding? = { sp -> SpriteBuildingLoad.load(sp, mids[sp] ?: 0, windows, houses, models) { open(File(bdir, "$it.png")) } }
 
     Filament.init()
@@ -232,6 +237,9 @@ fun renderFilamentTown(out: String) {
         val yaw = Math.toDegrees(kotlin.math.atan2((-n.x).toDouble(), n.z.toDouble())).toFloat()
         shoot("heights_backyards_above", aerial(p.x + n.x * 200f, p.z + n.z * 200f, yaw, 50f, 1400f, 50f), 13f)
     }
+    // --- the game's own path (T10): TownPlay takes the keys, TownRun builds and draws (the app's FilamentHost runs the same)
+    playTown(town, ft, shooter, report, dir, sw, shh, ::want)
+    File(dir, "art-paths.txt").writeText(asked.joinToString("\n") + "\n")
     File(dir, "town.txt").writeText(report.toString())
     print(report)
     shooter.destroy()
@@ -246,7 +254,7 @@ private class Shooter(val engine: Engine, val town: FilamentTown) {
     private var sw = 0; private var sh = 0
     private var pixels: ByteBuffer? = null
 
-    fun save(file: File, w: Int, h: Int, hour: Float) {
+    fun save(file: File, w: Int, h: Int, hour: Float, marks: List<Pair<androidx.compose.ui.geometry.Offset, Int>> = emptyList()) {
         if (swap == null || sw != w || sh != h) {
             swap?.let { engine.destroySwapChain(it) }
             swap = engine.createSwapChain(w, h, SwapChainFlags.CONFIG_READABLE or SwapChainFlags.CONFIG_TRANSPARENT)
@@ -279,6 +287,12 @@ private class Shooter(val engine: Engine, val town: FilamentTown) {
                 img.setRGB(x, y, (ch(r, sr) shl 16) or (ch(g, sg) shl 8) or ch(b, sb))
             }
         }
+        // marks (where the game puts a speech bubble's head): a small square outline
+        for ((o, c) in marks) {
+            val cx = o.x.toInt(); val cy = o.y.toInt()
+            for (d in -6..6) for ((x, y) in listOf(cx + d to cy - 6, cx + d to cy + 6, cx - 6 to cy + d, cx + 6 to cy + d))
+                if (x in 0 until w && y in 0 until h) img.setRGB(x, y, c)
+        }
         javax.imageio.ImageIO.write(img, "png", file)
     }
 
@@ -286,4 +300,87 @@ private class Shooter(val engine: Engine, val town: FilamentTown) {
         swap?.let { engine.destroySwapChain(it) }
         engine.destroyRenderer(renderer)
     }
+}
+
+/**
+ * The town played as the app plays it (T10): [TownPlay] spawns the player on the civic avenue and walks the keys
+ * ([GameState.moveX], [GameState.moveLane] set as a thumb would), [TownRun] builds nearest-first and draws through the
+ * true camera with the people of the live rows. Each shot marks where the game would anchor speech bubbles: the people
+ * to talk to in view (yellow) and the player (cyan). Shots: play_spawn_13h, play_walk_13h, play_mouth_dusk,
+ * play_turn_13h (halfway round), play_turned_13h, play_cross_night (halfway over), play_crossed_night.
+ */
+private fun playTown(
+    town: Town, ft: FilamentTown, shooter: Shooter, report: StringBuilder, dir: File, sw: Int, shh: Int, want: (String) -> Boolean,
+) {
+    // the people to talk to at their doors: the app's own list (assets/town/<seed>/dialogue.json), as the app picks them
+    val dialogue = File("../app/src/main/assets/town/${town.seed}/dialogue.json")
+    TownPlay.keepers = if (!dialogue.exists()) emptyMap() else run {
+        val a = org.json.JSONObject(dialogue.readText()).getJSONArray("npcs")
+        val m = LinkedHashMap<String, Int>()
+        for (i in 0 until a.length()) { val o = a.getJSONObject(i); m.putIfAbsent(o.getString("building"), o.getString("id").hashCode() and 0x7fffffff) }
+        m
+    }
+    GameState.enabled = true; GameState.look = 1
+    val events = ArrayList<String>()
+    TownPlay.onEvent = { events += it }
+    val walk = TownPlay.start(town)
+    val run = TownRun(ft)
+    var clock = 600f
+    val sheets = SpriteSheets.sheets
+    report.appendLine("play: ${TownPlay.keepers.size} buildings with someone to talk to; sheets ${sheets.size}")
+    fun hold(x: Float, lane: Float, seconds: Float, until: () -> Boolean = { false }) {
+        GameState.moveX = x; GameState.moveLane = lane
+        var t = 0f
+        while (t < seconds && !until()) { TownPlay.step(1f / 60f); t += 1f / 60f; clock += 1f / 60f }
+        GameState.moveX = 0f; GameState.moveLane = 0f
+        TownPlay.step(1f / 60f); clock += 1f / 60f
+    }
+    fun shot(name: String, hour: Float) {
+        if (!want(name)) return
+        var guard = 0
+        while (!run.build(walk.wx, walk.wz, 8f) && guard++ < 10000) Thread.sleep(1)
+        val t0 = System.nanoTime()
+        ft.prepare(TownFrame.street(walk, sw.toFloat(), shh.toFloat()))
+        val pose = run.draw(walk, sw.toFloat(), shh.toFloat(), hour, clock, sheets)
+        val marks = ArrayList<Pair<androidx.compose.ui.geometry.Offset, Int>>()
+        for (r in walk.liveRows()) for (b in r.buildings) if (b.sprite in TownPlay.keepers) TownPlay.keeperHead(b.sprite)
+            ?.takeIf { it.x in 0f..pose.w && it.y in 0f..pose.h }?.let { marks += it to 0xFFE040 }
+        TownPlay.playerHead()?.let { marks += it to 0x40E0FF }
+        shooter.save(File(dir, "$name.png"), sw, shh, hour, marks)
+        val s = ft.stats
+        report.appendLine("%-22s %5.0f ms  row %s (%s, %s) x %.0f lane %.1f%s; people %d drawn of %d; keeper near: %s; buildings in view %d, draws %d".format(
+            name, (System.nanoTime() - t0) / 1e6, walk.row.id, TownPlay.streetName(), TownPlay.hoodName(), walk.x, walk.lane,
+            walk.transit?.let { " (${it.kind} to ${it.to.id} at %.2f)".format(it.progress) } ?: "",
+            run.peopleDrawn, TownPlay.figureCount, TownPlay.nearestKeeper(200f) ?: "-", s.visible, s.draws))
+        report.appendLine("%-22s player at (%.0f, %.0f), head on screen %s; eye (%.0f, %.0f) looking (%.2f, %.2f)".format(
+            "", walk.wx, walk.wz, TownPlay.playerHead()?.let { "(%.0f, %.0f)".format(it.x, it.y) } ?: "none", pose.ex, pose.ez, pose.fx, pose.fz))
+        println("  $name")
+    }
+    report.appendLine("play: first view ready after %.0f ms (ground and every building within %.0f of the spawn; the town was already built here)"
+        .format(run.firstViewMs.coerceAtLeast(0f), TownRun.READY_RADIUS))
+    shot("play_spawn_13h", 13f)
+    // walk right along the civic avenue for 3 s
+    hold(.7f, 0f, 3f)
+    shot("play_walk_13h", 13f)
+    // on to the row's end (the mouth of the turn), then up: round the corner, a shot halfway
+    val r0 = walk.row
+    hold(1f, 0f, 40f) { walk.row.id != r0.id || walk.x > r0.length - 60f }
+    shot("play_mouth_dusk", 19.3f)
+    GameState.moveLane = 0f; TownPlay.step(1f / 60f)
+    hold(0f, -1f, 30f) { walk.transit?.let { it.progress >= .5f } ?: false }
+    shot("play_turn_13h", 13f)
+    hold(0f, -1f, 30f) { walk.transit == null && walk.row.id != r0.id }
+    hold(.7f, 0f, 2f)
+    shot("play_turned_13h", 13f)
+    // to the kerb, then down over the road: a shot halfway, and arrived
+    hold(0f, 1f, 4f)
+    hold(0f, 0f, .2f)
+    hold(0f, 1f, 30f) { walk.transit?.let { it.progress >= .5f } ?: false }
+    shot("play_cross_night", 22.5f)
+    hold(0f, 1f, 30f) { walk.transit == null }
+    hold(0f, 0f, .5f)
+    shot("play_crossed_night", 22.5f)
+    report.appendLine("play events: " + events.joinToString(" | "))
+    TownPlay.stop()
+    TownPlay.onEvent = null
 }

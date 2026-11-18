@@ -30,12 +30,30 @@ class PregenQueue(private val lengths: IntArray, private val near: Int = 2) {
     /** Where the crossroads is on [street]. */
     fun junction(street: Int): Int = if (street == 0) (lengths.getOrElse(0) { 1 } - 1).coerceAtLeast(0) else 0
 
-    /** Smaller is sooner: tier (0 near the player, 1 the rest of their street, 2 another street), then distance. */
+    /**
+     * The walkable town: the streets (rows) next to the player's, nearest first ([setLive]); their people come after the
+     * player's own street and before the rest of the town.
+     */
+    var live: List<Int> = emptyList()
+        private set
+
+    /** Smaller is sooner: tier (0 near the player, 1 the rest of their street, then the live rows, 2 another street), then distance. */
     fun rank(spot: Spot): Long =
         if (spot.street == street) {
             val d = abs(spot.index - position)
             (if (d <= near) 0L else 1L) * TIER + d
-        } else 2L * TIER + abs(spot.index - junction(spot.street))
+        } else live.indexOf(spot.street).let { k ->
+            if (k >= 0) TIER + TIER / 2 + k * 1000L + spot.index
+            else 2L * TIER + abs(spot.index - junction(spot.street))
+        }
+
+    /** The rows kept live round the player (see [live]); true if that changed the order. */
+    fun setLive(rows: List<Int>): Boolean {
+        if (rows == live) return false
+        live = rows
+        heap = PriorityQueue(maxOf(16, jobs.size), comparator()).apply { addAll(jobs.values) }
+        return true
+    }
 
     fun rank(job: Job): Long = job.spots.minOfOrNull { rank(it) } ?: (3L * TIER)
 

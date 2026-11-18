@@ -284,6 +284,12 @@ class FilamentTown(
     private val lampLights = IntArray(LAMP_LIGHTS) { EntityManager.get().create() }
     private var groundBuilt = false
 
+    /** The people (TOWN.md T10): cards of our character sheets, stood by [people] after each [frame]. */
+    private val crowd = TownPeople(engine, scene, lit, proxyMat, textures)
+    /** The pose and look of the last [frame] (the people and the screen projection follow it). */
+    private var lastPose: TownPose? = null
+    private val sunDir = FloatArray(3)
+
     /** One building of the town: where it stands and, once built, its renderables. */
     inner class Slot(val row: Row, val b: Placement, val place: TownPlace) {
         internal var built: BuiltBuilding? = null
@@ -612,6 +618,7 @@ class FilamentTown(
 
     /** Brings the scene to camera [pose] at [hour]; [seconds] is the clock (the yards' water shimmers by it). */
     fun frame(pose: TownPose, hour: Float, seconds: Double = 0.0) {
+        lastPose = pose
         view.viewport = Viewport(0, 0, pose.w.toInt(), pose.h.toInt())
         // (the look's depth reaches 1 at the camera's own near: Filament's lights are sorted into the view's depth slices
         // by the camera's projection, so the two must agree or the street lamps' light lands in the wrong slices)
@@ -801,10 +808,36 @@ class FilamentTown(
     private fun mix(a: Float, b: Float, t: Float) = a + (b - a) * t
     private fun smooth(t: Float): Float { val u = t.coerceIn(0f, 1f); return u * u * (3f - 2f * u) }
 
+    // ------------------------------------------------------------------ people
+
+    /**
+     * Stands [n] of [figures] ([com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.people]) in the last [frame]'s
+     * view, wearing [sheets] (our character sheets); returns how many were drawn.
+     */
+    fun people(figures: List<com.lifemax.rpg.feature.habits.presentation.scene.TownFigure>, n: Int, sheets: List<androidx.compose.ui.graphics.ImageBitmap>): Int {
+        val pose = lastPose ?: return 0
+        val lm = engine.lightManager
+        lm.getDirection(lm.getInstance(sun), sunDir)
+        crowd.update(pose, look, figures, n, sheets, sunDir) { x, z -> if (pose.cut > 0f) fadeOf(pose, x, z) else 1f }
+        return crowd.drawn
+    }
+
+    /** Where world point ([x], [y], [z]) falls on the screen of the last [frame] (pixels from its top left), or null behind the eye. */
+    fun project(x: Float, y: Float, z: Float): androidx.compose.ui.geometry.Offset? {
+        val p = lastPose ?: return null
+        val dx = x - p.ex; val dy = y - p.ey; val dz = z - p.ez
+        val zc = p.fx * dx + p.fy * dy + p.fz * dz
+        if (zc < 1f) return null
+        val xc = p.rx * dx + p.ry * dy + p.rz * dz
+        val yc = p.ux * dx + p.uy * dy + p.uz * dz
+        return androidx.compose.ui.geometry.Offset(p.cx + p.fl * xc / zc, p.cy - p.fl * yc / zc)
+    }
+
     // ------------------------------------------------------------------ teardown
 
     fun destroy() {
         val em = EntityManager.get()
+        crowd.destroy()
         for (s in slots) {
             val b = s.built ?: continue
             for (e in listOf(b.entity, b.proxy)) if (e != 0) { scene.remove(e); engine.destroyEntity(e); em.destroy(e) }

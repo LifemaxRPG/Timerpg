@@ -13,6 +13,43 @@
   (spring/summer/autumn/winter) and weather (clear/overcast/rain/mist) buttons; trees are tinted by season.
 - `gradle :desktop:preview -Dmode=pano|weather|rooms|walk` renders PNGs without a phone (see desktop/build/preview).
 
+## The walkable town in the app (T10; desktop renders and JVM tests only, NOT yet run on the S25)
+
+- The app now opens in the whole 3D town `gamma` (Filament, the default renderer): `assets/town/gamma/` ships street.json v2
+  (graph, lots, yards), buildings/ (849 files), dialogue.json v2 (140 people at 92 buildings, template lines; the model
+  writes the rest on the phone on demand and ahead by distance) and interiors.json (92 rooms); `assets/town/art/` the 37
+  pack pictures the ground, greenery and props ask for. The old eta files stay at the assets' root for the crossroads.
+- Start: `TownSession` (app) reads and parses the town on a thread, `TownPlay` (shared/shim) spawns the player on Civic
+  Avenue (row 8L) and takes the stick/keys through `TownWalk` (along the row, straight on over zebras, up in a mouth turns
+  in, down at the kerb crosses, dead ends stop) in place of the stage's crossroads walk (HabitsStage's game loop calls
+  `TownPlay.step`). The Filament layer (`FilamentHost`, town mode) builds `FilamentTown` through `TownRun` (scene3d): the
+  ground on workers, uploads and buildings nearest the player in a 14 ms budget a frame behind a loading screen (progress
+  bar) until every building within 1800 units is in, then 4 ms a frame; drawn through `TownFrame.street` (CameraRig's
+  eye preset from the AI panel). The stage's sky stays under it.
+- People: `TownPlay.people` stands the street life (StreetLife's passers, seeded per row) and the people to talk to at
+  their doors on the rows `liveRows()` keeps, plus the player; `TownPeople` (scene3d) draws them as lit cards of our
+  character sheets with shadow twins, cut with the near side. "Talk to <name>" and "Go inside" work at the building in
+  front; the always-listening mic picks the nearest person at their door on this row (`TownPlay.nearestKeeper`), and the
+  speech bubbles anchor on heads projected through the true camera (`TownPlay.projector` = `FilamentTown.project`).
+- DialogueEngine: `useTown("town/gamma/")` loads that folder's dialogue.json against its street.json (same town and year);
+  the pre-generation queue orders by rows (`setPlayerRow`: this row, then the live rows nearest first, then the rest).
+  Cached lines of both towns are kept.
+- HUD: "<street> · <neighbourhood> · gamma · Commuter suburb", the building in front and its owner, "▲ <street>" at a
+  corner; time/season/weather chips as before. AI panel: "Town: gamma / Old crossroads" (the classic renderer always
+  plays the crossroads).
+- Crash reports' breadcrumbs: town load start/end/failure, first view ready (ms), every row change, turn and crossing
+  start/end; the screenshot/crash state JSON has a `walkableTown` block (row, street, place, transit, live rows, people).
+  A Filament failure while building the town falls back to the classic crossroads (the existing crash guard).
+- Desktop: `gradle :desktop:preview -Dmode=filament-town -Dshots=play` runs the same TownPlay + TownRun path: play_spawn_13h,
+  play_walk_13h, play_mouth_dusk, play_turn_13h, play_turned_13h, play_cross_night, play_crossed_night, with the bubble
+  anchors marked (yellow: people to talk to, cyan: the player). Tests: desktop TownPlayTest (the shipped assets agree;
+  spawn, walk, turn, cross, events; people on the live rows; who hears), app PregenQueueTest (rows).
+- Not yet / to check on the S25: frame time and heat of the whole town with people; the time to the first view; the
+  stage's sky does not turn with the town's heading (it keeps the crossroads' yaw: the sun Filament lights by follows the
+  view, so they can disagree); passers are drawn as plain walkers (no dogs, bikes, pairs, cars) and only on live rows;
+  landmarks have nobody to talk to; going into a room keeps the town's scene (drawn under the room) but a renderer switch
+  rebuilds it.
+
 ## Added since (all verified by headless renders only)
 - Pixel-perfect scaling (zoom snapped to whole pixels; `StageTuning.pixelPerfect`), props/characters at 1x/1.5x pixel scale.
 - Shop name and owner shown at the bottom while standing at a shop. Collisions: walk round lamps/trees/benches at the kerb (radii are guesses).

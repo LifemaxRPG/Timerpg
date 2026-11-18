@@ -661,6 +661,13 @@ private fun StageCanvas(
             last = t
             // (no time passed: nothing to step; a redraw of the same moment must show the same thing)
             if (!first && dt <= 0f) continue
+            // the walkable town (docs/TOWN.md T10): its own walk takes the keys, and the stage draws only the sky under the
+            // town's renderer (a frame each time the walk moves, and on the clock)
+            if (TownPlay.active) {
+                val m = TownPlay.step(dt)
+                if (m != seen) { seen = m; moves++ }
+                continue
+            }
             // a frame is drawn whenever the player or the camera moved (the walk round the corner every frame); standing
             // still, the street's own clock redraws it
             val moved = GameState.x + 7f * GameState.lane + 13f * GameState.facing + GameState.travel + 31f * GameState.street +
