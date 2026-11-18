@@ -1,0 +1,368 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2000,
+  "topic": "tech",
+  "facts": [
+    {
+      "id": "2000-tech-01",
+      "year_from": 2000,
+      "year_to": 2005,
+      "text": "A family waits for the dial-up modem to stop screeching before opening a web page.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-02",
+      "year_from": 2000,
+      "year_to": 2006,
+      "text": "Using a dial-up connection can tie up the household telephone line.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-03",
+      "year_from": 2003,
+      "year_to": 2009,
+      "text": "More homes switch to faster internet connections that do not block telephone calls.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-04",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A home computer often sits on a desk with a separate monitor, keyboard, and mouse.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-05",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Bulky picture-tube computer monitors gradually give way to thinner flat-panel screens.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-06",
+      "year_from": 2000,
+      "year_to": 2003,
+      "text": "Students carry school assignments between computers on floppy disks early in the decade.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-07",
+      "year_from": 2004,
+      "year_to": 2009,
+      "text": "Small flash drives become a handy way to carry documents between computers.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-08",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Families burn photographs or music onto blank compact discs.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-09",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A home printer may run out of ink just before a school report is due.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-10",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "An office worker checks email at a desktop computer before answering telephone messages.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-11",
+      "year_from": 2003,
+      "year_to": 2009,
+      "text": "A family uses a digital camera and transfers pictures to a computer.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-12",
+      "year_from": 2000,
+      "year_to": 2004,
+      "text": "Many families still take photographs on film early in the decade.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-13",
+      "year_from": 2004,
+      "year_to": 2009,
+      "text": "A camera owner plugs a memory card into a computer to sort photographs.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-14",
+      "year_from": 2003,
+      "year_to": 2009,
+      "text": "A portable digital music player lets a teenager carry many songs in a pocket.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-15",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "People still listen to music on compact discs in cars and bedrooms.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-16",
+      "year_from": 2001,
+      "year_to": 2009,
+      "text": "A family rents a film on a disc and plays it in a machine beside the television.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-17",
+      "year_from": 2000,
+      "year_to": 2006,
+      "text": "Videotape players remain in some living rooms even as disc players become more popular.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-18",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A television set may connect to a cable box and a separate disc player.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-19",
+      "year_from": 2005,
+      "year_to": 2009,
+      "text": "Flat-screen televisions become more affordable and increasingly replace bulky picture-tube sets.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-20",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A child plays games on a home console using a controller connected to the television.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-21",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Some households use cordless landline phones with handsets resting in charging cradles.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-22",
+      "year_from": 2002,
+      "year_to": 2009,
+      "text": "Adults carry mobile phones for calls and text messages, especially later in the decade.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-23",
+      "year_from": 2002,
+      "year_to": 2008,
+      "text": "A teenager sends short text messages by pressing number keys several times for letters.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-24",
+      "year_from": 2007,
+      "year_to": 2009,
+      "text": "Early smartphones are expensive and uncommon, while most mobile phones use physical buttons.",
+      "ages": "all",
+      "use": [
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-25",
+      "year_from": 2004,
+      "year_to": 2009,
+      "text": "Wireless home networks let several computers share an internet connection.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-26",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A shopper signs a receipt after a clerk swipes a payment card through a reader.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-27",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A supermarket cashier scans barcodes while the register totals the groceries.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-tech-28",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A household uses a microwave oven to reheat leftovers in minutes.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "a smartphone in most people's pockets",
+      "first_common": 2015,
+      "say_instead": "a mobile phone with physical buttons"
+    },
+    {
+      "thing": "a voice-controlled smart speaker in ordinary homes",
+      "first_common": 2020,
+      "say_instead": "a radio or a computer"
+    },
+    {
+      "thing": "streaming video as the usual way to watch films at home",
+      "first_common": 2018,
+      "say_instead": "a rented disc or cable television"
+    },
+    {
+      "thing": "a tablet computer in ordinary homes",
+      "first_common": 2015,
+      "say_instead": "a desktop or laptop computer"
+    },
+    {
+      "thing": "a smart watch in ordinary use",
+      "first_common": 2020,
+      "say_instead": "a wristwatch or mobile phone"
+    },
+    {
+      "thing": "contactless mobile-phone payment at ordinary shops",
+      "first_common": 2020,
+      "say_instead": "cash or a swiped payment card"
+    },
+    {
+      "thing": "a home television with built-in streaming apps in ordinary use",
+      "first_common": 2018,
+      "say_instead": "a cable box or disc player"
+    },
+    {
+      "thing": "a household video doorbell connected to a phone",
+      "first_common": 2020,
+      "say_instead": "a doorbell or peephole"
+    },
+    {
+      "thing": "wireless earbuds in ordinary use",
+      "first_common": 2020,
+      "say_instead": "wired headphones"
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
