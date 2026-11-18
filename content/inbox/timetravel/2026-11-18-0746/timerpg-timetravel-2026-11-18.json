@@ -1,0 +1,629 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-4661",
+      "kind": "scenario",
+      "title": "The Foster Child Who Bought the Caregiver’s House",
+      "category": "family",
+      "pitch": "Help a prospective foster caregiver finish a needed bedroom repair. A child may later leave for an adult job, then return as the person buying the house and taking responsibility for its upkeep.",
+      "present_hook": {
+        "what_you_notice": "An old household repair estimate remains stapled to an unfinished foster-home application.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the household’s authorized records",
+            "line": "The bedroom repair in {year} was one unmet requirement, not a promise that any particular placement would be approved."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            8,
+            10
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A actually owns and occupies the identified home and is a willing prospective caregiver. B is an existing child whose independently authorized case may permit this specific placement. Require confidential lawful access to the hook and records; no Gazette disclosure of a child case. Baseline application remains incomplete because of a genuine repair shortfall. A and B are not already parent and child; foster care does not create adoption or biological kinship."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Pay the genuine bedroom-repair shortfall through the authorized household account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "complete_authorized_foster_placement": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Repaired Bedroom Receives an Authorized Placement",
+          "body": "After completed repairs and independent approval, the existing child enters the specifically authorized household. Private case details remain private."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "move_away": "B"
+            }
+          ],
+          "headline": "A Former Foster Child Leaves for an Adult Job",
+          "body": "The now-adult resident freely takes an actual suitable job elsewhere and completes a funded move. Earlier care does not give the caregiver control of adult earnings."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "purchase_caregiver_home_with_reserved_occupancy": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "move_in": "B"
+            }
+          ],
+          "headline": "A Former Foster Child Returns as the Home Buyer",
+          "body": "The parties complete a genuine affordable sale with a lawful reserved occupancy agreement for the former owner. The buyer returns and accepts the actual funded ownership obligations."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Application Does Not Become a Placement",
+        "body": "Money and repairs retain their actual status. No approval, child placement or family relationship is created by the failed roll."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the arrangements persist in {now}, the same house has a recorded new owner, the actual reserved occupancy agreement and both residents living there. Show completed upkeep only from real work records.",
+        "worst": "A repaired bedroom cannot guarantee placement or lifelong contact. Preserve actual case decisions, residence, title and completed repairs after any stopped step.",
+        "twist": "The caregiver receives actual sale proceeds and protected agreed occupancy but gives up ownership and the right to sell the whole property again. The returning buyer spends real funds and accepts upkeep while taking title subject to another person’s continuing lawful occupancy."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I used to worry about keeping the roof over that child. Now we read the repair estimates together."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "complete_authorized_foster_placement requires completed paid suitable bedroom repairs, every applicable independent home assessment and agency/court approval, A current fitness and free acceptance, B actual eligible existing case and legally required consent/participation. Record a dated placement of the same B with its actual authority, support payments and contact rights; create no new child, adoption, automatic bond, removed birth-family rights or guaranteed duration. Never expose private records through public headlines; publish only lawfully consented anonymized information, otherwise keep the bulletin private.",
+        "At step 2 B is 19..23 and must have actual current adult eligibility, a genuine voluntarily accepted suitable job elsewhere, real qualifications, lawful housing and affordable travel. move_away records the actual move once; it creates no job, wage or severance of family ties. Any placement ended under its actual terms before this adult move.",
+        "purchase_caregiver_home_with_reserved_occupancy requires A still owns the same home and freely chooses the sale, B genuine sufficient lawful funds/approved finance, independent informed advice for both, valid title and lender consent, actual valuation and a completed lawful sale. Reserve A precisely documented enforceable lifetime occupancy only where legally available, defining rooms, shared access, repairs, taxes, charges, termination and successor obligations. Settle real purchase funds once and record B title subject to that right; do not assume a gift, inheritance, free maintenance or eviction power. Require a genuinely funded upkeep plan and lawful available space for B actual return; move_in must complete that return without displacing anyone. Gate A dialogue on survival, current shared residence, genuine earlier care and current jointly discussed actual repair estimates."
+      ],
+      "era_notes": "Use the actual foster-care, confidentiality, adult-status, property and occupancy rules at each date. A private placement is never a public human-interest story without lawful permission.",
+      "why_fun": "The familiar front door can become a reversal of responsibility without turning a child into a debt owed to an adult."
+    },
+    {
+      "id": "scenario-20261118-4662",
+      "kind": "scenario",
+      "title": "The Stitcher Who Declined a Supervisor’s Desk",
+      "category": "rivalry",
+      "pitch": "Help a shop owner’s sibling afford qualified sewing instruction. A real job may grow into elected worker representation, then a choice between a supervisory raise and negotiating paid breaks for coworkers.",
+      "present_hook": {
+        "what_you_notice": "A clothing-store workroom ledger lists an unfilled sewing vacancy beside an unpaid instruction estimate.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The applicant in {year} wanted to learn the work but could not meet the actual course shortfall."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "clothing store"
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            22
+          ],
+          "wealth": "poor",
+          "relation": "siblings"
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "B is the actual sibling of A. A owns the identified clothing store with a real lawful sewing workroom and funded vacancy. B is a willing prospective trainee, not already qualified or employed there. Require genuine suitable instruction and a real shortfall. Baseline no completed course or hire; no union, vote or future dispute is presumed."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "B",
+          "amount": "small",
+          "how_it_looks": "Cover the actual shortfall for the freely chosen qualified sewing course."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_sewing_course_and_start_paid_work": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Trained Stitcher Takes an Actual Paid Workroom Job",
+          "body": "Completed instruction and demonstrated skills qualify the applicant for the real vacancy. The owner and worker freely agree lawful funded terms."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "elect_actual_workroom_representative": "B"
+            }
+          ],
+          "headline": "Eligible Workers Elect a Workroom Representative",
+          "body": "An independently lawful worker organization holds its genuine eligible vote. The elected worker receives only the authority actually granted."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "decline_supervision_and_agree_paid_breaks": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Worker Declines Supervision and Signs a Break Agreement",
+          "body": "The representative freely declines an actual supervisory offer and completes an authorized funded agreement for additional paid rest breaks. The owner pays the resulting real labor cost."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Course Does Not Produce a Qualified Hire",
+        "body": "The gift follows actual enrollment and refund terms. No completed skill, vacancy appointment or worker organization is supplied."
+      },
+      "present_day": {
+        "best": "If all stages and the agreement persist in {now}, the workroom schedule contains the additional paid breaks, actual payroll reflects them, and the declined supervisory offer remains in the permitted employment records. Show {B} as representative only during a genuine current mandate.",
+        "worst": "A sibling relationship buys no qualification, job, election or negotiating authority. Retain actual training, employment and lawful rights after a stopped step.",
+        "twist": "Coworkers gain the contracted paid break time. {B} forgoes the genuine offered supervisory pay increase, while {A} bears the actual additional paid nonworking time and any genuinely funded coverage costs."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "My sibling called it a promotion. I would have had to leave the other side of the table."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "Bind A to the actual clothing-store/workroom ID. complete_sewing_course_and_start_paid_work requires B free completed funded qualified instruction with demonstrated relevant skills, A genuine continuing vacancy and available lawful payroll, fair hiring, free agreement and actual paid work. Settle real course and wage transactions once; do not duplicate the gift or invent customers, qualifications or a job.",
+        "elect_actual_workroom_representative requires independently existing actual eligible coworkers, a lawful freely chosen worker organization and real properly conducted election under the applicable rules, with actual ballots, certified result and B genuine eligibility/consent. Record the precise term and bargaining authority. Do not invent voters, union recognition, employer misconduct, strikes or permanent office.",
+        "decline_supervision_and_agree_paid_breaks requires B still genuinely authorized as representative, A current employer authority, a real funded supervisory offer with documented higher compensation and duties that actually conflict with the current representative role under applicable rules, B informed refusal, and separately authorized free bargaining/required worker ratification. Settle a genuine affordable written agreement adding specified paid minutes above existing minimums to actual eligible shifts, with lawful staffing and real payroll resources. Record refused offer, new paid-time obligation and actual payments as worked; no raise is paid to B and no future wages appear in advance. Do not weaken statutory breaks or force unpaid coverage. Gate B dialogue on survival, genuine sibling relationship, remembered actual offer/refusal and the documented role conflict."
+      ],
+      "era_notes": "Use the actual employment, minimum-break and worker-representation rules in force. A family business does not bypass genuine employee choice.",
+      "why_fun": "Helping a sibling into the shop can put that sibling across a negotiating table decades later."
+    },
+    {
+      "id": "scenario-20261118-4663",
+      "kind": "scenario",
+      "title": "The Cafeteria Worker Who Voted to Close the Old School",
+      "category": "politics",
+      "pitch": "Spread deserved praise for a cafeteria worker’s careful budgeting. A school-board career may eventually lead to a documented consolidation vote that closes the very kitchen where that reputation began.",
+      "present_hook": {
+        "what_you_notice": "A school budget scrapbook contains a verified food-cost saving that never reached the original campaign coverage.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The figures from {year} show genuine savings with the required meals still served; the worker did not claim credit publicly."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "reputation": "mid"
+        },
+        "B": {
+          "age": [
+            20,
+            30
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A is an actual qualified cafeteria worker who completed the verified saving without reducing required meals or concealing costs, and is independently eligible for local school-board candidacy. B is a distinct actual resident with a documented paid community-room booking in the same school only when the final step becomes eligible. Baseline the old school remains open and A did not win the original board path. Do not assume later enrollment decline or unsafe facilities."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": 0.2,
+          "how_it_looks": "Repeat the documented budgeting achievement accurately, with permission for any nonpublic details."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "file_actual_school_board_candidacy": "A"
+            }
+          ],
+          "headline": "A Cafeteria Worker Files for the School Board",
+          "body": "The eligible resident freely files a genuine lawful candidacy. A filed name wins no votes by itself."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "win_actual_later_school_board_election": "A"
+            }
+          ],
+          "headline": "A Later School-Board Election Seats a Former Cafeteria Worker",
+          "body": "A fresh eligible candidacy and actual certified election result bring the resident onto the board. Any earlier campaigns retain their real outcomes."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "implement_actual_school_consolidation": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Board Implements a Funded School Consolidation",
+          "body": "After a genuine lawful decision and completed receiving-school arrangements, the old school closes for instruction. The actual community-room booking is canceled and settled under its terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "Praise Does Not Become a Filed Candidacy",
+        "body": "The direct reputation change remains. No ballot, board seat, school closure or budget problem is created."
+      },
+      "present_day": {
+        "best": "If the full chain occurred and the decision persists in {now}, the old instructional doors are closed, actual pupils use the documented receiving school, and the former cafeteria appears in authorized closure records. Show any new building use only if later facts establish it.",
+        "worst": "Praise guarantees neither an election nor a need to consolidate. If a later step stops, retain actual school operations and existing bookings.",
+        "twist": "The funded plan gives actual pupils the independently verified receiving provision, but the town loses instruction in the old building. {B} loses the genuine reserved local gathering space and receives only the actual contractual settlement, while {A} publicly owns a vote affecting the former workplace."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I learned to count meals in that kitchen. I still had to count the whole budget."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "file_actual_school_board_candidacy requires A genuine current eligibility, informed willingness and completed valid filing for the real local elected board and scheduled contest. Record election type, jurisdiction, seat and date; create no votes or win. Do not repeat the direct rumor reputation effect.",
+        "win_actual_later_school_board_election requires the step-1 filing really occurred, a fresh actual eligible willing candidacy at this later date and a genuine properly scheduled election with real eligible electorate, ballots, certification and winning result. Prior campaigns may have ended independently; never keep a twenty-year candidacy open. Record the actual new term. Require any employment/office incompatibility to be lawfully resolved with real employment outcomes before taking office; no invented salary or automatic job loss.",
+        "implement_actual_school_consolidation requires A genuinely serving in a current later lawful term, actual independently documented need and professionally supported cost/provision analysis, qualified genuine receiving-school capacity, real approved funds, transport and accessibility, lawful hearings/consultation and a real authorized board majority including A actual informed recorded vote. Implement only after pupils have actual valid placements and funded provision, staff obligations are lawfully settled and the old building is cleared appropriately. Record exact building/school IDs and ended instructional use; create no pupils, enrollment decline, defect, vote, new school or vacant land. Require B actual existing paid lawful room booking, valid cancellation authority/notices and completed actual refund or required compensation from real funds. No replacement gathering venue is invented. Gate A dialogue on survival, genuine earlier kitchen work, actual recorded vote and knowledge of the real budget."
+      ],
+      "era_notes": "Use actual school governance, candidacy, employment incompatibility and pupil-provision rules. Do not project later transport or special facilities into an earlier decade.",
+      "why_fun": "An earned reputation can lead to a decision that hurts the place where it was earned."
+    },
+    {
+      "id": "scenario-20261118-4664",
+      "kind": "scenario",
+      "title": "The Route Planner Who Lost the Stop by the Gate",
+      "category": "place",
+      "pitch": "Introduce a patient timetable volunteer to a willing transport operator. A useful town route may later be revised using real travel evidence, moving the planner’s own nearby stop farther away.",
+      "present_hook": {
+        "what_you_notice": "A rejected route sketch circles a residential gate but has no completed operating timetable.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The sketch from {year} still needed an operator, real costs and a lawful place for each stop."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "passenger transport operator"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A is an actual competent willing timetable volunteer living at the identified gate. B owns a real qualified passenger transport operation and wants to review the genuine proposal. They are distinct strangers. Baseline no proposed route operating; bind existing real roads, lawful candidate stops and actual independently established transport need. No new riders or bus are supplied."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange the requested meeting with the actual route sketch and cost estimates."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "start_actual_town_passenger_route": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Funded Town Route Begins with Lawful Stops",
+          "body": "The qualified operator starts the genuinely funded service with actual vehicles, drivers and lawful stopping places. The timetable records only service really delivered."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "complete_actual_route_usage_review": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Town Route Completes a Documented Usage Review",
+          "body": "Authorized staff complete a funded qualified review of actual trips, access needs and costs. Personal travel records remain protected under their real terms."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "revise_actual_route_and_move_gate_stop": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Revised Route Moves the Planner’s Nearby Stop",
+          "body": "The operator implements the genuinely authorized viable revision and a lawful accessible replacement stop. The planner now uses the documented longer suitable walk from the same home."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Sketch Does Not Become an Operating Route",
+        "body": "A meeting creates no vehicle, driver, funding, stop or passenger. Actual preliminary commitments keep their real terms."
+      },
+      "present_day": {
+        "best": "If the full chain and service persist in {now}, the actual timetable and stop signs show the revised route. Describe the longer walk from the gate only while {A} still lives there and the verified suitable path remains available.",
+        "worst": "No sketch guarantees a route or future passenger demand. Preserve genuine roads, stop rights, service and access provision after a failed step.",
+        "twist": "The implemented plan achieves its independently verified service improvement within real resources, while its original planner loses the nearby stop and takes an actually longer suitable walk. Any fare or cost changes require their own real agreement."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "I drew the first map. It does not mean the bus has to stop outside my gate forever."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "Add passenger transport operator as a business kind requiring actual lawful operating authority, qualified paid drivers, appropriate inspected insured real vehicles, premises, resources and funded operating capacity. start_actual_town_passenger_route requires B informed commitment, valid actual finance/contracts and permits, road/stop rights, qualified route/access assessment, genuine existing demand and completed delivered trips. Bind the route, vehicle and stop IDs; invent no passengers, fare income, public subsidy or road.",
+        "complete_actual_route_usage_review requires the same genuinely continuing service and A/B actual authorized participation, real funds and qualified review of genuine trip/access/cost data with lawful privacy and consultation. Record verified findings and alternatives, including current access obligations, without manufacturing low use, unsafe conditions or savings.",
+        "revise_actual_route_and_move_gate_stop requires the same operating service, a fresh genuine qualified review using current actual evidence, valid authority/consultation, real funded viable implementation and an independently substantiated service benefit, with actual continued provision for every applicable accessibility/contractual obligation. Require A still living at the same gate, a genuinely operational earlier nearby stop, a valid lawful replacement and independently verified currently suitable longer pedestrian path for A actual ability/access needs. Remove only the identified route stop designation and install real funded lawful replacement signage; do not demolish roads, displace residents or make anyone miss an essential trip. Record measured route/path change and real implementation costs. Gate A dialogue on survival, original authorship, current residence, actual revised service and informed acceptance rather than assumed gratitude."
+      ],
+      "era_notes": "Use actual vehicle, service, stop, accessibility and road rules for each date. A later revision cannot borrow an unbuilt road or assume everyone can walk the same distance.",
+      "why_fun": "Returning to a changed street reveals that a useful public route can stop favoring the person who first drew it."
+    }
+  ]
+}

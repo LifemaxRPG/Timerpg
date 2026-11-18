@@ -1,0 +1,655 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-3951",
+      "kind": "scenario",
+      "title": "The Parent Who Gave Notice for the Childhood Bedroom",
+      "category": "family",
+      "pitch": "Help a parent complete a real home purchase. Years later, an adult child may rent the old bedroom under a proper lease, paying real rent while changing how the parent can inspect the room.",
+      "present_hook": {
+        "what_you_notice": "A family folder contains an abandoned home-purchase agreement and an actual down-payment shortfall.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The purchase in {year} never closed; the family kept its actual earlier housing arrangement."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            8,
+            10
+          ]
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "wealth": "poor",
+          "has_children": true
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "B is A actual parent, direction B parent to A. Bind an actual willing seller, existing suitable safe home, valid sale agreement, down-payment gap and real approved affordable financing/resources for the balance. Baseline no completed purchase. No bedroom, later adult occupancy, tenancy or income is assumed without its own actual facts."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "B",
+          "amount": "large",
+          "how_it_looks": "Give the actual remaining down-payment amount to the willing purchaser through the lawful closing account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_parent_home_purchase": "B"
+            }
+          ],
+          "headline": "A Parent Completes a Funded Home Purchase",
+          "body": "A genuine lawful closing transfers the identified existing home against actual funds and financing. Ordinary housing and debt obligations remain."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "record_actual_adult_family_room_occupancy": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Adult Child Chooses to Stay in a Family Room",
+          "body": "Now adult, {A} freely accepts the actual parent-permitted rent-free room arrangement. It grants no perpetual right or immunity from applicable housing law."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "sign_actual_parent_child_room_tenancy": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Parent and Adult Child Sign a Real Room Tenancy",
+          "body": "The parties freely replace their actual informal arrangement with a lawful paid tenancy for the identified room. Its agreed inspection notice and other rights take effect."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Purchase Does Not Close",
+        "body": "The gift follows actual closing and refund terms. No deed, mortgage, bedroom or later tenancy is created."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the tenancy remains current in {now}, the actual room lease records the rent, exclusive room possession and binding inspection-notice terms. Ownership stays with the real owner; common-space and emergency rules follow the agreement and law.",
+        "worst": "A childhood address guarantees no adult room or lease. Preserve actual title, debt and freely agreed housing arrangements if later steps fail.",
+        "twist": "The adult child pays actual rent and gains the agreed room rights. The parent receives real rent but gives up the previously lawful personally agreed same-day inspection routine in favor of the actual longer notice requirement."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "That is still the old bedroom. For an inspection, I give notice now."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_actual_parent_home_purchase requires B actual informed choice, real clear saleable title, actual seller consent, qualified closing, the gift plus genuine available balance/approved financing, safe suitable existing rooms and affordable ongoing obligations. Debit actual purchase costs, credit the seller and record title/debt once; create no building or free equity.",
+        "record_actual_adult_family_room_occupancy requires A now adult, both current informed free consent, B actual title and authority, the genuine safe available childhood room and an actually lawful rent-free occupancy agreement. Record actual terms and any personally agreed inspection procedure only if lawful; do not imply that family status removes existing privacy or housing rights.",
+        "sign_actual_parent_child_room_tenancy requires A/B alive and capable, B current ownership/authority, A actual continued willing occupancy and available affordable rent funds, lawful informed contract, actual settled prior obligations and paid real first rent/deposit under applicable rules. Specify the real room, lawful exclusive possession, shared-space rights, term, maintenance and emergency access, and a binding inspection-notice period genuinely longer than the previous actual lawful agreed protocol. Transfer only actual paid sums once; create no income stream without future payments. Gate B line on survival, current ownership/tenancy and actual new notice duty, with emergency or voluntary social visits distinguished."
+      ],
+      "era_notes": "Use the actual local rules for owner-occupied room tenancies in each year. A label or rent payment alone never determines legal classification.",
+      "why_fun": "A familiar room can remain in the family while the agreement on its door changes."
+    },
+    {
+      "id": "scenario-20261118-3952",
+      "kind": "scenario",
+      "title": "The Honey Seller Who Had to Buy Honey",
+      "category": "business",
+      "pitch": "Invest in an apiary’s real processing plan. A later supply contract may survive a genuine short harvest only through approved outside honey, costing cash and the right to call that delivery entirely home-produced.",
+      "present_hook": {
+        "what_you_notice": "An apiary ledger lists processing equipment that was never commissioned and an unaccepted bakery inquiry.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The processing proposal in {year} still had a real funding gap."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "apiary"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bakery"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A owns an actual lawful apiary operation with real colonies, supply rights and an equipment shortfall. B owns the actual bakery that made the genuine inquiry. Baseline no completed upgrade or supply agreement. A harvest, shortfall, outside supplier, future contract or colony health is never presumed."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "A",
+          "amount": "large",
+          "how_it_looks": "Fund the actual apiary processing-plan shortfall through its owner’s business account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "commission_actual_honey_processing": "A"
+            }
+          ],
+          "headline": "An Apiary Commissions Actual Honey-Processing Equipment",
+          "body": "Paid lawful equipment and completed checks establish the actual processing capacity. No honey crop or sale is created."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "complete_actual_own_honey_supply_contract": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Bakery Receives an Actual Own-Apiary Honey Delivery",
+          "body": "Under a genuine funded contract, the actual bakery receives and pays for the agreed traceable delivery from the supplier’s own real harvest."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "fulfill_actual_short_harvest_order_with_approved_honey": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Approved Outside Honey Keeps a Real Bakery Order Supplied",
+          "body": "After a genuine independently recorded harvest shortfall, both businesses agree a lawful sourcing change. Actual purchased traceable honey completes the specific delivery with truthful provenance."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Processing Upgrade Does Not Complete",
+        "body": "The investment follows its actual terms. No colonies, harvest, buyer, income or supply obligation appears by narration."
+      },
+      "present_day": {
+        "best": "If the chain occurred, actual permitted batch records in {now} distinguish the supplier’s own honey from the purchased honey in that completed delivery. Show current stock or sourcing claims only from current real inventory and labels.",
+        "worst": "A funded machine cannot guarantee a crop. Any later contract, shortfall or substitute delivery needs its own genuine resources and consent.",
+        "twist": "The bakery receives the genuine agreed supply, while the apiary spends actual money on outside stock and cannot represent this batch as wholly from its own hives. Net profit or loss follows the real accounts."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "That batch kept the order. It did not all come from my hives."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add apiary as a business kind requiring actual colonies/animal IDs, lawful sites, competent welfare care, harvest rights, food controls, staff and funds. Bind business A to A actual operation and business B to B bakery. commission_actual_honey_processing requires genuine paid equipment, completed safe installation and legal checks; move capital once without repeating invest, creating honey or assuming colony survival.",
+        "complete_actual_own_honey_supply_contract requires both businesses current lawful viable operation, actual current signed affordable terms, sufficient genuine traceable own-apiary harvested stock, quality checks and actual completed delivery/payment. Reconcile inventory, buyer payment and fees once. Create no standing future order or guaranteed harvest.",
+        "fulfill_actual_short_harvest_order_with_approved_honey requires a real fresh current bakery order, an independently simulated actual measured shortfall rather than a story-created weather event, actual quality/sourcing restrictions, informed buyer-approved lawful variation, an independently existing approved supplier with real eligible traceable stock and A actual unencumbered purchase funds and B actual funds for the delivery price. Complete real purchase, safe processing if needed, truthful source labels/records, delivery and payment once; never duplicate honey, invent a supplier or claim unapproved stock meets an own-harvest promise. Gate A line on survival, knowledge and this genuine partly or wholly externally sourced completed batch."
+      ],
+      "era_notes": "Use the actual food, hive-health and sourcing requirements of each event year. No crop, disease or modern testing method is invented to force the ending.",
+      "why_fun": "A successful early sale can become a promise the owner later keeps only by admitting where the contents came from."
+    },
+    {
+      "id": "scenario-20261118-3953",
+      "kind": "scenario",
+      "title": "The Radio Call Sign That Answered in a Different Voice",
+      "category": "uncanny",
+      "pitch": "Help a resident meet a real amateur-radio qualification and equipment shortfall. A much later lawful reassignment may give the old call sign to the person who once answered it.",
+      "present_hook": {
+        "what_you_notice": "A hobby folder contains an unfinished radio application and an equipment estimate; no completed authorized contacts appear.",
+        "where": "the public library",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The project in {year} lacked the actual remaining resources for lawful operation."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            25
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            18,
+            25
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1975,
+          1995
+        ],
+        "notes": "A is an actual willing eligible amateur-radio applicant. B is an existing unrelated interested resident, with no assumed future license. Bind real training/testing resources, a lawful equipment plan and applicable call-sign assignment rules. Baseline A has not completed this authorization. The final interval begins no earlier than 1998; current reassignment rules must actually support the case."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Cover the actual qualification and lawful equipment-plan shortfall."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "earn_actual_amateur_radio_authorization": "A"
+            }
+          ],
+          "headline": "An Applicant Earns Real Amateur-Radio Authorization",
+          "body": "Actual requirements are completed and the competent authority assigns a genuine current call sign. Lawful usable equipment supports authorized operation."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "record_actual_two_way_radio_contact": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.2
+            }
+          ],
+          "headline": "Two Authorized Operators Complete a Recorded Contact",
+          "body": "Both independently qualified current operators complete an actual lawful two-way contact using their distinct authorized calls. A genuinely supportive exchange strengthens their bond."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "grant_actual_available_former_call_sign": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Former Call Sign Receives a New Lawful Holder",
+          "body": "After the original authorization genuinely expires beyond all applicable renewal protections, the now-available call is lawfully granted to its eligible actual applicant. Historical contacts keep their original holder and dates."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Application Does Not Become Authorized Operation",
+        "body": "The gift creates no license, call sign or transmission. Actual application and equipment funds follow their real terms."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the new assignment remains current in {now}, authorized records associate the former call with {B}, while old contact records identify {A} as its holder at those actual earlier dates. Do not confuse a reused identifier with one resident.",
+        "worst": "No hobby funding guarantees a call sign, contact or lapse. Actual renewal rights and later assignments follow their own legal records.",
+        "twist": "The later holder gains a genuine identifier with a shared history. The former holder loses the opportunity to reclaim that now-assigned call through an ordinary new application, although historical credit and person identity remain intact."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "uncanny",
+          "line": "That was the call I answered. Now it is the call I use."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "earn_actual_amateur_radio_authorization requires actual age/legal eligibility, completed real study/examinations and official grant, lawful assigned scope, paid actual equipment and permitted safe operation. Persist regulator-issued simulated authorization/call IDs, term and holder history; grant no future renewals, skills or new people automatically.",
+        "record_actual_two_way_radio_contact requires A/B independently current qualified distinct authorizations, actual permitted usable equipment and conditions, a genuinely completed lawful exchange and correct dated log. Apply bond only after an actual supportive interaction, not automatically for sharing a hobby. Never fabricate message contents or a long-distance contact.",
+        "grant_actual_available_former_call_sign requires A actual independently lapsed authorization beyond every genuine renewal/grace/release restriction, the real former call legally available, B current eligibility for its class/group and actual freely submitted application choosing this call in part because of the recorded shared contact, lawful non-preferential assignment under real timing rules and official grant. Require A genuine recorded wish to reclaim that identifier but no superior timely pending claim; do not cause the lapse or cancel any protected right. Change the call-holder record once without rewriting old logs or impersonating A. Gate B line on survival, actual prior answered contact, knowledge and a currently valid reassigned call."
+      ],
+      "era_notes": "Use the actual licensing, equipment and reassignment procedures of each year. No later vanity-assignment process operates before it is legally available.",
+      "why_fun": "The same identifier can connect two different people across decades while the records keep their lives distinct."
+    },
+    {
+      "id": "scenario-20261118-3954",
+      "kind": "scenario",
+      "title": "The Mill Whistle That Survived on a Record",
+      "category": "place",
+      "pitch": "Help a resident record an actual routine mill whistle. A later authorized archive may preserve the sound after the owner replaces that daily marker with a quieter internal system.",
+      "present_hook": {
+        "what_you_notice": "A sound-project folder preserves an uncompleted equipment request beside the actual mill shift timetable.",
+        "where": "the mill",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The recording proposal in {year} never acquired its actual missing resources."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            22
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "mill"
+          ]
+        },
+        "C": {
+          "age": [
+            20,
+            30
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "B owns the actual lawful mill and identified audible routine shift whistle, which is separate from all safety-critical alarms. A is an actual willing sound-recording hobbyist who knows the real cue. C actually lives in an identified nearby home where that routine cue is audible. Bind a genuine permitted project and resource gap; no recording, later ownership, quiet system or surviving home is presumed."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Cover the actual shortfall for lawful usable recording equipment and the permitted session."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "record_actual_routine_shift_whistle": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Resident Makes a Verified Recording of the Mill Whistle",
+          "body": "With actual permission and suitable equipment, the resident records the genuine routine cue and documents its source and date."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "publish_authorized_shift_whistle_recording": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Authorized Archive Preserves a Routine Town Sound",
+          "body": "Actual surviving audio enters a willing funded archive under the required rights and permissions. Its record states only the verified source history."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "replace_shift_whistle_with_approved_quiet_alerts": [
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Mill Retires Its Routine Outdoor Shift Whistle",
+          "body": "With its actual history preserved in the archive, the owner completes a genuinely funded approved internal routine-alert replacement. Actual worker coverage is verified and the separate daily outdoor cue ends; safety-critical alarms remain governed by their own requirements."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Sound Project Does Not Produce a Verified Recording",
+        "body": "The gift creates no audio, archive or alarm change. Actual procurement, permissions and refunds follow their real terms."
+      },
+      "present_day": {
+        "best": "If the chain occurred, the current mill no longer sounds this routine outdoor cue and the authorized archive in {now} retains the actual source recording if it survived. A permitted playback is a recording, never evidence of a current shift change.",
+        "worst": "No sound, project or system replacement is guaranteed. Actual operating and safety duties continue on every branch.",
+        "twist": "The nearby household gains real quiet from that cue. The owner pays the actual replacement cost, and the town loses a live daily audible marker even while preserving its genuine recorded history."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "grateful",
+          "line": "The shift still changes. My window no longer announces it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add mill as a business kind with actual premises, title, workers, lawful machinery, funds and operating permissions. record_actual_routine_shift_whistle requires A real funded suitable recording equipment, B actual current authority and informed permission, safe lawful access, the real routine cue actually sounded, no unauthorized personal speech/data and completed usable source audio. Persist medium, owner, source asset, date and permissions; create no historical sound from text.",
+        "publish_authorized_shift_whistle_recording requires the same genuine surviving intelligible recording, actual lawful title/rights and permissions where needed, a real willing archive with funded custody and a completed authorized copy/deposit. Track the physical copy and actual rights separately; do not assume preservation, open access or income forever.",
+        "replace_shift_whistle_with_approved_quiet_alerts requires B current ownership, a real freely chosen affordable lawful plan with B recorded decision citing the surviving archived cue as part of the reason to retire the live marker, actual available suitable equipment, qualified installation, approvals, completed testing and verified adequate routine communication to every actual affected worker under current requirements. Retire only the identified non-safety outdoor shift marker after real safe internal coverage exists; do not suppress emergency alarms, create quiet by assertion or invent injury prevention. Debit actual costs once and measure the actual disappearance of that cue at C same continuing nearby home. Gate C dialogue on survival, residence, actual previous audibility, known continued real shifts and the current absence of that outdoor cue."
+      ],
+      "era_notes": "Use actual recording media and permitted routine-alert technology of each year. Later playback never replaces a workplace warning system.",
+      "why_fun": "A sound can disappear from a street while remaining available as an honestly labeled piece of its history."
+    }
+  ]
+}

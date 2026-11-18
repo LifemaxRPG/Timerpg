@@ -1,0 +1,680 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-4811",
+      "kind": "scenario",
+      "title": "The Tailor Who Learned the Work with the Other Hand",
+      "category": "rescue",
+      "pitch": "Help a trainee afford suitable sewing instruction. A later shop owner may pay to adapt the work after an independently documented hand limitation, keeping a trade while canceling an order that cannot honestly be promised.",
+      "present_hook": {
+        "what_you_notice": "An old dress-shop application contains a course estimate and an unfilled training place.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The applicant in {year} could not cover the last instruction costs."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            22
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            30,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "dress shop"
+          ]
+        },
+        "C": {
+          "age": [
+            18,
+            22
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A freely wants qualified sewing instruction; B owns the actual dress shop and has a real funded trainee vacancy. C is a distinct existing resident, not assumed a future customer. Baseline A did not complete that course or enter this trade. A future hand limitation is an independent documented condition checked only at step 3, never caused or guaranteed by the scenario."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Cover the real shortfall for the chosen qualified course."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_course_and_hire_sewing_trainee": [
+                "B",
+                "A"
+              ]
+            }
+          ],
+          "headline": "A Sewing Trainee Completes Instruction and Starts Paid Work",
+          "body": "Assessed skills and a genuine funded vacancy lead to freely agreed paid work. A receipt alone supplies no qualification."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "dress shop"
+            }
+          ],
+          "headline": "A Qualified Tailor Opens an Independently Funded Shop",
+          "body": "The trained resident opens a real lawful dress shop with actual capital, premises and equipment. No future orders or profit are promised."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "adapt_tailoring_work_and_settle_unfillable_order": [
+                "A",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Tailor Adapts the Work and Refunds an Unfillable Order",
+          "body": "Appropriate qualified assessment and completed funded practice support a documented alternative method. The shop cancels and settles a real order it cannot fulfill under that method and deadline."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Course Does Not Produce a Trained Hire",
+        "body": "The gift follows actual enrollment and refund terms. No skill, job, shop or later medical condition appears."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the facts remain current in {now}, the shop contains its actually acquired adaptive equipment, permitted records show assessed left-hand methods and the real canceled order is settled. Show continued trading only while the business genuinely operates.",
+        "worst": "If the first step fails, the old unfilled training application remains and this chain creates no shop. If a later step stops, show actual skills, treatment, business and outstanding orders without promising restored abilities.",
+        "twist": "The owner keeps an actually assessed way to work but pays real training and equipment costs. {C} loses the genuinely booked fitting deadline despite receiving the required refund; adaptation does not make every old promise achievable."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "The stitches took longer to learn this time. I can still tell which ones are mine."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "complete_course_and_hire_sewing_trainee requires actual completed suitable qualified instruction, demonstrated relevant skills, B current business ownership, genuine available funded lawful vacancy and A free acceptance with actual paid work. Settle real tuition and wages once; do not repeat the gift or invent a teacher, job or customer.",
+        "found_business requires A current qualifications, actual available lawful capital, suitable existing premises or valid completed funded acquisition, real equipment and a genuine completed opening. Bind the new dress-shop ID to A, distinct from B business; no automatic success, business transfer or customer base.",
+        "adapt_tailoring_work_and_settle_unfillable_order requires A alive and current owner of that same operating shop, an independently existing professionally documented right-hand fine-motor limitation, appropriate current clinical/occupational guidance and consent, genuinely usable left-hand capacity, qualified funded instruction/practice and assessed safe relevant tasks. Record actual adaptive equipment purchases and demonstrated skills only, without curing the limitation, inventing an injury or promising every task. Require C actual existing paid order, a genuinely documented method/deadline mismatch, lawful cancellation/notices and completed required refund/settlement from real available funds. Change only supported offered work and settle actual costs once. Gate A dialogue on survival, retained assessed skills, remembered completed practice and genuine authorship of current stitches."
+      ],
+      "era_notes": "Use actually available equipment, qualified assistance and working methods for each date. No modern device or clinical outcome is projected backward.",
+      "why_fun": "Returning to a familiar shop can reveal a different way of making the same careful stitch."
+    },
+    {
+      "id": "scenario-20261118-4812",
+      "kind": "scenario",
+      "title": "The Safe-Deposit Customer Who Carried the Box Home",
+      "category": "secrets",
+      "pitch": "Invest in a bank’s costed safe-deposit proposal. Decades later, a lawful vault closure may return a customer’s private papers intact while making that customer pay for a genuinely different storage arrangement.",
+      "present_hook": {
+        "what_you_notice": "A bank archive has an abandoned vault-service estimate with no signed customer leases.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The safe-deposit plan in {year} lacked the last capital needed for its actual opening."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bank"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A owns the actual authorized bank and a genuine suitable costed safe-deposit proposal. B is a distinct willing prospective customer who actually owns identified private papers and a suitable container. Baseline this service never opened. Bind genuine title and lawful custody; the contents contain no presumed money, secret, inheritance or discovery."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "A",
+          "amount": "large",
+          "how_it_looks": "Fund the actual vault-service capital shortfall through the bank account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "open_vault_service_and_lease_box": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Bank Opens a Funded Safe-Deposit Service",
+          "body": "A completed qualified facility and lawful agreement put the customer’s actual container in contracted custody. Ownership of the contents stays with its real owner."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "renew_actual_safe_deposit_lease": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Customer Renews an Actual Safe-Deposit Lease",
+          "body": "The bank and customer freely complete a current lawful renewal and settle its real charges. No future renewal or perpetual storage is guaranteed."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "close_vault_service_and_return_customer_box": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Vault Service Closes and Returns Its Customer’s Box",
+          "body": "After genuine lawful notice and settlement, the customer retrieves the actual container without an unauthorized opening. A separately funded real storage arrangement replaces the ended lease."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Vault Service Does Not Open",
+        "body": "Investment follows actual contracts and accounts. No safe-deposit lease, hidden valuables or later closure is supplied."
+      },
+      "present_day": {
+        "best": "If the full chain occurred and the records survive in {now}, the bank marks the actual vault service closed, the signed release records return of the same container, and the customer’s actual new storage agreement carries its own paid cost. Contents are visible only with genuine authorized access.",
+        "worst": "If the first step fails, the abandoned service proposal remains with no new box lease. After a later failure, real custody and binding return obligations continue; the papers never become a discovered fortune.",
+        "twist": "The bank ends its real continuing vault-service operating obligations under the completed closure plan. The customer regains the actual container but loses the old storage location and pays the independently quoted real relocation or replacement-storage charge."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "They gave me back the box. They never needed to know what was in it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "Bind A to the real bank ID. open_vault_service_and_lease_box requires bank authority, completed paid qualified secure premises/equipment/controls, real staff and operating funds, B actual ownership/authority over identified existing papers/container and freely signed lawful paid lease. Record exact asset IDs, access rights, charges and custody; create no contents, income in advance or transfer of title to the bank.",
+        "renew_actual_safe_deposit_lease requires the same continuing actual service, B genuine current authorized custody rights and consent, A current bank authority, actual viable resources and completed lawful renewal/payment under precise notice and return terms. Earlier and intervening leases retain their real outcomes.",
+        "close_vault_service_and_return_customer_box requires genuine current bank authority and lawful funded closure decision, all applicable notices, actual discharge of every customer obligation and qualified secure return or lawful alternative for actual other boxes without inventing customers. Require B entitled living recipient, same actually present container, authentic inventory/access records and completed signed return without opening unless separately authorized. Settle real lease charges/refunds once. Require B voluntarily chosen genuinely available suitable alternative storage and real affordable quoted relocation/replacement cost actually paid; no free new bank or room appears. Retire only the safe-deposit service, not the bank, and record actual ended future operating duties without fabricating profit. Gate B dialogue on survival, informed receipt, genuine prior unopened bank custody and no contradictory authorized inspection."
+      ],
+      "era_notes": "Use actual banking, custody, privacy and closure terms for each year. A box is not a deposit balance, and retrieval reveals no contents automatically.",
+      "why_fun": "The important return can be a closed box whose private story the player never earns the right to read."
+    },
+    {
+      "id": "scenario-20261118-4813",
+      "kind": "scenario",
+      "title": "The Name That Stayed after the Marriage Ended",
+      "category": "love",
+      "pitch": "Introduce two single adults who want to meet. A shared surname may later become part of a real working life, and one spouse may freely keep that name after a divorce that still costs both households.",
+      "present_hook": {
+        "what_you_notice": "Two separate community photographs show residents who never met in the original history.",
+        "where": "the church",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "Both residents wanted an introduction in {year}; neither had promised a marriage."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            25
+          ],
+          "married": false
+        },
+        "B": {
+          "age": [
+            20,
+            25
+          ],
+          "married": false
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "A and B are distinct unrelated consenting adults, strangers to each other, eligible to meet and marry under the applicable rules. Baseline they never formed this relationship. A has genuine piano-tuning aptitude but no assumed qualification or business. Do not assume children, shared property, a surname rule or future divorce grounds."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange the introduction both residents have actually requested."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "marry": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "elect_lawful_shared_surname": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Couple Marries and Freely Registers a Shared Surname",
+          "body": "The eligible couple completes a genuine marriage and its lawful voluntary name election. The election does not give either person ownership of the other’s identity."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "piano tuning service"
+            }
+          ],
+          "headline": "A Qualified Piano Tuner Opens under the Chosen Working Name",
+          "body": "Actual training, competence, capital and lawful resources support an independent service. Its genuine registered working name follows the owner’s valid current identity."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "divorce": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "retain_lawful_surname_and_settle_separate_households": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Divorce Ends the Marriage but Not a Chosen Surname",
+          "body": "A genuine lawful divorce and completed settlement separate the households. One former spouse freely retains the lawful surname while both pay their actual agreed moving and household costs."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "An Introduction Does Not Become This Marriage",
+        "body": "The meeting retains its actual social consequences. No marriage, name election, business or divorce is supplied."
+      },
+      "present_day": {
+        "best": "If the full chain occurred and current facts support it in {now}, the service still uses its owner’s lawful retained surname and permitted records show two separate households and a completed divorce. Show business activity only while it actually continues.",
+        "worst": "If the first step fails, the separate photographs remain without this marriage or shared surname. If a later step stops, retain the real current marriage, names, business, property and obligations; a divorce is never implied.",
+        "twist": "Keeping a chosen working name preserves actual professional identity; it does not preserve the marriage. Both former spouses lose the shared household arrangement and pay the real settlement, moving and separate-housing costs actually established by the completed agreement."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "I kept the name. We did not keep the marriage."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "marry requires A and B genuinely eligible and unmarried at that date, an actual consensual relationship and completed lawful marriage. elect_lawful_shared_surname records their separate informed lawful choices and completed required registration, using the actual intervention-year family name of B as the chosen source only where allowed. Store that source immutably so later name changes cannot rewrite the earlier election. No automatic name change or children.",
+        "Add piano tuning service as a business kind requiring actual qualified competent tuning work, genuine instruments/tools, lawful operating resources, sufficient real capital and completed opening. found_business requires A real qualifications and actual lawful identity/business registration under the chosen name. Bind the new service ID and its actual ownership/property regime; do not invent customers, income, a spouse waiver or a trade credential.",
+        "divorce requires a genuine current marriage of these same residents, actual independent grounds/procedure where required, consent or lawful adjudication and a completed valid divorce. retain_lawful_surname_and_settle_separate_households requires A informed lawful choice and completed necessary identity records, an actual settled property/debt/business agreement preserving A lawful operating authority, real available separate housing and funded completed moves with actual costs paid from lawful resources. Record exact title, accounts and obligations; create no automatic house, job, alimony, pension right or resentment. B cannot veto a surname absent an actual applicable legal right. Gate A dialogue on survival, actual prior shared-name election, completed divorce and still-lawful retained name."
+      ],
+      "era_notes": "Use the actual marriage, surname, business-registration and divorce rules of each date. Name choices do not imply a particular sex, dependency or reconciliation.",
+      "why_fun": "A shop sign can carry a life choice whose meaning has changed without becoming a mistake."
+    },
+    {
+      "id": "scenario-20261118-4814",
+      "kind": "scenario",
+      "title": "The First Boat That Returned in Pieces",
+      "category": "business",
+      "pitch": "Invest in a boat workshop’s genuine first commission. An early boat may eventually supply inspected usable parts for its owner’s newer vessel, saving useful material while ending the old hull’s life as a whole boat.",
+      "present_hook": {
+        "what_you_notice": "An unfilled boatbuilding order sits beneath an old sketch of the river.",
+        "where": "the river",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The workshop in {year} had a real commission but could not finance its remaining equipment gap."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "boat workshop"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "C": {
+          "age": [
+            8,
+            10
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A owns an actual qualified boat workshop with a real costed equipment shortfall and B genuine affordable first commission. C is an existing unrelated child with no assumed later trade. Baseline the commission was not completed. Bind lawful existing workshop/river access; no later defective hull, second vessel or salvaged component is presumed."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "A",
+          "amount": "large",
+          "how_it_looks": "Finance the genuine equipment shortfall for the workshop’s actual commission."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_and_deliver_first_workshop_boat": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Workshop Delivers Its First Commissioned Boat",
+          "body": "Actual qualified construction, checks and lawful delivery fulfill the real contract. The customer receives title only under the completed actual sale terms."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "hire": [
+                "A",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Boat Workshop Hires a Qualified Young Adult",
+          "body": "The now-adult applicant freely accepts a real funded vacancy after genuine relevant training. Work and wages follow actual completed duties."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "dismantle_first_boat_and_reuse_verified_parts": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "An Early Boat Supplies Inspected Parts for a Newer Vessel",
+          "body": "The owner authorizes qualified dismantling after an independent actual assessment. Verified usable parts repair the owner’s genuinely existing newer vessel; a released nameboard remains as a workshop keepsake."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The First Commission Does Not Complete",
+        "body": "Investment and customer obligations follow their actual contracts. No boat, title, apprentice or later dismantling appears."
+      },
+      "present_day": {
+        "best": "If all stages occurred and current facts hold in {now}, the workshop displays the actually transferred old nameboard, the original hull is recorded dismantled and the newer vessel’s real repair record identifies its reused components. Show it operating only after genuine current clearance.",
+        "worst": "If the first step fails, the unfilled first order stays in the workshop records and no commissioned boat appears through this chain. After a later failure, preserve the actual hull, title, contracts and completed work rather than displaying invented salvage.",
+        "twist": "The owner gains an actually repaired newer vessel and the workshop gains paid skilled work, but the first hull no longer exists as a whole boat. The owner pays real assessment, dismantling and repair costs and gives up the specifically transferred nameboard."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "It still goes down the river. Just not all in one piece."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "Add boat workshop as a business kind requiring genuine competent qualified construction/repair staff, lawful suitable premises/river access, real tools/materials, appropriate permits and operating resources. complete_and_deliver_first_workshop_boat requires actual paid equipment, a genuine funded customer contract, completed qualified construction and required testing/registration, and settled lawful delivery/title. Create one precisely bound boat asset from actual consumed materials; no free stock, invented buyer or duplicate invest.",
+        "At step 2 C is 19..23. hire requires C genuine current relevant qualifications, A actual continuing workshop authority, real funded lawful vacancy, free acceptance and actual paid work. Do not assume the child had skills, twenty-five years of employment or guaranteed wages.",
+        "dismantle_first_boat_and_reuse_verified_parts requires B current clear ownership/authority over both the exact original boat and an independently existing identified newer vessel needing the specific real repair, a genuine independent qualified assessment supporting retirement of the original hull, free informed consent, environmental/legal permissions and actual funds. Require A same operating workshop and C current qualified employed participation. Inventory real recoverable components, test each for genuine suitable safe reuse and complete the funded repair and required clearance before describing operation. Decommission/dismantle the old hull and account for actual waste, title and registration; never keep a second intact original boat. Transfer only the genuine released existing nameboard to A by explicit lawful consent and record its actual display; no salvaged stock, new vessel, fault or income is invented. Gate B dialogue on survival, knowledge, actual installed original parts and currently cleared operation of the newer vessel on the river."
+      ],
+      "era_notes": "Use actual construction, navigation, materials, disposal and registration rules for the year. A familiar nameboard does not preserve the legal identity or seaworthiness of an old hull.",
+      "why_fun": "The river can carry something of the first success even when the player can no longer walk past that boat intact."
+    }
+  ]
+}

@@ -1,0 +1,662 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-3771",
+      "kind": "scenario",
+      "title": "The Sugarhouse That Opened Its Doors as a Bakery",
+      "category": "business",
+      "pitch": "Invest in a genuine maple-sugarhouse equipment plan. An employee may eventually buy its premises for a bakery, giving the owner a real sale while ending the seasonal operation that brought them together.",
+      "present_hook": {
+        "what_you_notice": "A sugarhouse archive lists an equipment plan that never reached commissioning.",
+        "where": "the edge of town",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "An actual funding gap stalled the equipment proposal in {year}."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "maple sugarhouse"
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            22
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A owns the real lawful sugarhouse business and identified suitable premises, with genuine lawful sap supply and equipment need. B is an actual willing prospective employee, not assumed a baker. Baseline no completed upgrade, hire or premises sale. Require potential lawful bakery conversion without promising permission, finance or buyers."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "A",
+          "amount": "large",
+          "how_it_looks": "Fund the actual sugarhouse equipment-plan shortfall through its owner’s business account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "commission_actual_sugarhouse_equipment": "A"
+            }
+          ],
+          "headline": "A Sugarhouse Completes a Funded Equipment Plan",
+          "body": "Real equipment is installed and checked under actual permissions and safe food-production requirements. No sap yield or sales are guaranteed."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "hire": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Sugarhouse Hires a Qualified Adult Worker",
+          "body": "The actual operating sugarhouse fills a genuine funded position with a qualified willing adult under lawful employment terms."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "close_shop": "A"
+            },
+            {
+              "convert_purchased_sugarhouse_to_bakery": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "found_business": "B",
+              "kind": "bakery"
+            }
+          ],
+          "headline": "A Former Sugarhouse Premises Opens as a Bakery",
+          "body": "After a voluntary lawful sale and fully funded permitted conversion, {B} opens a genuine bakery in the identified premises. The former seasonal business is settled and closed."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Sugarhouse Upgrade Does Not Complete",
+        "body": "The investment follows its actual contracts. No production, job, buyer or replacement bakery is created."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the business remains current in {now}, the same actual premises contains the operating bakery and its real ownership record. The old sugarhouse business is closed; any later maple production needs its own actual operation.",
+        "worst": "Investment does not create sap, a skilled baker or a property sale. Preserve real equipment, work and obligations if later steps fail.",
+        "twist": "The seller receives real proceeds and the buyer gains a bakery, but the old seasonal operation ends. A spring visit to this address no longer means visiting that sugarhouse."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I agreed to the sale. I still look for the old season when I pass the door."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add maple sugarhouse as a business kind requiring real lawful sap rights/supply, suitable premises, trained staff, food controls, equipment and operating funds. Bind business A to A actual owned operation ID and its separately recorded premises title. commission_actual_sugarhouse_equipment requires paid available equipment, completed lawful installation and checks; spend real capital once without duplicating invest or creating harvests, revenue or automatic survival.",
+        "hire requires the same real viable business, A current authority, B adult with actual relevant qualifications, funded vacancy, lawful agreement and actual work. Record only real duties and earned pay; sugarhouse employment does not make B a baker.",
+        "The final effects are atomic: require A actual voluntary retirement/closure decision, lawful settlement of employees/customers/leases/creditors, clear actual premises title, B independently earned current baking competence, real sufficient purchase and conversion funds, willing fair lawful sale, required zoning/food/building approvals, completed safe conversion and funded viable opening. convert_purchased_sugarhouse_to_bakery transfers only the genuine premises and expressly included assets from A to B against actual payment, settles the old operation and records conversion costs once. found_business creates only the new B-owned bakery ID and inventory actually procured. Do not close or sell anything on failed eligibility. Gate A dialogue on survival, freely signed sale, known closure and actual continuing attachment to the old operation."
+      ],
+      "era_notes": "Use equipment, food rules and property permissions available in each event year; a sugarhouse is never automatically a permitted commercial bakery.",
+      "why_fun": "The same doorway can carry a different working season without inventing a new building or erasing its old owner."
+    },
+    {
+      "id": "scenario-20261118-3772",
+      "kind": "scenario",
+      "title": "The Ballet Student Who Sent the Workshop Refund Home",
+      "category": "family",
+      "pitch": "Help a child attend an actual ballet course. A later working dancer may cancel a real advanced workshop and use its lawful refund to repair a parent’s kitchen plumbing.",
+      "present_hook": {
+        "what_you_notice": "A school folder holds an uncompleted supervised dance enrollment and an unpaid fee estimate.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The enrollment in {year} never cleared its actual fee gap."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            10,
+            12
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            35,
+            40
+          ],
+          "has_children": true
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "B is A actual parent, direction B parent to A. A freely wants the actual age-appropriate course and B gives required guardian consent. Bind genuine fee shortfall, qualified instruction and real transport/care arrangements. B owns an actual home; no later repair need, professional ability or financial hardship is presumed."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Cover the actual fee gap through the properly supervised course account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_child_ballet_course": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Child Completes a Supervised Dance Course",
+          "body": "With actual consent, instruction and attendance, the pupil completes the real course. No professional career is promised."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "move_away": "A"
+            },
+            {
+              "accept_actual_funded_dance_job": "A"
+            }
+          ],
+          "headline": "A Qualified Adult Dancer Takes Real Work Elsewhere",
+          "body": "After independent completed training and selection, the adult accepts actual paid dance work and a funded lawful move. Qualifications and housing are not supplied by the childhood course alone."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "use_actual_workshop_refund_for_parent_plumbing": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Dancer Redirects a Workshop Refund to a Parent’s Repair",
+          "body": "The adult freely cancels a real booked workshop under its actual terms. An available lawful refund funds qualified completed repairs to the parent’s actual faulty kitchen plumbing."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Enrollment Does Not Become a Completed Course",
+        "body": "The supervised gift and actual course funds follow their real refund terms. No skill, job or family repayment obligation is created."
+      },
+      "present_day": {
+        "best": "If the chain occurred, permitted records in {now} pair the actual canceled workshop and lawful refund with the genuine completed plumbing repair. Show a working kitchen fixture only if its inspected result remains current.",
+        "worst": "A child owes no future remittance for receiving help. Later careers, housing, family need and assistance require actual choices and resources.",
+        "twist": "The parent gains a real repair, while the adult gives up this actual advanced workshop and any real nonrefundable costs. No career setback or gratitude debt is invented."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "The sink works. I know what was canceled to pay for it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_actual_child_ballet_course requires A willing age-appropriate enrollment, B lawful guardian consent, actual qualified teacher, safe available venue, funded transport and attendance, reconciled actual fees and completed course. Record only real instruction and assessed achievement; create no talent, award or medical outcome.",
+        "The second combined step requires A now adult, independently completed actual professional training and current physical/work eligibility, a genuine employer with funded accepted role, actual lawful contract, real earnings only for work and a freely chosen funded safe housing/moving plan. accept_actual_funded_dance_job records that employment once; move_away records the actual departure without severing parenthood or promising future work.",
+        "use_actual_workshop_refund_for_parent_plumbing requires A current legal capacity and free choice, an actual paid booked advanced workshop with a valid cancellation/refund clause, completed lawful cancellation and an actual received unencumbered refund after real fees. Require B current actual home title/permission, an independently real diagnosed plumbing fault, freely accepted help, actual qualified available contractor, sufficient real refund plus any explicitly available funds and completed permitted inspected work. Transfer only actual money once and record actual lost enrollment, any real cancellation loss and the repair; do not duplicate refund or create a fixture from money alone. Gate B dialogue on survival, informed choice, known cancellation and an actual current working sink."
+      ],
+      "era_notes": "Use actual dance training and travel opportunities of each period. A later workshop cannot be paid by wages that were never earned.",
+      "why_fun": "A child’s small opportunity can return years later as a useful household repair, with a visible opportunity left behind elsewhere."
+    },
+    {
+      "id": "scenario-20261118-3773",
+      "kind": "scenario",
+      "title": "The Tennis League That Kept Playing after the Court Was Sold",
+      "category": "place",
+      "pitch": "Introduce two residents interested in a small tennis league. A later property sale may move their real fixtures to existing courts elsewhere, preserving play at the cost of a familiar local meeting place.",
+      "present_hook": {
+        "what_you_notice": "A recreation folder contains an unfinished league proposal and an unused private-court booking form.",
+        "where": "the gym",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposal in {year} never became an agreed league or a court booking."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        },
+        "C": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "wealthy"
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "A and B are unrelated actual strangers interested in tennis; B owns an actual lawful usable private court parcel at the edge of town. C is an existing adult potential buyer with no promised future funds or project. Require real willing players, available lawful court time and a genuine proposal. Baseline no completed league; a sale is never caused by the introduction itself."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange a mutually wanted meeting about the actual league and court-time proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "form_actual_small_tennis_league": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Small Tennis League Completes Its First Fixtures",
+          "body": "Real willing players form the agreed league and complete lawful funded fixtures on the actual booked court."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "renew_actual_league_court_agreement": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Tennis League Renews Its Actual Court Agreement",
+          "body": "The continuing actual league renews a finite lawful booking arrangement with the current owner. No perpetual access right is created."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "sell_court_parcel_and_relocate_actual_league": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Court Sale Moves Real Fixtures to Existing Courts",
+          "body": "A freely agreed funded sale settles the old booking rights. With actual available permitted courts and transport elsewhere, the league completes genuine relocated fixtures while the old private court closes to league play."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The League Does Not Complete Its First Fixtures",
+        "body": "A meeting creates no team, match, lease or property sale. Any actual preliminary deposits retain their real refund terms."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the arrangements remain current in {now}, the old site no longer hosts this league and its actual fixture notice names the genuine replacement venue. No building, homes or later land use is implied by the sale.",
+        "worst": "An introduction guarantees neither players nor a buyer. Property rights, bookings and later recreation follow their actual contracts and choices.",
+        "twist": "The owner gains real sale proceeds and the league keeps playing, while members lose actual access to their old local venue and incur the real additional travel time and cost."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "We still have the fixtures. We do not have the short walk to them."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "form_actual_small_tennis_league requires real existing willing adult players, actual agreed affordable fees/rules, B genuine title and court authority, safe usable court, actual available booking time, paid lawful access and completed fixtures. Record player and court IDs, actual results only and finite booking rights. Do not create people, skills or a profitable club.",
+        "renew_actual_league_court_agreement requires the genuinely continuing league, actual current players, B current ownership/authority, no unresolved obligations, real available affordable time and voluntary signed finite terms. Any intervening fixtures and later renewals must have their own actual records.",
+        "sell_court_parcel_and_relocate_actual_league requires B current clear title and free sale decision, C actual current sufficient lawful funds and informed agreement, lawful completed fair sale, required notices and settled real league access/deposits/obligations. Require the actual ongoing league, independently existing suitable replacement courts with real available permitted affordable times, actual agreed funded transport and completed relocated fixtures. Transfer actual purchase money and parcel title once, end only the identified local league access and post actual new bookings/travel records. Create no replacement courts, players, public project or automatic friendship; no sale or closure if the combined relocation conditions fail. Gate A dialogue on survival, actual prior walkable local fixtures, current relocated participation and genuinely longer travel."
+      ],
+      "era_notes": "Use actual court, travel and booking arrangements of each year. A nearby road or bus route exists only if the generated town and surroundings actually provide it.",
+      "why_fun": "A group can survive the loss of its original place while the player still notices the distance left behind."
+    },
+    {
+      "id": "scenario-20261118-3774",
+      "kind": "scenario",
+      "title": "The Future Resignation That Became Different Working Hours",
+      "category": "uncanny",
+      "pitch": "Show a resident an authentic later resignation letter from the original present. A real job may eventually end in a freely chosen change of hours instead, with a better-paying outside offer left behind.",
+      "present_hook": {
+        "what_you_notice": "A lawfully retained personnel copy records a resignation from a shop that has not yet hired its eventual author in the selected past year.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The original letter recorded one actual choice. It did not promise a job or require the same choice again."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            22
+          ]
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "music store"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "B owns the actual music store. A is a real adult not yet employed there. Bind an authentic voluntarily written A resignation letter from this business in the original present, its actual date and immutable identities, obtained and shown with both parties lawful informed permission. Baseline that employment and resignation really occurred; no current job, dissatisfaction or interpretation is imposed."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:show_original_resignation",
+          "target": "A",
+          "how_it_looks": "Let the consenting resident read the authentic later letter with its source and original date intact."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.2
+            }
+          ],
+          "headline": "Two Residents Choose a Supportive Conversation about Work",
+          "body": "A genuinely wanted completed conversation strengthens the two residents’ bond. The old letter supplies no hiring authority."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "hire": [
+                "B",
+                "A"
+              ]
+            }
+          ],
+          "headline": "A Music Store Fills a Genuine Paid Vacancy",
+          "body": "After actual fair selection and agreement, the still-operating shop hires the qualified willing adult for real funded work."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "accept_actual_reduced_hours_counteroffer": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Worker Accepts Different Hours and Declines Another Offer",
+          "body": "With real freely agreed funded terms, the employee stays on a genuinely shorter schedule and lawfully declines a higher-paying actual outside offer. No original-timeline resignation is filed as a current document."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Letter Does Not Become a Supportive Conversation",
+        "body": "The resident can retain actual knowledge of the letter, but no bond increase, job or revised contract follows from this failed first step."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the new agreement remains current in {now}, the actual shop roster shows the agreed shorter hours, and records show the genuine outside offer was lawfully declined. Later employment changes follow ordinary facts.",
+        "worst": "A future signature is information, not a job offer. Keep actual later choices and realized prefixes when any prerequisite fails.",
+        "twist": "The worker gains actual time away from work while foregoing a real higher-paying outside opportunity. The owner commits real resources to necessary lawful coverage; no free replacement employee or guaranteed happiness is created."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "uncanny",
+          "line": "I remember the signature on that letter. This time I signed for different hours."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "show_original_resignation",
+          "does": "With lawful informed voluntary permission, verify the immutable original-present letter actually written by A resigning from the identified B-owned business; give A knowledge of its exact real contents, date and provenance only. Apply no employment, relationship, wealth or legal action."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add show_original_resignation: verify the immutable original-present source, actual author A and business B identities, lawful access and informed voluntary permission. Give A knowledge of only the real contents, date and provenance. Do not create a job, dissatisfaction, bond change or operative resignation. Retain source provenance through resimulation.",
+        "Step 1 requires an actual freely wanted supportive interaction with B after disclosure; the bond increase is not the knowledge intervention’s direct effect. hire requires B still owning the actual viable shop, A adult with genuine current relevant skills, actual funded vacancy, fair selection, legal freely accepted terms and actual work; create only employment and pay actually earned.",
+        "accept_actual_reduced_hours_counteroffer requires the same A/B current employment, A real freely considered lawful departure, an independently genuine current funded outside employment offer with actually higher net weekly pay and stated hours, no coercion, B actual affordable counteroffer with fewer current weekly hours and real paid coverage by existing qualified willing staff or properly funded completed hiring. Require A informed voluntary acceptance, lawful settlement/decline of the outside offer and signed effective new terms. Record actual hours, wages and coverage costs once; create no outside employer, wage, refund or worker by narration. No change on failed combined eligibility. Gate A dialogue on survival, remembered authentic source signature, actual accepted new agreement and no later conflicting employment facts."
+      ],
+      "era_notes": "Apply actual employment, notice and contract rules of each year. A future personnel copy never binds a past worker or employer.",
+      "why_fun": "The player can change the decision behind a real future letter without turning its author into a puppet."
+    }
+  ]
+}

@@ -1,0 +1,693 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-3491",
+      "kind": "scenario",
+      "title": "The Coach Who Put an Adult Child on the Bench",
+      "category": "family",
+      "pitch": "Help a parent afford a real coaching course. Years later, a fair selection may cost that parent’s own adult child a place in the starting lineup.",
+      "present_hook": {
+        "what_you_notice": "A recreation archive preserves an unfinished coaching application and an unpaid course invoice.",
+        "where": "the gym",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The application in {year} stopped before training was completed."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            35
+          ],
+          "wealth": "poor",
+          "has_children": true
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "gym"
+          ]
+        },
+        "C": {
+          "age": [
+            0,
+            2
+          ]
+        },
+        "D": {
+          "age": [
+            0,
+            2
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "C is A actual child, direction A parent to C; D is unrelated to A, B and C. B owns the actual gym and may later operate a real adult basketball team. Baseline A lacks the identified coaching qualification. No future athletic ability, team, employment or position is presumed for either infant. Require present at least intervention+25."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Cover the actual remaining fee for the willing parent’s coaching course."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            },
+            "D": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_coaching_course": "A"
+            }
+          ],
+          "headline": "A Parent Completes an Actual Coaching Course",
+          "body": "The applicant completes the real instruction and assessment. The qualification grants no team or job."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            },
+            "D": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "hire": [
+                "B",
+                "A"
+              ]
+            }
+          ],
+          "headline": "A Qualified Coach Takes a Funded Recreation Job",
+          "body": "The still-operating gym hires {A} for an actual adult basketball coaching vacancy after lawful selection and agreement."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            },
+            "D": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "select_actual_starting_player": [
+                "A",
+                "C",
+                "D"
+              ]
+            }
+          ],
+          "headline": "A Coach Changes a Starting Lineup on Recorded Merit",
+          "body": "Under the actual team rules and current assessments, {D} receives the next starting assignment previously held by {C}. Both players remain eligible team members."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Coaching Course Remains Unfinished",
+        "body": "The gift follows actual course and refund terms. No credential, job or future playing position is created."
+      },
+      "present_day": {
+        "best": "If the chain occurred, a permitted team record in {now} shows the actual lineup change and its recorded grounds. Show a current bench position only while it remains true; neither player is frozen in one assignment forever.",
+        "worst": "An infant has no promised future team place. Preserve actual training, employment and independent player choices if later steps fail.",
+        "twist": "A parent gains a coaching career and another adult gains a deserved start, while the coach’s own adult child loses an actual starting assignment. No loss of parental affection is imposed."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "I know why the lineup changed. I still had to sit down."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_actual_coaching_course requires actual funds, available instruction, eligibility and passed assessments. hire requires B still owning the real solvent gym, A current relevant qualifications, an actual funded vacancy, fair lawful selection and freely accepted employment; pay only actual work.",
+        "select_actual_starting_player requires A still authorized coach, C and D now at least 23 and actual willing qualified roster members, C genuinely holding the next starting assignment, an actual upcoming adult game, published lawful team rules and independently recorded current performance/fitness evidence favoring D for this assignment. Require A lawful authority despite the parent relationship and all conflict safeguards. Record one specific game lineup change and notify both adults; invent no skill, injury, wage loss, dismissal or game result.",
+        "Gate C dialogue on survival, knowledge, actual completed bench attendance at the specified game and a genuinely understood stated reason. A future parent-child disagreement never changes kinship or bond automatically."
+      ],
+      "era_notes": "Use period-valid training, employment and competition rules. No modern statistics system or infant athletic destiny is assumed.",
+      "why_fun": "The player can see a useful career create a decision that the new coach cannot make easy for the family."
+    },
+    {
+      "id": "scenario-20261118-3492",
+      "kind": "scenario",
+      "title": "The Basket Workshop That Gave Back Its Reed Lease",
+      "category": "business",
+      "pitch": "Invest in a basket workshop’s real equipment plan and lawful reed lease. A later funded restoration may buy that lease back, paying the workshop while taking away its familiar local source.",
+      "present_hook": {
+        "what_you_notice": "A workshop ledger contains an unfinished equipment-and-supply proposal beside a river-parcel map.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposal in {year} required both actual tools and a lawful source of reeds."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "basket workshop"
+          ]
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        },
+        "C": {
+          "age": [
+            16,
+            20
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A owns a real lawful basket workshop. B actually owns the identified suitable river parcel and may freely lease lawful sustainable harvesting rights. C is an actual willing prospective trainee. Bind genuine equipment and supply shortfalls, safe permitted access and a real lease with a term extending beyond intervention+25. Baseline no completed equipment plan or lease."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "A",
+          "amount": "large",
+          "how_it_looks": "Fund the actual workshop equipment and supply-plan shortfall through the owner business account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "commission_tools_and_reed_lease": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Basket Workshop Secures Tools and a Lawful Reed Lease",
+          "body": "Actual equipment is commissioned and the parties complete the funded permitted harvesting lease. Its quotas and term are recorded."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "hire": [
+                "A",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Qualified Former Trainee Joins the Basket Workshop",
+          "body": "The still-operating workshop hires the now-adult qualified applicant for a genuine funded position."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "buy_back_actual_reed_harvesting_lease": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Funded Restoration Buys Back a Reed-Harvesting Lease",
+          "body": "The current parties voluntarily settle the actual lease buyback from real available funds. The workshop receives the agreed payment and relinquishes its identified harvesting rights."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Workshop Plan Does Not Complete",
+        "body": "The investment follows actual contracts and accounts. No tools, lease, job or restoration payment is created."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the settled restriction remains effective in {now}, permitted parcel records show that this workshop reed-harvesting right ended and its account records the actual buyback. Show the workshop open only if it still has lawful viable supplies and staff.",
+        "worst": "A proposed lease is not access to the river. Later harvesting, employment and restoration require their own actual permissions and resources.",
+        "twist": "The owner receives a real buyback payment but loses an actual local supply right. A restored parcel and a continuing profitable workshop are separate outcomes, neither granted by that payment."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "The lease money came back as a settlement. The reeds did not come with it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add basket workshop as a business kind with real premises, qualified staff, equipment, supply costs and operating funds. Bind business A to A actual owned shop ID. commission_tools_and_reed_lease requires paid available tools, completed safe installation, B actual parcel title, lawful species/site permissions, sustainable quota, access terms, actual rent and a voluntary enforceable term surviving the final interval. Debit actual costs once; do not duplicate investment capital or create reeds or land.",
+        "hire requires A still owning the viable business, C now adult with genuinely completed relevant training, an actual funded vacancy, fair lawful terms, consent and actual work. No automatic twenty-five-year employment, license or supply is implied.",
+        "buy_back_actual_reed_harvesting_lease requires the same surviving current lease and rights, A/B current authority, a genuine independently approved funded parcel-restoration plan, lawful informed free agreement, actual adequate available payer funds and settled rent, obligations, access and compensation terms. Transfer only the agreed actual payment and terminate only this harvesting right once. Record the funded plan but create no restored ecosystem or substitute supplier; actual restoration needs its own completed work. Gate dialogue on A alive, knowledge, settled payment and no later reacquired equivalent harvesting right."
+      ],
+      "era_notes": "Use actual tools, harvesting practices and property rules available in each year. A later conservation plan does not retroactively make the original permitted harvest unlawful.",
+      "why_fun": "A useful early supply agreement can become something worth paying to end."
+    },
+    {
+      "id": "scenario-20261118-3493",
+      "kind": "scenario",
+      "title": "The Mayor Whose Veto Did Not End the Library Debate",
+      "category": "politics",
+      "pitch": "Spread a truthful account of a resident’s workable library-hours proposal. A later mayoral career may end with the council expanding those hours over the mayor’s veto and postponing a real town-hall project.",
+      "present_hook": {
+        "what_you_notice": "An archive contains a costed but unfunded library-hours proposal and no accepted candidacy from its author.",
+        "where": "the public library",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposal in {year} had real estimates. It was not an appropriation or an election result."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "reputation": "mid"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A is the actual willing author of a genuine feasible library-hours proposal. B is a real resident who may later hold a lawful council seat. Baseline no scenario candidacy or funded hours change. Require an actual municipal charter permitting a council veto override, a real library and genuine lawful election calendar; neither office is assigned by reputation alone."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": 0.2,
+          "how_it_looks": "Share a truthful account of the actual costed proposal and its stated limits."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "run_for_mayor": "A"
+            }
+          ],
+          "headline": "A Library-Proposal Author Files a Real Mayoral Candidacy",
+          "body": "After satisfying the actual rules, {A} enters a genuine scheduled mayoral election. No win is implied."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "win_election": "A"
+            }
+          ],
+          "headline": "A Current Qualified Candidate Wins a Certified Election",
+          "body": "In an actual later mayoral race with a fresh valid candidacy, {A} receives the genuine certified winning result."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "enact_funded_library_hours_over_veto": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Council Override Funds Additional Library Hours",
+          "body": "After an actual mayoral veto and the required genuine recorded council vote, a lawful funded measure expands staffed library hours and reallocates the specified uncommitted town-hall funds."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Proposal Does Not Become an Accepted Candidacy",
+        "body": "Truthful publicity changes standing only through the direct rumor effect. No election, office or library budget is created."
+      },
+      "present_day": {
+        "best": "If the full chain occurred and the funded schedule remains current in {now}, the library notice shows the actual additional staffed hours. The lawful vote record explains the override and the specified town-hall project remains postponed only while that is still true.",
+        "worst": "A campaign does not last twelve years by assumption. Later candidacies, offices, votes and services require their own actual facts.",
+        "twist": "Library users gain actual funded opening hours. The mayor loses this particular veto and an actual uncommitted allocation for a preferred cosmetic town-hall carpet project is withdrawn, delaying that improvement."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I signed the veto. The doors still opened on the new hours."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Step 1 requires A current legal eligibility, freely chosen valid filing and an actual scheduled race; reputation is changed only once by the intervention. Step 2 requires a genuine independent fresh eligible candidacy for that year, real electorate and election, ordinary actual lawful voting, certified winning tally and accepted office. Do not extend the first campaign across a decade or invent voters, victory or continued incumbency.",
+        "enact_funded_library_hours_over_veto requires A actually mayor at that later year through real intervening results, B a current legally qualified participating council member, the real applicable charter, a genuinely introduced lawful measure, actual A veto and a real independent recorded vote meeting every quorum and override requirement. Require an actual available unrestricted municipal allocation to a genuinely planned optional cosmetic carpet project, no conflicting debts/contracts or safety duties, lawful budget amendment, genuine willing qualified library staff, paid coverage and completed additional opening hours. Move only those real uncommitted funds and record actual votes, schedule and project postponement; never force votes, invent resources or claim the carpet was already removed.",
+        "Mandatory charter and budget effects apply on every branch once legally completed; this chance concerns the whole qualifying discretionary initiative and completed service event. Gate A line on survival, informed actual veto and override, and personally known completed library opening under that measure. Later votes and employment may change the schedule normally."
+      ],
+      "era_notes": "Use the actual charter, election, employment and budgeting rules of each year; no fixed modern council structure is assumed.",
+      "why_fun": "The same proposal can start a career and later become something its author no longer controls."
+    },
+    {
+      "id": "scenario-20261118-3494",
+      "kind": "scenario",
+      "title": "The Weather Observer Who Left a Blank for a Wedding",
+      "category": "place",
+      "pitch": "Help a resident begin a checked daily weather record. Decades later, choosing a friend’s wedding may end a genuine observation streak without spoiling the years already recorded.",
+      "present_hook": {
+        "what_you_notice": "A weather-project folder records a missing equipment payment; a separate wedding account preserves an invitation its recipient declined.",
+        "where": "the public library",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The project in {year} never obtained the equipment it needed for checked observations."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            20,
+            25
+          ],
+          "married": false
+        },
+        "C": {
+          "age": [
+            20,
+            25
+          ],
+          "married": false
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A has a genuine willing weather-observation project and fee/equipment gap. B is A actual friend; C is an existing unrelated resident. Bind a lawful suitable observation site, actual fixed-time protocol and an original baseline later B/C wedding invitation that A declined for another commitment. Preserve that wedding only if genuine independent choices still support it after intervention; no marriage or future friendship is guaranteed."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Cover the actual project shortfall for suitable calibrated equipment and its checking requirements."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "begin_checked_daily_weather_record": "A"
+            }
+          ],
+          "headline": "A Resident Begins a Checked Daily Weather Record",
+          "body": "Actual equipment, site checks and completed observations establish the dated record. No missing measurements are filled by prediction."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "verify_actual_unbroken_observation_streak": "A"
+            }
+          ],
+          "headline": "A Checked Weather Ledger Earns an Unbroken-Streak Entry",
+          "body": "A qualified review confirms only the real consecutive valid observations that actually exist in the surviving ledger."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "marry": [
+                "B",
+                "C"
+              ]
+            },
+            {
+              "attend_wedding_and_record_missing_observation": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Wedding Leaves One Honest Blank in a Weather Ledger",
+          "body": "After a genuine voluntary wedding, the invited observer attends the actual gathering instead of taking the conflicting fixed-time reading. The ledger records the missed observation honestly."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Project Does Not Begin a Valid Record",
+        "body": "The gift creates no equipment completion or observations. Real procurement and refunds follow their actual terms."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the records survive in {now}, a consented weather ledger has the actual missing-observation entry beside a real permitted wedding photograph. Any later streak begins under the actual protocol; the earlier valid data remains valid.",
+        "worst": "No uninterrupted record or wedding is assumed. Actual weather, relationships, equipment and independent later observers continue normally.",
+        "twist": "The observer gains a shared occasion and gives up the continuation of a genuinely unbroken personal record. The town loses that specific measured reading, not its weather or all its previous data."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I left the space blank. I was there when they took the photograph."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "begin_checked_daily_weather_record requires actual paid suitable calibrated equipment, lawful stable site, a real defined fixed-time observation protocol, qualified checking and genuinely completed timestamped measurements. Persist source, observer, calibration, site and missing-data fields; invent no historical weather.",
+        "verify_actual_unbroken_observation_streak requires a real independent qualified review of every claimed consecutive observation under the unchanged applicable protocol and surviving records. Record only its actually supported length; never generate intervening readings, replace actual gaps or infer climate trends from a chance roll.",
+        "Step 3 requires B/C actual current mutual voluntary wedding plan, both legally free and capable at that year, all genuine legal formalities and real invitation to A. Apply marry once to the actual wedding event ID, suppressing any duplicate ordinary marriage transaction. attend_wedding_and_record_missing_observation requires A actual freely accepted invitation and completed attendance, a genuine unavoidable time conflict with the current valid personal fixed-time protocol, actual prior uninterrupted continuation, no valid substitute or automatic reading, and a consciously unmade observation. Record that single real gap, end only the personal streak and preserve all prior data. No storm, research loss or marriage longevity is invented. Gate A dialogue on survival, informed actual missed reading and actual presence in the consented surviving photograph."
+      ],
+      "era_notes": "Use real period-valid instruments and protocols. A later automatic station does not fill a missing earlier personal reading unless the actual rules permitted a real substitute measurement.",
+      "why_fun": "One blank square can show a choice that an unbroken column of numbers never could."
+    }
+  ]
+}

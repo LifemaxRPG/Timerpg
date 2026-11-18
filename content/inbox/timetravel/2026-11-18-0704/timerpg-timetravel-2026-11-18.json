@@ -1,0 +1,648 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-4241",
+      "kind": "scenario",
+      "title": "The Circle Organizer Who Later Needed a Chair",
+      "category": "rescue",
+      "pitch": "Introduce a willing bereaved resident to a qualified peer-circle organizer. Years later, the organizer may need the same ordinary kindness after a real loss of their own.",
+      "present_hook": {
+        "what_you_notice": "An abandoned circle notice hangs beside a stack of unused chairs in an actual available hall.",
+        "where": "the public hall",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposed circle in {year} never held its first meeting."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            35
+          ],
+          "married": true
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "C": {
+          "age": [
+            45,
+            50
+          ],
+          "married": true
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A is an actual appropriately trained nonclinical peer facilitator; B is an actual bereaved adult freely seeking this kind of support. C is A actual spouse, direction spouses A/C, alive at intervention. A/B are unrelated strangers and freely want the meeting. Bind a real affordable permitted venue and resources. Baseline no completed circle; C later death and A participation are not promised."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange a mutually wanted meeting about the real proposed peer circle."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "hold_actual_bereavement_circle": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Peer Circle Holds Its First Consenting Meeting",
+          "body": "Actual willing adults meet in a funded permitted room under agreed nonclinical support and privacy rules. The organizer sets out the real chairs."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "qualify_actual_peer_circle_facilitator": "B"
+            }
+          ],
+          "headline": "A Circle Participant Completes Real Facilitator Training",
+          "body": "After actual suitable training and supervised assessment, {B} accepts a voluntary bounded peer-facilitator role. No clinical authority is granted."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": false
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "attend_actual_circle_after_spouse_death": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Former Organizer Accepts a Seat after an Actual Loss",
+          "body": "After an independently recorded natural death, the bereaved organizer freely attends a real continuing meeting led by the qualified peer. No treatment result or end to grief is announced."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Introduction Does Not Become a Circle Meeting",
+        "body": "The introduction creates no participants, trust, treatment or future death. Actual private needs and choices continue normally."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the actual circle continues in {now}, its consented schedule offers the real meeting; describe attendance by {A} only when actually current and permitted. The actual death of {C} remains in the real household history.",
+        "worst": "A meeting cannot prevent or prescribe grief. No spouse death, continued group or support outcome appears because an earlier step failed.",
+        "twist": "A community gains a real support relationship, while its organizer loses an actual spouse and needs help in turn. The circle cannot restore the person who died."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I used to put the chairs out. Today someone saved me one."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "hold_actual_bereavement_circle requires A actual current suitable training and bounded nonclinical role, B informed free consent, real existing willing adults, affordable funded permitted safe venue and completed meeting. Record actual chair setup, participation and privacy choices; create no people, diagnosis, treatment, dependency or guaranteed friendship.",
+        "qualify_actual_peer_circle_facilitator requires B actual freely chosen available training, real resources, qualified supervision, passed appropriate assessment and accepted bounded role in the real continuing circle. No clinical license, salary, automatic membership or permanent competence is implied.",
+        "Step 3 overrides C alive to false and requires C independently recorded actual natural death before attendance in the selected interval, A actual continuing spousal relationship at that death and freely expressed current wish to attend, actual continuing funded meeting, B current appropriate competence and accepted facilitator duty, and completed voluntary A attendance. Do not cause or repeat a death, manufacture a grief trait or promise recovery. Record only actual loss history and chosen participation. Gate A line on survival, remembered real earlier chair setup, a genuine current attended meeting and an actual chair willingly kept available; protect private participation unless consent permits display."
+      ],
+      "era_notes": "Use available nonclinical peer-support practices and actual meeting permissions in each year. No modern clinical credential is projected backward.",
+      "why_fun": "Someone who once arranged the room can later be welcomed without being required to lead it."
+    },
+    {
+      "id": "scenario-20261118-4242",
+      "kind": "scenario",
+      "title": "The Sign Painter Who Made the Workshop Closing Notice",
+      "category": "business",
+      "pitch": "Help a young craftworker complete a genuine painted-sign commission. A later workshop may end with the owner carefully painting its own closing notice, with no typo to blame for the loss of a familiar trade.",
+      "present_hook": {
+        "what_you_notice": "An actual opening-day photograph shows a crooked paper shop notice; the requested painted sign was never completed.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The lettering estimate in {year} still had a real tools-and-materials shortfall."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            22
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "clothing store"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A has actual relevant basic lettering competence and a willing qualified first commission from B actual clothing shop. Bind genuine design agreement, available site/permission, real shortfall and funded buyer price. Baseline the requested painted sign and independent workshop do not exist. No career, later closure or pension is guaranteed."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Cover the actual tools-and-materials gap for the real agreed commission."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_paid_shop_sign": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Young Craftworker Completes a Real Paid Shop Sign",
+          "body": "Actual permitted lettering work is completed to the genuine agreed terms and paid from the buyer’s real funds."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "sign painting workshop"
+            }
+          ],
+          "headline": "A Qualified Sign Painter Opens a Funded Workshop",
+          "body": "With real qualifications, resources and permitted premises, the craftworker opens the actual viable business. No future customers or income are invented."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "close_shop": "A"
+            },
+            {
+              "paint_actual_own_closing_notice": "A"
+            }
+          ],
+          "headline": "A Sign Painter Completes the Workshop’s Own Closing Notice",
+          "body": "After a freely chosen lawful settled closure, the owner paints and posts an actual accurate closing notice for that same workshop. A completed career does not promise continued trade."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The First Painted Commission Is Not Completed",
+        "body": "The gift and actual buyer agreement follow their real material, fee and refund terms. No finished sign, workshop or later closure is created."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the notice survives in {now}, the same actual workshop is closed and its surviving owner-made notice accurately says so. Show a surviving early painted shop sign only if the real asset still exists.",
+        "worst": "A brush buys no career. Preserve actual work, payments and obligations when later premises, finance or closure choices fail.",
+        "twist": "The craftworker gains real paid work and a business, then gives up that active operation and its actual future trading opportunities by a voluntary closure. A pension or replacement job is not supplied."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "There is no mistake in that lettering. I checked it myself."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "complete_actual_paid_shop_sign requires A actual current relevant competence and legal work eligibility, real tools/materials and buyer-approved design, B actual authority for the site, lawful permits, safe completed work and actual agreed payment. Record the real sign asset, title and cash transfer once; no fabricated advertising success.",
+        "Add sign painting workshop as a business kind requiring actual lawful premises, competence, tools, staff if any, operating funds and viable permitted work. found_business requires A real sufficient capital and genuine opening; identify the new A-owned business and separately owned/leased premises without creating land or guaranteed orders. Bind close_shop business reference A to this created A-owned workshop ID, never B clothing store or a different A business.",
+        "The final effects are atomic and require A current actual ownership, freely chosen closure, a genuine affordable living plan, lawful notice and settled or preserved creditor/customer/employee/lease obligations, real accurate closing status, permitted notice location and completed notice made with actual available materials. paint_actual_own_closing_notice records that genuine A-made physical asset and its current factual wording once; close_shop ends only the actual business. Do not force retirement age, illness, a pension or other job. Gate A line on survival, memory of personally checked actual lettering and the notice still accurately reflecting the closed business."
+      ],
+      "era_notes": "Use available lettering materials, permissions and business arrangements of each year. A business closing does not erase historical authorship of its signs.",
+      "why_fun": "The player can recognize the same careful hand in a first commission and a final notice."
+    },
+    {
+      "id": "scenario-20261118-4243",
+      "kind": "scenario",
+      "title": "The Water-Finding Claim That Became a Testing Service",
+      "category": "uncanny",
+      "pitch": "Help a resident seeking a proper test of a water-finding claim be heard. Actual controlled work may lead to a legitimate testing service, while a later public correction costs the founder part of an old reputation.",
+      "present_hook": {
+        "what_you_notice": "A handwritten water-finding claim sits beside an uncompleted request for a controlled test; no successful well is established by the claim.",
+        "where": "the public library",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The request in {year} sought a real test. The moving twig was not a measurement of water."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "reputation": "low"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A made an actual unverified water-finding claim based on a genuinely observed twig movement and now freely requests a controlled test. B is an actual appropriately qualified independent investigator. Bind a lawful feasible real test protocol, existing ground-truth sites/data and resources. Baseline no completed test, water discovery or testing business. A claim is never treated as a simulation fact."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": 0.2,
+          "how_it_looks": "Truthfully report that the resident is asking for a controlled test, labeling the old water-finding statement as an unverified claim."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_controlled_water_location_test": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Independent Controlled Test Records Actual Predictions",
+          "body": "The qualified investigator completes the genuine blinded protocol against real ground truth. The resulting actual record supplies no reliable corroboration of the claimed method."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "water-testing service"
+            },
+            {
+              "hire": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Lawful Testing Service Hires a Qualified Investigator",
+          "body": "With real capital, authority and competent staff, the owner opens a genuine sampling/testing service under actual quality controls. It sells no water-finding guarantee."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "publish_actual_water_finding_correction": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "rep": "A",
+              "by": -0.1
+            }
+          ],
+          "headline": "A Testing-Service Founder Corrects an Old Water-Finding Story",
+          "body": "The founder authorizes an actual evidence-based correction of the documented old claim. A new modeled public response reduces standing; the legitimate current service remains governed by its real work."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Request Does Not Produce a Completed Controlled Test",
+        "body": "Publicity changes standing only through the direct rumor effect. It creates no water, evidence, qualification, service or proven special ability."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the records survive in {now}, an authorized account pairs the actual old claim with the genuine controlled results and correction. Show a current operating service only from real qualifications, staffing and business facts.",
+        "worst": "No untested claim locates water. Preserve actual measurements, ordinary licensing and private choices when later steps fail.",
+        "twist": "The founder gains an honest business opportunity but loses part of the old public standing through a genuine later correction. No groundwater, household supply or health is changed by the story."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "uncanny",
+          "line": "The twig moved. That was all I could honestly say."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "complete_controlled_water_location_test requires A informed free participation, B actual current independent qualifications, real available funded lawful sites and known ground truth, prespecified predictions/controls/blinding and completed observations. Compute results only from actual recorded predictions and ground truth; require this specific record not to corroborate reliable predictive ability. Do not force a result, create groundwater, claim a universal finding from one small test or allow a chance roll to grant dowsing power.",
+        "Add water-testing service as a business kind requiring real lawful sampling/analysis scope, A actual appropriate ownership/administrative competence, genuine premises/resources, quality controls and actual qualified staff/facilities. found_business and hire commit atomically only with real sufficient funds, B current relevant professional eligibility, freely accepted funded lawful work and actual opening. Use independently existing qualified laboratory capacity when required; create no lab, results, water safety conclusion, clients or income by narration. Bind hire employer A to this newly created A-owned water-testing-service ID.",
+        "publish_actual_water_finding_correction requires surviving authentic test/claim records, actual still-circulating attributable old account, A informed free evidence-based correction and B qualified factual review with required rights/permissions. Publish only genuinely supported findings and attribution; create no nonexistent well, fraud, apology debt or audience. Apply rep -0.1 once as the modeled reaction to this distinct new correction, not a second application of the original rumor. Gate A line on survival, real remembered original twig observation, knowledge and an honestly accepted current account."
+      ],
+      "era_notes": "Use the actual field methods, data and professional rules of each year. Later instruments do not supply missing earlier measurements.",
+      "why_fun": "A curious story can lead to useful honest work without ever making its original extraordinary claim true."
+    },
+    {
+      "id": "scenario-20261118-4244",
+      "kind": "scenario",
+      "title": "The Mayor Who Was Voted Out before the Term Ended",
+      "category": "politics",
+      "pitch": "Spread a truthful account of a resident’s workable town-management proposal. An elected career may later face a genuine recall, giving the town a new mayor while ending an officeholder’s actual term early.",
+      "present_hook": {
+        "what_you_notice": "An archive contains a costed management proposal and no accepted candidacy by its author.",
+        "where": "the town hall",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposal in {year} was an actual plan, not a budget appropriation or a winning tally."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "reputation": "mid"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A is the actual willing author of a real feasible town-management proposal. B is a real resident with no promised future office or opposition. Bind a genuine election calendar and a jurisdiction whose actual charter permits this specific lawful recall-and-replacement procedure. Baseline no scenario candidacy; no misconduct, petition, voters or recall grounds are invented."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": 0.2,
+          "how_it_looks": "Share a truthful account of the actual proposal and its real limits."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "run_for_mayor": "A"
+            }
+          ],
+          "headline": "A Proposal Author Files an Actual Mayoral Candidacy",
+          "body": "The eligible resident freely completes real filing for a genuine scheduled race. The accepted filing promises no result."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "win_election": "A"
+            }
+          ],
+          "headline": "An Actual Later Election Brings the Candidate to Office",
+          "body": "In an actual later race with a fresh valid candidacy, the resident receives the genuine lawful certified win and accepts office."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.5,
+          "effects": [
+            {
+              "remove_mayor_after_actual_recall": "A"
+            },
+            {
+              "win_election": "B"
+            }
+          ],
+          "headline": "A Certified Recall Ends a Term and Elects a Replacement",
+          "body": "An actual lawful completed recall removes the incumbent under the real charter. A viable qualified replacement candidate wins the actual required election and accepts the resulting office."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Proposal Does Not Become an Accepted Candidacy",
+        "body": "The direct rumor has only its actual standing effect. No elected office, public funds or later recall is supplied."
+      },
+      "present_day": {
+        "best": "If the chain occurred, records in {now} show the actual earlier election, shortened term and certified replacement. Display {B} as current mayor only while real later terms support it. No public project is implied by a campaign proposal.",
+        "worst": "A candidate does not stay on a ballot for twelve years by assumption. Later races, terms, petitions and results need their own actual facts.",
+        "twist": "The town gains a genuinely elected replacement. The original winner loses the actual remaining office powers and future salary for the ended term, with earned pay and legal rights preserved. A recall does not prove a crime."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "The town voted me in. Later it voted me out."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "Step 1 requires A actual current eligibility, free valid filing and a real scheduled race. Step 2 requires a genuine fresh qualifying candidacy in the selected later election year, actual voters and ordinary lawful voting, certified true winning tally and accepted office. Never extend the original campaign across a decade or double-apply the rumor.",
+        "The final effects require A actually incumbent at that later year through real intervening outcomes, an independently genuine valid petition with real eligible signatures and lawful grounds where required, completed review/notice, actual required recall election and genuine certified removal threshold. Require B actual current viable eligible replacement candidacy, real funded lawful election process, independent actual winning tally and accepted office under the same genuine charter procedure. remove_mayor_after_actual_recall ends only A remaining term/powers/unearned salary and settles actual earned pay/rights; win_election installs B once for the legally correct term. Create no voters, signatures, misconduct, result, project or public money.",
+        "Use stable event IDs and coalesce ordinary election/removal transactions; never suppress a valid recall or legal succession because a narrative roll fails. The combined chance concerns this whole qualifying discretionary electoral chain. Gate A line on survival, informed actual original win and later completed recall; a replacement need not remain mayor forever."
+      ],
+      "era_notes": "Apply the actual local charter, ballot, term and recall rules of each event year. No recall mechanism is assumed in a town whose law does not permit it.",
+      "why_fun": "A reputation boost can start a real public career without granting permanent ownership of the office."
+    }
+  ]
+}

@@ -1,0 +1,652 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-4961",
+      "kind": "scenario",
+      "title": "The Toymaker Who Paid to Bring the Toys Back",
+      "category": "business",
+      "pitch": "Invest in a toy shop’s properly tested wooden-toy line. A lasting trade may later face a genuinely documented batch defect, turning the maker’s next careful work into a funded recall rather than another sale.",
+      "present_hook": {
+        "what_you_notice": "An abandoned wooden-toy proposal lies beside an unsigned equipment quotation.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposed line in {year} never cleared its actual equipment shortfall."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "toy store"
+          ]
+        },
+        "B": {
+          "age": [
+            8,
+            10
+          ]
+        },
+        "C": {
+          "age": [
+            30,
+            40
+          ],
+          "has_children": true
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A owns the actual toy store and a genuine lawful manufacturing proposal. C is B actual parent, direction C parent to B; neither is promised an early purchase. Baseline the line did not open. The later recalled batch must be newly identified current stock or actual sold units, never presumed to be the same toys or children twenty-five years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "A",
+          "amount": "large",
+          "how_it_looks": "Fund the costed equipment shortfall through the actual toy-store account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "commission_tested_wooden_toy_line": "A"
+            }
+          ],
+          "headline": "A Toy Shop Opens a Properly Tested Wooden-Toy Line",
+          "body": "Qualified manufacture and actual age-appropriate checks support the real initial products. No purchase or later defect is guaranteed."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "hire": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Toy Shop Hires a Qualified Young Adult",
+          "body": "The now-adult applicant freely accepts a real funded production vacancy after relevant training. A childhood connection gives no automatic qualification."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "complete_funded_toy_batch_recall": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Maker Funds a Recall of a Documented Defective Batch",
+          "body": "A qualified independent finding identifies the actual affected units. The maker stops their sale and completes the required funded notices, returns and remedies, including one genuinely held by a known customer."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Wooden-Toy Line Does Not Open",
+        "body": "Investment follows actual contracts and accounts. No product, buyer, worker or defect is supplied."
+      },
+      "present_day": {
+        "best": "If all stages occurred and current records survive in {now}, the shop shows the real recall notice, affected stock is quarantined or disposed of as documented, and the actual customer remedy is recorded. Show {B} working only if still actually employed.",
+        "worst": "If step 1 fails, the unsigned quotation remains without this toy line. Later failure preserves actual production, employment and legal recall duties; it never makes a known unsafe product safe.",
+        "twist": "The real customer receives the required remedy and affected toys leave circulation. The maker pays actual testing, recovery and remedy costs; the customer gives up the specifically recalled toy rather than keeping both it and an unsupported replacement."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "I wanted the toy to be all right. The refund is not the same thing."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "commission_tested_wooden_toy_line binds A existing toy-store ID and requires lawful manufacturing authority, actual paid equipment/materials, competent staff and genuinely completed applicable qualified product/age checks. Create only the actual manufactured inventory and recorded results; no free stock, guaranteed safety forever, buyer or profit.",
+        "At step 2 B is 19..23. hire requires actual qualifications, a genuine funded lawful vacancy at the same continuing business, free acceptance and actual paid work. No employment lasts automatically to step 3.",
+        "complete_funded_toy_batch_recall requires A current owner/authorized responsible manufacturer, B current qualified employed participant, a genuine independently documented qualified defect/risk finding for exact current batch/unit IDs, and actual applicable remedy obligations. Require C genuine current lawful holder of one affected unit with documented entitlement, not necessarily an early customer or parent of a current child. Identify actual buyers only from real records, stop actual affected sales, fund and complete required notices and lawful retrieval/remedies, quarantine/dispose of actual returned stock and settle real customer payments/replacements exactly once. Require actual remedy costs paid from available lawful resources. Create no injury, defect, child, purchase or replacement stock by narration; any replacement must actually exist and pass required checks. Mandatory recall duties apply on every branch; chance concerns the completed qualifying event, not whether compliance is optional. Gate C dialogue on survival, knowledge, actual returned unit, received refund and genuine wish to retain that toy."
+      ],
+      "era_notes": "Apply the real toy, materials, age-rating and remedy rules in force. Initial tests cannot certify a different batch decades later.",
+      "why_fun": "A generous first investment can leave a maker responsible for bringing something back, not just sending it into town."
+    },
+    {
+      "id": "scenario-20261118-4962",
+      "kind": "scenario",
+      "title": "The Animal Warden Who Paid the Impound Fee",
+      "category": "money",
+      "pitch": "Help a young resident afford genuine animal-care training. A later public appointment may end with the warden collecting a personally owned dog from an independent officer and paying the same lawful fee as anyone else.",
+      "present_hook": {
+        "what_you_notice": "An old animal-care course form has a small unpaid balance and no completion stamp.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The applicant in {year} lacked the last course payment, not an automatic claim to a public job."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            22
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "A is a willing suitable applicant for actual qualified animal-care instruction. B is an existing distinct resident, not presumed an officer yet. Baseline A did not complete that course or take this employment path. A dog at the final step must be a genuinely existing then-current owned animal, never an intervention-year dog kept alive by implication."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Cover the actual balance for the freely chosen qualified animal-care course."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_animal_care_course": "A"
+            }
+          ],
+          "headline": "An Applicant Completes Qualified Animal-Care Instruction",
+          "body": "Actual instruction and assessment establish only the demonstrated relevant skills. They confer no public authority."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "appoint_actual_animal_warden": "A"
+            }
+          ],
+          "headline": "A Qualified Resident Takes an Actual Animal-Warden Post",
+          "body": "A genuine lawful recruitment and appointment fill the funded public vacancy. Pay and powers follow the actual position."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "independent_impound_and_lawful_owner_redemption": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Animal Warden Pays a Lawful Owner Redemption Fee",
+          "body": "An independent authorized officer handles the genuinely qualifying impound and owner claim. The warden retrieves the actual dog only after required lawful checks and payment without a personal waiver."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Course Does Not Become Completed Training",
+        "body": "The gift follows real fee and refund terms. No qualification, public vacancy, animal or violation is supplied."
+      },
+      "present_day": {
+        "best": "If the chain occurred and facts remain current in {now}, the authorized impound ledger contains the real independent case and paid owner receipt. Show {A} reunited with the dog only while that actual living animal remains in the lawful care of {A}.",
+        "worst": "If the course fails, the old unfinished form remains without this qualification. Later failures retain actual appointments, animals and legal duties; no dog is made to escape for the story.",
+        "twist": "The owner regains the real dog after proper checks, and equal administration is documented. The warden pays the actual applicable fee from personal funds and receives no job-based exemption; public money does not secretly cover it."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "The receipt has my name in the owner box. That was the right box."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "complete_actual_animal_care_course requires willing actual attendance, qualified funded instruction and genuine assessment of appropriate skills; settle tuition once and create no clinical credential, course place or animal.",
+        "appoint_actual_animal_warden requires A actual current full relevant qualifications and suitability, real lawful public recruitment/selection, an available approved funded vacancy and completed free appointment. Record employer, term, pay and exact powers. No municipal office or permanent employment appears from the course alone.",
+        "independent_impound_and_lawful_owner_redemption requires A genuinely still warden, a real independently existing then-current dog lawfully owned by A, an independently occurring actual event satisfying the real impound rules, B genuinely qualified authorized independent officer and required conflict safeguards. Do not cause escape, danger, neglect or injury. Record exact dog/case IDs, lawful custody, actual owner verification, welfare checks, appeal/exemption rights and lawful release; require an actually applicable nonwaived fee and real personal funds paid once to the proper account. No fee is invented or charged where a valid exemption applies. Mandatory animal welfare and due process apply on every branch; the roll concerns the completed qualifying event, not permission to withhold rights. Gate A dialogue on survival, actual ownership, independent completed case and authentic personal receipt."
+      ],
+      "era_notes": "Use actual animal-control, appointment, welfare, fee and appeal rules for each date. Do not project a modern shelter process into an earlier year.",
+      "why_fun": "The town can remember a public servant by a very ordinary receipt rather than a statue."
+    },
+    {
+      "id": "scenario-20261118-4963",
+      "kind": "scenario",
+      "title": "The Hatchery That Stopped Stocking the Old Pond",
+      "category": "place",
+      "pitch": "Introduce a qualified fish breeder to a willing pond owner. A lawful stocking agreement may support a hatchery, then end when an actual habitat plan gives up repeated stocking and the familiar fishing that depended on it.",
+      "present_hook": {
+        "what_you_notice": "A pond proposal has a blank supplier line and no completed stocking record.",
+        "where": "the river",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The plan in {year} needed a qualified supplier and real permission; it was not evidence that fish were already there."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A is a genuine qualified prospective breeder with a feasible funded-capacity proposal; B actually owns the identified existing lawful pond and is willing to discuss stocking. They are distinct strangers. Baseline this agreement never formed. Require actual species/site suitability and rights; do not assume fish, public fishing access or a later ecological problem."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange the requested meeting about the genuine stocking plan and its costs."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "complete_lawful_first_pond_stocking": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Pond Receives Its First Contracted Lawful Stocking",
+          "body": "Qualified actual stock, valid permissions and a completed funded agreement support the real delivery. No catch or future population is promised."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "fish hatchery"
+            }
+          ],
+          "headline": "A Qualified Breeder Opens a Funded Hatchery",
+          "body": "Actual lawful facilities, water rights, competent care and real capital support a completed opening. Earlier stocking is not counted again as new inventory."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "end_pond_stocking_under_verified_habitat_plan": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Pond Owner Ends Stocking under a Verified Habitat Plan",
+          "body": "The parties lawfully end the actual recurring contract and implement the funded qualified plan. Only monitored real habitat results may later be reported."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The First Stocking Does Not Complete",
+        "body": "A meeting creates no stock, permit, fish population or delivery. Actual preliminary commitments retain their real terms."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the plan persists in {now}, the pond records show ended deliveries and the actual posted access/fishing rules. Show native populations, cleaner water or other recovery only if independent monitoring actually establishes them.",
+        "worst": "If step 1 fails, the blank supplier proposal remains without these stocked fish. Later failures preserve actual livestock, contracts, rights and qualified care duties.",
+        "twist": "The owner gains the implemented habitat-management plan but gives up the actual repeated stocking and permitted fishing opportunity it sustained. The hatchery loses that genuine continuing paid order after all existing contract rights are settled."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I agreed to stop ordering fish. I still miss the old fishing days."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "complete_lawful_first_pond_stocking requires A genuine qualified lawful supply capacity, actual existing healthy suitable permitted stock, B actual pond title and informed funded contract, real species/site/water assessment, all permissions and completed actual transport/release. Track stock cohorts, source, consumed inventory and costs; invent no fish, catch, wild population or public access.",
+        "Add fish hatchery as a business kind requiring actual lawful suitable facilities, water rights, qualified care, biosecurity, permitted genuine stock and operating resources. found_business requires A real available capital, valid completed acquisition/lease and funded actual opening; create only supported facilities and inventory from real resources. Bind the hatchery ID independently of the pond.",
+        "end_pond_stocking_under_verified_habitat_plan requires A current hatchery authority and B current pond authority, an actual still-current recurring paid contract and genuine independently qualified present habitat findings supporting the precise alternative plan. Require lawful free termination or valid contractual procedure, real notice/refund/remaining-obligation settlement and actual funded approved implementation. Stop only future scheduled deliveries for this pond and implement exact existing permitted fishing/access changes with valid rights and notices; do not erase existing fish, deny other parties legal access or guarantee ecological benefit. Require B genuine earlier permitted fishing use dependent on those actual stockings for the stated loss. Gate B dialogue on survival, current authority, actual ended orders and remembered genuine fishing use."
+      ],
+      "era_notes": "Use the real species, water, stock-transfer and habitat rules at each date. A canceled order is not instant restoration.",
+      "why_fun": "A quiet pond can show both a practical change and the ordinary pastime someone chose to surrender."
+    },
+    {
+      "id": "scenario-20261118-4964",
+      "kind": "scenario",
+      "title": "The Pupil Who Bought the Retired Public Bell",
+      "category": "uncanny",
+      "pitch": "Introduce a willing bell repairer to a child who wants to learn, with guardian consent. The pupil may later open a workshop and buy the genuinely retired public bell, leaving the old teacher asking permission to touch it.",
+      "present_hook": {
+        "what_you_notice": "A photograph shows a silent public bell and an unused invitation for a supervised repair lesson.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "In {year}, a repairer was willing to teach if the guardian and asset custodian agreed."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            50,
+            55
+          ]
+        },
+        "B": {
+          "age": [
+            8,
+            10
+          ]
+        },
+        "C": {
+          "age": [
+            30,
+            40
+          ],
+          "has_children": true
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A is an actual qualified willing bell repairer; C is B actual parent, direction C parent to B, with lawful guardian authority. B genuinely wants suitable supervised instruction. Bind a real publicly owned bell and authorized custodian, actual lesson/repair need and resources. Baseline the lesson never occurred. No later retirement or auction is predetermined."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange the wanted meeting with the guardian present and the custodian’s genuine permission."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_supervised_public_bell_lesson": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Child Joins a Qualified Supervised Bell Lesson",
+          "body": "Appropriate funded instruction takes place under real guardian and custodian permission. Only actual assessed child-safe tasks are recorded."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "B",
+              "kind": "clock and bell repair workshop"
+            }
+          ],
+          "headline": "A Qualified Young Adult Opens a Repair Workshop",
+          "body": "The now-adult pupil opens a genuinely funded lawful workshop after real relevant training. A childhood lesson alone supplies no professional competence."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "purchase_retired_public_bell_for_workshop": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Former Pupil Buys a Genuinely Retired Public Bell",
+          "body": "A lawful authorized disposal and completed funded sale transfer the actual retired bell. Its former teacher visits under the new owner’s real permission."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Lesson Does Not Take Place",
+        "body": "The meeting creates no skill, repaired bell, workshop or auction. Public title and actual custodian duties remain intact."
+      },
+      "present_day": {
+        "best": "If the chain occurred and current facts hold in {now}, the actual bell stands in the pupil’s workshop under its new recorded title, with genuine opening/access terms. The old public display site is empty only if actual relocation left it so.",
+        "worst": "If step 1 fails, the unused lesson invitation remains. Later failures preserve genuine skills, public title and actual asset access; a proposed sale does not make the bell private.",
+        "twist": "The public owner receives the genuine lawful sale proceeds and the pupil gains the bell, but the pupil spends real purchase and transport funds. The old teacher loses any former custodian access and now needs the actual owner’s permission; ordinary visitors lose only the specific public access actually lawfully ended."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "uncanny",
+          "line": "I taught those hands where to rest. Now I ask before I put mine there."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "complete_supervised_public_bell_lesson requires A current qualified ability, B willing age-suitable participation, C valid consent/presence, genuine public-custodian authorization, funded safe premises/tools and actual appropriate instruction. Record only assessed supervised tasks and any genuinely completed qualified repair; no child professional credential, ownership or risky unsupervised work.",
+        "Add clock and bell repair workshop as a business kind requiring actual qualified competent repair skills, lawful suitable premises/tools, actual operating capital and completed opening. At step 2 B is 19..23 and must have genuinely completed later relevant training; found_business uses real available funds and valid resources, not skills magically conferred by the lesson. Bind the workshop ID to B.",
+        "purchase_retired_public_bell_for_workshop requires the exact real bell independently and lawfully retired from service, clear public title, actual authorized surplus determination, lawful sale/public bidding process with genuine required valuations/notices and no unrecorded donor restriction or protected public access. Require B genuine completed lawful purchase with real personal/business funds, funded qualified transport and safe installation at the same workshop; settle real proceeds once to the lawful public account. End only specifically documented former access rights that can legally end. Require A alive with genuine earlier custodian access, no continuing enforceable access right, and an actual freely permitted visit now; record B consent to handling and no repair authority beyond that consent. Do not demolish a school, manufacture bidders or turn a retired bell into an automatically functioning public alarm. Gate A dialogue on survival, genuine remembered instruction, actual changed title/access and current permitted visit."
+      ],
+      "era_notes": "Use actual public-asset, guardianship, work, auction and access rules for each year. A long memory grants no perpetual claim on public or private property.",
+      "why_fun": "A familiar object can make the years feel briefly reversed while its ownership changes in a perfectly ordinary way."
+    }
+  ]
+}

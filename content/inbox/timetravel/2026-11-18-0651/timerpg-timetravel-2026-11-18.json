@@ -1,0 +1,701 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-4111",
+      "kind": "scenario",
+      "title": "The Stepsiblings Who Kept Each Other after the Divorce",
+      "category": "love",
+      "pitch": "Introduce two single parents who want to meet. Their children may form a lasting chosen family even if the parents’ marriage eventually ends.",
+      "present_hook": {
+        "what_you_notice": "Two household entries in the original present have no marriage connecting the parents and no shared family history between their children.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "In {year}, the parents had not met through the proposed gathering."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "married": false,
+          "has_children": true
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "married": false,
+          "has_children": true
+        },
+        "C": {
+          "age": [
+            3,
+            5
+          ]
+        },
+        "D": {
+          "age": [
+            3,
+            5
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1975,
+          1995
+        ],
+        "notes": "A is C actual parent and B is D actual parent; directions A to C and B to D. A/B are unrelated legally single adults who freely want the real introduction. C/D are distinct unrelated existing children. Baseline neither parent marriage nor shared stepfamily exists. Preserve every actual other-parent, guardian, custody and support right; no adoption or shared home is implied."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange a mutually wanted meeting at the actual gathering."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            },
+            "D": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "marry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Single Parents Freely Complete a Lawful Marriage",
+          "body": "After genuine mutual courtship and valid formalities, the parents marry. Their existing children acquire only the stepfamily connections supported by that marriage and actual law."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            },
+            "D": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "bond": [
+                "C",
+                "D"
+              ],
+              "by": 0.4
+            }
+          ],
+          "headline": "Two Young People Choose to Keep a Family Connection",
+          "body": "Actual freely wanted supportive contact strengthens the two young people’s bond. Adult permissions and existing custody rights remain in force wherever needed."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            },
+            "D": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "divorce": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "bond": [
+                "C",
+                "D"
+              ],
+              "by": 0.1
+            }
+          ],
+          "headline": "A Divorce Ends a Marriage while a Chosen Family Continues",
+          "body": "After a real lawful divorce, the now-adult former stepsiblings freely complete a supportive exchange and keep their own family connection. The parents’ actual obligations are settled under the order."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Introduction Does Not Become a Marriage",
+        "body": "The meeting creates no marriage, stepfamily, child or household. Each resident retains actual relationships and choices."
+      },
+      "present_day": {
+        "best": "If the full chain occurred and their current choices still support it in {now}, {C} and {D} describe each other as family alongside the actual parental marriage-and-divorce record. They remain the same existing residents, not newly born siblings.",
+        "worst": "Marriage does not guarantee a child bond. Divorce does not dictate adult estrangement or continued contact; display only actual relationships.",
+        "twist": "The children gain a genuine chosen family connection while the parents lose their actual legal union and bear its real settled costs. No happy ending is imposed on either generation."
+      },
+      "npc_lines_after": [
+        {
+          "who": "D",
+          "mood": "grateful",
+          "line": "They ended their marriage. We did not end being family."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "Step 1 requires A/B alive, legally free and capable, genuine mutually wanted relationship and completed actual marriage process. The introduction itself supplies no bond or marriage. Derive only lawful stepfamily annotations from the existing parent links; do not create biological siblinghood, adoption, a home or changed custody.",
+        "Step 2 requires genuine actual prior permitted contact and a completed supportive interaction freely wanted by C/D; check current ages and all guardian/other-parent permissions where needed. Apply the bond increase once without fabricating eleven years of events.",
+        "Step 3 requires A/B still married to each other until their actual voluntary valid divorce, applicable process and settled actual property/debt/housing/dependent obligations. C/D must both now be adults freely choosing a genuinely completed supportive exchange after that event. The divorce and later bond update form this qualified combined step but never override an independently valid court order or force contact. Gate D dialogue on survival, actual current chosen-family self-description with C, supportive current bond, known parental divorce and no later parental remarriage making the statement misleading."
+      ],
+      "era_notes": "Use the actual marriage, divorce and stepfamily rules of each year. A family word chosen by adults is not an invented biological relationship.",
+      "why_fun": "A changed family tree can leave a connection that the people who first brought it together no longer control."
+    },
+    {
+      "id": "scenario-20261118-4112",
+      "kind": "scenario",
+      "title": "The Ring That Outlasted a Dental Bill but Not a Course Fee",
+      "category": "money",
+      "pitch": "Help a parent afford actual prescribed dental care without selling a family ring. Years later, an adult child may freely use that gifted ring to pay a real course fee instead of keeping it as an heirloom.",
+      "present_hook": {
+        "what_you_notice": "An old household account pairs an unpaid dental-care estimate with a completed ring sale in the original history.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The ring was sold after the real fee gap in {year} could not be met."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            40
+          ],
+          "wealth": "poor",
+          "has_children": true
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "dental practice"
+          ]
+        },
+        "C": {
+          "age": [
+            8,
+            10
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A is C actual parent, direction A to C. B owns the actual lawful dental practice and is appropriately qualified for A real independently prescribed denture care. Bind genuine fee gap, available appropriate treatment and A actual unencumbered family gold ring with documented title. Baseline the ring was sold to help pay that bill. No later ring gift, course or gold value is promised."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Cover the real remaining dental-fee gap without requiring a future favor or ring transfer."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_denture_care_and_retain_ring": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Parent Completes Prescribed Care and Keeps a Ring",
+          "body": "Qualified actual consented care is completed and paid from real funds. The owner freely keeps the existing ring instead of making the original sale."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "give_actual_ring_to_adult_child": [
+                "A",
+                "C"
+              ]
+            }
+          ],
+          "headline": "An Adult Child Receives an Unconditional Ring Gift",
+          "body": "The actual owner freely gives the surviving ring to the now-adult child with clear lawful title. No marriage or obligation to keep it is attached."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "sell_and_refine_actual_ring_for_course": "C"
+            }
+          ],
+          "headline": "An Adult Trades an Heirloom Shape for a Real Course Place",
+          "body": "A lawful voluntary sale and completed qualified refining end the ring’s actual form. Real received proceeds pay the eligible adult’s actual course enrollment fee."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Care and Ring-Retention Plan Does Not Complete",
+        "body": "The gift follows actual care and household accounts. No treatment outcome, retained ring, later ownership or course appears through this failed step."
+      },
+      "present_day": {
+        "best": "If the chain occurred, permitted records in {now} link the original actual ring, its unconditional gift, completed refining and paid course enrollment. A surviving photograph may show the old shape; no duplicate ring or earned qualification is created.",
+        "worst": "Paying a fee guarantees no clinical outcome or future gift. Preserve actual care, finances and title when later steps fail.",
+        "twist": "The adult child gains a real course place and gives up the actual heirloom form. The parent who once saved it no longer controls that choice after the genuine unconditional gift."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I gave it away. That meant the next choice was not mine."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "Add dental practice as a business kind with actual lawful premises, qualified practitioners, funds and current clinical authority. complete_actual_denture_care_and_retain_ring requires real independent clinical indication, A informed voluntary consent, suitable qualified available care, actual completed fitting/follow-up and reconciled fees from real resources. Record only assessed actual results, never a promised cure, speech change or social outcome. A must actually retain clear ring title and freely abandon the planned sale; do not duplicate the ring from the original timeline.",
+        "give_actual_ring_to_adult_child requires A continuing lawful unencumbered title to the same surviving asset, C now adult, informed free unconditional gift and acceptance, lawful transfer and no competing property claim. Transfer that asset once and retain its provenance; do not grant A a continuing veto or make a wedding or family duty.",
+        "sell_and_refine_actual_ring_for_course requires C current actual title and free informed choice, a real qualified lawful buyer/refiner, independently assessed actual gold/value, lawful fully paid sale, completed refining with tracked material/asset state and a genuine eligible available course place. Pay only the real received unencumbered proceeds toward actual affordable enrollment, settle any remainder and grant no unearned qualification. Create no buyer, gold, price or second ring. Gate A dialogue on survival, knowledge of the earlier unconditional gift and actual later decision, with no implied right to control C property."
+      ],
+      "era_notes": "Apply actual clinical, property, precious-material trade and adult-education rules of each year. A ring keeps value only where real material and a real buyer support it.",
+      "why_fun": "A small avoided sale can leave a future adult a choice that its original owner would never have made."
+    },
+    {
+      "id": "scenario-20261118-4113",
+      "kind": "scenario",
+      "title": "The Canoe-Club Founder Who Had to Pay for the Repair",
+      "category": "rivalry",
+      "pitch": "Spread deserved praise of a real canoe repairer. A shared boat may become a club resource whose founder later owes an actual assessed damage charge like any other member.",
+      "present_hook": {
+        "what_you_notice": "A stored canoe sits beside an unfinished shared-repair proposal; no lending club was formed.",
+        "where": "the river",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposal in {year} needed a real qualified repairer, funds and agreed ownership terms."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "reputation": "mid"
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "A actually owns the identified repairable canoe and B has verified relevant repair competence. They know each other and genuinely want the shared project. Bind actual lawful ownership, real repair needs, available resources and permitted suitable river access. Baseline the repair and club are unfinished. No accident, damage or liability is presumed."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "B",
+          "amount": 0.2,
+          "how_it_looks": "Give a truthful favorable account of the repairer’s actual verified work."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_shared_canoe_repair": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Residents Complete a Safe Shared Canoe Repair",
+          "body": "Actual funded qualified repairs and checks restore the identified canoe to its approved use. Both adults freely settle their genuine shared ownership and costs."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "contribute_actual_canoe_to_club": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Shared Canoe Enters a Lawful Lending Club",
+          "body": "Actual owners freely contribute the real boat to a funded voluntary club under accepted booking, custody and damage terms. Founders receive no immunity from those terms."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "settle_actual_founder_canoe_damage": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Club Founder Settles a Genuine Boat-Damage Charge",
+          "body": "After an independently real damage event and lawful fair assessment, the responsible member pays only the actual required charge. Qualified completed repair settles the real damage under the club terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Shared Repair Does Not Complete",
+        "body": "Praise changes standing only through the direct rumor effect. No sound boat, new ownership, club or damage charge is invented."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the records survive in {now}, the club ledger shows the actual assessment, payment and completed repair to its identified boat. Show it available only with real current safe condition and booking rights.",
+        "worst": "A club cannot invent an accident or charge a founder merely for existing. Any damage, assessment and repair require actual facts and due process under the accepted lawful terms.",
+        "twist": "Members gain a genuine shared repaired resource. The founder loses actual money to a real repair obligation that earlier effort and past ownership do not automatically settle."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "I helped fix it the first time. That did not pay this repair bill."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "complete_actual_shared_canoe_repair requires the actual existing asset, A clear title, B genuine current competence, real paid materials/resources, completed suitable safe work, qualified checks, lawful appropriate use and voluntary clear shared-title/cost agreement. Record the same boat, actual contributions and agreed shares once; truthful rumor supplies no money or automatic workmanship.",
+        "contribute_actual_canoe_to_club requires both current actual owners consent, a real willing voluntary association of existing adults, lawful funded custody, actual safe access/storage, actual title transfer or expressly defined lawful use grant and informed fair booking/damage/insurance terms. Record finite rights and obligations without creating members, boats or permanent safe condition.",
+        "settle_actual_founder_canoe_damage requires A actual current member/user, an independently documented genuine later damage event involving this same actual boat, qualified fair assessment, A actual lawful liability under the current agreed terms and any insurance, proper notice/review and B current legitimate club administration. Require real sufficient available payer/insurance funds as applicable, actual approved qualified repair capacity and completed repairs. Transfer only the actual valid member charge and real repair payments once; do not invent damage, negligence, a culprit, insurer, invoice or profit. No penalty for being a founder and no waiver by friendship. Gate A dialogue on survival, remembered actual earlier repair contribution, known valid current settled charge and no genuine prior agreement already paying that obligation."
+      ],
+      "era_notes": "Use actual boat, insurance, association and water-access requirements of each year. A recreational canoe is not safe merely because an old ledger says it once was.",
+      "why_fun": "A useful shared thing can outlive the assumption that its founder will always be treated differently."
+    },
+    {
+      "id": "scenario-20261118-4114",
+      "kind": "scenario",
+      "title": "The Bookmobile Driver Who Waited on the Curb",
+      "category": "place",
+      "pitch": "Help a resident complete an actual driving qualification. A paid bookmobile career may later end with the former driver borrowing books from the service and leaving the driving to a qualified successor.",
+      "present_hook": {
+        "what_you_notice": "A public-library folder holds an unfinished vehicle-qualification application and a funded route with no completed appointment from its applicant.",
+        "where": "the public library",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The application in {year} lacked its actual qualification payment and training resources."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            18,
+            22
+          ]
+        },
+        "C": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A is an actual willing eligible applicant with a real qualification shortfall. C is the actual authorized public-library transport coordinator. B is an existing unrelated resident, not promised a future job. Bind a genuine public bookmobile service, real route/vehicle resources and actual current license requirements. Baseline A has not completed the qualification or been appointed."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Cover the actual required qualification and training shortfall through the lawful account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_bookmobile_driving_qualification": "A"
+            }
+          ],
+          "headline": "An Applicant Completes Real Bookmobile Driving Requirements",
+          "body": "Actual instruction, assessment and required lawful authorization are completed. No vehicle, job or lifelong fitness is supplied."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "appoint_actual_bookmobile_driver": [
+                "A",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Library Fills an Actual Paid Bookmobile Vacancy",
+          "body": "After genuine fair selection, the qualified willing adult starts the real funded driving role under lawful terms and supervision."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "retire_and_borrow_on_actual_bookmobile_route": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Former Driver Borrows Books from a Qualified Successor",
+          "body": "The incumbent freely leaves the actual role under a viable real living plan. After lawful funded succession, the former driver completes a genuine ordinary loan at the actual continuing bookmobile stop."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Application Does Not Become a Qualification",
+        "body": "The gift earns no license or public job. Actual application, course and refund rules still govern the real funds."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the service continues in {now}, authorized records show the real driver handover and the ordinary completed loan to {A}. Show a curbside meeting only during an actual visit at the genuine permitted stop; the current vehicle need not be the original van.",
+        "worst": "No gift guarantees public employment, a pension, a route or a successor. Later work, financial means and library services need their own actual facts.",
+        "twist": "The successor gains a real funded job and the former driver keeps access to an actual public service, while giving up that paid role, its earnings and its driving authority. No free retirement income or forced incapacity is created."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "The books still come. The driving is someone else’s job now."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "complete_actual_bookmobile_driving_qualification requires actual available qualified instruction, paid resources, legal eligibility and passed examinations/official grant for the real applicable vehicle/service. Record scope and expiry; no automatic renewals, ownership or health outcome.",
+        "appoint_actual_bookmobile_driver requires C current lawful hiring authority for the actual library entity, genuine funded vacancy/route, A current qualifications and eligibility, fair lawful selection, freely accepted terms, actual safe permitted vehicle and completed start. Record the public employer, actual duties and pay only actually earned; C does not personally acquire the service.",
+        "retire_and_borrow_on_actual_bookmobile_route requires A actual incumbent freely choosing a lawful settled departure, actual affordable living resources without an invented pension, C current authorized administration, a genuine continuing funded vacancy/service and B independently current qualified adult with accepted lawful fair appointment and actual driving start. Settle real wages/benefits/obligations and end only A role. Require a real permitted accessible route stop, real book stock and ordinary valid A borrower eligibility, consent and completed recorded loan. Transfer no book title by lending and create no staff member, vehicle, book or benefit. Gate A line on survival, knowledge, actual ordinary borrowing and no later restored bookmobile-driver role; never imply A cannot drive privately."
+      ],
+      "era_notes": "Use actual library governance, employment and vehicle rules of each event year. Leaving one job is not proof of statutory retirement age or pension eligibility.",
+      "why_fun": "The same service can meet one resident first as work and later as something worth waiting for."
+    }
+  ]
+}

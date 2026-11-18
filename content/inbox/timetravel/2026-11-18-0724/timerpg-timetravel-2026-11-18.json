@@ -1,0 +1,672 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-4441",
+      "kind": "scenario",
+      "title": "The Braille Reader Who Chose a Different Subscription",
+      "category": "family",
+      "pitch": "Help a child complete real Braille instruction. A later adult may choose an available audio subscription instead of continuing a paid printed series, keeping the old reading skill while changing who gets the next order.",
+      "present_hook": {
+        "what_you_notice": "An unfinished accessible-reading enrollment sits beside a real unpaid resource estimate.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The course in {year} never cleared its actual materials and instruction gap."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            8,
+            10
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "accessible-format publisher"
+          ]
+        },
+        "C": {
+          "age": [
+            30,
+            40
+          ],
+          "has_children": true
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "C is A actual parent, direction C parent to A, and gives necessary guardian consent. A is an actual blind child freely wanting suitable Braille literacy instruction, with independently established reading needs and a genuine course/resource gap. B owns a real appropriately qualified accessible-format publishing operation. Baseline no completed course or paid A subscription. No later reading preference is predetermined."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Cover the actual shortfall through the properly supervised instruction account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_child_braille_instruction": [
+                "A",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Child Completes Suitable Braille Instruction",
+          "body": "Actual qualified instruction and attendance produce only the assessed real learning. No change in vision or professional qualification is implied."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "buy_actual_braille_series_subscription": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Adult Reader Receives a Real Authorized Braille Series",
+          "body": "The now-adult reader freely pays an affordable actual subscription and receives the genuinely available authorized editions under its real terms."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "replace_actual_print_subscription_with_audio": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Reader Freely Changes a Real Subscription Format",
+          "body": "The reader lawfully ends the actual print subscription and takes an independently available accessible audio service using real funds and suitable equipment. Earlier owned copies and actual skills are not erased."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Course Does Not Become Completed Instruction",
+        "body": "The supervised gift follows actual fee and refund terms. No literacy result, paid order or later preference is created."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the arrangements remain current in {now}, permitted household records show the actual format change, surviving owned print copies and real audio entitlement/equipment. Describe retained Braille skill only from current actual assessment.",
+        "worst": "No course dictates a future preference. Actual access, skills, editions, devices and subscriptions require their own real facts.",
+        "twist": "The reader gains a freely chosen real format and gives up the next print-series deliveries within the actual budget. The original publisher loses that genuine continuing customer order without losing ownership of its own work or the reader losing a right to choose."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "The old copies were paid for. The new orders stopped."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "Add accessible-format publisher as a business kind with real lawful premises/resources, qualified production/proofreading, actual rights to existing works and operating funds. complete_actual_child_braille_instruction requires A willing participation, C lawful guardian consent, actual appropriate qualified teacher, suitable funded resources/access and completed instruction with genuine assessed learning; create no teacher, diagnosis, cure or assumed skill.",
+        "buy_actual_braille_series_subscription requires A now adult with actual voluntary informed choice and affordable funds, B current lawful viable operation, genuine existing authorized editions and real fulfilled deliveries. Settle actual payment, copy title or loan/license rights exactly as contracted; no books, author rights, income or current ability appear without records.",
+        "replace_actual_print_subscription_with_audio requires an actual still-current paid print agreement, A current free informed preference, lawful notice/fee/refund settlement, an independently existing authorized actual audio provider and titles, real sufficient funds and genuinely usable accessible playback equipment already owned or lawfully acquired with real resources. Complete actual new entitlement and access; transfer no copyright and erase no owned print copies. Do not call one format universally superior or assume disability determines preference. Gate B dialogue on survival, knowledge, actual earlier paid copies and genuinely ended continuing orders with no later restart."
+      ],
+      "era_notes": "Use formats and access technology actually available at each event year, including real tapes where appropriate; no modern service is projected backward.",
+      "why_fun": "The child opportunity remains valuable even when the adult later chooses a different way to read."
+    },
+    {
+      "id": "scenario-20261118-4442",
+      "kind": "scenario",
+      "title": "The Fishing Derby That Ended with Refunds",
+      "category": "money",
+      "pitch": "Introduce a real organizer to a willing bait-shop sponsor. A durable river event may later honor its refund promise during an actual closure, returning entry money while leaving its organizer with a paid printing bill.",
+      "present_hook": {
+        "what_you_notice": "An unused derby poster has a blank sponsor line and no completed first-event record.",
+        "where": "the bait shop",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposal in {year} needed a willing sponsor, actual permissions and real operating funds."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bait shop"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "A is an actual willing competent prospective organizer. B owns the real bait shop and genuinely wants to consider the proposal. They are unrelated strangers. Bind an actual suitable permitted river site, available lawful event resources and real existing willing adult participants. Baseline no completed derby or sponsorship. No fish, catch, unsafe water or closure is presumed."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange a mutually wanted meeting about the genuine event and sponsorship proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "hold_actual_first_fishing_derby": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A River Fishing Derby Completes Its First Lawful Event",
+          "body": "Actual willing participants complete the funded permitted program under its real rules. Only genuine recorded catches and results count."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "adopt_and_fund_actual_derby_refund_terms": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Continuing Derby Adopts a Funded Refund Promise",
+          "body": "The actual current organizers freely adopt lawful cancellation terms and hold genuine entry/refund funds under the agreed controls. No weather or future turnout is guaranteed."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "cancel_actual_closed_river_derby_and_refund": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Genuine River Closure Brings Actual Entry Refunds",
+          "body": "An independently real applicable closure prevents the genuine scheduled event. Organizers complete the required lawful cancellation and refund actual paid entries; genuinely sunk printing costs remain paid."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The First Derby Does Not Complete",
+        "body": "A meeting creates no sponsor payment, entrant, catch or event. Actual preliminary agreements and deposits follow their real terms."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the records survive in {now}, the event account shows the actual closure, completed valid refunds and the genuine nonrefundable printing expense of {A}. Show a canceled poster only if the actual printed asset survives.",
+        "worst": "No event creates a fish or forces a dangerous river condition. Every actual permit, closure, refund and later event follows its own facts.",
+        "twist": "Entrants recover real money under their actual rights. The organizer bears the actual personally paid unrecoverable printing cost and loses that planned occasion, even though the promise was kept."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "The entry money went back. The printer had already been paid."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "hold_actual_first_fishing_derby requires A actual organizing competence, B actual informed funded lawful sponsorship, genuine permissions/site conditions, real existing willing eligible adults, qualified appropriate supervision and a completed lawful event. Reconcile actual costs/entries only, with no invented fish, catch, winner, prize or participant.",
+        "adopt_and_fund_actual_derby_refund_terms requires the genuinely continuing organization through actual intervening events where recorded, A/B current authority, informed lawful rules, actual affordable event resources, clear custody of real entry/refund balances and completed valid adoption. Record exact qualifying cancellation, notice and refund terms; do not mint reserves, guarantee turnout or duplicate prior payments.",
+        "cancel_actual_closed_river_derby_and_refund requires a real fresh scheduled funded event and genuine entrants with actual paid fees, a genuine independently measured/officially applicable river closure, actual A/B duty/authority, required notices and enough real available held or lawfully supplied funds to settle actual refund rights. Require A actually personally paid nonrefundable printing invoice from real funds with no reimbursement entitlement; preserve that sunk cost and actual remaining assets. Complete real refunds once against the original entry IDs, settling all other actual contractual obligations. Mandatory closure and valid refunds remain obligatory on every branch; this chance concerns the completed qualifying event, not whether safety or contracts apply. Gate A dialogue on survival, knowledge, actual refunds and paid printing."
+      ],
+      "era_notes": "Use actual river, fishing, event and accounting rules of each year. Entry money is never a free reserve belonging to the organizer.",
+      "why_fun": "A kept promise can be visible in a canceled event and an honest account rather than a new trophy."
+    },
+    {
+      "id": "scenario-20261118-4443",
+      "kind": "scenario",
+      "title": "The Parlor Menu That Got Smaller So a Job Could Stay",
+      "category": "business",
+      "pitch": "Invest in the real freezer plan of a parlor. A larger menu may support a paid job, then shrink under actual costs so that worker stays while a regular customer loses a favorite order.",
+      "present_hook": {
+        "what_you_notice": "A parlor archive contains an uncompleted freezer proposal and a real menu already offering a labor-intensive specialty.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The equipment plan in {year} had a real funding gap; its proposed larger menu was never completed."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "ice cream parlor"
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            22
+          ]
+        },
+        "C": {
+          "age": [
+            20,
+            30
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A owns the actual lawful parlor and a genuine costed freezer/menu plan. B is an actual willing potential worker, not assumed qualified. C is an actual repeat customer with a documented preference for the genuine existing labor-intensive specialty. Bind real recipes, stock controls and equipment shortfall. Baseline no completed expansion or new hire; future costs and orders are not promised."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "A",
+          "amount": "large",
+          "how_it_looks": "Fund the actual freezer-plan shortfall through the business account of the owner."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "commission_parlor_freezer_and_menu": "A"
+            }
+          ],
+          "headline": "A Parlor Completes a Funded Freezer and Menu Plan",
+          "body": "Actual equipment and qualified validated production make the genuine expanded menu available. No customer, revenue or health outcome is invented."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "hire": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Parlor Fills an Actual Paid Preparation Vacancy",
+          "body": "The operating parlor hires the genuinely qualified willing adult into a real funded lawful role. Pay accrues only for actual work."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "reduce_actual_menu_and_retain_preparation_job": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Parlor Cuts Real Menu Items and Keeps a Funded Job",
+          "body": "Under actual independently recorded costs and a viable real plan, the owner removes specified labor-intensive items while retaining the existing paid role. A genuine affected customer order is lawfully canceled and settled."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Freezer Plan Does Not Complete",
+        "body": "The investment follows actual contracts and accounts. No equipment, menu, hire or later cut is supplied."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the decision remains current in {now}, the real menu omits the recorded specialty, current employment/pay records support the retained role, and the actual canceled order of {C} and settlement are documented. Later changes remain possible.",
+        "worst": "A bigger freezer guarantees no sales or job. Real staffing, recipes, costs and customer commitments retain their actual status after a failed step.",
+        "twist": "The worker keeps an actual funded job while the regular customer loses an actual ordered specialty despite receiving the required settlement. The owner pays real refund and operating costs rather than receiving free payroll support."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "I got my money back. That does not put my usual back on the board."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "Bind business A to A actual parlor ID. commission_parlor_freezer_and_menu requires real capital, available equipment, paid lawful installation/checks, actual recipes/ingredients and genuinely completed qualified safe production. Update real capacity and offered items only; never duplicate invest, stock, demand or income.",
+        "hire requires A actual continuing viable operation, B adult with real current relevant qualifications, genuine funded vacancy, fair lawful terms, free acceptance and actual work. No twenty-five-year employment or guaranteed pay is assumed.",
+        "reduce_actual_menu_and_retain_preparation_job requires the same real owner/business and B actual current paid position, independently real current cost pressure, a genuine informed viable funded current operating plan using actual orders/resources/costs, lawful rights and actual implementation removing identified existing menu items. B must really remain employed and be paid for actual retained duties, with no invented subsidy or forced unpaid hours. Require C genuine existing paid affected specialty order, lawful cancellation/consent as required, valid notice and completed actual refund/settlement from available funds; retire only the specified offered items and account for real stock. Do not assume allergy needs, change medical eligibility or promise permanent profitability. Gate C dialogue on survival, knowledge, genuine preference, actual received refund and specialty still unavailable."
+      ],
+      "era_notes": "Use actual equipment, food, employment and contract rules of each year. A smaller menu does not itself prove that every future payroll can be met.",
+      "why_fun": "A familiar counter can keep one person working by making another person choose something else."
+    },
+    {
+      "id": "scenario-20261118-4444",
+      "kind": "scenario",
+      "title": "The Falsely Accused Candidate Who Kept the Public Receipts",
+      "category": "secrets",
+      "pitch": "Spread a false story about an honest candidate. A lost campaign may later lead to a real newspaper and verified civic reporting, but useful reporting will not erase the office opportunity you helped take away.",
+      "present_hook": {
+        "what_you_notice": "The original present has an actual mayoral record for a candidate whose real public-fund accounts show no missing money.",
+        "where": "the town hall",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The accounts from {year} were complete. A claim that the candidate took the money would be false."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "reputation": "high"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A is an actual viable willing mayoral candidate with independently verified honest management of the specified real fund and genuine writing competence. B is an existing eligible rival resident, not promised any win. Bind the actual race and authentic balanced accounts proving the proposed allegation false. Baseline A completed the original election path without this false withdrawal; no later publication, mayor or error is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": -0.3,
+          "how_it_looks": "Knowingly repeat the false claim that the candidate took the specified public money; keep its falsity explicit in simulation records."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "withdraw_actual_candidacy_after_false_claim": "A"
+            }
+          ],
+          "headline": "A Candidate Freely Withdraws after a False Story Circulates",
+          "body": "Under a genuine documented campaign setback, the actual candidate completes a lawful voluntary withdrawal. The allegation remains false; no public money disappeared."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "newspaper publisher"
+            }
+          ],
+          "headline": "A Qualified Writer Opens a Funded Independent Publication",
+          "body": "With actual capital, lawful resources and competent staff, the former candidate opens a genuine independent publishing operation. No readership or profit is guaranteed."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "publish_verified_civic_account_correction": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "rep": "A",
+              "by": 0.1
+            },
+            {
+              "rep": "B",
+              "by": -0.1
+            }
+          ],
+          "headline": "Verified Public Accounts Receive a Factual Correction",
+          "body": "The publication completes a genuine evidence-based correction of a real procedural account error during an actual mayoral tenure. Distinct modeled responses affect the publisher and standing of the officeholder; the error is not labeled a crime."
+        }
+      ],
+      "fails": {
+        "chance": 0.3,
+        "effects": [],
+        "headline": "The False Story Does Not Produce a Withdrawal",
+        "body": "The direct reputational harm and any actual consequences remain. No withdrawal, newspaper or verified later error is created through this failed chain."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the records survive in {now}, the real paper contains its supported correction alongside authentic source accounts, while the old false allegation is still identified as false. Display {B} as current mayor only if actual current terms support it.",
+        "worst": "A false accusation can remain only damage. Later work, elections, accounts and publications need their own real facts; no civic benefit is owed in exchange for the harm.",
+        "twist": "The former candidate gains a genuine publishing opportunity and the town gains a verified account, while an earlier real campaign opportunity was lost. The later officeholder loses modeled standing for a documented procedural error; neither correction retroactively gives the first candidate the old office."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "The figures are printed where anyone can check them."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied. Emit the supplied after-line only when all three steps committed, the speaker is alive in the present and every listed current gate still holds.",
+        "withdraw_actual_candidacy_after_false_claim requires the specified genuine still-active viable candidacy, actual campaign effects of the independently recorded false statement, A informed free decision and a completed legally timely withdrawal under the real ballot rules. Record lost candidacy and true accounts separately; do not steal money, make the lie true, force voters or award B a win. Preserve actual potential legal remedies and ordinary consequences.",
+        "Add newspaper publisher as a business kind requiring actual competent editorial/production staff, lawful premises/resources, real available capital and independent actual publication capacity. found_business requires A genuine current qualifications and funded opening. Create a distinct real publication/business ID; do not acquire the Gazette or a publication belonging to another existing owner by assertion, invent investors/readers or promise income.",
+        "publish_verified_civic_account_correction requires A current genuine editorial authority, B actually mayor through genuine intervening elections, an independently existing documented actual procedural account error, authentic lawful public source records and appropriately qualified independent checking, fair accurate context and a genuine completed publication with real funded distribution. Record exact supported correction and response opportunity; create no missing money, crime, error, audience or retaliation. Apply A +0.1 and B -0.1 once as distinct modeled responses to this new verified work, never a second rumor application or retroactive election result. Gate A dialogue on survival, informed authorship/authority and actual currently accessible printed figures with the lawful source available."
+      ],
+      "era_notes": "Use actual ballot, publication, account and access rules of each year. A public correction cannot substitute for evidence or a court finding.",
+      "why_fun": "The town can gain a new way to check power without making the original dishonest intervention harmless."
+    }
+  ]
+}

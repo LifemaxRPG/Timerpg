@@ -1,0 +1,630 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-3611",
+      "kind": "scenario",
+      "title": "The Child Whose Birth Record Followed a Closed Shop",
+      "category": "family",
+      "pitch": "Wreck a clothing shop’s fragile year. Its owner may later form a family that did not exist in the original present, while the failed business remains a real loss.",
+      "present_hook": {
+        "what_you_notice": "The original present has the operating clothing business but no shared marriage or child recorded for the two prospective parents.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "In {year}, the shop was operating and the two residents had not become a couple."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            30
+          ],
+          "sex": "M",
+          "married": false,
+          "owns_shop": true,
+          "shop_kind": [
+            "clothing store"
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            19
+          ],
+          "sex": "F",
+          "married": false
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A owns the actual vulnerable clothing shop. B is an unrelated existing adult. They are legally single, with no existing joint child or marriage in the baseline family history. Bind actual business obligations and a later genuine opportunity for a voluntary relationship. Sex conditions apply only to the specified biological-parent eligibility. No replacement career or affection is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "sabotage",
+          "business": "A",
+          "how_it_looks": "Deliberately wreck the actual business chances for that year."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "close_shop": "A"
+            }
+          ],
+          "headline": "A Clothing Business Closes after a Failed Trading Year",
+          "body": "Actual finances and lawful closure procedures end the identified operation. Its obligations do not vanish with the sign."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "marry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Residents Freely Complete a Lawful Marriage",
+          "body": "After a genuine mutually wanted relationship, the two legally free residents complete their marriage. The closed shop is no wedding gift."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.4,
+          "effects": [
+            {
+              "child": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A New Birth Enters a Changed Family Record",
+          "body": "After actual eligible parenthood and a completed viable pregnancy, a real new infant is recorded for the married parents. The birth does not erase the earlier business failure."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Damaged Shop Does Not Close through This Chain",
+        "body": "The direct sabotage and its actual costs remain. No scenario closure, marriage or birth is granted when this first conditional step fails."
+      },
+      "present_day": {
+        "best": "If the chain occurred, a lawfully accessible birth register in {now} contains the actual new resident {C}, with the recorded parents and date. Describe current age, residence or survival only from the resimulated facts.",
+        "worst": "Sabotage can remain only a loss. If later relationship or birth prerequisites fail, no replacement family or infant appears.",
+        "twist": "A family may gain a real child while the owner and other actually affected people still bear the business loss and unsettled lawful obligations. A later good life does not make the sabotage a kindness."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I love this family. I do not call the shop closing a favor."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Bind business A to A actual clothing-shop ID. sabotage acts once under the existing verb. Step 1 requires actual ensuing failure sufficient for voluntary or legally required closure, lawful notice and settlement or preserved accounting of real employment, customer, lease and creditor obligations. close_shop ends only that operation; create no compensating job or forgiven debt.",
+        "Step 2 requires A/B alive, current mutually wanted relationship, capacity, both legally free to marry and completed lawful formalities. Do not force a meeting, romance or dependence from insolvency. Step 3 requires the marriage still current, freely chosen actual parenthood, both eligible under the current biological simulation, B current age and health permitting this pregnancy, actual lawful resources/care arrangements and a completed viable pregnancy in the selected year. The chance cannot bypass conception, gestation or ordinary mortality.",
+        "On the child effect bind future C only to the newly born actual child event of A/B in that year. C is not an intervention-year role. Use the engine stable birth-event ID keyed by seed, immutable parent IDs, conception/birth event and birth ordinal; persist scenario alias C, coalesce any ordinary birth transaction and never duplicate or substitute an existing infant. All later C facts come from actual lifecycle simulation. Birth ineligibility stops this step without creating a never-born resident. Gate B dialogue on survival, actual marriage/child history, knowledge of the closure and independently expressed present affection; do not manufacture affection or gratitude."
+      ],
+      "era_notes": "Apply actual business, marriage and family rules of each year. A baby born late in the parents’ lives is never assumed to remain a baby in the present.",
+      "why_fun": "One intervention can change the resident list while leaving the player responsible for the loss that started it."
+    },
+    {
+      "id": "scenario-20261118-3612",
+      "kind": "scenario",
+      "title": "The Quilting Guild That Elected Someone Else",
+      "category": "rivalry",
+      "pitch": "Introduce two residents who want a quilting guild. A durable shared institution may eventually elect a new chair, leaving its founder a member with no right to run the meeting.",
+      "present_hook": {
+        "what_you_notice": "A hall archive preserves an uncompleted guild proposal signed by only one interested resident.",
+        "where": "the public hall",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposal in {year} needed another willing organizer and actual rules before there could be a guild."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            45
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are actual unrelated strangers interested in a lawful voluntary quilting guild. Require real available members, an affordable permitted meeting space and a genuine proposal. Baseline no completed guild. No member, quilt, elected office or exhibition is created by the introduction itself."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange a mutually wanted meeting about the actual guild proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "form_actual_quilting_guild": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Quilting Guild Forms under Agreed Rules",
+          "body": "Actual consenting members adopt lawful rules and elect the first chair. Funded meetings use the genuinely permitted space."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "hold_actual_guild_exhibition": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Quilting Guild Completes a Permitted Exhibition",
+          "body": "The still-existing guild displays actual completed works under their owners’ permissions and settles the real event accounts."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "elect_actual_successor_guild_chair": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Guild Elects a Successor to Its Founding Chair",
+          "body": "At a genuine lawful election, {B} wins the actual tally and accepts the chair. The outgoing chair retains ordinary membership and personal work."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Organizers Do Not Complete a Guild",
+        "body": "The introduction creates no constitution, members, dues or office. Any actual preliminary funds retain their lawful owners."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the guild survives in {now}, its permitted minutes record the founding, completed exhibition and lawful handover. Show {B} as current chair only while actual later elections support that fact.",
+        "worst": "An introduction is not an institution. Later meetings and works require real members, resources and consent.",
+        "twist": "The founder gains a continuing community but loses the actual chair authority and agenda control when another member wins. No quilt or personal ownership transfers with the office."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "They kept the guild. They did not keep me in the chair."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "form_actual_quilting_guild requires real consenting existing adult members, lawful agreed dues/custody/election terms, actual funds and venue permission, a completed valid first election of A and A free acceptance. Record the guild, member IDs, assets, chair scope and finite term; create no people or guaranteed renewal.",
+        "hold_actual_guild_exhibition requires the real continuing guild, actual independently completed quilts, owner/creator display consent, permitted funded venue, safe staffing and a genuinely completed event. Record only actual attendance, authorized display and settled costs/receipts. A must still be chair through actual intervening elections and B a genuine participating member.",
+        "elect_actual_successor_guild_chair requires A current chair at a genuinely ending term through real earlier renewals, actual eligible willing A/B candidacies where permitted, lawful notice, quorum, independent actual member votes favoring B, required safeguards and accepted completed handover. End A specified office and grant B the same bounded authority for the actual term; retain personal property, membership and all rights unrelated to office. No popularity, fraud, resentment or later result is invented. Gate A dialogue on survival, knowledge, continued guild membership and no later restored chairmanship."
+      ],
+      "era_notes": "Use the actual association rules and meeting methods of each year. A paper minute book need not become a digital archive to remain authoritative.",
+      "why_fun": "A small circle can become strong enough to outlast the founder’s control without losing the founder’s work."
+    },
+    {
+      "id": "scenario-20261118-3613",
+      "kind": "scenario",
+      "title": "The Passport That Did Not Reserve a Tax Exemption",
+      "category": "money",
+      "pitch": "Help a homeowner afford an actual passport fee. A later move and return may bring the resident back to the same address after the real deadline for that year’s home exemption.",
+      "present_hook": {
+        "what_you_notice": "A household folder contains an unfinished passport application and an abandoned travel booking.",
+        "where": "the public library",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The application in {year} was short of the actual required fee; the household never made the planned journey."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A is an actual eligible passport applicant and lawful owner/resident of a specific genuine home, with a real current principal-residence exemption under the applicable local tax rules. B is an actual authorized property-tax administrator. Bind an actual planned funded foreign journey except for the fee gap, lawful return rights and a genuine jurisdiction with a documented annual residence/application cutoff. Poverty implies neither free travel nor debt-free ownership."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Cover the actual remaining passport-application fee without promising admission, travel or tax treatment."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_passport_and_planned_trip": "A"
+            }
+          ],
+          "headline": "A Homeowner Completes a Lawful Planned Journey",
+          "body": "The competent authority issues the actual travel document, and the already funded permitted journey is completed. No later residence change is implied."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "move_away": "A"
+            }
+          ],
+          "headline": "A Resident Establishes a Real Principal Home Elsewhere",
+          "body": "With actual lawful means and a genuine housing plan, the resident moves the principal residence away while retaining the identified old property subject to its actual obligations."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "move_in": "A"
+            },
+            {
+              "record_actual_missed_home_exemption_deadline": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Returning Homeowner Receives the Applicable Tax Assessment",
+          "body": "After a genuine return beyond the actual annual cutoff, the administrator records the lawful assessment without that year’s principal-home exemption. The same address does not reset the tax calendar."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Application Does Not Become the Planned Journey",
+        "body": "The gift and any real application or booking follow their actual refund and eligibility terms. No passport, move or exemption change is invented."
+      },
+      "present_day": {
+        "best": "If the chain occurred, permitted household records in {now} pair actual travel/residence dates with the genuine return-year assessment. Later exemptions follow actual later eligibility and timely applications.",
+        "worst": "Travel alone does not change principal residence or cancel an exemption. No move, tax charge or denial occurs without the required actual facts.",
+        "twist": "The resident regains an actual home address but loses the specific return-year tax reduction after a real missed cutoff. The full lawful assessment draws real household funds when actually paid; no fine or recurring permanent penalty is invented."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "uncanny",
+          "line": "I came back to the same address. The tax year did not start over."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_actual_passport_and_planned_trip requires A real citizenship/document eligibility, actual required identity records and fee, lawful official issuance, current admission and return rights, actual funded transport and accommodation and completed travel. Record only actual document validity and trip dates; no immigration status, renewal or later move is granted.",
+        "move_away requires A real freely chosen funded housing/moving plan and lawful new actual principal residence, while actual title, upkeep, finance and lawful use of the old property continue to be recorded. End any former exemption only when the ordinary genuine statutory conditions require it, independently of narrative success. No tenant, rental income or new country citizenship is implied.",
+        "The final combined step requires A actually returning freely to the same retained available safe home with real resources, lawful residence rights and completed principal-residence establishment after the real published cutoff in the selected year. B must have current authorized tax role. record_actual_missed_home_exemption_deadline records actual truthful filing, applicable controlling rule, valid assessment, review rights and no qualifying timely exception; impose no invented tax rate or charge. move_in occurs once and transfers no title. Mandatory assessment and appeal rules apply regardless of narrative rolls; no personal bill is paid without real funds and an actual transaction. Gate A dialogue on survival, knowledge, completed return and actual relevant assessment."
+      ],
+      "era_notes": "Apply the genuine passport, travel, property and local exemption rules of each event year. Neither foreign travel nor returning home automatically establishes tax residence.",
+      "why_fun": "Two sets of dates can make a familiar front door mean something different to the same household budget."
+    },
+    {
+      "id": "scenario-20261118-3614",
+      "kind": "scenario",
+      "title": "The Inspector Who Tagged the Clinic’s Old Oxygen Cylinders",
+      "category": "rescue",
+      "pitch": "Help a resident qualify for real pressure-equipment work. Decades later, an independent failed test may make that worker retire a clinic’s old oxygen cylinders and leave its owner paying for proper replacement.",
+      "present_hook": {
+        "what_you_notice": "A technical-course folder holds an unfinished qualification application and a fee estimate.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The course in {year} needed the actual remaining payment before training could be completed."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            25
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "doctor's office"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "A is an actual willing eligible applicant to a real pressure-equipment technician course. B owns a lawful actual doctor’s office using identified durable medical-oxygen cylinders under proper supplier and maintenance arrangements. Bind real cylinder asset IDs and genuine training shortfall. No gas charge, medical condition, equipment failure or clinical outcome is presumed."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Pay the real qualification-course shortfall through the actual training account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_pressure_equipment_qualification": "A"
+            }
+          ],
+          "headline": "A Technician Completes Required Pressure-Equipment Training",
+          "body": "Actual instruction, practical assessment and required lawful qualification are completed. No clinical license is granted."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "hire": [
+                "B",
+                "A"
+              ]
+            }
+          ],
+          "headline": "A Clinic Hires a Qualified Equipment Technician",
+          "body": "The actual operating clinic fills a genuine funded equipment-maintenance vacancy under lawful qualified supervision and agreed terms."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "retire_actual_failed_clinic_cylinders": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Clinic Retires Cylinders after a Genuine Failed Test",
+          "body": "Qualified independent inspection identifies actual cylinders that fail the applicable requirements. They leave service under lawful authority, with actual safe replacement coverage and costs recorded."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Qualification Is Not Completed",
+        "body": "The gift grants no credential, employment or test result. Existing equipment and clinical safety duties continue under ordinary qualified care."
+      },
+      "present_day": {
+        "best": "If the chain occurred, authorized records in {now} show the actual cylinder test results, retired asset IDs and genuine replacement costs. Display retired equipment only in its real lawful safe storage or disposal state.",
+        "worst": "No qualification creates a fault. Ordinary inspection, withdrawal and patient-care duties apply even when the scenario chain stops.",
+        "twist": "The trainee gains qualified paid work, while the clinic owner loses use of actual owned cylinders and pays the real necessary replacement or supply cost. No patient harm or improvement is invented."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "Those cylinders had history. They did not pass the test."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_actual_pressure_equipment_qualification requires real available instruction, resources, eligibility, passed assessments and current lawful scope/authorization. It grants no medical practice power or automatic future renewal.",
+        "hire requires B still owning the genuine viable clinic, A adult with real current relevant qualifications, an actual funded equipment-maintenance vacancy, lawful supervision, freely accepted terms and actual work. Record only actual duties and earned pay. Cylinder testing occurs only at an actually authorized qualified facility under applicable rules.",
+        "retire_actual_failed_clinic_cylinders requires A current lawful equipment role, B actual authority/title, the same identified surviving durable cylinders with genuine intervening maintenance/inspection records, an independently completed current qualified test actually failing the lawful acceptance criteria and mandatory service-withdrawal authority. Record the factual test and permanent or required temporary retirement as appropriate, prevent unauthorized reuse and settle actual safe return/disposal and real paid replacement/supplier charges once. Require actual funded lawful continuity of necessary clinical supply; create no replacement cylinder, supplier, gas or coverage without real procurement. Mandatory unsafe-equipment withdrawal applies on every branch; the chance concerns this completed qualifying inspection-and-replacement event, not whether safety law is obeyed. Gate B dialogue on survival, real long ownership history, knowledge and the actual failed test."
+      ],
+      "era_notes": "Use the actual cylinder materials, inspection standards, qualified facilities and lawful supply methods of each year. Gas contents are consumed or replaced through actual use and never persist for decades by assumption.",
+      "why_fun": "A useful early credential can eventually require its holder to retire something the original employer has kept for years."
+    }
+  ]
+}
