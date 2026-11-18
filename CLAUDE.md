@@ -26,6 +26,10 @@ Elite for Galaxy: 8 fast Oryon cores, no little cores; Adreno 830 GPU; Hexagon N
   not fix, tune or extend it any more; it stays only as a fallback until Filament covers everything, then goes. New
   visual work (buildings, ground, light, weather, people, the turn) is done in Filament only, and judged in Filament
   renders (`gradle :desktop:preview -Dmode=filament`).
+- **Engine: stay with Filament, not Godot** (considered and decided 2026-11-18): our world is procedural and code-driven,
+  so Godot's editor buys little, and switching would mean rewriting the whole app (dialogue model, voices, ASR, tooling).
+  The one thing it would give us is physics: when vehicles and knock-over props come, add **Jolt Physics** (C++, through
+  the same native layer as llama.cpp) rather than changing engines. Revisit only if a PC version becomes a goal.
 - **Art direction: the owner loves the look** of our 2D LimeZu sprites cut into simple 3D geometry (sharp nearest-filtered
   pixels on low-poly boxes, gables, curved walls, lit and shadowed, windows glowing at night): "almost PlayStation 2
   quality", or better, in the owner's words, "a cross between SNES and PlayStation 2, an era of gaming that never existed":
