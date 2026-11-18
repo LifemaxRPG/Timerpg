@@ -14,6 +14,8 @@ material {
         { type : float4, name : uvRect },
         { type : float4, name : tint },
         { type : float4, name : glow },
+        // what the glass mirrors at this hour (multiplies the glass, the mask's green)
+        { type : float4, name : glass },
         { type : float, name : fade },
         { type : float, name : cell }
     ],

@@ -16,7 +16,7 @@ import com.lifemax.rpg.feature.habits.presentation.scene.StageCamera
  * [scale] and [offset] squeeze that depth into a band of the buffer (reversed: 1 nearest), the way the classic draws the
  * street in view after the rest of the crossroads and the ground under everything.
  */
-internal object LookMatrix {
+object LookMatrix {
     /** The depth at which the reversed depth reaches 1 (street units). Nothing nearer is ever shown (CornerWorld.NEAR is 30). */
     const val N = 20f
 

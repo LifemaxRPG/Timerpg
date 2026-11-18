@@ -19,6 +19,8 @@ material {
         { type : float4, name : tint },
         // the window light's colour (rgb) and how far on it is (a)
         { type : float4, name : glow },
+        // what the glass mirrors at this hour (multiplies the glass, the mask's green)
+        { type : float4, name : glass },
         // how much of the thing is left (a building fading out mid-turn): screen-door, whole art pixels
         { type : float, name : fade },
         // the size of an art pixel on screen, for that screen door
@@ -50,6 +52,7 @@ fragment {
         vec4 c = texture(materialParams_albedo, uv) * materialParams.tint;
         vec4 m = texture(materialParams_mask, uv);
         if (materialParams.fade < 1.0 && bayer4(gl_FragCoord.xy / materialParams.cell) > materialParams.fade) c.a = 0.0;
+        c.rgb *= mix(vec3(1.0), materialParams.glass.rgb, m.g);
         material.baseColor = c;
         // walls and paint are matt; glass (the mask's green) is smooth and reflects the sky
         material.roughness = mix(0.9, 0.2, m.g);

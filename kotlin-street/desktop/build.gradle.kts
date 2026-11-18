@@ -39,6 +39,8 @@ val crossroadsTest by sourceSets.creating {
     runtimeClasspath += sourceSets.main.get().output + sourceSets.main.get().runtimeClasspath
 }
 dependencies { "crossroadsTestImplementation"("junit:junit:4.13.2") }
+// (the Filament trial's own tests, with it)
+if (withFilament) crossroadsTest.kotlin.srcDir("src/filamentTest/kotlin")
 tasks.register<Test>("crossroadsTest") {
     group = "verification"
     description = "Tests the crossroads: its camera, its ground plan and the walk round the corner"

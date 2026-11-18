@@ -3,6 +3,7 @@ package com.lifemax.rpg.feature.habits.presentation.scene3d
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.util.lerp
 import androidx.compose.ui.graphics.toArgb
 import com.google.android.filament.Box
 import com.google.android.filament.Camera
@@ -131,6 +132,8 @@ class FilamentStreet(
     private val look = FloatArray(16)
     private val xf = FloatArray(16)
     private val glow = FloatArray(4)
+    private val glass = FloatArray(3)
+    private val groundTint = FloatArray(3)
 
     /** Brings the scene to the stage's frame [f], building the street the first time (or when the stage rebuilt its own). */
     fun update(f: Frame3D) {
@@ -154,6 +157,18 @@ class FilamentStreet(
         val wl = SceneInk.WindowLit
         glow[0] = lin(wl.red); glow[1] = lin(wl.green) * .9f; glow[2] = lin(wl.blue) * .7f
         glow[3] = .75f * smooth((f.dark - .35f) / .5f)
+        // the glass mirrors the sky low down (a sunset at dusk, the night's blue); the ground takes its hue as the classic's does
+        f.sky?.let { sk ->
+            val tone = sk.sky.lastOrNull() ?: Color.White
+            val m = max(tone.red, max(tone.green, tone.blue)).coerceAtLeast(.05f)
+            glass[0] = lerp(1f, tone.red / m * 1.15f, .7f); glass[1] = lerp(1f, tone.green / m * 1.15f, .7f); glass[2] = lerp(1f, tone.blue / m * 1.15f, .7f)
+            val day = dayPave
+            val r = lin(sk.pavement.red) / lin(day.red).coerceAtLeast(1e-3f)
+            val g = lin(sk.pavement.green) / lin(day.green).coerceAtLeast(1e-3f)
+            val b = lin(sk.pavement.blue) / lin(day.blue).coerceAtLeast(1e-3f)
+            val mm = max(r, max(g, b)).coerceAtLeast(1e-3f)
+            groundTint[0] = lerp(1f, r / mm, .6f); groundTint[1] = lerp(1f, g / mm, .6f); groundTint[2] = lerp(1f, b / mm, .6f)
+        }
         for (t in things) {
             var fade = 1f
             when (t.kind) {
@@ -175,9 +190,10 @@ class FilamentStreet(
                 mi.setParameter("fade", fade)
                 mi.setParameter("cell", f.unit * SpriteArt.PIXEL)
             }
+            if (t.kind == GROUND) for (mi in t.mis) mi.setParameter("tint", t.tr * groundTint[0], t.tg * groundTint[1], t.tb * groundTint[2], 1f)
             if (t.kind == BOX) {
                 // the windows' lamps: warm, as strong as it is dark
-                for (mi in t.mis) mi.setParameter("glow", glow[0], glow[1], glow[2], glow[3])
+                for (mi in t.mis) { mi.setParameter("glow", glow[0], glow[1], glow[2], glow[3]); mi.setParameter("glass", glass[0], glass[1], glass[2], 1f) }
                 t.windows?.update(f.hour)
             }
         }
@@ -251,6 +267,9 @@ class FilamentStreet(
         ibl = IndirectLight.Builder().irradiance(2, sh).intensity(1f).build(engine).also { scene.indirectLight = it }
     }
 
+    /** A colour channel as the material takes it: linear when lit (its pictures are sRGB), as is for the albedo comparison. */
+    private fun col(c: Float): Float = if (albedo) c else lin(c)
+
     private fun lin(c: Float): Float = if (c <= .04045f) c / 12.92f else Math.pow(((c + .055f) / 1.055f).toDouble(), 2.4).toFloat()
 
     // ------------------------------------------------------------------ building it
@@ -281,7 +300,10 @@ class FilamentStreet(
                 val z = if (k == 0) 0f else cr.crossZ(fu.x)
                 // a little in front of the fronts it stands by (the classic draws them after the buildings)
                 val (nx, nz) = world.rowN(k)
-                cards += newCard(k, img, fx, fy, x + nx * 3f, z + nz * 3f, person = false)
+                cards += newCard(k, img, fx, fy, x + nx * 3f, z + nz * 3f, person = false).also { c ->
+                    // a lamp's lantern glass glows at night
+                    if (fu.kind == FurnitureKind.LAMP) { c.mi.setParameter("mask", lampMask(img), nearest); c.lamp = true }
+                }
             }
             val life = s.life ?: continue
             repeat(life.passers.size) { cards += newCard(k, null, 16f, 63f, 0f, 0f, person = true) }
@@ -532,8 +554,9 @@ class FilamentStreet(
                 mi.setParameter("albedo", f.tex, nearest)
                 mi.setParameter("mask", f.mask ?: textures.black, nearest)
                 mi.setParameter("uvRect", 0f, 0f, 1f, 1f)
-                mi.setParameter("tint", lin(f.tint.red), lin(f.tint.green), lin(f.tint.blue), 1f)
+                mi.setParameter("tint", col(f.tint.red), col(f.tint.green), col(f.tint.blue), 1f)
                 mi.setParameter("glow", 0f, 0f, 0f, 0f)
+                mi.setParameter("glass", 1f, 1f, 1f, 1f)
                 mi.setParameter("fade", 1f)
                 mi.setParameter("cell", 2f)
             }
@@ -557,7 +580,7 @@ class FilamentStreet(
         val r = ref ?: floatArrayOf(rx, ry, rz)
         things += Thing(kind, street, e, mis, proxy, pmis, r[0], r[1], r[2], box, side, decal, windows).also {
             // the ground's look is picked at a point well inside the piece, its depth matched at its middle
-            if (kind == GROUND) { it.lookX = rx; it.lookZ = rz }
+            if (kind == GROUND) { it.lookX = rx; it.lookZ = rz; val c = faces[0].tint; it.tr = col(c.red); it.tg = col(c.green); it.tb = col(c.blue) }
         }
     }
 
@@ -592,7 +615,7 @@ class FilamentStreet(
         val mi = visibleMat.createInstance().also { m ->
             m.setParameter("albedo", tex, nearest); m.setParameter("mask", textures.black, nearest)
             m.setParameter("uvRect", 0f, 0f, 1f, 1f); m.setParameter("tint", 1f, 1f, 1f, 1f)
-            m.setParameter("glow", 0f, 0f, 0f, 0f); m.setParameter("fade", 1f); m.setParameter("cell", 2f)
+            m.setParameter("glow", 0f, 0f, 0f, 0f); m.setParameter("glass", 1f, 1f, 1f, 1f); m.setParameter("fade", 1f); m.setParameter("cell", 2f)
         }
         val e = EntityManager.get().create()
         RenderableManager.Builder(1).boundingBox(Box(.5f, .5f, 0f, .5f, .5f, .1f)).culling(false).castShadows(false).receiveShadows(true).priority(5)
@@ -669,6 +692,7 @@ class FilamentStreet(
             c.mi.setParameter("uvRect", u0, v0, du, dv)
             c.mi.setParameter("fade", fade)
             c.mi.setParameter("cell", f.unit * k)
+            if (c.lamp) c.mi.setParameter("glow", glow[0] * 2.5f, glow[1] * 2.5f, glow[2] * 2.5f, smooth((f.dark - .3f) / .4f))
             c.pmi?.setParameter("uvRect", u0, v0, du, dv)
         }
     }
@@ -709,6 +733,19 @@ class FilamentStreet(
         }
         if (me && view == 0 && p.dir < 0f) flip = -1f
         return Triple(view, flip, frame)
+    }
+
+    private var lampMaskTex: Texture? = null
+
+    /** The lamp's glow mask: its lantern glass (props/lamp_1.png, about x 42-58, y 44-52). */
+    private fun lampMask(img: ImageBitmap): Texture = lampMaskTex ?: run {
+        val px = StreetTextures.argb(img)
+        val m = IntArray(px.size)
+        for (y in 44..52) for (x in 42..58) {
+            if (x >= img.width || y >= img.height) continue
+            if ((px[y * img.width + x] ushr 24) > 128) m[y * img.width + x] = (255 shl 24) or (255 shl 16)
+        }
+        textures.make(m, img.width, img.height, linear = true).also { lampMaskTex = it }
     }
 
     private fun smooth(t: Float): Float { val u = t.coerceIn(0f, 1f); return u * u * (3f - 2f * u) }
@@ -795,6 +832,7 @@ class FilamentStreet(
         for (t in things) { for (mi in t.mis) engine.destroyMaterialInstance(mi); for (mi in t.proxyMis) engine.destroyMaterialInstance(mi) }
         for (c in cards) { engine.destroyMaterialInstance(c.mi); c.pmi?.let { engine.destroyMaterialInstance(it) } }
         things.clear(); cards.clear()
+        lampMaskTex = null
         for (v in vbs) engine.destroyVertexBuffer(v)
         for (i in ibs) engine.destroyIndexBuffer(i)
         vbs.clear(); ibs.clear()
@@ -830,12 +868,20 @@ class FilamentStreet(
     ) {
         var lookX = refX
         var lookZ = refZ
+        /** A flat ground piece's own colour (linear), hued by the hour. */
+        var tr = 1f
+        var tg = 1f
+        var tb = 1f
     }
 
     private class Card(
         val street: Int, val entity: Int, val mi: MaterialInstance, val proxy: Int, val pmi: MaterialInstance?,
         val img: ImageBitmap?, val footX: Float, val footY: Float, val x: Float, val z: Float, val person: Boolean,
-    )
+    ) {
+        var lamp = false
+    }
+
+    private val dayPave = com.lifemax.rpg.feature.habits.presentation.scene.skyColors(13f).pavement
 
     companion object {
         const val BOX = 0
