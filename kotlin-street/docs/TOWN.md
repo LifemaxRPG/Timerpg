@@ -78,6 +78,42 @@ town: { seed, year, k, unitPerTile, spawn:{row, x, lane},
   sprite-sized boxes: the town's real footprints come from the rows. Tests: desktop TownMapTest (walks CornerWalk round
   a right and a mirrored left turn and checks it keeps out of every real footprint).
 
+## Walking the town (T7, as built)
+
+`shim/TownWalk.kt`: `TownWalk(town)` is the one player walking the graph; the app or a test sets the keys on
+`GameState.moveX/moveLane` and calls `step(dt)` each frame (not wired into GameActivity yet: the app still runs eta's
+crossroads through CornerWalk as before).
+
+- The truth is the world point (`wx`, `wz`) and heading (`hx`, `hz`, `heading`: 0 north, clockwise). The street view's
+  `row`, `x` and `lane` are derived and kept (`placeAt(wx, wz)` finds the row whose pavement that is: `Row.locate` inverts
+  `Row.pointAt`, bends and past-the-ends included). `GameState.x/lane` mirror them so the HUD and legs work as today.
+- On a row: `GameState.step` (lanes 3..14, the furniture's `avoid`), then the real buildings: each a rigid box on its
+  front's middle (setback, width, depth; `footprints(row)`), a step that would end inside one (2 units' margin) is not
+  taken. `front` is the building whose front covers x; `door(row, b)` its front wall's middle.
+- Decisions at a row's ends: STRAIGHT is walking on past the node line (the rows on one line, the lane carries over, no
+  transit, no camera turn); a dead end or an end with nothing straight on stops at the node line less 20 as a street's
+  end does. TURN_IN is a new press of the up key in the mouth (within `Crossroads.MOUTH_ZONE` before the node line):
+  `CornerWalk.begin` on `Crossroads.at` (kept per corner), mirrored for a left turn at the row's start; after a left turn
+  `GameState.walkOnDir = -1` so the walk on goes away from the corner. CROSS is a new press of the down key at the kerb
+  (lane 14): a straight walk over the road to the facing row's kerb at the projected x, the camera swinging half round
+  (the way the player faced), walked on by itself (`TurnTuning.autoWalk`) or back with up; arrived with down still held it
+  walks on in. Crossing is allowed at the zebras (within `ZEBRA` 180 of either node) and mid-block while `midBlock`
+  (default true until there is traffic). After any transit the keys must be let go before the next.
+- For the renderer (T8) `TownWalkView`: `row`, `x`, `lane`, `wx/wz`, heading; `camera: TownCamera(tx, tz, fx, fz)` (the
+  point on the building line it looks at and its looking direction; `rx/rz` its right, `yaw` 0 north clockwise; at rest
+  square to the row, swung smoothly through the main street's steps by `Row.lookAt`; through a turn the plan's camera
+  mapped to the world, through a crossing eased half round); `transit: TownTransit?` (kind, from, to, node, the corner's
+  `Crossroads` and `JunctionFrame`, `progress`, `ease`); `liveRows()` (the row, its neighbours one transition off, a
+  transit's target's too, nearest first); `front`; `rowChanges` (bumps when the row changes). The look-ahead
+  (`CameraLead`), eye height and framing stay the renderer's.
+- Tests (desktop TownWalkTest on the gamma fixture, a scripted bot): all 472 transitions taken there and back, every one of
+  the 96 rows reached from the spawn in one continuous walk (190 transitions, about 18 minutes of play), the 70 corners'
+  right and left turns mirror images (path length, frames, arrival 109 from the node, the camera a quarter each way),
+  every row walked end to end in lanes 4 and 8 both ways without sticking; every frame: world position continuous (largest
+  step 3.5 units, a run round a bend's mitre), camera continuous, never inside a building.
+- Gamma's 6L has one building (b18) standing over a bend of the main street's step: kept as a rigid box square to the
+  row at its middle (in the corner's outside); the export could keep groups off bends.
+
 ## Phases (separate files so agents can run in parallel)
 
 | # | Task | Files |
@@ -99,7 +135,7 @@ both hands); load time (decode textures in the background, build nearest-first).
 
 ## Done so far (branch wf-town)
 
-- T1, T2, T3, T5 done. v1 (eta, street.json v1, tools/town-streets.ts) is byte-identical: street, dialogue and interiors
+- T1, T2, T3, T5, T7 done (T7 on branch wf-town2: shim/TownWalk.kt). v1 (eta, street.json v1, tools/town-streets.ts) is byte-identical: street, dialogue and interiors
   exports for eta, vale, alpha and gamma match the pre-split recordings, and eta matches the shipped assets
   (town-buildings.test.ts, town-graph.test.ts).
 - Gamma 2025: 47 nodes, 48 roads, 96 rows (40 with buildings), 92 lots + 6 landmarks each on exactly one row, no
@@ -112,3 +148,29 @@ both hands); load time (decode textures in the background, build nearest-first).
   switch. Landmarks have no NPCs or interiors. The app still ships v1; gamma's street.json v2, dialogue and interiors
   must ship together (DialogueEngine refuses a town/year mismatch). DialogueEngine still orders generation by v1
   street/index (off-street NPCs come last) until T10 orders it by rows.
+- T6 (wf-town2): tools/make_buildings.py builds the shops in a process pool (`--jobs=N`, default every core); the
+  workers return what each shop added to WINDOWS/HOUSES/MODELS and the main process merges them in shop order, so the
+  output is byte-identical to `--jobs=1` (hashes of every file match on eta, the showcase and gamma). On the 4-core
+  build server (shared with other agents): gamma 98 buildings 5.3 s serial, 2.0 s parallel; showcase 9.2 s -> 5.3 s
+  (CPU-bound and limited by the shared server). `tools/build-town.sh [seed]` writes the whole town's assets to
+  `kotlin-street/build-town/<seed>/` (git-ignored: street.json v2 with yards, buildings/, yards*.png); T10 ships them.
+- Yards (wf-town2, tools/town-yards.ts, tests town-yards.test.ts): street.json v2 `graph.yards` (one per lot: parcel,
+  house, front and back rects, household summary, items {kind, rect, face, variant, layer, on?, zone}) and
+  `graph.lanes` (back lanes reaching a street, and verges); `graph.props` loses the forest props now inside a parcel or
+  lane. Parcels are lots widened along the row into the free ground between groups (shared half and half, at most 200
+  units a side). Driveways run from a dropped kerb (across the 38-unit pavement, meeting the carriageway) beside the
+  house to a pad, carport or garage behind it (estate_one_story_house: in front of its own garage door). Layers: ground
+  (lawn, meadow, gravel) under surfaces (paths, driveway, patio, deck, pads) under objects and edges (fences, hedges,
+  gates); an object on a surface names it in `on`. The building models still draw their own front lawn and fence across
+  their width: a renderer that draws the yards should drop those. Flush-fronted apartment stand-ins (setback 0) have
+  the pavement for a front yard. Not yet: shop fronts, landmark grounds (school yard, police parking), corner lots'
+  second street side; houses on the dead-end row 45 stand partly past its end (a graph placement issue).
+- Review of wf-town2 (T6, yards, T7): parallel make_buildings re-checked byte-identical to `--jobs=1` on gamma (849
+  files) and to the shipped eta buildings (bar the lit/shade maps, which another tool makes). An independent top-down
+  check of gamma's yards (every item against every building, carriageway, water, plaza, landmark, other parcels and its
+  own layer) found no overlaps. Fixed: 14 driveways dropped their kerb where one of the row's street lamps stands; a
+  driveway now slides out along its side strip clear of the row's furniture (14 units), or gives that side up (one did:
+  pads 41 -> 40). TownWalk's footprints (a rigid box on the front's middle, square to the segment there) are the same
+  rule the yards use for `house`; T8 must stand the buildings the same way so what is drawn is what blocks the walk.
+  The Kotlin fixture desktop/src/test/resources/town-gamma.json is the graph without yards (town-graph.test.ts keeps
+  it); T8's tests will want a fixture with yards.

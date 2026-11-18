@@ -4,8 +4,9 @@ street.json by export-street.ts): for each shop `bN_front.png` (storefront + mid
 side wall made from the same trim and windows), `bN_emis.png` (window glass, for night glow), `bN_roof.png`,
 and `bN_sign.png` / `bN_prop.png` (rooftop signs). A home that wears one of our mobile homes (house_small_*,
 house_medium_*) is cut into the pictures of a pitched-roof house instead (see build_house) and its shape goes to
-houses.json. Usage: python3 make_buildings.py street.json out_dir; python3 make_buildings.py --showcase out_dir builds
-every house sprite into out_dir for the preview's houses mode."""
+houses.json. Usage: python3 make_buildings.py [--jobs=N] street.json out_dir; python3 make_buildings.py [--jobs=N] --showcase
+out_dir builds every house sprite into out_dir for the preview's houses mode. The shops are built in N processes (default:
+every core; --jobs=1 builds them in this one); the output is the same either way."""
 import glob, json, os, sys, zlib
 import importlib
 import numpy as np
@@ -1431,9 +1432,43 @@ def showcase(out):
               open(out + '/street.json', 'w'), indent=1)
     return out + '/street.json', out + '/buildings'
 
-if __name__ == '__main__':
-    if sys.argv[1] == '--showcase': src, out = showcase(sys.argv[2])
-    else: src, out = sys.argv[1], sys.argv[2]
+def build_one(job):
+    """One shop built in a worker process: what it added to WINDOWS, HOUSES and MODELS, in the order it added them (the
+    pictures go straight to disk, one set of file names per sprite, so workers never write the same file)."""
+    shop, out = job
+    WINDOWS.clear(); HOUSES.clear(); MODELS.clear()
+    build(shop, out)
+    return list(WINDOWS.items()), list(HOUSES.items()), list(MODELS.items())
+
+def build_all(shops, out, jobs):
+    """Every shop, in `jobs` processes (1: in this one). The workers' additions are merged in the shops' order, so the
+    json files come out byte-identical to a serial run (every builder seeds its own rng from the sprite's name)."""
+    if jobs <= 1:
+        for shop in shops: build(shop, out)
+        return
+    import multiprocessing
+    # the modelled buildings (landmarks, estates, apartments: 0.2-0.8 s each) go first so none is left running alone at
+    # the end; the results are put back in the shops' order before merging
+    heavy = lambda s: 0 if s['parts'][0]['key'].startswith(('house_small_', 'house_medium_')) or len(s['parts']) > 1 else -1
+    order = sorted(range(len(shops)), key=lambda i: (heavy(shops[i]), i))
+    done = [None] * len(shops)
+    # fork: the workers start with this module (and the group modules) already imported
+    with multiprocessing.get_context('fork').Pool(jobs) as pool:
+        for i, r in pool.imap_unordered(build_nth, [(i, shops[i], out) for i in order], chunksize=1):
+            done[i] = r
+    for w, h, m in done:
+        WINDOWS.update(w); HOUSES.update(h); MODELS.update(m)
+
+def build_nth(job):
+    """build_one for the shop at index i, tagged with i."""
+    i, shop, out = job
+    return i, build_one((shop, out))
+
+def main(argv):
+    jobs = os.cpu_count() or 1
+    if argv and argv[0].startswith('--jobs='): jobs = int(argv[0].split('=', 1)[1]); argv = argv[1:]
+    if argv[0] == '--showcase': src, out = showcase(argv[1])
+    else: src, out = argv[0], argv[1]
     os.makedirs(out, exist_ok=True)
     shops = json.load(open(src))['shops']
     names = {s['sprite'] for s in shops}
@@ -1443,8 +1478,7 @@ if __name__ == '__main__':
         sprite, suffix = os.path.basename(f)[:-4].split('_', 1)
         # a sprite no longer on the streets loses everything; one still there only what is made again below
         if suffix in OUTPUTS or sprite not in names: os.remove(f)
-    for shop in shops:
-        build(shop, out)
+    build_all(shops, out, jobs)
     for n in names:
         now, was = pixels(f'{out}/{n}_front.png'), before[n]
         if was is None or now is None or was.shape != now.shape or (was != now).any():
@@ -1458,3 +1492,6 @@ if __name__ == '__main__':
     if MODELS: json.dump(MODELS, open(out + '/models.json', 'w'), sort_keys=True)
     elif os.path.exists(out + '/models.json'): os.remove(out + '/models.json')
     print('wrote', len(os.listdir(out)), 'files to', out, '; windows:', {k: len(v) for k, v in WINDOWS.items()})
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
