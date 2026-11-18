@@ -95,6 +95,15 @@ class SpriteBuilding(
     val house: HouseArt? = null,
     /** A villa or a landmark, built from boxes, front gables and hipped roofs instead of a box: its parts and their art. */
     val model: ModelArt? = null,
+    /**
+     * A pitched roof over the box (its ridge along the street) instead of the flat one: its near slope from the ridge cap
+     * down to the eave, one picture row a screen row ([pitch]); its rake's and its gable's colours (0xRRGGBB) and how wide
+     * its stone end walls are in sprite pixels (0: none) in [pitchInfo]; those walls' pictures ([postL], [postR]).
+     */
+    val pitch: ImageBitmap? = null,
+    val pitchInfo: FloatArray? = null,
+    val postL: ImageBitmap? = null,
+    val postR: ImageBitmap? = null,
 )
 
 /**

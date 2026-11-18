@@ -2776,6 +2776,32 @@ internal class BuildingPainter {
         if (nightOn) drawRect(nightInk, Offset.Zero, Size(w, h), blendMode = BlendMode.Multiply)
     }
 
+    /** A pitched roof's slope ([SpriteBuilding.pitch]) in its own pixels, for a plane of the corner turn's: lit, snowed on, at night. */
+    fun DrawScope.pitchFace(sb: SpriteBuilding, sky: SkyColors) {
+        val img = sb.pitch ?: return
+        val w = img.width.toFloat()
+        val h = img.height.toFloat()
+        drawImage(img, IntOffset.Zero, IntSize(img.width, img.height), IntOffset.Zero, IntSize(img.width, img.height), 1f, Fill, null, BlendMode.SrcOver, faceQuality)
+        drawRect(Color(0xFFFFF2D0), Offset.Zero, Size(w, h), alpha = .08f * direct)
+        if (season.snow > .01f) drawRect(snowInk(sky), Offset.Zero, Size(w, h), alpha = .85f * season.snow)
+        if (nightOn) drawRect(nightInk, Offset.Zero, Size(w, h), blendMode = BlendMode.Multiply)
+    }
+
+    /** A pitched roof's gable end, [depth] long and [rise] tall (its apex halfway), in the gable's colour, for a plane of the corner turn's. */
+    fun DrawScope.gableFace(sb: SpriteBuilding, depth: Float, rise: Float) {
+        val gc = sb.pitchInfo?.getOrNull(1)?.toInt() ?: 0x808080
+        spritePath.rewind()
+        spritePath.moveTo(0f, rise); spritePath.lineTo(depth / 2f, 0f); spritePath.lineTo(depth, rise); spritePath.close()
+        drawPath(spritePath, Color(0xFF000000.toInt() or gc))
+        drawPath(spritePath, Color(0xFF0A1024), alpha = .2f)
+        if (nightOn) drawPath(spritePath, nightInk, blendMode = BlendMode.Multiply)
+    }
+
+    /** One of a pitched roof's stone end walls' fronts ([img]), lit as the sign is, for a plane of the corner turn's. */
+    fun DrawScope.postFace(img: ImageBitmap) {
+        drawImage(img, IntOffset.Zero, IntSize(img.width, img.height), IntOffset.Zero, IntSize(img.width, img.height), 1f, Fill, signTint(), BlendMode.SrcOver, faceQuality)
+    }
+
     /** The rooftop billboard ([SpriteBuilding.prop]) in its own pixels, lit as its sign is; false if it has none. */
     fun DrawScope.roofBoard(sb: SpriteBuilding): Boolean {
         if (sb.sign != null) return false
@@ -2810,9 +2836,49 @@ internal class BuildingPainter {
             if (nightOn) drawPath(spritePath, nightInk, blendMode = BlendMode.Multiply)
             if (sn != null) sideLights().let { on -> if (on > .01f) sideStrips(sn.lit, xe, -hf, s, -dy, hf, alpha = on) }
         }
-        // the roof face, seen from a little above: our flat roof, leaning to the shown side
+        // a pitched roof (its ridge along the street): the near slope rising from the front's top edge to the ridge
+        // halfway back, its gable end on the shown side under it, and its stone end walls if it has them
         val roof = sb.roof
-        if (roof != null && !planeFaces) {
+        val pitch = sb.pitch
+        if (pitch != null && !planeFaces) {
+            val info = sb.pitchInfo
+            val band = pitch.height * k
+            if (abs(s) > .02f) {
+                // the gable: the end wall up to the ridge, in the front's top wall colour, lit as the side face is
+                val xe = if (s > 0f) half else -half
+                val gc = info?.getOrNull(1)?.toInt() ?: 0x808080
+                spritePath.rewind()
+                spritePath.moveTo(xe, -hf); spritePath.lineTo(xe + s / 2f, -hf - band); spritePath.lineTo(xe + s, -hf - dy); spritePath.close()
+                drawPath(spritePath, Color(0xFF000000.toInt() or gc))
+                drawPath(spritePath, Color(0xFF0A1024), alpha = .2f)
+                sideLight(spritePath, 1f)
+                if (nightOn) drawPath(spritePath, nightInk, blendMode = BlendMode.Multiply)
+            }
+            roofStrips(pitch, -half, -hf, B.W, band, s / 2f, pitch.height)
+            spritePath.rewind()
+            spritePath.moveTo(-half, -hf); spritePath.lineTo(-half + s / 2f, -hf - band); spritePath.lineTo(half + s / 2f, -hf - band); spritePath.lineTo(half, -hf); spritePath.close()
+            // the slope faces up and towards the street: the light from behind the houses grazes it
+            drawPath(spritePath, Color(0xFFFFF2D0), alpha = .08f * direct)
+            if (season.snow > .01f) {
+                drawPath(spritePath, snowInk(sky), alpha = .85f * season.snow)
+                drawRect(snowInk(sky), Offset(-half, -hf - 1.4f), Size(B.W, 1.6f), alpha = .8f * season.snow)
+            }
+            if (blue > .01f) drawPath(spritePath, BlueCast, alpha = .3f * blue, blendMode = BlendMode.Multiply)
+            if (nightOn) drawPath(spritePath, nightInk, blendMode = BlendMode.Multiply)
+            // the rake along the shown gable's slope
+            if (abs(s) > .02f && info != null) {
+                val xe = if (s > 0f) half else -half
+                drawLine(Color(0xFF000000.toInt() or info[0].toInt()), Offset(xe, -hf), Offset(xe + s / 2f, -hf - band), strokeWidth = 1.2f * k)
+            }
+            // the stone end walls standing up at either end, their caps over the ridge
+            val pw = (info?.getOrNull(2) ?: 0f) * k
+            val pl = sb.postL; val pr = sb.postR
+            if (pw > 0f && pl != null && pr != null) {
+                val ph = pl.height * k
+                part(pl, 0, 0, pl.width, pl.height, -half, -hf - ph + 3f * k, pw, ph, filter = signTint())
+                part(pr, 0, 0, pr.width, pr.height, half - pw, -hf - ph + 3f * k, pw, ph, filter = signTint())
+            }
+        } else if (roof != null && !planeFaces) {
             roofStrips(roof, -half, -hf, B.W, dy, s)
             spritePath.rewind()
             spritePath.moveTo(-half, -hf); spritePath.lineTo(-half + s, -hf - dy); spritePath.lineTo(half + s, -hf - dy); spritePath.lineTo(half, -hf); spritePath.close()

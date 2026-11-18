@@ -705,8 +705,27 @@ internal class CornerWorld {
         quality = painter
         painter.prepare(art, x, sky, seconds)
         with(painter) {
-            // the roof (seen only from above), then a rooftop billboard on it
-            sb.roof?.let { roof ->
+            // a pitched roof: its two slopes up to the ridge halfway back (the near one the art's, row for row), its
+            // gable ends and its stone end walls, as the street draws it; else the flat roof (seen only from above)
+            val pitch = sb.pitch
+            if (pitch != null) {
+                val rows = pitch.height.toFloat(); val pw = pitch.width.toFloat()
+                val rise = (rows * kk - B.DY / 2f).coerceAtLeast(2f)
+                val rx = ox - ax * hw - nx * DEPTH / 2f; val rz = oz - az * hw - nz * DEPTH / 2f
+                // (both slopes from the ridge: the near one down to the front's eave, the far one down to the back's)
+                face(rx, hf + rise, rz, ax * B.W / pw, 0f, az * B.W / pw, nx * DEPTH / 2f / rows, -rise / rows, nz * DEPTH / 2f / rows, pw, rows, false) { pitchFace(sb, sky) }
+                face(rx, hf + rise, rz, ax * B.W / pw, 0f, az * B.W / pw, -nx * DEPTH / 2f / rows, -rise / rows, -nz * DEPTH / 2f / rows, pw, rows, true) { pitchFace(sb, sky) }
+                for (end in 0..1) {
+                    val e = if (end == 0) -hw else hw
+                    face(ox + ax * e, hf + rise, oz + az * e, -nx, 0f, -nz, 0f, -1f, 0f, DEPTH, rise, end == 0) { gableFace(sb, DEPTH, rise) }
+                }
+                val pl = sb.postL; val pr = sb.postR; val posts = (sb.pitchInfo?.getOrNull(2) ?: 0f) * kk
+                if (pl != null && pr != null && posts > 0f) {
+                    val ph = pl.height * kk
+                    face(ox - ax * hw, hf - 3f * kk + ph, oz - az * hw, ax * posts / pl.width, 0f, az * posts / pl.width, 0f, -kk, 0f, pl.width.toFloat(), pl.height.toFloat(), false) { postFace(pl) }
+                    face(ox + ax * (hw - posts), hf - 3f * kk + ph, oz + az * (hw - posts), ax * posts / pr.width, 0f, az * posts / pr.width, 0f, -kk, 0f, pr.width.toFloat(), pr.height.toFloat(), false) { postFace(pr) }
+                }
+            } else sb.roof?.let { roof ->
                 face(ox - ax * hw - nx * DEPTH, hf, oz - az * hw - nz * DEPTH, ax * B.W / roof.width, 0f, az * B.W / roof.width,
                     nx * DEPTH / roof.height, 0f, nz * DEPTH / roof.height, roof.width.toFloat(), roof.height.toFloat(), false) { roofFace(sb, sky) }
             }

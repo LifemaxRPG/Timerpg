@@ -229,6 +229,24 @@ def build(shop, out):
     noise = rng.integers(-14, 14, (64, 224, 1)); roof_img[..., :3] = np.clip(roof_img[..., :3].astype(int) + noise, 0, 255)
     roof_img[:5, :, :3] = rim; roof_img[:, :5, :3] = rim; roof_img[:, -5:, :3] = rim; roof_img[-5:, :, :3] = rim
     Image.fromarray(roof_img).save(f'{out}/{n}_roof.png')
+    # a pitched roof over the box (our roof_2/4/6: a ridge along the street; roof_8/9/11: the same between two stone
+    # end walls). The art draws it from above: the far slope, the ridge cap, the near slope down to the eave. The street's
+    # nearly level view sees the near slope as a band rising from the front's top edge to the ridge, so its rows are
+    # taken every other row (the art is 2x pixel art) from the ridge cap down, one screen row each in the engine; the end
+    # walls are each a column of the art's own stone, taken the same way, with three rows of their cap over the ridge
+    pitch = PITCHED.get(roof['key']) if roof else None
+    if pitch is not None:
+        ra = np.array(load(roof['key']))
+        r0, posts = pitch
+        slope = ra[r0:r0 + 132:2].copy()
+        if posts:
+            slope[:, :posts] = 0; slope[:, 224 - posts:] = 0
+            rows = [8, 10, 12] + list(range(r0, r0 + 132, 2))
+            Image.fromarray(np.ascontiguousarray(ra[rows, :posts])).save(f'{out}/{n}_postl.png')
+            Image.fromarray(np.ascontiguousarray(ra[rows, 224 - posts:])).save(f'{out}/{n}_postr.png')
+        Image.fromarray(slope).save(f'{out}/{n}_pitch.png')
+        rake = ra[r0 + 130, 112]; gable = np.median(fa[6:20, 8:216].reshape(-1, 4), axis=0)
+        WINDOWS[n + '_pitch'] = [[rgb_int(rake), rgb_int(gable), posts]]
 
 # ------------------------------------------------------------------------------------------------ houses
 # Our mobile homes (houseSmall / houseMedium) are drawn in a 3/4 view from above: a roof slab on top, the front wall
@@ -573,6 +591,9 @@ def build_house(shop, out):
 # places below are the art's own pixels (every variant of a sprite shares them: the villas differ only in their roofs'
 # colour, the clock towers only in the time on the clock).
 MODELS = {}
+# The pitched roofs a shop or condo stack can wear: where the ridge cap starts in the art (the near slope runs 132 rows
+# from there to the eave) and how wide its stone end walls are (0: none)
+PITCHED = {'roof_2': (60, 0), 'roof_4': (60, 0), 'roof_6': (60, 0), 'roof_8': (92, 32), 'roof_9': (92, 32), 'roof_11': (92, 32)}
 GLOW = (255, 205, 120, 235)
 
 class Atlas:
@@ -1272,7 +1293,7 @@ def build_model(shop, out):
 # What this script writes for a sprite. Anything else in the folder is left alone: the lighting maps make_lighting.py
 # made from each front need a depth model that is not always on disk, so they must survive a re-run that does not
 # change their front.
-OUTPUTS = ('front', 'side', 'emis', 'roof', 'sign', 'prop', 'glass', 'over', 'slope', 'ridge', 'back', 'hitch', 'lawn', 'porch', 'fence',
+OUTPUTS = ('front', 'side', 'emis', 'roof', 'pitch', 'postl', 'postr', 'sign', 'prop', 'glass', 'over', 'slope', 'ridge', 'back', 'hitch', 'lawn', 'porch', 'fence',
            'fencesnow', 'atlas', 'glow')
 MAPS = ('lit', 'shade')
 
