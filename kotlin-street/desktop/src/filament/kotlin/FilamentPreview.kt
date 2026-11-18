@@ -34,7 +34,13 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 fun renderFilament(out: String, albedo: Boolean) {
     if (System.getProperty("size") == null) System.setProperty("size", "phone")
-    val dir = File(out, "filament").also { it.mkdirs() }
+    // (-Deye=low|medium|high|<height>: that camera's renders in their own folder; -Dlook=classic: the classic's looks)
+    val sub = when {
+        com.lifemax.rpg.feature.habits.presentation.scene3d.CameraRig.classic -> "filament/look_classic"
+        System.getProperty("eye") != null || System.getProperty("back") != null -> "filament/eye_" + com.lifemax.rpg.feature.habits.presentation.scene3d.CameraRig.label
+        else -> "filament"
+    }
+    val dir = File(out, sub).also { it.mkdirs() }
     val (wd, hd, dens) = previewSize()
     val w = kotlin.math.round(wd * dens).toInt(); val h = kotlin.math.round(hd * dens).toInt()
     val report = StringBuilder()
@@ -91,20 +97,34 @@ fun renderFilament(out: String, albedo: Boolean) {
         (ch(16) shl 16) or (ch(8) shl 8) or ch(0)
     }
 
-    fun shot(tag: String, scene: ImageComposeScene, nanos: Long) {
+    var nanos = 0L
+    fun shot(tag: String, scene: ImageComposeScene, @Suppress("UNUSED_PARAMETER") at: Long) {
+        // (a still street redraws only when the player changes, and skyOnly is no snapshot state: without a redraw the
+        // "sky" under Filament was the classic's whole street, showing through wherever Filament left the picture
+        // open. So each picture is drawn by turning the player away for a frame and back for the next)
+        fun redrawn(): IntArray {
+            val facing = GameState.facing
+            GameState.facing = (facing + 1) % 4
+            nanos += 33_333_333L; Thread.sleep(40); scene.render(nanos)
+            GameState.facing = facing
+            nanos += 33_333_333L; Thread.sleep(40)
+            return pixels(scene.render(nanos))
+        }
         StageTuning.skyOnly = false
         val tc = System.nanoTime()
-        scene.render(nanos); val classic = pixels(scene.render(nanos))
+        val classic = redrawn()
         val classicMs = (System.nanoTime() - tc) / 1e6 / 2.0
         StageTuning.skyOnly = true
-        // (a frame a microsecond on: the scene only redraws for a new frame time, and skyOnly is no snapshot state)
-        scene.render(nanos + 1_000L); val sky = pixels(scene.render(nanos + 2_000L))
+        val sky = redrawn()
         StageTuning.skyOnly = false
         val fil = over(drawFilament(), sky)
         savePng(File(dir, "filament_$tag.png"), fil, null, w, h)
         if (System.getProperty("sky") == "1") savePng(File(dir, "sky_$tag.png"), sky, null, w, h)
         savePng(File(dir, "compare_$tag.png"), classic + fil, null, w, h * 2)
         val st = stats(classic, fil)
+        com.lifemax.rpg.feature.habits.presentation.scene3d.CameraRig.let { r ->
+            if (!r.classic) line("  camera: eye %.0f back %.0f, %.0f deg across, horizon at y %.0f, yaw %.1f deg".format(r.eye, r.backNow, r.fovX(w.toFloat()), r.view.cy, Math.toDegrees(r.view.yaw.toDouble())))
+        }
         Stage3D.frame.light?.let { k -> line("  light: dark %.2f across %.2f down %.2f out %.2f strength %.2f cool %.2f".format(Stage3D.frame.dark, k.across, k.down, k.out, k.strength, k.cool)) }
         line("%-14s classic (Skia, CPU) %.0f ms/frame   filament (llvmpipe) %.0f ms/frame   diff %s".format(tag, classicMs, times.last(), st))
     }
@@ -116,7 +136,6 @@ fun renderFilament(out: String, albedo: Boolean) {
         )
     }
 
-    var nanos = 0L
     fun settle(scene: ImageComposeScene, n: Int) { repeat(n) { nanos += 33_333_333L; Thread.sleep(40); scene.render(nanos) } }
 
     val hours = System.getProperty("hour")?.toFloatOrNull()?.let { listOf(it) } ?: listOf(13f, 19.3f, 22.5f)

@@ -144,6 +144,8 @@ class FilamentStreet(
 
     private val m12 = FloatArray(12)
     private val look = FloatArray(16)
+    /** The true camera's clip-space matrix this frame, the same for every thing. */
+    private val trueLook = FloatArray(16)
     private val xf = FloatArray(16)
     private val glow = FloatArray(4)
     private val glass = FloatArray(3)
@@ -162,11 +164,14 @@ class FilamentStreet(
             buildMs = (System.nanoTime() - t0) / 1e6f
         } else buildMs = 0f
         view.viewport = Viewport(0, 0, f.width.toInt(), f.height.toInt())
-        world.grounds()
         val cam = world.cam
-        aimCamera(cam, f.width, f.height)
+        val classic = CameraRig.classic
+        // the one true camera (the classic's leaned looks only behind -Dlook=classic)
+        val eyeCam = if (classic) cam else { CameraRig.aim(cam, world.oy, f.width); CameraRig.view }
+        if (classic) world.grounds() else LookMatrix.pinhole(eyeCam.m, f.width, f.height, CameraRig.NEAR, trueLook)
+        aimCamera(eyeCam, f.width, f.height, classic)
         light(f, cam)
-        haze(f, cam)
+        haze(f, eyeCam)
         val rest = world.restStreet
         val rm = engine.renderableManager
         val wl = SceneInk.WindowLit
@@ -186,23 +191,21 @@ class FilamentStreet(
         }
         for (t in things) {
             var fade = 1f
-            when (t.kind) {
-                BOX -> {
-                    val bx = t.box!!
-                    fade = if (bx.street == rest) 1f else cornerFade(cam, bx)
-                    world.boxMatrix(cr, t.side!!, bx, m12)
-                }
-                else -> world.ground(t.lookX, t.lookZ).copyInto(m12)
+            if (t.kind == BOX) {
+                val bx = t.box!!
+                fade = if (bx.street == rest) 1f else cornerFade(cam, bx)
             }
-            if (trueCamera) cam.m.copyInto(m12)
             val shown = fade > .02f
             show(rm, t.entity, shown)
             if (t.proxy != 0) show(rm, t.proxy, shown && fade > .5f)
             if (!shown) continue
-            var (s, o) = band(t.kind, t.street, rest, t.level)
-            // (pulled forward: n / d grows by n / d^2 a unit nearer)
-            if (t.pull > 0f) { val d0 = max(cam.depth(t.refX, t.refZ), LookMatrix.N); o += s * LookMatrix.N * t.pull / (d0 * d0) }
-            LookMatrix.of(m12, cam, f.width, f.height, t.refX, t.refY, t.refZ, s, o, look)
+            if (classic) {
+                if (t.kind == BOX) world.boxMatrix(cr, t.side!!, t.box!!, m12) else world.ground(t.lookX, t.lookZ).copyInto(m12)
+                var (s, o) = band(t.kind, t.street, rest, t.level)
+                // (pulled forward: n / d grows by n / d^2 a unit nearer)
+                if (t.pull > 0f) { val d0 = max(cam.depth(t.refX, t.refZ), LookMatrix.N); o += s * LookMatrix.N * t.pull / (d0 * d0) }
+                LookMatrix.of(m12, cam, f.width, f.height, t.refX, t.refY, t.refZ, s, o, look)
+            } else trueLook.copyInto(look)
             for (mi in t.mis) {
                 mi.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
                 mi.setParameter("fade", fade)
@@ -215,7 +218,7 @@ class FilamentStreet(
                 t.windows?.update(f.hour)
             }
         }
-        placeCards(f, world, cr, sides)
+        placeCards(f, world, cr, sides, eyeCam, classic)
     }
 
     private fun show(rm: RenderableManager, e: Int, on: Boolean) {
@@ -237,13 +240,18 @@ class FilamentStreet(
         return if (rest < 0) .78f to .2f else if (inView) .4f to .6f else .4f to .2f
     }
 
-    private fun aimCamera(cam: com.lifemax.rpg.feature.habits.presentation.scene.StageCamera, w: Float, h: Float) {
-        // the plain pinhole the classic leans from: for view-dependent light and to fit the sun's shadow map to
-        // (only light and the sun's shadow map use this camera, every thing is placed by its own look: its near plane
-        // starts a little before the nearest street, so the shadow map's cascades spend their texels on the street,
-        // not on the empty air in front of it)
-        val front = min(cam.depth(cam.camX, 0f), cam.depth(0f, cam.camZ)).let { if (it < 0f) cam.depth(cam.camX, 0f) else it }
-        val near = (front - 320f).coerceAtLeast(10f).toDouble()
+    private fun aimCamera(cam: com.lifemax.rpg.feature.habits.presentation.scene.StageCamera, w: Float, h: Float, classic: Boolean) {
+        // the camera everything is seen from (the true camera; with the classic's looks, the plain pinhole they lean
+        // from): for view-dependent light and to fit the sun's shadow map to. Its near plane starts a little before the
+        // nearest ground in view, so the shadow map's cascades spend their texels on the street, not on the air before it
+        val near = if (classic) {
+            val front = min(cam.depth(cam.camX, 0f), cam.depth(0f, cam.camZ)).let { if (it < 0f) cam.depth(cam.camX, 0f) else it }
+            (front - 320f).coerceAtLeast(10f).toDouble()
+        } else {
+            // the ground at the screen's bottom edge
+            val below = (h - cam.cy).coerceAtLeast(1f)
+            (cam.f * cam.eye / below * .7f).coerceAtLeast(CameraRig.NEAR).toDouble()
+        }
         val k = near / cam.f
         camera.setProjection(Camera.Projection.PERSPECTIVE, -cam.cx * k, (w - cam.cx) * k, -(h - cam.cy) * k, cam.cy * k, near, near + 3000.0)
         camera.lookAt(cam.camX.toDouble(), cam.eye.toDouble(), cam.camZ.toDouble(),
@@ -336,7 +344,8 @@ class FilamentStreet(
         fog.density = HAZE * (1f - .4f * f.dark)
         fog.height = 0f
         fog.heightFalloff = 1e-4f
-        fog.maximumOpacity = .4f
+        // (the true camera sees the ground out to its horizon: far off it goes into the haze, as far land does)
+        fog.maximumOpacity = if (CameraRig.classic) .4f else .85f
         fog.inScatteringStart = 0f
         fog.inScatteringSize = -1f
         fog.fogColorFromIbl = false
@@ -457,13 +466,35 @@ class FilamentStreet(
                 val bw = 160f * kk
                 val bh = bill.height * kk
                 // standing halfway back on the roof, where the classic stands it (the same point in the world, so it goes
-                // through the same look at rest and through the turn); a pitched roof's near slope hides its legs
+                // through the same look at rest and through the turn). Seen through the true camera it stands on its legs
+                // on a pitched roof's ridge (from the street the ridge would hide all but its top); in the classic's
+                // looks the near slope hides its legs
                 val back = DEPTH / 2f
-                boards += face(ox - ax * bw / 2f - nx * back, hf + bh, oz - az * bw / 2f - nz * back,
+                val ridge = if (CameraRig.classic) 0f else sb.pitch?.let { (it.height * kk - B.DY / 2f).coerceAtLeast(2f) } ?: 0f
+                // (the picture's empty rows under the legs go below the ridge, and the feet a little into it: the legs
+                // stand on it rather than over a strip of sky)
+                val (empty, backPic) = boardBack(bill)
+                val foot = if (CameraRig.classic) 0f else (empty + 1) * kk
+                val bx0 = ox - ax * bw / 2f - nx * back; val bz0 = oz - az * bw / 2f - nz * back
+                boards += face(bx0, hf + ridge - foot + bh, bz0,
                     ax * bw / bill.width, 0f, az * bw / bill.width, 0f, -kk, 0f, bill.width.toFloat(), bill.height.toFloat(), textures.of(bill), null, nx, 0f, nz)
+                // its back: the frame's plain grey (from behind, the art does not show through mirrored)
+                if (!CameraRig.classic) boards += face(bx0 - nx * .4f, hf + ridge - foot + bh, bz0 - nz * .4f,
+                    ax * bw / bill.width, 0f, az * bw / bill.width, 0f, -kk, 0f, bill.width.toFloat(), bill.height.toFloat(), backPic, null, -nx, 0f, -nz)
             }
         }
         return win
+    }
+
+    /** A billboard picture's empty rows under its legs, and its back: the same outline in the frame's grey. */
+    private fun boardBack(bill: ImageBitmap): Pair<Int, Texture> {
+        val px = StreetTextures.argb(bill)
+        val w = bill.width; val h = bill.height
+        var empty = 0
+        while (empty < h - 1 && (0 until w).none { (px[(h - 1 - empty) * w + it] ushr 24) > 0 }) empty++
+        val grey = Color(0xFF5C6070).toArgb() and 0xFFFFFF
+        val back = IntArray(px.size) { i -> if ((px[i] ushr 24) > 0) (px[i] and 0xFF000000.toInt()) or grey else 0 }
+        return empty to textures.make(back, w, h, mips = true)
     }
 
     /** One of the mobile homes: its walls, its gabled ends (the side picture carries the triangle), the roof's two slopes, its yard. */
@@ -531,14 +562,21 @@ class FilamentStreet(
         // the classic's own ground colours by day (the light does the rest)
         val day = com.lifemax.rpg.feature.habits.presentation.scene.skyColors(13f)
         val verge = lerp(day.pavement, Color.Black, .1f)
-        val far = 7000f
+        // (the true camera sees the ground out towards its horizon)
+        val far = if (CameraRig.classic) 7000f else 30000f
+        val side = if (CameraRig.classic) 3000f else 30000f
         val farEnd = CornerWorld.MAIN_WIDTH
         val mainTex = groundTile(day, CornerWorld.MAIN_ROAD, farEnd, along = true)
+        // the ground behind and beyond the blocks: paving in big slabs (a plain colour there reads as nothing at all)
+        val plaza = if (CameraRig.classic) null else pavingTile(verge)
+        fun openGround(street: Int, x0: Float, z0: Float, x1: Float, z1: Float) =
+            if (plaza == null) flat(street, x0, z0, x1, z1, verge, 0)
+            else flat(street, x0, z0, x1, z1, Color.White, 0, plaza, floatArrayOf(x0 / PLAZA, z0 / PLAZA, (x1 - x0) / PLAZA, (z1 - z0) / PLAZA))
         val crossTex = groundTile(day, MOUTH - PAVE - KERB, MOUTH, along = false)
         // the main street (z < 0), in two halves either side of x = 0 (the ground's look changes there)
         for ((a, b) in listOf(-far to 0f, 0f to far)) {
             flat(0, a, -farEnd, b, 0f, Color.White, 0, mainTex, floatArrayOf(a / TILE_L, 0f, (b - a) / TILE_L, 1f))
-            flat(0, a, -3000f, b, -farEnd, verge, 0)
+            openGround(0, a, -side, b, -farEnd)
         }
         // the mouth: the cross street's road carried across the main pavement between dropped kerbs, and a zebra on it
         val pv = PAVE + KERB
@@ -554,8 +592,34 @@ class FilamentStreet(
         while (zx + 7f < r1 - 2f) { flat(0, zx, -(PAVE - 2f * Crossroads.LANE), zx + 7f, -3f * Crossroads.LANE, zebra, 2); zx += 13f }
         // the cross street (z > 0) between its rows, and paving behind the main street's blocks
         flat(1, 0f, 0f, MOUTH, far, Color.White, 0, crossTex, floatArrayOf(0f, 0f, 1f, far / TILE_L))
-        flat(1, -3000f, 0f, 0f, far, verge, 0)
-        flat(1, MOUTH, 0f, 3000f, far, verge, 0)
+        openGround(1, -side, 0f, 0f, far)
+        openGround(1, MOUTH, 0f, side, far)
+    }
+
+    /**
+     * Paving for the open ground: [PLAZA] street units square, slabs of 24 with darker joints, each slab a shade of its
+     * own and a scatter of specks, in [base]'s colour.
+     */
+    private fun pavingTile(base: Color): Texture {
+        val n = (PLAZA * TEX).toInt()
+        val px = IntArray(n * n)
+        val rnd = java.util.Random(11L)
+        val slabs = (PLAZA / 24f).toInt()
+        val shade = FloatArray(slabs * slabs) { (rnd.nextFloat() - .5f) * .06f }
+        val joint = lerp(base, Color.Black, .16f)
+        for (y in 0 until n) for (x in 0 until n) {
+            val u = (x + .5f) / TEX; val v = (y + .5f) / TEX
+            val sx = (u / 24f).toInt().coerceIn(0, slabs - 1); val sy = (v / 24f).toInt().coerceIn(0, slabs - 1)
+            val t = shade[sy * slabs + sx]
+            var c = if (t >= 0f) lerp(base, Color.White, t) else lerp(base, Color.Black, -t)
+            if (u % 24f < .9f || v % 24f < .9f) c = joint
+            px[y * n + x] = c.toArgb()
+        }
+        repeat(n * n / 40) {
+            val i = rnd.nextInt(px.size)
+            px[i] = lerp(Color(px[i]), Color.Black, .12f + .1f * rnd.nextFloat()).toArgb()
+        }
+        return textures.make(px, n, n, mips = true)
     }
 
     /** [top] laid over [under] at [a] (both opaque results). */
@@ -641,7 +705,9 @@ class FilamentStreet(
      * road and kerbs, 2 its markings).
      */
     private fun flat(street: Int, x0: Float, z0: Float, x1: Float, z1: Float, c: Color, level: Int, tex: Texture? = null, uv: FloatArray? = null) {
-        val f = Face(floatArrayOf(x0, 0f, z0, x1, 0f, z0, x1, 0f, z1, x0, 0f, z1), floatArrayOf(0f, 0f, 1f, 0f, 1f, 1f, 0f, 1f),
+        // (laid a hair over the lower levels: one level plane seen through one camera, the depth buffer keeps them apart)
+        val y = LEVEL_LIFT * level
+        val f = Face(floatArrayOf(x0, y, z0, x1, y, z0, x1, y, z1, x0, y, z1), floatArrayOf(0f, 0f, 1f, 0f, 1f, 1f, 0f, 1f),
             tex ?: textures.white, null, 0f, 1f, 0f, 1f, 0f, 0f, tint = c, uvRect = uv)
         // (its look is the one the classic uses where it lies: one corner well inside it)
         val rx = if (x1 <= 0f) min(x1 - 1f, -1f) else max(x0 + 1f, 1f)
@@ -800,7 +866,10 @@ class FilamentStreet(
         return Card(street, e, mi, proxy, pmi, img, footX, footY, x, z, person)
     }
 
-    private fun placeCards(f: Frame3D, world: CornerWorld, cr: Crossroads, sides: List<CrossSide>) {
+    private fun placeCards(
+        f: Frame3D, world: CornerWorld, cr: Crossroads, sides: List<CrossSide>,
+        eyeCam: com.lifemax.rpg.feature.habits.presentation.scene.StageCamera, classic: Boolean,
+    ) {
         val cam = world.cam
         val rm = engine.renderableManager
         val k = SpriteArt.PIXEL
@@ -843,7 +912,7 @@ class FilamentStreet(
             val im = img ?: continue
             // one on the camera's side of the corner fades as the cut passes it, as the classic's do
             val fade = if (rest < 0 && cornerNearSide(x, x, z, z)) 1f - smooth((cam.cutDepth - cam.depth(x, z)) / CornerWorld.FADE_POINT) else 1f
-            val on = fade > .02f && cam.depth(x, z) > CornerWorld.NEAR
+            val on = fade > .02f && (if (classic) cam.depth(x, z) > CornerWorld.NEAR else eyeCam.depth(x, z) > CameraRig.NEAR)
             show(rm, c.entity, on)
             if (c.proxy != 0) show(rm, c.proxy, on && fade > .5f)
             if (!on) continue
@@ -854,9 +923,11 @@ class FilamentStreet(
             // facing the camera: across its right, up, towards it
             card(c.entity, x, z, cam.rx, cam.rz, -cam.dx, -cam.dz, left, bottom, w, h)
             if (c.proxy != 0) card(c.proxy, x, z, px, pz, -pz, px, left, bottom, w, h)
-            (if (trueCamera) cam.m else world.ground(x, z)).copyInto(m12)
-            val (s, o) = band(CARD, c.street, rest, 0)
-            LookMatrix.of(m12, cam, f.width, f.height, x, h / 2f, z, s, o, look)
+            if (classic) {
+                world.ground(x, z).copyInto(m12)
+                val (s, o) = band(CARD, c.street, rest, 0)
+                LookMatrix.of(m12, cam, f.width, f.height, x, h / 2f, z, s, o, look)
+            } else trueLook.copyInto(look)
             c.mi.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
             c.mi.setParameter("uvRect", u0, v0, du, dv)
             c.mi.setParameter("fade", fade)
@@ -1088,9 +1159,6 @@ class FilamentStreet(
     private val dayPave = com.lifemax.rpg.feature.habits.presentation.scene.skyColors(13f).pavement
 
     companion object {
-        /** Experiment: draw everything through the one true pinhole ([StageCamera.m]) instead of the classic's leaned looks. */
-        @JvmStatic var trueCamera = System.getProperty("truecam") != null
-
         const val BOX = 0
         const val GROUND = 1
         const val CARD = 2
@@ -1098,6 +1166,10 @@ class FilamentStreet(
         /** The ground tiles' length along their street (the paving's 24 and the dashes' 46 both go into it) and texels a unit. */
         const val TILE_L = 552f
         const val TEX = 2f
+        /** The open ground's paving tile (street units a side, a whole number of its 24-unit slabs). */
+        const val PLAZA = 96f
+        /** How far above the ground below it each level of ground is laid (street units). */
+        private const val LEVEL_LIFT = .05f
         /** How thick the air is past the street in view (the fog's density, per street unit). */
         const val HAZE = .0006f
         /** The sun's and the sky light's strength by day (tuned by eye against the classic street). */
