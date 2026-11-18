@@ -66,7 +66,7 @@ class ModelPart(
      * [right] one (the modern estate).
      */
     val apexX: Float = Float.NaN,
-    /** A box's side that stands against another volume, which no view sees: 1 its left, 2 its right, 0 neither. */
+    /** A box's sides that stand against other volumes, which no view sees: bit 1 its left, bit 2 its right. */
     val hideSide: Int = 0,
     /**
      * A railing ([RAIL]): its handrail [railH] above the line from (x0, y0, d0) to (x1, y1, d1) (a stair's nosings, a
@@ -186,7 +186,7 @@ class ModelShape(
                         p.optBoolean("card"), p.optBoolean("out"),
                         if (pn == null) emptyList() else (0 until pn.length()).map { floats(pn.getJSONArray(it))!! },
                         sideGlow = p.optBoolean("sg"), clock = ints(p.optJSONArray("clock")),
-                        hideSide = when (p.optString("hs")) { "l" -> 1; "r" -> 2; else -> 0 })
+                        hideSide = when (p.optString("hs")) { "l" -> 1; "r" -> 2; "lr" -> 3; else -> 0 })
                 }
                 "gable" -> {
                     val rk = p.getJSONArray("rake")

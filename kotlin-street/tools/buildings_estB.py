@@ -3,11 +3,11 @@ build_model): the Japanese house and the modern house. Imported by make_building
 what the others do (the model, its atlas, the whole front, a side, the front's glow, the yard's lawn and fence)."""
 import numpy as np
 from make_buildings import (load, solid, Atlas, cut, polygon, column_fill, hand_panes, board_side, rgb_int, shade,
-                            rise_for, mbox, mgable, mhip, yard, column_rows, side_wall, tile_x, fl)
+                            rise_for, mbox, mgable, mhip, yard, column_rows, side_wall, tile_x, fl, glass)
 
 
 def box(*a, hide=None, **k):
-    """A box (make_buildings.mbox); `hide` 'l' or 'r': that side stands against another volume (no view sees it)."""
+    """A box (make_buildings.mbox); `hide` 'l', 'r' or 'lr': those sides stand against other volumes (no view sees them)."""
     p = mbox(*a, **k)
     if hide: p['hs'] = hide
     return p
@@ -38,27 +38,41 @@ def keep_boxes(pic, x0, y0, boxes):
     return cut(pic, m)
 
 
-def lean_to_end(lit, edge, run, rise):
+def lean_to_end(lit, edge, run, rise, courses=None):
     """A lean-to roof's end as a hipped roof's side piece (columns up from the eave to the roof's edge, rows along the
     depth, the back first): the wall under it in its own siding (`lit`, a colour per column of the front's, here running
-    along the depth as the side wall's do), the roof's edge in its last two columns."""
+    along the depth as the side wall's do; or `courses`, level boards a colour per row from the eave up, as a side wall
+    in lap siding has them), the roof's edge in its last two columns."""
     w = max(3, int(round(rise)))
     pic = np.zeros((run, w, 4), np.uint8)
-    pic[..., :3] = np.asarray(lit)[np.arange(run) % len(lit)][:, None, :3]
+    if courses is not None: pic[..., :3] = np.asarray(courses)[np.arange(w) % len(courses)][None, :, :3]
+    else: pic[..., :3] = np.asarray(lit)[np.arange(run) % len(lit)][:, None, :3]
     pic[:, -2:, :3] = edge[:3]
     pic[..., 3] = 255
     return pic
 
 
-def lean_to(at, x0, x1, eave, run, rows, lit, edge, roofc):
-    """A lean-to roof over x0..x1 running back `run` from the front line, its eave at `eave`, rising to the back: its
-    face the art's roof from above (`rows`, already taken one per screen row), its two ends the wall's siding under its
-    edge. Returns the part and its rise."""
+def lean_to(at, x0, x1, eave, run, rows, lit, edge, roofc, d0=0, courses=None):
+    """A lean-to roof over x0..x1 running back `run` from `d0`, its eave at `eave`, rising to the back: its face the
+    art's roof from above (`rows`, already taken one per screen row), its two ends the wall's siding under its edge.
+    Returns the part and its rise."""
     rise = rise_for(rows.shape[0], run)
     face_r = at.add(rows)
-    end = lean_to_end(lit, edge, run, rise); end_r = at.add(end)
+    end = lean_to_end(lit, edge, run, rise, courses); end_r = at.add(end)
     q = [0, run - 1, 0, 0, end.shape[1] - 1, 0, end.shape[1] - 1, 1]
-    return mhip((x0, x1), (eave, eave + rise), (0, run), (x0, x1, run - 1, run), face_r, end_r, q, end_r, q, roofc), rise
+    return mhip((x0, x1), (eave, eave + rise), (d0, d0 + run), (x0, x1, d0 + run - 1, d0 + run), face_r, end_r, q, end_r, q, roofc), rise
+
+
+def to_ground(pic, ink=(0x3a, 0x3a, 0x50), reach=12):
+    """`pic` (a front, its last row the ground's) with each column's foot carried down to the ground in the art's ink:
+    solid() takes away the half-clear ground shadow the art draws under a wall, which left the wall's last rows open
+    (a stepped strip of pavement under it). Only columns whose wall ends within `reach` rows of the ground."""
+    pic = pic.copy(); h = pic.shape[0]
+    for c in range(pic.shape[1]):
+        op = np.nonzero(pic[:, c, 3] > 0)[0]
+        if len(op) and h - 1 - reach <= op.max() < h - 1:
+            pic[op.max() + 1:, c, :3] = ink; pic[op.max() + 1:, c, 3] = 255
+    return pic
 
 
 # ------------------------------------------------------------------------------------------------ the Japanese house
@@ -90,14 +104,23 @@ def estate_japanese(shop, rng):
         if x < 56 or x > 426: face[max(0, rake(x) - 170 + 26):, c] = 0
     pm = np.zeros(face.shape[:2], bool); pm[PENT0 - 170:PENT1 - 170, :292 - 54] = True
     face = column_fill(face, pm, lambda x: range(PENT0 - 1 - 170, 300 - 170, -1))
+    # the hoods over the upper windows (rows 248..271, the art's from above) painted out with the wall above them where
+    # the barge board leaves some (under it the hood, built, covers the board's own pixels)
+    HOOD = (248, 272); bays = [(107, 223), (267, 383)]
+    hm = np.zeros(face.shape[:2], bool)
+    for (a, b) in bays:
+        for x in range(a, b): hm[max(HOOD[0], rake(x) + 22) - 170:HOOD[1] - 170, x - 54] = True
+    face = column_fill(face, hm, lambda c: range(HOOD[0] - 1 - 170, rake(c + 54) + 21 - 170, -1))
+    face = to_ground(face)
     # its windows: the long one under the right eave (clear glass), the lattice windows of the ground floor (their
     # dark glass lights at night between the slats; behind the slats it mirrors no square of sky: 0)
     f_panes, f_glow = hand_panes(face, [(258, 186, 92, 16, 1)])
-    g_panes, g_glow = hand_panes(face, [(39, 215, 57, 38, 0), (146, 215, 70, 37, 0)], least=200)
+    # (the left one runs on into the left annex's front: its part there is the annex's pane)
+    g_panes, g_glow = hand_panes(face, [(2, 218, 27, 46, 0), (39, 215, 57, 38, 0), (146, 215, 70, 37, 0)], least=200)
     f_panes += g_panes; f_glow = np.maximum(f_glow, g_glow)
     face_r = at.add(face, f_glow)
     # --- the upper windows' bays, standing out of the wall: the window, its frame and the lattice sill under it as drawn
-    BAY = (272, 334); bays = [(107, 223), (267, 383)]
+    BAY = (272, 334)
     bay_pics = []
     for (a, b) in bays:
         pic = art[BAY[0]:BAY[1], a:b].copy()
@@ -117,7 +140,8 @@ def estate_japanese(shop, rng):
     la = art[LTOP:G + 1, LA0:LA1].copy()
     m = np.zeros(la.shape[:2], bool); m[PENT0 - LTOP:PENT1 - LTOP] = True
     la = column_fill(la, m, lambda x: range(PENT0 - 1 - LTOP, 0, -1))
-    la_panes, la_glow = hand_panes(la, [(4, 112, 34, 46, 0)], least=200)
+    la = to_ground(la)
+    la_panes, la_glow = hand_panes(la, [(24, 112, 16, 46, 0)], least=200)
     la_r = at.add(la, la_glow)
     RUN = 200
     la_roof = art[122:LTOP:4, LA0:LA1].copy(); la_roof[..., 3] = 255
@@ -125,14 +149,30 @@ def estate_japanese(shop, rng):
     la_side, _ = board_side(lit, RUN, G + 1 - LTOP, rng, corner, (), foot)
     la_side_r = at.add(la_side)
     la_hip, la_rise = lean_to(at, LA0, LA1, G + 1 - LTOP, RUN, la_roof, lit, la_edge, art[200, 30])
-    # --- the right annex: the same, its board roof (its downpipe down the right edge as drawn)
-    RA0, RA1, RTOP = 426, 466, 280
+    # --- the right annex: the same, its board roof, its downpipe down the front as drawn. The art draws its wall in lap
+    # siding at a slant (its side seen at an angle, x 442..463) over a brown base: in the front the boards are set
+    # level (each column taken as many rows lower as the boards fall there) and the front
+    # ends where the base does (x 456; past it the art draws only that slanted side); the side wall wears the same
+    # boards and base, a row each, with a lattice window of the front's.
+    RA0, RA1, RTOP = 426, 456, 280
     ra = art[RTOP:G + 1, RA0:RA1].copy()
+    for x in range(442, RA1):
+        o = 2 * ((x - 446) // 4)                                     # (the boards fall two rows every four columns)
+        ra[304 - RTOP:366 - RTOP, x - RA0] = art[304 + o:366 + o, x]
+    ra = to_ground(ra)
     ra_r = at.add(ra)
     ra_roof = art[112:RTOP:4, RA0:RA1].copy(); ra_roof[..., 3] = 255
-    ra_side, _ = board_side(art[400, 450:460], RUN, G + 1 - RTOP, rng, shade(art[400, 450], .75) + (255,), (), foot)
-    ra_side_r = at.add(ra_side)
-    ra_hip, ra_rise = lean_to(at, RA0, RA1, G + 1 - RTOP, RUN, ra_roof, art[400, 450:460], art[276, 440], art[200, 440])
+    courses = column_rows(ra, list(range(446 - RA0, RA1 - RA0)))
+    lat = art[384:441, 94:152]
+    ra_side, ra_glow = side_wall(courses, RUN, None, 0, (), rng, shade(art[330, 450], .7) + (255,))
+    wy, wx = 96, RUN // 2 - lat.shape[1] // 2; lm = lat[..., 3] > 0
+    ra_side[wy:wy + lat.shape[0], wx:wx + lat.shape[1]][lm] = lat[lm]
+    lg = hand_panes(lat, [(0, 1, 56, 38, 0)], least=200)[1]; gm = lg[..., 3] > 0
+    ra_glow[wy:wy + lat.shape[0], wx:wx + lat.shape[1]][gm] = lg[gm]
+    ra_side_r = at.add(ra_side, ra_glow)
+    # (the lean-to's ends: the side's boards carried up under its edge, from the eave's course up)
+    ra_hip, ra_rise = lean_to(at, RA0, RA1, G + 1 - RTOP, RUN, ra_roof, None, art[276, 440], art[200, 440],
+                              courses=courses[24:42][::-1])
     # --- the pent roof: its copper sheets from above every other row (one screen row each), its ends in its edge colour
     pent = art[PENT0:PENT1:2, 18:292].copy()
     prun = 24; prise = rise_for(pent.shape[0], prun)
@@ -156,9 +196,16 @@ def estate_japanese(shop, rng):
         box((RA0, RA1), (0, G + 1 - RTOP), (0, RUN), (wall_c, wall_c, wall_c), ft=ra_r, st=ra_side_r, top=False, hide='l'),
         ra_hip,
     ]
-    # the upper windows' bays
+    # the upper windows' bays, each under its hood: a little lean-to of corrugated iron from the wall out past the bay
+    # (the art's from above, every other row; its open ends in the shade under it)
     for (a, b), (r, bp, _, _) in zip(bays, bay_pics):
         parts.append(mbox((a, b), (G - BAY[1], G - BAY[0]), (-8, 0), (art[BAY[0] + 1, a + 20], art[300, a + 2], art[300, a + 2]), ft=r, st=bay_side_r, panes=bp))
+        hood = art[HOOD[0]:HOOD[1], a - 1:b + 1].copy()
+        for x in range(a - 1, b + 1): hood[:max(0, rake(x) + 22 - HOOD[0]), x - a + 1] = 0
+        hood = hood[::2]
+        under_c = shade(art[260, a + 20], .55) + (255,)
+        hp, _ = lean_to(at, a - 1, b + 1, G - BAY[0], 10, hood, [under_c], under_c, art[260, a + 20], d0=-10)
+        parts.append(hp)
     # the pent roof along the ground floor's front
     parts.append(mhip((18, 292), (G - 382, G - 382 + prise), (-prun, 0), (18, 292, -1, 0), pent_r, pend_r, pq, pend_r, pq, art[360, 100]))
     setback = int(shop.get('yard', {}).get('front', 2)) * 32 + 24
@@ -174,6 +221,7 @@ def estate_japanese(shop, rng):
         emis[r0:r0 + h, x:x + w][m] = glow[m] if glow is not None else 0
     over(face, 54, H, f_glow); over(la, LA0, G + 1 - LTOP, la_glow); over(ra, RA0, G + 1 - RTOP)
     for (a, b), (_, _, pic, bg) in zip(bays, bay_pics): over(pic, a, G - BAY[0], bg)
+    for (a, b) in bays: over(art[HOOD[0]:HOOD[1], a:b], a, G - HOOD[0] + 1)
     over(art[PENT0:PENT1 + 1, 18:292], 18, G - PENT0 + 1)
     model = dict(kind='estate', w=W, frontX=(224 - W) / 2, setback=setback, lawn='paving', style=style, parts=parts,
                  fence=dict(d=3, foot=28 if style != 'formal' else 32) if fence is not None else None,
@@ -237,12 +285,16 @@ def estate_modern(shop, rng):
         return sd
     hs = render_side(y_hi - T, DEEP - DM); hs_r = at.add(hs)
     a1s = render_side(under(RX - 1) - T, DEEP - DM, 0); a1s_r = at.add(a1s)
-    # --- the entrance under the overhang: its front as drawn from under the fascia down to its foot (row 365), the
-    # wall above it (which the fascia hides in the art) its own dark head carried up to the roof's underside
+    # --- the entrance under the overhang: its front as drawn from under the fascia down to its foot (row 365); the wall
+    # above it, which the fascia hides in the art, carries on the upper storey's own band under the roof's edge (its
+    # strip windows between grey panels and their sills, every 70 columns as there, each column from under the fascia
+    # down to its sill), plain wall under that down to the door's head
     EX1 = 706
     bh = max(under(x) for x in range(RX, EX1))
-    soffit = art[310, 600]                                           # (the shade under the overhang, as over the door)
     ent = np.zeros((bh, EX1 - RX, 4), np.uint8)
+    def src(x): return 352 + (x - 352) % 70
+    sill = max(bh - under(x) for x in range(RX, EX1)) + 298 - 262    # (the band's foot, level as there; its head
+                                                                     # the windows' frame, row 262, carried up)
     for x in range(RX, EX1):
         c = x - RX; foot = 365
         top = f[x] + 10
@@ -250,7 +302,9 @@ def estate_modern(shop, rng):
         h = under(x)
         shown = col[-min(len(col), h):]
         ent[bh - len(shown):, c] = shown
-        ent[bh - h:bh - len(shown), c] = soffit
+        sx = src(x)
+        for r in range(bh - h, min(sill, bh - len(shown))): ent[r, c] = art[max(262, 298 - (sill - r)), sx]
+        ent[sill:bh - len(shown), c] = art[300, sx]
         ent[bh - h:bh - h + 3, c] = dark
     # (the strut and the potted plant stand in front of its right end: built, the wall behind them carried down)
     ent_clean = ent.copy()
@@ -259,7 +313,15 @@ def estate_modern(shop, rng):
     ent_clean[ent[..., 3] == 0] = 0
     pm = np.zeros(ent.shape[:2], bool); pm[bh - (366 - 346):, 626 - RX:684 - RX] = True
     ent_clean = column_fill(ent_clean, pm, lambda x: range(bh - (366 - 346) - 1, 0, -1))
-    e_panes, e_glow = hand_panes(ent_clean, [(568 - RX, bh - (365 - 305) - 1, 42, 54, 1)])
+    runs = []                                                        # the band's windows: runs of columns with glass
+    gl = glass(ent_clean)
+    for c in range(ent_clean.shape[1]):
+        ys = np.nonzero(gl[:bh - (365 - 305) - 2, c])[0]
+        if not len(ys): continue
+        if runs and c == runs[-1][1]: runs[-1][1:] = [c + 1, min(runs[-1][2], int(ys.min())), max(runs[-1][3], int(ys.max()) + 1)]
+        else: runs.append([c, c + 1, int(ys.min()), int(ys.max()) + 1])
+    e_panes, e_glow = hand_panes(ent_clean, [(568 - RX, bh - (365 - 305) - 1, 42, 54, 1)]
+                                 + [(a, y0, b - a, y1 - y0, 1) for (a, b, y0, y1) in runs if b - a > 6 and y1 - y0 > 6])
     ent_r = at.add(ent_clean, e_glow)
     ents = render_side(under(EX1 - 1), DEEP - DB, 0); ents_r = at.add(ents)
     # --- the fascia across the overhang (the upper storey's front carries it to its right end)
@@ -352,6 +414,9 @@ def estate_modern(shop, rng):
         # the deck behind the terrace, its railing
         box((4, 285), (0, dk_h), (DK, DEEP), (floor_c, tile_c, tile_c), ft=dk_r, st=dks_r),
         box((4, 285), (dk_h, dk_h + dk_rail.shape[0]), (DK + 2, DEEP), (bar_c, bar_c, bar_c), ft=dk_rail_r, card=True),
+        # under the upper storey's back half (behind the ground storey; the terrace's deck and the entrance
+        # hide its sides)
+        box((R0 + 1, RX), (0, T), (DK, DEEP), (frame_c, frame_c, frame_c), top=False, hide='lr'),
         # the ground storey, the terrace on its roof
         box((GX0, GX1), (0, T), (0, DK), (floor_c, frame_c, frame_c), ft=gf_r, tt=floor_r, st=gfs_r, panes=gf_panes),
         # the upper storey's high left end, the upper storey
