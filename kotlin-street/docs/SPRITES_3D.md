@@ -384,3 +384,12 @@ showcase only, as the other landmarks.
   hand with a lightness threshold each: `lit_panes`).
 - Still to do: `condo_5`'s barred ground windows as grilles standing out (they are flat on the front), the side bays'
   window hoods on the hotel as relief, the hotel's sign glow in the classic renderer, and a lighting map for these fronts.
+
+## After merging the five groups (2026-11-18)
+
+- Showcase streets (`make_buildings.py --showcase DIR`, `-Dmode=models -Dstreet=N`): 5 one of each estate, 6 the
+  one-story and country estates, 7 the Japanese and modern estates, 8 civic (fire station, hospital, post office), 9 the
+  police station, 10 the apartment blocks and the hotel.
+- Part types in models.json and their `ModelPart` numbers: `box` 0, `gable` 1, `hip` 2, `rail` 3, `decal` 4, `slope` 5,
+  `prism` 6, `cyl` 7, `wall` 8. A box's sides against another volume are one key for everyone, `hs` (`l`, `r`, `lr`;
+  bit 1 left, bit 2 right); the civic group's `abut` became `hs`.
