@@ -194,6 +194,7 @@ class FilamentStreet(
                 }
                 else -> world.ground(t.lookX, t.lookZ).copyInto(m12)
             }
+            if (trueCamera) cam.m.copyInto(m12)
             val shown = fade > .02f
             show(rm, t.entity, shown)
             if (t.proxy != 0) show(rm, t.proxy, shown && fade > .5f)
@@ -855,7 +856,7 @@ class FilamentStreet(
             // facing the camera: across its right, up, towards it
             card(c.entity, x, z, cam.rx, cam.rz, -cam.dx, -cam.dz, left, bottom, w, h)
             if (c.proxy != 0) card(c.proxy, x, z, px, pz, -pz, px, left, bottom, w, h)
-            world.ground(x, z).copyInto(m12)
+            (if (trueCamera) cam.m else world.ground(x, z)).copyInto(m12)
             val (s, o) = band(CARD, c.street, rest, 0)
             LookMatrix.of(m12, cam, f.width, f.height, x, h / 2f, z, s, o, look)
             c.mi.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
@@ -1089,6 +1090,9 @@ class FilamentStreet(
     private val dayPave = com.lifemax.rpg.feature.habits.presentation.scene.skyColors(13f).pavement
 
     companion object {
+        /** Experiment: draw everything through the one true pinhole ([StageCamera.m]) instead of the classic's leaned looks. */
+        @JvmStatic var trueCamera = System.getProperty("truecam") != null
+
         const val BOX = 0
         const val GROUND = 1
         const val CARD = 2
