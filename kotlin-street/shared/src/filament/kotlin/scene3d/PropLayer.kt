@@ -56,6 +56,9 @@ internal class PropLayer(
     private val crisp = TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.CLAMP_TO_EDGE)
     private val nearest = TextureSampler(TextureSampler.MinFilter.NEAREST, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.CLAMP_TO_EDGE)
 
+    /** Whether the last frame drew them faded (the next whole one sets the fade back). */
+    private var faded = false
+
     private class Batch(val entity: Int, val proxy: Int, val mi: MaterialInstance, val pmi: MaterialInstance?, val glows: Boolean, val vb: VertexBuffer, val ib: IndexBuffer)
     private val batches = ArrayList<Batch>()
 
@@ -150,18 +153,21 @@ internal class PropLayer(
 
     /**
      * This frame: [look] the true camera's clip-space matrix, [dark] how dark it is (0 day, 1 night), [shown] whether
-     * the props are drawn at all (not through the classic's leaned looks, which they do not follow).
+     * the props are drawn at all (not through the classic's leaned looks, which they do not follow), [fade] how far they
+     * are faded out (1: whole; the screen-door cut of the street view), [shadows] whether their shadow twins cast.
      */
-    fun update(look: FloatArray, dark: Float, shown: Boolean = true) {
+    fun update(look: FloatArray, dark: Float, shown: Boolean = true, fade: Float = 1f, shadows: Boolean = shown) {
         val rm = engine.renderableManager
         val on = smooth((dark - .3f) / .4f)
         for (b in batches) {
             rm.getInstance(b.entity).takeIf { it != 0 }?.let { rm.setLayerMask(it, 0xff, if (shown) 1 else 0) }
-            if (b.proxy != 0) rm.getInstance(b.proxy).takeIf { it != 0 }?.let { rm.setLayerMask(it, 0xff, if (shown) 1 else 0) }
+            if (b.proxy != 0) rm.getInstance(b.proxy).takeIf { it != 0 }?.let { rm.setLayerMask(it, 0xff, if (shadows) 1 else 0) }
             if (!shown) continue
             b.mi.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
             if (b.glows) b.mi.setParameter("glow", GLOW, GLOW, GLOW, on)
+            if (fade < 1f || faded) b.mi.setParameter("fade", fade)
         }
+        if (shown) faded = fade < 1f
     }
 
     fun destroy() {

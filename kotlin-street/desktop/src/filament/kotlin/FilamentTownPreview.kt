@@ -16,6 +16,7 @@ import com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuildingLoad
 import com.lifemax.rpg.feature.habits.presentation.scene.TownWalk
 import com.lifemax.rpg.feature.habits.presentation.scene.skyColors
 import com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown
+import com.lifemax.rpg.feature.habits.presentation.scene3d.PlaceholderYards
 import com.lifemax.rpg.feature.habits.presentation.scene3d.TownArt
 import com.lifemax.rpg.feature.habits.presentation.scene3d.TownFrame
 import com.lifemax.rpg.feature.habits.presentation.scene3d.TownPose
@@ -34,7 +35,10 @@ import org.jetbrains.skia.Image as SkiaImage
  *  - civic_<hour>: lower, over the civic avenue and the plaza;
  *  - street_<where>_<hour>: the street view (the true camera following the walk) at the spawn (8L), on Main Street, on
  *    a Heights street and a Woodside street, and halfway through a corner turn; each at 13:00 and at night;
- *  - behind_<where>: low over the backs of a few rows (the world is built whole, for an open-world camera later).
+ *  - behind_<where>: low over the backs of a few rows (the world is built whole, for an open-world camera later);
+ *  - yard_<which>_<view>: three yards (the Heights pool, a Woodside lot, a garden) from the street (13:00 and night),
+ *    from above and from low behind.
+ * -DtownYards=placeholder draws the yards as flat colours (the layout alone) instead of the yard kit.
  * -Dshots=name,name renders only those; -Dw= the width (1600; the street views 2340 x 1080). Writes build/preview/filament-town/
  * and town.txt (build times, draw counts per view).
  */
@@ -67,6 +71,7 @@ fun renderFilamentTown(out: String) {
     val engine = Engine.create(Engine.Backend.OPENGL)
     val mats = File("../app/src/main/assets/filament")
     val ft = FilamentTown(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building)
+    if (System.getProperty("townYards") == "placeholder") ft.yardBuilder = PlaceholderYards
     val report = StringBuilder()
     report.appendLine("town ${town.seed} ${town.year}: ${town.rows.size} rows, ${ft.slots.size} buildings, ${town.roads.size} roads, ${town.nodes.size} nodes, ${town.props.size} edge props, ${yards.yards.size} yards")
 
@@ -75,6 +80,14 @@ fun renderFilamentTown(out: String) {
     val walk = TownWalk(town)
     ft.buildGround()
     report.appendLine("ground, greenery, furniture, props, yards: %.0f ms".format(ft.groundMs))
+    run {
+        // the yards' triangles by kind (where a view's triangles go)
+        val all = com.lifemax.rpg.feature.habits.presentation.scene3d.YardData.yards(json).flatMap { it.items } +
+            com.lifemax.rpg.feature.habits.presentation.scene3d.YardData.laneItems(json)
+        val tris = com.lifemax.rpg.feature.habits.presentation.scene3d.YardKit.bake(all).groupBy { it.group }
+            .mapValues { (_, b) -> b.sumOf { it.mesh.idx.size / 3 } }.entries.sortedByDescending { it.value }
+        report.appendLine("yards: ${all.size} items, ${tris.sumOf { it.value }} triangles; most: " + tris.take(10).joinToString { "${it.key} ${it.value}" })
+    }
     // the buildings as the game builds them: nearest the player first, a 4 ms budget a frame
     var frames = 0
     while (ft.pending > 0) { ft.buildNearest(walk.wx, walk.wz, 4f); frames++ }
@@ -161,6 +174,26 @@ fun renderFilamentTown(out: String) {
         shoot("street_turn_night", pose, night)
         GameState.moveLane = 0f
         CornerWalk.reset()
+    }
+    // --- three yards close up: from the street, from above, from low behind (backyards are seen by an open-world camera)
+    for ((name, sprite) in listOf("pool" to "b69", "woodside" to "b45", "garden" to "b79")) {
+        val y = yards.of(sprite) ?: continue
+        val r = town.rows.firstOrNull { row -> row.buildings.any { it.sprite == sprite } } ?: continue
+        val b = r.buildings.first { it.sprite == sprite }
+        stand(r, b.mid)
+        report.appendLine("yard_$name: $sprite ${y.lot} (${y.neighbourhood}, ${y.style}), row ${r.id}, ${y.items.size} items")
+        val pose = TownFrame.street(walk, sw.toFloat(), shh.toFloat())
+        shoot("yard_${name}_street_13h", pose, 13f)
+        shoot("yard_${name}_street_night", pose, night)
+        val p = y.parcel
+        val px = (p[0] + p[2]) / 2f; val pz = (p[1] + p[3]) / 2f
+        val n = r.normalAt(b.mid)
+        // from beyond its back fence: high (looking down onto the parcel), straight down, and low (at the house's back)
+        val yaw = Math.toDegrees(kotlin.math.atan2((-n.x).toDouble(), n.z.toDouble())).toFloat()
+        shoot("yard_${name}_above", TownFrame.aerial(px, pz, yaw, 62f, 1050f, 50f, aw.toFloat(), ah.toFloat()), 13f)
+        shoot("yard_${name}_top", TownFrame.aerial(px, pz, yaw, 89f, 1100f, 50f, aw.toFloat(), ah.toFloat()), 13f)
+        shoot("yard_${name}_back", TownFrame.aerial(px, pz, yaw, 20f, 760f, 55f, aw.toFloat(), ah.toFloat()), 13f)
+        shoot("yard_${name}_back_dusk", TownFrame.aerial(px, pz, yaw, 20f, 760f, 55f, aw.toFloat(), ah.toFloat()), dusk)
     }
     File(dir, "town.txt").writeText(report.toString())
     print(report)

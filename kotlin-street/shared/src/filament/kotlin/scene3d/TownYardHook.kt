@@ -1,5 +1,6 @@
 package com.lifemax.rpg.feature.habits.presentation.scene3d
 
+import com.google.android.filament.MaterialInstance
 import com.lifemax.rpg.feature.habits.domain.Town
 import com.lifemax.rpg.feature.habits.domain.TownLane
 import com.lifemax.rpg.feature.habits.domain.TownYards
@@ -8,8 +9,9 @@ import com.lifemax.rpg.feature.habits.domain.TownYardItem
 /**
  * Where the yards' builders plug into the Filament town ([FilamentTown.yardBuilder]): handed the town, every lot's yard and
  * the back lanes and verges (street.json v2 graph.yards and graph.lanes, [TownYards]), a builder adds what it makes to
- * [YardSink]. Everything it adds is static and drawn for the whole town (batch by look: a few dozen draws). Until the yard
- * kit lands, [PlaceholderYards] lays each item as a flat colour (and objects as plain boxes) so the layout can be seen.
+ * [YardSink]. Everything it adds is static and drawn for the whole town (batch by look: a few dozen draws). The town uses
+ * the yard kit ([YardKitBuilder]); [PlaceholderYards] lays each item as a flat colour (and objects as plain boxes) to check
+ * the layout alone.
  *
  * The town leaves off the houses' and models' own front lawn and fence wherever a lot has a yard here.
  */
@@ -17,13 +19,25 @@ fun interface YardBuilder {
     fun build(town: Town, yards: TownYards, sink: YardSink)
 }
 
+/**
+ * A patch of the town some yard meshes belong to (a lot, a lane): the ground circle round them ([x], [z], radius [r]) the
+ * view culls by, and the building it goes with ([sprite]), whose street-view cut it shares (the camera's own side of the
+ * road fades out, yards with their houses). Meshes without one are always drawn.
+ */
+class YardPatch(val id: String, val x: Float, val z: Float, val r: Float, val sprite: String? = null)
+
 /** What a [YardBuilder] adds its work to: meshes in world coordinates (or placed at several spots), and street props. */
 interface YardSink {
     /**
      * [mesh] at each of [at] (world x, z, along x, z, out x, z, turn: the mesh's +x along, +z out, turned about y), one
-     * batch; [casts]: it throws a shadow; [tiled]: its picture repeats (uv past 1).
+     * batch; [casts]: it throws a shadow; [tiled]: its picture repeats (uv past 1). Returns the batch's material instance
+     * (null if nothing was drawn), so a builder can animate it through [animate]. [patch]: where it lies, so the view can
+     * cull it and cut it with its house (null: drawn always, with the town).
      */
-    fun mesh(name: String, mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean = false)
+    fun mesh(name: String, mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean = false, patch: YardPatch? = null): MaterialInstance?
+
+    /** [tick] is called every frame with the clock (seconds), e.g. to step the water's tile; by default nothing animates. */
+    fun animate(tick: (seconds: Double) -> Unit) {}
 
     /** Props of the street kit ([PropKit]) standing in the world. */
     fun props(list: List<WorldProp>)

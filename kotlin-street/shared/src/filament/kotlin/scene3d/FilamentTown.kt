@@ -202,12 +202,19 @@ class FilamentTown(
     private val fog = View.FogOptions()
     private val grading: ColorGrading = ColorGrading.Builder().toneMapper(LinearToneMapper()).build(engine)
 
-    /** Where the yards come from: the yard kit's builders, or flat placeholders until it lands. */
-    var yardBuilder: YardBuilder = PlaceholderYards
+    /** Where the yards come from: the yard kit ([YardKitBuilder]), or [PlaceholderYards] (flat colours) to check the layout. */
+    var yardBuilder: YardBuilder = YardKitBuilder
+    private val ticks = ArrayList<(Double) -> Unit>()
 
     private val ground = PropLayer(engine, scene, lit, proxyMat)
     private val props = PropLayer(engine, scene, lit, proxyMat)
     private val yardLayer = PropLayer(engine, scene, lit, proxyMat)
+    /** The yards a lot or a lane at a time ([YardPatch]): culled with the view, cut with their house in the street view. */
+    private inner class Patch(val p: YardPatch) {
+        val layer = PropLayer(engine, scene, lit, proxyMat)
+        val slot: Slot? = p.sprite?.let { sp -> slots.firstOrNull { it.b.sprite == sp } }
+    }
+    private val patches = LinkedHashMap<String, Patch>()
     private var groundBuilt = false
 
     /** One building of the town: where it stands and, once built, its renderables. */
@@ -284,8 +291,11 @@ class FilamentTown(
         for (p in tg.pieces()) ground.addMesh(p.mesh, p.at, p.casts, p.tiled)
         props.add(tg.props())
         val sink = object : YardSink {
-            override fun mesh(name: String, mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean) { yardLayer.addMesh(mesh, at, casts, tiled) }
+            override fun mesh(name: String, mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean, patch: YardPatch?) =
+                if (patch == null) yardLayer.addMesh(mesh, at, casts, tiled)
+                else patches.getOrPut(patch.id) { Patch(patch) }.layer.addMesh(mesh, at, casts, tiled)
             override fun props(list: List<WorldProp>) { yardLayer.add(list) }
+            override fun animate(tick: (seconds: Double) -> Unit) { ticks += tick }
         }
         yardBuilder.build(town, yards, sink)
         groundBuilt = true
@@ -349,8 +359,8 @@ class FilamentTown(
 
     // ------------------------------------------------------------------ each frame
 
-    /** Brings the scene to camera [pose] at [hour]. */
-    fun frame(pose: TownPose, hour: Float) {
+    /** Brings the scene to camera [pose] at [hour]; [seconds] is the clock (the yards' water shimmers by it). */
+    fun frame(pose: TownPose, hour: Float, seconds: Double = 0.0) {
         view.viewport = Viewport(0, 0, pose.w.toInt(), pose.h.toInt())
         LookMatrix.pinhole(pose.screen(m12), pose.w, pose.h, CameraRig.NEAR, look)
         aim(pose)
@@ -369,7 +379,7 @@ class FilamentTown(
         for (s in slots) {
             val b = s.built ?: continue
             // the street view: what stands between the camera and the street in view fades out
-            val fade = if (pose.cut > 0f) smooth((pose.groundX * (s.cx - pose.ex) + pose.groundZ * (s.cz - pose.ez) - pose.cut + TownFrame.CUT_FADE) / TownFrame.CUT_FADE) else 1f
+            val fade = if (pose.cut > 0f) fadeOf(pose, s.cx, s.cz) else 1f
             val on = fade > .02f && pose.sees(s.cx, s.cy, s.cz, s.r)
             s.shown = on
             rm.getInstance(b.entity).takeIf { it != 0 }?.let { rm.setLayerMask(it, 0xff, if (on) 1 else 0) }
@@ -394,8 +404,24 @@ class FilamentTown(
             casters += layer.casters
             tris += layer.triangles
         }
+        // the yards a lot at a time: culled to the view (their shadows while near it), faded with their house
+        for (pt in patches.values) {
+            val p = pt.p
+            val fade = if (pose.cut <= 0f) 1f else pt.slot?.let { fadeOf(pose, it.cx, it.cz) } ?: fadeOf(pose, p.x, p.z)
+            val on = fade > .02f && pose.sees(p.x, 15f, p.z, p.r + 30f)
+            // (a cut lot throws no shadow: a fence's shadow without its fence reads wrong)
+            val near = fade > .5f && (on || pose.sees(p.x, 15f, p.z, p.r + 150f))
+            pt.layer.update(look, dark, on, fade, near)
+            if (on) { renderables += pt.layer.draws; draws += pt.layer.draws; tris += pt.layer.triangles }
+            if (near) casters += pt.layer.casters
+        }
+        for (t in ticks) t(seconds)
         stats = TownStats(slots.size, slots.count { it.built != null }, visible, renderables, draws, tris, casters)
     }
+
+    /** The street view's cut for something whose middle is at ([x], [z]): 1 beyond the cut, fading to 0 nearer the eye. */
+    private fun fadeOf(pose: TownPose, x: Float, z: Float): Float =
+        smooth((pose.groundX * (x - pose.ex) + pose.groundZ * (z - pose.ez) - pose.cut + TownFrame.CUT_FADE) / TownFrame.CUT_FADE)
 
     private fun aim(p: TownPose) {
         val k = (p.near / p.fl).toDouble()
@@ -480,7 +506,9 @@ class FilamentTown(
             engine.destroyVertexBuffer(b.vb); engine.destroyIndexBuffer(b.ib)
             s.built = null
         }
-        ground.destroy(); props.destroy(); yardLayer.destroy()
+        ground.destroy(); props.destroy(); yardLayer.destroy(); ticks.clear()
+        for (pt in patches.values) pt.layer.destroy()
+        patches.clear()
         textures.destroy(all = true)
         scene.remove(sun); engine.destroyEntity(sun); em.destroy(sun)
         ibl?.let { engine.destroyIndirectLight(it) }; ibl = null

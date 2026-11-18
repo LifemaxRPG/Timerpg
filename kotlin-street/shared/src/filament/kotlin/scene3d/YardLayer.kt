@@ -36,34 +36,55 @@ internal class YardLayer(engine: Engine, scene: Scene, visible: Material, proxy:
     fun update(look: FloatArray, dark: Float, seconds: Double, shown: Boolean = true) {
         layer.update(look, dark, shown)
         if (!shown) return
-        // a texel's step every quarter second, the ripples drifting one way and the sparkle the other
-        val step = (seconds * 4.0).toLong()
-        for ((mi, mesh) in water) {
+        for ((mi, mesh) in water) shimmer(mi, mesh, seconds)
+    }
+
+    fun destroy() { layer.destroy(); water.clear(); items = 0 }
+
+    companion object {
+        /** The baked meshes are in world coordinates already. */
+        private val IDENTITY = floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 0f)
+
+        /** The water's shimmer at [seconds]: a texel's step every quarter second, ripples one way and sparkle the other. */
+        fun shimmer(mi: MaterialInstance, mesh: PropMesh, seconds: Double) {
+            val step = (seconds * 4.0).toLong()
             val du = (step % mesh.texW).toFloat() / mesh.texW
             val dv = ((step / 3) % mesh.texH).toFloat() / mesh.texH
             mi.setParameter("uvRect", du, dv, 1f, 1f)
         }
     }
-
-    fun destroy() { layer.destroy(); water.clear(); items = 0 }
-
-    private companion object {
-        /** The baked meshes are in world coordinates already. */
-        val IDENTITY = floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 0f)
-    }
 }
 
 /**
  * The yard kit plugged into the Filament town ([FilamentTown.yardBuilder] = YardKitBuilder): every lot's yard and the
- * lanes' and verges' items baked by [YardKit.bake] (one batch a kind and a ground tile) into the town's sink. (Through the
- * sink the water stands still: [YardLayer] is the one that shimmers it.)
+ * lanes' and verges' items baked by [YardKit.bake] (a batch for the things that throw a shadow, one for those that do not,
+ * one per ground tile) a lot or a lane at a time, so the
+ * town culls them with the view and cuts a lot with its house in the street view ([YardPatch]); the water's batches
+ * shimmer through the sink's [YardSink.animate].
  */
 object YardKitBuilder : YardBuilder {
     override fun build(town: com.lifemax.rpg.feature.habits.domain.Town, yards: com.lifemax.rpg.feature.habits.domain.TownYards, sink: YardSink) {
         fun item(i: com.lifemax.rpg.feature.habits.domain.TownYardItem) =
             YardItem(i.kind, i.rect[0], i.rect[1], i.rect[2], i.rect[3], i.faceX, i.faceZ, i.variant, i.layer, i.on, i.zone)
-        val items = yards.yards.flatMap { y -> y.items.map(::item) } + yards.lanes.flatMap { l -> l.items.map(::item) }
         val at = listOf(floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 0f))
-        for (b in YardKit.bake(items)) sink.mesh("yard:${b.group}", b.mesh, at, b.casts, b.tiled)
+        fun bake(items: List<YardItem>, patch: YardPatch) {
+            for (b in YardKit.bake(items, perKind = false)) {
+                val mi = sink.mesh("yard:${patch.id}:${b.group}", b.mesh, at, b.casts, b.tiled, patch)
+                if (b.water && mi != null) sink.animate { s -> YardLayer.shimmer(mi, b.mesh, s) }
+            }
+        }
+        // a lot at a time (culled with the view, cut with its house), then each lane's and verge's items
+        for (y in yards.yards) {
+            if (y.items.isEmpty()) continue
+            val p = y.parcel
+            var x0 = p[0]; var z0 = p[1]; var x1 = p[2]; var z1 = p[3]
+            for (i in y.items) { x0 = minOf(x0, i.rect[0]); z0 = minOf(z0, i.rect[1]); x1 = maxOf(x1, i.rect[2]); z1 = maxOf(z1, i.rect[3]) }
+            bake(y.items.map(::item), YardPatch(y.lot, (x0 + x1) / 2f, (z0 + z1) / 2f, kotlin.math.hypot(x1 - x0, z1 - z0) / 2f, y.sprite))
+        }
+        for (l in yards.lanes) {
+            if (l.items.isEmpty()) continue
+            val r = l.rect
+            bake(l.items.map(::item), YardPatch(l.id, (r[0] + r[2]) / 2f, (r[1] + r[3]) / 2f, kotlin.math.hypot(r[2] - r[0], r[3] - r[1]) / 2f))
+        }
     }
 }

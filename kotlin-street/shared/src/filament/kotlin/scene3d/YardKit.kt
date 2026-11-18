@@ -692,9 +692,10 @@ object YardKit {
     // ---------------------------------------------------------------------------------------- baking
     /**
      * [items] as world-space batches: one mesh per kind (all its items, their pictures in one atlas; more than one if the
-     * atlas would grow past [maxAtlas] texels), one tiled mesh per ground or surface tile.
+     * atlas would grow past [maxAtlas] texels), one tiled mesh per ground or surface tile. [perKind] false: every kind
+     * together instead (one atlas for those that throw a shadow, one for those that do not: a lot in a few draws).
      */
-    fun bake(items: List<YardItem>, maxAtlas: Int = 2048): List<YardBatch> {
+    fun bake(items: List<YardItem>, maxAtlas: Int = 2048, perKind: Boolean = true): List<YardBatch> {
         val byKind = LinkedHashMap<String, MutableList<Pair<PropMesh, FloatArray>>>()
         val flats = LinkedHashMap<String, MutableList<FloatArray>>() // surface -> world polys: [y, ox, oz, ux, uz, x0, z0, x1, z1, ...]
         val subsCast = HashMap<String, Boolean>()
@@ -722,7 +723,13 @@ object YardKit {
         }
         val out = ArrayList<YardBatch>()
         for ((surface, polys) in flats) out += YardBatch("flat:$surface", flatMesh(surface, polys), tiled = true, casts = false, water = surface == "water" || surface == "pondwater")
-        for ((kind, list) in byKind) for (mesh in merge(list, maxAtlas)) out += YardBatch(kind, mesh, tiled = false, casts = subsCast[kind] ?: casts(kind), water = false)
+        if (perKind) {
+            for ((kind, list) in byKind) for (mesh in merge(list, maxAtlas)) out += YardBatch(kind, mesh, tiled = false, casts = subsCast[kind] ?: casts(kind), water = false)
+        } else {
+            val (solid, flat) = byKind.entries.partition { (kind, _) -> subsCast[kind] ?: casts(kind.substringBefore('/')) }
+            for ((group, part) in listOf("solid" to solid, "flat" to flat)) for (mesh in merge(part.flatMap { it.value }, maxAtlas))
+                out += YardBatch(group, mesh, tiled = false, casts = group == "solid", water = false)
+        }
         return out
     }
 

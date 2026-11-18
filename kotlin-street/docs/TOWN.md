@@ -212,3 +212,24 @@ both hands); load time (decode textures in the background, build nearest-first).
 - Not yet: the near side's lamps, trees and props are not cut; street signs crowd some corners (one per row meeting there);
   forest trees are cards of the street's scale (1.25-1.6x); the landmarks' grounds and corner lots' second side are not
   drawn; Stage3D/GameActivity are not wired (the app still ships eta).
+
+### The yard kit in the town (wf-town3d)
+
+- `FilamentTown.yardBuilder` is now `YardKitBuilder` (scene3d/YardLayer.kt): every lot's yard and every lane's and verge's
+  items are baked by `YardKit.bake(items, perKind = false)` a lot (or a lane) at a time: one batch for what throws a
+  shadow, one for what does not, one per ground tile (at most 12 a lot; 94 patches, 712 batches for gamma's 92 yards and
+  2 lanes with items). `-DtownYards=placeholder` brings back the flat placeholders to check the layout alone.
+- The hook's sink takes a `YardPatch` with each mesh (the lot's ground circle and its building's sprite) and returns the
+  batch's material instance; `sink.animate { seconds -> }` steps the water's tile (`YardLayer.shimmer`), run each frame by
+  `frame(pose, hour, seconds)`. The town draws each patch in its own PropLayer: culled by its circle (its shadow twins
+  within 150 of the view), and in the street view faded with its own house (the same cut, from the building's middle),
+  so the near side's front hedges, fences and lawns go with the row across the road; a cut lot throws no shadow (a
+  fence's shadow without its fence read wrong). Tested (TownYardsKitTest, in crossroadsTest): a patch for every lot and
+  lane, at most 14 batches each, every vertex inside its circle, every lot's building in the town.
+- Draws and triangles (4-core server, software GL, not the S25): street views 245-1130 draws, 230k-1.2M triangles;
+  whole-town aerial 1735 draws, 1.7M triangles (the yards are 1.59M triangles in all: side fences 429k, greenhouses 278k,
+  flower beds 189k, post-and-rail 168k lead). The per-lot atlases hold 29M texels in all (pictures repeated lot by lot).
+- Preview: `yard_{pool,woodside,garden}_{street_13h,street_night,above,top,back,back_dusk}` (the Heights pool b69, a
+  Woodside lot b45, a garden b79), and town.txt lists the yards' triangles by kind.
+- Left: near-pavement props and the edge's tree cards are still not cut; the mobile homes show their front picture from
+  behind too; the side fences, greenhouses and flower beds are heavy in triangles; the atlases could be shared across lots.
