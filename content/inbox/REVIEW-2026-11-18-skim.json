@@ -1,0 +1,460 @@
+{
+ "reviewed": "2026-11-18",
+ "source": "content-inbox branch, runs 2026-11-17-1057 .. 2026-11-18-0816 (prompt v1), 320 scenarios",
+ "counts": {
+  "total": 320,
+  "kept": 33,
+  "grouped_near_duplicates": 13,
+  "already_kept_2026_11_17": 27,
+  "rejected": 247
+ },
+ "reject_reasons": [
+  {
+   "reason": "Tiny payoff",
+   "detail": "the present-day change is one person losing a small habit or amenity (a locker, a parking space, a free ride, a seat at the hall, a reserved hour), or a line on a bill. Nothing the town would gossip about."
+  },
+  {
+   "reason": "Paperwork as the player action",
+   "detail": "the player helps someone pay a fee, file an application, finish a course or get a licence. 103 of the 320 pitches start with 'Help/Pay/Fund someone...', almost all of them this."
+  },
+  {
+   "reason": "Nothing to walk to",
+   "detail": "the change lives only in archives, registers, contracts and policies (a corrected record, an exemption deadline, a voting right in an association), often resting on props or business kinds the game doesn't have (golf club, motel, tattoo shop, sugarhouse)."
+  }
+ ],
+ "reject_examples": [
+  {
+   "batch": "2026-11-17-2246",
+   "title": "The Locker That Stopped Belonging to One Member",
+   "reason": "Invest in a gym's locker plan; decades later one member loses his reserved locker. Tiny payoff."
+  },
+  {
+   "batch": "2026-11-17-2347",
+   "title": "The Ambulance Subscription That Became a Tax Bill",
+   "reason": "Help someone pay a subscription; it ends as a non-optional levy. Paperwork in, paperwork out."
+  },
+  {
+   "batch": "2026-11-17-2232",
+   "title": "The Number That Cost More to Leave Out",
+   "reason": "A phone-directory listing that later costs a fee to remove. Nothing to see or hear."
+  },
+  {
+   "batch": "2026-11-18-0601",
+   "title": "The Passport That Did Not Reserve a Tax Exemption",
+   "reason": "The whole story is a missed tax-exemption deadline."
+  },
+  {
+   "batch": "2026-11-17-2331",
+   "title": "The Kitchen Paid for by a Life You Ended",
+   "reason": "Kill a banker so his heir funds a soup kitchen: a duplicate of the kept 'Empty Chair' and 'Job Left Empty', with no reason for the player to want it."
+  }
+ ],
+ "kept": [
+  {
+   "rank": 1,
+   "batch": "2026-11-17-1227",
+   "title": "The Money Meant for Leaving",
+   "premise": "A sharp young woman has saved her bus fare out of town; steal it, and she stays, takes a job at the bakery, and decades later owns the best bakery on Main Street without ever knowing who robbed her.",
+   "rating": 4.5,
+   "why": "A cruel act with a warm result: the player does something rotten and comes back to a beloved shop and a woman who thinks staying was fate. Morally sticky, easy to explain, visible on Main Street.",
+   "rewrite_notes": "Drop the night-noise annex twist. Let worst be the bitter version (she stays and resents the town all her life, the bakery is famous and joyless). Make the fail interesting (she borrows the fare and leaves anyway, poorer). Add a clipping of the city career she never had as the twist. Uses the real 'take' verb, not 'proposed:take'.",
+   "near_duplicates": []
+  },
+  {
+   "rank": 2,
+   "batch": "2026-11-17-1426",
+   "title": "The Book That Skipped Its Author's Youth",
+   "premise": "Hand a young dreamer the novel they will publish at sixty; they write it at twenty instead, become the town's famous author, and the book still describes the shops and people of the town you came from.",
+   "rating": 4.5,
+   "why": "The best uncanny idea in the set: a time loop the player can hold. The present has a famous author, a bookshop window and a book that describes the player's original town, which the new town reads as fiction.",
+   "rewrite_notes": "Cut the 'quotation panel' and provenance talk. Express it as tell/place (leave the book on their desk). Stakes: the author's fame changes the town (tourists, a statue, a festival); worst: the author is haunted that they never wrote anything of their own. Uncanny line: 'Funny thing, the book named a dress shop we never had.'",
+   "near_duplicates": [
+    {
+     "batch": "2026-11-17-1914",
+     "title": "The Voice That Asked for a Private Room",
+     "note": "Play someone a recording of their own old voice; weaker, same loop."
+    }
+   ]
+  },
+  {
+   "rank": 3,
+   "batch": "2026-11-17-2347",
+   "title": "The Missing Name That Later Kept the Search List",
+   "premise": "A teenager went missing in the woods one autumn and was found too late; tell the search party where to look, and she comes home, grows up, and her family, her shop and her children are in the present.",
+   "rating": 4.5,
+   "why": "A clean rescue with the heaviest payoff: a person alive who was a name on a memorial bench. Strong clues from people (the mother, the searchers), an easy player action (tell), and many ripples.",
+   "rewrite_notes": "Throw out the 'search roster retired by a funded plan' ending. Ripples: she marries, opens a shop, her kids exist; the memorial bench is gone. Twist: the boy who was blamed for her disappearance in the old timeline is now unknown and unremarkable, or the searcher who 'found' her becomes a local hero on the player's tip. Uses warn/tell.",
+   "near_duplicates": []
+  },
+  {
+   "rank": 4,
+   "batch": "2026-11-17-1712",
+   "title": "The Coin That Lost Its Miracle",
+   "premise": "Give a coin collector a quarter minted in the present year; the 'coin from the future' becomes the town's famous mystery, drawing crowds and believers, until the calendar catches up with it.",
+   "rating": 4,
+   "why": "Funny, uncanny, and very much this game: a joke object grows into a landmark, a museum and a local legend, and the player watches its meaning run out as the stamped year arrives.",
+   "rewrite_notes": "Remove the custody/label rules. Stakes: the collector gets rich on the curiosity, opens a museum or a roadside attraction on Main Street, a rival calls it a fraud. Express as place(put). Worst: the collector is ruined as a hoaxer. The fun last line: an old-timer turning the coin over in the present year.",
+   "near_duplicates": []
+  },
+  {
+   "rank": 5,
+   "batch": "2026-11-17-2017",
+   "title": "The Postcard from the Lake That Was Not Built",
+   "premise": "In your present a reservoir drowned the old lower town; show the planning clerk a postcard of the lake from the future, the dam is never built, and the drowned street is still standing when you return.",
+   "rating": 4,
+   "why": "Town-scale stakes from one small uncanny act: a whole neighborhood, its houses and families exist or don't. Invert the draft (it ends on a watering calendar) so the payoff is the saved street.",
+   "rewrite_notes": "Flip the direction: the lake exists in the original present and drowned homes. Present: houses, a church and a shop where the water was; worst: the town runs short of water and its biggest employer leaves. Needs a reservoir/lake landmark the engine can build or remove (one new rule).",
+   "near_duplicates": []
+  },
+  {
+   "rank": 6,
+   "batch": "2026-11-17-1712",
+   "title": "The Second Name in the Probate File",
+   "premise": "Two adults who don't know they share a father become friends; you introduce them, the rich old man's secret comes out, and his family house and fortune are split between his wife's children and his secret one.",
+   "rating": 4,
+   "why": "Pure small-town gossip with money attached: a scandal, a will, a family fight, a house that changes hands. Built from introduce, knows, secret and inherit.",
+   "rewrite_notes": "Make the father someone with standing (the banker, the mayor). Ripples: the secret spreads (rumor), his standing falls, the will is fought, the house goes to the secret child. Remove 'verified kinship' paperwork. Lines: the legitimate widow, bitter; the secret child, uncanny ('a stranger told me to look at his ears').",
+   "near_duplicates": []
+  },
+  {
+   "rank": 7,
+   "batch": "2026-11-17-1157",
+   "title": "The Petition That Never Arrived",
+   "premise": "The grand old hall on Main Street was torn down for a parking lot; burn the demolition petition the night before the hearing, and when you return it's the town library, while the clerk who lost the paper was blamed for years.",
+   "rating": 4,
+   "why": "A landmark that stands or is gone, a small act of sabotage, and a scapegoat with a grudge. Exactly the visible stakes the owner wants.",
+   "rewrite_notes": "Use place(destroy). Stakes: the hall stands with its lights on; worst: the hall survives as a money pit that bankrupts its owner. Make the clerk's ruined career the bitter line. Drop 'reduced library hours'.",
+   "near_duplicates": []
+  },
+  {
+   "rank": 8,
+   "batch": "2026-11-17-1141",
+   "title": "One Extra Name on the Roll",
+   "premise": "Seat two shy young people next to each other at a church supper; they marry, and forty years later their son beats the mayor you know.",
+   "rating": 4,
+   "why": "The prompt's own 'grandson becomes mayor' seed: one introduction, and the face in City Hall is a person who never existed. Near-duplicate of the kept 'Face Missing from the Class Picture', but this is the mayor version and the stronger of the two for town-wide stakes.",
+   "rewrite_notes": "Replace the invented 'elect_scenario_child' with child + run_for_mayor + win_election on the created role. Twist: the old mayor's family loses its standing. Present day should allow feeling (the beaten mayor's kids, an old-timer who remembers the supper).",
+   "near_duplicates": []
+  },
+  {
+   "rank": 9,
+   "batch": "2026-11-17-1945",
+   "title": "The Chess Opponent on the Other Side of the Fence",
+   "premise": "Two neighbors who have feuded over a fence for twenty years are, without knowing it, each other's beloved pen-pal chess opponent; tell them, and the feud ends, their children marry and the fence comes down.",
+   "rating": 4,
+   "why": "The funniest premise in the set and pure gossip material, with warmth. Raise the stakes from a gate to two families joined.",
+   "rewrite_notes": "Make the neighbors rival shopkeepers so the end of the feud changes Main Street (a merged shop, a wedding, a shared name on the sign). Express as tell. Worst: they become friends and gang up on a third neighbor. Lines: the grandchild who doesn't know there was ever a fence.",
+   "near_duplicates": []
+  },
+  {
+   "rank": 10,
+   "batch": "2026-11-17-1057",
+   "title": "The Wrong Person to Distrust",
+   "premise": "Spread a lie that the honest favorite for mayor takes kickbacks; the hungry young rival wins instead and paves the wildflower meadow by the river into a promenade with his name on it.",
+   "rating": 3.5,
+   "why": "A cruel rumor that changes who runs the town, with a landmark (the promenade) and a ruined good man you can still talk to.",
+   "rewrite_notes": "Stronger worst (the young mayor turns out crooked himself). The ruined candidate's bitter line is the heart. Merge the newspaper variant below as the fail or twist.",
+   "near_duplicates": [
+    {
+     "batch": "2026-11-18-0724",
+     "title": "The Falsely Accused Candidate Who Kept the Public Receipts",
+     "note": "Same smear; the victim founds a muckraking paper. Use as the twist."
+    }
+   ]
+  },
+  {
+   "rank": 11,
+   "batch": "2026-11-18-0601",
+   "title": "The Child Whose Birth Record Followed a Closed Shop",
+   "premise": "Wreck a young clothier's store in its first year; broke and with time on his hands, he marries the girl he'd been too busy to notice, and their daughter exists in your present.",
+   "rating": 3.5,
+   "why": "A cruel act that creates a person: the reverse of the usual monkey's paw. Simple levers (sabotage, marry, child).",
+   "rewrite_notes": "Give the daughter a visible life (her shop, her family, maybe the mayor's office). Twist: the man still talks about the store he lost; bitter line from him, grateful line from the daughter, who doesn't know.",
+   "near_duplicates": []
+  },
+  {
+   "rank": 12,
+   "batch": "2026-11-17-1141",
+   "title": "The Ledger Nobody Believed",
+   "premise": "The banker is cooking the books to take a poor family's house; spread the truth, the bank collapses in scandal, the family keeps its home and the bank building becomes something else.",
+   "rating": 3.5,
+   "why": "A villain brought down by gossip, a family saved, a bank gone from Main Street. Close to the kept 'Bread Behind the Vault Door' but through a true rumor, not sabotage.",
+   "rewrite_notes": "Raise the stakes: many families lose savings when the bank fails (the bitter side), the saved family thrives. Drop 'formal account review' and 'clear_claim'. If both are used, make this the 'honest' path and Vault Door the 'cruel' one for the same bank.",
+   "near_duplicates": []
+  },
+  {
+   "rank": 13,
+   "batch": "2026-11-17-1902",
+   "title": "The Swimming Lesson on the Wrong Side of Payday",
+   "premise": "Pay for a poor kid's swimming lessons; years later he dives into the river and pulls out the banker's son, who in your timeline drowned that day.",
+   "rating": 3.5,
+   "why": "Small gift, life saved, and a class story: the rich family owes the poor boy. Two people's lives change in the present.",
+   "rewrite_notes": "Replace the gate-closing twist. Ripples: the banker's gratitude (a job, a loan, a shop for the poor kid); worst: the saved son grows up to be the town's bully of a banker. Remove the 'drowning' memorial.",
+   "near_duplicates": [
+    {
+     "batch": "2026-11-17-2116",
+     "title": "The First-Aid Certificate in the Lunchbox",
+     "note": "Same shape with a heart attack; keep as a second rescue variant."
+    }
+   ]
+  },
+  {
+   "rank": 14,
+   "batch": "2026-11-17-1442",
+   "title": "The Witness Whom People Finally Heard",
+   "premise": "A young man went to prison for a fire he didn't set because nobody believed the town drunk who saw the real arsonist; make the town believe him, and the right man goes down.",
+   "rating": 3.5,
+   "why": "Quiet tragedy with a twist of justice: a life returned, a respected man ruined, a town that has to look at itself. Visible: the freed man and the fallen one are both in the present.",
+   "rewrite_notes": "Drop the 'funded case review'. Make the real arsonist a respected shop owner (his shop closes, his family moves). The freed man stays and opens a shop, or leaves and the town lives with that. Merge the jury variant.",
+   "near_duplicates": [
+    {
+     "batch": "2026-11-17-2031",
+     "title": "The Summons That Reached the Right Door",
+     "note": "Same wrongful-conviction core via a juror; weaker."
+    }
+   ]
+  },
+  {
+   "rank": 15,
+   "batch": "2026-11-17-1727",
+   "title": "The Coffee Tin That Turned Out to Be a Loan",
+   "premise": "The lodge's lost savings have been buried in a coffee tin under the bandstand for decades; tell the old treasurer where to dig, and the money starts a bakery and a new hall.",
+   "rating": 3.5,
+   "why": "Buried treasure in the town square, found because you know where it turned up in your present. A treasure hunt the player can tell someone about and then see on Main Street.",
+   "rewrite_notes": "Drop loans and accounts. Who gets the money is the drama (the treasurer, a thief, the town). Worst: a fight over the money splits the lodge. Merge the forgotten-bond variant.",
+   "near_duplicates": [
+    {
+     "batch": "2026-11-17-2301",
+     "title": "The Bond Behind the Forgotten Combination",
+     "note": "Tell a shopkeeper his lost safe combination; same 'tell where the money is'."
+    }
+   ]
+  },
+  {
+   "rank": 16,
+   "batch": "2026-11-17-1643",
+   "title": "The Eviction Notice with Tomorrow's Date",
+   "premise": "Carry the eviction notice that closed the dress shop in your present back to its young owner, and watch what she does with a paper from the future.",
+   "rating": 3.5,
+   "why": "An object carried across time, uncanny and simple. The present shows whether the shop survives, and the owner keeps a paper she can't explain.",
+   "rewrite_notes": "Remove the lease-review machinery. Ripples: she fights the landlord, or buys the building, or flees. Uncanny line: the notice is still in her drawer, dated years after she got it.",
+   "near_duplicates": []
+  },
+  {
+   "rank": 17,
+   "batch": "2026-11-18-0500",
+   "title": "The Divorce Order They Read before They Married Again",
+   "premise": "Show a young couple their own divorce papers from the future; they divorce early, or fight for it, or remarry each other, and their kids change with them.",
+   "rating": 3.5,
+   "why": "Uncanny, funny and sad at once, all about a family. Group with the future-photograph variant: both are 'show someone their future and they change it'.",
+   "rewrite_notes": "Raise stakes to the children (who is born, who isn't), the family business and the gossip. Express as tell. Handle no_child warmly.",
+   "near_duplicates": [
+    {
+     "batch": "2026-11-17-2232",
+     "title": "The Child Missing from the Earlier Photograph",
+     "note": "Show a couple their future family photo; an unborn child is replaced by another."
+    }
+   ]
+  },
+  {
+   "rank": 18,
+   "batch": "2026-11-18-0203",
+   "title": "The Butcher Who Benefited from the Wrong Accusation",
+   "premise": "Two butchers on one street; spread a story that one weighs his thumb with the meat, and the other gets the whole town's trade, and carries the guilt for forty years.",
+   "rating": 3.5,
+   "why": "A cruel rumor with a visible result (one shop closes, one thrives) and a good bitter/guilty pair of lines.",
+   "rewrite_notes": "Drop 'independent weight review'. Ripples: the victim's shop closes, his family moves away, the winner expands. Merge the bait-shop poaching lie as a variant.",
+   "near_duplicates": [
+    {
+     "batch": "2026-11-17-1227",
+     "title": "The Lie That Quieted the Landing",
+     "note": "False poaching rumor ruins a bait shop; the riverbank goes wild."
+    }
+   ]
+  },
+  {
+   "rank": 19,
+   "batch": "2026-11-17-1057",
+   "title": "The Warning Before Closing",
+   "premise": "Warn the music-store owner not to go back into the burning shop for his ledger; he lives, his son stays in town instead of leaving, and the charred gap on Main Street is a shop again.",
+   "rating": 3.5,
+   "why": "A classic 'warn' rescue with a family and a storefront at stake, and a burned gap the player can see in the original present.",
+   "rewrite_notes": "Simplify: drop the law office and footbridge chain. Ripples on the son and the shop; twist: the son never gets the scholarship he'd have had as an orphan, or the father's survival keeps a feud alive.",
+   "near_duplicates": []
+  },
+  {
+   "rank": 20,
+   "batch": "2026-11-17-1541",
+   "title": "The Snow Shovel in the Campaign Photograph",
+   "premise": "Talk up the quiet man who shovels the church steps every winter until the town drafts him for mayor.",
+   "rating": 3.5,
+   "why": "A nobody becomes mayor through good gossip; the 'rumor' verb used kindly, and the town's leadership changes. Several later drafts repeat this; this is the best one.",
+   "rewrite_notes": "Present: his portrait in City Hall, a covered market he built; worst: power changes him. Merge the other 'praise someone into office' drafts as fails or twists.",
+   "near_duplicates": [
+    {
+     "batch": "2026-11-17-2001",
+     "title": "The Mayor Who Made Another Term Impossible",
+     "note": "Praise a volunteer into office; term limits."
+    },
+    {
+     "batch": "2026-11-18-0549",
+     "title": "The Mayor Whose Veto Did Not End the Library Debate",
+     "note": "Praise a proposal's author into office."
+    },
+    {
+     "batch": "2026-11-18-0704",
+     "title": "The Mayor Who Was Voted Out before the Term Ended",
+     "note": "Same, ending in a recall."
+    }
+   ]
+  },
+  {
+   "rank": 21,
+   "batch": "2026-11-17-2216",
+   "title": "The Apology That Waited for Its Opening Date",
+   "premise": "When the town's time capsule is opened, there's an apology inside that says 'I've already read this letter once'; carry it back to its writer, and two old enemies make peace forty years early.",
+   "rating": 3.5,
+   "why": "A self-referential uncanny object at a public town event. The capsule opening is a scene the player can attend.",
+   "rewrite_notes": "Make the enemies rival families or shops so the peace changes Main Street. Merge the sealed-letter capsule variant. Keep the uncanny unexplained.",
+   "near_duplicates": [
+    {
+     "batch": "2026-11-18-0317",
+     "title": "The Time Capsule That Returned a Letter Still Sealed",
+     "note": "A capsule letter its owner reclaims unread."
+    }
+   ]
+  },
+  {
+   "rank": 22,
+   "batch": "2026-11-17-1827",
+   "title": "The Weekly Without a Front Office",
+   "premise": "Back the print shop so its teenage apprentice can start a second paper, a nosy rival to the town paper that digs up every scandal for thirty years.",
+   "rating": 3.5,
+   "why": "The town paper is a game system; a rival paper changes which headlines and gossip the player reads. Meta and fun.",
+   "rewrite_notes": "Drop the sale-to-a-publisher ending. Stakes: the rival paper exposes a mayor, ruins a family, wins over the town. Print shop isn't a business kind: needs one new kind or a rule.",
+   "near_duplicates": []
+  },
+  {
+   "rank": 23,
+   "batch": "2026-11-17-1930",
+   "title": "The Advice Column Without a Face",
+   "premise": "Introduce the stern town lawyer to the paper's editor, and he becomes 'Aunt Mabel', the anonymous advice columnist the whole town writes to, until someone finds out.",
+   "rating": 3.5,
+   "why": "Humor and gossip in one: the town's secrets go through a man nobody would suspect. The unmasking is a public scandal.",
+   "rewrite_notes": "Raise stakes: his advice breaks up a marriage or makes a match; the unmasking costs him his practice. Lines: someone who still keeps an Aunt Mabel clipping in her purse.",
+   "near_duplicates": []
+  },
+  {
+   "rank": 24,
+   "batch": "2026-11-17-1541",
+   "title": "The Apology with the Wrong House Number",
+   "premise": "A brother's apology letter went to the wrong house and his sister never forgave him; deliver it to the right door, and the family reunites.",
+   "rating": 3,
+   "why": "A warm, tiny action (a letter to the right door) with a family-sized result. Uses place.",
+   "rewrite_notes": "Make the siblings heirs to halves of a family business that split in the original timeline; reunited, it's one big store. Drop the tenant/conversion chain.",
+   "near_duplicates": []
+  },
+  {
+   "rank": 25,
+   "batch": "2026-11-17-1342",
+   "title": "The Reunion with Two More Chairs",
+   "premise": "Two children in the 1958 class photo died in an outbreak the clinic couldn't treat; pay for the clinic's cold storage, and at the fiftieth reunion there are two more chairs filled.",
+   "rating": 3,
+   "why": "Many lives, a class photo, a reunion the player can attend. Close in spirit to the kept 'Tuition Receipt' but about an epidemic.",
+   "rewrite_notes": "Make the two survivors visible (their families, shops). Drop the 'vaccine storage project' paperwork: an invest in the doctor's office. Twist: a doctor's family pays.",
+   "near_duplicates": []
+  },
+  {
+   "rank": 26,
+   "batch": "2026-11-17-1457",
+   "title": "The Gate That Would Not Close",
+   "premise": "Fix the jammed floodgate at the mill before the spring flood; the mill survives, and with it half the town's jobs.",
+   "rating": 3,
+   "why": "A rescue for a whole town's livelihood. Distinct from the kept 'Voice Before the Water' (that saves people; this saves the economy).",
+   "rewrite_notes": "Mill isn't a business kind; express as factory build/tear_down. Ripples: families that stay, shops that don't close; worst: the mill becomes the town's tyrant employer. Drop the fish-passage tail.",
+   "near_duplicates": []
+  },
+  {
+   "rank": 27,
+   "batch": "2026-11-18-0704",
+   "title": "The Water-Finding Claim That Became a Testing Service",
+   "premise": "The town laughs at its dowser; tell him where the water really is (you know where the wells are in your time), and he becomes a legend, rich, maybe mayor.",
+   "rating": 3,
+   "why": "Uncanny and funny: a fraud made right by the time traveler. Rewritten, it's a 'tell' with a reputation and fortune swing.",
+   "rewrite_notes": "Rewrite completely: drop the controlled test and correction. Ripples: wells, fortune, standing; worst: he believes in himself and drills the town dry. Uncanny line: 'Never missed once. Said a stranger whispered him the spots.'",
+   "near_duplicates": []
+  },
+  {
+   "rank": 28,
+   "batch": "2026-11-17-1212",
+   "title": "The One Ballot and the Long Way Round",
+   "premise": "The mayor's race ended in a tie decided by a coin toss; get one more voter to the polls, and the other candidate wins and builds the bus depot.",
+   "rating": 3,
+   "why": "A tiny act, a different mayor. Funny and clear.",
+   "rewrite_notes": "Express as warn/tell (get the sick voter there) or introduce. Raise payoff beyond a depot (a different mayor's whole term). Merge the recount variant.",
+   "near_duplicates": [
+    {
+     "batch": "2026-11-18-0217",
+     "title": "The Recount That Put the Rival Back on the Campaign Trail",
+     "note": "A recount flips a race."
+    }
+   ]
+  },
+  {
+   "rank": 29,
+   "batch": "2026-11-17-1357",
+   "title": "The Bill After the Funeral",
+   "premise": "A widow had to sell the family land to pay for her husband's funeral; pay the bill, and her family keeps it, and where a warehouse stood there are her grandchildren's houses.",
+   "rating": 3,
+   "why": "The owner's own money brief in a quiet, sad key; a whole family stays in town.",
+   "rewrite_notes": "Raise the stakes (the land becomes a farm stand, a shop or a street named for them); twist: the warehouse owner never gets his start.",
+   "near_duplicates": []
+  },
+  {
+   "rank": 30,
+   "batch": "2026-11-17-1311",
+   "title": "The Face Beneath the Label",
+   "premise": "The painting in City Hall credited to the founder's wife was painted by her maid; help a young restorer find the signature, and the town's proudest family is embarrassed for good.",
+   "rating": 3,
+   "why": "Secrets and standing, with a picture on a wall the player can look at in both timelines.",
+   "rewrite_notes": "Stakes: the founder family's standing falls, the maid's descendants rise. Express via tell/rumor.",
+   "near_duplicates": []
+  },
+  {
+   "rank": 31,
+   "batch": "2026-11-18-0145",
+   "title": "The Amateur Who Became the Fair’s Pie Judge",
+   "premise": "Pay a poor girl's fair entry fee; she wins the blue ribbon for pie, then every year for thirty years, until they make her the judge just to give everyone else a chance.",
+   "rating": 3,
+   "why": "A small-town joke with a whole life in it. Gentle, funny, visible at the fair.",
+   "rewrite_notes": "Raise stakes: the ribbons become a bakery that closes a rival. Close to the Seed Money example; keep only if a lighter one is wanted.",
+   "near_duplicates": []
+  },
+  {
+   "rank": 32,
+   "batch": "2026-11-17-1827",
+   "title": "The Picture Too Big for the Front Door",
+   "premise": "Buy a painter the giant canvas he dreams of; he paints it inside the town hall, and fifty years later they have to knock out a wall to sell it.",
+   "rating": 3,
+   "why": "Pure comedy with a visible scar on a building.",
+   "rewrite_notes": "Raise stakes: the picture makes the painter famous, or it's the only thing anyone remembers about the town. Mostly a lighter-tone filler.",
+   "near_duplicates": []
+  },
+  {
+   "rank": 33,
+   "batch": "2026-11-17-1442",
+   "title": "The Dog That Brought Someone Home",
+   "premise": "Feed a lost dog and lead it to a lonely boy; the dog's old owner, a rich recluse, befriends him and leaves him the estate.",
+   "rating": 3,
+   "why": "Warm, low-key, with an inheritance and a house that changes hands.",
+   "rewrite_notes": "Drop the refuge/barking twist. Ripples: inheritance, the boy becomes someone in town. Merge the dog-walking romance variant.",
+   "near_duplicates": [
+    {
+     "batch": "2026-11-17-1914",
+     "title": "The Dog with Two Kitchens",
+     "note": "Sharing a dog leads to a marriage."
+    }
+   ]
+  }
+ ]
+}
