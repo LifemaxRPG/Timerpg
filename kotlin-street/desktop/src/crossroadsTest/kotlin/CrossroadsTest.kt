@@ -8,6 +8,7 @@ import com.lifemax.rpg.feature.habits.presentation.scene.CornerWalk
 import com.lifemax.rpg.feature.habits.presentation.scene.GameState
 import com.lifemax.rpg.feature.habits.presentation.scene.StageCamera
 import com.lifemax.rpg.feature.habits.presentation.scene.TurnTuning
+import com.lifemax.rpg.feature.habits.presentation.scene.cornerFade
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -151,6 +152,7 @@ class CornerWalkTest {
     @After fun reset() {
         CornerWalk.reset(); CornerWalk.blocked = false; CornerWalk.holdEnd = false
         GameState.moveX = 0f; GameState.moveLane = 0f; GameState.street = 0; GameState.upWalks = false; GameState.vx = 0f
+        GameState.walkOn = 0f
     }
 
     private fun stand(street: Int, x: Float, lane: Float = 7f) {
@@ -159,7 +161,7 @@ class CornerWalkTest {
 
     /** Holds the keys for [frames] 60ths of a second; true if the walk started. */
     private fun hold(frames: Int, street: Int): Boolean {
-        repeat(frames) { if (CornerWalk.arm(1f / 60f, CR, street)) return true }
+        repeat(frames) { if (CornerWalk.arm(CR, street)) return true }
         return false
     }
 
@@ -172,12 +174,48 @@ class CornerWalkTest {
         return 0
     }
 
-    @Test fun upInTheMouthHeldAMomentStartsTheWalk() {
-        stand(0, CR.mouthMid + 40f)
+    @Test fun aPressOfUpInTheMouthStartsTheWalkAtOnce() {
+        stand(0, CR.mouthMid + 40f, lane = 9.3f)
         GameState.moveLane = -1f
-        assertFalse("a brushed key does not turn", hold(5, 0))
-        assertTrue(hold(3, 0))
+        assertTrue("the frame the key goes down", hold(1, 0))
         assertTrue(CornerWalk.active && CornerWalk.forward)
+        // before the player has stepped in across the pavement: a walk walked back leaves them where they stood
+        GameState.moveLane = 1f
+        assertEquals(-1, walkToEnd())
+        assertEquals(9.3f, GameState.lane, 1e-4f)
+    }
+
+    @Test fun aTapShorterThanAFrameTurnsToo() {
+        stand(0, CR.mouthMid)
+        CornerWalk.upTapped = true
+        assertTrue(hold(1, 0))
+    }
+
+    @Test fun anUpKeyHeldWhileWalkingIntoTheMouthDoesNotTurn() {
+        stand(0, CR.mouthMid - 300f)
+        GameState.moveLane = -1f
+        assertFalse(hold(5, 0))
+        // walked into the mouth with it still down
+        GameState.x = CR.mouthMid
+        assertFalse(hold(30, 0))
+        // let go and pressed again: that turns
+        GameState.moveLane = 0f
+        assertFalse(hold(1, 0))
+        GameState.moveLane = -1f
+        assertTrue(hold(1, 0))
+    }
+
+    @Test fun roundTheCornerThePlayerWalksOnClearOfTheScreensEdge() {
+        stand(0, CR.mouthMid)
+        GameState.moveLane = -1f
+        assertTrue(hold(1, 0))
+        GameState.moveLane = 0f
+        assertEquals(1, walkToEnd())
+        assertEquals(CornerWalk.WALK_ON, GameState.walkOn, 0f)
+        repeat(240) { GameState.step(1f / 60f, CR.cross.start, CR.cross.end, 14f) }
+        assertEquals(CR.arriveX + CornerWalk.WALK_ON, GameState.x, 3f)
+        assertEquals(0f, GameState.vx, 0f)
+        assertTrue("never a run", GameState.x < CR.arriveX + CornerWalk.WALK_ON + 3f)
     }
 
     @Test fun upOutsideTheMouthOnlySteppsAcross() {
@@ -283,8 +321,9 @@ class CornerWalkTest {
 
     /**
      * Every frame of the walk, either way and from either side of the mouth: the player is drawn (not cut away) and no
-     * building left standing after the cut is between the camera and them. The camera's eye is below every roof, so a
-     * building whose footprint the line of sight crosses (beyond the cut) would hide them.
+     * building still more than half there (faded by the cut, [cornerFade]) is between the camera and them. The camera's
+     * eye is below every roof, so a building whose footprint the line of sight crosses would hide them; a building
+     * fading is drawn whole, so the whole line counts.
      */
     @Test fun nothingLeftStandingHidesThePlayerMidTurn() {
         val unit = 2.4364f
@@ -317,24 +356,19 @@ class CornerWalkTest {
                 val where = "forward=$forward at=$at p=${CornerWalk.p}"
                 assertTrue("the player is cut away ($where)", cam.kept(px, pz))
                 for (bx in CR.boxes) {
-                    if (!cam.kept(bx.x0, bx.z0) && !cam.kept(bx.x1, bx.z0) && !cam.kept(bx.x0, bx.z1) && !cam.kept(bx.x1, bx.z1)) continue
+                    if (cornerFade(cam, bx) < .5f) continue
                     assertFalse("building ${bx.street}/${bx.index} hides the player ($where)", sightCrosses(cam, px, pz, bx))
                 }
             }
         }
     }
 
-    /** True if the line of sight from [cam] to ground point ([px], [pz]), beyond the cut, crosses box [bx]'s footprint. */
+    /** True if the line of sight from [cam] to ground point ([px], [pz]) crosses box [bx]'s footprint. */
     private fun sightCrosses(cam: StageCamera, px: Float, pz: Float, bx: Crossroads.Box): Boolean {
         var t0 = 0f
         var t1 = 1f
         val ax = cam.camX; val az = cam.camZ
         val dx = px - ax; val dz = pz - az
-        // the part of the line beyond the cut (depth grows along it)
-        val d0 = cam.depth(ax, az) - cam.cutDepth
-        val d1 = cam.depth(px, pz) - cam.cutDepth
-        if (d1 < 0f) return false
-        if (d0 < 0f) t0 = maxOf(t0, d0 / (d0 - d1))
         // against the footprint, a little inside its edges (standing against a wall is not behind it)
         val inset = .5f
         for ((o, d, lo, hi) in listOf(arrayOf(ax, dx, bx.x0 + inset, bx.x1 - inset), arrayOf(az, dz, bx.z0 + inset, bx.z1 - inset))) {

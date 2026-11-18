@@ -59,6 +59,11 @@ object GameState {
      * street (moveX +1) instead of stepping in across the pavement.
      */
     var upWalks = false
+    /**
+     * Street units the player still walks on by themselves (set as the walk round the corner arrives, so they do not
+     * stop at the screen's edge); any key takes over.
+     */
+    var walkOn = 0f
     /** Half the screen's width in street units (set by the stage as it draws), so the camera can stop at the street's ends. */
     var halfView = 0f
     /** Device pixels per street unit, as the stage last drew (0 until it has drawn). */
@@ -87,7 +92,10 @@ object GameState {
         x0 = x; lane0 = lane
         val heldX = moveX; val heldLane = moveLane
         if (upWalks) { if (moveLane < -.05f) { moveX = 1f; moveLane = 0f } else upWalks = false }
+        // (at a walk, never breaking into a run)
+        if (walkOn > 0f) { if (abs(moveX) < .05f && abs(moveLane) < .05f) { moveX = 1f; heldFor = 0f } else walkOn = 0f }
         try { stepHeld(dt, from, to, laneMax) } finally { moveX = heldX; moveLane = heldLane }
+        if (walkOn > 0f) walkOn = (walkOn - abs(x - x0)).coerceAtLeast(0f)
     }
 
     private fun stepHeld(dt: Float, from: Float, to: Float, laneMax: Float) {

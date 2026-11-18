@@ -5,9 +5,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.Matrix
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.drawscope.withTransform
@@ -59,8 +58,10 @@ internal class CrossSide(
  * At rest ([restStreet] 0 or 1) the street in view is drawn exactly as the stage always drew it (whole-pixel affine, its
  * own order), with the rest of the crossroads behind it in the camera's perspective; between, everything is sorted
  * front to back and drawn through the camera ([leanMain] and [leanCross] say how much of each street's cabinet look is
- * left). Nearer than [StageCamera.cutBack] in front of the target nothing is drawn: the block between the camera and the
- * corner is cut away mid-turn, its cut faces capped.
+ * left). The block on the camera's side of the corner (the main street's buildings past the mouth and the cross street's
+ * far row) stands between the camera and the corner mid-turn: as the camera's cut ([StageCamera.cutBack]) sweeps into one
+ * of them it fades out whole, as a building between a game's camera and its player does, and is gone once the cut has
+ * passed through it. Nothing is ever drawn cut open.
  */
 internal class CornerWorld {
     val cam = StageCamera()
@@ -81,7 +82,6 @@ internal class CornerWorld {
     private val bm = FloatArray(12)
     private val hm = Matrix()
     private val pt = FloatArray(3)
-    private val clip = Path()
     private val one = ArrayList<com.lifemax.rpg.feature.habits.domain.Furniture>(1)
 
     // the things to sort: buildings, furniture, people
@@ -97,6 +97,13 @@ internal class CornerWorld {
     private val sx = FloatArray(MAX)
     private val sy = FloatArray(MAX)
     private val sk = FloatArray(MAX)
+    /** Each item's opacity (below 1 while the cut sweeps through it) and, for the layer it then fades in, its screen bounds. */
+    private val fa = FloatArray(MAX)
+    private val bx0 = FloatArray(MAX)
+    private val by0 = FloatArray(MAX)
+    private val bx1 = FloatArray(MAX)
+    private val by1 = FloatArray(MAX)
+    private val fadePaint = androidx.compose.ui.graphics.Paint()
     private val drawn = IntArray(MAX)
     private val indeg = IntArray(MAX)
     private val after = BooleanArray(MAX * MAX)
@@ -220,7 +227,7 @@ internal class CornerWorld {
      * higher end; false if it is out of view (a gap's margin either side), behind the camera or cut.
      */
     private fun top(cr: Crossroads, s: CrossSide, bx: Crossroads.Box, h: Float, w: Float, margin: Float): Boolean {
-        if (cam.cutBack > 0f && !cam.kept(bx.x0, bx.z0) && !cam.kept(bx.x1, bx.z0) && !cam.kept(bx.x0, bx.z1) && !cam.kept(bx.x1, bx.z1)) return false
+        if (fadeOf(bx) <= 0f) return false
         boxMatrix(cr, s, bx, bm)
         val (ax, az) = rowA(s.k)
         val fx = frontX(cr, s, bx.index)
@@ -247,7 +254,7 @@ internal class CornerWorld {
             if (bx.street == own) continue
             val s = sides.getOrNull(bx.street) ?: continue
             val l = s.layouts.getOrNull(bx.index) ?: continue
-            if (cam.cutBack > 0f && !cam.kept(bx.x0, bx.z0) && !cam.kept(bx.x1, bx.z0) && !cam.kept(bx.x0, bx.z1) && !cam.kept(bx.x1, bx.z1)) continue
+            if (fadeOf(bx) < .5f) continue
             boxMatrix(cr, s, bx, bm)
             var minX = Float.MAX_VALUE; var maxX = -Float.MAX_VALUE; var minY = Float.MAX_VALUE; var maxY = -Float.MAX_VALUE
             var ok = true
@@ -283,7 +290,7 @@ internal class CornerWorld {
         }
     }
 
-    /** The far side of a street's band, past what the stage's own band shows: the road on, the far kerb and pavement, then the verge. */
+    /** The far side of a street's band, past what the stage's own band shows: the road on, the far kerb and pavement, then paving. */
     private fun DrawScope.beyond(k: Int, sky: SkyColors, a: Float, b: Float, depth: Float, reach: Float) {
         val start = BuildingPainter.PAVEMENT + 2.5f + depth
         // (the far kerb no nearer than the stage's own band reaches at rest, the bottom of its screen: what that shows
@@ -300,8 +307,9 @@ internal class CornerWorld {
         drawRect(SceneInk.Highlight, Offset(a, roadEnd + kerb - .9f), Size(w, .9f), alpha = .6f)
         drawRect(lerp(sky.pavement, Color.Black, .06f), Offset(a, roadEnd + kerb), Size(w, max(0f, min(far, reach) - roadEnd - kerb)))
         if (reach <= far) return
-        // past the far pavement: on the cross street the east row's lots (paving between them), on the main street a verge
-        val verge = if (k == 0) lerp(lerp(sky.pavement, Color(0xFF4F6B3C), .55f), Color.Black, .12f) else lerp(sky.pavement, Color.Black, .1f)
+        // past the far pavement, paving: on the cross street between the east row's lots, on the main street a square
+        // (seen mid-turn under the camera's swing, where a field would look like the world's edge)
+        val verge = lerp(sky.pavement, Color.Black, .1f)
         drawRect(SceneInk.Occlusion, Offset(a, far), Size(w, 1.2f), alpha = .7f)
         drawRect(verge, Offset(a, far + 1.2f), Size(w, reach - far - 1.2f))
     }
@@ -428,10 +436,8 @@ internal class CornerWorld {
             if (n >= MAX) break
             val s = sides.getOrNull(bx.street) ?: continue
             val l = s.layouts.getOrNull(bx.index) ?: continue
-            if (cam.cutBack > 0f && bx.street != restStreet) {
-                // wholly in front of the cut: not drawn
-                if (!cam.kept(bx.x0, bx.z0) && !cam.kept(bx.x1, bx.z0) && !cam.kept(bx.x0, bx.z1) && !cam.kept(bx.x1, bx.z1)) continue
-            }
+            val a = if (bx.street == restStreet) 1f else fadeOf(bx)
+            if (a <= 0f) continue
             boxMatrix(cr, s, bx, bm)
             var minX = Float.MAX_VALUE; var maxX = -Float.MAX_VALUE; var minY = Float.MAX_VALUE; var maxY = -Float.MAX_VALUE
             var behind = false
@@ -442,6 +448,8 @@ internal class CornerWorld {
             }
             if (behind || maxX < -40f || minX > w + 40f || minY > h) continue
             kind[n] = BOX; sideOf[n] = bx.street; idx[n] = bx.index
+            // (the layer a fading building is drawn in: up to the screen's top for its billboard, and a margin for its relief)
+            fa[n] = a; bx0[n] = minX - 24f; by0[n] = 0f; bx1[n] = maxX + 24f; by1[n] = maxY + 24f
             ix0[n] = bx.x0; ix1[n] = bx.x1; iz0[n] = bx.z0; iz1[n] = bx.z1
             deep[n] = cam.depth((bx.x0 + bx.x1) / 2f, (bx.z0 + bx.z1) / 2f)
             n++
@@ -452,7 +460,7 @@ internal class CornerWorld {
                 if (n >= MAX) break
                 val x = if (k == 0) cr.mainX(f.x) else 0f
                 val z = if (k == 0) 0f else cr.crossZ(f.x)
-                if (!billboard(n, x, z, w, 160f)) continue
+                if (!billboard(n, x, z, w, 160f, 300f)) continue
                 kind[n] = FURNITURE; sideOf[n] = k; idx[n] = i
                 n++
             }
@@ -462,25 +470,54 @@ internal class CornerWorld {
                 val p = life.passers[i]
                 val x = if (k == 0) cr.mainX(p.x) else cr.crossX(p.lane)
                 val z = if (k == 0) cr.mainZ(p.lane) else cr.crossZ(p.x)
-                if (!billboard(n, x, z, w, 120f)) continue
+                if (!billboard(n, x, z, w, 120f, 120f)) continue
                 kind[n] = PERSON; sideOf[n] = k; idx[n] = i
                 n++
             }
         }
     }
 
-    /** Places a billboard standing at world ([x], [z]) as item [q]: its foot on screen and its scale; false if out of view or cut. */
-    private fun billboard(q: Int, x: Float, z: Float, w: Float, reach: Float): Boolean {
-        if (!cam.kept(x, z) && restStreet < 0) return false
+    /**
+     * Places a billboard standing at world ([x], [z]) as item [q]: its foot on screen and its scale; false if out of view
+     * or faded out. One on the camera's side of the corner fades as the cut passes it, as the buildings there do.
+     */
+    private fun billboard(q: Int, x: Float, z: Float, w: Float, reach: Float, tall: Float): Boolean {
+        val a = if (restStreet < 0 && nearSide(x, x, z, z)) 1f - smooth((cam.cutDepth - cam.depth(x, z)) / FADE_POINT) else 1f
+        if (a <= 0f) return false
         cam.project(ground(x, z), x, 0f, z, pt)
         if (pt[2] < NEAR) return false
         val k = cam.r / pt[2]
-        if (pt[0] < -reach * cam.unit * k || pt[0] > w + reach * cam.unit * k) return false
+        val r = reach * cam.unit * k
+        if (pt[0] < -r || pt[0] > w + r) return false
         ix0[q] = x; ix1[q] = x; iz0[q] = z; iz1[q] = z
         deep[q] = cam.depth(x, z)
         sx[q] = pt[0]; sy[q] = pt[1]; sk[q] = k
+        fa[q] = a; bx0[q] = pt[0] - r; bx1[q] = pt[0] + r; by0[q] = pt[1] - tall * cam.unit * k; by1[q] = pt[1] + 20f * cam.unit * k
         return true
     }
+
+    private fun nearSide(x0: Float, x1: Float, z0: Float, z1: Float): Boolean = cornerNearSide(x0, x1, z0, z1)
+
+    private fun fadeOf(bx: Crossroads.Box): Float = cornerFade(cam, bx)
+
+    private fun smooth(t: Float): Float = smoothUnit(t)
+
+    /** How much is left of building [i] of street [k] this frame (1 for the street at rest, and for every one never faded). */
+    fun shown(cr: Crossroads, k: Int, i: Int): Float {
+        if (k == restStreet) return 1f
+        for (bx in cr.boxes) if (bx.street == k && bx.index == i) return fadeOf(bx)
+        return 1f
+    }
+
+    /** Opens the layer item [q] fades in, if it is fading: true if one was opened (closed by [endFade]). */
+    private fun DrawScope.beginFade(q: Int): Boolean {
+        if (fa[q] >= 1f) return false
+        fadePaint.alpha = fa[q]
+        drawIntoCanvas { it.saveLayer(androidx.compose.ui.geometry.Rect(bx0[q], by0[q], bx1[q], by1[q]), fadePaint) }
+        return true
+    }
+
+    private fun DrawScope.endFade() { drawIntoCanvas { it.restore() } }
 
     /** The order to draw in: what can hide something comes after it (each pair by a line that parts them), else far to near. */
     private fun sort() {
@@ -527,16 +564,21 @@ internal class CornerWorld {
     ) {
         val s = sides[sideOf[q]]
         light(s, painter)
+        val faded = beginFade(q)
         when (kind[q]) {
             BOX -> box(cr, s, idx[q], painter, sky, seconds, live, accent, detailed, lod, motionOf)
             FURNITURE -> {
                 val f = s.street.furniture[idx[q]]
+                // a lamp's arm reaches out along its street: across the picture as much as its street runs across it
+                val (ax, az) = rowA(s.k)
+                painter.lampReach = kotlin.math.abs(ax * cam.rx + az * cam.rz)
                 stand(q, f.x, 0f) {
                     with(painter) {
                         if (f.kind == FurnitureKind.LAMP) { one.clear(); one += f; lampAir(one, sky, f.x - 1f, f.x + 1f, seconds) }
                         furniture(f, sky, seconds)
                     }
                 }
+                painter.lampReach = 1f
             }
             else -> {
                 val life = s.life ?: return
@@ -548,6 +590,7 @@ internal class CornerWorld {
                 }
             }
         }
+        if (faded) endFade()
     }
 
     /** Draws [block] (in its street's own units, the thing standing at ([x], [y]) of them) upright where item [q] stands. */
@@ -628,12 +671,11 @@ internal class CornerWorld {
         val hf = sb.front.height * kk
         val hw = B.W / 2f
         val x = s.street.centers[i]
-        val cut = cam.cutBack > 0f && !(cam.kept(bx.x0, bx.z0) && cam.kept(bx.x1, bx.z0) && cam.kept(bx.x0, bx.z1) && cam.kept(bx.x1, bx.z1))
         // a street's own row keeps its crisp pixels while it still has most of its own look; otherwise each face is
         // sampled crisp where it is a screen pixel or more to a picture pixel, smoothed where it is seen small or edge on
         val lean = when (s.k) { 0 -> leanMain; 1 -> leanCross; else -> 0f }
         crisp = lean > .5f
-        if (lean > NEAR_REST && !cut) {
+        if (lean > NEAR_REST) {
             // all but at rest: drawn as the stage draws it (its side face and roof as the cabinet's strips), through its
             // front's transform, so the street's own drawing and the turn's meet without a step between them
             cam.plane(bm, ox, 0f, oz, ax, 0f, az, 0f, -1f, 0f, hm)
@@ -642,18 +684,17 @@ internal class CornerWorld {
         }
         quality = painter
         painter.prepare(art, x, sky, seconds)
-        if (cut) inside(bx, sb, ox, oz, hf, sky, painter)
         with(painter) {
             // the roof (seen only from above), then a rooftop billboard on it
             sb.roof?.let { roof ->
-                face(bx, cut, ox - ax * hw - nx * DEPTH, hf, oz - az * hw - nz * DEPTH, ax * B.W / roof.width, 0f, az * B.W / roof.width,
+                face(ox - ax * hw - nx * DEPTH, hf, oz - az * hw - nz * DEPTH, ax * B.W / roof.width, 0f, az * B.W / roof.width,
                     nx * DEPTH / roof.height, 0f, nz * DEPTH / roof.height, roof.width.toFloat(), roof.height.toFloat(), false) { roofFace(sb, sky) }
             }
             sb.prop?.let { bill ->
                 if (sb.sign == null) {
                     val bw = 160f * kk
                     val bh = bill.height * kk
-                    face(bx, cut, ox - ax * bw / 2f - nx * DEPTH / 2f, hf + bh, oz - az * bw / 2f - nz * DEPTH / 2f,
+                    face(ox - ax * bw / 2f - nx * DEPTH / 2f, hf + bh, oz - az * bw / 2f - nz * DEPTH / 2f,
                         ax * bw / bill.width, 0f, az * bw / bill.width, 0f, -kk, 0f, bill.width.toFloat(), bill.height.toFloat(), false) { roofBoard(sb) }
                 }
             }
@@ -661,125 +702,27 @@ internal class CornerWorld {
             val sw = side.width.toFloat()
             val sh = side.height.toFloat()
             // the back wall, then either side (the left one's picture runs back from its front edge, mirrored as seen)
-            face(bx, cut, ox + ax * hw - nx * DEPTH, hf, oz + az * hw - nz * DEPTH, -ax * B.W / sw, 0f, -az * B.W / sw,
+            face(ox + ax * hw - nx * DEPTH, hf, oz + az * hw - nz * DEPTH, -ax * B.W / sw, 0f, -az * B.W / sw,
                 0f, -hf / sh, 0f, sw, sh, false) { sideFace(sb, right = false, back = true) }
-            face(bx, cut, ox - ax * hw, hf, oz - az * hw, -nx * DEPTH / sw, 0f, -nz * DEPTH / sw, 0f, -hf / sh, 0f, sw, sh, true) { sideFace(sb, right = false) }
-            face(bx, cut, ox + ax * hw, hf, oz + az * hw, -nx * DEPTH / sw, 0f, -nz * DEPTH / sw, 0f, -hf / sh, 0f, sw, sh, false) { sideFace(sb, right = true) }
+            face(ox - ax * hw, hf, oz - az * hw, -nx * DEPTH / sw, 0f, -nz * DEPTH / sw, 0f, -hf / sh, 0f, sw, sh, true) { sideFace(sb, right = false) }
+            face(ox + ax * hw, hf, oz + az * hw, -nx * DEPTH / sw, 0f, -nz * DEPTH / sw, 0f, -hf / sh, 0f, sw, sh, false) { sideFace(sb, right = true) }
             // the front, with all it carries (glass, signs, relief, balcony)
             val top = s.layouts[i].height
-            face(bx, cut, ox - ax * hw, top, oz - az * hw, ax, 0f, az, 0f, -1f, 0f, B.W, top, false, frontOrigin = true) {
+            face(ox - ax * hw, top, oz - az * hw, ax, 0f, az, 0f, -1f, 0f, B.W, top, false, frontOrigin = true) {
                 painter.planeFaces = true
                 translate(hw, top) { building(art, motionOf(s.k, i), null, accent, live, detailed, sky, lod, x) }
                 painter.planeFaces = false
             }
         }
-        if (cut) section(bx, sb, hf, sky)
         painter.faceQuality = FilterQuality.None
-    }
-
-    /** The heights of a building's floors (street units): the ground, each storey's, the roof's; [hf] its front's height. */
-    private fun floors(sb: SpriteBuilding, hf: Float): FloatArray {
-        val storey = SpriteArt.MID_H * B.W / SpriteArt.SRC_W
-        val body = hf - storey * sb.middles
-        return FloatArray(sb.middles + 2) { j -> when (j) { 0 -> 0f; sb.middles + 1 -> hf; else -> body + (j - 1) * storey } }
-    }
-
-    private val cutX = FloatArray(2)
-    private val cutZ = FloatArray(2)
-    private val band = Path()
-
-    /**
-     * The cut through a building the camera's cut has opened, drawn on the cut itself (it faces the camera): its outer
-     * walls, floors and roof as solid bands, as an architect's section shows them, so the open building reads as cut
-     * rather than as a strange wall. Drawn last: nothing of the building is nearer.
-     */
-    private fun DrawScope.section(bx: Crossroads.Box, sb: SpriteBuilding, hf: Float, sky: SkyColors) {
-        // where the cut crosses the footprint's edges
-        val xs = floatArrayOf(bx.x0, bx.x1, bx.x1, bx.x0)
-        val zs = floatArrayOf(bx.z0, bx.z0, bx.z1, bx.z1)
-        var m = 0
-        for (c in 0..3) {
-            val d = (c + 1) % 4
-            val da = cam.depth(xs[c], zs[c]) - cam.cutDepth
-            val db = cam.depth(xs[d], zs[d]) - cam.cutDepth
-            if ((da >= 0f) != (db >= 0f) && m < 2) {
-                val t = da / (da - db)
-                cutX[m] = xs[c] + (xs[d] - xs[c]) * t; cutZ[m] = zs[c] + (zs[d] - zs[c]) * t
-                m++
-            }
-        }
-        if (m < 2) return
-        val len = kotlin.math.hypot(cutX[1] - cutX[0], cutZ[1] - cutZ[0])
-        if (len < 1f) return
-        val ux = (cutX[1] - cutX[0]) / len
-        val uz = (cutZ[1] - cutZ[0]) / len
-        val solid = lerp(Color(0xFF26222A), sky.sky[2], .1f)
-        // the two outer walls the cut goes through, full height
-        val wall = min(SECTION_WALL, len / 2f)
-        sectionBand(cutX[0], cutZ[0], ux, uz, 0f, wall, 0f, hf, solid)
-        sectionBand(cutX[0], cutZ[0], ux, uz, len - wall, len, 0f, hf, solid)
-        // each floor, and the roof's slab (its parapet a little higher)
-        for (y in floors(sb, hf)) {
-            if (y <= 0f) continue
-            val top = if (y >= hf) hf else y + SECTION_SLAB / 2f
-            sectionBand(cutX[0], cutZ[0], ux, uz, 0f, len, top - SECTION_SLAB, top, solid)
-        }
-    }
-
-    /** A band on the cut: from [a0] to [a1] along ([ux], [uz]) from ground point ([px], [pz]), [y0] to [y1] up. */
-    private fun DrawScope.sectionBand(px: Float, pz: Float, ux: Float, uz: Float, a0: Float, a1: Float, y0: Float, y1: Float, color: Color) {
-        band.rewind()
-        for (c in 0..3) {
-            val a = if (c == 1 || c == 2) a1 else a0
-            val y = if (c >= 2) y1 else y0
-            cam.project(bm, px + ux * a, y, pz + uz * a, pt)
-            if (pt[2] < NEAR) return
-            if (c == 0) band.moveTo(pt[0], pt[1]) else band.lineTo(pt[0], pt[1])
-        }
-        band.close()
-        drawPath(band, color)
-    }
-
-    /**
-     * A building cut open by the camera's cut: what is left of it seen from inside, as a doll's house is (its far walls
-     * from within, dim, their windows lit by the day, and a floor at every storey), drawn before its outside faces.
-     */
-    private fun DrawScope.inside(bx: Crossroads.Box, sb: SpriteBuilding, ox: Float, oz: Float, hf: Float, sky: SkyColors, painter: BuildingPainter) {
-        val side = sb.side
-        val sw = side.width.toFloat()
-        val sh = side.height.toFloat()
-        val room = lerp(Color(0xFF2A2630), sky.sky[2], .12f)
-        // the four walls from within: each wall's inner face, the side picture mirrored as one sees a wall's inside
-        val xs = floatArrayOf(bx.x0, bx.x1, bx.x1, bx.x0)
-        val zs = floatArrayOf(bx.z0, bx.z0, bx.z1, bx.z1)
-        for (c in 0..3) {
-            val d = (c + 1) % 4
-            val ex = xs[d] - xs[c]
-            val ez = zs[d] - zs[c]
-            // walking round the footprint anticlockwise seen from above, the inner face's picture runs along the edge
-            face(bx, true, xs[c], hf, zs[c], ex / sw, 0f, ez / sw, 0f, -hf / sh, 0f, sw, sh, true) {
-                with(painter) { sideFace(sb, right = true) }
-                drawRect(room, Offset.Zero, Size(sw, sh), alpha = .7f)
-            }
-        }
-        // the floors, the ones farthest above or below the eye first (the roof's slab just under the roof)
-        val levels = floors(sb, hf).map { if (it >= hf) hf - 2f else it }.sortedByDescending { kotlin.math.abs(it - cam.eye) }
-        val slab = lerp(Color(0xFF8B857C), sky.sky[2], .1f)
-        val under = lerp(slab, Color.Black, .45f)
-        for (y in levels) {
-            if (!cutPolygon(bx.x0, y, bx.z0, bx.x1 - bx.x0, 0f, 0f, 0f, 0f, bx.z1 - bx.z0, 1f, 1f)) continue
-            drawPath(clip, if (y < cam.eye) slab else under)
-            drawPath(clip, lerp(slab, Color.Black, .6f), style = androidx.compose.ui.graphics.drawscope.Stroke(1.5f))
-        }
     }
 
     /**
      * One face of a box: the plane through world point ([ox], [oy], [oz]) whose picture runs [tw] along ([ux], [uy],
      * [uz]) and [th] along ([vx], [vy], [vz]), drawn with [block] (in the picture's own units) if it faces the camera
-     * ([mirrored]: its picture is seen from behind when it does). Cut at the camera's cut when [cut].
+     * ([mirrored]: its picture is seen from behind when it does).
      */
     private inline fun DrawScope.face(
-        bx: Crossroads.Box, cut: Boolean,
         ox: Float, oy: Float, oz: Float, ux: Float, uy: Float, uz: Float, vx: Float, vy: Float, vz: Float,
         tw: Float, th: Float, mirrored: Boolean, frontOrigin: Boolean = false, block: DrawScope.() -> Unit,
     ) {
@@ -803,58 +746,12 @@ internal class CornerWorld {
         val scale = kotlin.math.hypot(pt[0] - ax0, pt[1] - ay0) / tw
         quality?.faceQuality = if (crisp || scale >= .99f) FilterQuality.None else FilterQuality.Medium
         cam.plane(bm, ox, oy, oz, ux, uy, uz, vx, vy, vz, hm)
-        if (!cut) withTransform({ transform(hm) }) { block() }
-        else {
-            // the face's part beyond the cut, as a polygon on screen
-            if (!cutPolygon(ox, oy, oz, ux, uy, uz, vx, vy, vz, tw, th)) return
-            clipPath(clip) { withTransform({ transform(hm) }) { block() } }
-        }
+        withTransform({ transform(hm) }) { block() }
     }
 
     /** While a box is drawn: whether its faces keep their crisp pixels regardless, and the painter whose sampling is set. */
     private var crisp = false
     private var quality: BuildingPainter? = null
-
-    private val poly = FloatArray(30)
-    private val poly2 = FloatArray(30)
-
-    /** [clip] = the quad's part beyond the camera's cut, on screen; false if none of it is. */
-    private fun cutPolygon(ox: Float, oy: Float, oz: Float, ux: Float, uy: Float, uz: Float, vx: Float, vy: Float, vz: Float, tw: Float, th: Float): Boolean {
-        // the corners in the world, then clipped against the plane (depth >= r - cut)
-        var m = 0
-        for (c in 0..3) {
-            val a = if (c == 1 || c == 2) tw else 0f
-            val b = if (c >= 2) th else 0f
-            poly[m++] = ox + ux * a + vx * b; poly[m++] = oy + uy * a + vy * b; poly[m++] = oz + uz * a + vz * b
-        }
-        val cnt = clipPlane(poly, 4, poly2)
-        if (cnt < 3) return false
-        clip.rewind()
-        for (c in 0 until cnt) {
-            cam.project(bm, poly2[c * 3], poly2[c * 3 + 1], poly2[c * 3 + 2], pt)
-            if (c == 0) clip.moveTo(pt[0], pt[1]) else clip.lineTo(pt[0], pt[1])
-        }
-        clip.close()
-        return true
-    }
-
-    /** Sutherland-Hodgman against the cut: [inp] [count] points (x, y, z) to [out]; returns how many are left. */
-    private fun clipPlane(inp: FloatArray, count: Int, out: FloatArray): Int {
-        val lim = cam.cutDepth
-        var m = 0
-        for (c in 0 until count) {
-            val a = c * 3
-            val b = ((c + 1) % count) * 3
-            val da = cam.depth(inp[a], inp[a + 2]) - lim
-            val db = cam.depth(inp[b], inp[b + 2]) - lim
-            if (da >= 0f) { out[m++] = inp[a]; out[m++] = inp[a + 1]; out[m++] = inp[a + 2] }
-            if ((da >= 0f) != (db >= 0f)) {
-                val t = da / (da - db)
-                out[m++] = inp[a] + (inp[b] - inp[a]) * t; out[m++] = inp[a + 1] + (inp[b + 1] - inp[a + 1]) * t; out[m++] = inp[a + 2] + (inp[b + 2] - inp[a + 2]) * t
-            }
-        }
-        return m / 3
-    }
 
     companion object {
         const val MAX = 256
@@ -868,9 +765,14 @@ internal class CornerWorld {
         const val FAR = 14000f
         const val FAR_ALONG = 9000f
         const val TILE = 220f
-        /** The section's bands: an outer wall's thickness and a floor slab's (street units). */
-        const val SECTION_WALL = 6f
-        const val SECTION_SLAB = 5f
+        /**
+         * A building on the camera's side of the corner is gone once the cut is this share of its depth (as the camera
+         * looks) into it; a lamp or a person once the cut is [FADE_POINT] street units past it.
+         */
+        const val FADE_SHARE = .55f
+        const val FADE_POINT = 40f
+        const val EAST_FROM = 12f
+        const val EAST_TO = 28f
         /** A row this close to its own look is drawn as the stage draws it (see [box]). */
         const val NEAR_REST = .99f
         /** The main street's road ends this far out from its fronts (world units), and its far pavement here. */
@@ -881,3 +783,38 @@ internal class CornerWorld {
 
 /** The view's width in street units at the target's depth, for the stage's side-face rule. */
 internal val StageCamera.unitSpan: Float get() = 2f * cx / unit
+
+/**
+ * True for what stands on the camera's side of the corner, the block it swings behind mid-turn: east of the mouth's west
+ * kerb and south of the cross street's first fronts (the main street's buildings past the mouth and what stands before
+ * them), or the cross street's far row. Nothing else is ever between the camera and the corner.
+ */
+internal fun cornerNearSide(x0: Float, x1: Float, z0: Float, z1: Float): Boolean =
+    x0 >= MOUTH - PAVE - KERB && (z1 <= DEPTH + 1f || x0 >= MOUTH - CornerWorld.EPS)
+
+/**
+ * How much of box [bx] is left as [cam]'s cut sweeps into it: 1 while the cut is short of it, fading to 0 as the cut
+ * passes [CornerWorld.FADE_SHARE] of its depth through it (the whole building at once, never cut open). Only the block
+ * on the camera's side of the corner is ever faded. The cross street's far row, which its own view never shows, goes
+ * early in the turn ([CornerWorld.EAST_FROM] to [CornerWorld.EAST_TO] degrees), while the main street's corner
+ * building stands in front of it.
+ */
+fun cornerFade(cam: StageCamera, bx: Crossroads.Box): Float {
+    if (cam.cutBack <= 0f || !cornerNearSide(bx.x0, bx.x1, bx.z0, bx.z1)) return 1f
+    val early = if (bx.street == 2) {
+        val deg = Math.toDegrees(kotlin.math.abs(cam.yaw).toDouble()).toFloat()
+        1f - smoothUnit((deg - CornerWorld.EAST_FROM) / (CornerWorld.EAST_TO - CornerWorld.EAST_FROM))
+    } else 1f
+    if (early <= 0f) return 0f
+    var dn = Float.MAX_VALUE
+    var df = -Float.MAX_VALUE
+    for (c in 0..3) {
+        val d = cam.depth(if (c and 1 == 0) bx.x0 else bx.x1, if (c and 2 == 0) bx.z0 else bx.z1)
+        dn = min(dn, d); df = max(df, d)
+    }
+    if (cam.cutDepth <= dn) return early
+    if (cam.cutDepth >= df) return 0f
+    return early * (1f - smoothUnit((cam.cutDepth - dn) / ((df - dn) * CornerWorld.FADE_SHARE)))
+}
+
+private fun smoothUnit(t: Float): Float { val u = t.coerceIn(0f, 1f); return u * u * (3f - 2f * u) }

@@ -223,10 +223,11 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
     }
     val jn = j.optJSONObject("junction")
     // the main street does not end at the junction: the side street opens off it (a gap where it is seen, walked past or
-    // turned into), and the main street goes on beyond with the buildings east of it
-    val walked = if (jn != null && streets.size >= 2) streets.mapIndexed { k, st ->
+    // turned into), and the main street goes on beyond with the buildings east of it. An older street.json has no
+    // junction: the side street then opens at the main street's east end, with nothing past it and no far row
+    val walked = if (streets.size >= 2) streets.mapIndexed { k, st ->
         if (k != 0) st else {
-            val east = names(jn.optJSONArray("mainEast")).filter { bySprite[it] != null }
+            val east = names(jn?.optJSONArray("mainEast")).filter { bySprite[it] != null }
             val mouth = shop(com.lifemax.rpg.feature.habits.domain.JUNCTION_ID, streets[1].name, "", HabitMaterial.CLAY, 1)
             StreetInfo(st.name, st.shops + mouth + east.map { bySprite[it]!!.stack }, st.owners + "" + east.map { bySprite[it]!!.owner },
                 st.sprites + com.lifemax.rpg.feature.habits.domain.JUNCTION_ID + east)
@@ -236,7 +237,7 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
     else {
         // the crossroads as one place: the main street with the mouth, the cross street, and the cross street's other side
         val crossEast = names(jn?.optJSONArray("crossEast")).mapNotNull { bySprite[it]?.stack }
-        val cr = if (jn != null && walked.size >= 2) com.lifemax.rpg.feature.habits.presentation.scene.CrossroadsStacks(walked[0].shops, walked[1].shops, crossEast) else null
+        val cr = if (walked.size >= 2) com.lifemax.rpg.feature.habits.presentation.scene.CrossroadsStacks(walked[0].shops, walked[1].shops, crossEast) else null
         StreetData("${j.getString("town")} · ${j.getString("type")} · ${j.getInt("year")}", walked, cr)
     }
 } catch (e: Exception) {
@@ -475,8 +476,9 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             Text(inside!!.title + (inside!!.use.takeIf { it != inside!!.title && it != "Home" }?.let { "  ·  $it" } ?: ""), 15.sp,
                 Modifier.align(Alignment.TopCenter).padding(top = 62.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
         } else if (atCorner && data.crossroads != null && !turning) {
-            // at the corner: which way the other street is (the up key turns into it; walking on at its start turns back)
-            Text(if (streetNo == 0) "▲  ${data.streets.getOrNull(1)?.name ?: "Side street"}" else "◀  ${data.streets[0].name}", 15.sp,
+            // at the corner: the other street, and the up key that turns into it (at the cross street's start walking on
+            // against its end turns back too)
+            Text(if (streetNo == 0) "▲  ${data.streets.getOrNull(1)?.name ?: "Side street"}" else "▲ ◀  ${data.streets[0].name}", 15.sp,
                 Modifier.align(Alignment.TopCenter).padding(top = 62.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
         } else if (near in shops.indices && shops[near].id != com.lifemax.rpg.feature.habits.domain.JUNCTION_ID && !turning) {
             val st = shops[near]
@@ -540,7 +542,11 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         }
         // walking: left and right; in and out across the pavement
         HoldPad("◀", "▶", Modifier.align(Alignment.BottomStart).padding(18.dp)) { GameState.moveX = it }
-        HoldPad("▲", "▼", Modifier.align(Alignment.BottomEnd).padding(18.dp)) { GameState.moveLane = it }
+        HoldPad("▲", "▼", Modifier.align(Alignment.BottomEnd).padding(18.dp)) {
+            // (a press of the up key is kept for the game loop even if the finger is off again before its next frame)
+            if (it < -.5f && GameState.moveLane >= -.5f) CornerWalk.upTapped = true
+            GameState.moveLane = it
+        }
         if (tuning) Column(
             Modifier.align(Alignment.Center).widthIn(max = 520.dp).background(PANEL, RoundedCornerShape(14.dp)).padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),

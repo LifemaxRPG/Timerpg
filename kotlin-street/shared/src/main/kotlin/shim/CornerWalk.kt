@@ -11,8 +11,8 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 /**
- * Walking round the corner. At the crossroads the up key (held a moment, in the main street's mouth) walks the player
- * into the cross street; at the cross street's start the up key, or walking on against its end, walks them back. The
+ * Walking round the corner. At the crossroads a press of the up key (in the main street's mouth) walks the player into
+ * the cross street; at the cross street's start a press of the up key, or walking on against its end, walks them back. The
  * walk is the player's own: a curve from where they stand to where the other street's view will have them, walked at
  * the street's pace (a run when held), and the camera turns with how far along it they are, so letting go mid-way
  * (with [TurnTuning.autoWalk] off) pauses the turn and the back key walks it back. The stage calls [update] every frame
@@ -40,6 +40,14 @@ object CornerWalk {
     var ease = 0f
         private set
 
+    /**
+     * The sky's turn (radians, as [yaw]) and how far it has gone: the same swing, settled a little before the walk's ends.
+     * Near either end the street keeps most of its own flat look and hardly turns while the camera still does, so a sky
+     * turning to the last frame went on sliding behind buildings that had already stopped.
+     */
+    val skyEase: Float get() = smootherstep((p - SKY_EARLY) / (1f - 2f * SKY_EARLY))
+    val skyYaw: Float get() = (if (forward) skyEase else 1f - skyEase) * (PI.toFloat() / 2f)
+
     /** Where the player is on the ground (world), and which way they walk. */
     var wx = 0f
         private set
@@ -63,7 +71,9 @@ object CornerWalk {
     var fromMiddle = 0f
     var toMiddle = 0f
 
-    private var held = 0f
+    /** The up key as the last frame saw it, and a press the app saw between frames (a tap shorter than one). */
+    private var upBefore = false
+    @Volatile var upTapped = false
     private var runFor = 0f
     private var needRelease = false
     private val bx = FloatArray(4)
@@ -80,29 +90,31 @@ object CornerWalk {
 
     /** Forgets any walk (a new street was loaded). */
     fun reset() {
-        active = false; p = 0f; yaw = 0f; ease = 0f; held = 0f; needRelease = false; v = 0f
+        active = false; p = 0f; yaw = 0f; ease = 0f; needRelease = false; v = 0f; upBefore = false; upTapped = false
     }
 
     /**
      * Watches the keys while the player walks [street] (0 the main street) of [cr]: true once the walk has started (the
-     * stage reads the camera's two ends from [forward] and sets [fromX].. before the next [walk]).
+     * stage reads the camera's two ends from [forward] and sets [fromX].. before the next [walk]). It starts in the frame
+     * the up key goes down, before the player has stepped anywhere, so the shortest tap turns; a key already held (the
+     * player walking into the mouth with it down, pressed against the fronts) does not.
      */
-    fun arm(dt: Float, cr: Crossroads, street: Int): Boolean {
+    fun arm(cr: Crossroads, street: Int): Boolean {
         if (active) return false
         val up = GameState.moveLane < -.5f
         val left = GameState.moveX < -.5f
+        val pressed = (up && !upBefore) || upTapped
+        upBefore = up
+        upTapped = false
         if (needRelease) {
             if (!up && !left) needRelease = false
-            held = 0f
             return false
         }
         val want = !blocked && when (street) {
-            0 -> up && cr.inMouth(GameState.x)
-            else -> (up && cr.atCrossStart(GameState.x)) || (left && GameState.edge == -1)
+            0 -> pressed && cr.inMouth(GameState.x)
+            else -> (pressed && cr.atCrossStart(GameState.x)) || (left && GameState.edge == -1)
         }
-        held = if (want) held + dt else 0f
-        if (held < HOLD) return false
-        held = 0f
+        if (!want) return false
         start(cr, street)
         return true
     }
@@ -199,8 +211,10 @@ object CornerWalk {
         val tx = tan(bx, t); val tz = tan(bz, t)
         val l = sqrt(tx * tx + tz * tz).coerceAtLeast(1e-4f)
         hx = tx / l; hz = tz / l
-        // the camera turns with the walk, easing out of one street's view and into the other's
-        val s = smootherstep(p)
+        // the camera turns with the walk, easing out of one street's view and into the other's (strictly between its ends
+        // until the walk is: in floats the ease reaches 1 a few frames early, and the stage would hand the picture over
+        // to the new street's own drawing while the player still walks among the old street's people)
+        val s = if (p <= 0f) 0f else if (p >= 1f) 1f else smootherstep(p).coerceIn(1e-7f, ALMOST_ONE)
         ease = s
         yaw = (if (forward) s else 1f - s) * (PI.toFloat() / 2f)
     }
@@ -214,8 +228,10 @@ object CornerWalk {
             GameState.lane = ARRIVE_LANE
             if (forward) {
                 GameState.dir = 1f; GameState.facing = 0
-                // still held: the walk goes on along the new street until let go
-                if (GameState.moveLane < -.05f) GameState.upWalks = true else GameState.vx = 0f
+                // still held: the walk goes on along the new street until let go; else a few steps on by itself, clear of
+                // the screen's edge, at the pace it had
+                if (GameState.moveLane < -.05f) GameState.upWalks = true else GameState.walkOn = WALK_ON
+                GameState.vx = v
             } else {
                 GameState.facing = 3; GameState.vx = 0f
             }
@@ -263,11 +279,14 @@ object CornerWalk {
         return (t * t * t * (t * (t * 6f - 15f) + 10f)).coerceIn(0f, 1f)
     }
 
-    /** How long the key must be held before the walk starts (a brushed key does not turn the corner). */
-    const val HOLD = .1f
+    /** How far the player walks on along the cross street by themselves once round the corner (street units). */
+    const val WALK_ON = 60f
     /** The lane the walk arrives in, either way: the front band of the pavement, where the player walks. */
     const val ARRIVE_LANE = 7f
     private const val HANDLE = .45f
+    private const val SKY_EARLY = .05f
+    /** The largest float below 1. */
+    private const val ALMOST_ONE = .99999994f
     private const val SEGMENTS = 32
     private const val VIEW_MARGIN = .12f
 }

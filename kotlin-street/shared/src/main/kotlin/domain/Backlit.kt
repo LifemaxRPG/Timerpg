@@ -39,10 +39,12 @@ object Backlit {
 
     /**
      * How much of the sun is in the picture, for its middle at ([x], [y]) on a picture [w] by [h]
-     * (px), [r] its radius: 1 well inside it, 0 once its glow is out of it.
+     * (px), [r] its radius: 1 well inside it, 0 once its glow is out of it, or once it is [reach]
+     * past the picture's edge when that is given (a camera swinging past the sun: its glow fades
+     * over the swing instead of in the few frames the sun takes to cross three radii).
      */
-    fun inView(x: Float, y: Float, r: Float, w: Float, h: Float): Float {
-        val m = r * 3f
+    fun inView(x: Float, y: Float, r: Float, w: Float, h: Float, reach: Float = r * 3f): Float {
+        val m = max(reach, r * 3f)
         val dx = max(max(-x, x - w), 0f)
         val dy = max(max(-y, y - h), 0f)
         return 1f - smooth(0f, m, sqrt(dx * dx + dy * dy))

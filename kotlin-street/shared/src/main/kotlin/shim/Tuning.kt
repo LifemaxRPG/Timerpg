@@ -1,5 +1,7 @@
 package com.lifemax.rpg.feature.habits.presentation.scene
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 
 /** Switches that turn the habit-tracker's scene into the game's street. */
@@ -34,11 +36,12 @@ object StageTuning {
     /** How much bigger than the city-scale passers the people are drawn (a game wants a readable character). */
     var personScale = 3.0f
     /**
-     * The crossroads, when the game's street has one (the app or the preview sets it before the stage is shown): the
-     * stage then lays out both streets as one place and draws whichever the player is on, the other seen through the
-     * corner, and the walk round the corner between them, through one camera ([StageCamera]).
+     * The crossroads, when the game's street has one (the app or the preview sets it): the stage then lays out both
+     * streets as one place and draws whichever the player is on, the other seen through the corner, and the walk round
+     * the corner between them, through one camera ([StageCamera]). Snapshot state, so a stage composed before it is set
+     * (the app sets it in an effect, after its first composition) lays the crossroads out as soon as it is.
      */
-    @Volatile var crossroads: CrossroadsStacks? = null
+    var crossroads by androidx.compose.runtime.mutableStateOf<CrossroadsStacks?>(null)
 }
 
 /**

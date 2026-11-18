@@ -15,7 +15,7 @@ run() {
   local f="$out/seam_$tag.txt"
   if [ ! -f "$f" ]; then echo "NO RESULT  $*" | tee -a "$log"; return; fi
   echo "$(tail -1 "$f")  $*" | tee -a "$log"
-  grep "^FAIL\|^POP" "$f" | sed 's/^/    /' | tee -a "$log"
+  grep "^FAIL\|^POP\|^BURST" "$f" | sed 's/^/    /' | tee -a "$log"
 }
 if [ "${1:-quick}" = full ]; then
   for at in west mid east; do for h in 13 16.8 17.6 21.5; do for wx in clear rain; do for se in summer winter; do

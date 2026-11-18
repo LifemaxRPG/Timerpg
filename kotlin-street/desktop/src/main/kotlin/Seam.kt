@@ -24,7 +24,8 @@ import java.io.File
  *  - motion pairs: one step either side of each end (pre/S0, T0/T1, Tn-1/Tn, S1/S1+1), against ordinary walking (W95:
  *    the 95th percentile of consecutive-frame difference over 120 frames of walking along the main street).
  *  - the whole sequence (-Dseq=1): no frame that differs from its neighbour far more than the frames around it (a pop),
- *    and the walk's length in frames against its length at walking pace.
+ *    nor a few frames together far more than the frames a little further off (a burst: a light switching over a few
+ *    frames), and the walk's length in frames against its length at walking pace.
  * -Dat=west|mid|east (the mouth's middle -60/0/+60), -Ddir=fwd|back|abort, -Dsize=preview|phone, -Dhour, -Dwx, -Dseason.
  * Writes seam/start_*.png, end_*.png (diffs x16), seq/<dir>_NNN.png, sheet_<dir>.png and seam.txt.
  */
@@ -83,13 +84,14 @@ fun renderSeam(out: String) {
     GameState.x = if (way == "back") crossOf().arriveX else mid + at
     GameState.lane = 7f; GameState.dir = 1f; GameState.facing = 0
     // let everything that eases from frame to frame (the sun's glare) settle, every frame drawn
-    repeat(if (shots != null) 4 else 40) { GameState.travel += 1e-4f; last = frame() }
-    // hold the key: the walk starts after it has been held a moment
+    // (the last two frames before the key goes down: the street's own view, still)
+    var pre: IntArray? = null
+    var s0: IntArray? = null
+    repeat(if (shots != null) 4 else 40) { GameState.travel += 1e-4f; last = frame(); pre = s0; s0 = last }
+    // press the key: the walk starts in the frame it goes down
     keys(0f, -1f)
     val frames = ArrayList<IntArray>()
     val ps = ArrayList<Float>()
-    var pre: IntArray? = null
-    var s0: IntArray? = null
     var t0: IntArray? = null
     var guard = 0
     while (!CornerWalk.active && guard++ < 60) {
@@ -110,7 +112,7 @@ fun renderSeam(out: String) {
     var t1: IntArray? = null
     while (CornerWalk.active && steps < 900) {
         held += 1f / 60f
-        // as the game is played: the key held a moment, then let go (the walk carries on by itself)
+        // as the game is played: the key pressed, held a moment, then let go (the walk carries on by itself)
         if (way == "abort") keys(0f, if (abortBack) 1f else if (held < .15f) -1f else 0f)
         else keys(0f, if (held < .15f) -1f else 0f)
         val f = frame()
@@ -165,6 +167,16 @@ fun renderSeam(out: String) {
         if (mads[i] > 3 * med && mads[i] > .5) { pops++; line("POP at frame ${i + 1} (p=%.3f): MAD %.2f against a median %.2f".format(ps[i + 1], mads[i], med)) }
     }
     check("pops", pops == 0, "$pops")
+    // bursts: a change spread over a few frames (a light switching over three or four) hides from the pop check, whose
+    // neighbours share it; against the frames a little further off either side it stands out
+    var bursts = 0
+    for (i in mads.indices) {
+        val far = ((i - 12)..(i - 4)).plus((i + 4)..(i + 12)).filter { it in mads.indices }.map { mads[it] }.sorted()
+        if (far.size < 6) continue
+        val med = far[far.size / 2]
+        if (mads[i] > 1.6 * med + 1.0) { bursts++; line("BURST at frame ${i + 1} (p=%.3f): MAD %.2f against %.2f a few frames off".format(ps[i + 1], mads[i], med)) }
+    }
+    check("bursts", bursts == 0, "$bursts")
     if (arrived) {
         val expect = CornerWalk.pathLength / GameState.SPEED * 60f + 60f / 16f
         check("duration", kotlin.math.abs(steps - expect) <= 2f + 1f, "%d frames, expected %.1f".format(steps, expect))

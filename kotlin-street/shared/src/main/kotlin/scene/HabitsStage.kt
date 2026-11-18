@@ -678,8 +678,8 @@ private fun StageCanvas(
                 // arriving back from the side street: at the junction, where it opens
                 if (GameState.x < -1e8f) GameState.x = if (!jx.isNaN()) jx else s.end - 150f
             } else {
-                // the up key held in the mouth (or at the cross street's start) walks the player round the corner
-                if (!CornerWalk.active && CornerWalk.arm(dt, cr, GameState.street)) {
+                // a press of the up key in the mouth (or at the cross street's start) walks the player round the corner
+                if (!CornerWalk.active && CornerWalk.arm(cr, GameState.street)) {
                     val sd = sidesNow.value!!
                     turnEnds(cr, sd[0].street, sd[1].street, scroll.value)
                     // the frame the walk starts in is the street's own view still: nothing moves until the next
@@ -875,7 +875,8 @@ private fun StageCanvas(
         // the crossroads' camera: the street's own view, or as far round the corner as the walk has turned it; the sky
         // turns with it, the sun and the moon too (a quarter turn takes them out of the cross street's view)
         if (cr != null) aimWorld(world, cr, sides!!, f.middle, f.ground, horizon, f.unit, Perspective.k(f.zoom), this.size.width, orb.first * d)
-        val yawPx = if (cr != null) world.cam.f * world.cam.yaw else 0f
+        // (the sky settles a little before the street at either end of a walk round the corner: CornerWalk.skyYaw)
+        val yawPx = if (cr != null) world.cam.f * (if (CornerWalk.active) CornerWalk.skyYaw else world.cam.yaw) else 0f
         val orbX = orb.first * d + yawPx
         // the trees are lit from the side the sun or the moon stands on; the light stands where the
         // orb is drawn, so shadows swing and facades turn to it as the street scrolls under it
@@ -945,7 +946,9 @@ private fun StageCanvas(
         val ceiling =
             if (layouts.isEmpty()) f.ground - reach * f.unit
             else lerp(still, f.ground - reach * f.unit, f.zoom)
-        val fades = layouts.isNotEmpty() && f.ground - reach * f.unit < f.top + TOP_FADE * d
+        // (not in the game: its street fills the screen with no heading over it, and a tall building simply runs off the
+        // top, as it would through a camera, instead of fading into the sky with the clouds showing through it)
+        val fades = !GameState.enabled && layouts.isNotEmpty() && f.ground - reach * f.unit < f.top + TOP_FADE * d
         // the buildings' outlines round the sun, for its glare where it peeks past an edge: none
         // over the heading, nor where the fade under it has rubbed them out (half way down it)
         if (skyOnly) sunGlare.edge.clear()
@@ -964,7 +967,10 @@ private fun StageCanvas(
         val sunR = SunMoonSprites.SUN_R * d
         val sunAt = Offset(orbX, orb.second * d)
         sunGlare.edge.measure(sunAt.x, sunAt.y, sunR)
-        // how far the camera looks into the sun (the cloud across it as last drawn)
+        // how far the camera looks into the sun (the cloud across it as last drawn); while the camera swings round the
+        // corner the sun's glow fades over a good part of the swing as the sun leaves the picture (or grows as it comes
+        // in), not in the few frames the sun takes to cross its own glow, and is the street's own again at either end
+        val swing = if (cr != null && CornerWalk.active) CornerWalk.ease.let { e -> smoothUnit(e / .05f) * smoothUnit((1f - e) / .05f) } else 0f
         backlight.update(
             sky,
             orbAt(p.hour).second,
@@ -978,6 +984,7 @@ private fun StageCanvas(
             this.size.width,
             this.size.height,
             seconds,
+            reach = lerp(sunR * 3f, this.size.width * SWING_GLOW, swing),
         )
         backdrop.backlit = backlight.amount
         backdrop.yaw = yawPx
@@ -989,7 +996,7 @@ private fun StageCanvas(
                 f.skyTop,
                 Offset(orbX, orb.second * d),
                 ceiling,
-                if (cr != null && CornerWalk.active) lerp(CornerWalk.fromMiddle, CornerWalk.toMiddle, CornerWalk.ease)
+                if (cr != null && CornerWalk.active) lerp(CornerWalk.fromMiddle, CornerWalk.toMiddle, CornerWalk.skyEase)
                 else f.middle + (if (skyOnly) GameState.skyPan else 0f),
                 seconds,
             )
@@ -1029,7 +1036,13 @@ private fun StageCanvas(
                 }) {
                     with(painter) {
                         with(seasonFall) { particles(season, ns.layouts, ns.street, nfrom, nto, (f.top - f.ground) / f.unit, depth, seconds, sky) }
+                        // (a building fading out between the camera and the corner takes its reflection with it, and
+                        // the mirror, laid flat in the street's own frame, fades as the street leaves its own look)
+                        mirrored = if (world.restStreet < 0) { i -> world.shown(cr, near, i) } else null
+                        mirrorShare = if (world.restStreet < 0) (if (near == 0) world.leanMain else world.leanCross) else 1f
                         weather(sky, ns.layouts, ns.arts, ns.street, live, nfrom, nto, (f.top - f.ground) / f.unit, depth, seconds)
+                        mirrored = null
+                        mirrorShare = 1f
                     }
                 }
                 // exposed for the sky: the street dark in front of it (our buildings keep no lights to give back)
@@ -1564,6 +1577,12 @@ internal fun drawnMiddle(middle: Float): Float {
     val half = GameState.halfView * u
     return (half - kotlin.math.round(half - middle * u)) / u
 }
+
+/** 0 to 1 eased (smoothstep) over 0..1 of [t]. */
+private fun smoothUnit(t: Float): Float { val u = t.coerceIn(0f, 1f); return u * u * (3f - 2f * u) }
+
+/** Mid-turn the sun's glow fades as the sun goes this share of the picture's width past its edge. */
+private const val SWING_GLOW = .5f
 
 /** Sets the walk's two camera ends: the view the player is in now ([middle]), and the other street's own view where it ends. */
 internal fun turnEnds(cr: com.lifemax.rpg.feature.habits.domain.Crossroads, main: StreetLayout, cross: StreetLayout, middle: Float) {

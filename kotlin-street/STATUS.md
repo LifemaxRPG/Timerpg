@@ -43,24 +43,36 @@
 - The gap view (walking past the mouth) is now the real side street: Orchard Lane runs to the far city under the sky
   (no flat block), both its rows are there with their glass and roofs, the corner buildings' side walls are real (no
   floating eave, no hard cut, no strip of backdrop), the mouth has the cross street's asphalt with dropped kerbs and a
-  zebra on it, the side street takes the hour's light (dark at night), and no road name floats over it. Taller side
-  street buildings rise above the main street's roofs, and the top fade and cloud ceiling count them.
-- The walk (`shim/CornerWalk.kt`): hold the up key a tenth of a second in the mouth (within 77 units of its middle) and
-  the player walks a smooth curve into the cross street at walking pace (a run when held 0.6 s); the camera turns with
+  zebra on it, the side street takes the hour's light (dark at night, its side walls' glass dark and about half their
+  windows lit, as the fronts'), and no road name floats over it. Taller side street buildings rise above the main
+  street's roofs and the cloud ceiling counts them; in the game a tall building runs off the top of the screen (the
+  habit tracker's fade under its heading is off there). The side street's lamps hold their heads out along their own
+  street: seen down it from the main street, each head is by its pole (the arm turns with the camera mid-turn).
+- The walk (`shim/CornerWalk.kt`): press the up key in the mouth (within 77 units of its middle) and the player walks a
+  smooth curve into the cross street at walking pace (a run when held 0.6 s). It starts in the frame the key goes down
+  (a tap shorter than a frame is kept by the app's pad), before the player has stepped anywhere; a key already held
+  (walking into the mouth with it down) does not turn. The camera turns with
   how far along they are (90 degrees, eased), the target slides from the main street's view to the cross street's own
   view, and the sky turns with it (clouds, far city, stars, the sun or moon and its glare: a quarter turn takes the sun
   out of the cross street's view; that street is lit by where the sun really is). In the frame the walk ends the stage
-  hands over to the cross street's own view: the same picture. Down walks it back (it ends where it began). Letting go
-  of up lets the walk carry on (`TurnTuning.autoWalk`); still held at the end, it walks on along the new street. Back:
-  up at the cross street's start (within 60 units) or walking on against its end (left held). Elsewhere up and down step
-  across the pavement as before. Not while inside, at a door, in a conversation or tuning the NPU.
-- The block the camera swings behind mid-turn (the bank's corner and the cross street's east row) is cut away nearer than
-  120 units in front of the corner; between 30 and 55 degrees of the turn the cut moves on to 120 units in front of the
-  camera's target as it slides up the cross street (the same place at a quarter turn, so the cross street's own view is
-  unchanged), never nearer than 30 units in front of the player. A building the cut goes through is shown open: its far
-  walls from inside, a floor at every storey, and its outer walls, slabs and roof as solid bands on the cut, like an
-  architect's section. That is the visible compromise (`TurnTuning.CUT`, `KEEP`); the alternatives (walls down, a closer
-  camera) are the owner's call.
+  hands over to the cross street's own view: the same picture; the player then walks on 60 units by themselves (still
+  holding up: on along the street until let go), so they do not stop at the screen's edge. Down walks it back (it ends
+  where it began). Letting go of up lets the walk carry on (`TurnTuning.autoWalk`). Back: a press of up at the cross
+  street's start (within 60 units; the hint there reads "▲ ◀ Main Street") or walking on against its end (left held).
+  Elsewhere up and down step across the pavement as before. Not while inside, at a door, in a conversation or tuning
+  the NPU. The sky settles a little before the street at either end (5% of the walk), so it never slides on behind
+  buildings that have stopped; a low sun's glow fades over half a screen's width of the sun's travel as it leaves the
+  picture mid-turn (or grows as it comes in), not in three frames.
+- The block the camera swings behind mid-turn (the main street's buildings past the mouth and the cross street's east
+  row, which the cross street's own view never shows) fades out whole, as a building between a game's camera and its
+  player does; nothing is ever drawn cut open. The east row goes between 12 and 28 degrees of the turn, while the bank
+  stands in front of most of it; the bank's block as the camera's cut (120 units in front of the corner; between 30 and
+  55 degrees moving on to 120 units in front of the camera's target, the same place at a quarter turn; never nearer than
+  30 units in front of the player) sweeps through it: gone once the cut is 55% of its depth in, about a fifth of a
+  second at walking pace. Lamps and people on that side fade likewise; a fading building's reflection in the wet fades
+  with it, and the wet mirror (laid in the street's own flat frame) fades as the street leaves its own look. Under the
+  swing the main street's far side is paved, not a field. That dissolve is what is left of the trick; no building is
+  more than half there between the camera and the player in any frame (`CornerWalkTest`).
 - The seam test (`gradle :desktop:preview -Dmode=seam [-Ddir=fwd|back|abort] [-Dat=west|mid|east] [-Dsize=phone]
   [-Dhour, -Dwx, -Dseason] [-Dseq=1]`) renders the walk frame by frame at 60 fps, as the game steps it, and measures the
   hand-overs; `tools/seam-matrix.sh` runs it over many views. Measured in the desktop preview (Skia, not the S25):
@@ -75,11 +87,12 @@
 - Desktop: `-Dmode=junction` walks past the mouth (nine frames) at any hour, weather, season and `-Dsize=phone`
   (2340x1080 at density 2.625). Tests: `gradle :desktop:crossroadsTest` (camera at rest equals the stage's drawing within
   0.05 px, the side street's vanishing point on the horizon, the ground plan, the walk's keys, path and hand-over).
-- Not done yet: the street name sign at the corner; lamp heads turned along their own street (the cross street's lamps
-  are the main street's picture, seen side on); the cut buildings' rooms are empty; generated corner walls from each
-  front's storeys (the side pictures are used); the 180-degree street crossing still uses the old turn scene (so
-  `StageTuning.skyOnly` and `GameState.skyPan` stay for the desktop `turnsky` mode); frame time, heat and HWUI's
-  perspective drawing on the S25 are unmeasured.
+- Not done yet: the street name sign at the corner; generated corner walls from each front's storeys (the side
+  pictures are used, smoothed where seen at a slant); the cross street's east row is the town's two lots there, so past
+  them its right side is open sky (the town tool takes the real lots; inventing more would leave the simulation); the
+  180-degree street crossing still uses the old turn scene (so `StageTuning.skyOnly` and `GameState.skyPan` stay for the
+  desktop `turnsky` mode); frame time (a fading building is one extra layer for about a fifth of a second), heat and
+  HWUI's perspective drawing on the S25 are unmeasured.
 
 ## Real crossroads (tools/export-street.ts v2)
 - street.json now holds named streets from the town's real layout: Main Street (the buildings on the main road west of a real
