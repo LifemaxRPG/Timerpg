@@ -60,6 +60,7 @@ fun renderSeam(out: String) {
         Thread.sleep(2)
         return pixels(scene.render(nanos))
     }
+    // (pushes of 0.7: a walking thumb or the keyboard's arrow keys; a push to the stick's rim, 1, runs)
     fun keys(x: Float, lane: Float) { GameState.moveX = x; GameState.moveLane = lane }
     // settle: the baked sprites are made off the main thread
     GameState.street = 0; GameState.x = 1500f; GameState.lane = 7f; GameState.dir = 1f; keys(0f, 0f)
@@ -71,7 +72,7 @@ fun renderSeam(out: String) {
     val mid = GameState.junctionX
     GameState.x = mid - 900f; GameState.lane = 7f
     repeat(5) { last = frame() }
-    keys(1f, 0f)
+    keys(.7f, 0f)
     val walkMads = ArrayList<Double>()
     repeat(if (shots != null) 1 else 120) { val f = frame(); walkMads += stats(last, f).mad; last = f }
     keys(0f, 0f)
@@ -89,7 +90,7 @@ fun renderSeam(out: String) {
     var s0: IntArray? = null
     repeat(if (shots != null) 4 else 40) { GameState.travel += 1e-4f; last = frame(); pre = s0; s0 = last }
     // press the key: the walk starts in the frame it goes down
-    keys(0f, -1f)
+    keys(0f, -.7f)
     val frames = ArrayList<IntArray>()
     val ps = ArrayList<Float>()
     var t0: IntArray? = null
@@ -113,8 +114,8 @@ fun renderSeam(out: String) {
     while (CornerWalk.active && steps < 900) {
         held += 1f / 60f
         // as the game is played: the key pressed, held a moment, then let go (the walk carries on by itself)
-        if (way == "abort") keys(0f, if (abortBack) 1f else if (held < .15f) -1f else 0f)
-        else keys(0f, if (held < .15f) -1f else 0f)
+        if (way == "abort") keys(0f, if (abortBack) .7f else if (held < .15f) -.7f else 0f)
+        else keys(0f, if (held < .15f) -.7f else 0f)
         val f = frame()
         steps++
         if (t1 == null) t1 = f
