@@ -1,0 +1,375 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1990,
+  "topic": "tech",
+  "facts": [
+    {
+      "id": "1990-tech-01",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A family computer starts with a humming fan and a bulky monitor on the desk.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-02",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Children trade floppy disks containing games or homework.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-03",
+      "year_from": 1990,
+      "year_to": 1996,
+      "text": "A computer owner waits while a program installs from several floppy disks.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-04",
+      "year_from": 1994,
+      "year_to": 1999,
+      "text": "More home computers come with a disc drive for installing programs and playing multimedia.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-05",
+      "year_from": 1995,
+      "year_to": 1999,
+      "text": "A household may tie up its telephone line while a dial-up modem connects to the internet.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-06",
+      "year_from": 1995,
+      "year_to": 1999,
+      "text": "A dial-up modem makes squealing and crackling sounds while it connects.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-07",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Some families still have no home computer or internet connection.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-08",
+      "year_from": 1990,
+      "year_to": 1995,
+      "text": "A student prints a school report on a noisy dot-matrix printer.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-09",
+      "year_from": 1995,
+      "year_to": 1999,
+      "text": "An inkjet printer turns out homework pages at home, sometimes with streaks or smudges.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-10",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A computer user saves a document often because a crash can erase unsaved work.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-11",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A household keeps telephone numbers in a paper address book beside the phone.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-12",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Many home telephones have push buttons and a long coiled handset cord.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-13",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A cordless home phone lets someone talk while walking around the house.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-14",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "An answering machine plays recorded messages when the family returns home.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-15",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A pager beeps, prompting its owner to find a telephone and return a call.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-16",
+      "year_from": 1990,
+      "year_to": 1994,
+      "text": "A mobile phone is often bulky and costly early in the decade.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-17",
+      "year_from": 1996,
+      "year_to": 1999,
+      "text": "Smaller mobile phones become more visible toward the end of the decade.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-18",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A teenager listens to a portable compact disc player and tries not to make it skip.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-19",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A car stereo may play either a cassette tape or a compact disc.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-20",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Families rent videotapes and remember to rewind them before returning them.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-21",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A video recorder flashes a blinking clock after the power goes out.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-22",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Children play games on a television using wired controllers and cartridges or discs.",
+      "ages": "kids",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-23",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A disposable film camera is handy for a party or vacation.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-24",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A family drops a roll of film at the store and waits for developed pictures.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-25",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A cashier scans barcodes while the register displays prices on a small screen.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-26",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "An office worker sends a fax and waits for the machine to feed through each page.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-27",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A home television is usually a deep picture-tube set rather than a flat panel.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-tech-28",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Some families get extra television channels through a cable subscription or satellite dish.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "a smartphone in ordinary use",
+      "first_common": 2012,
+      "say_instead": "a home telephone, pager, or basic mobile phone"
+    },
+    {
+      "thing": "high-speed broadband in most homes",
+      "first_common": 2008,
+      "say_instead": "a dial-up modem or no home internet"
+    },
+    {
+      "thing": "a wireless home internet network in most homes",
+      "first_common": 2010,
+      "say_instead": "a wired computer or a dial-up telephone connection"
+    },
+    {
+      "thing": "a streaming video subscription in ordinary homes",
+      "first_common": 2015,
+      "say_instead": "a rented videotape or scheduled television"
+    },
+    {
+      "thing": "a digital camera in most households",
+      "first_common": 2005,
+      "say_instead": "a film camera and developed prints"
+    },
+    {
+      "thing": "a flat-screen television in most homes",
+      "first_common": 2010,
+      "say_instead": "a picture-tube television"
+    },
+    {
+      "thing": "a portable digital music player in ordinary use",
+      "first_common": 2005,
+      "say_instead": "a portable compact disc or cassette player"
+    },
+    {
+      "thing": "a GPS navigation device in ordinary cars",
+      "first_common": 2007,
+      "say_instead": "a folded paper road map"
+    },
+    {
+      "thing": "a tablet computer in ordinary homes",
+      "first_common": 2013,
+      "say_instead": "a desktop computer or paper notebook"
+    },
+    {
+      "thing": "a video calling app in ordinary households",
+      "first_common": 2015,
+      "say_instead": "a telephone call or mailed photograph"
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
