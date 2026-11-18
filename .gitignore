@@ -28,3 +28,4 @@ __pycache__/
 .kotlin/
 out/
 *.apk
+kotlin-street/build-town/
