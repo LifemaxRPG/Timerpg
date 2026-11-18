@@ -12,10 +12,9 @@ here). Its shape:
   parapet and a rail that follow the curve, four spotlights and a second stair house.
 
 The rounded walls are a new part, 'cyl' (a segment of an elliptic cylinder wearing a picture strip whose columns run
-evenly along its angle); the chamfer is a 'wall' (an upright face between two plan points). Both are cut from the
-art itself: each strip column samples the art where that point of the wall is drawn (its rows lifted by its depth), so
-its windows and bands follow the curve as the artist drew them, and where the art shows none of it (round the back),
-the wall's own rows and windows carry on."""
+evenly along its angle); the chamfer is a 'wall' (an upright face between two plan points). The chamfer is the art's
+columns let down by the art's own steps, so its bands come out level; the rounded wall wears the front's own courses
+and the art's louvred windows, unrolled from where the art draws them."""
 import math
 import numpy as np
 
@@ -115,6 +114,21 @@ def rail_strip(art, rows, post_cols, length, period, bar_rows):
     return out
 
 
+def level_rows(img, spans, like=None, share=.4, most=3):
+    """Rows the art draws as a band across `spans` (c0, c1) but left dashed once let down by the wall's steps (some of
+    its edges step a row every two columns, not two every four): each such row (few colours, one of them a fair
+    share) its commonest colour. Which rows are bands is judged on `like` (the same piece in the red colour: in the
+    greys the wall and the window frames share colours, and their rows passed for bands)."""
+    out = img.copy(); ref = img if like is None else like
+    for (c0, c1) in spans:
+        for i in range(img.shape[0]):
+            _, n = np.unique(ref[i, c0:c1].reshape(-1, 4), axis=0, return_counts=True)
+            if len(n) <= most and n.max() >= share * (c1 - c0):
+                cols, n = np.unique(img[i, c0:c1].reshape(-1, 4), axis=0, return_counts=True)
+                out[i, c0:c1] = cols[n.argmax()]
+    return out
+
+
 def floor_of(img):
     """A flat roof's floor from above with what stands on it in the art (parapets, a sign, lamps, a stair house: the
     engine builds them) painted out: each such pixel the nearest floor pixel up or down its column (the floor's
@@ -156,6 +170,8 @@ def police(shop, rng):
     mb = _mb()
     key = shop['parts'][0]['key']
     art = mb.solid(np.array(mb.load(key)))
+    # the red colour: where glass is found (the blue-grey colour's walls pass for glass) and the shape measured
+    art1 = mb.solid(np.array(mb.load('landmark_police_1')))
     at = mb.Atlas(1024)
     W = 672
     px = lambda y, x: art[y, x]
@@ -185,16 +201,24 @@ def police(shop, rng):
             tside[wy - (G - E):wy - (G - E) + win.shape[0], cxw:cxw + win.shape[1]][m] = win[m]
             tside_glow[wy - (G - E):wy - (G - E) + win.shape[0], cxw:cxw + win.shape[1]][mb.dilate(mb.glass(win), 1) & m] = mb.GLOW
     tside_r = at.add(tside, tside_glow)
-    # the chamfer: from the tower's front (247, d 0) back to the right pillar (286, d 18), the art's columns with their
-    # rows lifted by their depth (the art draws it rising to the right), the rows under the cornice its top row's
+    # the chamfer: from the tower's front (247, d 0) back to the right pillar (286, d 18). The art draws it rising to
+    # the right in steps of its doubled pixels (two rows every four columns, measured by its foot on the red colour:
+    # every colour shares the shape); each column is let down by its own step, so its sills, its base and its windows'
+    # frames come out level. A straight line of depth through the steps left them a sawtooth. The rows under the
+    # cornice are its top row's
     CH = 18
-    ch = np.zeros((E, 39, 4), np.uint8)
-    for c in range(39):
-        d = CH * (c + .5) / 39
-        for i in range(E):
-            row = max(301, int(math.floor(G - d - (E - i - .5))))
-            ch[i, c] = art[row, 247 + c]
-    ch_panes, ch_glow = mb.panes_of(ch)
+    foot = lambda x: int(np.nonzero(art1[:, x, 3] == 255)[0].max())
+    step = {x: foot(x) - foot(248) for x in range(248, 286)}; step[247] = 0
+    def chamfer(a):
+        ch = np.zeros((E, 39, 4), np.uint8)
+        for c in range(39):
+            for i in range(E):
+                ch[i, c] = a[max(302, 557 + step[247 + c] - (E - 1 - i)), 247 + c]
+        return ch
+    # its sills, its base and its windows' bars level across it, then the bars inside the windows' frames
+    ch1 = chamfer(art1); ch1_l = level_rows(ch1, [(1, 38)])
+    ch = level_rows(level_rows(chamfer(art), [(1, 38)], ch1), [(9, 30)], ch1_l)
+    ch_panes, ch_glow = mb.panes_of(level_rows(ch1_l, [(9, 30)]))
     ch_r = at.add(ch, ch_glow)
     # the round pillars: the art's own shading unrolled onto their front halves
     pl = at.add(pillar_strip(art, 160, 182, 300, 565, E))
@@ -303,15 +327,24 @@ def police(shop, rng):
     # front with the wall either side of them, row by row
     WD, WE = 30, 137
     WF = G - WD                                                     # its front's foot row
-    wf = art[WF - WE:WF, 307:604].copy()
+    def wing_front(a):
+        wf = a[WF - WE:WF, 307:604].copy()
+        for (b0, b1) in bases:
+            l, r = b0 - 307, min(b1, 604) - 307
+            for i in range(WE):
+                src = [x for x in (l - 2, l - 3, r + 2, r + 3) if 0 <= x < wf.shape[1]]
+                wf[i, l:r] = np.median(wf[i, src], axis=0).astype(np.uint8) if src else wf[i, l - 1]
+        return wf
     shafts = [(314, 338), (382, 406), (512, 536), (580, 604)]
     bases = [(312, 340), (380, 408), (510, 538), (578, 606)]
-    for (a0, a1) in bases:
-        l, r = a0 - 307, min(a1, 604) - 307
-        for i in range(WE):
-            src = [x for x in (l - 2, l - 3, r + 2, r + 3) if 0 <= x < wf.shape[1]]
-            wf[i, l:r] = np.median(wf[i, src], axis=0).astype(np.uint8) if src else wf[i, l - 1]
-    wf_panes, wf_glow = mb.panes_of(wf)
+    wf = wing_front(art)
+    # its lit windows: the glazing over the shutter and the cash machine's screen. (The shutter, the vents and the
+    # beams' ends pass for glass by colour, and lit up at night)
+    wf_panes, wf_glow = mb.panes_of(wing_front(art1))
+    wf_panes = [p for p in wf_panes if (p[0], p[1]) in ((109, 12), (43, 96))]
+    keep = np.zeros(wf.shape[:2], bool)
+    for (x, y, w, h, _) in wf_panes: keep[y:y + h, x:x + w] = True
+    wf_glow[~keep] = 0
     wf_r = at.add(wf, wf_glow)
     shaft_r = [at.add(art[WF - WE + 3:WF - 8, a:b]) for (a, b) in shafts]
     base_r = [at.add(art[WF + 1 - 12:WF + 12, a:b]) for (a, b) in bases]
@@ -320,25 +353,43 @@ def police(shop, rng):
     # the rounded end: a quarter of an elliptic cylinder at the front corner (across 52, back 85), the right side straight
     # from 115 to 157 back, a longer quarter round the back (back 115): the art's D seen from above
     CX = 604; FC = WD + 85; BC = 157; A = 52
+    # the rounded wall's courses: the front's (its shadow under the coping, its base) with its panel's colour
+    # between, plain: the art's curve has no beam and no vents, and its shading is the light on the curve, which the
+    # engine gives it
     wall_rows = mb.column_rows(art[WF - WE:WF], [560, 561, 562, 563, 564, 565])
-    crows = curve_rows(np.array(mb.load('landmark_police_1')), 604, 652, WE)
-    front_q, _ = unroll(art, CX, FC, A, 85, 0, 90, 0, WE, xlim=(604, 651), fill=wall_rows, rows=crows)
-    q_glow = mb.panes_of(front_q)[1]
+    wall_rows[10:114] = wall_rows[20]
+    # its louvred windows, two storeys of them: the art's, unrolled between the lines it draws the curve's top and foot
+    # on (column by column: it lifts the curve by its own eye), their clean left part (its frame and a louvre and its
+    # gap) closed by the same louvres and the frame turned round; the straight sampling ran stepped past it
+    crows = curve_rows(art1, 604, 652, WE)
+    def louvres(a):
+        q, _ = unroll(a, CX, FC, A, 85, 0, 90, 0, WE, xlim=(604, 651), rows=crows)
+        frame, bay = q[29:54, 27:33], q[29:54, 33:46]
+        return np.concatenate([frame, bay, bay, bay[:, :6], frame[:, ::-1]], axis=1)
+    lv = louvres(art)
+    lv_glow = np.zeros_like(lv); lv_glow[mb.glass(louvres(art1))] = mb.GLOW
+    def curved(width, cols):
+        w = np.repeat(wall_rows[:, None, :], width, axis=1).copy(); g = np.zeros_like(w)
+        for c in cols:
+            for r in (29, 67):
+                w[r:r + lv.shape[0], c:c + lv.shape[1]] = lv; g[r:r + lv.shape[0], c:c + lv.shape[1]] = lv_glow
+        w[..., 3] = 255
+        return w, g
+    front_q, q_glow = curved(int(round(arc_len(A, 85, 0, 90))), [27])
     fq_r = at.add(front_q, q_glow)
-    back_q, _ = unroll(art, CX, BC, A, 115, 90, 180, 0, WE, xlim=(0, 0), fill=wall_rows)
-    bq_r = at.add(back_q)
-    rside, _ = mb.side_wall(wall_rows, 42, None, 0, (), rng, shade(wall_w, .8) + (255,))
+    bw = int(round(arc_len(A, 115, 90, 180)))
+    back_q, bq_glow = curved(bw, [bw // 2 - lv.shape[1] // 2])
+    bq_r = at.add(back_q, bq_glow)
+    rside, _ = curved(42, [])
     rside_r = at.add(rside)
-    # its parapet: the front's band and coping (rail posts and lamps off it), round the curve the art's band sampled
-    # like the wall, the back's inner face and coping
+    # its parapet: the front's band and coping (rail posts and lamps off it), round the curve the band's own rows (the
+    # art's, sampled round it, came out stepped), the back's inner face and coping
     wp_f = at.add(art[WF - WE - 15:WF - WE, 307:604])
     wpt = art[347:377, 307:604].copy(); wm = wpt[..., :3].astype(int).sum(-1) < 330; wm[:5] = True
     wpt_r = at.add(mb.fill_rows(wpt, wm))
     band_rows = mb.column_rows(art[WF - WE - 15:WF - WE], [450, 451, 452])
-    ring_f, _ = unroll(art, CX, FC, A, 85, 0, 90, WE, WE + 15, xlim=(604, 651), fill=band_rows, rows=crows)
-    ring_fr = at.add(ring_f)
-    ring_b, _ = unroll(art, CX, BC, A, 115, 90, 180, WE, WE + 15, xlim=(0, 0), fill=band_rows)
-    ring_br = at.add(ring_b)
+    ring_fr = at.add(np.repeat(band_rows[:, None, :], int(round(arc_len(A, 85, 0, 90))), axis=1))
+    ring_br = at.add(np.repeat(band_rows[:, None, :], bw, axis=1))
     wps = at.add(mb.tile_x(art[WF - WE - 15:WF - WE, 450:466], 120))
     wpb_f = art[175:190, 307:604].copy(); wpb_m = np.zeros(wpb_f.shape[:2], bool); wpb_m[:, 30:95] = True; wpb_m[:, 205:265] = True
     wpb_r = at.add(mb.fill_rows(wpb_f, wpb_m))
@@ -350,19 +401,26 @@ def police(shop, rng):
     rail_wb = at.add(mb.tile_x(rail_w, int(round(arc_len(A - 13, 115 - 13, 90, 180)))))
     rail_ws = at.add(mb.tile_x(rail_w, 42))
     # the spotlights: the front two as drawn (their lenses glow at night), the back two the back-right one's picture
-    def lamp(x0, x1, r0, r1):
+    def lamp(x0, x1, r0, r1, keep=None, lit=True):
         pic = art[r0:r1, x0:x1].copy()
+        if keep is not None: pic[~keep] = 0
         lum = pic[..., :3].astype(int).sum(-1)
         # (the floor and the coping round it are not the lamp: what is not its greys and whites)
         rr2, bb2 = pic[..., 0].astype(int), pic[..., 2].astype(int)
         pic[rr2 > bb2 + 12] = 0
-        lens = (lum > 690) & (pic[..., 3] > 0)
+        lens = (lum > 690) & (pic[..., 3] > 0) & lit
         g = np.zeros_like(pic); g[lens] = (255, 250, 230, 240)
         ys2, xs2 = np.nonzero(lens)
         pane = [[int(xs2.min()), int(ys2.min()), int(xs2.max() - xs2.min() + 1), int(ys2.max() - ys2.min() + 1), 0]] if len(xs2) else []
         return at.add(pic, g), pane, pic.shape
-    lamp_f = lamp(342, 394, 293, 345)
-    lamp_b = lamp(517, 563, 120, 208)
+    # (the front ones: the rail's bar behind the head and the coping's edge under the foot are not the lamp)
+    lf_keep = np.ones((52, 52), bool); lf_keep[:3] = False; lf_keep[3:5] = False; lf_keep[3:5, 18:34] = True; lf_keep[51, :10] = lf_keep[51, 42:] = False
+    lamp_f = lamp(342, 394, 293, 345, lf_keep)
+    # (the back ones stand in front of the back parapet's coping and rail in the art: only the lamp's own outline is
+    # kept, its head and its knobs, its stalk, its foot; the coping beside it stood in the air as a bar)
+    lb_keep = np.zeros((88, 46), bool)
+    lb_keep[:56, 7:40] = True; lb_keep[19:33, 0:46] = True; lb_keep[56:69, 17:29] = True; lb_keep[69:, 8:37] = True
+    lamp_b = lamp(517, 563, 120, 208, lb_keep, lit=False)            # (turned away: the lens is on its far side)
     # the wing's stair house and its pyramid
     sh2_f = art[222:295, 319:397]
     sh2_r = at.add(sh2_f, mb.panes_of(sh2_f)[1])
@@ -386,8 +444,11 @@ def police(shop, rng):
         mb.mbox((604, 656), (0, WE), (115, 157), (floor_c, wall_w, shade(wall_w, .85)), st=rside_r),
         mcyl((CX, BC), (A, 115), (90, 180), (0, WE), (floor_c, wall_w), ft=bq_r),
         mcyl((CX, FC), (A, 85), (0, 90), (0, WE), (floor_c, wall_w), ft=fq_r),
-        # its back parapet, the rail and the lamps behind the stair house, the stair house
+        # its back parapet and its rail, the lamps behind the stair house, the stair house
         mb.mbox((307, 604), (WE, WE + 15), (232, 272), (cope, px(185, 450), px(185, 450)), ft=wpb_r, tt=wpb_tr),
+        # the rail along it, from the tall block round to where the curve's rail meets it (without it that rail stopped
+        # short at the curve's end, a bar in the air over the roof)
+        mb.mbox((307, 604), (WE + 15, WE + 15 + rail_w.shape[0]), (252, 252), (ink, ink, ink), ft=rail_wr, card=True),
         mb.mbox((345, 391), (WE, WE + lamp_b[2][0]), (226, 226), (cope, cope, cope), ft=lamp_b[0], card=True, panes=lamp_b[1]),
         mb.mbox((517, 563), (WE, WE + lamp_b[2][0]), (226, 226), (cope, cope, cope), ft=lamp_b[0], card=True, panes=lamp_b[1]),
         mb.mbox((319, 397), (WE, WE + 73), (127, 197), (sh2_c, sh2_c, shade(sh2_c, .85)), ft=sh2_r, st=sh2_s, top=False),

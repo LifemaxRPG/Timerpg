@@ -88,13 +88,20 @@ one shape and are each cut from their own art.
   chamfered corner). The classic street draws both a column at a time, each a flat facet between two points of the
   curve, where it faces the view (a rail both sides, its far side first), each lit by which way it faces
   (`BuildingPainter.stripPart`); a rounded wall's top is the sector to its centre or the ring's band.
-- **How the strips are cut.** The art lifts what stands further back, but by eye, not by one rule (the curve's top
-  climbs faster than its foot). So the rounded corner's strip samples the art between the lines it actually draws, column
-  by column (`curve_rows`: the first and last rows of the brick in the red variant, every colour sharing the shape),
-  which takes its louvred windows and its bands round the curve as drawn; past the art's silhouette (the wall's far
-  side, the back quarter) the wall's own rows carry on. The round pillars (the tower's, the loggia's and the porch's
-  columns) are their art unrolled onto their front halves (`pillar_strip`); the chamfer its columns with the rows
-  lifted by their depth.
+- **How the strips are cut.** The art lifts what stands further back, but by eye, not by one rule, and in steps of its
+  doubled pixels; sampling it along a line of depth left every band a sawtooth. So:
+  - **The chamfer** (a flat wall turned at an angle) is let down column by column by the art's own step (its foot: two
+    rows every four columns, measured on the red colour), so its sills, base and window frames come out level; the
+    rows still dashed (edges the art steps a row every two columns) take their commonest colour (`level_rows`, which
+    rows judged on the red colour, since in the greys the wall and the frames share colours).
+  - **The rounded wall** wears its own courses, not the art sampled round it: the front's (the shadow under the coping,
+    the blue base) with the panel's colour plain between (the art's curve has no beam and no vents; its shading is the
+    light on the curve, which the engine gives it), the same on the straight side and round the back, so nothing
+    changes at a seam. Its louvred windows are the art's: unrolled between the lines the art draws the curve's top and
+    foot on (`curve_rows`), their clean left part (the frame, a louvre and its gap) closed with the same louvres and
+    the frame turned round; a pair of them round the back as well. The ring parapet wears the front parapet's band.
+  - The round pillars (the tower's, the loggia's and the porch's columns) are their art unrolled onto their front
+    halves (`pillar_strip`).
 - **The plan.** The wing's end is the art's D from above: a quarter ellipse at the front corner (52 across, 85 back), a
   short straight side, a longer quarter round the back (115 back). The tall block is a roof slab on pillars: the
   tower's front with three round pillars, the chamfer back to the wing's line, the open loggia (its back wall 50 back,
@@ -106,7 +113,12 @@ one shape and are each cut from their own art.
   ring parapet and its rail following the curve. The stair houses wear their fronts as drawn under the glass pyramids
   (hipped roofs to a point, their front faces the art's). The POLICE board stands on its legs clear of the rail (in
   the art its foot is just over the coping; as an elevation the rail would cross the letters), its letters glowing at
-  night as tubes; the badge a card on its cap. The four spotlights are cards whose lenses glow.
+  night as tubes; the badge a card on its cap. The four spotlights are cards cut to the lamp's own outline (the art
+  draws the rail and the coping round them, which stood in the air as bars); the front ones' lenses glow, the back ones
+  are turned away. A rail runs along the back parapet too, as the art draws it, meeting the curve's.
+- **Night.** The wing's lit windows are its glazing and the cash machine's screen only, found on the red colour (in the
+  blue-grey colour the walls and the band over the shutter pass for glass by colour; the shutter and the vents did in
+  all three).
 - Still to do: the stair houses' sides and the parapets' inner faces are plain courses; nothing of it in the corner turn
   (no landmark is there yet).
 
