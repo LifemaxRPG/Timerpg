@@ -24,7 +24,10 @@ data class Npc(
     val name: String,
     val first: String,
     val age: Int,
-    /** Sprite name of the building (as in street.json), its name, the street (0 main, 1 cross) and its place along it. */
+    /**
+     * Sprite name of the building (as in street.json, v1 or v2: the key people are looked up by), its name, and on the v1
+     * two streets the street (0 main, 1 cross) and its place along it (-1 for a building elsewhere in the town).
+     */
     val building: String,
     val buildingName: String,
     val street: Int,
@@ -36,9 +39,20 @@ data class Npc(
     /** For their voice: female or not, and how warm (0) gruff to (1) warm they are. */
     val female: Boolean = false,
     val warmth: Float = .5f,
+    /** Whole town (dialogue.json v2): the row of the walkable town the building stands in (street.json v2 `rows[].id`)
+     *  and its index along it, when the graph was known at export (null / -1 otherwise). */
+    val row: String? = null,
+    val rowIndex: Int = -1,
+    /** The building's lot (the game's slot id) and its neighbourhood (id and name); empty in v1. */
+    val lot: String = "",
+    val neighbourhood: String = "",
+    val neighbourhoodName: String = "",
 )
 
-/** assets/dialogue.json, written by tools/export-dialogue.ts from our game logic. */
+/**
+ * assets/dialogue.json, written by tools/export-dialogue.ts from our game logic: v1, the people of the two streets, or
+ * v2 (`--all`), the people of every building of the town. Either way people are found by their building's sprite name.
+ */
 class DialogueData(
     val town: String,
     val year: Int,
@@ -46,11 +60,20 @@ class DialogueData(
     val streets: List<String>,
     val rules: String,
     val npcs: List<Npc>,
+    /** 1: the two streets; 2: the whole town. */
+    val version: Int = 1,
 ) {
     private val byBuilding: Map<String, List<Npc>> = npcs.groupBy { it.building }
+    private val byRow: Map<String, List<Npc>> by lazy { npcs.filter { it.row != null }.groupBy { it.row!! } }
 
     /** The people to talk to at a building (by sprite name), the owner or household head first. */
     fun at(building: String?): List<Npc> = if (building == null) emptyList() else byBuilding[building].orEmpty()
+
+    /** Every building (sprite name) that has someone to talk to. */
+    val buildings: Set<String> get() = byBuilding.keys
+
+    /** The people along a row of the walkable town (v2 with rows known), in order along it. */
+    fun inRow(row: String): List<Npc> = byRow[row].orEmpty().sortedBy { it.rowIndex }
 
     companion object {
         /** Prompts longer than this cannot be right (the model's context is 1024 tokens); such topics use the template. */
@@ -99,6 +122,12 @@ class DialogueData(
                         topics = topics,
                         female = o.optString("sex") == "F",
                         warmth = o.optDouble("warmth", .5).toFloat(),
+                        // a row id may be a number or a string in street.json v2; JSON null means not known yet
+                        row = if (o.isNull("row")) null else o.opt("row")?.toString(),
+                        rowIndex = if (o.isNull("rowIndex")) -1 else o.optInt("rowIndex", -1),
+                        lot = o.optString("lot"),
+                        neighbourhood = o.optString("neighbourhood"),
+                        neighbourhoodName = o.optString("neighbourhoodName"),
                     )
                 } catch (e: Exception) {
                     // skip this one
@@ -111,6 +140,7 @@ class DialogueData(
                 streets = strings(j.optJSONArray("streets")),
                 rules = j.optString("rules"),
                 npcs = npcs,
+                version = j.optInt("version", 1),
             )
         }
 

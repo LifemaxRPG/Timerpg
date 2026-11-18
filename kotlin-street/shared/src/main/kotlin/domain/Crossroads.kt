@@ -22,15 +22,18 @@ class Crossroads(
     val cross: StreetLayout,
     /** The cross street's other side, if the town has one: laid out the same way, facing west. */
     val east: StreetLayout? = null,
+    /** The main street's x of the origin: the west corner building's front east edge (the town's real corner: [at]). */
+    val westEdge: Float = main.lefts[junction - 1] + BuildingSpec.W,
+    /**
+     * The cross street's x to world Z: by default its first front starts one building depth and one gap north of the
+     * origin; a crossroads of the town ([at]) has the real offset, the main street's road half (cross x 0 is the node).
+     */
+    val zOff: Float = DEPTH + SPACING - (cross.lefts.firstOrNull() ?: -BuildingSpec.W / 2f),
+    /** For a crossroads of the town ([at]): where this plan stands in the town, else null. */
+    val frame: JunctionFrame? = null,
 ) {
-    /** The main street's x of the origin: the west corner building's front east edge. */
-    val westEdge: Float = main.lefts[junction - 1] + BuildingSpec.W
-
     /** The middle of the mouth along the main street (main street x). */
     val mouthMid: Float = westEdge + MOUTH / 2f
-
-    /** The cross street's x to world Z: its first front starts one building depth and one gap north of the origin. */
-    val zOff: Float = DEPTH + SPACING - (cross.lefts.firstOrNull() ?: -BuildingSpec.W / 2f)
 
     fun mainX(x: Float): Float = x - westEdge
     fun mainZ(lane: Float): Float = -LANE * lane

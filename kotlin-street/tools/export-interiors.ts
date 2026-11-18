@@ -2,13 +2,20 @@
 // Wave Function Collapse in src/town/furnish.ts for the people who live or work there), keyed by sprite name (bN) like
 // street.json and dialogue.json.
 // Usage: npx tsx kotlin-street/tools/export-interiors.ts <town seed> <year> > kotlin-street/app/src/main/assets/interiors.json
+//        npx tsx kotlin-street/tools/export-interiors.ts <town seed> <year> --all
+// --all: the rooms of every building of the town (tools/town-whole.ts: the same sprite names as street.json v2 and the
+// whole-town dialogue.json); the file says `version: 2`. Without it, the two streets' buildings, as before.
 import { townStreets } from './town-streets';
+import { wholeTown } from './town-whole';
 import { planInterior } from '../../src/town/interiors';
 import { buildingDoor } from '../../src/town/collision';
 
-const seed = process.argv[2] ?? 'alpha';
-const year = Number(process.argv[3] ?? 2025);
-const t = townStreets(seed, year);
+const argv = process.argv.slice(2);
+const pos = argv.filter((a) => !a.startsWith('--'));
+const seed = pos[0] ?? 'alpha';
+const year = Number(pos[1] ?? 2025);
+const all = argv.includes('--all');
+const t = all ? wholeTown(seed, year) : townStreets(seed, year);
 const rooms: Record<string, object> = {};
 const r0 = (n: number): number => Math.round(n * 10) / 10;
 for (const [sprite, lot] of t.lotOf) {
@@ -25,4 +32,4 @@ for (const [sprite, lot] of t.lotOf) {
     spawn: [p.spawn.x, p.spawn.y], exit: [p.exit.x, p.exit.y],
   };
 }
-console.log(JSON.stringify({ town: seed, year, rooms }));
+console.log(JSON.stringify(all ? { version: 2, town: seed, year, rooms } : { town: seed, year, rooms }));
