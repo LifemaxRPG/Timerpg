@@ -18,7 +18,8 @@ exactly: an automatic checker reads every pack and rejects any pack that breaks 
 ## ✦ Hard rules
 
 1. **Only widely known, general facts.** Things any history of everyday life would agree on. If you are not sure, leave
-   it out. Never invent precise statistics. Prices are typical **approximate** US prices **in the money of that time**
+   it out. Never invent precise statistics (percentages, counts, records); typical prices are expected and are not
+   statistics. Prices are typical **approximate** US prices **in the money of that time**
    (what people paid then: gas in 1962 is about 0.31 dollars), never converted to today's dollars; say "about".
 2. **No real people, no brand or company names, no quotes, no song or film titles.** Describe generically: "a cola in a
    glass bottle", "a black-and-white TV set with rabbit-ear antennas", "rock and roll on the radio", "a big American sedan
@@ -91,7 +92,8 @@ exactly: an automatic checker reads every pack and rejects any pack that breaks 
   - `id` is `<decade>-<topic>-NN`, numbered 01, 02, 03... in order with no gaps (e.g. `1960-money-07`).
   - `year_from` and `year_to` are whole years, `year_from` <= `year_to`, and the range overlaps the decade
     (for the 1960s: it touches 1960-1969; it may start up to 10 years before or end up to 10 years after).
-  - `text`: one sentence, at most 25 words, ending with a full stop. No quotation marks. No capitalised names of
+  - `text`: one sentence, at most 25 words, ending with a full stop, in normal English (apostrophes and capitals as
+    usual: ma'am, Ms., don't). No double quotation marks (write a saying plainly: kids say yes ma'am). No capitalised names of
     people, companies, brands, products, songs, films, shows or places (common words like Sunday, Christmas, TV,
     American, Main Street are fine). No two facts say the same thing.
   - `ages`: one of `all`, `kids`, `teens`, `adults`, `elders`. `use`: a non-empty list from `dialogue`, `shop`,
@@ -103,8 +105,11 @@ exactly: an automatic checker reads every pack and rejects any pack that breaks 
   `usd` (a number, the price at the time), `year` (inside the decade), `confidence`.
 - `phrases`: at least 12 items for `speech`; allowed for `social`; must be `[]` for every other topic. Each has exactly
   `phrase`, `meaning`, `ages`, `from`, `to` (years overlapping the decade) and `tone` (one of `casual`, `polite`,
-  `formal`, `rude`, `affectionate`). Phrases are things ordinary people of that age group really said then, not
-  stereotypes or one-off slogans.
+  `formal`, `rude`, `affectionate`). A `phrase` is at most 6 words. Phrases are things ordinary people of that age
+  group really said then, not stereotypes or one-off slogans.
+- **Right decade, not the famous one.** If a word, fashion or gadget belongs mainly to another decade (it peaked or
+  became common earlier or later), leave it out of this pack, even if a few people used it. When in doubt, leave it
+  out: a missing fact costs nothing, a wrong one teaches the game a mistake.
 
 ## Worked example (short; a real run has 20-30 facts)
 
@@ -136,6 +141,4 @@ exactly: an automatic checker reads every pack and rejects any pack that breaks 
 - Topic: **{TOPIC}**
 - Already covered (do not repeat): {COVERED_IDS_OR_"none"}
 
-(Suggested order for the schedule: all decades 1940-2020 for `tech`, then `speech`, then `money`, then `media`,
-`transport`, `shops`, `home`, `work`, `fashion`, `social`, `events`. 9 decades x 11 topics = 99 runs; stop there. Save
-each answer as content/inbox/<date>/era-<decade>-<topic>.json.)
+(Save the answer as content/inbox/era/era-<decade>-<topic>.json, e.g. content/inbox/era/era-1960-tech.json.)

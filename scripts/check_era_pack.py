@@ -26,7 +26,19 @@ facebook twitter instagram tiktok youtube netflix amazon nintendo atari sega pla
 xerox hoover frigidaire maytag tupperware barbie lego monopoly elvis beatles sinatra kennedy nixon reagan eisenhower
 truman roosevelt carter clinton obama trump disney disneyland hollywood broadway kleenex jell-o spam twinkie oreo
 zenith rca motorola nokia blackberry aol yahoo myspace uber lyft zoom""".split()
-BRAND_RE = re.compile(r"(?<![A-Za-z])(" + "|".join(re.escape(b) for b in BRANDS) + r")(?![A-Za-z])", re.I)
+# Brands that are also ordinary words only count when written with a capital (open windows, an apple, a target).
+COMMON_WORDS = {"windows", "apple", "target", "sprite", "zoom", "amazon", "beetle", "spam", "coke", "jeep", "windows",
+                "monopoly", "lego", "hoover", "dodge", "ford", "carter", "truman"}
+BRAND_RE_I = re.compile(r"(?<![A-Za-z])(" + "|".join(re.escape(b) for b in BRANDS if b not in COMMON_WORDS) + r")(?![A-Za-z])", re.I)
+BRAND_RE_CAP = re.compile(r"(?<![A-Za-z])(" + "|".join(re.escape(b.capitalize()) for b in COMMON_WORDS) + r")(?![A-Za-z])")
+
+
+class _Brands:
+    def search(self, s):
+        return BRAND_RE_I.search(s) or BRAND_RE_CAP.search(s)
+
+
+BRAND_RE = _Brands()
 
 # Capitalised words that are fine inside a sentence.
 OK_CAPS = set("""I American Americans America US U.S. TV Sunday Monday Tuesday Wednesday Thursday Friday Saturday January
@@ -229,6 +241,8 @@ def check(path, covered):
             err(name, f"{tag} tone {x['tone']!r} not in {sorted(TONES)}")
         if BRAND_RE.search(str(x["phrase"])):
             err(name, f"{tag} names a brand or person")
+        if len(str(x["phrase"]).split()) > 6:
+            err(name, f"{tag} phrase is longer than 6 words: {x['phrase']}")
 
 
 def main():
