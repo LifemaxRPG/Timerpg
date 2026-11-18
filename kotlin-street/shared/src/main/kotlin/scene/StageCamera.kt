@@ -94,16 +94,21 @@ class StageCamera {
      * of +Z, and the X column [wx] of the way to ([xx], [xy]) per unit of +X. The offsets are what the stage draws at
      * rest, where every point of a row's front is [r] deep.
      */
-    fun leaned(out: FloatArray, wz: Float, zx: Float, zy: Float, wx: Float, xx: Float, xy: Float) {
+    fun leaned(out: FloatArray, wz: Float, zx: Float, zy: Float, wx: Float, xx: Float, xy: Float, drop: Float = 0f) {
         m.copyInto(out)
+        if (drop != 0f) {
+            // the horizon [drop] pixels lower and the eye lower to match: the same picture at the target's depth, but what
+            // runs away from the camera recedes towards a horizon near the street instead of climbing the screen
+            out[4] += drop * out[8]; out[6] += drop * out[10]; out[7] += drop * (out[11] - r)
+        }
         if (wz > 0f) {
             out[2] = m[2] + (zx * r - m[2]) * wz
-            out[6] = m[6] + (zy * r - m[6]) * wz
+            out[6] = out[6] + (zy * r - out[6]) * wz
             out[10] = m[10] * (1f - wz)
         }
         if (wx > 0f) {
             out[0] = m[0] + (xx * r - m[0]) * wx
-            out[4] = m[4] + (xy * r - m[4]) * wx
+            out[4] = out[4] + (xy * r - out[4]) * wx
             out[8] = m[8] * (1f - wx)
         }
     }

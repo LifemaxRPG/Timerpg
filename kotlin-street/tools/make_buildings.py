@@ -64,14 +64,20 @@ def find_windows(front, upper_rows):
     return boxes, cut
 
 def side_segment(seg, windows):
-    """A side wall for one front segment: each row takes the typical colour of that row of the front (so the trim bands
-    and the wall colour carry over, and decoration averages out), plus the segment's own windows."""
+    """A side wall for one front segment: each row the colour of that row's WALL on the front (its glass and the frames
+    round it left out, so the trim bands and the wall colour carry over and the windows do not smear into grey bands),
+    plus every row of the front's own windows, each its real window with its frame, repeated along the depth."""
     w, h = seg.size
     a = np.array(seg); gm = glass(a)
-    rows = np.zeros((h, 4), np.uint8)
+    near = dilate(gm, 4)                                            # the glass and its frame
+    rows = np.zeros((h, 4), np.uint8); ok = np.zeros(h, bool)
     for y in range(h):
-        px = a[y][(a[y, :, 3] > 200) & ~gm[y]]
-        rows[y] = np.median(px, axis=0) if len(px) else (60, 50, 50, 255)
+        px = a[y][(a[y, :, 3] > 200) & ~near[y]]
+        if len(px) >= 8: rows[y] = np.median(px, axis=0); ok[y] = True
+    if ok.any():
+        idx = np.where(ok)[0]
+        for y in np.where(~ok)[0]: rows[y] = rows[idx[np.abs(idx - y).argmin()]]   # a row all windows: the nearest wall's
+    else: rows[:] = (60, 50, 50, 255)
     if not windows:
         # the ground floor's side wall: the wall's own colour with brick courses, not the shop display's bands
         solid = a[(a[..., 3] > 200) & ~gm]
@@ -80,12 +86,17 @@ def side_segment(seg, windows):
         rows[::6, :3] = (rows[::6, :3].astype(np.int32) * 86 // 100).astype(np.uint8)
     side = Image.fromarray(np.repeat(rows[:, None, :], D, axis=1))
     if windows:
-        boxes = [b for b in components(gm) if (b[2]-b[0]) < 70]
-        if boxes:
-            x0, y0, x1, y1 = boxes[0]
-            m = 3; crop = seg.crop((max(0, x0-m), max(0, y0-m), min(w, x1+m+1), min(h, y1+m+1)))
-            for fx in (0.12, 0.42, 0.72):
-                side.alpha_composite(crop, (int(D * fx), max(0, y0-m)))
+        # whole windows (panes split by a mullion together), grouped into rows by their top
+        boxes = sorted((b for b in components(dilate(gm, 1), 20) if (b[2] - b[0]) < 70), key=lambda b: (b[1], b[0]))
+        done = []
+        for (x0, y0, x1, y1) in boxes:
+            if any(abs(y0 - d) <= 4 for d in done): continue
+            done.append(y0)
+            m = 3; crop = seg.crop((max(0, x0 - m), max(0, y0 - m), min(w, x1 + m + 1), min(h, y1 + m + 1)))
+            cw = crop.width
+            spots = (0.12, 0.42, 0.72) if cw <= 34 else (0.18, 0.58) if cw <= 52 else (0.3,)
+            for fx in spots:
+                side.alpha_composite(crop, (min(D - cw, int(D * fx)), max(0, y0 - m)))
     # corner pilasters, and a fine grain so the wall reads as masonry and not as flat bands
     arr = np.array(side).astype(np.int32)
     arr[:, :5, :3] = arr[:, :5, :3] * 72 // 100; arr[:, -5:, :3] = arr[:, -5:, :3] * 72 // 100
