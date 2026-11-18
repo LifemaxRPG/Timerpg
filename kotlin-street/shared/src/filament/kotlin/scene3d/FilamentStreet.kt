@@ -167,7 +167,7 @@ class FilamentStreet(
         val cam = world.cam
         val classic = CameraRig.classic
         // the one true camera (the classic's leaned looks only behind -Dlook=classic)
-        val eyeCam = if (classic) cam else { CameraRig.aim(cam, world.oy); CameraRig.view }
+        val eyeCam = if (classic) cam else { CameraRig.aim(cam, world.oy, f.width); CameraRig.view }
         if (classic) world.grounds() else LookMatrix.pinhole(eyeCam.m, f.width, f.height, CameraRig.NEAR, trueLook)
         aimCamera(eyeCam, f.width, f.height, classic)
         light(f, cam)
@@ -471,11 +471,30 @@ class FilamentStreet(
                 // looks the near slope hides its legs
                 val back = DEPTH / 2f
                 val ridge = if (CameraRig.classic) 0f else sb.pitch?.let { (it.height * kk - B.DY / 2f).coerceAtLeast(2f) } ?: 0f
-                boards += face(ox - ax * bw / 2f - nx * back, hf + ridge + bh, oz - az * bw / 2f - nz * back,
+                // (the picture's empty rows under the legs go below the ridge, and the feet a little into it: the legs
+                // stand on it rather than over a strip of sky)
+                val (empty, backPic) = boardBack(bill)
+                val foot = if (CameraRig.classic) 0f else (empty + 1) * kk
+                val bx0 = ox - ax * bw / 2f - nx * back; val bz0 = oz - az * bw / 2f - nz * back
+                boards += face(bx0, hf + ridge - foot + bh, bz0,
                     ax * bw / bill.width, 0f, az * bw / bill.width, 0f, -kk, 0f, bill.width.toFloat(), bill.height.toFloat(), textures.of(bill), null, nx, 0f, nz)
+                // its back: the frame's plain grey (from behind, the art does not show through mirrored)
+                if (!CameraRig.classic) boards += face(bx0 - nx * .4f, hf + ridge - foot + bh, bz0 - nz * .4f,
+                    ax * bw / bill.width, 0f, az * bw / bill.width, 0f, -kk, 0f, bill.width.toFloat(), bill.height.toFloat(), backPic, null, -nx, 0f, -nz)
             }
         }
         return win
+    }
+
+    /** A billboard picture's empty rows under its legs, and its back: the same outline in the frame's grey. */
+    private fun boardBack(bill: ImageBitmap): Pair<Int, Texture> {
+        val px = StreetTextures.argb(bill)
+        val w = bill.width; val h = bill.height
+        var empty = 0
+        while (empty < h - 1 && (0 until w).none { (px[(h - 1 - empty) * w + it] ushr 24) > 0 }) empty++
+        val grey = Color(0xFF5C6070).toArgb() and 0xFFFFFF
+        val back = IntArray(px.size) { i -> if ((px[i] ushr 24) > 0) (px[i] and 0xFF000000.toInt()) or grey else 0 }
+        return empty to textures.make(back, w, h, mips = true)
     }
 
     /** One of the mobile homes: its walls, its gabled ends (the side picture carries the triangle), the roof's two slopes, its yard. */
@@ -548,11 +567,16 @@ class FilamentStreet(
         val side = if (CameraRig.classic) 3000f else 30000f
         val farEnd = CornerWorld.MAIN_WIDTH
         val mainTex = groundTile(day, CornerWorld.MAIN_ROAD, farEnd, along = true)
+        // the ground behind and beyond the blocks: paving in big slabs (a plain colour there reads as nothing at all)
+        val plaza = if (CameraRig.classic) null else pavingTile(verge)
+        fun openGround(street: Int, x0: Float, z0: Float, x1: Float, z1: Float) =
+            if (plaza == null) flat(street, x0, z0, x1, z1, verge, 0)
+            else flat(street, x0, z0, x1, z1, Color.White, 0, plaza, floatArrayOf(x0 / PLAZA, z0 / PLAZA, (x1 - x0) / PLAZA, (z1 - z0) / PLAZA))
         val crossTex = groundTile(day, MOUTH - PAVE - KERB, MOUTH, along = false)
         // the main street (z < 0), in two halves either side of x = 0 (the ground's look changes there)
         for ((a, b) in listOf(-far to 0f, 0f to far)) {
             flat(0, a, -farEnd, b, 0f, Color.White, 0, mainTex, floatArrayOf(a / TILE_L, 0f, (b - a) / TILE_L, 1f))
-            flat(0, a, -side, b, -farEnd, verge, 0)
+            openGround(0, a, -side, b, -farEnd)
         }
         // the mouth: the cross street's road carried across the main pavement between dropped kerbs, and a zebra on it
         val pv = PAVE + KERB
@@ -568,8 +592,34 @@ class FilamentStreet(
         while (zx + 7f < r1 - 2f) { flat(0, zx, -(PAVE - 2f * Crossroads.LANE), zx + 7f, -3f * Crossroads.LANE, zebra, 2); zx += 13f }
         // the cross street (z > 0) between its rows, and paving behind the main street's blocks
         flat(1, 0f, 0f, MOUTH, far, Color.White, 0, crossTex, floatArrayOf(0f, 0f, 1f, far / TILE_L))
-        flat(1, -side, 0f, 0f, far, verge, 0)
-        flat(1, MOUTH, 0f, side, far, verge, 0)
+        openGround(1, -side, 0f, 0f, far)
+        openGround(1, MOUTH, 0f, side, far)
+    }
+
+    /**
+     * Paving for the open ground: [PLAZA] street units square, slabs of 24 with darker joints, each slab a shade of its
+     * own and a scatter of specks, in [base]'s colour.
+     */
+    private fun pavingTile(base: Color): Texture {
+        val n = (PLAZA * TEX).toInt()
+        val px = IntArray(n * n)
+        val rnd = java.util.Random(11L)
+        val slabs = (PLAZA / 24f).toInt()
+        val shade = FloatArray(slabs * slabs) { (rnd.nextFloat() - .5f) * .06f }
+        val joint = lerp(base, Color.Black, .16f)
+        for (y in 0 until n) for (x in 0 until n) {
+            val u = (x + .5f) / TEX; val v = (y + .5f) / TEX
+            val sx = (u / 24f).toInt().coerceIn(0, slabs - 1); val sy = (v / 24f).toInt().coerceIn(0, slabs - 1)
+            val t = shade[sy * slabs + sx]
+            var c = if (t >= 0f) lerp(base, Color.White, t) else lerp(base, Color.Black, -t)
+            if (u % 24f < .9f || v % 24f < .9f) c = joint
+            px[y * n + x] = c.toArgb()
+        }
+        repeat(n * n / 40) {
+            val i = rnd.nextInt(px.size)
+            px[i] = lerp(Color(px[i]), Color.Black, .12f + .1f * rnd.nextFloat()).toArgb()
+        }
+        return textures.make(px, n, n, mips = true)
     }
 
     /** [top] laid over [under] at [a] (both opaque results). */
@@ -1116,6 +1166,8 @@ class FilamentStreet(
         /** The ground tiles' length along their street (the paving's 24 and the dashes' 46 both go into it) and texels a unit. */
         const val TILE_L = 552f
         const val TEX = 2f
+        /** The open ground's paving tile (street units a side, a whole number of its 24-unit slabs). */
+        const val PLAZA = 96f
         /** How far above the ground below it each level of ground is laid (street units). */
         private const val LEVEL_LIFT = .05f
         /** How thick the air is past the street in view (the fog's density, per street unit). */

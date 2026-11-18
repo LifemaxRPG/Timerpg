@@ -1,6 +1,8 @@
 import com.lifemax.rpg.feature.habits.presentation.scene.StageCamera
 import com.lifemax.rpg.feature.habits.presentation.scene3d.CameraRig
 import com.lifemax.rpg.feature.habits.presentation.scene3d.LookMatrix
+import kotlin.math.cos
+import kotlin.math.sin
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -74,7 +76,8 @@ class LookMatrixTest {
             v.project(v.m, stage.tx, 0f, stage.tz, g)
             assertEquals("ground line yaw=$yaw $p", 896f, g[1], .01f)
             assertEquals("middle yaw=$yaw $p", w / 2f, g[0], .01f)
-            assertEquals("depth yaw=$yaw $p", p.back, g[2], .01f)
+            assertEquals("depth yaw=$yaw $p", CameraRig.backNow, g[2], .01f)
+            if (yaw == 0f || yaw > 1.57f) assertEquals("rest distance yaw=$yaw $p", p.back, CameraRig.backNow, .01f)
             val l = FloatArray(16)
             LookMatrix.pinhole(v.m, w, h, CameraRig.NEAR, l)
             for ((x, y, z) in listOf(Triple(250f, 0f, 0f), Triple(400f, 120f, 90f), Triple(-300f, 60f, 300f), Triple(80f, 0f, 900f))) {
@@ -91,6 +94,21 @@ class LookMatrixTest {
             v.project(v.m, v.camX + v.dx * 500f - v.rx * 200f, 0f, v.camZ + v.dz * 500f - v.rz * 200f, a)
             v.project(v.m, v.camX + v.dx * 500f + v.rx * 200f, 0f, v.camZ + v.dz * 500f + v.rz * 200f, b)
             assertEquals("level yaw=$yaw $p", a[1], b[1], .01f)
+        }
+        CameraRig.pick("medium")
+    }
+
+    /** Mid-turn the camera stands where the stage's does, and slides across to keep the player inside the frame. */
+    @Test fun turnKeepsThePlayerInFrame() {
+        for (p in CameraRig.Preset.values()) for (yaw in listOf(.4f, .8f, 1.2f)) {
+            val stage = camera(yaw).apply { keepBack = 30f; keepX = tx - 600f * cos(yaw) - 150f * sin(yaw); keepZ = tz - 600f * sin(yaw) + 150f * cos(yaw); update() }
+            CameraRig.eye = p.eye; CameraRig.back = p.back
+            CameraRig.aim(stage, 896f, w)
+            val v = CameraRig.view
+            val q = FloatArray(3)
+            v.project(v.m, stage.keepX, 0f, stage.keepZ, q)
+            assertTrue("player in frame yaw=$yaw $p: x ${q[0]}", q[0] >= w * CameraRig.MARGIN - .5f && q[0] <= w * (1f - CameraRig.MARGIN) + .5f)
+            assertTrue("player in front yaw=$yaw $p", q[2] > CameraRig.NEAR)
         }
         CameraRig.pick("medium")
     }

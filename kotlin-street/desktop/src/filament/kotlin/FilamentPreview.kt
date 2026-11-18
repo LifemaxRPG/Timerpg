@@ -123,7 +123,7 @@ fun renderFilament(out: String, albedo: Boolean) {
         savePng(File(dir, "compare_$tag.png"), classic + fil, null, w, h * 2)
         val st = stats(classic, fil)
         com.lifemax.rpg.feature.habits.presentation.scene3d.CameraRig.let { r ->
-            if (!r.classic) line("  camera: eye %.0f back %.0f, %.0f deg across, horizon at y %.0f, yaw %.1f deg".format(r.eye, r.back, r.fovX(w.toFloat()), r.view.cy, Math.toDegrees(r.view.yaw.toDouble())))
+            if (!r.classic) line("  camera: eye %.0f back %.0f, %.0f deg across, horizon at y %.0f, yaw %.1f deg".format(r.eye, r.backNow, r.fovX(w.toFloat()), r.view.cy, Math.toDegrees(r.view.yaw.toDouble())))
         }
         Stage3D.frame.light?.let { k -> line("  light: dark %.2f across %.2f down %.2f out %.2f strength %.2f cool %.2f".format(Stage3D.frame.dark, k.across, k.down, k.out, k.strength, k.cool)) }
         line("%-14s classic (Skia, CPU) %.0f ms/frame   filament (llvmpipe) %.0f ms/frame   diff %s".format(tag, classicMs, times.last(), st))

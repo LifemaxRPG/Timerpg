@@ -1,6 +1,8 @@
 package com.lifemax.rpg.feature.habits.presentation.scene3d
 
 import com.lifemax.rpg.feature.habits.presentation.scene.StageCamera
+import com.lifemax.rpg.feature.habits.presentation.scene.TurnTuning
+import kotlin.math.abs
 import kotlin.math.atan
 
 /**
@@ -19,16 +21,20 @@ import kotlin.math.atan
  * the screen towards it; an eye at a person's height keeps the horizon low and the side street level-looking, but the
  * roofs are hidden and the ground in front is short. [Preset] holds three such cameras. A nearer camera ([back] smaller)
  * shows more of the road in front of the fronts at the cost of a wider lens.
+ *
+ * Through the corner turn it backs off to where the stage's own camera stands ([TurnTuning.R]), so the block it swings
+ * round fades by the stage's cut exactly as it passes (the cut is measured from there), and it never stands inside that
+ * block; and it slides sideways when the player would leave the frame.
  */
 object CameraRig {
     /** The three cameras the owner can pick between: eye height and how far back from the street (street units; a person is 36). */
     enum class Preset(val eye: Float, val back: Float) {
         /** A person's eye across the road: low horizon, level side street, roofs hidden. */
-        LOW(36f, 300f),
+        LOW(36f, 420f),
         /** About a first floor up. */
         MEDIUM(80f, 420f),
-        /** Above the roofs: roofs and billboards seen from above, a high horizon. */
-        HIGH(300f, 900f),
+        /** Level with the eaves, further back: more of the roofs and billboards, a higher horizon, the side street climbing to it. */
+        HIGH(150f, 700f),
     }
 
     /** The eye's height above the ground (street units). */
@@ -37,10 +43,14 @@ object CameraRig {
     @JvmStatic var back = Preset.MEDIUM.back
 
     /** Draw through the classic's per-thing leaned looks ([LookMatrix.of]) instead (-Dlook=classic, for comparison). */
-    @JvmStatic var classic = System.getProperty("look") == "classic"
+    @JvmStatic val classic = System.getProperty("look") == "classic"
 
     /** The reversed depth reaches 1 at this depth (street units): nothing nearer is drawn. */
     const val NEAR = 4f
+    /** Over how many degrees at either end of the turn it eases between its own distance and the stage camera's. */
+    const val EASE = 18f
+    /** The player is kept at least this share of the screen's width in from either edge. */
+    const val MARGIN = .14f
 
     /** The camera this frame (a plain pinhole, its matrix [StageCamera.m]); set by [aim]. */
     val view = StageCamera()
@@ -61,11 +71,25 @@ object CameraRig {
     /** The current preset's name, or the eye height when it is none of them. */
     val label: String get() = Preset.values().firstOrNull { it.eye == eye && it.back == back }?.name?.lowercase() ?: "eye%.0f".format(eye)
 
-    /** Aims [view] for this frame from the stage's camera [stage] (updated), the stage's ground line at [groundY] (screen). */
-    fun aim(stage: StageCamera, groundY: Float) {
+    /** How far back it stands this frame: [back] at rest, the stage camera's own distance mid-turn (street units). */
+    var backNow = back; private set
+
+    /** How much of the way round the corner it is, as a weight: 0 at rest on either street, 1 from [EASE] degrees in to as far from the end. */
+    fun turning(yaw: Float): Float {
+        val deg = Math.toDegrees(abs(yaw).toDouble()).toFloat()
+        val t = (kotlin.math.min(deg, 90f - deg) / EASE).coerceIn(0f, 1f)
+        return t * t * (3f - 2f * t)
+    }
+
+    /**
+     * Aims [view] for this frame from the stage's camera [stage] (updated), the stage's ground line at [groundY] (screen),
+     * on a screen [width] pixels wide (0: no keeping the player in frame).
+     */
+    fun aim(stage: StageCamera, groundY: Float, width: Float = 0f) {
+        backNow = back + (kotlin.math.max(back, TurnTuning.R) - back) * turning(stage.yaw)
         view.cx = stage.cx
         view.unit = stage.unit
-        view.r = back
+        view.r = backNow
         view.eye = eye
         view.cy = groundY - eye * stage.unit
         view.yaw = stage.yaw
@@ -74,6 +98,21 @@ object CameraRig {
         view.cutBack = 0f
         view.keepBack = 0f
         view.update()
+        // the player (the stage keeps its cut off them while they walk round the corner) stays inside the frame: the
+        // camera slides across its view (no turning, no zoom) just far enough
+        if (width > 0f && stage.keepBack > 0f) {
+            val d = view.depth(stage.keepX, stage.keepZ)
+            if (d > NEAR) {
+                val sx = view.cx + view.f * (view.rx * (stage.keepX - view.camX) + view.rz * (stage.keepZ - view.camZ)) / d
+                val lo = width * MARGIN; val hi = width * (1f - MARGIN)
+                val want = sx.coerceIn(lo, hi)
+                if (want != sx) {
+                    val s = (sx - want) * d / view.f
+                    view.tx += view.rx * s; view.tz += view.rz * s
+                    view.update()
+                }
+            }
+        }
     }
 
     /** The lens's field of view across a screen [width] pixels wide (degrees). */
