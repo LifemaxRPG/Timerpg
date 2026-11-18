@@ -3774,6 +3774,88 @@ internal class BuildingPainter {
         if (season.snow > .01f) drawPath(top, houseInk(snowInk(sky)), alpha = ROOF_SNOW * season.snow)
     }
 
+    /** A rounded wall's or a turned wall's plan points (x, d along it) and its strip's pieces, reused frame to frame. */
+    private var stripX = FloatArray(0)
+    private var stripD = FloatArray(0)
+    private val stripPiece = IntArray(4)
+    private val stripFrom = FloatArray(8)
+
+    /**
+     * A rounded wall ([ModelPart.CYL]) or a wall turned off the street's line ([ModelPart.WALL]): its strip laid on it a
+     * column at a time, each column a flat facet between two points of its curve (a turned wall is one facet), drawn
+     * where the facet faces the view (a rail's, both sides: its far side first); each lit by which way it faces, as a box's
+     * front and its side are, its windows lit at night; then a rounded wall's top (a ring's: the band between its two
+     * curves), snow on it.
+     */
+    private fun DrawScope.stripPart(v: com.lifemax.rpg.feature.habits.domain.ModelView, p: com.lifemax.rpg.feature.habits.domain.ModelPart, ma: ModelArt, sky: SkyColors, seed: Int) {
+        val ft = p.ft
+        val arc = p.arc
+        val n = if (arc == null) 1 else ft?.get(2) ?: 24
+        if (stripX.size < n + 1) { stripX = FloatArray(n + 1); stripD = FloatArray(n + 1) }
+        val xs = stripX; val ds = stripD
+        if (arc == null) { xs[0] = p.x0; ds[0] = p.d0; xs[1] = p.x1; ds[1] = p.d1 }
+        else for (j in 0..n) {
+            val t = Math.toRadians((arc[4] + (arc[5] - arc[4]) * j / n).toDouble())
+            xs[j] = arc[0] + arc[2] * kotlin.math.sin(t).toFloat(); ds[j] = arc[1] - arc[3] * kotlin.math.cos(t).toFloat()
+        }
+        val img = ma.atlas
+        val glow = ma.glow
+        val on = if (glow != null && p.sideGlow) modelLit(ma.shape, seed * 17 + 5, sky) else 0f
+        val cw = if (ft == null) 0 else ft[2] / n
+        val toSun = sunSide
+        // the far side of a rail first (it shows through between its posts), then the side facing the view
+        for (pass in (if (p.card) 0 else 1)..1) {
+            for (j in 0 until n) {
+                val ax = v.x(xs[j], ds[j]); val bx = v.x(xs[j + 1], ds[j + 1])
+                if ((bx > ax) != (pass == 1)) continue
+                // (each facet reaches a little into the next, which covers it: no hairline of sky between them)
+                val e = if (j < n - 1) .35f else 0f
+                val x1 = xs[j + 1] + (xs[j + 1] - xs[j]) * e; val d1 = ds[j + 1] + (ds[j + 1] - ds[j]) * e
+                val t = pieceTo
+                t[0] = ax; t[1] = v.y(p.y1, ds[j]); t[2] = v.x(x1, d1); t[3] = v.y(p.y1, d1)
+                t[4] = t[2]; t[5] = v.y(p.y0, d1); t[6] = ax; t[7] = v.y(p.y0, ds[j])
+                val path = quadPath(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7])
+                if (ft != null) {
+                    val r = stripPiece
+                    r[0] = ft[0] + j * cw; r[1] = ft[1]; r[2] = cw; r[3] = ft[3]
+                    val f = stripFrom
+                    f[0] = 0f; f[1] = 0f; f[2] = cw.toFloat(); f[3] = 0f; f[4] = f[2]; f[5] = ft[3].toFloat(); f[6] = 0f; f[7] = ft[3].toFloat()
+                    pieceOnto(img, r, f, t, signTint())
+                } else drawPath(path, houseInk(rgb(p.front)))
+                // which way the facet faces: its outward normal in plan (across, back)
+                val ex = xs[j + 1] - xs[j]; val ed = ds[j + 1] - ds[j]
+                val len = kotlin.math.hypot(ex, ed).coerceAtLeast(1e-4f)
+                val nx = (if (pass == 1) ed else -ed) / len; val nd = (if (pass == 1) -ex else ex) / len
+                if (p.card) continue
+                val lit = toSun * nx
+                if (lit > .02f) drawPath(path, Color.White, alpha = .26f * lit)
+                else if (lit < -.02f) drawPath(path, Color.Black, alpha = .18f * -lit)
+                if (abs(nx) > .05f) drawPath(path, Color(0xFF0A1024), alpha = .2f * abs(nx))
+                if (direct > .02f && nd < 0f) drawPath(path, castInk, alpha = .1f * direct * -nd)
+                if (on > .01f && glow != null && ft != null) {
+                    pieceOnto(glow, stripPiece, stripFrom, t, null, alpha = on * .9f, blend = BlendMode.Overlay)
+                    pieceOnto(glow, stripPiece, stripFrom, t, null, alpha = on * .35f, blend = BlendMode.Plus)
+                }
+            }
+        }
+        // --- a rounded wall's top: to its centre, or a ring's band between its curves
+        if (arc == null || p.card || p.top < 0) return
+        val path = housePath
+        path.rewind()
+        path.moveTo(v.x(xs[0], ds[0]), v.y(p.y1, ds[0]))
+        for (j in 1..n) path.lineTo(v.x(xs[j], ds[j]), v.y(p.y1, ds[j]))
+        if (arc[6].isNaN()) path.lineTo(v.x(arc[0], arc[1]), v.y(p.y1, arc[1]))
+        else for (j in n downTo 0) {
+            val t = Math.toRadians((arc[4] + (arc[5] - arc[4]) * j / n).toDouble())
+            val x = arc[0] + arc[6] * kotlin.math.sin(t).toFloat(); val d = arc[1] - arc[7] * kotlin.math.cos(t).toFloat()
+            path.lineTo(v.x(x, d), v.y(p.y1, d))
+        }
+        path.close()
+        drawPath(path, houseInk(lerp(rgb(p.top), Color.White, .16f * (.5f + .5f * direct))))
+        val snow = season.snow
+        if (snow > .01f) drawPath(path, houseInk(snowInk(sky)), alpha = ROOF_SNOW * snow)
+    }
+
     /**
      * A front-facing gable: the triangle end faces the street and its two slopes run back from it. Seen from the street,
      * a little above, each slope is its picture from above squeezed into a band over its rake (one projective map from
@@ -4035,6 +4117,7 @@ internal class BuildingPainter {
                 com.lifemax.rpg.feature.habits.domain.ModelPart.DECAL -> modelDecal(v, p, ma, sky)
                 com.lifemax.rpg.feature.habits.domain.ModelPart.SLOPE -> modelSlope(v, p, ma, sky)
                 com.lifemax.rpg.feature.habits.domain.ModelPart.PRISM -> modelPrism(v, p, ma, sky, seed + i * 7)
+                com.lifemax.rpg.feature.habits.domain.ModelPart.CYL, com.lifemax.rpg.feature.habits.domain.ModelPart.WALL -> stripPart(v, p, ma, sky, seed + i * 7)
                 else -> hippedRoof(v, p, ma, sky)
             }
             // the eave boards of the gable this box carries, over its side wall
