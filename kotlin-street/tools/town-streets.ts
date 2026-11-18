@@ -11,8 +11,8 @@
 //  - shops: every building above, once, for tools/make_buildings.py (each has its sprite name bN).
 // Shops are drawn as the game draws them (shopFacade). A small or medium home wears the very mobile home the game draws
 // on its lot (the engine builds it as a pitched-roof house: tools/make_buildings.py), and a villa its own villa (built
-// with a front-facing gable, its terrace, balcony and porch), and a terraced house its own (a single-pitch roof); the
-// other homes (estates, apartments) are
+// with a front-facing gable, its terrace, balcony and porch), and a terraced house its own (a single-pitch roof), and
+// the one-story and country estates their own (modelled by hand); the other homes (other estates, apartments) are
 // still stood in by a modular condo front in the district's colour, until the engine can build them too. Every home is
 // named after the household that really lives there.
 import { runTimeline, worldAt } from '../../src/sim';
@@ -164,7 +164,9 @@ export function townStreets(seed: string, year: number): TownStreets {
       const villa = l.tier === 'villa' && /^villa_\d+$/.test(l.art.layers[0]?.key ?? '') ? l.art.layers[0]!.key : undefined;
       // a terraced family house: its own (built by the engine as a single-pitch roof over its front)
       const terraced = l.tier === 'house' && /^house_terraced_\d+(_c\d+)?$/.test(l.art.layers[0]?.key ?? '');
-      const art = mobile || villa || terraced ? l.art : homeFacade(colour, l.look, l.residents.length);
+      // an estate the engine builds (the one-story house, the country house): its own
+      const estateA = l.tier === 'estate' && /^estate_(one_story|country)_house$/.test(l.art.layers[0]?.key ?? '');
+      const art = mobile || villa || terraced || estateA ? l.art : homeFacade(colour, l.look, l.residents.length);
       const parts = art.layers.map((ly) => ({ key: ly.key, w: ly.w, h: ly.h, y: ly.y }));
       const nb = neighborhoodOf(layout.plan, l.neighborhood);
       const e: Record<string, unknown> & { house?: House } = { id: `home:${l.slot}`, sprite, home: true, name: l.residents.length > 2 ? `${surname} House`.trim() : `The ${surname} home`.trim(),
@@ -172,7 +174,7 @@ export function townStreets(seed: string, year: number): TownStreets {
         parts };
       // the house the engine builds, and its yard (the game's: how deep its front yard is, and how it is fenced)
       if (mobile) e.house = mobile;
-      if (mobile || villa || terraced) e.yard = { front: l.front, style: nb.yard };
+      if (mobile || villa || terraced || estateA) e.yard = { front: l.front, style: nb.yard };
       made.set(sprite, { kind: 'Home', look: l.look, colour, home: true, residents: l.residents.length, parts, house: mobile, palette: nb.palette, entry: e, villa });
       entries.push(e);
     }
