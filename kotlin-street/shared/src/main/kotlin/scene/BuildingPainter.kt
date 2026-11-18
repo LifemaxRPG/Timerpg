@@ -2792,7 +2792,10 @@ internal class BuildingPainter {
         val gc = sb.pitchInfo?.getOrNull(1)?.toInt() ?: 0x808080
         spritePath.rewind()
         spritePath.moveTo(0f, rise); spritePath.lineTo(depth / 2f, 0f); spritePath.lineTo(depth, rise); spritePath.close()
-        drawPath(spritePath, Color(0xFF000000.toInt() or gc))
+        val gp = sb.gablePic
+        if (gp != null) clipPath(spritePath) {
+            drawImage(gp, IntOffset.Zero, IntSize(gp.width, gp.height), IntOffset.Zero, IntSize(kotlin.math.ceil(depth).toInt(), kotlin.math.ceil(rise).toInt()), 1f, Fill, null, BlendMode.SrcOver, faceQuality)
+        } else drawPath(spritePath, Color(0xFF000000.toInt() or gc))
         drawPath(spritePath, Color(0xFF0A1024), alpha = .2f)
         if (nightOn) drawPath(spritePath, nightInk, blendMode = BlendMode.Multiply)
     }
@@ -2849,7 +2852,9 @@ internal class BuildingPainter {
                 val gc = info?.getOrNull(1)?.toInt() ?: 0x808080
                 spritePath.rewind()
                 spritePath.moveTo(xe, -hf); spritePath.lineTo(xe + s / 2f, -hf - band); spritePath.lineTo(xe + s, -hf - dy); spritePath.close()
-                drawPath(spritePath, Color(0xFF000000.toInt() or gc))
+                val gp = sb.gablePic
+                if (gp != null) clipPath(spritePath) { sideStrips(gp, xe, -hf - band, s, -dy, band + 1f) }
+                else drawPath(spritePath, Color(0xFF000000.toInt() or gc))
                 drawPath(spritePath, Color(0xFF0A1024), alpha = .2f)
                 sideLight(spritePath, 1f)
                 if (nightOn) drawPath(spritePath, nightInk, blendMode = BlendMode.Multiply)

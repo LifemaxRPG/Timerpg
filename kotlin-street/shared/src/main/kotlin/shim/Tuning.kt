@@ -104,6 +104,8 @@ class SpriteBuilding(
     val pitchInfo: FloatArray? = null,
     val postL: ImageBitmap? = null,
     val postR: ImageBitmap? = null,
+    /** The gable wall's picture: the side wall's top storey carried up into the triangle under the roof. */
+    val gablePic: ImageBitmap? = null,
 )
 
 /**

@@ -60,7 +60,7 @@ object SpriteBuildingLoad {
             windows[sprite + "_relief"]?.firstOrNull()?.takeIf { it.size >= 7 }, img("${sprite}_over"),
             img("${sprite}_lit"), img("${sprite}_shade"),
             pitch = img("${sprite}_pitch"), pitchInfo = windows[sprite + "_pitch"]?.firstOrNull()?.takeIf { it.size >= 3 },
-            postL = img("${sprite}_postl"), postR = img("${sprite}_postr"),
+            postL = img("${sprite}_postl"), postR = img("${sprite}_postr"), gablePic = img("${sprite}_gablep"),
         )
     }
 
