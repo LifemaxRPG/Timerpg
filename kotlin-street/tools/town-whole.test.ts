@@ -8,6 +8,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { wholeTown, townLots, placesIn } from './town-whole';
 import { townStreets } from './town-streets';
+import { townGraph } from './town-graph';
 import { isAlive } from '../../src/sim/types';
 
 const ROOT = join(__dirname, '../..');
@@ -84,5 +85,17 @@ describe('whole town', () => {
     expect(() => run('export-dialogue', 'gamma', '2025', '--all', '--street', path)).toThrow();
     writeFileSync(path, JSON.stringify({ version: 2, town: { seed: 'gamma', year: 2025, rows: [{ id: 'r0', buildings: [{ sprite: 'b3', lot: t.lotOf.get('b3')!.slot }] }] } }));
     expect(JSON.parse(run('export-dialogue', 'gamma', '2025', '--all', '--street', path)).version).toBe(2);
+  }, 120_000);
+
+  it('names every lot as the graph does, and fills every NPC\'s row from the real street.json v2', () => {
+    const g = townGraph('gamma', 2025);
+    for (const s of t.sprites) expect(g.buildings.lotOf.get(s)?.slot, s).toBe(t.lotOf.get(s)!.slot);
+    const dir = mkdtempSync(join(tmpdir(), 'town-whole-'));
+    const path = join(dir, 'street.json');
+    writeFileSync(path, JSON.stringify(g.json));
+    const d = JSON.parse(run('export-dialogue', 'gamma', '2025', '--all', '--street', path)) as { npcs: NpcJ[] };
+    const rowOf = new Map(g.graph.rows.flatMap((r) => r.buildings.map((b, i) => [b.sprite, [r.id, i]] as const)));
+    expect(d.npcs.length).toBeGreaterThan(0);
+    for (const n of d.npcs) expect([n.row, n.rowIndex], n.building).toEqual(rowOf.get(n.building));
   }, 120_000);
 });

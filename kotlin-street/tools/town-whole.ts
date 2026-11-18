@@ -14,7 +14,7 @@ import type { Lot, TownLayout } from '../../src/town/layout';
 import type { World } from '../../src/sim/types';
 import { neighborhoodOf } from '../../src/town/neighborhoods';
 import { townStreets, type TownStreets } from './town-streets';
-import { makeBuildings, type Buildings } from './town-buildings';
+import { makeBuildings, townLots, type Buildings } from './town-buildings';
 
 export interface WholeTown {
   seed: string;
@@ -35,11 +35,7 @@ export interface WholeTown {
   neighbourhoodOf(sprite: string): { id: string; name: string };
 }
 
-/** The lots v1 picks buildings from, in layout order: occupied shops, then every home. */
-export const townLots = (layout: TownLayout): Lot[] => [
-  ...layout.lots.filter((l) => l.kind === 'shop' && l.vacantSince === undefined),
-  ...layout.lots.filter((l) => l.kind === 'house'),
-];
+export { townLots };
 
 export function wholeTown(seed: string, year: number): WholeTown {
   const v1 = townStreets(seed, year);

@@ -89,3 +89,19 @@ town: { seed, year, k, unitPerTile, spawn:{row, x, lane},
 Risks: camera-branch conflicts (agree a CameraPose interface); deep models overflowing plots; scale (k 1.7 makes gamma
 ~11,000 units across: a run or quick travel later, then cars); seed switch (keep eta via v1); mirrored turns (test
 both hands); load time (decode textures in the background, build nearest-first).
+
+## Done so far (branch wf-town)
+
+- T1, T2, T3, T5 done. v1 (eta, street.json v1, tools/town-streets.ts) is byte-identical: street, dialogue and interiors
+  exports for eta, vale, alpha and gamma match the pre-split recordings, and eta matches the shipped assets
+  (town-buildings.test.ts, town-graph.test.ts).
+- Gamma 2025: 47 nodes, 48 roads, 96 rows (40 with buildings), 92 lots + 6 landmarks each on exactly one row, no
+  footprint/lot overlaps, nothing in a street or the river, every row reachable from the spawn (8L, Civic Avenue).
+- One building list: `townLots()` lives in tools/town-buildings.ts and both tools/town-graph.ts and tools/town-whole.ts
+  name from it (v1 names first, then layout order, then the landmarks b92..b97). town-whole.test.ts exports the real
+  graph and runs `export-dialogue --all --street` on it: every NPC gets its row and index. Landmarks on rows are skipped
+  by the dialogue's sprite check (nobody lives there yet).
+- Not yet: eta, alpha and vale have placement conflicts in the graph (nudges into streets, overlaps): fix before any seed
+  switch. Landmarks have no NPCs or interiors. The app still ships v1; gamma's street.json v2, dialogue and interiors
+  must ship together (DialogueEngine refuses a town/year mismatch). DialogueEngine still orders generation by v1
+  street/index (off-street NPCs come last) until T10 orders it by rows.

@@ -39,6 +39,16 @@ export interface Buildings {
   lotOf: Map<string, Lot>;
 }
 
+/**
+ * The lots that get a building, in the order the whole-town exports name them (after the v1 streets' own): occupied
+ * shops, then every home (the same lots v1 picks from). One list for tools/town-graph.ts and tools/town-whole.ts, so
+ * street.json v2, dialogue and interiors name every lot alike.
+ */
+export const townLots = (layout: TownLayout): Lot[] => [
+  ...layout.lots.filter((l) => l.kind === 'shop' && l.vacantSince === undefined),
+  ...layout.lots.filter((l) => l.kind === 'house'),
+];
+
 export function makeBuildings(w: World, layout: TownLayout, year: number): Buildings {
   const CONDO_ROOF: Record<Colour, number[]> = { red: [2], blue: [4], gray: [6] };
   /** A home's front: the modular condo stack (as housing.ts builds it) in the district's colour, one floor per two residents. */

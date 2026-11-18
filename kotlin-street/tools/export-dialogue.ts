@@ -131,11 +131,12 @@ const talkable = new Set(npcs.map((n) => (n as { building: string }).building));
 let bad = 0;
 if (whole) {
   for (const sprite of people.keys()) if ((people.get(sprite) ?? 0) > 0 && !talkable.has(sprite)) { warn(`${sprite} has people but nobody to talk to`); bad++; }
-  // and a v2 street.json's rows name only buildings we know
   // and a v2 street.json's rows name buildings as we do (the same sprite for the same lot): if the graph named them
   // another way, the people would be at the wrong doors
   for (const [sprite, at] of places) {
     if (!/^b\d+$/.test(sprite)) continue;
+    // landmarks (school, fire station, ...) stand on rows too, under names after every lot's: nobody lives there (yet)
+    if (typeof at.lot === 'string' && at.lot.startsWith('landmark:')) continue;
     const lot = whole.lotOf.get(sprite);
     if (!lot) { warn(`street.json v2 row building ${sprite} is not in the town's building list`); bad++; }
     else if (typeof at.lot === 'string' && at.lot !== lot.slot) { warn(`street.json v2 ${sprite} is lot ${at.lot}, here ${lot.slot}: the graph names buildings differently (tools/town-whole.ts)`); bad++; }

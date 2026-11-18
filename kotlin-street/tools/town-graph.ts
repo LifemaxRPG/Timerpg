@@ -35,7 +35,7 @@ import type { World } from '../../src/sim/types';
 import { layoutTown, type LandmarkPlot, type Lot, type Prop, type TownLayout } from '../../src/town/layout';
 import { LANDMARK_SPECS, landmarkArtKey } from '../../src/town/landmarks';
 import { neighborhoodOf } from '../../src/town/neighborhoods';
-import { hash, makeBuildings, type Buildings } from './town-buildings';
+import { hash, makeBuildings, townLots, type Buildings } from './town-buildings';
 import { townStreets } from './town-streets';
 
 /** Street units per tile at the art's size (BuildingSpec.W 184 per 224 px; 32 px a tile). */
@@ -141,11 +141,7 @@ export interface TownGraph {
   footprints: { sprite: string; row: string; rect: [number, number, number, number] }[];
 }
 
-/** The lots that get a building: occupied shops, then every home (the order tools/town-whole.ts names them in). */
-export const townLots = (layout: TownLayout): Lot[] => [
-  ...layout.lots.filter((l) => l.kind === 'shop' && l.vacantSince === undefined),
-  ...layout.lots.filter((l) => l.kind === 'house'),
-];
+export { townLots };
 
 const STREET_NAMES = ['Elm Street', 'Mill Road', 'Church Street', 'Station Road', 'Orchard Lane', 'Cedar Avenue', 'Union Street', 'Market Lane',
   'Willow Road', 'Bridge Street', 'Maple Avenue', 'Chapel Lane', 'Garden Street', 'Hill Road', 'Oak Street', 'Park Avenue', 'Birch Lane',
