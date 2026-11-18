@@ -3776,7 +3776,9 @@ internal class BuildingPainter {
             // nearly edge on, reads as a pale pink film rather than tiles in the sun)
             val toSun = if (left) -sunSide else sunSide
             roofLight(quadPath(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7]), if (toSun > 0f) .5f * toSun else toSun, sky, snowToo = false)
-            if (snow > .01f) {
+            // (a side whose top ends straight above its eave is an upright gable end, a roof whose ridge runs along the
+            // street: no snow lies on it)
+            if (snow > .01f && kotlin.math.abs(xe - xt) > .5f) {
                 // the snow on the piece's own pixels, not its quad: its tiles reach a pixel past the quad's straight edges
                 snowInk(sky)
                 pieceOnto(ma.atlas, r, pieceFrom, t, snowFilter, alpha = ROOF_SNOW * snow)

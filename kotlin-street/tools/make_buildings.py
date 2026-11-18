@@ -1336,265 +1336,6 @@ def board_side(lit, depth, h, rng, corner, windows=(), base=None):
     side[..., :3] = np.clip(side[..., :3].astype(int) + grain[..., None], 0, 255).astype(np.uint8)
     return side, glow
 
-def estate_one_story(shop, rng):
-    art = solid(np.array(load('estate_one_story_house')))
-    at = Atlas(512)
-    G = 445                                                          # the ground row
-    AX, X0, X1 = 240, 16, 464                                        # the main gable's apex and eaves (art columns)
-    P = 26                                                           # the wall's boards repeat every 26 columns
-    def rake(x): return 192 + abs(x - AX) // 2                        # the main gable's front rake (row) in column x
-    roof_c = art[150, 120]; wall_c = art[300, 300]; rake_c = art[rake(300) + 1, 300]; edge_c = art[rake(300) + 4, 300]
-    W = 480
-    # --- the front: the main gable's face down to the ground, the garage and the porch as drawn, but what the art draws
-    # from above in it (the garage's and the porch's roofs, the porch's floor) and what stands in front of it (the porch
-    # posts) painted out: the engine builds them
-    src = art.copy()
-    gm = polygon(art.shape, [(131, 250), (2, 314), (2, 345), (131, 281), (258, 345), (258, 316)])   # the garage roof
-    pm = np.zeros(art.shape[:2], bool); pm[320:360, 258:446] = True                                 # the porch roof, its beam
-    # the wall behind those roofs: in each column the board of the same place in the 26-column run, from a clear column
-    # (262..441, right of the garage) as far below the main rake (the art shades the wall darker just under the eave)
-    for (y, x) in zip(*np.nonzero(gm | pm)):
-        dy = y - rake(x)
-        if dy < 0: continue
-        xr = 268 + (x - 268) % P + P * 3                              # 346..371: clear wall above the porch
-        src[y, x] = art[min(rake(xr) + dy, 319), xr]
-    # the porch posts: the narrow framed panel left of the first (328..343, its number plate taken off) behind each
-    panel = art[360:438, 328:344].copy(); panel[18:28] = panel[32]
-    src[360:438, 344:360] = panel; src[360:438, 424:440] = panel; src[360:438, 440:442] = panel[:, 14:16]
-    # the porch floor is drawn from above (rows 414..437), the wall's foot at its back edge: as an elevation the wall
-    # under the porch roof (its door, window, plate) stands on the floor's front line, where the posts stand, so it
-    # moves down 25 rows, and the boards above it carry on down under the porch roof, in its shade
-    src[389:438, 248:446] = src[364:413, 248:446].copy()
-    src[417:438, 446:458] = src[416:417, 446:458]                     # (the corner's post down to the floor)
-    for y in range(360, 389):
-        for x in range(248, 446):
-            xr = 268 + (x - 268) % P + P * 3
-            src[y, x, :3] = shade(art[319 if y > 363 else 300, xr], .86 if y > 363 else .72)
-    src[438:G + 1, 248:458, :3] = art[442, 300, :3]
-    face = src[192:G + 1, 0:W].copy(); fh = face.shape[0]
-    for x in range(W):
-        face[:max(0, rake(x) - 192), x] = 0
-    # (left of the main gable's eave the garage roof stands against the sky: nothing there)
-    mask = gm[192:G + 1, 0:W]
-    for x in list(range(0, X0 + 2)) + list(range(X1 - 1, W)): face[:345 - 192, x][mask[:345 - 192, x]] = 0
-    face[:, 458:] = 0
-    face_panes, face_glow = hand_panes(face, [(232, 42, 18, 26, 1), (284, 197, 26, 20, 1), (378, 199, 38, 36, 1)])
-    face_r = at.add(face, face_glow)
-    # --- the main gable's slopes from above (each up to its front rake), as the villas'
-    keep = np.zeros(art.shape[:2], bool)
-    for x in range(X0, X1 + 1): keep[:rake(x), x] = art[:rake(x), x, 3] > 0
-    left = at.add(cut(art[0:rake(X0) + 1, X0:AX], keep[0:rake(X0) + 1, X0:AX]))
-    right = at.add(cut(art[0:rake(X1) + 1, AX:X1 + 1], keep[0:rake(X1) + 1, AX:X1 + 1]))
-    lw, rw = AX - X0, X1 + 1 - AX
-    # --- the garage: its wall and its own gable's face as drawn, and its two slopes from above
-    gw = art[260:G + 1, 0:262].copy()
-    def grake(x): return 281 + abs(x - 131) * 64 // 127               # its front rake
-    for x in range(262): gw[:max(0, grake(x) - 260 + 2), x] = 0
-    gw[:, :14] = 0; gw[346 - 260:, 248:] = 0                            # (below its eave, right of it: the main wall)
-    g_panes, g_glow = hand_panes(gw, [(124, 50, 16, 16, 0)])
-    g_panes.append([64, 112, 138, 6, 1])                            # the garage doors' lights: they mirror, they never glow
-    garage_r = at.add(gw, g_glow)
-    gl = at.add(cut(art[250:346, 2:131], gm[250:346, 2:131])); gr = at.add(cut(art[250:346, 131:259], gm[250:346, 131:259]))
-    # --- the porch: its roof's boards from above, its beam, its two posts, its floor (the posts taken off its boards)
-    porch_top = at.add(art[322:352, 258:446]); beam = at.add(art[352:360, 258:446])
-    post1 = at.add(art[360:438, 344:359]); post2 = at.add(art[360:438, 424:440])
-    pmask = np.zeros((28, 210), bool); pmask[:, 96:112] = pmask[:, 176:194] = True
-    floor = fill_rows(art[418:446, 248:458], pmask)
-    floor_top = at.add(floor[:18]); floor_front = at.add(floor[18:])
-    # --- the side walls: the front's boards along the depth, its windows (the gable's, at the porch window's height)
-    corner = shade(wall_c, .78) + (255,)
-    lit = art[318, 268:268 + P]
-    foot = [shade(wall_c, .7)] * 2 + [tuple(art[442, 300, :3])] * 3
-    win = art[222:275, 222:262]
-    ms, ms_glow = board_side(lit, 192, G - 304, rng, corner, [(win, .3, 50, (10, 12, 18, 26, 1)), (win, .72, 50, (10, 12, 18, 26, 1))], foot)
-    gs, _ = board_side(lit, 30, 100, rng, corner, (), foot)
-    ms_r = at.add(ms, ms_glow); gs_r = at.add(gs)
-    post_c = art[400, 350]; beam_c = art[355, 300]; porch_c = art[340, 300]; floor_c = art[426, 300]; ffront_c = art[440, 300]
-    parts = [
-        # the house: its eave walls up to the main gable's eaves (the face rises over them to the apex)
-        mbox((18, 458), (0, G - 304), (0, 192), (wall_c, wall_c, wall_c), ft=face_r, fx=0, st=ms_r, panes=face_panes, top=False),
-        mgable((X0, X1), (G - 304, G - 192), (0, 192), left, (0, rake(X0), lw, 192, lw, 0, 0, 112), right, (rw - 1, rake(X1), 0, 192, 0, 0, rw - 1, 112),
-               (rake_c, edge_c), roof_c, lip=art[rake(300) - 1, 300]),
-        # the garage, a little forward, and its gable (its slopes run back into the main roof)
-        mbox((14, 248), (0, G - 345), (-24, 0), (wall_c, wall_c, wall_c), ft=garage_r, fx=0, st=gs_r, panes=g_panes, top=False),
-        mgable((2, 260), (G - 345, G - 281), (-24, 8), gl, (0, 93, 129, 31, 129, 0, 0, 64), gr, (127, 93, 0, 31, 0, 0, 127, 64),
-               (rake_c, edge_c), roof_c, de=0, lip=art[grake(60) - 1, 60]),
-        # the porch: its floor, its roof on two posts
-        mbox((248, 458), (0, G - 437), (-37, 0), (floor_c, ffront_c, shade(ffront_c, .85)), ft=floor_front, tt=floor_top),
-        mbox((344, 359), (G - 437, G - 359), (-31, -25), (post_c, post_c, shade(post_c, .8)), ft=post1),
-        mbox((424, 440), (G - 437, G - 359), (-31, -25), (post_c, post_c, shade(post_c, .8)), ft=post2),
-        mbox((258, 446), (G - 359, G - 351), (-37, 0), (porch_c, beam_c, shade(beam_c, .85)), ft=beam, tt=porch_top),
-    ]
-    setback = int(shop.get('yard', {}).get('front', 2)) * 32 + 40
-    style = shop.get('yard', {}).get('style', 'compact')
-    lawn, fence, fence_snow = yard(rng, W, setback + 192, True, (282, 314, setback - 37), style, [(276, 320)])
-    # the whole front for what does not build it (the corner turn, the wet road's mirror): the face, the garage over it,
-    # the porch's roof, beam, posts and floor as the street sees them from straight ahead
-    front = face.copy(); emis = face_glow.copy()
-    def over(pic, x, y, glow=None):
-        h, w = pic.shape[:2]; m = pic[..., 3] > 0
-        front[y:y + h, x:x + w][m] = pic[m]
-        if glow is not None: emis[y:y + h, x:x + w][m] = glow[m]
-        elif m.any(): emis[y:y + h, x:x + w][m] = 0
-    over(gw, 0, 260 - 192, g_glow); over(art[352:360, 258:446], 258, 352 - 192)
-    over(art[360:438, 344:359], 344, 360 - 192); over(art[360:438, 424:440], 424, 360 - 192); over(floor[18:], 248, 436 - 192)
-    side = ms
-    model = dict(kind='estate', w=W, frontX=(224 - W) / 2, setback=setback, lawn='grass', style=style, parts=parts,
-                 fence=dict(d=3, foot=28 if style != 'formal' else 32) if fence is not None else None,
-                 roofTint=rgb_int(roof_c), lamp=[325, 38, 0], lights='home', smoke=[], fpx=0)
-    return model, at, front, side, emis, lawn, fence, fence_snow
-
-def gable_end(rows, depth):
-    """A pitched roof's gable end as a hipped roof's side piece (columns up from the eave to the ridge, rows along the
-    depth): each column the wall's course at that height (`rows`, the wall's colours from its foot up), so its siding
-    runs on up into the triangle."""
-    h = len(rows)
-    pic = np.repeat(np.asarray(rows)[None, :, :], depth, axis=0).copy(); pic[..., 3] = 255
-    return pic
-
-def tile_x(pic, w):
-    """`pic` repeated across to `w` columns."""
-    return np.concatenate([pic] * (w // pic.shape[1] + 1), axis=1)[:, :w].copy()
-
-def estate_country(shop, rng):
-    """The country house: a front-gabled main house of two storeys, a balcony round its front and right side on the
-    porch's roof, the porch under it (a deck with its railing round the front and side, a step down at the left), a
-    chimney up its right side, and a lower wing on the left set back, its pitched roof's ridge along the street, a deck
-    and steps before its door. The art draws the balcony's and the wing deck's floors and the roofs from above inside
-    the front; as an elevation the upper storey stands on the balcony's floor at its front edge (it moves down 50 rows,
-    the floor's depth as drawn), and the rest is built."""
-    art = solid(np.array(load('estate_country_house')))
-    at = Atlas(512)
-    G = 505                                                          # the ground row (the porch deck's foot)
-    AX, X0, X1 = 340, 172, 510                                       # the main gable's apex and eaves
-    def rake(x): return int(176 + .8 * abs(x - AX))                   # its rake board's top in column x
-    UP = 455                                                         # the upper storey's rows: height = UP - row
-    W = 556
-    roof_c = art[100, 250]; rake_c = art[rake(250) + 10, 250]; edge_c = art[rake(250) + 2, 250]; lip_c = art[rake(250) - 2, 250]
-    wall_c = art[330, 330]; band_c = art[272, 330]
-    # --- the upper storey's front: the gable as drawn down to the balcony's floor (row 355), outside the walls only the
-    # rake board (under the eaves the wing and the balcony show in the art)
-    up = art[176:356, X0:X1 + 1].copy()
-    for x in range(X0, X1 + 1):
-        c = x - X0
-        up[:max(0, rake(x) - 176), c] = 0
-        if x < 194 or x > 492: up[max(0, rake(x) - 176 + 22):, c] = 0
-    up[330 - 176:, 196 - X0:210 - X0] = up[328 - 176:329 - 176, 196 - X0:210 - X0]   # (the balcony's side rail, from above)
-    up_panes, up_glow = hand_panes(up, [(73, 114, 56, 32, 1), (180, 117, 56, 37, 1), (154, 32, 30, 34, 1)])
-    up_r = at.add(up, up_glow)
-    # --- the main roof's slopes from above (a dormer on the right one painted out: the tiles 14 rows up carried down)
-    keep = np.zeros(art.shape[:2], bool)
-    for x in range(X0, X1 + 1): keep[:rake(x), x] = art[:rake(x), x, 3] > 0
-    roof = art.copy()
-    dm = np.zeros(art.shape[:2], bool); dm[95:212, 398:464] = True; dm &= keep
-    for (y, x) in sorted(zip(*np.nonzero(dm))):
-        sy = y - 14
-        while sy > 0 and dm[sy, x]: sy -= 14
-        roof[y, x] = roof[sy, x]
-    left = at.add(cut(roof[0:rake(X0) + 1, X0:AX], keep[0:rake(X0) + 1, X0:AX]))
-    right = at.add(cut(roof[0:rake(X1) + 1, AX:X1 + 1], keep[0:rake(X1) + 1, AX:X1 + 1]))
-    lw, rw = AX - X0, X1 + 1 - AX
-    # --- the ground floor's wall (rows 418..468: cream over a plank skirt; the porch railing in front of the rest), its
-    # skirt carried down to the deck
-    gfw = art[418:499, 194:494].copy()
-    skirt = art[445:468, 194:494]
-    gfw[50:] = np.concatenate([skirt] * 3)[:31]
-    gf_r = at.add(gfw)
-    # --- the balcony: its fascia, its floor from above (the downpipe's foot painted out), its railing
-    fascia = art[405:418, 186:536]
-    fl = art[352:382, 205:530].copy(); m = np.zeros(fl.shape[:2], bool); m[:12, 228:268] = True
-    fl = fill_rows(fl, m); fl = np.concatenate([fl[:, :1].repeat(19, 1), fl, fl[:, -1:].repeat(6, 1)], axis=1)
-    fascia_r = at.add(fascia); bfloor_r = at.add(fl)
-    brail = art[382:405, 192:536]
-    brail_r = at.add(brail); bside_r = at.add(tile_x(art[382:405, 300:400], 160))
-    # --- the porch: its railing (rows 465..499), its posts, its deck (the wing deck's planks, from above)
-    prail = art[465:499, 195:536]
-    prail_r = at.add(prail); pside_r = at.add(tile_x(art[465:499, 300:400], 160))
-    lpost = at.add(art[418:499, 207:221]); rpost = at.add(art[418:499, 515:531])
-    planks = art[345:385, 64:176]
-    pdeck_r = at.add(tile_x(planks, 356)[:40]); pfront_r = at.add(art[499:505, 180:536])
-    # --- the chimney up the right side: its cap and stones as drawn, the stones carried on down
-    ch = art[180:300, 512:544]
-    ch = np.concatenate([ch, np.concatenate([ch[40:120]] * 3)])[:206]
-    chim_r = at.add(ch)
-    # --- the wing: its wall (rows 290..345), its roof's near slope (every other row: one screen row each), its gable
-    # end in its wall's courses, its deck's planks from above and its steps
-    ww = art[290:345, 22:196].copy()
-    w_panes, w_glow = hand_panes(ww, [(46, 2, 28, 22, 1), (116, 0, 34, 34, 1)])
-    ww_r = at.add(ww, w_glow)
-    wface = art[188:290:2, 12:174].copy()
-    for x in range(wface.shape[1]):                                  # (its skewed top: the art's sky above it, the ridge's tiles)
-        col = wface[:, x]; empty = col[:, 3] == 0
-        if empty.any() and (~empty).any(): col[empty] = col[~empty][0]
-    wface[..., 3] = 255
-    wrun = 63; wrise = rise_for(wface.shape[0], wrun)
-    wface_r = at.add(wface)
-    wrows = column_rows(ww, list(range(80, 110)))[::-1]
-    wend = gable_end(np.resize(wrows, (int(wrise),) + wrows.shape[1:]), 2 * wrun)
-    wend_r = at.add(wend)
-    wdeck_r = at.add(art[345:385, 48:180]); wdfront_r = at.add(np.concatenate([art[350:368, 48:180]]))
-    # --- the side walls: each storey's own courses, a window of the front's
-    corner = shade(art[330, 200], .85) + (255,)
-    us, us_glow = side_wall(column_rows(up[134:179], list(range(150, 175))), 200, art[205:245, 320:362], 2, (.3, .72), rng, corner)
-    gs, _ = side_wall(column_rows(gfw, list(range(140, 160))), 200, None, 0, (), rng, corner)
-    ws, _ = side_wall(column_rows(ww, list(range(80, 110))), 110, None, 0, (), rng, corner)
-    us_r = at.add(us, us_glow); gs_r = at.add(gs); ws_r = at.add(ws)
-    rail_top = art[384, 300]; rail_c = art[395, 300]; post_c = art[450, 212]; deck_c = art[365, 120]; deck_f = art[502, 300]
-    tread = art[392, 100]; riser = art[400, 100]; stone = art[250, 528]
-    E = UP - rake(X0)                                                # the main eaves' height
-    WE = 73                                                          # the wing's eaves
-    parts = [
-        # the wing, set back, under its pitched roof; its deck and steps
-        mbox((22, 196), (18, WE), (60, 170), (wall_c, wall_c, wall_c), ft=ww_r, st=ws_r, panes=w_panes, top=False),
-        mhip((12, 174), (WE, WE + wrise), (52, 52 + 2 * wrun), (12, 174, 52 + wrun - 1, 52 + wrun + 1), wface_r, wend_r,
-             [0, 2 * wrun - 1, 0, 0, wend.shape[1] - 1, wrun - 1, wend.shape[1] - 1, wrun + 1],
-             wend_r, [0, 2 * wrun - 1, 0, 0, wend.shape[1] - 1, wrun - 1, wend.shape[1] - 1, wrun + 1], roof_c),
-        mbox((48, 180), (0, 18), (20, 60), (deck_c, deck_c, shade(deck_c, .85)), ft=wdfront_r, tt=wdeck_r),
-        mbox((60, 156), (12, 18), (14, 20), (tread, riser, shade(riser, .85)), outline=True),
-        mbox((60, 156), (6, 12), (8, 20), (tread, riser, shade(riser, .85)), outline=True),
-        mbox((60, 156), (0, 6), (2, 20), (tread, riser, shade(riser, .85)), outline=True),
-        # the chimney up the right side
-        mbox((494, 524), (0, 206), (124, 150), (art[184, 528], stone, shade(stone, .85)), ft=chim_r, st=chim_r),
-        # the main house: the ground floor, the floor between, the upper storey wearing the gable; its roof
-        mbox((196, 492), (6, 87), (0, 200), (wall_c, wall_c, wall_c), ft=gf_r, st=gs_r, top=False),
-        mbox((196, 492), (87, 100), (0, 200), (art[410, 300], art[410, 300], shade(art[410, 300], .85)), top=False),
-        mgable((X0, X1), (E, UP - 176), (0, 200), left, (0, rake(X0), lw, 176, lw, 0, 0, 135), right, (rw - 1, rake(X1), 0, 176, 0, 0, rw - 1, 135),
-               (rake_c, edge_c), roof_c, lip=lip_c),
-        mbox((196, 492), (100, E), (0, 200), (wall_c, wall_c, wall_c), ft=up_r, fx=X0, st=us_r, panes=up_panes, top=False),
-        # the porch: its deck round the front and the right side, a step down at the left, its posts and railings
-        mbox((180, 536), (0, 6), (-50, 0), (deck_c, deck_f, shade(deck_f, .85)), ft=pfront_r, tt=pdeck_r),
-        mbox((492, 536), (0, 6), (0, 110), (deck_c, deck_f, shade(deck_f, .85)), tt=pdeck_r),
-        mbox((164, 182), (0, 3), (-44, -8), (deck_c, deck_f, shade(deck_f, .85)), outline=True),
-        mbox((207, 221), (6, 87), (-50, -44), (post_c, post_c, shade(post_c, .8)), ft=lpost),
-        mbox((515, 531), (6, 87), (-50, -44), (post_c, post_c, shade(post_c, .8)), ft=rpost),
-        mbox((515, 531), (6, 87), (104, 110), (post_c, post_c, shade(post_c, .8)), ft=rpost),
-        mbox((530, 536), (6, 40), (-50, 110), (rail_top, rail_c, rail_c), st=pside_r),
-        mbox((182, 188), (6, 40), (-50, -8), (rail_top, rail_c, rail_c), st=pside_r),
-        mbox((195, 536), (6, 40), (-50, -50), (rail_top, rail_c, rail_c), ft=prail_r, card=True),
-        # the balcony on the porch's roof, round the front and the right side, its railings
-        mbox((186, 536), (87, 100), (-50, 0), (deck_c, art[410, 300], shade(art[410, 300], .85)), ft=fascia_r, tt=bfloor_r),
-        mbox((492, 536), (87, 100), (0, 110), (deck_c, art[410, 300], shade(art[410, 300], .85)), tt=bfloor_r, st=bside_r),
-        mbox((530, 536), (100, 123), (-50, 110), (rail_top, rail_c, rail_c), st=bside_r),
-        mbox((190, 196), (100, 123), (-50, 0), (rail_top, rail_c, rail_c), st=bside_r),
-        mbox((192, 536), (100, 123), (-50, -50), (rail_top, rail_c, rail_c), ft=brail_r, card=True),
-    ]
-    setback = int(shop.get('yard', {}).get('front', 2)) * 32 + 56
-    style = shop.get('yard', {}).get('style', 'compact')
-    lawn, fence, fence_snow = yard(rng, W, setback + 200, True, (92, 124, setback + 2), style, [(86, 130)])
-    # the whole front for what does not build it (the corner turn, the wet road's mirror), rows from the ridge down
-    H = UP - 176 + 1
-    front = np.zeros((H, W, 4), np.uint8); emis = np.zeros_like(front)
-    def over(pic, x, y_top, glow=None):
-        r0 = H - y_top; h, w = pic.shape[:2]; m = pic[..., 3] > 0
-        front[r0:r0 + h, x:x + w][m] = pic[m]
-        emis[r0:r0 + h, x:x + w][m] = glow[m] if glow is not None else 0
-    over(wface, 12, int(WE + wrise)); over(ww, 22, WE, w_glow); over(gfw, 194, 87); over(up, X0, UP - 176, up_glow)
-    over(fascia, 186, 100); over(brail, 192, 123); over(prail, 195, 40); over(art[499:505, 180:536], 180, 6)
-    model = dict(kind='estate', w=W, frontX=(224 - W) / 2, setback=setback, lawn='grass', style=style, parts=parts,
-                 fence=dict(d=3, foot=28 if style != 'formal' else 32) if fence is not None else None,
-                 roofTint=rgb_int(roof_c), lamp=[253, 140, 0], lights='home', smoke=[[509, 137, 206]], fpx=0)
-    return model, at, front, us, emis, lawn, fence, fence_snow
-
 def pent_end(color, run, rise):
     """A pent roof's end as a hipped roof's side piece (columns up the slope, rows along its depth): its edge colour."""
     pic = np.zeros((run, max(2, int(rise)), 4), np.uint8); pic[..., :3] = color[:3]; pic[..., 3] = 255
@@ -1694,8 +1435,10 @@ def build_model(shop, out):
     """One of our villas or landmarks as the parts the engine builds it from (models.json) and the pictures they wear."""
     key = shop['parts'][0]['key']; n = shop['sprite']
     rng = np.random.default_rng(zlib.crc32(n.encode()))
+    import buildings_estA
     make = (villa if key.startswith('villa_') else tower if key.startswith('landmark_clocktower_') else terraced if key.startswith('house_terraced_')
-            else estate_one_story if key == 'estate_one_story_house' else estate_country if key == 'estate_country_house' else estate_japanese if key == 'estate_japanese_house' else school)
+            else buildings_estA.estate_one_story if key == 'estate_one_story_house' else buildings_estA.estate_country if key == 'estate_country_house'
+            else estate_japanese if key == 'estate_japanese_house' else school)
     model, at, front, side, emis, lawn, fence, fence_snow = make(shop, rng)
     # which boxes' sides have windows that light at night (the engine lights no other: a railing's side has none)
     for p in model['parts']:
@@ -1721,7 +1464,7 @@ def pixels(path):
 def showcase(out):
     """Every house sprite (8 designs x 2 sizes x 10 colours) on a street.json of its own, in out/ (street.json and
     buildings/), for checking them by eye: street 0 has every design once in a colour each, street 1 every colour of
-    one design, street 2 the five villas, street 3 the clock towers and the school, street 4 the terraced houses. The preview reads it with
+    one design, street 2 the five villas, street 3 the clock towers and the school, street 4 the terraced houses, street 6 the one-story and country estates. The preview reads it with
     -Dassets=out -Dmode=houses (or -Dmode=models for streets 2 and 3)."""
     shops, row, colours = [], [], []
     names = {}
@@ -1748,11 +1491,14 @@ def showcase(out):
     terr = [add(f'house_terraced_{d}{c}', ('compact', 'formal', 'natural', 'flower', 'compact')[i])
             for i, (d, c) in enumerate(((1, ''), (2, '_c3'), (4, '_c1'), (5, ''), (6, '_c3')))]
     estates = [add('estate_one_story_house', 'formal'), add('estate_country_house', 'compact'), add('estate_japanese_house', 'natural')]
+    # the one-story and country estates on a street of their own (street 6)
+    estates_a = [add('estate_one_story_house', 'formal'), add('estate_country_house', 'compact'), add('estate_one_story_house', 'flower')]
     os.makedirs(out + '/buildings', exist_ok=True)
     json.dump(dict(town='showcase', year=2025, type='every house sprite', shops=shops,
                    streets=[dict(name='Every design', buildings=row), dict(name='Every colour', buildings=colours),
                             dict(name='Villas', buildings=villas), dict(name='Landmarks', buildings=landmarks),
-                            dict(name='Terraced', buildings=terr), dict(name='Estates', buildings=estates)]),
+                            dict(name='Terraced', buildings=terr), dict(name='Estates', buildings=estates),
+                            dict(name='Estates A', buildings=estates_a)]),
               open(out + '/street.json', 'w'), indent=1)
     return out + '/street.json', out + '/buildings'
 
