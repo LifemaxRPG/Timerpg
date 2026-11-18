@@ -1,0 +1,638 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-11541",
+      "kind": "scenario",
+      "title": "The Clock That Stopped Needing a Key",
+      "category": "business",
+      "pitch": "Help a trained young clock repairer finish an apprenticeship. A later public-clock contract may end the little winding job that once kept an older worker coming downtown.",
+      "present_hook": {
+        "what_you_notice": "The public clock stands stopped; an old maintenance ledger lists a winding round that once paid a weekly wage.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The apprenticeship ended over an unpaid final fee in {year}."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            22
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            30,
+            35
+          ],
+          "wealth": "getting_by"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "Baseline A is a genuinely trained apprentice with a documented final fee shortfall, and B holds the public-clock winding contract. The stopped clock and maintenance ledger must exist in the original present. Bind the exact publicly owned clock and its lawful maintenance authority."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the apprentice the actual remaining fee through the ordinary gift mechanism."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "finish_clock_apprenticeship": "A"
+            }
+          ],
+          "headline": "An Apprentice Finishes the Last Assessment",
+          "body": "{A} completes the remaining assessed work and receives the trade qualification."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "clock repair shop"
+            }
+          ],
+          "headline": "A Clock Repairer Opens a Small Shop",
+          "body": "{A} opens a small clock repair shop in an available leased room."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "automate_clock_winding": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "The Public Clock Gives Up Its Winding Key",
+          "body": "An approved automatic winding system enters service. The separate winding contract ends after its paid notice period."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Final Assessment Goes Unfinished",
+        "body": "The gift remains real, but the apprentice does not complete the assessment; no later shop or contract is promised."
+      },
+      "present_day": {
+        "best": "After the full chain, the maintained public clock runs in {now} without a manual winding round; the shop appears only if it still operates.",
+        "worst": "If the chain stops early, show only the actual qualification or shop; the original stopped clock remains possible.",
+        "twist": "The town gains reliable winding while {B} loses the remaining paid winding rounds and their familiar weekly routine."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "It still keeps time. I just no longer have a reason to climb those steps."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct existing residents. Present year must be at least intervention+25. Choose each scheduled year uniformly within its elapsed interval using a seed/scenario/role-IDs/intervention-year/step/timing key, and a separate independent uniform success roll per step. Steps 2 and 3 require the preceding committed step. Recheck living state, current age, residence, ownership, consent, funds and all stated prerequisites at execution. Invalid eligibility cancels the remaining chain; a failed roll retains earlier changes and stops descendants. fails.chance complements step 1 and uses that same roll, never an independent event. Commit effects atomically once after ordinary mortality; reserve funds, people, sites and objects, resolve competing scenarios in stable ID order, and cancel rather than partially apply conflicting effects. Do not repeat direct intervention changes. Render only realized effects and current facts in the present, with ordinary later events allowed to change them. No unbound descendants, marriages, jobs or buildings are implied.",
+        "Add clock repair shop as a business kind. finish_clock_apprenticeship requires real attendance, a passed assessment and the paid fee, consumed once from A funds; a gift alone does not create qualification. found_business requires A qualified and adult, actual affordable premises, tools, capital and permission; bind the resulting business to A.",
+        "automate_clock_winding requires A still qualified and operating that shop, B still holding the named manual contract, an engineering-approved compatible system, actual public procurement award and funded installation by qualified workers. Keep the existing clock and its historical parts; automation changes winding only. End B contract lawfully after paid notice, debit the real project budget and remove only future winding income, not all B work. Register ongoing maintenance obligations, not permanent immunity from breakdown. Gate B dialogue on step 3, survival and the lost contract."
+      ],
+      "era_notes": "Use mechanical or electrical winding suited to the clock and installation year; later displays must not imply a digital replacement.",
+      "why_fun": "A repair can preserve the clock while removing the person who used to tend it."
+    },
+    {
+      "id": "scenario-20261117-11542",
+      "kind": "scenario",
+      "title": "The Butcher Who Closed the Credit Book",
+      "category": "money",
+      "pitch": "Invest in a butcher’s documented plan to offer limited household credit. One customer may later receive debt forgiveness, while the shop eventually stops extending new tabs.",
+      "present_hook": {
+        "what_you_notice": "A butcher’s old ledger contains a rejected request for a modest household tab and a note about insufficient working cash.",
+        "where": "the butcher",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The cash shortage in {year} stopped the proposed credit trial."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "butcher"
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ],
+          "wealth": "poor"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "Bind butcher_shop to A actual business. Baseline contains A costed credit proposal and B real affordable-in-installments food request, with no existing tab. Never imply starvation or a new illness. B must actually incur a valid unpaid balance before forgiveness is eligible."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "butcher_shop",
+          "amount": "large",
+          "how_it_looks": "Invest ordinary business capital in the butcher’s costed credit trial."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "open_food_tab": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Butcher Opens a Small Household Credit Trial",
+          "body": "{B} signs a capped account with an agreed repayment schedule. Each purchase still has a price."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "forgive_food_balance": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Old Balance Leaves the Book",
+          "body": "The butcher voluntarily cancels the qualifying remaining balance on {B}’s account. The shop bears the loss."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "end_new_food_credit": "A"
+            }
+          ],
+          "headline": "New Purchases Return to Cash at the Counter",
+          "body": "The butcher ends the credit trial for future purchases after notice. Existing agreements retain their terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Credit Trial Never Opens",
+        "body": "The investment follows its ordinary business outcome, but no household tab is created."
+      },
+      "present_day": {
+        "best": "If all steps happen and the shop still trades in {now}, its counter displays the cash-payment policy and the ledger records the forgiven balance.",
+        "worst": "If the trial fails there is no new tab; if forgiveness fails, only the actual debt and repayments remain, with no automatic collection penalty.",
+        "twist": "{B} gains forgiveness at the shop’s expense, but later customers lose the option to buy against a new tab."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "That crossed-out balance mattered. I know the empty line still cost somebody money."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct existing residents. Present year must be at least intervention+25. Choose each scheduled year uniformly within its elapsed interval using a seed/scenario/role-IDs/intervention-year/step/timing key, and a separate independent uniform success roll per step. Steps 2 and 3 require the preceding committed step. Recheck living state, current age, residence, ownership, consent, funds and all stated prerequisites at execution. Invalid eligibility cancels the remaining chain; a failed roll retains earlier changes and stops descendants. fails.chance complements step 1 and uses that same roll, never an independent event. Commit effects atomically once after ordinary mortality; reserve funds, people, sites and objects, resolve competing scenarios in stable ID order, and cancel rather than partially apply conflicting effects. Do not repeat direct intervention changes. Render only realized effects and current facts in the present, with ordinary later events allowed to change them. No unbound descendants, marriages, jobs or buildings are implied.",
+        "open_food_tab requires A ownership, B informed consent, affordable capped terms, legal credit compliance and actual working capital. Create a receivable only when priced food is actually delivered; inventory, cash, repayments and interest if any follow the signed terms, never a free initial balance.",
+        "forgive_food_balance requires a positive enforceable balance attributable to this tab, A still authorized as creditor, B alive and the business able to absorb the exact write-off without breaching obligations. Extinguish that balance and the matching receivable atomically, record the actual business loss, and never add a separate wealth bonus to B.",
+        "end_new_food_credit requires A still owns the operating butcher_shop and freely adopts the policy after reviewing the write-off and current finances. Stop only new credit purchases after lawful notice; do not accelerate old debts or revoke legally promised service. Gate B dialogue on step 2, survival and actual forgiveness. Render the ledger anonymously to other NPCs; do not imply public disclosure of private debt."
+      ],
+      "era_notes": "Paper account books precede appropriate electronic accounts; food prices and credit terms follow each event year.",
+      "why_fun": "A kindness can balance one household’s account and close a useful door for the next one."
+    },
+    {
+      "id": "scenario-20261117-11543",
+      "kind": "scenario",
+      "title": "The Dog with Two Kitchens",
+      "category": "love",
+      "pitch": "Introduce a dog owner to a willing neighbor who wants to share the walking. A long friendship may become a marriage and a shared home, at the cost of one private workroom.",
+      "present_hook": {
+        "what_you_notice": "An old notice requests a walking partner for a dog; the two separate household entries never join in the baseline register.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The notice in {year} stayed pinned up until its corners curled."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            35
+          ],
+          "married": false
+        },
+        "B": {
+          "age": [
+            35,
+            40
+          ],
+          "married": false,
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "B is a stranger relative to A. A owns a living existing dog and a documented suitable private workroom; B genuinely offers compatible care. Both are single and unrelated with no disqualifying partnership. Baseline has the unmet request and no shared care or later partnership. No pet lifespan of twenty-five years is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Bring the two willing neighbors together beside the genuine walking-partner notice."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "share_dog_care": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Walking Notice Finds an Answer",
+          "body": "The neighbors agree on a practical care schedule. The dog still has one legal owner."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "marry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Old Walking Companions Choose a Wedding",
+          "body": "{A} and {B} marry after choosing a shared future. Neither the old care schedule nor the introduction promised this day."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "merge_households": [
+                "A",
+                "B"
+              ],
+              "repurpose_room": "A"
+            }
+          ],
+          "headline": "A Shared Home Finds Room for Everyday Life",
+          "body": "The spouses complete an agreed move into one home. A former private workroom becomes shared household space."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Two Schedules Fail to Meet",
+        "body": "The introduction happens, but the care schedule never begins. Neither neighbor owes the other a friendship."
+      },
+      "present_day": {
+        "best": "If the full chain and marriage persist, one occupied shared home in {now} has the converted room; their papers contain the old notice if they kept it.",
+        "worst": "If the chain stops, retain actual separate or married households without inventing a move, a replacement dog or a child.",
+        "twist": "{A} gains a shared household and gives up exclusive use of a workroom; affection does not create extra floor space."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "We could agree about the walk years before we could agree about a cupboard."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct existing residents. Present year must be at least intervention+25. Choose each scheduled year uniformly within its elapsed interval using a seed/scenario/role-IDs/intervention-year/step/timing key, and a separate independent uniform success roll per step. Steps 2 and 3 require the preceding committed step. Recheck living state, current age, residence, ownership, consent, funds and all stated prerequisites at execution. Invalid eligibility cancels the remaining chain; a failed roll retains earlier changes and stops descendants. fails.chance complements step 1 and uses that same roll, never an independent event. Commit effects atomically once after ordinary mortality; reserve funds, people, sites and objects, resolve competing scenarios in stable ID order, and cancel rather than partially apply conflicting effects. Do not repeat direct intervention changes. Render only realized effects and current facts in the present, with ordinary later events allowed to change them. No unbound descendants, marriages, jobs or buildings are implied.",
+        "share_dog_care requires the actual dog still alive, owner consent, safe feasible handling and mutually affordable hours; record completed shared care and its resulting bond changes under ordinary rules without repeating the introduction. Care duties end or change with the actual dog’s life; no replacement animal appears automatically.",
+        "marry requires both alive, legally eligible, unrelated, currently unmarried, mutually consenting and at the ordinary relationship threshold reached through actual interactions. Prior care is a prerequisite, not a guarantee of romance. No child, inheritance or common property transfer follows automatically.",
+        "merge_households with repurpose_room requires the marriage still valid, both consenting, an identified suitable legally occupiable home with enough space and an actual funded move. A must still control the identified workroom and voluntarily release its exclusive use; change that room to shared household space and remove A private-workroom access flag. Settle the other residence’s real lease or title through ordinary transactions; do not invent sale proceeds or evict another occupant. Gate A dialogue on step 3, survival and the continuing household; the original notice survives only if actually retained."
+      ],
+      "era_notes": "Use neighborhood noticeboards and period-appropriate household arrangements; the relationship proceeds at the residents’ chosen pace.",
+      "why_fun": "The small shared responsibility can outlast the reason it began."
+    },
+    {
+      "id": "scenario-20261117-11544",
+      "kind": "scenario",
+      "title": "The Voice That Asked for a Private Room",
+      "category": "uncanny",
+      "pitch": "Play a consenting resident an authentic recording of their older voice carried back from the present. It may start a remarkable spoken diary whose most personal section eventually leaves the public archive.",
+      "present_hook": {
+        "what_you_notice": "A dated recording in a household’s papers says, “I should have kept one room to myself,” but no spoken diary follows it.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The older voice on the recording belongs to {A}; the archive contains no earlier diary series."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1980,
+          1995
+        ],
+        "notes": "Require A alive in the original present, consenting to lend the actual recording and portable playback device, and consenting again in the intervention year. B is the actual authorized archive worker, not an assumed relative. Baseline has the genuine dated recording but no diary series. Its sentence is personal regret, not a prediction or objective fact."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:play_future_recording",
+          "target": "A",
+          "how_it_looks": "With permission, play the borrowed original recording and retain its provenance and future date."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "start_voice_diary": "A"
+            }
+          ],
+          "headline": "Resident Begins a Spoken Account of Ordinary Days",
+          "body": "{A} starts a dated spoken diary, carefully distinguishing current events from the strange borrowed recording."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "deposit_voice_diary": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Archive Accepts a Diary with a Future-Dated Preface",
+          "body": "{A} deposits the completed recordings under a written access agreement. The unusual preface is labeled as an unexplained artifact."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "restrict_diary_section": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Public Diary Keeps One Room to Itself",
+          "body": "The depositor invokes an agreed privacy clause for the identified personal section. The rest remains available on its actual terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.3,
+        "effects": [],
+        "headline": "A Familiar Voice Starts No Diary",
+        "body": "{A} hears the recording and declines the diary project. The borrowed object does not dictate a life."
+      },
+      "present_day": {
+        "best": "If the full chain remains in force in {now}, the archive catalogue lists the diary and a restricted personal section; its label preserves the artifact’s actual provenance.",
+        "worst": "If the diary never begins, no collection appears. If only restriction fails, apply the real deposit agreement without inventing a scandal.",
+        "twist": "{A} gains control over personal recollections while researchers lose access to the specific section they could previously consult."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "uncanny",
+          "line": "I heard myself ask for privacy before I had made anything public."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "play_future_recording",
+          "does": "With the original owners’ consent, carry one existing recording and functioning playback device from the original present to consenting A in the intervention year, play the unaltered recording, log immutable provenance, and return the borrowed objects; change no memories or future events directly."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct existing residents. Present year must be at least intervention+25. Choose each scheduled year uniformly within its elapsed interval using a seed/scenario/role-IDs/intervention-year/step/timing key, and a separate independent uniform success roll per step. Steps 2 and 3 require the preceding committed step. Recheck living state, current age, residence, ownership, consent, funds and all stated prerequisites at execution. Invalid eligibility cancels the remaining chain; a failed roll retains earlier changes and stops descendants. fails.chance complements step 1 and uses that same roll, never an independent event. Commit effects atomically once after ordinary mortality; reserve funds, people, sites and objects, resolve competing scenarios in stable ID order, and cancel rather than partially apply conflicting effects. Do not repeat direct intervention changes. Render only realized effects and current facts in the present, with ordinary later events allowed to change them. No unbound descendants, marriages, jobs or buildings are implied.",
+        "play_future_recording borrows one existing original-present recording and its actual functioning portable device with their owners’ consent, carries them to the intervention and plays them to consenting A. Record the immutable artifact bytes and provenance under the branch action ID; do not duplicate equipment or sell it. Return borrowed objects after playback, track any real wear, and do not synthesize audio or authenticate time travel as scientific fact.",
+        "start_voice_diary requires A consent, real affordable period-appropriate recording equipment, media and time. Create recordings only for actually completed sessions about witnessed events; no future facts or guaranteed yearly output. The borrowed preface retains its original date and is never silently rewritten by resimulation.",
+        "deposit_voice_diary requires completed owned recordings, A permission, clearance of third-party privacy rights, B still authorized, funded preservation and an access agreement explicitly allowing later restriction of the identified personal section. Transfer custody under that agreement without transferring every right. Public catalogue text discloses no protected content.",
+        "restrict_diary_section requires A and B alive, A still holding the contractual right, B still authorized, an actual request and the identified section present. Revoke public access only to that section under the existing agreement; preserve its media and the remaining access terms. Never erase researchers’ memories or existing lawful copies. Gate A dialogue on step 3, survival and remembered playback; people without that memory do not know an alternate history.",
+        "Before returning the borrowed source, require the original recording rights holder to authorize one ordinary preservation copy with a recorded license for the preface. Playback alone creates no copy. Step 1 may retain that licensed copy only after actual funded copying onto available media; step 2 requires that copy and its provenance, not possession of the returned original device or source. Keep the carried source version under the temporal-artifact identity across resimulation; do not replace its bytes with the altered present’s recording. Return ownership and custody through that identity without generating a second source object."
+      ],
+      "era_notes": "The carried device is explicitly a time-travel artifact. Ordinary diary media and archive preservation follow the actual recording and deposit years.",
+      "why_fun": "The future’s little warning can create the very public life that makes the warning understandable."
+    }
+  ]
+}

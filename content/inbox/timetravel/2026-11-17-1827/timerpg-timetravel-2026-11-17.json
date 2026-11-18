@@ -1,0 +1,643 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-11071",
+      "kind": "scenario",
+      "title": "The Weekly Without a Front Office",
+      "category": "business",
+      "pitch": "Invest in a print shop's costed local-publication contract. A young worker may eventually establish a weekly paper, then sell it to a publisher that keeps the title but closes its local front office.",
+      "present_hook": {
+        "what_you_notice": "A print shop retains an unfunded equipment quote and a conditional publication order. An aspiring local journalist's application never became a paid production post.",
+        "where": "the print shop",
+        "clues": [
+          {
+            "who": "the print-shop file",
+            "line": "{A} had a conditional order in {year}. The equipment shortfall prevented the post sought by {B}."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            45,
+            55
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "print shop"
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            22
+          ],
+          "wealth": "getting_by"
+        },
+        "shop": {
+          "shop_kind": [
+            "print shop"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "shop belongs to A. B is a qualified willing entry-level applicant with an actual interest in journalism. Bind a real viable conditional order, lawful equipment plan, an available later newspaper office and an existing qualified regional publisher with actual acquisition resources. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Fund the real equipment shortfall in the print shop's accepted business plan."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "install_equipment": "shop",
+              "kind": "the bound approved publication equipment"
+            },
+            {
+              "hire": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Print Contract Supports New Equipment and a Paid Post",
+          "body": "The business operated by {A} fulfilled the accepted equipment plan and actual publication order. Qualified applicant {B} accepted its funded production post."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "B",
+              "kind": "local newspaper"
+            }
+          ],
+          "headline": "Experienced Local Journalist Opens an Independent Weekly",
+          "body": "After actual reporting experience and a funded independent plan, {B} opened a local weekly with a staffed office. Its reporting and finances remained accountable to real events."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "sell_publication": "the scenario weekly",
+              "seller": "B",
+              "buyer": "the bound qualified regional publisher"
+            },
+            {
+              "close_public_office": "the weekly's bound local front office"
+            }
+          ],
+          "headline": "Weekly Keeps Its Title after Sale and Local Office Closure",
+          "body": "Under a voluntary funded acquisition agreement, the regional publisher bought the weekly from {B}. Its local front office closed after lawful staff and reader-contact arrangements were completed."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Print-Shop Plan Does Not Reach a Viable Equipment Opening",
+        "body": "The project at the shop operated by {A} did not reach the contracted viable operation. Actual expenditures and remaining capital stayed recorded."
+      },
+      "present_day": {
+        "best": "In {now}, the actual weekly retains its registered title under its purchaser if still published, while the old local public office is closed. Its current contact routes and reporting staff follow real contracts.",
+        "worst": "Failure creates no paid post, weekly or acquisition through this chain. The town's actual Gazette records still follow the simulation.",
+        "twist": "The sale can preserve a publication and pay its founder, while ending the nearby door where residents brought corrections and notices. A paper can remain local in subject while becoming more distant in person."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "They kept the title. I still miss seeing who was standing outside the office with a folded piece of paper."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check every stated prerequisite before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Report ineligibility by its actual cause. Failure stops descendants without undoing prior effects. Resolve conflicts in stable scenario-ID order with atomic resource, job and site reservations. Recheck ages, survival, consent, ownership and funds. Ordinary later history continues. Present descriptions need extant recorded effects; after-lines need the specified result, actual knowledge and a living speaker.",
+        "Add print shop and local newspaper as business kinds. Equipment, order fulfillment and hiring require actual capital, safe qualified operation, demand, a real wage budget and B's consent. The investment gives no reporting skill or ownership to B.",
+        "The weekly requires B's real current competence, capital, lawful premises, paid staff as necessary and a viable editorial and circulation plan. Its generated publication identity is distinct from the canonical Gazette unless an actual authorized relationship exists. Neither paper may report events the simulation did not decide; do not delete or rewrite canonical annual records for an editorial outcome.",
+        "sell_publication transfers actual title, assets, liabilities, archives and contractual rights once to the already bound funded publisher, with supported valuation, informed consent and legal review. Model an external publisher as a real organization with immutable identity, capital and accountable records, or suppress this proposal.",
+        "close_public_office needs the acquisition's actual independent approved consolidation plan, settled leases and employee obligations, and real accessible reader-contact alternatives. It does not automatically fire everyone or cease publication. Gate B's line on step 3 and actual retained title and memories of the staffed public office."
+      ],
+      "era_notes": "Printing equipment, circulation and ownership rules follow their event years. A later online contact channel needs actual connectivity and cannot stand in for every reader.",
+      "why_fun": "The player can read a familiar masthead beside a locked former office. The newspaper's own history becomes part of the town it describes."
+    },
+    {
+      "id": "scenario-20261117-11072",
+      "kind": "scenario",
+      "title": "The Friend Who Came Back to Stay",
+      "category": "love",
+      "pitch": "Introduce two children whose friendship never began in the baseline. One may leave for a real opportunity and return decades later to a freely chosen partnership, giving up a position elsewhere to make the homecoming permanent.",
+      "present_hook": {
+        "what_you_notice": "Separate youth-club registers show two children who never shared a group. An adult departure record and a later unused reunion invitation point to the paths they might have crossed.",
+        "where": "the youth-club archive",
+        "clues": [
+          {
+            "who": "the youth-club registers",
+            "line": "{A} and {B} were in separate groups in {year}. Both could have joined the same supervised activity."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            12,
+            15
+          ]
+        },
+        "B": {
+          "age": [
+            12,
+            15
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1990
+        ],
+        "notes": "A and B are distinct unrelated children with a lawful voluntary shared activity available. Bind a genuinely plausible later funded departure opportunity for A and an independently possible adult return. No romance is attributed to childhood friendship. Present must be at least 32 years later."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the willing children at the actual supervised activity without predicting their adult relationship."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.35
+            }
+          ],
+          "headline": "Shared Youth Activity Begins a Real Friendship",
+          "body": "{A} and {B} formed a friendship through their actual voluntary shared activity. Later contact depended on their real choices."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            10,
+            12
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "move_away": "A"
+            },
+            {
+              "schedule_correspondence": [
+                "A",
+                "B"
+              ],
+              "basis": "their actual voluntary agreement"
+            }
+          ],
+          "headline": "Young Adult Leaves for an Opportunity and Keeps in Touch",
+          "body": "Adult resident {A} accepted the actual funded opportunity elsewhere. A voluntary correspondence arrangement with {B} preserved opportunities for contact rather than guaranteeing closeness."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            30,
+            32
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "resign_post": "A",
+              "post": "the bound actual position elsewhere"
+            },
+            {
+              "move_in": "A"
+            },
+            {
+              "marry": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "form_household": [
+                "A",
+                "B"
+              ],
+              "home": "the bound lawful shared residence"
+            }
+          ],
+          "headline": "A Real Adult Courtship Brings a Former Resident Home",
+          "body": "After actual renewed adult contact and a mutual courtship, {A} resigned the recorded position elsewhere and returned to marry {B}. They secured the real resources and residence for their shared household."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Youth Introduction Does Not Become a Continuing Friendship",
+        "body": "{A} and {B} did not form the proposed continuing friendship. Neither child's adult future was assigned by the introduction."
+      },
+      "present_day": {
+        "best": "In {now}, the actual shared residence has the household formed by {A} and {B}, subject to later ordinary history. The source town has an actual returned resident rather than an invented visiting double.",
+        "worst": "Failure creates no friendship, departure, return or marriage through this chain. Success at the friendship step alone promises no later romance.",
+        "twist": "The homecoming can be wanted and joyful while costing {A} a real position and its future earnings elsewhere. A shared local life needs an affordable new plan rather than a romantic exemption from money."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I wanted to come back. I still had to work out what coming back would cost and what I would do on Monday."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check every stated prerequisite before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Report ineligibility by its actual cause. Failure stops descendants without undoing prior effects. Resolve conflicts in stable scenario-ID order with atomic resource, job and site reservations. Recheck ages, survival, consent, ownership and funds. Ordinary later history continues. Present descriptions need extant recorded effects; after-lines need the specified result, actual knowledge and a living speaker.",
+        "The first bond reflects actual later shared contact, not an automatic lifelong relationship. Step 2 requires A at least 18, a real accepted opportunity, lawful transport and housing, resources and voluntary departure. schedule_correspondence creates only mutually agreed contact opportunities, ending or changing with consent, resources and life events.",
+        "Requires explicit accountable off-map residence and employment history. Record A's actual work, income, relationships and mortality by deterministic resident-and-year keys while absent; do not invent a successful career only at return time. Suppress the chain without that support.",
+        "Step 3 requires both currently unmarried, unrelated, eligible and consenting after an actual adult courtship; any other marriages or independent choices can stop it. resign_post ends only A's real current position after lawful notice and actual obligations. move_in needs affordable resources and existing lawful housing; form_household must secure actual possession and affected occupants' consent.",
+        "All final effects require a funded affordable local livelihood plan, sufficient moving resources and a voluntary informed choice before they execute atomically. Resignation does not grant a replacement job or refund forgone income. Preserve other family and support duties. Gate A's line on step 3 and actual informed acceptance of the tradeoff."
+      ],
+      "era_notes": "Youth activities, letters, later calls and travel use their actual period technology. No current marital status is inferred from how the pair felt as children.",
+      "why_fun": "The player sees an ordinary address become a homecoming. The friendship travels through years the player can also visit and change."
+    },
+    {
+      "id": "scenario-20261117-11073",
+      "kind": "scenario",
+      "title": "The Fairway That Became a Cemetery",
+      "category": "place",
+      "pitch": "Sabotage a golf club's fragile opening year. Its closure may eventually make a suitable parcel available for a public cemetery, creating a grounds job while ending a business people had hoped to build.",
+      "present_hook": {
+        "what_you_notice": "A club's opening-year accounts show a narrowly viable plan. A later public cemetery study identified the same parcel as potentially suitable but never obtained it.",
+        "where": "the golf club",
+        "clues": [
+          {
+            "who": "the accounts and land study",
+            "line": "The club operated by {A} was just viable in {year}. The later study could not acquire its occupied parcel."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            60,
+            65
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "golf club"
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            22
+          ],
+          "wealth": "getting_by"
+        },
+        "shop": {
+          "shop_kind": [
+            "golf club"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1990
+        ],
+        "notes": "shop belongs to A, who owns the identified parcel. B is an actual entry-level grounds worker, not automatically qualified for later cemetery work. Bind a real fragile first-year business, a genuine later municipal burial-capacity need and a technically suitable lawfully purchasable parcel. Present must be at least 28 years later."
+      },
+      "interventions": [
+        {
+          "verb": "sabotage",
+          "business": "shop",
+          "how_it_looks": "Use the existing business-sabotage action to disrupt the club's opening-year trading without physical injury."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "close_shop": "shop"
+            }
+          ],
+          "headline": "Opening-Year Losses Close the New Golf Club",
+          "body": "The club operated by {A} closed after its actual losses made recovery unviable. Real staff, customers, debts and other obligations remained part of the closure."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            14,
+            16
+          ],
+          "if": {
+            "step": 1
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "acquire_public_parcel": "the bound former golf parcel",
+              "purpose": "the approved municipal cemetery"
+            },
+            {
+              "build": "the approved municipal cemetery",
+              "where": "the edge of town"
+            }
+          ],
+          "headline": "Municipality Opens an Approved Cemetery on a Former Course",
+          "body": "After a lawful funded purchase and independent site review, an approved municipal cemetery opened on the former course. Actual ordinary burial records determined its use."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            26,
+            28
+          ],
+          "if": {
+            "step": 2,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "hire_institution": "B",
+              "institution": "the municipal cemetery",
+              "post": "qualified grounds supervisor"
+            }
+          ],
+          "headline": "Qualified Grounds Worker Takes a Cemetery Supervisory Post",
+          "body": "After actual relevant training and experience, {B} accepted the cemetery's real funded grounds-supervisor vacancy. The appointment created no deaths or burials."
+        }
+      ],
+      "fails": {
+        "chance": 0.3,
+        "effects": [],
+        "headline": "Golf Club Survives the Disrupted Opening Year",
+        "body": "The club operated by {A} remained viable after the actual disruption. Survival did not refund the harm or make the sabotage a favor."
+      },
+      "present_day": {
+        "best": "In {now}, the parcel is the actual municipal cemetery with its recorded graves, paths and funded maintenance if still operating. The former golf club is closed, and B's employment follows its real subsequent history.",
+        "worst": "First-step failure leaves the recorded business harm without forcing closure or a cemetery. Ordinary land use and burial needs continue independently.",
+        "twist": "A public need may gain land and {B} may gain paid work, while {A}, staff and customers lose a real business. Later usefulness does not justify the act that destabilized it."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "They kept the trees. They did not keep the club."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check every stated prerequisite before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Report ineligibility by its actual cause. Failure stops descendants without undoing prior effects. Resolve conflicts in stable scenario-ID order with atomic resource, job and site reservations. Recheck ages, survival, consent, ownership and funds. Ordinary later history continues. Present descriptions need extant recorded effects; after-lines need the specified result, actual knowledge and a living speaker.",
+        "Add golf club as a business kind and municipal cemetery as an institution with explicit land and real burial records. Apply sabotage once; step 1 closes only the bound club after actual unviability and an unsuccessful feasible recovery review. Preserve employment, debt and customer consequences.",
+        "acquire_public_parcel needs the actual current owner or lawful estate representative, a voluntary supported-price sale or independently lawful resolved acquisition process, real public funds and clear title after obligations. A need not survive step 2. Closing the club alone neither transfers its land nor makes the price zero.",
+        "Cemetery construction needs actual burial-capacity demand, appropriate geotechnical and environmental approval, accessible paths, funded operation, lawful permits and respectful record handling. Populate it only through actual independently occurring deaths, lawful transfers and family choices; no effect creates a corpse or a grave occupant.",
+        "Hiring B needs real completed training, experience, current competence, consent, a paid vacancy and lawful recruitment. Gate A's line on step 3, A alive at the actual present age, accurate memory and the real design retaining the bound trees; otherwise suppress it. Never keep the older owner alive for the line."
+      ],
+      "era_notes": "Club operation, municipal acquisition and cemetery standards follow their event years. No particular religion, burial rite or fatal event is assumed.",
+      "why_fun": "The player can walk the same ground under a radically different public meaning. A useful new place carries an economic loss in its land records."
+    },
+    {
+      "id": "scenario-20261117-11074",
+      "kind": "scenario",
+      "title": "The Picture Too Big for the Front Door",
+      "category": "business",
+      "pitch": "Help a painter afford the unusually large canvas already planned. A later gallery may find a public buyer for it, then discover that selling the picture also means paying to get it out of the building.",
+      "present_hook": {
+        "what_you_notice": "A painter's unfinished plan records a large work assembled inside a borrowed room. A building survey shows that the completed dimensions would exceed the ordinary exit route.",
+        "where": "the proposed studio room",
+        "clues": [
+          {
+            "who": "the painter's plan",
+            "line": "{A} priced the canvas and materials in {year}. The plan did not price an ordinary doorway large enough for the finished work."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            65,
+            70
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "A is an actually skilled consenting painter with a voluntary costed oversized-landscape plan. B owns the bound legally available studio/showroom building. Bind real safe initial assembly space and a documented professionally feasible later removal route; do not lock people or emergency access behind an artwork. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "large",
+          "how_it_looks": "Give the actual materials shortfall for the painter's existing voluntary project."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "create_artwork": "A",
+              "work": "the bound oversized landscape canvas"
+            }
+          ],
+          "headline": "Painter Completes an Oversized Landscape in a Borrowed Room",
+          "body": "Skilled painter {A} completed the planned landscape from actual materials under lawful room permission. The finished work's dimensions and condition entered its object record."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "art gallery"
+            }
+          ],
+          "headline": "Painter Opens a Funded Gallery around the Large Canvas",
+          "body": "With actual visitor demand and a funded lawful lease, {A} opened a gallery in the approved showroom. The real oversized landscape formed part of its existing collection."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "sell_artwork": "A",
+              "work": "the bound oversized landscape canvas",
+              "buyer": "the bound funded public gallery"
+            },
+            {
+              "complete_art_move": "the bound oversized landscape canvas",
+              "route": "the professionally approved temporary wall-opening plan"
+            }
+          ],
+          "headline": "Public Gallery Buys a Landscape That Needs a Special Exit",
+          "body": "A qualified funded public gallery purchased the actual landscape from {A}. The agreed safe removal and reinstatement work was completed, and actual priced transport costs reduced the seller's net proceeds."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "Materials Gift Does Not Produce a Completed Accepted Canvas",
+        "body": "The voluntary project involving {A} did not reach a completed accepted work. Actual materials, expenditure and remaining gift funds stayed recorded."
+      },
+      "present_day": {
+        "best": "In {now}, the actual public gallery holds the purchased canvas if custody survives. The former private gallery no longer displays it, and the building's recorded repaired opening marks the completed move where physically visible.",
+        "worst": "First-step failure invents no finished picture or gallery. A gift guarantees neither artistic quality nor a buyer.",
+        "twist": "A gains a real sale but must give up the large centerpiece and the actual cost of removing it safely. The same generous scale that helped draw visitors makes the eventual success expensive."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "I thought about the horizon for months. I should have spent another afternoon thinking about the door."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step and independent timing/chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check every stated prerequisite before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Report ineligibility by its actual cause. Failure stops descendants without undoing prior effects. Resolve conflicts in stable scenario-ID order with atomic resource, job and site reservations. Recheck ages, survival, consent, ownership and funds. Ordinary later history continues. Present descriptions need extant recorded effects; after-lines need the specified result, actual knowledge and a living speaker.",
+        "create_artwork records one actual completed owned object with measured dimensions, materials, condition and provenance after skilled work and real spending. The gift does not commission rights for the player or manufacture a valuable masterpiece by probability alone.",
+        "Add art gallery as a business kind and public gallery as an institution if absent. Step 2 needs A's real viable business plan, visitor demand, staffing as required, capital, safe public access and a lawful affordable lease from the actual current owner or estate. B need not remain alive. Preserve all property and occupant rights.",
+        "The sale needs A's actual title, a real interested qualified public purchaser, supported price, actual acquisition budget, a lawful approved display space large enough for the work and agreed cost allocation. Ownership and money transfer only under the completed contract, with no duplicate resale reward.",
+        "complete_art_move requires an actual qualified engineering and conservation plan, current owner consent, lawful approvals, funds, safe independent egress throughout, appropriate transport and reinstatement. Record the exact real priced costs against seller proceeds only as agreed; do not assume any wall can be removed or provide demolition methods. Preserve the object's condition under actual handling. Gate A's line on step 3 and the original documented planning oversight."
+      ],
+      "era_notes": "Art materials, gallery rights and safe building work follow their event years. The landscape depicts only an actual agreed generic view and no named real place.",
+      "why_fun": "The player can see an empty wall where success used to hang. An unusually large ambition has ordinary dimensions and a moving bill."
+    }
+  ]
+}

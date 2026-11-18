@@ -1,0 +1,633 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-11701",
+      "kind": "scenario",
+      "title": "The Mosquitoes in the School Notebook",
+      "category": "place",
+      "pitch": "Fund a teenager’s supervised insect-sampling project. Its records may become a career and a covered-barrel program, leaving a gardener paying for a screen that was never needed before.",
+      "present_hook": {
+        "what_you_notice": "An abandoned school notebook proposes a mosquito survey; nearby gardens still use uncovered water barrels.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposed survey in {year} lacked the small equipment fee."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            14,
+            17
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by"
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "Baseline has the actual supervised project, fee shortfall and B existing uncovered garden barrel. No disease outbreak, illness prevention or pesticide outcome is assumed. B garden must be in the later eligible survey area."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the teenager the actual shortfall for the approved supervised project."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_insect_survey": "A"
+            }
+          ],
+          "headline": "A School Survey Counts What Bites",
+          "body": "{A} completes the supervised sampling project and deposits its verified observations."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "hire_vector_technician": "A"
+            }
+          ],
+          "headline": "A Former Student Returns with Sampling Bottles",
+          "body": "A qualified {A} accepts an actual local field-technician vacancy and resumes documented sampling."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "cover_garden_barrel": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Open Barrel Gets a Fitted Screen",
+          "body": "After the funded survey and public review, {B} buys and fits a compliant barrel screen. The garden keeps its stored water."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Survey Stays in the Notebook",
+        "body": "The gift is received, but the supervised project is not completed. No career or barrel program follows automatically."
+      },
+      "present_day": {
+        "best": "If the chain persists, the garden in {now} has the paid fitted screen and the public archive contains actual survey records.",
+        "worst": "If later steps fail, retain only completed observations or employment; do not claim disease or compulsory barrel changes.",
+        "twist": "The survey brings useful local records, but {B} pays an actual screen invoice to continue using the barrel."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "Same rain, same barrel. Somehow the rain now needs a lid with a receipt."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual residents at intervention. Require present year at least intervention+25. Choose each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key. Give each step a separate independent uniform success key; steps 2 and 3 require their preceding committed step. Recheck current ages, survival, consent, authority, ownership, funds and every stated eligibility condition at execution. Invalid eligibility or a failed roll stops descendants while retaining earlier changes and ordinary simulation. fails.chance is the complement of the first valid step roll, never a second independent roll; invalid eligibility produces no failure story. Reserve affected residents, funds, assets and sites; commit the whole effect list once, after ordinary mortality, resolving same-year conflicts in stable scenario-ID order without partial application or rerolls. Never duplicate the direct intervention effect. Present text requires recorded effects plus current surviving state; show only realized prefixes otherwise. No new people, descendants, jobs or ownership may be inferred.",
+        "complete_insect_survey requires a consenting guardian where needed, qualified supervision, actual equipment purchase from gift funds and completed safe field sessions. Record only observed species and counts, not invented pathogens or medical conclusions.",
+        "hire_vector_technician requires A independently completed the real education and current qualifications through ordinary funded study, an actual employer vacancy, fair selection, budget and A consent. Create that employment relationship and wage obligation; the school project alone does not qualify A.",
+        "cover_garden_barrel requires A still authorized in the actual local program, current verified breeding-site evidence at B barrel, an actual lawfully adopted proportionate covered-storage rule, notice and an affordable compliant screen available to B. Debit the real invoice once and attach the screen to the existing barrel after installation. Respect exemptions and assistance terms; cancel if B cannot lawfully or practically comply. Do not remove water, invent enforcement penalties, or claim eradication. Gate B dialogue on step 3, survival and the paid screen."
+      ],
+      "era_notes": "Use safe period-appropriate sampling and identification; no modern tracking device or disease test appears before its supported year.",
+      "why_fun": "A tiny thing in a jar can eventually change an ordinary garden chore."
+    },
+    {
+      "id": "scenario-20261117-11702",
+      "kind": "scenario",
+      "title": "The Advice Column Without a Face",
+      "category": "secrets",
+      "pitch": "Introduce a qualified lawyer to the editor seeking a general advice column. A successful pen name may eventually appear on a book cover, costing the writer the privacy that made the column comfortable.",
+      "present_hook": {
+        "what_you_notice": "The Gazette archive contains an unfilled notice for a general advice contributor and a blank column space.",
+        "where": "the Gazette archive",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The editor and the willing contributor never met in {year}."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "law office"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "B is a stranger relative to A and the actual authorized Gazette editor; A is qualified and has the documented spare writing hours. Baseline has the contributor notice, no column and no rights agreement. Bind the existing Gazette; never create a second paper or silently change its canonical event reports."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the willing editor and lawyer beside the actual contributor notice."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "start_advice_column": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A New Column Answers General Questions",
+          "body": "The Gazette begins a paid general advice column under an agreed pen name. Private client cases stay out of print."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "publish_advice_collection": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Old Columns Find a Binding",
+          "body": "An approved collection of completed columns is published under the pen name. Its contract retains an option for a later identified edition."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "identify_advice_author": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Old Pen Name Acquires a Familiar Face",
+          "body": "The author consents to an identified edition and a public catalogue update. The old anonymity cannot be restored for readers who saw it."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Blank Space Finds Another Use",
+        "body": "The meeting happens, but no writing agreement is reached. The proposed column never appears."
+      },
+      "present_day": {
+        "best": "After the full chain, the archive and any surviving edition in {now} identify {A} as the columnist, with only actually published text available.",
+        "worst": "If publication or identification fails, keep the real columns and their agreed anonymity; no identity revelation is assumed.",
+        "twist": "Readers gain an attributable town voice, while {A} permanently loses anonymity among those who learned the identity."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "They ask me about old columns while I am choosing bread. I agreed to the name on the cover, not to every conversation."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual residents at intervention. Require present year at least intervention+25. Choose each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key. Give each step a separate independent uniform success key; steps 2 and 3 require their preceding committed step. Recheck current ages, survival, consent, authority, ownership, funds and every stated eligibility condition at execution. Invalid eligibility or a failed roll stops descendants while retaining earlier changes and ordinary simulation. fails.chance is the complement of the first valid step roll, never a second independent roll; invalid eligibility produces no failure story. Reserve affected residents, funds, assets and sites; commit the whole effect list once, after ordinary mortality, resolving same-year conflicts in stable scenario-ID order without partial application or rerolls. Never duplicate the direct intervention effect. Present text requires recorded effects plus current surviving state; show only realized prefixes otherwise. No new people, descendants, jobs or ownership may be inferred.",
+        "start_advice_column requires B editorial authority, A qualification and consent, a funded written contributor contract and actual completed reviewed installments. Pay only delivered work at contracted rates. Use synthetic general questions or properly consented submissions; disclose no client secret and give no individualized representation automatically.",
+        "publish_advice_collection requires actual completed owned or licensed columns, both parties still authorized, necessary permissions, a real consenting publisher and viable funded print contract. Track actual copies, costs and royalties only on real sales; do not promise bestseller income. No new shop kind is required for an existing off-map publisher.",
+        "identify_advice_author requires A freely exercises the expressly optional identification clause, B still has relevant editorial authority, a funded actual edition or catalogue update, and no third-party identity breach. Publish only the true author-to-pen-name link and clear the public-anonymity flag. Do not independently reduce reputation, force new clients or erase prior readers’ knowledge. Gate A dialogue on step 3, survival and remembered consent."
+      ],
+      "era_notes": "Use period-appropriate print and publishing contracts; an electronic catalogue appears only where the actual archive supports it.",
+      "why_fun": "A pen name can protect a voice for decades without protecting its owner forever."
+    },
+    {
+      "id": "scenario-20261117-11703",
+      "kind": "scenario",
+      "title": "The Blazers Left After the Vote",
+      "category": "business",
+      "pitch": "Invest in a dress shop’s costed school-team uniform order. The relationship may become a recurring contract, then end with a new clothing policy and a rack of stock nobody is required to buy.",
+      "present_hook": {
+        "what_you_notice": "A dress-shop sample rack carries an accepted team-blazer design beside an unfunded production quote.",
+        "where": "the dress shop",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The school team accepted the design in {year}, but the shop could not finance the first order."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "dress shop"
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            12,
+            15
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "Bind dress_shop to A actual business. B is an actual team member; the baseline contains an approved but unplaced optional blazer order, a real fabric quote and no uniform contract. B may affect policy later only with actual adult team-organizer authority, never by assumed parentage or election."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "dress_shop",
+          "amount": "large",
+          "how_it_looks": "Invest ordinary business capital in the approved, costed first production order."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "fulfill_team_blazers": "A"
+            }
+          ],
+          "headline": "A School Team Receives Its First Blazers",
+          "body": "The shop delivers and is paid for the ordered blazers. Nobody outside the actual order receives a free uniform."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "renew_uniform_contract": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Old Team Member Helps Place a New Order",
+          "body": "An adult {B}, now authorized to organize the team, signs the approved recurring supply agreement with the shop."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "end_uniform_requirement": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Team Votes to Leave the Blazers at Home",
+          "body": "The authorized team adopts ordinary suitable clothes for future appearances and ends new uniform orders on the agreed terms. The shop retains its unsold speculative stock."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Sample Never Becomes an Order",
+        "body": "The investment is real, but the first blazer order is not completed. No school payment or later contract is created."
+      },
+      "present_day": {
+        "best": "If all steps occur and the shop survives in {now}, its inventory includes the actual unsold blazers; team records show the new ordinary-clothes policy.",
+        "worst": "If renewal or policy change fails, show only real orders and actual stock; no guaranteed unpaid pile appears.",
+        "twist": "Team members gain a cheaper clothing option, while {A} loses the cash tied up in speculative blazers bought beyond committed orders."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "The meeting had a motion, a second, and a rack of my money hanging behind it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual residents at intervention. Require present year at least intervention+25. Choose each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key. Give each step a separate independent uniform success key; steps 2 and 3 require their preceding committed step. Recheck current ages, survival, consent, authority, ownership, funds and every stated eligibility condition at execution. Invalid eligibility or a failed roll stops descendants while retaining earlier changes and ordinary simulation. fails.chance is the complement of the first valid step roll, never a second independent roll; invalid eligibility produces no failure story. Reserve affected residents, funds, assets and sites; commit the whole effect list once, after ordinary mortality, resolving same-year conflicts in stable scenario-ID order without partial application or rerolls. Never duplicate the direct intervention effect. Present text requires recorded effects plus current surviving state; show only realized prefixes otherwise. No new people, descendants, jobs or ownership may be inferred.",
+        "fulfill_team_blazers requires A ownership, an actual approved buyer order, consent and payment terms, lawful affordable access for participating pupils, inventory and labor. Consume fabric and funds, create only paid-for delivered garments, and settle the real invoice. Investment is not also counted as sales income.",
+        "renew_uniform_contract requires B alive, adult and actually appointed team organizer through ordinary simulation, A still owns the operating shop, current buyer authority, lawful procurement and funded demand. Record the actual minimum orders, permitted cancellation and notice, leaving no claim against households outside the contract.",
+        "end_uniform_requirement requires B still authorized, an actual team review and valid vote, any necessary school approval and a funded cheaper ordinary-clothes option. Honor every committed order, cancellation payment and required notice. Eligibility additionally requires A actually bought specified speculative stock at real cost without a guaranteed buyer; retain that unsold stock at its real saleable value. Remove only future uniform obligations and uncommitted orders, not garments or already-earned income. Gate A dialogue on step 3, survival, shop ownership and remaining speculative stock. The recurring contract includes a separately approved team policy requiring those blazers for specified appearances, with actual funded affordability assistance and lawful exemptions; without that adopted policy the final repeal step is ineligible."
+      ],
+      "era_notes": "Fabric, tailoring methods and team dress conventions follow the event decade; the replacement policy allows ordinary suitable clothes rather than a modern brand.",
+      "why_fun": "The player can help make a tradition whose eventual ending leaves a very tangible bill."
+    },
+    {
+      "id": "scenario-20261117-11704",
+      "kind": "scenario",
+      "title": "The Tax Bill That Came Back Smaller",
+      "category": "money",
+      "pitch": "Help an older homeowner file a documented assessment appeal. A later buyer may gain the home and a new room, then discover that a useful improvement brings a larger tax bill of its own.",
+      "present_hook": {
+        "what_you_notice": "A household file contains an unfiled appeal supported by comparable sales and a tax bill based on an outdated property description.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The appeal deadline in {year} passed with the supporting papers still clipped together."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            55,
+            60
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            25,
+            30
+          ],
+          "wealth": "comfortable"
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A legally owns the identified home; its assessment genuinely overstates taxable value under the actual local rules. B is a real prospective buyer, not a relative by assumption. Baseline has the missed appeal, valid evidence and an unconverted suitable attic. Require at least twenty-five elapsed years and no guaranteed survival for A."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:file_assessment_appeal",
+          "target": "A",
+          "how_it_looks": "Submit the homeowner’s authorized appeal with the genuine supporting property records before the deadline."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "correct_home_assessment": "A"
+            }
+          ],
+          "headline": "An Old Assessment Comes Down to Its Supported Value",
+          "body": "The authorized review corrects the home’s assessment. The resulting tax difference follows the actual billing rules."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "sell_home": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Long-Kept Home Changes Hands",
+          "body": "The owners complete an agreed sale and a funded move. The buyer receives the actual property and its disclosed records."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "convert_attic_and_assess": "B"
+            }
+          ],
+          "headline": "One More Bedroom Adds a Line to the Tax Record",
+          "body": "The owner completes a permitted attic conversion. The finished bedroom enters the property record and the next applicable tax bill."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Appeal Leaves the Assessment Unchanged",
+        "body": "The filing remains in the record, but the review grants no correction. No tax savings or later sale is promised."
+      },
+      "present_day": {
+        "best": "After the full chain, the same house in {now} has the completed attic bedroom and the applicable higher improvement-related assessment for {B}; the old successful appeal remains in its file.",
+        "worst": "Without correction, retain actual taxes; without a sale or conversion, show no new owner or attic bedroom.",
+        "twist": "{A} gains the actual overassessment correction, while {B} later gains useful space and pays the tax increase caused by that improvement."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "The room is worth having. I had just forgotten the assessor would get a room of it on paper."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "file_assessment_appeal",
+          "does": "With the bound homeowner’s authorization, submit one timely property-assessment appeal using verified existing evidence and pay its actual required affordable filing fee; create a review case without altering value or guaranteeing a decision."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual residents at intervention. Require present year at least intervention+25. Choose each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key. Give each step a separate independent uniform success key; steps 2 and 3 require their preceding committed step. Recheck current ages, survival, consent, authority, ownership, funds and every stated eligibility condition at execution. Invalid eligibility or a failed roll stops descendants while retaining earlier changes and ordinary simulation. fails.chance is the complement of the first valid step roll, never a second independent roll; invalid eligibility produces no failure story. Reserve affected residents, funds, assets and sites; commit the whole effect list once, after ordinary mortality, resolving same-year conflicts in stable scenario-ID order without partial application or rerolls. Never duplicate the direct intervention effect. Present text requires recorded effects plus current surviving state; show only realized prefixes otherwise. No new people, descendants, jobs or ownership may be inferred.",
+        "file_assessment_appeal creates one timely authorized review case linked to real records, debiting any actual required affordable filing fee once; it changes no assessed value or tax directly.",
+        "correct_home_assessment requires A still owns the home, an authorized review decision supported by verified comparables and correct local valuation rules. Update that parcel’s assessed value and actual tax ledger prospectively or by legally permitted refund; never pay the same savings twice or change market value by decree.",
+        "sell_home requires A and B alive, legal title, independent consent, agreed supported market price, B sufficient actual funds or approved financing, clear existing obligations, actual closing costs and lawful vacant possession. Transfer title and money atomically; A needs a real available funded replacement home or tenancy and an actual move. Prior tax savings may support the decision but never force a discount or a sale.",
+        "convert_attic_and_assess requires B still owns and occupies the home, an existing structurally suitable attic, approved safe plans, permits, paid qualified work and final occupancy approval. Create exactly one finished bedroom within the existing roof; debit actual construction costs. Apply a documented lawful improvement valuation and current tax rate at the next applicable billing date, with existing exemptions and caps; require a strictly positive actual increase for this story. No arbitrary wealth penalty is added. Gate B dialogue on step 3, survival, continued ownership and receipt of that bill."
+      ],
+      "era_notes": "Use the actual era’s appeal forms and construction standards; do not assume a single national property-tax system.",
+      "why_fun": "A fairer old bill does not exempt the next owner from the cost of making the house larger."
+    }
+  ]
+}

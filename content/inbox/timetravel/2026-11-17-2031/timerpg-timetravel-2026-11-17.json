@@ -1,0 +1,638 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-12311",
+      "kind": "scenario",
+      "title": "The Coat with the Twenty-Five-Year Promise",
+      "category": "money",
+      "pitch": "Invest in a clothing store’s properly costed repair guarantee. One long-kept coat may eventually need the replacement the shop promised, leaving its owner warm and the shop paying a bill set in motion decades earlier.",
+      "present_hook": {
+        "what_you_notice": "A clothing-store sample has an unfunded repair-guarantee proposal attached to its price card.",
+        "where": "the clothing store",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The reserve calculation in {year} was finished; the money to launch the guarantee was not."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "clothing store"
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            25
+          ],
+          "wealth": "getting_by"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "Bind clothing_shop to A actual business and coat to one documented eligible garment. B is a genuine prospective buyer. Baseline has the costed twenty-five-year written repair-or-equivalent-replacement offer but no sale under it. No injury, disability or family heir is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "clothing_shop",
+          "amount": "large",
+          "how_it_looks": "Invest ordinary business capital in the priced garment-guarantee trial and its reserve."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "sell_guaranteed_coat": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Coat Leaves with a Written Long-Term Promise",
+          "body": "The shop sells its inventoried coat under the actual funded guarantee. The buyer keeps the agreed repair terms."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "repair_guaranteed_coat": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Old Seam Receives the Repair It Was Promised",
+          "body": "The qualified repair is completed at the shop’s contractual expense. The same coat goes back to its owner."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "replace_guaranteed_coat": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Long-Ago Promise Pays for a New Coat",
+          "body": "A qualifying irreparable garment is exchanged for the promised equivalent replacement. The shop pays the real contractual cost."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Guarantee Trial Does Not Open",
+        "body": "The investment has its ordinary business result, but no guaranteed sale is created."
+      },
+      "present_day": {
+        "best": "If the whole chain and replacement survive to {now}, {B} owns the actual replacement coat and the shop’s ledger records the completed guarantee claim.",
+        "worst": "Without an eligible claim, retain actual garment ownership and condition; no replacement or refund is invented.",
+        "twist": "{B} gains the promised replacement, while the shop spends actual reserve or available funds and receives only the worn original in return."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "I remember selling that coat. I had forgotten how long a promise can keep a receipt alive."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "sell_guaranteed_coat requires A authorized ownership, actual inventory, B informed consent and affordable purchase funds, a lawful signed twenty-five-year guarantee measured from the sale, and a costed funded reserve. Settle the actual sale, track the single garment and liability, and do not treat reserve funds as free profit.",
+        "repair_guaranteed_coat requires B still owns that garment, actual covered seam damage, a valid unexpired claim and qualified funded repair. Debit its exact real cost once from the responsible shop; normal wear outside the written coverage does not create a free claim.",
+        "replace_guaranteed_coat requires the same guarantee still in force, B title and consent, a genuine covered irreparable failure assessed under its actual terms, A still operating and responsible for the obligation, an available equivalent replacement and real sufficient reserve or lawful business funds. Transfer one replacement against the old garment and debit exact costs once; settle the liability without a separate wealth effect. If insolvent, use ordinary claims resolution rather than conjuring a replacement. Gate A dialogue on step 3, survival and remembered sale."
+      ],
+      "era_notes": "Garment construction, price and consumer-contract requirements fit the event years; no real brand or perpetual guarantee is implied.",
+      "why_fun": "A small line on a receipt can be the oldest active decision in the shop."
+    },
+    {
+      "id": "scenario-20261117-12312",
+      "kind": "scenario",
+      "title": "The Bakery Lunch That Outgrew the Bakery",
+      "category": "business",
+      "pitch": "Introduce a bakery owner to the school worker seeking a practical lunch supplier. A useful contract may help establish a lasting meal program, then end when the school can finally cook the meals itself.",
+      "present_hook": {
+        "what_you_notice": "A school file contains an unfunded lunch-supply proposal beside a bakery’s unused menu quotation.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The two willing planners never sat at the same table in {year}."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bakery"
+          ],
+          "relation": "strangers"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are strangers relative to each other. B is the actual authorized school meal planner. The baseline contains real meal demand, safe feasible bakery capacity and the failed proposal, with no supply contract. Do not invent hungry children, new pupils or a vacant kitchen site."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Bring the consenting meal planner and baker together with their real costed proposals."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "supply_school_lunches": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Bakery Takes the First School Lunch Order",
+          "body": "The bakery begins its approved paid supply contract. The school receives only the meals actually delivered."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "fund_school_meal_program": "B"
+            }
+          ],
+          "headline": "School Adopts a Recurring Meal Budget",
+          "body": "The authorized school process funds the actual recurring meal program and its eligible household support."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "open_school_kitchen": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "The Lunch Program Gets a Kitchen of Its Own",
+          "body": "A funded approved school kitchen enters service with actual qualified staff. The outside bakery contract ends on its agreed terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Two Menus Do Not Become a Contract",
+        "body": "The introduction occurs, but no supply agreement is reached. No meals, funding or kitchen are promised."
+      },
+      "present_day": {
+        "best": "After the full chain, the school in {now} has its operating approved kitchen and actual meal program; the bakery no longer holds the ended lunch contract.",
+        "worst": "If later steps fail, show only real delivered meals or funding; never render a kitchen or feeding outcome without the effects.",
+        "twist": "The school gains its own production space, while {A} loses the bakery’s future lunch orders after honored commitments and notice."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I wanted that lunch program to last. I did not think lasting would mean learning to do without me."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "supply_school_lunches requires current school purchasing authority, lawful procurement, funded demand, nutrition and food-safety approval, actual bakery capacity and a signed affordable contract with required household support. Track real ingredients, labor, deliveries and payments without double-counting the introduction or inventing pupils.",
+        "fund_school_meal_program requires B still authorized, actual school approval and lawful identified recurring funds sufficient for the adopted service and eligibility terms. Reserve real resources and record paid operating costs; no unlimited subsidy, health improvement or automatic future budget is created.",
+        "open_school_kitchen requires B still authorized, the program still funded, A still supplying the actual contract, identified suitable school-owned space, approved funded plans, qualified construction, inspection, safe equipment, actual qualified hired staff and operating funds. Add the kitchen as a school facility, not a new resident-owned shop. End only uncommitted outside orders after all contract, notice and compensation duties; settle existing meals and invoices. Gate A dialogue on step 3, survival, remembered contribution and lost future orders."
+      ],
+      "era_notes": "Menus, nutrition rules, funding and kitchen standards follow the actual school year; no specific national program is assumed.",
+      "why_fun": "Helping an institution grow may mean helping it stop needing your beneficiary."
+    },
+    {
+      "id": "scenario-20261117-12313",
+      "kind": "scenario",
+      "title": "The Birthday That Changed the Pension File",
+      "category": "family",
+      "pitch": "Help an older resident correct a documented birth-date error. The resulting pension claim may make retirement possible, then leave room for a voluntary library gift that uses savings the resident could have kept.",
+      "present_hook": {
+        "what_you_notice": "A household file contains two conflicting birth records and an unsubmitted correction request supported by the earlier original.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The signed evidence in {year} shows a date two years earlier than the benefits file."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            55,
+            55
+          ],
+          "wealth": "getting_by"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A actual age is fifty-five, verified from the genuine original source; only the administrative benefits record incorrectly makes A two years younger. A has a real vested pension with an age-sixty-five eligibility threshold and sufficient recorded service. The baseline has no correction or corrected claim. No person’s biological age or birth event changes."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:submit_birth_record_correction",
+          "target": "A",
+          "how_it_looks": "Submit the resident’s authorized correction request with the genuine supporting records."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "correct_benefits_birth_date": "A"
+            }
+          ],
+          "headline": "An Old Date Is Corrected in the Benefits File",
+          "body": "The authorized record keeper accepts the documented correction. The resident is not made older; the file finally matches the evidence."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            10,
+            10
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "claim_vested_pension": "A"
+            }
+          ],
+          "headline": "A Corrected File Supports a Timely Retirement Claim",
+          "body": "At the actual qualifying age, {A} completes the vested pension claim and a voluntary retirement from the recorded job."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "fund_library_collection": "A"
+            }
+          ],
+          "headline": "A Retiree Gives Savings to the Library Shelves",
+          "body": "The retiree makes an affordable voluntary gift for an approved book collection. The library buys and records the actual books."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The File Keeps Its Disputed Date",
+        "body": "The request remains in the record, but no authorized correction is completed. No earlier pension entitlement is invented."
+      },
+      "present_day": {
+        "best": "After the full chain, the existing library in {now} holds the actual purchased collection under its current catalogue status, and the benefits record retains the verified date and completed claim.",
+        "worst": "Without correction or an approved claim, retain actual benefits and employment; no retirement or library collection is guaranteed.",
+        "twist": "The library gains books, while {A} voluntarily gives up the exact savings spent on them rather than keeping that money for personal use."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "For years, the file insisted I was younger. At last those years could help somebody choose a book."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "submit_birth_record_correction",
+          "does": "With A authorization, submit one administrative birth-record correction request using authentic existing evidence and pay only any required affordable filing fee; create a review case without changing age, entitlement or payments."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "submit_birth_record_correction creates one authorized administrative review request linked to authentic conflicting records, paying only an actual required affordable filing fee. It changes no biological date, entitlement or payment directly.",
+        "correct_benefits_birth_date requires genuine authenticated earlier evidence, the actual competent agency’s approval and lawful audit trail. Update only the administrative benefits date to the already-existing actual date, preserving historical records. Do not age the resident, revive anyone or automatically grant arrears.",
+        "claim_vested_pension requires A alive, actual age sixty-five at +10, the genuine vested plan and recorded sufficient service, corrected documentation, a lawful approved claim and A voluntary retirement from an actual recorded job. Calculate exact payments, offsets and any legal arrears under the plan and employment facts; never add a second wealth bonus or invent continued wages after retirement.",
+        "fund_library_collection requires A alive, actual sufficient unencumbered savings after a viable personal living budget, an existing willing library and approved purchase list, no pressure and an informed voluntary gift. Debit the exact gift once, fund actual acquired books with provenance, and record their ownership and catalogue entries. No named descendants, patron class or guaranteed improved literacy is created. Gate A dialogue on step 3, survival and remembered corrected file, approved pension claim and completed library gift."
+      ],
+      "era_notes": "Record authentication, pension terms and library purchasing follow the event decade; no single national pension scheme is assumed.",
+      "why_fun": "One corrected date can change what years of work are allowed to provide."
+    },
+    {
+      "id": "scenario-20261117-12314",
+      "kind": "scenario",
+      "title": "The Summons That Reached the Right Door",
+      "category": "crime",
+      "pitch": "Report a genuine delivery failure in a jury summons. Ordinary lawful selection may bring a different eligible juror to a trial, followed by an acquittal and a defendant’s later bakery, at a real cost in the juror’s missed wages.",
+      "present_hook": {
+        "what_you_notice": "A court archive lists an undelivered summons beside a completed case file; the intended recipient’s correct address was already in an authorized register.",
+        "where": "the court archive",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The delivery failure was never reported to the authorized clerk in {year}."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by"
+        },
+        "C": {
+          "age": [
+            18,
+            25
+          ],
+          "wealth": "poor"
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "A is the actual authorized jury clerk; B the real eligible intended recipient and wage earner; C the actual defendant in a nonviolent property case scheduled at intervention+2. All are unrelated with no conflicts, and B has no private case knowledge. Baseline has the delivery failure and conviction; the same real admissible evidence permits a reasonable not-guilty verdict without invented exculpatory facts."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:report_failed_summons",
+          "target": "A",
+          "recipient": "B",
+          "how_it_looks": "Report the genuine undelivered summons through the court’s authorized correction process, without contacting jurors about the case."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            1
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "correct_jury_summons": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Jury Notice Reaches Its Intended Recipient",
+          "body": "The authorized clerk completes lawful corrected service and gives the recipient the ordinary response instructions."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            2,
+            2
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "record_jury_acquittal": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Jury Returns a Not-Guilty Verdict",
+          "body": "A lawfully selected jury returns its actual not-guilty verdict on the existing evidence. The acquittal does not certify facts the court did not find."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "C",
+              "kind": "bakery"
+            }
+          ],
+          "headline": "A Former Defendant Opens a Bakery",
+          "body": "A qualified {C} opens a funded bakery in an available lawful premises. The old case remains a historical acquittal, not a marketing miracle."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Notice Remains Undelivered",
+        "body": "The delivery report is filed, but no corrected service is completed. No juror, verdict or later business changes automatically."
+      },
+      "present_day": {
+        "best": "If the full chain and business survive to {now}, the actual bakery belongs to {C}, and the court record shows the lawful acquittal; the work ledger for {B} retains the actual net jury-service income loss.",
+        "worst": "Without lawful selection and verdict, do not erase the baseline case outcome; without a funded bakery, show only the actual court record.",
+        "twist": "{C} gains the acquittal and its ordinary life possibilities, while {B} gives up actual net wages during lawful jury attendance."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "I remember the pay envelope being light. I did not know there would be a bakery at the other end of it."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "report_failed_summons",
+          "does": "Submit one genuine summons-delivery error to authorized clerk A, identifying intended recipient B from lawful existing address records; create only the report, without selecting jurors, discussing case merits or changing a verdict."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "report_failed_summons creates one authorized delivery-error report linked to the authentic notice and already-available correct address. It does not select, exclude, influence or disclose a case to any juror.",
+        "correct_jury_summons requires A current clerk authority, lawful court authorization and completed ordinary service on B with privacy and notice periods respected. B enters only the ordinary response and random selection process; corrected delivery does not guarantee attendance or selection.",
+        "record_jury_acquittal requires B actually selected under ordinary random procedures, all eligibility and conflict checks, completed lawful jury service, the full actual jury, admitted evidence, ordinary instructions and a valid unanimous or otherwise legally sufficient not-guilty decision. Its keyed chance is integrated with the one court verdict resolver and replaces no already-final verdict; do not independently co-produce conviction. Record release or remaining lawful restrictions only as the actual order permits. B must actually lose positive net wages after paid leave and juror compensation; debit only that evidenced loss, never arbitrary punishment. No private persuasion, extra evidence, innocence declaration or automatic expungement is created. Apply the net wage difference through actual payroll once, accounting for paid leave and juror compensation; never subtract the same foregone earnings again as a separate cash-balance penalty.",
+        "found_business requires C alive, free of any actual business restriction, independently acquired real baking skill and permits, available lawful premises, real capital, consenting counterparties and safe operations. Record ownership and costs through the standard business effect, not extra invented compensation or a guaranteed customer base. Gate B dialogue on step 3, survival, actual wage loss and actual knowledge that C owns the bakery."
+      ],
+      "era_notes": "Summons service, jury eligibility, compensation and verdict rules follow the actual event year and jurisdiction.",
+      "why_fun": "A correctly delivered piece of paper may matter to a whole life without allowing the player to command a verdict."
+    }
+  ]
+}

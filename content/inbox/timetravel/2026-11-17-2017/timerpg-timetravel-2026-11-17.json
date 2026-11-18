@@ -1,0 +1,666 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-12171",
+      "kind": "scenario",
+      "title": "The Neighbors Who Traded Front Doors",
+      "category": "family",
+      "pitch": "Introduce two homeowners whose houses fit each other’s needs better than their own. A later exchange may give one fewer stairs and the other more room, before a rental conversion takes part of the larger yard.",
+      "present_hook": {
+        "what_you_notice": "Two uncompleted housing advertisements sit together: one seeks fewer stairs, the other a larger home.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "Both owners placed their advertisements in {year}, but nobody put them in touch."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            50,
+            55
+          ],
+          "wealth": "comfortable",
+          "relation": "strangers"
+        },
+        "B": {
+          "age": [
+            30,
+            35
+          ],
+          "wealth": "comfortable",
+          "relation": "strangers"
+        },
+        "C": {
+          "age": [
+            18,
+            25
+          ],
+          "wealth": "getting_by"
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A and B are strangers relative to one another. A owns the larger house and B the smaller ground-floor home; actual title, floor plans and compatible needs must exist. C is a distinct existing resident who may later seek the actual rental unit. No family relationship, disability or free land is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the consenting homeowners beside their genuine advertisements."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "prepare_home_exchange": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Housing Notices Become One Exchange Proposal",
+          "body": "The owners pay for actual appraisals and commission a mutually acceptable exchange proposal."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "exchange_homes": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Owners Trade the Homes They Already Have",
+          "body": "The owners close their lawful exchange and complete the funded moves. Any difference in value is actually settled."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "create_garden_rental": [
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Larger Home Makes Room for Another Household",
+          "body": "The owner completes an approved rental conversion and signs the actual tenancy. A defined part of the garden becomes the tenant’s private outdoor space."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Two Notices Remain Separate",
+        "body": "The introduction happens, but no exchange proposal is completed. Neither home changes hands."
+      },
+      "present_day": {
+        "best": "If the chain persists, the larger house in {now} has its approved occupied rental unit and divided garden; each title and tenancy follows the actual later simulation.",
+        "worst": "Without a closing there is no exchange; without conversion and a signed tenancy, no extra household or divided garden is shown.",
+        "twist": "{B} gains the larger home and a paying tenancy but gives up exclusive use of the tenant’s recorded garden area."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "We traded for more room. Sharing the garden was the part I had to learn afterward."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "prepare_home_exchange requires independent consent, verified titles, funded qualified appraisals and legal advice; debit only actual services completed and record the proposal, not transferred ownership. Failed later negotiation does not refund earned professional fees automatically.",
+        "exchange_homes requires the proposal still acceptable after updated valuations, A and B still owning the same homes, clear titles, lender approvals where needed, actual funds for equalization, taxes and moving costs, lawful occupancy and no displaced unwilling occupants. Settle both transfers and moves atomically; reserve both parcels and create no fictitious equity or cash.",
+        "create_garden_rental requires B still owns the larger home, actual suitable existing space, lawful funded plans and qualified work for one safe additional dwelling, occupancy approval and an affordable signed lease with adult C actually seeking housing. Debit construction and moving costs, record real rent only when paid, and settle C former housing through ordinary rules. Define and remove B exclusive access to only the agreed tenant garden area. C is never newly generated or assumed to have children. Gate B dialogue on step 3, survival and the continuing tenancy."
+      ],
+      "era_notes": "Titles, exchange taxes, housing standards and rental rules follow the actual jurisdiction and event decade.",
+      "why_fun": "The town gains a new household without gaining a new piece of ground."
+    },
+    {
+      "id": "scenario-20261117-12172",
+      "kind": "scenario",
+      "title": "The Gym Room That Became a Polling Place",
+      "category": "business",
+      "pitch": "Invest in a gym’s costed proposal for an accessible civic room. A temporary polling lease may eventually become a public purchase, leaving the owner paid for the space but unable to run classes there again.",
+      "present_hook": {
+        "what_you_notice": "A gym file contains a rejected polling-room lease proposal and a floor plan showing the unfunded access work.",
+        "where": "the gym",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The election office wanted the room in {year}, but the conversion quote could not be paid."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "gym"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "trait": {
+            "diligence": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "Bind gym to A actual business and building interest. B is the actual authorized election administrator. The existing room has a feasible access plan and a documented proposal, but no polling lease. A must own a legally separable room interest or parcel before its later sale; a tenant cannot sell the landlord’s property."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "gym",
+          "amount": "large",
+          "how_it_looks": "Invest ordinary business capital in the documented room conversion and access work."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "fit_polling_room": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Gym Room Passes Its Civic Access Inspection",
+          "body": "The funded conversion is completed and approved. The room becomes available for its actual permitted civic use."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "lease_polling_room": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Election Office Signs a Recurring Room Lease",
+          "body": "The authorized office signs a funded recurring polling-room lease. Classes use the room only outside its reserved dates."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "sell_polling_room": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Borrowed Polling Room Becomes Public Property",
+          "body": "The public buyer purchases the legally defined room interest at the agreed price. The gym permanently gives up its use of that space."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Civic Room Does Not Pass into Service",
+        "body": "The investment follows its ordinary business outcome, but the conversion is not completed and cleared. No lease or public purchase follows."
+      },
+      "present_day": {
+        "best": "If the chain and public ownership persist, the room in {now} has the election office’s actual public-use sign and is outside the gym’s usable floor area.",
+        "worst": "If the chain stops, show only actual completed access work or leases; never invent a precinct, turnout change or election result.",
+        "twist": "The gym owner receives the real sale price but loses permanent control of a room that once held classes."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "The price was fair. I still catch myself planning a class in a room I no longer own."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "fit_polling_room requires A legal authority, funded approved plans, actual safe accessible routes and facilities, qualified construction and independent clearance under the event year’s requirements. Record the modified existing room and actual costs; create no election or guarantee of continued certification.",
+        "lease_polling_room requires B still authorized, the actual room still certified and available, lawful procurement, approved precinct needs, a funded signed lease, rent and maintenance duties and precise reserved dates. Record payments only when due and paid; relocate or refund conflicting classes lawfully, never erase them or claim more votes.",
+        "sell_polling_room requires A clear transferable ownership, a lawful separately defined room interest with necessary access and utility easements, B actual acquisition authority, independent valuation, informed seller consent, public approval and purchase funds. Settle price, closing costs and title atomically, remove the sold area from gym scheduling and honor class contracts through real relocation or refunds. Do not sell the whole gym, create land or confer unlimited election authority on B. Gate A dialogue on step 3, survival, remembered sale and actual lost room control."
+      ],
+      "era_notes": "Paper ballots, voting equipment and certification follow the election year; the story does not assume electronic voting.",
+      "why_fun": "A place can become more public by becoming less available to the person who built it."
+    },
+    {
+      "id": "scenario-20261117-12173",
+      "kind": "scenario",
+      "title": "The Compost Heap That Needed a Ledger",
+      "category": "place",
+      "pitch": "Help a gardener fund a supervised compost trial. A neighborhood service may grow around it, then add optional paid collection that makes a convenient favor cost money.",
+      "present_hook": {
+        "what_you_notice": "A garden-club file contains a rejected compost trial and a list of households seeking somewhere to take suitable scraps.",
+        "where": "the edge of town",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The trial in {year} lacked the small cost of the approved bins and supervision."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            40,
+            50
+          ],
+          "wealth": "getting_by",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "poor"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A legally controls the actual suitable garden site; B is an existing willing household participant with qualifying material. Baseline has the costed supervised trial and no service. Do not assume vacant public land, unsafe waste disposal, crop yields or an environmental-health outcome."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the organizer the genuine remaining cost of the approved small trial."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "start_compost_trial": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Garden Trial Finds a Place for Suitable Scraps",
+          "body": "The funded trial accepts its first properly sorted material under the approved site rules."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "form_compost_cooperative": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Garden Favor Becomes a Member Service",
+          "body": "The consenting participants establish a funded cooperative with actual site permission, work duties and accounts."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "charge_compost_collection": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Free Drop-Off Gains an Optional Paid Pickup",
+          "body": "Members approve a costed optional collection route. The participating household pays for actual pickup service while lawful free drop-off remains available."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Bins Stay in the Proposal",
+        "body": "The gift remains real, but the trial does not begin. No collection service or cooperative is created."
+      },
+      "present_day": {
+        "best": "If the chain and service persist in {now}, the actual site posts its sorting rules, free drop-off hours and paid pickup tariff; the account for {B} records only actual chosen pickups.",
+        "worst": "Without the cooperative or route, retain only the actual trial and its costs; do not invent public waste service or automatic gardens.",
+        "twist": "{B} gains convenient collection and gives up the money actually paid for it; the original favor cannot finance a route by itself."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "The scraps are still free. It is getting them out of my kitchen that now has a price."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "start_compost_trial requires actual site control, applicable permission, funded bins, qualified guidance, a safe feasible feedstock plan and participant consent. Track only accepted material and real work; pay actual costs from A available funds once and reject unsuitable material without unsafe instructions.",
+        "form_compost_cooperative requires A and B alive and willing, actual other members only if they exist and consent, lawful incorporation or association rules, recorded governance, funded operations, suitable capacity and signed site permission. Add compost cooperative as an organization type, not an automatically generated shop or landowner. Compost outputs exist only after actual processing and checks.",
+        "charge_compost_collection requires the actual cooperative still operates, a valid member decision, approved affordable tariff and concessions, real permitted vehicle capacity, qualified paid workers and funded operating costs. B must freely choose a feasible subscription and receive actual pickups; debit the exact fee only for the agreed service and record matching organization revenue and expenses. Free lawful drop-off remains an explicit alternative; do not make B destitute, invent dumping or claim pollution reductions. Gate B dialogue on step 3, survival and actual paid pickups."
+      ],
+      "era_notes": "Use bins, collection vehicles and recordkeeping appropriate to each event decade; no modern app or packaging rule is assumed.",
+      "why_fun": "The player can watch a neighborly favor grow large enough to need an honest price."
+    },
+    {
+      "id": "scenario-20261117-12174",
+      "kind": "scenario",
+      "title": "The Postcard from the Lake That Was Not Built",
+      "category": "uncanny",
+      "pitch": "Show a planning clerk an authentic future postcard of a proposed reservoir. It may prompt an ordinary alternatives study and a rejected project, leaving the town with a dry landscape and a stricter outdoor-watering calendar.",
+      "present_hook": {
+        "what_you_notice": "A household postcard shows a reservoir on land that was still dry in its old planning file; the original present really has that lake.",
+        "where": "the edge of town",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The reservoir proposal was awaiting its first alternatives review in {year}."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by"
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "A is the actual authorized planning clerk, not the final decision maker. B legally owns the identified garden parcel within the proposed inundation area. Original-present records must verify the actual reservoir and privately owned postcard, with permission to borrow it; the intervention baseline contains a genuine unapproved reservoir proposal. No immediate water emergency is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:show_future_reservoir_postcard",
+          "target": "A",
+          "how_it_looks": "With the source owner’s permission, show the consenting clerk and garden owner the borrowed postcard and its actual future date.",
+          "observer": "B"
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "study_reservoir_alternatives": "A"
+            }
+          ],
+          "headline": "Planning Office Commissions a Real Alternatives Study",
+          "body": "The authorized office pays for an independent study of the proposed reservoir and actual feasible alternatives. The postcard is labeled unexplained, not accepted as engineering evidence."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "reject_reservoir_plan": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Town Rejects the Reservoir Proposal",
+          "body": "The lawful decision process rejects the identified reservoir plan and approves its funded feasible supply alternative. The proposed inundation does not occur through that project."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "adopt_watering_calendar": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Dry Landscape Keeps a Summer Watering Calendar",
+          "body": "The lawful utility process adopts a supported summer outdoor-watering schedule. The garden owner keeps the uninundated parcel but loses unrestricted use of utility water outdoors."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Postcard Starts No Commissioned Study",
+        "body": "The clerk sees the postcard, but no qualifying alternatives study is commissioned. Ordinary planning continues without a promised change."
+      },
+      "present_day": {
+        "best": "If the chain and rules persist in {now}, the identified project remains canceled, the uninundated parcel has its actual current use, and the utility posts its summer watering calendar.",
+        "worst": "Without lawful rejection, the ordinary reservoir plan may proceed; without the final rule, no watering restriction is invented.",
+        "twist": "The parcel escapes this project’s inundation, while {B} accepts the real outdoor-watering limits needed by the approved alternative supply plan."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "uncanny",
+          "line": "The garden is still here. I do not know what to make of a postcard that remembers water over it."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "show_future_reservoir_postcard",
+          "does": "With its owner’s permission, carry one existing original-present reservoir postcard to consenting target A and observer B in the intervention year, show its unaltered image and actual date, log their actual viewing and single-object temporal provenance, then return it; change no planning decision, technical fact or land directly."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "show_future_reservoir_postcard borrows one actual original-present postcard with its owner’s consent and permission to show both A and B, carries it to those consenting residents and displays it without alteration. Log their actual viewing, the immutable image and date, source-branch provenance and single temporal-artifact identity; return the borrowed object through that identity after the showing. Create no copy, public exhibit, land change, imposed interpretation or technical conclusion.",
+        "study_reservoir_alternatives requires A current authority to process the genuine proposal, ordinary public authorization, a funded qualified independent commission and completed real findings. Record actual demand, rights, costs and feasible alternatives; the postcard may motivate asking but supplies no hydrology, legal permission or proof of the future.",
+        "reject_reservoir_plan requires A still authorized in the process, actual study findings supporting a viable funded alternative supply, valid public consultation and the legally competent decision. Record the one project cancellation, settle its real contracts and sunk costs, and authorize only that actual alternative plan. Never return land already lawfully sold, guarantee B perpetual ownership or cancel unrelated projects.",
+        "adopt_watering_calendar requires A still authorized, the approved alternative actually built or otherwise delivered and meeting potable and essential demand, current qualified evidence supporting conservation, the utility’s valid adoption procedure, exemptions and a lawful tariff. The rule permits utility-water garden irrigation only on two recorded designated days per week during specified summer months, with necessary safety and hardship exceptions. B must still own and use the identified garden and have freely continued its ordinary irrigation; update that service account’s schedule without inventing fines or a death. Gate B dialogue on step 3, survival, retained parcel and actual authorized knowledge of the postcard image.",
+        "Gate the uncanny after-line additionally on B actual recorded intervention-year viewing and retained memory of the image. The returned original is not silently shown again in the past or duplicated. Resimulation does not rewrite the carried image to erase its original lake, but no NPC automatically remembers the original branch."
+      ],
+      "era_notes": "Study methods, public notices and watering enforcement follow the event year; the future postcard is the only displaced artifact.",
+      "why_fun": "The lake on a little piece of paper can remain after the town decides it does not want the lake on its land."
+    }
+  ]
+}

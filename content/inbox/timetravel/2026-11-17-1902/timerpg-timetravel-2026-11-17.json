@@ -1,0 +1,630 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-11421",
+      "kind": "scenario",
+      "title": "The Swimming Lesson on the Wrong Side of Payday",
+      "category": "rescue",
+      "pitch": "Pay the shortfall for a child who wants swimming lessons. A later trained rescue may save a neighbor who eventually closes a familiar river entrance.",
+      "present_hook": {
+        "what_you_notice": "A river rescue notice names an unsuccessful attempt; the nearby informal entrance is still open.",
+        "where": "the river",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The lesson enrollment closed just before payday in {year}."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            10,
+            13
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            12,
+            16
+          ],
+          "wealth": "comfortable"
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "Baseline must contain a documented shortfall for recurring supervised lessons, A without adequate swimming skill, and a specific accidental fatal immersion of B at intervention+13. B already legally owns the identified riverbank parcel at intervention, with any required guardian administration documented; the informal entrance is revocable and a separate public route exists. Present year must be at least intervention+26."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Pay the actual approved lesson shortfall to the consenting household."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_swim_training": "A"
+            }
+          ],
+          "headline": "A Small Swimmer Passes the Final Length",
+          "body": "{A} completes supervised instruction and the assessed swimming course."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "rescue_from_immersion": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "River Rescue Ends with Two People on the Bank",
+          "body": "A trained and properly equipped {A} helps bring {B} ashore alive."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "close_private_access": "B",
+              "site": "riverbank entrance"
+            }
+          ],
+          "headline": "Owner Closes the Old River Entrance",
+          "body": "{B} closes the informal entrance on private ground. The public route remains open farther along the bank."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Lesson Money Finds No Place on the Roll",
+        "body": "The course cannot enroll {A}; the gift remains with the household and the later rescue is not promised."
+      },
+      "present_day": {
+        "best": "If the full chain survives to {now}, the private river entrance has a closed gate and the archive records the successful rescue of {B}.",
+        "worst": "Without the rescue effect, the independently scheduled baseline accident can still kill {B}; no gate closure is claimed.",
+        "twist": "The rescued landowner closes the private entrance, taking away a convenient walk that other residents used with permission."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I am grateful for the bank beneath my feet. I still cannot bear people using that entrance."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct living residents at intervention; recheck survival, current age, consent, location, resources and all effect prerequisites at execution. Select one elapsed year per step uniformly with a stable seed/scenario/resident-IDs/intervention-year/step/timing key. Use a separate independent uniform success key for each step; later steps require the preceding step to have committed. Apply each effect list atomically once, reserving people, objects, funds and sites; resolve same-year conflicts in stable scenario-ID order after ordinary mortality, before ordinary discretionary events. An invalid step stops descendants without reroll or partial effects; retain earlier changes and ordinary simulation. fails is the complementary outcome of the first valid success roll, never another independent roll; invalid eligibility silently cancels the chain. Direct intervention effects occur once and are never repeated by ripples. Present descriptions require their recorded effects and current surviving state; otherwise describe only the realized prefix. No new people, descendants or marriages are implied.",
+        "complete_swim_training records only the funded, age-appropriate course actually attended and passed, not rescue qualification. Consume the real course fee once from gift funds; unused funds remain. At step 2 A must independently have current rescue training, safe conditions and actual equipment; never teach dangerous rescue technique in text.",
+        "rescue_from_immersion replaces only the identified baseline fatal-immersion event for B at +13 with its nonfatal rescue outcome, atomically consuming that event so mortality cannot double-apply. Require B actually exposed to that event and A present, qualified and able to help. On failure leave ordinary accident resolution intact; do not randomly invent an accident.",
+        "close_private_access requires B alive, resident and still the legal owner, the entrance genuinely private and revocable, and no public easement. Pay actual gate cost from available B funds and set only this access edge closed. Do not close the public route or imply fewer future accidents. Gate B dialogue on step 3, survival and remembered rescue.",
+        "Exception to the common mortality order: step 2 executes immediately before the specifically identified immersion event, with B alive at its start. Resolve its one keyed rescue roll before that event can apply death. Other earlier mortality still cancels the rescue; a failed rescue leaves that event to ordinary resolution. Lesson completion must remain a prerequisite for A later training opportunity; require documented ordinary progression from that course to current rescue qualification, not an unrelated preexisting skill."
+      ],
+      "era_notes": "Use period-appropriate supervised lessons and equipment; qualification standards follow the event year.",
+      "why_fun": "A modest lesson bill can change who is alive to make an unpopular decision."
+    },
+    {
+      "id": "scenario-20261117-11422",
+      "kind": "scenario",
+      "title": "The Perfect Game with One Extra Pin",
+      "category": "rivalry",
+      "pitch": "Spread the verified correction to a bowling record. The disappointed record holder may become a patient coach, then give up the trophy for a different kind of scoreboard.",
+      "present_hook": {
+        "what_you_notice": "A trophy case credits a perfect game, but its surviving score sheet contains a documented scoring error.",
+        "where": "the bowling alley",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The original sheet and the league rules disagree about the last frame."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "reputation": "high",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            18,
+            25
+          ],
+          "wealth": "poor"
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "A is the actual record holder and owns the trophy outright; B is an actual interested novice. Require an independently verifiable error, no intentional cheating, an authorized correction procedure, and baseline no correction or coaching arrangement. Present must allow 26 elapsed years."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": -0.2,
+          "how_it_looks": "Repeat the documented scoring correction without alleging dishonesty."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "correct_bowling_record": "A"
+            }
+          ],
+          "headline": "League Corrects a Celebrated Score",
+          "body": "The league revises the recorded score after reviewing the original sheet. No finding of dishonesty is made."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "start_bowling_coaching": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Old Bowler Makes Room for a Beginner",
+          "body": "{A} begins an agreed series of lessons with {B}. Each completed session costs the coach real practice time."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "repurpose_trophy": "A",
+              "purpose": "shared practice scoreboard"
+            }
+          ],
+          "headline": "Trophy Base Becomes a Place to Count Progress",
+          "body": "The owner donates the old trophy base for a shared practice scoreboard. Its original presentation cannot be put back together."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "An Old Score Stays on the Board",
+        "body": "Public talk alone does not change the official record. The reputation harm still happened."
+      },
+      "present_day": {
+        "best": "After the full chain, the bowling alley in {now} displays a practice scoreboard made from the surrendered trophy base, and its archive lists the corrected game.",
+        "worst": "If official correction fails, the old record remains; the rumor still harms {A}, and no coaching or scoreboard is promised.",
+        "twist": "Other bowlers gain a shared board, while {A} permanently loses the intact keepsake and gives up practice hours to teach."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I never added that pin. People repeated the correction as if I had."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct living residents at intervention; recheck survival, current age, consent, location, resources and all effect prerequisites at execution. Select one elapsed year per step uniformly with a stable seed/scenario/resident-IDs/intervention-year/step/timing key. Use a separate independent uniform success key for each step; later steps require the preceding step to have committed. Apply each effect list atomically once, reserving people, objects, funds and sites; resolve same-year conflicts in stable scenario-ID order after ordinary mortality, before ordinary discretionary events. An invalid step stops descendants without reroll or partial effects; retain earlier changes and ordinary simulation. fails is the complementary outcome of the first valid success roll, never another independent roll; invalid eligibility silently cancels the chain. Direct intervention effects occur once and are never repeated by ripples. Present descriptions require their recorded effects and current surviving state; otherwise describe only the realized prefix. No new people, descendants or marriages are implied.",
+        "Add bowling alley as an existing baseline business kind; bind its actual consenting adult proprietor through the site, not as a fifth person placeholder. No scenario founds or closes it.",
+        "correct_bowling_record changes only the identified authorized league record to the score independently computed under contemporary rules; retain an audit trail and do not add another reputation penalty.",
+        "start_bowling_coaching records a consensual recurring arrangement only if A has verified skill and B is still a novice seeking instruction. Reserve affordable lane access, compatible hours and a fixed agreed number of sessions; debit each real session from A practice time. No automatic championship, employment or friendship results.",
+        "repurpose_trophy requires A still owns the actual object and freely consents, plus alley permission, a funded craft quote and no heritage restriction. Consume the intact trophy object once, retain the actual base as the new scoreboard and debit real fabrication costs from the consenting donor budget. Gate A dialogue on step 1 and survival; the line is opinion about remembered talk, not proof of anyone lying."
+      ],
+      "era_notes": "Handwritten sheets precede electronic scoring; retain the authentic source for that year. Coaching may cross age groups without creating a senior league automatically.",
+      "why_fun": "You can correct a number without controlling what the town thinks it means."
+    },
+    {
+      "id": "scenario-20261117-11423",
+      "kind": "scenario",
+      "title": "The Door That Became an Even Number",
+      "category": "place",
+      "pitch": "Submit a documented complaint about duplicate house numbers. A better address map may eventually reach emergency dispatch, while a shopkeeper pays to replace stationery that suddenly points nowhere official.",
+      "present_hook": {
+        "what_you_notice": "Two occupied properties share a number in the address register; a returned parcel bears both routing marks.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The numbering complaint was prepared in {year}, but nobody filed it."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            45
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "dress shop"
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            20,
+            30
+          ],
+          "trait": {
+            "diligence": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1975,
+          1995
+        ],
+        "notes": "A owns the affected shop and its real stock of printed stationery. B is the actual address clerk, not assumed to hold elected power. Both duplicate addresses, returned parcel and unfiled complaint must exist. No automatic emergency, death or building move is implied. Present allows 26 years. Require the affected existing number to be odd, and the clerk to document a feasible adopted implementation timetable for the later transition."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:file_address_complaint",
+          "target": "B",
+          "how_it_looks": "Hand the clerk the genuine duplicate-address documentation and request review."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "approve_address_plan": "B"
+            }
+          ],
+          "headline": "Duplicate Numbers Finally Reach the Public Register",
+          "body": "The authorized review adopts a surveyed correction plan. Occupants receive the recorded addresses before implementation."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "renumber_property": "A",
+              "parity": "even"
+            }
+          ],
+          "headline": "An Odd Old Address Receives an Even Number",
+          "body": "The dress shop receives its assigned even number. Its owner pays to replace unusable old stationery after the transition."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "sync_dispatch_addresses": "B"
+            }
+          ],
+          "headline": "Dispatch Maps Catch Up with the Door Numbers",
+          "body": "The emergency dispatch directory passes its address-matching checks against the corrected register."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Complaint Stays in the Pending Tray",
+        "body": "The documented complaint remains on file, but no correction plan is adopted."
+      },
+      "present_day": {
+        "best": "With the full chain and the shop still present, its door in {now} bears the assigned even number and dispatch maps match it; the retired stationery appears only in the shop records.",
+        "worst": "If the plan fails, both old numbers remain in the register; if only later steps fail, display the actual register and map mismatch without inventing an emergency.",
+        "twist": "A clearer town map costs {A} the real replacement value of obsolete stationery and the familiar address printed on it."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "The number looks perfectly ordinary now. You should have seen how many envelopes I had left."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "file_address_complaint",
+          "does": "Create one dated municipal review request attached to verified duplicate address records, submitted to the bound authorized clerk; do not alter addresses or guarantee review approval."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct living residents at intervention; recheck survival, current age, consent, location, resources and all effect prerequisites at execution. Select one elapsed year per step uniformly with a stable seed/scenario/resident-IDs/intervention-year/step/timing key. Use a separate independent uniform success key for each step; later steps require the preceding step to have committed. Apply each effect list atomically once, reserving people, objects, funds and sites; resolve same-year conflicts in stable scenario-ID order after ordinary mortality, before ordinary discretionary events. An invalid step stops descendants without reroll or partial effects; retain earlier changes and ordinary simulation. fails is the complementary outcome of the first valid success roll, never another independent roll; invalid eligibility silently cancels the chain. Direct intervention effects occur once and are never repeated by ripples. Present descriptions require their recorded effects and current surviving state; otherwise describe only the realized prefix. No new people, descendants or marriages are implied.",
+        "file_address_complaint creates one dated review request linked to the genuine parcel and registry entries. It changes no numbers, reputation or official decision directly.",
+        "approve_address_plan requires B still authorized as clerk, a funded survey, actual affected occupants notified, and approval by the actual competent authority through the normal hearing process. Reserve a unique nonconflicting even number for A property; the plan cannot create a road, building or municipal authority.",
+        "renumber_property requires the adopted plan, unchanged site identity, A ownership and a lawful implementation order. Install funded number signage, publish actual cross-references, and give the required forwarding grace period. On expiry consume only A documented obsolete stationery stock and charge its actual affordable replacement invoice; cancel if the full transition cannot be funded. Never charge a percentage as well as the invoice.",
+        "sync_dispatch_addresses requires B still employed with relevant authority, the renumbering actually committed, dispatch agency approval and funded data conversion. Update geocoded address records only after independent matching tests; record no promised faster arrival or saved life. No alias retirement is allowed before required forwarding terms expire. Gate A dialogue on step 2, survival, shop ownership and paid stationery replacement."
+      ],
+      "era_notes": "Use paper route books in earlier years and appropriate computer records in later ones; preserve historical address cross-references.",
+      "why_fun": "The street stays put while one door acquires a different history."
+    },
+    {
+      "id": "scenario-20261117-11424",
+      "kind": "scenario",
+      "title": "The Stamp Album That Bought a Smaller Home",
+      "category": "money",
+      "pitch": "Invest in a bank vault service that a collector has already asked to use. A well-kept collection may eventually buy a smaller home, leaving its owner with security and an empty shelf.",
+      "present_hook": {
+        "what_you_notice": "An archived household-clearance inventory lists a stamp album damaged in damp storage, beside a rejected vault-service request.",
+        "where": "the bank",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The request included the album inventory and a storage price the bank could not yet offer."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bank"
+          ]
+        },
+        "B": {
+          "age": [
+            20,
+            30
+          ],
+          "wealth": "getting_by"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "Bind bank_vault to the adult A-owned bank and album to B actual documented collection. Baseline has the authentic declined request and specific later damp-storage damage, not a promise that stamps are valuable. B seeks a smaller home by step 3. Present allows 26 years."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "bank_vault",
+          "amount": "large",
+          "how_it_looks": "Fund the bank business through its normal investment mechanism for the costed secure-storage service."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "store_collection": [
+                "B",
+                "bank_vault"
+              ]
+            }
+          ],
+          "headline": "An Album Finds a Dry Place to Wait",
+          "body": "{B} signs the bank storage agreement and deposits the inventoried album. Storage fees remain the collector's responsibility."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "appraise_collection": "B"
+            }
+          ],
+          "headline": "An Old Album Receives a Current Valuation",
+          "body": "A qualified independent examiner records the collection's condition and current market evidence. The valuation is no promise of a sale."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "sell_collection_for_home": "B"
+            }
+          ],
+          "headline": "A Smaller Home Costs an Entire Collection",
+          "body": "{B} sells the album to a funded buyer and completes the purchase of a smaller home. The shelf where the album stood is empty."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Vault Service Does Not Open",
+        "body": "The bank cannot launch the service on these terms. The investment keeps its normal financial outcome; the album remains exposed to the baseline storage conditions."
+      },
+      "present_day": {
+        "best": "After the full chain, {B} owns and occupies the purchased smaller home in {now}; its shelf has no album, and the bank record shows its authorized withdrawal and sale.",
+        "worst": "Without storage, ordinary damp damage may still occur; without the final transaction, do not show a new home or a missing album merely because an appraisal exists.",
+        "twist": "The home is paid for by surrendering the actual collection. {B} cannot keep the album or spend its sale proceeds a second time."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "The roof is mine. So is the empty space where the album used to sit."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct living residents at intervention; recheck survival, current age, consent, location, resources and all effect prerequisites at execution. Select one elapsed year per step uniformly with a stable seed/scenario/resident-IDs/intervention-year/step/timing key. Use a separate independent uniform success key for each step; later steps require the preceding step to have committed. Apply each effect list atomically once, reserving people, objects, funds and sites; resolve same-year conflicts in stable scenario-ID order after ordinary mortality, before ordinary discretionary events. An invalid step stops descendants without reroll or partial effects; retain earlier changes and ordinary simulation. fails is the complementary outcome of the first valid success roll, never another independent roll; invalid eligibility silently cancels the chain. Direct intervention effects occur once and are never repeated by ripples. Present descriptions require their recorded effects and current surviving state; otherwise describe only the realized prefix. No new people, descendants or marriages are implied.",
+        "bank_vault is the bank business owned by A, not a new business kind or separate owner; invest is applied only to that business once. store_collection requires funded inspected secure dry storage, bank permission, B legal ownership, consent and an affordable contract. Track the physical album and real ongoing fees. Suppress only the identified household damp event while the album actually remains safely stored; bank failures and later hazards resolve normally.",
+        "appraise_collection requires the actual intact album, authenticated provenance, B consent, a qualified independent examiner and a paid invoice. Record evidence-based value without inventing rarity, guaranteed appreciation, named real stamps or buyers.",
+        "sell_collection_for_home is one escrowed transaction: require B survives, still owns the album, a real willing buyer with funds, actual net sale proceeds plus B available savings sufficient for a specific smaller habitable home offered by its consenting owner, legal clear title, paid transaction costs and no displacement of an unwilling occupant. Transfer the single album and home titles, settle actual payments and move B into that home within town. Cancel all transfers if any part fails; never create wealth by a separate wealth effect. Require B ordinary former housing disposition and moving costs explicitly settled without silently retaining sale proceeds twice.",
+        "After A retirement, the named bank may operate under its actual successor; require its continuing licensed storage service and valid B contract at every relevant step. Do not immortalize the bank owner. Gate B dialogue on step 3, survival, continued home ownership and actual album sale."
+      ],
+      "era_notes": "Vault agreements and appraisals use the records available in their event year; no online auction language before it fits.",
+      "why_fun": "A saved possession can become a home, but it cannot remain a possession too."
+    }
+  ]
+}

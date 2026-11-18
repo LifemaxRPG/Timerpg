@@ -1,0 +1,639 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-12011",
+      "kind": "scenario",
+      "title": "The Mayor Who Made Another Term Impossible",
+      "category": "politics",
+      "pitch": "Give deserved public credit to a reliable volunteer. A later mayor may support a term limit that opens the next race while making the incumbent ineligible to run again.",
+      "present_hook": {
+        "what_you_notice": "A clipping credits an unnamed helper with restoring the school’s damaged equipment; an abandoned candidacy form sits in the same file.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The verified repair work in {year} never reached the public meeting."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "reputation": "mid",
+          "trait": {
+            "diligence": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A actually performed the documented volunteer work, is legally eligible for mayor and has an unfiled interest in running. The town has a scheduled election at intervention+2, no existing term limit barring A, and a lawful process for adopting a prospective limit. No opponent or electoral result is invented."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": 0.4,
+          "how_it_looks": "Spread the verified account of the volunteer’s actual repair work."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            1
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "run_for_mayor": "A"
+            }
+          ],
+          "headline": "A Volunteer Files for the Next Mayoral Race",
+          "body": "{A} files a valid candidacy for the scheduled election."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            2,
+            2
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "win_election": "A"
+            }
+          ],
+          "headline": "A Familiar Volunteer Wins the Mayor’s Office",
+          "body": "Certified results give {A} the mayor’s office for the ordinary elected term."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "adopt_mayoral_term_limit": "A"
+            }
+          ],
+          "headline": "A Mayor Supports a Limit That Applies at Home",
+          "body": "The lawful charter process adopts a prospective term limit with the incumbent’s support. Its terms bar the incumbent from the next race."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Volunteer Declines to File",
+        "body": "The public credit is real, but {A} declines the candidacy. No election win is promised."
+      },
+      "present_day": {
+        "best": "If the chain and law persist in {now}, the public election notice carries the adopted eligibility rule and records why {A} cannot contest the specified next race.",
+        "worst": "Without a certified win, no mayoral portrait or policy is created; if the last step fails, retain the actual charter.",
+        "twist": "Future candidates gain an open race, while {A} gives up the legal option to seek another term under the adopted rule."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I wanted the office to outlast me. That is easier to say before the next filing deadline."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "run_for_mayor requires current eligibility, consent, actual filing paperwork, fees or signatures and a valid filing window for the +2 election. Praise is applied only once and does not itself create a candidacy.",
+        "win_election requires that valid candidacy still active, A alive and eligible, an actual scheduled contested or uncontested election, real viable support, voting and certification. The keyed chance is conditional scenario selection within the election resolver; record one result, never an independent second winner for the same office.",
+        "adopt_mayoral_term_limit requires A again or still legally serving as mayor at that later year through actual intervening elections, no guaranteed continuous tenure, and enough recorded prior service for the proposed rule to bar the next race. Require real charter authority, valid council action and any required public vote, notice, effective date and lawful treatment of prior terms. A voluntarily supports it but cannot enact it alone. Update the exact term-count rule and eligibility ledger; do not remove the incumbent early, choose a successor or suppress an already protected candidacy. Gate A dialogue on step 3, survival and remembered support. The proposed rule is precisely a lifetime cap of two completed elected mayoral terms, counted from the recorded service ledger, with the current lawful term allowed to finish. It governs only future filing windows after lawful adoption and notice; require that counting prior completed service is legally permitted and A already has at least two completed terms. Do not count an incomplete appointed term as a completed elected term."
+      ],
+      "era_notes": "Use the actual local charter procedure and campaign media of the event year; no national term-limit rule is assumed.",
+      "why_fun": "A reputation boost can eventually put someone in a position to limit their own power."
+    },
+    {
+      "id": "scenario-20261117-12012",
+      "kind": "scenario",
+      "title": "The Bottle That Could Go Back to Either Counter",
+      "category": "business",
+      "pitch": "Invest in an ice cream parlor’s returnable syrup-bottle trial. A shared return system may make customers’ errands easier, while ending the small custom-label order a local worker depended on.",
+      "present_hook": {
+        "what_you_notice": "A parlor file contains a priced bottle-return proposal and an unsigned custom-label quote.",
+        "where": "the ice cream parlor",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The trial in {year} had customers waiting, but no capital for washing and return stock."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "ice cream parlor"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by",
+          "owns_shop": true,
+          "shop_kind": [
+            "print shop"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "Bind parlor to A actual business. B is an existing qualified label printer offering the genuine quote, with real tools and lawful work status. Baseline has bottled syrup demand and no return trial. Other counters exist only if actual willing businesses join later; do not create them from text."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "parlor",
+          "amount": "large",
+          "how_it_looks": "Invest ordinary business capital in the costed food-safe return and washing system."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "launch_bottle_returns": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Parlor Puts a Deposit on Its Syrup Bottles",
+          "body": "The shop begins the approved bottle-return service and pays for the actual custom labels it orders."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "share_bottle_returns": "A"
+            }
+          ],
+          "headline": "Two Counters Agree to Take the Same Empties",
+          "body": "The parlor joins an actual willing counter in a funded return-clearing agreement. Each collected deposit remains an obligation."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "standardize_return_labels": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Shared Bottle Pool Retires the Custom Label",
+          "body": "The participating counters adopt their approved common label. The parlor ends new custom-label orders after honoring existing commitments."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Return Trial Stays on Paper",
+        "body": "The investment follows its ordinary business result, but no deposit account, bottle service or label order is created."
+      },
+      "present_day": {
+        "best": "If the chain and system persist, participating counters in {now} display the common return notice and the same actual clearing terms; the parlor no longer orders its old custom label.",
+        "worst": "Without a sharing agreement, no second return counter appears; without standardization, only the actual existing label contracts remain.",
+        "twist": "Customers gain a convenient second return point, while {B} loses the parlor’s future custom-label orders."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "They made the bottle easier to return. They also made my little label unnecessary."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "launch_bottle_returns requires A ownership, current food-safety approval, tested suitable bottles, funded washing and storage, actual lawful deposit terms and customer purchases. Track each physical bottle, stock, operating costs and refundable deposit liability separately from revenue; B gets paid only for delivered labels under a genuine contract.",
+        "share_bottle_returns requires the parlor still operating, another real willing legal business with compatible safe return handling, signed clearing terms, actual reserves and a funded settlement process. Record that specific participating counter and transfer the exact deposit funds against returned bottles; no duplicate refund or free second shop is created.",
+        "standardize_return_labels requires the actual pool still operating, all affected owners’ consent, compliant compatible labels and actual procurement, transition and relabeling costs. Honor B committed orders, lawful notice and any cancellation compensation; cancel only future uncommitted custom-label work. Eligibility requires B still actually supplies that work, so no imaginary lost job is added. Keep old bottles redeemable under existing promises and law; do not erase deposits, confiscate reserves or invent sanitation benefits. Gate B dialogue on step 3, survival and actual lost future orders.",
+        "Add print shop as an existing business kind. Bind the actual label-producing print shop to adult owner B at intervention and recheck B ownership and production capacity for its paid orders; no new printing business or employee is created by the return scheme."
+      ],
+      "era_notes": "Use period-appropriate safe glass handling, paper ledgers or later supported records; deposit money is never treated as profit.",
+      "why_fun": "One small convenience at the counter can move decades of tiny payments away from a neighbor."
+    },
+    {
+      "id": "scenario-20261117-12013",
+      "kind": "scenario",
+      "title": "The Family Album That Stayed in One Piece",
+      "category": "family",
+      "pitch": "Help a parent afford duplicate family photographs. The marriage may still end, but an adult child may later assemble an intact album from memories both parents voluntarily release.",
+      "present_hook": {
+        "what_you_notice": "Two household inventories divide a family album into separate bundles; an old print-order estimate was never paid.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "In {year}, the household could not afford the duplicate prints it had already requested."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "married": true,
+          "has_children": true,
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "married": true,
+          "relation": "spouses"
+        },
+        "C": {
+          "age": [
+            8,
+            12
+          ],
+          "relation": "parent_child"
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "A and B are spouses; C is their existing child, with A and B the parents. Require verified family-photo ownership, an actual duplicate-print shortfall, existing marital discord and a baseline later separation that leaves the album divided. Photographs do not cause divorce or create the child. No affair or new spouse is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the parent the real shortfall for the household’s requested print order."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "duplicate_family_prints": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Family Print Order Finally Comes Home",
+          "body": "The household receives the actual authorized duplicate photographs. One image can now be kept in more than one home."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "divorce": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Household Records an Agreed Separation",
+          "body": "The spouses complete their actual legal divorce and an agreed division of the photo materials. Their existing child’s parentage does not change."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "assemble_child_album": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "An Adult Child Puts the Album Back Together",
+          "body": "With both parents’ permission, {C} acquires the identified original prints and binds them into one privately owned album. The parents retain only the agreed duplicates."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Extra Prints Are Never Ordered",
+        "body": "The gift remains real, but the print order is not completed. The album still follows the household’s ordinary later decisions."
+      },
+      "present_day": {
+        "best": "If the full chain and object survive to {now}, the adult child owns the intact private album and each parent retains only the actual agreed duplicates.",
+        "worst": "If divorce or assembly fails, show the actual marriage, household and print ownership; no reconciliation, new family or public exhibition appears.",
+        "twist": "The child gains an intact physical keepsake, while both parents permanently give up the original prints they once kept for themselves."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "grateful",
+          "line": "They did not have to live in the same house for me to keep them on the same page."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "duplicate_family_prints requires lawful ownership or copying permission, consent covering identifiable family subjects, actual available originals or negatives, a paid real print invoice and completed printing. Create only the ordered copies, each with provenance and agreed ownership. No sale, publication, new photograph or privacy breach follows.",
+        "divorce requires A and B still married to each other, independently choosing separation under actual relationship facts and legal eligibility, with funded lawful proceedings and an actual property agreement. Complete that divorce once, preserve C existing parentage, and settle each person’s real housing and costs through ordinary rules. The gift and photo duplication never force the marital decision; without their completed print order this scenario does not schedule its divorce step.",
+        "assemble_child_album requires C alive and adult, both parents alive, clear ownership of every selected original, voluntary gifts with no pressure, actual funded binding, suitable originals still present and explicit custody transfers. Move rather than copy those originals into the single C-owned album; parents keep only identified duplicates they actually own. Record the parents’ loss of original title and C gain atomically. Gate C dialogue on step 3, survival, actual album ownership and knowledge of the parents’ real separate households."
+      ],
+      "era_notes": "Photographic formats, print availability and divorce procedure follow the event year; no digital restoration or cloud album is assumed.",
+      "why_fun": "A changed past can preserve a family object without promising to preserve the marriage."
+    },
+    {
+      "id": "scenario-20261117-12014",
+      "kind": "scenario",
+      "title": "The School Mural Behind the Clear Wall",
+      "category": "rescue",
+      "pitch": "Report a documented concern about flaking paint on a school mural. A properly assessed hazard may be contained for years, then removed when preserving the original painted surface is no longer safe.",
+      "present_hook": {
+        "what_you_notice": "A school maintenance file contains a missed paint-testing request beside the still-exposed old mural.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The request in {year} identified flaking paint within students’ reach; it did not contain a laboratory result."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "has_children": true
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A is a parent with a real authorized testing concern; B is the actual mural artist, with documented rights and no control over the school by assumption. Bind an existing school-owned mural, accessible flaking paint, and an unfulfilled test request. No illness, poisoning or medical rescue is asserted without simulation facts."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:report_paint_concern",
+          "target": "A",
+          "how_it_looks": "Submit the parent’s genuine maintenance concern through the school’s authorized process."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            1
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "test_and_isolate_mural": "A"
+            }
+          ],
+          "headline": "School Tests an Old Painted Surface",
+          "body": "Accredited testing identifies the actual hazardous coating. The school immediately restricts access under the qualified response plan."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            2,
+            4
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "enclose_school_mural": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Old Mural Returns Behind a Clear Barrier",
+          "body": "Qualified workers complete the approved protective enclosure. The mural can be viewed again under the actual clearance conditions."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "remove_hazardous_mural": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A School Retires the Original Painted Surface",
+          "body": "A later qualified assessment finds the original surface cannot safely remain under the funded plan. The school completes approved removal and leaves a plain repaired wall."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Report Does Not Complete Its Testing",
+        "body": "The concern remains on file, but no qualifying completed test is recorded. No safety clearance or illness outcome is invented."
+      },
+      "present_day": {
+        "best": "If the whole chain remains in force in {now}, the school has the safely repaired plain wall and a maintenance record of the original mural’s approved removal.",
+        "worst": "If testing or later work fails, display only actual restrictions and completed work; never show an unsafe room reopened by a failed step.",
+        "twist": "Students gain the verified safe wall, while {B} loses the original artwork’s physical surface even though its authorship remains in the records."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I am glad the wall is safe. I still know exactly where the blue used to be."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "report_paint_concern",
+          "does": "With the bound parent’s authorization, submit one documented school-maintenance concern about the existing mural and request qualified paint assessment; create only the dated report, without diagnosis, clearance or health changes."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "report_paint_concern creates one dated authorized maintenance report linked to real observations. It diagnoses no hazard, creates no laboratory result and changes no person’s health.",
+        "test_and_isolate_mural requires actual school authorization, funded accredited sampling and a genuine result exceeding the applicable hazard threshold. If the result is negative this hazardous-coating story is ineligible. Record the result and immediately implement the qualified protective access restrictions; do not leave a known exposure open while waiting for step 2.",
+        "enclose_school_mural requires the school’s actual approval, B rights handled under applicable law, a qualified plan proving a transparent enclosure feasible for this surface, paid trained contractors, permits where needed, proper cleaning and independent clearance. Record one installed barrier, its actual inspection and maintenance obligations and only the permitted viewing access. Ordinary safety failures can close access immediately without waiting for the third ripple.",
+        "remove_hazardous_mural requires both residents alive, the school still controls the mural, a real current professional assessment that the enclosure or underlying surface cannot safely continue under a viable preservation plan, lawful rights review and notice to B, approval and funded qualified removal, waste handling, repairs and clearance. Remove only the original hazardous surface and its enclosure, leaving one repaired unpainted wall; do not create a replacement image or claim a medical cure. Gate B dialogue on step 3, survival and actual awareness of the lost original."
+      ],
+      "era_notes": "Use the actual era’s accredited testing and legally required hazard controls; the player only reports the concern and performs no hazardous repair work.",
+      "why_fun": "Keeping something visible for a generation can still end with having to let its original surface go."
+    }
+  ]
+}

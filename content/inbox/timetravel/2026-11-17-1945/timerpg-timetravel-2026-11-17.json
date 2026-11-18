@@ -1,0 +1,633 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-11851",
+      "kind": "scenario",
+      "title": "The Driving Lesson at Fifty",
+      "category": "family",
+      "pitch": "Help an older beginner afford driving lessons. The resulting independence may become a regular lift for a neighbor, then end with the driver choosing to give up the keys.",
+      "present_hook": {
+        "what_you_notice": "An unused lesson voucher sits in a household file, beside a note about always needing someone else’s ride.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The beginner in {year} could afford the permit fee or the lessons, but not both."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            50,
+            50
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "wealth": "poor",
+          "relation": "friends"
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "B is A friend. Baseline A wants lessons, has never been licensed and has the genuine affordable fee shortfall. B is an existing nondriver seeking a regular lawful lift. No disability, collision or loss of mental capacity is assumed. A reaches 73–75 by the final step, and must actually survive it."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the willing beginner the missing lesson and assessment money."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "qualify_driver": "A"
+            }
+          ],
+          "headline": "A New Driver Takes the Long Way Home",
+          "body": "{A} completes the actual lessons and passes the required driving assessment."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "schedule_neighbor_lifts": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Weekly Lift Becomes a Standing Arrangement",
+          "body": "The friends agree on a regular lift in the driver’s actual insured vehicle. Fuel and maintenance still cost money."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "retire_neighbor_driver": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Driver Gives Up the Keys on Purpose",
+          "body": "The driver voluntarily ends the lift arrangement and surrenders the license under the applicable procedure. The passenger must find another arrangement."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Lessons Do Not Become a Licence",
+        "body": "The gift remains real, but no passing assessment is recorded. No later driving service is promised."
+      },
+      "present_day": {
+        "best": "If the whole chain persists in {now}, the household record shows the surrendered license and the neighbors’ ride calendar has ended.",
+        "worst": "If the chain stops, retain actual qualifications or completed rides only; no accident, vehicle sale or license surrender is invented.",
+        "twist": "{A} gains years of independence and then chooses to stop, while {B} loses a useful regular lift."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I waited fifty years to hold those keys. I am glad putting them down was my decision too."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "qualify_driver consumes only real lesson, permit and assessment costs from available funds; require attendance, legal eligibility, actual passed tests and issued license. Do not confer a vehicle or guarantee later competence.",
+        "schedule_neighbor_lifts requires A still licensed and fit under actual assessment rules, ownership or lawful use of a real maintained insured vehicle, both residents’ consent, feasible routes and available funds for each trip. Record actual completed lifts and expenses, with no automatic taxi business or fare income.",
+        "retire_neighbor_driver requires an actual voluntary surrender decision by A and the active lift arrangement; cancel future lifts and follow the real license-surrender process. Do not infer incapacity merely from age. Require a funded feasible transport plan for A already agreed through ordinary options, and advance notice to B; do not invent a replacement ride for B. Gate A dialogue on step 3, survival and remembered voluntary decisions."
+      ],
+      "era_notes": "Lessons, license procedures and vehicle access fit the event decade; the older beginner is never treated as a joke.",
+      "why_fun": "The same keys can mean independence when acquired and independence when surrendered."
+    },
+    {
+      "id": "scenario-20261117-11852",
+      "kind": "scenario",
+      "title": "The Violin with the Paid-Off Rental Tag",
+      "category": "money",
+      "pitch": "Invest in a music store’s carefully priced rent-to-own trial. A young borrower may become the instrument’s owner, then give it away decades later instead of keeping it as a family keepsake.",
+      "present_hook": {
+        "what_you_notice": "A rejected rental application is tucked beneath a priced violin in the music-store records.",
+        "where": "the music store",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The shop had a willing young player in {year}, but could not finance the rental stock."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "music store"
+          ]
+        },
+        "B": {
+          "age": [
+            14,
+            15
+          ],
+          "wealth": "poor"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "Bind music_shop to A actual business and violin to its documented single saleable instrument. B has real interest and an approved affordable guardian-supported application. Baseline contains the rejected trial and no rental or later B ownership. Never assume talent, descendants or a career."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "music_shop",
+          "amount": "large",
+          "how_it_looks": "Invest ordinary business capital in the costed instrument rental trial."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "rent_violin": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Shop Instrument Leaves on a Payment Plan",
+          "body": "The shop supplies the inventoried violin under an affordable signed rent-to-own agreement."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            4,
+            6
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "complete_violin_purchase": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "The Last Payment Changes the Owner’s Name",
+          "body": "The account’s actual remaining balance is paid. Title to the same violin passes to {B} under the agreement."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "donate_violin": "B"
+            }
+          ],
+          "headline": "An Old Rental Tag Goes to the School with Its Violin",
+          "body": "{B} donates the instrument to an approved school lending collection. The old rental tag accompanies it only if it survived."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Rental Trial Does Not Open",
+        "body": "The investment has its ordinary business result, but no rental contract is created and the violin stays with its actual owner."
+      },
+      "present_day": {
+        "best": "After the full chain, the school collection in {now} lists the same violin under its actual custody and lending status; {B} no longer owns it.",
+        "worst": "Without completed payment, no B title is assumed; without donation, no school instrument is promised.",
+        "twist": "Another learner gains access to an actual instrument, while {B} relinquishes both possession and the right to keep or sell it."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "The payments felt endless. Giving it away took one signature and rather longer than I expected."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "rent_violin requires the operating shop, legal title to the specific instrument, actual working capital, a lawful signed agreement, guardian consent where needed and affordable terms. Track wear, insurance if required, actual paid installments and the original instrument identity; create no immediate ownership or free income.",
+        "complete_violin_purchase requires both residents alive, the same valid account and a strictly positive remaining balance actually due at the selected year, affordable earned B funds, all prior payments accounted for and A still authorized to transfer shop title. Transfer title only against the exact final settlement; no arbitrary wealth effect or second instrument is added. Earlier ordinary payoff makes this payoff story ineligible.",
+        "donate_violin requires B actual clear title, informed voluntary consent, an existing willing school music-lending program, safe playable condition, actual funded transport and any needed repair, and a written custody transfer. Create only the one donated instrument entry; subsequent loans require actual borrowers and ordinary program rules. No tax windfall or child is created. Gate B dialogue on step 3, survival and remembered completed purchase."
+      ],
+      "era_notes": "Use actual period-appropriate installment terms and records; no modern subscription app is implied.",
+      "why_fun": "A long purchase can end with a gift whose cost is measured in something other than money."
+    },
+    {
+      "id": "scenario-20261117-11853",
+      "kind": "scenario",
+      "title": "The Carnival That Charged for the Missing Gift",
+      "category": "rivalry",
+      "pitch": "Spread a false accusation about an honest donor to break a comfortable funding arrangement. A young organizer may build a paid carnival in its place, while families pay at the gate for a tradition that used to be free.",
+      "present_hook": {
+        "what_you_notice": "The annual fair’s old account book lists one willing donor covering its free admission and an unfunded proposal for ticket sales.",
+        "where": "the fairground",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "In {year}, the organizer had a priced alternative but no reason to replace the promised gift."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            40,
+            50
+          ],
+          "wealth": "wealthy",
+          "reputation": "high"
+        },
+        "B": {
+          "age": [
+            18,
+            25
+          ],
+          "trait": {
+            "ambition": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1950,
+          1995
+        ],
+        "notes": "A is an honest donor; the accusation is explicitly false, never a generated fraud fact. B is the actual authorized organizer. Bind an existing permitted fairground, a freely revocable future donation offer and real alternative budget. No paid pledge, contract or restricted fund may be confiscated."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": -0.4,
+          "how_it_looks": "Falsely claim the honest donor takes personal money from the fair’s gifts."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "withdraw_fair_offer": "A"
+            }
+          ],
+          "headline": "A Donor Withdraws an Unpaid Offer",
+          "body": "After the damaging gossip, {A} voluntarily withdraws the still-revocable offer. The Gazette records no finding that the accusation was true."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "start_ticketed_fair": "B"
+            }
+          ],
+          "headline": "Organizers Try a Fair with a Ticket Price",
+          "body": "A funded, permitted fair opens under the adopted admission plan. Tickets replace only the funding actually collected."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "build": "fairground ticket booth",
+              "where": "the edge of town"
+            }
+          ],
+          "headline": "The Fair Gives Its Ticket Sellers a Roof",
+          "body": "The fair’s approved capital budget pays for a permanent ticket booth on its existing site."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Donor Keeps the Offer Open",
+        "body": "The rumor still harms an honest resident’s standing, but the revocable offer remains open. No replacement carnival is promised."
+      },
+      "present_day": {
+        "best": "If the chain and operating fair persist, its existing site in {now} has the funded ticket booth and the actual posted admission policy.",
+        "worst": "If withdrawal fails, retain the offer subject to ordinary decisions; if later steps fail, do not invent a paid fair or booth.",
+        "twist": "The replacement fair can endure without one donor, but families who formerly entered free now face the actual admission charge, and the false accusation harmed {A}."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "They built a fine little booth. It does not make what they said about me true."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "withdraw_fair_offer requires A alive, actual awareness of the rumor and an independently made withdrawal decision on a specifically unpaid revocable offer. Leave already donated money and enforceable promises untouched; do not add another reputation penalty or make the accusation true.",
+        "start_ticketed_fair requires B still authorized, actual permitted site access, approved fair and safety plans, funded operating contracts, consenting vendors, lawful admission terms including required concessions, and enough real demand to operate. Record actual expenses, admissions and receipts; no guaranteed annual profit, crowd or permanent festival is created.",
+        "build requires B still the authorized organizer, the actual fair still operating, legal consent and suitable space at the edge-of-town fairground, permits, a paid qualified contractor and actual retained or raised capital sufficient for the booth. Build only that booth, with actual site occupancy and maintenance costs. A posted paid-admission policy must still exist for the present description. Gate A dialogue on step 3, survival and actual awareness of the booth; it is remembered grievance, never evidence of fraud."
+      ],
+      "era_notes": "Use period-appropriate tickets and fair operations; a paid gate remains a choice with an explicit budget.",
+      "why_fun": "A cruel shortcut can help create a useful tradition without making its founding lie defensible."
+    },
+    {
+      "id": "scenario-20261117-11854",
+      "kind": "scenario",
+      "title": "The Chess Opponent on the Other Side of the Fence",
+      "category": "secrets",
+      "pitch": "Ask two feuding neighbors whether they want to reveal their correspondence-chess identities to each other. Their careful letters may eventually help settle a boundary dispute and put a shared gate where the fence used to be unbroken.",
+      "present_hook": {
+        "what_you_notice": "Two household correspondence logs list matching chess-game codes while a boundary-dispute file still calls the owners rivals.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "Both neighbors used the same chess exchange in {year}, but its privacy rules kept their addresses apart."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            45,
+            50
+          ],
+          "relation": "rivals"
+        },
+        "B": {
+          "age": [
+            40,
+            45
+          ],
+          "relation": "rivals"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A and B are rivals relative to one another, each an actual consenting homeowner beside the same boundary. They unknowingly play each other through a real pseudonymous postal exchange whose verified matching records exist. The original dispute is civil, nonviolent and unresolved; no kinship or infidelity is implied. The exchange relays authorized copies of handwritten game cards with identifying details removed, so both recognize the handwriting without already knowing the sender."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:request_chess_identity_exchange",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Submit a mutual identity-release request to the actual correspondence organizer without opening private mail."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "reveal_chess_identities": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Distant Opponents Turn Out to Be Neighbors",
+          "body": "Both players authorize disclosure of the verified game identities. Their private moves are not published."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "settle_boundary_dispute": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Old Chess Rivals Sign a Boundary Settlement",
+          "body": "The neighbors complete a mediated agreement supported by an actual survey. Its terms replace the identified civil dispute."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "create_neighbor_gate": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Familiar Fence Acquires a Shared Gate",
+          "body": "The owners install their agreed gate and record the limited shared access right. Each yard remains private beyond that agreement."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Exchange Keeps Its Players Private",
+        "body": "Mutual permission is not completed, so the organizer discloses nothing. The boundary dispute remains subject to ordinary events."
+      },
+      "present_day": {
+        "best": "If the full chain and recorded access right persist in {now}, the surveyed boundary has the paid gate and the property files contain its limited shared-access terms.",
+        "worst": "Without mutual disclosure, no identity becomes known through this action; without settlement or gate, retain the actual fence and dispute status.",
+        "twist": "The neighbors gain an agreed crossing and end the dispute, while each gives up the former ability to exclude the other from the specifically recorded access strip."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "uncanny",
+          "line": "I trusted the handwriting long before I trusted the person next door."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "request_chess_identity_exchange",
+          "does": "Submit one verified matching-game identity-release request through the existing correspondence organizer. Create only the request; step 1 handles separate permissions and any resulting identity disclosure, with no direct bond, reputation or knowledge change."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "request_chess_identity_exchange records one matching-game request through the actual exchange. It reveals no name, address or private letter until both real participants separately consent; refusing costs no reputation or bond.",
+        "reveal_chess_identities requires verified account-to-person records, both players alive, current informed permission and authorized organizer action. Record only mutual knowledge of the real opponent-to-game mapping, not public knowledge. The first success roll includes whether the ordinary consent process completes; ineligibility never forces disclosure.",
+        "settle_boundary_dispute requires both still owning the affected parcels, voluntary participation, an actual qualified funded survey and mediation, clear title and any necessary legal approval. Record the precise agreed boundary and resolved dispute, settle real costs and adjust bonds only through ordinary recorded interactions; no unexplained land or money transfer is added.",
+        "create_neighbor_gate requires both still owners, the settlement still valid, agreed suitable location on the existing fence, lawful limited reciprocal easement, required approvals and actual affordable gate and recording costs paid by agreed shares. Install one gate and register only the defined access strip, hours and restrictions; no public shortcut or permanent friendship follows automatically. Gate B dialogue on step 3, survival and retained knowledge of the handwriting and identity."
+      ],
+      "era_notes": "Postal exchanges and privacy terms must actually exist for the chosen decade; no internet matchmaking is assumed.",
+      "why_fun": "A rivalry played across the country may have been taking place across one fence all along."
+    }
+  ]
+}

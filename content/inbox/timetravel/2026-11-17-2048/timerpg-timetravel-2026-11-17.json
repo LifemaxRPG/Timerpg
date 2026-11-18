@@ -1,0 +1,657 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-12481",
+      "kind": "scenario",
+      "title": "The Ferry That Made a Bridge Worth Discussing",
+      "category": "place",
+      "pitch": "Invest in a licensed ferry’s costed service trial. A regular crossing may build demand for a public bridge, leaving passengers with a free route and the ferry owner without the old fare business.",
+      "present_hook": {
+        "what_you_notice": "An unused ferry timetable is clipped to an unfunded boat-service quote in the river file.",
+        "where": "the river",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The licensed operator had a feasible trial in {year}, but lacked its working capital."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "ferry service"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "Bind ferry to A actual licensed business and legally usable boat and landing rights. B is the actual authorized transport planner. Baseline has the real river crossing demand and failed trial, but no guaranteed bridge, spare land or passenger employment."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "ferry",
+          "amount": "large",
+          "how_it_looks": "Invest ordinary business capital in the fully costed licensed crossing trial."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "launch_ferry_trial": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A River Crossing Receives a Regular Timetable",
+          "body": "The licensed operator begins the funded approved service on its actual boat and permitted landings."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "commission_crossing_study": "B"
+            }
+          ],
+          "headline": "Years of Ferry Records Support a Crossing Study",
+          "body": "The authorized planner commissions a funded independent crossing study using actual service records and current demand."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "open_bridge_and_end_ferry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Public Bridge Opens Beside the Old Crossing",
+          "body": "The funded approved bridge passes inspection and opens without a crossing toll. The ferry ends its fare service after the agreed notice period."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Ferry Trial Does Not Begin",
+        "body": "The investment has its ordinary business outcome, but no regular crossing is launched. No bridge follows automatically."
+      },
+      "present_day": {
+        "best": "If the chain and bridge persist in {now}, the actual public crossing is open under its approved terms and the ferry’s old fare timetable is retired.",
+        "worst": "Without completed works and inspection, show only actual ferry service or studies; never render an unbuilt bridge.",
+        "twist": "Passengers gain the approved free crossing, while {A} loses future fare revenue from the ended ferry business."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I spent years proving people needed to cross. They finally agreed so thoroughly they stopped needing my boat."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add ferry service as a business kind owned by adult A. launch_ferry_trial requires current operator competence, licences, actual inspected suitable boat, qualified staff, permitted landings, safe operating conditions, working capital and lawful fares. Track only real trips, expenses and receipts, not guaranteed passengers or profit.",
+        "commission_crossing_study requires B still authorized, actual retained service records, current need, public approval and real funds for independent engineering, land, environmental and operating-cost analysis. A study creates no right to land or construction.",
+        "open_bridge_and_end_ferry requires B still authorized, a real feasible approved study, all land rights and public decisions, funded qualified construction, environmental permissions, safe inspection and maintenance funding. Create only the defined bridge in the actual river crossing slot and its public access edges. Require A still operates that ferry and freely accepts a lawful funded service-ending agreement, settling contracts, notice and real compensation. End only its crossing operation; retain boat and landing ownership under actual title, with no invented sale proceeds. No arbitrary wealth penalty is added for foregone fares. Gate A dialogue on step 3, survival and actual lost service."
+      ],
+      "era_notes": "Boats, bridge engineering and public procurement follow the event year; the player never performs hazardous construction.",
+      "why_fun": "A useful service can help establish the case for its own replacement."
+    },
+    {
+      "id": "scenario-20261117-12482",
+      "kind": "scenario",
+      "title": "The Friday Pay That Outlasted the Friday Shift",
+      "category": "money",
+      "pitch": "Introduce a mill owner to the actual worker representative considering a shorter workweek. A negotiated trial may preserve transitional pay, then end that guarantee years later while the shorter schedule remains.",
+      "present_hook": {
+        "what_you_notice": "A mill file contains an unapproved shorter-week proposal and an unsigned temporary-pay calculation.",
+        "where": "the mill",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The two authorized negotiators never discussed the costed proposal in {year}."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "mill"
+          ],
+          "relation": "strangers"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by",
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "A and B are strangers relative to each other. B is the real authorized worker representative and an actual affected hourly worker, not every employee by implication. Bind the existing mill and actual workforce. Baseline uses five eight-hour days and contains a viable funded four-eight-hour-day proposal with a separately identified temporary pay guarantee."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the consenting owner and authorized representative with their genuine costed schedule proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "pilot_shorter_mill_week": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Mill Tries Four Days with Transitional Pay",
+          "body": "The parties sign and begin the funded shorter-week trial. The separate temporary pay guarantee follows its written terms."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "renew_shorter_mill_week": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Negotiators Retain the Shorter Week",
+          "body": "The authorized parties adopt the actual renewed four-day agreement and its funded temporary-pay extension."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "end_mill_pay_guarantee": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Temporary Pay Line Reaches Its Agreed End",
+          "body": "The temporary guarantee ends on the recorded lawful date. The four-day schedule remains under the current agreement."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Shorter Week Remains a Proposal",
+        "body": "The introduction happens, but no trial agreement is reached. The mill’s ordinary schedule and pay continue."
+      },
+      "present_day": {
+        "best": "If the full chain and agreement persist in {now}, the mill schedule records four paid eight-hour days and the current payroll for {B} no longer includes the expired separate guarantee.",
+        "worst": "If renewal or expiry fails, retain actual agreements, hours and payroll; do not invent productivity gains or compulsory wage cuts.",
+        "twist": "{B} gains the negotiated shorter week but eventually loses the actual temporary eight-hour-equivalent weekly guarantee."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "I got used to the empty Friday before I got used to the missing line on the pay slip."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add mill as an existing business kind owned by adult A. pilot_shorter_mill_week requires legal bargaining authority, independent worker consent through the actual representative process, safe viable operations and real funds. Record four eight-hour workdays, lawful hourly rates and a separate eight-hour-equivalent weekly transitional guarantee, with specified dates and protection of vested rights. Pay it only once through actual payroll; no automatic productivity or profit increase is created.",
+        "renew_shorter_mill_week requires A still authorized as owner and B still authorized representative and affected worker, actual workforce approval, safe staffing, current demand and a funded viable renewed contract. The extension records a definite lawful final expiry that must fall in the selected last-step year; do not keep paying a fictional unfunded guarantee for decades.",
+        "end_mill_pay_guarantee requires that exact agreed expiry actually arrives, all notice and bargaining requirements are met, current workers legally accepted the terms, A and B still hold the relevant roles and the four-day agreement remains viable. Stop only the temporary supplement prospectively; retain earned pay, agreed hourly rates, benefits and actual hours. Record B evidenced reduction in payroll once, not an extra cash deduction. If the contract is renegotiated or expiry changes, cancel this final step rather than imposing it. Gate B dialogue on step 3, survival and actual payroll change."
+      ],
+      "era_notes": "Hours, bargaining rules, payroll and safety requirements follow the local event year; the story assumes no universal right to change wages.",
+      "why_fun": "A temporary compromise can become part of daily life long before it stops being temporary."
+    },
+    {
+      "id": "scenario-20261117-12483",
+      "kind": "scenario",
+      "title": "The Inheritance the Child Was Free to Decline",
+      "category": "family",
+      "pitch": "Help a qualified guardian meet an adoption-cost shortfall. The child may grow into a life elsewhere and later decline an actual inheritance, allowing the will’s next named beneficiary to receive the home.",
+      "present_hook": {
+        "what_you_notice": "A guardian’s file contains an approved placement and an uncompleted adoption invoice; the original household register never records the adoption.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The remaining legal cost in {year} was real, but it was not the only decision the family still had to make."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            40,
+            45
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            8,
+            12
+          ]
+        },
+        "C": {
+          "age": [
+            30,
+            35
+          ],
+          "relation": "siblings"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A is B actual qualified guardian in an approved existing placement; C is A actual adult sibling. B is already a real child, not generated by this scenario. Require all adoption prerequisites and rights settled independently. For the last step, A must have an independently scheduled natural death at the chosen year and a valid independently made will naming B primary and C substitute for the specific home; do not force a death or will."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "large",
+          "how_it_looks": "Give the qualified guardian the genuine remaining legal-cost shortfall without purchasing or guaranteeing an adoption."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "finalize_adoption": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Existing Household Completes Its Adoption",
+          "body": "The competent court finalizes the independently approved adoption. The existing child’s legal parent relationship is recorded."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "move_away": "B"
+            }
+          ],
+          "headline": "An Adult Child Chooses a Home Elsewhere",
+          "body": "With an actual funded opportunity and lawful housing, the adult child chooses to move away. The family relationship continues in its recorded form."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": false
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "disclaim_home_inheritance": [
+                "A",
+                "B",
+                "C"
+              ]
+            },
+            {
+              "inherit": [
+                "A",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Will’s Substitute Beneficiary Receives the Home",
+          "body": "After the actual natural death and lawful estate process, the primary beneficiary freely disclaims the home. The named substitute receives it under the valid will."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Adoption Does Not Become Final",
+        "body": "The gift remains real, but the adoption is not finalized. Existing placement and family rights follow their actual legal status."
+      },
+      "present_day": {
+        "best": "If the full chain and title persist in {now}, the probate record shows the voluntary disclaimer and the actual home ownership of {C}; the adoption remains part of the legal family record for {B}.",
+        "worst": "Without a qualifying death, valid will and voluntary disclaimer, no inheritance is transferred. Without adoption or a move, retain the actual family and residence.",
+        "twist": "{C} receives the home, while {B} voluntarily gives up a real inheritance that {B} had the legal right to accept."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I had a life elsewhere and the right to decide. I wanted {C} to have the house."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "finalize_adoption requires A current qualification and consent, B rights and legally required consent or assent, actual guardian and birth-parent or court permissions, a genuine competent final order and paid actual fees. Set the legal parent-child relationship once without creating a child, erasing history or guaranteeing emotional bonds. Gift money alone purchases no legal outcome.",
+        "move_away requires B actually adult at the selected year, free consent, a real affordable opportunity and available housing outside town, funded moving costs and actual local obligations settled. Track B continuing identity and family relation off-map; no spouse, child, wealth windfall or permanent estrangement is invented.",
+        "Exception to living-role checks: the final step requires A already dead from an independently resolved natural cause, never alive or killed by this scenario, while B and C survive. Require an actual valid will and clear home title after debts, taxes, claims and other beneficiaries’ rights. B receives independent information and freely executes a lawful timely disclaimer before accepting or controlling the inherited home, with no consideration or pressure. The legal next taker must be C under the actual instrument, with no intervening descendants or conflicting statutory shares. Record B disclaimer once, then apply inherit from A to C exactly once through the estate, settling actual costs and title. Never move the home to B first or erase B family membership. Gate B dialogue on step 3, survival, remembered choice and actual knowledge of C title."
+      ],
+      "era_notes": "Adoption, adulthood, off-map residence and disclaimer law follow the actual event years; legal family membership is never measured by accepting property.",
+      "why_fun": "A changed past can give someone both a family and the freedom to make a generous choice within it."
+    },
+    {
+      "id": "scenario-20261117-12484",
+      "kind": "scenario",
+      "title": "The Goose That Became a Costume",
+      "category": "place",
+      "pitch": "Ask the school to review a live mascot’s documented welfare needs. A retirement may lead to a costume tradition and eventually a display case, while the costume’s adult owner gives up an object once used for paid appearances.",
+      "present_hook": {
+        "what_you_notice": "A school file contains an unanswered mascot-welfare review request and an old photograph of the actual goose at a public appearance.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The caretaker asked for a qualified review in {year}; the photograph alone never proved how the animal felt."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ]
+        },
+        "B": {
+          "age": [
+            14,
+            17
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A is the actual authorized school caretaker; B an existing interested student. Bind one existing school-owned goose, qualified documented welfare concerns and an unanswered review request. No attack, injury, animal dialogue or twenty-five-year goose lifespan is implied. The school has a real feasible funded retirement-care option subject to review."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:request_mascot_welfare_review",
+          "target": "A",
+          "how_it_looks": "Submit the genuine request for a qualified welfare review through the school’s actual authority."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "retire_live_mascot": "A"
+            }
+          ],
+          "headline": "School Retires Its Live Mascot to Qualified Care",
+          "body": "A qualified review and authorized decision end public appearances for the actual goose. The school completes its funded lifetime-care placement."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "commission_goose_costume": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Costume Takes Over an Old Mascot’s Job",
+          "body": "The school contracts with a qualified adult maker for an owned, licensed goose costume and actual paid appearances under agreed terms."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "display_retired_costume": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Old Goose Costume Finds a Quiet Display Case",
+          "body": "Its owner voluntarily ends the contracted appearances and donates the surviving costume to the school’s approved display. The display creates no new live mascot."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Review Does Not Produce a Retirement",
+        "body": "The request is recorded, but no qualifying completed review and placement decision is made. The animal’s care remains subject to actual ordinary welfare decisions."
+      },
+      "present_day": {
+        "best": "If the full chain and display survive in {now}, the school has the single donated goose costume in its approved case and records of the actual live mascot’s earlier retirement.",
+        "worst": "Without qualified retirement or an actual costume contract, no animal move, costume, performer job or display is invented.",
+        "twist": "The school gains a keepsake and the old animal’s public work ends, while {B} gives up the actual owned costume and future contracted appearance work."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "The first goose retired. I suppose the second one finally learned how."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "request_mascot_welfare_review",
+          "does": "Submit one genuine school-mascot welfare review request through authorized caretaker A, linked to existing observations and the existing goose; create only a dated request, without diagnosing, moving or treating the animal."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "request_mascot_welfare_review creates one authorized review request linked to genuine observations, not a diagnosis or retirement order. The player handles no animal and supplies no unsafe husbandry instructions.",
+        "retire_live_mascot requires the actual goose alive, qualified current review, lawful owner approval and an available consenting competent care placement with actual transport and lifetime-care funding. Transfer the single animal’s custody, end its public appearances and record real care costs. Its later life and natural death follow ordinary animal records; no human role is rebound to it.",
+        "commission_goose_costume requires A still authorized, B actually adult with independently acquired relevant skill and genuine consent, a lawful funded school contract, a paid actual costume and safe appearance plan. B retains the expressly agreed physical ownership while licensing the school’s use and earning only real contracted appearance payments. No automatic job, career or new goose is created.",
+        "display_retired_costume requires A still authorized, B alive and the clear owner, a surviving suitable costume, informed voluntary gift, lawful ending and settlement of real appearance commitments, a funded approved case and school acceptance. Transfer the one costume to school custody and remove B ownership and future bookings only as the actual agreement permits. No duplicate costume, replacement performer or copyright surrender is assumed. Gate B dialogue on step 3, survival, donated costume and actual remembered account of the first animal’s retirement."
+      ],
+      "era_notes": "Mascot care, costumes, school authority and paid appearances follow the event decade without real team names or brands.",
+      "why_fun": "A town tradition can change what it asks of its mascot without losing its slightly ridiculous shape."
+    }
+  ]
+}

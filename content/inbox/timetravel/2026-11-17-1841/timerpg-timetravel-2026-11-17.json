@@ -1,0 +1,647 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-11211",
+      "kind": "scenario",
+      "title": "The Suit That Didn't Come Home",
+      "category": "money",
+      "pitch": "Help a qualified applicant afford suitable interview clothes. The suit may later help start a shared wardrobe, then wear out in service before its first owner thinks to keep it as a souvenir.",
+      "present_hook": {
+        "what_you_notice": "An applicant's retained appointment letter includes a genuine clothing-cost shortfall. A later shared-wardrobe proposal never received its first usable formal outfit.",
+        "where": "the employment office archive",
+        "clues": [
+          {
+            "who": "the applicant's papers",
+            "line": "{A} had the interview in {year}. The actual suitable clothing plan was more than the household could afford."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            25
+          ],
+          "wealth": "poor"
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A is a genuinely qualified willing applicant for a real available post, with a suitable self-chosen clothing plan and no affordable existing option. Bind a viable later voluntary shared-wardrobe proposal. A's identity or suitability is not determined by conventional appearance. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the documented shortfall for the applicant's actual chosen suitable interview outfit."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "hire_institution": "A",
+              "institution": "the bound lawful paid entry-level post"
+            }
+          ],
+          "headline": "Qualified Applicant Takes an Actual Paid Post",
+          "body": "After the real interview and fair recruitment process, {A} accepted the funded post. The outfit helped with a practical barrier rather than supplying qualifications."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "donate_object": "A",
+              "object": "the bound still-usable interview suit",
+              "to": "the funded shared wardrobe"
+            },
+            {
+              "establish_service": "the funded shared formal-clothing wardrobe"
+            }
+          ],
+          "headline": "First Donated Suit Helps Open a Shared Wardrobe",
+          "body": "The still-usable suit donated by {A} joined a qualified funded clothing-lending service. Actual borrowers received suitable inspected outfits under its real agreements."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "retire_object": "the bound original interview suit",
+              "reason": "verified irreparable ordinary wear"
+            },
+            {
+              "reuse_material": "the bound original interview suit",
+              "purpose": "the wardrobe's approved repair-material stock"
+            }
+          ],
+          "headline": "Worn Founding Suit Becomes Repair Material",
+          "body": "After actual inspection found the original suit unfit for further use and beyond reasonable repair, the wardrobe retired it. Lawfully usable material entered its real repair stock instead of returning as a whole garment."
+        }
+      ],
+      "fails": {
+        "chance": 0.3,
+        "effects": [],
+        "headline": "Clothing Help Does Not Produce the Specified Appointment",
+        "body": "The interview involving {A} did not produce the specified appointment. The actual outfit, spending and remaining gift money stayed recorded."
+      },
+      "present_day": {
+        "best": "In {now}, the shared wardrobe has its actual premises, stock and borrowing records if still operating. The original suit no longer exists as a wearable whole; any retained usable material is tracked in repair stock.",
+        "worst": "Failure creates no job or shared wardrobe through this chain. Suitable clothes are not a promise of employment.",
+        "twist": "A useful public object cannot also remain a private untouched keepsake. A's genuine donation helps others but ends the option of later taking the original suit home as a whole souvenir."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I thought I might want that suit back one day. It turns out it did more useful things than hanging in my cupboard."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key and independent chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Report actual ineligibility separately. Failure stops descendants without undoing prior effects. Resolve conflicts in stable scenario-ID order with atomic fund, job and site reservations. Recheck survival, age, consent, ownership and resources. Ordinary later history continues. Present descriptions need extant recorded effects; after-lines need the specified result, knowledge and a living speaker.",
+        "The gift buys only real self-chosen suitable clothing at actual prices; the interview must genuinely occur before the step-1 appointment. Hiring needs current qualifications, fair selection, a real wage budget, consent and lawful conditions, with no discriminatory rule that a suit makes a resident deserving.",
+        "donate_object transfers A's actual title to the one tracked suit only through an informed voluntary outright gift, not a loan. The wardrobe requires actual suitable premises, paid or consenting qualified staff, safe cleaning and inspection, sustainable funding, affordable access and real appropriately fitting inventory; do not lend one size to everyone by prose.",
+        "retire_object requires the exact donated suit still in custody and actually irreparably worn under tracked use and condition, not an arbitrary destruction event. reuse_material conserves the remaining usable quantities and destroys the whole garment identity only after lawful authorization. Respect any genuine donor restrictions. Gate A's line on step 3 and actual acceptance of the donation's outcome."
+      ],
+      "era_notes": "Interview clothing, hiring practice and garment care follow the actual years and role's preferences. No sex-specific outfit or universal dress code is assumed.",
+      "why_fun": "The player can trace a small purchase through a town service and into the seams of later repairs. Its usefulness leaves a different kind of memory than a preserved trophy."
+    },
+    {
+      "id": "scenario-20261117-11212",
+      "kind": "scenario",
+      "title": "The Lawyer's Fee That Kept Growing",
+      "category": "business",
+      "pitch": "Invest in a qualified lawyer's carefully reviewed deferred-fee plan. A consenting client may pay for completed work with a real business interest, then find that buying it back after growth costs more than the original bill.",
+      "present_hook": {
+        "what_you_notice": "A law office retains an unfunded proposal for qualified small-business work. A garage's separate file records a real legal problem and insufficient cash for the quoted service.",
+        "where": "the law office",
+        "clues": [
+          {
+            "who": "the two business files",
+            "line": "{A} quoted lawful work for the garage operated by {B} in {year}. The alternative-fee proposal never reached a reviewed agreement."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "law office"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "garage"
+          ]
+        },
+        "shop": {
+          "shop_kind": [
+            "law office"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "shop belongs to qualified lawyer A. B owns the bound viable garage and needs actual legitimate legal work, not a promised judgment. Require a jurisdiction and professional rules permitting the specific informed independently reviewed business-interest fee arrangement, and an actual funded plan. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "shop",
+          "amount": "large",
+          "how_it_looks": "Finance the law office's real working-capital shortfall for the quoted reviewed service plan."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "record_equity_fee": [
+                "A",
+                "B"
+              ],
+              "business": "the bound garage",
+              "share": 0.1
+            }
+          ],
+          "headline": "Completed Legal Work Is Paid under a Reviewed Equity Agreement",
+          "body": "After completed lawful service and independent review, {B} transferred the actually agreed ten-percent garage interest to {A}. The agreement recorded value, rights and conflicts rather than promising a case outcome."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "open_branch": "the bound garage business",
+              "where": "the edge of town"
+            }
+          ],
+          "headline": "Garage Expands into a Real Funded Second Location",
+          "body": "The business operated by {B} opened an approved funded second location after actual trading growth. Its existing ownership interests continued under their real agreement."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "buy_business_share": [
+                "B",
+                "A"
+              ],
+              "business": "the bound garage",
+              "share": 0.1
+            },
+            {
+              "close_shop": "shop"
+            }
+          ],
+          "headline": "Client Buys Back an Actual Share as Lawyer Retires",
+          "body": "Under a voluntary independently valued funded agreement, {B} bought the garage interest actually held by {A}. Retiring lawyer {A} closed the law practice after its real client and records obligations were settled."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "Alternative-Fee Plan Does Not Reach a Completed Lawful Agreement",
+        "body": "The plan involving {A} and {B} did not produce the specified permissible completed arrangement. Actual service fees, refunds and invested capital followed their real contracts."
+      },
+      "present_day": {
+        "best": "In {now}, the garage business has its actual second location and ownership after the buyback if it survives. The old law practice is closed, with lawful continuing custody of its records.",
+        "worst": "Failure creates no ownership stake or branch through this chain. It grants no legal result or free professional service.",
+        "twist": "B gains a way to obtain legitimate help without the full initial cash bill, but growth can make the retained ten-percent interest expensive to recover. A receives real value while giving up the future ownership claim."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "The first bill was for the work. The later price was for the piece of the business we had agreed on."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key and independent chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Report actual ineligibility separately. Failure stops descendants without undoing prior effects. Resolve conflicts in stable scenario-ID order with atomic fund, job and site reservations. Recheck survival, age, consent, ownership and resources. Ordinary later history continues. Present descriptions need extant recorded effects; after-lines need the specified result, knowledge and a living speaker.",
+        "record_equity_fee requires actual completed appropriate legal work, fair supported valuation, client capacity, independent advice, informed written consent, permissible conflicts and the precise arrangement allowed by applicable professional rules. If prohibited or unmanageable, suppress the branch. Transfer only a real nonduplicated ten-percent garage interest, adjusting B's actual remaining share; no equity is created from investment alone.",
+        "open_branch requires independently observed profitable feasible growth, real land or lease rights, current competence, capital, permits, equipment, staffing and demand. Track separate location IDs under the same actual enterprise and preserve the exact scope of A's stake; do not silently dilute or expand it beyond the agreement.",
+        "Step 3 needs A still holding the recorded stake, an actual lawful willing sale, B's independently affordable real financing and supported valuation with no coercion from legal representation. buy_business_share transfers only the real outstanding ten percent from A to B and actual money once. Require A's voluntary retirement, lawful practice closure, paid obligations and appropriate ongoing client and confidential-record arrangements. Gate B's line on step 3 and real understanding of both agreements."
+      ],
+      "era_notes": "Professional rules, disclosure, business ownership and valuation follow each event year. A permissible historical arrangement is not assumed permissible everywhere or forever.",
+      "why_fun": "The player can see professional help turn into a lasting line on the town's ownership graph. The important receipt is not necessarily the one paid first."
+    },
+    {
+      "id": "scenario-20261117-11213",
+      "kind": "scenario",
+      "title": "The Celebration Behind the New Curtains",
+      "category": "place",
+      "pitch": "Spread accurate information about a verified fireworks-permit breach. A later quieter light show may replace the old display, leaving a nearby resident paying to keep the bedroom dark.",
+      "present_hook": {
+        "what_you_notice": "An official report records a specific unresolved permit breach. The annual celebration still relies on the same fireworks arrangement, while a separate quieter-show proposal remained unused.",
+        "where": "the town hall",
+        "clues": [
+          {
+            "who": "the retained official report",
+            "line": "The specific breach involving {A} was recorded in {year}. The independent permit review was never completed."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "C": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "comfortable"
+        }
+      },
+      "window": {
+        "years": [
+          1980,
+          1995
+        ],
+        "notes": "A is the actual responsible operator for a specific verified permit breach, not a scapegoat. B is an authorized willing civic organizer with a real feasible quieter projection-show proposal. C occupies the identified neighboring bedroom. Require actual applicable permit rules and a lawful review route. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": -0.3,
+          "how_it_looks": "Discuss the authentic official finding accurately, without inventing injuries, intent or additional breaches."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "suspend_permit": "A",
+              "permit": "the bound fireworks operating permission"
+            }
+          ],
+          "headline": "Independent Review Suspends a Specific Fireworks Permission",
+          "body": "After actual notice, response and independent review, the responsible authority suspended the specified operating permission held by {A}. The finding did not declare every fireworks operator unsafe."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_service": "the funded approved quieter civic projection show"
+            }
+          ],
+          "headline": "Celebration Adopts an Approved Quieter Projection Show",
+          "body": "With qualified contractors, permissions and a real operating budget, organizer {B} helped establish the approved projection show. Measured sound and light effects followed its actual design."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "install_window_screen": "C",
+              "kind": "the bound approved bedroom blackout curtains"
+            }
+          ],
+          "headline": "Nearby Resident Installs Curtains for the Changed Night Display",
+          "body": "After the still-lawful display produced documented disruptive bedroom light, resident {C} chose an approved affordable curtain installation. Actual household funds paid its real net cost after any compensation."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Public Discussion Does Not Produce the Specified Permit Suspension",
+        "body": "The documented discussion involving {A} did not lead to the specified lawful suspension in the allotted window. The rumor's direct standing effect and actual permit duties remained."
+      },
+      "present_day": {
+        "best": "In {now}, the civic celebration uses its actual approved quieter show if the contract continues, and the bound bedroom has real blackout curtains. The display occurs only at its actual scheduled times.",
+        "worst": "Failure changes no permit or display through this chain. It neither disproves a real breach nor authorizes unsafe operation.",
+        "twist": "A quieter celebration can still alter a neighbor's sleep environment. C gains lower measured sound from the actual change but spends household funds and changes a window to control the new light."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "unaware",
+          "line": "It is quieter. I just had not expected to be shopping for curtains because of that."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key and independent chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Report actual ineligibility separately. Failure stops descendants without undoing prior effects. Resolve conflicts in stable scenario-ID order with atomic fund, job and site reservations. Recheck survival, age, consent, ownership and resources. Ordinary later history continues. Present descriptions need extant recorded effects; after-lines need the specified result, knowledge and a living speaker.",
+        "suspend_permit is an actual lawful independent regulatory result for the bound substantiated breach, with notice, response, appeal and current authority. The rumor does not itself decide a permit or create a second reputation penalty. Other operators and future permissions remain independently eligible.",
+        "The projection show requires era-available equipment, actual qualified paid operators, lawful image and site permissions, a funded safe plan, accessible viewing and review of real lighting and neighborhood effects. No guaranteed lower sound follows from its name; require comparative measurements for the stated quieter outcome.",
+        "Step 3 requires C still occupying the actual bedroom, continued actual display events, a documented disruptive but legally permitted light level, no unresolved mandatory abatement duty being shifted onto C, and C voluntarily choosing a feasible installation. install_window_screen records actual materials, permission and priced affordable payment once, preserving ordinary egress and access. Do not invent a fixed wealth decrement. Gate C's line on step 3, knowledge of the lower sound and actual curtain purchase."
+      ],
+      "era_notes": "Projection equipment and permit procedures follow their event years. No lasers, drones, brands or particular holiday are required.",
+      "why_fun": "The player's return changes both the sound of a celebration and the way one household uses its bedroom window."
+    },
+    {
+      "id": "scenario-20261117-11214",
+      "kind": "scenario",
+      "title": "The Class Missed for the School Pickup",
+      "category": "family",
+      "pitch": "Help a parent request a real change of work hours. The arrangement may help a child through school, while the parent abandons an evening course the grown child later chooses to fund.",
+      "present_hook": {
+        "what_you_notice": "A mill worker's unsubmitted shift request sits beside an actual adult-course enrollment. The household papers show a genuine school-pickup conflict and no funded alternative that the family accepted.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the household and work records",
+            "line": "{A} wanted to change hours in {year}. The requested schedule would solve the pickup problem for {B}, but overlap the enrolled evening class."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            40
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            8,
+            12
+          ],
+          "relation": "parent_child"
+        },
+        "C": {
+          "age": [
+            35,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "mill"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A is B's actual parent and an actual qualified employee of C's mill. Bind a real voluntary feasible shift-change request, lawful school pickup duties, an actual conflicting bookkeeping-course enrollment and an independently plausible later mill job for B. Present must be at least 26 years later."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:request_shift_change",
+          "target": "A",
+          "how_it_looks": "With the parent's permission, deliver the genuine requested hours and constraints to the authorized employer for real negotiation."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "change_shift": "A",
+              "agreement": "the bound lawful pickup-compatible hours"
+            },
+            {
+              "cancel_enrollment": "A",
+              "course": "the bound conflicting evening bookkeeping course"
+            }
+          ],
+          "headline": "Agreed Work Hours Solve a Pickup Conflict and Cost a Class",
+          "body": "Employee {A} and employer {C} completed an actual feasible paid-hours agreement. Parent {A} voluntarily left the conflicting course under its real fee and withdrawal terms to make the school pickup."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            14
+          ],
+          "if": {
+            "step": 1,
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "hire": [
+                "C",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Qualified Adult Child Accepts an Actual Mill Post",
+          "body": "After real relevant training and a fair selection process, adult applicant {B} accepted a funded mill post from {C}. Parentage supplied neither a qualification nor an entitlement."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            26
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "fund_training": [
+                "B",
+                "A"
+              ],
+              "course": "the bound current adult bookkeeping course"
+            },
+            {
+              "complete_training": "A",
+              "subject": "the bound completed adult bookkeeping course"
+            }
+          ],
+          "headline": "Grown Child Helps Fund a Parent's Return to Study",
+          "body": "With independent voluntary agreement and actual affordable funding from {B}, parent {A} returned to a current suitable course. Completed assessed study finally supplied the bookkeeping skills left unfinished years earlier."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "Submitted Shift Request Does Not Produce a Feasible Agreement",
+        "body": "The request involving {A} and {C} did not produce the specified agreed schedule. Existing employment, enrollment and childcare duties continued under actual arrangements."
+      },
+      "present_day": {
+        "best": "In {now}, A's actual education record includes the completed later bookkeeping course, and B's real employment and household finances reflect the voluntary contribution. No new professional license or job is inferred from course completion.",
+        "worst": "Failure forces no shift, withdrawal, child's job or later training. Other childcare and learning options remain ordinary possibilities.",
+        "twist": "The early accommodation helps one part of family life by giving up another real opportunity. Returning later costs B actual voluntary funds and A real study time; it does not return the missing decades."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I used to say I would go back when things settled down. It helped when somebody asked me what the course actually cost now."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "request_shift_change",
+          "does": "Submit A's actual voluntary requested hours, childcare constraints and consent to discuss them with the authorized employer. Record the negotiation without assigning approval, cutting coworkers' rights, changing wages, canceling a class or promising a child's outcome."
+        }
+      ],
+      "new_rules_needed": [
+        "Choose one elapsed year per step with a timing key and independent chance rolls keyed by seed, scenario ID, intervention year, bound IDs and step. Check all stated prerequisites before rolling. Apply the intervention once. fails.chance complements the first eligible roll; never roll it separately. Report actual ineligibility separately. Failure stops descendants without undoing prior effects. Resolve conflicts in stable scenario-ID order with atomic fund, job and site reservations. Recheck survival, age, consent, ownership and resources. Ordinary later history continues. Present descriptions need extant recorded effects; after-lines need the specified result, knowledge and a living speaker.",
+        "Add mill as a business kind if absent. change_shift requires actual productive coverage, lawful safe hours, A and C's informed agreement, settled coworker arrangements and the real wage, transport and administrative costs. It supplies no free backfill. cancel_enrollment requires A's separate informed choice and records actual refunds, fees and lost attendance rights.",
+        "The new schedule must actually enable the real pickup while conflicting with A's existing class; do not manufacture a conflict from generic parenthood. B's schooling and preferences still follow ordinary history. Step 2 needs B at least 18, independently acquired actual competence, consent, fair lawful recruitment, a real paid vacancy and C still authorized to hire.",
+        "fund_training transfers only B's actually affordable voluntary contribution to the specified course costs after preserving existing obligations; it imposes no debt of gratitude or repayment on A. Step 3 requires A genuinely wanting to return, current suitable enrollment, required access, available study time, real attendance and passed assessment within the step's elapsed range. Funding precedes completed study; a payment alone gives no skills. Gate A's line on step 3 and the actual earlier postponement.",
+        "Use an actual feasible pickup-compatible schedule, such as a legally agreed split shift only where its specific hours truly fit. Any later work block must have already secured lawful care for B; do not invent an invisible caregiver. Reserve and pay the course budget on actual dates before assessment; withdrawal or failed assessment preserves actual spending without granting completion."
+      ],
+      "era_notes": "Shift rules, childcare arrangements and course delivery follow their actual years. The parent and child may have any sex, and a later course need not use the same syllabus or classroom.",
+      "why_fun": "The player sees one time conflict echo through two generations. The final payoff is an earned skill, not an automatic repayment for parenting."
+    }
+  ]
+}
