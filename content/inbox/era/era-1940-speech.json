@@ -1,0 +1,431 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1940,
+  "topic": "speech",
+  "facts": [
+    {
+      "id": "1940-speech-01",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Children address unfamiliar grown-ups as sir or ma'am when answering questions.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-02",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A child often calls a neighbor mister or missus followed by the family name.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-03",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Schoolchildren usually address their teacher by a title and surname.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-04",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Adults greet the shopkeeper with a good morning before asking for anything.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-05",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A customer says please when ordering at the counter and thank you when leaving.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-06",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A shop clerk may address a woman customer as ma'am.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-07",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A shop clerk may address a man customer as sir.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-08",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Neighbors commonly exchange a how-do-you-do when meeting someone new.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-09",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "People often use formal introductions before calling a new acquaintance by a first name.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-10",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Older residents may call a young man son without meaning he is family.",
+      "ages": "elders",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-11",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Parents tell children to mind their manners when visiting another home.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-12",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "An adult may say much obliged after receiving a favor.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-13",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A neighbor may say reckon when offering a guess about tomorrow's weather.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-14",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A speaker says swell to praise a pleasant surprise or a good plan.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-15",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Teenagers sometimes call an exciting idea keen.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-16",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A youngster says gee when surprised or disappointed.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-17",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "People say gosh instead of stronger language in polite company.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-18",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Someone who is puzzled may ask what gives.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-19",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A person in a hurry may tell a friend to make it snappy.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-20",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A resident may call a large amount of money a pretty penny.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-21",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A diner customer may ask for the check when ready to pay.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-22",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A child may ask permission before leaving the supper table.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-23",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A caller often identifies themselves when someone answers the telephone.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-24",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A person leaving a gathering may say so long instead of goodbye.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-25",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "People use the word fellow when referring casually to a man.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-speech-26",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A person may say that's the ticket when someone suggests a workable plan.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": [
+    {
+      "phrase": "good morning",
+      "meaning": "a polite daytime greeting",
+      "ages": "all",
+      "from": 1940,
+      "to": 1949,
+      "tone": "polite"
+    },
+    {
+      "phrase": "how do you do",
+      "meaning": "a formal greeting on introduction",
+      "ages": "adults",
+      "from": 1940,
+      "to": 1949,
+      "tone": "formal"
+    },
+    {
+      "phrase": "yes sir",
+      "meaning": "a respectful affirmative reply",
+      "ages": "kids",
+      "from": 1940,
+      "to": 1949,
+      "tone": "polite"
+    },
+    {
+      "phrase": "yes ma'am",
+      "meaning": "a respectful affirmative reply",
+      "ages": "kids",
+      "from": 1940,
+      "to": 1949,
+      "tone": "polite"
+    },
+    {
+      "phrase": "much obliged",
+      "meaning": "thank you for a favor",
+      "ages": "adults",
+      "from": 1940,
+      "to": 1949,
+      "tone": "polite"
+    },
+    {
+      "phrase": "if you please",
+      "meaning": "a polite way to make a request",
+      "ages": "adults",
+      "from": 1940,
+      "to": 1949,
+      "tone": "polite"
+    },
+    {
+      "phrase": "swell",
+      "meaning": "very good or pleasing",
+      "ages": "all",
+      "from": 1940,
+      "to": 1949,
+      "tone": "casual"
+    },
+    {
+      "phrase": "keen",
+      "meaning": "excellent or exciting",
+      "ages": "teens",
+      "from": 1940,
+      "to": 1949,
+      "tone": "casual"
+    },
+    {
+      "phrase": "gee",
+      "meaning": "an expression of surprise",
+      "ages": "kids",
+      "from": 1940,
+      "to": 1949,
+      "tone": "casual"
+    },
+    {
+      "phrase": "gosh",
+      "meaning": "a mild expression of surprise",
+      "ages": "all",
+      "from": 1940,
+      "to": 1949,
+      "tone": "casual"
+    },
+    {
+      "phrase": "what gives",
+      "meaning": "what is happening",
+      "ages": "teens",
+      "from": 1940,
+      "to": 1949,
+      "tone": "casual"
+    },
+    {
+      "phrase": "make it snappy",
+      "meaning": "do it quickly",
+      "ages": "all",
+      "from": 1940,
+      "to": 1949,
+      "tone": "casual"
+    },
+    {
+      "phrase": "pretty penny",
+      "meaning": "a substantial sum of money",
+      "ages": "adults",
+      "from": 1940,
+      "to": 1949,
+      "tone": "casual"
+    },
+    {
+      "phrase": "so long",
+      "meaning": "goodbye for now",
+      "ages": "all",
+      "from": 1940,
+      "to": 1949,
+      "tone": "casual"
+    },
+    {
+      "phrase": "that's the ticket",
+      "meaning": "that is the right idea",
+      "ages": "adults",
+      "from": 1940,
+      "to": 1949,
+      "tone": "casual"
+    },
+    {
+      "phrase": "mind your manners",
+      "meaning": "behave politely",
+      "ages": "kids",
+      "from": 1940,
+      "to": 1949,
+      "tone": "polite"
+    }
+  ]
+}
