@@ -71,6 +71,11 @@ object GameState {
      * stop at the screen's edge); any key takes over.
      */
     var walkOn = 0f
+    /**
+     * Which way along the street [upWalks] and [walkOn] walk (1 towards +x, -1 towards -x): the town's walk ([TownWalk])
+     * sets -1 after a left turn, which arrives at the new row's end and walks on away from it. The crossroads keeps 1.
+     */
+    var walkOnDir = 1f
     /** Half the screen's width in street units (set by the stage as it draws), so the camera can stop at the street's ends. */
     var halfView = 0f
     /** Device pixels per street unit, as the stage last drew (0 until it has drawn). */
@@ -121,8 +126,8 @@ object GameState {
         // walk on along the new street as hard as they push (a push to the rim runs) until it is let go; otherwise they
         // walk on [walkOn] units by themselves at a walk, never a run, until the stick takes over
         val heldX = moveX; val heldLane = moveLane
-        if (upWalks) { if (moveLane < -.05f) { moveX = -moveLane; moveLane = 0f } else upWalks = false }
-        if (walkOn > 0f) { if (abs(moveX) < .05f && abs(moveLane) < .05f) moveX = WALK_ON_PUSH else walkOn = 0f }
+        if (upWalks) { if (moveLane < -.05f) { moveX = -moveLane * walkOnDir; moveLane = 0f } else upWalks = false }
+        if (walkOn > 0f) { if (abs(moveX) < .05f && abs(moveLane) < .05f) moveX = WALK_ON_PUSH * walkOnDir else walkOn = 0f }
         try { stepHeld(dt, from, to, laneMax) } finally { moveX = heldX; moveLane = heldLane }
         // (let go a firm stop's slide early, so they stand where the walk on ends rather than a few units past it)
         if (walkOn > 0f) walkOn = (walkOn - abs(x - x0)).let { if (it <= vx * vx / (2f * MoveTuning.halt)) 0f else it }

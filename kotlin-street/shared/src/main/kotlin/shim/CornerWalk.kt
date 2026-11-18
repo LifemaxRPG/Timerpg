@@ -125,6 +125,18 @@ object CornerWalk {
         return true
     }
 
+    /**
+     * Starts the walk round [cr]'s corner from its main street now, the caller having decided the player turns (the town's
+     * walk, [TownWalk], watches the keys itself: every corner of the town is a main street's end in its own plan). False if
+     * a walk already runs or the app keeps the player where they are.
+     */
+    fun begin(cr: Crossroads): Boolean {
+        if (active || blocked) return false
+        upBefore = true; upTapped = false; needRelease = false
+        start(cr, 0)
+        return true
+    }
+
     private fun start(cr: Crossroads, street: Int) {
         forward = street == 0
         val x0: Float
