@@ -48,6 +48,7 @@ import com.lifemax.rpg.feature.habits.presentation.scene.turnSkyPan
 import com.lifemax.rpg.feature.habits.presentation.scene.junctionView
 import com.lifemax.rpg.feature.habits.presentation.scene.TurnFrame
 import com.lifemax.rpg.feature.habits.presentation.scene.TurnFacade
+import com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuildingLoad
 import com.lifemax.rpg.feature.habits.presentation.scene.TurnRows
 import com.lifemax.rpg.feature.habits.presentation.scene.HabitsStage
 import com.lifemax.rpg.feature.habits.presentation.scene.PlatformImages
@@ -282,11 +283,10 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
         ctx.assets.open("buildings/$n.png").use { BitmapFactory.decodeStream(it) }?.asImageBitmap()
     } catch (e: Exception) { null }
     // the real windows of each building (tools/make_buildings.py)
-    val windows = HashMap<String, List<FloatArray>>()
-    try {
-        val wj = org.json.JSONObject(ctx.assets.open("buildings/windows.json").bufferedReader().use { it.readText() })
-        for (key in wj.keys()) { val a = wj.getJSONArray(key); windows[key] = (0 until a.length()).map { k -> val r = a.getJSONArray(k); FloatArray(r.length()) { r.getDouble(it).toFloat() } } }
-    } catch (e: Exception) { }
+    val windows = SpriteBuildingLoad.windows(try { ctx.assets.open("buildings/windows.json").bufferedReader().use { it.readText() } } catch (e: Exception) { null })
+    // the pitched-roof houses' shapes (our mobile homes)
+    val houses = SpriteBuildingLoad.houses(try { ctx.assets.open("buildings/houses.json").bufferedReader().use { it.readText() } } catch (e: Exception) { null })
+    val models = SpriteBuildingLoad.models(try { ctx.assets.open("buildings/models.json").bufferedReader().use { it.readText() } } catch (e: Exception) { null })
     // every building once, by its sprite name
     class Entry(val stack: HabitStack, val owner: String, val art: SpriteBuilding?)
     val bySprite = LinkedHashMap<String, Entry>()
@@ -297,11 +297,7 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
         val mids = (0 until parts.length()).count { parts.getJSONObject(it).getString("key").startsWith("middle_") }
         // OUR building, composed from our sprites (tools/make_buildings.py); a building whose art is missing keeps the
         // engine's painted version, and the rest of the street is unaffected
-        val front = img("${n}_front"); val side = img("${n}_side"); val emis = img("${n}_emis")
-        val art = if (front != null && side != null && emis != null)
-            SpriteBuilding(front, side, emis, img("${n}_roof"), img("${n}_sign"), img("${n}_prop"), mids, windows[n].orEmpty(), windows[n + "_shop"].orEmpty(), img("${n}_glass"),
-                windows[n + "_relief"]?.firstOrNull()?.takeIf { it.size >= 7 }, img("${n}_over"), img("${n}_lit"), img("${n}_shade"))
-        else null
+        val art = SpriteBuildingLoad.load(n, mids, windows, houses, models) { img(it) }
         if (art != null) SpriteArt.buildings[id] = art
         bySprite[n] = Entry(shop(id, o.getString("name"), "", HabitMaterial.CLAY, maxOf(1, mids)), o.optString("owner"), art)
     }
@@ -318,7 +314,7 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
         listOf(all.take(half), all.drop(half)).filter { it.isNotEmpty() }.mapIndexed { k, es -> StreetInfo(if (k == 0) "Main Street" else "Side Street", es.map { it.value.stack }, es.map { it.value.owner }, es.map { it.key }) }
     }
     // the crossroads, for the corner turn: the same pictures the street uses (decoded once)
-    fun facades(list: List<String>) = list.mapNotNull { bySprite[it]?.art }.map { TurnFacade(it.front, it.side, it.emis, it.prop) }
+    fun facades(list: List<String>) = list.mapNotNull { bySprite[it]?.art }.map { com.lifemax.rpg.feature.habits.presentation.scene.turnFacade(it.front, it.side, it.emis, it.prop, it.house?.shape, it.house?.slope, it.house?.back, it.house?.fence, it.house?.fenceSnow, it.house?.porch, it.model?.shape, it.model?.atlas) }
     val jn = j.optJSONObject("junction")
     val rows = if (streetsJ != null && streetsJ.length() >= 2 && jn != null) TurnRows(
         facades(names(streetsJ.getJSONObject(0).optJSONArray("buildings"))), facades(names(jn.optJSONArray("mainEast"))),

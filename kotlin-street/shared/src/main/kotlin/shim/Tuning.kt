@@ -71,6 +71,44 @@ class SpriteBuilding(
      */
     val lit: ImageBitmap? = null,
     val shade: ImageBitmap? = null,
+    /** A pitched-roof house (one of our mobile homes) instead of a box: its shape and the pictures its roof and yard wear. */
+    val house: HouseArt? = null,
+    /** A villa or a landmark, built from boxes, front gables and hipped roofs instead of a box: its parts and their art. */
+    val model: ModelArt? = null,
+)
+
+/**
+ * What a modelled building (a villa, the clock tower, the school) wears: its parts ([shape]), the one picture all their
+ * art is packed in ([atlas]) and where it glows at night ([glow], laid out the same), its yard's ground and its fence or
+ * hedge (and where snow lies on that).
+ */
+class ModelArt(
+    val shape: com.lifemax.rpg.feature.habits.domain.ModelShape,
+    val atlas: ImageBitmap,
+    val glow: ImageBitmap?,
+    val lawn: ImageBitmap?,
+    val fence: ImageBitmap? = null,
+    val fenceSnow: ImageBitmap? = null,
+)
+
+/**
+ * The pictures a pitched-roof house wears besides its front ([SpriteBuilding.front], the wall under the eave's edge) and
+ * its gable end ([SpriteBuilding.side]): the near slope, the ridge cap and the far slope, each one screen row per row of
+ * the art's own pixels; the hitch (a card beside it); its yard's ground and its fence; its porch's railing, fascia and
+ * deck boards.
+ */
+class HouseArt(
+    val shape: com.lifemax.rpg.feature.habits.domain.HouseShape,
+    val slope: ImageBitmap,
+    val ridge: ImageBitmap,
+    val back: ImageBitmap?,
+    val hitch: ImageBitmap?,
+    val lawn: ImageBitmap?,
+    val porch: ImageBitmap?,
+    /** The yard's fence or hedge along the street (the game's own fence and hedge sprites), with its gate. */
+    val fence: ImageBitmap? = null,
+    /** Where snow lies on [fence]: the first pixels down from each of its top surfaces (white, drawn tinted). */
+    val fenceSnow: ImageBitmap? = null,
 )
 
 /** All of the game's own art that replaces the habit scene's procedural art, installed by the platform. */
@@ -88,6 +126,14 @@ object SpriteArt {
     val tallest: Float get() {
         var best = 0f
         for (b in buildings.values) {
+            val h = b.house
+            if (h != null) {
+                // a house: its ridge or its flue, lifted by standing back in its yard (as its layout reckons it)
+                best = maxOf(best, h.shape.screenTop)
+                continue
+            }
+            val m = b.model
+            if (m != null) { best = maxOf(best, m.shape.screenTop); continue }
             val over = b.sign?.height?.toFloat() ?: b.prop?.let { it.height + com.lifemax.rpg.feature.habits.domain.BuildingSpec.DY * .5f / PIXEL } ?: 0f
             best = maxOf(best, (b.front.height + over) * PIXEL)
         }

@@ -276,6 +276,47 @@ internal class StreetLifePainter {
     private val leadStroke = Stroke(.45f, cap = StrokeCap.Round)
     private val wall = Matrix()
 
+    /**
+     * [lit]'s answer, reused: left, top, right, bottom (street units, y down), then how far the wall's foot stands from
+     * the pavement line on screen (across, up): a house's front stands back in its yard, so what is thrown on it lands
+     * that much higher and leans with it.
+     */
+    private val litBox = FloatArray(6)
+
+    /**
+     * Where a passing car's light falls on building [i] (its middle at [cx], its side face [shift]): a shop's front and
+     * shown side up to its height; one of our houses, villas or landmarks, back in its yard, only its own front wall
+     * (not the sky beside and above it, which its lot's box would also take in). Into [litBox].
+     */
+    private fun lit(l: BuildingLayout, cx: Float, shift: Float) {
+        val sb = SpriteArt.buildings[l.stackId]
+        val house = sb?.house
+        val model = sb?.model
+        if (model != null) {
+            // a villa or a landmark, back in its yard: its walls' span up to their top, where they stand
+            val m = model.shape
+            val k = B.W / SpriteArt.SRC_W
+            val back = m.setback / com.lifemax.rpg.feature.habits.domain.HouseView.DEPTH
+            val x0 = cx - B.W / 2f + (m.frontX + m.wall0) * k + shift * back
+            litBox[0] = x0; litBox[2] = x0 + (m.wall1 - m.wall0) * k
+            litBox[3] = -B.DY * back; litBox[1] = litBox[3] - m.wallTop * k
+            litBox[4] = shift * back; litBox[5] = litBox[3]
+            return
+        }
+        if (house == null) {
+            litBox[0] = cx + Perspective.left(shift); litBox[1] = -l.height; litBox[2] = cx + Perspective.right(shift); litBox[3] = 0f
+            litBox[4] = 0f; litBox[5] = 0f
+            return
+        }
+        val sh = house.shape
+        val k = B.W / SpriteArt.SRC_W
+        val back = sh.setback / com.lifemax.rpg.feature.habits.domain.HouseView.DEPTH
+        val x0 = cx - B.W / 2f + (sh.frontX + sh.wall0) * k + shift * back
+        litBox[0] = x0; litBox[2] = x0 + (sh.wall1 - sh.wall0) * k
+        litBox[3] = -B.DY * back; litBox[1] = litBox[3] - sh.h * k
+        litBox[4] = shift * back; litBox[5] = litBox[3]
+    }
+
     /** Fills in who is on the street at [seconds]. */
     /** The scene's clock, for the idle animation. */
     private var clock = 0f
@@ -1037,15 +1078,13 @@ internal class StreetLifePainter {
             val near = if (car.lane == 0) 1f else .85f
             for (i in layouts.indices) {
                 val cx = street.centers[i]
-                // the wash covers the front and whichever side face the building shows
+                // the wash covers the front and whichever side face the building shows (a house: its front wall)
                 val shift = p?.shiftAt(cx) ?: B.DX
-                val left = cx + Perspective.left(shift)
-                val right = cx + Perspective.right(shift)
-                if (right < from || left > to) continue
+                lit(layouts[i], cx, shift)
+                if (litBox[2] < from || litBox[0] > to) continue
                 val strength = NearLight.sweep(lampX, car.dir, cx)
                 if (strength < .02f) continue
-                val h = layouts[i].height
-                clipRect(left, -h, right, 0f) {
+                clipRect(litBox[0], litBox[1], litBox[2], litBox[3]) {
                     translate(spot, -6f) {
                         scale(NearLight.SWEEP_REACH * .8f, 70f, Offset.Zero) {
                             drawRect(
@@ -1068,13 +1107,11 @@ internal class StreetLifePainter {
                 wall.translate(-lampX, NearLight.HEADLIGHT)
                 for (i in layouts.indices) {
                     val cx = street.centers[i]
-                    val shift = p.shiftAt(cx)
-                    val left = cx + Perspective.left(shift)
-                    val right = cx + Perspective.right(shift)
-                    if (right < from || left > to) continue
+                    lit(layouts[i], cx, p.shiftAt(cx))
+                    if (litBox[2] < from || litBox[0] > to) continue
                     if (NearLight.sweep(lampX, car.dir, cx) < .02f) continue
-                    clipRect(left, -layouts[i].height, right, 0f) {
-                        withTransform({ transform(wall) }) {
+                    clipRect(litBox[0], litBox[1], litBox[2], litBox[3]) {
+                        withTransform({ translate(litBox[4], litBox[5]); transform(wall) }) {
                             for (k in street.furniture.indices) {
                                 val f = street.furniture[k]
                                 if (f.kind == FurnitureKind.BENCH) continue

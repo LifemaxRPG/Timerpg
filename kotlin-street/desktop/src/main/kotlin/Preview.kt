@@ -47,6 +47,9 @@ fun installDesktopImages() {
     }
     PlatformImages.update = { img: ImageBitmap, px, w, h ->
         val bm = img.asSkiaBitmap()
+        // as on Android, where a picture made from pixels (create) is immutable and setPixels on it throws: a picture to
+        // be written again is made blank (ImageBitmap(w, h)); the preview fails here rather than on the phone
+        check(!bm.isImmutable) { "PlatformImages.update on an immutable image: make it with ImageBitmap(w, h)" }
         bm.installPixels(ImageInfo.makeN32(w, h, ColorAlphaType.PREMUL), premulBytes(px), w * 4)
         bm.notifyPixelsChanged()
     }
@@ -62,9 +65,13 @@ private fun building(id: String, shop: String, sign: String, material: HabitMate
     blocks = (1..floors).map { floor("$id-$it", "Flat $it", material, if (it % 2 == 0) 2 else 1) },
 )
 
+/** The app's asset folder (street.json, buildings/), or another laid out the same way (-Dassets=, e.g. a showcase street). */
+fun assetsDir(): File = System.getProperty("assets")?.let { File(it) }
+    ?: File("../app/src/main/assets").takeIf { File(it, "street.json").exists() } ?: File("app/src/main/assets")
+
 /** The same exported town the Android app loads (app/src/main/assets/street.json), with our building sprites. */
 fun streetOfShops(): List<HabitStack> {
-    val dir = File("../app/src/main/assets").takeIf { File(it, "street.json").exists() } ?: File("app/src/main/assets")
+    val dir = assetsDir()
     val arr = org.json.JSONObject(File(dir, "street.json").readText()).getJSONArray("shops")
     fun img(n: String): androidx.compose.ui.graphics.ImageBitmap? =
         File(dir, "buildings/$n.png").takeIf { it.exists() }?.let { SkiaImage.makeFromEncoded(it.readBytes()).toComposeImageBitmap() }
@@ -78,16 +85,15 @@ fun streetOfShops(): List<HabitStack> {
     val idx = (0 until arr.length()).filter { wanted == null || arr.getJSONObject(it).getString("sprite") in wanted }
         .sortedBy { order?.indexOf(arr.getJSONObject(it).getString("sprite")) ?: it }
     val eastIdx = east.mapNotNull { n -> (0 until arr.length()).firstOrNull { arr.getJSONObject(it).getString("sprite") == n } }
+    val windows = com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuildingLoad.windows(File(dir, "buildings/windows.json").takeIf { it.exists() }?.readText())
+    val houses = com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuildingLoad.houses(File(dir, "buildings/houses.json").takeIf { it.exists() }?.readText())
+    val models = com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuildingLoad.models(File(dir, "buildings/models.json").takeIf { it.exists() }?.readText())
     fun one(i: Int): HabitStack {
         val o = arr.getJSONObject(i)
         val id = o.getString("id"); val n = o.getString("sprite")
         val mids = (0 until o.getJSONArray("parts").length()).count { o.getJSONArray("parts").getJSONObject(it).getString("key").startsWith("middle_") }
-        if (SpriteArt.buildings[id] == null) img("${n}_front")?.let { front ->
-            val wj = File(dir, "buildings/windows.json").takeIf { it.exists() }?.let { org.json.JSONObject(it.readText()) }
-            val ws = wj?.optJSONArray(n)?.let { a -> (0 until a.length()).map { k -> val r = a.getJSONArray(k); FloatArray(4) { r.getDouble(it).toFloat() } } }.orEmpty()
-            SpriteArt.buildings[id] = SpriteBuilding(front, img("${n}_side")!!, img("${n}_emis")!!, img("${n}_roof"), img("${n}_sign"), img("${n}_prop"), mids, ws, wj?.optJSONArray(n + "_shop")?.let { a -> (0 until a.length()).map { k -> val r = a.getJSONArray(k); FloatArray(4) { r.getDouble(it).toFloat() } } }.orEmpty(), img("${n}_glass"),
-                wj?.optJSONArray(n + "_relief")?.optJSONArray(0)?.let { r -> FloatArray(r.length()) { r.getDouble(it).toFloat() } }?.takeIf { it.size >= 7 }, img("${n}_over"), img("${n}_lit"), img("${n}_shade"))
-        }
+        if (SpriteArt.buildings[id] == null)
+            com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuildingLoad.load(n, mids, windows, houses, models) { img(it) }?.let { SpriteArt.buildings[id] = it }
         return building(id, o.getString("name"), "", HabitMaterial.CLAY, mids)
     }
     val west = idx.map { one(it) }
@@ -112,6 +118,13 @@ fun projection(hour: Float, day: String) = HabitsProjection(
 )
 
 fun render(path: String, w: Int, h: Int, hour: Float, day: String, focus: String, city: Boolean, bottom: Float = 0f, ambient: Float = 70f) {
+    val img = renderImage(w, h, hour, day, focus, city, bottom, ambient)
+    File(path).also { it.parentFile.mkdirs() }.writeBytes(img.encodeToData(EncodedImageFormat.PNG)!!.bytes)
+    println("wrote $path")
+}
+
+/** One settled frame of the street (as [render] saves it). */
+fun renderImage(w: Int, h: Int, hour: Float, day: String, focus: String, city: Boolean, bottom: Float = 0f, ambient: Float = 70f): SkiaImage {
     val density = 2f
     val scene = ImageComposeScene(width = (w * density).toInt(), height = (h * density).toInt(), density = Density(density)) {
         HabitsStage(
@@ -128,9 +141,8 @@ fun render(path: String, w: Int, h: Int, hour: Float, day: String, focus: String
         nanos += 16_666_667L; Thread.sleep(40)
         img = scene.render(nanos); settled++
     }
-    File(path).also { it.parentFile.mkdirs() }.writeBytes(img.encodeToData(EncodedImageFormat.PNG)!!.bytes)
     scene.close()
-    println("wrote $path")
+    return img
 }
 
 /** Our character sheets, read from the game's asset folder. */
@@ -178,10 +190,10 @@ fun main(args: Array<String>) {
     System.setProperty("java.awt.headless", "true")
     installDesktopImages()
     if (System.getProperty("mode") == "voice") { renderVoices(args.getOrElse(0) { "build/preview" }); return }
-    if (System.getProperty("mode") == "cross") { loadSheets(args.getOrElse(1) { "../public/assets/characters" }); loadProps(File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path); GameState.enabled = true; GameState.look = 1; StageTuning.zoom = 0.2f; GameState.lane = 7f; renderCrossing(args.getOrElse(0) { "build/preview" }, File("../app/src/main/assets").absolutePath); return }
-    if (System.getProperty("mode") == "turnsky") { loadSheets(args.getOrElse(1) { "../public/assets/characters" }); loadProps(File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path); GameState.enabled = true; GameState.look = 1; StageTuning.zoom = 0.2f; GameState.lane = 7f; renderTurnOverStreet(args.getOrElse(0) { "build/preview" }, File("../app/src/main/assets").absolutePath); return }
+    if (System.getProperty("mode") == "cross") { loadSheets(args.getOrElse(1) { "../public/assets/characters" }); loadProps(File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path); GameState.enabled = true; GameState.look = 1; StageTuning.zoom = 0.2f; GameState.lane = 7f; renderCrossing(args.getOrElse(0) { "build/preview" }, assetsDir().absolutePath); return }
+    if (System.getProperty("mode") == "turnsky") { loadSheets(args.getOrElse(1) { "../public/assets/characters" }); loadProps(File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path); GameState.enabled = true; GameState.look = 1; StageTuning.zoom = 0.2f; GameState.lane = 7f; renderTurnOverStreet(args.getOrElse(0) { "build/preview" }, assetsDir().absolutePath); return }
     if (System.getProperty("mode") == "inside") { loadSheets(args.getOrElse(1) { "../public/assets/characters" }); renderInsides(args.getOrElse(0) { "build/preview" }); return }
-    if (System.getProperty("mode") == "turn") { renderTurn(args.getOrElse(0) { "build/preview" }, File("../app/src/main/assets").absolutePath); return }
+    if (System.getProperty("mode") == "turn") { renderTurn(args.getOrElse(0) { "build/preview" }, assetsDir().absolutePath); return }
     loadSheets(args.getOrElse(1) { "../public/assets/characters" })
     loadProps(File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path)
     val out = args.getOrElse(0) { "build/preview" }
@@ -232,6 +244,8 @@ fun main(args: Array<String>) {
         com.lifemax.rpg.feature.habits.domain.WeatherOverride.forced = null
         return
     }
+    if (mode == "houses") { renderHouses(out, File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path); return }
+    if (mode == "models") { renderHouses(out, File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path, h = (System.getProperty("tall")?.toIntOrNull() ?: 520), prefix = "models"); return }
     if (mode == "junction") {
         // walking past the junction: the side street seen through its mouth, from either side and straight on
         val assets = File("../app/src/main/assets").absolutePath

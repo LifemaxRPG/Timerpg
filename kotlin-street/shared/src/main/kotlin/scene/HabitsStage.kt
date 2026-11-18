@@ -631,6 +631,7 @@ private fun StageCanvas(
             val jx = s.lefts.indices.firstOrNull { layoutsNow.value.getOrNull(it)?.stackId == com.lifemax.rpg.feature.habits.domain.JUNCTION_ID }
                 ?.let { s.lefts[it] + layoutsNow.value[it].lot / 2f } ?: Float.NaN
             GameState.junctionX = jx
+            GameState.centers = s.centers
             // arriving back round the corner: stand just short of the junction end of this street
             if (GameState.x > s.end + 500f) { GameState.x = s.end - 150f; GameState.camera.reset() }
             // arriving back from the side street: at the junction, where it opens
@@ -809,6 +810,7 @@ private fun StageCanvas(
         painter.lightX = f.streetX(orb.first * d)
         painter.lightSpan = this.size.width / f.unit
         painter.viewX = f.middle
+        painter.unitPx = f.unit
         painter.perspectiveK = Perspective.k(f.zoom)
         painter.lamps = street.furniture
         painter.weather = weather
@@ -1130,6 +1132,11 @@ private fun sunClear(
     return clear
 }
 
+/** One view of a house, set again for each house [sunEdge] sweeps (drawing happens on one thread). */
+private var edgeView: com.lifemax.rpg.feature.habits.domain.HouseView? = null
+/** And of a villa or a landmark. */
+private val modelEdgeView = com.lifemax.rpg.feature.habits.domain.ModelView()
+
 /**
  * The buildings in view as [SunEdge] boxes on the screen, for the sun's glare at their edges: each
  * one's front (its lobby and storeys, then its cornice a little wider) swept along its shown side
@@ -1159,6 +1166,31 @@ private fun sunEdge(
         fun y(up: Float) = f.ground - up * u
         val roof = layout.roof
         val sb = SpriteArt.buildings[art.stack.id]
+        val house = sb?.house
+        if (house != null) {
+            // one of OUR houses, back in its yard: its wall swept back through its depth, and its roof up to the ridge
+            val v = edgeView?.set(house.shape, f.sideShift(cx)) ?: com.lifemax.rpg.feature.habits.domain.HouseView(house.shape, f.sideShift(cx)).also { edgeView = it }
+            val sh = house.shape
+            fun hx(px: Float, dd: Float) = x(v.x(px, dd))
+            fun hy(up: Float, dd: Float) = f.ground + v.y(up, dd) * u
+            edge.box(hx(sh.wall0, 0f), hy(sh.h, 0f), hx(sh.wall1, 0f), hy(0f, 0f), v.lean(sh.depth) * u, v.lift(sh.depth) * u)
+            val w = sb.front.width.toFloat()
+            edge.box(hx(0f, sh.depth / 2f), hy(sh.ridge, sh.depth / 2f), hx(w, sh.depth / 2f), hy(sh.h, sh.depth / 2f))
+            edge.box(hx(sh.flueX0, sh.flueD0), hy(sh.flueTop, sh.flueD0), hx(sh.flueX1, sh.flueD0), hy(sh.ridge, sh.flueD0))
+            continue
+        }
+        val model = sb?.model
+        if (model != null) {
+            // a villa or a landmark, back in its yard: its walls swept back through their depth, and its roofs up to the
+            // highest ridge, over the walls' span
+            val v = modelEdgeView.set(model.shape, f.sideShift(cx))
+            val m = model.shape
+            fun mx(px: Float, dd: Float) = x(v.x(px, dd))
+            fun my(up: Float, dd: Float) = f.ground + v.y(up, dd) * u
+            edge.box(mx(m.wall0, 0f), my(m.wallTop, 0f), mx(m.wall1, 0f), my(0f, 0f), v.lean(m.depth) * u, v.lift(m.depth) * u)
+            if (m.ridge > m.wallTop) edge.box(mx(m.wall0, m.ridgeD), my(m.ridge, m.ridgeD), mx(m.wall1, m.ridgeD), my(m.wallTop, m.ridgeD))
+            continue
+        }
         if (sb != null) {
             // one of OUR buildings: its real silhouette (as spriteBuilding draws it), not the engine's cornice, tank and sign
             val k = B.W / SpriteArt.SRC_W

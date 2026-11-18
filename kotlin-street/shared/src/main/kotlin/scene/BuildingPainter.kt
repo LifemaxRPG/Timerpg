@@ -43,6 +43,7 @@ import com.lifemax.rpg.feature.habits.domain.Furniture
 import com.lifemax.rpg.feature.habits.domain.FurnitureKind
 import com.lifemax.rpg.feature.habits.domain.Gait
 import com.lifemax.rpg.feature.habits.domain.HabitMaterial
+import com.lifemax.rpg.feature.habits.domain.HouseView
 import com.lifemax.rpg.feature.habits.domain.KeyLight
 import com.lifemax.rpg.feature.habits.domain.Looks
 import com.lifemax.rpg.feature.habits.domain.PeopleActivities
@@ -1318,6 +1319,43 @@ internal class BuildingPainter {
      * buildings), the trees in the parks (swaying as the trees do), and the lamps, trees and
      * benches on the pavement. Drawn after the pavement and before anything that stands on it.
      */
+    /** [houseShade]'s answer, reused: left, right (from the building's middle), height, and sideways shift. */
+    private val houseBlock = FloatArray(4)
+
+    /**
+     * A house's shade on the pavement, as the block a shop's front would throw ([shadows], [shadeAt]): the wall's span,
+     * and the height and sideways shift of a front at the pavement line whose shade falls where the house's does. The
+     * house stands back in its yard, so the yard takes the first of its shade (the house draws that itself) and only what
+     * reaches past it lands on the pavement: the ridge's, standing further back, or the eave's. False when none does.
+     */
+    private fun houseShade(sh: com.lifemax.rpg.feature.habits.domain.HouseShape, light: KeyLight, lean: Float): Boolean =
+        setBackShade(sh.frontX + sh.wall0, sh.frontX + sh.wall1, sh.h, sh.ridge, sh.depth / 2f, sh.setback, light, lean)
+
+    /** A villa's or a landmark's shade on the pavement, as a house's ([houseShade]): its walls, and its highest ridge. */
+    private fun modelShade(m: com.lifemax.rpg.feature.habits.domain.ModelShape, light: KeyLight, lean: Float): Boolean =
+        setBackShade(m.frontX + m.wall0, m.frontX + m.wall1, m.wallTop, m.ridge, m.ridgeD, m.setback, light, lean)
+
+    /**
+     * The block of shade on the pavement of something standing [setback] back from it, across [x0] to [x1] of the lot's
+     * 224-pixel frame: its wall [wall] high and its ridge [ridge] high [ridgeD] behind the wall, each lowered by how far
+     * back it stands (the yard takes that shade). Into [houseBlock]; false when none reaches the pavement.
+     */
+    private fun setBackShade(x0: Float, x1: Float, wall: Float, ridge: Float, ridgeD: Float, setback: Float, light: KeyLight, lean: Float): Boolean {
+        if (light.reach < .05f) return false
+        val k = B.W / SpriteArt.SRC_W
+        val d = com.lifemax.rpg.feature.habits.domain.HouseView.DEPTH
+        val footLift = B.DY * setback / d
+        val w = wall * k - footLift / light.reach
+        val r = ridge * k - B.DY * (setback + ridgeD) / d / light.reach
+        val h = max(w, r)
+        if (h <= 1f) return false
+        houseBlock[0] = -B.W / 2f + x0 * k
+        houseBlock[1] = -B.W / 2f + x1 * k
+        houseBlock[2] = h
+        houseBlock[3] = (lean * footLift / light.reach).coerceIn(-60f, 60f)
+        return true
+    }
+
     /** What [shadows] last drew from, for [shadeAt]: the key light, the buildings, the street. */
     private var shadeLight: KeyLight? = null
     private var shadeLayouts: List<BuildingLayout> = emptyList()
@@ -1346,13 +1384,22 @@ internal class BuildingPainter {
                 h += B.CORNICE
                 break
             }
-            if (up > h + 20f) continue
-            val cx = street.centers[i]
+            var cx = street.centers[i]
             val lean = SceneLight.lean(light, (cx - lightX) / lightSpan)
+            var halfW = B.W / 2f
+            val sbl = SpriteArt.buildings[l.stackId]
+            val house = sbl?.house
+            val model = sbl?.model
+            if (house != null || model != null) {
+                // a house, villa or landmark back in its yard: its narrower, lower block of shade ([houseShade])
+                if (!(if (house != null) houseShade(house.shape, light, lean) else modelShade(model!!.shape, light, lean))) continue
+                h = houseBlock[2]; cx += houseBlock[3] + (houseBlock[0] + houseBlock[1]) / 2f; halfW = (houseBlock[1] - houseBlock[0]) / 2f
+            }
+            if (up > h + 20f) continue
             // the facade point at height `up` whose shadow falls at x: x = its x + lean * up
             val dx = abs(x - lean * up - cx)
             val pen = (PEN_BASE + PEN_RISE * up) * soft
-            val across = Px.smooth(B.W / 2f + pen, B.W / 2f - pen, dx)
+            val across = Px.smooth(halfW + pen, halfW - pen, dx)
             if (across <= 0f) continue
             val along = Px.smooth(h + pen, h - pen, up)
             deepest = max(deepest, across * along)
@@ -1391,6 +1438,23 @@ internal class BuildingPainter {
             val spread = lean * h + 80f
             if (left + l.lot + spread < from || left - spread > to) continue
             val cx = street.centers[i]
+            val sbl = SpriteArt.buildings[l.stackId]
+            val house = sbl?.house
+            val model = sbl?.model
+            if (house != null || model != null) {
+                // a house, villa or landmark back in its yard: the shade that reaches past its yard ([houseShade])
+                val lean = SceneLight.lean(light, (cx - lightX) / lightSpan)
+                if (if (house != null) houseShade(house.shape, light, lean) else modelShade(model!!.shape, light, lean)) {
+                    val l0 = houseBlock[0]; val r0 = houseBlock[1]; val hh = houseBlock[2]
+                    withTransform({
+                        translate(cx + houseBlock[3], 0f)
+                        transform(fallMatrix(light, cx))
+                    }) {
+                        softBlock(tint, l0, r0, hh, light.strength)
+                    }
+                }
+                continue
+            }
             // the block of shade is the building's own width, its front's: the side face shows only
             // because of where the camera stands (it runs back from the street, so its shade falls
             // in the gap behind, not on the pavement), and shading it too made the light between
@@ -1797,18 +1861,48 @@ internal class BuildingPainter {
         val lobbyTop = -B.LOBBY_H
         for (i in layouts.indices) {
             val cx = street.centers[i]
-            if (cx + half + B.DX + B.PARK_W < from || cx - half - B.DX > to) continue
+            // (a building wider than a shop, the school, by its own width)
+            val reach = max(half, layouts[i].wide / 2f)
+            if (cx + reach + B.DX + B.PARK_W < from || cx - reach - B.DX > to) continue
             val art = arts[i]
             val s = shiftAt(cx)
             val l0 = Perspective.left(s)
             val sbr = SpriteArt.buildings[art.stack.id]
             if (sbr != null) {
                 // one of OUR buildings, mirrored in the wet: its own front, darkened and cooled, and its lit glass at night
+                val house = sbr.house
                 withTransform({
                     translate(cx + ox, 0f)
                     scale(1f, -SQUASH, Offset.Zero)
                 }) {
-                    val hf = sbr.front.height * (B.W / SpriteArt.SRC_W)
+                    val k = B.W / SpriteArt.SRC_W
+                    val hf = sbr.front.height * k
+                    if (house != null) {
+                        // a house: its own front at its own width, where it stands back in its yard, and its roof's
+                        // near slope over it. The wet mirrors it about its own foot, which stands a yard's depth up the
+                        // screen from the pavement line (a shop's), so its image starts that much higher: undo this
+                        // frame's squash for that lift
+                        val sh = house.shape
+                        val x0 = -half + sh.frontX * k + s * sh.setback / HouseView.DEPTH
+                        val w = sbr.front.width * k
+                        val y0 = -hf + B.DY * sh.setback / HouseView.DEPTH / SQUASH
+                        val rh = house.slope.height * k
+                        picture2(house.slope, x0, y0 - rh, w, rh, FilterQuality.None, alpha = a * .7f, filter = wetMirror)
+                        picture2(sbr.front, x0, y0, w, hf, FilterQuality.None, alpha = a * .8f, filter = wetMirror)
+                        if (dark > .2f) picture2(sbr.emis, x0, y0, w, hf, FilterQuality.None, alpha = a * .45f * dark, blend = BlendMode.Plus)
+                        return@withTransform
+                    }
+                    val model = sbr.model
+                    if (model != null) {
+                        // a villa or a landmark: its front where it stands back in its yard, mirrored about its foot
+                        val sh = model.shape
+                        val x0 = -half + (sh.frontX + sh.frontPicX) * k + s * sh.setback / HouseView.DEPTH
+                        val w = sbr.front.width * k
+                        val y0 = -hf + B.DY * sh.setback / HouseView.DEPTH / SQUASH
+                        picture2(sbr.front, x0, y0, w, hf, FilterQuality.None, alpha = a * .8f, filter = wetMirror)
+                        if (dark > .2f) picture2(sbr.emis, x0, y0, w, hf, FilterQuality.None, alpha = a * .45f * dark, blend = BlendMode.Plus)
+                        return@withTransform
+                    }
                     picture2(sbr.front, -half, -hf, B.W, hf, FilterQuality.None, alpha = a * .8f, filter = wetMirror)
                     if (dark > .2f) picture2(sbr.emis, -half, -hf, B.W, hf, FilterQuality.None, alpha = a * .45f * dark, blend = BlendMode.Plus)
                 }
@@ -2644,6 +2738,935 @@ internal class BuildingPainter {
         drawRect(SceneInk.Highlight, Offset(-half, -hf), Size(B.W, 1f))
     }
 
+    // ------------------------------------------------------------------ our pitched-roof houses
+
+    /** Screen pixels per street unit, set by the stage each frame (0 unknown): a house's place back in its yard snaps to it. */
+    var unitPx = 0f
+
+    private val housePath = Path()
+    private var castFilterKey = Color.Unspecified
+    private var castFilterNow: ColorFilter? = null
+
+    /** The cast shadow's colour as a filter (a picture's own shape in it), kept while the colour holds. */
+    private fun castFilter(): ColorFilter {
+        val f = castFilterNow
+        if (f != null && castFilterKey == castInk) return f
+        castFilterKey = castInk
+        return ColorFilter.tint(castInk, BlendMode.SrcIn).also { castFilterNow = it }
+    }
+    /** One view of a house, set again for each house drawn ([HouseView.set]). */
+    private var houseView: HouseView? = null
+
+    /** The porch light's glow on the wall, and its pool on the ground: unit circles under a transform, as [halo]. */
+    private val porchGlow = Brush.radialGradient(listOf(SceneInk.LampLight.copy(alpha = .55f), Color.Transparent), Offset.Zero, 1f)
+    private val porchPool = Brush.radialGradient(listOf(SceneInk.LampLight.copy(alpha = .4f), Color.Transparent), Offset.Zero, 1f)
+
+    private fun quadPath(ax: Float, ay: Float, bx: Float, by: Float, cx: Float, cy: Float, dx: Float, dy: Float): Path {
+        housePath.rewind(); housePath.moveTo(ax, ay); housePath.lineTo(bx, by); housePath.lineTo(cx, cy); housePath.lineTo(dx, dy); housePath.close()
+        return housePath
+    }
+
+    /** Shapes filled row by row of the screen's pixels ([rowQuad]), gathered for one colour and drawn at once. */
+    private val rowsPath = Path()
+
+    /**
+     * Adds the convex quad (a, b, c, d) to [rowsPath] as whole-pixel spans, one per screen row ([PixelRows]): a thin
+     * steep band comes out as a stepped pixel line instead of a blended sliver. As a plain quad when the screen's
+     * scale is not known.
+     */
+    private fun rowQuad(ax: Float, ay: Float, bx: Float, by: Float, cx: Float, cy: Float, dx: Float, dy: Float) {
+        val p = rowsPath
+        if (unitPx <= 0f) { p.moveTo(ax, ay); p.lineTo(bx, by); p.lineTo(cx, cy); p.lineTo(dx, dy); p.close(); return }
+        com.lifemax.rpg.feature.habits.domain.PixelRows.quad(ax, ay, bx, by, cx, cy, dx, dy, unitPx, buildingX) { l, t, r, b ->
+            p.moveTo(l, t); p.lineTo(r, t); p.lineTo(r, b); p.lineTo(l, b); p.close()
+        }
+    }
+
+    /**
+     * A band along a house's gable (in the plane [xp] across its front picture) from depth [a0] to [a1] behind the
+     * wall, between [lo] and [hi] above the roof slab's top there ([HouseShape.roofTop]), added to [rowsPath]. [a0]
+     * and [a1] on the same side of the ridge, so the band is straight.
+     */
+    private fun rakeRows(v: com.lifemax.rpg.feature.habits.domain.HouseView, xp: Float, a0: Float, a1: Float, lo: Float, hi: Float) {
+        val sh = v.shape
+        val t0 = sh.roofTop(a0); val t1 = sh.roofTop(a1)
+        rowQuad(v.x(xp, a0), v.y(t0 + hi, a0), v.x(xp, a1), v.y(t1 + hi, a1), v.x(xp, a1), v.y(t1 + lo, a1), v.x(xp, a0), v.y(t0 + lo, a0))
+    }
+
+    /** Part of a picture ([sx], [sy], [sw], [sh] of its pixels) drawn at ([x], [y]), [w] by [h]. */
+    private fun DrawScope.part(img: ImageBitmap, sx: Int, sy: Int, sw: Int, sh: Int, x: Float, y: Float, w: Float, h: Float, alpha: Float = 1f, filter: ColorFilter? = null, blend: BlendMode = BlendMode.SrcOver) {
+        if (sw <= 0 || sh <= 0) return
+        withTransform({
+            translate(x, y)
+            scale(w / sw, h / sh, Offset.Zero)
+        }) {
+            drawImage(img, IntOffset(sx, sy), IntSize(sw, sh), IntOffset.Zero, IntSize(sw, sh), alpha, Fill, filter, blend, FilterQuality.None)
+        }
+    }
+
+    /**
+     * Part of a picture laid on a level face seen from a little above (the roof's slope, a deck, the yard): its front edge
+     * from ([x], [y]) across [w], its back edge [dy] higher and [shift] to the side; one axis-aligned strip per picture
+     * row (the picture's top row the far edge), so its pixels stay crisp.
+     */
+    private fun DrawScope.levelStrips(img: ImageBitmap, sx: Int, sy: Int, sw: Int, sh: Int, x: Float, y: Float, w: Float, dy: Float, shift: Float, filter: ColorFilter? = null, alpha: Float = 1f) {
+        if (sh <= 0) return
+        for (j in 0 until sh) {
+            val t = (j + 1f) / sh
+            val yy = y - dy * (1f - t)
+            val xx = x + minOf(shift * (1f - t), shift * (1f - j.toFloat() / sh))
+            val ww = w + abs(shift) / sh
+            withTransform({
+                translate(xx, yy - dy / sh)
+                scale(ww / sw, (dy / sh + .6f), Offset.Zero)
+            }) {
+                drawImage(img, IntOffset(sx, sy + j), IntSize(sw, 1), IntOffset.Zero, IntSize(sw, 1), alpha, Fill, filter, BlendMode.SrcOver, FilterQuality.None)
+            }
+        }
+    }
+
+    /** A colour as the night and the blue hour leave it on a wall. */
+    private fun houseInk(c: Color): Color {
+        var r = c.red; var g = c.green; var b = c.blue
+        if (blue > .01f) { val t = .35f * blue; r *= 1f - t + t * BlueCast.red; g *= 1f - t + t * BlueCast.green; b *= 1f - t + t * BlueCast.blue }
+        if (nightOn) { r *= nightInk.red; g *= nightInk.green; b *= nightInk.blue }
+        return Color(r, g, b)
+    }
+
+    private fun rgb(c: Int): Color = Color(0xFF000000.toInt() or c)
+
+    /**
+     * One of a house's boxes (its porch's deck, rails and legs, its steps, its flue): its front, its top and the side the
+     * view shows, each lit as the house's own faces are (the top by the sky and the sun, the shown side by which side the
+     * light is on, the front a little darker in the sun, as the fronts face away from it), with the pixel art's dark
+     * outline and a light top edge. Lengths in the house's pixels; [dn] and [df] its near and far depth behind the wall.
+     */
+    private fun DrawScope.houseBox(
+        v: com.lifemax.rpg.feature.habits.domain.SetBackView, x0: Float, x1: Float, y0: Float, y1: Float, dn: Float, df: Float,
+        top: Color, front: Color, side: Color, sky: SkyColors, tex: ImageBitmap? = null, frontTex: IntArray? = null, topTex: IntArray? = null, outline: Boolean = true,
+    ) {
+        val k = v.k
+        val lit = .5f + .5f * direct
+        val toSun = if (sideShift < 0f) -sunSide else sunSide
+        val snowy = season.snow
+        var topC = lerp(top, Color.White, .16f * lit)
+        if (snowy > .01f) topC = lerp(topC, snowInk(sky), .85f * snowy)
+        val sideC = if (toSun > .02f) lerp(side, Color.White, .22f * toSun) else lerp(side, Color(0xFF1A1830), .2f + .2f * -toSun)
+        val frontC = lerp(front, castInk, .1f * direct)
+        val edge = houseInk(lerp(front, Color(0xFF15142A), .62f))
+        // the shown side
+        if (v.showsSide && df > dn) {
+            val xs = if (v.rightSide) x1 else x0
+            drawPath(quadPath(v.x(xs, dn), v.y(y1, dn), v.x(xs, df), v.y(y1, df), v.x(xs, df), v.y(y0, df), v.x(xs, dn), v.y(y0, dn)), houseInk(sideC))
+        }
+        // the top
+        if (df > dn) {
+            val tt = topTex
+            if (tex != null && tt != null && snowy < .5f) {
+                levelStrips(tex, tt[0], tt[1], tt[2], tt[3], v.x(x0, dn), v.y(y1, dn), (x1 - x0) * k, v.lift(df - dn), v.lean(df - dn), signTint())
+                if (snowy > .01f) drawPath(quadPath(v.x(x0, dn), v.y(y1, dn), v.x(x1, dn), v.y(y1, dn), v.x(x1, df), v.y(y1, df), v.x(x0, df), v.y(y1, df)), houseInk(snowInk(sky)), alpha = .85f * snowy)
+            } else drawPath(quadPath(v.x(x0, dn), v.y(y1, dn), v.x(x1, dn), v.y(y1, dn), v.x(x1, df), v.y(y1, df), v.x(x0, df), v.y(y1, df)), houseInk(topC))
+        }
+        // the front
+        val fx = v.x(x0, dn); val fy = v.y(y1, dn); val fw = (x1 - x0) * k; val fh = (y1 - y0) * k
+        val ft = frontTex
+        if (tex != null && ft != null) part(tex, ft[0], ft[1], ft[2], ft[3], fx, fy, fw, fh, filter = signTint())
+        else drawRect(houseInk(frontC), Offset(fx, fy), Size(fw, fh))
+        if (direct > .02f && tex != null && ft != null) drawRect(castInk, Offset(fx, fy), Size(fw, fh), alpha = .1f * direct)
+        if (outline && fw > 2f * k) {
+            drawRect(edge, Offset(fx, fy + fh - k * .7f), Size(fw, k * .7f))
+            drawRect(edge, Offset(fx, fy), Size(k * .6f, fh))
+            drawRect(edge, Offset(fx + fw - k * .6f, fy), Size(k * .6f, fh))
+            drawRect(houseInk(lerp(topC, Color.White, .25f)), Offset(fx, fy), Size(fw, k * .6f))
+        }
+    }
+
+    /**
+     * One of OUR mobile homes ([HouseArt]) as a house, not a box: it stands back in its yard (so it moves against the
+     * shops and lamps as the street scrolls), its wall the art's own front, a pitched roof whose ridge runs along the
+     * street (the art's slope, one screen row per row of its pixels), a gable end on the side the view shows, the flue
+     * standing up behind the ridge, the hitch beside it, and its porch or steps built as boxes in front. Lit as the shops
+     * are (the sun's wash and shade on the wall, the slope catching a high sun and going into shade when it is low, the
+     * gable by its side, the night and the blue hour), with snow on its roof and its yard, and its windows lit at dusk on
+     * a home's hours.
+     */
+    private fun DrawScope.houseBuilding(art: BuildingArt, sb: SpriteBuilding, ha: HouseArt, sky: SkyColors, seconds: Float) {
+        val sh = ha.shape
+        val s = sideShift
+        val v = (houseView ?: HouseView(sh, s).also { houseView = it }).set(sh, s, unitPx, buildingX)
+        val k = v.k
+        val half = B.W / 2f
+        val picW = sb.front.width.toFloat()
+        val eo = sh.eaveOver
+        val snow = season.snow
+        val key = light
+        // --- the yard: its ground from the pavement back past the house, and the house's shade on it
+        val deep = sh.setback + sh.depth
+        val lawn = ha.lawn
+        val backY = -B.DY * deep / com.lifemax.rpg.feature.habits.domain.HouseView.DEPTH
+        val backX = s * deep / com.lifemax.rpg.feature.habits.domain.HouseView.DEPTH
+        if (lawn != null) levelStrips(lawn, 0, 0, lawn.width, lawn.height, -half, 0f, B.W, -backY, backX)
+        val yard = quadPath(-half, 0f, half, 0f, half + backX, backY, -half + backX, backY)
+        if (snow > .01f) drawPath(yard, snowInk(sky), alpha = .82f * snow)
+        if (blue > .01f) drawPath(yard, BlueCast, alpha = .35f * blue, blendMode = BlendMode.Multiply)
+        if (nightOn) drawPath(yard, nightInk, blendMode = BlendMode.Multiply)
+        // the house's own shade over its yard (its shadow on the pavement is drawn with the other buildings'): the light
+        // is behind the houses, so the yard in front of the wall is in shade, its edges leaning away from the light
+        val wl = v.x(sh.wall0, 0f); val wr = v.x(sh.wall1, 0f); val foot = v.y(0f, 0f)
+        var yardShade = 0f
+        if (key != null && key.strength > .02f && key.reach > .05f) {
+            val lean = (SceneLight.lean(key, offset(buildingX)) / key.reach * -foot).coerceIn(-40f, 40f)
+            val a = (if (key.cool > .5f) MOON_SHADE else SUN_SHADE) * key.strength * (1f - .6f * key.flat)
+            drawPath(quadPath(wl, foot, wr, foot, wr + lean, 0f, wl + lean, 0f), shade(key, sky), alpha = a)
+            yardShade = a
+        }
+        // the contact shadow along the house's foot
+        withTransform({ translate(0f, foot); scale(1f, .45f, Offset.Zero) }) { drawRect(aoGround, Offset(wl - k, 0f), Size(wr - wl + 2f * k, 8f)) }
+
+        // --- the flue, standing on the far slope (the near slope hides its foot)
+        val flueBase = sh.roofTop(sh.flueD1) - 2f
+        val flueC = rgb(sh.flueBody)
+        houseBox(v, sh.flueX0, sh.flueX1, flueBase, sh.flueTop, sh.flueD0, sh.flueD1, rgb(sh.flueCap), flueC, lerp(flueC, Color.Black, .2f), sky)
+
+        // --- the gable end the view shows, under its rake
+        val showGable = v.showsSide && art.stack.id !in StageTuning.cornerIds
+        if (showGable) {
+            val xe = if (v.rightSide) sh.wall1 else sh.wall0
+            val sideH = sb.side.height.toFloat()
+            sideStrips(sb.side, v.x(xe, 0f), v.y(sideH, 0f), v.lean(sh.depth), -v.lift(sh.depth), sideH * k, 20)
+            housePath.rewind()
+            housePath.moveTo(v.x(xe, 0f), v.y(0f, 0f))
+            housePath.lineTo(v.x(xe, 0f), v.y(sh.gableTop(0f), 0f))
+            housePath.lineTo(v.x(xe, sh.depth / 2f), v.y(sh.gableTop(sh.depth / 2f), sh.depth / 2f))
+            housePath.lineTo(v.x(xe, sh.depth), v.y(sh.gableTop(sh.depth), sh.depth))
+            housePath.lineTo(v.x(xe, sh.depth), v.y(0f, sh.depth))
+            housePath.close()
+            drawPath(housePath, Color(0xFF0A1024), alpha = .2f)
+            sideLight(housePath, 1f)
+            if (blue > .01f) drawPath(housePath, BlueCast, alpha = .35f * blue, blendMode = BlendMode.Multiply)
+            if (nightOn) drawPath(housePath, nightInk, blendMode = BlendMode.Multiply)
+            // the verge's shadow on the gable when the light is on this side: a band under the soffit, wider in a low sun
+            val toSun = if (s < 0f) -sunSide else sunSide
+            val d2 = sh.depth / 2f
+            if (toSun > .02f) {
+                val band = 2f + 4f * gold
+                rowsPath.rewind()
+                rakeRows(v, xe, 0f, d2, -sh.slab - band, -sh.slab); rakeRows(v, xe, d2, sh.depth, -sh.slab - band, -sh.slab)
+                drawPath(rowsPath, castInk, alpha = .28f * toSun)
+            }
+            // the roof slab's end stands out past the wall by the verge. Seen from a little above, the near half's
+            // underside is hidden under the near slope, but the back half's faces the camera (the far slope is
+            // steeper than the view): its soffit, in shade, between the wall's top and the rake boards. Each is a steep
+            // band a pixel or two wide, so it is filled row by row of the screen's pixels (stepped like the art's own
+            // lines, never thinner than a pixel, no sky between them)
+            val xv = if (v.rightSide) sh.wall1 + sh.verge else sh.wall0 - sh.verge
+            val dEnd = sh.depth + eo
+            rowsPath.rewind()
+            rowQuad(v.x(xe, d2), v.y(sh.gableTop(d2), d2), v.x(xv, d2), v.y(sh.gableTop(d2), d2),
+                v.x(xv, dEnd), v.y(sh.gableTop(dEnd), dEnd), v.x(xe, dEnd), v.y(sh.gableTop(dEnd), dEnd))
+            drawPath(rowsPath, houseInk(lerp(rgb(sh.rakeEdge), Color(0xFF15142A), .45f)))
+            // the rake boards, from the front eave up to the ridge and down to the back eave: lit by the side's light,
+            // and under snow white with the slope (snow caked on the verge, and a lip of it along the top)
+            var rakeC = if (toSun > .02f) lerp(rgb(sh.rake), Color.White, .2f * toSun) else lerp(rgb(sh.rake), Color.Black, .15f)
+            if (snow > .01f) rakeC = lerp(rakeC, snowInk(sky), .8f * snow)
+            rowsPath.rewind()
+            rakeRows(v, xv, -eo, d2, -sh.slab, 0f); rakeRows(v, xv, d2, dEnd, -sh.slab, 0f)
+            drawPath(rowsPath, houseInk(rakeC))
+            // its top edge against the sky behind the ridge (the near half's is the slope's own edge)
+            rowsPath.rewind()
+            rakeRows(v, xv, d2, dEnd, -.8f, 0f)
+            drawPath(rowsPath, houseInk(lerp(rgb(sh.rakeEdge), snowInk(sky), .8f * snow)))
+            if (snow > .01f) {
+                rowsPath.rewind()
+                rakeRows(v, xv, -eo, d2, 0f, 1.6f); rakeRows(v, xv, d2, dEnd, 0f, 1.6f)
+                drawPath(rowsPath, snowInk(sky), alpha = .9f * snow)
+            }
+        }
+
+        // --- the hitch: a card at mid-depth beside the wall (behind the front when the other side shows)
+        ha.hitch?.let { h ->
+            val hw = h.width * k; val hh = h.height * k
+            part(h, 0, 0, h.width, h.height, v.x(sh.wall1, sh.depth / 2f), v.y(0f, sh.depth / 2f) - hh, hw, hh, filter = signTint())
+        }
+
+        // --- the roof's near slope, from the eave's edge up to the ridge. The eave overhangs the wall, which puts it off
+        // the screen's pixel grid: it is snapped back to it, and the ridge is exactly the slope's rows above it, so every
+        // row of the art's slope lands on whole screen pixels (none blended with the next)
+        val rows = ha.slope.height
+        // (across, the building's own middle need not be on a whole pixel: its place along the street is added first)
+        fun snap(a: Float, at: Float = 0f) = if (unitPx > 0f) kotlin.math.round((a + at) * unitPx) / unitPx - at else a
+        val ex = snap(v.x(0f, -eo), buildingX); val ey = snap(v.y(sh.h, -eo))
+        val rx = ex + v.lean(sh.run); val ry = ey - rows * k
+        levelStrips(ha.slope, 0, 0, ha.slope.width, rows, ex, ey, picW * k, ey - ry, rx - ex)
+        val slope = quadPath(ex, ey, ex + picW * k, ey, rx + picW * k, ry, rx, ry)
+        if (key != null) {
+            // the slope faces up and towards the viewer; the light comes from behind the houses
+            val p = sh.pitch
+            val sun = key.strength * (1f - key.flat) * (key.down * kotlin.math.cos(p) - key.out * kotlin.math.sin(p)) * (1f - .6f * key.cool)
+            if (sun > .01f) drawPath(slope, faceLit, alpha = (.3f * sun).coerceAtMost(.35f))
+            else if (sun < -.01f) drawPath(slope, castInk, alpha = (.25f * -sun).coerceAtMost(.3f))
+        }
+        if (snow > .01f) drawPath(slope, snowInk(sky), alpha = .85f * snow)
+        if (blue > .01f) drawPath(slope, BlueCast, alpha = .35f * blue, blendMode = BlendMode.Multiply)
+        if (nightOn) drawPath(slope, nightInk, blendMode = BlendMode.Multiply)
+        // the ridge cap, astride the ridge; under snow, white with the slope (the cap's own shape) and heaped on top
+        part(ha.ridge, 0, 0, ha.ridge.width, ha.ridge.height, rx, ry - 2f * k, picW * k, ha.ridge.height * k, filter = signTint())
+        if (snow > .01f) {
+            snowInk(sky)
+            part(ha.ridge, 0, 0, ha.ridge.width, ha.ridge.height, rx, ry - 2f * k, picW * k, ha.ridge.height * k, alpha = .85f * snow, filter = snowFilter)
+            cap(rx, ry - 2.6f * k, picW * k, 2.2f * k, .95f * snow)
+        }
+
+        // --- the front: the wall, and the eave's edge (the roof slab's front, overhanging the wall)
+        val fasc = sh.fascia.toInt()
+        val hWall = sh.h - sh.fascia
+        part(sb.front, 0, fasc, sb.front.width, sb.front.height - fasc, v.x(0f, 0f), v.y(hWall, 0f), picW * k, hWall * k)
+        part(sb.front, 0, 0, sb.front.width, fasc, ex, ey, picW * k, sh.fascia * k)
+        val wy = v.y(hWall, 0f)
+        // under the eaves: the sky's light shut out, more of it in the sun
+        drawRect(castInk, Offset(wl, wy), Size(wr - wl, (2f + 3f * direct) * k), alpha = .22f + .22f * direct)
+        facadeLight(wy, foot, 1f, wl, wr - wl)
+        blueHour(wl, wy, wr - wl, foot - wy, .35f)
+        blueHour(ex, ey, picW * k, sh.fascia * k, .35f)
+        withTransform({ translate(0f, foot) }) { drawRect(aoWall, Offset(wl, -14f), Size(wr - wl, 14f)) }
+        if (nightOn) {
+            drawRect(nightInk, Offset(wl, wy), Size(wr - wl, foot - wy), blendMode = BlendMode.Multiply)
+            drawRect(nightInk, Offset(ex, ey), Size(picW * k, sh.fascia * k), blendMode = BlendMode.Multiply)
+        }
+        if (snow > .01f) {
+            // a lip of snow over the eave's edge, and icicles along it in a hard winter
+            cap(ex - .4f * k, ey - 1.6f * k, picW * k + .8f * k, 2.4f * k, .9f * snow)
+            if (snow > .5f) {
+                val seed = art.stack.id.hashCode()
+                var x = 4f
+                var i = 0
+                while (x < picW - 4f) {
+                    val len = (1.5f + 4f * Ambient.hash(seed, i, 77)) * k * (snow - .5f) * 2f
+                    val ix = ex + x * k
+                    housePath.rewind(); housePath.moveTo(ix - .7f * k, ey + sh.fascia * k); housePath.lineTo(ix + .7f * k, ey + sh.fascia * k); housePath.lineTo(ix, ey + sh.fascia * k + len); housePath.close()
+                    drawPath(housePath, snowInk, alpha = .85f)
+                    x += 5f + 9f * Ambient.hash(seed, i, 78); i++
+                }
+            }
+        }
+
+        // --- the porch or the steps, back to front
+        val order = sh.boxesInOrder(s)
+        for (i in order.indices) {
+            val b = order[i]
+            houseBox(v, b.x0, b.x1, b.y0, b.y1, -b.z1, if (b.card) -b.z1 + .01f else -b.z0, rgb(b.top), rgb(b.front), rgb(b.side), sky,
+                ha.porch, b.frontTex, b.topTex, outline = b.frontTex == null)
+        }
+
+        // --- the yard's fence or hedge along the street, open at the gate: in front of the house's foot
+        ha.fence?.let { fe ->
+            val dd = sh.fenceD - sh.setback
+            val fx = v.x(-sh.frontX, dd); val fy = v.y(sh.fenceFoot, dd)
+            part(fe, 0, 0, fe.width, fe.height, fx, fy, fe.width * k, fe.height * k, filter = signTint())
+            // it stands in the house's shade as the yard does (the light is behind the houses: deepest in a low sun),
+            // so it goes with the wall behind it instead of staying a bright green in the evening
+            val cast = max(.12f * direct, .85f * yardShade)
+            if (cast > .01f) part(fe, 0, 0, fe.width, fe.height, fx, fy, fe.width * k, fe.height * k, alpha = cast, filter = castFilter())
+            if (snow > .01f) {
+                // snow along every top it has (a picket's point, a rail, a bush's crown), and a dusting over the rest
+                snowInk(sky)
+                ha.fenceSnow?.let { fs -> part(fs, 0, 0, fs.width, fs.height, fx, fy, fe.width * k, fe.height * k, alpha = .92f * snow, filter = snowFilter) }
+                part(fe, 0, 0, fe.width, fe.height, fx, fy, fe.width * k, fe.height * k, alpha = .22f * snow, filter = snowFilter)
+            }
+        }
+
+        // --- the windows: the sky and the street mirrored in the glass, the rain on it, and the lamp lit inside at dusk
+        val wseed = art.stack.id.hashCode()
+        for (i in sh.panes.indices) {
+            val p = sh.panes[i]
+            val x = v.x(p[0], 0f); val y = v.y(sh.h - p[1], 0f); val ww = p[2] * k; val hh = p[3] * k
+            val pane = wseed * 31 + i
+            val lampOn = Dusk.lightsOn(pane, hour)
+            val mirror = fresnel * (1f + PANE_FRESNEL * GlassMap.tilt(pane))
+            val on = (sky.dark * lampOn).coerceIn(0f, 1f)
+            // (faint: the art's own curtains and blinds are behind the glass, and should show)
+            mirrorSky(x, y, ww, hh, min(1f, FacadeLook.reflection(on, sky.dark) * mirror * (if (sh.glass) .45f else .25f)), pane, 1f - .7f * on)
+            glassRain(x, y, ww, hh, glassSeconds, sky)
+            if (on > .01f) {
+                // the lamp's warmth through the curtains (blue cloth), then the glow over what the window shows
+                if (sh.glass) drawRect(SceneInk.WindowLit, Offset(x, y), Size(ww, hh), alpha = .4f * on, blendMode = BlendMode.Multiply)
+                part(sb.emis, p[0].toInt(), p[1].toInt(), p[2].toInt(), p[3].toInt(), x, y, ww, hh, alpha = on * .9f, blend = BlendMode.Overlay)
+                part(sb.emis, p[0].toInt(), p[1].toInt(), p[2].toInt(), p[3].toInt(), x, y, ww, hh, alpha = on * .3f, blend = BlendMode.Plus)
+            }
+        }
+        // --- the porch light beside the door: a small lamp on the wall, lit from dusk with a warm pool on the wall and
+        // the ground below it (the porch's deck or the steps)
+        run {
+            val lx = 106f; val ly = 32f                                 // front-picture pixels: right of the door, at head height
+            val x = v.x(lx, 0f); val y = v.y(sh.h - ly, 0f)
+            drawRect(houseInk(Color(0xFF2A2633)), Offset(x - .5f * k, y - 1f * k), Size(4f * k, 5f * k))
+            val on = (sky.dark * Dusk.lightsOn(wseed + 7, hour, Dusk.LAMP)).coerceIn(0f, 1f)
+            drawRect(lerp(houseInk(Color(0xFFBFB59A)), SceneInk.WindowLit, on), Offset(x + .5f * k, y), Size(2f * k, 3f * k))
+            if (on > .02f) {
+                val c = Offset(x + 1.5f * k, y + 1.5f * k)
+                val r = 16f * k
+                withTransform({ translate(c.x, c.y); scale(r, r, Offset.Zero) }) {
+                    drawCircle(porchGlow, 1f, Offset.Zero, alpha = on, blendMode = BlendMode.Plus)
+                }
+                // its pool on the ground in front of the door
+                val gy = v.y(0f, -10f)
+                withTransform({ translate(c.x, gy); scale(22f * k, .28f * 22f * k, Offset.Zero) }) {
+                    drawCircle(porchPool, 1f, Offset.Zero, alpha = on, blendMode = BlendMode.Plus)
+                }
+            }
+        }
+        drawRect(SceneInk.Highlight, Offset(ex, ey), Size(picW * k, .6f * k))
+        // smoke from the flue on cold days, most at night and in the morning
+        houseSmoke(wseed, v.x((sh.flueX0 + sh.flueX1) / 2f, (sh.flueD0 + sh.flueD1) / 2f), v.y(sh.flueTop, (sh.flueD0 + sh.flueD1) / 2f), k, seconds, sky)
+    }
+
+    /**
+     * The smoke off a house's flue (its top at ([x], [y])): soft puffs rising, growing and thinning, drifting with the
+     * wind, from the heating in the cold months ([Dusk.steam]: thickest at night and in the morning); none in summer.
+     */
+    private fun DrawScope.houseSmoke(seed: Int, x: Float, y: Float, k: Float, seconds: Float, sky: SkyColors) {
+        val day = season.dayOfYear
+        val cold = if (day < 90 || day > 300) 1f else if (day < 120 || day > 275) .4f else 0f
+        val density = cold * Dusk.steam(hour, day)
+        if (density <= .01f) return
+        duskTints(sky)
+        val wind = Ambient.sway(seed, seconds)
+        val puffs = SceneSprites.dusk.puffs
+        val half = DuskSprites.PUFF / 2f
+        for (j in 0 until Dusk.PUFFS) {
+            val t = Dusk.puff(seed, j, seconds * .8f)
+            val size = (.5f + 1.9f * t) * 9f * k / DuskSprites.PUFF
+            val px = x + t * (4f + 3f * wind) * k + 4f * t * t * k
+            val py = y - t * 30f * k
+            val fade = (1f - t) * (1f - t)
+            val a = density * .5f * fade * min(1f, t * 10f)
+            if (a <= .01f) continue
+            withTransform({
+                translate(px, py)
+                scale(size, size, Offset.Zero)
+            }) {
+                drawImage(puffs[j % DuskSprites.PUFFS], Offset(-half, -half), alpha = a, colorFilter = steamFilter)
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------ our villas and landmarks
+
+    /** One view of a villa or a landmark, set again for each one drawn ([ModelView.set]). */
+    private val modelView = com.lifemax.rpg.feature.habits.domain.ModelView()
+    /** A roof piece's map onto the screen, and its scratch (drawing happens on one thread). */
+    private val pieceM = Matrix()
+    private val pieceFrom = FloatArray(8)
+    private val pieceTo = FloatArray(8)
+    private val pieceRep = FloatArray(8)
+    private val pieceMap = DoubleArray(9)
+    private val pieceA = DoubleArray(9)
+    private val pieceB = DoubleArray(9)
+
+    /**
+     * Atlas piece [r] (x, y, w, h) laid on the screen: its points [from] (four, in its own pixels) onto [to] (the
+     * screen's), by one projective map ([QuadMap]), its pixels crisp. A roof's slope seen from the street is its picture
+     * from above squeezed into a band; a parallelogram onto a parallelogram is a plain skew.
+     */
+    private fun DrawScope.pieceOnto(img: ImageBitmap, r: IntArray, from: FloatArray, to: FloatArray, filter: ColorFilter?, alpha: Float = 1f, blend: BlendMode = BlendMode.SrcOver) {
+        if (!pieceMatrix(from, to)) return
+        withTransform({ transform(pieceM) }) {
+            drawImage(img, IntOffset(r[0], r[1]), IntSize(r[2], r[3]), IntOffset.Zero, IntSize(r[2], r[3]), alpha, Fill, filter, blend, FilterQuality.None)
+        }
+    }
+
+    /** [pieceM] set to the projective map from quad [from] (a piece's own pixels) to quad [to] (the screen); false if none. */
+    private fun pieceMatrix(from: FloatArray, to: FloatArray): Boolean {
+        if (!com.lifemax.rpg.feature.habits.domain.QuadMap.quadToQuad(from, to, pieceMap, pieceA, pieceB)) return false
+        val m = pieceMap
+        val v = pieceM.values
+        v.fill(0f)
+        v[0] = m[0].toFloat(); v[4] = m[1].toFloat(); v[12] = m[2].toFloat()
+        v[1] = m[3].toFloat(); v[5] = m[4].toFloat(); v[13] = m[5].toFloat()
+        v[3] = m[6].toFloat(); v[7] = m[7].toFloat(); v[15] = m[8].toFloat()
+        v[10] = 1f
+        return true
+    }
+
+    /**
+     * Each clock's hands at this hour: one small picture per clock (its [ModelPart.clock] array, by identity), painted
+     * again only when the minute changes; a few slots, so two clocks in one frame do not repaint each other's. Each
+     * picture is made blank and mutable (ImageBitmap(n, n)) and then written: on Android a picture made from pixels is
+     * immutable and cannot be written again.
+     */
+    private val clockOf = arrayOfNulls<IntArray>(CLOCK_SLOTS)
+    private val clockImgs = arrayOfNulls<ImageBitmap>(CLOCK_SLOTS)
+    private val clockMinute = IntArray(CLOCK_SLOTS) { Int.MIN_VALUE }
+    private var clockNext = 0
+    private var clockPx = IntArray(0)
+    private var clockShaft = BooleanArray(0)
+
+    /**
+     * A modelled clock's hands ([ModelPart.clock]) at the hour, in its front piece's pixels (the transform maps those to
+     * the screen): pixel art in the dial's own cells, lit as the front is. [mirror]: the face shows its picture the
+     * other way round (a side seen from the left, its front edge on the right), so the hands go round the other way
+     * in it, to read clockwise.
+     */
+    private fun DrawScope.clockHands(c: IntArray, mirror: Boolean) {
+        val n = com.lifemax.rpg.feature.habits.domain.ClockHands.size(c[3])
+        val minute = kotlin.math.floor(hour * 60f).toInt()
+        var slot = -1
+        for (i in 0 until CLOCK_SLOTS) if (clockOf[i] === c) { slot = i; break }
+        if (slot < 0) { slot = clockNext; clockNext = (clockNext + 1) % CLOCK_SLOTS; clockOf[slot] = c; clockMinute[slot] = Int.MIN_VALUE }
+        var img = clockImgs[slot]
+        if (img == null || img.width != n) { img = ImageBitmap(n, n); clockImgs[slot] = img; clockMinute[slot] = Int.MIN_VALUE }
+        if (clockMinute[slot] != minute) {
+            if (clockPx.size != n * n) { clockPx = IntArray(n * n); clockShaft = BooleanArray(n * n) }
+            com.lifemax.rpg.feature.habits.domain.ClockHands.paint(clockPx, n, minute / 60f, c[3], c[4], c[5], c[6], c[7], clockShaft)
+            PlatformImages.update(img, clockPx, n, n)
+            clockMinute[slot] = minute
+        }
+        if (mirror) withTransform({ scale(-1f, 1f, Offset(c[0] + c[2] / 2f, c[1] + c[2] / 2f)) }) { clockFace(img, n, c) }
+        else clockFace(img, n, c)
+    }
+
+    /** The hands' picture [img] ([n] cells square) over the dial whose hub's cell [c] gives. */
+    private fun DrawScope.clockFace(img: ImageBitmap, n: Int, c: IntArray) {
+        val cell = c[2]; val mid = n / 2
+        drawImage(img, IntOffset.Zero, IntSize(n, n), IntOffset(c[0] - mid * cell, c[1] - mid * cell), IntSize(n * cell, n * cell),
+            colorFilter = signTint(), filterQuality = FilterQuality.None)
+    }
+
+    /**
+     * The light on a face turned to one side ([toSun] how much it faces the sun's side) and, with [snowToo], the snow on
+     * it, over [path].
+     */
+    private fun DrawScope.roofLight(path: Path, toSun: Float, sky: SkyColors, snowToo: Boolean = true) {
+        if (toSun > .02f) drawPath(path, faceLit, alpha = (.28f * toSun).coerceAtMost(.3f))
+        else if (toSun < -.02f) drawPath(path, castInk, alpha = (.22f * -toSun).coerceAtMost(.25f))
+        val snow = season.snow
+        if (snowToo && snow > .01f) drawPath(path, snowInk(sky), alpha = ROOF_SNOW * snow)
+    }
+
+    /** How lit a modelled building's window [seed] is now, on its own hours: a home's, a shop's, or all night (a clock's dial). */
+    private fun modelLit(m: com.lifemax.rpg.feature.habits.domain.ModelShape, seed: Int, sky: SkyColors): Float {
+        val kind = when (m.lights) { "shop" -> Dusk.SHOP; "lamp" -> Dusk.LAMP; else -> Dusk.HOME }
+        return (sky.dark * Dusk.lightsOn(seed, hour, kind)).coerceIn(0f, 1f)
+    }
+
+    /**
+     * The windows of a front laid at [fx] across, its foot at [y0], its piece [r] (its panes in that piece's pixels): the
+     * sky and the street mirrored in the glass, the rain on it, and its light at night on the building's hours.
+     */
+    private fun DrawScope.modelPanes(v: com.lifemax.rpg.feature.habits.domain.ModelView, ma: ModelArt, panes: List<FloatArray>, r: IntArray, fx: Float, y0: Float, d: Float, seed: Int, sky: SkyColors) {
+        val k = v.k
+        val top = y0 + r[3]
+        for (i in panes.indices) {
+            val p = panes[i]
+            val x = v.x(fx + p[0], d); val y = v.y(top - p[1], d); val ww = p[2] * k; val hh = p[3] * k
+            val pane = seed * 31 + i
+            val on = modelLit(ma.shape, pane, sky)
+            if (p.size < 5 || p[4] > .5f) {
+                // a square pane mirrors the sky and gathers the rain (a round one, a clock's dial, would show the square)
+                val mirror = fresnel * (1f + PANE_FRESNEL * GlassMap.tilt(pane))
+                mirrorSky(x, y, ww, hh, min(1f, FacadeLook.reflection(on, sky.dark) * mirror * .4f), pane, 1f - .7f * on)
+                glassRain(x, y, ww, hh, glassSeconds, sky)
+            }
+            val glow = ma.glow
+            if (on > .01f && glow != null) {
+                part(glow, r[0] + p[0].toInt(), r[1] + p[1].toInt(), p[2].toInt(), p[3].toInt(), x, y, ww, hh, alpha = on * .9f, blend = BlendMode.Overlay)
+                part(glow, r[0] + p[0].toInt(), r[1] + p[1].toInt(), p[2].toInt(), p[3].toInt(), x, y, ww, hh, alpha = on * .35f, blend = BlendMode.Plus)
+            }
+        }
+    }
+
+    /**
+     * One box of a villa or a landmark: its shown side (the art's side wall laid on it, its windows lit at night, or a
+     * plain face), its top (the art's boards, tiles or a colour; snow on it), its front (the art's own, which may reach
+     * above the box: a gable's face over a wall) lit as the houses' fronts are, and its windows.
+     */
+    private fun DrawScope.modelBox(v: com.lifemax.rpg.feature.habits.domain.ModelView, p: com.lifemax.rpg.feature.habits.domain.ModelPart, ma: ModelArt, sky: SkyColors, seed: Int) {
+        val ft = p.ft
+        if (ft == null && p.st == null && p.tt == null) {
+            // a plain box (a rail, a post, a step): as a house's porch boxes are drawn
+            houseBox(v, p.x0, p.x1, p.y0, p.y1, p.d0, if (p.card) p.d0 + .01f else p.d1, rgb(if (p.top >= 0) p.top else p.front), rgb(p.front), rgb(p.side), sky, outline = p.outline)
+            return
+        }
+        val k = v.k
+        val img = ma.atlas
+        val d0 = p.d0
+        val d1 = if (p.card) p.d0 + .01f else p.d1
+        val snowy = season.snow
+        val toSun = if (sideShift < 0f) -sunSide else sunSide
+        // --- the shown side
+        if (v.showsSide && d1 > d0 + .5f) {
+            val xs = if (v.rightSide) p.x1 else p.x0
+            val path = quadPath(v.x(xs, d0), v.y(p.y1, d0), v.x(xs, d1), v.y(p.y1, d1), v.x(xs, d1), v.y(p.y0, d1), v.x(xs, d0), v.y(p.y0, d0))
+            val st = p.st
+            if (st != null) {
+                val t = pieceTo
+                t[0] = v.x(xs, d0); t[1] = v.y(p.y1, d0); t[2] = v.x(xs, d1); t[3] = v.y(p.y1, d1)
+                t[4] = v.x(xs, d1); t[5] = v.y(p.y0, d1); t[6] = v.x(xs, d0); t[7] = v.y(p.y0, d0)
+                val f = pieceFrom
+                // the side picture's columns run from the front back; its rows from the box's top down (a short piece,
+                // a railing's, repeats along a long side)
+                val w = st[2].toFloat(); val h = st[3].toFloat()
+                val reps = if (p.y1 - p.y0 < h - .5f || st[2] >= (d1 - d0) - 1f) 1 else max(1, kotlin.math.round((d1 - d0) / st[2]).toInt())
+                val q = pieceRep
+                f[0] = 0f; f[1] = 0f; f[2] = w; f[3] = 0f; f[4] = w; f[5] = h; f[6] = 0f; f[7] = h
+                for (j in 0 until reps) {
+                    val a0 = j.toFloat() / reps; val a1 = (j + 1f) / reps
+                    q[0] = t[0] + (t[2] - t[0]) * a0; q[1] = t[1] + (t[3] - t[1]) * a0
+                    q[2] = t[0] + (t[2] - t[0]) * a1; q[3] = t[1] + (t[3] - t[1]) * a1
+                    q[4] = t[6] + (t[4] - t[6]) * a1; q[5] = t[7] + (t[5] - t[7]) * a1
+                    q[6] = t[6] + (t[4] - t[6]) * a0; q[7] = t[7] + (t[5] - t[7]) * a0
+                    pieceOnto(img, st, f, q, null)
+                }
+                drawPath(path, Color(0xFF0A1024), alpha = .2f)
+                sideLight(path, 1f)
+                if (blue > .01f) drawPath(path, BlueCast, alpha = .35f * blue, blendMode = BlendMode.Multiply)
+                if (nightOn) drawPath(path, nightInk, blendMode = BlendMode.Multiply)
+                val glow = ma.glow
+                if (glow != null && p.sideGlow) {
+                    val on = modelLit(ma.shape, seed * 17 + 5, sky)
+                    if (on > .01f) {
+                        f[0] = 0f; f[1] = 0f; f[2] = w; f[3] = 0f; f[4] = w; f[5] = h; f[6] = 0f; f[7] = h
+                        pieceOnto(glow, st, f, t, null, alpha = on * .9f, blend = BlendMode.Overlay)
+                        pieceOnto(glow, st, f, t, null, alpha = on * .3f, blend = BlendMode.Plus)
+                    }
+                }
+                // the clock on this side too (a side wearing the front's picture: the clock tower's)
+                val ck = p.clock
+                if (ck != null && reps == 1 && st.contentEquals(p.ft)) {
+                    f[0] = 0f; f[1] = 0f; f[2] = w; f[3] = 0f; f[4] = w; f[5] = h; f[6] = 0f; f[7] = h
+                    if (pieceMatrix(f, t)) withTransform({ transform(pieceM) }) { clockHands(ck, !v.rightSide) }
+                }
+            } else {
+                val sideC = if (toSun > .02f) lerp(rgb(p.side), Color.White, .22f * toSun) else lerp(rgb(p.side), Color(0xFF1A1830), .2f + .2f * -toSun)
+                drawPath(path, houseInk(sideC))
+            }
+        }
+        // --- the top
+        val tt = p.tt
+        if ((p.top >= 0 || tt != null) && d1 > d0 + .5f) {
+            if (tt != null) levelStrips(img, tt[0], tt[1], tt[2], tt[3], v.x(p.x0, d0), v.y(p.y1, d0), (p.x1 - p.x0) * k, v.lift(d1 - d0), v.lean(d1 - d0), signTint())
+            val path = quadPath(v.x(p.x0, d0), v.y(p.y1, d0), v.x(p.x1, d0), v.y(p.y1, d0), v.x(p.x1, d1), v.y(p.y1, d1), v.x(p.x0, d1), v.y(p.y1, d1))
+            if (tt == null) drawPath(path, houseInk(lerp(rgb(p.top), Color.White, .16f * (.5f + .5f * direct))))
+            if (snowy > .01f) drawPath(path, houseInk(snowInk(sky)), alpha = ROOF_SNOW * snowy)
+        }
+        // --- the front
+        if (ft != null) {
+            val x = v.x(p.fx, d0); val top = v.y(p.y0 + ft[3], d0); val w = ft[2] * k; val h = ft[3] * k
+            part(img, ft[0], ft[1], ft[2], ft[3], x, top, w, h, filter = signTint())
+            // the fronts face away from the sun (it is behind the street's buildings): a little of its shade on the art
+            if (direct > .02f) part(img, ft[0], ft[1], ft[2], ft[3], x, top, w, h, alpha = .1f * direct, filter = castFilter())
+            if (!p.card && p.y1 - p.y0 >= 30f) {
+                // a wall: the sun's wash from its lit edge, the blue hour, and the ground's shade at its foot (over the
+                // wall's own rectangle only, not the sky round a gable over it)
+                val wl = v.x(p.x0, d0); val wt = v.y(p.y1, d0); val wb = v.y(p.y0, d0); val ww = (p.x1 - p.x0) * k
+                facadeLight(wt, wb, 1f, wl, ww)
+                withTransform({ translate(0f, wb) }) { drawRect(aoWall, Offset(wl, -14f), Size(ww, 14f)) }
+            }
+            if (p.panes.isNotEmpty()) modelPanes(v, ma, p.panes, ft, p.fx, p.y0, d0, seed + p.x0.toInt(), sky)
+            // the clock's hands, over its dial (and its light at night: they stand dark against it)
+            val ck = p.clock
+            if (ck != null) withTransform({ translate(x, top); scale(k, k, Offset.Zero) }) { clockHands(ck, false) }
+        } else {
+            val fx = v.x(p.x0, d0); val fy = v.y(p.y1, d0)
+            drawRect(houseInk(lerp(rgb(p.front), castInk, .1f * direct)), Offset(fx, fy), Size((p.x1 - p.x0) * k, (p.y1 - p.y0) * k))
+        }
+    }
+
+    /**
+     * A front-facing gable: the triangle end faces the street and its two slopes run back from it. Seen from the street,
+     * a little above, each slope is its picture from above squeezed into a band over its rake (one projective map from
+     * the art's quad to the slope's), where the view sees it from above: lit by the side it faces, snow on it, a lip of
+     * snow along the rake. Under its straight front edge, the roof's own edge colour down to the face's stepped rake
+     * (the face, drawn after it, hides the rest). On the shown side the eave's board runs back along the wall's top, its
+     * shade under it ([gableEave]; [eaves] false when the box under it is still to come and draws them). Then its face,
+     * if it stands on its own (a box's front carries the main one), and the face's window.
+     */
+    private fun DrawScope.frontGable(v: com.lifemax.rpg.feature.habits.domain.ModelView, p: com.lifemax.rpg.feature.habits.domain.ModelPart, ma: ModelArt, sky: SkyColors, seed: Int, eaves: Boolean = true) {
+        val k = v.k
+        val ax = p.apex
+        val snow = season.snow
+        for (side in 0..1) {
+            val left = side == 0
+            val r = (if (left) p.left else p.right) ?: continue
+            val pts = (if (left) p.leftP else p.rightP) ?: continue
+            val xe = if (left) p.x0 else p.x1
+            // the front eave, the apex, the ridge's back end, the back eave
+            val t = pieceTo
+            t[0] = v.x(xe, p.d0); t[1] = v.y(p.y0, p.d0)
+            t[2] = v.x(ax, p.d0); t[3] = v.y(p.y1, p.d0)
+            t[4] = v.x(ax, p.d1); t[5] = v.y(p.y1, p.d1)
+            t[6] = v.x(xe, p.eaveBack); t[7] = v.y(p.y0, p.eaveBack)
+            // its verge, the roof's edge seen edge on along the rake, in the roof's edge colour: from a little above the
+            // slope's straight front edge down past the face's stepped rake (its steps sit up to two and a half pixels
+            // below the line; the face, drawn later, covers the rest). It shows whether or not the slope does: a slope
+            // the view sees only as a sliver, or not at all, still has its edge there (without it the art's checker of
+            // rake ink, as over the villa's door, reads as a dotted outline against what is behind)
+            val lipC = houseInk(if (p.lip >= 0) rgb(p.lip) else lerp(rgb(p.front), Color.Black, .35f))
+            rowsPath.rewind()
+            rowQuad(t[0], t[1] - VERGE * k, t[2], t[3] - VERGE * k, t[2], t[3] + GABLE_LIP * k, t[0], t[1] + GABLE_LIP * k)
+            drawPath(rowsPath, lipC)
+            // the view sees the slope from above when its eave runs back on its outer side of the rake; else the other
+            // slope and the ridge hide it, and only the snow lying along its rake shows
+            if (!com.lifemax.rpg.feature.habits.domain.RoofFaces.gableSlopeSeen(left, t)) {
+                if (snow > .01f) {
+                    rowsPath.rewind()
+                    rowQuad(t[0], t[1] - (VERGE + .2f) * k, t[2], t[3] - (VERGE + .2f) * k, t[2], t[3] + GABLE_LIP * k, t[0], t[1] + GABLE_LIP * k)
+                    drawPath(rowsPath, snowInk(sky), alpha = ROOF_SNOW * snow)
+                }
+                continue
+            }
+            for (i in 0 until 8) pieceFrom[i] = pts[i]
+            // (within its quad: where the slope runs far back to a short eave, as the cross gable's into the main roof,
+            // the map squeezes the piece's edge pixels near its far corner out past the quad)
+            clipPath(quadPath(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7])) { pieceOnto(ma.atlas, r, pieceFrom, t, signTint()) }
+            // the light and the snow on the slope and its edge as one face
+            val path = housePath
+            path.rewind()
+            path.moveTo(t[0], t[1] + GABLE_LIP * k); path.lineTo(t[2], t[3] + GABLE_LIP * k); path.lineTo(t[2], t[3])
+            path.lineTo(t[4], t[5]); path.lineTo(t[6], t[7]); path.lineTo(t[0], t[1]); path.close()
+            roofLight(path, if (left) -sunSide else sunSide, sky)
+            if (snow > .01f) {
+                rowsPath.rewind()
+                rowQuad(t[0], t[1] - 1.6f * k, t[2], t[3] - 1.6f * k, t[2], t[3], t[0], t[1])
+                drawPath(rowsPath, snowInk(sky), alpha = ROOF_SNOW * snow)
+            }
+        }
+        if (eaves) gableEave(v, p, sky)
+        val face = p.face ?: return
+        val x = v.x(p.fx, p.d0); val top = v.y(p.faceY + face[3], p.d0)
+        part(ma.atlas, face[0], face[1], face[2], face[3], x, top, face[2] * k, face[3] * k, filter = signTint())
+        if (direct > .02f) part(ma.atlas, face[0], face[1], face[2], face[3], x, top, face[2] * k, face[3] * k, alpha = .1f * direct, filter = castFilter())
+        if (snow > .01f) {
+            // the snow over the apex, where the face's own ridge board end stands a pixel or two above the slopes' lips
+            val axs = v.x(ax, p.d0); val ays = v.y(p.y1, p.d0)
+            rowsPath.rewind()
+            rowQuad(axs - 3f * k, ays - 1.6f * k, axs + 3f * k, ays - 1.6f * k, axs + 3f * k, ays + 3.5f * k, axs - 3f * k, ays + 3.5f * k)
+            drawPath(rowsPath, snowInk(sky), alpha = ROOF_SNOW * snow)
+        }
+        if (p.panes.isNotEmpty()) modelPanes(v, ma, p.panes, face, p.fx, p.faceY, p.d0, seed + 77, sky)
+    }
+
+    /**
+     * A front gable's eave along the side the view shows: its board in the rake's colour running back from the front
+     * eave, and the shade it throws on the top of the wall under it. Drawn after that wall's box, which would paint over
+     * both.
+     */
+    private fun DrawScope.gableEave(v: com.lifemax.rpg.feature.habits.domain.ModelView, p: com.lifemax.rpg.feature.habits.domain.ModelPart, sky: SkyColors) {
+        if (!v.showsSide || p.eaveBack <= p.d0 + 1f) return
+        val k = v.k
+        val snow = season.snow
+        val left = !v.rightSide
+        val xe = if (left) p.x0 else p.x1
+        val fx = v.x(xe, p.d0); val fy = v.y(p.y0, p.d0); val bx = v.x(xe, p.eaveBack); val by = v.y(p.y0, p.eaveBack)
+        var c = lerp(rgb(p.rake), Color.Black, .1f)
+        if (snow > .01f) c = lerp(c, snowInk(sky), .7f * snow)
+        rowsPath.rewind()
+        rowQuad(fx, fy, bx, by, bx, by + 2.5f * k, fx, fy + 2.5f * k)
+        drawPath(rowsPath, houseInk(c))
+        rowsPath.rewind()
+        val inX = if (left) 2f else -2f
+        rowQuad(v.x(xe + inX, p.d0), fy + 2.5f * k, v.x(xe + inX, p.eaveBack), by + 2.5f * k,
+            v.x(xe + inX, p.eaveBack), by + (5f + 3f * direct) * k, v.x(xe + inX, p.d0), fy + (5f + 3f * direct) * k)
+        drawPath(rowsPath, castInk, alpha = .25f + .15f * direct)
+    }
+
+    /**
+     * A hipped roof: four sloped faces and a flat top. The side faces first, where the view sees them from above (wedges
+     * over the hips, each its tiles laid on its quad: their joints where they fall far enough apart on the screen, each
+     * course one colour where they would not), each with a band of the hip's crease along it; then the flat top, then
+     * the front face over both: the art's rows one screen row each (the rise was chosen so), its eave put on the
+     * screen's pixels, the hips' cap tiles on it. Lit as the houses' slopes are (the front faces the street and the sun
+     * is behind it), the sides by their side; snow on all, and a lip of it along the eave.
+     */
+    private fun DrawScope.hippedRoof(v: com.lifemax.rpg.feature.habits.domain.ModelView, p: com.lifemax.rpg.feature.habits.domain.ModelPart, ma: ModelArt, sky: SkyColors) {
+        val k = v.k
+        val snow = season.snow
+        // the front face's place: its eave on the screen's pixels, its top edge exactly its picture's rows above
+        val fp = p.frontPic
+        fun snap(a: Float, at: Float = 0f) = if (unitPx > 0f) kotlin.math.round((a + at) * unitPx) / unitPx - at else a
+        val ex = snap(v.x(p.x0, p.d0), buildingX); val ey = snap(v.y(p.y0, p.d0))
+        val w = (p.x1 - p.x0) * k
+        val dy = (fp?.get(3) ?: 0) * k
+        val shift = v.lean(p.td0 - p.d0)
+        val tl = ex + (p.tx0 - p.x0) * k + shift; val tr = ex + (p.tx1 - p.x0) * k + shift
+        val hip = p.hip
+        for (side in 0..1) {
+            val left = side == 0
+            val r = (if (left) p.left else p.right) ?: continue
+            val pts = (if (left) p.leftP else p.rightP) ?: continue
+            val xe = if (left) p.x0 else p.x1; val xt = if (left) p.tx0 else p.tx1
+            // the front eave, the back eave, the top's back end, its front end
+            val t = pieceTo
+            t[0] = v.x(xe, p.d0); t[1] = v.y(p.y0, p.d0)
+            t[2] = v.x(xe, p.d1); t[3] = v.y(p.y0, p.d1)
+            t[4] = v.x(xt, p.td1); t[5] = v.y(p.y1, p.td1)
+            t[6] = v.x(xt, p.td0); t[7] = v.y(p.y1, p.td0)
+            if (!com.lifemax.rpg.feature.habits.domain.RoofFaces.hipSideSeen(left, t)) continue
+            for (i in 0 until 8) pieceFrom[i] = pts[i]
+            // its tiles, the joints along each course where they fall far enough apart on the screen to be drawn, each
+            // course one colour where the view sees the face so nearly edge on that they would scatter into hatching
+            // (between, the one fades into the other, so nothing jumps as the street scrolls)
+            val flush = if (left) p.leftFlush else p.rightFlush
+            val joints = if (flush == null) 1f else ((kotlin.math.abs(v.lean(HIP_TILE)) * (if (unitPx > 0f) unitPx else 1f) - 2f) / 1.5f).coerceIn(0f, 1f)
+            if (flush != null && joints < 1f) pieceOnto(ma.atlas, flush, pieceFrom, t, signTint())
+            if (joints > 0f) pieceOnto(ma.atlas, r, pieceFrom, t, signTint(), alpha = joints)
+            // (on the sunny side half the gable slopes' wash: the full wash of white over these dark red tiles, seen
+            // nearly edge on, reads as a pale pink film rather than tiles in the sun)
+            val toSun = if (left) -sunSide else sunSide
+            roofLight(quadPath(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7]), if (toSun > 0f) .5f * toSun else toSun, sky, snowToo = false)
+            if (snow > .01f) {
+                // the snow on the piece's own pixels, not its quad: its tiles reach a pixel past the quad's straight edges
+                snowInk(sky)
+                pieceOnto(ma.atlas, r, pieceFrom, t, snowFilter, alpha = ROOF_SNOW * snow)
+            }
+            // the hip between it and the front face: the front face's rows end in steps either side of the straight
+            // line, and so do this face's tiles; a band of the hip's crease under the front face fills between them
+            // (no sky through the hip) and shows as the art's dark line along it
+            if (hip != null && fp != null) {
+                val hx = if (left) ex else ex + w; val htx = if (left) tl else tr
+                val b = 1.5f * k
+                rowsPath.rewind()
+                rowQuad(hx - b, ey, htx - b, ey - dy, htx + b, ey - dy, hx + b, ey)
+                drawPath(rowsPath, houseInk(lerp(rgb(hip[1]), Color.White, if (snow > .01f) .85f * snow else 0f)))
+            }
+        }
+        if (p.td1 > p.td0 && p.tx1 > p.tx0) {
+            val fl = p.flat
+            if (fl != null) levelStrips(ma.atlas, fl[0], fl[1], fl[2], fl[3], v.x(p.tx0, p.td0), v.y(p.y1, p.td0), (p.tx1 - p.tx0) * k, v.lift(p.td1 - p.td0), v.lean(p.td1 - p.td0), signTint())
+            val path = quadPath(v.x(p.tx0, p.td0), v.y(p.y1, p.td0), v.x(p.tx1, p.td0), v.y(p.y1, p.td0), v.x(p.tx1, p.td1), v.y(p.y1, p.td1), v.x(p.tx0, p.td1), v.y(p.y1, p.td1))
+            if (fl == null) drawPath(path, houseInk(rgb(p.front)))
+            if (snow > .01f) {
+                drawPath(path, snowInk(sky), alpha = ROOF_SNOW * snow)
+                // (its rows' strips reach a little past the quad's slanted ends: snow on those pixels too)
+                if (fl != null) clipPath(path, androidx.compose.ui.graphics.ClipOp.Difference) {
+                    levelStrips(ma.atlas, fl[0], fl[1], fl[2], fl[3], v.x(p.tx0, p.td0), v.y(p.y1, p.td0), (p.tx1 - p.tx0) * k, v.lift(p.td1 - p.td0), v.lean(p.td1 - p.td0), snowFilter, alpha = ROOF_SNOW * snow)
+                }
+            }
+        }
+        if (fp == null) return
+        levelStrips(ma.atlas, fp[0], fp[1], fp[2], fp[3], ex, ey, w, dy, shift, signTint())
+        // the cap tiles along each hip, where the art draws them lighter than the crease (the school's): a pixel's row
+        // just inside the front face's edge
+        if (hip != null && hip[0] != hip[1]) {
+            val b = .5f * k
+            rowsPath.rewind()
+            rowQuad(ex + b, ey, tl + b, ey - dy, tl + 3f * b, ey - dy, ex + 3f * b, ey)
+            rowQuad(ex + w - 3f * b, ey, tr - 3f * b, ey - dy, tr - b, ey - dy, ex + w - b, ey)
+            drawPath(rowsPath, houseInk(rgb(hip[0])))
+        }
+        val face = quadPath(ex, ey, ex + w, ey, tr, ey - dy, tl, ey - dy)
+        val key = light
+        if (key != null) {
+            val pitch = kotlin.math.atan2(p.y1 - p.y0, p.td0 - p.d0)
+            val sun = key.strength * (1f - key.flat) * (key.down * kotlin.math.cos(pitch) - key.out * kotlin.math.sin(pitch)) * (1f - .6f * key.cool)
+            if (sun > .01f) drawPath(face, faceLit, alpha = (.3f * sun).coerceAtMost(.35f))
+            else if (sun < -.01f) drawPath(face, castInk, alpha = (.25f * -sun).coerceAtMost(.3f))
+        }
+        if (snow > .01f) {
+            drawPath(face, snowInk(sky), alpha = ROOF_SNOW * snow)
+            // and on the face's own pixels where they reach a little past the quad (at its top corners)
+            clipPath(face, androidx.compose.ui.graphics.ClipOp.Difference) {
+                levelStrips(ma.atlas, fp[0], fp[1], fp[2], fp[3], ex, ey, w, dy, shift, snowFilter, alpha = ROOF_SNOW * snow)
+            }
+            // the hips: the face's rows end in steps either side of the straight line, the side faces' tiles too (on
+            // to the flat top's corner, which stands a pixel or so off the face's top row: its eave is on the screen's
+            // pixels)
+            val hip = 2.4f * k
+            val run = kotlin.math.hypot(tl - ex, dy).coerceAtLeast(1f); val on = 2f * k / run
+            drawLine(snowInk, Offset(ex, ey), Offset(tl + (tl - ex) * on, ey - dy - dy * on), hip, alpha = ROOF_SNOW * snow)
+            drawLine(snowInk, Offset(ex + w, ey), Offset(tr + (tr - ex - w) * on, ey - dy - dy * on), hip, alpha = ROOF_SNOW * snow)
+            // (hanging a little over the eave: the art draws the tiles' lowest ends on the wall's top rows)
+            cap(ex - .4f * k, ey - 1.6f * k, w + .8f * k, 3.8f * k, .9f * snow)
+        }
+    }
+
+    /**
+     * One of OUR villas or landmarks ([ModelArt]): it stands back in its yard (so it moves against the shops and lamps as
+     * the street scrolls), built from its parts back to front: boxes wearing the art's own fronts, sides, decks and
+     * roofs, front-facing gables and hipped roofs; its yard's ground, its shade on it, its fence or hedge; its lamp by
+     * the door at dusk and its chimneys' smoke in the cold months.
+     */
+    private fun DrawScope.modelBuilding(art: BuildingArt, ma: ModelArt, sky: SkyColors, seconds: Float) {
+        val sh = ma.shape
+        val s = sideShift
+        // (at the mouth of the side street no side face shows: the stage draws the side street there)
+        val v = modelView.set(sh, s, unitPx, buildingX, side = art.stack.id !in StageTuning.cornerIds)
+        val k = v.k
+        val snow = season.snow
+        val key = light
+        val seed = art.stack.id.hashCode()
+        // --- the yard: its ground from the pavement back past the building, and the building's shade on it
+        val deep = sh.setback + sh.depth
+        val backY = -B.DY * deep / com.lifemax.rpg.feature.habits.domain.HouseView.DEPTH
+        val backX = s * deep / com.lifemax.rpg.feature.habits.domain.HouseView.DEPTH
+        val lx = -B.W / 2f + sh.frontX * k; val lw = sh.width * k
+        ma.lawn?.let { levelStrips(it, 0, 0, it.width, it.height, lx, 0f, lw, -backY, backX) }
+        val yard = quadPath(lx, 0f, lx + lw, 0f, lx + lw + backX, backY, lx + backX, backY)
+        if (snow > .01f) drawPath(yard, snowInk(sky), alpha = .82f * snow)
+        if (blue > .01f) drawPath(yard, BlueCast, alpha = .35f * blue, blendMode = BlendMode.Multiply)
+        if (nightOn) drawPath(yard, nightInk, blendMode = BlendMode.Multiply)
+        val wl = v.x(sh.wall0, 0f); val wr = v.x(sh.wall1, 0f); val foot = v.y(0f, 0f)
+        var yardShade = 0f
+        if (key != null && key.strength > .02f && key.reach > .05f) {
+            // the light is behind the street's buildings: the yard in front of the walls is in their shade
+            val lean = (SceneLight.lean(key, offset(buildingX)) / key.reach * -foot).coerceIn(-40f, 40f)
+            val a = (if (key.cool > .5f) MOON_SHADE else SUN_SHADE) * key.strength * (1f - .6f * key.flat)
+            drawPath(quadPath(wl, foot, wr, foot, wr + lean, 0f, wl + lean, 0f), shade(key, sky), alpha = a)
+            yardShade = a
+        }
+        withTransform({ translate(0f, foot); scale(1f, .45f, Offset.Zero) }) { drawRect(aoGround, Offset(wl - k, 0f), Size(wr - wl + 2f * k, 8f)) }
+
+        // --- its parts, back to front
+        for (i in sh.parts.indices) {
+            val p = sh.parts[i]
+            when (p.type) {
+                com.lifemax.rpg.feature.habits.domain.ModelPart.BOX -> modelBox(v, p, ma, sky, seed + i * 7)
+                com.lifemax.rpg.feature.habits.domain.ModelPart.GABLE -> frontGable(v, p, ma, sky, seed + i * 7, eaves = !sh.eaveLater[i])
+                else -> hippedRoof(v, p, ma, sky)
+            }
+            // the eave boards of the gable this box carries, over its side wall
+            val e = sh.eaveOn[i]
+            if (e >= 0) gableEave(v, sh.parts[e], sky)
+        }
+
+        // --- the yard's fence or hedge along the street, open at the gate
+        ma.fence?.let { fe ->
+            val dd = sh.fenceD - sh.setback
+            val fx = v.x(0f, dd); val fy = v.y(sh.fenceFoot, dd)
+            part(fe, 0, 0, fe.width, fe.height, fx, fy, fe.width * k, fe.height * k, filter = signTint())
+            val cast = max(.12f * direct, .85f * yardShade)
+            if (cast > .01f) part(fe, 0, 0, fe.width, fe.height, fx, fy, fe.width * k, fe.height * k, alpha = cast, filter = castFilter())
+            if (snow > .01f) {
+                snowInk(sky)
+                ma.fenceSnow?.let { fs -> part(fs, 0, 0, fs.width, fs.height, fx, fy, fe.width * k, fe.height * k, alpha = .92f * snow, filter = snowFilter) }
+                part(fe, 0, 0, fe.width, fe.height, fx, fy, fe.width * k, fe.height * k, alpha = .22f * snow, filter = snowFilter)
+            }
+        }
+        // --- the lamp by the door: lit from dusk, a warm pool on the wall and the deck below it
+        sh.lamp?.let { lp ->
+            val x = v.x(lp[0], lp[2]); val y = v.y(lp[1], lp[2])
+            drawRect(houseInk(Color(0xFF2A2633)), Offset(x - .5f * k, y - 1f * k), Size(4f * k, 5f * k))
+            val on = (sky.dark * Dusk.lightsOn(seed + 7, hour, Dusk.LAMP)).coerceIn(0f, 1f)
+            drawRect(lerp(houseInk(Color(0xFFBFB59A)), SceneInk.WindowLit, on), Offset(x + .5f * k, y), Size(2f * k, 3f * k))
+            if (on > .02f) {
+                val c = Offset(x + 1.5f * k, y + 1.5f * k)
+                val r = 18f * k
+                withTransform({ translate(c.x, c.y); scale(r, r, Offset.Zero) }) {
+                    drawCircle(porchGlow, 1f, Offset.Zero, alpha = on, blendMode = BlendMode.Plus)
+                }
+                val gy = v.y(12f, lp[2] - 20f)
+                withTransform({ translate(c.x, gy); scale(26f * k, .28f * 26f * k, Offset.Zero) }) {
+                    drawCircle(porchPool, 1f, Offset.Zero, alpha = on, blendMode = BlendMode.Plus)
+                }
+            }
+        }
+        // --- smoke from its chimneys on cold days
+        for (i in sh.smoke.indices) {
+            val c = sh.smoke[i]
+            houseSmoke(seed + i, v.x(c[0], c[1]), v.y(c[2], c[1]), k, seconds, sky)
+        }
+    }
+
     /**
      * One building: its park, its lobby, every storey, its roof and what stands on it, and what is
      * playing on it. [live] is today (a past week of the time-lapse has every floor done and lit).
@@ -2684,10 +3707,23 @@ internal class BuildingPainter {
         mirrorPhase = (art.stack.id.hashCode() and 0xFFFF) * .37f
         glassSeconds = seconds
         park(art, selected, accent, seconds, sky)
+        val sprite = SpriteArt.buildings[art.stack.id]
+        val house = sprite?.house
+        if (sprite != null && house != null) {
+            // one of OUR houses: back in its yard, so nothing of it stands on the pavement
+            houseBuilding(art, sprite, house, sky, seconds)
+            return
+        }
+        val model = sprite?.model
+        if (sprite != null && model != null) {
+            // a villa or a landmark: back in its yard too, built from its boxes and roofs
+            modelBuilding(art, model, sky, seconds)
+            return
+        }
         // the building's shadow on the pavement, under its front and its shown side
         val l0 = Perspective.left(sideShift)
         drawRect(aoGround, Offset(l0 + 1f, 0f), Size(Perspective.right(sideShift) - l0 + 6f, 8f))
-        SpriteArt.buildings[art.stack.id]?.let {
+        sprite?.let {
             // one of OUR buildings: its art on the engine's box, light and shade
             spriteBuilding(art, it, sky, seconds)
             return
@@ -3237,25 +4273,25 @@ internal class BuildingPainter {
      * [sunSide] of it): a wash of light from the lit edge, a wash of shade from the other, over the
      * wall only (windows and trim are drawn after it).
      */
-    private fun DrawScope.facadeLight(top: Float, bottom: Float, alpha: Float) {
+    private fun DrawScope.facadeLight(top: Float, bottom: Float, alpha: Float, x0: Float = -B.W / 2f, w: Float = B.W) {
         val s = sunSide
         if (abs(s) < .02f) return
-        val half = B.W / 2f
         val h = bottom - top
         val a = abs(s) * alpha
-        // from the lit edge inward, and from the far edge inward
-        val lit = if (s < 0f) -half else half
+        // from the lit edge inward, and from the far edge inward ([x0] across [w]: the front's span)
+        val lit = if (s < 0f) x0 else x0 + w
+        val far = if (s < 0f) x0 + w else x0
         val sign = if (s < 0f) 1f else -1f
         withTransform({
             translate(lit, top)
-            scale(sign * B.W * .7f, h, Offset.Zero)
+            scale(sign * w * .7f, h, Offset.Zero)
         }) {
             drawRect(litWash, Offset.Zero, Size(1f, 1f), alpha = a * (1f - .4f * gold))
             if (gold > .01f) drawRect(goldWash, Offset.Zero, Size(1f, 1f), alpha = a * gold)
         }
         withTransform({
-            translate(-lit, top)
-            scale(-sign * B.W * .6f, h, Offset.Zero)
+            translate(far, top)
+            scale(-sign * w * .6f, h, Offset.Zero)
         }) {
             drawRect(shadeWash, Offset.Zero, Size(1f, 1f), alpha = a * .9f)
         }
@@ -5837,6 +6873,24 @@ internal class BuildingPainter {
         /** How deep the sun's shadows are at full strength, and the moon's. */
         const val SUN_SHADE = .46f
         const val MOON_SHADE = .28f
+
+        /**
+         * How far (sprite pixels) a front gable's roof edge reaches down under its slope's straight front edge: past the
+         * face's stepped rake, whose steps sit up to two and a half pixels below the line.
+         */
+        const val GABLE_LIP = 3f
+
+        /** How opaque the snow lying on a villa's or a landmark's roof is (white, not the roof's colour through it). */
+        const val ROOF_SNOW = .96f
+
+        /** How far (sprite pixels) a gable slope's verge shows above its rake's straight line, seen edge on. */
+        const val VERGE = 2f
+
+        /** A hipped roof's tile along its courses (sprite pixels): its side faces' joints are this far apart along their depth. */
+        const val HIP_TILE = 12f
+
+        /** How many clocks' hands are kept painted at once (a tower shows its front and one side: one clock each). */
+        const val CLOCK_SLOTS = 4
 
         /** A tree's shadow in three copies, trunk-sharp to crown-soft: each copy's share. */
         private val PENUMBRA = floatArrayOf(.55f, .4f, .35f)
