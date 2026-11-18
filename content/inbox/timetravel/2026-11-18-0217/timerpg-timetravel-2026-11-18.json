@@ -1,0 +1,641 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-1371",
+      "kind": "scenario",
+      "title": "The Recount That Put the Rival Back on the Campaign Trail",
+      "category": "politics",
+      "pitch": "Help a candidate afford a genuine lawful recount. Correcting one election may give the defeated rival a cause that eventually costs the first winner a later term.",
+      "present_hook": {
+        "what_you_notice": "The archive pairs an unfunded recount application with an actual unresolved tally discrepancy.",
+        "where": "the Gazette archive",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The discrepancy in {year} concerned real ballots, not a campaign prediction."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "trait": {
+            "ambition": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are actual eligible mayoral candidates. B has the genuinely disputed preliminary lead; lawful preserved ballots actually support a correcting recount in A favor. Baseline no recount is completed. Bind the real election, deadline, fee and evidence; never invent votes."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give {A} the actual lawful recount-fee shortfall."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            0,
+            1
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_correcting_mayoral_recount": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Lawful Recount Corrects the Mayoral Result",
+          "body": "Authorized officials complete the genuine recount and certify the supported corrected winner."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "run_for_mayor": "B"
+            }
+          ],
+          "headline": "A Former Recount Loser Files for a New Mayoral Race",
+          "body": "The eligible resident completes lawful candidacy for an actual later scheduled election."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "win_later_mayoral_rematch": [
+                "B",
+                "A"
+              ]
+            }
+          ],
+          "headline": "A Former Recount Loser Wins a Later Rematch",
+          "body": "A genuine certified later election puts the challenger in office at the lawful boundary and ends the incumbent’s actual term."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Recount Application Does Not Reach Completion",
+        "body": "The gift follows ordinary finances. Officials resolve the actual election under ordinary law; no corrected winner is promised."
+      },
+      "present_day": {
+        "best": "If the full history occurred, the archive in {now} records both the genuine corrected first result and the later rematch. Current officials follow subsequent actual elections.",
+        "worst": "No fee changes a ballot. A failed stage preserves only actual certified results and valid candidacies.",
+        "twist": "{A} gains the first lawful term, then loses a later actual term to {B}; correcting the count does not secure a permanent office."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I wanted the count to be right. It was right the second time, too."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_correcting_mayoral_recount requires a timely eligible application, genuine fee, preserved lawful ballots, authorized count and certified corrected result electing A over B. The roll concerns completing the qualifying application, never changes a ballot or overrides certification. Replace only the actual preliminary result before lawful assumption of office.",
+        "run_for_mayor applies only to the actual scheduled step-2 election after current eligibility, consent and filings. Its candidacy expires with that election; ordinary results remain independent.",
+        "win_later_mayoral_rematch requires a separate genuine step-3 election, B independently eligible and filed again, A actually incumbent and opposing B, and a certified real B victory. Record one winner and the actual term transition; no office survives intervening elections by fiat. Dialogue requires A alive, present and aware of both certified outcomes."
+      ],
+      "era_notes": "Use actual era-specific recount deadlines, fees, ballot handling and election schedules; select an eligible execution year inside each interval.",
+      "why_fun": "Fairness can help the person who will someday beat you."
+    },
+    {
+      "id": "scenario-20261118-1372",
+      "kind": "scenario",
+      "title": "The Motel Room That Became Its Guest’s Address",
+      "category": "business",
+      "pitch": "Invest in a motel’s genuine longer-stay proposal. An eventual legal unit conversion may give a long-term guest a home while ending the owner’s actual rent from that room.",
+      "present_hook": {
+        "what_you_notice": "A motel file contains an unfunded longer-stay estimate beside its ordinary nightly rate card.",
+        "where": "the edge of town",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposal in {year} needed lawful building work and an actual operating budget."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "motel"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "Bind motel_shop to A actual adult-owned motel and B to an actual consenting adult prospective long-stay guest. Baseline no qualifying unit or longer-stay agreement exists. Bind a suitable real existing room, legal permitted occupancy and a genuine costed proposal; no new building or homelessness is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "motel_shop",
+          "amount": "large",
+          "how_it_looks": "Invest in the actual permitted longer-stay room proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "qualify_existing_motel_room": "A"
+            }
+          ],
+          "headline": "A Motel Qualifies an Existing Room for Longer Stays",
+          "body": "The real funded inspected work qualifies the identified room under applicable occupancy rules."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "lease_qualified_motel_room": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Motel Guest Signs an Actual Longer-Stay Agreement",
+          "body": "The willing parties complete the funded lawful tenancy with its actual rent and protections."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "convert_and_sell_actual_motel_unit": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Long-Term Guest Buys a Lawfully Converted Unit",
+          "body": "A lawful inspected unit conversion and actual funded sale settle the tenancy and transfer the defined home to its buyer."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Longer-Stay Room Does Not Qualify",
+        "body": "The investment follows ordinary business finances. No qualifying room, tenancy or sale appears through this attempt."
+      },
+      "present_day": {
+        "best": "If all stages persist in {now}, the actual converted unit is a lawful residence with {B}'s title shown only while held. The remaining motel has only its real surviving rooms.",
+        "worst": "Investment alone does not change occupancy law or grant housing. Preserve actual title, permits and occupant rights after failure.",
+        "twist": "{B} gains actual home ownership; {A} receives the agreed price but loses the real future rent and title to that unit."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I used to renew the room. Now the repairs are my decision."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add motel as a business kind and persistent separately identified room/unit records. qualify_existing_motel_room requires A current ownership, suitable existing room, funded actual work, all required permissions and passed inspections. Record only permitted occupancy and real costs; do not create an extra room.",
+        "lease_qualified_motel_room requires continuing lawful ownership and occupancy qualification, a real available room, B consent and viable funds, genuine lawful terms and settled prior occupant rights. Record tenancy and actual charges once, preserving all applicable resident protections.",
+        "convert_and_sell_actual_motel_unit requires a genuinely lawful separate-title conversion of that same room, actual surveys, inspections, utilities and shared-service rights, lender and occupant consents, qualified B funding and a freely agreed funded sale. Settle tenancy, debts and affected business obligations before transferring title and price once. Remove the same unit from motel rental stock; no replacement room, buyer or mortgage approval is invented. Dialogue requires B alive, present and actually owning and occupying the unit."
+      ],
+      "era_notes": "Offer only where actual period-specific motel occupancy and separate-title conversion law permits the full arrangement; do not assume modern housing rules apply earlier.",
+      "why_fun": "A nightly price on a door can become an address somebody gets to keep."
+    },
+    {
+      "id": "scenario-20261118-1373",
+      "kind": "scenario",
+      "title": "The Second Place They Left Unset",
+      "category": "family",
+      "pitch": "Introduce two single adults who welcome a meeting. A possible family may later choose to keep its education savings instead of proceeding with another genuinely planned birth.",
+      "present_hook": {
+        "what_you_notice": "Two separate social-club forms show adults who each requested a compatible introduction.",
+        "where": "the church",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "Both requests in {year} were freely made; neither adult had met the other."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            19
+          ],
+          "sex": "F",
+          "married": false
+        },
+        "B": {
+          "age": [
+            18,
+            22
+          ],
+          "sex": "M",
+          "married": false
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are distinct consenting compatible adults, legally free to marry, with no prohibited kinship. Baseline they have not met. No marriage, pregnancy, child, home or planned second birth is assumed merely from these forms."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the two adults after both freely agree."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "marry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Adults Freely Choose a Lawful Marriage",
+          "body": "Both still-eligible adults freely marry; the meeting did not decide for them."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            9,
+            11
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "child": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Married Household Welcomes an Actual Child",
+          "body": "The eligible consenting parents complete the actual supported birth; the household gains one real new resident."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "no_child": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "reserve_existing_child_education_savings": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "Parents Choose a Different Plan for Their Savings",
+          "body": "The parents freely cancel a genuine pending birth plan before conception and reserve actual funds for their existing child."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Introduction Does Not Become a Marriage",
+        "body": "The adults retain their actual lives. No child or cancelled birth plan follows through this attempt."
+      },
+      "present_day": {
+        "best": "If the full chain occurred, the actual family record in {now} contains {C} and the recorded cancelled conception candidate, while the education account shows only its real surviving funds.",
+        "worst": "A meeting promises no family. Show only actual marriages, births and choices; no resident disappears without the precise uncommitted birth candidate being cancelled.",
+        "twist": "The existing child gains a real reserved education fund, while a genuinely contemplated second birth does not happen. Nobody remembers a person who was never born."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "We made a plan for the child we had. I can still feel how big a choice that was."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "At step 1 recheck both adults unmarried, eligible and freely consenting. At step 2 require the same continuing marriage, current consent, actual health and reproductive eligibility, resources and a genuine feasible conception and gestation completed by the scheduled birth year. A is age 27..30 at that birth. child creates exactly one newborn, binding future C to its unique persistent resident ID; C is not an intervention-year role or an existing resident reused.",
+        "Step 3 requires both parents alive, still married and freely making the choice, C alive and dependent, and one specific actual ordinary-simulation conception candidate not yet conceived. A is age 41..44 then; verify actual current eligibility and planned timing rather than presuming a second pregnancy. no_child cancels only that keyed pair/year/ordinal candidate before conception, creates no resident and erases no existing person; later independent birth choices remain possible.",
+        "reserve_existing_child_education_savings requires actual jointly authorized unencumbered funds, viable household provision and a genuine account for C. Atomically cancel that eligible candidate and earmark the agreed real sum once, without inventing savings, giving money twice or guaranteeing enrollment. If either effect is ineligible, neither occurs. Dialogue requires A alive, present and aware of the realized choice; fund and family descriptions use actual later facts only."
+      ],
+      "era_notes": "Use actual period-specific marriage, schooling, household and account rules. Never invent medical certainty or a future college place.",
+      "why_fun": "The player can see a real family grow without treating every possible future child as an obligation."
+    },
+    {
+      "id": "scenario-20261118-1374",
+      "kind": "scenario",
+      "title": "The Bookkeeper Whose Audit Raised the Club Dues",
+      "category": "money",
+      "pitch": "Help a club member finish a genuine bookkeeping qualification. A later paid review may persuade the club to replace an unreliable raffle budget with dues the bookkeeper must also pay.",
+      "present_hook": {
+        "what_you_notice": "A club archive contains an unfinished qualification request beside a genuine but volatile raffle ledger.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The member in {year} had a real examination place and a documented fee shortfall."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            25
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A is an actual adult member of an existing lawful social club and requested a genuine bookkeeping course. B is its actual consenting authorized treasurer. Bind actual finances, lawful raffle permissions and a real qualification pathway. Baseline A is not qualified and no review or dues replacement exists."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give {A} the actual requested course and examination shortfall."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_bookkeeping_qualification": "A"
+            }
+          ],
+          "headline": "A Club Member Completes a Bookkeeping Qualification",
+          "body": "Actual completed instruction and passed assessment qualify the adult for the specified work."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "complete_paid_club_budget_review": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Club Pays for an Authorized Budget Review",
+          "body": "The qualified bookkeeper completes the genuine authorized review and receives the actual agreed fee."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "replace_club_raffle_budget_with_dues": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Club Replaces Its Raffle Budget with Approved Dues",
+          "body": "The lawful membership decision retires the actual recurring raffle plan and adopts the funded higher-dues schedule."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Bookkeeping Qualification Is Not Completed",
+        "body": "The gift follows ordinary personal finances. No professional status, fee or changed club bill follows through this chain."
+      },
+      "present_day": {
+        "best": "If all stages and the schedule persist in {now}, the club records show the actual review, retired raffle plan and adopted dues; {A}'s current bill shows the real increase only while membership continues.",
+        "worst": "A qualification does not award a contract or pass a club motion. Preserve actual accounts, votes and member rights after failure.",
+        "twist": "{A} earns the real review fee but later pays the same genuinely increased dues as other liable members; steadier budgeting is not free."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "I can account for every line in the new budget. That does not make my own bill any smaller."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_actual_bookkeeping_qualification requires a real funded course, current eligibility, completed instruction and passed genuine assessment. Record only the earned qualification and ordinary later expiry or renewal.",
+        "complete_paid_club_budget_review requires A currently qualified, actual authorized funded procurement, resolved member and treasurer conflicts, real independent review oversight where required, B actual authority and accurate accessible accounts. Record completed supported findings and actual fee payment once; no invented client or guaranteed revenue.",
+        "replace_club_raffle_budget_with_dues requires the same genuine club, surviving actual review, lawful freely passed required membership vote, an affordable funded viable plan, valid notice and withdrawal rights, and A still a genuine dues-paying member. Retire only the actual future raffle schedule after settling prizes, tickets and obligations. Adopt real nondiscriminatory dues and post an actual A bill strictly higher than the prior equivalent bill once through billing. No raffle is declared illegal and no member, vote or prize is invented. Dialogue requires A alive, present, still liable and genuinely billed more."
+      ],
+      "era_notes": "Use actual era-specific qualifications, club rules, raffle permissions and fee records. A paper ledger can expose the same budget problem as later software.",
+      "why_fun": "A useful skill can earn a fee and then reveal why your own membership costs more."
+    }
+  ]
+}

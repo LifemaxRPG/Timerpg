@@ -1,0 +1,614 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-771",
+      "kind": "scenario",
+      "title": "The Water Bill That Finally Counted Every Gallon",
+      "category": "money",
+      "pitch": "Help a resident fund a genuine water-meter trial. Accurate use records may eventually end a flat rate that quietly favored a thirsty business.",
+      "present_hook": {
+        "what_you_notice": "An abandoned meter-trial estimate is clipped to the town water system’s unchanged flat-rate schedule.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "In {year}, the proposed trial lacked its final household contribution."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "ice cream parlor"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A is an actual consenting water customer; B owns parlor_shop. Bind an existing lawful public water utility, genuine trial proposal, actual flat-rate accounts and B documented high lawful water consumption. The baseline trial was not completed. No water source, debt or utility is created."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give A the actual shortfall for an approved household meter trial."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "install_trial_water_meter": "A"
+            }
+          ],
+          "headline": "A Household Starts Its Approved Water-Meter Trial",
+          "body": "The permitted calibrated meter begins recording actual use; the existing flat bill continues."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "audit_water_rate_design": "A"
+            }
+          ],
+          "headline": "Actual Meter Records Reach the Water-Rate Hearing",
+          "body": "The authorized hearing accepts verified records and funds an independent comparison of lawful rate options."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "adopt_metered_water_tariff": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Lawful Metered Water Tariff Takes Effect",
+          "body": "The utility completes the required approval, notice and funded metering. The parlor’s actual bill exceeds its former flat-rate bill."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Household Trial Does Not Begin",
+        "body": "The gift remains ordinary household money, but no meter readings or tariff change follow from this attempt."
+      },
+      "present_day": {
+        "best": "If the full chain remains valid in {now}, actual customer bills show measured use and the parlor’s qualifying bill shows the documented increase.",
+        "worst": "Without completed approvals, retain the actual tariff. A trial meter alone cannot create a new charge.",
+        "twist": "Fairer measurement costs B the real flat-rate advantage; no claim is made that every household pays less."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I liked knowing the bill before I turned on the tap."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "install_trial_water_meter requires A actual account, authorized installation, funded equipment and calibration; create a meter asset linked to that account and recorded readings only after installation. No leak or saving is implied. audit_water_rate_design requires surviving valid trial data, actual utility authority, consent for account disclosure and a funded lawful hearing; create an accepted audit record, not a new tariff.",
+        "adopt_metered_water_tariff requires the audit, lawful governing approval, nondiscriminatory published tariff, completed actual meters and notice, and B still owning and operating the same supplied parlor. Calculate charges from actual readings under both tariffs for the same billing period; execute only if the approved new charge for B is genuinely larger. Post the actual new bill once through billing, not an extra wealth penalty. Enforce affordability protections and appeals; do not invent arrears or disconnection.",
+        "Gate B dialogue on B surviving and present with a realized higher metered bill. Best requires the approved tariff still operating; neither a meter nor a hearing guarantees later adoption."
+      ],
+      "era_notes": "Use paper meter cards and mailed notices in earlier decades; later eras may use authorized electronic readings. Apply the actual period’s utility law.",
+      "why_fun": "A tiny household expense can make an old civic bargain visible, including who was benefiting from it."
+    },
+    {
+      "id": "scenario-20261118-772",
+      "kind": "scenario",
+      "title": "The Church Doors That Opened Only for Homecoming",
+      "category": "place",
+      "pitch": "Help two real congregational trustees meet about shared repairs. Their careful cooperation may eventually leave one familiar church open only on a limited schedule.",
+      "present_hook": {
+        "what_you_notice": "A church noticeboard holds an unsigned joint-repair proposal beside an ordinary weekly service schedule.",
+        "where": "the church",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The trustees had compatible repair estimates in {year}, but no agreement."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "relation": "strangers"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are distinct authorized trustees of two actual compatible congregations; A relation strangers is relative to B. Bind both existing church buildings and actual lawful governing bodies. Baseline has regular services in both and no joint agreement. Neither trustee can decide for a congregation alone."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the two willing trustees after a genuine repair discussion."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "share_church_repair_contract": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Congregations Approve a Shared Repair Contract",
+          "body": "Both governing bodies authorize a funded joint contractor agreement for their actual buildings."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "combine_congregations": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Congregations Complete a Consented Union",
+          "body": "The actual governing bodies and required membership votes approve union, settle obligations and adopt a lawful shared schedule."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "limit_church_service_schedule": "A"
+            }
+          ],
+          "headline": "One Church Moves to a Limited Service Calendar",
+          "body": "The united congregation completes its lawful decision to end ordinary weekly services at the first building while retaining approved homecoming dates."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Trustees Leave without a Repair Agreement",
+        "body": "The introduction stands, but each congregation keeps its own actual obligations and schedule."
+      },
+      "present_day": {
+        "best": "If all stages and the schedule persist in {now}, {A}'s original church noticeboard lists actual limited homecoming dates instead of weekly services; the building remains lawfully maintained.",
+        "worst": "Without valid votes and agreements, neither congregation merges and no church is closed by this scenario. Show only completed changes.",
+        "twist": "Shared repair work helps sustain the buildings, but A congregation loses weekly use of its original church after the later authorized schedule change."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I am glad the doors still open. I miss knowing they would open every week."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add congregation and church-building records as nonbusiness entities. Bind actual congregations, properties, governing rules, congregation memberships and trustee authority; no religious affiliation or building is invented. share_church_repair_contract requires independently approved contracts, actual qualified contractor capacity and funds; debit actual repair costs once and record completed repairs on the two bound buildings.",
+        "combine_congregations requires freely obtained valid approvals under both governing systems, compatibility, lawful asset and liability treatment and funded maintenance. Create a successor congregation referencing actual existing members and assets without erasing individual consent, cemetery rights or restricted gifts. A and B must still have the authority needed for their recorded roles at execution.",
+        "limit_church_service_schedule requires the actual successor congregation, lawful governing and member approvals, an accessible adequate existing alternative weekly venue, settled obligations and funded maintenance of the first building. Replace its weekly calendar with genuinely approved nonempty homecoming dates. Do not sell, demolish or close the building or assume anyone changes belief. Dialogue needs A surviving and present, recorded original membership and all three steps; best needs the limited schedule still valid."
+      ],
+      "era_notes": "Earlier agreements travel through minutes and letters; later ones may use electronic notices where lawful. Preserve actual denominational and property restrictions in every era.",
+      "why_fun": "Saving a familiar building can still change the ordinary rhythm that made it feel like home."
+    },
+    {
+      "id": "scenario-20261118-773",
+      "kind": "scenario",
+      "title": "The Count That Redrew a Council Seat Twice",
+      "category": "politics",
+      "pitch": "Help a resident gather verified support for an overlooked census-count concern. Correct public numbers may change the council map twice, eventually costing an incumbent a seat.",
+      "present_hook": {
+        "what_you_notice": "The Gazette archive pairs an unresolved census-count petition with a later council map using the uncorrected total.",
+        "where": "the Gazette archive",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposed correction in {year} concerned real occupied households, not extra names for a campaign."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            30
+          ],
+          "reputation": "mid"
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ],
+          "reputation": "high"
+        }
+      },
+      "window": {
+        "years": [
+          1957,
+          1997
+        ],
+        "notes": "Offer only intervention years 1957, 1967, 1977, 1987 or 1997, with present at least 25 years later. A is a real eligible resident organizer; B is a real elected council member. Bind actual census evidence, lawful apportionment rules and council district records. Baseline has a genuine unresolved undercount challenge and the uncorrected map; do not fabricate missing residents."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": 0.3,
+          "how_it_looks": "Spread the verified fact that A has real documents supporting a census review request."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            3,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "submit_verified_census_correction": "A"
+            }
+          ],
+          "headline": "A Documented Census Correction Is Accepted",
+          "body": "The authorized census process accepts the actual evidence and records the legally correct population."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            13,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "apply_verified_council_apportionment": "A"
+            }
+          ],
+          "headline": "A Lawful Council Map Adds a Required Seat",
+          "body": "The later actual census and binding apportionment formula require an additional district; the authorized map takes effect."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "end_council_term_after_redistricting": "B"
+            }
+          ],
+          "headline": "A Later Council Map Ends an Incumbent’s Seat",
+          "body": "Another actual census produces a lawful map without the incumbent’s old district. At the legally required election and term boundary, the incumbent leaves office."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Organizer Cannot Complete the Review Request",
+        "body": "A standing follows the rumor’s ordinary effect, but no census or council record changes through this attempt."
+      },
+      "present_day": {
+        "best": "If the complete history occurred, the council archive in {now} displays both actual map revisions and B recorded departure at the lawful term boundary. Current officeholders remain those actually elected.",
+        "worst": "Without the required evidence, formula outcomes or election, preserve actual counts, districts and terms. Public encouragement cannot manufacture a seat.",
+        "twist": "A useful correction ultimately contributes to a map that costs B an actual council term; the extra earlier seat is no promise of permanent representation."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "They counted the town more carefully. My old district disappeared from the map."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add census-cycle, correction and council-district records. submit_verified_census_correction requires actual period-appropriate evidence, timely lawful review and agency acceptance; change only the supported official count. The keyed chance governs completion of the qualifying submission, never truth, population or agency law. The positive rumor is not applied again.",
+        "apply_verified_council_apportionment requires the committed correction, a later actual census and the binding lawful formula producing one additional seat relative to the prior actual council. Complete mandated public review and boundaries; create the district and vacant seat only, never an officeholder or voter. Show causal text only if a replay without the accepted correction produces a different valid apportionment path.",
+        "end_council_term_after_redistricting requires another actual census, lawful nondiscriminatory reviewed boundaries genuinely eliminating B old district, B still the actual incumbent until that term boundary, and the required genuine election completed. Execute only when B actually holds no successor council office after that election. End the old office record without inventing a winner, removing voting rights or overriding a current term. Missing predicates stop the chain; no legal decision is a random override. Dialogue needs B alive, present and the realized third step; archive text can survive B."
+      ],
+      "era_notes": "Use the actual decade’s census evidence, correction deadlines and lawful districting process. Paper maps remain readable clues even in later eras.",
+      "why_fun": "The player follows a small factual correction through two very different maps instead of choosing a mayor by decree."
+    },
+    {
+      "id": "scenario-20261118-774",
+      "kind": "scenario",
+      "title": "The Bakery That Could No Longer Promise Both Loaves",
+      "category": "rescue",
+      "pitch": "Invest in a bakery’s genuine proposal for separately controlled allergy orders. A later dedicated production decision may retire the wheat loaf a regular customer has bought for years.",
+      "present_hook": {
+        "what_you_notice": "A bakery window displays a rejected separate-production estimate; its current menu offers only its ordinary wheat bread.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposal in {year} required real equipment, trained staff and controls before any safer-order claim could be made."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bakery"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "Bind bakery_shop to A actual adult-owned bakery and B to a real adult regular customer of its documented wheat loaf. Require a genuine separately controlled gluten-free production proposal, suitable actual premises and existing qualified food-safety advice. Baseline has no completed approved process; do not invent illness, diagnosis or customers."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "bakery_shop",
+          "amount": "large",
+          "how_it_looks": "Invest in the actual separate-equipment and training proposal at A bakery."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "qualify_separate_bakery_production": "A"
+            }
+          ],
+          "headline": "A Bakery Qualifies Its Separate Production Process",
+          "body": "The real equipment, staff training and validated controls meet the applicable standard before qualifying orders are accepted."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "renew_bakery_separation_controls": "A"
+            }
+          ],
+          "headline": "A Bakery Renews Its Verified Separation Controls",
+          "body": "A funded review verifies actual ingredients, suppliers, cleaning, equipment separation and staff practice under the current standard."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "convert_bakery_to_dedicated_production": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Bakery Ends Its Wheat Line for Dedicated Production",
+          "body": "The owner completes a funded lawful conversion and retires the ordinary wheat loaf. The regular customer’s standing wheat order ends on settled terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Bakery Cannot Qualify Its Separate Process",
+        "body": "The investment remains subject to ordinary business finances. The bakery makes no new safety claim or qualifying sale through this attempt."
+      },
+      "present_day": {
+        "best": "If all stages and the dedicated process remain valid in {now}, the bakery menu lists its actual qualifying range and omits B former wheat loaf. Do not imply guaranteed medical outcomes.",
+        "worst": "Without completed controls, retain the actual menu and applicable disclosures; no food becomes safe merely because capital arrived.",
+        "twist": "A broader supported choice for some actual customers costs B the real familiar wheat order when the bakery gives up that line."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "I keep almost asking for the old loaf. The empty spot on the menu catches me first."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "qualify_separate_bakery_production requires A still owning the bound active bakery, lawful suitable premises, real paid equipment and training, qualified review and validated controls for the exact gluten-free claim permitted by current law. Record the approved process and qualifying product records; never assert universal allergy safety. No extra wealth gain repeats the investment.",
+        "renew_bakery_separation_controls requires the same viable business, actual funded review and compliant current supplier, ingredient, sanitation and separation evidence; record renewed validation only after completion. Failure cannot preserve a false safety claim; ordinary food regulation applies independently.",
+        "convert_bakery_to_dedicated_production requires both earlier validations, A consent and actual ownership, viable funded conversion, current compliant process, B still holding an actual wheat-loaf standing order, and settlement of all outstanding orders and worker obligations. Retire the wheat recipe from sale and that actual order; create only genuinely validated replacement product records. Do not create customers, diagnoses or medical rescues. Dialogue needs B surviving, present and the completed line retirement; best requires continuing compliant dedicated operation."
+      ],
+      "era_notes": "Use only controls and wording supported by the actual period’s food standards; an earlier era may fail eligibility where the required claim cannot be validated. No modern certification is backdated.",
+      "why_fun": "The same storefront can become more useful to one neighbor while losing the loaf another neighbor remembers."
+    }
+  ]
+}

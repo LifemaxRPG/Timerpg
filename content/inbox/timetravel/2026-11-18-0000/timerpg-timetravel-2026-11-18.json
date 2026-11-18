@@ -1,0 +1,637 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-1",
+      "kind": "scenario",
+      "title": "The Ladder That Started Charging by the Day",
+      "category": "business",
+      "pitch": "Invest in a hardware shop’s real tool-lending proposal. A later library may eventually become a paid rental service, keeping tools available while ending one borrower’s free access.",
+      "present_hook": {
+        "what_you_notice": "A hardware-shop file holds an unfunded lending budget and a qualified borrower’s unanswered request.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The tools proposed in {year} actually existed; the safe lending operation did not yet have a viable budget."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "hardware store"
+          ]
+        },
+        "B": {
+          "age": [
+            40,
+            45
+          ],
+          "wealth": "getting_by"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "Bind hardware_shop to A actual adult-owned business and one real suitable ladder to its lawful inventory. B is an actual eligible competent prospective borrower. Baseline has no funded lending service. No tool, safe-use skill or free permanent entitlement is created by investment."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "hardware_shop",
+          "amount": "large",
+          "how_it_looks": "Invest ordinary business capital toward the actual storage, inspection and lending budget."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "start_tool_lending": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Hardware Shop Opens Its Approved Tool-Lending Service",
+          "body": "The funded service opens with actual inspected stock and agreed borrower terms."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "form_tool_library": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Funded Tool Library Adopts Its Actual Free-Loan Terms",
+          "body": "The qualified parties establish the lawful funded organization and documented free access for the actual eligible borrower."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "convert_tool_loans_to_rentals": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Tool Service Settles Free Loans before Introducing Rentals",
+          "body": "The lawful funded conversion settles outstanding rights and posts the actual rental charges. The identified free-loan entitlement ends."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Capital Does Not Complete a Lending Service",
+        "body": "The investment follows ordinary finances, but no qualifying funded operation opens. No borrowing right is invented."
+      },
+      "present_day": {
+        "best": "If the chain and rental plan persist in {now}, the actual counter posts the ladder’s paid rental terms and no longer grants {B} the former free loan.",
+        "worst": "Without completed agreements, preserve actual stock and borrower rights. No rental charge or tool appears automatically.",
+        "twist": "{B} retains the real opportunity to rent eligible equipment but gives up the actual free access previously granted."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "The ladder reaches the same height. The price is the part that climbed."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add hardware store as a business kind and tool library as an organization type. start_tool_lending requires actual owned safe inspected stock, qualified operation, affordable storage and maintenance, insurance where required, real demand and informed borrower terms. Record the single ladder and all real costs without repeating investment.",
+        "form_tool_library requires lawful governance, A actual title or voluntary asset agreement, B actual eligibility, sufficient real operating funds and valid free-loan terms with defined duration and revocation. No duplicate tools, unearned skills or permanent rights are created.",
+        "convert_tool_loans_to_rentals requires the same inventory and lawful authority, an independently viable funded rental plan, all free-loan rights lawfully ended or freely amended, settled deposits and returns, and real posted rates. Preserve ownership, safety duties and existing promises. Gate B dialogue on step 3, survival, actual former free use of that ladder and a current higher applicable rental charge."
+      ],
+      "era_notes": "Tools, inspections, lending governance, contracts and rental charges follow actual event years.",
+      "why_fun": "An investment can keep a familiar object in town while changing who can afford to take it home."
+    },
+    {
+      "id": "scenario-20261118-2",
+      "kind": "scenario",
+      "title": "The Cleared Record Its Owner Chose to Discuss",
+      "category": "secrets",
+      "pitch": "Help a resident meet a real restitution obligation. A later lawful record-clearing order may restore privacy, before the resident voluntarily tells the supported story in public.",
+      "present_hook": {
+        "what_you_notice": "A household file contains an unpaid restitution order and a genuine record-relief eligibility worksheet.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The debt in {year} came from a real adjudicated nonviolent property offense, not a rumor or an invented accusation."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            22
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1990
+        ],
+        "notes": "A has the actual valid restitution obligation; B is the actual authorized court clerk. The small gift covers its documented shortfall. Baseline has no completed payment or record-relief order. Clearing a record is not an innocence finding; all rights and timing depend on the actual applicable law."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the resident a week’s wages toward the real court-ordered payment, with no condition on later disclosure."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "settle_restitution": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Resident Completes an Actual Restitution Payment",
+          "body": "The real recipient receives the actual amount owed under the valid order. No additional offense or penalty is created."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "record_case_relief": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Qualified Case Receives Its Lawful Record-Relief Order",
+          "body": "The competent process grants only the actual supported relief after all eligibility requirements. The order is not an exoneration."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "publish_own_case_account": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Resident Voluntarily Publishes a Supported Personal Account",
+          "body": "The author completes the real permitted disclosure with other people’s rights protected. Only the authorized actual account becomes public."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Gift Does Not Complete Restitution",
+        "body": "The money remains real, but no qualifying payment completes. Ordinary obligations and lawful court process continue."
+      },
+      "present_day": {
+        "best": "If the chain and publication persist in {now}, the actual public account describes the supported case and relief, while official record access still follows the actual order.",
+        "worst": "Without the qualifying order or voluntary publication, no privacy relief or disclosure is created. A payment never buys innocence.",
+        "twist": "{A} gains the actual relief from the official order, then voluntarily gives up control over the lawful public copy of the personal account."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "uncanny",
+          "line": "I kept the proof that I could have kept it private."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "settle_restitution requires a valid existing order, current entitlement, B actual authority, available real A funds and completed transfer to the proper recipient once. Settle only actual remaining liability; no invented victim, discount, debt erasure or reputation bonus.",
+        "record_case_relief requires all real sentence and restitution terms completed, actual time elapsed, qualifying conduct and statute, a valid petition and competent supported order. Use the single legal-outcome resolver and record exact scope, exceptions and remaining access rights. Do not erase events, declare innocence or independently produce an incompatible ruling.",
+        "publish_own_case_account requires A freely choosing disclosure without pressure, lawful possession of authentic supporting records, clear rights, informed understanding of actual ongoing access and copying, and a funded real publication venue. Disclose only A authorized supported account, redacting protected others and respecting the actual relief order. Record exact publication scope and surviving legal rights; do not reopen restricted official files. Gate A dialogue on step 3, survival and the real prior right to withhold that account."
+      ],
+      "era_notes": "Restitution, record relief, access and publication law follow each actual event year.",
+      "why_fun": "A changed past can create privacy that its owner later chooses to spend."
+    },
+    {
+      "id": "scenario-20261118-3",
+      "kind": "scenario",
+      "title": "The Shortcut That Followed the Deed",
+      "category": "place",
+      "pitch": "Introduce a resident to a willing landowner with a feasible path proposal. A temporary shortcut may later become a permanent public right that survives the owner’s actual decision to move away.",
+      "present_hook": {
+        "what_you_notice": "A land file holds an unsigned path proposal and a map of the longer existing public route.",
+        "where": "the edge of town",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The parcel in {year} was private, and no public right followed merely from somebody wanting a shortcut."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "relation": "strangers"
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ],
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A and B are strangers relative to each other. B owns the identified home parcel; A is an actual resident making the real recurring trip. Baseline has no path permission or public easement. Require an existing suitable safe route and lawful access at both ends, not invented land or a bridge."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the consenting resident and owner over the actual mapped proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "license_private_path": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Owner Grants a Real Limited Path Licence",
+          "body": "The funded safe route opens only under its actual revocable terms and defined users."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "record_public_path_easement": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Path Receives Its Lawfully Recorded Public Right",
+          "body": "The informed competent parties complete the valid supported easement and settle the exact footprint, access and maintenance rights."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "sell_pathside_home_and_move": "B"
+            }
+          ],
+          "headline": "An Owner Sells a Home with Its Recorded Path Right",
+          "body": "The actual funded willing sale and relocation complete. The valid easement survives exactly as the deed and law require."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "A Meeting Does Not Open a Private Path",
+        "body": "The introduction happens, but no qualifying permission is granted. The old lawful route remains available."
+      },
+      "present_day": {
+        "best": "If the chain and easement persist in {now}, the actual route map shows the public path and the deed records its continuing right after {B}’s real sale. Current occupancy follows actual residents.",
+        "worst": "Without a valid instrument or sale, retain actual private title and passage rights. No public access or new owner is invented.",
+        "twist": "The town gains the actual shorter public route, while {B} gives up the recorded private-use control and later the actual home through a voluntary sale."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I sold the house. The path was the part I could not take with me."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "license_private_path requires B actual clear title and informed consent, real safe existing route, lawful connections, any required permits, affordable upkeep and exact revocable terms. Add only that access edge and actual costs; do not create a permanent public right.",
+        "record_public_path_easement requires current title authority, lawful process, informed parties, actual supported instrument, settled compensation if any and all affected rights. Record precise legal footprint, users, maintenance, duration and whether it binds successors. Eligibility requires a genuinely permanent successor-binding right, not a licence relabeled by narration.",
+        "sell_pathside_home_and_move requires B actual independent voluntary decision, continued transferable title, a real existing qualified willing buyer with actual funds, lawful disclosures including the easement, supported price, settled claims and viable real destination housing. Transfer only the actual home title and payment and complete B move atomically with real costs. Create no buyer or replacement residence by fiat and do not remove the recorded path. Gate B dialogue on step 3, survival, remembered sale and current binding path right during an actual visit or call."
+      ],
+      "era_notes": "Land instruments, public access, sale disclosures and relocation obligations follow actual event years.",
+      "why_fun": "A short walk can become the longest-lasting part of somebody’s old address."
+    },
+    {
+      "id": "scenario-20261118-4",
+      "kind": "scenario",
+      "title": "The Honest Scale That Ended the Tiny Orders",
+      "category": "rivalry",
+      "pitch": "Repeat a documented short-weight complaint about a butcher’s sale. A real settlement may lead to public checking scales, then a packaged-sales plan that costs one customer the ability to buy the old tiny quantity.",
+      "present_hook": {
+        "what_you_notice": "A consumer file holds a verified weighing discrepancy and an unresolved actual purchase complaint.",
+        "where": "the butcher shop",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The discrepancy in {year} was evidenced; it did not by itself prove deliberate cheating."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "butcher"
+          ],
+          "reputation": "mid"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "wealth": "getting_by"
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "Bind butcher_shop to A adult-owned business. B is the actual affected customer with genuine purchase and calibration evidence. Baseline has an unresolved real discrepancy and no checking-scale proposal or later packaged-only rule. No intent, illness or further offense is inferred."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": -0.2,
+          "how_it_looks": "Repeat the accurate documented complaint without adding an accusation of intent."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "settle_short_weight_claim": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Actual Weight Complaint Reaches a Supported Settlement",
+          "body": "The competent process verifies the real shortfall and completes the exact calibration and customer settlement owed."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "install_public_check_scale": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Funded Public Scale Offers an Actual Weight Check",
+          "body": "The approved qualified installation provides its real certified checking service under posted terms."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "adopt_packaged_weight_sales": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Butcher Settles Custom Orders before Changing Sales Terms",
+          "body": "The owner completes the lawful funded shift to the actual verified packaged quantities. The affected customer freely makes the recorded qualifying purchase under the new terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Complaint Produces No Completed Settlement",
+        "body": "The ordinary rumor effect remains, but no qualifying settlement completes. Actual consumer rights and business facts continue without invented guilt."
+      },
+      "present_day": {
+        "best": "If the chain and sales plan persist in {now}, the actual public scale is available under its current terms and the butcher posts verified package weights and minimum quantities.",
+        "worst": "Without completed stages, preserve actual calibration, customer claims and sale terms. No accusation, refund or public equipment is invented.",
+        "twist": "{B} gains the actual weight remedy but loses the old custom-quantity option and pays for a real larger minimum package than the smaller amount wanted."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "Now I know exactly how much I am buying. I used to be able to buy less of it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "settle_short_weight_claim requires A current authority, authentic supported purchase discrepancy, competent actual inspection or lawful informed settlement, real calibration need and available funds. Correct only verified equipment, pay B exact proven entitlement once and settle real costs. Do not infer fraud or repeat the rumor’s reputation effect.",
+        "install_public_check_scale requires actual current need, authorized owner and public authority where necessary, suitable available existing site, affordable real funds, qualified installation and certified calibration. Record one real scale, exact location and use terms; do not claim all future weights are correct.",
+        "adopt_packaged_weight_sales requires A still owns the operating shop, an actual independently viable lawful funded packaging plan, verified real weights, settled existing custom orders and posted actual minimum lots. Eligibility requires B actual freely chosen purchase with sufficient funds of a minimum lot larger than B documented wanted quantity and larger than a previously offered custom order. Transfer only actual goods and price once; do not force buying, overcharge by invented rates or promise profits. Gate B dialogue on step 3, survival, remembered actual remedy and current loss of the old smaller-order option."
+      ],
+      "era_notes": "Weights, measures, consumer remedies, calibration and packaging rules follow actual event years.",
+      "why_fun": "A justified complaint can make buying more transparent without making the new terms feel friendlier."
+    }
+  ]
+}

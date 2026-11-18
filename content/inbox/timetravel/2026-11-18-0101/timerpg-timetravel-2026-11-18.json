@@ -1,0 +1,667 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-611",
+      "kind": "scenario",
+      "title": "The Mail Counter That Took Its Rent Elsewhere",
+      "category": "business",
+      "pitch": "Invest in a clothing shop’s genuine postal-counter proposal. A later staffed service may move to its own premises, ending the actual rent the mail counter paid the shop owner.",
+      "present_hook": {
+        "what_you_notice": "A clothing-store file contains an unfunded postal fit-out quote and an unsigned agency offer.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The actual provider in {year} had a valid opportunity, but the shop had not completed its counter."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "clothing store"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "Bind clothing_shop to A actual adult-owned business. B is a real qualified prospective postal-counter worker. Baseline has no completed in-store counter. Require an existing authorized mail provider, suitable space, a genuine positive rental offer and actual permitted operating terms; no mail, provider or customers are invented."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "clothing_shop",
+          "amount": "large",
+          "how_it_looks": "Invest ordinary shop capital toward the actual authorized counter fit-out."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "open_instore_postal_counter": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Shop Opens Its Actual Authorized Postal Counter",
+          "body": "The funded inspected counter opens under its real agency and positive-rent agreement."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "hire": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Shop Fills Its Qualified Postal-Counter Vacancy",
+          "body": "The qualified worker freely accepts the actual funded lawful position with the required provider authorization."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "relocate_postal_counter": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Postal Counter Completes Its Approved Relocation",
+          "body": "The real new facility and qualified coverage are operating before the old counter closes. Its actual rent agreement ends on settled terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Investment Does Not Open the Counter",
+        "body": "The capital follows ordinary shop finances, but no qualifying counter or rental entitlement is created."
+      },
+      "present_day": {
+        "best": "If the chain and relocation persist in {now}, the clothing shop no longer contains the authorized counter and the actual provider notice identifies its current separate premises.",
+        "worst": "Without valid stages, retain actual stock, provider authority, contracts and staff rights. No independent postal facility appears automatically.",
+        "twist": "{A} gains the real earlier counter rental income, then loses that continuing entitlement and the in-store postal visits when the contract lawfully ends."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "The mail moved. The rent it paid me moved with it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add postal counter as a service/venue type under an actual authorized mail provider. open_instore_postal_counter requires A real venue authority, actual approved agency and positive-rent contract, suitable secure inspected funded fit-out and qualified permitted staffing. Record exact scope, custody, costs and rent; do not repeat investment or create a mail provider.",
+        "hire requires A actual counter employment authority, B current verified qualifications and provider approval, a genuine funded paid vacancy and voluntary contract. Keep employer, supervision, wages, custody and access rights precise; no automatic civil-service status or permanent job.",
+        "relocate_postal_counter requires independently approved current provider plan, lawful termination or freely agreed amendment of the real rental contract, suitable actual available separate premises, funded inspected installation and qualified replacement coverage. Settle all mail custody, deposits, rent and worker rights before closing the old counter. Transfer B only if an actual valid employment agreement does so; otherwise retain only real settled outcomes. Gate A dialogue on step 3, survival and actual ended positive rental entitlement."
+      ],
+      "era_notes": "Postal authority, agency contracts, security, employment and fit-out methods follow actual event years.",
+      "why_fun": "A useful new service can change why people enter a shop and later take that reason somewhere else."
+    },
+    {
+      "id": "scenario-20261118-612",
+      "kind": "scenario",
+      "title": "The Uniforms Left after the Last Rehearsal",
+      "category": "place",
+      "pitch": "Introduce a band director to a qualified dress-shop owner. School uniforms may sustain a real repair contract before a later independent band closure leaves the clothes available for another use.",
+      "present_hook": {
+        "what_you_notice": "A school file contains an unfilled uniform commission and an unused approved budget.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The school in {year} had a genuine roster and budget, but had not found its qualified willing supplier."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "relation": "strangers"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "dress shop"
+          ],
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are strangers relative to each other. A is the actual authorized band director and B a qualified adult shop owner. Bind a genuinely operating school band, real approved budget and eligible willing students. Baseline has no completed commission; no children, musicians or performances are created by meeting."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the consenting director and supplier over the actual funded school brief."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "commission_band_uniforms": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A School Completes Its Real Uniform Commission",
+          "body": "The authorized funded order is completed and inspected for the actual eligible band roster. The school owns the delivered inventory."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "renew_uniform_repairs": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Continuing Band Renews Its Actual Uniform Repair Contract",
+          "body": "The lawful funded renewal covers only the existing real inventory and supported work."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "transfer_retired_band_uniforms": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Retired Band Uniforms Enter an Authorized Costume Collection",
+          "body": "After the independently recorded band closure, actual contract obligations are settled and the owner lawfully transfers the eligible retired clothes."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "A Meeting Does Not Complete the Uniform Order",
+        "body": "The introduction happens, but no qualifying order is delivered. No school inventory or repair income appears automatically."
+      },
+      "present_day": {
+        "best": "If the chain and transfer persist in {now}, the actual costume collection holds the identified retired uniforms and the school no longer books their old repair contract.",
+        "worst": "Without a real closure and lawful transfer, preserve the actual band, school inventory and contracts. A uniform order does not decide whether children make music.",
+        "twist": "The town gains only the actual reused costumes, while {B} loses the settled recurring repair contract and the school’s actual band has already ended."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "I still recognize the stitching. The sleeves belong to different stories now."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "commission_band_uniforms requires A current authority, actual eligible consenting roster and required guardian approvals, B current qualified capacity, real budget, lawful selection and a funded completed contract. Create identified actual garments and transfer their title to the school; no performances or future pupils are invented.",
+        "renew_uniform_repairs requires the same band still genuinely operates, lawful owner authority, B actual qualified operating shop, surviving inventory, supported repair need and affordable actual contract. Pay only actual completed work and record duration and termination terms; no guaranteed decades of income.",
+        "transfer_retired_band_uniforms requires an independently recorded lawful school decision ending this band, a genuinely current repair agreement now properly expired or terminated, settled B actual rights, clear school title and valid disposal authority. Require a real qualified willing existing costume collection, owner consent, safe usable actual clothes and funded lawful transfer. Add school-uniform inventory and costume collection as asset/entity types; create no theater or child. Gate B dialogue on step 3, survival and actual recognition of the transferred garments in their current lawful new use."
+      ],
+      "era_notes": "School authority, uniform styles, procurement, repairs and disposal follow actual event years.",
+      "why_fun": "The player can return to find the work of one busy room living on after that room has gone quiet."
+    },
+    {
+      "id": "scenario-20261118-613",
+      "kind": "scenario",
+      "title": "The Partners Who Kept the Parlor after Separating",
+      "category": "love",
+      "pitch": "Introduce two adults who welcome each other. A shared unmarried household may later buy a real ice cream parlor, then end while its former partners freely keep the business together.",
+      "present_hook": {
+        "what_you_notice": "A local social notice records two eligible adults who never met, beside a later unfulfilled business plan.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "Both adults in {year} were single, unrelated and willing to be introduced; no relationship was promised."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            22,
+            28
+          ],
+          "married": false,
+          "wealth": "getting_by",
+          "relation": "strangers"
+        },
+        "B": {
+          "age": [
+            22,
+            28
+          ],
+          "married": false,
+          "wealth": "getting_by",
+          "relation": "strangers"
+        },
+        "C": {
+          "age": [
+            35,
+            45
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "ice cream parlor"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1975,
+          1995
+        ],
+        "notes": "A and B are strangers relative to each other, without existing partners, with actual potential mutual attraction. C owns the identified parlor. A and B have genuinely relevant prospective operating skills. Baseline has no joint household or ownership. No marriage, child or sale is inferred from meeting."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Make the welcome introduction without promising a relationship or business."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "start_unmarried_household": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Adults Freely Establish a Shared Unmarried Household",
+          "body": "After an actual mutually developed relationship, the adults complete their lawful affordable housing arrangement without marrying."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "buy_parlor_together": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "Two Qualified Partners Buy an Existing Ice Cream Parlor",
+          "body": "The actual funded voluntary sale transfers only the agreed business assets and title. The owners record their precise shares and duties."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "separate_keep_joint_parlor": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Former Partners Keep a Business under an Actual New Agreement",
+          "body": "The adults freely end their shared romantic household and complete viable separate housing and a lawful continuing business agreement."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "An Introduction Does Not Establish a Household",
+        "body": "The meeting happens, but no qualifying shared household develops. No marriage, property or later separation is created."
+      },
+      "present_day": {
+        "best": "If the chain and ownership persist in {now}, the actual parlor records both former partners’ shares while their real household records show separate residences.",
+        "worst": "Without valid later agreements, retain actual relationships, homes and title. Separation never automatically sells a business or creates another home.",
+        "twist": "{A} and {B} gain their actual business and keep its lawful shared ownership, but lose the real shared romantic household that began the chain."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "We stopped sharing a home. We still have to agree about opening hours."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "start_unmarried_household requires both adults still unmarried and freely consenting without existing incompatible partners, an actual developed mutual relationship, legally permitted cohabitation, suitable actual available housing, owner consent and viable real budget. Record that household and romantic relationship without a marriage or child.",
+        "buy_parlor_together requires the household still intact, C actual willing transferable ownership, both buyers current qualifications and permits, clear claims, a supported price and actual affordable funding. Transfer the existing business identifier and only purchased assets, preserving real worker and creditor rights. Record exact shares, personal and business obligations; do not duplicate the shop or assume joint property from romance.",
+        "separate_keep_joint_parlor requires A and B still unmarried partners in the same actual household, an independently developed real decision to separate, free informed agreement, viable actual separate housing and all dependent, tenancy, property and financial rights settled. Both must independently choose to retain genuine viable joint ownership with qualified operation and enforceable governance including shared decisions about hours. End only the romantic household and amend actual agreements, without a divorce or invented children. Gate A dialogue on step 3, survival, current separate homes and continuing joint decisions about actual parlor hours."
+      ],
+      "era_notes": "Cohabitation, property, food-service permissions and business agreements follow actual event years.",
+      "why_fun": "The present can hold the same two names on a business account after those names stop sharing an address."
+    },
+    {
+      "id": "scenario-20261118-614",
+      "kind": "scenario",
+      "title": "The Jar Opener That Outlived Its Royalty",
+      "category": "money",
+      "pitch": "Help an inventor afford the actual remaining cost of a patent application. A real licence may later pay royalties before the lawful patent term ends and a qualified maker completes a new royalty-free production run.",
+      "present_hook": {
+        "what_you_notice": "An inventor’s file contains a working jar-opener design, genuine priority records and an unaffordable remaining application invoice.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The device in {year} actually worked; a patent and a paying licensee were still separate decisions."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            25
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "metalworking shop"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A genuinely owns the supported eligible invention and B the actual qualified adult-owned workshop. The small gift covers the real application shortfall. Baseline has no granted patent or licence. Require actual novelty, clear rights and era-valid patent process; a useful object alone does not create exclusive rights."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the inventor a week’s wages toward the actual remaining application costs."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "obtain_supported_patent": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Eligible Invention Receives Its Actual Patent Grant",
+          "body": "The competent process grants only the supported claimed rights with their actual lawful term and conditions."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "license_jar_opener": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Qualified Workshop Signs a Real Manufacturing Licence",
+          "body": "The parties execute the actual viable licence and complete its supported first production and royalty settlement."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "manufacture_after_patent_expiry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Workshop Completes a Run after Actual Patent Expiry",
+          "body": "The genuinely expired patent no longer requires its old licence for the covered design. The maker completes the funded lawful new run without that patent royalty."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Application Produces No Qualifying Patent",
+        "body": "The gift remains real, but no qualifying patent is granted. No exclusive right or royalty appears from paperwork alone."
+      },
+      "present_day": {
+        "best": "If the chain and legal status persist in {now}, the actual workshop’s production records show the later covered run without the expired patent royalty; the archive preserves the genuine former licence.",
+        "worst": "Without a valid grant, licence and actual expiry, create no monopoly, royalty or public-use right. Other valid rights remain enforceable.",
+        "twist": "{A} gains the actual earlier licence payments and then loses the expired patent’s ability to require that royalty on the later covered run."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "It still opens the same jars. The part that stopped working was my royalty clause."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add metalworking shop as a business kind and patent as an asset type. obtain_supported_patent requires A actual invention ownership, valid priority, independent supported novelty and eligibility, paid real fees, completed examination and a competent lawful grant. Record exact claims, term, maintenance and rights; no invented invention or automatic monopoly over unrelated devices.",
+        "license_jar_opener requires the same rights still valid, A actual title, B current independently qualified safe manufacturing capacity, informed viable funded terms, lawful materials and actual completed production. Settle only actual contracted fees and royalties on real units once, with precise term and expiry conditions; no sales or profits are guaranteed.",
+        "manufacture_after_patent_expiry requires independently verified actual expiry of the exact relevant patent claims, no other enforceable rights barring this run, the old royalty obligation actually ended under valid law and contract, qualified actual workshop capacity, available lawful materials, real funded orders and completed safe production. Record actual units, price and costs without the expired patent royalty. Do not erase prior payments, invent lost orders or declare all know-how public. Gate A dialogue on step 3, survival, remembered actual earlier paid royalty and current lack of that obligation for this covered run. The actual new units must pass the bound design’s genuine functional checks before the unchanged jar-opening function is described."
+      ],
+      "era_notes": "Patent eligibility, grant, term, maintenance, contracts and manufacturing methods follow actual event years; no universal term or guaranteed return is assumed.",
+      "why_fun": "The changed town can keep making something useful after the private right that encouraged it has ended."
+    }
+  ]
+}

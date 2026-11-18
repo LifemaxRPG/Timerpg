@@ -1,0 +1,625 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-1051",
+      "kind": "scenario",
+      "title": "The Pilot Whose Paid Work Ended a Free Flyover",
+      "category": "business",
+      "pitch": "Help a young adult finish genuine flying lessons. A later paid aviation role may end the free parade flyover that the town came to expect.",
+      "present_hook": {
+        "what_you_notice": "A parade file contains an unaccepted flight-training fundraiser beside the old ground-only procession plan.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The learner in {year} had an actual instructor and a documented training shortfall."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            22
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A is an actual consenting adult flight student with an existing qualified instructor, lawful aircraft access and a genuine costed training plan. B is the actual consenting parade organizer. Baseline A has not qualified and no A flyover exists. Bind a real permitted parade and actual aviation records; no aircraft, airport or instructor is created."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "large",
+          "how_it_looks": "Give {A} the actual documented shortfall for the requested flight training."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_private_pilot_training": "A"
+            }
+          ],
+          "headline": "A Local Flight Student Earns the Required Certificate",
+          "body": "The student completes actual instruction, experience, examinations and required medical checks before qualifying."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "start_authorized_parade_flyover": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Qualified Pilot Starts an Authorized Parade Flyover",
+          "body": "The real organizer accepts the pilot’s freely offered flight after all actual aviation and event approvals."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "accept_conflicting_paid_flight_post": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Paid Flight Post Ends the Volunteer Parade Flight",
+          "body": "The qualified pilot accepts an actual paid position with incompatible availability. The existing volunteer commitment ends with notice."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Flight Training Is Not Completed",
+        "body": "The gift follows ordinary finances. No certificate, flight or parade commitment is created through this attempt."
+      },
+      "present_day": {
+        "best": "If the full chain occurred and no replacement was actually arranged, the parade schedule in {now} omits {A}'s former volunteer flight; actual employment records show the paid post only while it continues.",
+        "worst": "Without certificates, safe aircraft access and actual approvals, no flight happens. Show only realized training, service and employment history.",
+        "twist": "{A} gains actual paid work, while {B} loses the real donated flight and must either fund a genuine replacement or leave it out."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I am glad the flying pays now. I still have that gap in the procession plan."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_private_pilot_training requires the actual funded training, qualified instruction, logged experience, tests and legally required medical eligibility; record only the certificate genuinely earned. Ordinary currency, age, health and aircraft-access checks continue every later year.",
+        "start_authorized_parade_flyover requires A currently qualified and current for that exact operation, lawful airworthy aircraft access, suitable real conditions, actual required permits and B authority. Record the voluntary recurring commitment only on its genuine agreed dates; it creates no airfield or ownership. No unsafe maneuver or overflight permission is assumed.",
+        "accept_conflicting_paid_flight_post requires A actual additional qualifications, a real willing employer with a funded vacancy, freely accepted lawful terms and genuinely incompatible availability for the existing volunteer commitment. Record the job, actual pay schedule and settled end of that commitment atomically; do not invent a flight employer or another pilot. Dialogue requires B alive, still organizing, the realized withdrawal and an actually unfilled schedule gap. No current gap is claimed if later simulation supplies a replacement."
+      ],
+      "era_notes": "Use actual period-specific pilot certificates, medical and event rules. A paper logbook remains a clue even when later job applications use electronic records.",
+      "why_fun": "A gift can put something new above the parade, then make the town discover what that donated time was worth."
+    },
+    {
+      "id": "scenario-20261118-1052",
+      "kind": "scenario",
+      "title": "The Amateur Who Became the Fair’s Pie Judge",
+      "category": "rivalry",
+      "pitch": "Help a young baker pay the genuine fee for a local fair entry. Years of practice may lead to the judging table, where accepting the job means leaving a favorite pie out of competition.",
+      "present_hook": {
+        "what_you_notice": "A fair archive holds an unpaid entry form beside its ordinary amateur baking rules.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The applicant in {year} already had a real recipe and an eligible entry, but not the fee."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            16,
+            18
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A is a real amateur baker with a genuine eligible recipe and requested fair entry; obtain any actual guardian permission while underage. Bind an existing permitted fair, genuine fee and actual competition and judge-conflict rules. Baseline the entry has not been accepted. No award or later expertise is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give {A} the actual fair-entry shortfall without promising a prize."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "enter_actual_fair_baking_contest": "A"
+            }
+          ],
+          "headline": "A New Amateur Pie Entry Reaches the Fair",
+          "body": "The eligible baker completes the real accepted entry. Its score follows the ordinary judging process."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "qualify_fair_baking_judge": "A"
+            }
+          ],
+          "headline": "An Experienced Baker Completes Judge Qualification",
+          "body": "Actual experience, training and the fair’s required assessment qualify the adult baker for a future judging vacancy."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "accept_exclusive_fair_judging_post": "A"
+            }
+          ],
+          "headline": "A Baker Takes the Judging Chair and Withdraws an Entry",
+          "body": "The qualified adult accepts the actual fair’s judging position and withdraws the genuinely conflicting pie entry under its rules."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Amateur Entry Is Not Completed",
+        "body": "The gift remains ordinary personal funds. No entry, score or judging qualification follows from this attempt."
+      },
+      "present_day": {
+        "best": "If the completed appointment still applies in {now}, the fair’s actual program lists {A} among its judges and omits the withdrawn conflicting entry. If the appointment ended, show the actual later eligibility instead.",
+        "worst": "No entry implies a prize, and no old entry proves later expertise. Preserve ordinary contest results and qualifications at every failed stage.",
+        "twist": "{A} gains an actual judging role and its agreed compensation, but loses a real chance to compete with the pie entered for that same fair."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I finally got a chair at the judging table. Now I have to leave my pie at home."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add fair-entry, actual judging qualification and appointment records. enter_actual_fair_baking_contest requires a real eligible prepared entry, actual fee payment, permissions and accepted registration in a genuine scheduled contest. Record entry and actual judging results only; the success roll is not a victory roll.",
+        "qualify_fair_baking_judge requires A adult, actual accumulated relevant experience, completed funded instruction and the real required assessment. Record only the qualification earned, with any actual expiry or renewal requirements. The earlier contest entry never grants expertise automatically.",
+        "accept_exclusive_fair_judging_post requires current qualification, a real authorized funded appointment, A free consent, a real current submitted pie entry and an actual rule prohibiting that entry while judging. Settle withdrawal and fee treatment before appointment; record the agreed pay and lost eligibility for this contest only. No rival, prize or permanent prohibition is created. Dialogue requires A alive, present and still under the actual exclusion for the current fair."
+      ],
+      "era_notes": "Earlier fairs use paper entry cards and handwritten scores; later records may be digital. Preserve actual age, food-handling and conflict rules rather than importing a modern certification.",
+      "why_fun": "The reward for decades of practicing a pie can be permission to judge everyone else’s, which is its own small-town joke."
+    },
+    {
+      "id": "scenario-20261118-1053",
+      "kind": "scenario",
+      "title": "The Care Instructions That Chose Someone Else",
+      "category": "family",
+      "pitch": "Introduce a parent to the qualified adviser the parent asked to meet. A documented care plan may later give another trusted adult the authority that the grown child once held.",
+      "present_hook": {
+        "what_you_notice": "A resident has voluntarily shared an unsigned care-planning request and a blank agent-designation form.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The parent in {year} wanted advice before choosing who would speak if a decision became impossible."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            50,
+            60
+          ],
+          "has_children": true
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "relation": "parent_child"
+        },
+        "C": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A is B actual parent; B is the adult child, not A parent. C is a distinct real qualified independent planning adviser and a trusted adult whose real prior correspondence gives A sufficient trust for a freely requested first in-person meeting. Baseline A has decision-making capacity and no executed directive for this need. Require lawful player access with A consent; no diagnosis or incapacity is invented."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "C",
+          "how_it_looks": "Arrange the requested formal meeting between {A} and the qualified adviser."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "execute_care_directive": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Resident Signs a Valid Care Directive",
+          "body": "The competent resident freely records actual instructions and appoints the consenting adult child as agent."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "replace_care_agent": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Resident Freely Changes the Appointed Care Agent",
+          "body": "The still-competent resident executes a lawful new designation. The former agent’s authority ends and the consenting replacement accepts."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "implement_actual_care_directive": [
+                "A",
+                "C"
+              ]
+            }
+          ],
+          "headline": "An Authorized Agent Follows the Resident’s Instructions",
+          "body": "An actual qualifying assessment activates the valid directive. The authorized agent arranges only the documented lawful care decision."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Advice Does Not Become a Signed Directive",
+        "body": "The meeting creates no authority by itself. Existing legal rights and actual care choices remain in force."
+      },
+      "present_day": {
+        "best": "If all stages occurred and authority is still active in {now}, authorized inspection of the actual care record shows {C} acting under {A}'s valid instructions; {B} has no authority under the revoked designation.",
+        "worst": "Without valid execution, capacity findings, current consent and activation, no substitute decision-maker is installed through this chain. Earlier valid records follow their actual legal status.",
+        "twist": "{A} gains a plan whose chosen instructions can be followed, while {B} loses a real appointed role after the parent freely changes that choice."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I used to be the person named on that form. I am still the child."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add directive, capacity-assessment and agent-authority records with private access controls. execute_care_directive requires A actual decision-making capacity, independent qualified advice, free informed instructions, legally valid form and witnesses, B eligibility and consent, and no conflicting operative record. Record only those instructions and actual powers, not a diagnosis or future incapacity.",
+        "replace_care_agent requires A still capable and freely requesting the change without coercion, legally valid revocation and replacement, C lawful eligibility and consent including all adviser-conflict restrictions, and required notice to B and providers. End only authority from the revoked instrument; preserve family relationships and B independent legal rights. Do not assume a family feud or hide a valid revocation.",
+        "implement_actual_care_directive requires a genuine independently occurring qualifying incapacity or activation event, the precise current required professional assessment, C surviving and lawfully authorized, current instructions applicable to the actual decision and real qualified provider capacity. Record the authorized decision and actual arranged care without guaranteeing health, death, withdrawal of treatment or payment. No incapacity is caused by this effect. Dialogue requires B alive, present, actual former appointment and valid replacement; present care descriptions require still-active authority."
+      ],
+      "era_notes": "Offer only where the actual period’s law recognizes the required instrument and authority. Do not backdate modern directive powers; an unsupported year fails eligibility.",
+      "why_fun": "A useful document can preserve a parent’s voice while quietly changing what being the dependable child means."
+    },
+    {
+      "id": "scenario-20261118-1054",
+      "kind": "scenario",
+      "title": "The Bait Shop That Tested Tomorrow’s Warning",
+      "category": "uncanny",
+      "pitch": "Show a bait-shop owner a genuine future report about a shipment already in the shop. An ordinary test may start a long change that eventually retires the live-bait line a regular customer relied on.",
+      "present_hook": {
+        "what_you_notice": "A lawful public report in the present archive traces a documented contamination problem to an actual old shipment.",
+        "where": "the Gazette archive",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The report identifies the real supplier lot present in {year}; it does not prove every later shipment was affected."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bait shop"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "Bind bait_shop to A actual adult-owned business, B to an actual adult regular live-bait customer, and the exact genuine stock lot already present. Baseline no qualifying test has been completed. Require an authentic accessible original-present report with exact historical lot provenance and actual contamination detectable by a lawful period-available test. The report is evidence to investigate, never prophecy or official approval."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:share_future_bait_report",
+          "target": "A",
+          "how_it_looks": "Let {A} read the authentic carried-back report and its exact supplier-lot reference."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            0,
+            0
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "test_and_quarantine_actual_bait_lot": "A"
+            }
+          ],
+          "headline": "A Bait Shop Tests and Quarantines a Real Stock Lot",
+          "body": "A qualified lawful test confirms the actual contaminant. The affected stock leaves sale under the applicable controls."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "renew_bait_supplier_controls": "A"
+            }
+          ],
+          "headline": "A Bait Shop Implements Verified Supplier Controls",
+          "body": "The actual surviving business completes a funded review and adopts traceable lawful stock and handling controls."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "retire_actual_live_bait_line": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Bait Shop Settles Its Last Live-Bait Orders",
+          "body": "The owner voluntarily completes a viable lawful shift to actual artificial-tackle stock and ends the real live-bait line on settled terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Report Does Not Produce a Qualifying Test",
+        "body": "Reading the report does not change a specimen, establish a result or remove stock by itself. Ordinary legal duties still apply."
+      },
+      "present_day": {
+        "best": "If all stages and the business change persist in {now}, the actual shop inventory contains its lawful artificial-tackle range and no live-bait line; {B}'s former live-bait order is recorded as ended.",
+        "worst": "No test means no contamination finding through this chain. Do not invent an infestation, restored river, prevented illness or permanent regulatory permission.",
+        "twist": "The shop gains a viable documented alternative trade, while {B} loses the actual familiar live-bait order and must choose among genuinely available alternatives."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "uncanny",
+          "line": "I read the report before there was a test. I still made them test it."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "share_future_bait_report",
+          "does": "For the bound A and exact existing supplier lot, validate the accessible authentic immutable original-present report and provenance, then add A knowledge of that report and lot reference only. No stock, contamination, test result, reputation, money, legal authority or future event changes directly."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "share_future_bait_report records only that A has read the exact authenticated original-present report and its lot provenance. Keep the carried source immutable as a record of its source timeline; resimulation never makes it current proof, guarantees its predictions or grants regulator acceptance. Do not create or alter contamination, stock, memories beyond this reading or a legal finding.",
+        "test_and_quarantine_actual_bait_lot requires the exact bound lot still identifiable and genuinely contaminated in current simulation, qualified period-available sampling and testing, confirmed result and actual lawful authority. Record the result, remove only affected actual stock from sale and settle real inventory and disposal costs once. Legal reporting and controls apply independently even if the scenario roll fails. Complete sampling, result and quarantine in the intervention year before the real lot expires, is sold or leaves custody; never keep live bait unchanged for years. Schedule the independent step-1 roll after the report reading in that same year.",
+        "renew_bait_supplier_controls requires A still owning the same active shop, actual funded review, real qualified suppliers and implemented traceability, handling and inspection controls. Record actual approved procedures and stock references; do not guarantee future stock purity or restore an ecosystem.",
+        "retire_actual_live_bait_line requires A consent and actual continuing ownership, viable funded actual artificial-tackle inventory, legal supplier capacity, B still holding a real live-bait standing order, and settlement of all current orders, stock, worker and animal-handling obligations. End only that business line and actual order; preserve the shop identity and record real costs once. Dialogue requires A alive, present and the actual earlier reading and completed confirmed test; best requires continuing inventory facts."
+      ],
+      "era_notes": "Use only period-available laboratory methods, lawful stock handling and actual supplier records. The future report may prompt a question, but only the current year’s valid evidence can answer it.",
+      "why_fun": "The uncanny clue matters because someone still has to do the ordinary work of checking a bucket of bait."
+    }
+  ]
+}

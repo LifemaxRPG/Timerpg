@@ -1,0 +1,635 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-481",
+      "kind": "scenario",
+      "title": "The Garage That Kept Its Tools and Lost Its Pumps",
+      "category": "business",
+      "pitch": "Invest in a fuel station’s genuine repair-bay proposal. Later tank remediation may lead to a different operating plan, leaving repairs available while ending the old fuel service.",
+      "present_hook": {
+        "what_you_notice": "A fuel-station file contains an unfunded repair quote and the unchanged history’s limited workshop plan.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposed bay in {year} had real space and qualified staff available, but not sufficient capital."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "fuel station"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1990,
+          1995
+        ],
+        "notes": "Bind station to A actual adult-owned business. B is an actual qualified mechanic and regular fuel customer with a real fuel-powered vehicle. Baseline has no proposed bay. Require actual existing tanks and site history; no leak, contamination or electric vehicle is created by investment."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "station",
+          "amount": "large",
+          "how_it_looks": "Invest ordinary station capital toward the real permitted repair-bay budget."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "open_repair_bay": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Station Opens Its Funded Qualified Repair Bay",
+          "body": "The permitted inspected bay opens with actual paid qualified staff and equipment."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "remediate_station_tanks": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Station Completes Its Required Tank Remediation",
+          "body": "A real qualified assessment supports the funded lawful work. Only the documented affected tanks and ground are treated."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "retire_station_fuel_sales": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Garage Keeps Repairs while Retiring Its Fuel Pumps",
+          "body": "The actual funded operating change settles fuel obligations and safely decommissions the identified pumps. The qualified repair bay remains open."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Capital Does Not Complete the Repair Bay",
+        "body": "The investment follows ordinary finances, but no qualifying bay opens. No mechanic, vehicle or environmental finding is invented."
+      },
+      "present_day": {
+        "best": "If the chain and plan persist in {now}, the actual garage posts repair hours and has no operational original fuel pumps.",
+        "worst": "Without completed stages, retain actual equipment, environmental duties and service terms. No pollution or replacement technology is implied.",
+        "twist": "The garage retains actual repair work while {B} loses this fuel source and must use the documented available alternative for the real current vehicle."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "They can fix the car here. Filling it is another trip."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add fuel station and vehicle repair garage as business kinds. open_repair_bay requires A actual title and authority, suitable existing space, permits, funded qualified inspected installation and real lawful employment including B if hired. Record actual equipment, work scope, costs and contracts without repeating investment.",
+        "remediate_station_tanks requires independently evidenced actual tank or ground conditions, qualified current assessment, lawful owner responsibility, approved real remediation plan, licensed workers and sufficient actual funds. Log only documented work, disposal and verified results; no new leak, injury, illness or universal clean-site claim.",
+        "retire_station_fuel_sales requires A still controls the operating station, a freely chosen lawful independently viable funded plan following the actual remediation, settled supplier, customer, worker and environmental duties and completed safe permitted decommissioning. Keep the genuinely operating qualified repair service and no automatic chargers or new customers. Eligibility requires B actual continuing fuel-vehicle need and a real reachable alternative supplier. Gate B dialogue on step 3, survival, actual current repair availability and loss of fuel service. On completed decommissioning, change the same existing business identifier to vehicle repair garage, preserving actual ownership and settled continuing contracts rather than creating a second business."
+      ],
+      "era_notes": "Repair qualifications, tank rules, cleanup methods and actual operating technology follow each event year.",
+      "why_fun": "A changed present can keep the building and its trade while changing the ordinary reason people stop there."
+    },
+    {
+      "id": "scenario-20261118-482",
+      "kind": "scenario",
+      "title": "The Town Film That Returned without Its Music",
+      "category": "place",
+      "pitch": "Introduce a local filmmaker to a willing composer. A licensed town film may later remain screenable only without the music that residents remember.",
+      "present_hook": {
+        "what_you_notice": "An amateur-film file contains an unfinished edit and a separate unanswered offer of original music.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "Both artists in {year} had real work and a feasible project, but had not met."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "relation": "strangers"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A and B are strangers relative to each other, actual qualified consenting filmmaker and composer. Bind genuine lawfully filmed footage and B actual original composition with clear rights. Baseline has no joined completed film or music licence. No pictured residents, footage, audience or rights are invented."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Make the welcomed introduction over the existing film and original score."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_licensed_town_film": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Artists Complete a Film under Actual Music Terms",
+          "body": "The funded authorized edit completes using the real footage and original score under the signed licence."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "license_town_film_screenings": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Town Film Receives Its Actual Screening Agreement",
+          "body": "The competent parties complete the funded permitted screening licence, including the documented music term."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "release_silent_town_edit": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Town Film Returns in an Authorized Silent Edit",
+          "body": "After the actual music term ends without renewal, the lawful rights holders complete the permitted edit removing that score. Original archival objects retain their real custody rules."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Two Artists Do Not Complete the Joined Film",
+        "body": "The introduction happens, but no qualifying licensed edit completes. No footage or music right appears by meeting."
+      },
+      "present_day": {
+        "best": "If the chain and screening rights persist in {now}, the actual authorized public edit contains the documented footage without {B}’s former score. The archive distinguishes it from any restricted original.",
+        "worst": "Without an actual licence, expiry and permitted edit, show only lawfully held versions. Neither age nor nostalgia grants public music rights.",
+        "twist": "The town retains the actual permitted film, while {A} loses the right to include the particular music in that public edit and pays only the real editing costs."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "uncanny",
+          "line": "I remember the music. That is not the same as having permission to play it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_licensed_town_film requires A actual footage rights and affected-person permissions, B clear composition rights, informed valid written music licence, actual affordable production and completed edit. Record exact versions, scope, term and costs; no audience, fame or new recordings are automatic.",
+        "license_town_film_screenings requires the actual completed version, clear surviving rights, competent venue and archive permissions, real funded production or screening and a valid negotiated licence. Record a genuine music term ending within the final interval, subject to actual law and renewal; do not invent copyright expiry.",
+        "release_silent_town_edit requires that exact music permission actually ended, the music still legally protected and no valid renewal or exception permits its use, lawful authority to edit the real footage, actual affordable completed sound removal and current permitted screening rights. Preserve any lawfully held original under real access conditions. Gate A dialogue on step 3, survival, remembered actual score and current lack of permission for the public version."
+      ],
+      "era_notes": "Film formats, sound editing, rights, archives and actual terms follow event years; no early digital restoration is assumed.",
+      "why_fun": "The player can recognize a changed town from a familiar image and the silence around it."
+    },
+    {
+      "id": "scenario-20261118-483",
+      "kind": "scenario",
+      "title": "The Debate Fee That Eventually Closed a Law Office",
+      "category": "politics",
+      "pitch": "Help a student afford an actual school debate event. A later qualified legal career may lead to judicial office, requiring the resident to close a real private practice.",
+      "present_hook": {
+        "what_you_notice": "A school file contains an unpaid debate-event invoice and a verified eligible entry that was never completed.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The entry in {year} was genuine, with actual guardian and school approval."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            16,
+            17
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1990
+        ],
+        "notes": "A is an actual eligible student and B the real authorized qualified debate supervisor. The small gift covers the documented event shortfall. Baseline has no completed event participation. No victory, scholarship, legal credential or public office follows automatically. Require the actual approved event to occur at intervention+1; no deferral or new event is created to fit the timing."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the student a week’s wages toward the actual approved event costs."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            1
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_school_debate": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Eligible Student Completes the Actual Debate Event",
+          "body": "The funded approved participation completes under the real event rules. No particular score or victory is implied."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "law office"
+            }
+          ],
+          "headline": "A Qualified Resident Opens a Real Law Practice",
+          "body": "After actual completed legal training and admission, the resident opens the funded permitted practice with its actual professional scope."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "close_shop": "law_office"
+            },
+            {
+              "assume_judicial_office": "A"
+            }
+          ],
+          "headline": "A Qualified Appointee Closes Private Practice for Judicial Office",
+          "body": "The actual lawful selection and funded appointment take effect after client rights are settled. The incompatible private practice closes under the real rules."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Gift Does Not Complete the Event Entry",
+        "body": "The money remains real, but no qualifying participation completes. No debate result or later qualification is created."
+      },
+      "present_day": {
+        "best": "If the chain and appointment persist in {now}, the actual judicial record lists {A} and the original private law-office business is closed. Later terms and occupants follow actual events.",
+        "worst": "Without actual qualifications, vacancy, valid selection and funded transition, create no judicial authority or practice closure through this chain.",
+        "twist": "{A} gains only the actual public appointment and gives up the operating private practice, its client work and future private fee income."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I practiced arguments in class. Now I have to let other people finish."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_school_debate requires actual eligible entry, available real event, informed learner and required guardian consent, qualified supervision, sufficient real funds and completed participation. Record only actual performance through the single keyed event resolver; no victory or reputation bonus is promised.",
+        "found_business requires A actual adulthood, independently completed education, exams, admission and current legal qualifications, suitable available permitted premises, actual affordable funds and a viable ethical practice. A is 27–30 at elapsed years 11–13. Create one A-owned law office bound to law_office, not a credential produced by a school event.",
+        "Add judicial office as a public-office entity. The final compound step requires an actual vacant funded office, A current statutory eligibility and required experience, actual lawful completed selection through its single governing resolver, free acceptance and an actually applicable rule incompatible with continued private practice. Settle clients, files, conflicts, staff, fees and liabilities before closure and appointment commit atomically. No invented votes, favorable verdicts or lifetime term. Gate A dialogue on step 3, survival and actual current judicial role."
+      ],
+      "era_notes": "School events, legal admission, office selection and judicial ethics follow actual event years.",
+      "why_fun": "A small school expense can eventually leave one storefront empty and put a familiar resident behind a different desk."
+    },
+    {
+      "id": "scenario-20261118-484",
+      "kind": "scenario",
+      "title": "The League Founder Who Took the Paid Offer Elsewhere",
+      "category": "money",
+      "pitch": "Introduce a keen player to a bowling-alley owner with a genuine league proposal. Real competition may later bring paid work and, decades after the first meeting, a voluntary move away from the league it helped begin.",
+      "present_hook": {
+        "what_you_notice": "A bowling-alley file contains an unused league plan and an interested player’s unanswered application.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The lane capacity and proposal in {year} were real; no meeting or league agreement was completed."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            22
+          ],
+          "wealth": "getting_by",
+          "relation": "strangers"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bowling alley"
+          ],
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A and B are strangers relative to each other. Bind alley to B actual qualified adult-owned business and A to an actual capable consenting prospective player. Baseline has no proposed league. No score, victory, sponsor, celebrity or contract is invented by meeting."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the consenting player and proprietor over the real lane and league proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "form_local_bowling_league": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Alley and Actual Players Establish a Funded League",
+          "body": "The voluntary qualified group completes its lawful affordable agreement and real lane schedule."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "accept_paid_bowling_work": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Qualified Player Accepts an Actual Paid Opportunity",
+          "body": "The independently demonstrated player freely signs the real funded contract. Its work, eligibility and actual performance terms are recorded."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "move_away": "A"
+            }
+          ],
+          "headline": "A League Founder Completes a Funded Move for Real Work",
+          "body": "The player freely settles actual local commitments and completes the viable relocation. No new winner, town resident or permanent success is promised."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "An Introduction Does Not Complete a League",
+        "body": "The meeting occurs, but no qualifying group and schedule are established. No score, title or prize is created."
+      },
+      "present_day": {
+        "best": "If the chain is realized by {now}, the league archive records {A} as an actual founding participant and the current local roster excludes {A} only while the real move and membership change persist.",
+        "worst": "Without actual scores, a funded paid offer and viable relocation, retain real league membership, work and residence. No champion is created by a pitch.",
+        "twist": "{A} gains only the actual paid opportunity and gives up local residence and the recorded regular playing place in the founding league."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I helped make a place for that talent. I did not expect it to need a road out."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add bowling alley as a business kind and bowling league as an organization type. form_local_bowling_league requires B actual operating authority, real qualified consenting members including A, lawful rules, available inspected lanes, affordable fees, funded costs and completed scheduling. Record actual membership and played results only.",
+        "accept_paid_bowling_work requires independently recorded actual skill and sufficient real competitive performance through the single keyed score resolver, an actual existing qualified willing payer, funded lawful contract and A informed consent. No guaranteed victory or fame. Record exact paid duties, eligibility changes, costs and earnings only when work occurs.",
+        "move_away requires A alive, actual continuing qualified paid work from step 2 or its genuine lawful renewal, a real available opportunity requiring relocation, affordable actual destination housing and informed voluntary choice. Settle local work, tenancy, league membership and all real obligations before the actual move. Preserve archive history without inventing a replacement player or future income. Gate B dialogue on step 3, survival, remembered real founding role and actual continuing A absence from local regular play."
+      ],
+      "era_notes": "Lane equipment, scoring, amateur and professional eligibility, contracts and relocation follow actual event years.",
+      "why_fun": "The town can gain a real institution and later lose one of the people who made it worth joining."
+    }
+  ]
+}

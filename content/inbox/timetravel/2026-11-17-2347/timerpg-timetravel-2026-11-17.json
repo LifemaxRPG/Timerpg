@@ -1,0 +1,640 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-14271",
+      "kind": "scenario",
+      "title": "The Ambulance Subscription That Became a Tax Bill",
+      "category": "money",
+      "pitch": "Help a resident afford an actual ambulance subscription. A later rescue district may replace the voluntary plan with a lawful levy that the resident cannot simply decline to renew.",
+      "present_hook": {
+        "what_you_notice": "A household file contains an unpaid ambulance-subscription offer beside the old provider’s actual coverage terms.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The offer in {year} was real. It did not promise immunity from illness or a particular response time."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A is an eligible resident and B the actual qualified authorized operator of an existing ambulance provider. The small gift covers the quoted subscription shortfall. Baseline has no A subscription or proposed rescue district. Emergency duties, available vehicles and actual care follow their own facts; nobody is denied necessary care to make the plot work."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the resident a week’s wages toward the actual offered subscription."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "subscribe_ambulance_plan": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Resident Pays for the Actual Ambulance Plan",
+          "body": "The valid affordable contract starts after its real payment. Only its specified financial coverage changes."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "establish_rescue_district": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Lawful Funded Rescue District Takes Effect",
+          "body": "The actual governing process establishes the supported district and its qualified contracted service. No call or medical outcome is invented."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "replace_subscription_with_levy": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Rescue District Settles Subscriptions before Its Levy",
+          "body": "The lawful funded change settles the old plan and applies the real assessment. The resident pays only the actual amount due."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Gift Does Not Bind the Subscription",
+        "body": "The money remains real, but no qualifying contract starts. Ordinary emergency care and financial rules still apply."
+      },
+      "present_day": {
+        "best": "If the chain and levy persist in {now}, the actual district notice states its current terms and {A}’s account records the paid assessment instead of an active voluntary subscription.",
+        "worst": "Without a valid contract, district or levy, retain actual service duties and bills; no tax or ambulance is created by a donation.",
+        "twist": "{A} gains the actual district arrangement but loses the option to stop this cost merely by declining to renew the former subscription."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "I stopped renewing the subscription. I did not stop paying."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add ambulance provider as a service-business kind and rescue district as a public-service entity. subscribe_ambulance_plan requires an actual qualified authorized provider, available real offer, informed A consent, paid funds and precise benefits, exclusions, duration and renewal terms. Credit the real provider once; confer no health or response guarantee.",
+        "establish_rescue_district requires actually available legal powers, valid public notice and all required votes or approvals through the one governing resolver, real boundaries, supported demand, affordable funds and qualified actual staffing or contracts. Bind existing capable providers; no vehicles, people or automatic election victory appear.",
+        "replace_subscription_with_levy requires the district still lawful, a valid approved current levy, actual assessed A liability greater than zero, affordable lawful collection, settled subscription rights and no duplicate charge for the same covered period. Debit the precise real payment and credit the district once; future bills follow actual assessments. Gate A dialogue on step 3, survival, actual former subscription and current paid replacement assessment."
+      ],
+      "era_notes": "Subscription coverage, emergency duties, district powers and assessments must exist in their actual years.",
+      "why_fun": "A small voluntary payment can eventually lead to a line on a bill that is no longer optional."
+    },
+    {
+      "id": "scenario-20261117-14272",
+      "kind": "scenario",
+      "title": "The Diploma That Came before the Family Classroom",
+      "category": "family",
+      "pitch": "Help an older parent finish a real school qualification. A later tutoring business may bring parent and adult child together before the founder retires and gives up the classroom’s final say.",
+      "present_hook": {
+        "what_you_notice": "A household drawer contains an unfinished qualification application and an unaffordable final-course invoice.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The remaining course in {year} was genuine, and prior completed work was already verified."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            55,
+            60
+          ],
+          "has_children": true,
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            18,
+            22
+          ],
+          "relation": "parent_child"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1990
+        ],
+        "notes": "A is B actual parent, and B the adult child. A has real verified prior coursework and an achievable remaining recognized qualification; the small gift covers its final cost shortfall. Baseline has no completed qualification or family tutoring business. A diploma alone never creates teaching authority."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the parent a week’s wages toward the actual remaining course and assessment costs."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_late_diploma": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Older Resident Completes a Real School Qualification",
+          "body": "The learner finishes the actual remaining instruction and assessment. The awarding body records only the qualification genuinely earned."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "open_family_tutoring": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Parent and Adult Child Open a Qualified Tutoring Service",
+          "body": "The independently qualified parties complete the actual funded opening and lawful paid roles. No student or learning outcome is promised."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "retire_tutoring_founder": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Tutoring Founder Settles Retirement and Transfers Control",
+          "body": "The founder freely completes the real retirement agreement. The qualified adult child takes only the ownership and authority actually transferred."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Course Does Not Become a Completed Qualification",
+        "body": "The gift remains real, but no qualifying completion is recorded. No certificate or teaching skill is awarded anyway."
+      },
+      "present_day": {
+        "best": "If the chain and service persist in {now} and {B} remains the actual qualified controlling operator, the actual tutoring records name {B} as the controlling operator and no longer give {A} the founder’s former teaching or scheduling authority.",
+        "worst": "Without completed education, independent qualifications and funded agreements, create no classroom, business or authority. Ordinary family contact remains actual.",
+        "twist": "{A} gains the earned qualification and actual retirement settlement but gives up the real paid teaching role and the authority once exercised over the service."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I kept the diploma. I let somebody else keep the timetable."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_late_diploma requires A actual enrollment, recognized verified prior work, funded remaining course, completed real assessments and valid awarding authority. Record the earned qualification only, not improved cognition or professional teaching permission.",
+        "Add tutoring service as a business kind. open_family_tutoring requires A and B alive and independently qualified for the actual lawful scope through real completed training and experience, informed cooperation, actual affordable available permitted premises, funds, viable plan and real contracts. Create one A-controlled business with B actual agreed role; no pupils or academic success are generated.",
+        "retire_tutoring_founder requires A still alive and controlling the actual operating service, B actual current qualifications and free informed agreement, a supported fair funded retirement and title-transfer contract, settled staff and client rights, costs and liabilities. End A recorded paid role and authority and transfer only actual title to B once; retain A diploma and all earned rights. Do not force retirement from age or invent a pension. Gate A dialogue on step 3, survival, remembered actual diploma and completed voluntary surrender of the timetable."
+      ],
+      "era_notes": "Recognized qualifications, adult education, tutoring permissions and retirement terms follow actual years.",
+      "why_fun": "A changed past can give an older resident a beginning before it eventually asks for a different kind of ending."
+    },
+    {
+      "id": "scenario-20261117-14273",
+      "kind": "scenario",
+      "title": "The Café Room That Stopped Having an Ashtray",
+      "category": "business",
+      "pitch": "Invest in a café’s real plan for a separate smoke-free room. A later dedicated smoking room may eventually be retired, costing a regular patron the indoor place that once accommodated the habit.",
+      "present_hook": {
+        "what_you_notice": "A café file contains an unfunded room-division plan and the unchanged history’s undivided floor layout.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposed space in {year} was real, but the safe permitted work lacked funding."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "café"
+          ]
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "Bind cafe to A actual adult-owned business. B is an actual adult regular patron with a recorded smoking preference, not a trait inferred from identity. Baseline has no proposed separate smoke-free room. Require lawful actual indoor use and permissions at each event; no diagnosis, guaranteed health gain or future law is invented."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "cafe",
+          "amount": "large",
+          "how_it_looks": "Invest ordinary business capital toward the actual approved room-division budget."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "create_smokefree_cafe_room": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Café Completes Its Approved Smoke-Free Room",
+          "body": "The funded inspected division and actual posted use rules take effect within the existing premises."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "refit_designated_smoking_room": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Café Refits Its Actual Designated Smoking Room",
+          "body": "The lawful funded refit completes under current requirements. The room remains limited to its real permitted use."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "end_indoor_cafe_smoking": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Café Retires Its Indoor Smoking Room",
+          "body": "The actual lawful funded plan removes the smoking fixtures and changes the room’s permitted use. No disease outcome is asserted."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Investment Does Not Complete the Room Division",
+        "body": "The capital follows ordinary business results, but no qualifying approved separate room is completed."
+      },
+      "present_day": {
+        "best": "If the chain and policy persist in {now}, the café’s actual plan and notices allow no indoor smoking and its former smoking room has no operating smoking fixtures.",
+        "worst": "Without actual later changes, retain the real layout, permissions and customer terms. A smoke-free proposal guarantees no medical or financial result.",
+        "twist": "The café gains the actual new indoor use, while {B} loses the particular permitted indoor smoking place previously used."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "The room is still here. What I used to do in it is not allowed."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add café as a business kind if needed. create_smokefree_cafe_room requires A current title or venue authority, real suitable existing space, owner consent, actual qualified funded safe inspected alterations and lawful posted rules. Record exact rooms and operating costs; do not repeat the investment or promise pollution elimination.",
+        "refit_designated_smoking_room requires that smoking remains legally permitted there, actual real need, all current ventilation, fire, worker and access requirements, informed affected agreements and affordable completed qualified work. Record actual fixtures and rules only; ventilation is not a claim of medical safety.",
+        "end_indoor_cafe_smoking requires actual continuing venue authority, a lawful independently adopted current owner plan or applicable rule, settled staff and customer rights, actual funding and completed safe conversion. Remove only identified smoking fixtures and record the exact indoor prohibition. Eligibility requires B actual continuing lawful use of the former room before closure; do not force addiction or create illness. Gate B dialogue on step 3, survival, actual remembered use and current prohibition."
+      ],
+      "era_notes": "Indoor smoking powers, workplace protections, construction and ventilation methods follow actual event years.",
+      "why_fun": "A changed room can still look familiar while no longer allowing the thing one resident remembers doing there."
+    },
+    {
+      "id": "scenario-20261117-14274",
+      "kind": "scenario",
+      "title": "The Missing Name That Later Kept the Search List",
+      "category": "rescue",
+      "pitch": "Show a qualified search leader an authenticated later search log. A timely real search may find a missing young resident, who could later volunteer before a funded professional plan retires the old roster.",
+      "present_hook": {
+        "what_you_notice": "An authenticated search file records a late recovery and the lost resident’s actual route, with permission to show the log earlier.",
+        "where": "the edge of town",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The later account identifies an actual search in the year after {year}; a source log alone cannot place anybody on that route."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            16,
+            17
+          ]
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A and B are existing distinct residents. B is an actual qualified authorized search coordinator. Baseline has a seeded missing-person episode at intervention+1, actual late recovery and avoidable exposure, plus authorized authentic source records. No new disappearance, location, injury or rescue team is created by showing the log."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:share_future_search_log",
+          "target": "B",
+          "missing": "A",
+          "how_it_looks": "Privately show the authorized coordinator the authentic later log as a lead to verify, without changing anyone’s location."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            1
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "find_missing_resident": [
+                "B",
+                "A"
+              ]
+            }
+          ],
+          "headline": "An Authorized Search Finds the Actual Missing Resident",
+          "body": "The qualified funded team verifies the real location and completes the safe recovery before the documented exposure deadline."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "form_search_volunteers": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Former Missing Resident Joins a Qualified Search Roster",
+          "body": "The now-adult resident completes the actual required training and joins the funded lawful volunteer arrangement."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "replace_search_roster": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Funded Service Plan Retires an Old Volunteer Roster",
+          "body": "The actual qualified replacement coverage is operational before the old roster is retired. Former volunteers retain only their agreed current roles."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Log Does Not Complete a Timely Recovery",
+        "body": "The permitted viewing happens, but no qualifying early recovery completes. Resolve the actual disappearance, search and exposure outcomes without inventing a casualty."
+      },
+      "present_day": {
+        "best": "If the full chain is realized by {now}, the actual service notice identifies current qualified search coverage and the retired roster no longer lists {A} for callouts. The archive retains the real earlier recovery.",
+        "worst": "Without a realized search, training or funded replacement, retain actual missing status, service duties and volunteers. A future document never guarantees a rescue.",
+        "twist": "{A} gains the actual timely recovery and later opportunity to help, but loses the old roster’s callout role and authority when its recorded replacement takes effect."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "uncanny",
+          "line": "I used to be the missing name. Later I kept the list. Now I am not on it."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "share_future_search_log",
+          "does": "Give qualified coordinator B an authenticated owner-authorized source-timeline account of the later search for A as a lead only; change no person’s location, condition or authority merely by displaying it."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "share_future_search_log requires authentic lawful source records and actual affected-person permissions, preserved immutably across replay. Its details are leads, not current coordinates or proof that the branch has repeated its source history.",
+        "Exception to annual ordering: find_missing_resident resolves before the seeded year+1 exposure deadline. Require A actually missing and alive at a verified current location, B current authority and qualifications, actual available qualified team, funded safe feasible route and timely real recovery. Follow applicable guardian and safeguarding duties. Move only the actual recovered resident to the real safe authorized handoff and clear missing status; recompute exposure from actual physical facts, suppressing no unrelated mortality. If location, access or timing changed, no rescue is credited.",
+        "Add volunteer search organization as an entity type. form_search_volunteers requires A alive and now adult, actual free choice, completed funded relevant instruction and assessments, current legal fitness and an independently viable permitted volunteer organization with B current authority, real equipment, members, insurance and resources. Record A actual joined role and freely accepted roster-recording duties, not automatic expertise, a new emergency or a successful future search.",
+        "Add search-and-rescue provider as a public-service or service-business kind. replace_search_roster requires actual independently approved funded current plan, qualified real replacement staff, operational suitable equipment and lawful service capacity covering the same duties before retirement, all volunteer rights and commitments settled and informed participants. Retire only the identified roster and end A actual callout and list-keeping role; no people, future rescue or constant availability is guaranteed. Gate A dialogue on step 3, survival, actual remembered recovery and real former roster duties."
+      ],
+      "era_notes": "Search authority, guardian permissions, transport, training and communications follow actual event years.",
+      "why_fun": "The player can change who waits to be found and later discover the same person missing from a different sort of list."
+    }
+  ]
+}

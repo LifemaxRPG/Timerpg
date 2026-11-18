@@ -1,0 +1,628 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-1231",
+      "kind": "scenario",
+      "title": "The Firehouse Vote That Did Not Come with the New Job",
+      "category": "politics",
+      "pitch": "Help a volunteer afford required training. A later public department may preserve paid service while ending a member’s old vote in the volunteer association.",
+      "present_hook": {
+        "what_you_notice": "An association archive holds an unfunded training request beside its member-voting rules.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The volunteer in {year} had a real course place and a fee shortfall."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            25
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are actual adult members of an existing volunteer fire association; B holds a real member vote. A requested a genuine qualified course. Baseline the course is unfinished and no public transfer exists. Bind actual service assets and authority; no emergency is invented."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give {A} the actual shortfall for the approved course."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_fire_training": "A"
+            }
+          ],
+          "headline": "A Volunteer Completes the Required Fire-Service Course",
+          "body": "The eligible volunteer completes actual instruction and assessment before qualifying."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "accept_existing_paid_fire_position": "A"
+            }
+          ],
+          "headline": "A Qualified Volunteer Takes a Funded Fire-Service Post",
+          "body": "The current qualified applicant freely accepts the association’s genuine paid vacancy."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "transfer_fire_service_to_public_authority": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Fire Association Completes Its Approved Public Transfer",
+          "body": "The authorized transfer retains the qualifying paid post on settled terms. The old member vote ends with lawful dissolution."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Volunteer Cannot Complete the Course",
+        "body": "The gift follows ordinary finances. No qualification, job or transfer follows through this attempt."
+      },
+      "present_day": {
+        "best": "If the transfer persists in {now}, the service archive records the public authority and the end of the old member-voting system. Show actual current staff only.",
+        "worst": "Training alone creates neither a job nor a department. Retain actual assets, authority and voting rights for unrealized stages.",
+        "twist": "{A} gains actual paid work, while {B} loses the genuine association vote; ordinary public participation rights remain."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I can attend the public meeting. I cannot cast the old member vote."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add actual volunteer association, public fire authority, training and member-vote records. complete_actual_fire_training requires funded qualified instruction, actual age and health eligibility, attendance and passed assessment. Grant only the earned qualification, with ordinary renewal checks.",
+        "accept_existing_paid_fire_position requires A current qualification, a genuine authorized funded association vacancy, lawful selection and free acceptance. Record that contract and actual pay only; no building, worker or rescue is generated.",
+        "transfer_fire_service_to_public_authority requires all actual lawful association and public approvals, genuinely passed required votes, a legally constituted receiving authority, funded capacity, lawful asset transfers and settled staff, pension, donor and service obligations. A must still hold and qualify for the actual retained post; B must still hold the old vote. Transfer existing service and employment, then dissolve the association and end only its votes atomically. Never invent electoral results or rescue outcomes. Dialogue requires B alive, present and the realized loss of that vote."
+      ],
+      "era_notes": "Apply the actual period’s training, labor and association rules. Unsupported public-authority structures fail eligibility.",
+      "why_fun": "Better funded service can still leave a volunteer feeling that the firehouse is no longer partly theirs."
+    },
+    {
+      "id": "scenario-20261118-1232",
+      "kind": "scenario",
+      "title": "The Butcher Who Benefited from the Wrong Accusation",
+      "category": "rivalry",
+      "pitch": "Spread a false short-weight story about one butcher. A rival may gain real orders, then spend years deciding whether to correct the harm that brought them in.",
+      "present_hook": {
+        "what_you_notice": "An authentic inspection report contradicts a short-weight allegation preserved in an old letters file.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The actual inspection in {year} cleared the bound shop; the accusation was false."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "butcher"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "butcher"
+          ],
+          "relation": "rivals"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "Bind first_butcher to A and second_butcher to B, distinct actual adult-owned businesses. B rivals is relative to A. Require authentic accurate inspection evidence and no genuine misconduct in the allegation. Baseline this particular false story has not circulated."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": -0.4,
+          "how_it_looks": "Tell the false short-weight story despite the genuine inspection evidence."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "record_false_rumor_order_shift": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Actual Orders Move between Two Butcher Shops",
+          "body": "Real customers voluntarily place qualifying orders with the rival. Completed sales establish the actual gain."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "fund_joint_weight_verification": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Rival Butchers Fund an Independent Weight Review",
+          "body": "The consenting owners pay a qualified reviewer and release supported findings correcting the old accusation."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "acknowledge_false_rumor_gain": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Butcher Acknowledges the Gain from a False Story",
+          "body": "The rival publishes a truthful acknowledgment and completes a voluntary agreed payment for the documented harm."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The False Story Does Not Shift Qualifying Orders",
+        "body": "The rumor’s ordinary standing effect still applies. No sales gain or compensation is invented."
+      },
+      "present_day": {
+        "best": "If the history occurred, the archive in {now} contains the verified correction, truthful acknowledgment and settled payment. Current shops follow later simulation.",
+        "worst": "Failure never makes the accusation true or reverses the rumor automatically. Preserve actual harm and completed corrections.",
+        "twist": "{B} gains real trade from harm to {A}, then gives up actual money in the settlement; the lost years are not refunded."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "The correction came with a payment. Neither one gave me those years back."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "record_false_rumor_order_shift requires both actual active shops and ordinary customer decisions genuinely attributable to the specific false story. Record only completed qualifying orders, revenues and costs through existing sales accounting. Never create customers, force purchasing or repeat the intervention’s standing penalty.",
+        "fund_joint_weight_verification requires both owners still authorized and consenting, authentic preserved inspection and sales evidence, a real qualified independent reviewer and funded fees. Pay actual review costs once and record the supported correction. Reputation responds only through ordinary correction rules; no unrelated misconduct is cleared.",
+        "acknowledge_false_rumor_gain requires accurate surviving records from both steps, B freely acknowledging the genuine attributable gain, A freely agreeing to the actual lawful settlement, and sufficient B funds. Post the actual agreed payment once; preserve other claims and history and never guarantee forgiveness. Dialogue requires A alive, present, informed of the correction and payment, and actual recorded intervening harm. Require documented harm continuing across multiple intervening years before using the lost-years dialogue."
+      ],
+      "era_notes": "Use actual paper inspection slips and order books in earlier years, or verified later equivalents. The allegation must be independently false in every era.",
+      "why_fun": "The cruel intervention helps somebody, and making amends later costs more than a better Gazette sentence."
+    },
+    {
+      "id": "scenario-20261118-1233",
+      "kind": "scenario",
+      "title": "The House That Kept Its Porch on a Different Lot",
+      "category": "place",
+      "pitch": "Help a homeowner afford a structural survey before a genuine house move. Saving the porch may eventually let a former garden licensee buy the whole house.",
+      "present_hook": {
+        "what_you_notice": "A homeowner’s file holds an unaccepted moving survey and a porch photograph beside a real redevelopment proposal.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The owner in {year} had a receiving parcel, but no completed survey."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A owns the actual house and a suitable receiving parcel at the edge of town. B holds a real revocable garden licence on that parcel. Bind actual redevelopment and moving proposals. Baseline neither survey nor move is complete. Require lawful alternatives and free owner choice; no demolition or available land is invented."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give {A} the actual shortfall for the qualified moving survey."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "relocate_bound_existing_house": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Existing House Completes Its Permitted Move",
+          "body": "The funded inspected move places the same house and porch on the lawful receiving foundation after the garden licence is settled."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "restore_relocated_original_porch": "A"
+            }
+          ],
+          "headline": "A Relocated House Restores Its Original Porch",
+          "body": "The actual owner completes funded qualified repairs to the surviving identified porch."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "sell_relocated_house_to_former_licensee": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Former Garden Licensee Buys the Relocated House",
+          "body": "A willing seller and qualified funded buyer complete the actual sale and possession transfer."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Survey Does Not Produce a Qualifying House Move",
+        "body": "The gift follows ordinary finances. No move or garden-licence termination occurs through this chain; redevelopment follows its actual decisions."
+      },
+      "present_day": {
+        "best": "If all stages persist in {now}, the relocated house and restored porch stand on the receiving parcel, with {B}'s actual title shown only while ownership continues. The old address has only its independently realized use.",
+        "worst": "A survey cannot move a house or fund a purchase. Preserve actual property, garden and redevelopment facts after failure.",
+        "twist": "Saving {A}'s house first costs {B} the real garden licence. A later purchase returns access to that parcel, while {A} gives up the home for the actual sale price."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I used to grow beans on this patch. Now I have to sweep the porch."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Preserve one persistent house identity across relocation; never create a copy. relocate_bound_existing_house requires a completed favorable qualified survey, A consent, funded real contractor, lawful route and receiving site, approved foundation, utilities and inspections. B must still hold the actual licence; settle all genuine notice, harvest, compensation and appeal rights first. Pay actual costs once, move the same house ID and end only that licence.",
+        "restore_relocated_original_porch requires A ownership of the same surviving house and identifiable porch, actual repair need, funded qualified work and approvals. Record completed repairs and costs; do not claim original material survived where it was replaced.",
+        "sell_relocated_house_to_former_licensee requires A still owning and freely selling, B independent wish and genuine lawful funds, valid title and inspections, settled debts and occupant rights, and A actual lawful housing arrangement before transfer. Transfer the same house and parcel, actual money and possession once. No buyer, mortgage approval or replacement home is invented. Dialogue requires B alive, present, actually occupying the purchased house and the genuine earlier garden history."
+      ],
+      "era_notes": "Use actual period-available moving equipment and permits. A feasible route and structurally movable house are prerequisites in every decade.",
+      "why_fun": "One porch connects two addresses and two very different memories of the same patch of ground."
+    },
+    {
+      "id": "scenario-20261118-1234",
+      "kind": "scenario",
+      "title": "The Pantry That Stopped Printing Its Donor List",
+      "category": "secrets",
+      "pitch": "Introduce a pantry organizer to a willing donor. A lasting food program may eventually protect recipient records while ending the donor’s genuine promise of public credit.",
+      "present_hook": {
+        "what_you_notice": "A noticeboard holds an unsigned pantry proposal with separate blank lines for recipient records and donor acknowledgments.",
+        "where": "the church",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The donor in {year} had a real conditional offer, but no agreement had been signed."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ],
+          "wealth": "comfortable"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A is an actual qualified organizer; B has a genuine costed donation offer conditional on lawful public acknowledgment. Bind a suitable actual permitted room, food handling, recurring resources and lawful private records. Baseline no completed pantry agreement exists. No recipient, diagnosis, building or donation is invented."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the willing organizer and donor to discuss the actual proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "open_actual_community_pantry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Funded Community Pantry Opens on Agreed Terms",
+          "body": "The qualified organizer opens the actual permitted program after the real donation and lawful acknowledgment terms are accepted."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "implement_private_pantry_records": "A"
+            }
+          ],
+          "headline": "A Pantry Implements Its Recipient Privacy Plan",
+          "body": "A funded qualified review implements real consent, access and retention controls without publishing recipient identities."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "end_pantry_donor_acknowledgment": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Donor Freely Releases the Public-Credit Promise",
+          "body": "The donor and governing body settle the actual agreement. Future routine donor lists omit that credit under the funded replacement policy."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Pantry Agreement Is Not Completed",
+        "body": "The introduction stands. The conditional offer alone creates no program, gift or credit entitlement."
+      },
+      "present_day": {
+        "best": "If all stages and policies persist in {now}, the actual funded pantry keeps private recipient records and omits {B}'s routine donor credit. Historical lawful records retain their actual status.",
+        "worst": "Without funded agreements and qualified capacity, no pantry appears. Privacy controls never imply erased memories or removed lawful archives.",
+        "twist": "The program gains the consented policy change; {B} gives up an enforceable public-credit promise that helped make the gift worthwhile."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I agreed to stop seeing my name on that list. I did not agree that I would stop looking for it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add actual nonbusiness pantry, donation and acknowledgment-contract records. open_actual_community_pantry requires A qualified authority, permitted actual room and food capacity, real recurring budget and accepted actual B donation on lawful credit terms. Post real donated money or stock and costs once. Serve only real consenting eligible residents; no health outcome is guaranteed.",
+        "implement_private_pantry_records requires the genuine operating program, lawful governing approval and funded qualified implementation of actual access, consent and retention controls. Recipient records and donor credit are separate: this step neither publishes recipients nor cancels B acknowledgment.",
+        "end_pantry_donor_acknowledgment requires B still holding the actual surviving credit right, A current governing authority, freely informed lawful release without coercion, settled restricted-gift terms and a viable funded replacement policy. End only future acknowledgment and actual routine listings. Do not delete lawful archives, confiscate gifts or promise higher donations. Dialogue requires B alive, present, knowing the release and the actual current omission."
+      ],
+      "era_notes": "Use actual period-specific food, charity and record rules. Earlier privacy controls may be a locked ledger without invented modern statutes.",
+      "why_fun": "The useful gift remains useful after its giver discovers how much a printed name had meant."
+    }
+  ]
+}

@@ -1,0 +1,629 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-951",
+      "kind": "scenario",
+      "title": "The New Citizen on the Other Side of the Council Table",
+      "category": "politics",
+      "pitch": "Help a resident finish a genuine naturalization application. A later council victory may cost a longtime incumbent the seat where the newcomer once came to ask questions.",
+      "present_hook": {
+        "what_you_notice": "An old application-cost estimate lies beside a Gazette photograph of the same unchanged council seat.",
+        "where": "the Gazette archive",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The applicant in {year} had a lawful path and a real fee shortfall."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            30
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ],
+          "reputation": "high"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A is a real eligible noncitizen resident with a genuine incomplete application; B is an actual elected council incumbent. Baseline A has not naturalized. Require actual period-specific eligibility and records; no nationality, immigration history or legal status is invented. Require an actual recorded earlier council inquiry from A that B personally answered and explained; otherwise omit this opportunity and its remembered-table dialogue."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give {A} the actual shortfall for the lawful application fee."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_naturalization": "A"
+            }
+          ],
+          "headline": "A Resident Completes the Required Citizenship Process",
+          "body": "The eligible applicant completes the actual examinations, approvals and oath required in this year."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "enter_council_race": "A"
+            }
+          ],
+          "headline": "A New Candidate Files for a Real Council Election",
+          "body": "The qualified citizen completes the actual nomination and filing process for an existing seat."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "win_council_race_against": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Council Challenger Wins the Incumbent’s Seat",
+          "body": "The certified election result gives the challenger the existing seat. The incumbent leaves at the lawful term boundary."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Application Remains Unfinished",
+        "body": "The gift follows ordinary household finances; citizenship and voting eligibility do not change through this attempt."
+      },
+      "present_day": {
+        "best": "If the full chain occurred, the council archive in {now} records {A} winning the actual seat and {B} leaving at the lawful boundary. Show current officeholders from the current simulation.",
+        "worst": "A fee alone creates neither citizenship nor an office. Preserve actual application status and election results for unrealized stages.",
+        "twist": "The newcomer gains representation and office; the actual incumbent loses that council term and its real duties and compensation."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I remember explaining that table. I did not expect to be the one leaving it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_naturalization requires A actual eligible application, lawful status, required residence, fees, examinations, agency approval and oath. Set citizenship effective only at actual completion; never imply that a gift buys approval. Registering to vote remains a separate ordinary legal process.",
+        "enter_council_race requires A current citizenship, qualifying residence, age, nomination, filings and an actual scheduled election. Record candidacy for that election only. Its result follows ordinary simulation and does not persist as a candidacy for a later year.",
+        "win_council_race_against requires a different actual election within the final interval, A independently qualifying and filing again through ordinary simulation, B still the actual incumbent and genuine opponent, lawful voting and a certified result genuinely electing A over B. Record that existing seat’s successor and term boundary atomically, with only one winner; no invented seat, votes or forced defeat. The keyed chance models a qualifying campaign outcome, never overrides the actual election. Dialogue requires B alive, present and the recorded final defeat."
+      ],
+      "era_notes": "Use actual period-specific application, citizenship and election requirements. Earlier clues are paper forms; later ones may include lawful electronic filings.",
+      "why_fun": "A modest fee can change who speaks from a familiar chair, without choosing an election result for the player."
+    },
+    {
+      "id": "scenario-20261118-952",
+      "kind": "scenario",
+      "title": "The Seeds That Stopped Traveling in Unmarked Envelopes",
+      "category": "place",
+      "pitch": "Introduce two gardeners with a genuine shared collection proposal. Their seed exchange may grow into a conservation collection whose rarest packets no longer go home with casual borrowers.",
+      "present_hook": {
+        "what_you_notice": "A garden noticeboard holds two unanswered offers to catalogue an existing collection.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "Both gardeners had real labeled seed stock in {year}; neither could keep the shared records alone."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "relation": "strangers"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "trait": {
+            "diligence": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are actual adult gardeners; A strangers is relative to B. Bind actual viable seed lots with documented lawful provenance, a genuine exchange proposal and consent for their use. Baseline has no completed shared collection. No plant variety, harvest, land or inherited stock is invented."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the willing gardeners beside their actual labeled seed packets."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "start_documented_seed_exchange": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Gardeners Open a Documented Seed Exchange",
+          "body": "The gardeners record the real donated lots and begin exchanges under the actual consent terms."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "conserve_actual_seed_accession": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Seed Collection Completes Its Conservation Review",
+          "body": "Qualified reviewers verify a surviving accession, its provenance and the funded regeneration and storage plan."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "restrict_seed_accession_distribution": "A"
+            }
+          ],
+          "headline": "A Fragile Seed Accession Leaves the Casual Exchange",
+          "body": "The collection lawfully limits a genuinely depleted accession to funded conservation work. The gardener’s ordinary take-home allocation ends."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Shared Seed Records Never Begin",
+        "body": "The introduction remains, but each gardener retains the actual stock and existing consent arrangements."
+      },
+      "present_day": {
+        "best": "If the complete chain and restrictions persist in {now}, the collection catalogue marks the actual accession as conservation-only and shows the real remaining lots.",
+        "worst": "Without viable stock, provenance, authority or funded care, no conservation collection or surviving variety is promised. Show only actual retained lots.",
+        "twist": "Conserving the scarce accession costs {A} an actual recurring take-home allocation; no claim is made that every saved seed will grow."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I used to carry a packet home. Now I am glad there is still a packet to count."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add seed-lot, accession, exchange-allocation and collection records. start_documented_seed_exchange inventories only actual donated stock with owner consent and provenance, records real transfers and their terms, and allocates funded suitable storage. No business, building or species is created.",
+        "conserve_actual_seed_accession requires a surviving correctly identified accession from step 1, actual qualified review, lawful ownership and funded suitable storage plus regeneration capacity on an existing authorized site. Record the conservation plan and completed review. Check actual viability and every intervening regeneration or transfer through ordinary simulation; never preserve seeds for decades by fiat.",
+        "restrict_seed_accession_distribution requires that same viable accession still genuinely below its documented conservation threshold, lawful governing approval and donor permissions, A still holding a real recurring ordinary allocation, and a funded permitted conservation plan. End that allocation and casual distribution of this accession only; retain ownership and record conservation withdrawals against real inventory. No confiscation or invented rarity. Dialogue requires A alive, present and the realized loss of allocation; best requires actual surviving lots and current restrictions."
+      ],
+      "era_notes": "Earlier catalogues use notebooks and germination records; later ones may use digital inventories. Apply the actual era’s ownership, plant-health and conservation requirements.",
+      "why_fun": "The player can follow something small enough for a pocket into a future where keeping it means learning when to stop handing it out."
+    },
+    {
+      "id": "scenario-20261118-953",
+      "kind": "scenario",
+      "title": "The Switchboard That Stopped Knowing Every Voice",
+      "category": "secrets",
+      "pitch": "Help a resident meet the actual cost of joining a telephone cooperative. A private connection may eventually lead to automation that ends a familiar operator’s real job.",
+      "present_hook": {
+        "what_you_notice": "A cooperative archive contains an unpaid connection estimate beside the old manual-exchange subscriber book.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The applicant in {year} had a real service offer; the local exchange still needed an operator."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1950,
+          1975
+        ],
+        "notes": "A is an actual consenting prospective subscriber of an existing lawful telephone cooperative; B is its real paid manual-switchboard operator. Baseline A lacks the offered connection. Bind actual existing exchange, service territory and staffing records. No intercepted conversation or secret is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give {A} the genuine shortfall for the cooperative’s authorized connection charge."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "connect_actual_cooperative_subscriber": "A"
+            }
+          ],
+          "headline": "A Cooperative Completes an Authorized Connection",
+          "body": "The funded installed line passes the actual service tests and joins the existing exchange."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "adopt_exchange_privacy_controls": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Manual Exchange Adopts Its Privacy Controls",
+          "body": "The cooperative approves and implements a real access and record-handling policy while retaining the manual service."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "replace_manual_exchange": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Tested Automatic Exchange Replaces the Switchboard",
+          "body": "The authorized replacement passes service tests before cutover. The manual operator position ends under settled employment terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The New Connection Is Not Completed",
+        "body": "The gift remains subject to ordinary finances; no new working telephone line is implied."
+      },
+      "present_day": {
+        "best": "If the full chain and replacement persist in {now}, the cooperative’s archive records the actual automatic cutover and the end of {B}'s manual position. The present network remains whatever later simulation actually supports.",
+        "worst": "Without the funded tested replacement, the manual exchange and actual staffing continue according to ordinary events. A privacy policy alone does not automate anything.",
+        "twist": "Subscribers gain the actual tested automatic service; {B} loses the real manual position and its future wages, even if a different job is later found."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "uncanny",
+          "line": "The bell sounded the same on the last day. It just stopped meaning that somebody needed my hands."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add telephone cooperative, subscriber line and exchange-service records as nonbusiness service entities. connect_actual_cooperative_subscriber requires A real service offer, lawful access, funded installation and capacity on the bound existing network; charge actual costs once and activate only a tested line. No emergency outcome or secret knowledge is created.",
+        "adopt_exchange_privacy_controls requires A still an authorized member, B still an actual operator, actual cooperative approval, funded training and implemented access and retention controls. Record the policy and completed training, not proof of eavesdropping, erased memories or guaranteed secrecy.",
+        "replace_manual_exchange requires the actual same cooperative, lawful approval, period-available funded technology, completed site and network rights, capacity and interoperability tests, service notice and continuity, and B still occupying the real paid manual position. Complete actual replacement before retiring the old switchboard; terminate only the genuinely redundant position after settling notice, wages, pension and labor rights. Do not invent another job or retirement. The new system does not imply current technology survives unchanged to the present. Dialogue requires B alive, present and the realized termination."
+      ],
+      "era_notes": "Offer this only where a manual exchange and a later technically feasible replacement actually exist. Use period-appropriate switchgear, service tests and labor agreements.",
+      "why_fun": "A small connection charge can eventually change what a ringing bell means to the person who used to answer it."
+    },
+    {
+      "id": "scenario-20261118-954",
+      "kind": "scenario",
+      "title": "The Marriage with a Pension Missing from the Budget",
+      "category": "love",
+      "pitch": "Introduce two consenting single residents who want companionship. A later marriage may create a shared home and a care plan, while costing one spouse an actual survivor benefit.",
+      "present_hook": {
+        "what_you_notice": "A resident’s papers contain an unsigned introduction note and a dated survivor-benefit rule about remarriage.",
+        "where": "the church",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The rule in {year} concerned a real benefit already being paid, not a promised inheritance."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            45,
+            55
+          ],
+          "married": false
+        },
+        "B": {
+          "age": [
+            45,
+            55
+          ],
+          "married": false
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A is actually widowed and receiving a documented survivor benefit whose lawful period-specific terms terminate it on this contemplated remarriage; B is a distinct consenting single adult. Require actual mutual compatibility, no prohibited kinship, freely requested introduction and genuine benefit advice. Baseline they have not met and A benefit is active. No former spouse or death is created."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the two adults after both freely agree to the meeting."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "marry": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "end_remarriage_survivor_benefit": "A"
+            }
+          ],
+          "headline": "A Couple Marries with the Benefit Decision Understood",
+          "body": "The adults freely marry after receiving accurate advice. The actual survivor benefit ends under its governing terms."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "purchase_shared_existing_home": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Couple Completes a Funded Shared-Home Purchase",
+          "body": "The spouses lawfully buy an actual available existing home with documented joint rights and a viable household budget."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "fund_shared_home_care": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Couple Starts a Qualified Care Plan at Home",
+          "body": "The spouses voluntarily fund a real qualified care arrangement for an assessed need at their shared home. Its actual charges reduce their remaining savings."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Introduction Does Not Become a Marriage",
+        "body": "The adults make their own choices. No marriage or survivor-benefit termination occurs through this chain."
+      },
+      "present_day": {
+        "best": "If all stages and the arrangement persist in {now}, the actual shared home has the funded care visits on its real schedule; the household accounts show the ended survivor benefit and actual care charges.",
+        "worst": "Without marriage the existing benefit follows ordinary eligibility. Later failure preserves actual prior marriage, benefit decisions and property rights without inventing a home or care.",
+        "twist": "Companionship and a workable home-care arrangement cost {A} the actual former survivor income and cost the household real care payments; neither love nor the gift of time replaces that money."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I would choose the marriage again. I still check the care bill twice."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Recheck both adults unmarried, freely consenting and legally eligible at step 1; the introduction does not grant marriage or affection automatically. end_remarriage_survivor_benefit is atomic with that marriage and applies only to A bound actual benefit after verified advice, notice and lawful termination. Apply the real program rules, including any later restoration rights; no blanket lifetime rule is invented and no other pension is affected.",
+        "purchase_shared_existing_home requires A and B alive, still freely married, actual lawful title and consent from a real willing seller, available existing housing, funded price and costs, viable post-benefit household budget, and explicit joint title, debt and occupancy rights. Transfer that existing property and actual payments once; no building, land, seller or mortgage approval is invented.",
+        "fund_shared_home_care requires both spouses alive, still consenting and resident at the same step-2 home, an actual professionally assessed care need for at least one spouse, a real willing qualified provider with capacity, an adequate consented plan and funds remaining after ordinary living obligations. Enter the actual service agreement and post delivered care charges once through household accounts; do not guarantee medical improvement, continuous service or longevity. Gate dialogue on A alive, present and actual billed care. Best requires the home, care and relevant benefit facts still valid; if benefit eligibility later changes, describe that actual change instead."
+      ],
+      "era_notes": "Check actual period-specific survivor-benefit, marriage, property and care rules. Use paper award notices in earlier eras and equivalent verified records later.",
+      "why_fun": "A happier household can still carry a financial loss the player cannot undo with a warm conversation."
+    }
+  ]
+}
