@@ -20,6 +20,12 @@ object LookMatrix {
     /** The depth at which the reversed depth reaches 1 (street units). Nothing nearer is ever shown (CornerWorld.NEAR is 30). */
     const val N = 20f
 
+    /**
+     * True when drawing to a window (the phone's TextureView): there y must grow up the clip space as GL's does. The
+     * desktop's headless off-screen target comes out flipped against a window, so its matrices keep y growing down (false).
+     */
+    @JvmStatic var windowY = false
+
     fun of(
         m: FloatArray, cam: StageCamera, width: Float, height: Float,
         refX: Float, refY: Float, refZ: Float, scale: Float, offset: Float, out: FloatArray,
@@ -46,7 +52,7 @@ object LookMatrix {
             out[c * 4] = sx * mx - mw
             // (Filament's GL target is flipped against GL's y-up clip space when read back; its own projections carry
             // that flip, so a device-domain matrix must too: y here grows down the screen, as the classic's)
-            out[c * 4 + 1] = sy * my - mw
+            out[c * 4 + 1] = if (windowY) mw - sy * my else sy * my - mw
             // the device domain turns z into Filament's reversed depth as z' = 0.5 - 0.5 z (on clip z, not z / w), so
             // z = 1 - 2 w D gives z' = w D
             val wD = when (c) { 0 -> d0r; 1 -> d1r; 2 -> d2r; else -> d3r }

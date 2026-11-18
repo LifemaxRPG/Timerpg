@@ -544,12 +544,10 @@ class FilamentStreet(
         val pv = PAVE + KERB
         val r0 = pv; val r1 = MOUTH - pv
         val mouthRoad = lerp(day.road, Color.White, .04f)
-        flat(0, 0f, -2.7f, MOUTH, 0f, lerp(day.pavement, Color.White, .07f), 1)
-        flat(0, r0, -pv, r1, 0f, mouthRoad, 1)
-        flat(0, PAVE, -pv, PAVE + KERB, 0f, day.kerb, 1)
-        flat(0, r1, -pv, r1 + KERB, 0f, day.kerb, 1)
-        val edge = over(com.lifemax.rpg.feature.habits.presentation.scene.SceneInk.Occlusion, mouthRoad, .4f)
-        flat(0, r0, -pv, r0 + 1.4f, 0f, edge, 2); flat(0, r1 - 1.4f, -pv, r1, 0f, edge, 2)
+        // the cross street's own picture (its pavements, flush kerbs and road, shade for shade) carried on across the main
+        // pavement to the main road, so the two meet as one level surface: no seam, line or change of tone at the
+        // building line that reads as a step up into the side street
+        flat(0, 0f, -pv, MOUTH, 0f, Color.White, 1, crossTex, floatArrayOf(0f, -pv / TILE_L, 1f, pv / TILE_L))
         // (white paint in the pavement's light: the hour's light does the rest)
         val zebra = over(lerp(day.pavement, Color.White, .55f), mouthRoad, .85f)
         var zx = r0 + 4f

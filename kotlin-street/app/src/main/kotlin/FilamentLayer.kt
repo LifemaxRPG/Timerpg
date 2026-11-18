@@ -117,6 +117,8 @@ private class FilamentHost(private val ctx: Context, view: TextureView) {
             val t0 = System.nanoTime()
             StreetRenderer.starting(ctx, true)
             Filament.init()
+            // drawn to a window: GL's y-up clip space (the desktop's off-screen renders are the other way up)
+            com.lifemax.rpg.feature.habits.presentation.scene3d.LookMatrix.windowY = true
             val e = Engine.Builder().featureLevel(Engine.FeatureLevel.FEATURE_LEVEL_3).build()
             engine = e
             renderer = e.createRenderer().also { r ->
