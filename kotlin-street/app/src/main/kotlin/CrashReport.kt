@@ -21,6 +21,8 @@ object CrashReport {
                 val sw = java.io.StringWriter(); e.printStackTrace(java.io.PrintWriter(sw))
                 file(ctx).writeText("Crash in thread ${t.name} (build ${BuildConfig.VERSION_NAME})\n${memory(ctx)}\n$sw")
             }
+            // and the report sent to Claude on the next start (the stack, the game state, the events before it, the log)
+            runCatching { com.timerpg.street.shot.Reports.writeJvmCrash(ctx, t, e) }
             prev?.uncaughtException(t, e)
         }
     }

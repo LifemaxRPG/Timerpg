@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -20,6 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
@@ -68,6 +70,9 @@ class GameActivity : ComponentActivity() {
     private var sound: com.timerpg.street.audio.SoundScape? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // the game's recent events for crash reports (last run's moved aside first), then the crash handler
+        com.timerpg.street.shot.Crumbs.init(applicationContext)
+        com.timerpg.street.shot.Crumbs.add("start: build ${BuildConfig.VERSION_NAME}")
         CrashReport.install(applicationContext)
         AndroidFx.install()
         // the Hexagon NPU's code (libggml-htp-v79.so) is in this app's native library folder: tell the DSP loader
@@ -103,6 +108,8 @@ class GameActivity : ComponentActivity() {
         GameState.look = 1
         // which renderer draws the street (the AI panel's switch; the classic unless Filament was chosen)
         StreetRenderer.load(applicationContext)
+        // crash reports: how the last runs ended (Android's record), and any waiting sent to Claude; all in the background
+        com.timerpg.street.shot.ShotUploader.onLaunch(applicationContext, StreetRenderer.lastStartDied)
         val engine = DialogueEngine.shared(applicationContext)
         dialogue = engine
         val v = com.timerpg.street.voice.NpcVoiceService(applicationContext)
@@ -140,6 +147,7 @@ class GameActivity : ComponentActivity() {
         letGo()
         // (the always-listening mic closes)
         Foreground.resumed = false
+        com.timerpg.street.shot.Crumbs.add("pause")
         // Filament draws nothing in the background
         StreetRenderer.paused = true
         super.onPause()
@@ -159,7 +167,7 @@ class GameActivity : ComponentActivity() {
 
     override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
         val k = event.keyCode
-        if (k in LEFT_KEYS || k in RIGHT_KEYS || k in UP_KEYS || k in DOWN_KEYS || k in RUN_KEYS) {
+        if (!com.timerpg.street.shot.ShotSettings.typing && (k in LEFT_KEYS || k in RIGHT_KEYS || k in UP_KEYS || k in DOWN_KEYS || k in RUN_KEYS)) {
             when (event.action) {
                 android.view.KeyEvent.ACTION_DOWN -> keys += k
                 android.view.KeyEvent.ACTION_UP -> keys -= k
@@ -212,6 +220,7 @@ class GameActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         Foreground.resumed = true
+        com.timerpg.street.shot.Crumbs.add("resume")
         StreetRenderer.paused = false
         getSystemService(android.hardware.input.InputManager::class.java)?.registerInputDeviceListener(devices, null)
     }
@@ -240,6 +249,7 @@ class GameActivity : ComponentActivity() {
 
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
+        com.timerpg.street.shot.Crumbs.add("trim memory $level")
         dialogue?.onTrimMemory(level)
     }
 
@@ -415,6 +425,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     // the walk round the corner: no writing ahead while the camera turns (it needs the CPU), no conversation across it
     val turning = CornerWalk.active
     LaunchedEffect(turning) {
+        com.timerpg.street.shot.Crumbs.add(if (turning) "corner turn start" else "corner turn end")
         if (turning) { talk?.close(voices); talk = null; engine.pause("turn") } else engine.resume("turn")
     }
     // a conversation open: the speech model gets ready (it loads only now, not when walking past people), and the lines
@@ -467,6 +478,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             val what = "build ${BuildConfig.VERSION_NAME} · AI ${a.state} on ${listOf("CPU", "GPU", "NPU").getOrElse(a.runsOn) { "?" }} · lane ${com.timerpg.street.llm.AiLane.current ?: "idle"} · " +
                 "mic ${if (ears.always) "always" else ears.state} · ${if (talk != null) "talking" else "walking"} · street $streetNo building #$near"
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { CrashReport.breadcrumb(ctx.applicationContext, what) }
+            // and the whole game state, for a native crash's report on the next start
+            com.timerpg.street.shot.GameSnapshot.now()?.let { com.timerpg.street.shot.Crumbs.saveState(it) }
             kotlinx.coroutines.delay(3000)
         }
     }
@@ -593,11 +606,29 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     // the back gesture closes what is open (the crash report, a conversation, the AI panel) or leaves the room; on the street
     // it takes two within two seconds to leave the game. Android holds the edge's back swipe off only over the bottom 200 dp,
     // so a left thumb landing higher on the very edge and pushing right to walk is a back swipe: it must not end the game
+    // ---- "send screenshot to Claude": the camera button hides, the window is captured, then the sheet asks for a note
+    var shooting by remember { mutableStateOf(false) }
+    var shot by remember { mutableStateOf<PendingShot?>(null) }
+    LaunchedEffect(shooting) {
+        if (!shooting) return@LaunchedEffect
+        // a few frames, so the button is gone from what is on the screen
+        repeat(3) { androidx.compose.runtime.withFrameNanos { } }
+        val act = activity
+        if (act == null) { shooting = false; return@LaunchedEffect }
+        val game = com.timerpg.street.shot.GameSnapshot.now()
+        val at = System.currentTimeMillis()
+        com.timerpg.street.shot.ShotUploader.capture(act) { bmp, how ->
+            shooting = false
+            if (bmp != null) shot = PendingShot(bmp, at, how, game)
+            else android.widget.Toast.makeText(ctx, "Screenshot failed: $how", android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
     var backAt by remember { mutableLongStateOf(0L) }
     var backHint by remember { mutableStateOf(false) }
     androidx.activity.compose.BackHandler {
         val t = talk
         when {
+            shot != null -> shot = null
             lastCrash != null -> lastCrash = null
             t != null -> { t.close(voices); talk = null }
             aiPanel -> aiPanel = false
@@ -638,6 +669,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     val canListen = micAlways && micGranted && Foreground.resumed && !turning && doorTo == null && lastCrash == null && !tuning &&
         (inside == null || atHere.isNotEmpty())
     LaunchedEffect(canListen) {
+        com.timerpg.street.shot.Crumbs.add(if (canListen) "mic listening" else "mic off")
         if (canListen) ears.listen { heardNow(it) }
         // switched off: the speech model goes now; only paused (the game in the background, a door): after a minute
         else ears.stopListening(release = !micAlways)
@@ -658,6 +690,49 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             if (gone) { t.close(voices); talk = null }
         }
     }
+    // what the game is showing, for the screenshot's JSON and crash reports (the AI panel's numbers where it has them)
+    val snapshot by rememberUpdatedState<() -> Map<String, Any?>> {
+        val h = hour.toInt(); val m = ((hour - h) * 60).toInt()
+        val st = ai.stats
+        linkedMapOf(
+            "renderer" to if (StreetRenderer.filament) "Filament" else "classic",
+            "camera" to StreetRenderer.camera,
+            "rendererError" to StreetRenderer.error,
+            "town" to data.town,
+            "street" to linkedMapOf("index" to streetNo, "name" to street.name, "nearestBuilding" to near,
+                "building" to shops.getOrNull(near)?.cue, "owner" to owners.getOrNull(near), "atCorner" to GameState.atCorner, "edge" to GameState.edge),
+            "player" to linkedMapOf("x" to GameState.x, "lane" to GameState.lane, "street" to GameState.street, "dir" to GameState.dir,
+                "walking" to GameState.walking, "running" to GameState.running, "viewMiddle" to GameState.viewMiddle),
+            "turn" to linkedMapOf("active" to CornerWalk.active, "forward" to CornerWalk.forward, "p" to CornerWalk.p,
+                "yaw" to CornerWalk.yaw, "ease" to CornerWalk.ease, "blocked" to CornerWalk.blocked),
+            "inRoom" to (inside != null),
+            "room" to inside?.let { linkedMapOf("id" to it.id, "title" to it.title, "use" to it.use) },
+            "doorFade" to (doorTo != null),
+            "time" to linkedMapOf("hour" to hour, "clock" to "%d:%02d".format(java.util.Locale.US, h, m),
+                "season" to SEASON_NAMES.getOrNull(season), "weather" to WEATHERS.getOrNull(weather)?.first),
+            "frames" to linkedMapOf("compose" to FrameStats.summary(), "filament" to if (StreetRenderer.filament) FilamentStats.summary() else null),
+            "ai" to linkedMapOf("state" to ai.state.name, "detail" to ai.detail, "runsOn" to listOf("CPU", "GPU", "NPU").getOrNull(ai.runsOn),
+                "modelMb" to ai.modelMb, "gpuNote" to ai.gpuNote, "lane" to com.timerpg.street.llm.AiLane.current,
+                "linesWritten" to ai.lines, "builtIn" to ai.builtIn, "queued" to ai.queued, "paused" to ai.paused, "working" to ai.working,
+                "pregenOff" to ai.pregenOff, "prefillTokPerSec" to st.prefillPerSec, "genTokPerSec" to st.genPerSec, "firstTokenMs" to st.firstTokenMs,
+                "loadInfo" to ai.loadInfo),
+            "conversation" to talk?.let { linkedMapOf("npc" to it.npc.name, "byVoice" to it.byVoice, "topic" to it.topic?.label, "said" to it.said) },
+            "voices" to linkedMapOf("enabled" to voices.enabled, "speaking" to voices.speaking, "only" to voices.only, "timing" to voices.lastTiming),
+            "mic" to linkedMapOf("always" to micAlways, "granted" to micGranted, "listening" to canListen, "state" to ears.state.name),
+            "panels" to linkedMapOf("aiPanel" to aiPanel, "crashShown" to (lastCrash != null), "tuningNpu" to tuning),
+        )
+    }
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        com.timerpg.street.shot.GameSnapshot.provider = { snapshot() }
+        onDispose { com.timerpg.street.shot.GameSnapshot.provider = null }
+    }
+    // the events crash reports keep (rare ones: never per frame)
+    LaunchedEffect(inside?.id) { com.timerpg.street.shot.Crumbs.add(inside?.let { "room: ${it.title}" } ?: "street view") }
+    LaunchedEffect(streetNo) { com.timerpg.street.shot.Crumbs.add("street $streetNo: ${street.name}") }
+    LaunchedEffect(ai.state) { com.timerpg.street.shot.Crumbs.add("dialogue model: ${ai.state.name}") }
+    LaunchedEffect(voices.enabled) { com.timerpg.street.shot.Crumbs.add(if (voices.enabled) "voices on" else "voices off") }
+    LaunchedEffect(talk?.npc?.id) { com.timerpg.street.shot.Crumbs.add(talk?.let { "talking to ${it.npc.name}" } ?: "no conversation") }
+    LaunchedEffect(aiPanel) { com.timerpg.street.shot.Crumbs.add(if (aiPanel) "AI panel open" else "AI panel closed") }
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         val room = inside
         if (room != null) com.lifemax.rpg.feature.habits.presentation.scene.InteriorStage(room, walker, hour, keeperSheet, Modifier.fillMaxSize())
@@ -672,7 +747,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         // walking: one floating stick under the left thumb (it comes to where the thumb lands); under every button and
         // panel, which get their taps first. Still while a door fades or a panel covers the street; live through the walk
         // round the corner (pushing down walks it back)
-        MoveStick(enabled = doorTo == null && !aiPanel && lastCrash == null && !tuning, Modifier.fillMaxSize())
+        MoveStick(enabled = doorTo == null && !aiPanel && lastCrash == null && !tuning && shot == null, Modifier.fillMaxSize())
         // the stick's corner is not the system's back gesture (Android allows 200 dp of an edge: the bottom of it, where a
         // left thumb rests; a thumb landing higher on the very edge still swipes back, which the back handler above keeps
         // from leaving the game)
@@ -772,6 +847,17 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             Chip("Stop tuning", false) { activity?.let { NpuTune.cancel(it) } }
         }
         if (backHint) Text("Back again to leave the game", 14.sp, Modifier.align(Alignment.Center).background(PANEL, RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 8.dp))
+        // the camera button (the AI panel's "Screenshots to Claude" switch): small, under the weather chips
+        if (com.timerpg.street.shot.ShotSettings.buttonOn && !shooting && shot == null) {
+            Box(
+                Modifier.align(Alignment.TopEnd).padding(top = 92.dp, end = 12.dp).size(38.dp).background(Color(0x66101420), CircleShape)
+                    .pointerInput(Unit) { awaitEachGesture { awaitFirstDown(); waitForUpOrCancellation()?.let { shooting = true } } },
+                contentAlignment = Alignment.Center,
+            ) { Text("📷", 16.sp) }
+        }
+        shot?.let { s -> ShotSheet(s, Modifier.align(Alignment.Center), onSend = { note ->
+            com.timerpg.street.shot.ShotUploader.sendShot(ctx, s.bmp, note, s.at, s.how, s.game); shot = null
+        }, onCancel = { shot = null }) }
         // the dialogue AI, under the street name (drawn last, so its panel is on top): its state at a glance; tap for the
         // model file and the speed numbers
         Column(Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = 50.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -1147,6 +1233,7 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
                 Chip(label, StreetRenderer.camera == name) { StreetRenderer.setCamera(ctx, name) }
         }
         StreetRenderer.error?.let { Text(it, 11.sp, color = Color(0xFFFFB4A0)) }
+        ClaudeSettings()
         var heat by remember { mutableStateOf("") }
         var fil by remember { mutableStateOf("") }
         LaunchedEffect(Unit) {
@@ -1293,6 +1380,7 @@ private object FrameStats {
     }
 }
 
+private val SEASON_NAMES = listOf("spring", "summer", "autumn", "winter")
 private val SEASONS = listOf("🌸" to "2026-04-20", "☀" to "2026-06-14", "🍂" to "2026-10-20", "❄" to "2026-01-20")
 private val WEATHERS = listOf<Pair<String, WeatherState?>>(
     "Clear" to null,
@@ -1347,5 +1435,89 @@ private fun Slider(value: Float, onChange: (Float) -> Unit, from: Float, to: Flo
             Modifier.offset(x = ((value - from) / (to - from) * 1f).dp * 0f).fillMaxWidth(((value - from) / (to - from)).coerceIn(0.02f, 1f)).height(4.dp)
                 .background(Color(0xFF6FA8FF), RoundedCornerShape(2.dp)),
         )
+    }
+}
+
+/** A screenshot just taken, waiting for its note: the picture, when, how it was captured, and the game state then. */
+private class PendingShot(val bmp: Bitmap, val at: Long, val how: String, val game: Map<String, Any?>?)
+
+/** A text field in the HUD's style; [secret] masks it (the token). While it has the focus the game's keys type into it. */
+@Composable
+private fun Field(value: String, onChange: (String) -> Unit, hint: String, modifier: Modifier = Modifier, secret: Boolean = false) {
+    androidx.compose.foundation.text.BasicTextField(
+        value, onChange,
+        modifier.background(Color(0x33FFFFFF), RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 6.dp)
+            .onFocusChanged { com.timerpg.street.shot.ShotSettings.typing = it.isFocused },
+        textStyle = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = 13.sp),
+        singleLine = secret,
+        cursorBrush = androidx.compose.ui.graphics.SolidColor(Color.White),
+        visualTransformation = if (secret) androidx.compose.ui.text.input.PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
+        keyboardOptions = if (secret) androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Password, autoCorrectEnabled = false)
+            else androidx.compose.foundation.text.KeyboardOptions.Default,
+        decorationBox = { inner -> Box { if (value.isEmpty()) Text(hint, 13.sp, color = DIM.copy(alpha = .6f)); inner() } },
+    )
+}
+
+/** The sheet after a screenshot: the picture small, a note, Send or Cancel. */
+@Composable
+private fun ShotSheet(s: PendingShot, modifier: Modifier, onSend: (String) -> Unit, onCancel: () -> Unit) {
+    var note by remember { mutableStateOf("") }
+    val img = remember(s) { s.bmp.asImageBitmap() }
+    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { com.timerpg.street.shot.ShotSettings.typing = false } }
+    Column(
+        modifier.widthIn(max = 460.dp).background(PANEL, RoundedCornerShape(14.dp)).opaque().padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text("Send this screenshot to Claude", 15.sp)
+        androidx.compose.foundation.Image(img, null, Modifier.height(110.dp))
+        Field(note, { note = it.take(300) }, "A note (optional): what to look at", Modifier.fillMaxWidth())
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Chip("Send", true) { onSend(note) }
+            Chip("Cancel", false, onClick = onCancel)
+        }
+    }
+}
+
+/** The AI panel's "Screenshots to Claude" row: the camera button, the GitHub token, crash reports (long-press the title: test crashes). */
+@Composable
+private fun ClaudeSettings() {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val set = com.timerpg.street.shot.ShotSettings
+    LaunchedEffect(Unit) { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { set.load(ctx.applicationContext) } }
+    var tokenText by remember { mutableStateOf("") }
+    var test by remember { mutableStateOf("") }
+    var waiting by remember { mutableIntStateOf(0) }
+    LaunchedEffect(set.hasToken, test) {
+        waiting = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { com.timerpg.street.shot.Reports.pending(ctx).size }
+    }
+    Spacer(Modifier.height(2.dp))
+    androidx.compose.foundation.text.BasicText("Screenshots to Claude",
+        Modifier.pointerInput(Unit) { detectTapGestures(onLongPress = { set.debug = !set.debug }) },
+        style = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold))
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Chip(if (set.buttonOn) "📷 Button: on" else "📷 Button: off", set.buttonOn) { set.setButton(ctx, !set.buttonOn) }
+        Text(if (set.hasToken) "token saved" else "no token", 12.sp, color = if (set.hasToken) DIM else Color(0xFFFFB4A0))
+    }
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Field(tokenText, { tokenText = it.trim() }, "GitHub token", Modifier.width(170.dp), secret = true)
+        if (tokenText.isNotEmpty()) Chip("Save", false) { set.saveToken(ctx, tokenText); tokenText = ""; test = "" }
+        else if (set.hasToken) Chip("Forget", false) { set.forgetToken(ctx); test = "" }
+    }
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Chip("Test upload", false) { test = "Testing…"; com.timerpg.street.shot.ShotUploader.testAccess(ctx) { test = it } }
+        if (set.hasToken && waiting > 0) Chip("Send $waiting crash report${if (waiting > 1) "s" else ""}", false) {
+            com.timerpg.street.shot.ShotUploader.sendReports(ctx, quiet = false); test = "Sending crash reports…"
+        }
+    }
+    if (test.isNotEmpty()) Text(test, 11.sp, color = DIM)
+    Chip("Send crash reports automatically: " + if (set.autoReports && set.hasToken) "on" else "off", set.autoReports && set.hasToken) {
+        set.setAutoReports(ctx, !set.autoReports)
+    }
+    if (set.hasToken) Text("Token kept in ${set.tokenStore}", 11.sp, color = DIM)
+    if (set.debug) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Chip("Test crash (Kotlin)", false) {
+            android.os.Handler(android.os.Looper.getMainLooper()).post { throw RuntimeException("Test crash from the AI panel (Screenshots to Claude)") }
+        }
+        Chip("Test native crash", false) { android.os.Process.sendSignal(android.os.Process.myPid(), 11) }
     }
 }
