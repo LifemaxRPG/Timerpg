@@ -455,11 +455,18 @@ class TownWalk(override val town: Town) : TownWalkView {
     // --- what is around ---
 
     override fun liveRows(): List<Row> {
+        val to = transit?.to
+        if (liveRow === row && liveTo === to) return live
         val out = LinkedHashSet<Row>()
         out += town.rowsAround(row, 1)
-        transit?.let { out += town.rowsAround(it.to, 1) }
-        return out.toList()
+        to?.let { out += town.rowsAround(it, 1) }
+        live = out.toList(); liveRow = row; liveTo = to
+        return live
     }
+    // (the live rows change only with the row and the transit's target: kept, as the renderer asks every frame)
+    private var live: List<Row> = emptyList()
+    private var liveRow: Row? = null
+    private var liveTo: Row? = null
 
     /** The world point of [b]'s door on [r]: the middle of its front wall. */
     fun door(r: Row, b: Placement): TownPoint {

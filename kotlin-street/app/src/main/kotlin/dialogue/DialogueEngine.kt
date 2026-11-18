@@ -198,6 +198,30 @@ class DialogueEngine private constructor(private val app: Context) {
         if (changed) refresh()
     }
 
+    /**
+     * The walkable town: the player is at building [index] (-1 between buildings) of row [row] (its place in street.json
+     * v2's rows), with [live] the rows round it nearest first. Re-sorts the pre-generation queue: this row's people, then
+     * the live rows', then the rest of the town.
+     */
+    fun setPlayerRow(row: Int, index: Int, live: List<Int>) {
+        val changed = lock.withLock { queue.setLive(live.filter { it != row }) or queue.setPlayer(row, index) }
+        if (changed) refresh()
+    }
+
+    /** Which town's people: [dir] is the assets folder ("" the old crossroads' files, "town/gamma/" the walkable town's). */
+    @Volatile var dataDir = startDir
+        private set
+
+    /**
+     * Switches the town whose people talk (the AI panel's town switch, or the first start in the town): its dialogue.json
+     * against its street.json, on the worker; the old town's lines written ahead are kept in the cache.
+     */
+    fun useTown(dir: String) {
+        if (dir == dataDir && _data.value != null) return
+        dataDir = dir
+        command { loadData(); enqueueAll() }
+    }
+
     /** Holds pre-generation (the corner turn, the app in the background, low memory); on-demand lines still come. */
     fun pause(reason: String) {
         lock.withLock {
@@ -389,33 +413,52 @@ class DialogueEngine private constructor(private val app: Context) {
     }
 
     private fun startup() {
+        // (the lines of every town the game ships are kept: switching between them loses nothing written)
+        val other = (if (dataDir.isEmpty()) TOWN_DIRS else listOf("")).filter { it != dataDir }.flatMap { d -> loadData(d, plan = false)?.keys.orEmpty() }
         loadData()
         cache.load()
-        if (planned.isNotEmpty()) cache.retain(planned.keys)
+        if (planned.isNotEmpty()) cache.retain(planned.keys + other)
         ModelFiles.cleanPartial(app)
         refresh()
         loadModel()
     }
 
-    /** dialogue.json, checked against street.json (same town and year), and every line the model could write. */
-    private fun loadData() {
+    /**
+     * dialogue.json, checked against street.json (same town and year), and every line the model could write, in the
+     * folder [dir]. With [plan] (the default) it becomes the engine's town; otherwise only its plan is returned.
+     */
+    private fun loadData(dir: String = dataDir, plan: Boolean = true): Map<String, Planned>? {
         val d = try {
-            DialogueData.parse(app.assets.open("dialogue.json").bufferedReader().use { it.readText() })
+            DialogueData.parse(app.assets.open("${dir}dialogue.json").bufferedReader().use { it.readText() })
         } catch (e: Exception) {
-            Log.w(TAG, "no dialogue: $e")
-            return
+            Log.w(TAG, "no dialogue in '$dir': $e")
+            if (plan) { planned = emptyMap(); _data.value = null }
+            return null
         }
         // the buildings as the street shows them (street.json is the renderer's source of truth)
         val spots = HashMap<String, PregenQueue.Spot>()
         var lengths = IntArray(0)
         try {
-            val sj = JSONObject(app.assets.open("street.json").bufferedReader().use { it.readText() })
+            val sj = JSONObject(app.assets.open("${dir}street.json").bufferedReader().use { it.readText() })
             if (sj.optString("town") != d.town || sj.optInt("year") != d.year) {
                 Log.w(TAG, "dialogue.json is ${d.town} ${d.year} but street.json is ${sj.optString("town")} ${sj.optInt("year")}: no dialogue")
-                return
+                if (plan) { planned = emptyMap(); _data.value = null }
+                return null
             }
             val streets = sj.optJSONArray("streets")
-            if (streets != null) {
+            // the walkable town (street.json v2 with its graph, dialogue.json v2): the rows are the streets, the people
+            // found along them by their row and index (the queue then writes ahead by rows round the player)
+            val rows = if (dir.isNotEmpty() && d.version >= 2) sj.optJSONObject("graph")?.optJSONArray("rows") else null
+            if (rows != null) {
+                lengths = IntArray(rows.length())
+                val rowIndex = HashMap<String, Int>()
+                for (r in 0 until rows.length()) {
+                    val ro = rows.getJSONObject(r)
+                    rowIndex[ro.opt("id").toString()] = r
+                    lengths[r] = ro.optJSONArray("buildings")?.length() ?: 0
+                }
+                for (n in d.npcs) { val r = rowIndex[n.row] ?: continue; spots.putIfAbsent(n.building, PregenQueue.Spot(r, n.rowIndex.coerceAtLeast(0))) }
+            } else if (streets != null) {
                 lengths = IntArray(streets.length())
                 for (s in 0 until streets.length()) {
                     val b = streets.optJSONObject(s)?.optJSONArray("buildings") ?: continue
@@ -441,12 +484,15 @@ class DialogueEngine private constructor(private val app: Context) {
             val e = byKey.getOrPut(key) { orders[key] = order++; Target(n, t) to ArrayList() }
             if (spot !in e.second) e.second += spot
         }
-        planned = byKey.mapValues { (k, v) -> Planned(v.first, PregenQueue.Job(k, v.second, orders[k]!!)) }
+        val plans = byKey.mapValues { (k, v) -> Planned(v.first, PregenQueue.Job(k, v.second, orders[k]!!)) }
+        if (!plan) return plans
+        planned = plans
         lock.withLock {
             val old = queue
-            queue = PregenQueue(lengths).also { it.setPlayer(old.street, old.position) }
+            queue = PregenQueue(lengths).also { it.setPlayer(old.street.coerceAtMost(lengths.size - 1).coerceAtLeast(0), old.position) }
         }
         _data.value = d
+        return plans
     }
 
     private fun loadModel() {
@@ -833,6 +879,12 @@ class DialogueEngine private constructor(private val app: Context) {
         private const val READY_TEXT = "Ready. Lines near you are written ahead of time."
 
         fun keyOf(prompt: String): String = ReplyCache.keyOf(prompt, SETTINGS)
+
+        /** The walkable towns' folders (each with its own dialogue.json and street.json v2). */
+        val TOWN_DIRS = listOf("town/gamma/")
+
+        /** The folder the engine starts on (set before [shared] first makes it: the town the game opens in). */
+        @Volatile var startDir = ""
 
         private var shared: DialogueEngine? = null
 

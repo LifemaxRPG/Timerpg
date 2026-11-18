@@ -72,4 +72,16 @@ class PregenQueueTest {
         assertEquals("0:1", q.poll()?.key)
         assertFalse("0:1" in q)
     }
+
+    /** The walkable town: four rows; the player on row 2 with rows 3 and 0 live round it (nearest first). */
+    @Test
+    fun townRowsLiveRowsNextThenTheRest() {
+        val q = PregenQueue(intArrayOf(2, 2, 2, 2), near = 2)
+        var order = 0
+        for (r in 0..3) for (i in 0..1) q.add(PregenQueue.Job("$r:$i", listOf(PregenQueue.Spot(r, i)), order++))
+        q.setPlayer(2, 0)
+        assertTrue(q.setLive(listOf(3, 0)))
+        assertFalse(q.setLive(listOf(3, 0)))
+        assertEquals(listOf("2:0", "2:1", "3:0", "3:1", "0:0", "0:1", "1:0", "1:1"), q.drain())
+    }
 }

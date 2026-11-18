@@ -81,7 +81,7 @@ town: { seed, year, k, unitPerTile, spawn:{row, x, lane},
 ## Walking the town (T7, as built)
 
 `shim/TownWalk.kt`: `TownWalk(town)` is the one player walking the graph; the app or a test sets the keys on
-`GameState.moveX/moveLane` and calls `step(dt)` each frame (not wired into GameActivity yet: the app still runs eta's
+`GameState.moveX/moveLane` and calls `step(dt)` each frame (since T10 the app plays it through `TownPlay`; the old eta
 crossroads through CornerWalk as before).
 
 - The truth is the world point (`wx`, `wz`) and heading (`hx`, `hz`, `heading`: 0 north, clockwise). The street view's
@@ -144,6 +144,26 @@ both hands); load time (decode textures in the background, build nearest-first).
   name from it (v1 names first, then layout order, then the landmarks b92..b97). town-whole.test.ts exports the real
   graph and runs `export-dialogue --all --street` on it: every NPC gets its row and index. Landmarks on rows are skipped
   by the dialogue's sprite check (nobody lives there yet).
+- T10 (wf-t10): the app plays gamma (see STATUS.md "The walkable town in the app"): assets/town/gamma/ (street.json v2,
+  buildings, dialogue.json v2 and interiors.json from `export-dialogue.ts gamma 2025 --all --street build-town/gamma/street.json`
+  and `export-interiors.ts gamma 2025 --all`), assets/town/art/ (the pack pictures TownArt asks for, listed by the preview
+  in art-paths.txt); `TownPlay` (shim) is the game's town walk, people, talk range and events; `TownRun` (scene3d) the
+  build-and-draw path the app and the preview share; `TownPeople` the people's cards. DialogueEngine orders writing ahead
+  by rows. The AI panel switches back to the eta crossroads.
+- T10 review fixes (wf-t10): buildings are made ready on the `town-build` workers (`BuildingMeshes.prepare` /
+  `FilamentModels.prepare`: art decoded, geometry and vertices packed, pictures read and packed, the windows' glass
+  filled), the engine's thread only `finish`es them (buffers, textures, materials, renderables): the slowest building on
+  the engine's thread went from 156 ms to about 20 ms on the build server; the windows' night light runs in a 2 ms budget a
+  frame. Frames come every display refresh only while something moves or the town is still building
+  (`TownPlay.renderBusy`), otherwise at the stage's 30 Hz clock; the stage does none of the crossroads' work under the town
+  (`Frame3D.fillTown`). Crash guard: a `townBuilding` mark from the scene's start until the whole town is built (a death
+  in it starts the next launch on the Filament crossroads); the "starting" mark counts frames only after the first view; a
+  town exception falls back to the Filament crossroads, not the classic. The engine's arenas are sized for the town
+  (`TownEngine.config`). The player is frozen and the dialogue's writing ahead paused while the first view is built; the
+  player's world position is kept in prefs (back there at the next start); the source pictures are let go after upload
+  (weak caches); memory (graphics, native, total PSS) goes to breadcrumbs and the snapshot at first view and when the
+  whole town is built. Preview: `-Dshots=cold` builds a fresh scene through TownRun from the spawn and reports time to first
+  view and frame work (cold_first_view.png).
 - Not yet: eta, alpha and vale have placement conflicts in the graph (nudges into streets, overlaps): fix before any seed
   switch. Landmarks have no NPCs or interiors. The app still ships v1; gamma's street.json v2, dialogue and interiors
   must ship together (DialogueEngine refuses a town/year mismatch). DialogueEngine still orders generation by v1
@@ -211,7 +231,7 @@ both hands); load time (decode textures in the background, build nearest-first).
   ~1020 draws; street views 180-250 renderables, 380-1000 draws.
 - Not yet: the near side's lamps, trees and props are not cut; street signs crowd some corners (one per row meeting there);
   forest trees are cards of the street's scale (1.25-1.6x); the landmarks' grounds and corner lots' second side are not
-  drawn; Stage3D/GameActivity are not wired (the app still ships eta).
+  drawn; Stage3D/GameActivity were wired in T10 (below).
 
 ### The yard kit in the town (wf-town3d)
 

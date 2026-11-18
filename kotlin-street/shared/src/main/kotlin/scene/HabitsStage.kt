@@ -661,6 +661,13 @@ private fun StageCanvas(
             last = t
             // (no time passed: nothing to step; a redraw of the same moment must show the same thing)
             if (!first && dt <= 0f) continue
+            // the walkable town (docs/TOWN.md T10): its own walk takes the keys, and the stage draws only the sky under the
+            // town's renderer (a frame each time the walk moves, and on the clock)
+            if (TownPlay.active) {
+                val m = TownPlay.step(dt)
+                if (m != seen) { seen = m; moves++ }
+                continue
+            }
             // a frame is drawn whenever the player or the camera moved (the walk round the corner every frame); standing
             // still, the street's own clock redraws it
             val moved = GameState.x + 7f * GameState.lane + 13f * GameState.facing + GameState.travel + 31f * GameState.street +
@@ -865,7 +872,10 @@ private fun StageCanvas(
         val arts = cs?.arts ?: arts
         val street = cs?.street ?: street
         val cameras = cs?.cameras ?: cameras
-        val cr = crossroads
+        // the walkable town under Filament (TOWN.md T10): the stage draws only the sky, so nothing of the old crossroads
+        // is aimed, lived or measured here (the town has its own camera, people and light)
+        val townSky = StageTuning.skyOnly && TownPlay.active
+        val cr = if (townSky) null else crossroads
         if (GameState.enabled && f.unit > 0f) {
             GameState.halfView = size.width / 2f / f.unit
             GameState.viewMiddle = f.middle
@@ -908,7 +918,7 @@ private fun StageCanvas(
         streetLife.lightX = painter.lightX
         streetLife.lightSpan = painter.lightSpan
         streetLife.lightFrom = painter.lightFrom
-        streetLife.update(seconds, seed, street)
+        if (!townSky) streetLife.update(seconds, seed, street)
         if (cr != null) for (sd in sides!!) {
             val life = sd.life ?: continue
             life.light = light
@@ -923,6 +933,9 @@ private fun StageCanvas(
         // have moved), and draws it now, in the same frame as the sky under it
         if (cr != null && Stage3D.listening) {
             Stage3D.frame.fill(world, cr, sides!!, sky, light, p.hour, seconds, this.size.width, this.size.height, f.ground, horizon, f.unit)
+            Stage3D.drawn()
+        } else if (townSky && Stage3D.listening) {
+            Stage3D.frame.fillTown(sky, light, p.hour, seconds, this.size.width, this.size.height, f.ground, horizon, f.unit)
             Stage3D.drawn()
         }
         val from = f.streetX(0f) - B.GAP
@@ -940,7 +953,7 @@ private fun StageCanvas(
             world.measure(cr, sides!!, this.size.width, f.ground)
             reach = if (world.topY == Float.MAX_VALUE) 0f else (f.ground - world.topY) / f.unit
         }
-        backdrop.sunClear = if (cr != null && world.nearRest >= 0) sides!![world.nearRest].let { rs ->
+        backdrop.sunClear = if (townSky) 1f else if (cr != null && world.nearRest >= 0) sides!![world.nearRest].let { rs ->
             val half = this.size.width / 2f / f.unit
             sunClear(orbX, orb.second * d, rs.layouts, rs.street, world.nearOrigin(rs.viewX), f.ground, f.unit, rs.viewX - half - B.GAP, rs.viewX + half + B.GAP, d) {
                 Perspective.shift(Perspective.sideAt(it, rs.viewX, this.size.width / f.unit, Perspective.k(f.zoom)))

@@ -39,16 +39,29 @@ class Frame3D {
     var unit = 1f; internal set
     /** How dark it is (0 day, 1 night). */
     var dark = 0f; internal set
-    val ready: Boolean get() = world != null && cr != null && sides != null
+    /** The walkable town's frame ([fillTown]): no crossroads in it, only the hour, the clock, the sky and the screen. */
+    var town = false; private set
+    val ready: Boolean get() = (world != null && cr != null && sides != null) || (town && sky != null)
 
     /** Lets go of the stage's world (it left the street: a room), so nothing of it is drawn or kept from here. */
-    fun clear() { world = null; cr = null; sides = null; sky = null; light = null }
+    fun clear() { world = null; cr = null; sides = null; sky = null; light = null; town = false }
+
+    /** A frame of the walkable town (TOWN.md T10): the stage drew only its sky, the town's renderer draws the rest. */
+    internal fun fillTown(
+        sky: SkyColors, light: KeyLight, hour: Float, seconds: Float, width: Float, height: Float, ground: Float, horizon: Float, unit: Float,
+    ) {
+        world = null; cr = null; sides = null; town = true
+        this.sky = sky; this.light = light
+        this.hour = hour; this.seconds = seconds; this.width = width; this.height = height
+        this.ground = ground; this.horizon = horizon; this.unit = unit; this.dark = sky.dark
+        n++
+    }
 
     internal fun fill(
         world: CornerWorld, cr: Crossroads, sides: List<CrossSide>, sky: SkyColors, light: KeyLight,
         hour: Float, seconds: Float, width: Float, height: Float, ground: Float, horizon: Float, unit: Float,
     ) {
-        this.world = world; this.cr = cr; this.sides = sides; this.sky = sky; this.light = light
+        this.world = world; this.cr = cr; this.sides = sides; this.sky = sky; this.light = light; town = false
         this.hour = hour; this.seconds = seconds; this.width = width; this.height = height
         this.ground = ground; this.horizon = horizon; this.unit = unit; this.dark = sky.dark
         n++

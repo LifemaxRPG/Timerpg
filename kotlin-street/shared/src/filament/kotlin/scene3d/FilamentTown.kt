@@ -284,6 +284,12 @@ class FilamentTown(
     private val lampLights = IntArray(LAMP_LIGHTS) { EntityManager.get().create() }
     private var groundBuilt = false
 
+    /** The people (TOWN.md T10): cards of our character sheets, stood by [people] after each [frame]. */
+    private val crowd = TownPeople(engine, scene, lit, proxyMat, textures)
+    /** The pose and look of the last [frame] (the people and the screen projection follow it). */
+    private var lastPose: TownPose? = null
+    private val sunDir = FloatArray(3)
+
     /** One building of the town: where it stands and, once built, its renderables. */
     inner class Slot(val row: Row, val b: Placement, val place: TownPlace) {
         internal var built: BuiltBuilding? = null
@@ -497,7 +503,8 @@ class FilamentTown(
             when (j.part) {
                 0 -> c.base.upload(j.packed, j.casts, j.tiled)
                 1 -> c.cards.upload(j.packed, j.casts, j.tiled)
-                else -> c.nearTodo += j.packed to j.casts
+                // (a piece arriving after the chunk's 3D greenery was made goes straight in, or it would be lost)
+                else -> { c.nearTodo += j.packed to j.casts; c.near?.upload(j.packed, j.casts) }
             }
             return
         }
@@ -541,55 +548,104 @@ class FilamentTown(
     }
 
     /**
-     * Builds buildings not yet built, nearest ([x], [z]) first, until [budgetMs] is spent (at least one); returns how many.
-     * Call each frame until [pending] is 0.
+     * Builds buildings not yet built, nearest ([x], [z]) first, until [budgetMs] is spent; returns how many. Each building
+     * is made ready on the workers ([BuildingMeshes.prepare]: its art decoded, its geometry and pictures packed), so here
+     * only its buffers, textures and renderables are made; the first ready one is finished even past the budget (so the
+     * town always comes in), the rest only while the budget lasts. Call each frame until [pending] is 0.
      */
     fun buildNearest(x: Float, z: Float, budgetMs: Float): Int {
+        if (todo == 0 && chunksTodo == 0 && groundBuilt) return 0
         val t0 = System.nanoTime()
-        val todo = slots.filter { it.built == null && !it.missing }.sortedBy { hypot(it.cx - x, it.cz - z) }
-        // their art is opened and decoded on the workers, nearest first, ahead of being built here
-        for (s in todo) if (s !in artOf) artOf[s] = pool.submit(java.util.concurrent.Callable { building(s.b.sprite) })
         var n = 0
-        for (s in todo) {
-            if (n > 0 && (System.nanoTime() - t0) / 1e6f >= budgetMs) break
-            val f = artOf[s] ?: continue
-            if (!f.isDone) continue
-            buildSlot(s, runCatching { f.get() }.getOrNull())
-            artOf.remove(s)
-            n++
+        if (todo > 0) {
+            order.clear()
+            for (s in slots) if (s.built == null && !s.missing) order += s
+            todo = order.size
+            order.sortBy { hypot(it.cx - x, it.cz - z) }
+            // made ready on the workers, nearest first, ahead of being finished here
+            for (s in order) if (s !in readyOf) {
+                val yarded = s.b.kind != PlacementKind.LANDMARK && yards.of(s.b.sprite) != null
+                val sprite = s.b.sprite; val setback = s.b.setback
+                readyOf[s] = pool.submit(java.util.concurrent.Callable {
+                    val r0 = System.nanoTime()
+                    val r = building(sprite)?.let { meshes.prepare(it, setback, yarded, sprite.hashCode()) }
+                    val ms = (System.nanoTime() - r0) / 1e6f
+                    synchronized(this) { prepareMs += ms; if (ms > slowestPrepare.second) slowestPrepare = sprite to ms }
+                    r
+                })
+            }
+            for (s in order) {
+                if (n > 0 && (System.nanoTime() - t0) / 1e6f >= budgetMs) break
+                val f = readyOf[s] ?: continue
+                if (!f.isDone) continue
+                buildSlot(s, runCatching { f.get() }.getOrNull())
+                readyOf.remove(s)
+                todo--
+                n++
+            }
+            order.clear()
         }
         val ms = (System.nanoTime() - t0) / 1e6f
         buildingsMs += ms
         if (n > 0) batches += n to ms
         // then, with what is left of the budget, the 3D greenery of the chunks coming near
-        if (n == 0) for (c in chunks.values.filter { it.near == null && it.nearTodo.isNotEmpty() && hypot(it.cx - x, it.cz - z) - it.r < TownFrame.LOD_NEAR + 600f }
-            .sortedBy { hypot(it.cx - x, it.cz - z) }) {
-            if ((System.nanoTime() - t0) / 1e6f >= budgetMs) break
-            c.buildNear()
+        if (n == 0 && chunksTodo > 0 && groundBuilt) {
+            // (no list made: the nearest waiting chunk in reach, again and again while the budget lasts)
+            var left = 0
+            for (c in chunks.values) if (c.near == null && c.nearTodo.isNotEmpty()) left++
+            chunksTodo = left
+            while (left > 0 && (System.nanoTime() - t0) / 1e6f < budgetMs) {
+                var best: Chunk? = null; var bd = Float.MAX_VALUE
+                for (c in chunks.values) {
+                    if (c.near != null || c.nearTodo.isEmpty()) continue
+                    val d = hypot(c.cx - x, c.cz - z) - c.r
+                    if (d < TownFrame.LOD_NEAR + 600f && d < bd) { bd = d; best = c }
+                }
+                val b = best ?: break
+                b.buildNear()
+                left--
+                chunksTodo = left
+            }
         }
         return n
     }
 
-    /** The slowest single building so far: its sprite and how long it took here (ms; its art was decoded on a worker). */
+    /** Buildings not yet built (a count kept by [buildNearest], so a frame with nothing left does no work). */
+    private var todo = Int.MAX_VALUE
+    /** Chunks whose 3D greenery is not made yet (as last counted; once the ground is in). */
+    private var chunksTodo = Int.MAX_VALUE
+    private val order = ArrayList<Slot>()
+
+    /** Nothing is left to build: every building, and every chunk's 3D greenery. */
+    val allBuilt: Boolean get() = groundBuilt && pending == 0 && chunks.values.none { it.near == null && it.nearTodo.isNotEmpty() }
+
+    /** Reads and packs [images] on a worker ahead of their first use here ([StreetTextures.warm]). */
+    fun warm(images: List<androidx.compose.ui.graphics.ImageBitmap>) {
+        if (images.isNotEmpty()) pool.execute { runCatching { for (i in images) textures.warm(i) } }
+    }
+
+    /** The slowest single building so far: its sprite and how long finishing it took here (ms; made ready on a worker). */
     var slowest: Pair<String, Float> = "" to 0f; private set
+    /** The workers' time making buildings ready (ms, all of them), and the slowest one there. */
+    @Volatile var prepareMs = 0f; private set
+    @Volatile var slowestPrepare: Pair<String, Float> = "" to 0f; private set
 
-    /** Each building's art being opened on a worker. */
-    private val artOf = HashMap<Slot, java.util.concurrent.Future<SpriteBuilding?>>()
+    /** Each building being made ready on a worker. */
+    private val readyOf = HashMap<Slot, java.util.concurrent.Future<BuildingMeshes.Ready?>>()
 
-    private fun buildSlot(s: Slot, sb: SpriteBuilding?) {
+    private fun buildSlot(s: Slot, r: BuildingMeshes.Ready?) {
         val t0 = System.nanoTime()
-        try { buildOne(s, sb) } finally {
+        try { buildOne(s, r) } finally {
             val ms = (System.nanoTime() - t0) / 1e6f
             if (ms > slowest.second) slowest = s.b.sprite to ms
         }
     }
 
-    private fun buildOne(s: Slot, sb: SpriteBuilding?) {
-        if (sb == null) { s.missing = true; return }
-        // the yard kit draws a lot's ground and fences: the house's and the model's own are left off there (not the
-        // landmarks', whose grounds the yards do not cover yet)
-        val yarded = s.b.kind != PlacementKind.LANDMARK && yards.of(s.b.sprite) != null
-        val built = meshes.build(s.b.sprite, sb, s.b.setback, yarded, s.b.sprite.hashCode())
+    private fun buildOne(s: Slot, r: BuildingMeshes.Ready?) {
+        if (r == null) { s.missing = true; return }
+        // (the yard kit draws a lot's ground and fences: the house's and the model's own were left off there when made
+        // ready, not the landmarks', whose grounds the yards do not cover yet)
+        val built = meshes.finish(r)
         if (built == null) { s.missing = true; return }
         val tm = engine.transformManager
         s.place.matrix(xf)
@@ -610,8 +666,15 @@ class FilamentTown(
 
     // ------------------------------------------------------------------ each frame
 
+    /** The windows' night light's time a frame ([NIGHT_BUDGET_NS]; a still picture, as a preview's, wants it unbounded). */
+    var nightBudgetNs = NIGHT_BUDGET_NS
+    private val nightQueue = arrayOfNulls<Slot>(slots.size)
+    private var nightCount = 0
+    private var nightNext = 0
+
     /** Brings the scene to camera [pose] at [hour]; [seconds] is the clock (the yards' water shimmers by it). */
     fun frame(pose: TownPose, hour: Float, seconds: Double = 0.0) {
+        lastPose = pose
         view.viewport = Viewport(0, 0, pose.w.toInt(), pose.h.toInt())
         // (the look's depth reaches 1 at the camera's own near: Filament's lights are sorted into the view's depth slices
         // by the camera's projection, so the two must agree or the street lamps' light lands in the wrong slices)
@@ -649,7 +712,19 @@ class FilamentTown(
                 mi.setParameter("glow", g0, g1, g2, ga)
                 mi.setParameter("glass", gl0, gl1, gl2, 1f)
             }
-            b.night?.invoke(hour)
+            if (b.night != null) nightQueue[nightCount++] = s
+        }
+        // the windows' night light (and a model's clock): a building's first is a whole picture worked out and uploaded,
+        // so a few milliseconds of them a frame, starting each frame where the last stopped (the rest come next frame)
+        if (nightCount > 0) {
+            val n0 = System.nanoTime()
+            for (k in 0 until nightCount) {
+                val sl = nightQueue[(k + nightNext) % nightCount] ?: continue
+                sl.built?.night?.invoke(hour)
+                if (System.nanoTime() - n0 > nightBudgetNs) { nightNext = (k + nightNext + 1) % nightCount; break }
+            }
+            java.util.Arrays.fill(nightQueue, 0, nightCount, null)
+            nightCount = 0
         }
         for (layer in listOf(ground, yardLayer)) {
             layer.update(look, dark)
@@ -801,10 +876,36 @@ class FilamentTown(
     private fun mix(a: Float, b: Float, t: Float) = a + (b - a) * t
     private fun smooth(t: Float): Float { val u = t.coerceIn(0f, 1f); return u * u * (3f - 2f * u) }
 
+    // ------------------------------------------------------------------ people
+
+    /**
+     * Stands [n] of [figures] ([com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.people]) in the last [frame]'s
+     * view, wearing [sheets] (our character sheets); returns how many were drawn.
+     */
+    fun people(figures: List<com.lifemax.rpg.feature.habits.presentation.scene.TownFigure>, n: Int, sheets: List<androidx.compose.ui.graphics.ImageBitmap>): Int {
+        val pose = lastPose ?: return 0
+        val lm = engine.lightManager
+        lm.getDirection(lm.getInstance(sun), sunDir)
+        crowd.update(pose, look, figures, n, sheets, sunDir) { x, z -> if (pose.cut > 0f) fadeOf(pose, x, z) else 1f }
+        return crowd.drawn
+    }
+
+    /** Where world point ([x], [y], [z]) falls on the screen of the last [frame] (pixels from its top left), or null behind the eye. */
+    fun project(x: Float, y: Float, z: Float): androidx.compose.ui.geometry.Offset? {
+        val p = lastPose ?: return null
+        val dx = x - p.ex; val dy = y - p.ey; val dz = z - p.ez
+        val zc = p.fx * dx + p.fy * dy + p.fz * dz
+        if (zc < 1f) return null
+        val xc = p.rx * dx + p.ry * dy + p.rz * dz
+        val yc = p.ux * dx + p.uy * dy + p.uz * dz
+        return androidx.compose.ui.geometry.Offset(p.cx + p.fl * xc / zc, p.cy - p.fl * yc / zc)
+    }
+
     // ------------------------------------------------------------------ teardown
 
     fun destroy() {
         val em = EntityManager.get()
+        crowd.destroy()
         for (s in slots) {
             val b = s.built ?: continue
             for (e in listOf(b.entity, b.proxy)) if (e != 0) { scene.remove(e); engine.destroyEntity(e); em.destroy(e) }
@@ -842,5 +943,7 @@ class FilamentTown(
         const val LAMP_LIGHTS = 12
         const val LAMP_REACH = 260f
         const val LAMP_LUMENS = 60000f
+        /** How long the windows' night light may take a frame (ns): a building's first is a whole picture. */
+        const val NIGHT_BUDGET_NS = 2_000_000L
     }
 }
