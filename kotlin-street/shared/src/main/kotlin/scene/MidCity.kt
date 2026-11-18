@@ -318,10 +318,13 @@ internal class MidCity(private val seed: Int) {
         walkers(M.KERB, horizon, shift, seconds)
     }
 
-    /** Where layer [l]'s first period starts on screen (px): slid by its share of the street. */
+    /** The camera's turn as pixels the whole district slides right ([Backdrop.yaw]). */
+    var yaw = 0f
+
+    /** Where layer [l]'s first period starts on screen (px): slid by its share of the street, and by the camera's turn. */
     private fun DrawScope.origin(l: Int, shift: Float): Float {
         val span = M.SPAN * density * k
-        val slide = shift * density * k * DRIFT_UNIT * M.drift(l)
+        val slide = shift * density * k * DRIFT_UNIT * M.drift(l) - yaw
         var x = -(((slide % span) + span) % span)
         if (x > 0f) x -= span
         return x

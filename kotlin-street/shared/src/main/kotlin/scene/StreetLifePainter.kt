@@ -64,6 +64,22 @@ internal class StreetLifePainter {
     /** This frame's passers and cars (far lane first), filled by [update]. */
     val passers = Array(StreetLife.MOST + 2) { Passer() }
     var count = 0
+
+    /** Which street of the crossroads these are the people of (0 the main street): whose keepers stand at the doors. */
+    var street = 0
+
+    /** Whether the player is one of them (the street the player walks; the other street's people are its own). */
+    var withPlayer = true
+
+    /** Draw only the passer at this index ([people]), so the crossroads can sort each one among the buildings; -1 all. */
+    var only = -1
+
+    /**
+     * How far the camera is turned from this street's own view (radians: the street's own yaw less the camera's), at a
+     * crossroads: people walking along the street are then seen walking away or towards it, and those standing at their
+     * doors side on. 0 on the street's own view.
+     */
+    var turn = 0f
     val cars = Array(StreetLife.CAR_MOST) { CarPass() }
     var carCount = 0
 
@@ -324,7 +340,7 @@ internal class StreetLifePainter {
     fun update(seconds: Float, seed: Int, street: StreetLayout) {
         clock = seconds
         count = StreetLife.passers(seconds, seed, street.start, street.end, passers, street.centers)
-        if (GameState.enabled && count < passers.size) {
+        if (GameState.enabled && withPlayer && count < passers.size) {
             // the player is one more person on the pavement, lit and shadowed like the rest (far lane first)
             val me = passers[count]
             me.on = true; me.slot = 9999; me.kind = Stroller.WALKER
@@ -339,7 +355,7 @@ internal class StreetLifePainter {
             while (i > 0 && passers[i - 1].lane > passers[i].lane) { val t = passers[i]; passers[i] = passers[i - 1]; passers[i - 1] = t; i-- }
         }
         // the people to talk to: each at their building's door, standing, facing the street (near the wall, behind passers)
-        if (GameState.enabled) for ((b, seed) in GameState.keepers) {
+        if (GameState.enabled) for ((b, seed) in GameState.keepersBy[this.street] ?: GameState.keepers.takeIf { this.street == GameState.street }.orEmpty()) {
             if (count >= passers.size || b !in street.centers.indices) continue
             val k = passers[count]
             k.on = true; k.slot = KEEPER + b; k.kind = Stroller.WALKER
@@ -379,8 +395,17 @@ internal class StreetLifePainter {
         // the sheet's views: 0 right, 1 back, 2 left, 3 front. The player uses its own (party() mirrors every figure by its
         // direction, so that is cancelled for the player); passers walk the right view mirrored as before
         val keeper = p.slot >= KEEPER
-        val view = if (keeper) 3 else if (!me) 0 else if (GameState.facing == 0 && p.dir < 0f) 2 else GameState.facing
-        val flip = if (me || keeper) p.dir else 1f
+        var view = if (keeper) 3 else if (!me) 0 else if (GameState.facing == 0 && p.dir < 0f) 2 else GameState.facing
+        var flip = if (me || keeper) p.dir else 1f
+        if (!me && turn != 0f) {
+            // the way they walk (or, at a door, face: towards the street's own camera) as the turned camera sees it; a
+            // side view mirrored to the way they go, a back or front view never mirrored ([party] mirrors by p.dir)
+            val a = (if (keeper) -Math.PI.toFloat() / 2f else if (p.dir >= 0f) 0f else Math.PI.toFloat()) + turn
+            val across = kotlin.math.cos(a)
+            val away = kotlin.math.sin(a)
+            if (kotlin.math.abs(away) > kotlin.math.abs(across)) { view = if (away > 0f) 1 else 3; flip = p.dir }
+            else { view = 0; flip = (if (across >= 0f) 1f else -1f) * p.dir }
+        }
         // each sprite pixel is one of the buildings' (the same grid as the street; a whole number of screen pixels when
         // the zoom is snapped), whatever lane they are in: the figure transform here already scales by perspective and unit
         val k = SpriteArt.PIXEL / (perspective(p.lane) * unit)
@@ -818,6 +843,7 @@ internal class StreetLifePainter {
         val key = light
         val dark = sky.dark
         for (i in 0 until count) {
+            if (only >= 0 && i != only) continue
             val p = passers[i]
             if (p.x + 60f < from || p.x - 60f > to) continue
             val persp = perspective(p.lane)

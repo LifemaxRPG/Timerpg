@@ -54,6 +54,23 @@ object GameState {
      * who they are). Drawn by the door, facing the street, so "Talk to ..." has someone to talk to.
      */
     @Volatile var keepers: List<Pair<Int, Int>> = emptyList()
+    /** The same for each street of the crossroads (0 the main street, 1 the cross street), so both streets' doors are kept. */
+    @Volatile var keepersBy: Map<Int, List<Pair<Int, Int>>> = emptyMap()
+    /**
+     * Which street of the crossroads the player is on (0 the main street, 1 the cross street). The stage changes it in
+     * the frame the walk round the corner ends; the app follows it.
+     */
+    @Volatile var street = 0
+    /**
+     * Set when a walk round the corner ends with the up key still held: until it is let go it walks on along the new
+     * street (moveX +1) instead of stepping in across the pavement.
+     */
+    var upWalks = false
+    /**
+     * Street units the player still walks on by themselves (set as the walk round the corner arrives, so they do not
+     * stop at the screen's edge); any key takes over.
+     */
+    var walkOn = 0f
     /** Half the screen's width in street units (set by the stage as it draws), so the camera can stop at the street's ends. */
     var halfView = 0f
     /** Device pixels per street unit, as the stage last drew (0 until it has drawn). */
@@ -100,6 +117,21 @@ object GameState {
 
     fun step(dt: Float, from: Float, to: Float, laneMax: Float) {
         x0 = x; lane0 = lane
+        // the walk round the corner hands the player over still walking (see CornerWalk): with the push still up they
+        // walk on along the new street as hard as they push (a push to the rim runs) until it is let go; otherwise they
+        // walk on [walkOn] units by themselves at a walk, never a run, until the stick takes over
+        val heldX = moveX; val heldLane = moveLane
+        if (upWalks) { if (moveLane < -.05f) { moveX = -moveLane; moveLane = 0f } else upWalks = false }
+        if (walkOn > 0f) { if (abs(moveX) < .05f && abs(moveLane) < .05f) moveX = WALK_ON_PUSH else walkOn = 0f }
+        try { stepHeld(dt, from, to, laneMax) } finally { moveX = heldX; moveLane = heldLane }
+        // (let go a firm stop's slide early, so they stand where the walk on ends rather than a few units past it)
+        if (walkOn > 0f) walkOn = (walkOn - abs(x - x0)).let { if (it <= vx * vx / (2f * MoveTuning.halt)) 0f else it }
+    }
+
+    /** The push [walkOn] walks with: a full walk, not a run (as the keyboard's). */
+    private const val WALK_ON_PUSH = .7f
+
+    private fun stepHeld(dt: Float, from: Float, to: Float, laneMax: Float) {
         // which view: from the side within 60 degrees of the street, the back or the front beyond 70, unchanged between;
         // the way they face changes only with a push along the street, and only once they are not still sliding the other
         // way (turning round from a run they skid facing the way they were going, then turn)

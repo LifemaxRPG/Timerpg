@@ -110,6 +110,7 @@ internal class Backlight {
         w: Float,
         h: Float,
         seconds: Float,
+        reach: Float = r * 3f,
     ) {
         orbX = orb.x
         orbY = orb.y
@@ -125,7 +126,7 @@ internal class Backlight {
                 mist,
                 gap,
                 zoom,
-                Backlit.inView(orb.x, orb.y, r, w, h),
+                Backlit.inView(orb.x, orb.y, r, w, h, reach),
             ) * STRENGTH
         if (amount < .005f) {
             amount = 0f

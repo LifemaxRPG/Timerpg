@@ -268,7 +268,7 @@ internal class Backdrop(private val seed: Int, day: String = "") {
             for (i in starField.indices) {
                 val s = starField[i]
                 val down = s.y * .9f
-                val at = Offset(s.x * w, down * horizon)
+                val at = Offset(if (yaw == 0f) s.x * w else ((s.x * w + yaw) % w + w) % w, down * horizon)
                 // the low sky is washed by the city's light: fewer, fainter stars near the horizon
                 val low = 1f - .72f * Px.smooth(.42f, .83f, down)
                 val a = s.alpha * starAlpha * Ambient.twinkle(s, seconds) * low
@@ -345,7 +345,7 @@ internal class Backdrop(private val seed: Int, day: String = "") {
                 if (shows < .99f) drawIntoCanvas { it.restore() }
             }
         }
-        for (r in rows.indices) row(r, sky, horizon, shift * drift[r], seconds)
+        for (r in rows.indices) row(r, sky, horizon, shift * drift[r] - yaw / d, seconds)
         if (tone >= .7f && Ambient.birds(seconds, seed, pass))
             birds(pass, sky, w, top, horizon, ceiling, seconds)
         // the glow over the horizon: the city's light at night, haze by day
@@ -355,6 +355,7 @@ internal class Backdrop(private val seed: Int, day: String = "") {
         weather(sky, w, horizon, orb, shift, seconds)
         // the city between the street and the far skyline, the passing car on its boulevard
         val pave = if (street > horizon) street else horizon + MidCitySprites.BAND * d
+        midCity.yaw = yaw
         with(midCity) {
             back(sky, hour, horizon, pave, shift, seconds, season, cloudiness, mist, orb.x > w / 2f)
         }
@@ -368,6 +369,13 @@ internal class Backdrop(private val seed: Int, day: String = "") {
     /** How much of the sky is one cloud, and how thick the morning mist is: set by the stage. */
     var cloudiness = 0f
     var mist = 0f
+
+    /**
+     * How far the camera has turned, as screen pixels the sky slides right (the corner turn: its lens times the angle).
+     * Every far layer slides by it together, the clouds, the stars and the far city alike, as a turn moves them; the
+     * stage passes the sun or the moon already turned. 0 on the main street's own view.
+     */
+    var yaw = 0f
 
     /**
      * The y of the street's pavement line (px), and the season, set by the stage: the middle
@@ -431,7 +439,7 @@ internal class Backdrop(private val seed: Int, day: String = "") {
                 val images = pool[which[i % which.size]]
                 val sp = images.sprite
                 val s = d * 1.5f / CloudSprites.PX_PER_DP
-                val travel = seconds * (3f + i) * d - shift * .02f * d + i * span * .37f
+                val travel = seconds * (3f + i) * d - shift * .02f * d + i * span * .37f + yaw
                 val x = ((travel % span) + span) % span - span * .2f
                 val base = horizon - (96f - i * 14f) * d
                 withTransform({
@@ -449,7 +457,7 @@ internal class Backdrop(private val seed: Int, day: String = "") {
             for (layer in 0 until 2) {
                 val s = px * (if (layer == 0) 1.5f else 2.4f)
                 val tall = WeatherSprites.FOG_H * s
-                val drift = seconds * (if (layer == 0) 2.5f else -1.5f) * d - shift * .04f * d
+                val drift = seconds * (if (layer == 0) 2.5f else -1.5f) * d - shift * .04f * d + yaw
                 val a = fog * (if (layer == 0) .85f else .4f)
                 withTransform({
                     translate(drift, horizon - tall * .78f)
@@ -1170,6 +1178,8 @@ internal class Backdrop(private val seed: Int, day: String = "") {
         val c = clouds[i]
         placeS = d * c.scale / CloudSprites.PX_PER_DP
         placeX = Ambient.cloudAt(c, seconds) * w - shift * .03f * c.depth * d
+        // turned: slid with the sky, coming round again past the edges as the clouds' own drift does
+        if (yaw != 0f) placeX = (((placeX + yaw + .25f * w) % (1.5f * w)) + 1.5f * w) % (1.5f * w) - .25f * w
         placeBase = CloudLayout.base(c.y, top, horizon, ceiling, d)
         // breathing: the sky never quite stands still, a few percent over half a minute
         val breathe = 1f + .04f * sin(seconds * .21f + i * 2.1f)

@@ -770,6 +770,16 @@ internal class BuildingPainter {
      * on the pavement, so someone walking under a lamp is lit by it ([StreetLifePainter]'s lamp
      * light) rather than washed over by the glow of the air in front of the post.
      */
+    /**
+     * How far a lamp's arm reaches across the picture: 1 as our lamp is drawn (its arm out along its street, which runs
+     * across the picture), less as its street turns away from the camera, down to 0 for a street running straight away
+     * (the arm points along it, its head seen just by the pole). Set by the crossroads for the other street's lamps.
+     */
+    var lampReach = 1f
+
+    /** The lamp's head and lens shifted towards its pole as its arm turns away ([lampReach]), street units. */
+    private val lampHeadDx: Float get() = -(1f - lampReach) * (LAMP_LENS_X - LAMP_FOOT_X) * LAMP_K
+
     fun DrawScope.lampAir(
         items: List<Furniture>,
         sky: SkyColors,
@@ -786,7 +796,7 @@ internal class BuildingPainter {
             if (f.kind != FurnitureKind.LAMP || f.x < from - 60f || f.x > to + 60f) continue
             val on = lampOn(f, dark)
             if (on <= 0f) continue
-            translate(standAt(f.x), 0f) {
+            translate(standAt(f.x) + lampHeadDx, 0f) {
                 withTransform({
                     translate(L.AIR_X0, L.AIR_Y0)
                     scale((L.AIR_X1 - L.AIR_X0) / L.AIR_W, -L.AIR_Y0 / L.AIR_H, Offset.Zero)
@@ -815,7 +825,7 @@ internal class BuildingPainter {
                     val on = lampOn(f, dark)
                     if (on > 0f) {
                         val k = LAMP_K
-                        translate((LAMP_LENS_X - LAMP_FOOT_X) * k, -(LAMP_FOOT_Y - LAMP_LENS_Y) * k) {
+                        translate((LAMP_LENS_X - LAMP_FOOT_X) * k + lampHeadDx, -(LAMP_FOOT_Y - LAMP_LENS_Y) * k) {
                             scale(26f, 26f, Offset.Zero) { drawCircle(halo, 1f, Offset.Zero, alpha = on, blendMode = BlendMode.Plus) }
                             scale(58f, 58f, Offset.Zero) { drawCircle(bloom, 1f, Offset.Zero, alpha = on * .38f, blendMode = BlendMode.Plus) }
                         }
@@ -1773,7 +1783,7 @@ internal class BuildingPainter {
             blendMode = BlendMode.Multiply,
         )
         // the reflections, in one layer at the wet's strength
-        reflectPaint.alpha = wet * (.5f + .3f * dark)
+        reflectPaint.alpha = wet * (.5f + .3f * dark) * mirrorShare
         drawIntoCanvas { it.saveLayer(Rect(from, 0f, to, REFLECT_DEPTH), reflectPaint) }
         // the sky in the wet, everywhere; what stands on the street goes over it
         drawRect(
@@ -1828,6 +1838,19 @@ internal class BuildingPainter {
     /** The street lamps, for their reflections on the wet ground (set with the street's furniture). */
     private var sheenLamps: List<Furniture> = emptyList()
 
+    /**
+     * How much of building i is left to mirror in the wet (null: all of every one): a building fading out between the
+     * camera and the corner mid-turn takes its reflection with it.
+     */
+    var mirrored: ((Int) -> Float)? = null
+
+    /**
+     * How much of the wet street's mirror is left (1 at rest): the reflections are laid in the street's own flat frame,
+     * so as a turn round the corner takes the street out of that look they fade with it rather than slide under the
+     * wrong buildings.
+     */
+    var mirrorShare = 1f
+
     /** On the GPU ([RainFx.GLASS]): drops on the window glass in [x], [y], [w], [h] while it rains. */
     private fun DrawScope.glassRain(x: Float, y: Float, w: Float, h: Float, seconds: Float, sky: SkyColors) {
         val rain = weather.rain
@@ -1852,18 +1875,22 @@ internal class BuildingPainter {
         from: Float,
         to: Float,
         ox: Float,
-        a: Float,
+        strength: Float,
     ) {
         val dark = sky.dark
         val half = B.W / 2f
         val lit = lerp(SceneInk.WindowLitDay, SceneInk.WindowLit, dark)
         val shop = lerp(SceneInk.Shop, SceneInk.ShopLit, .15f + .8f * dark)
         val lobbyTop = -B.LOBBY_H
+        val shown = mirrored
         for (i in layouts.indices) {
             val cx = street.centers[i]
             // (a building wider than a shop, the school, by its own width)
             val reach = max(half, layouts[i].wide / 2f)
             if (cx + reach + B.DX + B.PARK_W < from || cx - reach - B.DX > to) continue
+            val left = shown?.invoke(i) ?: 1f
+            if (left <= 0f) continue
+            val a = strength * left
             val art = arts[i]
             val s = shiftAt(cx)
             val l0 = Perspective.left(s)
@@ -1979,6 +2006,7 @@ internal class BuildingPainter {
             // the park's trees, dark in the wet
             for (t in art.layout.trees) treeReflection(cx + t.x + ox, t.id.hashCode(), .8f, a)
         }
+        val a = strength
         for (k in street.furniture.indices) {
             val f = street.furniture[k]
             if (f.x < from - 40f || f.x > to + 40f) continue
@@ -2398,7 +2426,21 @@ internal class BuildingPainter {
     /** One of OUR props at the current origin (its foot): a lamp, a tree under the wind, or a bench. */
     private fun DrawScope.propPicture(f: Furniture, seconds: Float, filter: ColorFilter?) {
         when (f.kind) {
-            FurnitureKind.LAMP -> SpriteArt.lamp?.let { picture2(it, -LAMP_FOOT_X * LAMP_K, -LAMP_FOOT_Y * LAMP_K, it.width * LAMP_K, it.height * LAMP_K, FilterQuality.None, filter = filter) }
+            FurnitureKind.LAMP -> SpriteArt.lamp?.let {
+                val x0 = -LAMP_FOOT_X * LAMP_K
+                val y0 = -LAMP_FOOT_Y * LAMP_K
+                val w = it.width * LAMP_K
+                val h = it.height * LAMP_K
+                val dx = lampHeadDx
+                if (dx == 0f) picture2(it, x0, y0, w, h, FilterQuality.None, filter = filter)
+                else {
+                    // its arm turned away: the arm and the head (the picture right of the pole's bracket) slid in behind
+                    // the pole, then the pole and its bracket over them
+                    val cut = x0 + LAMP_ARM_X * LAMP_K
+                    clipRect(cut + dx, y0 - 1f, x0 + w + dx, 1f) { picture2(it, x0 + dx, y0, w, h, FilterQuality.None, filter = filter) }
+                    clipRect(x0 - 1f, y0 - 1f, cut, 1f) { picture2(it, x0, y0, w, h, FilterQuality.None, filter = filter) }
+                }
+            }
             FurnitureKind.BENCH -> SpriteArt.bench?.let { picture2(it, -BENCH_FOOT_X * BENCH_K, -BENCH_FOOT_Y * BENCH_K, it.width * BENCH_K, it.height * BENCH_K, FilterQuality.None, filter = filter) }
             FurnitureKind.TREE -> {
                 val ts = SpriteArt.trees
@@ -2450,7 +2492,7 @@ internal class BuildingPainter {
      * along ([ux], [uy]) and [h] tall. Drawn as [n] thin vertical strips, each a plain scaled and moved rectangle, so
      * the lean is exact with no skew transform.
      */
-    private fun DrawScope.sideStrips(img: ImageBitmap, ox: Float, oy: Float, ux: Float, uy: Float, h: Float, n: Int = 14) {
+    private fun DrawScope.sideStrips(img: ImageBitmap, ox: Float, oy: Float, ux: Float, uy: Float, h: Float, n: Int = 14, alpha: Float = 1f) {
         for (i in 0 until n) {
             // proportional source columns: every column of the picture is used, whatever n divides
             val sx0 = i * img.width / n
@@ -2467,10 +2509,94 @@ internal class BuildingPainter {
                 translate(dx, y0)
                 scale(dw / sw, dh / img.height, Offset.Zero)
             }) {
-                drawImage(img, IntOffset(sx0, 0), IntSize(sw, img.height), IntOffset.Zero, IntSize(sw, img.height), 1f, Fill, null, BlendMode.SrcOver, FilterQuality.None)
+                drawImage(img, IntOffset(sx0, 0), IntSize(sw, img.height), IntOffset.Zero, IntSize(sw, img.height), alpha, Fill, null, BlendMode.SrcOver, FilterQuality.None)
             }
         }
     }
+
+    /** A side picture's windows at night: its glass gone dark ([dark]) and about half its windows lit ([lit]). */
+    private class SideNight(val dark: ImageBitmap, val lit: ImageBitmap)
+
+    private val sideNights = HashMap<ImageBitmap, SideNight>()
+
+    /**
+     * The night pictures of side picture [img], made from its pixels the first time it is seen at night: its panes are
+     * the runs of pale sky-blue glass, each pane its run's bounding box (runs that touch, a white glint splitting one
+     * pane, are one pane). The fronts have their windows mapped by the art's tools; the
+     * sides only have their pictures, which by day show glass and at night would show day glass in a dark wall.
+     */
+    private fun sideNight(img: ImageBitmap): SideNight = sideNights.getOrPut(img) {
+        val w = img.width
+        val h = img.height
+        val px = IntArray(w * h)
+        img.readPixels(px)
+        fun glass(c: Int): Boolean {
+            val r = (c shr 16) and 0xFF; val g = (c shr 8) and 0xFF; val b = c and 0xFF
+            return b >= 150 && b >= r + 12 && b >= g && r + g + b >= 420
+        }
+        // the runs of glass, 8-connected, each as a box (x0, y0, x1, y1 inclusive)
+        val seen = BooleanArray(w * h)
+        val boxes = ArrayList<IntArray>()
+        val stack = IntArray(w * h)
+        for (start in 0 until w * h) {
+            if (seen[start] || !glass(px[start])) continue
+            var top = 0
+            stack[top++] = start; seen[start] = true
+            val bb = intArrayOf(w, h, -1, -1)
+            var n = 0
+            while (top > 0) {
+                val i = stack[--top]
+                val x = i % w; val y = i / w
+                n++
+                bb[0] = min(bb[0], x); bb[1] = min(bb[1], y); bb[2] = max(bb[2], x); bb[3] = max(bb[3], y)
+                for (dy in -1..1) for (dx in -1..1) {
+                    val nx = x + dx; val ny = y + dy
+                    if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue
+                    val j = ny * w + nx
+                    if (!seen[j] && glass(px[j])) { seen[j] = true; stack[top++] = j }
+                }
+            }
+            if (n >= 3) boxes += bb
+        }
+        // runs whose boxes touch are one pane
+        var merged = true
+        while (merged) {
+            merged = false
+            loop@ for (a in boxes.indices) for (b in a + 1 until boxes.size) {
+                val p = boxes[a]; val q = boxes[b]
+                if (p[0] <= q[2] + 1 && q[0] <= p[2] + 1 && p[1] <= q[3] + 1 && q[1] <= p[3] + 1) {
+                    p[0] = min(p[0], q[0]); p[1] = min(p[1], q[1]); p[2] = max(p[2], q[2]); p[3] = max(p[3], q[3])
+                    boxes.removeAt(b); merged = true; break@loop
+                }
+            }
+        }
+        val dark = IntArray(w * h)
+        val lit = IntArray(w * h)
+        val glassNight = SceneInk.GlassNight.toArgb()
+        for ((k, bb) in boxes.withIndex()) {
+            val bw = bb[2] - bb[0] + 1
+            val bh = bb[3] - bb[1] + 1
+            // (a stray pixel or a thin line of blue paint is not a window)
+            if (bw < 3 || bh < 3 || bw * bh < 12) continue
+            val hash = Ambient.hash(w * 7 + h, bb[0] * 31 + bb[1], 523)
+            val on = hash < .55f
+            val bright = .6f + .3f * Ambient.hash(bb[0], bb[1] * 17 + w, 524)
+            // (the whole pane, glints and the odd half-blue pixel at its edge too)
+            for (y in bb[1]..bb[3]) for (x in bb[0]..bb[2]) {
+                val i = y * w + x
+                dark[i] = glassNight
+                if (on) {
+                    // a room's warm light seen from the street at a slant: dimmer under the lintel, brightest low down
+                    val v = bright * (.62f + .38f * (y - bb[1]) / max(1, bh - 1).toFloat())
+                    lit[i] = Px.argbF(1f, v, v * .78f, v * .46f)
+                }
+            }
+        }
+        SideNight(PlatformImages.create(dark, w, h, false), PlatformImages.create(lit, w, h, false))
+    }
+
+    /** The building [prepare]d last: how far its side windows are lit (the night's dark and its lights' hour). */
+    private fun sideLights(): Float = (inkDark * Dusk.lightsOn(sideSeed, hour)).coerceIn(0f, 1f)
 
     /**
      * A roof face: the picture (seen from above, its top the far edge) on the parallelogram whose front edge runs
@@ -2604,6 +2730,61 @@ internal class BuildingPainter {
     }
 
     /**
+     * In the crossroads' camera ([StageCamera]) a building's side faces, roof and rooftop billboard stand on planes of
+     * their own, each drawn through its own projective transform ([sideFace], [roofFace], [roofBoard]): the front pass
+     * then leaves them out. Off on the stage at rest, which draws them as its cabinet parallelograms.
+     */
+    var planeFaces = false
+
+    /** How the building pictures are sampled: crisp pixels at rest, smoothed where a face is seen small or at a slant. */
+    var faceQuality = FilterQuality.None
+
+    /**
+     * A side face of the building [prepare]d last, in its own picture's pixels ([SpriteBuilding.side]: 0 at the front's
+     * edge to its width at the back, 0 at the top to its height at the pavement), lit as the stage lights its shown side:
+     * [right] the face on the front's right, [back] the wall at the back (darker, the light never full on it).
+     */
+    fun DrawScope.sideFace(sb: SpriteBuilding, right: Boolean, back: Boolean = false) {
+        val img = sb.side
+        val w = img.width.toFloat()
+        val h = img.height.toFloat()
+        drawImage(img, IntOffset.Zero, IntSize(img.width, img.height), IntOffset.Zero, IntSize(img.width, img.height), 1f, Fill, null, BlendMode.SrcOver, faceQuality)
+        // at night its glass goes dark and some of its windows are lit, as the front's
+        val sn = if (inkDark > .02f) sideNight(img) else null
+        if (sn != null) drawImage(sn.dark, IntOffset.Zero, IntSize(img.width, img.height), IntOffset.Zero, IntSize(img.width, img.height), inkDark, Fill, null, BlendMode.SrcOver, faceQuality)
+        drawRect(Color(0xFF0A1024), Offset.Zero, Size(w, h), alpha = if (back) .38f else .2f)
+        val lit = (if (right) sunSide else -sunSide) * (if (back) .4f else 1f)
+        if (lit > .02f) drawRect(Color.White, Offset.Zero, Size(w, h), alpha = .26f * lit)
+        else if (lit < -.02f) drawRect(Color.Black, Offset.Zero, Size(w, h), alpha = .18f * -lit)
+        if (nightOn) drawRect(nightInk, Offset.Zero, Size(w, h), blendMode = BlendMode.Multiply)
+        if (sn != null) sideLights().let { on ->
+            if (on > .01f) drawImage(sn.lit, IntOffset.Zero, IntSize(img.width, img.height), IntOffset.Zero, IntSize(img.width, img.height), on, Fill, null, BlendMode.SrcOver, faceQuality)
+        }
+    }
+
+    /** The roof of the building [prepare]d last, in its picture's pixels ([SpriteBuilding.roof]: its top row the back). */
+    fun DrawScope.roofFace(sb: SpriteBuilding, sky: SkyColors) {
+        val img = sb.roof ?: return
+        val w = img.width.toFloat()
+        val h = img.height.toFloat()
+        drawImage(img, IntOffset.Zero, IntSize(img.width, img.height), IntOffset.Zero, IntSize(img.width, img.height), 1f, Fill, null, BlendMode.SrcOver, faceQuality)
+        drawRect(Color(0xFFFFF2D0), Offset.Zero, Size(w, h), alpha = .1f * direct)
+        if (season.snow > .01f) {
+            drawRect(snowInk(sky), Offset.Zero, Size(w, h), alpha = .85f * season.snow)
+            drawRect(snowInk(sky), Offset(0f, h * .9f), Size(w, h * .1f), alpha = .8f * season.snow)
+        }
+        if (nightOn) drawRect(nightInk, Offset.Zero, Size(w, h), blendMode = BlendMode.Multiply)
+    }
+
+    /** The rooftop billboard ([SpriteBuilding.prop]) in its own pixels, lit as its sign is; false if it has none. */
+    fun DrawScope.roofBoard(sb: SpriteBuilding): Boolean {
+        if (sb.sign != null) return false
+        val img = sb.prop ?: return false
+        drawImage(img, IntOffset.Zero, IntSize(img.width, img.height), IntOffset.Zero, IntSize(img.width, img.height), 1f, Fill, signTint(), BlendMode.SrcOver, faceQuality)
+        return true
+    }
+
+    /**
      * One of OUR buildings ([SpriteArt]): its pixel-art front, a side face and a roof built from our sprites, put on
      * the engine's box (the side face and roof lean with where it stands in the view, [sideShift]) and lit by the
      * engine: the sun's wash and shade across the front and the side, the blue hour, the night, the contact shadow at
@@ -2616,18 +2797,22 @@ internal class BuildingPainter {
         val s = sideShift
         val dy = B.DY
         // the side face the camera sees: a parallelogram hung from the front's edge
-        if (abs(s) > .02f && art.stack.id !in StageTuning.cornerIds) {
+        if (!planeFaces && abs(s) > .02f && art.stack.id !in StageTuning.cornerIds) {
             val xe = if (s > 0f) half else -half
             sideStrips(sb.side, xe, -hf, s, -dy, hf)
+            // at night its glass goes dark and some of its windows are lit, as the front's
+            val sn = if (inkDark > .02f) sideNight(sb.side) else null
+            if (sn != null) sideStrips(sn.dark, xe, -hf, s, -dy, hf, alpha = inkDark)
             spritePath.rewind()
             spritePath.moveTo(xe, 0f); spritePath.lineTo(xe, -hf); spritePath.lineTo(xe + s, -hf - dy); spritePath.lineTo(xe + s, -dy); spritePath.close()
             drawPath(spritePath, Color(0xFF0A1024), alpha = .2f)
             sideLight(spritePath, 1f)
             if (nightOn) drawPath(spritePath, nightInk, blendMode = BlendMode.Multiply)
+            if (sn != null) sideLights().let { on -> if (on > .01f) sideStrips(sn.lit, xe, -hf, s, -dy, hf, alpha = on) }
         }
         // the roof face, seen from a little above: our flat roof, leaning to the shown side
         val roof = sb.roof
-        if (roof != null) {
+        if (roof != null && !planeFaces) {
             roofStrips(roof, -half, -hf, B.W, dy, s)
             spritePath.rewind()
             spritePath.moveTo(-half, -hf); spritePath.lineTo(-half + s, -hf - dy); spritePath.lineTo(half + s, -hf - dy); spritePath.lineTo(half, -hf); spritePath.close()
@@ -2644,13 +2829,13 @@ internal class BuildingPainter {
         val over = sb.sign
         if (over != null) {
             val h = over.height * k
-            picture2(over, -half, -hf - h, B.W, h, FilterQuality.None, filter = signTint())
+            picture2(over, -half, -hf - h, B.W, h, faceQuality, filter = signTint())
         } else {
             val bill = sb.prop
-            if (bill != null) {
+            if (bill != null && !planeFaces) {
                 val w = 160f * k
                 val h = bill.height * k
-                picture2(bill, -w / 2f + s * .5f, -hf - dy * .5f - h, w, h, FilterQuality.None, filter = signTint())
+                picture2(bill, -w / 2f + s * .5f, -hf - dy * .5f - h, w, h, faceQuality, filter = signTint())
             }
         }
         // the windows are real openings: the room behind each (dark glass and a dim room by day, a warm lit room once
@@ -2690,11 +2875,11 @@ internal class BuildingPainter {
             }
         }
         // the front never moves
-        picture2(sb.front, -half, -hf, B.W, hf, FilterQuality.None)
+        picture2(sb.front, -half, -hf, B.W, hf, faceQuality)
         relief(sb, half, hf)
         sb.balcony?.let {
             balcony(it, k, half, hf, s, dy)
-            sb.overBalcony?.let { o -> picture2(o, -half, -hf, B.W, hf, FilterQuality.None) }
+            sb.overBalcony?.let { o -> picture2(o, -half, -hf, B.W, hf, faceQuality) }
         }
         facadeLight(-hf, 0f, 1f)
         blueHour(-half, -hf, B.W, hf, .35f)
@@ -2724,7 +2909,7 @@ internal class BuildingPainter {
             val mirror = fresnel * (1f + PANE_FRESNEL * GlassMap.tilt(pane))
             mirrorSky(-half + band[0] * k, -hf + band[1] * k, band[2] * k, band[3] * k, min(1f, FacadeLook.reflection(0f, sky.dark) * mirror * .75f), pane, 1f)
             glassRain(-half + band[0] * k, -hf + band[1] * k, band[2] * k, band[3] * k, glassSeconds, sky)
-            picture2(gm, -half, -hf, B.W, hf, FilterQuality.None, blend = BlendMode.DstIn)
+            picture2(gm, -half, -hf, B.W, hf, faceQuality, blend = BlendMode.DstIn)
             drawIntoCanvas { it.restore() }
         }
         // lit at dusk: the glass glows
@@ -2732,8 +2917,8 @@ internal class BuildingPainter {
         if (on > .01f) {
             // lit inside: the shop's own display brightened and warmed (overlay keeps what is in the window), and a little
             // light added on top so the glass glows
-            picture2(sb.emis, -half, -hf, B.W, hf, FilterQuality.None, alpha = on * .9f, blend = BlendMode.Overlay)
-            picture2(sb.emis, -half, -hf, B.W, hf, FilterQuality.None, alpha = on * .22f, blend = BlendMode.Plus)
+            picture2(sb.emis, -half, -hf, B.W, hf, faceQuality, alpha = on * .9f, blend = BlendMode.Overlay)
+            picture2(sb.emis, -half, -hf, B.W, hf, faceQuality, alpha = on * .22f, blend = BlendMode.Plus)
         }
         drawRect(SceneInk.Highlight, Offset(-half, -hf), Size(B.W, 1f))
     }
@@ -3672,25 +3857,11 @@ internal class BuildingPainter {
     }
 
     /**
-     * One building: its park, its lobby, every storey, its roof and what stands on it, and what is
-     * playing on it. [live] is today (a past week of the time-lapse has every floor done and lit).
-     * [detailed] draws words, people and plaques (a building drawn small has none).
+     * Sets the light and view state for building [art] standing at [x] along its street (the sun's side on it, which
+     * side face it shows, its glass), which [building] and the crossroads' own faces ([sideFace], [roofFace],
+     * [roofBoard]) draw by.
      */
-    fun DrawScope.building(
-        art: BuildingArt,
-        motion: BuildingMotion,
-        selected: String?,
-        accent: Color,
-        live: Boolean,
-        detailed: Boolean,
-        sky: SkyColors,
-        lod: PeopleLod = if (detailed) PeopleLod.FULL else PeopleLod.NONE,
-        x: Float = 0f,
-    ) {
-        // the mouth of the side street: no building, no lot (the stage draws the side street there)
-        if (art.stack.id == com.lifemax.rpg.feature.habits.domain.JUNCTION_ID) return
-        val seconds = motion.seconds
-        val half = B.W / 2f
+    fun prepare(art: BuildingArt, x: Float, sky: SkyColors, seconds: Float) {
         // which side of it the light finds, and how hard (the moon lights a little, the sun a lot)
         val key = light
         buildingX = x
@@ -3710,6 +3881,33 @@ internal class BuildingPainter {
         fresnel = FRESNEL_FACE + (1f - FRESNEL_FACE) * abs(Perspective.sideAt(x, viewX, lightSpan))
         mirrorPhase = (art.stack.id.hashCode() and 0xFFFF) * .37f
         glassSeconds = seconds
+        sideSeed = art.stack.id.hashCode()
+    }
+
+    /** The building [prepare]d last, for when its side windows' lights come on. */
+    private var sideSeed = 0
+
+    /**
+     * One building: its park, its lobby, every storey, its roof and what stands on it, and what is
+     * playing on it. [live] is today (a past week of the time-lapse has every floor done and lit).
+     * [detailed] draws words, people and plaques (a building drawn small has none).
+     */
+    fun DrawScope.building(
+        art: BuildingArt,
+        motion: BuildingMotion,
+        selected: String?,
+        accent: Color,
+        live: Boolean,
+        detailed: Boolean,
+        sky: SkyColors,
+        lod: PeopleLod = if (detailed) PeopleLod.FULL else PeopleLod.NONE,
+        x: Float = 0f,
+    ) {
+        // the mouth of the side street: no building, no lot (the stage draws the side street there)
+        if (art.stack.id == com.lifemax.rpg.feature.habits.domain.JUNCTION_ID) return
+        val seconds = motion.seconds
+        val half = B.W / 2f
+        prepare(art, x, sky, seconds)
         park(art, selected, accent, seconds, sky)
         val sprite = SpriteArt.buildings[art.stack.id]
         val house = sprite?.house
@@ -3815,6 +4013,8 @@ internal class BuildingPainter {
         val k = back.amount
         if (k <= 0f) return
         if (SpriteArt.buildings.containsKey(art.stack.id)) return
+        // the side street's mouth: no building, so no lobby name or sign tube (they floated over its road)
+        if (art.stack.id == com.lifemax.rpg.feature.habits.domain.JUNCTION_ID) return
         val seconds = motion.seconds
         val half = B.W / 2f
         val lit = lerp(SceneInk.WindowLitDay, SceneInk.WindowLit, sky.dark)
@@ -7059,6 +7259,8 @@ private const val LAMP_FOOT_Y = 127f
 // the lantern glass under the lamp's head (props/lamp_1.png is 64x128; the glass is the pale band at about 44-56, 46-50)
 private const val LAMP_LENS_X = 50f
 private const val LAMP_LENS_Y = 48f
+/** Where the lamp's arm leaves its bracket (sprite pixels): the picture right of it is the arm and the head. */
+private const val LAMP_ARM_X = 32f
 private val TREE_K get() = SpriteArt.PIXEL   // the same grid as the buildings
 private const val TREE_FOOT_X = 31f
 private const val TREE_FOOT_Y = 95f

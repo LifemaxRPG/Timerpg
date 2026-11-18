@@ -207,8 +207,11 @@ object MoveInput {
         // whichever is pushed further: the screen's stick or the pad
         val px = if (padHolding) 0f else padX
         val py = if (padHolding) 0f else padY
+        val wasUp = CornerWalk.isUp(GameState.moveX, GameState.moveLane)
         if (hypot(px, py) > stick.amount) { GameState.moveX = px; GameState.moveLane = py }
         else { GameState.moveX = stick.x; GameState.moveLane = stick.y }
+        // a flick up is kept for the game loop even when the thumb is back before its next frame (the corner turns on it)
+        if (!wasUp && CornerWalk.isUp(GameState.moveX, GameState.moveLane)) CornerWalk.upTapped = true
     }
 
     /**
