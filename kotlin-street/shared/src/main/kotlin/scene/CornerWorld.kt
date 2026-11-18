@@ -640,8 +640,10 @@ internal class CornerWorld {
                 // street's cabinet slant along X, which stacked the main street up into the sky from the cross street)
                 val corner = bx.x1 <= .01f && bx.x1 > -1f
                 val sc = if (corner) cornerShift(cr) else 0f
-                cam.leaned(out, leanMain, sh * k, -B.DY * k, if (corner) leanCross else 0f, -sc * k, B.DY * k,
-                    drop(if (corner) max(leanMain, leanCross) else leanMain))
+                // (seen from the cross street the corner building is drawn in perspective as the rest of the main street
+                // is: its east wall stands in the cross street's front plane, so it is flat on and in line with the row
+                // all the same, and its sides recede the way its neighbours' do instead of the cabinet's opposite way)
+                cam.leaned(out, leanMain, sh * k, -B.DY * k, 0f, -sc * k, B.DY * k, drop(leanMain))
             }
             1 -> {
                 val sh = shift(s, s.street.centers[bx.index])
