@@ -3553,8 +3553,8 @@ internal class BuildingPainter {
         val d1 = if (p.card) p.d0 + .01f else p.d1
         val snowy = season.snow
         val toSun = if (sideShift < 0f) -sunSide else sunSide
-        // --- the shown side
-        if (v.showsSide && d1 > d0 + .5f) {
+        // --- the shown side (none where it stands against another part)
+        if (v.showsSide && d1 > d0 + .5f && !(if (v.rightSide) p.abutR else p.abutL)) {
             val xs = if (v.rightSide) p.x1 else p.x0
             val path = quadPath(v.x(xs, d0), v.y(p.y1, d0), v.x(xs, d1), v.y(p.y1, d1), v.x(xs, d1), v.y(p.y0, d1), v.x(xs, d0), v.y(p.y0, d0))
             val st = p.st
@@ -3630,6 +3630,47 @@ internal class BuildingPainter {
             val fx = v.x(p.x0, d0); val fy = v.y(p.y1, d0)
             drawRect(houseInk(lerp(rgb(p.front), castInk, .1f * direct)), Offset(fx, fy), Size((p.x1 - p.x0) * k, (p.y1 - p.y0) * k))
         }
+    }
+
+    /** A picture lying flat (a helipad on a roof, an arrow on the ground), snow over it in winter. */
+    private fun DrawScope.modelDecal(v: com.lifemax.rpg.feature.habits.domain.ModelView, p: com.lifemax.rpg.feature.habits.domain.ModelPart, ma: ModelArt, sky: SkyColors) {
+        val r = p.tt ?: return
+        levelStrips(ma.atlas, r[0], r[1], r[2], r[3], v.x(p.x0, p.d0), v.y(p.y0, p.d0), (p.x1 - p.x0) * v.k, v.lift(p.d1 - p.d0), v.lean(p.d1 - p.d0), signTint())
+        val snow = season.snow
+        if (snow > .01f) {
+            val path = quadPath(v.x(p.x0, p.d0), v.y(p.y0, p.d0), v.x(p.x1, p.d0), v.y(p.y0, p.d0), v.x(p.x1, p.d1), v.y(p.y0, p.d1), v.x(p.x0, p.d1), v.y(p.y0, p.d1))
+            drawPath(path, houseInk(snowInk(sky)), alpha = ROOF_SNOW * snow)
+        }
+    }
+
+    /**
+     * A sloped slab (a canopy, an awning): its shown side's edge, its top (its picture from above laid on its quad by one
+     * projective map, lit, snow on it), then its front edge.
+     */
+    private fun DrawScope.modelSlope(v: com.lifemax.rpg.feature.habits.domain.ModelView, p: com.lifemax.rpg.feature.habits.domain.ModelPart, ma: ModelArt, sky: SkyColors) {
+        val k = v.k
+        if (v.showsSide) {
+            val xs = if (v.rightSide) p.x1 else p.x0
+            drawPath(quadPath(v.x(xs, p.d0), v.y(p.y0, p.d0), v.x(xs, p.d1), v.y(p.y1, p.d1), v.x(xs, p.d1), v.y(p.y1 - p.thick, p.d1), v.x(xs, p.d0), v.y(p.y0 - p.thick, p.d0)),
+                houseInk(rgb(p.side)))
+        }
+        val t = pieceTo
+        t[0] = v.x(p.x0, p.d0); t[1] = v.y(p.y0, p.d0); t[2] = v.x(p.x1, p.d0); t[3] = v.y(p.y0, p.d0)
+        t[4] = v.x(p.x1, p.d1); t[5] = v.y(p.y1, p.d1); t[6] = v.x(p.x0, p.d1); t[7] = v.y(p.y1, p.d1)
+        val path = quadPath(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7])
+        val tt = p.tt
+        // (seen from below, a slab rising to the back shows its underside: its edge colour)
+        val above = t[7] < t[1] - .01f
+        if (tt != null && above) {
+            val f = pieceFrom
+            f[0] = 0f; f[1] = tt[3].toFloat(); f[2] = tt[2].toFloat(); f[3] = tt[3].toFloat(); f[4] = tt[2].toFloat(); f[5] = 0f; f[6] = 0f; f[7] = 0f
+            pieceOnto(ma.atlas, tt, f, t, signTint())
+            roofLight(quadPath(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7]), 0f, sky)
+        } else drawPath(path, houseInk(rgb(if (above) p.top else p.side)))
+        val ft = p.ft
+        val fx = v.x(p.x0, p.d0); val fy = v.y(p.y0, p.d0)
+        if (ft != null) part(ma.atlas, ft[0], ft[1], ft[2], ft[3], fx, fy, (p.x1 - p.x0) * k, p.thick * k, filter = signTint())
+        else drawRect(houseInk(rgb(p.front)), Offset(fx, fy), Size((p.x1 - p.x0) * k, p.thick * k))
     }
 
     /**
@@ -3884,6 +3925,8 @@ internal class BuildingPainter {
             when (p.type) {
                 com.lifemax.rpg.feature.habits.domain.ModelPart.BOX -> modelBox(v, p, ma, sky, seed + i * 7)
                 com.lifemax.rpg.feature.habits.domain.ModelPart.GABLE -> frontGable(v, p, ma, sky, seed + i * 7, eaves = !sh.eaveLater[i])
+                com.lifemax.rpg.feature.habits.domain.ModelPart.DECAL -> modelDecal(v, p, ma, sky)
+                com.lifemax.rpg.feature.habits.domain.ModelPart.SLOPE -> modelSlope(v, p, ma, sky)
                 else -> hippedRoof(v, p, ma, sky)
             }
             // the eave boards of the gable this box carries, over its side wall

@@ -143,3 +143,43 @@ Street pitched roofs and the shops' rooftop signs (on screen all the time), then
   (`roof_2/4/6`, `roof_8/9/11` are pitched in the game) could use the same machinery next.
 - **Cheap volume:** ground decals and upright prop cards (about 115 sprites) mostly need placement rules, not new
   rendering.
+
+## Civic buildings: the fire station, the hospital, the post office (2026-11-18)
+
+**Done** in a showcase row (`make_buildings.py --showcase DIR`, `-Dmode=models -Dstreet=6 -Dtall=900`), not on the
+exported streets (landmarks are not lots there). Builders in `tools/buildings_civA.py` (`fire_station`, `hospital`,
+`post_office`); `build_model` asks that module first. Each volume stands at the depth its foot row in the art gives it
+(a part drawn lower stands further forward by as much) and wears its front as drawn; what the art draws from above in
+a front is painted out of it and built as its own part.
+
+- **New part types** in models.json, each with a simple drawing in `BuildingPainter`: `slope` (a sloped slab: its
+  front edge's height on one depth, its back's on another, a face `th` deep wearing `ft`, its top wearing `tt` back row
+  first: the post office's awning) and `decal` (a picture lying flat at a height, `p` its piece: the helipad, a road
+  arrow). A box may say `abut: "l" | "r" | "lr"`: that side stands against a neighbouring part (a taller volume), so a
+  painter drawing back to front leaves it out; volumes are split where a taller one stands beside them so every side
+  is either wholly open or wholly against another. `ModelShape.ridge` counts only gables and hipped roofs (a decal is
+  no roof).
+- **Fire station** (`landmark_fire_1`): the hose tower 32 forward of the engine bay, its two storeys (the upper
+  overhanging the lower by a few pixels, as drawn) under a hipped roof inside a rim (the art's roof from above), the
+  front face its rows between the hips every other row, a flat top with a low lantern; the door's canopy as a slab (its
+  top from above, its edge), the wall behind it the bay's own brick, two beacons standing on it as cards, the landing,
+  the step and their cheeks. The bay: its wall, its parapet (face and top from the art, sides and back plain), its roof
+  the art's diamond tiles (40 x 20) laid over the whole top, the upper block standing set back on it with its own top
+  and two vents as low boxes. The tower is split at the bay's front and at the bay's parapet height.
+- **Hospital** (`landmark_hospital_1`): the main block, the middle block 96 forward and taller, the emergency wing 32
+  forward and tallest, all back to one line; each a flat roof (the art's grey roof laid over it) behind a 32-wide
+  coping (its face from the art). The main block's front continues as plain wall where the art shows the middle
+  block's slanted side; the entrance under the canopy (hidden in the art) is a glass front between the glass side doors
+  the art shows. The canopy on its two pillars, the blue cross a card on its edge, the arrow a ground decal, the
+  helipad a decal on the middle block's roof (laid round, 170 x 170, where the art squeezes it), the plant room and its
+  fan unit on the main block's roof, the slab over the ambulance bays. Split: the middle block into its front part,
+  the strip before the main block, its part beside the main block and its part above it; the wing at the middle
+  block's roof.
+- **Post office** (`landmark_post_1..4`, one shape in four colours): the shop storey with its parapet (face and top
+  from the art), its roof the art's floor; the upper block set back on it, its top the art's with the three hatches and
+  two vents painted out and built as low boxes; the ladder up its front and the mast as cards drawn in the art's own
+  colours; the awning as a `slope` (top from the art, the sign its face), the wall behind it carried on in each row's
+  colour; the hanging rods painted out of the front and built as thin boxes from brackets on the wall.
+- Checked by eye at day, dusk, night and snow in the classic street. Still to do: the hospital's middle block's slanted
+  side in the art is a chamfer in plan (here a square corner); the hospital entrance is reconstructed, not drawn by the
+  artist; side walls are each front's courses with its windows (none of these buildings shows a side in the art).

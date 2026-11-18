@@ -202,4 +202,21 @@ class ModelGeometryTest {
         for (y in -9..-2) for (x in -9..-2) if (at(x, y) == ink) upLeft++
         assertEquals(4, upLeft); assertEquals(gold, at(-6, -6)); assertTrue(empty(6, -6))
     }
+
+    /** The civic buildings' parts: a box against its neighbour, a sloped canopy, a picture lying flat on a roof. */
+    @Test fun parsesAbuttingSidesSlopedSlabsAndDecals() {
+        val m = ModelShape.parse(org.json.JSONObject("""
+            {"kind": "civic", "w": 256, "frontX": -16, "setback": 32, "lawn": "paving", "style": "natural", "fence": null,
+             "roofTint": 5, "lamp": null, "lights": "shop", "smoke": [], "fpx": 0, "parts": [
+              {"t": "box", "x": [0, 256], "y": [0, 194], "d": [0, 144], "c": [1, 2, 3], "abut": "r"},
+              {"t": "slope", "x": [16, 240], "y": [74, 90], "d": [-18, 0], "c": [1, 2, 3], "th": 16, "ft": [0, 0, 224, 16], "tt": [0, 17, 224, 16]},
+              {"t": "decal", "x": [320, 490], "y": [260.5, 260.5], "d": [-35, 136], "p": [0, 40, 171, 171]}]}
+        """.trimIndent()))!!
+        val (box, slab, pad) = m.parts
+        assertFalse(box.abutL); assertTrue(box.abutR)
+        assertEquals(ModelPart.SLOPE, slab.type); assertEquals(16f, slab.thick); assertEquals(90f, slab.y1); assertEquals(17, slab.tt!![1])
+        assertEquals(ModelPart.DECAL, pad.type); assertEquals(260.5f, pad.y0); assertEquals(171, pad.tt!![3])
+        // neither is a roof: the highest roof is the box's top
+        assertEquals(194f, m.ridge)
+    }
 }

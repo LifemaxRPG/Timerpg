@@ -5,8 +5,8 @@ import kotlin.math.max
 /*
  * Our villas and landmarks (the clock tower, the school) as shape with no drawing in it: what tools/make_buildings.py's
  * build_model cut from their sprites (buildings/models.json). Each is a list of parts drawn back to front: boxes, front
- * gables (the triangle end facing the street, the slopes running back from it) and hipped roofs (four sloped faces and
- * a flat top). Lengths are sprite pixels: x across the model's front picture (which stands [ModelShape.frontX] pixels into
+ * gables (the triangle end facing the street, the slopes running back from it), hipped roofs (four sloped faces and
+ * a flat top), sloped slabs (canopies, awnings) and pictures lying flat (a helipad, a road arrow). Lengths are sprite pixels: x across the model's front picture (which stands [ModelShape.frontX] pixels into
  * the lot's 224-pixel frame), y up from the ground, d back from the model's front line (negative: in front of it), which
  * stands [ModelShape.setback] back from the pavement. Where a part wears a piece of art it is a rectangle of the
  * building's atlas picture (x, y, w, h), and its points are in that rectangle's own pixels.
@@ -65,6 +65,13 @@ class ModelPart(
      * high edge at one side ([x1]) and only its [left] slope (the terraced houses).
      */
     val apexX: Float = Float.NaN,
+    /**
+     * A box whose left or right side stands against another part (a taller volume beside it): no wall shows there, so
+     * a painter that draws back to front leaves it out rather than paint it over its neighbour.
+     */
+    val abutL: Boolean = false, val abutR: Boolean = false,
+    /** A sloped slab (a canopy or an awning): how thick its front edge is. */
+    val thick: Float = 0f,
 ) {
     /** A gable's or a hipped roof's apex x. */
     val apex: Float get() = if (apexX.isNaN()) (x0 + x1) / 2f else apexX
@@ -75,12 +82,19 @@ class ModelPart(
         const val BOX = 0
         const val GABLE = 1
         const val HIP = 2
+        /** A picture lying flat at height [y0] (a helipad on a roof, an arrow on the ground): its piece is [tt]. */
+        const val DECAL = 3
+        /**
+         * A sloped slab, a canopy or an awning: its front edge at [y0] on [d0] (its face [thick] deep, wearing [ft]),
+         * rising or falling to [y1] at [d1] (its top wearing [tt], back row first).
+         */
+        const val SLOPE = 4
     }
 }
 
 /** A modelled building (buildings/models.json). */
 class ModelShape(
-    /** "villa", "tower", "school" or "terraced". */
+    /** "villa", "tower", "school", "terraced", "estate" or "civic". */
     val kind: String,
     /** Its front picture's width (pixels): a lot as wide, or the street's 224 if that is more. */
     val width: Float,
@@ -105,7 +119,7 @@ class ModelShape(
     private val walls: List<ModelPart> = parts.filter { it.type == ModelPart.BOX && !it.card && it.d1 - it.d0 >= 100f }
     /** The top of its walls, and its highest roof's ridge and that ridge's depth. */
     val wallTop: Float = walls.maxOfOrNull { it.y1 } ?: 0f
-    private val tallestRoof: ModelPart? = parts.filter { it.type != ModelPart.BOX }.maxByOrNull { it.y1 }
+    private val tallestRoof: ModelPart? = parts.filter { it.type == ModelPart.GABLE || it.type == ModelPart.HIP }.maxByOrNull { it.y1 }
     val ridge: Float = max(tallestRoof?.y1 ?: 0f, parts.maxOfOrNull { if (it.type == ModelPart.BOX) it.y1 else 0f } ?: 0f)
     val ridgeD: Float = tallestRoof?.let { (it.d0 + it.d1) / 2f } ?: 0f
     /** Its walls' span across the front picture. */
@@ -174,7 +188,14 @@ class ModelShape(
                         ints(p.optJSONArray("ft")), p.optDouble("fx", x.getDouble(0)).toFloat(), ints(p.optJSONArray("tt")), ints(p.optJSONArray("st")),
                         p.optBoolean("card"), p.optBoolean("out"),
                         if (pn == null) emptyList() else (0 until pn.length()).map { floats(pn.getJSONArray(it))!! },
-                        sideGlow = p.optBoolean("sg"), clock = ints(p.optJSONArray("clock")))
+                        sideGlow = p.optBoolean("sg"), clock = ints(p.optJSONArray("clock")),
+                        abutL = p.optString("abut").contains('l'), abutR = p.optString("abut").contains('r'))
+                }
+                "decal" -> ModelPart(ModelPart.DECAL, x.f(0), x.f(1), y.f(0), y.f(0), d.f(0), d.f(1), -1, 0, 0, tt = ints(p.getJSONArray("p")))
+                "slope" -> {
+                    val c = p.getJSONArray("c")
+                    ModelPart(ModelPart.SLOPE, x.f(0), x.f(1), y.f(0), y.f(1), d.f(0), d.f(1), c.getInt(0), c.getInt(1), c.getInt(2),
+                        ints(p.optJSONArray("ft")), tt = ints(p.optJSONArray("tt")), thick = p.optDouble("th", 0.0).toFloat())
                 }
                 "gable" -> {
                     val rk = p.getJSONArray("rake")
