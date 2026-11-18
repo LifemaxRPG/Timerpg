@@ -24,7 +24,9 @@ material {
         // how much of the thing is left (a building fading out mid-turn): screen-door, whole art pixels
         { type : float, name : fade },
         // the size of an art pixel on screen, for that screen door
-        { type : float, name : cell }
+        { type : float, name : cell },
+        // 1: a face seen only from its front (a card's two sides are two faces); 0 (unset): from both sides
+        { type : float, name : oneSided }
     ],
     requires : [ uv0, tangents ]
 }
@@ -52,14 +54,19 @@ fragment {
         vec4 c = texture(materialParams_albedo, uv) * materialParams.tint;
         vec4 m = texture(materialParams_mask, uv);
         if (materialParams.fade < 1.0 && bayer4(gl_FragCoord.xy / materialParams.cell) > materialParams.fade) c.a = 0.0;
-        c.rgb *= mix(vec3(1.0), materialParams.glass.rgb, m.g);
+        if (materialParams.oneSided > 0.5 && dot(getWorldGeometricNormalVector(), getWorldViewVector()) < 0.0) c.a = 0.0;
+        // a mask pixel at half alpha is a light in its own colour (the mask's rgb: a sign's letters, a spotlight's lens)
+        float own = step(0.25, m.a) * (1.0 - step(0.75, m.a));
+        float gl = m.g * (1.0 - own);
+        c.rgb *= mix(vec3(1.0), materialParams.glass.rgb, gl);
         material.baseColor = c;
         // walls and paint are matt; glass (the mask's green) is smooth and reflects the sky
-        material.roughness = mix(0.9, 0.2, m.g);
+        material.roughness = mix(0.9, 0.2, gl);
         material.metallic = 0.0;
-        material.reflectance = mix(0.2, 0.6, m.g);
+        material.reflectance = mix(0.2, 0.6, gl);
         // a lit room glows whole in the lamp's colour; a lit display (the mask's blue) glows in its own colours, warmed
         vec3 lamp = mix(vec3(1.0), c.rgb * 1.8, m.b);
-        material.emissive = vec4(materialParams.glow.rgb * lamp * (m.r * materialParams.glow.a), 0.0);
+        vec3 warm = materialParams.glow.rgb * lamp * m.r;
+        material.emissive = vec4(mix(warm, m.rgb * 1.6, own) * materialParams.glow.a, 0.0);
     }
 }
