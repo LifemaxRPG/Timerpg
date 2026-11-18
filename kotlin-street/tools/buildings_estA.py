@@ -364,6 +364,8 @@ def estate_country(shop, rng):
     WE = 73                                                          # the wing's eaves
     parts = [
         # the wing, set back, under its pitched roof; its deck and steps
+        # (on its plinth: the wing's floor is the deck's, its walls stand on a foundation down to the ground)
+        mbox((28, 196), (0, 18), (60, 170), (wall_c, shade(wall_c, .6), shade(wall_c, .5)), top=False),
         mbox((28, 196), (18, WE), (60, 170), (wall_c, wall_c, wall_c), ft=ww_r, st=ws_r, panes=w_panes, top=False),
         mhip((12, 196), (WE, WE + wrise), (52, 52 + 2 * wrun), (12, 196, 52 + wrun - 1, 52 + wrun + 1), wface_r, wend_r,
              wq, wend_r, wq, roof_c),
@@ -378,6 +380,8 @@ def estate_country(shop, rng):
                (rake_c, edge_c), roof_c, lip=lip_c),
         mbox((196, 492), (100, E), (0, 200), (wall_c, wall_c, wall_c), ft=up_r, fx=X0, st=us_r, panes=up_panes, top=False),
         # the dormer: its cheek, its front (the cheek's inner face and what the slope hides fall behind these two), its roof
+        # (its back wall, rising out of the slope behind it: closed, not open into the roof)
+        mbox((DX0, DX1), (dh0, dh1), (DD1, DD1), (wall_c, shade(wall_c, .85), shade(wall_c, .85)), card=True, top=False),
         mbox((DX1 - 6, DX1), (dh0, dh1), (DD0, DD1), (wall_c, wall_c, shade(wall_c, .85)), st=dcheek_r, top=False),
         mbox((DX0, DX1), (dh0, dh1), (DD0, DD0), (wall_c, wall_c, wall_c), ft=dfront_r, card=True, top=False),
         mbox((DX0 - 2, DX1 + 2), (dh1, dh1 + 4), (DD0 - 2, DD1), (roof_c, art[158, 430], shade(art[158, 430], .85)), ft=dfascia_r, tt=dtop_r),

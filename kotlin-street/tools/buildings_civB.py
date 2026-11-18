@@ -440,12 +440,13 @@ def police(shop, rng):
         # its side; under the wing's roof only the strip between the pillar and the wing's front shows, drawn below)
         mb.mbox((247, 307), (WE, E), (CH, 240), (brick, brick, shade(brick, .85)), st=tside_r, top=False),
         # the wing: its main block, the straight right side, the back and front quarters of its rounded end
-        mb.mbox((307, 604), (0, WE), (WD, 272), (floor_c, wall_w, shade(wall_w, .85)), ft=wf_r, tt=wfl_r, panes=wf_panes),
+        # (its back and its short left end behind the tall block wear the rounded end's wall: brick on its blue base band)
+        mb.mbox((307, 604), (0, WE), (WD, 272), (floor_c, wall_w, shade(wall_w, .85)), ft=wf_r, tt=wfl_r, st=rside_r, panes=wf_panes),
         mb.mbox((604, 656), (0, WE), (115, 157), (floor_c, wall_w, shade(wall_w, .85)), st=rside_r),
         mcyl((CX, BC), (A, 115), (90, 180), (0, WE), (floor_c, wall_w), ft=bq_r),
         mcyl((CX, FC), (A, 85), (0, 90), (0, WE), (floor_c, wall_w), ft=fq_r),
         # its back parapet and its rail, the lamps behind the stair house, the stair house
-        mb.mbox((307, 604), (WE, WE + 15), (232, 272), (cope, px(185, 450), px(185, 450)), ft=wpb_r, tt=wpb_tr),
+        mb.mbox((307, 604), (WE, WE + 15), (232, 272), (cope, band, band), ft=wpb_r, tt=wpb_tr),
         # the rail along it, from the tall block round to where the curve's rail meets it (without it that rail stopped
         # short at the curve's end, a bar in the air over the roof)
         mb.mbox((307, 604), (WE + 15, WE + 15 + rail_w.shape[0]), (252, 252), (ink, ink, ink), ft=rail_wr, card=True),

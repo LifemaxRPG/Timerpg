@@ -838,6 +838,13 @@ def mbox(x, y, d, c, ft=None, fx=None, tt=None, st=None, card=False, panes=None,
     if outline: p['out'] = True
     return p
 
+def mrail(a, b, h, bar, glass=None, alpha=0, posts=0, w=2):
+    """A railing (as buildings_estB.mrail): its handrail `h` above the line from a to b (each x, y, d), `w` thick, in
+    `bar`'s colour, a glass panel under it (`glass` at `alpha`) or none, posts every `posts` pixels (0: the ends only)."""
+    return dict(t='rail', x=fl((a[0], b[0])), y=fl((a[1], b[1])), d=fl((a[2], b[2])), h=float(h), w=float(w),
+                c=[rgb_int(bar), rgb_int(glass) if glass is not None else -1], ga=int(alpha), posts=float(posts))
+
+
 def mgable(x, y, d, left, lp, right, rp, rake, roofc, de=None, face=None, fx=None, fy=None, panes=None, lip=None, ax=None):
     """A front-facing gable: eaves x[0] and x[1], eave and ridge heights y, from its face d[0] back to d[1] (the eaves
     back to de: where they meet another roof, if they do). Each slope wears an atlas piece laid on its quad by four of
@@ -955,8 +962,9 @@ def villa(shop, rng):
         mbox((20, 32), (12, 52), (-18, -10), (rail_top, post_c, shade(post_c, .8)), ft=post_l),
         mbox((224, 236), (12, 52), (-18, -10), (rail_top, post_c, shade(post_c, .8)), ft=post_r),
         mbox((2, 254), (52, 58), (-22, 36), (art[260, 140], art[298, 140], shade(art[298, 140], .8)), ft=fascia_r, tt=roofdeck_r),
-        mbox((176, 184), (58, 82), (-8, 36), (rail_top, rail_c, shade(rail_c, .85)), outline=True),
-        mbox((232, 240), (58, 82), (-8, 36), (rail_top, rail_c, shade(rail_c, .85)), outline=True),
+        # its side rails: a handrail on posts back to the wall (not solid ends: seen from the side, open)
+        mrail((180, 58, -8), (180, 58, 36), 24, rail_c, posts=11, w=4),
+        mrail((236, 58, -8), (236, 58, 36), 24, rail_c, posts=11, w=4),
         mbox((176, 240), (58, 82), (-8, -8), (rail_top, rail_c, rail_c), ft=balc_r, card=True),
         # (its ridge where the face's checkered rake boards meet, at 45 degrees from its eaves: the slopes' straight front
         # edges then run along the boards' outer edge, and the verge the engine draws above them shows)
@@ -1242,7 +1250,11 @@ def terraced(shop, rng):
     hs, _ = side_wall(siding(high_h), T_DEPTH, None, 0, (), rng, corner)
     ws = importlib.import_module('buildings_wf-sprites').ribbed_side(wing, 250, corner)   # the wing's ribs carried round
     ms_r = at.add(ms); hs_r = at.add(hs); ws_r = at.add(ws)
-    wall_c = art[440, 60]; wing_c = art[400, 330]
+    # the walls' plain colour: the siding's own body colour (its commonest), not whatever stripe one pixel lands on
+    sid = up_rows[up_rows[..., 3] > 0][:, :3]
+    vals, cnt = np.unique(sid, axis=0, return_counts=True)
+    wall_c = np.concatenate([vals[cnt.argmax()], [255]]).astype(np.uint8) if len(vals) else art[440, 60]
+    wing_c = art[400, 330]
     yr0, yr1 = T_FOOT - t_roof_edge(x0), T_FOOT - t_roof_edge(T_RIDGE)
     parts = [
         # the side wing, standing back by the rows its foot is drawn above the front's

@@ -94,7 +94,7 @@ internal object FilamentModels {
     ): ModelMesh {
         val g = Mesher(art)
         g.all()
-        val night = Night(art, seed, textures)
+        val night = Night(art, seed, textures, linear)
         return upload(engine, visibleMat, proxyMat, textures, g, place, night, linear)
     }
 
@@ -103,6 +103,8 @@ internal object FilamentModels {
     /** What a group of faces wears: the atlas, a plain colour, one of the yard's pictures, a screen-doored glass. */
     sealed class Key {
         object Atlas : Key()
+        /** The atlas on faces seen from their front only (a card's front and back: through its holes, not the other). */
+        object Card : Key()
         data class Plain(val rgb: Int) : Key()
         data class Pic(val img: ImageBitmap) : Key()
         data class Glass(val rgb: Int, val alpha: Int) : Key()
@@ -183,9 +185,9 @@ internal object FilamentModels {
         }
 
         /** A quad wearing the atlas piece [r] whole: [c] its corners for the piece's top left, top right, bottom right, bottom left. */
-        fun piece(r: IntArray, c: Array<FloatArray>, hint: FloatArray?) {
+        fun piece(r: IntArray, c: Array<FloatArray>, hint: FloatArray?, key: Key = Key.Atlas) {
             val u0 = r[0] / aw; val u1 = (r[0] + r[2]) / aw; val v0 = r[1] / ah; val v1 = (r[1] + r[3]) / ah
-            poly(Key.Atlas, c, floatArrayOf(u0, v0, u1, v0, u1, v1, u0, v1), hint)
+            poly(key, c, floatArrayOf(u0, v0, u1, v0, u1, v1, u0, v1), hint)
         }
 
         /** A plain quad or polygon in colour [rgb]. */
@@ -277,9 +279,12 @@ internal object FilamentModels {
             val ft = b.ft
             if (ft != null) {
                 val top = b.y0 + ft[3]
-                piece(ft, arrayOf(p(b.fx, top, d0), p(b.fx + ft[2], top, d0), p(b.fx + ft[2], b.y0, d0), p(b.fx, b.y0, d0)), FRONT)
+                piece(ft, arrayOf(p(b.fx, top, d0), p(b.fx + ft[2], top, d0), p(b.fx + ft[2], b.y0, d0), p(b.fx, b.y0, d0)), FRONT, if (b.card) Key.Card else Key.Atlas)
                 // its own colour behind the art (a hole in the picture shows the wall, not the box's inside)
                 if (!b.card && d1 > d0 + .5f) plain(b.front, arrayOf(p(b.x0, b.y1, d0), p(b.x1, b.y1, d0), p(b.x1, b.y0, d0), p(b.x0, b.y0, d0)), FRONT, inset = .2f)
+                // a card seen from behind (a sign on a roof, a helicopter): its picture the right way round, lit from
+                // there (each of its two faces seen from its own side only: else each reads mirrored through the other)
+                if (b.card) piece(ft, arrayOf(p(b.fx + ft[2], top, d0), p(b.fx, top, d0), p(b.fx, b.y0, d0), p(b.fx + ft[2], b.y0, d0)), BACK, Key.Card)
             } else {
                 plain(b.front, arrayOf(p(b.x0, b.y1, d0), p(b.x1, b.y1, d0), p(b.x1, b.y0, d0), p(b.x0, b.y0, d0)), FRONT)
             }
@@ -327,11 +332,29 @@ internal object FilamentModels {
             // the back: no view of the classic's sees it; the side's picture across it (its windows carry on round)
             if (st != null) {
                 val reps = max(1, kotlin.math.round((b.x1 - b.x0) / st[2]).toInt())
+                // repeated, the picture's outermost columns (its corner's outline) would stand as seams across the back
+                val trim = if (reps > 1 && st[2] > 16) 1 else 0
+                val r = intArrayOf(st[0] + trim, st[1], st[2] - 2 * trim, st[3])
                 for (j in 0 until reps) {
                     val xa = b.x1 - (b.x1 - b.x0) * j / reps; val xb = b.x1 - (b.x1 - b.x0) * (j + 1) / reps
-                    piece(st, arrayOf(p(xa, b.y1, d1), p(xb, b.y1, d1), p(xb, b.y0, d1), p(xa, b.y0, d1)), BACK)
+                    piece(r, arrayOf(p(xa, b.y1, d1), p(xb, b.y1, d1), p(xb, b.y0, d1), p(xa, b.y0, d1)), BACK)
+                }
+                plain(b.side, arrayOf(p(b.x1, b.y1, d1), p(b.x0, b.y1, d1), p(b.x0, b.y0, d1), p(b.x1, b.y0, d1)), BACK, inset = .2f)
+                // the clock on the back too, when it wears the front's picture
+                val ck = b.clock
+                if (ck != null && reps == 1 && st.contentEquals(ft)) {
+                    val nc = com.lifemax.rpg.feature.habits.domain.ClockHands.size(ck[3]); val mid = nc / 2
+                    val per = (b.x1 - b.x0) / st[2]; val vy = (b.y1 - b.y0) / st[3]
+                    val c0 = ck[0] - mid * ck[2]; val r0 = ck[1] - mid * ck[2]; val sz = nc * ck[2]
+                    val xa = b.x1 - c0 * per; val xb = b.x1 - (c0 + sz) * per
+                    val ya = b.y1 - r0 * vy; val yb = b.y1 - (r0 + sz) * vy
+                    poly(Key.Clock(ck), arrayOf(p(xa, ya, d1 + .1f), p(xb, ya, d1 + .1f), p(xb, yb, d1 + .1f), p(xa, yb, d1 + .1f)),
+                        floatArrayOf(0f, 0f, 1f, 0f, 1f, 1f, 0f, 1f), BACK)
                 }
             } else plain(b.side, arrayOf(p(b.x1, b.y1, d1), p(b.x0, b.y1, d1), p(b.x0, b.y0, d1), p(b.x1, b.y0, d1)), BACK)
+            // the underside of a box standing clear of the ground (an overhang, a ledge, a balcony's ceiling): in its
+            // shade colour, a hair up into it (a box under it shares the plane)
+            if (b.y0 > .5f) plain(darker(b.side, .25f), arrayOf(p(b.x0, b.y0, d0), p(b.x1, b.y0, d0), p(b.x1, b.y0, d1), p(b.x0, b.y0, d1)), DOWN, inset = .3f)
         }
 
         /** The box a roof stands on (its top at the roof's eave, under it), the highest such, or null. */
@@ -391,22 +414,18 @@ internal object FilamentModels {
                 if (abs(ax - g.x0) > .5f) pts += p(if (abs(ax - g.x1) < .5f) wx1 else ax, g.y1, d) else pts += p(wx0, g.y1, d)
                 if (g.y0 > wallTop + .5f && abs(ax - g.x1) > .5f) pts += p(wx1, g.y0, d)
                 val c = pts.toTypedArray()
-                // it wears the front's gable (the box's front carrying it, or the gable's own face), seen from behind
+                // it wears the front's gable (the box's front carrying it, its picture reaching up into the gable, or
+                // the gable's own face), seen from behind: only what is the gable's own (its cladding, not the tops of
+                // the front's windows or a lower roof painted over it), carried down over the rest
                 val carrier = sh.parts.firstOrNull { bx ->
-                    bx.type == ModelPart.BOX && abs(g.y0 - bx.y1) < .5f && abs(g.d0 - bx.d0) < 1f && bx.ft != null && bx.ft[3] > bx.y1 - bx.y0 + 4f &&
-                        bx.x0 < g.x1 && bx.x1 > g.x0
+                    bx.type == ModelPart.BOX && !bx.card && bx.y1 <= g.y0 + .5f && abs(g.d0 - bx.d0) < 1f && bx.ft != null &&
+                        bx.y0 + bx.ft[3] >= g.y0 + (g.y1 - g.y0) * .5f && bx.x0 < g.x1 && bx.x1 > g.x0
                 }
                 val pic = carrier?.ft ?: g.face
                 if (pic != null) {
                     val fx = carrier?.fx ?: g.fx
                     val top = (carrier?.y0 ?: g.faceY) + pic[3]
-                    val uv = FloatArray(c.size * 2)
-                    for (m in c.indices) {
-                        uv[m * 2] = (pic[0] + (c[m][0] - fx).coerceIn(0f, pic[2].toFloat())) / aw
-                        uv[m * 2 + 1] = (pic[1] + (top - c[m][1]).coerceIn(0f, pic[3].toFloat())) / ah
-                    }
-                    poly(Key.Atlas, c, uv, BACK)
-                    plain(wall, c, BACK, inset = .2f)
+                    backGable(c, pic, fx, top, wallTop, wall, carrier?.panes ?: g.panes, g, carrier, g.d0)
                 } else plain(wall, c, BACK)
             }
             // its face, when it stands on its own (a box's front carries the main one)
@@ -414,6 +433,178 @@ internal object FilamentModels {
             if (face != null) {
                 val top = g.faceY + face[3]
                 piece(face, arrayOf(p(g.fx, top, g.d0), p(g.fx + face[2], top, g.d0), p(g.fx + face[2], g.faceY, g.d0), p(g.fx, g.faceY, g.d0)), FRONT)
+            }
+        }
+
+        private val atlasPx: IntArray by lazy { StreetTextures.argb(art.atlas) }
+
+        /** The polygon [c]'s extent across (min x, max x) at height [y] (its corners' x, d: a back face, d constant). */
+        private fun across(c: Array<FloatArray>, y: Float): FloatArray? {
+            var lo = Float.MAX_VALUE; var hi = -Float.MAX_VALUE
+            for (i in c.indices) {
+                val a = c[i]; val b = c[(i + 1) % c.size]
+                if ((a[1] - y) * (b[1] - y) > 0f || abs(b[1] - a[1]) < 1e-4f) continue
+                val x = a[0] + (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1])
+                lo = min(lo, x); hi = max(hi, x)
+            }
+            return if (hi > lo) floatArrayOf(lo, hi) else null
+        }
+
+        /** [c] cut to what lies above (or, [above] false, below) [v] along axis [ax] (0 x, 1 y). */
+        private fun clip(c: Array<FloatArray>, ax: Int, v: Float, above: Boolean): Array<FloatArray> {
+            val out = ArrayList<FloatArray>()
+            fun inside(q: FloatArray) = if (above) q[ax] >= v else q[ax] <= v
+            for (i in c.indices) {
+                val a = c[i]; val b = c[(i + 1) % c.size]
+                if (inside(a)) out += a
+                if (inside(a) != inside(b)) {
+                    val t = (v - a[ax]) / (b[ax] - a[ax])
+                    out += floatArrayOf(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t)
+                }
+            }
+            return out.toTypedArray()
+        }
+        private fun clipY(c: Array<FloatArray>, y: Float, above: Boolean) = clip(c, 1, y, above)
+
+        /**
+         * The back gable end [c] (from the wall's top [wallTop] up) wearing the front's gable [pic] (its left edge at
+         * [fx], its top at [top]), seen from behind. The front picture's gable often carries what is not the gable's: the
+         * tops of the upper windows, a lower roof's peak painted over it. So its rows are read from the top down, and the
+         * first that holds much of what the gable's upper part does not (its colours) ends what is used as it is; below
+         * that, the clean rows just above are carried down in bands (each band's ends on the rakes, as a gable's rows are
+         * the same shape, only wider), so the cladding runs on to the wall. [wall] fills behind it (holes in the art).
+         */
+        private fun backGable(c: Array<FloatArray>, pic: IntArray, fx: Float, top: Float, wallTop: Float, wall: Int, panes: List<FloatArray>, self: ModelPart, carrier: ModelPart?, dFront: Float) {
+            val iw = art.atlas.width
+            fun px(x: Float, y: Float): Int {
+                val u = (x - fx).toInt(); val v = (top - y).toInt()
+                if (u < 0 || v < 0 || u >= pic[2] || v >= pic[3]) return 0
+                return atlasPx[(pic[1] + v) * iw + pic[0] + u]
+            }
+            fun uvOf(x: Float, y: Float, out: FloatArray, i: Int) {
+                out[i] = (pic[0] + (x - fx).coerceIn(0f, pic[2].toFloat())) / aw
+                out[i + 1] = (pic[1] + (top - y).coerceIn(0f, pic[3].toFloat())) / ah
+            }
+            val yHi = c.maxOf { it[1] }
+            // what of the picture is not the gable's own: a window whose pane reaches up into the gable from the wall
+            // under it (its top and frame), and whatever stands in front of the gable's foot (a lower roof, a dormer),
+            // painted over it. The cut goes above them all; what is above it is the gable's
+            var cut = wallTop
+            for (pn in panes) {
+                val pt = top - pn[1]; val pb = pt - pn[3]
+                if (pt > wallTop + .5f && pb < wallTop + 2f) cut = max(cut, pt + 8f)
+            }
+            val gx0 = c.minOf { it[0] }; val gx1 = c.maxOf { it[0] }
+            for (q in sh.parts) {
+                if (q === self || q === carrier || q.card || q.type == ModelPart.RAIL || q.type == ModelPart.DECAL) continue
+                if (q.d0 >= dFront - .5f) continue
+                if (q.x1 <= gx0 + 1f || q.x0 >= gx1 - 1f) continue
+                if (q.y1 > wallTop + .5f && q.y0 < wallTop + 1f) cut = max(cut, q.y1 + 4f)
+            }
+            cut = min(cut, yHi)
+            val counts = HashMap<Int, Int>()
+            for (r in 0 until (yHi - cut).toInt()) {
+                val y = yHi - r - .5f
+                val ex = across(c, y) ?: continue
+                var x = ex[0] + 3f
+                while (x < ex[1] - 3f) { val q = px(x, y); if ((q ushr 24) > 128) { val k = q and 0xFFFFFF; counts[k] = (counts[k] ?: 0) + 1 }; x += 1f }
+            }
+            val run = min(24, (yHi - cut).toInt() - 2)
+            // the gable's body colour (behind the art, and the fill when too little of it is clean)
+            val body = counts.maxByOrNull { it.value }?.key ?: wall
+            plain(body, c, BACK, inset = .2f)
+            val clean = yHi - cut
+            if (cut <= wallTop + .5f) {
+                val uv = FloatArray(c.size * 2)
+                for (m in c.indices) uvOf(c[m][0], c[m][1], uv, m * 2)
+                poly(Key.Atlas, c, uv, BACK)
+                return
+            }
+            if (clean < 6f || run < 2) return
+            // (at least a few of the art's doubled rows: a step of one board would carry a single stripe down as a slab)
+            var period = min(run, 12)
+            val upper = clipY(c, cut, true)
+            if (upper.size >= 3) {
+                val uv = FloatArray(upper.size * 2)
+                for (m in upper.indices) uvOf(upper[m][0], upper[m][1], uv, m * 2)
+                poly(Key.Atlas, upper, uv, BACK)
+            }
+            // the cladding's period: the row step that repeats best in the clean part
+            fun rowAt(y: Float, x: Float) = px(x, y)
+            var best = Float.MAX_VALUE
+            val mid = (c.minOf { it[0] } + c.maxOf { it[0] }) / 2f
+            for (pp in min(8, run)..min(16, run - 2)) {
+                var diff = 0f; var n = 0
+                var y = cut + .5f
+                while (y + pp < cut + run && n < 400) {
+                    val ex = across(c, y + pp) ?: break
+                    var x = max(ex[0] + 3f, mid - 30f)
+                    while (x < min(ex[1] - 3f, mid + 30f)) {
+                        val a = rowAt(y, x); val b = rowAt(y + pp, x)
+                        diff += (abs(((a shr 16) and 255) - ((b shr 16) and 255)) + abs(((a shr 8) and 255) - ((b shr 8) and 255)) + abs((a and 255) - (b and 255))).toFloat()
+                        n++; x += 2f
+                    }
+                    y += 1f
+                }
+                if (n > 0 && diff / n < best - 1f) { best = diff / n; period = pp }
+            }
+            // under the cut, the cladding just above it carried down band by band and across tile by tile (each tile a
+            // plain shift of its source: a few columns where the rows are most even, away from any ornament)
+            val lower = clipY(c, cut, false)
+            if (lower.size < 3) return
+            val srcB = cut
+            val ext = across(c, cut + period - .01f) ?: return
+            val room = (ext[1] - ext[0] - 6f).toInt()
+            if (room < 4) return
+            // the tile's width: the step across that repeats best (boards, battens), else as wide as there is room for
+            var tw = min(24, room)
+            var bestW = Float.MAX_VALUE
+            for (cand in 12..min(32, room / 2)) {
+                var diff = 0f; var n = 0
+                for (r in 0 until period) {
+                    var x = ext[0] + 3f
+                    while (x + cand < ext[1] - 3f) {
+                        val a = px(x, srcB + r + .5f); val b = px(x + cand, srcB + r + .5f)
+                        diff += (abs(((a shr 16) and 255) - ((b shr 16) and 255)) + abs(((a shr 8) and 255) - ((b shr 8) and 255)) + abs((a and 255) - (b and 255))).toFloat()
+                        n++; x += 1f
+                    }
+                }
+                if (n > 0 && diff / n < bestW - 2f) { bestW = diff / n; tw = cand }
+            }
+            var sx0 = ext[0] + 3f; var bestErr = Float.MAX_VALUE
+            val rowMed = IntArray(period) { r ->
+                val y = srcB + r + .5f
+                val cs = ArrayList<Int>()
+                var x = ext[0] + 3f
+                while (x < ext[1] - 3f) { cs += px(x, y); x += 1f }
+                cs.sortedBy { ((it shr 16) and 255) + ((it shr 8) and 255) + (it and 255) }.getOrElse(cs.size / 2) { 0 }
+            }
+            var xs = ext[0] + 3f
+            while (xs + tw <= ext[1] - 3f) {
+                var err = 0f
+                for (r in 0 until period) for (k in 0 until tw) {
+                    val a = px(xs + k + .5f, srcB + r + .5f); val b = rowMed[r]
+                    err += if ((a ushr 24) < 128) 300f else (abs(((a shr 16) and 255) - ((b shr 16) and 255)) + abs(((a shr 8) and 255) - ((b shr 8) and 255)) + abs((a and 255) - (b and 255))).toFloat()
+                }
+                if (err < bestErr) { bestErr = err; sx0 = xs }
+                xs += 1f
+            }
+            val xMin = lower.minOf { it[0] }; val xMax = lower.maxOf { it[0] }
+            var yt = cut
+            while (yt > wallTop + .01f) {
+                val yb = max(wallTop, yt - period)
+                val band = clipY(clipY(lower, yt, false), yb, true)
+                var xa = xMin
+                while (band.size >= 3 && xa < xMax - .01f) {
+                    val tile = clip(clip(band, 0, xa, true), 0, xa + tw, false)
+                    if (tile.size >= 3) {
+                        val uv = FloatArray(tile.size * 2)
+                        for (m in tile.indices) uvOf(sx0 + (tile[m][0] - xa), srcB + (tile[m][1] - yb) + (period - (yt - yb)), uv, m * 2)
+                        poly(Key.Atlas, tile, uv, BACK)
+                    }
+                    xa += tw
+                }
+                yt = yb
             }
         }
 
@@ -652,7 +843,7 @@ internal object FilamentModels {
      * hours (as the classic's modelPanes lights them, pane by pane), each side, prism face or rounded wall whose windows
      * light (`sg`) on the part's, and whatever else glows in the picture (a hotel's sign letters) on a lamp's hours.
      */
-    class Night(art: ModelArt, private val seed: Int, private val textures: StreetTextures) {
+    class Night(art: ModelArt, private val seed: Int, private val textures: StreetTextures, private val linear: Boolean = true) {
         private val w = art.atlas.width
         private val h = art.atlas.height
         private val glow: IntArray? = art.glow?.takeIf { it.width == w && it.height == h }?.let { StreetTextures.argb(it) }
@@ -663,6 +854,12 @@ internal object FilamentModels {
         /** Which light each atlas pixel belongs to (-1: none). */
         private val owner = IntArray(w * h) { -1 }
         private val glassG = ByteArray(w * h)
+        /**
+         * The pixels that light in their own colours (as the classic overlays its glow picture): whatever glows cool or
+         * white rather than a room's warm lamplight (a sign's letters, a spotlight's lens), on a lamp's hours, whatever
+         * pane they stand in. Their colour (linear when the pictures are sRGB), or -1.
+         */
+        private val own = IntArray(w * h) { -1 }
         /** The glow picture's brightness, stretched so its brightest is full. */
         private val lum: IntArray = glow?.let { gp ->
             val l = IntArray(gp.size) { val c = gp[it]; (((c shr 16) and 255) * 30 + ((c shr 8) and 255) * 59 + (c and 255) * 11) / 100 }
@@ -711,7 +908,17 @@ internal object FilamentModels {
                     }
                 }
                 val signs = light(seed * 13 + 3, Dusk.LAMP)
-                for (i in owner.indices) if (owner[i] < 0 && (glow[i] ushr 24) > 8) owner[i] = signs
+                fun lin(ch: Int): Int = if (!linear) ch else (Math.pow(((ch / 255.0) + .055) / 1.055, 2.4) * 255.0).toInt().coerceIn(0, 255)
+                for (i in owner.indices) {
+                    val gp = glow[i]
+                    if ((gp ushr 24) <= 8) continue
+                    val r = (gp shr 16) and 255; val b = gp and 255
+                    if (b > r * .7f) {
+                        owner[i] = signs
+                        val a = (gp ushr 24)
+                        own[i] = (lin(r) * a / 255 shl 16) or (lin((gp shr 8) and 255) * a / 255 shl 8) or (lin(b) * a / 255)
+                    } else if (owner[i] < 0) owner[i] = signs
+                }
                 lit = BooleanArray(seeds.size)
             }
         }
@@ -729,6 +936,8 @@ internal object FilamentModels {
                 val o = owner[i]
                 val on = o >= 0 && now[o]
                 // (as bright as the glow picture is there: its frames and bars stay darker than its panes)
+                val oc = own[i]
+                if (oc >= 0) { maskPx[i] = if (on) (128 shl 24) or oc else (255 shl 24); continue }
                 val red = if (on) (g[i] ushr 24) * lum[i] / 255 else 0
                 val blue = if (on && o == signs) 255 else 0
                 maskPx[i] = (255 shl 24) or (red shl 16) or ((glassG[i].toInt() and 255) shl 8) or blue
@@ -826,7 +1035,7 @@ internal object FilamentModels {
         paintClocks(12f)
         // what each group wears, and how it is sampled
         fun albedoOf(key: Key): Pair<Texture, TextureSampler> = when (key) {
-            is Key.Atlas -> atlas to crisp
+            is Key.Atlas, is Key.Card -> atlas to crisp
             is Key.Plain -> textures.white to nearest
             is Key.Pic -> textures.of(key.img) to crisp
             is Key.Glass -> glassTexture(textures, key.alpha) to repeat
@@ -837,7 +1046,7 @@ internal object FilamentModels {
             visibleMat.createInstance().also { mi ->
                 val (tex, smp) = albedoOf(key)
                 mi.setParameter("albedo", tex, smp)
-                mi.setParameter("mask", if (key is Key.Atlas) night.mask ?: textures.black else if (key is Key.Glass) glassMask(textures) else textures.black, if (key is Key.Glass) repeat else nearest)
+                mi.setParameter("mask", if (key is Key.Atlas || key is Key.Card) night.mask ?: textures.black else if (key is Key.Glass) glassMask(textures) else textures.black, if (key is Key.Glass) repeat else nearest)
                 mi.setParameter("uvRect", 0f, 0f, 1f, 1f)
                 val rgb = when (key) { is Key.Plain -> key.rgb; is Key.Glass -> key.rgb; else -> 0xFFFFFF }
                 mi.setParameter("tint", lin(((rgb shr 16) and 255) / 255f), lin(((rgb shr 8) and 255) / 255f), lin((rgb and 255) / 255f), 1f)
@@ -845,6 +1054,7 @@ internal object FilamentModels {
                 mi.setParameter("glass", 1f, 1f, 1f, 1f)
                 mi.setParameter("fade", 1f)
                 mi.setParameter("cell", 2f)
+                mi.setParameter("oneSided", if (key is Key.Card) 1f else 0f)
             }
         }
         val e = EntityManager.get().create()
