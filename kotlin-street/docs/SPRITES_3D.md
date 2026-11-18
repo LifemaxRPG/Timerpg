@@ -427,3 +427,35 @@ the fire station, the police station and condo_3_44/45 have sides, gables and ro
 nothing floats or shows sky through it in any of the three views; condo_3_44's skylight is drawn flat on the roof (a
 glass panel in the floor, so it stays flat). Left to do: the Japanese estate's upper bays and long window do not light
 at night; the hotel is taller than the preview's 820-pixel frame (render it with `-Dtall=1150`).
+
+## Filament: every building (2026-11-18)
+
+Filament now draws every modelled building, not only the shop boxes: the villas, the clock towers and the school, the
+terraced houses, all four estates, the fire station, hospital and post offices, the police station with its curved wall,
+the apartment blocks and the hotel. The code is `shared/src/filament/kotlin/scene3d/FilamentModels.kt`; it reads the
+same models.json and atlas as the classic. To look at them: `gradle :desktop:preview -Dmode=filament-models -Dstreet=2-10`
+writes each building from the front, both three-quarter sides, behind, from above, at dusk and at night, plus a contact
+sheet per street (`desktop/build/preview/filament-models/street<N>_sheet.png`).
+
+What draws well, checked by eye at 13:00 and 22:30 on every showcase street:
+
+- Fronts, sides, roofs (pitched, hipped, single-pitch, flat) and shadows on every building; nothing floats or shows sky.
+- Backs: they wear the side picture without seams; back gables show only the gable's own cladding and attic window,
+  not the tops of the front's windows.
+- Clock faces on every side of the towers, with hands; the clocks light at night.
+- Signs and the helicopter are two one-sided cards, so they read the right way round from behind.
+- Night: the windows light; the POLICE letters, the rooftop spotlights and the HOTEL sign glow in their own colours.
+- Data fixes made along the way: the villa balconies are railings, the country house's wing stands on the ground and its
+  dormer is closed, the terraced houses' walls have the right colour, the police garage wing has a brick back.
+
+What is still wrong or missing:
+
+- **The hotel is about twice the scale of everything else.** Fixing it needs a per-building scale, which the frozen
+  classic would also have to follow; this is the owner's decision.
+- Some backs are plain colour: the modern estate's back is flat grey with no texture (no side picture in the data).
+- The lower parts of some back gables are filled with a repeated strip (one-story and country house): plausible, not
+  the real cladding.
+- The police station's barred cell windows on the curved wall light up at night; condo_9 lights a few extra panes; the
+  terraced houses show a few lit specks.
+- Small: the school's hip wedge is smeared, specks at clock-tower corners and the fire station's T-junction, a faint
+  light hairline along the villas' back eave, porch lamps do not light, glass is either fully opaque or fully clear.
