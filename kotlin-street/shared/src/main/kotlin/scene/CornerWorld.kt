@@ -810,7 +810,7 @@ internal class CornerWorld {
          */
         const val FADE_SHARE = .55f
         /** The eye the other street is seen from at rest (street units up; a person is 36). */
-        const val EYE_LOW = 60f
+        const val EYE_LOW = 24f
         const val FADE_POINT = 40f
         const val EAST_FROM = 12f
         const val EAST_TO = 28f
