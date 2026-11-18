@@ -41,6 +41,7 @@ import com.lifemax.rpg.feature.habits.presentation.scene.GameState
 import com.lifemax.rpg.feature.habits.presentation.scene.SceneInk
 import com.lifemax.rpg.feature.habits.presentation.scene.SpriteArt
 import com.lifemax.rpg.feature.habits.presentation.scene.SpriteSheets
+import com.lifemax.rpg.feature.habits.presentation.scene.StageTuning
 import com.lifemax.rpg.feature.habits.presentation.scene.cornerFade
 import com.lifemax.rpg.feature.habits.presentation.scene.cornerNearSide
 import java.nio.ByteBuffer
@@ -75,11 +76,25 @@ class FilamentStreet(
     private val proxyMat: Material = load("shadow_proxy", materialBytes)
     private val textures = StreetTextures(engine, srgb = !albedo)
     private val nearest = TextureSampler(TextureSampler.MinFilter.NEAREST, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.CLAMP_TO_EDGE)
+    // the pictures: crisp where a picture pixel is a screen pixel or more, blended from their mipmaps where a face is
+    // seen small or edge on (nearest there turns siding and stripes into moire)
+    private val crisp = TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.CLAMP_TO_EDGE)
+    // the ground's tiles, repeated along their street
+    private val tiled = TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.REPEAT).also {
+        it.anisotropy = 8f
+    }
     private val sun: Int = EntityManager.get().create()
     private var ibl: IndirectLight? = null
+    /** The sky light's colour it was last built with (it is rebuilt only when that changes; it turns with the camera). */
+    private val iblColor = FloatArray(3) { -1f }
+    private val sh = FloatArray(12)
+    private val iblRot = FloatArray(9)
+    private val fog = View.FogOptions()
     private val colorGrading: ColorGrading? = if (albedo) null else ColorGrading.Builder().toneMapper(LinearToneMapper()).build(engine)
 
     private val things = ArrayList<Thing>()
+    /** How many person cards each street has (more are made when its street life has more people than that). */
+    private val personCards = IntArray(2)
     private val cards = ArrayList<Card>()
     private val vbs = ArrayList<VertexBuffer>()
     private val ibs = ArrayList<IndexBuffer>()
@@ -102,8 +117,8 @@ class FilamentStreet(
         camera.setExposure(1f)
         val shadow = LightManager.ShadowOptions().apply {
             mapSize = shadowMap
-            shadowCascades = 2
-            cascadeSplitPositions = floatArrayOf(.35f, .7f, .9f)
+            shadowCascades = 3
+            cascadeSplitPositions = floatArrayOf(.15f, .35f, .65f)
             stable = true
             lispsm = false
             // (walls stand nearly edge on to a high sun: a slope-scaled offset pushes them out of their own shadow)
@@ -111,7 +126,6 @@ class FilamentStreet(
             normalBias = .4f
             polygonOffsetConstant = .5f
             polygonOffsetSlope = .2f
-            shadowFar = 2200f
         }
         LightManager.Builder(LightManager.Type.DIRECTIONAL)
             .color(1f, 1f, 1f).intensity(1f).direction(0f, -1f, 0f)
@@ -152,6 +166,7 @@ class FilamentStreet(
         val cam = world.cam
         aimCamera(cam, f.width, f.height)
         light(f, cam)
+        haze(f, cam)
         val rest = world.restStreet
         val rm = engine.renderableManager
         val wl = SceneInk.WindowLit
@@ -183,7 +198,9 @@ class FilamentStreet(
             show(rm, t.entity, shown)
             if (t.proxy != 0) show(rm, t.proxy, shown && fade > .5f)
             if (!shown) continue
-            val (s, o) = band(t.kind, t.street, rest, t.decal)
+            var (s, o) = band(t.kind, t.street, rest, t.level)
+            // (pulled forward: n / d grows by n / d^2 a unit nearer)
+            if (t.pull > 0f) { val d0 = max(cam.depth(t.refX, t.refZ), LookMatrix.N); o += s * LookMatrix.N * t.pull / (d0 * d0) }
             LookMatrix.of(m12, cam, f.width, f.height, t.refX, t.refY, t.refZ, s, o, look)
             for (mi in t.mis) {
                 mi.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
@@ -210,20 +227,24 @@ class FilamentStreet(
      * ground under everything that stands, and at rest the street in view in front of the rest of the crossroads (it is,
      * in the world; the bands only keep two different looks from disagreeing where they meet).
      */
-    private fun band(kind: Int, street: Int, rest: Int, decal: Boolean): Pair<Float, Float> {
+    private fun band(kind: Int, street: Int, rest: Int, level: Int): Pair<Float, Float> {
         val inView = rest >= 0 && (street == rest || (rest == 1 && street == 2))
         if (kind == GROUND) {
             val base = if (rest < 0) .05f else if (inView) .1f else 0f
-            return .02f to base + (if (decal) .03f else 0f)
+            return .02f to base + .015f * level
         }
         return if (rest < 0) .78f to .2f else if (inView) .4f to .6f else .4f to .2f
     }
 
     private fun aimCamera(cam: com.lifemax.rpg.feature.habits.presentation.scene.StageCamera, w: Float, h: Float) {
         // the plain pinhole the classic leans from: for view-dependent light and to fit the sun's shadow map to
-        val near = 10.0
+        // (only light and the sun's shadow map use this camera, every thing is placed by its own look: its near plane
+        // starts a little before the nearest street, so the shadow map's cascades spend their texels on the street,
+        // not on the empty air in front of it)
+        val front = min(cam.depth(cam.camX, 0f), cam.depth(0f, cam.camZ)).let { if (it < 0f) cam.depth(cam.camX, 0f) else it }
+        val near = (front - 320f).coerceAtLeast(10f).toDouble()
         val k = near / cam.f
-        camera.setProjection(Camera.Projection.PERSPECTIVE, -cam.cx * k, (w - cam.cx) * k, -(h - cam.cy) * k, cam.cy * k, near, 6000.0)
+        camera.setProjection(Camera.Projection.PERSPECTIVE, -cam.cx * k, (w - cam.cx) * k, -(h - cam.cy) * k, cam.cy * k, near, near + 3000.0)
         camera.lookAt(cam.camX.toDouble(), cam.eye.toDouble(), cam.camZ.toDouble(),
             (cam.camX + cam.dx).toDouble(), cam.eye.toDouble(), (cam.camZ + cam.dz).toDouble(), 0.0, 1.0, 0.0)
     }
@@ -237,7 +258,17 @@ class FilamentStreet(
         val key = f.light ?: return
         val lm = engine.lightManager
         val li = lm.getInstance(sun)
-        val dx = key.across; val dy = -key.down; val dz = -key.out
+        // the classic's sun stands at a point along the street (where its orb is drawn): shadows fan out from under it,
+        // leaning by how far the view's middle is from it, as the classic's SceneLight.lean does
+        val sd = f.sides?.getOrNull(f.world?.nearRest?.coerceAtLeast(0) ?: 0)
+        val span = (f.width / f.unit).coerceAtLeast(1f)
+        val off = if (sd != null) ((sd.viewX - sd.lightX) / span).coerceIn(-1.5f, 1.5f) else 0f
+        val across = key.across + com.lifemax.rpg.feature.habits.domain.SceneLight.SPLAY * off * key.down
+        // the key is the view's (across it, down, out of it towards the camera), as the classic lights every street it
+        // looks down: turned with the camera, so the shadows fall towards the viewer round the corner too
+        val dx = across * cam.dz - key.out * cam.dx
+        val dy = -key.down
+        val dz = -across * cam.dx - key.out * cam.dz
         val dl = sqrt(dx * dx + dy * dy + dz * dz).coerceAtLeast(1e-4f)
         lm.setDirection(li, dx / dl, dy / dl, dz / dl)
         val warm = (1f - key.down).coerceIn(0f, 1f)
@@ -245,26 +276,71 @@ class FilamentStreet(
         lm.setColor(li, lin(sc.red), lin(sc.green), lin(sc.blue))
         // (Filament's diffuse is albedo / pi times illuminance)
         lm.setIntensity(li, SUN * key.strength * Math.PI.toFloat())
+        // the moon throws no hard shadows (the classic's are a faint shade; a shadow map's are all or nothing)
+        if (!albedo) lm.setShadowCaster(li, key.cool < .5f && key.strength > .05f)
         val sky = f.sky ?: return
         val tone = sky.sky.lastOrNull() ?: Color.White
         // (the classic's dusk is already deep at half dark: the light falls off faster than the sky's darkness)
         val night = sqrt(f.dark.coerceIn(0f, 1f))
-        val level = lerp(Color(AMB, AMB, AMB), Color(.16f, .19f, .30f), night)
+        var level = lerp(Color(AMB, AMB, AMB), Color(.16f, .19f, .30f), night)
+        // facing a low sun the fronts are backlit, in their own shade: the sky light they get falls with the sun's height
+        // (the classic darkens them so, towards the sun's glare)
+        // (only a low sun: none at noon, all of it once the sun is under about 40 degrees)
+        val low = smooth((.75f - key.down) / .35f)
+        val back = (low * (1f - key.cool) * (key.out * 2.5f).coerceIn(0f, 1f) * (key.strength * 2f).coerceIn(0f, 1f)).coerceIn(0f, 1f)
+        level = lerp(level, Color(level.red * .42f, level.green * .36f, level.blue * .44f), back)
         // tinted by the sky low down: warm at dusk, blue at night
         val dusk = 1f - abs(f.dark - .5f) * 2f
         val tinted = lerp(level, Color(tone.red * level.red * 1.1f, tone.green * level.green * 1.1f, tone.blue * level.blue * 1.1f), .25f + .3f * dusk)
         val r = tinted.red; val g = tinted.green; val b = tinted.blue
-        // two bands: a constant, then the normal's y, z, x (Filament's pre-scaled form); more from the camera's side
-        val toward = .18f
-        val up = -.06f
-        val sh = floatArrayOf(
-            r, g, b,
-            r * up, g * up, b * up,
-            -cam.dz * toward * r, -cam.dz * toward * g, -cam.dz * toward * b,
-            -cam.dx * toward * r, -cam.dx * toward * g, -cam.dx * toward * b,
-        )
-        ibl?.let { engine.destroyIndirectLight(it) }
-        ibl = IndirectLight.Builder().irradiance(2, sh).intensity(1f).build(engine).also { scene.indirectLight = it }
+        if (ibl == null || abs(r - iblColor[0]) + abs(g - iblColor[1]) + abs(b - iblColor[2]) > 2e-3f) {
+            // two bands: a constant, then the normal's y, z, x (Filament's pre-scaled form): a little less from above,
+            // more from the camera's side (-z here; turned to the camera below)
+            val toward = .18f
+            val up = -.06f
+            sh[0] = r; sh[1] = g; sh[2] = b
+            sh[3] = r * up; sh[4] = g * up; sh[5] = b * up
+            sh[6] = -toward * r; sh[7] = -toward * g; sh[8] = -toward * b
+            sh[9] = 0f; sh[10] = 0f; sh[11] = 0f
+            ibl?.let { engine.destroyIndirectLight(it) }
+            ibl = IndirectLight.Builder().irradiance(2, sh).intensity(1f).build(engine).also { scene.indirectLight = it }
+            iblColor[0] = r; iblColor[1] = g; iblColor[2] = b
+        }
+        // turned with the camera: the shader's world is the user's turned by this rotation's inverse, so its third column
+        // is where the light's -z (the bright side) points back at: the camera's look
+        iblRot[0] = cam.dz; iblRot[1] = 0f; iblRot[2] = -cam.dx
+        iblRot[3] = 0f; iblRot[4] = 1f; iblRot[5] = 0f
+        iblRot[6] = cam.dx; iblRot[7] = 0f; iblRot[8] = cam.dz
+        ibl?.setRotation(iblRot)
+    }
+
+    /**
+     * The air between the camera and what is far: things past the street in view fade towards the sky's colour low down,
+     * as the classic hazes the side street and the far blocks (the street in view itself stays clear).
+     */
+    private fun haze(f: Frame3D, cam: com.lifemax.rpg.feature.habits.presentation.scene.StageCamera) {
+        if (albedo) return
+        val sky = f.sky ?: return
+        val tone = sky.sky.lastOrNull() ?: return
+        // where the street in view stands from the camera (its fronts), a little past it
+        val rest = f.world?.restStreet ?: 0
+        val front = when (rest) { 1 -> cam.depth(0f, cam.camZ); 0 -> cam.depth(cam.camX, 0f); else -> max(cam.depth(cam.camX, 0f), cam.depth(0f, cam.camZ)) }
+        // (fog counts the distance from the camera, so the street in view stays clear out to the screen's corners)
+        val edge = sqrt(1f + (cam.cx / cam.f) * (cam.cx / cam.f))
+        // mid-turn the camera looks across the corner: the blocks round the junction stay clear, as the classic's do
+        val turned = (2f * abs(cam.dx * cam.dz)).coerceIn(0f, 1f)
+        val corner = sqrt((cam.camX - MOUTH / 2f) * (cam.camX - MOUTH / 2f) + cam.camZ * cam.camZ)
+        fog.enabled = true
+        fog.distance = max(front * edge + 120f, corner + 800f * turned).coerceAtLeast(40f)
+        fog.density = HAZE * (1f - .4f * f.dark)
+        fog.height = 0f
+        fog.heightFalloff = 1e-4f
+        fog.maximumOpacity = .4f
+        fog.inScatteringStart = 0f
+        fog.inScatteringSize = -1f
+        fog.fogColorFromIbl = false
+        fog.color = floatArrayOf(lin(tone.red), lin(tone.green), lin(tone.blue))
+        view.fogOptions = fog
     }
 
     /** A colour channel as the material takes it: linear when lit (its pictures are sRGB), as is for the albedo comparison. */
@@ -281,10 +357,15 @@ class FilamentStreet(
             val l = s.layouts.getOrNull(bx.index) ?: continue
             val sb = SpriteArt.buildings[s.arts[bx.index].stack.id] ?: continue
             val faces = ArrayList<Face>()
-            val win = if (sb.house != null) houseFaces(world, cr, s, bx, sb, faces) else boxFaces(world, cr, s, bx, sb, l.height, faces)
+            val boards = ArrayList<Face>()
+            val win = if (sb.house != null) houseFaces(world, cr, s, bx, sb, faces) else boxFaces(world, cr, s, bx, sb, l.height, faces, boards)
             if (faces.isEmpty()) continue
             val cx = (bx.x0 + bx.x1) / 2f; val cz = (bx.z0 + bx.z1) / 2f
-            addThing(BOX, bx.street, faces, cx, l.height / 3f, cz, bx, s, decal = false, casts = true, windows = win)
+            addThing(BOX, bx.street, faces, cx, l.height / 3f, cz, bx, s, 0, casts = true, windows = win)
+            // the rooftop billboard stands halfway back, where the classic stands it, but is drawn over its own roof as
+            // the classic draws it: its depth pulled forward to its front's (no further: what stands before the
+            // building still hides it)
+            if (boards.isNotEmpty()) addThing(BOX, bx.street, boards, cx, l.height, cz, bx, s, 0, casts = true, windows = null).also { things.last().pull = DEPTH / 2f + 4f }
         }
         groundFaces(cr)
         for (k in 0..1) {
@@ -307,11 +388,12 @@ class FilamentStreet(
             }
             val life = s.life ?: continue
             repeat(life.passers.size) { cards += newCard(k, null, 16f, 63f, 0f, 0f, person = true) }
+            personCards[k] = life.passers.size
         }
     }
 
     /** One box of the stage's (a shop or a stack of flats): its front, sign, sides, back, roof, as CornerWorld builds them. */
-    private fun boxFaces(world: CornerWorld, cr: Crossroads, s: CrossSide, bx: Crossroads.Box, sb: com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuilding, top: Float, out: MutableList<Face>): Windows? {
+    private fun boxFaces(world: CornerWorld, cr: Crossroads, s: CrossSide, bx: Crossroads.Box, sb: com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuilding, top: Float, out: MutableList<Face>, boards: MutableList<Face>): Windows? {
         val i = bx.index
         val (ax, az) = world.rowA(s.k)
         val (nx, nz) = world.rowN(s.k)
@@ -373,12 +455,10 @@ class FilamentStreet(
             if (sb.sign == null) {
                 val bw = 160f * kk
                 val bh = bill.height * kk
-                // (the classic stands it halfway back and draws it over the roof; here it stands at the eave, raised as
-                // much as that half depth lifts it in the street's look, so it is the same picture at rest and is not
-                // sunk into a pitched roof)
-                val back = 2f
-                val lift = B.DY / 2f - B.DY * back / DEPTH
-                out += face(ox - ax * bw / 2f - nx * back, hf + lift + bh, oz - az * bw / 2f - nz * back,
+                // standing halfway back on the roof, where the classic stands it (the same point in the world, so it goes
+                // through the same look at rest and through the turn); a pitched roof's near slope hides its legs
+                val back = DEPTH / 2f
+                boards += face(ox - ax * bw / 2f - nx * back, hf + bh, oz - az * bw / 2f - nz * back,
                     ax * bw / bill.width, 0f, az * bw / bill.width, 0f, -kk, 0f, bill.width.toFloat(), bill.height.toFloat(), textures.of(bill), null, nx, 0f, nz)
             }
         }
@@ -440,49 +520,134 @@ class FilamentStreet(
         return win
     }
 
-    /** The ground: the stage's pavements, kerbs and roads of both streets, the mouth's crossing, and paving beyond. */
+    /**
+     * The ground: each street's band (pavement, kerb, road, far kerb, far pavement) as one picture painted as the
+     * classic paints its pavement (the slabs' gradient and joints, the kerb's lit edge and its shadow on the road, the
+     * lane's dashes, the asphalt's specks), repeated along the street; the mouth's road, dropped kerbs and zebra laid on
+     * the main street's pavement as the classic's mouth draws them; and paving beyond.
+     */
     private fun groundFaces(cr: Crossroads) {
         // the classic's own ground colours by day (the light does the rest)
         val day = com.lifemax.rpg.feature.habits.presentation.scene.skyColors(13f)
-        // (the classic lays its paving's joints and grime over these; flat, they read a little darker)
-        val pave = lerp(day.pavement, Color(0xFF5A6070), .22f); val kerb = lerp(day.kerb, Color(0xFF5A6070), .2f)
-        val road = day.road; val line = day.line
         val verge = lerp(day.pavement, Color.Black, .1f)
         val far = 7000f
-        val roadEnd = CornerWorld.MAIN_ROAD; val farEnd = CornerWorld.MAIN_WIDTH
+        val farEnd = CornerWorld.MAIN_WIDTH
+        val mainTex = groundTile(day, CornerWorld.MAIN_ROAD, farEnd, along = true)
+        val crossTex = groundTile(day, MOUTH - PAVE - KERB, MOUTH, along = false)
         // the main street (z < 0), in two halves either side of x = 0 (the ground's look changes there)
         for ((a, b) in listOf(-far to 0f, 0f to far)) {
-            fun band(z0: Float, z1: Float, c: Color, decal: Boolean = false) = flat(0, a, z0, b, z1, c, decal)
-            band(-PAVE, 0f, pave); band(-PAVE - KERB, -PAVE, kerb); band(-roadEnd, -PAVE - KERB, road)
-            band(-roadEnd - KERB, -roadEnd, kerb); band(-farEnd, -roadEnd - KERB, pave); band(-3000f, -farEnd, verge)
-            // the road's middle line, dashed
-            val mid = -(PAVE + KERB + roadEnd) / 2f
-            var x = a
-            while (x < b) { flat(0, x, mid - .8f, min(x + 14f, b), mid + .8f, line, true); x += 40f }
+            flat(0, a, -farEnd, b, 0f, Color.White, 0, mainTex, floatArrayOf(a / TILE_L, 0f, (b - a) / TILE_L, 1f))
+            flat(0, a, -3000f, b, -farEnd, verge, 0)
         }
-        // the mouth: the cross street's road across the main pavement, and a zebra on it
-        val r0 = PAVE + KERB; val r1 = MOUTH - PAVE - KERB
-        flat(0, r0, -PAVE - KERB, r1, 0f, road, true)
+        // the mouth: the cross street's road carried across the main pavement between dropped kerbs, and a zebra on it
+        val pv = PAVE + KERB
+        val r0 = pv; val r1 = MOUTH - pv
+        val mouthRoad = lerp(day.road, Color.White, .04f)
+        flat(0, 0f, -2.7f, MOUTH, 0f, lerp(day.pavement, Color.White, .07f), 1)
+        flat(0, r0, -pv, r1, 0f, mouthRoad, 1)
+        flat(0, PAVE, -pv, PAVE + KERB, 0f, day.kerb, 1)
+        flat(0, r1, -pv, r1 + KERB, 0f, day.kerb, 1)
+        val edge = over(com.lifemax.rpg.feature.habits.presentation.scene.SceneInk.Occlusion, mouthRoad, .4f)
+        flat(0, r0, -pv, r0 + 1.4f, 0f, edge, 2); flat(0, r1 - 1.4f, -pv, r1, 0f, edge, 2)
+        // (white paint in the pavement's light: the hour's light does the rest)
+        val zebra = over(lerp(day.pavement, Color.White, .55f), mouthRoad, .85f)
         var zx = r0 + 4f
-        while (zx + 6f < r1) { flat(0, zx, -PAVE + 2f, zx + 6f, -4f, line, true); zx += 12f }
+        while (zx + 7f < r1 - 2f) { flat(0, zx, -(PAVE - 2f * Crossroads.LANE), zx + 7f, -3f * Crossroads.LANE, zebra, 2); zx += 13f }
         // the cross street (z > 0) between its rows, and paving behind the main street's blocks
-        fun cband(x0: Float, x1: Float, c: Color) = flat(1, x0, 0f, x1, far, c, false)
-        cband(0f, PAVE, pave); cband(PAVE, r0, kerb); cband(r0, r1, road); cband(r1, MOUTH - PAVE, kerb); cband(MOUTH - PAVE, MOUTH, pave)
-        flat(1, -3000f, 0f, 0f, far, verge, false)
-        flat(1, MOUTH, 0f, 3000f, far, verge, false)
-        val cm = (r0 + r1) / 2f
-        var z = 8f
-        while (z < far) { flat(1, cm - .8f, z, cm + .8f, z + 14f, line, true); z += 40f }
+        flat(1, 0f, 0f, MOUTH, far, Color.White, 0, crossTex, floatArrayOf(0f, 0f, 1f, far / TILE_L))
+        flat(1, -3000f, 0f, 0f, far, verge, 0)
+        flat(1, MOUTH, 0f, 3000f, far, verge, 0)
     }
 
-    /** One flat piece of ground ([street] 0 the main street's band, 1 the cross street's), a plain colour. */
-    private fun flat(street: Int, x0: Float, z0: Float, x1: Float, z1: Float, c: Color, decal: Boolean) {
+    /** [top] laid over [under] at [a] (both opaque results). */
+    private fun over(top: Color, under: Color, a: Float): Color = lerp(under, top.copy(alpha = 1f), a * top.alpha)
+
+    /**
+     * One street's band as a picture, [TILE_L] street units along it at [TEX] texels a unit: from its fronts out, the
+     * pavement, the kerb, the road to [roadEnd], the far kerb and the far pavement to [width] (as the classic's
+     * pavement() and beyond() paint them, in day colours). [along]: rows run out from the fronts (the main street, its
+     * picture's x along it); else columns do (the cross street, whose quads run along z).
+     */
+    private fun groundTile(day: com.lifemax.rpg.feature.habits.presentation.scene.SkyColors, roadEnd: Float, width: Float, along: Boolean): Texture {
+        val nl = (TILE_L * TEX).toInt(); val nd = (width * TEX).toInt()
+        val px = IntArray(nl * nd)
+        val lane = Crossroads.LANE
+        val pv = PAVE
+        val ink = com.lifemax.rpg.feature.habits.presentation.scene.SceneInk
+        val roadNear = lerp(day.road, Color.White, .04f); val roadFar = lerp(day.road, Color.Black, .22f)
+        val farPave = lerp(day.pavement, Color.Black, .06f)
+        val dashAt = (com.lifemax.rpg.feature.habits.presentation.scene.BuildingPainter.PAVEMENT + 30f) * lane
+        fun at(l: Int, d: Int, c: Color) { val i = if (along) d * nl + l else l * nd + d; px[i] = c.toArgb() }
+        fun get(l: Int, d: Int): Color { val i = if (along) d * nl + l else l * nd + d; return Color(px[i]) }
+        for (d in 0 until nd) {
+            val y = (d + .5f) / TEX
+            val base = when {
+                y < pv -> lerp(lerp(day.pavement, Color.White, .07f), lerp(day.pavement, Color.Black, .12f), y / pv)
+                y < pv + KERB -> if (y < pv + .9f * lane) over(ink.Highlight, day.kerb, .8f) else day.kerb
+                y < roadEnd -> {
+                    var c = lerp(roadNear, roadFar, ((y - pv - KERB) / (roadEnd - pv - KERB)).coerceIn(0f, 1f))
+                    if (y < pv + KERB + 2.2f * lane) c = over(ink.Occlusion, c, .6f)
+                    if (y >= dashAt && y < dashAt + 2f * lane) c = Color(-1) // the dashes, filled in below
+                    c
+                }
+                y < roadEnd + KERB -> if (y > roadEnd + KERB - .9f * lane) over(ink.Highlight, day.kerb, .6f) else day.kerb
+                else -> farPave
+            }
+            for (l in 0 until nl) at(l, d, base)
+            // the wall's foot: a line of shade along it
+            if (y < 1.2f * lane) for (l in 0 until nl) at(l, d, over(ink.Occlusion, get(l, d), 1f))
+        }
+        // the lane's dashes: 22 long every 46
+        for (l in 0 until nl) {
+            val x = (l + .5f) / TEX
+            val dash = (x % 46f) < 22f
+            for (d in 0 until nd) {
+                val y = (d + .5f) / TEX
+                if (y >= dashAt && y < dashAt + 2f * lane && y < roadEnd) {
+                    val c0 = lerp(roadNear, roadFar, ((y - pv - KERB) / (roadEnd - pv - KERB)).coerceIn(0f, 1f))
+                    at(l, d, if (dash) over(day.kerb, c0, .6f) else c0)
+                }
+            }
+        }
+        // the paving's joints: a slab every 24 along, slanting 5 back across the pavement (both pavements)
+        for (side in 0..1) {
+            val y0 = if (side == 0) 0f else roadEnd + KERB
+            val y1 = if (side == 0) pv else width
+            var j = 0f
+            while (j < TILE_L) {
+                for (d in (y0 * TEX).toInt() until (y1 * TEX).toInt().coerceAtMost(nd)) {
+                    val y = (d + .5f) / TEX
+                    val x = j - 5f * (y - y0) / pv
+                    val l = (((x * TEX).toInt() % nl) + nl) % nl
+                    at(l, d, over(day.line, get(l, d), 1f))
+                }
+                j += 24f
+            }
+        }
+        // the asphalt's and the slabs' specks (a fixed scatter of the tile's own)
+        val rnd = java.util.Random(7L)
+        fun speck(n: Int, y0: Float, y1: Float, c: Color, a: Float) = repeat(n) {
+            val l = rnd.nextInt(nl); val d = ((y0 + rnd.nextFloat() * (y1 - y0)) * TEX).toInt().coerceIn(0, nd - 1)
+            at(l, d, over(c, get(l, d), a))
+        }
+        speck((TILE_L / 120f * 46f * 2f).toInt(), pv + KERB + 2f, roadEnd - 1f, ink.Occlusion, .55f)
+        speck((TILE_L / 120f * 18f * 2f).toInt(), pv + KERB + 2f, roadEnd - 1f, ink.Highlight, .35f)
+        speck((TILE_L / 120f * 26f).toInt(), 2f, pv - 1f, ink.Occlusion, .3f)
+        return textures.make(px, if (along) nl else nd, if (along) nd else nl, mips = true)
+    }
+
+    /**
+     * One flat piece of ground ([street] 0 the main street's band, 1 the cross street's): a plain colour, or picture
+     * [tex] where [uv] (offset, size) says. [level]: laid over the pieces of lower levels (0 the bands, 1 the mouth's
+     * road and kerbs, 2 its markings).
+     */
+    private fun flat(street: Int, x0: Float, z0: Float, x1: Float, z1: Float, c: Color, level: Int, tex: Texture? = null, uv: FloatArray? = null) {
         val f = Face(floatArrayOf(x0, 0f, z0, x1, 0f, z0, x1, 0f, z1, x0, 0f, z1), floatArrayOf(0f, 0f, 1f, 0f, 1f, 1f, 0f, 1f),
-            textures.white, null, 0f, 1f, 0f, 1f, 0f, 0f, tint = c)
+            tex ?: textures.white, null, 0f, 1f, 0f, 1f, 0f, 0f, tint = c, uvRect = uv)
         // (its look is the one the classic uses where it lies: one corner well inside it)
         val rx = if (x1 <= 0f) min(x1 - 1f, -1f) else max(x0 + 1f, 1f)
         val rz = if (z1 <= 0f) min(z1 - 1f, -1f) else max(z0 + 1f, 1f)
-        addThing(GROUND, street, listOf(f), rx, 0f, rz, null, null, decal, casts = false, windows = null, ref = floatArrayOf((x0 + x1) / 2f, 0f, (z0 + z1) / 2f))
+        addThing(GROUND, street, listOf(f), rx, 0f, rz, null, null, level, casts = false, windows = null, ref = floatArrayOf((x0 + x1) / 2f, 0f, (z0 + z1) / 2f))
     }
 
     /** A face of a box: the plane through ([ox], [oy], [oz]) whose picture runs [tw] px along u and [th] px along v. */
@@ -502,7 +667,7 @@ class FilamentStreet(
 
     private fun addThing(
         kind: Int, street: Int, faces: List<Face>, rx: Float, ry: Float, rz: Float, box: Crossroads.Box?, side: CrossSide?,
-        decal: Boolean, casts: Boolean, windows: Windows?, ref: FloatArray? = null,
+        level: Int, casts: Boolean, windows: Windows?, ref: FloatArray? = null,
     ) {
         val nv = faces.fold(0) { a, f -> a + f.p.size / 3 }
         val vb = ByteBuffer.allocateDirect(nv * STRIDE).order(ByteOrder.nativeOrder())
@@ -551,9 +716,10 @@ class FilamentStreet(
         val mis = Array(faces.size) { j ->
             val f = faces[j]
             visibleMat.createInstance().also { mi ->
-                mi.setParameter("albedo", f.tex, nearest)
+                val uv = f.uvRect
+                mi.setParameter("albedo", f.tex, if (uv != null) tiled else crisp)
                 mi.setParameter("mask", f.mask ?: textures.black, nearest)
-                mi.setParameter("uvRect", 0f, 0f, 1f, 1f)
+                if (uv != null) mi.setParameter("uvRect", uv[0], uv[1], uv[2], uv[3]) else mi.setParameter("uvRect", 0f, 0f, 1f, 1f)
                 mi.setParameter("tint", col(f.tint.red), col(f.tint.green), col(f.tint.blue), 1f)
                 mi.setParameter("glow", 0f, 0f, 0f, 0f)
                 mi.setParameter("glass", 1f, 1f, 1f, 1f)
@@ -563,14 +729,14 @@ class FilamentStreet(
         }
         val e = EntityManager.get().create()
         val rb = RenderableManager.Builder(faces.size).boundingBox(bbox).culling(false).castShadows(false).receiveShadows(true)
-            .priority(if (kind == GROUND) (if (decal) 1 else 0) else 4)
+            .priority(if (kind == GROUND) level else 4)
         for (j in faces.indices) rb.geometry(j, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices, ranges[j][0], ranges[j][1]).material(j, mis[j])
         rb.build(engine, e)
         scene.addEntity(e)
         var proxy = 0
         var pmis: Array<MaterialInstance> = emptyArray()
         if (casts && !albedo) {
-            pmis = Array(faces.size) { j -> proxyMat.createInstance().also { mi -> mi.setParameter("albedo", faces[j].tex, nearest); mi.setParameter("uvRect", 0f, 0f, 1f, 1f) } }
+            pmis = Array(faces.size) { j -> proxyMat.createInstance().also { mi -> mi.setParameter("albedo", faces[j].tex, crisp); mi.setParameter("uvRect", 0f, 0f, 1f, 1f) } }
             proxy = EntityManager.get().create()
             val pb = RenderableManager.Builder(faces.size).boundingBox(bbox).castShadows(true).receiveShadows(false)
             for (j in faces.indices) pb.geometry(j, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices, ranges[j][0], ranges[j][1]).material(j, pmis[j])
@@ -578,7 +744,7 @@ class FilamentStreet(
             scene.addEntity(proxy)
         }
         val r = ref ?: floatArrayOf(rx, ry, rz)
-        things += Thing(kind, street, e, mis, proxy, pmis, r[0], r[1], r[2], box, side, decal, windows).also {
+        things += Thing(kind, street, e, mis, proxy, pmis, r[0], r[1], r[2], box, side, level, windows).also {
             // the ground's look is picked at a point well inside the piece, its depth matched at its middle
             if (kind == GROUND) { it.lookX = rx; it.lookZ = rz; val c = faces[0].tint; it.tr = col(c.red); it.tg = col(c.green); it.tb = col(c.blue) }
         }
@@ -648,6 +814,10 @@ class FilamentStreet(
         val rest = world.restStreet
         val sheets = SpriteSheets.sheets
         val people = IntArray(2)
+        for (k in 0..1) {
+            val n = sides.getOrNull(k)?.life?.count ?: continue
+            while (personCards[k] < n) { cards += newCard(k, null, 16f, 63f, 0f, 0f, person = true); personCards[k]++ }
+        }
         for (c in cards) {
             var img = c.img
             var x = c.x; var z = c.z
@@ -686,7 +856,7 @@ class FilamentStreet(
             card(c.entity, x, z, cam.rx, cam.rz, -cam.dx, -cam.dz, left, bottom, w, h)
             if (c.proxy != 0) card(c.proxy, x, z, px, pz, -pz, px, left, bottom, w, h)
             world.ground(x, z).copyInto(m12)
-            val (s, o) = band(CARD, c.street, rest, false)
+            val (s, o) = band(CARD, c.street, rest, 0)
             LookMatrix.of(m12, cam, f.width, f.height, x, h / 2f, z, s, o, look)
             c.mi.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
             c.mi.setParameter("uvRect", u0, v0, du, dv)
@@ -753,9 +923,11 @@ class FilamentStreet(
     // ------------------------------------------------------------------ the windows' glass and night light
 
     /**
-     * A front's pictures for Filament: its art with the windows' cut-out glass filled (dark glass, a little lighter at
-     * the top where it mirrors the sky), and a mask (red: where it glows at night, its shop's glow and the windows whose
-     * lamps are on at this hour; green: glass, smooth and reflective). The lit windows follow the hour as the classic's do.
+     * A front's pictures for Filament: its art with the windows' cut-out glass filled (glass that mirrors the sky above
+     * and the far city's blocks below, as the classic's mirrorSky does), and a mask (red: where it glows at night; green:
+     * glass, smooth and reflective; blue: a lit picture that keeps its own colours, the shop's display). As the classic
+     * does, the upper windows are plain glass (lit rooms only with its interiors on, about seven in ten, on a home's
+     * hours), the houses' panes light on their hours, the shop's display glows, and the mirrored city has a few lights.
      */
     private inner class Windows(val sb: com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuilding, val seed: Int) {
         private val w = sb.front.width
@@ -763,7 +935,16 @@ class FilamentStreet(
         private val art = StreetTextures.argb(sb.front)
         private val emis = runCatching { StreetTextures.argb(sb.emis) }.getOrNull()?.takeIf { sb.emis.width == w && sb.emis.height == h }
         private val glass = sb.glass?.let { g -> runCatching { StreetTextures.argb(g) }.getOrNull()?.takeIf { g.width == w && g.height == h } }
-        private val rects = sb.windows + (sb.house?.shape?.panes ?: emptyList())
+        private val panes = sb.house?.shape?.panes ?: emptyList()
+        private val rects = sb.windows + panes
+        /** Which upper windows can be lit rooms (the classic's choice: about seven in ten, in a stable order). */
+        private val rooms: Set<Int> = run {
+            val n = sb.windows.size
+            val on = if (n == 0) 0 else maxOf(1, kotlin.math.ceil(n * .7f).toInt())
+            (0 until n).sortedBy { com.lifemax.rpg.feature.habits.domain.Ambient.hash(seed, it, 301) }.take(on).toSet()
+        }
+        /** The mirrored city's lights: the glass pixels that show one at night. */
+        private val cityLights = IntArray(w * h)
         private var lit = -1L
         private val maskPx = IntArray(w * h)
         val albedo: Texture
@@ -771,32 +952,48 @@ class FilamentStreet(
 
         init {
             val px = art.copyOf()
-            // (the classic mirrors the sky and the street in it; here the sky's light is mirrored by the glass itself)
-            val day = Color(0xFF34435C); val sky = Color(0xFF8FA9C8)
-            for (r in rects) for (y in r[1].toInt() until (r[1] + r[3]).toInt().coerceAtMost(h)) for (x in r[0].toInt() until (r[0] + r[2]).toInt().coerceAtMost(w)) {
-                if (x < 0 || y < 0) continue
-                val i = y * w + x
-                val a = px[i] ushr 24
-                if (a >= 250) continue
-                val t = (y - r[1]) / r[3].coerceAtLeast(1f)
-                val g = lerp(sky, day, t.coerceIn(0f, 1f) * .8f + .2f).toArgb()
-                px[i] = blend(g, px[i])
+            val skyHi = Color(0xFF8FA9C8); val skyLo = SceneInkGlass
+            val city = Color(0xFF2E3B52)
+            for ((j, r) in rects.withIndex()) {
+                val x0 = r[0].toInt(); val y0 = r[1].toInt(); val x1 = (r[0] + r[2]).toInt().coerceAtMost(w); val y1 = (r[1] + r[3]).toInt().coerceAtMost(h)
+                val rh = (y1 - y0).coerceAtLeast(1)
+                for (y in y0 until y1) for (x in x0 until x1) {
+                    if (x < 0 || y < 0) continue
+                    val i = y * w + x
+                    if (px[i] ushr 24 >= 250) continue
+                    val t = (y - y0).toFloat() / rh
+                    var g = lerp(skyHi, skyLo, (t * .8f + .2f).coerceIn(0f, 1f))
+                    // the far blocks mirrored in the lower part: a skyline of the pane's own, in steps of two pixels
+                    val col = (x - x0) / 2
+                    val top = .45f + .3f * com.lifemax.rpg.feature.habits.domain.Ambient.hash(seed + j, col, 77)
+                    if (t > top) {
+                        g = lerp(g, city, .65f)
+                        // a few of its windows lit (seen at night)
+                        if ((x - x0) % 2 == 0 && (y - y0) % 2 == 0 && com.lifemax.rpg.feature.habits.domain.Ambient.hash(seed + j, x * 31 + y, 78) > .86f) cityLights[i] = 1
+                    }
+                    px[i] = blend(g.toArgb(), px[i])
+                }
             }
-            albedo = textures.make(px, w, h)
+            albedo = textures.make(px, w, h, mips = true)
             mask = textures.make(IntArray(w * h), w, h, linear = true)
         }
 
         /** Rebuilds the mask when the set of lit windows changes with the hour. */
         fun update(hour: Float) {
             var bits = 0L
-            for (j in rects.indices) if (j < 63 && Dusk.lightsOn(seed * 31 + j, hour) > .5f) bits = bits or (1L shl j)
+            val nw = sb.windows.size
+            for (j in rects.indices) {
+                if (j >= 63) break
+                val room = if (j < nw) StageTuning.interiors && j in rooms else true
+                if (room && com.lifemax.rpg.feature.habits.domain.Dusk.lightsOn(seed * 31 + j, hour) > .5f) bits = bits or (1L shl j)
+            }
             if (bits == lit) return
             lit = bits
             for (i in maskPx.indices) {
-                // (the shop's glow lies over its display as a wash, as the classic's does; a lit room glows whole)
-                val e = emis?.let { (it[i] ushr 24) * 2 / 5 } ?: 0
+                // the shop's display glows as a lit picture (its own colours warmed, not a wash over them)
+                val e = emis?.let { (it[i] ushr 24) * 3 / 5 } ?: 0
                 val g = glass?.let { (it[i] ushr 24) * 2 / 5 } ?: 0
-                maskPx[i] = (255 shl 24) or (e shl 16) or (g shl 8)
+                maskPx[i] = (255 shl 24) or (e shl 16) or (g shl 8) or (if (e > 0) 255 else 0)
             }
             for ((j, r) in rects.withIndex()) {
                 val on = j < 63 && (bits shr j) and 1L == 1L
@@ -804,7 +1001,8 @@ class FilamentStreet(
                     if (x < 0 || y < 0) continue
                     val i = y * w + x
                     if ((art[i] ushr 24) >= 250) continue
-                    maskPx[i] = (255 shl 24) or ((if (on) 255 else 0) shl 16) or (255 shl 8)
+                    val red = if (on) 255 else if (cityLights[i] != 0) 150 else 0
+                    maskPx[i] = (255 shl 24) or (red shl 16) or (255 shl 8)
                 }
             }
             textures.update(mask, maskPx)
@@ -831,7 +1029,7 @@ class FilamentStreet(
         }
         for (t in things) { for (mi in t.mis) engine.destroyMaterialInstance(mi); for (mi in t.proxyMis) engine.destroyMaterialInstance(mi) }
         for (c in cards) { engine.destroyMaterialInstance(c.mi); c.pmi?.let { engine.destroyMaterialInstance(it) } }
-        things.clear(); cards.clear()
+        things.clear(); cards.clear(); personCards.fill(0)
         lampMaskTex = null
         for (v in vbs) engine.destroyVertexBuffer(v)
         for (i in ibs) engine.destroyIndexBuffer(i)
@@ -859,13 +1057,17 @@ class FilamentStreet(
         val p: FloatArray, val uv: FloatArray, val tex: Texture, val mask: Texture?,
         val nx: Float, val ny: Float, val nz: Float, val tx: Float, val ty: Float, val tz: Float,
         val tint: Color = Color.White,
+        /** The part of the picture it wears (offset, size; a tiled ground's repeats), all of it if null. */
+        val uvRect: FloatArray? = null,
     )
 
     private class Thing(
         val kind: Int, val street: Int, val entity: Int, val mis: Array<MaterialInstance>, val proxy: Int,
         val proxyMis: Array<MaterialInstance>, val refX: Float, val refY: Float, val refZ: Float,
-        val box: Crossroads.Box?, val side: CrossSide?, val decal: Boolean, val windows: Windows?,
+        val box: Crossroads.Box?, val side: CrossSide?, val level: Int, val windows: Windows?,
     ) {
+        /** How far forward its depth is drawn (street units): a billboard over its own roof. */
+        var pull = 0f
         var lookX = refX
         var lookZ = refZ
         /** A flat ground piece's own colour (linear), hued by the hour. */
@@ -881,6 +1083,9 @@ class FilamentStreet(
         var lamp = false
     }
 
+    /** The glass low down, mirroring the street's shade (the classic's day glass). */
+    private val SceneInkGlass = Color(0xFF34435C)
+
     private val dayPave = com.lifemax.rpg.feature.habits.presentation.scene.skyColors(13f).pavement
 
     companion object {
@@ -888,6 +1093,11 @@ class FilamentStreet(
         const val GROUND = 1
         const val CARD = 2
         private const val STRIDE = 36
+        /** The ground tiles' length along their street (the paving's 24 and the dashes' 46 both go into it) and texels a unit. */
+        const val TILE_L = 552f
+        const val TEX = 2f
+        /** How thick the air is past the street in view (the fog's density, per street unit). */
+        const val HAZE = .0006f
         /** The sun's and the sky light's strength by day (tuned by eye against the classic street). */
         private const val SUN = .45f
         private const val AMB = .8f

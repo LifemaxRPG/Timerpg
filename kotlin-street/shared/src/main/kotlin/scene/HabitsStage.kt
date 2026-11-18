@@ -884,9 +884,6 @@ private fun StageCanvas(
         // the crossroads' camera: the street's own view, or as far round the corner as the walk has turned it; the sky
         // turns with it, the sun and the moon too (a quarter turn takes them out of the cross street's view)
         if (cr != null) aimWorld(world, cr, sides!!, f.middle, f.ground, horizon, f.unit, Perspective.k(f.zoom), this.size.width, orb.first * d)
-        // a 3D renderer drawing the street takes this frame's crossroads as the stage would draw them
-        if (cr != null && Stage3D.listening)
-            Stage3D.frame.fill(world, cr, sides!!, sky, light, p.hour, seconds, this.size.width, this.size.height, f.ground, horizon, f.unit)
         // (the sky settles a little before the street at either end of a walk round the corner: CornerWalk.skyYaw)
         val yawPx = if (cr != null) world.cam.f * (if (CornerWalk.active) CornerWalk.skyYaw else world.cam.yaw) else 0f
         val orbX = orb.first * d + yawPx
@@ -921,6 +918,12 @@ private fun StageCanvas(
             life.withPlayer = sd.k == CornerWalk.playerStreet()
             life.turn = (if (sd.k == 0) 0f else (Math.PI / 2).toFloat()) - world.cam.yaw
             life.update(seconds, seed, sd.street)
+        }
+        // a 3D renderer drawing the street takes this frame's crossroads as the stage would draw them (once its people
+        // have moved), and draws it now, in the same frame as the sky under it
+        if (cr != null && Stage3D.listening) {
+            Stage3D.frame.fill(world, cr, sides!!, sky, light, p.hour, seconds, this.size.width, this.size.height, f.ground, horizon, f.unit)
+            Stage3D.drawn()
         }
         val from = f.streetX(0f) - B.GAP
         val to = f.streetX(this.size.width) + B.GAP

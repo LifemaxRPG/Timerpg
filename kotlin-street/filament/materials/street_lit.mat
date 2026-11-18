@@ -58,6 +58,8 @@ fragment {
         material.roughness = mix(0.9, 0.2, m.g);
         material.metallic = 0.0;
         material.reflectance = mix(0.2, 0.6, m.g);
-        material.emissive = vec4(materialParams.glow.rgb * (m.r * materialParams.glow.a), 0.0);
+        // a lit room glows whole in the lamp's colour; a lit display (the mask's blue) glows in its own colours, warmed
+        vec3 lamp = mix(vec3(1.0), c.rgb * 1.8, m.b);
+        material.emissive = vec4(materialParams.glow.rgb * lamp * (m.r * materialParams.glow.a), 0.0);
     }
 }

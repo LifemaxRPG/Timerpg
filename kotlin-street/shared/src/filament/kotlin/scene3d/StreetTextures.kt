@@ -19,14 +19,18 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     val black: Texture = solid(0x00000000)
 
     /** The texture of [img] as drawn. */
-    fun of(img: ImageBitmap): Texture = byImage.getOrPut(img) { make(argb(img), img.width, img.height) }
+    fun of(img: ImageBitmap): Texture = byImage.getOrPut(img) { make(argb(img), img.width, img.height, mips = true) }
 
-    /** A texture from ARGB pixels (rows top first), owned here. */
-    fun make(px: IntArray, w: Int, h: Int, linear: Boolean = false): Texture {
+    /** A texture from ARGB pixels (rows top first), owned here; [mips]: with its mipmaps (for a picture never updated). */
+    fun make(px: IntArray, w: Int, h: Int, linear: Boolean = false, mips: Boolean = false): Texture {
         val buf = pack(px, w, h)
-        val t = Texture.Builder().width(w).height(h).levels(1).sampler(Texture.Sampler.SAMPLER_2D)
-            .format(if (srgb && !linear) Texture.InternalFormat.SRGB8_A8 else Texture.InternalFormat.RGBA8).build(engine)
+        val format = if (srgb && !linear) Texture.InternalFormat.SRGB8_A8 else Texture.InternalFormat.RGBA8
+        // (a texture whose mipmaps the engine makes must say so, or Filament aborts the process)
+        val levels = if (mips && Texture.isTextureFormatMipmappable(engine, format)) 32 - Integer.numberOfLeadingZeros(maxOf(w, h)) else 1
+        val t = Texture.Builder().width(w).height(h).levels(levels).sampler(Texture.Sampler.SAMPLER_2D).format(format)
+            .usage(if (levels > 1) Texture.Usage.DEFAULT or Texture.Usage.GEN_MIPMAPPABLE else Texture.Usage.DEFAULT).build(engine)
         t.setImage(engine, 0, Texture.PixelBufferDescriptor(buf, Texture.Format.RGBA, Texture.Type.UBYTE))
+        if (levels > 1) t.generateMipmaps(engine)
         made += t
         return t
     }

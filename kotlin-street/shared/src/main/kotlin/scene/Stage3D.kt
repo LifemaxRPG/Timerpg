@@ -12,6 +12,13 @@ import com.lifemax.rpg.feature.habits.domain.KeyLight
 object Stage3D {
     @Volatile var listening = false
     val frame = Frame3D()
+    /**
+     * Called on the stage's draw right after it filled [frame] (main thread): the 3D renderer draws then, so it shows the
+     * same frame as the sky drawn under it, and draws nothing while the stage draws nothing (the app stopped, a room).
+     */
+    @Volatile var onFrame: (() -> Unit)? = null
+
+    internal fun drawn() { onFrame?.invoke() }
 }
 
 /** One frame of the crossroads as the stage drew it. [n] counts frames, so a renderer can tell a new one. */
@@ -33,6 +40,9 @@ class Frame3D {
     /** How dark it is (0 day, 1 night). */
     var dark = 0f; internal set
     val ready: Boolean get() = world != null && cr != null && sides != null
+
+    /** Lets go of the stage's world (it left the street: a room), so nothing of it is drawn or kept from here. */
+    fun clear() { world = null; cr = null; sides = null; sky = null; light = null }
 
     internal fun fill(
         world: CornerWorld, cr: Crossroads, sides: List<CrossSide>, sky: SkyColors, light: KeyLight,

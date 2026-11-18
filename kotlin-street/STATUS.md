@@ -414,21 +414,31 @@ time with its drawing (it renders each frame twice in `-Dmode=move` to measure);
 - What it is: the street drawn by Google's Filament (1.81) instead of by hand on Compose's Canvas, as a switch in the AI
   panel ("Renderer: Classic / Filament trial"; the classic stays the default, the choice is kept). The stage still
   runs everything (the walk, the camera, the people, the sky) and hands each frame's crossroads over (`scene/Stage3D.kt`);
-  with Filament on it draws only its sky, and a TextureView over it runs `scene3d/FilamentStreet.kt` once per vsync.
-  If Filament fails to start or stops, the game goes back to the classic street and the panel says why.
+  with Filament on it draws only its sky, and a TextureView over it runs `scene3d/FilamentStreet.kt`, drawn from the
+  stage's own draw right after it fills the frame (so street and sky are the same frame, nothing is drawn while the stage
+  draws nothing, a frame the stage did not change is not drawn again, and nothing at all between onPause and onResume).
+  If Filament fails to start or stops, the game goes back to the classic street and the panel says why; a start is
+  marked in the preferences until 30 frames are drawn, so a native abort (which no Kotlin catch sees) leaves the mark and
+  the next launch starts on the classic street.
 - How it keeps the look: every visible thing is real geometry (each shop's front, sign, sides, back, flat or pitched
   roof with its gables and end walls, rooftop billboard; the mobile homes' walls, gabled ends and roof slopes, lawn and
-  fence; the ground; lamps, trees, benches and people as upright cards) wearing the same sprites, nearest-sampled, with a
-  real depth buffer. It goes to the screen through CornerWorld's own matrix for it (`device` vertex domain,
+  fence; the ground; lamps, trees, benches and people as upright cards) wearing the same sprites, nearest-sampled when
+  magnified and mipmapped when seen small or edge on (no moire), with a real depth buffer. The ground is one painted
+  tile per street (the classic's slab gradient and joints, kerb highlight and its shade on the road, white lane dashes,
+  specks), with the mouth's road, dropped kerbs and zebra laid over the main pavement. It goes to the screen through CornerWorld's own matrix for it (`device` vertex domain,
   `scene3d/LookMatrix.kt`), so at rest the street stands exactly where the classic draws it (the same matrices that
   `crossroadsTest` holds to the stage's drawing within 0.05 px; `LookMatrixTest` checks the screen is the classic's at
   any lean and the depth is in order) and mid-turn it swings exactly as the classic's does. Light and shadow use each
-  thing's true place: a sun from the classic's key light (its 4096 shadow map, 2 cascades, stable), a sky light with
+  thing's true place: a sun from the classic's key light, splayed as the classic's is and turned with the camera as the
+  classic relights each street it looks down (its 4096 shadow map, 3 cascades fitted from just before the street, stable;
+  the moon throws none), a sky light with
   more from the camera's side, invisible object-domain twins that throw the shadows (things drawn through the look cannot
   cast). The depth is the pinhole's n/d where nothing is leaned and its tangent where a street keeps its cabinet look;
   the ground sits under everything and, at rest, the street in view in front of the rest, as the classic layers them.
-- Night and dusk: lit windows (the classic's own `Dusk.lightsOn` per window) and the shops' glow as emissive, the
-  lamps' lantern glass glows, the glass mirrors the low sky's colour, the ground takes the hour's hue.
+- Night and dusk: the upper windows are plain glass mirroring the sky and the far city (a few of its lights at night),
+  lit rooms only with interiors on (as the classic), the houses' panes on their hours, the shops' displays glow in their
+  own colours; the lamps' lantern glass glows; the ground takes the hour's hue; fronts backlit by a low sun fall into
+  their own shade; haze (fog) past the street in view greys the far blocks as the classic's aerial haze.
 - Desktop: `gradle :desktop:preview -Dmode=filament [-Dhour=H] [-Dturn=0]` (or `filament-albedo`, unlit sprite colours)
   writes `desktop/build/preview/filament/filament_*.png` (Filament over the stage's sky) and `compare_*.png` (classic
   above, Filament below, the same frame) for Main Street at the mouth and further west at 13, 19.3 and 22.5 h, and the
@@ -443,11 +453,10 @@ time with its drawing (it renders each frame twice in `-Dmode=move` to measure);
   start and build times, beside the frame line, and the phone's thermal status and headroom.
 - By eye against the classic: placement matches at rest and through the turn; the shadows fall from the buildings,
   lamps, trees and people onto the pavement as the classic's do (true sun, a little longer and straighter than the
-  classic's splayed ones). Not like the classic yet: the windows show flat glass (the classic draws the rooms and the
-  street mirrored in them), the pavement and road are flat colours (no paving joints, kerb highlight, grime, lamp pools),
-  no lamp light on the ground at night, the houses have no porches, steps, hitches or flues, a rooftop billboard stands
-  at the eave (the classic draws it halfway back over the roof; here a pitched roof would hide its foot), and none of the
-  weather, seasons, cars, birds, sun glare or the wet mirror are drawn by it.
+  classic's splayed ones). A rooftop billboard stands halfway back on its roof as
+  the classic's, its depth pulled to its front's so its own roof does not hide it. Not like the classic yet: no lamp
+  pools on the ground at night, the houses have no porches, steps, hitches or flues, a low sun's glare is drawn under
+  the street (the classic draws it over), and none of the weather, seasons, cars, birds or the wet mirror are drawn by it.
 - To do: run it on the S25 (frame times, GPU time, heat, the TextureView's cost); Filament's AAR asks for compileSdk 37
   (this project is on AGP 8.7 and SDK 34: the AAR metadata check is skipped and its own dependencies left out for now);
   the Rich/Exact post-processing switch, Vulkan backend switch and benchmark walk of the design are not built; lamp point

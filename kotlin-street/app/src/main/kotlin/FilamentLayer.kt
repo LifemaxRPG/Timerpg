@@ -1,7 +1,6 @@
 package com.timerpg.street
 
 import android.content.Context
-import android.view.Choreographer
 import android.view.Surface
 import android.view.TextureView
 import androidx.compose.runtime.Composable
@@ -23,24 +22,46 @@ import com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentStreet
 /**
  * The renderer trial's switch (the AI panel): the classic street, or Filament drawing the street over the stage's sky.
  * Kept in the app's preferences; the classic is the default, and the game falls back to it if Filament fails to start.
+ *
+ * A native abort in Filament (a failed precondition, a driver crash) kills the process before any Kotlin code can turn
+ * it off, so a start is marked in the preferences before Filament starts and cleared once it has drawn [GOOD_FRAMES]
+ * frames: a mark still there at the next launch means that start died, and the game starts on the classic instead.
  */
 object StreetRenderer {
     var filament by mutableStateOf(false)
         private set
     /** Why Filament is not drawing, if it failed (shown in the panel). */
     var error by mutableStateOf<String?>(null)
+    /** The app is in the background (between onPause and onResume): Filament draws nothing. */
+    @Volatile var paused = false
+    const val GOOD_FRAMES = 30
 
-    fun load(ctx: Context) { set(ctx, ctx.getSharedPreferences("renderer", Context.MODE_PRIVATE).getBoolean("filament", false)) }
+    private fun prefs(ctx: Context) = ctx.getSharedPreferences("renderer", Context.MODE_PRIVATE)
+
+    fun load(ctx: Context) {
+        val p = prefs(ctx)
+        if (p.getBoolean("starting", false)) {
+            // the last start never drew its first frames: it died in native code
+            p.edit().putBoolean("starting", false).commit()
+            error = "Filament crashed while starting last time: back on the classic street"
+            set(ctx, false)
+            return
+        }
+        set(ctx, p.getBoolean("filament", false))
+    }
 
     fun set(ctx: Context, on: Boolean) {
         filament = on
         // the stage hands its frames over and draws only its sky under Filament
         Stage3D.listening = on
         StageTuning.skyOnly = on
-        ctx.getSharedPreferences("renderer", Context.MODE_PRIVATE).edit().putBoolean("filament", on).apply()
+        prefs(ctx).edit().putBoolean("filament", on).apply()
     }
 
-    fun failed(ctx: Context, why: String) { error = why; set(ctx, false) }
+    /** Marks a start (written at once, so it is on disk before a native crash could happen) or clears the mark. */
+    fun starting(ctx: Context, on: Boolean) { prefs(ctx).edit().putBoolean("starting", on).commit() }
+
+    fun failed(ctx: Context, why: String) { error = why; starting(ctx, false); set(ctx, false) }
 }
 
 /** The frame times of the renderer in use, for the AI panel's frame line. */
@@ -74,8 +95,8 @@ fun FilamentLayer(modifier: Modifier = Modifier) {
     )
 }
 
-/** Runs Filament on [view]: one frame per vsync from the stage's latest frame. */
-private class FilamentHost(private val ctx: Context, view: TextureView) : Choreographer.FrameCallback {
+/** Runs Filament on [view]: one frame each time the stage draws one (in its draw, so street and sky are the same frame). */
+private class FilamentHost(private val ctx: Context, view: TextureView) {
     private var engine: Engine? = null
     private var renderer: Renderer? = null
     private var street: FilamentStreet? = null
@@ -84,11 +105,17 @@ private class FilamentHost(private val ctx: Context, view: TextureView) : Choreo
     private var w = 0
     private var h = 0
     private var alive = true
+    private var good = 0
+    /** The stage's frame last drawn, and whether the surface changed since (then it is drawn again). */
+    private var lastN = -1L
+    private var dirty = true
     private val history = arrayOf(Renderer.FrameInfo())
+    private val onFrame: () -> Unit = { frame() }
 
     init {
         try {
             val t0 = System.nanoTime()
+            StreetRenderer.starting(ctx, true)
             Filament.init()
             val e = Engine.Builder().featureLevel(Engine.FeatureLevel.FEATURE_LEVEL_3).build()
             engine = e
@@ -104,43 +131,48 @@ private class FilamentHost(private val ctx: Context, view: TextureView) : Choreo
                 override fun onNativeWindowChanged(surface: Surface) {
                     swap?.let { e.destroySwapChain(it) }
                     swap = e.createSwapChain(surface, ui.swapChainFlags or SwapChainFlags.CONFIG_TRANSPARENT)
+                    dirty = true
                 }
                 override fun onDetachedFromSurface() {
                     swap?.let { e.destroySwapChain(it); e.flushAndWait() }
                     swap = null
                 }
-                override fun onResized(width: Int, height: Int) { w = width; h = height }
+                override fun onResized(width: Int, height: Int) { w = width; h = height; dirty = true }
             }
             ui.attachTo(view)
-            Choreographer.getInstance().postFrameCallback(this)
+            Stage3D.onFrame = onFrame
         } catch (t: Throwable) {
             StreetRenderer.failed(ctx, "Filament did not start: ${t.message ?: t.javaClass.simpleName}")
             destroy()
         }
     }
 
-    override fun doFrame(frameTimeNanos: Long) {
-        if (!alive) return
-        Choreographer.getInstance().postFrameCallback(this)
+    /** Draws the stage's frame just filled: nothing in the background, nothing when the stage drew nothing new. */
+    private fun frame() {
+        if (!alive || StreetRenderer.paused) return
         val e = engine ?: return
         val r = renderer ?: return
         val s = street ?: return
         val sc = swap ?: return
         val f = Stage3D.frame
         if (!f.ready || w == 0) return
+        if (f.n == lastN && !dirty) return
         try {
             val t0 = System.nanoTime()
             s.update(f)
             if (s.buildMs > 0f) FilamentStats.buildMs = s.buildMs
-            if (r.beginFrame(sc, frameTimeNanos)) {
+            if (r.beginFrame(sc, System.nanoTime())) {
                 r.render(s.view)
                 r.endFrame()
             }
+            lastN = f.n; dirty = false
             val cpu = (System.nanoTime() - t0) / 1e6f
             // the GPU's time for an earlier frame, where the driver reports it
             val got = r.getFrameInfoHistory(history)
             val g = if (got > 0 && history[0].gpuFrameDuration > 0) history[0].gpuFrameDuration / 1e6f else -1f
             FilamentStats.add(cpu, g)
+            // it has drawn: the start did not die in native code
+            if (++good == StreetRenderer.GOOD_FRAMES) StreetRenderer.starting(ctx, false)
         } catch (t: Throwable) {
             StreetRenderer.failed(ctx, "Filament stopped: ${t.message ?: t.javaClass.simpleName}")
             destroy()
@@ -150,12 +182,16 @@ private class FilamentHost(private val ctx: Context, view: TextureView) : Choreo
     fun destroy() {
         if (!alive) return
         alive = false
-        Choreographer.getInstance().removeFrameCallback(this)
+        if (Stage3D.onFrame === onFrame) Stage3D.onFrame = null
+        // (the stage that filled it may be gone: a room; the next one fills it afresh)
+        Stage3D.frame.clear()
         runCatching { ui.detach() }
         val e = engine ?: return
         street?.destroy(); street = null
         swap?.let { e.destroySwapChain(it) }; swap = null
         renderer?.let { e.destroyRenderer(it) }; renderer = null
         e.destroy(); engine = null
+        // a clean stop before the first frames is no crash
+        if (good < StreetRenderer.GOOD_FRAMES && StreetRenderer.error == null) StreetRenderer.starting(ctx, false)
     }
 }

@@ -137,6 +137,8 @@ class GameActivity : ComponentActivity() {
     override fun onPause() {
         getSystemService(android.hardware.input.InputManager::class.java)?.unregisterInputDeviceListener(devices)
         letGo()
+        // Filament draws nothing in the background
+        StreetRenderer.paused = true
         super.onPause()
     }
 
@@ -206,6 +208,7 @@ class GameActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        StreetRenderer.paused = false
         getSystemService(android.hardware.input.InputManager::class.java)?.registerInputDeviceListener(devices, null)
     }
 

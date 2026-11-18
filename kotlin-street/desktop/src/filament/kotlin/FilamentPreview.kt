@@ -54,7 +54,7 @@ fun renderFilament(out: String, albedo: Boolean) {
     renderer.clearOptions = Renderer.ClearOptions().apply { clear = true; setClearColor(0.0, 0.0, 0.0, 0.0) }
     val assets = File(assetsDir(), "filament")
     val tLoad = System.nanoTime()
-    val street = FilamentStreet(engine, { n -> File(assets, "$n.filamat").readBytes() }, albedo = albedo, shadowMap = 2048)
+    val street = FilamentStreet(engine, { n -> File(assets, "$n.filamat").readBytes() }, albedo = albedo, shadowMap = 4096)
     line("filament: engine + materials %.0f ms (llvmpipe, this machine)".format((System.nanoTime() - tLoad) / 1e6))
     val pixels = ByteBuffer.allocateDirect(w * h * 4).order(ByteOrder.nativeOrder())
     val times = ArrayList<Double>()
@@ -97,12 +97,15 @@ fun renderFilament(out: String, albedo: Boolean) {
         scene.render(nanos); val classic = pixels(scene.render(nanos))
         val classicMs = (System.nanoTime() - tc) / 1e6 / 2.0
         StageTuning.skyOnly = true
-        scene.render(nanos); val sky = pixels(scene.render(nanos))
+        // (a frame a microsecond on: the scene only redraws for a new frame time, and skyOnly is no snapshot state)
+        scene.render(nanos + 1_000L); val sky = pixels(scene.render(nanos + 2_000L))
         StageTuning.skyOnly = false
         val fil = over(drawFilament(), sky)
         savePng(File(dir, "filament_$tag.png"), fil, null, w, h)
+        if (System.getProperty("sky") == "1") savePng(File(dir, "sky_$tag.png"), sky, null, w, h)
         savePng(File(dir, "compare_$tag.png"), classic + fil, null, w, h * 2)
         val st = stats(classic, fil)
+        Stage3D.frame.light?.let { k -> line("  light: dark %.2f across %.2f down %.2f out %.2f strength %.2f cool %.2f".format(Stage3D.frame.dark, k.across, k.down, k.out, k.strength, k.cool)) }
         line("%-14s classic (Skia, CPU) %.0f ms/frame   filament (llvmpipe) %.0f ms/frame   diff %s".format(tag, classicMs, times.last(), st))
     }
 
@@ -117,7 +120,7 @@ fun renderFilament(out: String, albedo: Boolean) {
     fun settle(scene: ImageComposeScene, n: Int) { repeat(n) { nanos += 33_333_333L; Thread.sleep(40); scene.render(nanos) } }
 
     val hours = System.getProperty("hour")?.toFloatOrNull()?.let { listOf(it) } ?: listOf(13f, 19.3f, 22.5f)
-    for (hour in hours) {
+    for (hour in if (System.getProperty("rest") == "0") emptyList() else hours) {
         val scene = newScene(hour)
         GameState.street = 0; GameState.x = 1500f; GameState.lane = 7f; GameState.dir = 1f
         GameState.moveX = 0f; GameState.moveLane = 0f
