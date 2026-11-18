@@ -296,6 +296,13 @@ fun main(args: Array<String>) {
     if (mode == "houses") { renderHouses(out, File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path); return }
     if (mode == "models") { renderHouses(out, File(args.getOrElse(1) { "../public/assets/characters" }).parentFile.path, h = (System.getProperty("tall")?.toIntOrNull() ?: 520), prefix = "models"); return }
     if (mode == "seam") { renderSeam(out); return }
+    if (mode == "filament" || mode == "filament-albedo") {
+        // (compiled in only when Filament's desktop build is there: see build.gradle.kts)
+        val k = runCatching { Class.forName("FilamentPreviewKt") }.getOrNull()
+            ?: error("Filament is not built in: run tools/build-filament.sh (or pass -Pfilament.dist=DIR)")
+        k.getMethod("renderFilament", String::class.java, Boolean::class.javaPrimitiveType).invoke(null, out, mode == "filament-albedo")
+        return
+    }
     if (mode == "junction") {
         // walking past the junction: the side street seen through its mouth, from either side and straight on
         StageTuning.crossroads = loadCrossroads()

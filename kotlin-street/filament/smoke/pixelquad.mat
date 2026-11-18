@@ -1,0 +1,17 @@
+// Unlit and textured: the sprite's own colours, nothing else, so the smoke test can compare pixels with the PNG.
+material {
+    name : PixelQuad,
+    shadingModel : unlit,
+    blending : masked,
+    parameters : [
+        { type : sampler2d, name : albedo }
+    ],
+    requires : [ uv0 ]
+}
+
+fragment {
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        material.baseColor = texture(materialParams_albedo, getUV0());
+    }
+}

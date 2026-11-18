@@ -410,6 +410,58 @@ time with its drawing (it renders each frame twice in `-Dmode=move` to measure);
   thread count (6 on the S25 Ultra by its cpu_capacity, 2 if only clocks can be read), the panel sizes on small
   landscape screens.
 
+## The Filament renderer trial (verified in headless desktop renders on Mesa's software GL; NOT yet run on a phone)
+- What it is: the street drawn by Google's Filament (1.81) instead of by hand on Compose's Canvas, as a switch in the AI
+  panel ("Renderer: Classic / Filament trial"; the classic stays the default, the choice is kept). The stage still
+  runs everything (the walk, the camera, the people, the sky) and hands each frame's crossroads over (`scene/Stage3D.kt`);
+  with Filament on it draws only its sky, and a TextureView over it runs `scene3d/FilamentStreet.kt`, drawn from the
+  stage's own draw right after it fills the frame (so street and sky are the same frame, nothing is drawn while the stage
+  draws nothing, a frame the stage did not change is not drawn again, and nothing at all between onPause and onResume).
+  If Filament fails to start or stops, the game goes back to the classic street and the panel says why; a start is
+  marked in the preferences until 30 frames are drawn, so a native abort (which no Kotlin catch sees) leaves the mark and
+  the next launch starts on the classic street.
+- How it keeps the look: every visible thing is real geometry (each shop's front, sign, sides, back, flat or pitched
+  roof with its gables and end walls, rooftop billboard; the mobile homes' walls, gabled ends and roof slopes, lawn and
+  fence; the ground; lamps, trees, benches and people as upright cards) wearing the same sprites, nearest-sampled when
+  magnified and mipmapped when seen small or edge on (no moire), with a real depth buffer. The ground is one painted
+  tile per street (the classic's slab gradient and joints, kerb highlight and its shade on the road, white lane dashes,
+  specks), with the mouth's road, dropped kerbs and zebra laid over the main pavement. It goes to the screen through CornerWorld's own matrix for it (`device` vertex domain,
+  `scene3d/LookMatrix.kt`), so at rest the street stands exactly where the classic draws it (the same matrices that
+  `crossroadsTest` holds to the stage's drawing within 0.05 px; `LookMatrixTest` checks the screen is the classic's at
+  any lean and the depth is in order) and mid-turn it swings exactly as the classic's does. Light and shadow use each
+  thing's true place: a sun from the classic's key light, splayed as the classic's is and turned with the camera as the
+  classic relights each street it looks down (its 4096 shadow map, 3 cascades fitted from just before the street, stable;
+  the moon throws none), a sky light with
+  more from the camera's side, invisible object-domain twins that throw the shadows (things drawn through the look cannot
+  cast). The depth is the pinhole's n/d where nothing is leaned and its tangent where a street keeps its cabinet look;
+  the ground sits under everything and, at rest, the street in view in front of the rest, as the classic layers them.
+- Night and dusk: the upper windows are plain glass mirroring the sky and the far city (a few of its lights at night),
+  lit rooms only with interiors on (as the classic), the houses' panes on their hours, the shops' displays glow in their
+  own colours; the lamps' lantern glass glows; the ground takes the hour's hue; fronts backlit by a low sun fall into
+  their own shade; haze (fog) past the street in view greys the far blocks as the classic's aerial haze.
+- Desktop: `gradle :desktop:preview -Dmode=filament [-Dhour=H] [-Dturn=0]` (or `filament-albedo`, unlit sprite colours)
+  writes `desktop/build/preview/filament/filament_*.png` (Filament over the stage's sky) and `compare_*.png` (classic
+  above, Filament below, the same frame) for Main Street at the mouth and further west at 13, 19.3 and 22.5 h, and the
+  walk round the corner at 0, 25, 50, 75 and 100%, at the S25's 2340x1080. Compiled in only when Filament's desktop build
+  is there (`tools/build-filament.sh`, `filament/TOOLCHAIN.md`); materials: `filament/materials/*.mat`, compiled by
+  `tools/build-materials.sh` into `app/src/main/assets/filament/` (committed).
+- Measured on this 4-core server only (software GL, relative numbers; nothing on the S25 yet): a Filament frame at
+  2340x1080 (update, render, read back) about 100 ms warm (92-110), 215-390 ms for the first frame of a street (shaders
+  compile), building the street 60-110 ms; unlit albedo mode 30-34 ms. The classic's frame in the same harness (Skia on
+  the CPU, also read back) 310-340 ms by day, about 950 ms at dusk, about 400 ms at night. The phone's numbers are what
+  count: the AI panel shows Filament's CPU and GPU (from Filament's frame history, where the driver gives it) times,
+  start and build times, beside the frame line, and the phone's thermal status and headroom.
+- By eye against the classic: placement matches at rest and through the turn; the shadows fall from the buildings,
+  lamps, trees and people onto the pavement as the classic's do (true sun, a little longer and straighter than the
+  classic's splayed ones). A rooftop billboard stands halfway back on its roof as
+  the classic's, its depth pulled to its front's so its own roof does not hide it. Not like the classic yet: no lamp
+  pools on the ground at night, the houses have no porches, steps, hitches or flues, a low sun's glare is drawn under
+  the street (the classic draws it over), and none of the weather, seasons, cars, birds or the wet mirror are drawn by it.
+- To do: run it on the S25 (frame times, GPU time, heat, the TextureView's cost); Filament's AAR asks for compileSdk 37
+  (this project is on AGP 8.7 and SDK 34: the AAR metadata check is skipped and its own dependencies left out for now);
+  the Rich/Exact post-processing switch, Vulkan backend switch and benchmark walk of the design are not built; lamp point
+  lights (the device domain's screen is not the camera's, so Filament's light froxels would need the camera to match).
+
 ## Known rough edges / not done
 - Untested on a real device (touch, speed, memory, the turn's draw cost). Android-only code: image helper, asset loading,
   the stick's back-gesture exclusion, keyboard and game pad input, the refresh-rate request.

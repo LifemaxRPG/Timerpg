@@ -919,6 +919,12 @@ private fun StageCanvas(
             life.turn = (if (sd.k == 0) 0f else (Math.PI / 2).toFloat()) - world.cam.yaw
             life.update(seconds, seed, sd.street)
         }
+        // a 3D renderer drawing the street takes this frame's crossroads as the stage would draw them (once its people
+        // have moved), and draws it now, in the same frame as the sky under it
+        if (cr != null && Stage3D.listening) {
+            Stage3D.frame.fill(world, cr, sides!!, sky, light, p.hour, seconds, this.size.width, this.size.height, f.ground, horizon, f.unit)
+            Stage3D.drawn()
+        }
         val from = f.streetX(0f) - B.GAP
         val to = f.streetX(this.size.width) + B.GAP
         // the tallest building in view: it decides how high the clouds hang (clear of its roof and

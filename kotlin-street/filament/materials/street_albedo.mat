@@ -1,0 +1,47 @@
+// The same as street_lit but unlit: the sprites' own colours exactly, for comparing placement with the classic street.
+material {
+    name : StreetAlbedo,
+    shadingModel : unlit,
+    blending : masked,
+    maskThreshold : 0.5,
+    vertexDomain : device,
+    culling : none,
+    doubleSided : false,
+    parameters : [
+        { type : mat4, name : look, precision : high },
+        { type : sampler2d, name : albedo, precision : medium },
+        { type : sampler2d, name : mask, precision : medium },
+        { type : float4, name : uvRect },
+        { type : float4, name : tint },
+        { type : float4, name : glow },
+        // what the glass mirrors at this hour (multiplies the glass, the mask's green)
+        { type : float4, name : glass },
+        { type : float, name : fade },
+        { type : float, name : cell }
+    ],
+    requires : [ uv0 ]
+}
+
+vertex {
+    void materialVertex(inout MaterialVertexInputs material) {
+        material.worldPosition = getWorldFromModelMatrix() * getPosition();
+        // (Filament's shader world is centred on the camera; the look takes the user's world)
+        material.clipSpaceTransform = materialParams.look * getUserWorldFromWorldMatrix() * getWorldFromModelMatrix();
+    }
+}
+
+fragment {
+    float bayer4(vec2 p) {
+        vec2 q = mod(floor(p), 4.0);
+        float i = q.x + 4.0 * q.y;
+        const float m[16] = float[16](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);
+        return (m[int(i)] + 0.5) / 16.0;
+    }
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        vec2 uv = materialParams.uvRect.xy + getUV0() * materialParams.uvRect.zw;
+        vec4 c = texture(materialParams_albedo, uv) * materialParams.tint;
+        if (materialParams.fade < 1.0 && bayer4(gl_FragCoord.xy / materialParams.cell) > materialParams.fade) c.a = 0.0;
+        material.baseColor = c;
+    }
+}

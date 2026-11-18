@@ -1,0 +1,29 @@
+// The invisible twin of everything that casts a shadow. Things drawn through the classic look (device domain) cannot
+// cast; this one stands in the true world, writes no colour and no depth in the view, and only throws the shadow.
+material {
+    name : ShadowProxy,
+    shadingModel : unlit,
+    blending : masked,
+    maskThreshold : 0.5,
+    colorWrite : false,
+    depthWrite : false,
+    culling : none,
+    doubleSided : true,
+    parameters : [
+        { type : sampler2d, name : albedo, precision : medium },
+        { type : float4, name : uvRect }
+    ],
+    requires : [ uv0 ]
+}
+
+fragment {
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        vec2 uv = materialParams.uvRect.xy + getUV0() * materialParams.uvRect.zw;
+        material.baseColor = texture(materialParams_albedo, uv);
+#if !defined(VARIANT_DEPTH)
+        // never seen: only the shadow map's (depth) pass keeps it
+        material.baseColor.a = 0.0;
+#endif
+    }
+}

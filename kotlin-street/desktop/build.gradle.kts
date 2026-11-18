@@ -15,6 +15,14 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
 }
 sourceSets { main { kotlin.srcDir("../shared/src/main/kotlin") } }
+// The Filament renderer trial: compiled in only when Filament's headless desktop build is there (tools/build-filament.sh;
+// -Pfilament.dist=DIR to use another), so the desktop builds without it as before.
+val filamentDist = file((findProperty("filament.dist") as String?) ?: "/home/user/filament-dist")
+val withFilament = File(filamentDist, "lib/filament-java.jar").exists()
+if (withFilament) {
+    sourceSets { main { kotlin.srcDir("../shared/src/filament/kotlin"); kotlin.srcDir("src/filament/kotlin") } }
+    dependencies { implementation(files(File(filamentDist, "lib/filament-java.jar"), File(filamentDist, "lib/androidx-annotation.jar"))) }
+}
 // -DtestOnly=HouseGeometryTest,DuskTest: compile and run only those test files (a few of the habit tracker's old tests,
 // HabitsViewModelTest and its kin, no longer compile against this engine)
 System.getProperty("testOnly")?.let { only ->
@@ -31,6 +39,8 @@ val crossroadsTest by sourceSets.creating {
     runtimeClasspath += sourceSets.main.get().output + sourceSets.main.get().runtimeClasspath
 }
 dependencies { "crossroadsTestImplementation"("junit:junit:4.13.2") }
+// (the Filament trial's own tests, with it)
+if (withFilament) crossroadsTest.kotlin.srcDir("src/filamentTest/kotlin")
 tasks.register<Test>("crossroadsTest") {
     group = "verification"
     description = "Tests the crossroads: its camera, its ground plan and the walk round the corner"
@@ -65,5 +75,11 @@ tasks.register<JavaExec>("preview") {
     // the crossroads and the seam test: where along the mouth, which screen, which way round, the whole sequence, a name
     for (k in listOf("at", "size", "dir", "seq", "tag", "shots"))
         System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
+    for (k in listOf("turn", "rest", "sky")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
+    if (withFilament) {
+        jvmArgs("-Djava.library.path=" + File(filamentDist, "lib").absolutePath)
+        // Mesa's EGL with no display: headless software GL
+        environment("EGL_PLATFORM", "surfaceless")
+    }
     args(layout.buildDirectory.dir("preview").get().asFile.absolutePath, file("../../public/assets/characters").absolutePath)
 }

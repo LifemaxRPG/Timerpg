@@ -111,10 +111,10 @@ internal class CornerWorld {
     private val placed = BooleanArray(MAX)
 
     /** The ground matrix for world point ([x], [z]): the main street's band leans where it is in front of its row, the cross street's likewise. */
-    private fun ground(x: Float, z: Float): FloatArray = if (z < 0f) (if (x > 0f) g[1] else g[0]) else (if (x > 0f) g[2] else g[3])
+    internal fun ground(x: Float, z: Float): FloatArray = if (z < 0f) (if (x > 0f) g[1] else g[0]) else (if (x > 0f) g[2] else g[3])
 
     /** Makes the ground matrices for this frame (after [StageCamera.update]). */
-    private fun grounds() {
+    internal fun grounds() {
         val u = cam.unit
         cam.leaned(g[0], leanMain, 0f, -u / LANE, 0f, 0f, 0f, drop(leanMain))
         cam.leaned(g[1], leanMain, 0f, -u / LANE, leanCross, 0f, u / LANE, drop(max(leanMain, leanCross)))
@@ -621,15 +621,15 @@ internal class CornerWorld {
     // ------------------------------------------------------------------ a building on its planes
 
     /** The row frame of street [k]: along its fronts (as one faces them) and out of them, on the ground. */
-    private fun rowA(k: Int): Pair<Float, Float> = when (k) { 0 -> 1f to 0f; 1 -> 0f to 1f; else -> 0f to -1f }
-    private fun rowN(k: Int): Pair<Float, Float> = when (k) { 0 -> 0f to -1f; 1 -> 1f to 0f; else -> -1f to 0f }
+    internal fun rowA(k: Int): Pair<Float, Float> = when (k) { 0 -> 1f to 0f; 1 -> 0f to 1f; else -> 0f to -1f }
+    internal fun rowN(k: Int): Pair<Float, Float> = when (k) { 0 -> 0f to -1f; 1 -> 1f to 0f; else -> -1f to 0f }
 
     /** The front's middle at the pavement (world X, Z) of building [i] of street [s]. */
-    private fun frontX(cr: Crossroads, s: CrossSide, i: Int): Float = when (s.k) { 0 -> cr.mainX(s.street.centers[i]); 1 -> 0f; else -> MOUTH }
-    private fun frontZ(cr: Crossroads, s: CrossSide, i: Int): Float = when (s.k) { 0 -> 0f; else -> cr.crossZ(s.street.centers[i]) }
+    internal fun frontX(cr: Crossroads, s: CrossSide, i: Int): Float = when (s.k) { 0 -> cr.mainX(s.street.centers[i]); 1 -> 0f; else -> MOUTH }
+    internal fun frontZ(cr: Crossroads, s: CrossSide, i: Int): Float = when (s.k) { 0 -> 0f; else -> cr.crossZ(s.street.centers[i]) }
 
     /** The camera leaned for box [bx] of street [s]: its own row's cabinet look, and the cross street's too for the corner. */
-    private fun boxMatrix(cr: Crossroads, s: CrossSide, bx: Crossroads.Box, out: FloatArray) {
+    internal fun boxMatrix(cr: Crossroads, s: CrossSide, bx: Crossroads.Box, out: FloatArray) {
         val u = cam.unit
         val k = u / DEPTH
         when (s.k) {
