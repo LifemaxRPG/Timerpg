@@ -2986,7 +2986,11 @@ internal class BuildingPainter {
         // --- the hitch: a card at mid-depth beside the wall (behind the front when the other side shows)
         ha.hitch?.let { h ->
             val hw = h.width * k; val hh = h.height * k
-            part(h, 0, 0, h.width, h.height, v.x(sh.wall1, sh.depth / 2f), v.y(0f, sh.depth / 2f) - hh, hw, hh, filter = signTint())
+            // its foot stays on the yard: beside a house wider than its lot (the medium homes) the yard's ground ends
+            // before the wall's far side, and a hitch past it would hang over the sky; it tucks in behind the wall instead
+            val fy = v.y(0f, sh.depth / 2f)
+            val edge = if (backY != 0f) half + backX * (fy / backY) else half
+            part(h, 0, 0, h.width, h.height, minOf(v.x(sh.wall1, sh.depth / 2f), edge - hw), fy - hh, hw, hh, filter = signTint())
         }
 
         // --- the roof's near slope, from the eave's edge up to the ridge. The eave overhangs the wall, which puts it off
