@@ -41,9 +41,33 @@ object StreetRenderer {
     /** This start found the "starting" mark: the last run's Filament start died (told in that exit's crash report). */
     var lastStartDied = false
         private set
+    /** This start found the "townBuilding" mark: the last run died while building the town. */
+    var lastTownBuildDied = false
+        private set
+
+    /**
+     * Marks the town's build under way (written at once, before a native crash could happen in it) or over: a mark still
+     * there at the next launch means the build died, and the game starts on the Filament crossroads instead of the town.
+     */
+    fun townBuilding(ctx: Context, on: Boolean) { prefs(ctx).edit().putBoolean("townBuilding", on).commit() }
+
+    /** The town failed (an exception in its build or its frame): the crossroads on Filament, not the classic street. */
+    fun townFailed(ctx: Context, why: String) {
+        com.timerpg.street.shot.Crumbs.add("town failed: $why")
+        error = why
+        townBuilding(ctx, false)
+        setTown(ctx, CROSSROADS)
+    }
 
     fun load(ctx: Context) {
         val p = prefs(ctx)
+        if (p.getBoolean("townBuilding", false)) {
+            // the last run died while the town was being built (the ground, the buildings: [townBuilding]): Filament
+            // itself drew, so it stays, on the old crossroads until the town is chosen again in the AI panel
+            lastTownBuildDied = true
+            p.edit().putBoolean("townBuilding", false).putBoolean("starting", false).putString("town", CROSSROADS).commit()
+            error = "The town crashed while it was being built last time: on the crossroads (Filament) instead"
+        }
         if (p.getBoolean("starting", false)) {
             lastStartDied = true
             // the last start never drew its first frames: it died in native code
@@ -110,6 +134,28 @@ object FilamentStats {
     var loadMs = 0f
     var buildMs = 0f
 
+    /** The town's whole build, once over (breadcrumbs and the snapshot); the memory as last read ([measureMemory]). */
+    @Volatile var townBuilt: String? = null
+    @Volatile var memory: Map<String, Any?>? = null
+
+    /**
+     * Reads the process's memory (in the background: it takes a while) into [memory] and the breadcrumbs: graphics (the
+     * GPU's textures and buffers as the driver reports them), native and Java heaps, the total; [why] says when.
+     */
+    fun measureMemory(why: String) {
+        Thread({
+            runCatching {
+                val mi = android.os.Debug.MemoryInfo()
+                android.os.Debug.getMemoryInfo(mi)
+                fun mb(k: String) = (mi.getMemoryStat(k)?.toIntOrNull() ?: -1024) / 1024
+                val m = linkedMapOf<String, Any?>("when" to why, "graphicsMb" to mb("summary.graphics"), "nativeMb" to mb("summary.native-heap"),
+                    "javaMb" to mb("summary.java-heap"), "codeMb" to mb("summary.code"), "totalPssMb" to mb("summary.total-pss"))
+                memory = m
+                com.timerpg.street.shot.Crumbs.add("memory ($why): " + m.entries.drop(1).joinToString { "${it.key} ${it.value}" })
+            }
+        }, "memory").apply { isDaemon = true; priority = Thread.MIN_PRIORITY }.start()
+    }
+
     @Synchronized fun add(cpuMs: Float, gpuMs: Float) { cpu[at] = cpuMs; gpu[at] = gpuMs; at = (at + 1) % cpu.size; if (n < cpu.size) n++ }
 
     @Synchronized fun summary(): String {
@@ -161,7 +207,9 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             Filament.init()
             // drawn to a window: GL's y-up clip space (the desktop's off-screen renders are the other way up)
             com.lifemax.rpg.feature.habits.presentation.scene3d.LookMatrix.windowY = true
-            val e = Engine.Builder().featureLevel(Engine.FeatureLevel.FEATURE_LEVEL_3).build()
+            // (arenas sized for the whole town's thousands of handles and its 1,000+ draws a frame: TownEngine)
+            val e = Engine.Builder().featureLevel(Engine.FeatureLevel.FEATURE_LEVEL_3)
+                .config(com.lifemax.rpg.feature.habits.presentation.scene3d.TownEngine.config()).build()
             engine = e
             renderer = e.createRenderer().also { r ->
                 r.clearOptions = Renderer.ClearOptions().apply { clear = true; setClearColor(0.0, 0.0, 0.0, 0.0) }
@@ -201,6 +249,8 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
         val sc = swap ?: return
         val f = Stage3D.frame
         if (!f.ready || w == 0) return
+        // (a town frame for the crossroads' layer, or the other way round: the switch between them is under way)
+        if (f.town != townMode) return
         if (f.n == lastN && !dirty) return
         try {
             val t0 = System.nanoTime()
@@ -219,10 +269,14 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             val got = r.getFrameInfoHistory(history)
             val g = if (got > 0 && history[0].gpuFrameDuration > 0) history[0].gpuFrameDuration / 1e6f else -1f
             FilamentStats.add(cpu, g)
-            // it has drawn: the start did not die in native code
-            if (++good == StreetRenderer.GOOD_FRAMES) { StreetRenderer.starting(ctx, false); com.timerpg.street.shot.Crumbs.add("Filament drawing") }
+            // it has drawn: the start did not die in native code (the town's: once its first view is built, behind the
+            // loading screen; the rest of its build has a mark of its own, townBuilding)
+            if ((!townMode || TownSession.ready) && ++good == StreetRenderer.GOOD_FRAMES) {
+                StreetRenderer.starting(ctx, false); com.timerpg.street.shot.Crumbs.add("Filament drawing")
+            }
         } catch (t: Throwable) {
-            StreetRenderer.failed(ctx, "Filament stopped: ${t.message ?: t.javaClass.simpleName}")
+            if (townMode) StreetRenderer.townFailed(ctx, "The town stopped: ${t.message ?: t.javaClass.simpleName}")
+            else StreetRenderer.failed(ctx, "Filament stopped: ${t.message ?: t.javaClass.simpleName}")
             destroy()
         }
     }
@@ -240,21 +294,40 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             run = null; town?.destroy(); town = null
             val t0 = System.nanoTime()
             com.timerpg.street.shot.Crumbs.add("town scene: building ${data.town.seed}")
+            StreetRenderer.townBuilding(ctx, true)
+            buildMarked = true
             val ft = com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown(e, mats, data.town, data.yards, data.art, data.building)
             town = ft
-            rn = com.lifemax.rpg.feature.habits.presentation.scene3d.TownRun(ft)
+            rn = com.lifemax.rpg.feature.habits.presentation.scene3d.TownRun(ft, com.lifemax.rpg.feature.habits.presentation.scene.SpriteSheets.sheets)
             run = rn
             FilamentStats.loadMs = (System.nanoTime() - t0) / 1e6f
         }
         val ready = rn.build(walk.wx, walk.wz, if (TownSession.ready) TownSession.BUDGET_MS else TownSession.LOADING_BUDGET_MS)
         if (!TownSession.ready) {
             TownSession.progress = rn.progress(walk.wx, walk.wz)
-            if (ready) TownSession.viewReady(rn.firstViewMs)
+            if (ready) { TownSession.viewReady(rn.firstViewMs); FilamentStats.measureMemory("town first view") }
         }
         rn.draw(walk, w.toFloat(), h.toFloat(), f.hour, f.seconds, com.lifemax.rpg.feature.habits.presentation.scene.SpriteSheets.sheets)
-        FilamentStats.buildMs = town!!.buildingsMs + town!!.groundUploadMs
-        return town!!.view
+        val ft = town!!
+        FilamentStats.buildMs = ft.buildingsMs + ft.groundUploadMs
+        // frames at the display's rate while there is building to do, even with the player standing still
+        com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.renderBusy = rn.busy || !TownSession.ready
+        if (buildMarked && rn.done) {
+            // the whole town is built: its build did not die; how long it took, the slowest building, and memory
+            buildMarked = false
+            StreetRenderer.townBuilding(ctx, false)
+            val (n, texels, shared) = ft.textureStats
+            val built = "town built: ground %.0f ms (workers %.0f), buildings %.0f ms here (slowest %s %.1f ms, largest batch %.1f ms), %.0f ms on workers (slowest %s %.0f ms); textures %d, %.1fM texels, %d shared"
+                .format(java.util.Locale.US, ft.groundMs, ft.groundPrepareMs, ft.buildingsMs, ft.slowest.first, ft.slowest.second,
+                    ft.batches.maxOfOrNull { it.second } ?: 0f, ft.prepareMs, ft.slowestPrepare.first, ft.slowestPrepare.second, n, texels / 1e6, shared)
+            FilamentStats.townBuilt = built
+            com.timerpg.street.shot.Crumbs.add(built)
+            FilamentStats.measureMemory("town built")
+        }
+        return ft.view
     }
+    /** The town's build is marked under way ([StreetRenderer.townBuilding]) by this host. */
+    private var buildMarked = false
 
     fun destroy() {
         if (!alive) return
@@ -273,7 +346,9 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
         swap?.let { e.destroySwapChain(it) }; swap = null
         renderer?.let { e.destroyRenderer(it) }; renderer = null
         e.destroy(); engine = null
-        // a clean stop before the first frames is no crash
+        // a clean stop before the first frames is no crash, nor one in the town's build
         if (good < StreetRenderer.GOOD_FRAMES && StreetRenderer.error == null) StreetRenderer.starting(ctx, false)
+        if (buildMarked) { buildMarked = false; StreetRenderer.townBuilding(ctx, false) }
+        com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.renderBusy = false
     }
 }

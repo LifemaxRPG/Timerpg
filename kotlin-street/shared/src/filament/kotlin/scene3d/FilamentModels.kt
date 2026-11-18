@@ -91,12 +91,30 @@ internal object FilamentModels {
     fun build(
         engine: Engine, visibleMat: Material, proxyMat: Material?, textures: StreetTextures, art: ModelArt,
         place: ModelPlace, seed: Int, linear: Boolean,
-    ): ModelMesh {
+    ): ModelMesh = finish(engine, visibleMat, proxyMat, textures, prepare(textures, art, place, seed, linear))
+
+    /**
+     * The part of [build] with no engine call (any thread: the town's workers): the geometry made and packed, the night
+     * light's map worked out, the pictures read ahead ([StreetTextures.warm]). [finish] makes it Filament's.
+     */
+    fun prepare(textures: StreetTextures, art: ModelArt, place: ModelPlace, seed: Int, linear: Boolean): Ready {
         val g = Mesher(art)
         g.all()
         val night = Night(art, seed, textures, linear)
-        return upload(engine, visibleMat, proxyMat, textures, g, place, night, linear)
+        textures.warm(art.atlas)
+        for (k in g.groups.keys) if (k is Key.Pic) textures.warm(k.img)
+        return pack(g, place, night, linear)
     }
+
+    /** A model made ready off the engine's thread ([prepare]): its vertices and indices packed, by group. */
+    class Ready internal constructor(
+        internal val atlas: ImageBitmap,
+        internal val groups: List<Group>,
+        internal val vb: ByteBuffer, internal val ib: ByteBuffer, internal val nv: Int, internal val ni: Int,
+        internal val ranges: List<IntArray>,
+        internal val bounds: FloatArray, internal val body: FloatArray,
+        internal val night: Night, internal val linear: Boolean,
+    )
 
     // ------------------------------------------------------------------ the geometry, in the model's pixels
 
@@ -868,7 +886,8 @@ internal object FilamentModels {
         } ?: IntArray(0)
         private var lit = BooleanArray(0)
         private val maskPx = IntArray(w * h)
-        val mask: Texture? = if (glow == null) null else textures.make(IntArray(w * h), w, h, linear = true)
+        /** The mask (made on the engine's thread the first time it is asked for: [Night] itself is made on a worker). */
+        val mask: Texture? by lazy(LazyThreadSafetyMode.NONE) { if (glow == null) null else textures.make(IntArray(w * h), w, h, linear = true) }
 
         init {
             if (glow != null) {
@@ -950,10 +969,7 @@ internal object FilamentModels {
 
     private const val STRIDE = 36
 
-    private fun upload(
-        engine: Engine, visibleMat: Material, proxyMat: Material?, textures: StreetTextures, g: Mesher,
-        pl: ModelPlace, night: Night, linear: Boolean,
-    ): ModelMesh {
+    private fun pack(g: Mesher, pl: ModelPlace, night: Night, linear: Boolean): Ready {
         val groups = g.groups.values.filter { it.ni > 0 }
         val nv = groups.sumOf { it.nv }
         val ni = groups.sumOf { it.ni }
@@ -1005,6 +1021,15 @@ internal object FilamentModels {
             io += gp.ni; base += gp.nv
         }
         vb.flip(); ib.flip()
+        // (the groups' own arrays go: they are packed, and only their keys and counts are wanted from here)
+        for (gp in groups) { gp.v = FloatArray(0); gp.idx = IntArray(0) }
+        return Ready(g.atlas, groups, vb, ib, nv, ni, ranges, bounds, body, night, linear)
+    }
+
+    /** Makes a [prepare]d model Filament's (the engine's thread): its buffers, pictures, materials and renderables. */
+    fun finish(engine: Engine, visibleMat: Material, proxyMat: Material?, textures: StreetTextures, r: Ready): ModelMesh {
+        val groups = r.groups; val nv = r.nv; val ni = r.ni; val vb = r.vb; val ib = r.ib; val ranges = r.ranges
+        val bounds = r.bounds; val body = r.body; val night = r.night; val linear = r.linear
         val vertices = VertexBuffer.Builder().bufferCount(1).vertexCount(max(1, nv))
             .attribute(VertexBuffer.VertexAttribute.POSITION, 0, VertexBuffer.AttributeType.FLOAT3, 0, STRIDE)
             .attribute(VertexBuffer.VertexAttribute.UV0, 0, VertexBuffer.AttributeType.FLOAT2, 12, STRIDE)
@@ -1016,7 +1041,7 @@ internal object FilamentModels {
         val bbox = Box((bounds[0] + bounds[3]) / 2f, (bounds[1] + bounds[4]) / 2f, (bounds[2] + bounds[5]) / 2f,
             (bounds[3] - bounds[0]) / 2f + .1f, (bounds[4] - bounds[1]) / 2f + .1f, (bounds[5] - bounds[2]) / 2f + .1f)
         fun lin(c: Float): Float = if (!linear) c else if (c <= .04045f) c / 12.92f else Math.pow(((c + .055f) / 1.055f).toDouble(), 2.4).toFloat()
-        val atlas = textures.of(g.atlas)
+        val atlas = textures.of(r.atlas)
         // the clocks' hands: a picture each, painted again when the minute changes
         val clocks = groups.mapNotNull { (it.key as? Key.Clock)?.c }.distinct()
         val clockTex = clocks.associateWith { c -> val nc = com.lifemax.rpg.feature.habits.domain.ClockHands.size(c[3]); textures.make(IntArray(nc * nc), nc, nc) }

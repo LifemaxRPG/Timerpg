@@ -12,7 +12,7 @@ import kotlin.math.hypot
  * ([TownFrame.street], [CameraRig]'s eye), the town lit for the hour, and the people of [TownPlay] stood in it. The
  * screen positions of people (speech bubbles, who hears the player) come from the same camera ([TownPlay.projector]).
  */
-class TownRun(val town: FilamentTown) {
+class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
     private val t0 = System.nanoTime()
     private var groundDone = false
     /** Milliseconds from the start until the first view was ready (-1 until then). */
@@ -21,8 +21,19 @@ class TownRun(val town: FilamentTown) {
     var pose: TownPose? = null; private set
     /** People drawn last frame. */
     var peopleDrawn = 0; private set
+    /** Where the people's heads fall on the screen: the town's camera as last drawn (made once, not a frame). */
+    private val projector: (Float, Float, Float) -> androidx.compose.ui.geometry.Offset? = town::project
 
-    init { town.startGround() }
+    /** The ground is still coming in, or buildings are left to build: frames should keep coming while the player stands. */
+    val busy: Boolean get() = !groundDone || town.pending > 0
+    /** The ground in and every building built (or known to have no art): the town's whole build is over. */
+    val done: Boolean get() = groundDone && town.pending == 0
+
+    init {
+        town.startGround()
+        // the character sheets read on a worker while the first view is built (the people stand only once it is ready)
+        town.warm(sheets)
+    }
 
     /**
      * Spends up to [budgetMs] of this frame building (the ground's uploads first, then the nearest buildings); true once
@@ -56,9 +67,10 @@ class TownRun(val town: FilamentTown) {
     fun draw(walk: TownWalkView, w: Float, h: Float, hour: Float, seconds: Float, sheets: List<ImageBitmap>): TownPose {
         val p = TownFrame.street(walk, w, h)
         town.frame(p, hour, seconds.toDouble())
-        val n = if (TownPlay.walk === walk) TownPlay.people(seconds) else 0
+        // (no people behind the loading screen: their sheets are still being read, and nobody sees them)
+        val n = if (TownPlay.walk === walk && firstViewMs >= 0f) TownPlay.people(seconds) else 0
         peopleDrawn = town.people(TownPlay.figures, n, sheets)
-        TownPlay.projector = town::project
+        TownPlay.projector = projector
         pose = p
         return p
     }

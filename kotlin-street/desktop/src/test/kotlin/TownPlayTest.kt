@@ -162,4 +162,48 @@ class TownPlayTest {
         TownPlay.step(dt)
         if (r.buildings.none { it.sprite in TownPlay.keepers && kotlin.math.abs(it.mid + TalkRange.KEEPER_DX - w.x) < 120f }) assertNull(TownPlay.nearestKeeper())
     }
+
+    /**
+     * Frames come at the display's rate only while something moves or the renderer is still building: standing still
+     * (the town built) the stage's own 30 Hz clock is enough; and behind the loading screen the keys move nobody.
+     */
+    @Test fun redrawsOnlyWhenSomethingMovesAndStaysPutWhileLoading() {
+        val w = TownPlay.start(town)
+        TownPlay.renderBusy = false
+        hold(0f, 0f, .2f)
+        TownPlay.step(dt); TownPlay.step(dt)
+        assertFalse("standing still, the town built: no frame every display refresh", GameState.inMotion)
+        TownPlay.renderBusy = true
+        TownPlay.step(dt)
+        assertTrue("still building: frames keep coming", GameState.inMotion)
+        TownPlay.renderBusy = false
+        GameState.moveX = .7f
+        TownPlay.step(dt)
+        assertTrue("walking: a frame every refresh", GameState.inMotion)
+        GameState.moveX = 0f
+        // (come to a stop first)
+        hold(0f, 0f, 1f)
+        // the first view being built: the keys push nobody
+        val x0 = w.x; val wx0 = w.wx; val wz0 = w.wz
+        TownPlay.frozen = true
+        try {
+            GameState.moveX = 1f
+            repeat(60) { TownPlay.step(dt) }
+            assertEquals(wx0, w.wx, .01f); assertEquals(wz0, w.wz, .01f)
+        } finally { TownPlay.frozen = false; GameState.moveX = 0f }
+        hold(.7f, 0f, .5f)
+        assertTrue("walks again once the view is ready", kotlin.math.abs(w.x - x0) > 5f)
+    }
+
+    /** The live rows are kept between frames (the renderer asks every frame) and follow the row and the transit. */
+    @Test fun liveRowsAreKeptUntilTheRowChanges() {
+        val w = TownPlay.start(town)
+        val a = w.liveRows()
+        assertTrue(a === w.liveRows())
+        val other = town.rows.first { it.id != w.row.id && it !in a }
+        w.placeOn(other, 30f, 6f)
+        val b = w.liveRows()
+        assertTrue(other in b)
+        assertFalse(a === b)
+    }
 }

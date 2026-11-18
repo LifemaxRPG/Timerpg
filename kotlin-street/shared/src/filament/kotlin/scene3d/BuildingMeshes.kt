@@ -78,26 +78,56 @@ internal class BuildingMeshes(
 
     /**
      * Builds [sb] (drawn as [sprite]) with its front wall [setback] street units behind the building line (its yard in
-     * between); [seed] picks which windows are lit when.
+     * between); [seed] picks which windows are lit when. ([prepare] then [finish], at once.)
      */
-    fun build(sprite: String, sb: SpriteBuilding, setback: Float, yarded: Boolean, seed: Int): BuiltBuilding? {
+    fun build(sprite: String, sb: SpriteBuilding, setback: Float, yarded: Boolean, seed: Int): BuiltBuilding? =
+        prepare(sb, setback, yarded, seed)?.let { finish(it) }
+
+    /**
+     * A building made ready off the engine's thread ([prepare]): a model's geometry packed, or a box's or a mobile
+     * home's faces packed, their pictures read ahead. Null from [prepare]: nothing to draw.
+     */
+    class Ready internal constructor(internal val model: FilamentModels.Ready?, internal val faces: Packed?)
+
+    /**
+     * The part of [build] with no engine call (any thread: the town's workers): the geometry made and its vertices packed,
+     * the pictures read and packed ([StreetTextures.warm], [StreetTextures.prepare]), the windows' glass filled. Only
+     * buffers, textures, materials and renderables are left for [finish] on the engine's thread.
+     */
+    fun prepare(sb: SpriteBuilding, setback: Float, yarded: Boolean, seed: Int): Ready? {
         val ma = sb.model
-        if (ma != null) return model(ma, setback, yarded, seed)
+        if (ma != null) return Ready(prepareModel(ma, setback, yarded, seed), null)
         val faces = ArrayList<Face>()
         val win = if (sb.house != null) house(sb, setback, yarded, seed, faces) else box(sb, setback, seed, faces)
         if (faces.isEmpty()) return null
-        return upload(faces, win)
+        return Ready(null, pack(faces, win))
     }
+
+    /** Makes a [prepare]d building Filament's (the engine's thread). */
+    fun finish(r: Ready): BuiltBuilding? {
+        r.model?.let { return finishModel(it) }
+        return r.faces?.let { upload(it) }
+    }
+
+    /** A picture for a face: read ahead now ([StreetTextures.warm]), made a texture when the building is finished. */
+    private fun pic(img: ImageBitmap): () -> Texture { textures.warm(img); return { textures.of(img) } }
+
+    /** A picture packed now, made a texture (or shared by its content) when the building is finished, once. */
+    private fun pic(p: StreetTextures.Prepared): () -> Texture { val t = lazy(LazyThreadSafetyMode.NONE) { textures.make(p) }; return { t.value } }
 
     // ------------------------------------------------------------------ the three kinds
 
-    private fun model(ma: ModelArt, setback: Float, yarded: Boolean, seed: Int): BuiltBuilding {
+    private fun prepareModel(ma: ModelArt, setback: Float, yarded: Boolean, seed: Int): FilamentModels.Ready {
         val art = if (yarded) ModelArt(ma.shape, ma.atlas, ma.glow, null, null, null) else ma
         val sh = ma.shape
         // the art's left edge, from the slot's middle along the art's x
         val left = -B.W / 2f + sh.frontX * kk
         val place = ModelPlace(ax * left, setback, ax, az, nx, nz, kk)
-        val m = FilamentModels.build(engine, visibleMat, proxyMat, textures, art, place, seed, linear = true)
+        return FilamentModels.prepare(textures, art, place, seed, linear = true)
+    }
+
+    private fun finishModel(r: FilamentModels.Ready): BuiltBuilding {
+        val m = FilamentModels.finish(engine, visibleMat, proxyMat, textures, r)
         val rm = engine.renderableManager
         val prims = rm.getInstance(m.entity).let { if (it != 0) rm.getPrimitiveCount(it) else 1 }
         // (the town draws through Filament's own camera: it may cull the model by its box)
@@ -116,15 +146,15 @@ internal class BuildingMeshes(
         sb.sign?.let { sg ->
             val h = sg.height * kk
             out += face(ox - ax * hw, hf + h, oz - az * hw, ax * B.W / sg.width, 0f, az * B.W / sg.width, 0f, -kk, 0f,
-                sg.width.toFloat(), sg.height.toFloat(), textures.of(sg), null, nx, 0f, nz)
+                sg.width.toFloat(), sg.height.toFloat(), pic(sg), null, nx, 0f, nz)
         }
         val side = sb.side
         val sw = side.width.toFloat(); val sh = side.height.toFloat()
         // the back wall: the side's picture carried on at its own scale across the whole width ([backOf])
         val bp = backOf(side)
         out += face(ox + ax * hw - nx * DEPTH, hf, oz + az * hw - nz * DEPTH, -ax * B.W / bp.second, 0f, -az * B.W / bp.second, 0f, -hf / sh, 0f, bp.second.toFloat(), sh, bp.first, null, -nx, 0f, -nz)
-        out += face(ox - ax * hw, hf, oz - az * hw, -nx * DEPTH / sw, 0f, -nz * DEPTH / sw, 0f, -hf / sh, 0f, sw, sh, textures.of(side), null, -ax, 0f, -az)
-        out += face(ox + ax * hw, hf, oz + az * hw, -nx * DEPTH / sw, 0f, -nz * DEPTH / sw, 0f, -hf / sh, 0f, sw, sh, textures.of(side), null, ax, 0f, az)
+        out += face(ox - ax * hw, hf, oz - az * hw, -nx * DEPTH / sw, 0f, -nz * DEPTH / sw, 0f, -hf / sh, 0f, sw, sh, pic(side), null, -ax, 0f, -az)
+        out += face(ox + ax * hw, hf, oz + az * hw, -nx * DEPTH / sw, 0f, -nz * DEPTH / sw, 0f, -hf / sh, 0f, sw, sh, pic(side), null, ax, 0f, az)
         val pitch = sb.pitch
         if (pitch != null) {
             val rows = pitch.height.toFloat(); val pw = pitch.width.toFloat()
@@ -132,8 +162,8 @@ internal class BuildingMeshes(
             val rx = ox - ax * hw - nx * DEPTH / 2f; val rz = oz - az * hw - nz * DEPTH / 2f
             val slope = sqrt((DEPTH / 2f) * (DEPTH / 2f) + rise * rise)
             val cy = DEPTH / 2f / slope; val sy = rise / slope
-            out += face(rx, hf + rise, rz, ax * B.W / pw, 0f, az * B.W / pw, nx * DEPTH / 2f / rows, -rise / rows, nz * DEPTH / 2f / rows, pw, rows, textures.of(pitch), null, nx * sy, cy, nz * sy)
-            out += face(rx, hf + rise, rz, ax * B.W / pw, 0f, az * B.W / pw, -nx * DEPTH / 2f / rows, -rise / rows, -nz * DEPTH / 2f / rows, pw, rows, textures.of(pitch), null, -nx * sy, cy, -nz * sy)
+            out += face(rx, hf + rise, rz, ax * B.W / pw, 0f, az * B.W / pw, nx * DEPTH / 2f / rows, -rise / rows, nz * DEPTH / 2f / rows, pw, rows, pic(pitch), null, nx * sy, cy, nz * sy)
+            out += face(rx, hf + rise, rz, ax * B.W / pw, 0f, az * B.W / pw, -nx * DEPTH / 2f / rows, -rise / rows, -nz * DEPTH / 2f / rows, pw, rows, pic(pitch), null, -nx * sy, cy, -nz * sy)
             val gp = sb.gablePic
             // (with stone end walls the pitch's art is clear over the posts: the gables stand inside them, not past them)
             val inset = if (sb.postL != null && sb.postR != null) (sb.pitchInfo?.getOrNull(2) ?: 0f) * kk else 0f
@@ -142,19 +172,19 @@ internal class BuildingMeshes(
                 val bx0 = ox + ax * e; val bz0 = oz + az * e
                 out += Face(
                     floatArrayOf(bx0, hf, bz0, bx0 - nx * DEPTH, hf, bz0 - nz * DEPTH, bx0 - nx * DEPTH / 2f, hf + rise, bz0 - nz * DEPTH / 2f),
-                    floatArrayOf(0f, 1f, 1f, 1f, .5f, 0f), textures.of(gp), null,
+                    floatArrayOf(0f, 1f, 1f, 1f, .5f, 0f), pic(gp), null,
                     if (end == 0) -ax else ax, 0f, if (end == 0) -az else az, -nx, 0f, -nz,
                 )
             }
             val pl = sb.postL; val pr = sb.postR; val posts = (sb.pitchInfo?.getOrNull(2) ?: 0f) * kk
             if (pl != null && pr != null && posts > 0f) {
                 val ph = pl.height * kk
-                out += face(ox - ax * hw + nx * .3f, hf - 3f * kk + ph, oz - az * hw + nz * .3f, ax * posts / pl.width, 0f, az * posts / pl.width, 0f, -kk, 0f, pl.width.toFloat(), pl.height.toFloat(), textures.of(pl), null, nx, 0f, nz)
-                out += face(ox + ax * (hw - posts) + nx * .3f, hf - 3f * kk + ph, oz + az * (hw - posts) + nz * .3f, ax * posts / pr.width, 0f, az * posts / pr.width, 0f, -kk, 0f, pr.width.toFloat(), pr.height.toFloat(), textures.of(pr), null, nx, 0f, nz)
+                out += face(ox - ax * hw + nx * .3f, hf - 3f * kk + ph, oz - az * hw + nz * .3f, ax * posts / pl.width, 0f, az * posts / pl.width, 0f, -kk, 0f, pl.width.toFloat(), pl.height.toFloat(), pic(pl), null, nx, 0f, nz)
+                out += face(ox + ax * (hw - posts) + nx * .3f, hf - 3f * kk + ph, oz + az * (hw - posts) + nz * .3f, ax * posts / pr.width, 0f, az * posts / pr.width, 0f, -kk, 0f, pr.width.toFloat(), pr.height.toFloat(), pic(pr), null, nx, 0f, nz)
             }
         } else sb.roof?.let { roof ->
             out += face(ox - ax * hw - nx * DEPTH, hf, oz - az * hw - nz * DEPTH, ax * B.W / roof.width, 0f, az * B.W / roof.width,
-                nx * DEPTH / roof.height, 0f, nz * DEPTH / roof.height, roof.width.toFloat(), roof.height.toFloat(), textures.of(roof), null, 0f, 1f, 0f)
+                nx * DEPTH / roof.height, 0f, nz * DEPTH / roof.height, roof.width.toFloat(), roof.height.toFloat(), pic(roof), null, 0f, 1f, 0f)
         }
         sb.prop?.let { bill ->
             if (sb.sign == null) {
@@ -165,7 +195,7 @@ internal class BuildingMeshes(
                 val (empty, backPic) = boardBack(bill)
                 val foot = (empty + 1) * kk
                 val bx0 = ox - ax * bw / 2f - nx * back; val bz0 = oz - az * bw / 2f - nz * back
-                out += face(bx0, hf + ridge - foot + bh, bz0, ax * bw / bill.width, 0f, az * bw / bill.width, 0f, -kk, 0f, bill.width.toFloat(), bill.height.toFloat(), textures.of(bill), null, nx, 0f, nz)
+                out += face(bx0, hf + ridge - foot + bh, bz0, ax * bw / bill.width, 0f, az * bw / bill.width, 0f, -kk, 0f, bill.width.toFloat(), bill.height.toFloat(), pic(bill), null, nx, 0f, nz)
                 out += face(bx0 - nx * .4f, hf + ridge - foot + bh, bz0 - nz * .4f, ax * bw / bill.width, 0f, az * bw / bill.width, 0f, -kk, 0f, bill.width.toFloat(), bill.height.toFloat(), backPic, null, -nx, 0f, -nz)
             }
         }
@@ -173,14 +203,14 @@ internal class BuildingMeshes(
     }
 
     /** A billboard picture's empty rows under its legs, and its back: the same outline in the frame's grey. */
-    private fun boardBack(bill: ImageBitmap): Pair<Int, Texture> {
+    private fun boardBack(bill: ImageBitmap): Pair<Int, () -> Texture> {
         val px = StreetTextures.argb(bill)
         val w = bill.width; val h = bill.height
         var empty = 0
         while (empty < h - 1 && (0 until w).none { (px[(h - 1 - empty) * w + it] ushr 24) > 0 }) empty++
         val grey = Color(0xFF5C6070).toArgb() and 0xFFFFFF
         val back = IntArray(px.size) { i -> if ((px[i] ushr 24) > 0) (px[i] and 0xFF000000.toInt()) or grey else 0 }
-        return empty to textures.make(back, w, h, mips = true)
+        return empty to pic(StreetTextures.prepare(back, w, h, mips = true))
     }
 
     /** A mobile home: its walls, gabled ends, the roof's two slopes from the ridge; its lawn and fence unless yarded. */
@@ -201,7 +231,7 @@ internal class BuildingMeshes(
         val sideH = side.height * kk
         for (end in 0..1) {
             val ex = fx + ax * (if (end == 0) 0f else fw); val ez = fz + az * (if (end == 0) 0f else fw)
-            out += face(ex, sideH, ez, -nx * depth / side.width, 0f, -nz * depth / side.width, 0f, -kk, 0f, side.width.toFloat(), side.height.toFloat(), textures.of(side), null,
+            out += face(ex, sideH, ez, -nx * depth / side.width, 0f, -nz * depth / side.width, 0f, -kk, 0f, side.width.toFloat(), side.height.toFloat(), pic(side), null,
                 if (end == 0) -ax else ax, 0f, if (end == 0) -az else az)
         }
         out += face(fx + ax * fw - nx * depth, h, fz + az * fw - nz * depth, -ax * kk, 0f, -az * kk, 0f, -kk, 0f, sb.front.width.toFloat(), sb.front.height.toFloat(), win.back, null, -nx, 0f, -nz)
@@ -214,35 +244,34 @@ internal class BuildingMeshes(
         val rx = fx - nx * depth / 2f; val rz = fz - nz * depth / 2f
         val len = sqrt(run * run + rise * rise); val cyy = run / len; val syy = rise / len
         val sx = fw / pw
-        out += face(rx, ridgeY, rz, ax * sx, 0f, az * sx, nx * run / rows, -rise / rows, nz * run / rows, pw, rows, textures.of(slopeImg), null, nx * syy, cyy, nz * syy)
-        out += face(rx, ridgeY, rz, ax * sx, 0f, az * sx, -nx * run / rows, -rise / rows, -nz * run / rows, pw, rows, textures.of(slopeImg), null, -nx * syy, cyy, -nz * syy)
+        out += face(rx, ridgeY, rz, ax * sx, 0f, az * sx, nx * run / rows, -rise / rows, nz * run / rows, pw, rows, pic(slopeImg), null, nx * syy, cyy, nz * syy)
+        out += face(rx, ridgeY, rz, ax * sx, 0f, az * sx, -nx * run / rows, -rise / rows, -nz * run / rows, pw, rows, pic(slopeImg), null, -nx * syy, cyy, -nz * syy)
         if (!yarded) {
             house.lawn?.let { lawn ->
                 out += face(ox - ax * hw, .15f, oz - az * hw, ax * B.W / lawn.width, 0f, az * B.W / lawn.width, -nx * back / lawn.height, 0f, -nz * back / lawn.height,
-                    lawn.width.toFloat(), lawn.height.toFloat(), textures.of(lawn), null, 0f, 1f, 0f)
+                    lawn.width.toFloat(), lawn.height.toFloat(), pic(lawn), null, 0f, 1f, 0f)
             }
             house.fence?.let { fence ->
                 val d = sh.fenceD * kk
                 val top = sh.fenceFoot * kk
                 out += face(ox - ax * hw - nx * d, top, oz - az * hw - nz * d, ax * B.W / fence.width, 0f, az * B.W / fence.width, 0f, -kk, 0f,
-                    fence.width.toFloat(), fence.height.toFloat(), textures.of(fence), null, nx, 0f, nz)
+                    fence.width.toFloat(), fence.height.toFloat(), pic(fence), null, nx, 0f, nz)
             }
         }
         return win
     }
 
-    private val backs = java.util.IdentityHashMap<ImageBitmap, Pair<Texture, Int>>()
-
     /**
      * A box's back wall picture: [side] (120 px for the box's depth) carried on across the front's 224 px at the same
      * texel size, as two copies of it joined (overlapping) at the column where they match best, so its windows and brick
-     * keep their scale and no window is cut through. Returns the texture and its width in pixels.
+     * keep their scale and no window is cut through. Returns the texture and its width in pixels. (Any thread: the
+     * picture is shared by its content when made, so the same side makes one back however many buildings wear it.)
      */
-    private fun backOf(side: ImageBitmap): Pair<Texture, Int> = backs.getOrPut(side) {
+    private fun backOf(side: ImageBitmap): Pair<() -> Texture, Int> {
         val sw = side.width; val sh = side.height
         val w = SpriteArt.SRC_W.toInt()
         val px = StreetTextures.argb(side)
-        if (sw >= w || sw * 2 < w) return@getOrPut textures.of(side) to sw
+        if (sw >= w || sw * 2 < w) return pic(side) to sw
         val overlap = 2 * sw - w
         // the right copy starts at w - sw; in the overlap the left copy's column c and the right copy's column c - (w - sw)
         val shift = w - sw
@@ -259,20 +288,20 @@ internal class BuildingMeshes(
         val seam = (shift + margin until sw - margin).minByOrNull { diff(it) } ?: (shift + overlap / 2)
         val out = IntArray(w * sh)
         for (y in 0 until sh) for (x in 0 until w) out[y * w + x] = if (x < seam) px[y * sw + x] else px[y * sw + x - shift]
-        textures.make(out, w, sh, mips = true) to w
+        return pic(StreetTextures.prepare(out, w, sh, mips = true)) to w
     }
 
     // ------------------------------------------------------------------ faces and their upload
 
-    private class Face(
-        val p: FloatArray, val uv: FloatArray, val tex: Texture, val mask: Texture?,
+    internal class Face(
+        val p: FloatArray, val uv: FloatArray, val tex: () -> Texture, val mask: (() -> Texture)?,
         val nx: Float, val ny: Float, val nz: Float, val tx: Float, val ty: Float, val tz: Float,
     )
 
     /** The plane through ([ox], [oy], [oz]) whose picture runs [tw] px along u and [th] px along v. */
     private fun face(
         ox: Float, oy: Float, oz: Float, ux: Float, uy: Float, uz: Float, vx: Float, vy: Float, vz: Float,
-        tw: Float, th: Float, tex: Texture, mask: Texture?, nx: Float, ny: Float, nz: Float,
+        tw: Float, th: Float, tex: () -> Texture, mask: (() -> Texture)?, nx: Float, ny: Float, nz: Float,
     ): Face {
         val p = FloatArray(12)
         for (c in 0..3) {
@@ -284,7 +313,14 @@ internal class BuildingMeshes(
         return Face(p, floatArrayOf(0f, 0f, 1f, 0f, 1f, 1f, 0f, 1f), tex, mask, nx, ny, nz, ux / ul, uy / ul, uz / ul)
     }
 
-    private fun upload(faces: List<Face>, windows: Windows?): BuiltBuilding {
+    /** A box's or a mobile home's faces packed off the engine's thread ([pack]), waiting for [upload]. */
+    class Packed internal constructor(
+        internal val faces: List<Face>, internal val windows: Windows?,
+        internal val vb: ByteBuffer, internal val ib: ByteBuffer, internal val nv: Int, internal val ni: Int,
+        internal val ranges: List<IntArray>, internal val bmin: FloatArray, internal val bmax: FloatArray,
+    )
+
+    private fun pack(faces: List<Face>, windows: Windows?): Packed {
         val nv = faces.fold(0) { a, f -> a + f.p.size / 3 }
         val vb = ByteBuffer.allocateDirect(nv * STRIDE).order(ByteOrder.nativeOrder())
         val ni = faces.fold(0) { a, f -> a + if (f.p.size == 9) 3 else 6 }
@@ -319,6 +355,14 @@ internal class BuildingMeshes(
             base += n
         }
         vb.flip(); ib.flip()
+        return Packed(faces, windows, vb, ib, nv, ni, ranges, bmin, bmax)
+    }
+
+    private fun upload(pk: Packed): BuiltBuilding {
+        val faces = pk.faces; val windows = pk.windows; val nv = pk.nv; val ni = pk.ni; val vb = pk.vb; val ib = pk.ib
+        val ranges = pk.ranges; val bmin = pk.bmin; val bmax = pk.bmax
+        val tex = Array(faces.size) { faces[it].tex() }
+        val masks = Array(faces.size) { faces[it].mask?.invoke() ?: textures.black }
         val vertices = VertexBuffer.Builder().bufferCount(1).vertexCount(nv)
             .attribute(VertexBuffer.VertexAttribute.POSITION, 0, VertexBuffer.AttributeType.FLOAT3, 0, STRIDE)
             .attribute(VertexBuffer.VertexAttribute.UV0, 0, VertexBuffer.AttributeType.FLOAT2, 12, STRIDE)
@@ -330,10 +374,9 @@ internal class BuildingMeshes(
         val box = Box((bmin[0] + bmax[0]) / 2f, (bmin[1] + bmax[1]) / 2f, (bmin[2] + bmax[2]) / 2f,
             (bmax[0] - bmin[0]) / 2f + .1f, (bmax[1] - bmin[1]) / 2f + .1f, (bmax[2] - bmin[2]) / 2f + .1f)
         val mis = Array(faces.size) { j ->
-            val f = faces[j]
             visibleMat.createInstance().also { mi ->
-                mi.setParameter("albedo", f.tex, crisp)
-                mi.setParameter("mask", f.mask ?: textures.black, nearest)
+                mi.setParameter("albedo", tex[j], crisp)
+                mi.setParameter("mask", masks[j], nearest)
                 mi.setParameter("uvRect", 0f, 0f, 1f, 1f)
                 mi.setParameter("tint", 1f, 1f, 1f, 1f)
                 mi.setParameter("glow", 0f, 0f, 0f, 0f)
@@ -349,7 +392,7 @@ internal class BuildingMeshes(
         var proxy = 0
         var pmis: Array<MaterialInstance> = emptyArray()
         if (proxyMat != null) {
-            pmis = Array(faces.size) { j -> proxyMat.createInstance().also { mi -> mi.setParameter("albedo", faces[j].tex, crisp); mi.setParameter("uvRect", 0f, 0f, 1f, 1f) } }
+            pmis = Array(faces.size) { j -> proxyMat.createInstance().also { mi -> mi.setParameter("albedo", tex[j], crisp); mi.setParameter("uvRect", 0f, 0f, 1f, 1f) } }
             proxy = EntityManager.get().create()
             val pb = RenderableManager.Builder(faces.size).boundingBox(box).castShadows(true).receiveShadows(false)
             for (j in faces.indices) pb.geometry(j, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices, ranges[j][0], ranges[j][1]).material(j, pmis[j])
@@ -365,13 +408,15 @@ internal class BuildingMeshes(
      * A front's pictures for Filament, as [FilamentStreet]'s: its art with the windows' cut-out glass filled (the sky
      * above, the far city's blocks below), and a mask (red: glows at night; green: glass; blue: a lit display).
      */
-    private inner class Windows(val sb: SpriteBuilding, val seed: Int) {
+    internal inner class Windows(sb: SpriteBuilding, val seed: Int) {
+        // (made on a worker, and kept for the hourly light: so it keeps what it needs of [sb], not its pictures)
         private val w = sb.front.width
         private val h = sb.front.height
         private val art = StreetTextures.argb(sb.front)
         private val emis = runCatching { StreetTextures.argb(sb.emis) }.getOrNull()?.takeIf { sb.emis.width == w && sb.emis.height == h }
         private val glass = sb.glass?.let { g -> runCatching { StreetTextures.argb(g) }.getOrNull()?.takeIf { g.width == w && g.height == h } }
         private val panes = sb.house?.shape?.panes ?: emptyList()
+        private val nw = sb.windows.size
         private val rects = sb.windows + panes
         private val rooms: Set<Int> = run {
             val n = sb.windows.size
@@ -381,10 +426,10 @@ internal class BuildingMeshes(
         private val cityLights = IntArray(w * h)
         private var lit = -1L
         private val maskPx = IntArray(w * h)
-        val albedo: Texture
-        val mask: Texture
+        val albedo: () -> Texture
+        val mask: () -> Texture
         /** The back wall's picture (a mobile home's: [plainBack]; otherwise the front's). */
-        val back: Texture
+        val back: () -> Texture
 
         init {
             val px = art.copyOf()
@@ -408,9 +453,9 @@ internal class BuildingMeshes(
                     px[i] = blend(g.toArgb(), px[i])
                 }
             }
-            albedo = textures.make(px, w, h, mips = true)
-            mask = textures.make(IntArray(w * h), w, h, linear = true)
-            back = if (sb.house != null) textures.make(plainBack(px), w, h, mips = true) else albedo
+            albedo = pic(StreetTextures.prepare(px, w, h, mips = true))
+            mask = pic(StreetTextures.prepare(IntArray(w * h), w, h, linear = true))
+            back = if (sb.house != null) pic(StreetTextures.prepare(plainBack(px), w, h, mips = true)) else albedo
         }
 
         /**
@@ -445,7 +490,6 @@ internal class BuildingMeshes(
 
         fun update(hour: Float) {
             var bits = 0L
-            val nw = sb.windows.size
             for (j in rects.indices) {
                 if (j >= 63) break
                 val room = if (j < nw) StageTuning.interiors && j in rooms else true
@@ -468,7 +512,7 @@ internal class BuildingMeshes(
                     maskPx[i] = (255 shl 24) or (red shl 16) or (255 shl 8)
                 }
             }
-            textures.update(mask, maskPx)
+            textures.update(mask(), maskPx)
         }
 
         private fun blend(under: Int, over: Int): Int {

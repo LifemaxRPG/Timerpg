@@ -5,7 +5,6 @@ import com.google.android.filament.Engine
 import com.google.android.filament.Texture
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.util.IdentityHashMap
 
 /**
  * The street's pictures as Filament textures, made once from the same ImageBitmaps the classic street draws (read with
@@ -13,13 +12,28 @@ import java.util.IdentityHashMap
  * pictures' colours are sRGB; lighting wants them linear); plain RGBA8 for the exact albedo comparison.
  */
 internal class StreetTextures(private val engine: Engine, private val srgb: Boolean) {
-    private val byImage = IdentityHashMap<ImageBitmap, Texture>()
+    /**
+     * The textures made from pictures, by picture. Weakly held (an ImageBitmap's equality is its identity): once a
+     * building's art is let go after its upload, its decoded pictures can be collected (the textures stay, in [made]).
+     */
+    private val byImage: MutableMap<ImageBitmap, Texture> = java.util.Collections.synchronizedMap(java.util.WeakHashMap())
+    /** Pictures read and packed ahead on a worker ([warm]), waiting for [of] on the engine's thread. */
+    private val warmed: MutableMap<ImageBitmap, Prepared> = java.util.Collections.synchronizedMap(java.util.WeakHashMap())
     private val made = ArrayList<Texture>()
     val white: Texture = solid(0xFFFFFFFF.toInt())
     val black: Texture = solid(0x00000000)
 
     /** The texture of [img] as drawn. */
-    fun of(img: ImageBitmap): Texture = byImage.getOrPut(img) { make(argb(img), img.width, img.height, mips = true) }
+    fun of(img: ImageBitmap): Texture = byImage[img] ?: make(warmed.remove(img) ?: prepare(argb(img), img.width, img.height, mips = true)).also { byImage[img] = it }
+
+    /**
+     * Reads and packs [img] for [of] (any thread: no engine call), so the engine's thread only makes the texture. Nothing
+     * if it is made or warmed already.
+     */
+    fun warm(img: ImageBitmap) {
+        if (byImage.containsKey(img) || warmed.containsKey(img)) return
+        warmed[img] = prepare(argb(img), img.width, img.height, mips = true)
+    }
 
     /**
      * Pictures never updated ([mips]) by their content: the same pixels make one texture however many batches or
@@ -74,7 +88,7 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     /** Frees what was made from the street's pictures; [all] also the plain white and black. */
     fun destroy(all: Boolean = false) {
         for (t in made) if (all || (t !== white && t !== black)) engine.destroyTexture(t)
-        made.clear(); byImage.clear(); byContent.clear()
+        made.clear(); byImage.clear(); warmed.clear(); byContent.clear()
         if (!all) { made += white; made += black }
     }
 

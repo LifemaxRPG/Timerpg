@@ -150,6 +150,20 @@ both hands); load time (decode textures in the background, build nearest-first).
   in art-paths.txt); `TownPlay` (shim) is the game's town walk, people, talk range and events; `TownRun` (scene3d) the
   build-and-draw path the app and the preview share; `TownPeople` the people's cards. DialogueEngine orders writing ahead
   by rows. The AI panel switches back to the eta crossroads.
+- T10 review fixes (wf-t10): buildings are made ready on the `town-build` workers (`BuildingMeshes.prepare` /
+  `FilamentModels.prepare`: art decoded, geometry and vertices packed, pictures read and packed, the windows' glass
+  filled), the engine's thread only `finish`es them (buffers, textures, materials, renderables): the slowest building on
+  the engine's thread went from 156 ms to about 20 ms on the build server; the windows' night light runs in a 2 ms budget a
+  frame. Frames come every display refresh only while something moves or the town is still building
+  (`TownPlay.renderBusy`), otherwise at the stage's 30 Hz clock; the stage does none of the crossroads' work under the town
+  (`Frame3D.fillTown`). Crash guard: a `townBuilding` mark from the scene's start until the whole town is built (a death
+  in it starts the next launch on the Filament crossroads); the "starting" mark counts frames only after the first view; a
+  town exception falls back to the Filament crossroads, not the classic. The engine's arenas are sized for the town
+  (`TownEngine.config`). The player is frozen and the dialogue's writing ahead paused while the first view is built; the
+  player's world position is kept in prefs (back there at the next start); the source pictures are let go after upload
+  (weak caches); memory (graphics, native, total PSS) goes to breadcrumbs and the snapshot at first view and when the
+  whole town is built. Preview: `-Dshots=cold` builds a fresh scene through TownRun from the spawn and reports time to first
+  view and frame work (cold_first_view.png).
 - Not yet: eta, alpha and vale have placement conflicts in the graph (nudges into streets, overlaps): fix before any seed
   switch. Landmarks have no NPCs or interiors. The app still ships v1; gamma's street.json v2, dialogue and interiors
   must ship together (DialogueEngine refuses a town/year mismatch). DialogueEngine still orders generation by v1

@@ -83,20 +83,48 @@ object TownSession {
                 if (wanted != seed) return@post
                 loadMs = (System.nanoTime() - startedAt) / 1e6f
                 loaded = d
-                TownPlay.start(d.town)
+                val w = TownPlay.start(d.town)
+                // where the player was last time in this town (the world position), if anywhere
+                restore(app, d.town.seed, w)
                 loading = false
                 com.timerpg.street.shot.Crumbs.add("town load end: $seed, ${d.town.rows.size} rows, ${d.town.rows.sumOf { it.buildings.size }} buildings, %.0f ms".format(java.util.Locale.US, loadMs))
             }
         }, "town-load").apply { isDaemon = true; priority = Thread.NORM_PRIORITY }.start()
     }
 
-    /** Back to the old crossroads: the town is let go. */
-    fun stop() {
+    /** Back to the old crossroads: the town is let go (where the player stood is kept for next time). */
+    fun stop(ctx: Context) {
         if (wanted == null) return
+        save(ctx)
         wanted = null
         TownPlay.stop()
         loaded = null; loading = false; ready = false; progress = 0f
         com.timerpg.street.shot.Crumbs.add("town unloaded")
+    }
+
+    private fun prefs(ctx: Context) = ctx.applicationContext.getSharedPreferences("town", Context.MODE_PRIVATE)
+
+    /**
+     * Keeps where the player stands in the town being played (world position and heading, the way they face), so the
+     * next start (after the app was closed or the town switched away and back) begins there, not at the spawn.
+     */
+    fun save(ctx: Context) {
+        val w = TownPlay.walk ?: return
+        prefs(ctx).edit().putString("seed", w.town.seed).putFloat("wx", w.wx).putFloat("wz", w.wz)
+            .putFloat("hx", w.hx).putFloat("hz", w.hz).putFloat("dir", com.lifemax.rpg.feature.habits.presentation.scene.GameState.dir).apply()
+    }
+
+    private fun restore(ctx: Context, seed: String, w: com.lifemax.rpg.feature.habits.presentation.scene.TownWalk) {
+        val p = prefs(ctx)
+        if (p.getString("seed", null) != seed) return
+        val x = p.getFloat("wx", Float.NaN); val z = p.getFloat("wz", Float.NaN)
+        if (x.isNaN() || z.isNaN()) return
+        // (never inside a building, nor off the town: then the spawn as before)
+        val near = w.town.nearestRow(x, z)?.first ?: return
+        if (w.blockedAt(x, z, near)) return
+        com.lifemax.rpg.feature.habits.presentation.scene.GameState.dir = if (p.getFloat("dir", 1f) < 0f) -1f else 1f
+        w.placeAt(x, z, p.getFloat("hx", w.hx), p.getFloat("hz", w.hz))
+        com.timerpg.street.shot.Crumbs.add("town: back where the player stood, row ${w.row.id} at x ${w.x.toInt()}, lane ${w.lane}")
     }
 
     /** The Filament layer has built the first view ([ms] from making the scene). */

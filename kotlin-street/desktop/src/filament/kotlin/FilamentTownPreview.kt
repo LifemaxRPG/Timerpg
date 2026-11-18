@@ -73,12 +73,20 @@ fun renderFilamentTown(out: String) {
     val building: (String) -> SpriteBuilding? = { sp -> SpriteBuildingLoad.load(sp, mids[sp] ?: 0, windows, houses, models) { open(File(bdir, "$it.png")) } }
 
     Filament.init()
-    val engine = Engine.create(Engine.Backend.OPENGL)
+    val engine = Engine.Builder().backend(Engine.Backend.OPENGL).config(com.lifemax.rpg.feature.habits.presentation.scene3d.TownEngine.config()).build()
     val mats = File("../app/src/main/assets/filament")
     val ft = FilamentTown(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building)
     if (System.getProperty("townYards") == "placeholder") ft.yardBuilder = PlaceholderYards
+    // (each shot is one frame: every building's windows lit for its hour in it, not a few a frame as the game does)
+    ft.nightBudgetNs = Long.MAX_VALUE
     val report = StringBuilder()
     report.appendLine("town ${town.seed} ${town.year}: ${town.rows.size} rows, ${ft.slots.size} buildings, ${town.roads.size} roads, ${town.nodes.size} nodes, ${town.props.size} edge props, ${yards.yards.size} yards")
+
+    // a cold start as the app makes it (a fresh scene through TownRun from the spawn, behind the loading screen, then
+    // walking while the rest comes in): -Dshots=cold alone renders only this
+    val onlyShots = System.getProperty("shots")?.split(",")?.map { it.trim() }?.toSet()
+    if (onlyShots == null || "cold" in onlyShots || onlyShots.any { it.startsWith("cold") })
+        coldStart(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, report, dir, 2340, 1080)
 
     // the walk, standing at the spawn
     GameState.moveX = 0f; GameState.moveLane = 0f
@@ -102,8 +110,9 @@ fun renderFilamentTown(out: String) {
     // (a frame whose art is not decoded yet builds nothing: as the game, it just draws on)
     while (ft.pending > 0) { if (ft.buildNearest(walk.wx, walk.wz, 4f) > 0) frames++ else Thread.sleep(1) }
     val missing = ft.slots.count { it.built == null }
-    report.appendLine("buildings: %d built in %d batches (4 ms budget, at least one each), %.0f ms in all (largest batch %.1f ms; slowest building %s %.1f ms, its art decoded ahead on a worker); %d missing art"
-        .format(ft.slots.size - missing, frames, ft.buildingsMs, ft.batches.maxOf { it.second }, ft.slowest.first, ft.slowest.second, missing))
+    report.appendLine("buildings: %d built in %d batches (4 ms budget, at least one each), %.0f ms in all on the engine's thread (largest batch %.1f ms; slowest building %s %.1f ms); made ready on the workers (art decoded, geometry and pictures packed) %.0f ms in all, slowest %s %.0f ms; %d missing art"
+        .format(ft.slots.size - missing, frames, ft.buildingsMs, ft.batches.maxOf { it.second }, ft.slowest.first, ft.slowest.second,
+            ft.prepareMs, ft.slowestPrepare.first, ft.slowestPrepare.second, missing))
     report.appendLine("(software GL on the build server, not the S25; preparing the art ${"%.0f".format((System.nanoTime() - loadMs) / 1e6)} ms in all)")
 
     ft.textureStats.let { (n, texels, shared) ->
@@ -383,4 +392,85 @@ private fun playTown(
     report.appendLine("play events: " + events.joinToString(" | "))
     TownPlay.stop()
     TownPlay.onEvent = null
+}
+
+/**
+ * The town's load from a cold start, as the app runs it (FilamentHost.townFrame): a fresh [FilamentTown] (its own
+ * textures, nothing built) through [TownRun] from the spawn, a frame at most every 8.3 ms (120 Hz), the loading budget
+ * (14 ms a frame) until the first view is ready, then the player walking along the avenue while the rest of the town
+ * comes in at the playing budget (4 ms a frame). Each frame's main-thread work (the build step and the frame's setup:
+ * the camera, the culling, the people) is timed; the GPU's render is not (software GL here), nor is the phone's.
+ * Writes cold_first_view.png (the view the loading screen lifts on) and its lines in town.txt.
+ */
+private fun coldStart(
+    engine: Engine, mats: (String) -> ByteArray, town: Town, yards: TownYards, art: TownArt, building: (String) -> SpriteBuilding?,
+    report: StringBuilder, dir: File, sw: Int, shh: Int,
+) {
+    val t0 = System.nanoTime()
+    val ft = FilamentTown(engine, mats, town, yards, art, building)
+    GameState.enabled = true; GameState.look = 1
+    GameState.moveX = 0f; GameState.moveLane = 0f
+    val walk = TownPlay.start(town)
+    val sheets = SpriteSheets.sheets
+    val run = TownRun(ft, sheets)
+    var clock = 600f
+    val frameNs = 8_333_333L
+    fun pace(f0: Long) { val left = frameNs - (System.nanoTime() - f0); if (left > 0) Thread.sleep(left / 1_000_000, (left % 1_000_000).toInt()) }
+    var frames = 0
+    var worst = 0f
+    var worstBuild = 0f; var worstDraw = 0f; var worstAt = 0
+    val loading = ArrayList<Float>()
+    while (true) {
+        val f0 = System.nanoTime()
+        val ready = run.build(walk.wx, walk.wz, 14f)
+        val b = (System.nanoTime() - f0) / 1e6f
+        run.draw(walk, sw.toFloat(), shh.toFloat(), 13f, clock, sheets)
+        val ms = (System.nanoTime() - f0) / 1e6f
+        if (ms > worst) { worstAt = frames; worstBuild = b; worstDraw = ms - b }
+        loading += ms; worst = maxOf(worst, ms); frames++
+        clock += 1f / 120f
+        if (ready || (System.nanoTime() - t0) > 180_000_000_000L) break
+        pace(f0)
+    }
+    val firstView = (System.nanoTime() - t0) / 1e6f
+    val builtAtView = ft.slots.count { it.isBuilt }
+    fun pct(a: List<Float>, q: Int): Float { val s = a.sorted(); return if (s.isEmpty()) 0f else s[(s.size * q / 100).coerceAtMost(s.size - 1)] }
+    report.appendLine("cold start: first view ready after %.0f ms over %d frames (loading budget 14 ms; frame work p50 %.1f ms, p95 %.1f ms, worst %.1f ms at frame %d: building %.1f, the frame's setup %.1f; %d frames over 20 ms); %d of %d buildings built then, the ground's workers %s"
+        .format(firstView, frames, pct(loading, 50), pct(loading, 95), worst, worstAt, worstBuild, worstDraw, loading.count { it > 20f },
+            builtAtView, ft.slots.size, if (ft.groundPrepareMs > 0f) "done in %.0f ms".format(ft.groundPrepareMs) else "still working"))
+    if (System.getProperty("shots")?.let { "cold" in it } != false) {
+        val sh = Shooter(engine, ft)
+        ft.prepare(TownFrame.street(walk, sw.toFloat(), shh.toFloat()))
+        run.draw(walk, sw.toFloat(), shh.toFloat(), 13f, clock, sheets)
+        sh.save(File(dir, "cold_first_view.png"), sw, shh, 13f)
+        sh.destroy()
+        println("  cold_first_view")
+    }
+    // then playing: walking along the avenue while the rest comes in at 4 ms a frame
+    val playing = ArrayList<Float>()
+    val p0 = System.nanoTime()
+    var last = System.nanoTime()
+    GameState.moveX = .7f; GameState.moveLane = 0f
+    val busyAtView = run.busy
+    var restMs = 0f
+    // (until the rest is in, and at least 3 s of walking)
+    while ((run.busy || (System.nanoTime() - p0) < 3_000_000_000L) && (System.nanoTime() - p0) < 180_000_000_000L) {
+        if (!run.busy && restMs == 0f) restMs = (System.nanoTime() - p0) / 1e6f
+        val f0 = System.nanoTime()
+        val dt = ((f0 - last) / 1e9f).coerceIn(1f / 240f, 1f / 30f); last = f0
+        TownPlay.step(dt)
+        clock += dt
+        run.build(walk.wx, walk.wz, 4f)
+        run.draw(walk, sw.toFloat(), shh.toFloat(), 13f, clock, sheets)
+        playing += (System.nanoTime() - f0) / 1e6f
+        pace(f0)
+    }
+    GameState.moveX = 0f
+    val over = playing.count { it > 8.3f }
+    report.appendLine("cold start, playing: %s; walking %d frames (frame work p50 %.1f ms, p95 %.1f ms, worst %.1f ms; %d frames over 8.3 ms); buildings finished here %.0f ms in all (slowest %s %.1f ms), made ready on the workers %.0f ms (slowest %s %.0f ms); the ground in after %.0f ms"
+        .format(if (busyAtView) "the rest of the town in %.0f ms more".format(restMs) else "nothing left to build when the view was ready", playing.size, pct(playing, 50), pct(playing, 95), playing.maxOrNull() ?: 0f, over,
+            ft.buildingsMs, ft.slowest.first, ft.slowest.second, ft.prepareMs, ft.slowestPrepare.first, ft.slowestPrepare.second, ft.groundMs))
+    report.appendLine("(cold start: main-thread work only, on the build server's CPU with software GL; the render itself and the S25 are not measured)")
+    TownPlay.stop()
+    ft.destroy()
 }

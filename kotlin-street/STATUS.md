@@ -38,13 +38,27 @@
   corner; time/season/weather chips as before. AI panel: "Town: gamma / Old crossroads" (the classic renderer always
   plays the crossroads).
 - Crash reports' breadcrumbs: town load start/end/failure, first view ready (ms), every row change, turn and crossing
-  start/end; the screenshot/crash state JSON has a `walkableTown` block (row, street, place, transit, live rows, people).
-  A Filament failure while building the town falls back to the classic crossroads (the existing crash guard).
+  start/end, the whole build's times when it ends, memory (graphics, native, Java, total PSS) at the first view and when
+  the whole town is built; the screenshot/crash state JSON has a `walkableTown` block (also while loading: progress,
+  error; then row, street, place, transit, live rows, people, the build line and the memory).
+- Crash guard: a `townBuilding` mark is on from the scene's start until every building and the ground are in; a launch
+  that finds it plays the old crossroads on Filament (the AI panel switches the town back on). The "starting" mark counts
+  its 30 frames only after the first view. A town exception also falls back to the Filament crossroads, not the classic.
+- Frame time and heat: building is done on the workers (`BuildingMeshes.prepare`), the engine's thread only finishes
+  each building (desktop: slowest 156 ms before, about 20 ms now); frames come at the display's rate only while the
+  player moves, a transit runs or the town is still building, else at the stage's 30 Hz clock; the stage skips the old
+  crossroads' work under the town. While the first view is built the player cannot move and the dialogue's writing
+  ahead is paused ("town-load"). The player's world position is kept for the next start.
+- Desktop: `-Dshots=cold` builds a fresh town scene through TownRun from the spawn as the app does (loading budget, then
+  walking) and writes the time to the first view and the main thread's frame work to town.txt, and cold_first_view.png.
 - Desktop: `gradle :desktop:preview -Dmode=filament-town -Dshots=play` runs the same TownPlay + TownRun path: play_spawn_13h,
   play_walk_13h, play_mouth_dusk, play_turn_13h, play_turned_13h, play_cross_night, play_crossed_night, with the bubble
   anchors marked (yellow: people to talk to, cyan: the player). Tests: desktop TownPlayTest (the shipped assets agree;
   spawn, walk, turn, cross, events; people on the live rows; who hears), app PregenQueueTest (rows).
-- Not yet / to check on the S25: frame time and heat of the whole town with people; the time to the first view; the
+- Not yet / to check on the S25: frame time and heat of the whole town with people; the time to the first view; GPU
+  memory with the dialogue model loaded (now logged; 652 textures, 67.8M texels: compressed textures and lighter far
+  yards, e.g. sideFence 429k and greenhouse 278k triangles, are the levers if it is too much); passers beyond the live
+  rows (long views show empty pavements further off); the
   stage's sky does not turn with the town's heading (it keeps the crossroads' yaw: the sun Filament lights by follows the
   view, so they can disagree); passers are drawn as plain walkers (no dogs, bikes, pairs, cars) and only on live rows;
   landmarks have nobody to talk to; going into a room keeps the town's scene (drawn under the room) but a renderer switch

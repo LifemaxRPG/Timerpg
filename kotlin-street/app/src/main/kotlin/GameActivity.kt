@@ -112,7 +112,7 @@ class GameActivity : ComponentActivity() {
         com.timerpg.street.dialogue.DialogueEngine.startDir = if (StreetRenderer.townMode) "town/${StreetRenderer.town}/" else ""
         com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.onEvent = { com.timerpg.street.shot.Crumbs.add(it) }
         // crash reports: how the last runs ended (Android's record), and any waiting sent to Claude; all in the background
-        com.timerpg.street.shot.ShotUploader.onLaunch(applicationContext, StreetRenderer.lastStartDied)
+        com.timerpg.street.shot.ShotUploader.onLaunch(applicationContext, StreetRenderer.lastStartDied || StreetRenderer.lastTownBuildDied)
         val engine = DialogueEngine.shared(applicationContext)
         dialogue = engine
         val v = com.timerpg.street.voice.NpcVoiceService(applicationContext)
@@ -151,6 +151,8 @@ class GameActivity : ComponentActivity() {
         // (the always-listening mic closes)
         Foreground.resumed = false
         com.timerpg.street.shot.Crumbs.add("pause")
+        // where the player stands in the town, for the next start
+        TownSession.save(this)
         // Filament draws nothing in the background
         StreetRenderer.paused = true
         super.onPause()
@@ -383,12 +385,18 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             TownSession.load(ctx, StreetRenderer.town)
             engine.useTown("town/${StreetRenderer.town}/")
         } else {
-            TownSession.stop()
+            TownSession.stop(ctx)
             engine.useTown("")
         }
     }
     val townData = TownSession.loaded.takeIf { townMode && !TownSession.loading }
     val townLoading = townMode && !TownSession.ready
+    // while the town's first view is built: the player stays put (keys, pad and stick), and no lines are written ahead
+    // (the dialogue model's load and its writing would compete with the build's workers and the engine's thread)
+    LaunchedEffect(townLoading) {
+        townPlay.frozen = townLoading
+        if (townLoading) engine.pause("town-load") else engine.resume("town-load")
+    }
     val shops = street.shops
     val owners = street.owners
     // the crossroads is at the far end of the main street, and at the start of the cross street
@@ -471,7 +479,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     // the walk round the corner: no writing ahead while the camera turns (it needs the CPU), no conversation across it
     val turning = CornerWalk.active || (townMode && townTransit)
     LaunchedEffect(turning) {
-        com.timerpg.street.shot.Crumbs.add(if (turning) "corner turn start" else "corner turn end")
+        // (the town's walk tells its own turns and crossings: TownPlay's events)
+        if (!townMode) com.timerpg.street.shot.Crumbs.add(if (turning) "corner turn start" else "corner turn end")
         if (turning) { talk?.close(voices); talk = null; engine.pause("turn") } else engine.resume("turn")
     }
     // a conversation open: the speech model gets ready (it loads only now, not when walking past people), and the lines
@@ -752,12 +761,17 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             "camera" to StreetRenderer.camera,
             "rendererError" to StreetRenderer.error,
             "town" to data.town,
-            "walkableTown" to townPlay.walk?.let { w ->
-                linkedMapOf("seed" to w.town.seed, "loading" to TownSession.loading, "ready" to TownSession.ready, "loadMs" to TownSession.loadMs,
-                    "firstViewMs" to TownSession.firstViewMs, "row" to w.row.id, "street" to townStreet, "neighbourhood" to townHood,
-                    "x" to w.x, "lane" to w.lane, "wx" to w.wx, "wz" to w.wz, "heading" to w.heading, "front" to townFront,
-                    "transit" to w.transit?.let { t -> "${t.kind} ${t.from.id}->${t.to.id} %.2f".format(java.util.Locale.US, t.progress) },
-                    "liveRows" to w.liveRows().map { it.id }, "people" to townPlay.figureCount)
+            "walkableTown" to if (!townMode) null else {
+                // (also while it loads, before there is a walk: a crash or a hang in the load reports where it was)
+                val w = townPlay.walk
+                linkedMapOf<String, Any?>("seed" to StreetRenderer.town, "loading" to TownSession.loading, "ready" to TownSession.ready,
+                    "progress" to TownSession.progress, "error" to TownSession.error, "loadMs" to TownSession.loadMs,
+                    "firstViewMs" to TownSession.firstViewMs, "built" to FilamentStats.townBuilt, "memory" to FilamentStats.memory).also { m ->
+                    if (w != null) m.putAll(linkedMapOf("row" to w.row.id, "street" to townStreet, "neighbourhood" to townHood,
+                        "x" to w.x, "lane" to w.lane, "wx" to w.wx, "wz" to w.wz, "heading" to w.heading, "front" to townFront,
+                        "transit" to w.transit?.let { t -> "${t.kind} ${t.from.id}->${t.to.id} %.2f".format(java.util.Locale.US, t.progress) },
+                        "liveRows" to w.liveRows().map { it.id }, "people" to townPlay.figureCount))
+                }
             },
             "street" to linkedMapOf("index" to streetNo, "name" to street.name, "nearestBuilding" to near,
                 "building" to shops.getOrNull(near)?.cue, "owner" to owners.getOrNull(near), "atCorner" to GameState.atCorner, "edge" to GameState.edge),

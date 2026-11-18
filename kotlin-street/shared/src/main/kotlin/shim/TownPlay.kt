@@ -66,6 +66,22 @@ object TownPlay {
 
     private var lastRow: String? = null
     private var turning = false
+    private var lastMark = Float.NaN
+
+    /**
+     * The renderer still has building to do (the ground, buildings near the player): frames should keep coming at the
+     * display's rate while it lasts, even with the player standing still. Set by the renderer each frame.
+     */
+    @Volatile var renderBusy = false
+
+    /**
+     * The player cannot move (the town's first view is still being built behind the loading screen): the keys, the game
+     * pad and the stick push nothing, so the view is built round the spot the player will start from. Set by the app.
+     */
+    @Volatile var frozen = false
+
+    /** Each row's buildings' middles (where its passers stop to look), kept: the people are stood every frame. */
+    private val centersOf = HashMap<String, List<Float>?>()
 
     /** Starts playing [town]: the player stands at its spawn (the civic avenue). */
     fun start(town: Town): TownWalk {
@@ -76,6 +92,8 @@ object TownPlay {
         val w = TownWalk(town)
         lastRow = w.row.id
         turning = false
+        lastMark = Float.NaN
+        centersOf.clear()
         walk = w
         event("town ${town.seed} ${town.year}: spawned on ${w.row.id} (${streetName() ?: "?"}) at x ${w.x.toInt()}, lane ${w.lane}")
         return w
@@ -88,6 +106,7 @@ object TownPlay {
         CornerWalk.reset()
         GameState.street = 0
         figureCount = 0
+        renderBusy = false
         projector = null
         event("town stopped")
     }
@@ -101,6 +120,7 @@ object TownPlay {
      */
     fun step(dt: Float): Float {
         val w = walk ?: return 0f
+        if (frozen) { GameState.moveX = 0f; GameState.moveLane = 0f }
         val wasTransit = w.transit
         val done = w.step(dt)
         val t = w.transit
@@ -122,9 +142,13 @@ object TownPlay {
         GameState.atCorner = t == null && (
             (w.row.end.turnIn != null && w.x >= w.row.length - com.lifemax.rpg.feature.habits.domain.Crossroads.MOUTH_ZONE && w.x <= w.row.length) ||
                 (w.row.start.turnIn != null && w.x >= 0f && w.x <= com.lifemax.rpg.feature.habits.domain.Crossroads.MOUTH_ZONE))
-        GameState.inMotion = true
-        return w.wx * 3f + w.wz * 7f + GameState.facing * 13f + GameState.dir * 17f + (t?.progress ?: 0f) * 1000f + rowChanges * 31f +
+        val mark = w.wx * 3f + w.wz * 7f + GameState.facing * 13f + GameState.dir * 17f + (t?.progress ?: 0f) * 1000f + rowChanges * 31f +
             (if (GameState.walking) GameState.gait * 5f else 0f)
+        // every frame only while something moves (the player, a transit) or the renderer is still building; standing
+        // still, the stage's own clock (about 30 Hz) redraws the street's people
+        GameState.inMotion = mark != lastMark || t != null || GameState.walking || renderBusy
+        lastMark = mark
+        return mark
     }
 
     // ------------------------------------------------------------------ the HUD
@@ -205,8 +229,8 @@ object TownPlay {
         val w = walk ?: return 0
         for (r in w.liveRows()) {
             val rowSeed = seed * 31 + r.id.hashCode()
-            val centers = r.buildings.map { it.mid }
-            val n = StreetLife.passers(seconds, rowSeed, 0f, r.length, passers, centers.ifEmpty { null })
+            val centers = centersOf.getOrPut(r.id) { r.buildings.map { it.mid }.ifEmpty { null } }
+            val n = StreetLife.passers(seconds, rowSeed, 0f, r.length, passers, centers)
             for (i in 0 until n) {
                 val p = passers[i]
                 if (!p.on) continue
