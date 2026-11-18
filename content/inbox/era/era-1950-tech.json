@@ -1,0 +1,364 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1950,
+  "topic": "tech",
+  "facts": [
+    {
+      "id": "1950-tech-01",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Black-and-white television sets become familiar household entertainment as the decade progresses.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-02",
+      "year_from": 1953,
+      "year_to": 1959,
+      "text": "Television antennas stand on many rooftops to receive local broadcasts.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-03",
+      "year_from": 1953,
+      "year_to": 1959,
+      "text": "Families adjust television antennas to improve a snowy picture.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-04",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A television set often has a small screen inside a large wooden cabinet.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-05",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Television programs arrive on a broadcast schedule rather than whenever viewers choose.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-06",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Most household television sets display pictures in black and white.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-07",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A household telephone usually has a rotary dial and a corded handset.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-08",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Some neighbors share a party telephone line and wait for others to finish talking.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-09",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Operators help place some long-distance telephone calls.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-10",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A home telephone may sit on a hallway table or hang on a kitchen wall.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-11",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Many kitchens have an electric refrigerator with a small freezer compartment.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-12",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Electric mixers help prepare cake batter and other foods.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-13",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Households commonly cook with gas or electric ranges.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-14",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A washing machine handles laundry in many homes, but clothes often dry outdoors.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-15",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Electric clothes dryers become more common during the decade.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-16",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Vacuum cleaners are familiar tools for cleaning rugs and carpets.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-17",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Electric fans cool rooms in summer, while whole-house air conditioning remains uncommon.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-18",
+      "year_from": 1955,
+      "year_to": 1959,
+      "text": "Portable transistor radios become popular later in the decade.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-19",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Radios in cars let drivers hear music and news while traveling.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-20",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Office workers type letters on manual or electric typewriters.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-21",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Offices copy documents with carbon paper or duplicating machines.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-22",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Businesses store customer records in filing cabinets and card indexes.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-23",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Cash registers ring up purchases at local shops.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-24",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A shop may use a mechanical adding machine for bookkeeping.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-25",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Home photographs are usually taken on film and developed later.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-26",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Long-playing records and smaller singles are common ways to buy recorded music.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-tech-27",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Some families use slide projectors to show vacation photographs at home.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "a home computer",
+      "first_common": 1985,
+      "say_instead": "a typewriter or adding machine"
+    },
+    {
+      "thing": "internet access in ordinary homes",
+      "first_common": 2000,
+      "say_instead": "a telephone call, library, or newspaper"
+    },
+    {
+      "thing": "a microwave oven in an ordinary kitchen",
+      "first_common": 1985,
+      "say_instead": "a stove or conventional oven"
+    },
+    {
+      "thing": "a video cassette recorder in ordinary homes",
+      "first_common": 1985,
+      "say_instead": "scheduled television broadcasts"
+    },
+    {
+      "thing": "a color television set in most homes",
+      "first_common": 1975,
+      "say_instead": "a black-and-white television set"
+    },
+    {
+      "thing": "a mobile telephone carried by ordinary residents",
+      "first_common": 2000,
+      "say_instead": "a corded telephone or pay telephone"
+    },
+    {
+      "thing": "a digital camera in ordinary homes",
+      "first_common": 2005,
+      "say_instead": "a film camera"
+    },
+    {
+      "thing": "a household computer printer",
+      "first_common": 1995,
+      "say_instead": "a typewriter and carbon paper"
+    },
+    {
+      "thing": "a television remote control in most homes",
+      "first_common": 1985,
+      "say_instead": "the knobs on the television set"
+    },
+    {
+      "thing": "a compact disc player in ordinary homes",
+      "first_common": 1990,
+      "say_instead": "a record player"
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
