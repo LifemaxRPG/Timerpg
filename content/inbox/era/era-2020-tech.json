@@ -1,0 +1,367 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2020,
+  "topic": "tech",
+  "facts": [
+    {
+      "id": "2020-tech-01",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A family member checks the weather on a smartphone before leaving for work.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-02",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "People use video calls to see relatives who live far away.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-03",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A teenager plugs in a phone at night because its battery runs low by evening.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-04",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Many households connect phones, televisions, and computers to the same wireless router.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-05",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A smart television opens streaming services without a separate disc player.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-06",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "People search through several streaming services to find a program they want to watch.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-07",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Wireless earbuds need charging and can be misplaced easily.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-08",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A smartwatch can show incoming messages and track daily steps.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-09",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A driver plugs a smartphone into the car to display maps and directions.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-10",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A delivery driver checks a phone for the next address on the route.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-11",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A cashier turns a card reader toward the customer for a tap payment.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-12",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Some shoppers pay at a register by holding a phone near the payment terminal.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-13",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A restaurant customer scans a square code to read the menu on a phone.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-14",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Many shops offer online ordering with pickup at the counter or curb.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-15",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A customer receives a text message when an online order is ready for collection.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-16",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A home security camera sends a phone alert when someone approaches the front door.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-17",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A voice-controlled speaker can set a kitchen timer or answer a simple question.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-18",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A student submits homework through a school website instead of handing in every assignment on paper.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-19",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A household printer may sit unused for weeks until someone needs a paper form.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-20",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "An office worker joins a video meeting from a laptop at the kitchen table.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-21",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Some office workers share files through online storage rather than carrying a flash drive.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-22",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A weak wireless signal can interrupt a video meeting or a streamed program.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-23",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A phone user receives repeated reminders to install software updates.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-24",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A person must remember passwords or use a password manager for numerous online accounts.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-25",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A family may have a robot vacuum that moves around furniture and returns to its charging dock.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-26",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A teenager uses a phone camera to record and edit a short video.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-27",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "People use online appointment systems for medical visits and other local services.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-tech-28",
+      "year_from": 2023,
+      "year_to": 2026,
+      "text": "Some residents ask a conversational artificial intelligence program to draft text or explain a question.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "a household humanoid robot that routinely performs chores",
+      "first_common": null,
+      "say_instead": "a person doing chores or a robot vacuum"
+    },
+    {
+      "thing": "a fully autonomous car that drives itself everywhere without supervision",
+      "first_common": null,
+      "say_instead": "a car driven by a person using navigation assistance"
+    },
+    {
+      "thing": "a brain implant used by ordinary residents to control their phones",
+      "first_common": null,
+      "say_instead": "a touchscreen or voice command"
+    },
+    {
+      "thing": "a general-purpose holographic video call in ordinary homes",
+      "first_common": null,
+      "say_instead": "a video call on a flat screen"
+    },
+    {
+      "thing": "a quantum computer in an ordinary household",
+      "first_common": null,
+      "say_instead": "a laptop or desktop computer"
+    },
+    {
+      "thing": "a home three-dimensional printer used by most families",
+      "first_common": null,
+      "say_instead": "an ordinary printer or a store-bought replacement part"
+    },
+    {
+      "thing": "a fully automated kitchen robot that cooks every family meal",
+      "first_common": null,
+      "say_instead": "a person cooking with ordinary appliances"
+    },
+    {
+      "thing": "augmented reality glasses worn daily by most residents",
+      "first_common": null,
+      "say_instead": "a smartphone screen"
+    },
+    {
+      "thing": "a domestic delivery drone that brings most household groceries",
+      "first_common": null,
+      "say_instead": "a delivery van or a store pickup order"
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
