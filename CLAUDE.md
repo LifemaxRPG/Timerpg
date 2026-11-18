@@ -54,3 +54,6 @@ Elite for Galaxy: 8 fast Oryon cores, no little cores; Adreno 830 GPU; Hexagon N
   language model (Qwen via native llama.cpp) and pre-generated NPC dialogue. See `kotlin-street/STATUS.md`,
   `kotlin-street/README.md` and `kotlin-street/docs/`.
 - Work autonomously; the owner prefers that work continues without waiting for prompts when the next step is clear.
+- **Send screenshots.** The owner often prompts from work and can't test right away: whenever something visual lands
+  (a milestone, a fix, a new building or scene), send preview renders/screenshots unprompted, from the angles that
+  matter, with a one-line caption. Say plainly that they are desktop renders, not S25 captures.
