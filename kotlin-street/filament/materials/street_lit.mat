@@ -1,0 +1,60 @@
+// Everything visible in the Filament street: walls, roofs, signs, the ground and the upright cards (props, people).
+// Drawn through the classic street's own look: the vertex goes to the screen by `look` (the stage's leaned camera for
+// this thing, as a clip-space matrix), while lighting and shadows use its true place in the world.
+material {
+    name : StreetLit,
+    shadingModel : lit,
+    blending : masked,
+    maskThreshold : 0.5,
+    vertexDomain : device,
+    culling : none,
+    doubleSided : false,
+    parameters : [
+        { type : mat4, name : look, precision : high },
+        { type : sampler2d, name : albedo, precision : medium },
+        { type : sampler2d, name : mask, precision : medium },
+        // the picture's part this face wears (offset, size), for sprite sheets and tiled strips
+        { type : float4, name : uvRect },
+        // multiplies the picture (flat-coloured ground uses a white picture)
+        { type : float4, name : tint },
+        // the window light's colour (rgb) and how far on it is (a)
+        { type : float4, name : glow },
+        // how much of the thing is left (a building fading out mid-turn): screen-door, whole art pixels
+        { type : float, name : fade },
+        // the size of an art pixel on screen, for that screen door
+        { type : float, name : cell }
+    ],
+    requires : [ uv0, tangents ]
+}
+
+vertex {
+    void materialVertex(inout MaterialVertexInputs material) {
+        // the true place for light and shadow; the classic look for the screen
+        material.worldPosition = getWorldFromModelMatrix() * getPosition();
+        // (Filament's shader world is centred on the camera; the look takes the user's world)
+        material.clipSpaceTransform = materialParams.look * getUserWorldFromWorldMatrix() * getWorldFromModelMatrix();
+    }
+}
+
+fragment {
+    float bayer4(vec2 p) {
+        vec2 q = mod(floor(p), 4.0);
+        float i = q.x + 4.0 * q.y;
+        // a 4x4 ordered pattern
+        const float m[16] = float[16](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);
+        return (m[int(i)] + 0.5) / 16.0;
+    }
+    void material(inout MaterialInputs material) {
+        prepareMaterial(material);
+        vec2 uv = materialParams.uvRect.xy + getUV0() * materialParams.uvRect.zw;
+        vec4 c = texture(materialParams_albedo, uv) * materialParams.tint;
+        vec4 m = texture(materialParams_mask, uv);
+        if (materialParams.fade < 1.0 && bayer4(gl_FragCoord.xy / materialParams.cell) > materialParams.fade) c.a = 0.0;
+        material.baseColor = c;
+        // walls and paint are matt; glass (the mask's green) is smooth and reflects the sky
+        material.roughness = mix(0.9, 0.2, m.g);
+        material.metallic = 0.0;
+        material.reflectance = mix(0.2, 0.6, m.g);
+        material.emissive = vec4(materialParams.glow.rgb * (m.r * materialParams.glow.a), 0.0);
+    }
+}
