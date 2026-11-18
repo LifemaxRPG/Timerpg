@@ -1,0 +1,349 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1940,
+  "topic": "tech",
+  "facts": [
+    {
+      "id": "1940-tech-01",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Homes commonly use radios for news and entertainment.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-02",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Household radios often sit in wooden cabinets or on tabletop shelves.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-03",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Many families use iceboxes or refrigerators to keep food cold.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-04",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Electric refrigerators are common in many homes, but some households still use ice delivery.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-05",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Most homes have no television set.",
+      "ages": "all",
+      "use": [
+        "guard",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-06",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Telephones use a dial or require an operator to connect a call.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-07",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Some rural homes share a telephone line with neighboring households.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-08",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Long-distance telephone calls usually cost extra and may require operator assistance.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-09",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Letters and postcards carry personal messages over long distances.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-10",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A typewriter produces typed letters and office documents.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-11",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Offices keep records in paper files and filing cabinets.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-12",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Clerks use mechanical adding machines to total figures.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-13",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Stores ring up purchases on mechanical cash registers.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-14",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Shopkeepers write many receipts and account entries by hand.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-15",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Electric lights illuminate homes and shops in most towns.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-16",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Some rural houses still lack electric service.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-17",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Families heat rooms with coal, wood, oil, or gas furnaces and stoves.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-18",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Electric fans provide relief from summer heat in many homes.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-19",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Most homes have no central air conditioning.",
+      "ages": "all",
+      "use": [
+        "guard",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-20",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Clothes are washed by hand or with a washing machine and often dried on a line.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-21",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Many kitchens use gas or electric cooking ranges.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-22",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Movie theaters project films from reels of photographic film.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-23",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Cameras use photographic film that must be developed before pictures can be seen.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-24",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Records play music on wind-up or electric phonographs.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-25",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Vacuum cleaners and electric irons are familiar household appliances.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-tech-26",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Public pay telephones let people make calls away from home.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "a television set in most homes",
+      "first_common": 1955,
+      "say_instead": "a household radio"
+    },
+    {
+      "thing": "a home computer",
+      "first_common": 1985,
+      "say_instead": "a typewriter or an adding machine"
+    },
+    {
+      "thing": "a microwave oven in ordinary kitchens",
+      "first_common": 1985,
+      "say_instead": "a stove or conventional oven"
+    },
+    {
+      "thing": "a mobile telephone carried by ordinary residents",
+      "first_common": 2000,
+      "say_instead": "a home telephone or a public pay telephone"
+    },
+    {
+      "thing": "internet access in ordinary homes",
+      "first_common": 2000,
+      "say_instead": "a newspaper, library book, or telephone call"
+    },
+    {
+      "thing": "a digital camera in ordinary homes",
+      "first_common": 2005,
+      "say_instead": "a film camera"
+    },
+    {
+      "thing": "a video cassette recorder in ordinary homes",
+      "first_common": 1985,
+      "say_instead": "a radio or a movie theater"
+    },
+    {
+      "thing": "a household printer connected to a computer",
+      "first_common": 1995,
+      "say_instead": "a typewriter and carbon paper"
+    },
+    {
+      "thing": "a color television set in most homes",
+      "first_common": 1975,
+      "say_instead": "a radio or a rare black-and-white television"
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
