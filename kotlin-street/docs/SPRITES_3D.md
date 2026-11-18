@@ -73,6 +73,43 @@ Contact sheets were made with a throwaway script from the folders below (houses,
   the street's nearly level view (the art draws them from high above), and the landmarks are taller than the street's
   frame (their roofs above it) until they stand on a street with room for them.
 
+### The police station (`landmark_police_1..3`), and the rounded wall
+
+Done (2026-11-18) in a preview row (`make_buildings.py --showcase`, `-Dmode=models -Dstreet=6 -Dtall=760`), not on a
+street yet: no lot tier uses a landmark. Its builder is `tools/buildings_civB.py` (`police`); the three colours share
+one shape and are each cut from their own art.
+
+- **Two new part types in models.json.** `cyl`: a segment of an upright elliptic cylinder: its centre `c` (x, d), its
+  semi-axes `r` (across, in depth), the angles `a` it runs between (degrees; 0 faces the street, 90 the right, 180
+  the back), its heights `y`, its top and wall colours `col` (a top of -1 is not drawn), the atlas strip `ft` it wears
+  (columns evenly along the angle, rows from the top down), a ring's inner semi-axes `ri` (a parapet: its top is the
+  band between the curves), `card` for a thin open surface (a rail round the curve), `sg` when its windows light at
+  night. `wall`: an upright face between two plan points (x[0], d[0]) and (x[1], d[1]) wearing `ft` (the tower's
+  chamfered corner). The classic street draws both a column at a time, each a flat facet between two points of the
+  curve, where it faces the view (a rail both sides, its far side first), each lit by which way it faces
+  (`BuildingPainter.stripPart`); a rounded wall's top is the sector to its centre or the ring's band.
+- **How the strips are cut.** The art lifts what stands further back, but by eye, not by one rule (the curve's top
+  climbs faster than its foot). So the rounded corner's strip samples the art between the lines it actually draws, column
+  by column (`curve_rows`: the first and last rows of the brick in the red variant, every colour sharing the shape),
+  which takes its louvred windows and its bands round the curve as drawn; past the art's silhouette (the wall's far
+  side, the back quarter) the wall's own rows carry on. The round pillars (the tower's, the loggia's and the porch's
+  columns) are their art unrolled onto their front halves (`pillar_strip`); the chamfer its columns with the rows
+  lifted by their depth.
+- **The plan.** The wing's end is the art's D from above: a quarter ellipse at the front corner (52 across, 85 back), a
+  short straight side, a longer quarter round the back (115 back). The tall block is a roof slab on pillars: the
+  tower's front with three round pillars, the chamfer back to the wing's line, the open loggia (its back wall 50 back,
+  where the art's floor from above ends; above what the art shows its own panels carry on), the porch under it (its
+  door wall 60 back, the landing, four steps, the glass partition seen edge on, the round column).
+- **The flat roofs.** Each the art's floor from above with what stands on it painted out (each pixel the nearest floor
+  pixel up or down its column, `floor_of`), the parapet as boxes wearing the art's band and its broad coping (the rail
+  posts drawn on it painted out), the rails as cards built from the art's bar and one of its posts (`rail_strip`), the
+  ring parapet and its rail following the curve. The stair houses wear their fronts as drawn under the glass pyramids
+  (hipped roofs to a point, their front faces the art's). The POLICE board stands on its legs clear of the rail (in
+  the art its foot is just over the coping; as an elevation the rail would cross the letters), its letters glowing at
+  night as tubes; the badge a card on its cap. The four spotlights are cards whose lenses glow.
+- Still to do: the stair houses' sides and the parapets' inner faces are plain courses; nothing of it in the corner turn
+  (no landmark is there yet).
+
 ## Easy: already boxes (the current pipeline, `tools/make_buildings.py`)
 
 | Sprites | Count | Why easy |
@@ -101,7 +138,7 @@ Contact sheets were made with a throwaway script from the folders below (houses,
 |---|---|---|---|
 | `houseTerraced_*` | 30 | drawn in a **different projection**: an oblique 3/4 view with a huge lean-to roof tilted at us, the right side wall showing, and garages/doors at an angle. There is no front elevation to take; the roof hides half the house | rebuild as geometry (box + steep single-pitch roof + side), using the sprite's materials (siding, roof tiles, door, windows) as textures cut from it; or repaint a front elevation per variant |
 | `houseEstate` (country, Japanese, modern, one-story) | 4 | **several volumes at once**: L-shaped plans, many roof planes at different heights (the Japanese house's layered eaves), terraces, a modern house's flat roof with a deck | each estate as a small set of boxes and roof prisms modelled by hand, the sprite's pieces as textures; the most work per sprite |
-| `landmark_police` | 3 | a **curved wing** (a rounded corner with a curved parapet and windows following the curve) beside a square block | the curve as a cylinder segment: a new geometry type (a box with a rounded end), its windows mapped around it |
+| ~~`landmark_police`~~ | 3 | **done** (see above); was: a **curved wing** (a rounded corner with a curved parapet and windows following the curve) beside a square block | the curve as a cylinder segment: a new geometry type (a box with a rounded end), its windows mapped around it |
 | `fountain1_*`, `fountain2_*` | 8 | **round**: a circular basin (a cylinder in perspective) and a statue | basin as a cylinder ring drawn in the street's perspective, water as the same AGSL water we have; the statue as an upright card |
 | `characters` | 8 sheets | sprites, not geometry | stay 2D cards (as now); only their shadows and lighting are 3D |
 
@@ -114,7 +151,7 @@ multi-part models) exists.
 |---|---|---|---|
 | ~~`houseTerraced_*`~~ | 30 | **Done** (2026-11-18): their front is the END of a single-pitch roof rising across it (low left, high edge running back on the right), the slab that roof from above, a lower side wing along the right. `make_buildings.py terraced()` makes the facade a true elevation (in a recess's columns the rows its top hides are put back, so every wall meets the ground on row 461), the slope from above, the wing's front and top, side walls from the upper storey's siding, steps as boxes and the planter or pot as cards (per design: `TERRACED`); the engine draws the roof as a front gable with its apex at one side (`ModelPart.apexX`, only its left slope). Terraced lots wear them (`town-streets.ts`); eta's two streets have none (vale's has one). `make_buildings.py --showcase`, `-Dmode=models -Dstreet=4` | front gable, `build_model` |
 | `houseEstate` (country, Japanese, modern, one-story) | 4 | Hand-modelled each, as a list of parts: **country** a front-gable main volume, a lower side wing with its own roof, a wrap-round deck with railings and steps; **Japanese** a front gable whose lower floor has a **pent roof** (a lean-to strip along the facade, the same monopitch) and a side annex; **modern** a monopitch main block beside a **flat-roof terrace** with a pergola, parasol and railings (props on a deck), and a stair up the side; **one-story** a front gable with a **second, lower gabled garage** standing forward of it (a cross gable, as the school's) | villa models, front gables, decks |
-| `landmark_police` | 3 | The **curved wing** (a quarter-cylinder with a curved parapet and windows round it) still needs a new shape; the rest is a tall square block, a lower wing, a **flat roof drawn from above** (cut off, our roof with the parapet, spotlights and the hipped skylight as props), entrance steps | new: cylinder segment |
+| ~~`landmark_police`~~ | 3 | **Done** (2026-11-18, see above: new `cyl` and `wall` parts). Was: the **curved wing** (a quarter-cylinder with a curved parapet and windows round it) still needs a new shape; the rest is a tall square block, a lower wing, a **flat roof drawn from above** (cut off, our roof with the parapet, spotlights and the hipped skylight as props), entrance steps | new: cylinder segment |
 | `landmark_fire` | 1 | Two volumes: the hose tower (left) under a **pyramid roof** (the hipped machinery) with its sign and a **porch/canopy** standing forward at the bottom; the engine bay block with a **flat roof seen from above** (cut off), two garage doors set into the front | hipped roof, models |
 | `landmark_hospital` | 1 | Stepped multi-volume: a main block, a wing set back on the right (emergency), a **canopy on pillars** over the entrance standing forward; the big **flat roof from above with the helipad** becomes our flat roof with the H as a roof decal; a rooftop plant room box | models |
 | `condo_9` | 1 | Drawn like the terraced houses: oblique, its **side wall showing** (pipes, a round window), flat roof from above. Rebuild as a box from the front strip and the side strip | terraced approach |

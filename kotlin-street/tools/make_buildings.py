@@ -127,7 +127,7 @@ def relief_mask(im, spec):
 def build(shop, out):
     if shop['parts'][0]['key'].startswith(('house_small_', 'house_medium_')): return build_house(shop, out)
     if shop['parts'][0]['key'].startswith(('villa_', 'landmark_clocktower_', 'landmark_school_', 'house_terraced_')) or \
-            shop['parts'][0]['key'].startswith('estate_'): return build_model(shop, out)
+            shop['parts'][0]['key'].startswith(('estate_', 'landmark_police_')): return build_model(shop, out)
     parts = shop['parts']; ground = next(p for p in parts if not p['key'].startswith(('roof_', 'roofprop_', 'middle_')))
     mids = [p for p in parts if p['key'].startswith('middle_')]
     roof = next((p for p in parts if p['key'].startswith('roof_')), None)
@@ -1694,7 +1694,8 @@ def build_model(shop, out):
     """One of our villas or landmarks as the parts the engine builds it from (models.json) and the pictures they wear."""
     key = shop['parts'][0]['key']; n = shop['sprite']
     rng = np.random.default_rng(zlib.crc32(n.encode()))
-    make = (villa if key.startswith('villa_') else tower if key.startswith('landmark_clocktower_') else terraced if key.startswith('house_terraced_')
+    from buildings_civB import police
+    make = (police if key.startswith('landmark_police_') else villa if key.startswith('villa_') else tower if key.startswith('landmark_clocktower_') else terraced if key.startswith('house_terraced_')
             else estate_one_story if key == 'estate_one_story_house' else estate_country if key == 'estate_country_house' else estate_japanese if key == 'estate_japanese_house' else school)
     model, at, front, side, emis, lawn, fence, fence_snow = make(shop, rng)
     # which boxes' sides have windows that light at night (the engine lights no other: a railing's side has none)
@@ -1748,11 +1749,13 @@ def showcase(out):
     terr = [add(f'house_terraced_{d}{c}', ('compact', 'formal', 'natural', 'flower', 'compact')[i])
             for i, (d, c) in enumerate(((1, ''), (2, '_c3'), (4, '_c1'), (5, ''), (6, '_c3')))]
     estates = [add('estate_one_story_house', 'formal'), add('estate_country_house', 'compact'), add('estate_japanese_house', 'natural')]
+    police = [add(f'landmark_police_{i}', 'natural') for i in (1, 2, 3)]
     os.makedirs(out + '/buildings', exist_ok=True)
     json.dump(dict(town='showcase', year=2025, type='every house sprite', shops=shops,
                    streets=[dict(name='Every design', buildings=row), dict(name='Every colour', buildings=colours),
                             dict(name='Villas', buildings=villas), dict(name='Landmarks', buildings=landmarks),
-                            dict(name='Terraced', buildings=terr), dict(name='Estates', buildings=estates)]),
+                            dict(name='Terraced', buildings=terr), dict(name='Estates', buildings=estates),
+                            dict(name='Police', buildings=police)]),
               open(out + '/street.json', 'w'), indent=1)
     return out + '/street.json', out + '/buildings'
 

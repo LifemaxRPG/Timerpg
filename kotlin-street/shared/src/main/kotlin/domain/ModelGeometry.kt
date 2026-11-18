@@ -5,8 +5,9 @@ import kotlin.math.max
 /*
  * Our villas and landmarks (the clock tower, the school) as shape with no drawing in it: what tools/make_buildings.py's
  * build_model cut from their sprites (buildings/models.json). Each is a list of parts drawn back to front: boxes, front
- * gables (the triangle end facing the street, the slopes running back from it) and hipped roofs (four sloped faces and
- * a flat top). Lengths are sprite pixels: x across the model's front picture (which stands [ModelShape.frontX] pixels into
+ * gables (the triangle end facing the street, the slopes running back from it), hipped roofs (four sloped faces and
+ * a flat top), rounded walls (segments of elliptic cylinders) and walls turned off the street's line. Lengths are
+ * sprite pixels: x across the model's front picture (which stands [ModelShape.frontX] pixels into
  * the lot's 224-pixel frame), y up from the ground, d back from the model's front line (negative: in front of it), which
  * stands [ModelShape.setback] back from the pavement. Where a part wears a piece of art it is a rectangle of the
  * building's atlas picture (x, y, w, h), and its points are in that rectangle's own pixels.
@@ -65,6 +66,13 @@ class ModelPart(
      * high edge at one side ([x1]) and only its [left] slope (the terraced houses).
      */
     val apexX: Float = Float.NaN,
+    /**
+     * A rounded wall ([CYL]): a segment of an upright elliptic cylinder, its centre (x, d), its semi-axes across and in
+     * depth, the angles it runs from and to (degrees: 0 faces the street, 90 the right, 180 the back), and a ring's
+     * inner semi-axes (NaN if it is solid). Its strip ([ft]) has its columns evenly along the angle, its rows from the
+     * top down. [x0]..[x1] and [d0]..[d1] are its whole ellipse's extent.
+     */
+    val arc: FloatArray? = null,
 ) {
     /** A gable's or a hipped roof's apex x. */
     val apex: Float get() = if (apexX.isNaN()) (x0 + x1) / 2f else apexX
@@ -75,6 +83,10 @@ class ModelPart(
         const val BOX = 0
         const val GABLE = 1
         const val HIP = 2
+        /** A rounded wall: a segment of an elliptic cylinder wearing a strip ([arc]); a [card] one is a thin rail. */
+        const val CYL = 3
+        /** An upright face from plan point ([x0], [d0]) to ([x1], [d1]) wearing [ft] (a wall turned off the street's line). */
+        const val WALL = 4
     }
 }
 
@@ -165,7 +177,8 @@ class ModelShape(
         private fun floats(a: org.json.JSONArray?): FloatArray? = a?.let { FloatArray(it.length()) { i -> it.getDouble(i).toFloat() } }
 
         fun parsePart(p: org.json.JSONObject): ModelPart {
-            val x = p.getJSONArray("x"); val y = p.getJSONArray("y"); val d = p.getJSONArray("d")
+            // (a rounded wall has no x and d: its centre and semi-axes say where it stands)
+            val x = p.optJSONArray("x") ?: org.json.JSONArray(); val d = p.optJSONArray("d") ?: org.json.JSONArray(); val y = p.getJSONArray("y")
             return when (p.getString("t")) {
                 "box" -> {
                     val c = p.getJSONArray("c")
@@ -197,6 +210,19 @@ class ModelShape(
                         frontPic = ints(p.getJSONArray("front")), flat = ints(p.optJSONArray("flat")),
                         tx0 = t.f(0), tx1 = t.f(1), td0 = t.f(2), td1 = t.f(3), hip = ints(p.optJSONArray("hip")),
                         leftFlush = ints(p.optJSONArray("la")), rightFlush = ints(p.optJSONArray("ra")))
+                }
+                "cyl" -> {
+                    val c = p.getJSONArray("c"); val r = p.getJSONArray("r"); val a = p.getJSONArray("a"); val col = p.getJSONArray("col")
+                    val ri = p.optJSONArray("ri")
+                    val cx = c.f(0); val cd = c.f(1); val ra = r.f(0); val rb = r.f(1)
+                    ModelPart(ModelPart.CYL, cx - ra, cx + ra, y.f(0), y.f(1), cd - rb, cd + rb, col.getInt(0), col.getInt(1), col.getInt(1),
+                        ft = ints(p.optJSONArray("ft")), card = p.optBoolean("card"), sideGlow = p.optBoolean("sg"),
+                        arc = floatArrayOf(cx, cd, ra, rb, a.f(0), a.f(1), ri?.f(0) ?: Float.NaN, ri?.f(1) ?: Float.NaN))
+                }
+                "wall" -> {
+                    val c = p.getJSONArray("c")
+                    ModelPart(ModelPart.WALL, x.f(0), x.f(1), y.f(0), y.f(1), d.f(0), d.f(1), -1, c.getInt(0), c.getInt(0),
+                        ft = ints(p.optJSONArray("ft")), sideGlow = p.optBoolean("sg"))
                 }
                 else -> throw IllegalArgumentException("unknown part ${p.getString("t")}")
             }
