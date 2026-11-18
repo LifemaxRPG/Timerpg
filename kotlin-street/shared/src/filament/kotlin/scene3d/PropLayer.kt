@@ -62,6 +62,9 @@ internal class PropLayer(
     /** How many props were placed, and drawn in how many batches. */
     var count = 0; private set
     val draws: Int get() = batches.size
+    /** How many of the batches throw a shadow (have a shadow twin), and the triangles of all of them. */
+    val casters: Int get() = batches.count { it.proxy != 0 }
+    val triangles: Int get() = batches.sumOf { it.ib.indexCount / 3 }
 
     /** Adds [props]: those of one look (the same mesh) go into one batch. */
     fun add(props: List<WorldProp>) {

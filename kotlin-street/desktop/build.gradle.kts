@@ -78,6 +78,8 @@ tasks.register<JavaExec>("preview") {
     for (k in listOf("turn", "rest", "sky", "look", "eye", "back", "w")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     // the street props' preview: which half (lineup, street) and which rows of the town
     for (k in listOf("props", "rows")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
+    // the whole town's preview (-Dmode=filament-town): which town folder, where the pack's pictures are
+    for (k in listOf("town", "assetsRoot")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     if (withFilament) {
         jvmArgs("-Djava.library.path=" + File(filamentDist, "lib").absolutePath)
         // Mesa's EGL with no display: headless software GL

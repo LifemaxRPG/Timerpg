@@ -174,3 +174,41 @@ both hands); load time (decode textures in the background, build nearest-first).
   rule the yards use for `house`; T8 must stand the buildings the same way so what is drawn is what blocks the walk.
   The Kotlin fixture desktop/src/test/resources/town-gamma.json is the graph without yards (town-graph.test.ts keeps
   it); T8's tests will want a fixture with yards.
+
+## T4 and T8: the whole town in Filament (branch wf-town3d)
+
+- `domain/TownYards.kt`: graph.yards and graph.lanes parsed (`TownYards`, `TownYard`, `TownYardItem`, `TownLane`), and
+  `TownPlace`: where a building of a row stands (the walk's rigid box on its front's middle: origin on the building line
+  at the middle, local z into the lot, local -x the art's left-to-right seen from the street, a proper rotation, so no
+  mirrored art). Tested (desktop TownPlaceTest): every building's box is TownWalk's footprint, the frame's determinant
+  is +1, and the yards' `house` rect is the same box (on build-town/gamma when it is there).
+- `scene3d/BuildingMeshes.kt` (T4): the three kinds of building (box with sign, pitched roof, gables and billboard;
+  mobile home; FilamentModels' villas, blocks and landmarks) built once in that local frame, night windows included,
+  placed by one transform. A lot with a yard drops the house's and the model's own front lawn and fence (not the
+  landmarks'). FilamentStreet (the eta crossroads) is untouched and still builds in world space.
+- `scene3d/TownGround.kt`: grass over every tile that is not water (one seamless 2048-texel picture from the pack's grass
+  tiles: their tufts and stones scattered over a base broken into five shades by wrapped noise, dithered) and fields on
+  to the horizon; roads as strips per segment (sidewalk and asphalt tiles, kerbs, the centre's dashes) cut back 89 at
+  each end; a patch at every node and corner painted by which sides a road leaves (cross, tee, bend, dead end's head;
+  rounded kerbs); zebras over every arm of a crossing or tee; the plaza paved; the river 9 units down with stone banks;
+  bridges' decks' edges and parapets; the edge's trees and bushes as crossed cards, flower bushes as the props' planter,
+  flowers flat; a 3D fountain; the rows' lamps (3D, lanterns lit at night), benches and trees; the street props by
+  PropRules along every row (on a row whose +x runs against the art's right, along and turn are flipped so signs keep
+  their handedness).
+- `scene3d/TownYardHook.kt`: the yard kit's hook, `FilamentTown.yardBuilder: YardBuilder` (`build(town, yards, sink)`,
+  the sink takes meshes and street props). `PlaceholderYards` lays items as flat colours and objects as boxes meanwhile.
+- `scene3d/FilamentTown.kt` (T8): `buildGround()` once, then `buildNearest(x, z, budgetMs)` each frame (nearest the
+  player first) until `pending` is 0; `frame(pose, hour)` lights the hour, culls each building by a sphere against the
+  view's four sides (its shadow twin kept within 300 of the view), and in the street view fades out (screen door) what
+  stands nearer than 110 short of the building line looked at (the row across the road). `TownFrame.street(walk, w, h)`
+  is the true camera from TownWalk's camera (CameraRig's eye and back, backing off through a turn, the building line's
+  foot at 82% of the screen); `TownFrame.aerial(...)` a free camera. `stats` counts what was drawn.
+- Preview: `gradle :desktop:preview -Dmode=filament-town` (-Dtown=DIR, -DassetsRoot=DIR, -Dshots=a,b, -Dw=) writes
+  build/preview/filament-town/: aerial_13h, aerial_dusk, aerial_top, civic_13h/dusk, street_{spawn,main,heights,
+  woodside,turn}_{13h,night}, behind_{spawn,main,heights,woodside}, and town.txt (build times, draws per view). On the
+  4-core build server (software GL, not the S25): ground and everything static 1.3-1.9 s; 98 buildings in ~62 batches of
+  4 ms, 1.4 s in all (the first box ~200 ms: first use, its art's decoding included); whole town in view 252 renderables,
+  ~1020 draws; street views 180-250 renderables, 380-1000 draws.
+- Not yet: the near side's lamps, trees and props are not cut; street signs crowd some corners (one per row meeting there);
+  forest trees are cards of the street's scale (1.25-1.6x); the landmarks' grounds and corner lots' second side are not
+  drawn; Stage3D/GameActivity are not wired (the app still ships eta).
