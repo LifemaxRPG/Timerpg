@@ -15,7 +15,7 @@ import { archetypeOf } from '../../src/sim/archetype';
 import { layoutTown, type Lot, type TownLayout } from '../../src/town/layout';
 import type { World } from '../../src/sim/types';
 import type { Road } from '../../src/town/kinds';
-import { hash, makeBuildings } from './town-buildings';
+import { hash, makeBuildings, type Buildings } from './town-buildings';
 
 export interface TownStreets {
   seed: string;
@@ -30,9 +30,21 @@ export interface TownStreets {
   json: object;
 }
 
-export function townStreets(seed: string, year: number): TownStreets {
-  const w: World = worldAt(runTimeline({ seed, endYear: year }), year);
-  const layout = layoutTown(w);
+/**
+ * For the whole-town export (tools/town-graph.ts), which keeps these v1 fields for its spawn junction: the world and
+ * layout it already has, the junction to use (a vertical road's x, its north arm preferred) instead of the best-scoring
+ * one, and its own building list, so the v1 streets name their buildings in the same bN namespace as the rest of the
+ * town. Without options the export is exactly what it always was.
+ */
+export interface TownStreetsOptions {
+  world?: { w: World; layout: TownLayout };
+  junctionX?: number;
+  buildings?: Buildings;
+}
+
+export function townStreets(seed: string, year: number, opts: TownStreetsOptions = {}): TownStreets {
+  const w: World = opts.world?.w ?? worldAt(runTimeline({ seed, endYear: year }), year);
+  const layout = opts.world?.layout ?? layoutTown(w);
 
   const lots = [...layout.lots.filter((l) => l.kind === 'shop' && l.vacantSince === undefined), ...layout.lots.filter((l) => l.kind === 'house')];
 
@@ -81,8 +93,10 @@ export function townStreets(seed: string, year: number): TownStreets {
   const crossOf = (a: Arm): Lot[] => oneRow(lots.filter((l) => besideV(l, a, 'any') && !mainSet.has(l)), away(a), (l) => l.h);
   const before = (a: Arm): number => onMain.filter((l) => l.x + l.w <= a.x + 1).length;
   const score = (a: Arm): number => Math.min(crossOf(a).length, 6) * 3 + Math.min(before(a), 8) * 2 - (before(a) < 3 ? 100 : 0) - (crossOf(a).length < 2 ? 50 : 0);
-  const arm = [...arms].sort((a, b) => score(b) - score(a) || a.x - b.x)[0];
-  if (!arm) throw new Error(`no crossroads on the main street of ${seed}`);
+  const arm = opts.junctionX === undefined
+    ? [...arms].sort((a, b) => score(b) - score(a) || a.x - b.x)[0]
+    : arms.filter((a) => a.x === opts.junctionX).sort((a, b) => Number(b.north) - Number(a.north))[0];
+  if (!arm) throw new Error(`no crossroads on the main street of ${seed}${opts.junctionX === undefined ? '' : ` at x${opts.junctionX}`}`);
   const junctionX = arm.x;
   const crossRow = crossOf(arm);
   const crossRowSet = new Set(crossRow);
@@ -97,7 +111,7 @@ export function townStreets(seed: string, year: number): TownStreets {
     'Willow Road', 'Bridge Street', 'Maple Avenue', 'Chapel Lane', 'Garden Street', 'Hill Road', 'Oak Street', 'Park Avenue'];
   const crossName = NAMES[hash(`${seed}:${junctionX}`) % NAMES.length]!;
 
-  const { entry, vary, entries, lotOf } = makeBuildings(w, layout, year);
+  const { entry, vary, entries, lotOf } = opts.buildings ?? makeBuildings(w, layout, year);
   const main = mainWest.map(entry);
   const cross = crossWest.slice(0, 8).map(entry);
   const east = mainEast.map(entry);

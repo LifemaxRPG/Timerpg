@@ -44,6 +44,15 @@ town: { seed, year, k, unitPerTile, spawn:{row, x, lane},
   lots:[{id, row, rect (scaled world), kind, neighbourhood, yard}] }
 ```
 
+- As built (T2, tools/town-graph.ts, tools/export-town.ts): the graph sits under `graph`, not `town` (v1 already uses
+  `town` for the seed string, which GameActivity reads). World axes: x east, z south (the map's y), y up; positions are
+  tiles x 44.5 (k 1.6929 x 26.286). Rows also carry `pts` (the building line as a polyline: bends), furniture `look`,
+  and `ends.*.mouth` (a road on the building side or across the way on: groups keep 89 units clear). Nodes' arm
+  `heading` is a unit [dx, dz]. Buildings' `setback` is from the building line to the front wall (yard included),
+  `depth` the building's own, both in street units from tools/make_buildings.py's models (checked against the showcase of
+  every sprite). Lot `rect`s move with their building along the row (rigid) and scale in depth. Landmarks get bN sprites
+  after every lot (shops entries of kind `Landmark`). Yard props inside lots are dropped (the 3D models bring their own).
+  The Kotlin fixture is kotlin-street/desktop/src/test/resources/town-gamma.json (kept current by town-graph.test.ts).
 - A ROW is one side of one road between two decision points, in its own side-scroller frame: x to the right as seen
   from the pavement, buildings at +normal. Bends (2-arm nodes, the main street's steps) are polyline corners inside a
   row, not decision points. Transitions at each row end are precomputed: `straight` (cross the side street on the zebra

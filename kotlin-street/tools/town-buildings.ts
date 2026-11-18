@@ -10,7 +10,8 @@
 // (condo_3_44/45, condo_5_*, condo_9: a flat roof, ledges, porch and steps); the other homes (other estates, the
 // modular condo apartments) are still stood in by a modular condo front in the district's colour, until the engine can
 // build them too. Every home is named after the household that really lives there.
-import type { Lot, TownLayout } from '../../src/town/layout';
+import type { LandmarkPlot, Lot, TownLayout } from '../../src/town/layout';
+import { LANDMARK_SPECS, landmarkArtKey } from '../../src/town/landmarks';
 import { fullName, type World } from '../../src/sim/types';
 import { shopFacade } from '../../src/town/facade';
 import { stack, type Colour } from '../../src/town/buildings';
@@ -26,6 +27,12 @@ export interface Buildings {
   entry(l: Lot): string;
   /** Re-dresses repeated fronts along a row of sprite names (in place, in the entries). */
   vary(row: string[]): void;
+  /**
+   * Names a civic landmark's building (the next bN), once, and records its street.json entry: the sprite the game draws
+   * for it (landmarkArtKey), as tools/make_buildings.py builds it, with the yard style of [yard]. Only the whole-town
+   * export (street.json v2) names landmarks; v1 never calls this.
+   */
+  landmark(l: LandmarkPlot, yard: string): string;
   /** Every named building's street.json entry, in naming order (street.json `shops`). */
   entries: object[];
   /** Which lot each sprite name stands for. */
@@ -189,5 +196,16 @@ export function makeBuildings(w: World, layout: TownLayout, year: number): Build
       }
     }
   }
-  return { entry, vary, entries, lotOf };
+  const landmarks = new Map<string, string>();
+  function landmark(l: LandmarkPlot, yard: string): string {
+    const had = landmarks.get(l.id);
+    if (had) return had;
+    const sprite = `b${n++}`;
+    landmarks.set(l.id, sprite);
+    const spec = LANDMARK_SPECS[l.id];
+    entries.push({ id: `landmark:${l.id}`, sprite, home: false, name: l.name, kind: 'Landmark', owner: '', colour: 'base',
+      parts: [{ key: landmarkArtKey(l), w: spec.w * 32, h: spec.h * 32, y: 0 }], yard: { front: 2, style: yard } });
+    return sprite;
+  }
+  return { entry, vary, landmark, entries, lotOf };
 }
