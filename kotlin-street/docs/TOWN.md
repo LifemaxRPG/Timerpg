@@ -165,3 +165,12 @@ both hands); load time (decode textures in the background, build nearest-first).
   their width: a renderer that draws the yards should drop those. Flush-fronted apartment stand-ins (setback 0) have
   the pavement for a front yard. Not yet: shop fronts, landmark grounds (school yard, police parking), corner lots'
   second street side; houses on the dead-end row 45 stand partly past its end (a graph placement issue).
+- Review of wf-town2 (T6, yards, T7): parallel make_buildings re-checked byte-identical to `--jobs=1` on gamma (849
+  files) and to the shipped eta buildings (bar the lit/shade maps, which another tool makes). An independent top-down
+  check of gamma's yards (every item against every building, carriageway, water, plaza, landmark, other parcels and its
+  own layer) found no overlaps. Fixed: 14 driveways dropped their kerb where one of the row's street lamps stands; a
+  driveway now slides out along its side strip clear of the row's furniture (14 units), or gives that side up (one did:
+  pads 41 -> 40). TownWalk's footprints (a rigid box on the front's middle, square to the segment there) are the same
+  rule the yards use for `house`; T8 must stand the buildings the same way so what is drawn is what blocks the walk.
+  The Kotlin fixture desktop/src/test/resources/town-gamma.json is the graph without yards (town-graph.test.ts keeps
+  it); T8's tests will want a fixture with yards.

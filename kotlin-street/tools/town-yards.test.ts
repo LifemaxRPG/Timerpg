@@ -123,6 +123,29 @@ describe('town yards', () => {
     expect(n).toBeGreaterThan(10);
   });
 
+  it('drops no kerb where a street lamp or bench of the row stands', () => {
+    const bad: string[] = [];
+    const rows = new Map(g.graph.rows.map((r) => [r.id, r]));
+    for (const v of y.yards) {
+      const row = rows.get(v.row)!;
+      for (const k of v.items.filter((i) => i.kind === 'kerbCut')) for (const fu of row.furniture) {
+        // the furniture's place on the pavement, half way out to the kerb (rows: a building line, +normal into the lots)
+        let acc = 0;
+        for (let i = 0; i + 1 < row.pts.length; i++) {
+          const a = row.pts[i]!, b = row.pts[i + 1]!, L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+          if (fu.x <= acc + L || i + 2 === row.pts.length) {
+            const ux = (b[0] - a[0]) / L, uz = (b[1] - a[1]) / L, t = fu.x - acc;
+            const px = a[0] + ux * t - uz * 19, pz = a[1] + uz * t + ux * 19;
+            if (hit([px - 10, pz - 10, px + 10, pz + 10], k.rect, 0)) bad.push(`${v.lot}: dropped kerb over the ${fu.kind} at ${fu.x} of ${row.id}`);
+            break;
+          }
+          acc += L;
+        }
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
   it('dresses the neighbourhoods differently', () => {
     const by = new Map<string, Map<string, number>>();
     for (const v of y.yards) for (const i of v.items) {

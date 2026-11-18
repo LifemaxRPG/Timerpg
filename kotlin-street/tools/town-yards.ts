@@ -49,6 +49,8 @@ const PAVE = 38;
 const SIDE_MAX = 200;
 const DRIVE_W = 72, PATH_W = 26, FENCE = 4, HEDGE = 16, WALL = 8;
 const LANE_MIN = 56, LANE_W = 80;
+/** How far a driveway's dropped kerb keeps from the row's street lamps and benches (row x). */
+const FURNITURE_CLEAR = 14;
 
 const r3 = (v: number): number => Math.round(v * 1000) / 1000;
 const hit = (a: Rect4, b: Rect4, pad = 0.01): boolean => a[0] < b[2] - pad && b[0] < a[2] - pad && a[1] < b[3] - pad && b[1] < a[3] - pad;
@@ -223,7 +225,13 @@ export function townYards(g: TownGraph): Yards {
         if (room < DRIVE_W + fenceIn + 4 || backDepth < 150 || pc.kind === 'shop') continue;
         const u0 = side === 'u1' ? B.u1 + 4 : P.u0 + fenceIn, u1 = side === 'u1' ? P.u1 - fenceIn : B.u0 - 4;
         const w = Math.min(u1 - u0, DRIVE_W + 10);
-        const du0 = side === 'u1' ? u0 : u1 - w, du1 = du0 + w;
+        // hard by the house, slid out along the side strip (or this side given up) if a street lamp or bench of the row's
+        // stands where the dropped kerb would cross the pavement
+        const clear = (a: number): boolean => !pc.row.furniture.some((fu) => fu.x > a - FURNITURE_CLEAR && fu.x < a + w + FURNITURE_CLEAR);
+        const slots = Array.from({ length: Math.floor(u1 - u0 - w) + 1 }, (_, k) => (side === 'u1' ? u0 + k : u1 - w - k));
+        const du0 = slots.find(clear);
+        if (du0 === undefined) continue;
+        const du1 = du0 + w;
         const kerb = f.rect(du0, du1, -PAVE - 0.5, P.d0);
         if (!carriageways.some((c) => hit(kerb, c, 0))) continue;
         driveSide = side;
