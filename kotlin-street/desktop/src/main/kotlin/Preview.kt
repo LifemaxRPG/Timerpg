@@ -310,6 +310,13 @@ fun main(args: Array<String>) {
         k.getMethod("renderProps", String::class.java).invoke(null, out)
         return
     }
+    if (mode == "filament-yards") {
+        // every yard item kind's lineup and three real yards of gamma (FilamentYardsPreview.kt; Filament's desktop build needed)
+        val k = runCatching { Class.forName("FilamentYardsPreviewKt") }.getOrNull()
+            ?: error("Filament is not built in: run tools/build-filament.sh (or pass -Pfilament.dist=DIR)")
+        k.getMethod("renderYards", String::class.java).invoke(null, out)
+        return
+    }
     if (mode == "filament-models") {
         // our villas and landmarks in Filament, each from several views (compiled in only with Filament: see build.gradle.kts)
         val k = runCatching { Class.forName("FilamentModelsPreviewKt") }.getOrNull()

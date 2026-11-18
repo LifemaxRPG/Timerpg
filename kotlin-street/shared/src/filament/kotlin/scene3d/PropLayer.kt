@@ -78,10 +78,11 @@ internal class PropLayer(
 
     /**
      * Adds [mesh] at each of [at] (world x, z, along x, z, out x, z, turn), as one batch; [casts]: it throws a shadow.
-     * (The desktop preview lays its ground this way too.)
+     * (The desktop preview lays its ground this way too.) Returns the batch's material instance (for a caller that
+     * animates its picture, as [YardLayer] scrolls its water), or null for nothing to add.
      */
-    fun addMesh(mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean = false) {
-        if (at.isEmpty()) return
+    fun addMesh(mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean = false): MaterialInstance? {
+        if (at.isEmpty()) return null
         val nv = mesh.vertexCount * at.size
         val vb = ByteBuffer.allocateDirect(nv * STRIDE).order(ByteOrder.nativeOrder())
         val ib = ByteBuffer.allocateDirect(mesh.idx.size * at.size * 4).order(ByteOrder.nativeOrder())
@@ -144,6 +145,7 @@ internal class PropLayer(
             scene.addEntity(pe)
         }
         batches += Batch(e, pe, mi, pmi, mesh.mask != null, vertices, indices)
+        return mi
     }
 
     /**
