@@ -3676,6 +3676,104 @@ internal class BuildingPainter {
         }
     }
 
+    /** A picture lying flat (a helipad on a roof, an arrow on the ground), snow over it in winter. */
+    private fun DrawScope.modelDecal(v: com.lifemax.rpg.feature.habits.domain.ModelView, p: com.lifemax.rpg.feature.habits.domain.ModelPart, ma: ModelArt, sky: SkyColors) {
+        val r = p.tt ?: return
+        levelStrips(ma.atlas, r[0], r[1], r[2], r[3], v.x(p.x0, p.d0), v.y(p.y0, p.d0), (p.x1 - p.x0) * v.k, v.lift(p.d1 - p.d0), v.lean(p.d1 - p.d0), signTint())
+        val snow = season.snow
+        if (snow > .01f) {
+            val path = quadPath(v.x(p.x0, p.d0), v.y(p.y0, p.d0), v.x(p.x1, p.d0), v.y(p.y0, p.d0), v.x(p.x1, p.d1), v.y(p.y0, p.d1), v.x(p.x0, p.d1), v.y(p.y0, p.d1))
+            drawPath(path, houseInk(snowInk(sky)), alpha = ROOF_SNOW * snow)
+        }
+    }
+
+    /**
+     * A sloped slab (a canopy, an awning): its shown side's edge, its top (its picture from above laid on its quad by one
+     * projective map, lit, snow on it), then its front edge.
+     */
+    private fun DrawScope.modelSlope(v: com.lifemax.rpg.feature.habits.domain.ModelView, p: com.lifemax.rpg.feature.habits.domain.ModelPart, ma: ModelArt, sky: SkyColors) {
+        val k = v.k
+        if (v.showsSide) {
+            val xs = if (v.rightSide) p.x1 else p.x0
+            drawPath(quadPath(v.x(xs, p.d0), v.y(p.y0, p.d0), v.x(xs, p.d1), v.y(p.y1, p.d1), v.x(xs, p.d1), v.y(p.y1 - p.thick, p.d1), v.x(xs, p.d0), v.y(p.y0 - p.thick, p.d0)),
+                houseInk(rgb(p.side)))
+        }
+        val t = pieceTo
+        t[0] = v.x(p.x0, p.d0); t[1] = v.y(p.y0, p.d0); t[2] = v.x(p.x1, p.d0); t[3] = v.y(p.y0, p.d0)
+        t[4] = v.x(p.x1, p.d1); t[5] = v.y(p.y1, p.d1); t[6] = v.x(p.x0, p.d1); t[7] = v.y(p.y1, p.d1)
+        val path = quadPath(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7])
+        val tt = p.tt
+        // (seen from below, a slab rising to the back shows its underside: its edge colour)
+        val above = t[7] < t[1] - .01f
+        if (tt != null && above) {
+            val f = pieceFrom
+            f[0] = 0f; f[1] = tt[3].toFloat(); f[2] = tt[2].toFloat(); f[3] = tt[3].toFloat(); f[4] = tt[2].toFloat(); f[5] = 0f; f[6] = 0f; f[7] = 0f
+            pieceOnto(ma.atlas, tt, f, t, signTint())
+            roofLight(quadPath(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7]), 0f, sky)
+        } else drawPath(path, houseInk(rgb(if (above) p.top else p.side)))
+        val ft = p.ft
+        val fx = v.x(p.x0, p.d0); val fy = v.y(p.y0, p.d0)
+        if (ft != null) part(ma.atlas, ft[0], ft[1], ft[2], ft[3], fx, fy, (p.x1 - p.x0) * k, p.thick * k, filter = signTint())
+        else drawRect(houseInk(rgb(p.front)), Offset(fx, fy), Size((p.x1 - p.x0) * k, p.thick * k))
+    }
+
+    private val prismTop = Path()
+
+    /**
+     * An upright prism over a plan polygon (a chamfered corner, the coping along it): the faces that look towards the
+     * view (the first wearing its picture and its windows' light, the others their colours; each darkened as much as it
+     * faces sideways), then its top (its picture over the plan's bounds, clipped to the plan, or its colour; snow on it).
+     */
+    private fun DrawScope.modelPrism(v: com.lifemax.rpg.feature.habits.domain.ModelView, p: com.lifemax.rpg.feature.habits.domain.ModelPart, ma: ModelArt, sky: SkyColors, seed: Int) {
+        val pl = p.plan ?: return
+        val n = pl.size / 2
+        val t = pieceTo; val f = pieceFrom
+        for (i in 0 until n) {
+            if (p.hidden and (1 shl i) != 0) continue
+            val j = (i + 1) % n
+            val ax = pl[2 * i]; val ad = pl[2 * i + 1]; val bx = pl[2 * j]; val bd = pl[2 * j + 1]
+            t[0] = v.x(ax, ad); t[1] = v.y(p.y1, ad); t[2] = v.x(bx, bd); t[3] = v.y(p.y1, bd)
+            t[4] = v.x(bx, bd); t[5] = v.y(p.y0, bd); t[6] = v.x(ax, ad); t[7] = v.y(p.y0, ad)
+            // a face seen from outside winds clockwise on the screen (y down); one seen from behind is culled
+            var area = 0f
+            for (a in 0 until 4) { val b = (a + 1) % 4; area += t[2 * a] * t[2 * b + 1] - t[2 * b] * t[2 * a + 1] }
+            if (area <= 0f) continue
+            // its outward normal's x (the plan's right-hand normal): how much it faces sideways
+            val len = kotlin.math.hypot(bx - ax, bd - ad).coerceAtLeast(.001f)
+            val nx = abs(bd - ad) / len
+            val ft = if (i == 0) p.ft else null
+            if (ft != null) {
+                f[0] = 0f; f[1] = 0f; f[2] = ft[2].toFloat(); f[3] = 0f; f[4] = ft[2].toFloat(); f[5] = ft[3].toFloat(); f[6] = 0f; f[7] = ft[3].toFloat()
+                pieceOnto(ma.atlas, ft, f, t, signTint())
+            }
+            val path = quadPath(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7])
+            if (ft == null) drawPath(path, houseInk(rgb(if (nx > .5f) p.side else p.front)))
+            if (nx > .05f) { drawPath(path, Color(0xFF0A1024), alpha = .2f * nx); sideLight(path, nx) }
+            val glow = ma.glow
+            if (ft != null && glow != null && p.panes.isNotEmpty()) {
+                val on = modelLit(ma.shape, seed * 17 + 5, sky)
+                if (on > .01f) {
+                    pieceOnto(glow, ft, f, t, null, alpha = on * .9f, blend = BlendMode.Overlay)
+                    pieceOnto(glow, ft, f, t, null, alpha = on * .3f, blend = BlendMode.Plus)
+                }
+            }
+        }
+        // --- the top
+        if (p.top < 0 && p.tt == null) return
+        val top = prismTop
+        top.rewind()
+        for (i in 0 until n) {
+            val x = v.x(pl[2 * i], pl[2 * i + 1]); val y = v.y(p.y1, pl[2 * i + 1])
+            if (i == 0) top.moveTo(x, y) else top.lineTo(x, y)
+        }
+        top.close()
+        val tt = p.tt
+        if (tt != null) clipPath(top) {
+            levelStrips(ma.atlas, tt[0], tt[1], tt[2], tt[3], v.x(p.x0, p.d0), v.y(p.y1, p.d0), (p.x1 - p.x0) * v.k, v.lift(p.d1 - p.d0), v.lean(p.d1 - p.d0), signTint())
+        } else drawPath(top, houseInk(lerp(rgb(p.top), Color.White, .16f * (.5f + .5f * direct))))
+        if (season.snow > .01f) drawPath(top, houseInk(snowInk(sky)), alpha = ROOF_SNOW * season.snow)
+    }
+
     /**
      * A front-facing gable: the triangle end faces the street and its two slopes run back from it. Seen from the street,
      * a little above, each slope is its picture from above squeezed into a band over its rake (one projective map from
@@ -3934,6 +4032,9 @@ internal class BuildingPainter {
                 })
                 com.lifemax.rpg.feature.habits.domain.ModelPart.GABLE -> frontGable(v, p, ma, sky, seed + i * 7, eaves = !sh.eaveLater[i])
                 com.lifemax.rpg.feature.habits.domain.ModelPart.RAIL -> modelRail(v, p, sky)
+                com.lifemax.rpg.feature.habits.domain.ModelPart.DECAL -> modelDecal(v, p, ma, sky)
+                com.lifemax.rpg.feature.habits.domain.ModelPart.SLOPE -> modelSlope(v, p, ma, sky)
+                com.lifemax.rpg.feature.habits.domain.ModelPart.PRISM -> modelPrism(v, p, ma, sky, seed + i * 7)
                 else -> hippedRoof(v, p, ma, sky)
             }
             // the eave boards of the gable this box carries, over its side wall

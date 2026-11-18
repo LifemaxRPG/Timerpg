@@ -222,4 +222,31 @@ class ModelGeometryTest {
         for (y in -9..-2) for (x in -9..-2) if (at(x, y) == ink) upLeft++
         assertEquals(4, upLeft); assertEquals(gold, at(-6, -6)); assertTrue(empty(6, -6))
     }
+
+    /** The civic buildings' parts: a box against its neighbour, a sloped canopy, a picture lying flat on a roof. */
+    @Test fun parsesAbuttingSidesSlopedSlabsAndDecals() {
+        val m = ModelShape.parse(org.json.JSONObject("""
+            {"kind": "civic", "w": 256, "frontX": -16, "setback": 32, "lawn": "paving", "style": "natural", "fence": null,
+             "roofTint": 5, "lamp": null, "lights": "shop", "smoke": [], "fpx": 0, "parts": [
+              {"t": "box", "x": [0, 256], "y": [0, 194], "d": [0, 144], "c": [1, 2, 3], "hs": "r"},
+              {"t": "slope", "x": [16, 240], "y": [74, 90], "d": [-18, 0], "c": [1, 2, 3], "th": 16, "ft": [0, 0, 224, 16], "tt": [0, 17, 224, 16]},
+              {"t": "decal", "x": [320, 490], "y": [260.5, 260.5], "d": [-35, 136], "p": [0, 40, 171, 171]}]}
+        """.trimIndent()))!!
+        val (box, slab, pad) = m.parts
+        assertEquals(2, box.hideSide)
+        assertEquals(ModelPart.SLOPE, slab.type); assertEquals(16f, slab.thick); assertEquals(90f, slab.y1); assertEquals(17, slab.tt!![1])
+        assertEquals(ModelPart.DECAL, pad.type); assertEquals(260.5f, pad.y0); assertEquals(171, pad.tt!![3])
+        // neither is a roof: the highest roof is the box's top
+        assertEquals(194f, m.ridge)
+    }
+
+    /** A chamfered corner: an upright prism over its plan, its bounds as x and d, the faces against other parts hidden. */
+    @Test fun parsesPrisms() {
+        val p = ModelShape.parsePart(org.json.JSONObject("""
+            {"t": "prism", "pts": [[256, 0], [288, -96], [288, 0]], "x": [256, 288], "y": [0, 260], "d": [-96, 0],
+             "c": [1, 2, 3], "ft": [0, 0, 101, 260], "hide": [1]}
+        """.trimIndent()))
+        assertEquals(ModelPart.PRISM, p.type); assertEquals(6, p.plan!!.size); assertEquals(-96f, p.plan!![3])
+        assertEquals(-96f, p.d0); assertEquals(288f, p.x1); assertEquals(2, p.hidden); assertEquals(101, p.ft!![2])
+    }
 }

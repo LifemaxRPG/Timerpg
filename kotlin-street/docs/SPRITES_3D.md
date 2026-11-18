@@ -239,3 +239,56 @@ built as themselves (`tools/town-streets.ts`; none on eta's two streets yet).
 - Classic renderer, to check them by eye: a model box's sun wash runs across the whole house's front (a wing beside
   the main wall is lit as the wall is, with no seam between them) and, when its front carries a gable's face, on up
   into the gable instead of stopping in a hard line at the eaves.
+
+## Civic buildings: the fire station, the hospital, the post office (2026-11-18)
+
+**Done** in a showcase row (`make_buildings.py --showcase DIR`, `-Dmode=models -Dstreet=6 -Dtall=900`), not on the
+exported streets (landmarks are not lots there). Builders in `tools/buildings_civA.py` (`fire_station`, `hospital`,
+`post_office`); `build_model` asks that module first. Each volume stands at the depth its foot row in the art gives it
+(a part drawn lower stands further forward by as much) and wears its front as drawn; what the art draws from above in
+a front is painted out of it and built as its own part.
+
+- **New part types** in models.json, each with a simple drawing in `BuildingPainter`: `slope` (a sloped slab: its
+  front edge's height on one depth, its back's on another, a face `th` deep wearing `ft`, its top wearing `tt` back row
+  first: the post office's awning) and `decal` (a picture lying flat at a height, `p` its piece: the helipad, a road
+  arrow), and `prism` (an upright prism over a plan polygon `pts`, x and d its bounds: its first face wearing `ft`,
+  its top `tt` over the bounds, `hide` the faces against other parts: the hospital's chamfered corner and its coping).
+  A box may say `abut: "l" | "r" | "lr"`: that side stands against a neighbouring part (a taller volume), so a
+  painter drawing back to front leaves it out; volumes are split where a taller one stands beside them so every side
+  is either wholly open or wholly against another. `ModelShape.ridge` counts only gables and hipped roofs (a decal is
+  no roof).
+- **Fire station** (`landmark_fire_1`): the hose tower 32 forward of the engine bay, its two storeys (the upper
+  overhanging the lower by a few pixels, as drawn) under a hipped roof inside a rim (the art's roof from above), the
+  front face its rows between the hips every other row, a flat top with a low lantern; the door's canopy as a slab (its
+  top from above, its edge) 72..78 up (its face, 32 before the tower, is drawn on rows 366..372: its foot would be row
+  444), two beacons standing on it as cards (78..109), the landing, the step and their cheeks. The art shows only the
+  door's foot under the canopy; the door is rebuilt to its full height (8..58: its kick panels as drawn, two glazed
+  panels a leaf, the upper mirrored, its jambs and head as drawn), the bay's own brick over it up to the canopy. The bay: its wall, its parapet (face and top from the art, sides and back plain), its roof
+  the art's diamond tiles (40 x 20) laid over the whole top, the upper block standing set back on it with its own top
+  and two vents as low boxes. The tower is split at the bay's front and at the bay's parapet height.
+- **Hospital** (`landmark_hospital_1`): the main block, the middle block 96 forward and taller, the emergency wing 32
+  forward and tallest, all back to one line 256 behind the main block's front (its back coping's top is on rows 41..69);
+  each a flat roof (the art's grey roof laid over it) behind a 32-wide coping (its face from the art). The art's slanted
+  strip at x 256..288 is a chamfered corner in plan, from the main block's front at x 256 to the middle block's at x 288
+  (96 forward): a `prism` 101 long wearing the middle block's courses and two tall narrow windows (a light of the
+  front's grid each, as the strip shows two), its coping a second prism along it. The art draws the strip's coping
+  meeting the main block's coping at its back end; here it stays at the middle block's height (40 higher) all along.
+  The entrance under the canopy (hidden in the art) is a glass front between the glass side doors the art shows. The
+  canopy on its two pillars, the blue cross a card on its edge, the arrow a ground decal, the helipad a decal on the
+  middle block's roof where the art draws it (54..224 back; laid round, 170 x 170, where the art squeezes it), the
+  plant room (160..244 back, standing over the back coping, which is split round it) and its fan unit (202..232) on
+  the main block's roof, the slab over the ambulance bays. Split: the middle block into its front part, its part behind
+  that before the main block (both against the chamfer on their left), its part beside the main block and its part
+  above it; the wing at the middle block's roof.
+- **Post office** (`landmark_post_1..4`, one shape in four colours): the shop storey with its parapet (face and top
+  from the art), its roof the art's floor; the upper block set back on it, its top the art's with the three hatches and
+  two vents painted out and built as low boxes; the ladder up its front as a card drawn in the art's own colours; the
+  mast a card cut from the art (its pole, its cross-bar with the orange tip and the stays under it), standing at the
+  upper block's front right corner where its foot is drawn (row 76: 72 back); the awning as a `slope` (top from the art, the sign its face), the wall behind it carried on in each row's
+  colour; the hanging rods painted out of the front and built as thin boxes from brackets on the wall.
+- A window's night light also fills the pale pixels inside each pane joined to its glass (the art's grey streaks of
+  reflection, pale stickers and blinds, which showed as dark marks in a lit pane), not the wall's own colours
+  (`lit_panes`).
+- Checked by eye at day, dusk, night and snow in the classic street. Still to do: the hospital entrance and the fire
+  station's door above its foot are reconstructed, not drawn by the artist; side walls are each front's courses with
+  its windows (none of these buildings shows a side in the art).

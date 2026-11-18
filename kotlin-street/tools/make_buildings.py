@@ -128,6 +128,7 @@ def build(shop, out):
     if shop['parts'][0]['key'].startswith(('house_small_', 'house_medium_')): return build_house(shop, out)
     if shop['parts'][0]['key'].startswith(('villa_', 'landmark_clocktower_', 'landmark_school_', 'house_terraced_')) or \
             shop['parts'][0]['key'].startswith('estate_'): return build_model(shop, out)
+    if shop['parts'][0]['key'].startswith(('landmark_fire_', 'landmark_hospital_', 'landmark_post_')): return build_model(shop, out)
     parts = shop['parts']; ground = next(p for p in parts if not p['key'].startswith(('roof_', 'roofprop_', 'middle_')))
     mids = [p for p in parts if p['key'].startswith('middle_')]
     roof = next((p for p in parts if p['key'].startswith('roof_')), None)
@@ -1435,9 +1436,9 @@ def build_model(shop, out):
     """One of our villas or landmarks as the parts the engine builds it from (models.json) and the pictures they wear."""
     key = shop['parts'][0]['key']; n = shop['sprite']
     rng = np.random.default_rng(zlib.crc32(n.encode()))
-    import buildings_estA, buildings_estB
-    make = (buildings_estB.ESTATES[key] if key in buildings_estB.ESTATES else villa if key.startswith('villa_') else tower if key.startswith('landmark_clocktower_') else terraced if key.startswith('house_terraced_')
-            else buildings_estA.estate_one_story if key == 'estate_one_story_house' else buildings_estA.estate_country if key == 'estate_country_house' else school)
+    import buildings_estA, buildings_estB, buildings_civA
+    make = (buildings_estB.ESTATES[key] if key in buildings_estB.ESTATES else buildings_civA.builder(key) or (villa if key.startswith('villa_') else tower if key.startswith('landmark_clocktower_') else terraced if key.startswith('house_terraced_')
+            else buildings_estA.estate_one_story if key == 'estate_one_story_house' else buildings_estA.estate_country if key == 'estate_country_house' else school))
     model, at, front, side, emis, lawn, fence, fence_snow = make(shop, rng)
     # which boxes' sides have windows that light at night (the engine lights no other: a railing's side has none)
     for p in model['parts']:
@@ -1493,13 +1494,15 @@ def showcase(out):
     # the one-story and country estates on a street of their own (street 6)
     estates_a = [add('estate_one_story_house', 'formal'), add('estate_country_house', 'compact'), add('estate_one_story_house', 'flower')]
     estates_b = [add('estate_japanese_house', 'natural'), add('estate_modern_house', 'formal')]
+    civic = [add(k, 'natural') for k in ('landmark_fire_1', 'landmark_hospital_1', 'landmark_post_1', 'landmark_post_2', 'landmark_post_3', 'landmark_post_4')]
     os.makedirs(out + '/buildings', exist_ok=True)
     json.dump(dict(town='showcase', year=2025, type='every house sprite', shops=shops,
                    streets=[dict(name='Every design', buildings=row), dict(name='Every colour', buildings=colours),
                             dict(name='Villas', buildings=villas), dict(name='Landmarks', buildings=landmarks),
                             dict(name='Terraced', buildings=terr), dict(name='Estates', buildings=estates),
                             dict(name='Estates A', buildings=estates_a),
-                            dict(name='Japanese and modern estates', buildings=estates_b)]),
+                            dict(name='Japanese and modern estates', buildings=estates_b),
+                            dict(name='Civic', buildings=civic)]),
               open(out + '/street.json', 'w'), indent=1)
     return out + '/street.json', out + '/buildings'
 
