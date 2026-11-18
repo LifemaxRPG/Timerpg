@@ -5,8 +5,8 @@ import kotlin.math.max
 /*
  * Our villas and landmarks (the clock tower, the school) as shape with no drawing in it: what tools/make_buildings.py's
  * build_model cut from their sprites (buildings/models.json). Each is a list of parts drawn back to front: boxes, front
- * gables (the triangle end facing the street, the slopes running back from it) and hipped roofs (four sloped faces and
- * a flat top). Lengths are sprite pixels: x across the model's front picture (which stands [ModelShape.frontX] pixels into
+ * gables (the triangle end facing the street, the slopes running back from it), hipped roofs (four sloped faces and
+ * a flat top) and railings (a handrail along a line, glass or nothing under it). Lengths are sprite pixels: x across the model's front picture (which stands [ModelShape.frontX] pixels into
  * the lot's 224-pixel frame), y up from the ground, d back from the model's front line (negative: in front of it), which
  * stands [ModelShape.setback] back from the pavement. Where a part wears a piece of art it is a rectangle of the
  * building's atlas picture (x, y, w, h), and its points are in that rectangle's own pixels.
@@ -62,9 +62,18 @@ class ModelPart(
     val leftFlush: IntArray? = null, val rightFlush: IntArray? = null,
     /**
      * A gable's apex x when it is not in the middle: a single-pitch (lean-to) roof running back from the street has its
-     * high edge at one side ([x1]) and only its [left] slope (the terraced houses).
+     * high edge at one side and only the slope from it: at [x1] its [left] slope (the terraced houses), at [x0] its
+     * [right] one (the modern estate).
      */
     val apexX: Float = Float.NaN,
+    /** A box's sides that stand against other volumes, which no view sees: bit 1 its left, bit 2 its right. */
+    val hideSide: Int = 0,
+    /**
+     * A railing ([RAIL]): its handrail [railH] above the line from (x0, y0, d0) to (x1, y1, d1) (a stair's nosings, a
+     * terrace's edge), [railW] thick in [front]'s colour; under it a glass panel in [side]'s colour at [top] of 255 (or
+     * none: -1), and posts about every [posts] pixels along it (0: one at each end).
+     */
+    val railH: Float = 0f, val railW: Float = 2f, val posts: Float = 0f,
 ) {
     /** A gable's or a hipped roof's apex x. */
     val apex: Float get() = if (apexX.isNaN()) (x0 + x1) / 2f else apexX
@@ -75,6 +84,7 @@ class ModelPart(
         const val BOX = 0
         const val GABLE = 1
         const val HIP = 2
+        const val RAIL = 3
     }
 }
 
@@ -105,7 +115,7 @@ class ModelShape(
     private val walls: List<ModelPart> = parts.filter { it.type == ModelPart.BOX && !it.card && it.d1 - it.d0 >= 100f }
     /** The top of its walls, and its highest roof's ridge and that ridge's depth. */
     val wallTop: Float = walls.maxOfOrNull { it.y1 } ?: 0f
-    private val tallestRoof: ModelPart? = parts.filter { it.type != ModelPart.BOX }.maxByOrNull { it.y1 }
+    private val tallestRoof: ModelPart? = parts.filter { it.type == ModelPart.GABLE || it.type == ModelPart.HIP }.maxByOrNull { it.y1 }
     val ridge: Float = max(tallestRoof?.y1 ?: 0f, parts.maxOfOrNull { if (it.type == ModelPart.BOX) it.y1 else 0f } ?: 0f)
     val ridgeD: Float = tallestRoof?.let { (it.d0 + it.d1) / 2f } ?: 0f
     /** Its walls' span across the front picture. */
@@ -142,7 +152,8 @@ class ModelShape(
         var best = 0f
         for (p in parts) {
             val d = if (p.type == ModelPart.BOX) p.d1 else if (p.type == ModelPart.HIP) p.td1 else p.d1
-            best = max(best, p.y1 * k + lift * (setback + d))
+            val top = if (p.type == ModelPart.RAIL) max(p.y0, p.y1) + p.railH else p.y1
+            best = max(best, top * k + lift * (setback + d))
         }
         return best
     }
@@ -174,7 +185,8 @@ class ModelShape(
                         ints(p.optJSONArray("ft")), p.optDouble("fx", x.getDouble(0)).toFloat(), ints(p.optJSONArray("tt")), ints(p.optJSONArray("st")),
                         p.optBoolean("card"), p.optBoolean("out"),
                         if (pn == null) emptyList() else (0 until pn.length()).map { floats(pn.getJSONArray(it))!! },
-                        sideGlow = p.optBoolean("sg"), clock = ints(p.optJSONArray("clock")))
+                        sideGlow = p.optBoolean("sg"), clock = ints(p.optJSONArray("clock")),
+                        hideSide = when (p.optString("hs")) { "l" -> 1; "r" -> 2; "lr" -> 3; else -> 0 })
                 }
                 "gable" -> {
                     val rk = p.getJSONArray("rake")
@@ -182,7 +194,7 @@ class ModelShape(
                     ModelPart(ModelPart.GABLE, x.f(0), x.f(1), y.f(0), y.f(1), d.f(0), d.f(1), -1, p.getInt("roof"), 0,
                         fx = p.optDouble("fx", x.getDouble(0)).toFloat(),
                         panes = if (pn == null) emptyList() else (0 until pn.length()).map { floats(pn.getJSONArray(it))!! },
-                        left = ints(p.getJSONArray("l")), leftP = floats(p.getJSONArray("lp")),
+                        left = ints(p.optJSONArray("l")), leftP = floats(p.optJSONArray("lp")),
                         right = ints(p.optJSONArray("r")), rightP = floats(p.optJSONArray("rp")),
                         apexX = p.optDouble("ax", Double.NaN).toFloat(),
                         rake = rk.getInt(0), rakeEdge = rk.getInt(1), eaveBack = p.optDouble("de", d.getDouble(1)).toFloat(),
@@ -197,6 +209,11 @@ class ModelShape(
                         frontPic = ints(p.getJSONArray("front")), flat = ints(p.optJSONArray("flat")),
                         tx0 = t.f(0), tx1 = t.f(1), td0 = t.f(2), td1 = t.f(3), hip = ints(p.optJSONArray("hip")),
                         leftFlush = ints(p.optJSONArray("la")), rightFlush = ints(p.optJSONArray("ra")))
+                }
+                "rail" -> {
+                    val c = p.getJSONArray("c")
+                    ModelPart(ModelPart.RAIL, x.f(0), x.f(1), y.f(0), y.f(1), d.f(0), d.f(1), p.optInt("ga", 0), c.getInt(0), c.getInt(1),
+                        railH = p.getDouble("h").toFloat(), railW = p.optDouble("w", 2.0).toFloat(), posts = p.optDouble("posts", 0.0).toFloat())
                 }
                 else -> throw IllegalArgumentException("unknown part ${p.getString("t")}")
             }

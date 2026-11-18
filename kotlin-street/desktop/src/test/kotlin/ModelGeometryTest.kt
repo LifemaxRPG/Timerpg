@@ -60,6 +60,26 @@ class ModelGeometryTest {
         assertNotNull(m.lamp); assertEquals("home", m.lights)
     }
 
+    @Test fun aModernEstatesPartsParse() {
+        // a single-pitch roof high at its left end (its right slope only), an annex's box with the side against the
+        // house hidden, a stair's glass railing, a box with both sides against other volumes
+        val m = ModelShape.parseAll("""
+            {"b9": {"kind": "estate", "w": 736, "frontX": -256, "setback": 88, "lawn": "grass", "lights": "home", "smoke": [],
+              "parts": [
+                {"t": "box", "x": [545, 706], "y": [0, 96], "d": [78, 285], "c": [-1, 1, 2], "ft": [0, 0, 161, 96], "hs": "l"},
+                {"t": "gable", "x": [284, 720], "y": [105, 167], "d": [34, 285], "r": [0, 0, 436, 310], "rp": [435, 310, 0, 246, 0, 0, 435, 62],
+                 "ax": 284, "rake": [3, 4], "roof": 5},
+                {"t": "rail", "x": [5, 5], "y": [8, 104], "d": [20, 150], "h": 16, "w": 2, "c": [7, 8], "ga": 70, "posts": 0},
+                {"t": "box", "x": [285, 545], "y": [0, 104], "d": [150, 285], "c": [-1, 1, 1], "hs": "lr"}]}}
+        """.trimIndent())["b9"]!!
+        val (annex, roof, rail, under) = m.parts
+        assertEquals(1, annex.hideSide); assertEquals(3, under.hideSide)
+        assertNull(roof.left); assertEquals(8, roof.rightP!!.size); assertTrue(roof.monopitch); assertEquals(284f, roof.apex)
+        assertEquals(ModelPart.RAIL, rail.type); assertEquals(16f, rail.railH); assertEquals(70, rail.top); assertEquals(8, rail.side)
+        // the railing is no roof: the ridge is the roof's
+        assertEquals(167f, m.ridge)
+    }
+
     @Test fun itsWallsRidgeAndHeightComeFromItsParts() {
         val m = models["b8"]!!
         // its walls are its deep volumes (here the first box), not its railing card

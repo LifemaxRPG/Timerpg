@@ -192,3 +192,50 @@ sprite wear it on the exported streets (`town-streets.ts`; eta's two streets hav
 - Still to do: from far to one side a little sky shows between the wing's ridge and the main roof's eave (true to the
   volumes, not to the art, which draws the wing's roof up to the main roof); the one-story porch roof's ends are its
   edge colour; the dormer's top is level (the art may mean a shallow shed roof).
+
+## The Japanese and the modern estate (`tools/buildings_estB.py`, 2026-11-18)
+
+Both modelled by hand from their sprites as lists of parts (`ESTATES`, dispatched from `make_buildings.build_model`);
+showcase street 6 (`--showcase`, `-Dmode=models -Dstreet=6 -Dtall=600`); estate-tier lots wearing either sprite are
+built as themselves (`tools/town-streets.ts`; none on eta's two streets yet).
+
+- **Japanese house** (`estate_japanese_house`): the front-gabled main house in corrugated siding (its gable and walls
+  a true elevation, used as drawn); the **pent roof** of copper sheets along the ground floor's front as a lean-to
+  strip (a hipped part: the art's sheets from above every other row, one screen row each), its rows in the front
+  painted out with the siding above them; the two **upper windows as bays** standing 8 out of the wall on their
+  lattice sills, each under its **hood** (a little lean-to of corrugated iron 10 deep from the wall out past the bay,
+  the art's hood from above, painted out of the wall); **an annex on each side**, each a box under its own **lean-to
+  roof running back** (the art draws those roofs from above, 150-odd rows tall, which read as towers if taken as
+  walls): the corrugated iron on the left, the board roof on the right, every fourth row of the art so the pitch is
+  gentle and meets the main eave; their ends the wall's siding under the roof's edge. The right annex's wall the art
+  draws in lap siding at a slant (its side seen at an angle) over a brown base: its front sets the boards level and
+  ends where the base does (the slanted side past it is left out), and its side wall wears the same boards and base, a
+  row each, with a lattice window of the front's. The art's half-clear ground shadow, which `solid()` takes away, left
+  the fronts' last rows open; each column's foot is carried down to the ground in the art's ink (`to_ground`). The
+  lattice windows glow between their slats at night and mirror no square of sky; the left one runs across the left
+  annex's front and the main one, a pane in each.
+- **Modern house** (`estate_modern_house`, from 1985): the art is an oblique view (a thing `d` back and `y` up stands
+  at row 444 - y - d), which gives every depth: the **single-pitch roof** high at its left end (only its right slope:
+  the slab from above laid on it, its fascia found column by column), the upper storey 34 back on the flat roof of the
+  long glazed ground storey (its glazing, doors and curtains run down to the ground: the art draws their foot higher,
+  behind the frame), the **entrance 78 back under the overhang** (the wall above its door, which the fascia hides in
+  the art, carries on the upper storey's band of strip windows and sills under the roof's edge, level, and lights at
+  night), a box under the back half of the upper storey (behind the ground storey, its sides against the deck and the
+  entrance: a true 3D renderer would otherwise see a hole there), the slanted strut and a round column holding the
+  roof's corners; on the **terrace** its floor from above (the furniture, rails and column painted out with the
+  floor's own tiles), a glass-edged railing, a **cantilever parasol** (mast, arm and hanger as boxes, the canopy a low
+  pyramid: a hipped part whose top is a point), an armchair, a chair and a table as cards; behind it the **deck**
+  behind its tiled wall and glass railing; up the left side a **stair** of 13 steps (each a box from the ground, only
+  its own tread deep) with its glass railing; potted plants as cards.
+- New in models.json for them (the Kotlin classic renderer draws each simply): a **`rail`** part (a handrail `h` above
+  the line between two points, any direction: a stair's nosings or a terrace's edge; a glass panel under it at `ga`
+  of 255, posts every `posts`); a box's **`hs`** (`l`/`r`/`lr`: those sides stand against other volumes, as an annex's
+  against the house, and no view sees them: the painter, drawing back to front, would otherwise paint it over its
+  neighbour); a gable with **only a right slope** (`r`, no `l`) and its apex `ax` at its left end: a single-pitch roof
+  high on the left.
+- Still to do: the modern house's pergola-like parasol arm is a box frame, not the art's shaded beam; the left annex
+  of the Japanese house leaves out the narrow horizontally boarded screen the art shows past it; neither has
+  the corner turn's own volumes (they wear their whole fronts there, as the other estates).
+- Classic renderer, to check them by eye: a model box's sun wash runs across the whole house's front (a wing beside
+  the main wall is lit as the wall is, with no seam between them) and, when its front carries a gable's face, on up
+  into the gable instead of stopping in a hard line at the eaves.
