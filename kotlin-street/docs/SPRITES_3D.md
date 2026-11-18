@@ -171,6 +171,24 @@ sprite wear it on the exported streets (`town-streets.ts`; eta's two streets hav
   its slope is taken from its own back edge to its own eave (the eave runs level), and the roof runs on under the main
   roof's eave to the main wall (the art's main roof hides that end, and draws its eave over the wing's wall, which is
   given back its wall and its window's right frame). Its deck and three steps stand before its door.
-- Still to do: the country house's dormer as geometry (painted out of the slope for now); from far to one side a
-  little sky shows between the wing's ridge and the main roof's eave (true to the volumes, not to the art, which draws
-  the wing's roof up to the main roof); the one-story porch roof's ends are its edge colour.
+- Fixes after review: the one-story wall where the garage's and porch's roofs were drawn is filled in two ways, by
+  how deep under the rake the pixel lies: in the art's eave shade (36 rows) from the same place in the boards' run at
+  the same depth, in the plain wall from the same column (or the nearest of the same place) whole board lengths higher,
+  so no other part of the wall's shading comes with it (no pale block, no seam where the porch roof's top shadow was);
+  the wall uncovered under the porch beam is the plain boards at the tint the art gives the wall in the porch's shade,
+  darker towards the beam and fading into the art's own shade where the moved wall begins. Its face keeps nothing
+  outside its walls (the roof's left edge the art draws there floated as a bracket). On the country house the wing's
+  wall starts at its corner board (x 28; columns left of it were sky); the porch's side runs to a planked end wall
+  under the balcony at its back (the art draws it in the gap beside the house's corner); the balcony's back rail is
+  drawn before its side rail (parts draw in turn, and the side rail stands in front of its end).
+- Roof end pieces (a `hip` part's side pictures, for a lean-to's or a pitched roof's ends) are cut to their quad
+  (`end_cut`): the engine maps the whole picture by its four points, so the rest stood above the roof. The wing's
+  gable end carries a verge board along its slopes (the main gable's rake colours).
+- The **dormer** on the country house's right slope is geometry: a box with a level roof standing out of the slope,
+  its front (the art's fascia and wall, cut along the slope's line in front of it) a card at depth 75, its right cheek
+  in the upper wall's courses, its roof the art's tiles from above; the slope under it keeps the tiles it was filled
+  with. The cheek and the front come before the roof in the parts so that, drawn in turn, the cheek's inner face falls
+  behind them.
+- Still to do: from far to one side a little sky shows between the wing's ridge and the main roof's eave (true to the
+  volumes, not to the art, which draws the wing's roof up to the main roof); the one-story porch roof's ends are its
+  edge colour; the dormer's top is level (the art may mean a shallow shed roof).
