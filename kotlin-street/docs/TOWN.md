@@ -5,6 +5,13 @@ game's own generator (src/town/layout.ts `layoutTown`, neighborhoods.ts, landmar
 procedural generation later is a seed change. Probe scripts used for this plan: run `npx tsx <script> <seed> 2025` from
 the repo root (copies in kotlin-street/tools/town-probes/ if kept).
 
+## Camera and movement (the owner's decision)
+
+The game stays a side-scrolling street view (the camera follows along the street; the player moves in all directions
+on the pavement). An open-world camera is a possible later option, so the walking code (T7) keeps the player's
+position in world coordinates (wx, wz, heading) as the source of truth, with "which row, how far along it" derived for
+the street view; nothing should assume the player can only exist on a row.
+
 ## Town and seed
 
 - Fixed town for now: `TOWN = { seed: 'gamma', year: 2025 }` in `kotlin-street/tools/town-config.ts`, used by every
