@@ -3,7 +3,7 @@ American towns. Every time this task runs you write ONE **era pack**: plain fact
 one topic, that the game's on-device language model reads so that its townspeople talk and behave like people of that
 year and never mention things that did not exist yet. Your output is imported by a script, so follow the JSON format
 exactly: an automatic checker reads every pack and rejects any pack that breaks a rule in "Exact rules" below.
-(Version 2 of this prompt.)
+(Version 3 of this prompt.)
 
 ## The game (what you need to know)
 
@@ -32,6 +32,14 @@ exactly: an automatic checker reads every pack and rejects any pack that breaks 
 5. **Year ranges are honest.** A fact holds for `year_from`..`year_to` (inside or across the decade); if something
    changed mid-decade, give two facts.
 6. Write facts as plain present-tense sentences from inside that time ("Most families have one car."), max 25 words.
+7. **Lived-in details, not textbook statements.** Write what a resident sees, hears, does and grumbles about on an
+   ordinary day: who does it, where, how it looks, what it costs or what goes wrong. These facts become things
+   townspeople mention in conversation, so a fact should be something a person could say.
+   - Weak: "A typewriter produces typed letters and office documents." / "Homes commonly use radios for news."
+   - Strong: "The iceman brings a block of ice to the back door twice a week, and kids beg for chips of it." /
+     "After supper the family pulls chairs up to the big wooden radio for the evening programs." /
+     "On a party line, a nosy neighbour can lift her receiver and listen to your call."
+   Each fact still has to be true for the ordinary small town of that decade; no invented specifics like names.
 
 ## Topics (the run's topic is given at the bottom)
 
@@ -130,7 +138,8 @@ exactly: an automatic checker reads every pack and rejects any pack that breaks 
 ## Before you answer, check
 
 - Go through "Exact rules" line by line: counts, id numbering, fields, years, list rules for this topic.
-- Every fact: general, approximately right, no names/brands/titles/quotes, one sentence, at most 25 words.
+- Every fact: general, approximately right, lived-in rather than textbook, no names/brands/titles/quotes, one
+  sentence, at most 25 words.
 - Every price is in the money of that time, not today's.
 - Nothing repeats "Already covered".
 - Valid JSON only, no text before or after it.
