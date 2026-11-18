@@ -1,4 +1,5 @@
 import com.lifemax.rpg.feature.habits.presentation.scene.StageCamera
+import com.lifemax.rpg.feature.habits.presentation.scene3d.CameraRig
 import com.lifemax.rpg.feature.habits.presentation.scene3d.LookMatrix
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -59,5 +60,38 @@ class LookMatrixTest {
                 last = d; z += 10f
             }
         }
+    }
+
+    /** The true camera ([CameraRig]): one pinhole for everything, the screen its projection, the depth n / d of the true depth. */
+    @Test fun trueCameraIsOnePinholeWithRealDepth() {
+        for (yaw in listOf(0f, .8f, 1.5707964f)) for (p in CameraRig.Preset.values()) {
+            val stage = camera(yaw)
+            CameraRig.eye = p.eye; CameraRig.back = p.back
+            CameraRig.aim(stage, 896f)
+            val v = CameraRig.view
+            // the ground at the point looked at lands on the stage's ground line, one street unit `unit` pixels there
+            val g = FloatArray(3)
+            v.project(v.m, stage.tx, 0f, stage.tz, g)
+            assertEquals("ground line yaw=$yaw $p", 896f, g[1], .01f)
+            assertEquals("middle yaw=$yaw $p", w / 2f, g[0], .01f)
+            assertEquals("depth yaw=$yaw $p", p.back, g[2], .01f)
+            val l = FloatArray(16)
+            LookMatrix.pinhole(v.m, w, h, CameraRig.NEAR, l)
+            for ((x, y, z) in listOf(Triple(250f, 0f, 0f), Triple(400f, 120f, 90f), Triple(-300f, 60f, 300f), Triple(80f, 0f, 900f))) {
+                val q = FloatArray(3)
+                v.project(v.m, x, y, z, q)
+                if (q[2] < 10f) continue
+                val c = clip(l, x, y, z)
+                assertEquals("x yaw=$yaw $p", q[0], (c[0] + 1f) / 2f * w, .02f)
+                assertEquals("y yaw=$yaw $p", q[1], (c[1] + 1f) / 2f * h, .02f)
+                assertEquals("depth yaw=$yaw $p", CameraRig.NEAR / q[2], c[2], 1e-5f)
+            }
+            // level ground stays level: two points on one line across the view at the same depth share a screen row
+            val a = FloatArray(3); val b = FloatArray(3)
+            v.project(v.m, v.camX + v.dx * 500f - v.rx * 200f, 0f, v.camZ + v.dz * 500f - v.rz * 200f, a)
+            v.project(v.m, v.camX + v.dx * 500f + v.rx * 200f, 0f, v.camZ + v.dz * 500f + v.rz * 200f, b)
+            assertEquals("level yaw=$yaw $p", a[1], b[1], .01f)
+        }
+        CameraRig.pick("medium")
     }
 }

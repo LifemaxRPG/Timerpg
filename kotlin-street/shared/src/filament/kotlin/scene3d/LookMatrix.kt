@@ -15,6 +15,9 @@ import com.lifemax.rpg.feature.habits.presentation.scene.StageCamera
  *
  * [scale] and [offset] squeeze that depth into a band of the buffer (reversed: 1 nearest), the way the classic draws the
  * street in view after the rest of the crossroads and the ground under everything.
+ *
+ * That is the classic look's path (-Dlook=classic). The street is drawn through one true camera ([CameraRig]) by
+ * [pinhole]: one matrix for every thing, real depth, no bands.
  */
 object LookMatrix {
     /** The depth at which the reversed depth reaches 1 (street units). Nothing nearer is ever shown (CornerWorld.NEAR is 30). */
@@ -57,6 +60,24 @@ object LookMatrix {
             // z = 1 - 2 w D gives z' = w D
             val wD = when (c) { 0 -> d0r; 1 -> d1r; 2 -> d2r; else -> d3r }
             out[c * 4 + 2] = (if (c == 3) 1f else 0f) - 2f * wD
+            out[c * 4 + 3] = mw
+        }
+    }
+
+    /**
+     * The true camera's clip-space matrix: [m] a plain pinhole (world to (x w, y w, w), w the true depth along its look,
+     * as [StageCamera.m]), its depth the reversed infinite one, n / w, reaching 1 at depth [n]. Every thing goes through
+     * this one matrix, so the depth buffer orders them as they truly stand.
+     */
+    fun pinhole(m: FloatArray, width: Float, height: Float, n: Float, out: FloatArray) {
+        val sx = 2f / width
+        val sy = 2f / height
+        for (c in 0..3) {
+            val mx = m[c]; val my = m[4 + c]; val mw = m[8 + c]
+            out[c * 4] = sx * mx - mw
+            out[c * 4 + 1] = if (windowY) mw - sy * my else sy * my - mw
+            // z = 1 - 2 w D with w D = n gives D = n / w (see [of])
+            out[c * 4 + 2] = if (c == 3) 1f - 2f * n else 0f
             out[c * 4 + 3] = mw
         }
     }
