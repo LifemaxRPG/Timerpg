@@ -1139,7 +1139,12 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Renderer", 12.sp)
             Chip("Classic", !StreetRenderer.filament) { StreetRenderer.set(ctx, false) }
-            Chip("Filament trial", StreetRenderer.filament) { StreetRenderer.error = null; StreetRenderer.set(ctx, true) }
+            Chip("Filament", StreetRenderer.filament) { StreetRenderer.error = null; StreetRenderer.set(ctx, true) }
+        }
+        if (StreetRenderer.filament) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("Camera", 12.sp)
+            for ((name, label) in listOf("low" to "Low", "medium" to "Medium", "high" to "High"))
+                Chip(label, StreetRenderer.camera == name) { StreetRenderer.setCamera(ctx, name) }
         }
         StreetRenderer.error?.let { Text(it, 11.sp, color = Color(0xFFFFB4A0)) }
         var heat by remember { mutableStateOf("") }

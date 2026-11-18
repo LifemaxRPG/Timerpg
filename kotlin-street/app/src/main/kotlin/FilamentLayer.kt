@@ -47,7 +47,19 @@ object StreetRenderer {
             set(ctx, false)
             return
         }
-        set(ctx, p.getBoolean("filament", false))
+        // Filament is the game's renderer (the classic is only a fallback)
+        set(ctx, p.getBoolean("filament", true))
+        setCamera(ctx, p.getString("camera", "medium")!!)
+    }
+
+    /** The camera's eye height preset (low, medium, high), as the owner picked it. */
+    var camera by mutableStateOf("medium")
+        private set
+
+    fun setCamera(ctx: Context, name: String) {
+        camera = name
+        com.lifemax.rpg.feature.habits.presentation.scene3d.CameraRig.pick(name)
+        prefs(ctx).edit().putString("camera", name).apply()
     }
 
     fun set(ctx: Context, on: Boolean) {
