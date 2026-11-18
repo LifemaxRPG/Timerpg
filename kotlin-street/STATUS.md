@@ -486,6 +486,48 @@ time with its drawing (it renders each frame twice in `-Dmode=move` to measure);
   the Rich/Exact post-processing switch, Vulkan backend switch and benchmark walk of the design are not built; lamp point
   lights (the device domain's screen is not the camera's, so Filament's light froxels would need the camera to match).
 
+## Screenshots to Claude, and crash reports (built and unit-tested on a computer; NOT yet run on a phone)
+A camera button on the game screen sends what is on the screen, with the game's state, to the repository so Claude can
+look at it; crash reports go the same way by themselves. Code: `app/src/main/kotlin/shot/` (ShotRequests: paths, request
+bodies and JSON with no Android types, tested by `ShotRequestsTest`; ShotUploader: capture, encoding, the GitHub calls;
+ShotSettings: the switch and the token; Reports: crash reports and breadcrumbs), the panel and the button in GameActivity.kt.
+- **Settings**: AI panel (the "AI" chip, top left) → "Screenshots to Claude": the camera button on/off (off by default),
+  the GitHub token field (masked; Save / Forget), "token saved" / "no token", "Test upload" (a GET of the repository),
+  "Send crash reports automatically" (on by default once a token exists) and "Send N crash reports" when some wait.
+  The token is kept in EncryptedSharedPreferences (androidx.security:security-crypto 1.1.0, an AES key in the Android
+  Keystore); if the keystore cannot be opened it falls back to the app's private preferences (the panel says which). It
+  is never logged or written anywhere else, and the app has no backup.
+- **Making the token**: github.com → Settings → Developer settings → Personal access tokens → Fine-grained tokens →
+  Generate new token. Repository access: Only select repositories → lifemaxrpg/timerpg. Permissions → Repository
+  permissions → Contents: Read and write (Metadata: read-only comes with it). Pick an expiry (e.g. 90 days), generate,
+  copy it, paste it into the panel's field and Save, then Test upload.
+- **The button** (📷, small, top right under the weather chips): it hides, the whole window is captured (PixelCopy of
+  the window on API 26+, so Filament's TextureView and the Compose HUD are both in it; on API 24-25 the decor view is
+  drawn instead and the 3D layer may be missing), then a sheet asks for an optional note: Send / Cancel. The upload runs
+  on its own thread: `screenshots/<yyyy-MM-dd>/<HHmmss>-<note slug>.png` on the `screenshots` branch (made from the
+  default branch's head the first time), then a `.json` of the same name. Size: a full-resolution PNG if it is under
+  3 MB, else lossless WebP (`.webp`, Android 10+), else PNG scaled by 0.75 (again, down to about a third) until it fits;
+  the JSON's `image` says which. With no network it waits and tries once more when the phone is back online (or after
+  a minute). A toast says "Sent to Claude" or what went wrong (no token, token can't write, can't see the repo, no network).
+- **The JSON**: time and note; app version, versionCode and git hash; the image (format, scale, size, how captured);
+  screen size and density; heat (thermal status, headroom) and memory; the renderer and camera preset; the street (name,
+  index, nearest building), the player (x, lane, street, walking/running), the corner turn (active, direction, progress,
+  yaw), the room if inside; the hour, season and weather; frame times (the AI panel's lines, Filament CPU/GPU median
+  and p95); the dialogue AI (state, device, queue, speeds), the conversation, voices and mic.
+- **Crash reports** (`crashes/<yyyy-MM-dd>/<HHmmss>-<kind>.json` on the `reports` branch): a Kotlin crash is written by
+  the uncaught-exception handler before the process dies (the stack with causes, the thread, the game state, the
+  breadcrumbs, the app's last 300 logcat lines); on each start, Android's record of earlier exits (API 30+: native
+  crash, ANR, crash, low memory, excessive resource use, each since the last one handled) becomes a report with the
+  reason, description, importance, PSS/RSS and the tombstone or ANR trace (up to 1 MB), plus the events and game state
+  the dying run had saved (and whether Filament's start died: the "starting" mark). Breadcrumbs: the last 100 events
+  (rooms, streets, the corner turn, renderer switches, Filament start/stop, the dialogue model's state, mic and voices,
+  conversations, pause/resume, onTrimMemory), also kept on disk a second later and the game state every 3 s. Reports
+  are sent in the background on the next start when a token is saved; one is deleted only once uploaded, at most 20 kept.
+- **Testing the pipeline**: long-press the "Screenshots to Claude" title: "Test crash (Kotlin)" and "Test native crash"
+  (a SIGSEGV sent to the game itself) appear. Start the game again and the report goes up.
+- Not tested without the phone: PixelCopy with the Filament TextureView, the keystore, the real GitHub calls (branch
+  creation, a fine-grained token's 403/404), the offline retry, the exit records and tombstones, logcat from the app.
+
 ## Known rough edges / not done
 - Untested on a real device (touch, speed, memory, the turn's draw cost). Android-only code: image helper, asset loading,
   the stick's back-gesture exclusion, keyboard and game pad input, the refresh-rate request.

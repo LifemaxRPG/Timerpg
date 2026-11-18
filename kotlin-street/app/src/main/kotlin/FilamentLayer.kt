@@ -38,9 +38,14 @@ object StreetRenderer {
 
     private fun prefs(ctx: Context) = ctx.getSharedPreferences("renderer", Context.MODE_PRIVATE)
 
+    /** This start found the "starting" mark: the last run's Filament start died (told in that exit's crash report). */
+    var lastStartDied = false
+        private set
+
     fun load(ctx: Context) {
         val p = prefs(ctx)
         if (p.getBoolean("starting", false)) {
+            lastStartDied = true
             // the last start never drew its first frames: it died in native code
             p.edit().putBoolean("starting", false).commit()
             error = "Filament crashed while starting last time: back on the classic street"
@@ -63,6 +68,7 @@ object StreetRenderer {
     }
 
     fun set(ctx: Context, on: Boolean) {
+        if (on != filament) com.timerpg.street.shot.Crumbs.add("renderer: " + if (on) "Filament" else "classic")
         filament = on
         // the stage hands its frames over and draws only its sky under Filament
         Stage3D.listening = on
@@ -73,7 +79,7 @@ object StreetRenderer {
     /** Marks a start (written at once, so it is on disk before a native crash could happen) or clears the mark. */
     fun starting(ctx: Context, on: Boolean) { prefs(ctx).edit().putBoolean("starting", on).commit() }
 
-    fun failed(ctx: Context, why: String) { error = why; starting(ctx, false); set(ctx, false) }
+    fun failed(ctx: Context, why: String) { com.timerpg.street.shot.Crumbs.add("Filament failed: $why"); error = why; starting(ctx, false); set(ctx, false) }
 }
 
 /** The frame times of the renderer in use, for the AI panel's frame line. */
@@ -128,6 +134,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView) {
         try {
             val t0 = System.nanoTime()
             StreetRenderer.starting(ctx, true)
+            com.timerpg.street.shot.Crumbs.add("Filament start")
             Filament.init()
             // drawn to a window: GL's y-up clip space (the desktop's off-screen renders are the other way up)
             com.lifemax.rpg.feature.habits.presentation.scene3d.LookMatrix.windowY = true
@@ -186,7 +193,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView) {
             val g = if (got > 0 && history[0].gpuFrameDuration > 0) history[0].gpuFrameDuration / 1e6f else -1f
             FilamentStats.add(cpu, g)
             // it has drawn: the start did not die in native code
-            if (++good == StreetRenderer.GOOD_FRAMES) StreetRenderer.starting(ctx, false)
+            if (++good == StreetRenderer.GOOD_FRAMES) { StreetRenderer.starting(ctx, false); com.timerpg.street.shot.Crumbs.add("Filament drawing") }
         } catch (t: Throwable) {
             StreetRenderer.failed(ctx, "Filament stopped: ${t.message ?: t.javaClass.simpleName}")
             destroy()
@@ -196,6 +203,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView) {
     fun destroy() {
         if (!alive) return
         alive = false
+        com.timerpg.street.shot.Crumbs.add("Filament stop")
         if (Stage3D.onFrame === onFrame) Stage3D.onFrame = null
         // (the stage that filled it may be gone: a room; the next one fills it afresh)
         Stage3D.frame.clear()

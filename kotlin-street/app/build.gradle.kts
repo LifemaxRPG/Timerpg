@@ -32,6 +32,8 @@ android {
         targetSdk = 34
         versionCode = commitCount
         versionName = "0.1.$commitCount ($commitSha)"
+        // the commit, for screenshots and crash reports
+        buildConfigField("String", "GIT_SHA", "\"$commitSha\"")
         // where the app looks for a newer build (tools/publish-apk.sh puts it there)
         buildConfigField("String", "UPDATE_URL", "\"https://raw.githubusercontent.com/lifemaxrpg/timerpg/apk/update.json\"")
         // The model runs on 64-bit ARM phones only.
@@ -127,6 +129,8 @@ dependencies {
     implementation("androidx.compose.runtime:runtime")
     implementation("androidx.activity:activity-compose:1.9.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    // the GitHub token for "Screenshots to Claude", kept encrypted (EncryptedSharedPreferences, a Keystore key)
+    implementation("androidx.security:security-crypto:1.1.0")
     // the renderer trial: Google's Filament (OpenGL ES and Vulkan), the same version as the desktop build and matc
     // (without its own dependencies: they would raise the Kotlin standard library past this project's compiler; it needs
     // only androidx.annotation, which the app already has)
