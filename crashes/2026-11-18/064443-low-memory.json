@@ -1,0 +1,28 @@
+{
+  "kind": "low-memory",
+  "time": "2026-11-18T06:44:43.345-0500",
+  "epochMs": 1795002283345,
+  "app": {
+    "versionName": "0.1.297 (cd3037a)",
+    "versionCode": 297,
+    "git": "cd3037a",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "reason": 3,
+  "reasonName": "low-memory",
+  "description": "",
+  "status": 0,
+  "importance": 100,
+  "pssKb": 0,
+  "rssKb": 161284,
+  "pid": 27067,
+  "processName": "com.timerpg.street",
+  "filamentStartDied": false,
+  "breadcrumbsFrom": "not kept (an older exit)",
+  "stack": null,
+  "state": null,
+  "breadcrumbs": [],
+  "logcat": null
+}
