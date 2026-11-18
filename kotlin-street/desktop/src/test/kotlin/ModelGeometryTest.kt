@@ -219,4 +219,14 @@ class ModelGeometryTest {
         // neither is a roof: the highest roof is the box's top
         assertEquals(194f, m.ridge)
     }
+
+    /** A chamfered corner: an upright prism over its plan, its bounds as x and d, the faces against other parts hidden. */
+    @Test fun parsesPrisms() {
+        val p = ModelShape.parsePart(org.json.JSONObject("""
+            {"t": "prism", "pts": [[256, 0], [288, -96], [288, 0]], "x": [256, 288], "y": [0, 260], "d": [-96, 0],
+             "c": [1, 2, 3], "ft": [0, 0, 101, 260], "hide": [1]}
+        """.trimIndent()))
+        assertEquals(ModelPart.PRISM, p.type); assertEquals(6, p.plan!!.size); assertEquals(-96f, p.plan!![3])
+        assertEquals(-96f, p.d0); assertEquals(288f, p.x1); assertEquals(2, p.hidden); assertEquals(101, p.ft!![2])
+    }
 }

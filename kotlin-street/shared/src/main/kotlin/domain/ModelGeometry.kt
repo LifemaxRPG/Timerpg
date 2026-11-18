@@ -6,7 +6,8 @@ import kotlin.math.max
  * Our villas and landmarks (the clock tower, the school) as shape with no drawing in it: what tools/make_buildings.py's
  * build_model cut from their sprites (buildings/models.json). Each is a list of parts drawn back to front: boxes, front
  * gables (the triangle end facing the street, the slopes running back from it), hipped roofs (four sloped faces and
- * a flat top), sloped slabs (canopies, awnings) and pictures lying flat (a helipad, a road arrow). Lengths are sprite pixels: x across the model's front picture (which stands [ModelShape.frontX] pixels into
+ * a flat top), sloped slabs (canopies, awnings), pictures lying flat (a helipad, a road arrow) and upright prisms
+ * over a plan polygon (a chamfered corner). Lengths are sprite pixels: x across the model's front picture (which stands [ModelShape.frontX] pixels into
  * the lot's 224-pixel frame), y up from the ground, d back from the model's front line (negative: in front of it), which
  * stands [ModelShape.setback] back from the pavement. Where a part wears a piece of art it is a rectangle of the
  * building's atlas picture (x, y, w, h), and its points are in that rectangle's own pixels.
@@ -72,6 +73,11 @@ class ModelPart(
     val abutL: Boolean = false, val abutR: Boolean = false,
     /** A sloped slab (a canopy or an awning): how thick its front edge is. */
     val thick: Float = 0f,
+    /**
+     * A prism's plan: its corners (x, d pairs) anticlockwise seen from above (the front edge running left to right), and
+     * the faces against other parts (bit i: the face from corner i to the next), which show no wall.
+     */
+    val plan: FloatArray? = null, val hidden: Int = 0,
 ) {
     /** A gable's or a hipped roof's apex x. */
     val apex: Float get() = if (apexX.isNaN()) (x0 + x1) / 2f else apexX
@@ -89,6 +95,12 @@ class ModelPart(
          * rising or falling to [y1] at [d1] (its top wearing [tt], back row first).
          */
         const val SLOPE = 4
+        /**
+         * An upright prism over a plan polygon ([plan]; a chamfered corner, a coping along it) from [y0] to [y1]: its
+         * first face (corner 0 to 1) wearing [ft], its top [tt] laid over the plan's bounds (back row first); x and d its
+         * bounds.
+         */
+        const val PRISM = 5
     }
 }
 
@@ -190,6 +202,18 @@ class ModelShape(
                         if (pn == null) emptyList() else (0 until pn.length()).map { floats(pn.getJSONArray(it))!! },
                         sideGlow = p.optBoolean("sg"), clock = ints(p.optJSONArray("clock")),
                         abutL = p.optString("abut").contains('l'), abutR = p.optString("abut").contains('r'))
+                }
+                "prism" -> {
+                    // (x and d are its plan's bounds)
+                    val c = p.getJSONArray("c")
+                    val pts = p.getJSONArray("pts")
+                    val pn = p.optJSONArray("panes")
+                    val hid = p.optJSONArray("hide")
+                    ModelPart(ModelPart.PRISM, x.f(0), x.f(1), y.f(0), y.f(1), d.f(0), d.f(1), c.getInt(0), c.getInt(1), c.getInt(2),
+                        ints(p.optJSONArray("ft")), tt = ints(p.optJSONArray("tt")),
+                        panes = if (pn == null) emptyList() else (0 until pn.length()).map { floats(pn.getJSONArray(it))!! },
+                        plan = FloatArray(pts.length() * 2) { pts.getJSONArray(it / 2).getDouble(it % 2).toFloat() },
+                        hidden = if (hid == null) 0 else (0 until hid.length()).fold(0) { a, i -> a or (1 shl hid.getInt(i)) })
                 }
                 "decal" -> ModelPart(ModelPart.DECAL, x.f(0), x.f(1), y.f(0), y.f(0), d.f(0), d.f(1), -1, 0, 0, tt = ints(p.getJSONArray("p")))
                 "slope" -> {

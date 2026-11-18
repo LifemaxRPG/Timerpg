@@ -13,6 +13,34 @@ from make_buildings import (Atlas, GLOW, cut, column_rows, dilate, fill_rows, gl
                             mhip, panes_of, polygon, rgb_int, rise_for, shade, solid, yard)
 
 
+def lit_panes(img):
+    """The front's panes and their night light (make_buildings.panes_of), the light reaching on into the pale pixels
+    inside each pane joined to its glass: the art's grey streaks of reflection, its pale stickers and blinds, which the
+    glass's blue shades leave out and which would show as dark marks in a lit window. Not the frames and mullions
+    (darker), nor the wall's own colours (those common outside the panes: a pale wall would light up round them)."""
+    out, glow = panes_of(img)
+    rgb = img[..., :3].astype(int); lum = rgb.sum(-1)
+    code = (rgb[..., 0] << 16) | (rgb[..., 1] << 8) | rgb[..., 2]
+    inside = np.zeros(lum.shape, bool)
+    for (x, y, w, h, _) in out: inside[y:y + h, x:x + w] = True
+    cs, ns = np.unique(code[~inside & (img[..., 3] > 200)], return_counts=True)
+    wall = np.isin(code, cs[ns >= max(20, .005 * ns.sum())])
+    pale = (lum >= 440) & (rgb[..., 2] >= rgb[..., 0] - 8) & (img[..., 3] > 200) & ~wall
+    for (x, y, w, h, _) in out:
+        box = np.zeros(lum.shape, bool); box[y:y + h, x:x + w] = True
+        lit = box & (glow[..., 3] > 0)
+        if not lit.any(): continue
+        grow = box & pale
+        while True:
+            more = lit | (grow & (np.roll(lit, 1, 0) | np.roll(lit, -1, 0) | np.roll(lit, 1, 1) | np.roll(lit, -1, 1)))
+            if (more == lit).all(): break
+            lit = more
+        lo, hi = lum[lit].min(), lum[lit].max()
+        f = .8 + .2 * (lum[lit] - lo) / max(1, hi - lo)
+        glow[lit] = np.stack([np.round(GLOW[0] * f), np.round(GLOW[1] * f), np.round(GLOW[2] * f), np.full(f.shape, GLOW[3])], -1).astype(np.uint8)
+    return out, glow
+
+
 def tile(pic, h, w):
     """`pic` repeated to `h` rows by `w` columns."""
     ry, rx = h // pic.shape[0] + 1, w // pic.shape[1] + 1
@@ -57,9 +85,29 @@ def slope(x, y, d, c, thick, ft=None, tt=None):
     return p
 
 
+def prism(pts, y, c, ft=None, tt=None, panes=None, hide=()):
+    """An upright prism over a plan polygon (`pts`: x, d corners anticlockwise seen from above, the front edge running
+    left to right) from y[0] to y[1]: its top, front and side colours; its first face (corner 0 to 1) wearing `ft` (its
+    windows `panes`), its top `tt` laid over the plan's bounds (back row first); `hide` the faces against other parts."""
+    xs, ds = [q[0] for q in pts], [q[1] for q in pts]
+    p = dict(t='prism', pts=[[float(a), float(b)] for a, b in pts], x=[float(min(xs)), float(max(xs))], y=[float(y[0]), float(y[1])],
+             d=[float(min(ds)), float(max(ds))], c=[rgb_int(c[0]), rgb_int(c[1]), rgb_int(c[2])])
+    if ft is not None: p['ft'] = ft
+    if tt is not None: p['tt'] = tt
+    if panes: p['panes'] = panes
+    if hide: p['hide'] = list(hide)
+    return p
+
+
 def abut(p, sides):
     p['abut'] = sides
     return p
+
+
+def rgb_int_img(pic):
+    """Each pixel's colour as 0xRRGGBB."""
+    c = pic[..., :3].astype(np.int64)
+    return (c[..., 0] << 16) | (c[..., 1] << 8) | c[..., 2]
 
 
 def card_of(pic, keep):
@@ -97,7 +145,7 @@ def fire_station(shop, rng):
     # --- the engine bay: its wall (rows 240..380: the fascia's lower part, the brick, the doors) and its parapet (its
     # front rows 232..240, its top from above 224..232)
     bay = art[240:GB, 176:488].copy()
-    bay_panes, bay_glow = panes_of(bay)
+    bay_panes, bay_glow = lit_panes(bay)
     bay_r = at.add(bay, bay_glow)
     red_top, red_front = art[228, 300], art[236, 300]
     par_f = at.add(art[232:240, 176:488]); par_t = at.add(art[224:232, 176:488])
@@ -111,7 +159,7 @@ def fire_station(shop, rng):
     # --- the upper block on the bay's roof (its front rows 64..128, its top 0..64 from above); its two vents (louvres in
     # the art's top) stand on it as low boxes, so its top is the art's with them painted out
     ub = art[64:128, 200:470].copy()
-    ub_panes, ub_glow = panes_of(ub)
+    ub_panes, ub_glow = lit_panes(ub)
     ub_r = at.add(ub, ub_glow)
     ut = art[0:64, 200:470].copy()
     vm = np.zeros(ut.shape[:2], bool); vm[22:42, 22:66] = True; vm[22:42, 198:250] = True
@@ -122,18 +170,23 @@ def fire_station(shop, rng):
     ub_sr = at.add(ub_side, ub_sg)
     # --- the hose tower. Its lower storey (rows 304..412) with what the art draws from above in it painted out: the
     # canopy's top over the door (rows 334..366) and the beacons standing on it; the brick behind is the bay's own (the
-    # same bricks, from between its doors), the windows over it as drawn
+    # same bricks, from between its doors), the windows over it as drawn. The canopy's face (rows 366..372) stands 32
+    # before the tower, so its foot would be row 444: it is 72..78 up, and the art shows only the door's foot under
+    # it (rows 372..404, 8..40 up). The door is rebuilt to its full height (8..58, two leaves of two glazed panels
+    # each over the drawn kick panels, its jambs and head as drawn), the brick over it to the canopy.
     low = art[304:GT, 12:176].copy()
     patch = tile(art[316:348, 320:350], 40, 112)
     low[334 - 304:374 - 304, 40 - 12:152 - 12] = patch[:40, :112]
     low[318 - 304:334 - 304, 54 - 12:70 - 12] = fill_rows(low[318 - 304:334 - 304, 40 - 12:84 - 12], np.pad(np.ones((16, 16), bool), ((0, 0), (14, 14))))[:, 14:30]
     low[318 - 304:334 - 304, 122 - 12:138 - 12] = fill_rows(low[318 - 304:334 - 304, 108 - 12:152 - 12], np.pad(np.ones((16, 16), bool), ((0, 0), (14, 14))))[:, 14:30]
-    # (the door is as drawn below the canopy: rows 372..400)
-    low[370 - 304:374 - 304, 42 - 12:150 - 12] = art[370:374, 42:150]
-    low_panes, low_glow = panes_of(low)
+    dx = slice(46, 146)                                  # the door with its jambs
+    glazed = art[376:392, dx]
+    door = np.concatenate([art[372:376, dx], glazed[:, ::-1], art[374:376, dx], glazed, art[392:404, dx]])
+    low[GT - 8 - door.shape[0] - 304:GT - 8 - 304, dx.start - 12:dx.stop - 12] = door
+    low_panes, low_glow = lit_panes(low)
     low_r = at.add(low, low_glow)
     up = art[140:304, 8:184].copy()
-    up_panes, up_glow = panes_of(up)
+    up_panes, up_glow = lit_panes(up)
     up_r = at.add(up, up_glow)
     post = art[250, 14]
     # its side walls: the front's courses (clear brick either side of the emblem and the door), its small windows
@@ -205,9 +258,9 @@ def fire_station(shop, rng):
              [v for p in rq for v in p], roof_c, hip=(art[116, 34], art[116, 36]), flush=flush),
         mbox((52, 140), (R, R + 6), (hd0 + run, hd1 - run), (art[70, 96], art[90, 96], shade(art[90, 96], .85)), ft=lant_f, tt=lant_t),
         # the canopy over the door and its beacons
-        mbox((42, 150), (40, 46), (DT - 32, DT), (canopy_c, art[368, 96], shade(art[368, 96], .85)), ft=cf_r, tt=ct_r),
-        mbox((54, 68), (46, 77), (DT - 20, DT - 20), (canopy_c, canopy_c, canopy_c), ft=b1, card=True),
-        mbox((122, 136), (46, 77), (DT - 20, DT - 20), (canopy_c, canopy_c, canopy_c), ft=b2, card=True),
+        mbox((42, 150), (72, 78), (DT - 32, DT), (canopy_c, art[368, 96], shade(art[368, 96], .85)), ft=cf_r, tt=ct_r),
+        mbox((54, 68), (78, 109), (DT - 20, DT - 20), (canopy_c, canopy_c, canopy_c), ft=b1, card=True),
+        mbox((122, 136), (78, 109), (DT - 20, DT - 20), (canopy_c, canopy_c, canopy_c), ft=b2, card=True),
         # the landing, the step, the cheeks either side
         mbox((52, 140), (0, 8), (DT - 28, DT), (tread, art[436, 96], shade(art[436, 96], .85)), ft=land_f, tt=land_t),
         mbox((52, 140), (0, 4), (DT - 40, DT - 28), (tread, art[454, 96], shade(art[454, 96], .85)), ft=step_f, tt=step_t),
@@ -220,8 +273,8 @@ def fire_station(shop, rng):
     fr.put(ub, 200, 140, ub_glow); fr.put(art[232:240, 176:488], 176, 140); fr.put(bay, 176, 0, bay_glow)
     fr.put(face, 16, E); fr.put(art[88:94, 52:140], 52, R)
     fr.put(up, 8, 108, up_glow); fr.put(low, 12, 0, low_glow)
-    fr.put(art[366:372, 42:150], 42, 40)
-    fr.put(bp1, 54, 46); fr.put(bp2, 122, 46)
+    fr.put(art[366:372, 42:150], 42, 72)
+    fr.put(bp1, 54, 78); fr.put(bp2, 122, 78)
     fr.put(art[432:440, 52:140], 52, 0)
     model = dict(kind='civic', w=W, frontX=(224 - W) / 2, setback=setback, lawn='paving', style='natural', parts=parts,
                  fence=None, roofTint=rgb_int(roof_c), lamp=None, lights='shop', smoke=[], fpx=0)
@@ -231,23 +284,25 @@ def fire_station(shop, rng):
 # ------------------------------------------------------------------------------------------------ the hospital
 # landmark_hospital_1 (864 x 672): three volumes of different heights side by side, each under a flat roof behind a
 # wide coping: the main block on the left (its foot on row 540), the middle block standing 96 forward of it and taller
-# (foot on 636; the art shows its left side as the slanted strip at x 256..288), the emergency wing on the right, 32
+# (foot on 636; its left corner chamfered: the slanted strip at x 256..288), the emergency wing on the right, 32
 # forward and the tallest (foot on 572). Before the main block an entrance canopy on two pillars with a blue cross
 # standing on its edge; a road arrow on the ground under it. On the middle block's roof the helipad (a decal); on the
-# main block's, a plant room with a fan unit on it. Every volume runs back to the same back line (d 200).
+# main block's, a plant room with a fan unit on it. Every volume runs back to the same back line (d 256).
 def hospital(shop, rng):
     art = solid(np.array(load(shop['parts'][0]['key'])))
     W = 864; at = Atlas(1024)
     GL, GM, GW = 540, 636, 572
-    DM, DW, BACK = GL - GM, GL - GW, 200          # -96, -32: the middle block's and the wing's fronts
+    DM, DW = GL - GM, GL - GW                      # -96, -32: the middle block's and the wing's fronts
+    # the back line: the main roof's back coping, its top (244 up) on rows 41..69 of the art, ends 256 back
+    BACK = 256
     PT = 32                                        # the coping's width, all round
     wall = art[330, 20]; cope = art[280, 120]; cope_in = art[84, 120]; roof_c = art[200, 150]
-    # --- the main block's front (rows 296..540: the coping's face 296..320, the wall), x 0..288: the art's x 248..288 is
-    # the middle block's side, so the plain wall right of the windows is carried on to 284 and the corner's ink after it
+    # --- the main block's front (rows 296..540: the coping's face 296..320, the wall), x 0..288: it ends at x 256, where
+    # the chamfered corner (the art's slanted strip x 256..288) runs from it forward to the middle block's front; what
+    # stands behind that corner (x 256..288, never seen) is the wall carried on
     mf = np.zeros((GL - 296, 288, 4), np.uint8)
-    mf[:, :248] = art[296:GL, 0:248]
-    mf[:, 248:284] = tile(art[296:GL, 212:248], GL - 296, 36)
-    mf[:, 284:288] = art[296:GL, 250:254]
+    mf[:, :256] = art[296:GL, 0:256]
+    mf[:, 256:288] = tile(art[296:GL, 212:248], GL - 296, 32)
     # what the canopy hides in the art (its top from above, rows 434..544, and its face) is the wall again: above where
     # it meets the wall (rows < 452) the wall's own rows; under it the entrance, a glass front between the two glass side
     # doors the art shows either side
@@ -261,12 +316,12 @@ def hospital(shop, rng):
     ent[:, :, :3] = np.where(np.arange(56)[:, None, None] < 3, frame[:3], ent[..., :3])
     mf[480 - 296:536 - 296, 64:192] = ent
     mf[536 - 296:GL - 296, 64:192] = art[536:GL, 30:40][:, np.arange(128) % 10]
-    mf_panes, mf_glow = panes_of(mf[24:])
+    mf_panes, mf_glow = lit_panes(mf[24:])
     mf_r = at.add(mf[24:], mf_glow)
     mf_glow = np.concatenate([np.zeros_like(mf[:24]), mf_glow])
     # --- the middle block's front (rows 352..636) and the wing's (rows 192..572)
     df = art[352:GM, 288:544].copy()
-    df_panes, df_glow = panes_of(df[24:])
+    df_panes, df_glow = lit_panes(df[24:])
     wf = art[192:GW, 544:856].copy()
     # the slab over the ambulance bays stands out (its top from above rows 488..496 painted out of the wall)
     wf[488 - 192:496 - 192, 16:272] = fill_rows(wf[488 - 192:496 - 192], np.pad(np.ones((8, 256), bool), ((0, 0), (16, 40))))[:, 16:272]
@@ -274,7 +329,7 @@ def hospital(shop, rng):
     # roof its front and its parts behind are one box, below they are three (each open or against a neighbour)
     df_r = at.add(df[24:], df_glow)
     df_glow = np.concatenate([np.zeros_like(df[:24]), df_glow])
-    lo_panes, lo_glow = panes_of(wf[120:]); hi_panes, hi_glow = panes_of(wf[24:120])
+    lo_panes, lo_glow = lit_panes(wf[120:]); hi_panes, hi_glow = lit_panes(wf[24:120])
     wf_lo = at.add(wf[120:], lo_glow); wf_hi = at.add(wf[24:120], hi_glow)
     wf_glow = np.concatenate([np.zeros_like(wf[:24]), hi_glow, lo_glow])
     cope_m, cope_d, cope_w = at.add(mf[:24]), at.add(df[:24]), at.add(wf[:24])
@@ -288,10 +343,16 @@ def hospital(shop, rng):
     ws, ws_g = walls(column_rows(art[192:GW], list(range(552, 584)) + list(range(820, 848))), BACK - DW, rng, corner,
                      [(art[230:274, 588:660], .3, 38), (art[230:274, 588:660], .75, 38)])
     ms_r = at.add(ms[24:], ms_g[24:])
-    # the middle block's side in its pieces: its front part (96..32), the strip before the main block (32..0), the
-    # rest (below the main block's roof and above it)
-    hgt = ds.shape[0]
-    ds_front = at.add(ds[24:, :64], ds_g[24:, :64]); ds_notch = at.add(ds[hgt - 220:, 64:96], ds_g[hgt - 220:, 64:96])
+    # the chamfered corner: a face 101 long (plan (256, 0) to (288, -96)) with the middle block's courses and, as the
+    # art's strip shows, two tall narrow windows (a light of the front's grid each, from 56 to 216 up)
+    CH = int(round(np.hypot(32, 96)))
+    chw = art[418:582, 322:346]
+    ch, ch_g = walls(column_rows(art[352:GM], list(range(292, 300)) + list(range(366, 382))), CH, rng, corner,
+                     [(chw, .3, 66), (chw, .7, 66)])
+    ch_panes, ch_glow = lit_panes(ch[24:])
+    ch_r = at.add(ch[24:], ch_glow)
+    chc_r = at.add(tile(df[:24, 40:60], 24, CH))
+    # the middle block's side above the main block's roof (before that roof it is behind the chamfered corner)
     ds_up = at.add(ds[24:64, 64:], ds_g[24:64, 64:])
     ws_lo = at.add(ws[120:], ws_g[120:]); ws_hi = at.add(ws[24:120], ws_g[24:120])
     # --- the roofs: the art's grey roof (its tiles laid over each), the copings round them (their face as the fronts
@@ -315,7 +376,7 @@ def hospital(shop, rng):
     ar_r = at.add(ar)
     # --- the plant room on the main block's roof (its front rows 92..160, its top from above 8..92) and the fan unit
     pf = art[92:160, 64:256].copy()
-    pf_panes, pf_glow = panes_of(pf)
+    pf_panes, pf_glow = lit_panes(pf)
     pf_r = at.add(pf, pf_glow)
     ptop = art[8:92, 64:256].copy()
     fm = np.zeros(ptop.shape[:2], bool); fm[2:44, 24:82] = True
@@ -344,14 +405,16 @@ def hospital(shop, rng):
         abut(mbox((0, 288), (0, HL), (0, BACK), (roof_c, wall, wall), ft=mf_r, st=ms_r, tt=roof_of(288, BACK), panes=mf_panes), 'r'),
         mbox((0, 288), (HL, HL + 24), (0, PT), (cope, cope_in, shade(cope_in, .9)), ft=cope_m),
         mbox((0, PT), (HL, HL + 24), (PT, BACK), (cope, cope_in, shade(cope_in, .9))),
-        mbox((PT, 288), (HL, HL + 24), (BACK - PT, BACK), (cope, cope_in, shade(cope_in, .9))),
-        # its plant room and the fan unit on it
-        mbox((64, 256), (HL, HL + 68), (104, 184), (art[60, 200], wall, wall), ft=pf_r, tt=pt_r, st=ps_r, panes=pf_panes),
-        mbox((90, 144), (HL + 68, HL + 76), (152, 172), (art[30, 120], art[46, 120], shade(art[46, 120], .85)), ft=fan_f, tt=fan_t),
+        mbox((PT, 64), (HL, HL + 24), (BACK - PT, BACK), (cope, cope_in, shade(cope_in, .9))),
+        mbox((256, 288), (HL, HL + 24), (BACK - PT, BACK), (cope, cope_in, shade(cope_in, .9))),
+        mbox((64, 256), (HL, HL + 24), (244, BACK), (cope, cope_in, shade(cope_in, .9))),
+        # its plant room (standing over the back coping, which runs on behind it) and the fan unit on it
+        mbox((64, 256), (HL, HL + 68), (160, 244), (art[60, 200], wall, wall), ft=pf_r, tt=pt_r, st=ps_r, panes=pf_panes),
+        mbox((90, 144), (HL + 68, HL + 76), (202, 232), (art[30, 120], art[46, 120], shade(art[46, 120], .85)), ft=fan_f, tt=fan_t),
         # the middle block below the main block's roof: behind it (against the main block and the wing), and the strip
         # between its front part and the main block (open on its left, against the wing)
         abut(mbox((288, 544), (0, HL), (0, BACK), (wall, wall, wall), top=False), 'lr'),
-        abut(mbox((288, 544), (0, HL), (DW, 0), (wall, wall, wall), st=ds_notch, top=False), 'r'),
+        abut(mbox((288, 544), (0, HL), (DW, 0), (wall, wall, wall), top=False), 'lr'),
         # the wing below the middle block's roof (against the middle block)
         abut(mbox((544, 856), (0, HM), (DW, BACK), (wall, wall, wall), ft=wf_lo, st=ws_lo, panes=lo_panes, top=False), 'l'),
         # the middle block above the main block's roof, behind its front part (against the wing)
@@ -364,13 +427,18 @@ def hospital(shop, rng):
         mbox((544 + PT, 856 - PT), (HW, HW + 24), (BACK - PT, BACK), (cope, cope_in, shade(cope_in, .9))),
         # the middle block's front part, its roof and coping (along its front, its left and its back; on the right only
         # before the wing)
-        mbox((288, 544), (0, HM), (DM, DW), (roof_c, wall, wall), ft=df_r, st=ds_front, tt=roof_of(256, DW - DM), panes=df_panes),
-        # (the helipad lies on its roof, inside the coping, which hides its near edge from the street)
-        decal((320, 490), HM + .5, (-35, 136), hp_r),
-        mbox((288, 544), (HM, HM + 24), (DM, DM + PT), (cope, cope_in, shade(cope_in, .9)), ft=cope_d),
-        mbox((288, 288 + PT), (HM, HM + 24), (DM + PT, BACK), (cope, cope_in, shade(cope_in, .9))),
+        abut(mbox((288, 544), (0, HM), (DM, DW), (roof_c, wall, wall), ft=df_r, tt=roof_of(256, DW - DM), panes=df_panes), 'l'),
+        # (the helipad lies on its roof where the art draws it: rows 155..305 on a roof 260 up whose front's foot is row
+        # 636 put it 71..221 back; laid round, 170 deep, inside the coping)
+        decal((320, 490), HM + .5, (54, 224), hp_r),
+        abut(mbox((288, 544), (HM, HM + 24), (DM, DM + PT), (cope, cope_in, shade(cope_in, .9)), ft=cope_d), 'l'),
+        mbox((288, 288 + PT), (HM, HM + 24), (0, BACK), (cope, cope_in, shade(cope_in, .9))),
         abut(mbox((544 - PT, 544), (HM, HM + 24), (DM + PT, DW), (cope, cope_in, shade(cope_in, .9))), 'r'),
         mbox((288 + PT, 544), (HM, HM + 24), (BACK - PT, BACK), (cope, cope_in, shade(cope_in, .9))),
+        # the chamfered corner from the main block's front to the middle block's, and its coping (its faces inside the
+        # middle block hidden)
+        prism([(256, 0), (288, DM), (288, 0)], (0, HM), (roof_c, wall, wall), ft=ch_r, panes=ch_panes, hide=(1,)),
+        prism([(256, 0), (288, DM), (288 + PT, DM + PT), (288 + PT, 0)], (HM, HM + 24), (cope, cope_in, cope_in), ft=chc_r, hide=(1, 2)),
         # the wing's slab over the ambulance bays
         mbox((560, 816), (68, 76), (DW - 10, DW), (art[492, 700], art[500, 700], shade(art[500, 700], .85)), ft=sl_f, tt=sl_t),
         # before the main block: the arrow on the ground, the canopy on its pillars, the cross on its edge
@@ -412,7 +480,7 @@ def post_office(shop, rng):
     for (a, b, glass_c, band_c) in ((25, 31, 23, 34), (223, 229, 231, 218)):
         sf[230 - 216:304 - 216, a:b] = sf[230 - 216:304 - 216, glass_c:glass_c + 1]
         sf[304 - 216:320 - 216, a:b] = sf[304 - 216:320 - 216, band_c:band_c + 1]
-    sf_panes, sf_glow = panes_of(sf)
+    sf_panes, sf_glow = lit_panes(sf)
     sf_r = at.add(sf, sf_glow)
     side, side_g = walls(column_rows(art[216:G], list(range(2, 8)) + list(range(248, 254))), 144, rng, art[300, 1],
                          [(art[236:300, 40:96], .3, 20), (art[236:300, 40:96], .72, 20)])
@@ -426,7 +494,7 @@ def post_office(shop, rng):
     # its top (rows 4..80) with the hatches and vents painted out (they stand on it)
     uf = art[80:148, 20:236].copy()
     for y in range(uf.shape[0]): uf[y, 126:152] = uf[y, 154]
-    uf_panes, uf_glow = panes_of(uf)
+    uf_panes, uf_glow = lit_panes(uf)
     uf_r = at.add(uf, uf_glow)
     ut = art[4:80, 20:236].copy()
     um = np.zeros(ut.shape[:2], bool); um[6:38, 16:112] = True; um[44:68, 20:72] = True; um[24:78, 194:216] = True
@@ -448,14 +516,17 @@ def post_office(shop, rng):
         lad[y - 1:y + 2, 3:21] = ink; lad[y, 3:21] = rail
     lad[..., 3] = np.where(lad[..., :3].sum(-1) > 0, 255, 0)
     lad_r = at.add(lad)
-    # the mast on the upper block's roof: a pole with two cross-bars, in the art's light and ink
-    pole, pink = art[56, 226], art[56, 228]
-    mast = np.zeros((40, 16, 4), np.uint8)
-    mast[:, 7:9] = pole
-    for y in (6, 16):
-        mast[y:y + 2, 1:15] = pole; mast[y + 2, 1:15] = pink
-    mast[0:2, 6:10] = pink
-    mast[..., 3] = np.where(mast[..., :3].sum(-1) > 0, 255, 0)
+    # the mast on the upper block's roof, at its front right corner (its foot on row 76, 262 up: 72 back): the art's own
+    # pole (x 226..229), its cross-bar with the orange tip (rows 44..47) and the stays under it, cut from the roof
+    # drawn behind them
+    mast = art[32:77, 212:244].copy()
+    keep = np.zeros(mast.shape[:2], bool)
+    keep[:, 14:18] = True; keep[12:16, 2:32] = True
+    stays = np.zeros_like(keep); stays[16:22, 8:26] = True
+    # (not the roof's dark top round them)
+    keep |= stays & (rgb_int_img(mast) != rgb_int(art[50, 212]))
+    mast = card_of(mast, keep & (mast[..., 3] > 0))
+    pole = art[56, 226]
     mast_r = at.add(mast)
     # --- the awning: its top (rows 320..336) sloping from the wall out and down to its face (rows 336..352, the sign);
     # the rods hang it from brackets on the wall
@@ -473,7 +544,7 @@ def post_office(shop, rng):
         dfront = 148 - 6 - t1
         parts.append(mbox((x0, x1), (262, 268), (dfront, dfront + (20 if t1 == 32 else 14)), (tc, fc, shade(fc, .85)), ft=front, tt=top, outline=True))
     parts += [
-        mbox((218, 234), (262, 302), (100, 100), (pole, pole, pole), ft=mast_r, card=True),
+        mbox((212, 244), (262, 306), (72, 72), (pole, pole, pole), ft=mast_r, card=True),
         mbox((146, 170), (194, 280), (66, 66), (rail, rail, rail), ft=lad_r, card=True),
         # the awning, its rods and their brackets
         mbox((26, 30), (176, 180), (-18, 0), (rod, rod, shade(rod, .8)), outline=True),
@@ -485,7 +556,7 @@ def post_office(shop, rng):
     setback = 32
     lawn, fence, fence_snow = yard(rng, W, setback + 144, False, (0, 0, 0), 'natural', [], ground='paving')
     fr = Front(W, 302)
-    fr.put(uf, 20, 194, uf_glow); fr.put(lad, 146, 194); fr.put(mast, 218, 262)
+    fr.put(uf, 20, 194, uf_glow); fr.put(lad, 146, 194); fr.put(mast, 212, 262)
     fr.put(art[208:216, 0:256], 0, 194); fr.put(sf, 0, 0, sf_glow)
     fr.put(art[336:352, 16:240], 16, 58)
     model = dict(kind='civic', w=W, frontX=(224 - W) / 2, setback=setback, lawn='paving', style='natural', parts=parts,
