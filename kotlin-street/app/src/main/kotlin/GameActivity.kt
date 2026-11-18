@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -137,6 +138,8 @@ class GameActivity : ComponentActivity() {
     override fun onPause() {
         getSystemService(android.hardware.input.InputManager::class.java)?.unregisterInputDeviceListener(devices)
         letGo()
+        // (the always-listening mic closes)
+        Foreground.resumed = false
         // Filament draws nothing in the background
         StreetRenderer.paused = true
         super.onPause()
@@ -208,6 +211,7 @@ class GameActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        Foreground.resumed = true
         StreetRenderer.paused = false
         getSystemService(android.hardware.input.InputManager::class.java)?.registerInputDeviceListener(devices, null)
     }
@@ -372,10 +376,14 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     // GameState is plain vars the stage updates every frame: copy them into Compose state so the HUD follows them
     var near by remember { mutableIntStateOf(GameState.nearest) }
     var atCorner by remember { mutableStateOf(GameState.atCorner) }
+    // the frame drawn last: the speech bubbles follow people with it (read only where they are laid out, so the screen
+    // is not recomposed every frame)
+    val frameTick = remember { mutableLongStateOf(0L) }
     LaunchedEffect(Unit) {
         var last = 0L
         while (true) {
             val now = androidx.compose.runtime.withFrameNanos { it }
+            frameTick.longValue = now
             // how long each frame took, for the AI panel's frame line (is it really 120 Hz on the phone?)
             if (last != 0L) FrameStats.add((now - last) / 1e6f)
             last = now
@@ -414,10 +422,10 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     LaunchedEffect(talk != null) {
         if (talk != null) engine.pause("talking") else engine.resume("talking")
     }
-    // walking away ends the conversation
+    // walking away ends the conversation (one started by voice: walking out of earshot, see below)
     LaunchedEffect(here) {
         val t = talk
-        if (t != null && t.npc.building != here) { t.close(voices); talk = null }
+        if (t != null && !t.byVoice && t.npc.building != here) { t.close(voices); talk = null }
     }
     val pickModel = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) engine.importModel(uri) }
     // the sound follows the hour, the weather and the season; a footstep each time a foot is put down (the drawn legs'
@@ -457,7 +465,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         while (true) {
             val a = engine.status.value
             val what = "build ${BuildConfig.VERSION_NAME} · AI ${a.state} on ${listOf("CPU", "GPU", "NPU").getOrElse(a.runsOn) { "?" }} · lane ${com.timerpg.street.llm.AiLane.current ?: "idle"} · " +
-                "mic ${ears.state} · ${if (talk != null) "talking" else "walking"} · street $streetNo building #$near"
+                "mic ${if (ears.always) "always" else ears.state} · ${if (talk != null) "talking" else "walking"} · street $streetNo building #$near"
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { CrashReport.breadcrumb(ctx.applicationContext, what) }
             kotlinx.coroutines.delay(3000)
         }
@@ -467,10 +475,25 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     LaunchedEffect(Unit) { updater.check(quiet = true) }
     androidx.compose.runtime.DisposableEffect(Unit) { onDispose { ears.release(); memory.release() } }
     // what the people here say while they think, voiced ahead (so it plays at once)
-    LaunchedEffect(atHere.firstOrNull()?.id) { atHere.firstOrNull()?.let { voices.prepareFillers(it, Fillers.all(it.warmth)) } }
+    LaunchedEffect(atHere.firstOrNull()?.id, voices.enabled) { if (voices.enabled) atHere.firstOrNull()?.let { voices.prepareFillers(it, Fillers.all(it.warmth)) } }
     // the speech model loads when a conversation opens (not when walking past people)
     LaunchedEffect(talk != null) { if (talk != null) ears.prewarm() }
-    val askMic = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    // the settings' mic: always listening (kept), instead of holding the mic button in a conversation
+    val micPrefs = remember { ctx.getSharedPreferences("mic", android.content.Context.MODE_PRIVATE) }
+    var micAlways by remember { mutableStateOf(micPrefs.getBoolean("always", false)) }
+    var micGranted by remember { mutableStateOf(ears.hasPermission()) }
+    var wantAlways by remember { mutableStateOf(false) }
+    fun setMicAlways(on: Boolean) { micAlways = on; micPrefs.edit().putBoolean("always", on).apply() }
+    val askMic = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        micGranted = granted
+        if (wantAlways && granted) setMicAlways(true)
+        wantAlways = false
+    }
+    val onMicAlways: (Boolean) -> Unit = { on ->
+        if (!on) setMicAlways(false)
+        else if (ears.hasPermission()) { micGranted = true; setMicAlways(true) }
+        else { wantAlways = true; askMic.launch(android.Manifest.permission.RECORD_AUDIO) }
+    }
     // the words to expect: the town's name and everyone's names, so the recognizer spells them as the game does
     val names = remember(engine.data.value) {
         engine.data.value?.let { d -> (listOf(d.townName) + d.npcs.map { it.name }).distinct().joinToString(", ") } ?: ""
@@ -586,7 +609,55 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     }
     LaunchedEffect(backHint, backAt) { if (backHint) { kotlinx.coroutines.delay(2000); backHint = false } }
     // the up key turns the corner only when nothing else holds the player: inside, a door, a conversation, the NPU tuning
-    androidx.compose.runtime.SideEffect { CornerWalk.blocked = inside != null || doorTo != null || talk != null || tuning }
+    androidx.compose.runtime.SideEffect { CornerWalk.blocked = inside != null || doorTo != null || talk?.byVoice == false || tuning }
+    // ---- always listening: someone near hears what the player says (see TalkRange), answering in a bubble over their head
+    var playerSaid by remember { mutableStateOf<Pair<String, Long>?>(null) }
+    var noOneNear by remember { mutableLongStateOf(0L) }
+    val heardNow by rememberUpdatedState<(String) -> Unit> { said ->
+        if (!turning && doorTo == null) {
+            playerSaid = said to System.nanoTime()
+            // who is near enough to hear it: inside, the person here when standing by them; on the street, the nearest of
+            // the people standing at their doors within earshot
+            val target: Pair<Npc, Int>? = if (inside != null) atHere.firstOrNull()?.takeIf { nearKeeper }?.let { it to near }
+            else {
+                val doors = street.sprites.indices.mapNotNull { i -> people?.at(street.sprites[i])?.firstOrNull()?.let { i to it } }
+                val k = com.lifemax.rpg.feature.habits.presentation.scene.TalkRange.nearest(GameState.x, GameState.lane, doors.map { it.first }, GameState.centers)
+                doors.getOrNull(k)?.let { (i, npc) -> npc to i }
+            }
+            if (target == null) noOneNear = System.nanoTime()
+            else {
+                val (npc, door) = target
+                val t = talk?.takeIf { it.npc.id == npc.id } ?: Talk(npc, byVoice = true, door = door).also { talk?.close(voices); talk = it }
+                t.heardNote = ears.lastHeard
+                t.askSaid(engine, said, voices, memory)
+            }
+        }
+    }
+    // listening while the game is in front, the mic is on in the settings and conversation is possible (not turning the
+    // corner, not going through a door, not in a room with nobody in it)
+    val canListen = micAlways && micGranted && Foreground.resumed && !turning && doorTo == null && lastCrash == null && !tuning &&
+        (inside == null || atHere.isNotEmpty())
+    LaunchedEffect(canListen) {
+        if (canListen) ears.listen { heardNow(it) }
+        // switched off: the speech model goes now; only paused (the game in the background, a door): after a minute
+        else ears.stopListening(release = !micAlways)
+    }
+    androidx.compose.runtime.SideEffect {
+        ears.expect = names
+        // an NPC's voice playing is not the player speaking
+        ears.muted = voices.speaking
+    }
+    // a conversation started by voice ends when the player walks out of earshot (inside: away from the person)
+    LaunchedEffect(talk) {
+        val t = talk ?: return@LaunchedEffect
+        if (!t.byVoice) return@LaunchedEffect
+        while (talk === t) {
+            androidx.compose.runtime.withFrameNanos { }
+            val gone = if (inside != null) !nearKeeper
+                else t.npc.street != streetNo || com.lifemax.rpg.feature.habits.presentation.scene.TalkRange.fromPlayer(t.door) > com.lifemax.rpg.feature.habits.presentation.scene.TalkRange.leaveDistance
+            if (gone) { t.close(voices); talk = null }
+        }
+    }
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         val room = inside
         if (room != null) com.lifemax.rpg.feature.habits.presentation.scene.InteriorStage(room, walker, hour, keeperSheet, Modifier.fillMaxSize())
@@ -622,9 +693,11 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         }
         // someone to talk to here
         val open = talk
-        if (open != null) {
+        // the speech bubbles: what the person said back (over their head) and the player's own words (over theirs)
+        if (inside == null || keeperSpot != null) SpeechBubbles(open, playerSaid, frameTick, inside, keeperSpot, walker)
+        if (open != null && !open.byVoice) {
             DialoguePanel(open, onTopic = { open.ask(engine, it, voices) }, onClose = { open.close(voices); talk = null },
-                ears = ears,
+                ears = ears, holdToTalk = !micAlways,
                 onTalk = { down ->
                     if (down) {
                         if (!ears.hasPermission()) askMic.launch(android.Manifest.permission.RECORD_AUDIO)
@@ -633,7 +706,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                     if (!down && ears.state == com.timerpg.street.voice.PlayerVoice.State.IDLE) engine.resume("listening")
                 },
                 modifier = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 92.dp))
-        } else if (!turning && doorTo == null) {
+        }
+        if ((open == null || open.byVoice) && !turning && doorTo == null) {
             // someone to talk to (inside: when standing near them); the way in and out. Under the right thumb, as a game
             // pad's buttons are, clear of the stick's zone on the left
             val roomHere = street.sprites.getOrNull(near)?.let { rooms[it] }
@@ -641,11 +715,16 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 if (inside == null || nearKeeper) for (npc in atHere) Chip("Talk to ${npc.first}", false) {
                     // a thumb on the stick stops walking (it would walk away and end the conversation) until it is moved again
                     MoveInput.holdUntilNeutral()
+                    talk?.close(voices)
                     talk = Talk(npc).also { t -> npc.topics.firstOrNull()?.let { t.ask(engine, it, voices) } }
                 }
                 if (inside != null) Chip("Leave", false) { doorTo = false to null }
                 else if (roomHere != null) Chip("Go inside", false) { doorTo = true to roomHere }
             }
+        }
+        if (noOneNear != 0L) {
+            Text("no one near enough to hear you", 12.sp, Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp), color = DIM.copy(alpha = .7f))
+            LaunchedEffect(noOneNear) { kotlinx.coroutines.delay(1800); noOneNear = 0L }
         }
         lastCrash?.let { report ->
             Column(
@@ -697,8 +776,9 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         // model file and the speed numbers
         Column(Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = 50.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Chip(aiChipLabel(ai), aiPanel) { aiPanel = !aiPanel }
+            if (micAlways) MicLamp(ears, canListen)
             updater.available?.let { r -> if (!aiPanel) Chip("⬆ Update: ${r.versionName}", false) { aiPanel = true } }
-            if (aiPanel) AiPanel(ai, engine, voices, updater, onPick = {
+            if (aiPanel) AiPanel(ai, engine, voices, updater, micAlways, onMicAlways, onPick = {
                 try { pickModel.launch(arrayOf("*/*")) } catch (e: Exception) { /* no document picker on this device */ }
             })
         }
@@ -706,7 +786,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
 }
 
 /** An open conversation: who, the topic asked, and the line on screen (updated as the model writes it). */
-private class Talk(val npc: Npc) {
+private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -1) {
     var topic by mutableStateOf<Topic?>(null)
     var line by mutableStateOf<Line?>(null)
     private var request: DialogueEngine.Request? = null
@@ -753,6 +833,8 @@ private class Talk(val npc: Npc) {
         return true
     }
 
+    /** How many times the player has spoken to them in this conversation (each answer's bubble is its own). */
+    var asked by mutableIntStateOf(0)
     /** What the player last said out loud, shown above the answer. */
     var said by mutableStateOf<String?>(null)
     /** How long each step of the last spoken question took (hearing, memories, the model), shown under the answer. */
@@ -765,6 +847,9 @@ private class Talk(val npc: Npc) {
                 memory: com.timerpg.street.dialogue.MemoryService? = null) {
         request?.close()
         said = text
+        asked++
+        // (a bubble shows the answer to these words only: not the last one while their memories are looked up)
+        if (byVoice) line = null
         var spoken: String? = null
         val t0 = android.os.SystemClock.elapsedRealtime()
         var tAsk = 0L; var tFirst = 0L
@@ -817,7 +902,7 @@ private val AI_BLUE = Color(0xFF6FA8FF)
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DialoguePanel(t: Talk, onTopic: (Topic) -> Unit, onClose: () -> Unit, modifier: Modifier,
-                          ears: com.timerpg.street.voice.PlayerVoice? = null, onTalk: (Boolean) -> Unit = {}) {
+                          ears: com.timerpg.street.voice.PlayerVoice? = null, holdToTalk: Boolean = true, onTalk: (Boolean) -> Unit = {}) {
     Column(
         modifier.widthIn(max = 560.dp).background(PANEL, RoundedCornerShape(14.dp)).opaque().padding(horizontal = 14.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -841,11 +926,119 @@ private fun DialoguePanel(t: Talk, onTopic: (Topic) -> Unit, onClose: () -> Unit
         }
         t.timing?.let { Text(it, 11.sp, color = DIM) }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            if (ears != null) MicButton(ears, onTalk)
+            if (ears != null && holdToTalk) MicButton(ears, onTalk)
+            if (!holdToTalk) Text("🎤 Just speak: the mic is listening", 12.sp, Modifier.padding(vertical = 6.dp), color = DIM)
             for (tp in t.npc.topics) Chip(chipLabel(tp), t.topic === tp) { onTopic(tp) }
         }
         ears?.problem?.let { Text(it, 11.sp, color = Color(0xFFFFB4A0)) }
         if (ears?.usingPhone == true) Text("Heard by the phone's own speech recognition (ours does not fit in memory beside the AI on the NPU).", 11.sp, color = DIM)
+    }
+}
+
+/** Whether the game is in front (resumed): the always-listening mic listens only then. */
+private object Foreground {
+    var resumed by mutableStateOf(false)
+}
+
+/** The always-listening mic at a glance: listening, hearing the player (with the meter), writing it down, paused. */
+@Composable
+private fun MicLamp(ears: com.timerpg.street.voice.PlayerVoice, live: Boolean) {
+    val label = when {
+        !live -> "🎤 paused"
+        ears.writing > 0 -> "🎤 …"
+        ears.hearing -> "🎤 hearing you"
+        else -> "🎤 listening"
+    }
+    val on = live && ears.hearing
+    Box(
+        Modifier.background(if (on) Color(0xFF8A2E2E).copy(alpha = .55f + .45f * ears.level) else Color(0x99101420), RoundedCornerShape(10.dp))
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+    ) { Text(label, 12.sp, color = if (live) Color.White else DIM) }
+    ears.problem?.takeIf { live }?.let { Text(it, 11.sp, Modifier.widthIn(max = 260.dp), color = Color(0xFFFFB4A0)) }
+}
+
+/**
+ * The bubbles of a conversation by voice: the person's answer over their head (thinking dots while it is written, then the
+ * line, wrapped, fading after a time that grows with its length), and the player's own words over theirs for a moment.
+ * They follow the people as the street scrolls ([frameTick]: read only while laying them out). On the street the heads
+ * are where the stage put them ([com.lifemax.rpg.feature.habits.presentation.scene.TalkRange]); in a room, where it fits.
+ */
+@Composable
+private fun SpeechBubbles(
+    talk: Talk?, playerSaid: Pair<String, Long>?, frameTick: androidx.compose.runtime.LongState,
+    room: com.lifemax.rpg.feature.habits.presentation.scene.InteriorRoom?, keeperSpot: Pair<Float, Float>?,
+    walker: com.lifemax.rpg.feature.habits.presentation.scene.RoomWalker,
+) {
+    val tr = com.lifemax.rpg.feature.habits.presentation.scene.TalkRange
+    if (talk != null && talk.byVoice && talk.said != null) {
+        val l = talk.line
+        // the game's own line stands in while the model writes (it is not what they will say): dots until the model's words come
+        val text = when { l == null -> "…"; l.ai || l.final -> l.text; else -> "…" }
+        Bubble(text, l?.final == true, think = l?.final != true, keyOf = talk.npc.id + "#" + talk.asked, frameTick = frameTick) { w, h ->
+            if (room != null) keeperSpot?.let { tr.inRoom(room, it.first, it.second, w, h) } else tr.keeperHead(talk.door)
+        }
+    }
+    if (playerSaid != null) {
+        Bubble(playerSaid.first, true, think = false, keyOf = playerSaid.second.toString(), frameTick = frameTick, small = true) { w, h ->
+            if (room != null) tr.inRoom(room, walker.x, walker.y, w, h) else tr.playerHead()
+        }
+    }
+}
+
+/**
+ * One bubble over a head: [anchor] (the head on the screen, from the screen's size; null hides it) read each frame. Fades
+ * in, and once [final], out again after a few seconds (more for a longer line). [think]: a thought bubble's trail of
+ * dots under it (still thinking), else a speech bubble's tail. Square-edged and outlined, as the HUD's pixel art.
+ */
+@Composable
+private fun Bubble(text: String, final: Boolean, think: Boolean, keyOf: String, frameTick: androidx.compose.runtime.LongState,
+                   small: Boolean = false, anchor: (Float, Float) -> androidx.compose.ui.geometry.Offset?) {
+    val alpha = remember(keyOf) { androidx.compose.animation.core.Animatable(0f) }
+    LaunchedEffect(keyOf, text, final) {
+        alpha.animateTo(1f, androidx.compose.animation.core.tween(150))
+        if (final) {
+            val hold = if (small) (1500L + 40L * text.length).coerceAtMost(5000L) else (2500L + 55L * text.length).coerceAtMost(12_000L)
+            kotlinx.coroutines.delay(hold)
+            alpha.animateTo(0f, androidx.compose.animation.core.tween(600))
+        }
+    }
+    if (alpha.value <= 0f && final) return
+    val ink = Color(0xFF101420)
+    val paper = if (small) Color(0xE6D8E2F2) else Color(0xF2F4F1E8)
+    Column(
+        Modifier.layout { measurable, constraints ->
+            val w = constraints.maxWidth; val h = constraints.maxHeight
+            val p = measurable.measure(androidx.compose.ui.unit.Constraints(maxWidth = w, maxHeight = h))
+            @Suppress("UNUSED_VARIABLE") val tick = frameTick.longValue   // laid out again every frame
+            val at = anchor(w.toFloat(), h.toFloat())
+            layout(w, h) {
+                if (at != null) {
+                    val x = (at.x - p.width / 2f).toInt().coerceIn(4, (w - p.width - 4).coerceAtLeast(4))
+                    val y = (at.y - p.height).toInt().coerceIn(4, (h - p.height - 4).coerceAtLeast(4))
+                    p.place(x, y)
+                }
+            }
+        }.graphicsLayer { this.alpha = alpha.value },
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            Modifier.widthIn(max = if (small) 180.dp else 240.dp)
+                .background(ink, RoundedCornerShape(3.dp)).padding(2.dp)
+                .background(paper, RoundedCornerShape(2.dp)).padding(horizontal = 8.dp, vertical = 5.dp),
+        ) { Text(text, if (small) 11.sp else 13.sp, color = ink) }
+        if (think) {
+            // a thought's trail: two little squares, smaller towards the head
+            Spacer(Modifier.height(2.dp))
+            Box(Modifier.size(7.dp).background(ink).padding(1.5.dp).background(paper))
+            Spacer(Modifier.height(2.dp))
+            Box(Modifier.size(4.dp).background(ink))
+        } else {
+            // a speech bubble's tail: a stepped pixel wedge
+            Box(Modifier.size(width = 10.dp, height = 3.dp).background(ink))
+            Box(Modifier.size(width = 6.dp, height = 3.dp).background(ink))
+            Box(Modifier.size(width = 2.dp, height = 3.dp).background(ink))
+        }
+        Spacer(Modifier.height(4.dp))
     }
 }
 
@@ -903,7 +1096,8 @@ private fun f0(v: Float) = String.format(java.util.Locale.US, "%.0f", v)
 
 /** The model (its file and state) and the speed numbers. */
 @Composable
-private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.street.voice.NpcVoiceService, updater: AppUpdater, onPick: () -> Unit) {
+private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.street.voice.NpcVoiceService, updater: AppUpdater,
+                    micAlways: Boolean, onMicAlways: (Boolean) -> Unit, onPick: () -> Unit) {
     Column(
         Modifier.width(340.dp).heightIn(max = 240.dp).background(PANEL, RoundedCornerShape(12.dp)).opaque().verticalScroll(rememberScrollState())
             .padding(12.dp),
@@ -1002,7 +1196,12 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             if (missing > 0) Chip("Download everything: Qwen, voices, speech ($missing MB)", false) { voices.download { engine.reload() } }
             else Text("Qwen, Kokoro and Supertonic are installed.", 12.sp, color = DIM)
         }
-        Chip(if (voices.enabled) "Voices: on" else "Voices: off", voices.enabled) { voices.enabled = !voices.enabled; if (!voices.enabled) voices.stop() }
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            // off (the default) loads no voice and makes none ahead: switched off, they are let go at once
+            Chip(if (voices.enabled) "Voices: on" else "Voices: off", voices.enabled) { voices.switchTo(!voices.enabled) }
+            // always listening: say something near someone and they answer (hold to talk in a conversation otherwise)
+            Chip(if (micAlways) "Mic: always listening" else "Mic: hold to talk", micAlways) { onMicAlways(!micAlways) }
+        }
         Spacer(Modifier.height(2.dp))
         Text("Speed", 14.sp)
         val st = s.stats

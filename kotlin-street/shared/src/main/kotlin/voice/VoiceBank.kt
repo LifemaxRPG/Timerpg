@@ -86,7 +86,8 @@ class VoiceBank(private val models: File, private val cache: File, private val l
         if (voice.engine == NpcVoices.Engine.KOKORO) { supertonic?.close(); supertonic = null } else { kokoro?.close(); kokoro = null }
     }
 
-    override fun close() { kokoro?.close(); supertonic?.close(); kokoro = null; supertonic = null }
+    /** Lets go of both engines and the voices read for them (nothing of the voices stays in memory). */
+    override fun close() { kokoro?.close(); supertonic?.close(); kokoro = null; supertonic = null; kokoroVoices.clear(); supertonicStyles.clear() }
 
     private fun digest(s: String): String =
         MessageDigest.getInstance("SHA-256").digest(s.toByteArray()).joinToString("") { "%02x".format(it) }.take(32)

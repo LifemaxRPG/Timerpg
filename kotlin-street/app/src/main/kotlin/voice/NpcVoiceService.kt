@@ -42,13 +42,16 @@ class NpcVoiceService(private val ctx: Context) {
         java.util.concurrent.PriorityBlockingQueue<Runnable>()) { r -> Thread(r, "npc-voices").apply { isDaemon = true } }
     private val seq = java.util.concurrent.atomic.AtomicLong()
     private fun run(prio: Int, block: () -> Unit) = pool.execute(Job(prio, seq.incrementAndGet(), block))
-        private fun workerExecute(block: () -> Unit) = run(LIVE, block)
+    private fun workerExecute(block: () -> Unit) = run(LIVE, block)
     private val main = Handler(Looper.getMainLooper())
     private var player: MediaPlayer? = null
     @Volatile private var generation = 0
     // the voice engines (loaded whole into RAM) are let go when nothing has been spoken or made ahead for ten minutes
     private val idle = Runnable { workerExecute { bank.close() } }
-    private fun touch() { main.removeCallbacks(idle); main.postDelayed(idle, 600_000L) }
+    private fun touch() {
+        if (!enabled) return
+        main.removeCallbacks(idle); main.postDelayed(idle, 600_000L)
+    }
 
     /** Told when an NPC starts and stops speaking (the street's sound dips under the voice). */
     var onSpeaking: ((Boolean) -> Unit)? = null
@@ -72,8 +75,33 @@ class NpcVoiceService(private val ctx: Context) {
             workerExecute { bank.close() }
         }
 
-    /** Voices on or off (the player's choice). */
-    var enabled by mutableStateOf(true)
+    /**
+     * Voices on or off (the player's choice, kept; off until switched on). Off, nothing of the voices runs or stays in
+     * memory: no line is voiced, ahead or live, the work queued is dropped and both voice engines are let go.
+     */
+    var enabled by mutableStateOf(ctx.getSharedPreferences("voices", Context.MODE_PRIVATE).getBoolean("enabled", false))
+        private set
+
+    /** Switches the voices on or off (kept for the next start); off frees them at once. */
+    fun switchTo(on: Boolean) {
+        if (on == enabled) return
+        enabled = on
+        ctx.getSharedPreferences("voices", Context.MODE_PRIVATE).edit().putBoolean("enabled", on).apply()
+        if (!on) unload()
+    }
+
+    /** Off: whatever plays stops, queued work (lines made ahead, fillers) is dropped, and the engines are closed. */
+    private fun unload() {
+        stop()
+        fillerPrep++
+        main.removeCallbacks(idle)
+        pool.queue.clear()
+        workerExecute { bank.close() }
+    }
+
+    /** A voice is playing now (the player's mic does not listen to it). */
+    var speaking by mutableStateOf(false)
+        private set
     /** Downloading the models: 0..1, or -1 when not downloading. */
     var downloading by mutableFloatStateOf(-1f)
     var downloadNote by mutableStateOf("")
@@ -120,7 +148,7 @@ class NpcVoiceService(private val ctx: Context) {
         val g = generation
         val t0 = android.os.SystemClock.elapsedRealtime()
         workerExecute {
-            if (g != generation) return@workerExecute
+            if (g != generation || !enabled) return@workerExecute
             val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@workerExecute
             // memory short (the dialogue model on the NPU): one voice engine at a time
             if (com.timerpg.street.llm.Ram.freeMb(ctx) < 1100) bank.keepOnly(v)
@@ -158,7 +186,7 @@ class NpcVoiceService(private val ctx: Context) {
         fun next(i: Int) {
             if (i >= lines.size) return
             run(FILLER) {
-                if (mine != fillerPrep) return@run
+                if (mine != fillerPrep || !enabled) return@run
                 val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@run
                 if (!bank.isLoaded(v.engine) && com.timerpg.street.llm.Ram.freeMb(ctx) < 1300) return@run
                 if (!bank.cached(v, lines[i]).isFile) try { com.timerpg.street.llm.AiLane.voice { bank.speak(v, lines[i]) } } catch (e: Throwable) { }
@@ -222,11 +250,12 @@ class NpcVoiceService(private val ctx: Context) {
         if (!enabled || text.isBlank() || !installed) return
         touch()
         run(AHEAD) {
+            if (!enabled) return@run
             val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@run
             // made ahead when the voice is loaded, or there is room to load it
             if (!bank.isLoaded(v.engine) && com.timerpg.street.llm.Ram.freeMb(ctx) < 1300) return@run
             // a sentence per job, so what someone is about to say waits for one sentence at most
-            for (part in sentences(text)) run(AHEAD) { try { com.timerpg.street.llm.AiLane.voice { bank.speak(v, part) } } catch (e: Throwable) { } }
+            for (part in sentences(text)) run(AHEAD) { if (enabled) try { com.timerpg.street.llm.AiLane.voice { bank.speak(v, part) } } catch (e: Throwable) { } }
         }
     }
 
@@ -260,7 +289,7 @@ class NpcVoiceService(private val ctx: Context) {
         const val AHEAD = 2
     }
 
-    private fun enqueue(f: File) { if (player == null) play(f) else queue.addLast(f) }
+    private fun enqueue(f: File) { if (!enabled) return; if (player == null) play(f) else queue.addLast(f) }
 
     private fun play(f: File) {
         player?.release()
@@ -273,12 +302,13 @@ class NpcVoiceService(private val ctx: Context) {
                     if (player === it) {
                         player = null
                         val next = queue.removeFirstOrNull()
-                        if (next != null) play(next) else { onSpeaking?.invoke(false) }
+                        if (next != null) play(next) else { speaking = false; onSpeaking?.invoke(false) }
                         if (next == null && queue.isEmpty()) fillerFor = null
                     }
                 }
                 prepare()
                 start()
+                speaking = true
                 onSpeaking?.invoke(true)
             }
         } catch (e: Exception) { null }
@@ -288,6 +318,7 @@ class NpcVoiceService(private val ctx: Context) {
         early = null
         fillerFor = null
         if (player != null) onSpeaking?.invoke(false)
+        speaking = false
         generation++
         queue.clear()
         player?.let { try { it.stop() } catch (e: Exception) { }; it.release() }
