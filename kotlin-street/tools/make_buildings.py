@@ -115,7 +115,7 @@ def relief_mask(im, spec):
 
 def build(shop, out):
     if shop['parts'][0]['key'].startswith(('house_small_', 'house_medium_')): return build_house(shop, out)
-    if shop['parts'][0]['key'].startswith(('villa_', 'landmark_clocktower_', 'landmark_school_')): return build_model(shop, out)
+    if shop['parts'][0]['key'].startswith(('villa_', 'landmark_clocktower_', 'landmark_school_', 'house_terraced_')): return build_model(shop, out)
     parts = shop['parts']; ground = next(p for p in parts if not p['key'].startswith(('roof_', 'roofprop_', 'middle_')))
     mids = [p for p in parts if p['key'].startswith('middle_')]
     roof = next((p for p in parts if p['key'].startswith('roof_')), None)
@@ -795,13 +795,15 @@ def mbox(x, y, d, c, ft=None, fx=None, tt=None, st=None, card=False, panes=None,
     if outline: p['out'] = True
     return p
 
-def mgable(x, y, d, left, lp, right, rp, rake, roofc, de=None, face=None, fx=None, fy=None, panes=None, lip=None):
+def mgable(x, y, d, left, lp, right, rp, rake, roofc, de=None, face=None, fx=None, fy=None, panes=None, lip=None, ax=None):
     """A front-facing gable: eaves x[0] and x[1], eave and ridge heights y, from its face d[0] back to d[1] (the eaves
     back to de: where they meet another roof, if they do). Each slope wears an atlas piece laid on its quad by four of
     its points: the front eave, the apex, the ridge's back end, the back eave (lp, rp). `lip` is the colour of the
     roof's edge in the art, just above the face's rake: the engine fills the face's stepped rake up to the slope's
-    straight edge with it."""
-    p = dict(t='gable', x=fl(x), y=fl(y), d=fl(d), l=left, lp=fl(lp), r=right, rp=fl(rp), rake=[rgb_int(rake[0]), rgb_int(rake[1])], roof=rgb_int(roofc))
+    straight edge with it. A single-pitch (lean-to) roof has its apex `ax` at one side and only the left slope."""
+    p = dict(t='gable', x=fl(x), y=fl(y), d=fl(d), l=left, lp=fl(lp), rake=[rgb_int(rake[0]), rgb_int(rake[1])], roof=rgb_int(roofc))
+    if right is not None: p.update(r=right, rp=fl(rp))
+    if ax is not None: p['ax'] = float(ax)                          # a single-pitch roof: its apex (high edge) at one side
     if lip is not None: p['lip'] = rgb_int(lip)
     if de is not None: p['de'] = float(de)
     if face is not None: p.update(face=face, fx=float(fx), fy=float(fy))
@@ -1117,11 +1119,133 @@ def school(shop, rng):
                  smoke=[[177, 184, R + 24], [581, 111, R + 20]], fpx=20)
     return model, at, body, side, b_glow, lawn, fence, fence_snow
 
+# ------------------------------------------------------------------------------------------------ terraced houses
+# The terraced family houses (house_terraced_1/2/4/5/6, each in six colours) are drawn like the rest, front elevation
+# below and what faces up seen from above: their front wall is the END of a single-pitch (lean-to) roof that rises across
+# the facade, low on the left and high on the right, with its high edge running back from the street; the big slab is
+# that roof seen from above; on the right a lower side wing runs the house's depth (its top from above, its front below).
+# What stands back in the art (a recessed door porch, the garage under the upper storey) has its foot drawn higher, by
+# how far back it stands; in the street's nearly level view a few pixels of depth do not show, so the front is made a
+# true elevation instead: in a recess's columns the rows its top hides are put back under the storey above, so every
+# wall meets the ground on one line (row 461). Steps, a planter or a pot standing in front are built as boxes and cards.
+# Every colour of a design shares its shape (the recolours keep the alpha); designs 4, 5, 6 sit two pixels further left.
+TERRACED = {
+    1: dict(recess=[(42, 173, 449)], steps=(84, 141), cards=[(216, 294, 435, 476, 14)], door=(84, 141), lamp=(150, 84)),
+    2: dict(recess=[(42, 173, 449)], steps=(84, 141), cards=[], door=(84, 141), lamp=(150, 84)),
+    4: dict(recess=[(236, 279, 457)], steps=None, cards=[], door=(236, 279), lamp=None),
+    5: dict(recess=[(40, 225, 449)], steps=None, cards=[(304, 336, 410, 464, 2)], door=(228, 300), lamp=None),
+    6: dict(recess=[(40, 225, 449)], steps=None, cards=[], door=(228, 300), lamp=None),
+}
+T_X0, T_X1, T_FOOT, T_RIDGE = 20, 352, 461, 318                     # the art's span, its ground row, the roof's high edge
+T_R = 389                                                           # the storey above a recess ends here
+T_DEPTH = 240                                                       # the roof's run back, as the art draws it
+
+def t_roof_edge(x):
+    """The first row of the roof slab's front edge (its dark band; the trim under it 8 rows on) in column x: it falls
+    two rows every eight columns (the art is 2x pixel art) from row 306 at column 40."""
+    return 306 - 2 * ((x - 40) // 8)
+
+def terraced(shop, rng):
+    key = shop['parts'][0]['key']
+    design = int(key.split('_')[2])
+    cfg = TERRACED[design]
+    raw = np.array(load(key)); art = solid(raw)
+    op = art[..., 3] > 0
+    x0 = int(np.where(op[:, :T_RIDGE].any(0))[0].min())               # where the roof starts (20, or 22 for 1 and 2)
+    W = T_X1 - T_X0; at = Atlas(512)
+    X = lambda ax: ax - T_X0                                        # the art's columns to the model's
+    roof_c = art[150, 150]; lip_c = art[t_roof_edge(100) + 2, 100]
+    rake_c = art[t_roof_edge(100) + 9, 100]; edge_c = art[t_roof_edge(100) + 16, 100]
+    # --- the facade as a true elevation, columns x0..305, from the roof slab's front edge down to the ground
+    fw = 306 - T_X0; top_row = t_roof_edge(305); fh = T_FOOT + 1 - top_row
+    face = np.zeros((fh, fw, 4), np.uint8)
+    rec = {}
+    for (a, b, foot) in cfg['recess']:
+        for x in range(a, b + 1): rec[x] = foot
+    for x in range(max(x0, T_X0), 306):
+        col = art[:, x].copy()
+        foot = rec.get(x)
+        if foot is not None:
+            k = T_FOOT - foot                                       # the rows this recess's top hides
+            col = np.concatenate([col[:T_R], np.repeat(col[T_R:T_R + 1], k, 0), col[T_R:foot + 1]])
+        col = col[:T_FOOT + 1]
+        col[:t_roof_edge(x)] = 0                                    # above the slab's front edge: the roof (its slope)
+        face[:, x - T_X0] = col[top_row:T_FOOT + 1]
+    face_panes, face_glow = panes_of(face)
+    face_r = at.add(face, face_glow)
+    # --- the roof slope from above: rows down to the slab's front edge, columns x0..318
+    rw = T_RIDGE + 1 - x0; rh = t_roof_edge(x0)
+    slope = np.zeros((rh, rw, 4), np.uint8)
+    for x in range(x0, T_RIDGE + 1):
+        e = t_roof_edge(x); slope[:e, x - x0] = art[:e, x]
+    top_l = int(np.where(op[:, x0])[0].min()); top_r = int(np.where(op[:, T_RIDGE])[0].min())
+    slope_r = at.add(slope)
+    # --- the side wing on the right: its front (its top's edge 270..280 dropped; the rows its standing back hides put
+    # back) and its top from above
+    wing = art[280:456, 306:352]
+    wing = np.concatenate([np.repeat(wing[:1], T_FOOT - 455, 0), wing])
+    wing_top = art[30:280, 306:352]
+    wing_r = at.add(wing); wing_top_r = at.add(wing_top)
+    # --- the side walls: each row the front's own siding (the party walls have no windows)
+    corner = shade(art[400, 60], .8) + (255,)
+    plain = list(range(32, 48))                                     # the upper storey's wall left of its window
+    main_h = T_FOOT - (t_roof_edge(42) + 16)                         # the low (left) side's wall, up to the trim
+    high_h = T_FOOT - (t_roof_edge(305) + 16)
+    # (the upper storey's siding at plain columns, repeated down the wall: the ground storey's rows are doors and
+    # recesses, which a side wall does not carry)
+    up_rows = column_rows(face[t_roof_edge(42) + 16 - top_row:T_R - 8 - top_row], plain)
+    def siding(h): return np.resize(up_rows, (h,) + up_rows.shape[1:])
+    ms, _ = side_wall(siding(main_h), T_DEPTH, None, 0, (), rng, corner)
+    hs, _ = side_wall(siding(high_h), T_DEPTH, None, 0, (), rng, corner)
+    ws, _ = side_wall(column_rows(wing, list(range(8, 30))), 250, None, 0, (), rng, corner)
+    ms_r = at.add(ms); hs_r = at.add(hs); ws_r = at.add(ws)
+    wall_c = art[440, 60]; wing_c = art[400, 330]
+    yr0, yr1 = T_FOOT - t_roof_edge(x0), T_FOOT - t_roof_edge(T_RIDGE)
+    parts = [
+        # the side wing, standing back by the rows its foot is drawn above the front's
+        mbox((X(306), X(352)), (0, wing.shape[0]), (6, 256), (wing_top[-1, 20], wing_c, shade(wing_c, .85)), ft=wing_r, tt=wing_top_r, st=ws_r),
+        # the house's high side under the roof's high edge (its front is the facade's)
+        mbox((X(302), X(306)), (0, high_h), (0, T_DEPTH), (wall_c, wall_c, wall_c), st=hs_r, top=False),
+        # the house, its low side wall, wearing the facade (which rises over it to the roof's edge)
+        mbox((X(42), X(306)), (0, main_h), (0, T_DEPTH), (wall_c, wall_c, wall_c), ft=face_r, fx=X(T_X0), st=ms_r, panes=face_panes, top=False),
+        # the single-pitch roof: its slope from above laid on its quad, the high edge at the right
+        mgable((X(x0), X(T_RIDGE)), (yr0, yr1), (0, T_DEPTH), slope_r, (0, rh, rw - 1, t_roof_edge(T_RIDGE), rw - 1, top_r, 0, top_l),
+               None, None, (rake_c, edge_c), roof_c, lip=lip_c, ax=X(T_RIDGE)),
+    ]
+    st = cfg['steps']
+    if st is not None:
+        a, b = X(st[0]), X(st[1] + 1)
+        tread = art[456, (st[0] + st[1]) // 2]; riser = art[460, (st[0] + st[1]) // 2]
+        parts += [mbox((a, b), (6, 12), (0, 12), (tread, riser, shade(riser, .85)), outline=True),
+                  mbox((a, b), (0, 6), (-8, 12), (tread, riser, shade(riser, .85)), outline=True)]
+    for (a, b, r0, r1, fwd) in cfg['cards']:
+        pic = art[r0:r1, a:b].copy()
+        parts.append(mbox((X(a), X(b)), (0, r1 - r0 - fwd), (-fwd, -fwd + 2), (pic[-1, (b - a) // 2], pic[-1, (b - a) // 2], pic[-1, (b - a) // 2]),
+                          ft=at.add(pic), card=True))
+    # --- the yard: the game's front yard (its depth, its fence or hedge), a path to the door, open at the gate
+    setback = int(shop.get('yard', {}).get('front', 2)) * 32 + 16
+    style = shop.get('yard', {}).get('style', 'compact')
+    px0, px1 = X(cfg['door'][0]) + 4, X(cfg['door'][1]) - 4
+    lawn, fence, fence_snow = yard(rng, W, setback + T_DEPTH, True, (px0, px1, setback - 8), style, [(px0 - 6, px1 + 6)])
+    # the whole front for what does not build it (the corner turn, the wet road's mirror): the facade and the wing
+    H = max(fh, wing.shape[0])
+    front = np.zeros((H, W, 4), np.uint8)
+    front[H - fh:, :fw] = face
+    m = wing[..., 3] > 0; sub = front[H - wing.shape[0]:, X(306):X(352)]; sub[m] = wing[m]
+    emis = np.zeros_like(front); emis[H - fh:, :fw] = face_glow
+    side = ms
+    lamp = [X(cfg['lamp'][0]), cfg['lamp'][1], 12] if cfg['lamp'] else None
+    model = dict(kind='terraced', w=W, frontX=(224 - W) / 2, setback=setback, lawn='grass', style=style, parts=parts,
+                 fence=dict(d=3, foot=28 if style != 'formal' else 32) if fence is not None else None,
+                 roofTint=rgb_int(roof_c), lamp=lamp, lights='home', smoke=[], fpx=0)
+    return model, at, front, side, emis, lawn, fence, fence_snow
+
 def build_model(shop, out):
     """One of our villas or landmarks as the parts the engine builds it from (models.json) and the pictures they wear."""
     key = shop['parts'][0]['key']; n = shop['sprite']
     rng = np.random.default_rng(zlib.crc32(n.encode()))
-    make = villa if key.startswith('villa_') else tower if key.startswith('landmark_clocktower_') else school
+    make = (villa if key.startswith('villa_') else tower if key.startswith('landmark_clocktower_') else terraced if key.startswith('house_terraced_')
+            else school)
     model, at, front, side, emis, lawn, fence, fence_snow = make(shop, rng)
     # which boxes' sides have windows that light at night (the engine lights no other: a railing's side has none)
     for p in model['parts']:
@@ -1147,7 +1271,7 @@ def pixels(path):
 def showcase(out):
     """Every house sprite (8 designs x 2 sizes x 10 colours) on a street.json of its own, in out/ (street.json and
     buildings/), for checking them by eye: street 0 has every design once in a colour each, street 1 every colour of
-    one design, street 2 the five villas, street 3 the clock towers and the school. The preview reads it with
+    one design, street 2 the five villas, street 3 the clock towers and the school, street 4 the terraced houses. The preview reads it with
     -Dassets=out -Dmode=houses (or -Dmode=models for streets 2 and 3)."""
     shops, row, colours = [], [], []
     names = {}
@@ -1165,15 +1289,19 @@ def showcase(out):
     # the villas (each built with a front-facing gable), and the landmarks with hipped roofs, which no street has yet
     def add(key, yard_style):
         im = load(key); sprite = f'b{len(shops)}'
-        shops.append(dict(id=f'show:{key}', sprite=sprite, home=key.startswith('villa_'), name=key, kind='Home' if key.startswith('villa_') else 'Landmark',
+        shops.append(dict(id=f'show:{key}', sprite=sprite, home=key.startswith(('villa_', 'house_')), name=key, kind='Home' if key.startswith(('villa_', 'house_')) else 'Landmark',
                           owner='', colour='base', parts=[dict(key=key, w=im.width, h=im.height, y=0)], yard=dict(front=2, style=yard_style)))
         return sprite
     villas = [add(f'villa_{i}', ('compact', 'formal', 'natural', 'flower', 'formal')[i - 1]) for i in range(1, 6)]
     landmarks = [add(k, 'natural') for k in ('landmark_clocktower_1', 'landmark_school_1', 'landmark_clocktower_2')]
+    # the terraced houses (single-pitch roofs): every design, in a colour each
+    terr = [add(f'house_terraced_{d}{c}', ('compact', 'formal', 'natural', 'flower', 'compact')[i])
+            for i, (d, c) in enumerate(((1, ''), (2, '_c3'), (4, '_c1'), (5, ''), (6, '_c3')))]
     os.makedirs(out + '/buildings', exist_ok=True)
     json.dump(dict(town='showcase', year=2025, type='every house sprite', shops=shops,
                    streets=[dict(name='Every design', buildings=row), dict(name='Every colour', buildings=colours),
-                            dict(name='Villas', buildings=villas), dict(name='Landmarks', buildings=landmarks)]),
+                            dict(name='Villas', buildings=villas), dict(name='Landmarks', buildings=landmarks),
+                            dict(name='Terraced', buildings=terr)]),
               open(out + '/street.json', 'w'), indent=1)
     return out + '/street.json', out + '/buildings'
 

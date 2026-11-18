@@ -60,9 +60,16 @@ class ModelPart(
      * that sees them so nearly edge on that their tiles' joints fall closer than a pixel or two apart.
      */
     val leftFlush: IntArray? = null, val rightFlush: IntArray? = null,
+    /**
+     * A gable's apex x when it is not in the middle: a single-pitch (lean-to) roof running back from the street has its
+     * high edge at one side ([x1]) and only its [left] slope (the terraced houses).
+     */
+    val apexX: Float = Float.NaN,
 ) {
     /** A gable's or a hipped roof's apex x. */
-    val apex: Float get() = (x0 + x1) / 2f
+    val apex: Float get() = if (apexX.isNaN()) (x0 + x1) / 2f else apexX
+    /** A single-pitch roof: its apex at one side. */
+    val monopitch: Boolean get() = !apexX.isNaN() && (apexX <= x0 + .5f || apexX >= x1 - .5f)
 
     companion object {
         const val BOX = 0
@@ -73,7 +80,7 @@ class ModelPart(
 
 /** A modelled building (buildings/models.json). */
 class ModelShape(
-    /** "villa", "tower" or "school". */
+    /** "villa", "tower", "school" or "terraced". */
     val kind: String,
     /** Its front picture's width (pixels): a lot as wide, or the street's 224 if that is more. */
     val width: Float,
@@ -176,7 +183,8 @@ class ModelShape(
                         fx = p.optDouble("fx", x.getDouble(0)).toFloat(),
                         panes = if (pn == null) emptyList() else (0 until pn.length()).map { floats(pn.getJSONArray(it))!! },
                         left = ints(p.getJSONArray("l")), leftP = floats(p.getJSONArray("lp")),
-                        right = ints(p.getJSONArray("r")), rightP = floats(p.getJSONArray("rp")),
+                        right = ints(p.optJSONArray("r")), rightP = floats(p.optJSONArray("rp")),
+                        apexX = p.optDouble("ax", Double.NaN).toFloat(),
                         rake = rk.getInt(0), rakeEdge = rk.getInt(1), eaveBack = p.optDouble("de", d.getDouble(1)).toFloat(),
                         lip = p.optInt("lip", -1),
                         face = ints(p.optJSONArray("face")), faceY = p.optDouble("fy", 0.0).toFloat())

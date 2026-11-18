@@ -3646,7 +3646,9 @@ internal class BuildingPainter {
         val snow = season.snow
         val left = !v.rightSide
         val xe = if (left) p.x0 else p.x1
-        val fx = v.x(xe, p.d0); val fy = v.y(p.y0, p.d0); val bx = v.x(xe, p.eaveBack); val by = v.y(p.y0, p.eaveBack)
+        // (a single-pitch roof's high side has no eave: its edge there is the ridge)
+        val ye = if (p.monopitch && kotlin.math.abs(xe - p.apex) < 1f) p.y1 else p.y0
+        val fx = v.x(xe, p.d0); val fy = v.y(ye, p.d0); val bx = v.x(xe, p.eaveBack); val by = v.y(ye, p.eaveBack)
         var c = lerp(rgb(p.rake), Color.Black, .1f)
         if (snow > .01f) c = lerp(c, snowInk(sky), .7f * snow)
         rowsPath.rewind()
