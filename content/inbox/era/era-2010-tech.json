@@ -1,0 +1,366 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2010,
+  "topic": "tech",
+  "facts": [
+    {
+      "id": "2010-tech-01",
+      "year_from": 2011,
+      "year_to": 2019,
+      "text": "A cracked smartphone screen sends its owner looking for a repair shop.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-02",
+      "year_from": 2012,
+      "year_to": 2019,
+      "text": "People check directions on their phones instead of unfolding a paper road map.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-03",
+      "year_from": 2012,
+      "year_to": 2019,
+      "text": "A family group text helps relatives coordinate dinner and rides.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-04",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A phone battery running low leaves someone hunting for a charging cable.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-05",
+      "year_from": 2012,
+      "year_to": 2019,
+      "text": "People take photographs with their phones and share them almost immediately.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-06",
+      "year_from": 2014,
+      "year_to": 2019,
+      "text": "Many people unlock their phones with a passcode or fingerprint.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-07",
+      "year_from": 2012,
+      "year_to": 2019,
+      "text": "A shop customer compares prices online while standing in an aisle.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-08",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A cashier sometimes turns a small card terminal toward customers to enter a code.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-09",
+      "year_from": 2015,
+      "year_to": 2019,
+      "text": "A customer inserts a chip card into a payment terminal and waits for approval.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-10",
+      "year_from": 2016,
+      "year_to": 2019,
+      "text": "Some stores offer contactless payment by tapping a card or phone.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-11",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A restaurant offers free wireless internet and posts its password near the counter.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-12",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A slow wireless connection makes a video stop and buffer.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-13",
+      "year_from": 2014,
+      "year_to": 2019,
+      "text": "Many households stream television programs through an internet connection.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-14",
+      "year_from": 2015,
+      "year_to": 2019,
+      "text": "A family sometimes argues over which show to watch on a shared streaming account.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-15",
+      "year_from": 2014,
+      "year_to": 2019,
+      "text": "Some households keep cable television while others cancel it for online viewing.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-16",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Flat-screen televisions hang on walls or stand on narrow cabinets.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-17",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A game console downloads updates before a child can start playing.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-18",
+      "year_from": 2013,
+      "year_to": 2019,
+      "text": "A student types homework on a laptop and submits it through a school website.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-19",
+      "year_from": 2013,
+      "year_to": 2019,
+      "text": "Some schools lend students tablet or laptop computers for classroom work.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-20",
+      "year_from": 2012,
+      "year_to": 2019,
+      "text": "Office workers share documents through online storage instead of passing around disks.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-21",
+      "year_from": 2013,
+      "year_to": 2019,
+      "text": "A worker joins a video meeting using a laptop camera and headset.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-22",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A printer may connect to the household wireless network without a cable.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-23",
+      "year_from": 2016,
+      "year_to": 2019,
+      "text": "A household voice-controlled speaker can play music or answer simple questions.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-24",
+      "year_from": 2017,
+      "year_to": 2019,
+      "text": "A doorbell camera lets some homeowners see visitors on their phones.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-25",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A driver plugs a phone into the car to hear navigation instructions.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-26",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A customer waits for a delivery tracking page to show that a parcel has arrived.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-27",
+      "year_from": 2012,
+      "year_to": 2019,
+      "text": "A parent reminds a child to put down a tablet at the dinner table.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-tech-28",
+      "year_from": 2013,
+      "year_to": 2019,
+      "text": "Some households use a small streaming device to show online videos on an older television.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "a generative chatbot used routinely by ordinary households",
+      "first_common": 2023,
+      "say_instead": "a web search or a simple voice assistant"
+    },
+    {
+      "thing": "a household robot that reliably performs varied chores",
+      "first_common": null,
+      "say_instead": "a robotic vacuum or ordinary household appliances"
+    },
+    {
+      "thing": "a self-driving car routinely operating without a human driver in small towns",
+      "first_common": null,
+      "say_instead": "a car driven by a person"
+    },
+    {
+      "thing": "a foldable smartphone carried by most adults",
+      "first_common": null,
+      "say_instead": "an ordinary flat-screen smartphone"
+    },
+    {
+      "thing": "a home 3D printer in most households",
+      "first_common": null,
+      "say_instead": "a regular inkjet or laser printer"
+    },
+    {
+      "thing": "a virtual reality headset in most homes",
+      "first_common": null,
+      "say_instead": "a television or game console"
+    },
+    {
+      "thing": "a household holographic video call",
+      "first_common": null,
+      "say_instead": "a video call on a phone or computer"
+    },
+    {
+      "thing": "a fully automated checkout in most small-town shops",
+      "first_common": null,
+      "say_instead": "a staffed checkout or self-checkout kiosk"
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
