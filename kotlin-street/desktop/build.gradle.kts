@@ -57,7 +57,7 @@ tasks.register<JavaExec>("preview") {
     description = "Renders the street headlessly to PNG files (no phone needed)"
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("PreviewKt")
-    jvmArgs("-Djava.awt.headless=true", "-Xmx3g")
+    jvmArgs("-Djava.awt.headless=true", "-Xmx" + (System.getProperty("xmx") ?: "3g"))
     System.getProperty("seamdebug")?.let { jvmArgs("-Dseamdebug=$it") }
     System.getProperty("skip")?.let { jvmArgs("-Dskip=$it", "-Donlyone=1") }
     System.getProperty("mode")?.let { jvmArgs("-Dmode=$it") }

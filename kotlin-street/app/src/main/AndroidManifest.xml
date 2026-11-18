@@ -13,6 +13,7 @@
     <application
         android:label="Timerpg Street"
         android:allowBackup="false"
+        android:largeHeap="true"
         android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen"
         android:hardwareAccelerated="true">
         <!-- the phone's OpenCL driver, for the dialogue model on the Adreno GPU (absent: the CPU) -->

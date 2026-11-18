@@ -141,6 +141,35 @@ object Reports {
         write(ctx, ShotRequests.crashPath(now, tz, "jvm"), text)
     }
 
+    /**
+     * A failure the game caught and survived (the town's build, Filament): written as a report like a crash, so it
+     * reaches Claude with its full stack, the game state and the breadcrumbs. [kind] goes into the file name.
+     */
+    fun writeCaught(ctx: Context, kind: String, e: Throwable) = runCatching {
+        val now = System.currentTimeMillis()
+        val tz = TimeZone.getDefault()
+        val state = linkedMapOf<String, Any?>()
+        GameSnapshot.now()?.let { state.putAll(it) }
+        runCatching { state["device"] = DeviceFacts.device(ctx) }
+        val text = ShotRequests.crashPayload(
+            kind, now, tz, DeviceFacts.app(),
+            linkedMapOf("thread" to Thread.currentThread().name, "exception" to e.javaClass.name, "message" to e.message,
+                "cause" to rootCause(e).let { "${it.javaClass.name}: ${it.message}" }),
+            e.stackTraceToString(), state, Crumbs.ring.snapshot(), logcat(),
+        )
+        write(ctx, ShotRequests.crashPath(now, tz, kind), text)
+    }
+
+    /** The innermost cause of [e]. */
+    fun rootCause(e: Throwable): Throwable { var c = e; while (c.cause != null && c.cause !== c) c = c.cause!!; return c }
+
+    /** One line for the player: what failed and, inside it, the real reason. */
+    fun explain(e: Throwable): String {
+        val r = rootCause(e)
+        val inner = "${r.javaClass.simpleName}${r.message?.let { ": $it" } ?: ""}"
+        return if (r === e) inner else "${e.message ?: e.javaClass.simpleName} ($inner)"
+    }
+
     /** This app's last log lines (empty if logcat cannot be read). */
     private fun logcat(): List<String>? = try {
         val p = Runtime.getRuntime().exec(arrayOf("logcat", "-d", "-t", "300", "--pid=${android.os.Process.myPid()}"))

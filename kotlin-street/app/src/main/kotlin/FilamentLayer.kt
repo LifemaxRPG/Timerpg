@@ -275,8 +275,11 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
                 StreetRenderer.starting(ctx, false); com.timerpg.street.shot.Crumbs.add("Filament drawing")
             }
         } catch (t: Throwable) {
-            if (townMode) StreetRenderer.townFailed(ctx, "The town stopped: ${t.message ?: t.javaClass.simpleName}")
-            else StreetRenderer.failed(ctx, "Filament stopped: ${t.message ?: t.javaClass.simpleName}")
+            // a report with the whole stack (it waits on the phone until a token can send it), and the real reason shown
+            com.timerpg.street.shot.Reports.writeCaught(ctx, if (townMode) "town" else "filament", t)
+            val why = com.timerpg.street.shot.Reports.explain(t)
+            if (townMode) StreetRenderer.townFailed(ctx, "The town stopped: $why")
+            else StreetRenderer.failed(ctx, "Filament stopped: $why")
             destroy()
         }
     }
