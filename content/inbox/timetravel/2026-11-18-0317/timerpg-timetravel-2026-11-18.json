@@ -1,0 +1,632 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-1971",
+      "kind": "scenario",
+      "title": "The Babysitter Who Later Needed the Pickup",
+      "category": "family",
+      "pitch": "Help a grandparent finish a genuine family-childcare qualification. A steadier working life for the parent may eventually make a voluntary retirement-and-care plan possible, at the cost of that parent’s actual wages.",
+      "present_hook": {
+        "what_you_notice": "A family has shared an unfinished childcare-course request beside its existing work and care schedule.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The grandparent in {year} had a real course place and a fee shortfall."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            30
+          ],
+          "has_children": true
+        },
+        "B": {
+          "age": [
+            50,
+            55
+          ],
+          "has_children": true
+        },
+        "C": {
+          "age": [
+            0,
+            2
+          ],
+          "relation": "parent_child"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "B is A actual parent; A is C actual parent, and C parent_child is relative to A. B already provides genuine lawful informal care for C and requests a real family-childcare course. A has an actual existing paid mill job. Baseline the qualification and later care plans are unfinished; no illness or retirement is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "B",
+          "amount": "small",
+          "how_it_looks": "Give {B} the actual shortfall for the requested qualified course."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "qualify_actual_family_childcare": "B"
+            }
+          ],
+          "headline": "A Grandparent Completes Required Family-Childcare Training",
+          "body": "The eligible caregiver completes actual instruction, assessment and any required lawful registration."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "accept_actual_mill_promotion": "A"
+            }
+          ],
+          "headline": "A Parent Accepts a Genuine Funded Mill Promotion",
+          "body": "The qualified employee freely accepts the actual authorized vacancy and its real pay and duties."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "retire_from_mill_for_actual_parent_care": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Worker Retires under a Funded Parent-Care Plan",
+          "body": "The employee voluntarily settles the actual job and retirement terms, then begins the qualified consented care arrangement for a genuine assessed need."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Childcare Qualification Is Not Completed",
+        "body": "The gift follows ordinary finances. Existing care and work remain subject to actual lawful limits; no new qualification or retirement follows."
+      },
+      "present_day": {
+        "best": "If all stages and the care plan persist in {now}, the family’s actual schedule shows the realized parent-care arrangement and {A}'s recorded mill departure. Current needs and care follow later facts.",
+        "worst": "No course guarantees promotion, health, retirement eligibility or care capacity. Preserve actual work and family responsibilities after failure.",
+        "twist": "{A} gains time for the actual chosen care plan but gives up a real funded job and future wages. Earlier help from {B} does not make that sacrifice free."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I used to leave for work after the handoff. Now I am the one staying."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "qualify_actual_family_childcare requires B actual age, health, consent and eligibility, funded qualified instruction, passed assessment and required registration. It does not invent new children, approve unsafe care or guarantee B will provide care indefinitely. Ordinary care needs and arrangements remain factual.",
+        "accept_actual_mill_promotion requires A still working for the actual existing mill, current qualifications, a genuine authorized funded vacancy, lawful selection and free acceptance. Record actual new pay and duties once. Any needed care for the now-older C must genuinely be provided; never assume B remains the caregiver.",
+        "retire_from_mill_for_actual_parent_care requires A still in the real paid job, an actually viable funded retirement and household budget, B actual independently assessed care need and free informed consent, qualified professional input, safe suitable actual accommodation and implemented adequate care capacity. Settle employment, pension and worker rights before recording A voluntary departure and the real care schedule. No illness, death, pension, house or medical improvement is generated. Dialogue requires A alive, present, actual earlier work-and-care handoffs and the current implemented care role. The implemented plan includes a genuine needed pickup that A is currently qualified and actually scheduled to provide using a real available lawful suitable vehicle; no transport is invented."
+      ],
+      "era_notes": "Use actual period-specific care, employment and retirement rules. A family relationship never substitutes for required skill or capacity.",
+      "why_fun": "One ordinary workday can look different when the direction of care has quietly reversed."
+    },
+    {
+      "id": "scenario-20261118-1972",
+      "kind": "scenario",
+      "title": "The Interpreter Who Had to Leave a Family Case",
+      "category": "money",
+      "pitch": "Help a bilingual resident afford genuine interpreter training. A later court assignment involving a sibling may mean giving up the very paid work those skills made possible.",
+      "present_hook": {
+        "what_you_notice": "An archive holds an unfinished interpreter-training request from a genuinely bilingual resident.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The applicant in {year} had a real course place and an actual fee shortfall."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            25
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            18,
+            25
+          ],
+          "relation": "siblings"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are actual adult siblings; B siblings is relative to A. A has genuine assessed language ability and requests an actual interpreter course. Baseline no qualification or court assignment exists. No future lawsuit, accusation or need for interpretation is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give {A} the actual requested training-fee shortfall."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_interpreter_training": "A"
+            }
+          ],
+          "headline": "A Bilingual Resident Completes Interpreter Training",
+          "body": "Actual completed instruction and assessment establish only the qualification genuinely earned."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "accept_actual_paid_court_interpreting": "A"
+            }
+          ],
+          "headline": "A Qualified Interpreter Takes Authorized Court Work",
+          "body": "The currently eligible interpreter freely accepts genuine funded work under the actual court’s requirements."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "decline_actual_family_case_assignment": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Interpreter Discloses a Family Conflict and Steps Aside",
+          "body": "The genuine offered assignment concerns the interpreter’s actual sibling. Required disclosure and an independent qualified reassignment settle the conflict."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Interpreter Qualification Is Not Completed",
+        "body": "The gift follows ordinary finances. No professional status, court job or family proceeding follows through this attempt."
+      },
+      "present_day": {
+        "best": "If the complete history occurred, the authorized court record in {now} shows the actual conflict disclosure and settled reassignment. No verdict or confidential case detail is implied.",
+        "worst": "Language ability alone grants neither court authority nor a contract. Preserve actual qualifications, cases and independent court obligations after failure.",
+        "twist": "{B} receives genuinely independent qualified interpretation, while {A} gives up the actual offered assignment and its prospective fee; no earned wages are confiscated."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "I can translate that form. I cannot be the interpreter for that case."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_actual_interpreter_training requires genuine assessed language skills, real funded qualified instruction, current eligibility and passed assessment. Record only the earned qualification; later court-specific admission and currency remain required.",
+        "accept_actual_paid_court_interpreting requires A actual current court eligibility and competence, a real authorized funded need, lawful selection, conflict clearance and free acceptance. Record only actual assignments and their actual earned fees, not invented clients or proceedings.",
+        "decline_actual_family_case_assignment requires a genuine independently arising current proceeding involving B, B actual interpretation need in A currently qualified language pair, a real contingent assignment offer to A, an actual prohibiting family-conflict rule and A disclosure. Reserve a real available unrelated qualified replacement and funded continuity before releasing A from that offer. Record the conflict, actual reassignment and absence of an unearned future fee once. Never create a case, defendant, outcome or replacement person. Mandatory recusal applies independently if the scenario fails. Dialogue requires A alive, present, still competent in the exact form language and the realized current conflict."
+      ],
+      "era_notes": "Offer only where actual era-specific interpreter qualifications and conflict rules support the arrangement. Never backdate modern certification.",
+      "why_fun": "A valuable skill can put someone close to a family problem without allowing them to take the job."
+    },
+    {
+      "id": "scenario-20261118-1973",
+      "kind": "scenario",
+      "title": "The Dress Pattern That Stopped Coming with a Fitting",
+      "category": "business",
+      "pitch": "Invest in a dress shop’s genuine pattern-grading proposal. A later printed-pattern business may reach new buyers while ending one customer’s actual made-to-measure appointment.",
+      "present_hook": {
+        "what_you_notice": "A dress-shop file contains an unfunded grading estimate beside its actual custom-fitting appointment book.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposal in {year} concerned real original patterns and a documented equipment shortfall."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "dress shop"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "Bind dress_shop to A actual adult-owned business and B to a real consenting repeat fitting customer. Bind actual lawfully usable original patterns, genuine equipment and training proposal, real appointment rights and feasible print production. Baseline no completed graded-pattern line exists."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "dress_shop",
+          "amount": "large",
+          "how_it_looks": "Invest in the actual pattern-grading equipment and training proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_pattern_grading_setup": "A"
+            }
+          ],
+          "headline": "A Dress Shop Completes Its Pattern-Grading Setup",
+          "body": "The real funded equipment, qualified training and verified sample work establish the actual usable setup."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "sell_actual_printed_pattern_orders": "A"
+            }
+          ],
+          "headline": "A Dress Shop Completes Real Printed-Pattern Orders",
+          "body": "The lawful viable production run fills genuine paid orders for the actual physical pattern sheets."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "end_custom_fittings_for_pattern_trade": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Dress Shop Settles Its Final Custom-Fitting Appointments",
+          "body": "The owner freely implements a viable printed-pattern plan and settles actual custom orders before retiring that service."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Grading Setup Is Not Completed",
+        "body": "The investment follows ordinary shop finances. No patterns, buyers or altered appointment rights are invented."
+      },
+      "present_day": {
+        "best": "If all stages and the business plan persist in {now}, the actual shop sells its genuine printed-pattern range and no longer offers the retired custom fittings. {B}'s former appointment has its actual settled status.",
+        "worst": "A machine creates neither a usable pattern nor a buyer. Preserve real inventory, costs and customer rights after failure.",
+        "twist": "{A} gains actual printed-pattern trade, but {B} loses a genuine repeat fitting service and must find among real available alternatives. A pattern sheet does not promise the same fit."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I can buy the paper. I cannot book the fitting that used to come with it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add actual graded-pattern, physical print-run and custom-appointment records. complete_actual_pattern_grading_setup requires A ownership, genuine funded usable equipment, qualified completed training and verified actual samples. Record only completed assets and real costs; no original design, size coverage or intellectual-property right is invented.",
+        "sell_actual_printed_pattern_orders requires actual viable graded sheets, cleared applicable reproduction rights, funded lawful production, real consenting funded buyers and completed fulfillment. Record actual inventory transfers, revenues and costs once. Do not claim copyright over an abstract method or guarantee any wearer’s fit.",
+        "end_custom_fittings_for_pattern_trade requires A continuing ownership and freely chosen viable funded plan, the actual completed pattern trade, B still holding a genuine repeat fitting agreement or appointment right, and settlement of all current garments, deposits, labor and service obligations. End only future custom fittings and that actual entitlement after valid notice and settlement. Preserve the same shop identity and actual continuing merchandise. No replacement tailor or customer is created. Dialogue requires B alive, present, still seeking the retired service and the realized lack of a qualifying appointment."
+      ],
+      "era_notes": "Use actual period-available grading and printing equipment, garment rights and customer terms; early pattern sheets need no imagined modern technology.",
+      "why_fun": "A shop can sell more copies of its work while doing less of the personal work a neighbor remembers."
+    },
+    {
+      "id": "scenario-20261118-1974",
+      "kind": "scenario",
+      "title": "The Time Capsule That Returned a Letter Still Sealed",
+      "category": "uncanny",
+      "pitch": "Help an organizer meet the genuine cost of a community time capsule. Years later, a real option in one donor’s agreement may return a sealed letter instead of letting the town read it.",
+      "present_hook": {
+        "what_you_notice": "An archive pairs an unfunded capsule proposal with an unsigned sealed-letter loan offer.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The offer in {year} had a real return clause; no capsule loan had yet been completed."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A is the actual authorized consenting organizer of a genuine costed capsule project. B actually owns a real sealed letter and freely offers its loan under a clear lawful opening-and-return agreement. Bind a suitable actual authorized storage site and real resources; no contents, future reader or donor death is assumed. The executed terms reserve a conditional public reading at intervention+25, with a donor return option exercisable only at intervention+24 before any opening."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give {A} the actual capsule-project shortfall without changing the donor’s terms."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "deposit_actual_sealed_letter_capsule": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Community Capsule Accepts a Sealed Letter on Real Terms",
+          "body": "The funded authorized project accepts the actual sealed letter under its executed custody, opening and return agreement."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "inspect_and_rehouse_sealed_capsule": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Capsule Receives Its Qualified Storage Review",
+          "body": "An actual qualified inspection leads to funded permitted rehousing while preserving the letter’s genuine unbroken seal."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            24,
+            24
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "return_capsule_letter_unopened": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Capsule Returns a Donor’s Letter without Opening It",
+          "body": "The donor freely invokes the genuine year-24 return option. The actual letter returns sealed, and its conditional year-25 public reading right ends."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Capsule Deposit Is Not Completed",
+        "body": "The gift follows ordinary project finances. The letter remains in its actual lawful custody; no deposit or public reading right is created."
+      },
+      "present_day": {
+        "best": "If all stages occurred, the capsule register in {now} records the actual sealed return and ended reading right. The letter’s current custody and seal are shown only where actual facts and access permit.",
+        "worst": "No capsule guarantees preservation, secrecy or survival. Failed stages preserve actual custody and donor rights; nobody learns an unread letter’s contents through the text.",
+        "twist": "{B} regains the real sealed letter, while the community gives up a genuine agreed future public-reading entitlement. The anticipated story remains unread."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "uncanny",
+          "line": "I lent that envelope to the future. It came back with the seal still there."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add real capsule, sealed-object, custody and opening-right records. deposit_actual_sealed_letter_capsule requires A actual authority, B free informed consent and title to the actual sealed letter, executed lawful terms defining the exact future reading and return condition, funded safe real storage and a completed deposit. Record actual custody and rights only; never invent letter contents. Set the contractual reading year to intervention+25 and the donor return-option year to intervention+24; no opening is permitted before that option window ends.",
+        "inspect_and_rehouse_sealed_capsule requires the same surviving capsule and letter, an actual funded qualified storage review, genuinely required rehousing, authorized suitable real space, donor permissions and a documented still-unbroken letter seal. Move only actual objects and record real costs once; do not open or silently restore damaged contents.",
+        "return_capsule_letter_unopened requires B alive and lawful current owner, A still authorized custodian or representative, the same surviving sealed letter, the executed year-24 return option and B freely and competently invoking it in intervention+24 before any opening, actual lawful notice and settlement of public-opening rights and funded safe transfer. Return the actual object sealed and end only that reading entitlement. No condition, preserved contents or new storage site is forced. Dialogue requires B alive, present, actual returned unbroken seal and no authorized opening or known prior public reading of this letter."
+      ],
+      "era_notes": "Earlier projects use genuine paper inventories and seal records; later ones may use authorized digital tracking. A preservation estimate never guarantees an object lasts.",
+      "why_fun": "The strange thing is not what the letter predicts. It is how long a town can wait for a story it finally agrees not to hear."
+    }
+  ]
+}

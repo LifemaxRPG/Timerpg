@@ -1,0 +1,618 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-2291",
+      "kind": "scenario",
+      "title": "The Bank Shares That Could Not Go to Town Hall",
+      "category": "politics",
+      "pitch": "Invest in a bank owner’s genuine capital proposal. A later election may require that owner to sell actual control before taking office, leaving the same bank with somebody else making its decisions.",
+      "present_hook": {
+        "what_you_notice": "A bank archive holds an unfunded capital proposal beside the town’s actual financial-conflict rules.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposal in {year} concerned an existing licensed bank and real ownership shares."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bank"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "wealthy"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "Bind bank_shop to A actual licensed adult-owned controlled bank and B to a real independently qualified prospective control buyer. Baseline the proposal is unfunded and no later election or sale exists. Bind actual bank ownership, voting control and town conflict rules requiring divestment before assumption of the relevant office; no buyer qualification or capital is invented."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "bank_shop",
+          "amount": "large",
+          "how_it_looks": "Invest under the actual authorized capital proposal and its real ownership terms."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_bank_capital_plan": "A"
+            }
+          ],
+          "headline": "A Licensed Bank Completes Its Real Capital Plan",
+          "body": "Authorized real capital and documented share terms complete the actual qualifying plan while its owner retains control."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "run_for_mayor": "A"
+            }
+          ],
+          "headline": "A Bank Owner Files for an Actual Mayoral Election",
+          "body": "The eligible owner completes genuine lawful candidacy for that scheduled election only."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "win_election": "A"
+            },
+            {
+              "divest_bank_control_before_office": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Elected Bank Owner Sells Control before Taking Office",
+          "body": "A genuinely certified later election and an approved funded bank-control sale satisfy the actual conflict rule before lawful assumption of office."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Bank Capital Plan Does Not Complete",
+        "body": "The investment follows its ordinary actual financial terms. No capital approval, candidacy, election or control sale is promised."
+      },
+      "present_day": {
+        "best": "If the complete history occurred, the bank and town archives in {now} record the actual approved control transfer and lawful assumption of office. Current owners and officials follow later simulation.",
+        "worst": "No investment wins an election or authorizes a bank buyer. Preserve actual shares, certification and conflict duties after failure.",
+        "twist": "{A} gains an actual elected term and the real sale price, but loses genuine bank control to {B}; owning shares and running the bank are distinct facts."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I won the office. I gave up control of the bank."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_actual_bank_capital_plan requires the genuine funded proposal, lawful actual bank and investor approvals, real capital posting and exact executed share and voting terms leaving A with actual control. Record only real changes once and never repeat the investment’s direct money or ownership effect.",
+        "run_for_mayor requires current age, residence, consent, qualifications and actual filing for a real election in step 2. Candidacy expires with that election. Ordinary intervening results and all applicable conflict duties remain independent; do not preserve a candidacy or ownership by fiat.",
+        "The final combined step requires a separate actual election, A again genuinely eligible and filed and actually certified winner, A still controlling the real bank before sale, B actually qualified and approved to buy control with genuine lawful funds, valid consents and a real executed sale price. Settle banking, shareholder, depositor and worker rights and complete actual control divestment before A lawfully assumes office under the bound rule. Commit the actual term transition and sale once, with one winner and no invented votes, buyer, approval or benefit. If the required sale cannot complete, this combined step does not narrate assumption of office; ordinary certification and legal consequences still apply. Dialogue requires A alive, present and currently lacking that real control."
+      ],
+      "era_notes": "Use actual period-specific banking, candidacy and conflict rules. Offer only where the exact required sale and office transition are lawful.",
+      "why_fun": "A political success can change who owns a familiar counter as well as who sits behind the mayor’s desk."
+    },
+    {
+      "id": "scenario-20261118-2292",
+      "kind": "scenario",
+      "title": "The Child-Support Receipt That Did Not Rewrite a Childhood",
+      "category": "family",
+      "pitch": "Spread the truth about documented unpaid child support. A later education and an adult child’s voluntary payment for a parent’s real care may follow without turning the old default into a kindness.",
+      "present_hook": {
+        "what_you_notice": "A lawful redacted court file records genuine unpaid support and a valid enforceable order.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The order in {year} concerned an actual child and documented unpaid amounts, not a rumor about parentage."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "wealth": "comfortable"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "has_children": true
+        },
+        "C": {
+          "age": [
+            10,
+            12
+          ],
+          "relation": "parent_child"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are C actual legal parents; C parent_child is relative to B. A owes the actual ordered arrears to the real entitled recipient B, with genuine ability to pay. Bind accurate lawfully available redacted evidence and actual care history. Baseline the specific truthful allegation has not circulated; no divorce, abuse, parentage or debt is invented."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": -0.3,
+          "how_it_looks": "Spread only the verified fact of the actual unpaid ordered support."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "settle_actual_child_support_arrears": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Parent Settles Documented Child-Support Arrears",
+          "body": "A genuine lawful payment settles the specified actual arrears without erasing the history of default."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "complete_actual_adult_child_qualification": "C"
+            }
+          ],
+          "headline": "An Adult Child Completes a Genuine Qualification",
+          "body": "Actual funded education and passed assessments establish the qualification genuinely earned by the now-adult student."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "pay_actual_parent_care_bill": [
+                "C",
+                "A"
+              ]
+            }
+          ],
+          "headline": "An Adult Freely Pays a Parent’s Real Care Bill",
+          "body": "The competent adult freely completes an actual authorized payment for a genuine current assessed care need. No reconciliation is promised."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Arrears Do Not Settle through This Chain",
+        "body": "The truthful rumor’s ordinary standing effect remains. The support order and actual enforcement continue under ordinary law; no payment or later education is promised."
+      },
+      "present_day": {
+        "best": "If the full history occurred, authorized records in {now} show the actual settled arrears, {C}'s earned qualification and the real later care payment. Present family relationships remain whatever actually developed.",
+        "worst": "Failed stages never invent a default or cancel a support duty. Preserve actual payments, rights, education and care obligations.",
+        "twist": "{C} gains real educational progress but later gives up actual personal funds to pay for {A}'s care. The parent’s earlier legal duty does not become a debt owed by the child."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "I paid the bill. I did not agree to rewrite the childhood."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "settle_actual_child_support_arrears requires the authentic enforceable order, real outstanding balance, actual lawful payment funds from A and the entitled recipient or agency. Post the actual payment once, settle only the specified balance and preserve continuing obligations and historical default. Do not repeat the rumor’s reputation effect or fabricate an enforcement outcome. Ordinary enforcement applies independently on failure.",
+        "complete_actual_adult_child_qualification requires C adult, genuine admission and available funds, completed actual education and passed required assessments. Any support funds used must genuinely be authorized and actually available through the real household or lawful education arrangements; no qualification, scholarship or money is invented.",
+        "pay_actual_parent_care_bill requires C actual capacity, freely informed voluntary choice, genuine unencumbered available funds after ordinary obligations, and A independently assessed current need with a real authorized provider, lawful bill and consent. Pay only the actual agreed amount once and settle that actual bill. Create no illness, care debt, forgiveness, entitlement to C money or guaranteed medical outcome. Dialogue requires C alive, present, actual knowledge and memory of the documented earlier default and the realized later voluntary payment."
+      ],
+      "era_notes": "Use actual period-specific support, education and care rules. Redacted records never supply invented private family allegations.",
+      "why_fun": "The changed present can contain a helpful act and an old hurt without requiring one to cancel the other."
+    },
+    {
+      "id": "scenario-20261118-2293",
+      "kind": "scenario",
+      "title": "The Fire Truck That Retired into the Parade",
+      "category": "place",
+      "pitch": "Help an authorized organizer fund genuine repairs to an existing fire truck. Decades later, the same vehicle may remain on Main Street while losing its actual emergency-service role.",
+      "present_hook": {
+        "what_you_notice": "A fire-service archive holds an unfunded repair estimate for an existing identified truck.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The actual proposal in {year} concerned one real vehicle, not a promised new fleet."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A is an actual qualified consenting volunteer driver and authorized organizer for an existing lawful fire service. Bind its actual identified vehicle, title, repair need and genuine funded-shortfall proposal. Baseline the repair is unfinished. No emergency, rescue, replacement truck or later vehicle survival is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "large",
+          "how_it_looks": "Give {A} the actual documented shortfall for the authorized vehicle repair project."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_fire_truck_repairs": "A"
+            }
+          ],
+          "headline": "A Fire Service Completes Repairs to Its Actual Truck",
+          "body": "Funded qualified work and actual required inspections restore only the documented eligible vehicle functions."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "qualify_existing_truck_for_reserve_service": "A"
+            }
+          ],
+          "headline": "A Maintained Truck Qualifies for Real Reserve Service",
+          "body": "The surviving actual truck passes current required tests and receives a genuine funded authorized reserve assignment."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "retire_truck_to_permitted_parade_service": "A"
+            }
+          ],
+          "headline": "A Former Reserve Truck Receives a Permitted Parade Role",
+          "body": "A genuine current review ends the actual emergency assignment. Completed lawful funded conversion and qualification permit the real historical vehicle’s parade use."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Truck Repair Does Not Complete",
+        "body": "The gift follows actual project finances. No repaired function, reserve capacity, parade or rescue is promised; ordinary safety duties still apply."
+      },
+      "present_day": {
+        "best": "If the full chain and vehicle persist in {now}, the real fleet record lists the same truck in its actual permitted historical role and outside emergency service. A parade appearance requires a real current event and permission.",
+        "worst": "No repair estimate guarantees survival, certification or safe use decades later. Preserve actual vehicle condition and service restrictions after failure.",
+        "twist": "The town retains an actual usable historical vehicle, while the service loses that real reserve assignment and {A} loses authority to answer emergencies in that truck."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "I can still drive it. I cannot answer a call in it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add actual persistent fire-vehicle, repair, fleet-assignment and historical-use records. complete_actual_fire_truck_repairs requires actual title and authority, funded qualified work, the identified repair need and passed required inspections. Record only real completed work, costs and validated functions; no vehicle or capability is created by narration.",
+        "qualify_existing_truck_for_reserve_service requires the same genuinely surviving maintained truck, actual current road and apparatus tests, authorized funded assignment, adequate service capacity and A current qualified role. Never keep machinery or driver qualifications current by fiat and never invent an emergency.",
+        "retire_truck_to_permitted_parade_service requires an actual current qualified review ending that same real reserve assignment, lawful agency authority and settled service and staff obligations, genuine funded roadworthy historical-use conversion, valid registration, insurance and permissions, and A current qualification and real authorized historical-driver assignment. Remove only this truck’s emergency authority before recording permitted exhibition use; do not invent replacement coverage, a parade, audience or rescue. Ordinary mandatory safety restrictions apply independently on failure. Dialogue requires A alive, present, genuinely authorized to drive that actual vehicle in its current permitted role and barred from emergency response in it."
+      ],
+      "era_notes": "Apply actual period-specific repair, road, apparatus and historical-vehicle rules. Red paint does not prove a truck is still fit for calls.",
+      "why_fun": "The same truck can belong to the town in two different ways across a lifetime."
+    },
+    {
+      "id": "scenario-20261118-2294",
+      "kind": "scenario",
+      "title": "The Typing Teacher Who Joined a Former Student’s Class",
+      "category": "money",
+      "pitch": "Help a learner finish a genuine typing course. Years later, that learner may teach computers and fund an actual class place for the person who first taught the keyboard.",
+      "present_hook": {
+        "what_you_notice": "An adult-learning file holds an unfinished typing-course request and its actual fee estimate.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The learner in {year} had a real place with an actual qualified teacher."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            25
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A is an actual consenting adult learner with a genuine course request. B is the actual qualified typing teacher for that course. Bind a real existing lawful adult-education provider and resources. Baseline the course is unfinished; no computer skill, future teaching job, poverty or retirement is assigned to B by age."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give {A} the actual requested typing-course shortfall."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_typing_course": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Adult Learner Completes a Genuine Typing Course",
+          "body": "The consenting student completes actual funded instruction and the required real assessment."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "teach_actual_adult_computer_course": "A"
+            }
+          ],
+          "headline": "A Qualified Former Typing Student Teaches Computers",
+          "body": "Actual later qualifications and a real funded appointment place the eligible teacher in the provider’s genuine course."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "fund_former_teacher_computer_place": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Former Student Funds a Teacher’s Real Class Place",
+          "body": "The willing former teacher receives an actual eligible funded place and attends the genuine introductory session under the provider’s real terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Typing Course Is Not Completed",
+        "body": "The gift follows ordinary finances. No certificate, later qualification, teaching appointment or class place is invented."
+      },
+      "present_day": {
+        "best": "If all stages occurred, the actual learning archive in {now} records {B}'s genuine later enrollment and attendance in {A}'s actual computer course. Present skills and roles follow real later assessments.",
+        "worst": "Typing alone grants no computer competence or teaching authority. Preserve only actual learning, qualifications and funded appointments.",
+        "twist": "{B} gains a genuine funded opportunity to learn, while {A} gives up actual personal funds for the place. Neither needs to pretend that the older teacher already knew every new task."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I taught the typing. This time I needed a place in the class."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_actual_typing_course requires A consent and eligibility, a real funded place, B actual qualified teaching, completed instruction and passed genuine assessment. Record only actual earned skills or qualification; do not invent employment or computer fluency.",
+        "teach_actual_adult_computer_course requires A genuine independently acquired current computing and teaching qualifications, a real authorized funded provider appointment, actual period-available equipment and lawful suitable existing venue. Record actual teaching work and pay once; no employer, classroom or technology is created by decree.",
+        "fund_former_teacher_computer_place requires A still genuinely teaching that course and freely offering actual unencumbered personal funds, B current informed wish and genuine course need and eligibility, a real available place, applicable provider approval and an actual completed introductory attendance. Pay only the real third-party provider tuition or material charge once; no money is paid by A to A as a fictitious gift. Record attendance without guaranteeing later mastery. Dialogue requires B alive, present, the actual old teacher-student history and realized enrollment; no poverty, incapacity or embarrassment is inferred from age."
+      ],
+      "era_notes": "Use period-available keyboards and computers and actual teaching standards. An early course cannot teach software that does not yet exist.",
+      "why_fun": "Two familiar roles trade places at a classroom door, with a real cost and room to keep learning."
+    }
+  ]
+}

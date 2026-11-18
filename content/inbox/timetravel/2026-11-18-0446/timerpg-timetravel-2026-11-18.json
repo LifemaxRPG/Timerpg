@@ -1,0 +1,675 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-2861",
+      "kind": "scenario",
+      "title": "The Marriage That Left More Than an Empty Chair",
+      "category": "love",
+      "pitch": "Introduce two older residents who want company. A later marriage may make one the lawful heir of the other, though the money can only arrive after a real loss.",
+      "present_hook": {
+        "what_you_notice": "Two separate household histories preserve invitations neither resident accepted; no shared marriage or estate transfer appears.",
+        "where": "the church",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "In {year}, both {A} and {B} had asked about meeting someone who enjoyed the same quiet afternoons."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            50,
+            55
+          ],
+          "married": false
+        },
+        "B": {
+          "age": [
+            45,
+            50
+          ],
+          "married": false
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are real unrelated strangers, both legally free to marry and independently interested in companionship. Baseline they have not met or married each other. Require actual overlapping interests, a lawful meeting opportunity and a present at least 25 years later. An inheritance is conditional on an independently occurring natural death, a genuine estate and current succession rights, not promised by this introduction."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange a mutually wanted introduction after the actual gathering."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.3
+            }
+          ],
+          "headline": "Two Older Residents Choose to Keep Meeting",
+          "body": "Actual freely chosen visits support a closer bond. Neither resident promises a marriage or an estate."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "marry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Longtime Companions Enter a Lawful Marriage",
+          "body": "Still legally free to marry, the two residents complete their actual voluntary marriage. Property and succession remain governed by real records."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": false
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "inherit": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Surviving Spouse Receives a Settled Inheritance",
+          "body": "After an independently recorded natural death and lawful estate administration, the surviving spouse receives only the actual net share due."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Introduction Does Not Become Regular Company",
+        "body": "The meeting grants no bond increase, marriage or entitlement. Both residents keep their actual lives and finances."
+      },
+      "present_day": {
+        "best": "If the full chain occurred, the archive in {now} records the marriage, actual natural death and settled estate. The surviving spouse’s account contains only the genuine transferred assets still held; an absent chair does not imply a new household.",
+        "worst": "An introduction guarantees neither marriage nor survival. An unsettled estate, later divorce or failed eligibility produces no scenario inheritance.",
+        "twist": "The survivor gains actual assets and loses the spouse whose death made the transfer possible. The inheritance never counts as payment for grief."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "The account is settled. I still have nobody to tell about the small things."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Step 1 requires mutually wanted completed supportive visits after the introduction; the bond increase is not the direct introduction effect. Step 2 requires both alive, legally single at that time, capable, freely consenting and meeting the actual marriage rules; create no shared home, descendant or will.",
+        "Step 3 overrides A alive to false and requires the ordinary simulation to have independently recorded A natural death at the selected elapsed year before estate processing. Do not kill A, alter mortality or repeat a death effect. Require B alive, the marriage or another genuine lawful entitlement still qualifying, actual identified estate assets, verified succession rights, settled debts/taxes/competing claims and lawful distribution. Transfer only the real net share from A estate to B once; no inheritance if the estate lacks distributable assets. Mandatory succession processing continues ordinarily if this narrative roll fails; the roll concerns this completed qualifying distribution event, not withholding a legal right.",
+        "Gate B dialogue on survival, informed bereavement, the settled actual account and an independently expressed continuing wish to share everyday news with the deceased spouse. Never impose isolation, a particular home, new loneliness trait or failure to remarry; hide the line if its current facts are false."
+      ],
+      "era_notes": "Use the marriage, marital-property and succession rules of each event year. A letter or later account statement records only real transactions.",
+      "why_fun": "A changed family history can be visible in one wedding notice and one estate entry, without treating either as the whole relationship."
+    },
+    {
+      "id": "scenario-20261118-2862",
+      "kind": "scenario",
+      "title": "The Tattoo Artist Whose Early Work Disappeared",
+      "category": "business",
+      "pitch": "Invest in an established tattoo shop equipment plan. An apprentice may eventually cover an early commission with the client’s permission, earning a fee while changing a visible piece of the founder’s history.",
+      "present_hook": {
+        "what_you_notice": "A shop archive pairs an unfinished equipment plan with a client-approved photograph of an early commission.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The equipment proposal in {year} was never completed; the old design remained visible in the later authorized photograph."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "tattoo shop"
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            22
+          ]
+        },
+        "C": {
+          "age": [
+            20,
+            30
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A owns the identified lawful tattoo shop and is a currently qualified practitioner. B is an actual willing prospective adult trainee. C is the actual adult client wearing a genuine earlier completed tattoo by A, with authorized documentation. Bind the existing design, actual equipment shortfall and local lawful practice rules. Baseline no equipment upgrade, trainee employment or cover-up."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "A",
+          "amount": "large",
+          "how_it_looks": "Fund the actual shop equipment plan through the owner business account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "commission_actual_tattoo_equipment": "A"
+            }
+          ],
+          "headline": "A Tattoo Shop Completes Its Equipment Upgrade",
+          "body": "Funded qualified installation and checks put the actual lawful equipment into service. No client procedure is implied."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "hire": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Qualified Former Trainee Joins the Shop Payroll",
+          "body": "After real training and any required qualification, {B} accepts an actual funded practitioner position in the still-operating shop."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "complete_client_chosen_tattoo_coverup": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Client Chooses a New Design over an Early Commission",
+          "body": "The informed client freely chooses a suitable new design, and qualified practitioner {B} completes the authorized work and agreed fee settlement. The earlier visible design is covered to the extent actually achieved."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Equipment Upgrade Does Not Complete",
+        "body": "Funds follow the actual investment and contract terms. No qualification, hire or procedure is created; ordinary practice standards still apply."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the completed result remains current in {now}, a client-authorized new photograph shows the actual changed design beside the lawfully retained earlier image. Display no private client image without current permission.",
+        "worst": "An investment buys neither a trained practitioner nor a client choice. All ordinary equipment and practice duties apply even when the story stops.",
+        "twist": "The apprentice gains real paid work and the client chooses a new image, while the founder loses the visibility of the old design on this client. The original authorship and authorized historical photograph remain factual."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "uncanny",
+          "line": "I remember drawing the old outline. I have to look at the photograph to see it now."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add tattoo shop as a business kind requiring actual lawful premises, qualified practitioners, applicable licensing, hygiene controls and real operating funds. Bind business A to A actual owned shop ID; invest adds capital once. commission_actual_tattoo_equipment requires real available equipment, paid procurement from actual funds, qualified completed installation, inspections and current safe authorization. Do not grant skill, health outcomes or new clients.",
+        "hire requires A still owning and operating the same viable shop, B adult with independently completed real training and current legal qualifications, an actual funded vacancy, lawful terms, free consent and actual work. No decade-long qualification or license is automatic.",
+        "complete_client_chosen_tattoo_coverup requires A/B/C alive, B current qualified shop employment, C informed voluntary consent to an actual feasible design over the identified surviving prior work, all current suitability and safety checks by qualified staff, completed lawful work, actual aftercare and only the observed achieved result. Settle real agreed fees once under the actual employment contract; no guaranteed cosmetic or medical result, invented diagnosis or forced client change. A has no ownership over C body or right to veto lawful client choice. Gate A line on surviving authorized earlier photograph, actual memory and enough achieved coverage to make its statement true."
+      ],
+      "era_notes": "Use only techniques, equipment and legal practice available at each event year. No modern removal technology is implied.",
+      "why_fun": "The player can compare two permitted images of one existing resident and recognize a mentor’s work giving way to an apprentice’s work."
+    },
+    {
+      "id": "scenario-20261118-2863",
+      "kind": "scenario",
+      "title": "The Bicycle Frame That Came Back with a Different Saddle",
+      "category": "crime",
+      "pitch": "Help a bicycle owner afford a lawful identification record. If the same frame is later stolen, the record may eventually return it at a painful cost to an innocent later buyer.",
+      "present_hook": {
+        "what_you_notice": "An unresolved theft file lists an inadequately identified bicycle and a rejected ownership comparison.",
+        "where": "the police station",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The original purchase record in {year} lacked the identifying detail later needed to compare the frame."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            22
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        },
+        "C": {
+          "age": [
+            18,
+            25
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A actually owns a lawful identifiable bicycle with a real record/marking fee shortfall. B is an actual authorized property-records officer. C is an unrelated actual resident who may later become an innocent buyer, never presumed a thief. Baseline no adequate recorded identifier and an actual later unresolved theft of this same bicycle. Preserve the independently simulated theft and later purchase only when still supported after intervention."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Cover the actual authorized identification and record fee for the existing bicycle."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "record_actual_bicycle_identity": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Bicycle Owner Completes an Identification Record",
+          "body": "The owner and authorized officer document the actual frame identifier, proof of title and condition in a lawful retrievable record."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "file_identified_bicycle_theft": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Theft Report Identifies the Missing Frame",
+          "body": "After an independently occurring actual theft, the owner completes a genuine report linked to the earlier identification record. No culprit or recovery is announced."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "return_verified_stolen_frame": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Verified Stolen Frame Returns after a Lawful Decision",
+          "body": "A lawful comparison and ownership decision identify the same surviving frame with an innocent later purchaser. After required proceedings, the verified owner receives the actual frame."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Bicycle Record Remains Incomplete",
+        "body": "The gift creates no identifier, theft or accusation. Any real fee and refund follow the actual record-service terms."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the frame remains in {A.his} possession in {now}, the lawful recovery record links the old identifier to the returned physical frame. Show a different saddle only if its actual replacement is recorded.",
+        "worst": "An identifier cannot invent a theft, locate missing property or override a valid later title. No return occurs without the actual frame and lawful ownership decision.",
+        "twist": "The original owner regains the real frame, while an innocent buyer loses possession of something bought in good faith. Any compensation or seller claim must be actually available and adjudicated; no repayment appears by narration."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "bitter",
+          "line": "I believed the sale was honest. That did not make the frame mine."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "record_actual_bicycle_identity requires A actual lawful title, the same existing frame, qualified authorized inspection by B, a verified real existing serial or lawfully applied unique mark, paid actual fee and retrievable consented records. Persist frame identity across replacements without inventing a serial or manufacturing a second asset.",
+        "file_identified_bicycle_theft requires A still holding qualifying rights before an independently simulated nonconsensual taking in the selected interval, actual missing possession and a truthful completed report accepted by B under current authority. Record facts, identifier and case status only. Do not create theft, a culprit or probable cause through the chance roll; normal reporting remains possible on every branch.",
+        "return_verified_stolen_frame requires the same actual surviving frame independently reaching C through a genuine documented good-faith purchase, actual lawful discovery, usable identifier and evidence, B current authority, proper notice and hearing, and a real controlling decision that A retains superior title and C acquired none under applicable law. Execute only that actual ordered transfer once; preserve C actual purchase loss and genuine claims without inventing a seller or compensation fund. No confiscation from a valid lawful owner. Gate C dialogue on survival, documented good faith, informed final title decision and actual loss of possession."
+      ],
+      "era_notes": "Use the actual record medium and property law of each year; no nationwide searchable database or permanent retention is assumed.",
+      "why_fun": "A changed saddle can make an old object look unfamiliar while one quiet identifier keeps the true history attached to it."
+    },
+    {
+      "id": "scenario-20261118-2864",
+      "kind": "scenario",
+      "title": "The Scholarship Fund That Could Not Pay for Its Founder’s Child",
+      "category": "money",
+      "pitch": "Help a parent establish a genuine independent education fund. A grant may help another resident study, while the founder-family exclusion later reaches the donor’s own adult child.",
+      "present_hook": {
+        "what_you_notice": "A charity proposal remains unsigned beside a school-fee estimate and an uncompleted contribution pledge.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposed terms in {year} excluded the founder family; the pledge never became an independent fund."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "wealth": "comfortable",
+          "has_children": true
+        },
+        "B": {
+          "age": [
+            18,
+            22
+          ],
+          "wealth": "poor"
+        },
+        "C": {
+          "age": [
+            0,
+            2
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "C is A actual child, direction A parent to C; B is unrelated to A and C. Bind an actual lawful proposed independent vocational-education scholarship trust, willing existing independent trustees, genuine funding shortfall and an explicit lawful founder-family exclusion accepted with informed consent. Baseline no completed trust or award. Later adult applications require actual qualifications, course offers and need, not assumed poverty."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "large",
+          "how_it_looks": "Give the real funding shortfall to the willing proposed donor without changing the stated family-exclusion terms."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "establish_independent_scholarship_trust": "A"
+            }
+          ],
+          "headline": "A Donor Establishes an Independent Education Fund",
+          "body": "With actual lawful approval and completed funding, the donor transfers identified assets to the independent trust under its accepted eligibility terms."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "pay_actual_eligible_course_grant": "B"
+            }
+          ],
+          "headline": "An Eligible Adult Receives a Real Course Grant",
+          "body": "Independent trustees approve the genuinely eligible applicant and pay the actual authorized education cost from available trust assets."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "process_founder_child_scholarship_application": [
+                "A",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Fund Applies Its Family Exclusion to an Adult Applicant",
+          "body": "The donor’s adult child submits an actual otherwise eligible course application. Independent trustees record the genuine exclusion; the fund makes no prohibited payment."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Education Trust Is Not Established",
+        "body": "The gift follows the real household and pledge terms. No independent assets, student grant or exclusion decision is invented."
+      },
+      "present_day": {
+        "best": "If the chain occurred, permitted records in {now} show the established trust, genuine earlier grant and the adult child’s completed eligibility decision. Reveal individual application details only with lawful consent.",
+        "worst": "A pledge is not a funded trust. Any real later household help, course enrollment or charitable award must have its own actual funds and authority.",
+        "twist": "The donor gives up personal control of real assets for public education, then cannot reclaim those assets or award a prohibited grant to the donor’s own adult child. Another actual resident benefited from the earlier grant."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "I signed the family rule. It reaches my own front door too."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "establish_independent_scholarship_trust requires A informed free consent, actual lawful irrevocable governing instrument, identified real independent trustees with authority and acceptance, real sufficient lawful assets and actual completed transfer. Debit A actual donated assets once and credit the trust once; the direct gift is not repeated. Record the explicit lawful founder-family exclusion, administrator duties, investment risks and permitted education purposes. Do not create trustees, assets or guaranteed returns.",
+        "pay_actual_eligible_course_grant requires B alive and adult, actual current qualifying need and merit under the real rules, genuine course admission and cost, fair independent selection, no forbidden relationship or conflict, actual sufficient available trust funds and lawful completed payment to the authorized recipient. Record the grant and real course entitlement only; no earned qualification or later employment is implied.",
+        "process_founder_child_scholarship_application requires C actual existing child of A, now at least 23, with a real voluntary completed application, actual course offer and independently verified satisfaction of all relevant requirements except the lawful family exclusion. Record that application and eligibility decision, transfer no prohibited money and create no education debt or alternative grant. Mandatory family exclusion applies on all branches; this chance concerns the actual completed application event, not discretionary enforcement. A must be alive and informed for the after-line, which requires the original informed signature and actual current family decision."
+      ],
+      "era_notes": "Use the real charitable-trust, education and eligibility rules of each year; no present-day tax treatment or permanent investment return is assumed.",
+      "why_fun": "One family can watch a gift become an institution whose rules the giver can no longer bend."
+    }
+  ]
+}

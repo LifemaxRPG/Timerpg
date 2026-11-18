@@ -1,0 +1,632 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-1661",
+      "kind": "scenario",
+      "title": "The Choir Solo That Changed Keys",
+      "category": "rivalry",
+      "pitch": "Help a singer finish a genuine arranging course. A later new edition of a local song may suit the current choir while giving its familiar solo to somebody else.",
+      "present_hook": {
+        "what_you_notice": "A choir file holds an unfunded arranging-course request beside its ordinary rehearsal plan.",
+        "where": "the church",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The singer in {year} had a real course place and a fee shortfall."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            25
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            20,
+            30
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are actual consenting singers in an existing choir. A requested a genuine arranging course. Bind real skill records, choir authority and a genuine proposed original local composition; no song, solo assignment or later voice range is assumed. Baseline no qualifying new work exists."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give {A} the documented shortfall for the requested course."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_arranging_course": "A"
+            }
+          ],
+          "headline": "A Local Singer Completes an Arranging Course",
+          "body": "The singer completes the funded instruction and actual assessment before receiving the earned qualification."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "adopt_original_choir_work": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Choir Adopts a Qualified Singer’s Original Work",
+          "body": "The authorized choir adopts a real completed lawful work and assigns its actual solo to the qualified composer-singer."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "transpose_choir_work_and_recast_solo": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Choir Adopts a New Key and a Different Soloist",
+          "body": "The consenting rights holder and choir approve the actual new arrangement. Genuine current vocal assessments give the solo to another qualified singer."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Arranging Course Is Not Completed",
+        "body": "The gift follows ordinary finances. No qualification, composition or solo assignment appears through this attempt."
+      },
+      "present_day": {
+        "best": "If the complete chain and assignments persist in {now}, the actual choir program lists {B} for the solo in the approved new key. The work remains credited to its real creator.",
+        "worst": "No course guarantees a composition, adoption or vocal ability. Preserve actual works, permissions and assignments after a failed step.",
+        "twist": "The approved new key fits the actual current ensemble, but {A} loses a real recurring solo. Authorship and singing the lead are different rights."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "It is still my song. I hear the solo from a different chair now."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add real musical-work, arrangement and choir-assignment records. complete_actual_arranging_course requires actual funded instruction, eligibility and passed assessment; record only the genuine earned skill or qualification.",
+        "adopt_original_choir_work requires A actual completed original work, cleared rights, actual choir approval, viable rehearsals and genuine current auditions assigning A its recurring solo. Record the work, permissions and assignment only after completion; do not invent a score or award.",
+        "transpose_choir_work_and_recast_solo requires the same work, A surviving lawful rights and freely informed approval, actual choir authority and a completed funded permitted arrangement. Current independent assessments must show the approved key suits the real ensemble, B genuinely qualifies for the solo and A does not qualify for that specific new part. Never force age-related voice changes, remove authorship or invent auditions. Replace the real assignment once and retain the old edition’s actual rights. Dialogue requires A alive, present, actual retained authorship and the realized loss of the current solo; best requires B surviving and actually assigned. The after-line also requires A still in the actual choir, occupying a different non-solo seat and having genuinely heard B perform this work."
+      ],
+      "era_notes": "Earlier rehearsals use paper parts; later ones may use authorized digital copies. Qualification and performance requirements follow actual era practice.",
+      "why_fun": "A song can stay yours while the voice everyone associates with it changes."
+    },
+    {
+      "id": "scenario-20261118-1662",
+      "kind": "scenario",
+      "title": "The Archery Range That Gave Up Its Far Targets",
+      "category": "place",
+      "pitch": "Invest in a real range’s funded repair proposal. It may later employ a regular archer, then retire the long-distance lane that first made that member want to help.",
+      "present_hook": {
+        "what_you_notice": "A range file contains an unfunded repair estimate and an actual long-distance booking sheet.",
+        "where": "the edge of town",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposed work in {year} needed real funds and a qualified inspection."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "archery range"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "Bind range_shop to B actual adult-owned archery range. A is a real consenting regular user of its documented long-distance lane. Baseline the costed repair is unfinished. Bind actual site boundaries, safe existing operation and permits; no injury, land or future development is invented."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "range_shop",
+          "amount": "large",
+          "how_it_looks": "Invest in the genuine repair and inspection proposal at the existing range."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_bound_range_repairs": "B"
+            }
+          ],
+          "headline": "An Existing Range Completes Its Funded Repairs",
+          "body": "Qualified work and inspection complete the actual permitted repair proposal."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "hire": [
+                "B",
+                "A"
+              ]
+            }
+          ],
+          "headline": "A Range Hires a Qualified Regular as an Instructor",
+          "body": "The eligible qualified member freely accepts a genuine authorized funded teaching vacancy."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "retire_actual_long_distance_lane": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Range Settles Its Last Long-Distance Bookings",
+          "body": "A current qualified review leads to an approved funded layout with shorter lawful lanes. The actual long-distance bookings end on settled terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Range Repairs Are Not Completed",
+        "body": "The investment follows ordinary business finances. No repaired facility, job or changed booking entitlement follows through this chain."
+      },
+      "present_day": {
+        "best": "If the full chain persists in {now}, the actual range plan shows the retired long lane and surviving lawful shorter lanes; show {A}'s teaching role only while actually held.",
+        "worst": "An investment cannot certify safety or invent demand. Ordinary permit and safety duties apply whether or not the chain advances.",
+        "twist": "{A} gains a real teaching job but loses an actual recurring long-distance practice booking; the range can remain useful without offering the same challenge."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I can still teach here. I cannot practice the old distance here."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add archery range as a business kind, with real site, lane, permit and booking records. complete_bound_range_repairs requires B current ownership, a genuine viable funded proposal, qualified contractor capacity, lawful work and passed actual inspections. Post costs once and change only repaired assets.",
+        "hire requires B still owning the active same range, an actual funded vacancy, A adult with all current actual instructor qualifications, insurance and lawful eligibility, and free acceptance. Record the real contract and pay once; membership alone grants no skill.",
+        "retire_actual_long_distance_lane requires the same actual active range, current qualified site review, real independently occurring boundary, buffer or operating constraints making that specific lane unsuitable, an approved funded viable shorter-lane layout and settled customer and worker rights. A must still hold the actual long-distance booking. End that lane and those bookings only after completing lawful work and settling fees; do not invent neighboring development, guarantee safety or create replacement land. Ordinary mandatory controls apply independently on failure. Dialogue requires A alive, present, currently teaching and genuinely unable to book the retired distance."
+      ],
+      "era_notes": "Use real period-available equipment, qualified instruction and applicable site rules. No modern permit or neighboring project is backdated.",
+      "why_fun": "Keeping a place open can mean giving up the exact thing that made you love it."
+    },
+    {
+      "id": "scenario-20261118-1663",
+      "kind": "scenario",
+      "title": "The Pigeon Loft That Was Not a Promise to Keep Racing",
+      "category": "family",
+      "pitch": "Help a parent finish a genuine pigeon-loft proposal. An adult child may later accept the birds and loft, then choose a careful rehoming instead of continuing the family racing routine.",
+      "present_hook": {
+        "what_you_notice": "A family has shared an unfunded loft estimate beside its actual racing-club records.",
+        "where": "the edge of town",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The parent in {year} had lawful bird holdings and a real permitted loft proposal."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "has_children": true
+        },
+        "B": {
+          "age": [
+            8,
+            12
+          ],
+          "relation": "parent_child"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A is B actual parent; B is the child. Bind actual lawfully held domestic pigeons, genuine authorized receiving site and suitable funded loft plan. Baseline the new loft is unfinished. No bird survives decades by assumption, and no interest or future racing skill is assigned to the child."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give {A} the actual remaining cost of the permitted loft proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_pigeon_loft": "A"
+            }
+          ],
+          "headline": "A Family Completes a Lawful Pigeon Loft",
+          "body": "The owner completes the funded inspected loft and moves only actual eligible birds into its real capacity."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "transfer_current_loft_and_birds": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Adult Child Freely Accepts a Loft and Its Current Birds",
+          "body": "The qualified willing adult accepts a genuine lawful transfer of the surviving loft rights and actual current bird holdings."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "rehome_current_loft_birds_and_end_racing": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Loft’s Current Birds Move to Qualified New Homes",
+          "body": "The owner completes lawful suitable rehoming of all actual current birds and settles the real racing commitments before ending the loft’s operation."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The New Loft Is Not Completed",
+        "body": "The gift follows ordinary finances. Existing lawful birds remain subject to their actual care needs; no new loft or transfer is created."
+      },
+      "present_day": {
+        "best": "If the full chain occurred, the actual loft record in {now} shows its ended operation and documented lawful current bird dispositions. No original bird is presumed alive.",
+        "worst": "A gift does not create birds, their descendants or the child’s consent. Preserve actual holdings, welfare obligations and property rights after failure.",
+        "twist": "{B} gains freely chosen responsibility and later gives it up carefully. {A} loses a real retained racing-access agreement when the loft closes, even though the birds have suitable homes."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "I still check the sky at the old return time. There is no return time on this loft’s calendar now."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add domestic racing-pigeon assets, loft capacity, welfare and race-entry records. complete_actual_pigeon_loft requires actual A site authority, suitable funded permitted construction, inspections and current lawfully held healthy birds within capacity. Record only the completed asset and real transfers; never create birds or a race win.",
+        "transfer_current_loft_and_birds requires B now adult, actually willing and qualified for care, genuine lawful loft rights transferable to B, complete current inventory and settled permissions and costs. Transfer only actual surviving assets and bird IDs; ordinary mortality, births, purchases and care determine inventory over time. Record an actual freely agreed retained A racing-access right, with lawful termination terms.",
+        "rehome_current_loft_birds_and_end_racing requires B still owner and freely choosing closure, actual qualified willing lawful recipients with verified capacity for every current bird, settled transport, welfare, ownership, race and retained A access obligations. Complete actual rehoming before ending operation and that access agreement; no abandoned birds, invented buyer, death or empty inventory is forced. Dialogue requires A alive, present, knowing the actual closed loft and canceled current calendar, with a real earlier routine of checking return times."
+      ],
+      "era_notes": "Use actual era-specific bird identification, transport, welfare and racing rules. A paper club register never guarantees a bird’s survival or performance.",
+      "why_fun": "Accepting a family tradition does not have to mean keeping it forever."
+    },
+    {
+      "id": "scenario-20261118-1664",
+      "kind": "scenario",
+      "title": "The Marriage with Two Breakfast Tables",
+      "category": "love",
+      "pitch": "Introduce two adults who each value a home of their own. A marriage may work across two addresses for years before a freely chosen shared household ends one spouse’s separate home ownership.",
+      "present_hook": {
+        "what_you_notice": "Two separate social-club requests each mention wanting companionship while keeping an existing home.",
+        "where": "the church",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "Both adults in {year} had freely requested a compatible introduction."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "married": false
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ],
+          "married": false
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are distinct compatible consenting adults, legally free to marry and not prohibited relatives. Each actually owns and occupies a separate suitable existing home and has requested a meeting. Baseline they have not met; no marriage or later housing decision is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the two willing adults after both approve the meeting."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "marry": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "retain_actual_separate_households": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Couple Marries and Keeps Two Lawful Home Addresses",
+          "body": "The eligible consenting adults marry with a genuine viable plan to retain their actual separate households."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "renew_separate_household_agreement": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Spouses Renew Their Separate-Household Agreement",
+          "body": "The still-married spouses freely update actual spending, access and household responsibilities while retaining both homes."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "combine_households_and_sell_actual_home": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Spouses Freely Choose One Shared Household",
+          "body": "The consenting spouses complete a real funded move into one suitable home and a lawful voluntary sale of the other."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Introduction Does Not Become a Marriage",
+        "body": "The adults retain actual lives and housing. No marriage, household agreement or sale occurs through this attempt."
+      },
+      "present_day": {
+        "best": "If all stages persist in {now}, the spouses share the actual retained home; {B}'s former home has only its actual new title and occupancy after the completed sale.",
+        "worst": "A meeting creates no family or housing rights. Preserve realized marriage, ownership and occupancy facts when later stages fail.",
+        "twist": "The spouses gain their actual chosen shared household and sale proceeds, while {B} gives up a real separately owned home and its independent household routine."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I like having breakfast together. I still remember where I used to sit alone."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Recheck both adults unmarried, eligible and freely consenting at marriage. retain_actual_separate_households is atomic with marriage and requires their actual separate lawful homes, adequate funds and a genuine freely informed agreement covering rights, expenses, access and practical responsibilities. Preserve actual titles and applicable spouse protections; marriage does not create or waive property rights by narrative.",
+        "renew_separate_household_agreement requires both alive and still married, actual continuing separate homes, competent informed consent, viable actual budgets and lawful executed updated terms. Record only agreed current responsibilities and actual resulting payments once; do not imply estrangement, visits or children.",
+        "combine_households_and_sell_actual_home requires both alive and still married, genuine free joint choice, A continuing actual suitable home and clear lawful occupancy for both, B actual title to the other home, a real willing funded buyer, lawful sale, settled debts and all occupant rights, and an actual completed permitted move. Transfer B existing home and actual agreed price once; retain A home and record the real shared household. No buyer, replacement building or benefit gain is invented. Dialogue requires B alive, present and actually sharing breakfast by their real current routine; descriptions of the sold home use actual later facts."
+      ],
+      "era_notes": "Use actual period-specific marriage, residence, property and household rules. Separate addresses never imply a legal separation or automatic benefit entitlement.",
+      "why_fun": "The player can help a marriage begin without assuming that love immediately means one front door."
+    }
+  ]
+}

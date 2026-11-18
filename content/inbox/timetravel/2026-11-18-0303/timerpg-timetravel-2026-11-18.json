@@ -1,0 +1,657 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-1831",
+      "kind": "scenario",
+      "title": "The Exhibit That Finally Went Home",
+      "category": "crime",
+      "pitch": "Help a young resident finish genuine collections training. A later provenance review may return a wrongly held household object to its actual owner, leaving a familiar exhibit case empty.",
+      "present_hook": {
+        "what_you_notice": "An archive pairs a disputed museum accession with an authentic unresolved ownership claim.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The claim concerned the same real household object already in the collection in {year}."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            25
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A requested a real qualified collections course. B is the actual lawful owner of one identified household object wrongfully held by an existing museum; bind authentic independent ownership evidence and the genuine unresolved claim. Baseline no qualifying review or return has occurred. The object is not human remains, sacred material or a newly invented treasure."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give {A} the actual requested course-fee shortfall."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_collections_training": "A"
+            }
+          ],
+          "headline": "A Resident Completes Qualified Collections Training",
+          "body": "The student completes actual funded instruction and assessment before earning the recorded qualification."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "appoint_qualified_collection_reviewer": "A"
+            }
+          ],
+          "headline": "A Museum Appoints a Qualified Collection Reviewer",
+          "body": "The currently qualified applicant accepts a genuine funded authorized position with access to the relevant lawful records."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "return_wrongfully_held_object": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Museum Returns a Wrongfully Held Household Object",
+          "body": "The supported lawful ownership process completes an actual return. The former exhibit no longer contains that object."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Collections Training Is Not Completed",
+        "body": "The gift follows ordinary finances. The ownership claim remains subject to ordinary lawful processes, not this unfinished career chain."
+      },
+      "present_day": {
+        "best": "If the completed return remains valid in {now}, the actual collection record marks the object returned and the former display omits it. Its current private location is shown only with lawful access.",
+        "worst": "No qualification proves ownership. Preserve actual evidence, claims and independently required remedies after a failed stage.",
+        "twist": "{B} regains actual property, while the museum loses a real exhibit and {A} loses routine work access to that object; correcting ownership is not a new acquisition."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I no longer have to ask the museum to see something that belongs to me."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add collections qualifications, actual museum employment, accession and title-claim records. complete_actual_collections_training requires real funded instruction, eligibility and passed assessment; record only genuinely earned training.",
+        "appoint_qualified_collection_reviewer requires A current actual qualifications, genuine authorized funded vacancy, lawful selection, settled conflicts and consent, and permitted access to authentic collection records. Create only that employment and access, not ownership findings or a museum.",
+        "return_wrongfully_held_object requires A current authorized role, the exact surviving bound object still in the museum, authentic independent evidence actually establishing B current lawful title, B survival and informed consent, and completed required lawful adjudication or authorized voluntary return. Settle third-party rights and real conservation and transport obligations before transferring custody and removing that exact accession from display once. No owner, theft, treasure, historical fact or court outcome is invented. Mandatory remedies apply independently even if the chain fails. Dialogue requires B alive, present, actual completed return and genuine former need for museum permission to access this object. The after-line additionally requires B still owning and having actual current access to the returned object."
+      ],
+      "era_notes": "Use actual period-specific training, collection records and ownership remedies. Earlier paper accessions do not make an unresolved claim disappear.",
+      "why_fun": "The most satisfying change to a museum can be the thing its display case no longer holds."
+    },
+    {
+      "id": "scenario-20261118-1832",
+      "kind": "scenario",
+      "title": "The Funeral Plan That Left Room for a Different Farewell",
+      "category": "money",
+      "pitch": "Help a resident meet a genuine prepaid-plan shortfall. Decades later, changing the farewell may return some real restricted funds while costing the provider an actual service commitment.",
+      "present_hook": {
+        "what_you_notice": "A resident has voluntarily shared an unsigned prepaid funeral offer and its actual cancellation terms.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The offer in {year} had a real shortfall; it had not yet become a funded contract."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            40,
+            50
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "funeral home"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A is an actual competent consenting prospective customer, alive without any death scheduled by this scenario. B owns funeral_shop and has issued the genuine lawful costed offer. Bind actual plan terms and authorized trust or insurance arrangements. Baseline no funded contract exists; no bereavement or illness is invented."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give {A} the actual shortfall for the freely requested lawful plan."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "fund_actual_prepaid_funeral_plan": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Resident Completes a Lawful Prepaid Plan",
+          "body": "The willing parties fund the real contract under its actual protected-funds and service terms."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "complete_prepaid_plan_review": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Resident Reviews the Actual Prepaid-Plan Terms",
+          "body": "The competent customer completes a qualified funded review of the genuine remaining rights, obligations and available options."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "replace_prepaid_plan_with_smaller_plan": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Resident Freely Chooses a Smaller Farewell Plan",
+          "body": "The living customer completes a lawful funded replacement. The actual refundable difference is released under the governing terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Prepaid Contract Is Not Completed",
+        "body": "The gift follows ordinary personal finances. No funeral contract, protected fund or service entitlement is created through this attempt."
+      },
+      "present_day": {
+        "best": "If the completed changes still apply in {now}, lawful authorized inspection shows the actual smaller funded plan and settled refund. No funeral or death is implied.",
+        "worst": "A gift creates neither a funeral entitlement nor a guaranteed refund. Preserve actual later contracts and protected funds after failure.",
+        "twist": "{A} regains the genuinely refundable difference and gives up part of the old service entitlement; {B} loses the corresponding actual future service obligation and contractual revenue right."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "I changed the plan. I have not decided how to spend the part they could actually return."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add funeral home as a business kind and actual prepaid contract, protected-fund and service-entitlement records. fund_actual_prepaid_funeral_plan requires A capacity and informed consent, B actual licensed ownership, a lawful real offer, sufficient real funds and required trust or insurance protections. Fund only that contract once; do not treat protected principal as freely available shop profit.",
+        "complete_prepaid_plan_review requires both actual authorized parties, A continuing capacity and consent, genuine current contract and fund statements, qualified independent advice where required and real funded review costs. Record the actual review and options, not a changed contract or promised refund.",
+        "replace_prepaid_plan_with_smaller_plan requires A alive, competent and freely choosing, B still authorized under the actual surviving contract, legally permitted cancellation or variation, genuine consented smaller replacement and a strictly positive genuinely refundable difference. Settle real protected-fund, lender, beneficiary and provider rights, fund the replacement and release only the lawful real difference once. End only the replaced service and revenue entitlement; never invent liquidity, death, future profit or a funeral. Dialogue requires A alive, present and actual unspent refunded funds. Use the after-line only while that actual refund also remains unallocated to a recorded spending decision."
+      ],
+      "era_notes": "Apply the actual era’s provider, trust, insurance and cancellation rules. Offer only years where the exact proposed arrangement is lawful.",
+      "why_fun": "Planning ahead can make a quiet later change possible without deciding when anybody dies."
+    },
+    {
+      "id": "scenario-20261118-1833",
+      "kind": "scenario",
+      "title": "The Name They Took Off the Guardian Form",
+      "category": "family",
+      "pitch": "Introduce two neighbors who welcome a meeting. A lasting friendship may lead to a guardian nomination, then a later move may make the parents freely choose to release that friend from the plan.",
+      "present_hook": {
+        "what_you_notice": "A neighborhood welcome file contains two uncompleted requests to meet nearby residents.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "Both requests in {year} were freely made; the neighbors had not met."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "married": true
+        },
+        "D": {
+          "age": [
+            18,
+            22
+          ],
+          "sex": "F",
+          "married": true,
+          "relation": "spouses"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are actual nearby consenting neighbors who have not met. D is B actual spouse, not A spouse; D is the prospective birth parent. Require genuine compatible introduction requests. Baseline no child C, guardian nomination or later departure is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the willing neighbors after both approve the meeting."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "D": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.3
+            }
+          ],
+          "headline": "Neighbors Build a Real Continuing Friendship",
+          "body": "The neighbors’ actual voluntary continuing friendship strengthens the recorded bond after their first meeting."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "D": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "child": [
+                "B",
+                "D"
+              ]
+            },
+            {
+              "nominate_friend_as_future_guardian": [
+                "B",
+                "D",
+                "A",
+                "C"
+              ]
+            }
+          ],
+          "headline": "Parents Welcome a Child and Record a Guardian Nomination",
+          "body": "A genuine supported birth creates one child. The eligible parents freely nominate their consenting trusted friend for a possible future need."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "D": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "move_away": "A"
+            },
+            {
+              "revoke_friend_guardian_nomination": [
+                "B",
+                "D",
+                "A",
+                "C"
+              ]
+            }
+          ],
+          "headline": "Parents and a Departing Friend Settle a Guardian Plan",
+          "body": "The friend completes a genuine funded voluntary move. The still-capable parents execute the lawful release of the actual nomination."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Introduction Does Not Become a Continuing Friendship",
+        "body": "The meeting alone creates no family, child, guardian nomination or obligation to remain in town."
+      },
+      "present_day": {
+        "best": "If the full history occurred, the family archive in {now} records the actual birth and revoked nomination, and {A}'s actual residence follows subsequent simulation. No child loses a living parent through this chain.",
+        "worst": "Only a genuine birth creates a child. A nomination never grants present custody, and later failure preserves actual parental rights and existing valid documents.",
+        "twist": "{A} gains an actual freely chosen move, while the parents give up the real nearby backup named on their form; the friendship need not end."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "I liked knowing the person on that form lived nearby."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "The step-1 bond is a later voluntary relationship change requiring real continuing friendly interactions; introduce only makes the first meeting and does not apply that bond gain twice.",
+        "At step 2 B and D must still be actual consenting eligible spouses with genuine current reproductive and household eligibility and a feasible completed conception and gestation. D is age 29..35 then. child creates exactly one newborn, binding future C to that new persistent resident ID, never to an existing person. The guardian nomination is atomic with this step and requires parental authority, a real lawful executed instrument and A actual informed consent and eligibility. It is only a nomination subject to future law and court decisions, never present custody.",
+        "Step 3 requires B and D alive, still authorized capable parents, C alive and still minor, A actual voluntary funded lawful destination and housing, and all parties’ informed agreement to revoke the genuine nomination. C is age 10..14 at that step. Move A once and revoke only that document atomically after valid notice and execution; create no substitute parent, divorce, child death, appointment or loss of parental care. Ordinary later nomination choices remain possible. Dialogue requires B alive, present and aware of the genuine former nearby nomination and completed release."
+      ],
+      "era_notes": "Use actual period-specific family, birth, nomination and residence rules. Never substitute a friendship for a court’s actual authority.",
+      "why_fun": "Being trusted can change a life even when the emergency never happens."
+    },
+    {
+      "id": "scenario-20261118-1834",
+      "kind": "scenario",
+      "title": "The Cat Tag That Changed the Back-Door Rule",
+      "category": "rescue",
+      "pitch": "Help a pet owner afford actual identification work. A later voluntary registry may lead to a funded indoor-care agreement that ends the owner’s old habit of letting current cats roam.",
+      "present_hook": {
+        "what_you_notice": "A resident has shared an unfunded identification quote for an actual lawfully owned cat.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The quote in {year} concerned a real cat and a period-available identification method."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A actually owns a consenting-household pet cat with a genuine identification shortfall. B is a real qualified veterinarian willing to discuss a genuine registry proposal. Baseline the identification and shared registry are unfinished. No disappearance, recovery, animal birth or later pet ownership is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give {A} the actual shortfall for qualified lawful pet identification."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_cat_identification": "A"
+            }
+          ],
+          "headline": "A Pet Owner Completes Genuine Cat Identification",
+          "body": "The actual eligible cat receives the lawful appropriate identification and a valid current owner record."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_voluntary_pet_registry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Residents and a Veterinarian Establish a Voluntary Registry",
+          "body": "A genuine funded consented registry begins with actual lawful records and qualified oversight."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "adopt_funded_indoor_cat_care_agreement": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Owner Freely Adopts a Funded Indoor-Care Plan",
+          "body": "Qualified current assessment and actual suitable provision support a voluntary agreement. The owner’s current cats stop the former unsupervised outdoor routine."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Identification Work Is Not Completed",
+        "body": "The gift follows ordinary finances. No tag, registry entry, lost animal or reunion is invented."
+      },
+      "present_day": {
+        "best": "If all stages and the agreement persist in {now}, the actual household record shows its current identified cats and implemented indoor-care arrangement. The original cat is shown only if actually alive.",
+        "worst": "A tag guarantees no recovery or health outcome. Preserve actual ownership, ordinary animal life events and welfare duties after failure.",
+        "twist": "{A} gains the actual supported care arrangement but gives up a genuine current outdoor routine and pays its real provision costs. No cat or owner gains guaranteed safety."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I still reach for the back door. The cats have a different routine now."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add actual domestic-cat identification, consented registry and care-plan records. complete_actual_cat_identification requires the bound original cat actually alive, lawfully owned, currently eligible for the exact qualified period-available method, real owner consent and funds. Record only completed identification and genuine owner contact details; do not create a cat or guarantee that a tag remains attached.",
+        "establish_voluntary_pet_registry requires A and B actual authority and consent, current qualified veterinary oversight, lawful privacy and retention controls, funded capacity and real owner-authorized animal records. The original cat need not survive; never fabricate replacement animals, customers, professional qualifications or reunions.",
+        "adopt_funded_indoor_cat_care_agreement requires A actually owning current identified cats, a genuine former unsupervised outdoor routine, free informed household consent, B current qualified welfare assessment, suitable lawful actual indoor space and enrichment, adequate real ongoing funds and completed implementation. Apply only to actual current animal IDs; ordinary births, deaths and transfers determine them. Record the real plan, costs and ceased outdoor routine once without confiscation, forced adoption or guaranteed health effects. Dialogue requires A alive, present and the realized current routine change."
+      ],
+      "era_notes": "Earlier identification can be a lawful collar tag and paper register. Do not backdate electronic identification or later veterinary standards.",
+      "why_fun": "A small tag can eventually change which side of the back door feels like home."
+    }
+  ]
+}

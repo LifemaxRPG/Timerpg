@@ -1,0 +1,659 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-2121",
+      "kind": "scenario",
+      "title": "The Adoption That Could Not Go Ahead",
+      "category": "crime",
+      "pitch": "Kill a prospective adoptive parent before a real placement is approved. Another family path may become possible, but neither a later reunion nor a useful career returns the person whose life you ended.",
+      "present_hook": {
+        "what_you_notice": "A lawful redacted case record shows a genuine pending adoption that did not yet have its final order.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "In {year}, the child already had a qualified caregiver; the proposed adoption was not a completed parenthood."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            45
+          ]
+        },
+        "B": {
+          "age": [
+            20,
+            30
+          ],
+          "has_children": true
+        },
+        "C": {
+          "age": [
+            0,
+            2
+          ],
+          "relation": "parent_child"
+        },
+        "D": {
+          "age": [
+            30,
+            40
+          ],
+          "relation": "friends"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A is the actual living prospective adopter, never yet C legal parent. B is C actual birth parent with surviving lawful rights; C parent_child is relative to B. D is C actual qualified existing lawful caregiver and A actual friend; D friends is relative to A. Bind the genuine pending case and lawful redacted access. No parental unfitness, release of rights or final adoption is invented."
+      },
+      "interventions": [
+        {
+          "verb": "kill",
+          "target": "A",
+          "how_it_looks": "Cause {A}'s death in the intervention year; record the loss without spectacle."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            0,
+            1
+          ],
+          "if": {
+            "A": {
+              "alive": false
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            },
+            "D": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "end_pending_adoption_after_actual_death": [
+                "A",
+                "C",
+                "D"
+              ]
+            }
+          ],
+          "headline": "A Pending Adoption Ends after the Prospective Parent’s Death",
+          "body": "The actual court closes the uncompleted proposal. The child remains in the existing lawful care arrangement under its actual continuing authority."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": false
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            },
+            "D": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "reunify_actual_child_with_parent": [
+                "B",
+                "C",
+                "D"
+              ]
+            }
+          ],
+          "headline": "A Child Returns to a Qualified Birth Parent under Real Terms",
+          "body": "Actual current assessments, rights and the required lawful decision complete the supported reunification."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": false
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            },
+            "D": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "accept_actual_family_service_post": "C"
+            }
+          ],
+          "headline": "An Adult Accepts a Qualified Family-Service Position",
+          "body": "The genuinely qualified adult freely accepts an actual funded vacancy. No other family’s outcome is promised."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Adoption Closure Does Not Complete through This Chain",
+        "body": "The death still stands. The court and caregiver must handle the child’s real care and case under ordinary law; no adoption, reunion or career is promised."
+      },
+      "present_day": {
+        "best": "If the full chain occurred, authorized family records in {now} show the actual reunification and {C}'s later earned qualifications and actual employment history. {A}'s death remains in the town record.",
+        "worst": "The person killed stays dead even if every later step fails. Preserve actual lawful custody, case decisions and independent criminal consequences.",
+        "twist": "{B} may regain actual family life and {C} may gain real work, while {A} loses every remaining year. These gains do not compensate for that death."
+      },
+      "npc_lines_after": [
+        {
+          "who": "D",
+          "mood": "bitter",
+          "line": "The child had a life after that. My friend did not."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "The kill intervention causes A actual death in its execution year and records the ordinary murdered cause once. Do not repeat death in ripples, resurrect A or suppress ordinary investigation, liability, grief or surviving rights. A is a documentary deceased role afterward; require A dead with that exact intervention-death receipt rather than alive at every step. All actual living actors must remain eligible.",
+        "end_pending_adoption_after_actual_death requires A documented intervention death, the exact genuine uncompleted adoption, actual court closure and C continuing lawful safe care under D existing authority. Never create a care placement, final adoption or termination of B rights. Ordinary court and welfare duties apply even if this step fails.",
+        "reunify_actual_child_with_parent requires B actual surviving parental rights and current independently assessed capacity, C alive and still eligible as a minor, actual qualified case review, all required consents including C where applicable, a genuine required lawful approval and safe funded suitable actual care. Settle D real custody authority and obligations before transfer. No housing, recovery, innocence or court result is invented.",
+        "accept_actual_family_service_post requires C now adult, actual education and professional qualifications, eligible lawful selection, a real funded existing-employer vacancy and free acceptance. Record only actual work and pay. Dialogue requires D alive, present, knowing A actual death and C genuine later life, and the recorded original friendship; no relative must thank the player for murder."
+      ],
+      "era_notes": "Apply actual period-specific adoption, custody and professional rules. A pending proposal is never treated as an existing parent-child bond by decree.",
+      "why_fun": "The town can recover into a different future while keeping one loss that no successful chain can undo."
+    },
+    {
+      "id": "scenario-20261118-2122",
+      "kind": "scenario",
+      "title": "The Dough That Rose before Anyone Arrived",
+      "category": "business",
+      "pitch": "Invest in a bakery’s genuine timed-proofing proposal. A later day-shift arrangement may preserve a baker’s job while ending the actual night premium that made it pay more.",
+      "present_hook": {
+        "what_you_notice": "A bakery file holds an unfunded proofing-cabinet estimate beside its real overnight production schedule.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposal in {year} needed actual equipment, qualified setup and a viable production trial."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bakery"
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            25
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "Bind bakery_shop to A actual adult-owned bakery. B is a real consenting qualified prospective baker. Bind an actual viable costed timed-proofing proposal and real labor needs. Baseline no qualifying controlled process exists; no production, buyer or night-premium entitlement is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "bakery_shop",
+          "amount": "large",
+          "how_it_looks": "Invest in the actual costed cabinet, setup and production trial."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "validate_actual_timed_proofing": "A"
+            }
+          ],
+          "headline": "A Bakery Completes Its Controlled Proofing Trial",
+          "body": "Actual funded equipment and qualified testing establish the real usable process for the specified production."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "hire_actual_night_baker": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Bakery Hires a Qualified Baker on Real Night Terms",
+          "body": "The qualified worker freely accepts the actual funded night vacancy and its genuine contractual premium."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "move_actual_baker_to_consented_day_shift": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Bakery Settles a Consented Day-Shift Arrangement",
+          "body": "Actual current production supports the change. The worker keeps the real agreed job while the night-only premium ends under settled terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Proofing Trial Does Not Qualify",
+        "body": "The investment follows ordinary business finances. No usable process, job or shift change is invented."
+      },
+      "present_day": {
+        "best": "If all stages and the arrangement persist in {now}, the bakery schedule shows the actual day shift and {B}'s payslip shows the night-only premium ended. Show only actual current employment.",
+        "worst": "A cabinet alone guarantees no production, job or later schedule. Preserve actual labor, pay and food controls after failure.",
+        "twist": "The job can start at a different hour without disappearing, but {B} loses a real premium. No gain in sleep or health is promised."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I still have the job. I do not have the night premium."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "validate_actual_timed_proofing requires A ownership, genuine funded period-available equipment, qualified setup, actual controlled safe trials and viable real production. Record the specific validated process and actual costs only; no stock or sale appears without ordinary production.",
+        "hire_actual_night_baker requires the same actual active bakery, B current actual qualifications, a genuine funded lawful night vacancy, valid selection and free acceptance. Record actual pay and the exact positive night-only premium once. Earlier automation does not remove night work by assumption.",
+        "move_actual_baker_to_consented_day_shift requires A continuing ownership, B still in that night job with the premium, actual current production evidence allowing the funded day schedule, completed necessary safe process changes, and lawful informed consent or agreement with settled labor and pension rights. Preserve the actual agreed job and end only the real night-dependent premium after notice; post actual new pay through payroll, not an extra wealth penalty. Do not invent savings, layoffs, customers or healthy sleep. Dialogue requires B alive, present, still employed under the actual later schedule and genuinely missing that premium. The implemented day schedule requires an actual validated period-appropriate proofing phase completed before that shift arrives; no unattended capability is invented."
+      ],
+      "era_notes": "Use actual period-available controls and food and labor requirements. Do not give an early cabinet modern unattended capabilities.",
+      "why_fun": "A machine can change the meaning of a workday without making the worker’s financial tradeoff disappear."
+    },
+    {
+      "id": "scenario-20261118-2123",
+      "kind": "scenario",
+      "title": "The Phone Booth That Kept Its Door after the Calls Stopped",
+      "category": "place",
+      "pitch": "Invest in a music shop’s genuine public-telephone proposal. A later end to real phone service may leave its booth useful as a free book exchange, at the cost of the owner’s actual phone commission.",
+      "present_hook": {
+        "what_you_notice": "A music-shop file contains an unsigned public-phone offer and an unfunded booth estimate.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The provider’s real offer in {year} included a positive shop commission and actual installation conditions."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "music store"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1985
+        ],
+        "notes": "Bind music_shop to A actual adult-owned music store, B to a real willing book-exchange organizer, and a genuine authorized phone-provider offer. Baseline no installed booth exists. Require suitable actual site authority and lawful positive-commission terms; no provider, calls or books are invented."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "music_shop",
+          "amount": "large",
+          "how_it_looks": "Invest in the actual authorized booth and connection proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "install_actual_commissioned_phone_booth": "A"
+            }
+          ],
+          "headline": "A Shop Opens a Tested Authorized Public Telephone",
+          "body": "The actual installed service passes its real tests and begins under the genuine commission agreement."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "renew_actual_public_phone_agreement": "A"
+            }
+          ],
+          "headline": "A Shop Renews Its Real Public-Phone Agreement",
+          "body": "Actual service records and the provider’s viable authorized offer support the completed lawful renewal."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "convert_decommissioned_booth_to_book_exchange": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Retired Phone Booth Opens a Real Book Exchange",
+          "body": "The provider’s genuine settled service withdrawal ends its commission. Lawful funded conversion reuses the actual booth with real donated books."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Public Telephone Is Not Installed",
+        "body": "The investment follows ordinary shop finances. No working phone, commission, booth or book exchange is created."
+      },
+      "present_day": {
+        "best": "If the full conversion persists in {now}, the same actual booth holds the lawful stocked free exchange and no working phone. The old commission has its actual ended status.",
+        "worst": "A provider offer creates no installed service. No withdrawal, preserved booth or donated collection appears unless its real requirements occur.",
+        "twist": "The community gains an actual free exchange; {A} gives up the real phone commission and accepts the genuine ongoing upkeep obligation for the reused booth."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "The door still sticks in damp weather. There is just no dial tone to listen for now."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add actual public-phone service, booth asset, commission and free book-exchange records. install_actual_commissioned_phone_booth requires real provider authority and capacity, A site rights, funded permitted installation, passed service tests and a genuine positive-commission contract. Record only the real asset, service and actual earned commissions.",
+        "renew_actual_public_phone_agreement requires the same actual surviving booth and service, authentic use records, a real viable provider renewal and freely agreed lawful funded terms. Renew only that service and commission; do not guarantee future calls.",
+        "convert_decommissioned_booth_to_book_exchange requires a genuine independently occurring provider withdrawal, settled service, commission and customer rights, lawful title to the actual surviving booth, A and B free consent and authority, permitted funded safe conversion, a viable real maintenance plan and actual legally donated books within capacity. Retire the actual service and commission, safely remove phone equipment and record real conversion costs and donated stock once. Never invent a withdrawal, replacement network, books or visits. Dialogue requires A alive, present, the realized conversion, genuine damp-weather door sticking and no working telephone in that booth."
+      ],
+      "era_notes": "Use actual period-available service and lawful site terms. A retired public phone can be reused only after real decommissioning and safe conversion.",
+      "why_fun": "A familiar street object can keep inviting people inside after the reason for opening its door changes."
+    },
+    {
+      "id": "scenario-20261118-2124",
+      "kind": "scenario",
+      "title": "The Review Column That Gave Up Its Free Pastries",
+      "category": "money",
+      "pitch": "Spread deserved praise for a resident’s genuinely independent food writing. A later paid column may eventually stop accepting a bakery’s regular gifts, leaving its writer buying the food the column discusses.",
+      "present_hook": {
+        "what_you_notice": "A local writing file holds a genuine independently prepared food-review draft that has not been accepted for publication.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The draft in {year} was supported by real observations and made no promise of a favorable verdict."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            25
+          ],
+          "reputation": "mid"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bakery"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A is an actual competent consenting writer with a genuinely independent accurate draft. B owns the actual bakery in a later possible standing-gift proposal. Bind a real publisher and editorial authority. Baseline no accepted piece, paid column or gift arrangement exists; no review verdict or sale is invented."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": 0.25,
+          "how_it_looks": "Spread the verified fact that {A} has prepared careful independent work."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "publish_actual_independent_food_review": "A"
+            }
+          ],
+          "headline": "A Publisher Accepts a Genuine Independent Food Review",
+          "body": "The authorized editor accepts the actual supported work under its real publication terms."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "accept_actual_food_column_and_declared_gift": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Paid Food Column Records Its Actual Declared Gifts",
+          "body": "The writer accepts a genuine funded column and a lawful bakery gift arrangement fully disclosed under the actual editorial rules."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "adopt_no_gifts_food_column_policy": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Food Column Adopts a Real No-Gifts Policy",
+          "body": "The authorized publisher and consenting writer settle the actual standing gift arrangement. Future covered goods must be bought under the real new terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Independent Draft Is Not Published",
+        "body": "The rumor’s ordinary standing effect remains. No accepted article, column, gift or favorable review is created."
+      },
+      "present_day": {
+        "best": "If the full policy persists in {now}, the actual column publishes its real no-gifts terms and the bakery’s actual standing deliveries to the writer have ended. Current purchases are only those actually made.",
+        "worst": "Public praise does not award a column or decide a review. Preserve actual editorial decisions, disclosures and gift terms after failure.",
+        "twist": "Readers gain an actual disclosed no-gifts arrangement, while {A} gives up genuine regular pastries and must pay for real future purchases. No trust or sales increase is guaranteed."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I still write about the pastries. Now I pay for them."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "publish_actual_independent_food_review requires authentic supported work, cleared publication rights, real independent editorial acceptance and lawful actual terms. Record only the accepted piece and any genuine payment; do not repeat the rumor’s reputation gain, invent observations or choose a flattering verdict.",
+        "accept_actual_food_column_and_declared_gift requires A actual current competence, a real funded authorized column contract, B bakery ownership, a real lawful freely offered positive recurring goods arrangement and complete disclosure allowed by the actual editor’s current standards. No gift may require favorable coverage. Record actual terms and only real completed deliveries; do not invent an entitlement or permit a barred conflict.",
+        "adopt_no_gifts_food_column_policy requires A still writing that real column, the genuine current recurring bakery gift arrangement, actual publisher authority and informed agreement, lawful freely settled cessation and a viable funded plan for necessary independent purchases. End only that covered standing gift and record the actual policy; do not confiscate prior gifts or guarantee unbiased writing. Dialogue requires A alive, present, currently writing about those real pastries and having actually paid for the relevant later purchases."
+      ],
+      "era_notes": "Use real period-specific publishing, disclosure and gift rules. Earlier practice is not automatically excused by a later policy change.",
+      "why_fun": "A good reputation can create a small comfort, then make its owner choose to give that comfort up."
+    }
+  ]
+}

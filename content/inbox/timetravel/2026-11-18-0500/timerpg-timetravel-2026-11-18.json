@@ -1,0 +1,651 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-3001",
+      "kind": "scenario",
+      "title": "The Guide-Dog Harness That Left the Coat Hook",
+      "category": "rescue",
+      "pitch": "Help a resident reach an actual guide-dog placement program. A retired harness may eventually become a public teaching object, leaving its handler with a photograph where the keepsake used to hang.",
+      "present_hook": {
+        "what_you_notice": "A service-program folder records a missed assessment appointment and a real travel-cost shortfall.",
+        "where": "the public library",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The appointment in {year} never became a completed placement."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            30
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A has a real independently established need and freely requested assessment for a guide dog. B is an actual authorized qualified program instructor. Bind a real program, appointment and travel gap. Baseline no completed assessment or placement. No disability, animal or entitlement is created by the gift."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Cover the actual travel shortfall for the voluntary assessment appointment."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_guide_dog_placement": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Resident Completes a Qualified Guide-Dog Placement",
+          "body": "After actual assessment, training and informed agreement, a suitable existing trained dog is placed with its handler and identified equipment."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "retire_actual_guide_dog_harness": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Working Partnership Retires with a Kept Harness",
+          "body": "A qualified welfare review and the handler’s agreed transition end this dog working role. The lawfully retained harness becomes a household keepsake."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "donate_retired_harness_for_teaching": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Retired Harness Enters an Authorized Teaching Collection",
+          "body": "The owner freely donates the actual surviving retired harness to a funded permitted collection. Its agreed account describes only verified history."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Appointment Does Not Become a Placement",
+        "body": "Travel support remains a gift. Assessment alone creates no dog, qualification or successful partnership."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the collection survives in {now}, its authorized display holds the actual donated harness and verified history. Show the old empty coat hook only if A still has the same home and hook.",
+        "worst": "No placement, dog retirement or donation is inferred when an earlier step fails. Later assistance and animal care follow their actual records.",
+        "twist": "The handler gains a useful working partnership and later shares its history, but gives up private possession of a real keepsake. No dog is required to live for twenty-five years."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "It used to hang by my coat. Now somebody can learn what it was for."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_actual_guide_dog_placement requires current qualified assessment, A voluntary consent and capacity for the actual partnership with real support, completed training, a suitable existing program animal, funded welfare arrangements and lawful placement. Persist actual animal, owner/custodian and harness IDs. Create no diagnosis, animal, medical cure or guaranteed independence.",
+        "retire_actual_guide_dog_harness requires the same actual surviving animal still working, a real independent current welfare/fitness review, lawful owner/program approvals, A freely agreed actual accessible transition and suitable funded retirement care. End only that working role and settle harness ownership to A under the actual terms. Do not create a replacement animal or imply loss of all mobility. Any necessary welfare retirement occurs ordinarily even if this narrative roll fails.",
+        "donate_retired_harness_for_teaching requires A current title, the same surviving retired harness, B current authorized role, an actual willing collection, funded safe custody and voluntary deed with specific display and privacy permissions. Transfer that object once and record factual provenance; do not keep a duplicate household asset. Gate A dialogue on survival, actual old coat-hook custody, completed donation and current authorized teaching use."
+      ],
+      "era_notes": "Use the real program and access rules of each event year. Later interpretation never attributes current training methods to the original placement.",
+      "why_fun": "A small object can preserve a long partnership without pretending that a working animal never ages."
+    },
+    {
+      "id": "scenario-20261118-3002",
+      "kind": "scenario",
+      "title": "The Notary Who Witnessed a Friend Lose the Signature Right",
+      "category": "secrets",
+      "pitch": "Help a resident meet a real notary qualification shortfall. The same independent service may later authenticate a friend’s decision to revoke authority that another friend once held.",
+      "present_hook": {
+        "what_you_notice": "A qualification packet remains unfinished beside an unpaid required course or bond invoice.",
+        "where": "the town hall",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The packet in {year} lacked the actual required payment, not a promised commission."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            45
+          ]
+        },
+        "B": {
+          "age": [
+            20,
+            25
+          ],
+          "wealth": "poor"
+        },
+        "C": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "B is an actual willing eligible notary applicant. A and C are actual friends with no presumed legal agency. Bind genuine jurisdiction requirements and fee gap. Baseline B has no completed qualification and C has not executed the scenario authority document. Every later notarial act must be lawful despite these relationships; require another independent qualified officer if local rules disqualify B, otherwise stop this chain."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "B",
+          "amount": "small",
+          "how_it_looks": "Cover the actual required qualification payment through the lawful application account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "earn_actual_notary_authority": "B"
+            }
+          ],
+          "headline": "An Eligible Applicant Receives Real Notarial Authority",
+          "body": "The actual required process is completed and the competent authority grants the applicant current limited notarial powers."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "execute_verified_limited_agency": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Resident Executes a Limited Signature Authority",
+          "body": "After independent appropriate document preparation, {C} freely executes a valid limited authority naming {A}. Qualified notary {B} performs only the required lawful authentication."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "execute_and_deliver_actual_agency_revocation": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Resident Freely Revokes an Earlier Signature Authority",
+          "body": "Still capable and acting freely, {C} completes a lawful revocation with the necessary authentication and effective notices. The identified authority held by {A} ends."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Notary Application Does Not Complete",
+        "body": "A payment earns no commission. No legal agency, authenticated instrument or revocation is created."
+      },
+      "present_day": {
+        "best": "If the chain occurred, lawfully accessible records in {now} show the limited instrument and its effective revocation. Current signature authority follows any actual later instruments; an old seal proves no continuing power.",
+        "worst": "No gift supplies legal authority. All documents and agency decisions require their own actual capacity, consent and legal validity.",
+        "twist": "The applicant gains a useful qualification, and the principal regains direct control of a specific delegated decision. The former agent loses actual authority without any invented misconduct or broken friendship."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I was trusted to sign then. That paper does not let me sign now."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "earn_actual_notary_authority requires all real jurisdiction requirements, actual payments, assessments and official grant; persist scope and expiry. No renewal, legal-practice license or authority to draft documents is implied.",
+        "execute_verified_limited_agency requires C actual competent informed free decision, an identified valid purpose and limited powers, appropriate independent lawful drafting/review, A free acceptance, all required witnesses and B current legally independent notarial authority. B verifies only what applicable notarial law requires, never guarantees substantive validity. Record exact instrument ID, scope, effective date, revocability, notice and any compensation terms; transfer no property by implication.",
+        "execute_and_deliver_actual_agency_revocation requires the same genuine revocable instrument still effective, C independently capable and freely choosing revocation, valid preparation, B current permitted notarial authority, completed formalities and actual effective delivery to A and every required affected party. End only that authority at its legal effective time, settle outstanding lawful acts/fees and preserve historical records. No new agent, incapacity, fraud or restitution is invented. Ordinary valid revocations remain effective regardless of narrative-roll failure. Gate A dialogue on survival, knowledge and no later restored equivalent authority."
+      ],
+      "era_notes": "Apply the actual commission, witness and instrument rules at each event year. An old commission never lasts automatically.",
+      "why_fun": "Two papers with a familiar seal can give one resident authority and later take exactly that authority away."
+    },
+    {
+      "id": "scenario-20261118-3003",
+      "kind": "scenario",
+      "title": "The Auction Guarantee That Became the Owner’s Inventory",
+      "category": "business",
+      "pitch": "Invest in an auction house’s genuine guarantee reserve. Years later, an unsold lot may leave a client with the promised payment and the owner with stock instead of available cash.",
+      "present_hook": {
+        "what_you_notice": "An auction-house proposal lists an unfunded reserve and a guarantee service it never offered.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The reserve proposal in {year} needed actual capital and exact purchase terms before any minimum could be promised."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "auction house"
+          ]
+        },
+        "B": {
+          "age": [
+            20,
+            30
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "A owns an actual lawful operating auction house. B is an actual unrelated potential consignor with no assumed wealth or collection. Bind a real lawful disclosed minimum-purchase guarantee proposal and reserve shortfall. Baseline the service is unavailable; no consignment, bidder, sale or future item is presumed."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "A",
+          "amount": "large",
+          "how_it_looks": "Fund the real guarantee-reserve shortfall through the auction business account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "establish_funded_auction_guarantee_reserve": "A"
+            }
+          ],
+          "headline": "An Auction House Opens a Funded Guarantee Service",
+          "body": "The lawful disclosed service opens only after actual reserve funding, contract review and required authorization."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "complete_actual_guaranteed_consignment": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Guaranteed Consignment Completes with a Real Buyer",
+          "body": "A genuine current contract covers an actual client lot. A real independent bidder pays the accepted lawful price and title and proceeds are settled under the terms."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "settle_actual_unsold_guaranteed_lot": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Unsold Guaranteed Lot Becomes Auction-House Stock",
+          "body": "Under a fresh valid disclosed contract, no actual accepted bid reaches the required terms. The business pays the guaranteed purchase price and takes lawful title to the actual lot."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Guarantee Service Does Not Open",
+        "body": "The investment follows its actual terms. No client minimum, bidder, fee income or reserve return is created."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the lot remains unsold in {now}, the business inventory lists that real acquired item and its account records the actual guarantee payment. Any later resale or profit needs a real transaction.",
+        "worst": "No reserve creates a buyer or a guaranteed gain. Existing valid obligations still settle under ordinary law even when a narrative step fails.",
+        "twist": "The client receives the genuine promised purchase price. The owner loses available business cash and takes inventory that may not sell, with no automatic personal wealth gain or loss equal to an invented market value."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "The guarantee was money on a page. Now part of that money is sitting on my shelf."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add auction house as a business kind with actual licensing, lawful premises, qualified staff, provenance review, client-money controls and operating resources. Bind business A to A actual owned business ID. establish_funded_auction_guarantee_reserve requires real existing invested capital moved once into a lawful segregated reserve, exact disclosed purchase-guarantee terms, sufficient operating liquidity and actual approvals; never duplicate the investment or promise insured returns.",
+        "complete_actual_guaranteed_consignment requires A current operating authority, B actual current lawful title to an identified eligible lot, informed voluntary current contract, reserved real guarantee funds, genuine permitted auction and an actual independent funded accepted bid. Settle buyer payment, seller proceeds, actual fees and physical title once; release unused reserve commitments. Create no bidder, item or sale through narration.",
+        "settle_actual_unsold_guaranteed_lot requires a different genuine currently owned B item and a fresh freely signed lawful contract providing an explicit backstop purchase by the business, real sufficient reserved funds and a completed genuine auction with no qualifying accepted bid. Execute only the required actual payment, fee settlement and title transfer; consume the matching reserve commitment once and add the same item to business inventory without duplicating assets. Mandatory contractual settlement applies independently of this narrative roll; the chance concerns this qualifying optional new consignment event. Gate dialogue on A alive, knowledge, actual reduced cash and continuing unsold physical inventory."
+      ],
+      "era_notes": "Use period-valid auction practice and payment methods. A paper reserve ledger must reconcile just as a later electronic account must.",
+      "why_fun": "A promise that helped a shop grow can eventually become an awkward object the player can see behind its counter."
+    },
+    {
+      "id": "scenario-20261118-3004",
+      "kind": "scenario",
+      "title": "The Divorce Order They Read before They Married Again",
+      "category": "uncanny",
+      "pitch": "Show two consenting spouses their authentic divorce order from the original present. The warning may lead through honest conversations and a real separation to a later marriage freely chosen again.",
+      "present_hook": {
+        "what_you_notice": "A lawful family-record copy shows a finalized divorce between two residents who are still married in the selected past year.",
+        "where": "the town hall",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The order was real in the original present. It could show what happened, not what must happen."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            25
+          ],
+          "married": true
+        },
+        "B": {
+          "age": [
+            20,
+            25
+          ],
+          "married": true
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A and B are actual spouses of each other at intervention, both capable and consenting to view their own lawfully obtained original-present final divorce order. Require that authentic baseline order, exact immutable resident identities and an available original-present copy obtained with both permissions. No abuse, affair, children, later partner or forecast of unavoidable behavior is implied."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:show_original_divorce_order",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Let both consenting spouses read their own authentic later order, with its original date intact."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.2
+            }
+          ],
+          "headline": "Two Spouses Choose an Honest Conversation",
+          "body": "A mutually wanted completed supportive conversation strengthens their bond. The document is no promise that the marriage will last."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "divorce": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Residents Complete a Freely Chosen Divorce",
+          "body": "After an actual new lawful process, the still-married residents obtain a final divorce and settle their real obligations. The old carried copy is not used as a current court order."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "marry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Former Spouses Freely Marry Each Other Again",
+          "body": "Both currently free and willing to marry, the former spouses complete a new lawful marriage. Its rights begin under the new actual record."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Warning Does Not Become a Supportive Conversation",
+        "body": "The spouses may remember what they read, but no bond increase, divorce or new marriage follows from this failed first step."
+      },
+      "present_day": {
+        "best": "If the chain occurred and the new marriage still exists in {now}, current records show the real divorce followed by the new marriage. The carried original-timeline copy retains its distinct provenance and does not overwrite current law.",
+        "worst": "A later document is information, not destiny. Preserve actual relationships, independent choices and realized prefixes when any step fails.",
+        "twist": "They regain a chosen marriage but do not recover the intervening years of legal spousal status or erase the actual costs and settled obligations of the divorce. No automatic refund or restored past benefit is granted."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I remember the paper we saw too early. This marriage has its own date."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "show_original_divorce_order",
+          "does": "Validate the lawfully obtained immutable original-present final divorce order naming exactly A and B; with each current spouse informed consent, give both knowledge of its actual contents and original date only. Apply no legal, bond, wealth or relationship change."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add show_original_divorce_order: verify the immutable original-present source, final-order authenticity, both exact bound identities, lawful possession and each spouse informed consent; record only both residents knowledge of the source contents and original date. Do not execute a divorce, alter bonds or treat that copy as operative in the changed timeline. Preserve source provenance on replay.",
+        "Step 1 requires an actual freely chosen supportive conversation after disclosure; apply the bond change once without imposing reconciliation, counseling, misconduct or shared interpretation. Step 2 requires A/B still legally married to each other, actual voluntary current proceedings, capacity, jurisdiction, final valid order and settlement of actual property, debt, support, dependent and housing rights where they exist. Do not create dependents or new partners.",
+        "Step 3 requires both alive, legally free to marry at that time after all actual intervening relationships, informed fresh mutual consent and completed new lawful formalities with real fees and obligations. Create only the new marriage and date, never retroactive uninterrupted spousal rights. Gate B dialogue on survival, actual retained knowledge of the carried source, completed remarriage to A and the new marriage still current."
+      ],
+      "era_notes": "Use the actual divorce and marriage process of each event year. An authentic later copy cannot supply a past court jurisdiction or bypass a hearing.",
+      "why_fun": "The player can change the meaning of a future document without making the people who read it stop having choices."
+    }
+  ]
+}

@@ -1,0 +1,614 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-2441",
+      "kind": "scenario",
+      "title": "The School Roof Bond That Came Home Early",
+      "category": "money",
+      "pitch": "Help a resident meet the actual subscription shortfall for a lawful school-roof bond. Years later, giving some real coupon income back may help redeem the bond before its original last payment.",
+      "present_hook": {
+        "what_you_notice": "A school archive pairs an unfunded roof-repair issue with an actual incomplete household subscription.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The offer in {year} had real repayment and early-call terms; no household subscription had been completed."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A is an actual eligible willing subscriber. B is the actual authorized school-finance officer. Bind a genuine lawful roof-repair bond issue, other actual funding, real repair need and exact principal, coupon, maturity and call terms. Baseline the subscription and repair are unfinished. Require original maturity after intervention+25 and a lawful call window covering the final interval."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give {A} the actual lawful subscription shortfall, without promising a return."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_roof_bond_subscription_and_repair": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A School Completes Its Funded Roof-Bond Repair",
+          "body": "The genuine issue and subscription complete, and qualified funded work completes the actual inspected roof repair."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "contribute_actual_coupon_income_to_roof_reserve": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Bondholder Freely Contributes Actual Earned Interest",
+          "body": "The holder gives a real agreed amount of available earned coupon income to the authorized redemption reserve."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "redeem_actual_callable_roof_bond": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A School Lawfully Redeems a Roof Bond before Maturity",
+          "body": "A genuine funded authorized call repays the actual holder under the real terms. Remaining original coupon rights end with the settled redemption."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Roof-Bond Subscription Does Not Complete",
+        "body": "The gift follows ordinary finances. No bond, repaired roof, coupon income or redemption is created through this attempt."
+      },
+      "present_day": {
+        "best": "If the full history occurred, the school archive in {now} records the completed repair and settled early call; the actual household statement shows returned principal and ended original coupons. Current roof condition follows later inspections.",
+        "worst": "A subscription offer is not a bond or a roof repair. Preserve actual issue, debt-service, donation and redemption facts after failure.",
+        "twist": "{A} gives up actual earned money for the reserve, then loses the old remaining coupon rights at a lawful call. The returned principal does not erase the voluntary contribution."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "The principal came back. The old interest payments stopped."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add actual school-bond issue, subscription, coupon, reserve and repair records. complete_roof_bond_subscription_and_repair requires lawful issue approval, actual fully funded subscriptions and other sources, A freely executed real purchase and ownership, actual contractor capacity and completed permitted inspected work. Post real money and debt once; the gift is not repeated and no subscriber, principal or roof is invented.",
+        "contribute_actual_coupon_income_to_roof_reserve requires A actual current ownership, real previously paid coupon income still available after obligations, free informed donation and B current authorized acceptance under a lawful restricted reserve. Transfer only the actual agreed real sum once; never create interest, forgive debt or turn a restricted gift into available personal cash.",
+        "redeem_actual_callable_roof_bond requires the same genuine outstanding instrument still held by A, actual call eligibility and lawful fair selection, real issuer approvals and notice, B continuing authority, and genuine sufficient reserve and other actual funds. Pay actual required principal, premium and accrued interest once, settle rights, and retire only the called debt and future coupons. Do not fabricate surplus, default, tax savings or reinvestment returns. Dialogue requires A alive, present and the genuine repaid principal with ended former interest stream."
+      ],
+      "era_notes": "Use actual period-specific public borrowing, debt-service and call rules. A paper coupon and a later statement represent only the rights truly issued.",
+      "why_fun": "A small investment can repair a school and later help bring its own old payment stream to an end."
+    },
+    {
+      "id": "scenario-20261118-2442",
+      "kind": "scenario",
+      "title": "The Pension Forecast That Made a Second Job Temporary",
+      "category": "uncanny",
+      "pitch": "Show a worker an authentic pension forecast from the original present. It may prompt real contributions that eventually support leaving a genuine second job, without paying a cent merely because the paper came from the future.",
+      "present_hook": {
+        "what_you_notice": "A resident has lawfully shared an original-present pension forecast that identifies an actual earlier contribution gap.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The forecast points to the real eligible contribution opportunity in {year}; it is not a current award notice."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1980,
+          1995
+        ],
+        "notes": "A is an actual worker with two real jobs, a genuine eligible voluntary employer-plan contribution opportunity and affordable available funds. Bind an authentic authorized immutable original-present forecast and actual earlier plan records. Baseline no qualifying new contribution choice has been completed. No pension, investment return or retirement is guaranteed."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:show_future_pension_forecast",
+          "target": "A",
+          "how_it_looks": "Let {A} read the authenticated carried-back forecast and its genuine contribution history."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "start_actual_voluntary_pension_contributions": "A"
+            }
+          ],
+          "headline": "A Worker Begins Real Authorized Pension Contributions",
+          "body": "The eligible worker freely completes actual lawful contribution elections and the genuine funded deposits."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "record_actual_vested_pension_rights": "A"
+            }
+          ],
+          "headline": "Actual Service and Contributions Establish Vested Rights",
+          "body": "Real completed service and contributions meet the governing plan’s actual vesting requirements; the record reflects only rights genuinely earned."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "leave_actual_second_job_under_pension_budget": "A"
+            }
+          ],
+          "headline": "A Worker Leaves a Real Second Job under a Funded Budget",
+          "body": "An actual awarded payable pension and viable household budget support the worker’s freely chosen settled departure from the genuine remaining second job."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Forecast Does Not Produce a Contribution Election",
+        "body": "Reading the forecast creates no deposit, vested right or award. Ordinary employment and plan rights continue."
+      },
+      "present_day": {
+        "best": "If the full chain occurred, authorized records in {now} show actual contributions, earned rights, the genuine payable award and settled second-job departure. Current benefits follow actual later law and facts.",
+        "worst": "A forecast supplies information, never money. Preserve actual deposits, service and statutory plan rights after a failed stage.",
+        "twist": "{A} spends real available wages on contributions and later gives up actual second-job pay. A workable retirement plan does not refund those sacrifices or guarantee future comfort."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "uncanny",
+          "line": "I remember reading that figure before the years behind it had happened."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "show_future_pension_forecast",
+          "does": "Validate the authorized authentic immutable original-present forecast and its match to A actual identity and historical plan, then add A knowledge of its exact contents and source date only. No money, contribution, employment, vested right, award or future return changes directly."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "show_future_pension_forecast validates the actual authorized source, identity and historical plan match, then records only A knowledge of that immutable original-timeline forecast. It neither awards benefits nor supplies funds, changes history records or guarantees the forecast remains accurate.",
+        "start_actual_voluntary_pension_contributions requires actual current plan eligibility, free informed election and real affordable funded deposits under period rules. Record only actual deposits and resulting genuine plan records once. Do not double-post earnings or grant future service.",
+        "record_actual_vested_pension_rights requires actual intervening service, lawful real contributions and governing plan conditions genuinely satisfied. Record only already-earned rights and their real conditions; the roll never denies statutory vesting, and ordinary plan rights arise independently even if the scenario stops.",
+        "leave_actual_second_job_under_pension_budget requires actual completed lawful qualifying retirement from the plan employment where required, a genuine awarded currently payable pension, real household provision and A still occupying a separate actual paid second job. A must freely settle that job’s notice, wages and rights under a viable funded budget. Record only the actual departure and end of its real future pay; do not create primary retirement, a pension award, housing or favorable returns. Dialogue requires A alive, present and genuinely retaining knowledge of reading the exact carried source."
+      ],
+      "era_notes": "Use actual plan, contribution, vesting and retirement rules for each year. The source forecast cannot backdate a later benefit or override current eligibility.",
+      "why_fun": "A page from the future can change a plan without becoming a voucher."
+    },
+    {
+      "id": "scenario-20261118-2443",
+      "kind": "scenario",
+      "title": "The Marriage That Survived One Crisis and Ended Years Later",
+      "category": "love",
+      "pitch": "Help a couple afford the qualified counseling they have actually requested. They may withdraw an early divorce application, build more real years together, and eventually choose divorce anyway.",
+      "present_hook": {
+        "what_you_notice": "A couple has voluntarily shared a pending joint divorce application and an unfunded counseling request.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "Both spouses in {year} wanted the qualified meeting before a final court order."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "married": true,
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "married": true,
+          "relation": "spouses"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are actual legally married consenting spouses; B spouses is relative to A. Bind their genuine unfinished joint application, actual request, qualified provider and real fee shortfall. Baseline no final divorce order or completed counseling exists. No affair, abuse, children or diagnostic outcome is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give {A} the actual shortfall for the freely requested joint qualified sessions."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            0,
+            1
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "complete_counseling_and_withdraw_early_divorce": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Spouses Withdraw an Actual Early Divorce Application",
+          "body": "Both freely complete the qualified sessions and lawfully withdraw the still-uncompleted joint application before a final order."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.3
+            }
+          ],
+          "headline": "Two Spouses Build a Genuine Later Period of Support",
+          "body": "Actual continuing consensual supportive interactions strengthen the still-married spouses’ recorded bond."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "divorce": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Spouses Later Freely Complete a Lawful Divorce",
+          "body": "The adults genuinely choose a later lawful application and complete the required order and real settlement. Earlier shared years remain in their history."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Early Application Is Not Withdrawn through This Chain",
+        "body": "The gift follows ordinary finances. Actual court and personal choices proceed independently; no divorce, reconciliation or diagnosis is promised."
+      },
+      "present_day": {
+        "best": "If the full history occurred, authorized records in {now} show the actual withdrawn early application, later shared history and completed later divorce. Current marriages and households follow subsequent facts.",
+        "worst": "A fee buys no relationship outcome. Preserve actual consent, applications, bonds, assets and orders after failure.",
+        "twist": "The spouses gain actual additional married years and later give up that real legal marriage under a settled voluntary divorce. Counseling need not promise that the marriage lasts forever."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "Those years were real. So is the divorce."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_counseling_and_withdraw_early_divorce requires both still legally married, capable and freely requesting qualified actual sessions, real funds and completed sessions, then each independently choosing lawful withdrawal before any final order. Settle the actual fee and withdraw only that genuine application; never force reconciliation or suppress protective rights.",
+        "The step-2 bond gain requires the same actual continuing marriage and genuine intervening supportive consensual interactions, not presumed success from counseling. Apply the later gain once; no child, home or emotional diagnosis is generated.",
+        "divorce at step 3 requires both alive, still actually married to each other, current independent informed free choices, a genuine later legal application, all required lawful procedure and final order, and settled actual property, debt, occupant, dependent and support rights with real viable housing where required. End only that marriage once. Do not invent misconduct, erase shared history or force a new partner. Ordinary court and protective duties continue independently on failure. Dialogue requires A alive, present and the genuinely realized later divorce after actual intervening married years."
+      ],
+      "era_notes": "Offer only under actual period-specific counseling and divorce rules and genuine lawful options. No private session contents are invented or publicly exposed.",
+      "why_fun": "A changed life can contain twenty more meaningful years without requiring a permanent happy ending."
+    },
+    {
+      "id": "scenario-20261118-2444",
+      "kind": "scenario",
+      "title": "The Canning Club That Retired a Family Method",
+      "category": "rescue",
+      "pitch": "Introduce a home preserver to a qualified educator with a genuine club proposal. Their booklet may preserve a real family method, then retire that entry when current evidence no longer supports its instructions.",
+      "present_hook": {
+        "what_you_notice": "An archive holds an unsigned preservation-club proposal and an actual permitted recipe contribution.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The contributors in {year} had real skills and material, but no completed shared program."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            40,
+            50
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A is an actual competent home preserver and owner of the genuine family-history contribution; B is a real qualified food-preservation educator. B strangers is relative to A. Bind an actual original recipe, lawful reproduction permissions, real family provenance, qualified period-supported validation and a feasible existing venue. Baseline no club or booklet exists."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the willing contributor and qualified educator to discuss their real proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "establish_actual_canning_club": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Qualified Community Canning Club Begins",
+          "body": "The actual authorized funded program begins with real consenting participants, suitable premises and qualified safe instruction."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "publish_authorized_club_recipe_booklet": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Club Publishes Its Actual Qualified Recipe Booklet",
+          "body": "Cleared genuine contributions and current qualified review support a funded real edition that includes the agreed credited family entry."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "withdraw_original_method_from_actual_reprint": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Canning Booklet Revises an Entry under Current Evidence",
+          "body": "A genuine current qualified review no longer validates the old instructions. The authorized completed reprint replaces the entry with actual supported guidance."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Shared Preservation Program Does Not Begin",
+        "body": "The introduction stands, but no class, validated process, booklet or illness is created through this attempt."
+      },
+      "present_day": {
+        "best": "If the full history occurred, the actual archive in {now} retains the old credited edition and the completed revised edition with its genuine replacement guidance. Current food practices require current evidence.",
+        "worst": "A family story proves no preservation method safe. Preserve actual rights, editions and mandatory food-safety duties after failure.",
+        "twist": "The club gains a genuinely updated edition, while {A} loses the real agreed continuing inclusion of that original method. The family history and authorship are not erased."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I agreed to the correction. I still miss seeing that page in the new booklet."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add actual preservation-club, contribution, method-validation and physical-edition records. establish_actual_canning_club requires qualified B instruction, genuine A consent and skills, actual authorized suitable premises, real funding and consenting actual participants. Record completed program events and only validated period-appropriate teaching; no students, ingredients or safe outcome are invented.",
+        "publish_authorized_club_recipe_booklet requires actual permitted contributions, documented current qualified method validation, a funded lawful real print run and freely executed publication terms including A actual credited entry and a clear condition that continuing inclusion depends on current validation. Record actual edition, rights and costs once. Do not invent provenance, blanket copyright over a method or a guarantee of safety.",
+        "withdraw_original_method_from_actual_reprint requires that same genuine entry, actual independently developed current qualified evidence no longer supporting its instructions, a real permitted funded reprint, A and B actual current editorial authority and required free consent, and genuine already-validated replacement guidance. Complete the reprint, settle actual notice and publication rights, and end only the conditional future inclusion of that old method. Preserve lawful historic copies and real authorship. No research, hazard, illness, replacement recipe or reader is fabricated; mandatory corrections and food controls apply independently on failure. Dialogue requires A alive, present, consenting and the actual omitted entry in a completed new edition."
+      ],
+      "era_notes": "Use actual period-specific scientific evidence, equipment and publication rules. A later review never proves earlier injury or guarantees future health.",
+      "why_fun": "Keeping a family tradition in the archive can coexist with changing what the town teaches people to do."
+    }
+  ]
+}

@@ -1,0 +1,630 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-2711",
+      "kind": "scenario",
+      "title": "The Clerk Who Had to Leave the Desk to Run",
+      "category": "politics",
+      "pitch": "Help a resident train for municipal records work. A later campaign may finally give that resident a public voice at the cost of a steady job.",
+      "present_hook": {
+        "what_you_notice": "A municipal archive has an unfinished training application and no campaign filing from its applicant.",
+        "where": "the town hall",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The course application in {year} stopped at the unpaid fee."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            30
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "A is an actual willing eligible course applicant. B is a real authorized municipal hiring officer, not promised permanent authority. Bind an actual records course and fee gap. Baseline no completed course, appointment or scenario candidacy. Require a real rule barring this paid clerk position from concurrent candidacy for the specified town office."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Pay the actual course-fee shortfall through the training account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_municipal_records_course": "A"
+            }
+          ],
+          "headline": "A Resident Completes Municipal Records Training",
+          "body": "The applicant completes the actual instruction and assessment; the certificate itself confers no municipal job."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "appoint_actual_paid_clerk": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Qualified Applicant Takes a Paid Clerk Position",
+          "body": "After the genuine selection process, {A} accepts an available funded clerk position under its recorded employment terms."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "resign_actual_clerk_post": "A"
+            },
+            {
+              "run_for_mayor": "A"
+            }
+          ],
+          "headline": "A Clerk Resigns and Files a Lawful Mayoral Candidacy",
+          "body": "The clerk freely leaves the paid post before the actual required filing deadline and enters a real mayoral election. No result is announced."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Records Course Remains Unfinished",
+        "body": "The gift follows actual account and refund rules. No credential, appointment or campaign is created."
+      },
+      "present_day": {
+        "best": "If the chain occurred, the archive in {now} contains the real resignation and mayoral filing. Show a current campaign sign only while that candidacy is active; election results and later employment follow the simulation.",
+        "worst": "A course fee buys no office. Retain any completed training or employment when later prerequisites fail.",
+        "twist": "The candidate gains eligibility to stand for office by surrendering the actual clerk salary and job rights settled at resignation. A losing campaign does not restore the post."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "My name made it onto the ballot. My old paycheck did not come with it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_municipal_records_course requires real enrollment, funds, available instruction and passed assessments; create only the earned certificate. appoint_actual_paid_clerk requires a current funded vacancy, A current qualifications and work eligibility, genuine fair lawful selection, B current hiring authority, accepted terms and an actual start; create employment and pay only for real work.",
+        "resign_actual_clerk_post requires A still holding the identified paid post, informed free choice, lawful notice, actual handover and settlement of wages, benefits and obligations. End that employment without awarding a replacement job. Commit resignation and run_for_mayor atomically only when A is eligible for an actual scheduled mayoral election, required filings are accepted and the genuine incompatible-employment rule is satisfied before its deadline. No invented election or win; no resignation if the combined step fails.",
+        "Gate A dialogue on survival, knowledge, the actual ballot qualification and loss of this salary; hide it if the clerk post was restored or another factual change makes the sentence false. Current signs require a live campaign, not a candidacy lasting decades."
+      ],
+      "era_notes": "Use paper files and period-valid training in early years, with later record systems only when actually installed. Apply the employment and election rules of each event year.",
+      "why_fun": "The player can compare a familiar empty desk with the name now printed on an election record."
+    },
+    {
+      "id": "scenario-20261118-2712",
+      "kind": "scenario",
+      "title": "The Adoptee Who Chose a Name After Finding a Parent",
+      "category": "family",
+      "pitch": "Help an adult adoptee afford a lawful records search. A verified reunion may eventually lead to a freely chosen surname change, without erasing the family that raised the adoptee.",
+      "present_hook": {
+        "what_you_notice": "A family-history folder contains an unfinished adult records request and an invoice for an unpaid search fee.",
+        "where": "the public library",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The request in {year} sought a verified connection, not a promised reunion."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            19,
+            25
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            40,
+            45
+          ],
+          "has_children": true
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A is an actual legally adopted adult who freely wants a search. B is A actual biological parent, with parent direction B to A verified from genuine records; A is the child counted by B has_children. Require genuine lawful records access or consent, an actual search-fee gap, no prior contact, and a real original surname different from A current lawful adoptive surname. No abuse, rejection or preference for either family is presumed."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Cover the actual authorized records-search shortfall without promising anyone will reply."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "verify_and_offer_parent_contact": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Records Search Offers Verified Contact to Two Adults",
+          "body": "Authorized records establish the actual parent connection. Both adults freely accept a private first meeting after separate consent checks."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.3
+            }
+          ],
+          "headline": "Two Adults Choose to Continue a Family Connection",
+          "body": "Actual mutually wanted contact supports a stronger bond. Neither adult acquires custody, financial support or inheritance rights through this report."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "choose_verified_original_surname": "A"
+            }
+          ],
+          "headline": "An Adult Receives a Freely Chosen Lawful Surname",
+          "body": "After an actual voluntary application and lawful approval, {A} adopts the verified original surname. Historical records retain their accurate earlier names."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Search Does Not Produce a Meeting",
+        "body": "The gift creates no reply, access right or relationship. Existing adoption and family records retain their actual legal status."
+      },
+      "present_day": {
+        "best": "If the full chain occurred and the name remains current in {now}, a permitted current directory uses the lawful chosen surname; historical records retain their earlier names. Show the parent connection only with appropriate consent.",
+        "worst": "A search is not a reunion. Neither family is removed or assigned feelings when contact or later steps fail.",
+        "twist": "The chosen name expresses a recovered connection, but {A} no longer shares the old lawful surname with the adoptive household where that shared name actually existed. No kinship or affection is canceled."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I chose the name. I did not stop having the people who raised me."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "verify_and_offer_parent_contact requires actual verified identity and parentage, lawful disclosure authority, any required independent intermediary, each adult capacity and separate freely given consent to this meeting. Record only actual verified facts and completed contact. Do not create biological relatives, unseal restricted material by payment, or force disclosure to adoptive relatives.",
+        "Step 2 requires continuing actual consensual contact and a genuinely supportive completed interaction at that year. Apply the bond increase once, not an automatic introduction bonus. No new parentage, marriage, residence, support or succession effects occur.",
+        "choose_verified_original_surname requires A current informed free choice, proof of the actual recorded original surname, its lawful availability, a real completed legal process and necessary actual fees and notifications. Update A current legal-name field and aliases with effective dates; preserve immutable resident identity, adoption, parentage and historical names. Reject any assumption that surname controls kinship. Gate A dialogue on survival, actual completed choice and continuing factual connection to the real people who raised A; a quotation never assigns those people new attitudes."
+      ],
+      "era_notes": "Apply the records-access and adult name-change rules available in each year. Use only genuine letters or later authorized communications, with no automatic reunion service.",
+      "why_fun": "The same resident remains recognizable across old and new records, while a small detail on the present-day door can change."
+    },
+    {
+      "id": "scenario-20261118-2713",
+      "kind": "scenario",
+      "title": "The Savings Club Founder Who Had to Wait a Turn",
+      "category": "money",
+      "pitch": "Introduce two residents interested in a small rotating savings club. Years later, its founder may need the next payout and still honor a turn already promised to somebody else.",
+      "present_hook": {
+        "what_you_notice": "A household notebook records a rotating-club proposal that never obtained a second consenting member.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposed club in {year} needed agreed contributions and an agreed order before collecting anything."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            20,
+            30
+          ],
+          "wealth": "getting_by"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are actual unrelated strangers with a genuine voluntary club proposal. Bind a lawful closed two-adult rotating savings arrangement with sufficient discretionary household funds, no interest promise, equal contributions and an agreed two-date payout order. Baseline no club or deposits. Later cycles require fresh consent and real funds; no pot survives decades by assumption."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Bring the two willing residents together to discuss exact contribution and payout terms."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_first_rotating_savings_cycle": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Residents Complete a Small Agreed Savings Cycle",
+          "body": "Both residents make the actual agreed contributions and receive their recorded scheduled payouts. The completed cycle closes with reconciled balances."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "renew_rotating_club_with_fixed_order": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Savings Club Renews Its Order with Fresh Consent",
+          "body": "After genuinely completed intervening cycles where recorded, both residents freely sign the next funded cycle with the current agreed payout order."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "honor_current_rotating_payout_order": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Club Founder Waits While the Other Turn Is Paid",
+          "body": "In a freshly consented current cycle, {A} asks for an earlier payout and accepts {B} declining a swap. The club pays the real due turn to {B}; no extra advance is made to its founder."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Club Does Not Collect Its First Contributions",
+        "body": "The meeting creates no pot or debt. Any actual preliminary funds must be returned or settled under their recorded terms."
+      },
+      "present_day": {
+        "best": "If the chain occurred, a consented ledger in {now} records the completed payout to {B} and the actual later turn scheduled for {A}. Show a still-pending turn only before it is paid, canceled or otherwise settled.",
+        "worst": "No signed cycle or contribution is assumed after a failed meeting. Later ordinary savings remain possible.",
+        "twist": "The founder preserves the agreed order but temporarily gives up access to the next payout despite an actual earlier request. {B} gains timely use of the same real pot, not newly created wealth."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I helped start it. That did not make the next turn mine."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add closed rotating savings cycles with immutable participant IDs, agreed equal contribution amounts, two actual due dates, payout order, custody, funded balances and signed settlement/default terms. complete_first_rotating_savings_cycle requires a lawful arrangement, A/B informed consent, affordable real contributions on both dates and both completed scheduled transfers. Debit contributions and credit each payout exactly once; never mint returns or reuse an already paid pot.",
+        "renew_rotating_club_with_fixed_order requires actual current authority, voluntary fresh consent, no unresolved prior balances and actual affordable resources for the new cycle. Record only the freshly signed cycle and its terms; no intervening cycle, reliable payment history or wealth is fabricated. Subsequent years require their own real transactions and renewed consent.",
+        "honor_current_rotating_payout_order requires a real independently formed current funded cycle with B next and A later, actual A request based on a genuine current liquidity need, B informed refusal of a voluntary swap, A continued consent and actual current contributions and due payout. Transfer the same fully available pot to B once, record the rejected swap and leave A contractual later turn intact. Never create interest, a public deposit-taking bank, default, a bill paid for A or deprivation of essential funds. Gate dialogue on living A knowledge and this completed decision; do not present an old unpaid turn as current after settlement."
+      ],
+      "era_notes": "Use signed household ledgers and period-valid rules throughout; later bookkeeping tools never replace consent or actual balances.",
+      "why_fun": "A favor can become a durable agreement that eventually constrains the person who proposed it."
+    },
+    {
+      "id": "scenario-20261118-2714",
+      "kind": "scenario",
+      "title": "The Former Bursary Student Who Paid for the Next Course",
+      "category": "uncanny",
+      "pitch": "Help a student bridge an actual course-fee gap. A later career may make returning to class affordable while putting the same resident above the real bursary limit.",
+      "present_hook": {
+        "what_you_notice": "An adult-education display preserves an unfinished bursary enrollment and a course prospectus with a means test.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The award in {year} left a real fee gap; it did not promise lifelong eligibility."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            24
+          ],
+          "wealth": "poor",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A is an actual eligible willing bursary applicant with a genuine awarded partial subsidy and remaining fee gap for a real vocational course. B is the actual authorized course administrator. Baseline the enrollment and course remain unfinished. Require a real later adult course with a lawful means-tested bursary; do not assume income or qualification from age."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Cover the actual remaining course fee after the already awarded bursary."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_subsidized_vocational_course": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Student Finishes the Course Behind a Partial Bursary",
+          "body": "After actual instruction and assessment, {A} earns the course qualification. The genuine subsidy and remaining fee are reconciled once."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "accept_qualified_paid_vocational_work": "A"
+            }
+          ],
+          "headline": "A Qualified Former Student Begins Real Paid Work",
+          "body": "A real employer selects the qualified applicant for an actual funded vacancy. Earnings accrue only for completed work under the accepted contract."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "self_fund_course_above_bursary_limit": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Returning Student Pays the Fee after a Means Test",
+          "body": "Actual current resources put {A} above the lawful bursary threshold. With informed consent and real available funds, the returning student pays the actual course fee and completes enrollment."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The First Course Is Not Completed",
+        "body": "The gift and existing award follow their actual fee and refund terms. Neither qualification nor later earnings are invented."
+      },
+      "present_day": {
+        "best": "If the chain occurred, a permitted record in {now} pairs the old partial subsidy with a later self-paid enrollment. Display a current class seat only while that genuine enrollment remains active.",
+        "worst": "An unfinished course grants no credential or career. Later aid decisions always use the actual current rules and resources.",
+        "twist": "The resident gains actual earning opportunities but cannot claim this later means-tested award when genuinely above its threshold. Real personal money pays the new fee; no award is assigned to an invented replacement student."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "uncanny",
+          "line": "I kept the old award letter. This time the receipt has my own payment on it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_actual_subsidized_vocational_course requires the actual existing award still valid under its real treatment of gifts, complete lawful enrollment, the actual remaining fee, available qualified instruction and passed assessment. Settle actual fees once; never duplicate the gift or grant, conceal resources, or bypass an aid reassessment.",
+        "accept_qualified_paid_vocational_work requires A current relevant qualifications, legal capacity, actual employer consent, genuine funded vacancy and completed lawful hiring. Record employment terms and only actual earned wages; a chance roll never deposits eleven years of pay or guarantees employment to the present.",
+        "self_fund_course_above_bursary_limit requires A independently documented current assessable resources genuinely above the actual published lawful limit, B current authorized administration, a real available suitable later course and seat, competent informed choice, actual affordable unencumbered funds and paid enrollment. Record the ordinary means-test decision independently on all branches; this roll concerns the freely chosen funded return. Transfer the actual fee once, create enrollment only, and grant no unearned qualification. Dialogue requires A alive, the real retained earlier award letter, knowledge and actual personal-payment receipt."
+      ],
+      "era_notes": "Use the actual course, wage and aid rules of each year; old printed award terms cannot establish current eligibility.",
+      "why_fun": "Two real papers can show the same person needing help once and later being able to pay."
+    }
+  ]
+}

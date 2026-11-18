@@ -1,0 +1,631 @@
+{
+  "batch": "2026-11-18",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261118-2571",
+      "kind": "scenario",
+      "title": "The Magician Who Sold the Words That Made the Trick",
+      "category": "business",
+      "pitch": "Help a local performer win a first real booking. A much later exclusive license may pay well while taking the familiar spoken routine out of the original act.",
+      "present_hook": {
+        "what_you_notice": "An entertainment notice preserves an unsigned booking offer beside an unperformed original script.",
+        "where": "the public hall",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "In {year}, {A} had written the routine but had not secured the advertised booking."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            25
+          ],
+          "reputation": "low"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A is a real willing amateur magician and author owning an identified original sufficiently creative spoken script. B is a real unrelated qualified performer. Require a rehearsal the player actually observed, an actual open booking, usable props and permitted venue; baseline no performance or license of this script has occurred. Bind the text, not an abstract trick method."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": 0.25,
+          "how_it_looks": "Offer an honest favorable account of a rehearsal you actually watched."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_magic_booking": "A"
+            }
+          ],
+          "headline": "A Local Magician Completes a First Paid Booking",
+          "body": "An actual organizer contracts with {A}, and the booked performance takes place for the agreed fee."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "teach_actual_script_to_performer": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Second Performer Learns the Original Spoken Routine",
+          "body": "With permission from {A}, performer {B} completes real rehearsals of the identified script under a limited nonexclusive license."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "license_script_exclusively": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Exclusive Script License Changes the Original Act",
+          "body": "A funded voluntary exclusive agreement replaces the earlier license. The author receives the agreed payment and ends personal public use of the licensed words for the actual term."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The First Booking Falls Through",
+        "body": "The favorable account does not turn into this completed engagement. No fee, pupil or license is created."
+      },
+      "present_day": {
+        "best": "If the full chain occurred and its agreement remains active in {now}, a current lawful program identifies the exclusively licensed script; the contract records the real payment and the original performer cannot publicly use those words during its term.",
+        "worst": "An unaccepted booking produces no fee. Later ordinary performances and rights follow their own actual records.",
+        "twist": "The author gains a real payment but gives up personal public performance of the familiar script for the exclusive term. Ownership and abstract conjuring methods are not erased."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "The words are mine. For now, I have to say something else."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_actual_magic_booking requires an independently willing actual organizer, agreed affordable fee, real scheduled vacancy, legal capacity, permitted safe props and completed performance; transfer the actual fee once. The rumor changes reputation once and does not create an organizer or successful show.",
+        "teach_actual_script_to_performer requires continuing actual authorship rights, B willing and capable, completed instruction and a real limited nonexclusive permission record; create only that permission and learned script, not talent or public acclaim.",
+        "license_script_exclusively requires actual current rights, informed voluntary A/B signatures, B real funds, an enforceable original-text license with explicit scope, geographic coverage, term, payment and author performance restriction. Settle the old license and transfer the actual payment once. Do not claim copyright over the trick method or require new props, fame or sales. Gate the current program on a real licensed performance and current publication permission; gate A dialogue on survival, knowledge and an active personal-use restriction."
+      ],
+      "era_notes": "Use live hall bookings and paper scripts in early decades; later recording rights exist only if expressly agreed.",
+      "why_fun": "A familiar line can disappear from one act and reappear in another, with the signed bargain explaining the difference."
+    },
+    {
+      "id": "scenario-20261118-2572",
+      "kind": "scenario",
+      "title": "The Mineral Specimen That Became a Thin Section",
+      "category": "secrets",
+      "pitch": "Introduce a mineral collector to a qualified geology teacher. A specimen may eventually become useful teaching material by losing the intact shape its collector treasured.",
+      "present_hook": {
+        "what_you_notice": "A school display lists a proposed mineral donation that never reached the classroom; the intact specimen remains in a documented private collection.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The offer from {year} never settled who could cut or prepare the specimen."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            40,
+            50
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "trait": {
+            "diligence": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1990
+        ],
+        "notes": "A owns an actual lawfully obtained mineral specimen with documented origin and no heritage, sacred or protected-site restrictions. B is an actual qualified geology teacher. They are strangers relative to each other. Require an actual school interest and no completed donation or destructive preparation in the baseline."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange a willing meeting about the actual specimen and the school collection."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "lend_actual_specimen_for_teaching": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Collector Lends an Intact Specimen to the School",
+          "body": "A permitted documented loan brings the identified specimen into supervised teaching, with ownership and a no-cutting condition retained."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "donate_specimen_with_cutting_option": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Mineral Donation Leaves One Decision to Its Donor",
+          "body": "The school lawfully accepts title under an agreed condition requiring fresh written donor permission before destructive preparation."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "prepare_actual_mineral_thin_section": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Donated Specimen Becomes a Prepared Teaching Section",
+          "body": "With the required fresh consent and qualified funded work, the school cuts a real thin section from the same specimen. Its recorded intact form can no longer be returned."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Specimen Stays in Its Collection",
+        "body": "The introduction does not produce the documented teaching loan. No school ownership or cutting permission is implied."
+      },
+      "present_day": {
+        "best": "If the full chain occurred and the material survives in {now}, the actual school inventory contains the prepared section and retained remainder, with the original intact specimen marked as altered. Display only observations established by real examination.",
+        "worst": "An introduction does not transfer title. The specimen follows actual custody and permissions if the loan or later steps fail.",
+        "twist": "The school gains prepared teaching material, while the donor knowingly loses the option of seeing this specimen intact again. No valuable discovery is guaranteed."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "uncanny",
+          "line": "It is the same stone in the record. I cannot put it back into that shape."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "lend_actual_specimen_for_teaching creates an insured or otherwise lawfully covered custody loan only after A/B consent, authorized school approval, actual safe storage and a recorded condition survey. Persist the physical specimen ID, owner, custodian and prohibition on destructive work; introduction itself creates only the meeting.",
+        "donate_specimen_with_cutting_option transfers title from A to the actual authorized school recipient under a lawful accepted deed retaining the specified donor consent right. B must remain authorized to arrange acceptance. Resolve the loan; no money, new specimens or educational results are created.",
+        "prepare_actual_mineral_thin_section requires A alive and competent giving the reserved fresh written consent, B current qualified authority, same surviving unaltered material, actual lawful school authorization, funded qualified preparation capacity and completed physical work. Record the cut, section and actual remainder as derivatives of the existing specimen, without duplicating mass or monetary assets. Actual method determines material loss and observations. Gate A dialogue on living presence, informed consent and the irreversible recorded cut; never invent a discovery."
+      ],
+      "era_notes": "Use preparation methods and microscopes available in the event year; photographs and catalog records retain only information actually recorded.",
+      "why_fun": "The changed present can show more detail precisely because the old whole is gone."
+    },
+    {
+      "id": "scenario-20261118-2573",
+      "kind": "scenario",
+      "title": "The Blood Donor Who Stayed to Run the Sign-In Table",
+      "category": "rescue",
+      "pitch": "Help a willing resident reach a real blood drive. Decades of involvement may end with a medically required goodbye to donation and a freely chosen place at the sign-in table.",
+      "present_hook": {
+        "what_you_notice": "A drive archive records a missed transport appointment and an unfilled volunteer-organizer slot.",
+        "where": "the public hall",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "In {year}, {A} wanted to attend but could not meet the actual travel cost."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            30
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A is an actual willing prospective donor with a genuine transport shortfall, not assumed medically eligible. B is an actual authorized blood-drive coordinator. Baseline the appointment was missed; no donation, later condition or saved patient is implied. Require a real regulated collection service."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Cover the real travel shortfall so {A} can attend the scheduled screening."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            0,
+            1
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_screened_donation": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Resident Completes a Screened Blood Donation",
+          "body": "After actual eligibility screening and informed consent, {A} completes a supervised donation at the genuine collection service."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "qualify_drive_administration_volunteer": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Experienced Donor Takes an Administrative Shift",
+          "body": "With actual training and authorization, {A} completes a voluntary drive-administration shift. Clinical decisions remain with qualified staff."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "record_donor_deferral_and_continue_volunteering": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Deferred Donor Continues at the Sign-In Table",
+          "body": "An independent current clinical screening requires deferral under the applicable rules. The resident freely completes an authorized nonclinical volunteer shift instead."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Appointment Does Not Become a Donation",
+        "body": "Travel support remains a gift. Attendance alone is not medical eligibility, a completed collection or a patient outcome."
+      },
+      "present_day": {
+        "best": "If the full history occurred, actual records in {now} distinguish past completed donations from the current deferral. Show a sign-in volunteer only during a real authorized shift and with permission to display that role.",
+        "worst": "Failed eligibility never creates a donation. Screening results stay private and ordinary clinical safeguards apply on every branch.",
+        "twist": "The resident keeps a useful chosen role but loses eligibility to continue donating while the real deferral applies. A volunteer shift does not reverse a clinical decision."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I cannot donate now. I can still help people find the right table."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_actual_screened_donation requires an actual available collection session, safe travel, voluntary consent and independently satisfied current age, health and service requirements; record only completed collection and actual custody. No blood unit persists for decades and no recipient, diagnosis or life saved is invented.",
+        "qualify_drive_administration_volunteer requires actual current training, privacy authorization and a real supervised completed administrative shift. Add only the qualification and shift record; no clinical license, pay or automatic future donations.",
+        "record_donor_deferral_and_continue_volunteering requires a genuine independently produced current clinical reason for deferral, current lawful service rules, A informed free choice, actual nonclinical-role fitness, authorized staff and a completed shift. Record the ordinary clinical deferral and chosen shift without creating illness, imposing deferral by chance or overriding staff. Mandatory deferral is recorded in ordinary simulation even if this narrative roll fails; the chance concerns the combined follow-up volunteering event. Do not disclose private reasons publicly. B must still be alive and authorized. Dialogue requires A alive, current deferral, knowledge and active willing volunteering."
+      ],
+      "era_notes": "Use period-valid screening and collection rules at each event. No modern test or eligibility standard is applied retroactively.",
+      "why_fun": "The player can recognize a long connection to the same drive without turning generosity into medical immunity."
+    },
+    {
+      "id": "scenario-20261118-2574",
+      "kind": "scenario",
+      "title": "The Carpool That Started Charging a Fare",
+      "category": "family",
+      "pitch": "Help a teenager afford a lawful driving course. A future carpool can become a licensed paid service, though its regular passenger may lose an old free ride.",
+      "present_hook": {
+        "what_you_notice": "A household expense note preserves an unfinished driving-course enrollment; a later shared-ride plan was never formed.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The enrollment in {year} was short of the actual course fee."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            16,
+            17
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            18,
+            22
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A is a genuine willing eligible student with required guardian consent and a real course-fee shortfall. B is an existing unrelated resident, not assumed a driver, employer or relative. Baseline no completed enrollment, scenario carpool or paid route. Require present at least 25 years later."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Pay the genuine enrollment shortfall through the lawful supervised course account."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_actual_driver_training": "A"
+            }
+          ],
+          "headline": "A Student Completes Training and Earns a Real License",
+          "body": "Actual instruction, examinations and licensing requirements are completed. The credential grants no vehicle or permanent permission to drive."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_actual_free_commuter_carpool": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Residents Begin an Agreed Free Commuter Carpool",
+          "body": "Adult driver {A} and passenger {B} establish a genuine voluntary free ride arrangement using an actual lawful insured vehicle."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "taxi service"
+            },
+            {
+              "replace_carpool_with_fare_agreement": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Licensed Taxi Service Replaces an Old Free Ride",
+          "body": "A fully funded permitted taxi service opens. After settling the old arrangement, passenger {B} freely accepts and pays for an actual trip under its lawful fare schedule."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Enrollment Does Not Become a License",
+        "body": "Course support alone earns no credential. The money and any unfinished enrollment follow actual refund and household rules."
+      },
+      "present_day": {
+        "best": "If the chain occurred and operations continue in {now}, a lawful taxi listing shows the actual fare schedule and the former passenger has a real paid-trip receipt. No current journey or income is implied without a recorded trip.",
+        "worst": "A lesson does not create a license, vehicle or carpool. Preserve realized training and transport arrangements if later steps stop.",
+        "twist": "The driver gains a real fare-paying service; the former passenger loses the agreed free ride and spends actual money on a trip. Neither owes the other perpetual transport."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I agreed to the fare. I still remember when this ride was free."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year in 2020..2029 and at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_actual_driver_training requires lawful guardian approval where needed, actual funds, available qualified instruction, safe vehicle access, completed examinations and a genuinely issued current-age license. The gift is not repeated and a license does not guarantee continued fitness or vehicle ownership.",
+        "establish_actual_free_commuter_carpool requires A adult with current valid license, actual safe insured vehicle and authority to use it, compatible real commute trips, lawful coverage, B consent and completed rides. Record the actual free voluntary arrangement, terms and trips; do not invent jobs, vehicles or employment benefits.",
+        "Add taxi service as a business kind. found_business requires A adult, current operator/driver eligibility, real financing, available permitted premises if needed, identified suitable vehicle, commercial insurance, required licenses, lawful fare approval and actual viable operating capacity. Debit real startup costs and bind the new business ID to A. Do not grant a monopoly or guaranteed passengers.",
+        "replace_carpool_with_fare_agreement must commit atomically with the valid business opening: freely settle and terminate the real existing free arrangement, satisfy any notice or outstanding rights, and require B informed acceptance, available fare money and a completed lawful paid trip. Transfer the actual fare once to the business. No cancellation or charge on a failed opening; no passenger is forced to buy. Gate B dialogue on living presence, remembered free rides and a recent genuine paid trip after the change."
+      ],
+      "era_notes": "Use the learner-age, vehicle, insurance and local hire-car rules applying in each year; a household car is never automatically a licensed taxi.",
+      "why_fun": "The same familiar passenger seat can carry a different bargain twenty-five years later."
+    }
+  ]
+}
