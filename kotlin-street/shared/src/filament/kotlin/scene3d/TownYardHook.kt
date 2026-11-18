@@ -32,9 +32,10 @@ interface YardSink {
      * [mesh] at each of [at] (world x, z, along x, z, out x, z, turn: the mesh's +x along, +z out, turned about y), one
      * batch; [casts]: it throws a shadow; [tiled]: its picture repeats (uv past 1). Returns the batch's material instance
      * (null if nothing was drawn), so a builder can animate it through [animate]. [patch]: where it lies, so the view can
-     * cull it and cut it with its house (null: drawn always, with the town).
+     * cull it and cut it with its house (null: drawn always, with the town). [water]: its picture is water, to shimmer
+     * (a sink that uploads later returns null and steps it itself).
      */
-    fun mesh(name: String, mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean = false, patch: YardPatch? = null): MaterialInstance?
+    fun mesh(name: String, mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean = false, patch: YardPatch? = null, water: Boolean = false): MaterialInstance?
 
     /** [tick] is called every frame with the clock (seconds), e.g. to step the water's tile; by default nothing animates. */
     fun animate(tick: (seconds: Double) -> Unit) {}

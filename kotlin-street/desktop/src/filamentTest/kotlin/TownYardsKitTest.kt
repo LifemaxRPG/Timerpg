@@ -28,7 +28,7 @@ class TownYardsKitTest {
         val yards = TownYards.parse(json)
         val got = ArrayList<Got>()
         YardKitBuilder.build(town, yards, object : YardSink {
-            override fun mesh(name: String, mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean, patch: YardPatch?): MaterialInstance? {
+            override fun mesh(name: String, mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean, patch: YardPatch?, water: Boolean): MaterialInstance? {
                 var worst = -Float.MAX_VALUE
                 if (patch != null) for (i in 0 until mesh.vertexCount) worst = maxOf(worst, hypot(mesh.pos[i * 3] - patch.x, mesh.pos[i * 3 + 2] - patch.z) - patch.r)
                 got += Got(name, patch, worst, mesh.texW.toLong() * mesh.texH); return null

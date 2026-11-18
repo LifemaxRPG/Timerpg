@@ -54,6 +54,11 @@ class TownPose(
      * between the camera and the street in view (the row across the road) and fades out over [CUT_FADE]; 0: no cut.
      */
     val cut: Float = 0f,
+    /**
+     * How far from the eye anything is drawn: past it the haze has the town (buildings, yards, furniture and greenery fade
+     * out over [TownFrame.RANGE_FADE] short of it, and are not drawn beyond).
+     */
+    val range: Float = Float.MAX_VALUE,
 ) {
     /** Right (unit), up (unit). */
     val rx: Float; val ry: Float; val rz: Float
@@ -95,6 +100,19 @@ class TownPose(
         return true
     }
 
+    /** How far ([x], [y], [z]) is from the eye. */
+    fun distance(x: Float, y: Float, z: Float): Float {
+        val dx = x - ex; val dy = y - ey; val dz = z - ez
+        return sqrt(dx * dx + dy * dy + dz * dz)
+    }
+
+    /** 1 well inside [range], fading to 0 at it, for something whose middle is at ([x], [y], [z]) of radius [r]. */
+    fun rangeFade(x: Float, y: Float, z: Float, r: Float): Float {
+        if (range == Float.MAX_VALUE) return 1f
+        val t = ((range - (distance(x, y, z) - r * .5f)) / TownFrame.RANGE_FADE).coerceIn(0f, 1f)
+        return t * t * (3f - 2f * t)
+    }
+
     /** The look's direction on the ground (unit x, z). */
     val groundX: Float get() = fx / hypot(fx, fz).coerceAtLeast(1e-6f)
     val groundZ: Float get() = fz / hypot(fx, fz).coerceAtLeast(1e-6f)
@@ -133,7 +151,9 @@ object TownFrame {
         val fx = c.fx / l; val fz = c.fz / l
         val below = (h - cy).coerceAtLeast(1f)
         val near = (fl * eye / below * .7f).coerceAtLeast(CameraRig.NEAR)
-        return TownPose(c.tx - fx * b, eye, c.tz - fz * b, fx, 0f, fz, fl, w / 2f, cy, w, h, near, near + 3200f, b + 700f, HAZE, cut = b - CUT_BACK)
+        val hazeFrom = b + HAZE_FROM
+        return TownPose(c.tx - fx * b, eye, c.tz - fz * b, fx, 0f, fz, fl, w / 2f, cy, w, h, near, near + 3200f, hazeFrom, HAZE, cut = b - CUT_BACK,
+            range = hazeFrom + STREET_RANGE)
     }
 
     /**
@@ -147,11 +167,21 @@ object TownFrame {
         val fx = gx * cp; val fy = -sp; val fz = gz * cp
         val fl = (h / 2f) / tan(Math.toRadians(fovY / 2.0)).toFloat()
         val ex = tx - fx * dist; val ey = -fy * dist; val ez = tz - fz * dist
+        // (a free camera sees the whole town: no range, its haze thin)
         return TownPose(ex, ey, ez, fx, fy, fz, fl, w / 2f, h / 2f, w, h, max(20f, dist * .2f), dist * 2.2f, dist * 1.1f, .00025f * 2000f / max(dist, 2000f))
     }
 
-    /** The haze's thickness at street level (per street unit). */
-    const val HAZE = .0006f
+    /**
+     * The haze's thickness at street level (per street unit) and where it starts past the building line looked at: thin
+     * enough that the next blocks read solid, thick (80%) by [STREET_RANGE] further, where the street view stops drawing.
+     */
+    const val HAZE = .00045f
+    const val HAZE_FROM = 1400f
+    const val STREET_RANGE = 3600f
+    /** Over how many street units things fade out short of the view's range. */
+    const val RANGE_FADE = 500f
+    /** Closer than this (street units from the eye to a chunk's edge) the greenery is in full 3D, further as cards. */
+    const val LOD_NEAR = 1100f
     /** The street view cuts away what stands nearer than this short of the building line it looks at (past the road's middle). */
     const val CUT_BACK = 110f
     /** Over how many street units a cut building fades. */
@@ -162,6 +192,8 @@ object TownFrame {
 data class TownStats(
     val buildings: Int, val built: Int, val visible: Int,
     val renderables: Int, val draws: Int, val triangles: Int, val casters: Int,
+    /** Chunks of furniture, props and greenery in view, of them in full 3D; street lamps lit. */
+    val chunks: Int = 0, val chunksNear: Int = 0, val lamps: Int = 0,
 )
 
 /**
@@ -206,20 +238,56 @@ class FilamentTown(
     var yardBuilder: YardBuilder = YardKitBuilder
     private val ticks = ArrayList<(Double) -> Unit>()
 
-    private val ground = PropLayer(engine, scene, lit, proxyMat)
-    private val props = PropLayer(engine, scene, lit, proxyMat)
-    private val yardLayer = PropLayer(engine, scene, lit, proxyMat)
+    private val ground = PropLayer(engine, scene, lit, proxyMat, sharedTextures = textures, cull = true)
+    private val yardLayer = PropLayer(engine, scene, lit, proxyMat, sharedTextures = textures, cull = true)
     /** The yards a lot or a lane at a time ([YardPatch]): culled with the view, cut with their house in the street view. */
     private inner class Patch(val p: YardPatch) {
-        val layer = PropLayer(engine, scene, lit, proxyMat)
+        val layer = PropLayer(engine, scene, lit, proxyMat, sharedTextures = textures, cull = true)
         val slot: Slot? = p.sprite?.let { sp -> slots.firstOrNull { it.b.sprite == sp } }
     }
     private val patches = LinkedHashMap<String, Patch>()
+
+    /**
+     * The furniture, street props and greenery a piece of the town at a time: a row side's in stretches of [CHUNK] along
+     * it, the edge's greenery in squares of [CELL]. Each is culled by its sphere and the view's range, and in the street
+     * view cut with its row (a row across the road fades as its buildings do, judged at its building line); its trees are
+     * cards ([cards]) far off and the yard kit's 3D trees ([near], made the first time it comes close) near.
+     */
+    private inner class Chunk(val refX: Float, val refZ: Float, val byRow: Boolean) {
+        val base = PropLayer(engine, scene, lit, proxyMat, sharedTextures = textures, cull = true)
+        val cards = PropLayer(engine, scene, lit, proxyMat, sharedTextures = textures, cull = true)
+        var near: PropLayer? = null
+        /** Its 3D trees packed and waiting ([buildNear] uploads them the first time it comes close). */
+        val nearTodo = ArrayList<Pair<PropLayer.Packed, Boolean>>()
+        var x0 = Float.MAX_VALUE; var z0 = Float.MAX_VALUE; var x1 = -Float.MAX_VALUE; var z1 = -Float.MAX_VALUE
+        var pad = 0f; var top = 0f
+        var cx = 0f; var cz = 0f; var r = 0f
+        /** Takes in an [extent] (x0, z0, x1, z1, reach, height) and works out its sphere again. */
+        fun take(e: FloatArray) {
+            x0 = min(x0, e[0]); z0 = min(z0, e[1]); x1 = max(x1, e[2]); z1 = max(z1, e[3])
+            pad = max(pad, e[4]); top = max(top, e[5])
+            cx = (x0 + x1) / 2f; cz = (z0 + z1) / 2f
+            r = hypot(x1 - x0, z1 - z0) / 2f + pad + top / 2f
+        }
+        fun buildNear() {
+            if (near != null) return
+            val l = PropLayer(engine, scene, lit, proxyMat, sharedTextures = textures, cull = true)
+            for ((p, casts) in nearTodo) l.upload(p, casts)
+            near = l
+        }
+        fun destroy() { base.destroy(); cards.destroy(); near?.destroy() }
+    }
+    private val chunks = LinkedHashMap<String, Chunk>()
+
+    /** The rows' lanterns (x, y, z) and the point lights the nearest of them get at night. */
+    private var lanterns: FloatArray = FloatArray(0)
+    private val lampLights = IntArray(LAMP_LIGHTS) { EntityManager.get().create() }
     private var groundBuilt = false
 
     /** One building of the town: where it stands and, once built, its renderables. */
     inner class Slot(val row: Row, val b: Placement, val place: TownPlace) {
         internal var built: BuiltBuilding? = null
+        val isBuilt: Boolean get() = built != null
         /** A sphere round it in the world (its footprint's middle, a guess at its height until built). */
         var cx = 0f; var cy = 40f; var cz = 0f; var r = 0f
         var missing = false
@@ -233,6 +301,9 @@ class FilamentTown(
     }
 
     val slots: List<Slot> = town.rows.flatMap { row -> row.buildings.map { Slot(row, it, TownPlace.of(row, it)) } }
+
+    /** The town's pictures: textures made, their texels, and how many asks were answered by one already made. */
+    val textureStats: Triple<Int, Long, Int> get() = Triple(textures.madeCount, textures.texels, textures.shared)
 
     /** How long the ground took (ms), the buildings so far (ms), and how many are left to build. */
     var groundMs = 0f; private set
@@ -283,23 +354,190 @@ class FilamentTown(
 
     // ------------------------------------------------------------------ building
 
-    /** Builds the ground, river, bridges, greenery, furniture, the street props and the yards (once). */
-    fun buildGround() {
-        if (groundBuilt) return
-        val t0 = System.nanoTime()
+    // ------------------------------------------------------------------ the ground, off the engine's thread
+
+    /** Where a piece of chunked furniture or greenery goes: the chunk's key, its cut's reference point, by row or by square. */
+    private class ChunkSpec(val key: String, val refX: Float, val refZ: Float, val byRow: Boolean)
+
+    /** One batch made ready on a worker, to upload on the engine's thread ([uploadGround]). */
+    private class Job(
+        val packed: PropLayer.Packed, val casts: Boolean, val tiled: Boolean,
+        /** null: the town's ground (or, with [yard], the yards' always-drawn layer). */
+        val chunk: ChunkSpec? = null, val part: Int = 0,
+        val patch: YardPatch? = null, val yard: Boolean = false,
+        /** Water to shimmer: its mesh (the shimmer steps by its picture's size). */
+        val water: PropMesh? = null,
+        /** The extent of what it places (x0, z0, x1, z1), its mesh's reach and height, for a chunk's sphere. */
+        val extent: FloatArray? = null,
+    )
+
+    private val jobs = java.util.concurrent.ConcurrentLinkedQueue<Job>()
+    private val running = java.util.concurrent.atomic.AtomicInteger(0)
+    @Volatile private var failure: Throwable? = null
+    @Volatile private var lampSpots: List<FloatArray>? = null
+    private var groundStarted = 0L
+    /** The workers: every core but one (the engine's thread keeps its own); daemon threads, so a quit is never held. */
+    private val pool: java.util.concurrent.ExecutorService = java.util.concurrent.Executors.newFixedThreadPool(
+        max(2, Runtime.getRuntime().availableProcessors() - 1),
+    ) { r -> Thread(r, "town-build").also { it.isDaemon = true; it.priority = Thread.NORM_PRIORITY - 1 } }
+    /** How long the workers took to make the ground ready (ms), and the engine's thread to upload it (ms, all batches). */
+    var groundPrepareMs = 0f; private set
+    var groundUploadMs = 0f; private set
+    /** The longest single upload step [uploadGround] took (ms). */
+    var groundUploadWorst = 0f; private set
+
+    /**
+     * Starts making the ground, river, bridges, greenery, furniture, street props and yards on worker threads (meshes
+     * built, vertices packed, pictures packed and keyed: no engine call). Returns at once; then call [uploadGround] each
+     * frame until it returns true.
+     */
+    fun startGround() {
+        if (groundStarted != 0L || groundBuilt) return
+        groundStarted = System.nanoTime()
+        running.set(2)
+        pool.execute { work { prepareGround() } }
+        pool.execute { work { prepareYards() } }
+    }
+
+    private fun work(f: () -> Unit) {
+        try { f() } catch (t: Throwable) { failure = t } finally {
+            if (running.decrementAndGet() == 0) groundPrepareMs = (System.nanoTime() - groundStarted) / 1e6f
+        }
+    }
+
+    /** (A worker) the ground's pieces, the rows' furniture, greenery and props, chunked and packed. */
+    private fun prepareGround() {
         val tg = TownGround(town, art)
-        for (p in tg.pieces()) ground.addMesh(p.mesh, p.at, p.casts, p.tiled)
-        props.add(tg.props())
+        for (p in tg.pieces()) {
+            val an = p.anchors
+            if (an == null) { PropLayer.Packing.pack(p.mesh, p.at)?.let { jobs += Job(it, p.casts, p.tiled) }; continue }
+            val by = LinkedHashMap<String, Pair<ChunkSpec, MutableList<FloatArray>>>()
+            for ((i, a) in p.at.withIndex()) { val sp = specOf(an[i], a[0], a[1]); by.getOrPut(sp.key) { sp to ArrayList() }.second += a }
+            for ((sp, at) in by.values) {
+                val ext = extent(at, p.near ?: p.mesh)
+                PropLayer.Packing.pack(p.mesh, at)?.let { jobs += Job(it, p.casts, p.tiled, sp, part = if (p.near != null) 1 else 0, extent = ext) }
+                if (p.near != null) PropLayer.Packing.pack(p.near, at)?.let { jobs += Job(it, p.casts, false, sp, part = 2, extent = ext) }
+            }
+        }
+        val by = LinkedHashMap<String, Pair<ChunkSpec, MutableList<WorldProp>>>()
+        for ((a, wp) in tg.anchoredProps()) { val sp = specOf(a, wp.x, wp.z); by.getOrPut(sp.key) { sp to ArrayList() }.second += wp }
+        for ((sp, list) in by.values) {
+            var x0 = Float.MAX_VALUE; var z0 = Float.MAX_VALUE; var x1 = -Float.MAX_VALUE; var z1 = -Float.MAX_VALUE
+            for (wp in list) { x0 = min(x0, wp.x); z0 = min(z0, wp.z); x1 = max(x1, wp.x); z1 = max(z1, wp.z) }
+            val ext = floatArrayOf(x0, z0, x1, z1, 40f, 70f)
+            for ((packed, casts, _) in PropLayer.Packing.packProps(list)) jobs += Job(packed, casts, false, sp, part = 0, extent = ext)
+        }
+        lampSpots = tg.lampSpots.toList()
+    }
+
+    /** (A worker) the yards, baked lot by lot on every core and packed. */
+    private fun prepareYards() {
         val sink = object : YardSink {
-            override fun mesh(name: String, mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean, patch: YardPatch?) =
-                if (patch == null) yardLayer.addMesh(mesh, at, casts, tiled)
-                else patches.getOrPut(patch.id) { Patch(patch) }.layer.addMesh(mesh, at, casts, tiled)
-            override fun props(list: List<WorldProp>) { yardLayer.add(list) }
-            override fun animate(tick: (seconds: Double) -> Unit) { ticks += tick }
+            override fun mesh(name: String, mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean, patch: YardPatch?, water: Boolean): MaterialInstance? {
+                PropLayer.Packing.pack(mesh, at)?.let { jobs += Job(it, casts, tiled, patch = patch, yard = true, water = if (water) mesh else null) }
+                return null
+            }
+            override fun props(list: List<WorldProp>) {
+                for ((packed, casts, _) in PropLayer.Packing.packProps(list)) jobs += Job(packed, casts, false, yard = true)
+            }
+            override fun animate(tick: (seconds: Double) -> Unit) { synchronized(ticks) { ticks += tick } }
         }
         yardBuilder.build(town, yards, sink)
-        groundBuilt = true
-        groundMs = (System.nanoTime() - t0) / 1e6f
+    }
+
+    private fun extent(at: List<FloatArray>, mesh: PropMesh): FloatArray {
+        var x0 = Float.MAX_VALUE; var z0 = Float.MAX_VALUE; var x1 = -Float.MAX_VALUE; var z1 = -Float.MAX_VALUE
+        for (a in at) { x0 = min(x0, a[0]); z0 = min(z0, a[1]); x1 = max(x1, a[0]); z1 = max(z1, a[1]) }
+        val b = mesh.bounds
+        return floatArrayOf(x0, z0, x1, z1, max(max(abs(b[0]), abs(b[3])), max(abs(b[2]), abs(b[5]))), b[4])
+    }
+
+    /**
+     * Uploads what the workers have made ready, until [budgetMs] is spent (the engine's thread, once a frame). Returns
+     * true once the whole ground is in.
+     */
+    fun uploadGround(budgetMs: Float): Boolean {
+        if (groundBuilt) return true
+        if (groundStarted == 0L) startGround()
+        failure?.let { throw IllegalStateException("building the town's ground failed", it) }
+        val t0 = System.nanoTime()
+        while (true) {
+            val j = jobs.poll() ?: break
+            upload(j)
+            if ((System.nanoTime() - t0) / 1e6f >= budgetMs) break
+        }
+        val ms = (System.nanoTime() - t0) / 1e6f
+        groundUploadMs += ms
+        groundUploadWorst = max(groundUploadWorst, ms)
+        if (running.get() == 0 && jobs.isEmpty()) {
+            failure?.let { throw IllegalStateException("building the town's ground failed", it) }
+            // the lanterns, and the point lights that will light the nearest of them
+            val spots = lampSpots ?: emptyList()
+            lanterns = FloatArray(spots.size * 3).also { a ->
+                for ((i, l) in spots.withIndex()) {
+                    a[i * 3] = l[0] + l[2] * TownGround.LANTERN_OUT; a[i * 3 + 1] = TownGround.LANTERN_Y; a[i * 3 + 2] = l[1] + l[3] * TownGround.LANTERN_OUT
+                }
+            }
+            for (e in lampLights) {
+                LightManager.Builder(LightManager.Type.POINT).color(1f, .7f, .42f).intensity(0f).falloff(LAMP_REACH).castShadows(false)
+                    .position(0f, -1000f, 0f).build(engine, e)
+                scene.addEntity(e)
+            }
+            groundBuilt = true
+            groundMs = (System.nanoTime() - groundStarted) / 1e6f
+        }
+        return groundBuilt
+    }
+
+    private fun upload(j: Job) {
+        val sp = j.chunk
+        if (sp != null) {
+            val c = chunks.getOrPut(sp.key) { Chunk(sp.refX, sp.refZ, sp.byRow) }
+            j.extent?.let { c.take(it) }
+            when (j.part) {
+                0 -> c.base.upload(j.packed, j.casts, j.tiled)
+                1 -> c.cards.upload(j.packed, j.casts, j.tiled)
+                else -> c.nearTodo += j.packed to j.casts
+            }
+            return
+        }
+        val layer = when {
+            j.patch != null -> patches.getOrPut(j.patch.id) { Patch(j.patch) }.layer
+            j.yard -> yardLayer
+            else -> ground
+        }
+        val mi = layer.upload(j.packed, j.casts, j.tiled)
+        j.water?.let { m -> synchronized(ticks) { ticks += { s -> YardLayer.shimmer(mi, m, s) } } }
+    }
+
+    /**
+     * Builds the ground, river, bridges, greenery, furniture, the street props and the yards (once), waiting for it: the
+     * workers make it ready, this thread uploads it ([startGround] and [uploadGround] without the wait).
+     */
+    fun buildGround() {
+        startGround()
+        while (!uploadGround(Float.MAX_VALUE)) Thread.sleep(1)
+    }
+
+    /** The chunk [a] (at world [x], [z]) belongs in. */
+    private fun specOf(a: Anchor, x: Float, z: Float): ChunkSpec {
+        val row = a.row
+        if (row != null) {
+            val k = kotlin.math.floor(a.x / CHUNK).toInt()
+            val mid = ((k + .5f) * CHUNK).coerceIn(0f, row.length)
+            val p = row.pointAt(mid, 0f)
+            return ChunkSpec("r${row.id}/$k", p.x, p.z, byRow = true)
+        }
+        val i = kotlin.math.floor(x / CELL).toInt(); val j = kotlin.math.floor(z / CELL).toInt()
+        return ChunkSpec("c$i/$j", (i + .5f) * CELL, (j + .5f) * CELL, byRow = false)
+    }
+
+    /**
+     * Makes the full-3D greenery of every chunk [pose] would show near (unbudgeted: a preview's or a teleport's; the
+     * game's frames make it in [buildNearest]'s budget).
+     */
+    fun prepare(pose: TownPose) {
+        for (c in chunks.values) if (c.nearTodo.isNotEmpty() && c.near == null && pose.distance(c.cx, 20f, c.cz) - c.r < TownFrame.LOD_NEAR && pose.sees(c.cx, 20f, c.cz, c.r)) c.buildNear()
     }
 
     /**
@@ -309,31 +547,44 @@ class FilamentTown(
     fun buildNearest(x: Float, z: Float, budgetMs: Float): Int {
         val t0 = System.nanoTime()
         val todo = slots.filter { it.built == null && !it.missing }.sortedBy { hypot(it.cx - x, it.cz - z) }
+        // their art is opened and decoded on the workers, nearest first, ahead of being built here
+        for (s in todo) if (s !in artOf) artOf[s] = pool.submit(java.util.concurrent.Callable { building(s.b.sprite) })
         var n = 0
         for (s in todo) {
             if (n > 0 && (System.nanoTime() - t0) / 1e6f >= budgetMs) break
-            buildSlot(s)
+            val f = artOf[s] ?: continue
+            if (!f.isDone) continue
+            buildSlot(s, runCatching { f.get() }.getOrNull())
+            artOf.remove(s)
             n++
         }
         val ms = (System.nanoTime() - t0) / 1e6f
         buildingsMs += ms
         if (n > 0) batches += n to ms
+        // then, with what is left of the budget, the 3D greenery of the chunks coming near
+        if (n == 0) for (c in chunks.values.filter { it.near == null && it.nearTodo.isNotEmpty() && hypot(it.cx - x, it.cz - z) - it.r < TownFrame.LOD_NEAR + 600f }
+            .sortedBy { hypot(it.cx - x, it.cz - z) }) {
+            if ((System.nanoTime() - t0) / 1e6f >= budgetMs) break
+            c.buildNear()
+        }
         return n
     }
 
-    /** The slowest single building so far: its sprite and how long it took (ms, its art's decoding included). */
+    /** The slowest single building so far: its sprite and how long it took here (ms; its art was decoded on a worker). */
     var slowest: Pair<String, Float> = "" to 0f; private set
 
-    private fun buildSlot(s: Slot) {
+    /** Each building's art being opened on a worker. */
+    private val artOf = HashMap<Slot, java.util.concurrent.Future<SpriteBuilding?>>()
+
+    private fun buildSlot(s: Slot, sb: SpriteBuilding?) {
         val t0 = System.nanoTime()
-        try { buildOne(s) } finally {
+        try { buildOne(s, sb) } finally {
             val ms = (System.nanoTime() - t0) / 1e6f
             if (ms > slowest.second) slowest = s.b.sprite to ms
         }
     }
 
-    private fun buildOne(s: Slot) {
-        val sb = building(s.b.sprite)
+    private fun buildOne(s: Slot, sb: SpriteBuilding?) {
         if (sb == null) { s.missing = true; return }
         // the yard kit draws a lot's ground and fences: the house's and the model's own are left off there (not the
         // landmarks', whose grounds the yards do not cover yet)
@@ -362,7 +613,9 @@ class FilamentTown(
     /** Brings the scene to camera [pose] at [hour]; [seconds] is the clock (the yards' water shimmers by it). */
     fun frame(pose: TownPose, hour: Float, seconds: Double = 0.0) {
         view.viewport = Viewport(0, 0, pose.w.toInt(), pose.h.toInt())
-        LookMatrix.pinhole(pose.screen(m12), pose.w, pose.h, CameraRig.NEAR, look)
+        // (the look's depth reaches 1 at the camera's own near: Filament's lights are sorted into the view's depth slices
+        // by the camera's projection, so the two must agree or the street lamps' light lands in the wrong slices)
+        LookMatrix.pinhole(pose.screen(m12), pose.w, pose.h, pose.near, look)
         aim(pose)
         val sky = skyColors(hour)
         light(pose, hour, sky)
@@ -379,12 +632,12 @@ class FilamentTown(
         for (s in slots) {
             val b = s.built ?: continue
             // the street view: what stands between the camera and the street in view fades out
-            val fade = if (pose.cut > 0f) fadeOf(pose, s.cx, s.cz) else 1f
+            val fade = min(if (pose.cut > 0f) fadeOf(pose, s.cx, s.cz) else 1f, pose.rangeFade(s.cx, s.cy, s.cz, s.r))
             val on = fade > .02f && pose.sees(s.cx, s.cy, s.cz, s.r)
             s.shown = on
             rm.getInstance(b.entity).takeIf { it != 0 }?.let { rm.setLayerMask(it, 0xff, if (on) 1 else 0) }
             // (its shadow may fall into view from beside it: the twin stays while it is near the view)
-            val near = on || pose.sees(s.cx, s.cy, s.cz, s.r + 300f)
+            val near = on || (fade > .02f && pose.sees(s.cx, s.cy, s.cz, s.r + 300f))
             if (b.proxy != 0) rm.getInstance(b.proxy).takeIf { it != 0 }?.let { rm.setLayerMask(it, 0xff, if (near) 1 else 0) }
             if (near && b.proxy != 0) casters++
             if (!on) continue
@@ -398,7 +651,7 @@ class FilamentTown(
             }
             b.night?.invoke(hour)
         }
-        for (layer in listOf(ground, props, yardLayer)) {
+        for (layer in listOf(ground, yardLayer)) {
             layer.update(look, dark)
             renderables += layer.draws; draws += layer.draws
             casters += layer.casters
@@ -407,7 +660,7 @@ class FilamentTown(
         // the yards a lot at a time: culled to the view (their shadows while near it), faded with their house
         for (pt in patches.values) {
             val p = pt.p
-            val fade = if (pose.cut <= 0f) 1f else pt.slot?.let { fadeOf(pose, it.cx, it.cz) } ?: fadeOf(pose, p.x, p.z)
+            val fade = min(if (pose.cut <= 0f) 1f else pt.slot?.let { fadeOf(pose, it.cx, it.cz) } ?: fadeOf(pose, p.x, p.z), pose.rangeFade(p.x, 15f, p.z, p.r))
             val on = fade > .02f && pose.sees(p.x, 15f, p.z, p.r + 30f)
             // (a cut lot throws no shadow: a fence's shadow without its fence reads wrong)
             val near = fade > .5f && (on || pose.sees(p.x, 15f, p.z, p.r + 150f))
@@ -415,8 +668,61 @@ class FilamentTown(
             if (on) { renderables += pt.layer.draws; draws += pt.layer.draws; tris += pt.layer.triangles }
             if (near) casters += pt.layer.casters
         }
-        for (t in ticks) t(seconds)
-        stats = TownStats(slots.size, slots.count { it.built != null }, visible, renderables, draws, tris, casters)
+        // the furniture, props and greenery a chunk at a time: culled, cut with their row, cards far and 3D near
+        var nChunks = 0; var nNear = 0
+        for (c in chunks.values) {
+            val cut = if (pose.cut <= 0f) 1f else if (c.byRow) fadeOf(pose, c.refX, c.refZ) else fadeOf(pose, c.cx, c.cz)
+            val fade = min(cut, pose.rangeFade(c.cx, c.top / 2f, c.cz, c.r))
+            val on = fade > .02f && pose.sees(c.cx, c.top / 2f, c.cz, c.r)
+            val shadows = fade > .5f && (on || pose.sees(c.cx, c.top / 2f, c.cz, c.r + 150f))
+            val close = on && c.nearTodo.isNotEmpty() && pose.distance(c.cx, c.top / 2f, c.cz) - c.r < TownFrame.LOD_NEAR
+            val near3d = close && c.near != null
+            c.base.update(look, dark, on, fade, shadows)
+            c.cards.update(look, dark, on && !near3d, fade, shadows && !near3d)
+            c.near?.update(look, dark, near3d, fade, shadows && near3d)
+            if (on) {
+                nChunks++
+                for (l in listOfNotNull(c.base, if (near3d) c.near else c.cards)) { renderables += l.draws; draws += l.draws; tris += l.triangles }
+            }
+            if (near3d) nNear++
+            if (shadows) casters += c.base.casters + (if (near3d) c.near!!.casters else c.cards.casters)
+        }
+        val lampsLit = lamps(pose, dark)
+        for (t in synchronized(ticks) { ticks.toList() }) t(seconds)
+        stats = TownStats(slots.size, slots.count { it.built != null }, visible, renderables, draws, tris, casters, nChunks, nNear, lampsLit)
+    }
+
+    /**
+     * At night the [LAMP_LIGHTS] lanterns nearest the point the view looks at (in its range) light the pavement and the
+     * fronts round them: real point lights, warm, reaching [LAMP_REACH]; by day they are off. Returns how many are on.
+     */
+    private fun lamps(pose: TownPose, dark: Float): Int {
+        val on = smooth((dark - .35f) / .35f)
+        val lm = engine.lightManager
+        if (!groundBuilt) return 0
+        if (on <= 0f || lanterns.isEmpty()) {
+            for (e in lampLights) lm.getInstance(e).takeIf { it != 0 }?.let { lm.setIntensity(it, 0f) }
+            return 0
+        }
+        // the point looked at: on the ground along the look (the street view's building line; an aerial's centre)
+        val t = if (pose.fy < -.05f) (pose.ey / -pose.fy) else (pose.cut + TownFrame.CUT_BACK)
+        val tx = pose.ex + pose.fx * t; val tz = pose.ez + pose.fz * t
+        val n = lanterns.size / 3
+        val order = (0 until n).filter { i ->
+            pose.sees(lanterns[i * 3], lanterns[i * 3 + 1], lanterns[i * 3 + 2], LAMP_REACH)
+        }.sortedBy { i -> hypot(lanterns[i * 3] - tx, lanterns[i * 3 + 2] - tz) }
+        var lit = 0
+        for ((k, e) in lampLights.withIndex()) {
+            val li = lm.getInstance(e).takeIf { it != 0 } ?: continue
+            val i = order.getOrNull(k)
+            if (i == null) { lm.setIntensity(li, 0f); continue }
+            lm.setPosition(li, lanterns[i * 3], lanterns[i * 3 + 1] - 4f, lanterns[i * 3 + 2])
+            // (the farthest of them dim, so one switching to another as the walk goes on does not pop)
+            val rank = (1f - (k - (LAMP_LIGHTS - 4)).coerceAtLeast(0) / 4f).coerceIn(0f, 1f)
+            lm.setIntensity(li, LAMP_LUMENS * on * rank)
+            lit++
+        }
+        return lit
     }
 
     /** The street view's cut for something whose middle is at ([x], [z]): 1 beyond the cut, fading to 0 nearer the eye. */
@@ -482,7 +788,8 @@ class FilamentTown(
         fog.density = p.haze * (1f - .4f * sky.dark)
         fog.height = 0f
         fog.heightFalloff = 1e-4f
-        fog.maximumOpacity = .85f
+        // (the street view stops drawing where the haze is thick: there it takes everything, the ground too)
+        fog.maximumOpacity = if (p.range < Float.MAX_VALUE) 1f else .85f
         fog.inScatteringStart = 0f
         fog.inScatteringSize = -1f
         fog.fogColorFromIbl = false
@@ -506,7 +813,11 @@ class FilamentTown(
             engine.destroyVertexBuffer(b.vb); engine.destroyIndexBuffer(b.ib)
             s.built = null
         }
-        ground.destroy(); props.destroy(); yardLayer.destroy(); ticks.clear()
+        pool.shutdownNow()
+        ground.destroy(); yardLayer.destroy(); ticks.clear()
+        for (c in chunks.values) c.destroy()
+        chunks.clear()
+        for (e in lampLights) { scene.remove(e); engine.destroyEntity(e); em.destroy(e) }
         for (pt in patches.values) pt.layer.destroy()
         patches.clear()
         textures.destroy(all = true)
@@ -524,5 +835,12 @@ class FilamentTown(
         /** The sun's and the sky light's strength by day (the street's). */
         private const val SUN = .45f
         private const val AMB = .8f
+        /** A row's furniture and props are chunked in stretches this long; the edge's greenery in squares this big. */
+        const val CHUNK = 800f
+        const val CELL = 2000f
+        /** How many lanterns light at night (the nearest), how far their light reaches and how strong (lumens). */
+        const val LAMP_LIGHTS = 12
+        const val LAMP_REACH = 260f
+        const val LAMP_LUMENS = 60000f
     }
 }

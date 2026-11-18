@@ -67,24 +67,33 @@ object YardKitBuilder : YardBuilder {
         fun item(i: com.lifemax.rpg.feature.habits.domain.TownYardItem) =
             YardItem(i.kind, i.rect[0], i.rect[1], i.rect[2], i.rect[3], i.faceX, i.faceZ, i.variant, i.layer, i.on, i.zone)
         val at = listOf(floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 0f))
-        fun bake(items: List<YardItem>, patch: YardPatch) {
-            for (b in YardKit.bake(items, perKind = false)) {
-                val mi = sink.mesh("yard:${patch.id}:${b.group}", b.mesh, at, b.casts, b.tiled, patch)
-                if (b.water && mi != null) sink.animate { s -> YardLayer.shimmer(mi, b.mesh, s) }
-            }
-        }
         // a lot at a time (culled with the view, cut with its house), then each lane's and verge's items
+        val work = ArrayList<Pair<List<YardItem>, YardPatch>>()
         for (y in yards.yards) {
             if (y.items.isEmpty()) continue
             val p = y.parcel
             var x0 = p[0]; var z0 = p[1]; var x1 = p[2]; var z1 = p[3]
             for (i in y.items) { x0 = minOf(x0, i.rect[0]); z0 = minOf(z0, i.rect[1]); x1 = maxOf(x1, i.rect[2]); z1 = maxOf(z1, i.rect[3]) }
-            bake(y.items.map(::item), YardPatch(y.lot, (x0 + x1) / 2f, (z0 + z1) / 2f, kotlin.math.hypot(x1 - x0, z1 - z0) / 2f, y.sprite))
+            work += y.items.map(::item) to YardPatch(y.lot, (x0 + x1) / 2f, (z0 + z1) / 2f, kotlin.math.hypot(x1 - x0, z1 - z0) / 2f, y.sprite)
         }
         for (l in yards.lanes) {
             if (l.items.isEmpty()) continue
             val r = l.rect
-            bake(l.items.map(::item), YardPatch(l.id, (r[0] + r[2]) / 2f, (r[1] + r[3]) / 2f, kotlin.math.hypot(r[2] - r[0], r[3] - r[1]) / 2f))
+            work += l.items.map(::item) to YardPatch(l.id, (r[0] + r[2]) / 2f, (r[1] + r[3]) / 2f, kotlin.math.hypot(r[2] - r[0], r[3] - r[1]) / 2f)
+        }
+        // baked on every core (the kit's caches are shared under locks) a few lots per core at a time, handed to the sink
+        // in order (so only those few lots' meshes are held at once)
+        val step = 2 * Runtime.getRuntime().availableProcessors()
+        for (from in work.indices step step) {
+            val group = work.subList(from, minOf(work.size, from + step))
+            val baked = group.parallelStream().map { (items, _) -> YardKit.bake(items, perKind = false) }.collect(java.util.stream.Collectors.toList())
+            for ((k, batches) in baked.withIndex()) {
+                val patch = group[k].second
+                for (b in batches) {
+                    val mi = sink.mesh("yard:${patch.id}:${b.group}", b.mesh, at, b.casts, b.tiled, patch, water = b.water)
+                    if (b.water && mi != null) sink.animate { s -> YardLayer.shimmer(mi, b.mesh, s) }
+                }
+            }
         }
     }
 }

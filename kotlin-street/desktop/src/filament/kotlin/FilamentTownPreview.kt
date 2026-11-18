@@ -78,8 +78,12 @@ fun renderFilamentTown(out: String) {
     // the walk, standing at the spawn
     GameState.moveX = 0f; GameState.moveLane = 0f
     val walk = TownWalk(town)
-    ft.buildGround()
-    report.appendLine("ground, greenery, furniture, props, yards: %.0f ms".format(ft.groundMs))
+    // the ground as the game makes it: the workers make it ready, the engine's thread uploads it in 4 ms steps
+    ft.startGround()
+    var groundFrames = 0
+    while (!ft.uploadGround(4f)) { groundFrames++; Thread.sleep(1) }
+    report.appendLine("ground, greenery, furniture, props, yards: %.0f ms from start to all in; the workers %.0f ms; the engine's thread %.0f ms of uploads over %d frames (4 ms budget; longest step %.1f ms)"
+        .format(ft.groundMs, ft.groundPrepareMs, ft.groundUploadMs, groundFrames, ft.groundUploadWorst))
     run {
         // the yards' triangles by kind (where a view's triangles go)
         val all = com.lifemax.rpg.feature.habits.presentation.scene3d.YardData.yards(json).flatMap { it.items } +
@@ -90,12 +94,16 @@ fun renderFilamentTown(out: String) {
     }
     // the buildings as the game builds them: nearest the player first, a 4 ms budget a frame
     var frames = 0
-    while (ft.pending > 0) { ft.buildNearest(walk.wx, walk.wz, 4f); frames++ }
+    // (a frame whose art is not decoded yet builds nothing: as the game, it just draws on)
+    while (ft.pending > 0) { if (ft.buildNearest(walk.wx, walk.wz, 4f) > 0) frames++ else Thread.sleep(1) }
     val missing = ft.slots.count { it.built == null }
-    report.appendLine("buildings: %d built in %d batches (4 ms budget, at least one each), %.0f ms in all (largest batch %.1f ms; slowest building %s %.1f ms, its art's decoding included); %d missing art"
+    report.appendLine("buildings: %d built in %d batches (4 ms budget, at least one each), %.0f ms in all (largest batch %.1f ms; slowest building %s %.1f ms, its art decoded ahead on a worker); %d missing art"
         .format(ft.slots.size - missing, frames, ft.buildingsMs, ft.batches.maxOf { it.second }, ft.slowest.first, ft.slowest.second, missing))
     report.appendLine("(software GL on the build server, not the S25; preparing the art ${"%.0f".format((System.nanoTime() - loadMs) / 1e6)} ms in all)")
 
+    ft.textureStats.let { (n, texels, shared) ->
+        report.appendLine("textures: %d made, %.1fM texels (%.0f MB RGBA before mips); %d asks shared one already made (same pixels)".format(n, texels / 1e6, texels * 4 / 1e6, shared))
+    }
     val only = System.getProperty("shots")?.split(",")?.map { it.trim() }?.toSet()
     val night = 22.5f; val dusk = 19.3f
     fun want(name: String) = only == null || name in only || only.any { name.startsWith(it) }
@@ -107,12 +115,24 @@ fun renderFilamentTown(out: String) {
     fun shoot(name: String, pose: TownPose, hour: Float) {
         if (!want(name)) return
         val t0 = System.nanoTime()
+        ft.prepare(pose)
         ft.frame(pose, hour)
         shooter.save(File(dir, "$name.png"), pose.w.toInt(), pose.h.toInt(), hour)
         val s = ft.stats
-        report.appendLine("%-28s %5.0f ms  buildings in view %3d of %d, renderables %4d, draws %5d, triangles %7d, shadow casters %4d".format(
-            name, (System.nanoTime() - t0) / 1e6, s.visible, s.built, s.renderables, s.draws, s.triangles, s.casters))
+        report.appendLine("%-28s %5.0f ms  buildings in view %3d of %d, renderables %4d, draws %5d, triangles %7d, shadow casters %4d, chunks %3d (%d in 3D), lamps lit %d".format(
+            name, (System.nanoTime() - t0) / 1e6, s.visible, s.built, s.renderables, s.draws, s.triangles, s.casters, s.chunks, s.chunksNear, s.lamps))
         println("  $name")
+    }
+
+    // a free camera never stands inside a building: backed off along its look until its eye is clear of every one
+    fun aerial(tx: Float, tz: Float, yaw: Float, pitch: Float, dist: Float, fov: Float): TownPose {
+        var d = dist
+        while (true) {
+            val p = TownFrame.aerial(tx, tz, yaw, pitch, d, fov, aw.toFloat(), ah.toFloat())
+            val inside = ft.slots.any { sl -> sl.isBuilt && kotlin.math.sqrt((p.ex - sl.cx) * (p.ex - sl.cx) + (p.ey - sl.cy) * (p.ey - sl.cy) + (p.ez - sl.cz) * (p.ez - sl.cz)) < sl.r + p.near }
+            if (!inside || d > dist * 3f) return p
+            d += 40f
+        }
     }
 
     // --- aerials
@@ -153,7 +173,7 @@ fun renderFilamentTown(out: String) {
         val n = r.normalAt(x)
         val p = r.pointAt(x, 0f)
         val yaw = Math.toDegrees(kotlin.math.atan2((-n.x).toDouble(), n.z.toDouble())).toFloat()
-        shoot("behind_${name}", TownFrame.aerial(p.x + n.x * 120f, p.z + n.z * 120f, yaw, 24f, 900f, 50f, aw.toFloat(), ah.toFloat()), 13f)
+        shoot("behind_${name}", aerial(p.x + n.x * 120f, p.z + n.z * 120f, yaw, 24f, 900f, 50f), 13f)
     }
     // halfway round a corner: from the spawn's row into the side street at its end (or start)
     run {
@@ -192,8 +212,25 @@ fun renderFilamentTown(out: String) {
         val yaw = Math.toDegrees(kotlin.math.atan2((-n.x).toDouble(), n.z.toDouble())).toFloat()
         shoot("yard_${name}_above", TownFrame.aerial(px, pz, yaw, 62f, 1050f, 50f, aw.toFloat(), ah.toFloat()), 13f)
         shoot("yard_${name}_top", TownFrame.aerial(px, pz, yaw, 89f, 1100f, 50f, aw.toFloat(), ah.toFloat()), 13f)
-        shoot("yard_${name}_back", TownFrame.aerial(px, pz, yaw, 20f, 760f, 55f, aw.toFloat(), ah.toFloat()), 13f)
-        shoot("yard_${name}_back_dusk", TownFrame.aerial(px, pz, yaw, 20f, 760f, 55f, aw.toFloat(), ah.toFloat()), dusk)
+        shoot("yard_${name}_back", aerial(px, pz, yaw, 20f, 760f, 55f), 13f)
+        shoot("yard_${name}_back_dusk", aerial(px, pz, yaw, 20f, 760f, 55f), dusk)
+    }
+    // --- the landmarks' grounds: each landmark from low above its front (the paved path and apron)
+    for (sp in listOf("b92", "b96", "b97")) {
+        val r = town.rows.firstOrNull { row -> row.buildings.any { it.sprite == sp } } ?: continue
+        val b = r.buildings.first { it.sprite == sp }
+        val p = r.pointAt(b.mid, 0f); val n = r.normalAt(b.mid)
+        // looking at its front: from the road's side, into the lot
+        val yaw = Math.toDegrees(kotlin.math.atan2(n.x.toDouble(), (-n.z).toDouble())).toFloat()
+        shoot("landmark_${sp}", aerial(p.x + n.x * 60f, p.z + n.z * 60f, yaw, 30f, 700f, 50f), 13f)
+    }
+    // --- a Heights row's backyards and pools from above (behind its houses, looking down onto the yards)
+    run {
+        val r = majority("heights")
+        val x = r.buildings.sortedBy { it.mid }.let { it[it.size / 2].mid }
+        val p = r.pointAt(x, 0f); val n = r.normalAt(x)
+        val yaw = Math.toDegrees(kotlin.math.atan2((-n.x).toDouble(), n.z.toDouble())).toFloat()
+        shoot("heights_backyards_above", aerial(p.x + n.x * 200f, p.z + n.z * 200f, yaw, 50f, 1400f, 50f), 13f)
     }
     File(dir, "town.txt").writeText(report.toString())
     print(report)

@@ -1,6 +1,7 @@
 package com.lifemax.rpg.feature.habits.presentation.scene3d
 
 import androidx.compose.ui.graphics.ImageBitmap
+import com.lifemax.rpg.feature.habits.domain.Ambient
 import com.lifemax.rpg.feature.habits.domain.Crossroads
 import com.lifemax.rpg.feature.habits.domain.FurnitureKind
 import com.lifemax.rpg.feature.habits.domain.PropKind
@@ -28,7 +29,19 @@ import kotlin.math.sqrt
 class TownArt(val image: (String) -> ImageBitmap?)
 
 /** One batch for a [PropLayer]: [mesh] at each of [at] (world x, z, along x, z, out x, z, turn). */
-internal class GroundPiece(val name: String, val mesh: PropMesh, val at: List<FloatArray>, val casts: Boolean, val tiled: Boolean = false)
+internal class GroundPiece(
+    val name: String, val mesh: PropMesh, val at: List<FloatArray>, val casts: Boolean, val tiled: Boolean = false,
+    /**
+     * Where each of [at] belongs (the same length), so the town can split the batch into chunks it culls by distance and
+     * cuts in the street view (a row's furniture with the rest of its row side); null: one batch for the whole town.
+     */
+    val anchors: List<Anchor>? = null,
+    /** The same thing in full 3D for close by (a tree), standing in the same places; [mesh] is then the far one. */
+    val near: PropMesh? = null,
+)
+
+/** What a placed thing belongs to: the row (its pavement, at [x] along it), or nothing but its place (the town's edge). */
+internal class Anchor(val row: com.lifemax.rpg.feature.habits.domain.Row?, val x: Float)
 
 /**
  * The whole town's ground, in the pack's crisp pixels (one texel [TEXEL] street units, sampled nearest), as batches for a
@@ -81,6 +94,7 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         out += patches()
         out += zebras()
         plaza()?.let { out += it }
+        landmarkGrounds()?.let { out += it }
         out += waterPieces()
         out += bridges()
         out += greenery()
@@ -404,6 +418,39 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         return piece("plaza", f)
     }
 
+    /**
+     * The landmarks' grounds (the yards cover only the homes' lots): a paved path from the pavement to the front door (the
+     * front wall's middle) and an apron along the front wall, in the plaza's stone, so the clock tower, the post office,
+     * the hotel and the police do not stand on bare lawn.
+     */
+    private fun landmarkGrounds(): GroundPiece? {
+        val n = 64
+        val im = PixImg(n, n)
+        for (y in 0 until n) for (x in 0 until n) im[x, y] = plazaTile.at(x, y)
+        val f = Flat(im)
+        val s = n * UNIT
+        for (row in town.rows) for (b in row.buildings) {
+            if (b.kind != com.lifemax.rpg.feature.habits.domain.PlacementKind.LANDMARK || b.setback < 12f) continue
+            val place = com.lifemax.rpg.feature.habits.domain.TownPlace.of(row, b)
+            fun rect(lx0: Float, lz0: Float, lx1: Float, lz1: Float) {
+                val c = listOf(place.world(lx0, lz0), place.world(lx1, lz0), place.world(lx1, lz1), place.world(lx0, lz1))
+                val p = FloatArray(12); val t = FloatArray(8)
+                for ((k, q) in c.withIndex()) { p[k * 3] = q.x; p[k * 3 + 1] = LIFT_PLAZA; p[k * 3 + 2] = q.z; t[k * 2] = q.x / s; t[k * 2 + 1] = q.z / s }
+                // (its corners wind as the plaza's level quads do, seen from above)
+                val ax = c[1].x - c[0].x; val az = c[1].z - c[0].z; val bx = c[3].x - c[0].x; val bz = c[3].z - c[0].z
+                if (az * bx - ax * bz < 0f) f.quad(p, t, UP, EAST)
+                else f.quad(floatArrayOf(p[0], p[1], p[2], p[9], p[10], p[11], p[6], p[7], p[8], p[3], p[4], p[5]),
+                    floatArrayOf(t[0], t[1], t[6], t[7], t[4], t[5], t[2], t[3]), UP, EAST)
+            }
+            val hw = b.width / 2f
+            val apron = min(26f, b.setback * .4f)
+            // the path from the pavement's back to the apron, then the apron along the front
+            rect(-22f, -1f, 22f, b.setback - apron + 1f)
+            rect(-hw * .92f, b.setback - apron, hw * .92f, b.setback + 2f)
+        }
+        return if (f.empty) null else piece("landmark-grounds", f)
+    }
+
     /** Grass over every tile of the ground that is not water: one quad a run of tiles along each row of the grid. */
     private fun grass(): GroundPiece {
         val f = Flat(grassPicture())
@@ -521,7 +568,55 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
             val c = floatArrayOf(ax * w / 2, -foot, az * w / 2); val d = floatArrayOf(-ax * w / 2, -foot, -az * w / 2)
             m.quad(a, b, c, d, img)
         }
+        // a canopy seen from above: a round crown of the sprite's own leaves, level at two thirds of its height (from
+        // above the two upright cards alone read as a plus sign)
+        canopy(img)?.let { top ->
+            val r = w * .42f
+            val y = (h - foot) * .66f
+            m.quad(floatArrayOf(-r, y, -r), floatArrayOf(r, y, -r), floatArrayOf(r, y, r), floatArrayOf(-r, y, r), top)
+        }
         return m.build()
+    }
+
+    private val canopies = java.util.IdentityHashMap<PixImg, PixImg?>()
+
+    /**
+     * A tree sprite's crown from above: a disc as wide as the sprite whose texels are the sprite's own leaves (its crown's
+     * rows, the opaque ones), lit from the top left and darker at the rim, its edge ragged; null for a sprite with no crown.
+     */
+    private fun canopy(img: PixImg): PixImg? = canopies.getOrPut(img) {
+        val n = img.w
+        // the crown's rows: the opaque texels of the top 60%
+        val leaves = ArrayList<Int>()
+        for (y in 0 until (img.h * .6f).toInt()) for (x in 0 until img.w) { val c = img.px[y * img.w + x]; if ((c ushr 24) >= 200) leaves += c }
+        if (leaves.size < 8) return@getOrPut null
+        val out = PixImg(n, n)
+        val rnd = Paint.Rnd(n * 31 + leaves.size)
+        val half = n / 2f
+        for (y in 0 until n) for (x in 0 until n) {
+            val dx = (x + .5f - half) / half; val dy = (y + .5f - half) / half
+            val d = sqrt(dx * dx + dy * dy)
+            val rim = .86f + .14f * rnd.next()
+            if (d > rim) continue
+            val c = leaves[(rnd.next() * leaves.size).toInt().coerceIn(0, leaves.size - 1)]
+            // light from the top left, darker towards the rim
+            val shade = (1.08f - .32f * d - .14f * (dx + dy) / 2f).coerceIn(.55f, 1.2f)
+            fun ch(sh: Int) = (((c shr sh) and 255) * shade).toInt().coerceIn(0, 255)
+            out[x, y] = (255 shl 24) or (ch(16) shl 16) or (ch(8) shl 8) or ch(0)
+        }
+        out
+    }
+
+    /** The yard kit's 3D tree (one of its round broadleaves, or a conifer) about as big as [img] at [scale]. */
+    private fun tree3d(img: PixImg, scale: Float, v: Int): PropMesh? {
+        var empty = 0
+        while (empty < img.h - 1 && (0 until img.w).none { (img.px[(img.h - 1 - empty) * img.w + it] ushr 24) > 0 }) empty++
+        val h = (img.h - empty) * TEXEL * scale
+        val variant = TREE_VARIANTS[v.mod(TREE_VARIANTS.size)]
+        // the kit's broadleaf stands about 2.6 times its half width tall, a conifer 3.6, a poplar 3.9
+        val s = h / (when (variant) { 5, 6 -> 3.6f; 8 -> 3.9f; else -> 2.6f })
+        val w = 2f * (s + .3f)
+        return YardKit.model("tree", variant, w, w).mesh
     }
 
     /** A flat card on the ground (flowers seen from above), [scale] times its pixels. */
@@ -549,6 +644,7 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
 
     private fun greenery(): List<GroundPiece> {
         val groups = LinkedHashMap<Plant, MutableList<FloatArray>>()
+        val anchors = HashMap<Plant, MutableList<Anchor>>()
         val keys = HashMap<String, Plant>()
         fun plant(path: String, scale: Float, flat: Boolean) = keys.getOrPut("$path@$scale@$flat") { Plant(path, scale, flat) }
         fun put(kind: String, x: Float, z: Float, look: Float, edge: Boolean) {
@@ -559,7 +655,12 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
             // the forest's trees in two sizes (the street's own at the street's scale)
             val scale = if (big) (if (((look * 7919f).toInt() and 1) == 0) 1.25f else 1.6f) else 1f
             val turn = (look * 6151f) % (PI.toFloat() / 2f)
-            groups.getOrPut(plant(v, scale, kind == "flowers")) { ArrayList() } += floatArrayOf(x, z, cos(turn), sin(turn), -sin(turn), cos(turn), 0f)
+            // the forest's trees stand on the map's grid: shaken off it so they read as grown, not planted
+            val jx = if (edge) ((look * 3571f) % 1f - .5f) * 30f else 0f
+            val jz = if (edge) ((look * 2287f) % 1f - .5f) * 30f else 0f
+            val pl = plant(v, scale, kind == "flowers")
+            groups.getOrPut(pl) { ArrayList() } += floatArrayOf(x + jx, z + jz, cos(turn), sin(turn), -sin(turn), cos(turn), 0f)
+            anchors.getOrPut(pl) { ArrayList() } += Anchor(null, 0f)
         }
         // (a flower bush is the pack's planter box: the props' planter in 3D, not a card)
         val planters = ArrayList<Pair<Int, FloatArray>>()
@@ -573,10 +674,15 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
             if (p.kind == "bench" || p.kind.startsWith("fountain")) continue
             put(p.kind, p.x, p.z, p.look, edge = p in edgeProps)
         }
+        // the forest's outer edge: the map's forest stops in a straight line; trees thin out past it into the fields instead
+        for ((x, z, look) in feather()) put("tree", x, z, look, edge = true)
         val out = ArrayList<GroundPiece>()
         for ((pl, at) in groups) {
             val img = sprite(pl.path) ?: continue
-            out += GroundPiece("green:${pl.path}", if (pl.flat) groundCard(img, pl.scale) else crossCard(img, pl.scale), at, casts = !pl.flat)
+            val isTree = pl.path.startsWith("tree/")
+            val near = if (isTree) tree3d(img, pl.scale, variants("tree").indexOf(pl.path)) else null
+            out += GroundPiece("green:${pl.path}@${pl.scale}", if (pl.flat) groundCard(img, pl.scale) else crossCard(img, pl.scale), at, casts = !pl.flat,
+                anchors = anchors[pl], near = near)
         }
         for ((v, at) in planters.groupBy({ it.first }, { it.second })) out += GroundPiece("planters$v", PropKit.mesh(PropKind.PLANTER, v, seed = v * 5 + 2), at, casts = true)
         // the plaza's benches and its fountain
@@ -584,6 +690,38 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         if (benches.isNotEmpty()) out += GroundPiece("plaza-benches", PropKit.mesh(PropKind.BENCH), benches, casts = true)
         val fountains = town.plazaProps.filter { it.kind.startsWith("fountain") }.map { floatArrayOf(it.x, it.z, 1f, 0f, 0f, 1f, 0f) }
         if (fountains.isNotEmpty()) out += GroundPiece("fountain", fountain(), fountains, casts = true)
+        return out
+    }
+
+    /**
+     * Trees past the forest's straight outer edge (the box round the map's edge trees): fewer the further out, on a shaken
+     * grid, by a slow noise so they stand in clumps and fingers; each its place and a look (0..1).
+     */
+    private fun feather(): List<Triple<Float, Float, Float>> {
+        val trees = town.props.filter { it.kind == "tree" }
+        if (trees.size < 50) return emptyList()
+        val fx0 = trees.minOf { it.x }; val fx1 = trees.maxOf { it.x }; val fz0 = trees.minOf { it.z }; val fz1 = trees.maxOf { it.z }
+        val noise = wrapNoise(4096, 16, 913)
+        val out = ArrayList<Triple<Float, Float, Float>>()
+        val step = 52f
+        var i = 0
+        var x = fx0 - FEATHER
+        while (x <= fx1 + FEATHER) {
+            var z = fz0 - FEATHER
+            while (z <= fz1 + FEATHER) {
+                val dx = max(fx0 - x, x - fx1); val dz = max(fz0 - z, z - fz1)
+                val d = max(dx, dz)
+                if (d > 0f) {
+                    val h = Ambient.hash(91, i, 17)
+                    val n = noise((x / 3f).toInt(), (z / 3f).toInt())
+                    val p = (1f - d / FEATHER).coerceIn(0f, 1f).let { it * it } * (.35f + .9f * n)
+                    if (h < p) out += Triple(x + (Ambient.hash(91, i, 18) - .5f) * step * .8f, z + (Ambient.hash(91, i, 19) - .5f) * step * .8f, Ambient.hash(91, i, 20))
+                }
+                i++
+                z += step
+            }
+            x += step
+        }
         return out
     }
 
@@ -611,7 +749,8 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         m.upright(0f, 0f, 0f, 5f, 2.6f, 2.2f, 8, null, swatch = Paint.swatch(Paint.IRON.d))
         // the bracket out over the pavement towards the road (+z) and the lantern hanging from it
         m.solidBox(-.6f, 57f, 0f, .6f, 58.4f, 9f, Paint.swatch(Paint.IRON.b))
-        val glass = PixImg(4, 4).also { it.fill(Paint.c(0xFFE9A0)); it.glow(0, 0, 3, 3) }
+        // (the glass glows warm and not blown out: the light it throws is the town's point lights')
+        val glass = PixImg(4, 4).also { it.fill(Paint.c(0xFFC878)); it.glow(0, 0, 3, 3, amount = 120) }
         m.solidBox(-2.4f, 50f, 6.6f, 2.4f, 56f, 11.4f, glass)
         m.solidBox(-3f, 56f, 6f, 3f, 57.6f, 12f, Paint.swatch(Paint.IRON.d))
         m.solidBox(-1.8f, 48.8f, 7.2f, 1.8f, 50f, 10.8f, Paint.swatch(Paint.IRON.d))
@@ -620,7 +759,9 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
 
     private fun furniture(): List<GroundPiece> {
         val lamps = ArrayList<FloatArray>(); val benches = ArrayList<FloatArray>()
+        val lampAnchors = ArrayList<Anchor>(); val benchAnchors = ArrayList<Anchor>()
         val trees = HashMap<String, MutableList<FloatArray>>()
+        val treeAnchors = HashMap<String, MutableList<Anchor>>()
         val seen = HashSet<Long>()
         for (row in town.rows) for (f in row.furniture) {
             // (a row's ends are the crossing roads' middles: what stands there moves back onto the corner's pavement)
@@ -636,22 +777,31 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
             // the art's right as seen from the road, the way out to the road
             val rx = -n.z; val rz = n.x; val ox = -n.x; val oz = -n.z
             when (f.kind) {
-                FurnitureKind.LAMP -> lamps += floatArrayOf(p.x, p.z, rx, rz, ox, oz, 0f)
-                FurnitureKind.BENCH -> benches += floatArrayOf(p.x, p.z, rx, rz, ox, oz, 0f)
+                FurnitureKind.LAMP -> { lamps += floatArrayOf(p.x, p.z, rx, rz, ox, oz, 0f); lampAnchors += Anchor(row, x); lampSpots += floatArrayOf(p.x, p.z, ox, oz) }
+                FurnitureKind.BENCH -> { benches += floatArrayOf(p.x, p.z, rx, rz, ox, oz, 0f); benchAnchors += Anchor(row, x) }
                 FurnitureKind.TREE -> {
                     val vs = variants("tree").take(3).ifEmpty { variants("tree") }
                     if (vs.isEmpty()) continue
                     val v = vs[((f.look * 997f).toInt()).mod(vs.size)]
                     trees.getOrPut(v) { ArrayList() } += floatArrayOf(p.x, p.z, rx, rz, ox, oz, 0f)
+                    treeAnchors.getOrPut(v) { ArrayList() } += Anchor(row, x)
                 }
             }
         }
         val out = ArrayList<GroundPiece>()
-        if (lamps.isNotEmpty()) out += GroundPiece("lamps", lamp(), lamps, casts = true)
-        if (benches.isNotEmpty()) out += GroundPiece("benches", PropKit.mesh(PropKind.BENCH), benches, casts = true)
-        for ((v, at) in trees) sprite(v)?.let { out += GroundPiece("street-trees:$v", crossCard(it, 1f), at, casts = true) }
+        if (lamps.isNotEmpty()) out += GroundPiece("lamps", lamp(), lamps, casts = true, anchors = lampAnchors)
+        if (benches.isNotEmpty()) out += GroundPiece("benches", PropKit.mesh(PropKind.BENCH), benches, casts = true, anchors = benchAnchors)
+        for ((v, at) in trees) sprite(v)?.let {
+            out += GroundPiece("street-trees:$v", crossCard(it, 1f), at, casts = true, anchors = treeAnchors[v], near = tree3d(it, 1f, variants("tree").indexOf(v)))
+        }
         return out
     }
+
+    /**
+     * The rows' street lamps' lanterns (after [pieces]): world x, z of the post and its out direction (x, z), the lantern
+     * hanging [LANTERN_OUT] out from the post at [LANTERN_Y] (the town lights the nearest at night).
+     */
+    val lampSpots = ArrayList<FloatArray>()
 
     /**
      * The street props along every row by [PropRules], stood in the world. A prop is built with its x to the right as
@@ -659,8 +809,16 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
      * its along is turned round and its turn mirrored, so it keeps its handedness (no mirrored signs) and faces as the
      * rules turned it.
      */
-    fun props(): List<WorldProp> {
-        val out = ArrayList<WorldProp>()
+    fun props(): List<WorldProp> = anchoredProps().map { it.second }
+
+    /**
+     * [props] each with its row and place along it. The corner's street name signs: every row meeting a corner asks
+     * for one, so one corner could get two to four; one sign stands for a crossing (the first asked), the rest are left
+     * out.
+     */
+    fun anchoredProps(): List<Pair<Anchor, WorldProp>> {
+        val out = ArrayList<Pair<Anchor, WorldProp>>()
+        val signs = ArrayList<WorldProp>()
         for (row in town.rows) {
             val spots = runCatching { PropRules.forRow(town, row) }.getOrElse { emptyList() }
             for (sp in spots) {
@@ -669,7 +827,12 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
                 val rx = -n.z; val rz = n.x
                 val flip = rx * w[2] + rz * w[3] < 0f
                 val spot: PropSpot = if (flip) sp.copy(turn = -sp.turn) else sp
-                out += WorldProp(spot, w[0], w[1], rx, rz, w[4], w[5])
+                val wp = WorldProp(spot, w[0], w[1], rx, rz, w[4], w[5])
+                if (sp.kind == PropKind.STREET_SIGN) {
+                    if (signs.any { hypot(it.x - wp.x, it.z - wp.z) < SIGN_APART }) continue
+                    signs += wp
+                }
+                out += Anchor(row, sp.x) to wp
             }
         }
         return out
@@ -695,6 +858,15 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         const val LIFT_MARK = .4f
         const val LIFT_DECAL = .3f
         const val N = 1; const val E = 2; const val S = 4; const val W = 8
+        /** How far past the forest's edge its trees thin out to none. */
+        const val FEATHER = 1100f
+        /** Street name signs nearer each other than this are one corner's (or one crossing's): one is kept. */
+        const val SIGN_APART = 260f
+        /** The kit's tree each of [variants]' sprites becomes close by: the round ones broadleaves, the tall ones poplars. */
+        private val TREE_VARIANTS = intArrayOf(0, 1, 1, 3, 8, 8, 0, 3)
+        /** Where a lamp's lantern hangs: out from its post and up (the lamp's mesh). */
+        const val LANTERN_OUT = 9f
+        const val LANTERN_Y = 53f
         private val UP = floatArrayOf(0f, 1f, 0f)
         private val EAST = floatArrayOf(1f, 0f, 0f)
         private val WEST = floatArrayOf(-1f, 0f, 0f)
