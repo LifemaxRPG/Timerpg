@@ -75,7 +75,7 @@ tasks.register<JavaExec>("preview") {
     // the crossroads and the seam test: where along the mouth, which screen, which way round, the whole sequence, a name
     for (k in listOf("at", "size", "dir", "seq", "tag", "shots"))
         System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
-    for (k in listOf("turn", "rest", "sky", "truecam")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
+    for (k in listOf("turn", "rest", "sky", "truecam", "w")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     if (withFilament) {
         jvmArgs("-Djava.library.path=" + File(filamentDist, "lib").absolutePath)
         // Mesa's EGL with no display: headless software GL
