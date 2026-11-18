@@ -1,0 +1,363 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1970,
+  "topic": "tech",
+  "facts": [
+    {
+      "id": "1970-tech-01",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Color television sets are common in many living rooms.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-02",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Some households still use black-and-white television sets.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-03",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Television sets often have knobs for changing channels and adjusting the picture.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-04",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Rooftop antennas receive local broadcast television signals.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-05",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A newspaper television guide lists programs by channel and time.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-06",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Most families watch television programs when stations broadcast them.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-07",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Rotary-dial telephones remain familiar in homes and offices.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-08",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Push-button telephones become increasingly common during the decade.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-09",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Household telephones usually connect to a wall outlet by a cord.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-10",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Telephone answering machines are available but uncommon in ordinary households.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-11",
+      "year_from": 1972,
+      "year_to": 1979,
+      "text": "Pocket calculators become increasingly affordable and familiar.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-12",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Electronic calculators help clerks and office workers with arithmetic.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-13",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Typewriters remain standard equipment for preparing office correspondence.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-14",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Photocopy machines make it easier for offices to duplicate paper documents.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-15",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Businesses commonly store records in filing cabinets and on paper forms.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-16",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Some large businesses use computers, but ordinary homes rarely have one.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-17",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Electronic cash registers begin replacing some older mechanical registers.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-18",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Microwave ovens become available to more households during the decade.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-19",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Many families still cook most meals on a conventional stove or in an oven.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-20",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Automatic washing machines and clothes dryers are common household appliances.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-21",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Window air conditioners cool individual rooms in many houses.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-22",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Stereo systems play music from vinyl records and radio broadcasts.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-23",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Compact cassette recorders let people record speech and music onto magnetic tape.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-24",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Eight-track tape players are found in some cars and homes.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-25",
+      "year_from": 1975,
+      "year_to": 1979,
+      "text": "Home video game machines begin appearing in some households during the decade.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-26",
+      "year_from": 1976,
+      "year_to": 1979,
+      "text": "Video cassette recorders begin appearing in some homes late in the decade.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-tech-27",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Most family snapshots are taken with film cameras and developed later.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "internet access in ordinary homes",
+      "first_common": 2000,
+      "say_instead": "a telephone call or a library visit"
+    },
+    {
+      "thing": "a smartphone",
+      "first_common": 2010,
+      "say_instead": "a corded household telephone"
+    },
+    {
+      "thing": "a laptop computer in ordinary homes",
+      "first_common": 2000,
+      "say_instead": "a typewriter or a desktop calculator"
+    },
+    {
+      "thing": "a personal computer in most homes",
+      "first_common": 2000,
+      "say_instead": "a typewriter or pocket calculator"
+    },
+    {
+      "thing": "a compact disc player in ordinary homes",
+      "first_common": 1990,
+      "say_instead": "a record player or cassette deck"
+    },
+    {
+      "thing": "a digital camera in ordinary homes",
+      "first_common": 2005,
+      "say_instead": "a film camera"
+    },
+    {
+      "thing": "a mobile telephone carried by ordinary residents",
+      "first_common": 2000,
+      "say_instead": "a home telephone or public pay telephone"
+    },
+    {
+      "thing": "a video cassette recorder in most homes",
+      "first_common": 1985,
+      "say_instead": "a broadcast television program"
+    },
+    {
+      "thing": "a digital video recorder for television",
+      "first_common": 2005,
+      "say_instead": "watching a program at its scheduled broadcast time"
+    },
+    {
+      "thing": "a wireless home internet network",
+      "first_common": 2010,
+      "say_instead": "a telephone line and paper reference books"
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
