@@ -10,3 +10,5 @@ out="$here/../build-town/$seed"; mkdir -p "$out"
 (cd "$root" && npx tsx kotlin-street/tools/export-town.ts "$seed" ${2:-} > "$out/street.json.tmp") && mv "$out/street.json.tmp" "$out/street.json"
 time python3 "$here/make_buildings.py" "$out/street.json" "$out/buildings" > "$out/buildings.log"
 echo "built $(ls "$out/buildings" | wc -l) files for $(python3 -c "import json,sys; print(len(json.load(open(sys.argv[1]))['shops']))" "$out/street.json") buildings in $out"
+# the yards from above, for checking by eye
+python3 "$here/yards-debug.py" "$out/street.json" "$out/yards.png" 0.25

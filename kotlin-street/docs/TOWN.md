@@ -148,3 +148,20 @@ both hands); load time (decode textures in the background, build nearest-first).
   switch. Landmarks have no NPCs or interiors. The app still ships v1; gamma's street.json v2, dialogue and interiors
   must ship together (DialogueEngine refuses a town/year mismatch). DialogueEngine still orders generation by v1
   street/index (off-street NPCs come last) until T10 orders it by rows.
+- T6 (wf-town2): tools/make_buildings.py builds the shops in a process pool (`--jobs=N`, default every core); the
+  workers return what each shop added to WINDOWS/HOUSES/MODELS and the main process merges them in shop order, so the
+  output is byte-identical to `--jobs=1` (hashes of every file match on eta, the showcase and gamma). On the 4-core
+  build server (shared with other agents): gamma 98 buildings 5.3 s serial, 2.0 s parallel; showcase 9.2 s -> 5.3 s
+  (CPU-bound and limited by the shared server). `tools/build-town.sh [seed]` writes the whole town's assets to
+  `kotlin-street/build-town/<seed>/` (git-ignored: street.json v2 with yards, buildings/, yards*.png); T10 ships them.
+- Yards (wf-town2, tools/town-yards.ts, tests town-yards.test.ts): street.json v2 `graph.yards` (one per lot: parcel,
+  house, front and back rects, household summary, items {kind, rect, face, variant, layer, on?, zone}) and
+  `graph.lanes` (back lanes reaching a street, and verges); `graph.props` loses the forest props now inside a parcel or
+  lane. Parcels are lots widened along the row into the free ground between groups (shared half and half, at most 200
+  units a side). Driveways run from a dropped kerb (across the 38-unit pavement, meeting the carriageway) beside the
+  house to a pad, carport or garage behind it (estate_one_story_house: in front of its own garage door). Layers: ground
+  (lawn, meadow, gravel) under surfaces (paths, driveway, patio, deck, pads) under objects and edges (fences, hedges,
+  gates); an object on a surface names it in `on`. The building models still draw their own front lawn and fence across
+  their width: a renderer that draws the yards should drop those. Flush-fronted apartment stand-ins (setback 0) have
+  the pavement for a front yard. Not yet: shop fronts, landmark grounds (school yard, police parking), corner lots'
+  second street side; houses on the dead-end row 45 stand partly past its end (a graph placement issue).
