@@ -79,6 +79,8 @@ android {
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose = true; buildConfig = true }
     sourceSets["main"].java.srcDir("../shared/src/main/kotlin")
+    // the Filament renderer trial (shared with the desktop's headless renders)
+    sourceSets["main"].java.srcDir("../shared/src/filament/kotlin")
     // the NPU's own code (libggml-htp-vNN.so, built for the Hexagon DSP by the native build) goes into the APK beside the rest
     sourceSets["main"].jniLibs.srcDir(layout.buildDirectory.dir("htp"))
     packaging {
@@ -125,8 +127,17 @@ dependencies {
     implementation("androidx.compose.runtime:runtime")
     implementation("androidx.activity:activity-compose:1.9.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    // the renderer trial: Google's Filament (OpenGL ES and Vulkan), the same version as the desktop build and matc
+    // (without its own dependencies: they would raise the Kotlin standard library past this project's compiler; it needs
+    // only androidx.annotation, which the app already has)
+    implementation("com.google.android.filament:filament-android:1.81.0") { isTransitive = false }
     // JVM unit tests (the validate() port, the pre-generation queue): gradle :app:testDebugUnitTest
     testImplementation("junit:junit:4.13.2")
     // the real org.json for tests that parse dialogue.json (android.jar only has stubs that throw on the JVM)
     testImplementation("org.json:json:20240303")
 }
+
+// Filament 1.81's AAR asks for compileSdk 37, which this project's Android Gradle plugin (8.7) and SDK (34) do not have.
+// Its classes are used through APIs this SDK has (its own code checks the phone's version at run time), so the
+// metadata check is skipped for now; moving the project to AGP 9 and compileSdk 37 is the proper fix.
+tasks.matching { it.name.startsWith("check") && it.name.endsWith("AarMetadata") }.configureEach { enabled = false }

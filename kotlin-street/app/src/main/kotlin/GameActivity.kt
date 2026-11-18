@@ -100,6 +100,8 @@ class GameActivity : ComponentActivity() {
         SpriteArt.lamp = prop("lamp_1"); SpriteArt.bench = prop("bench_1"); SpriteArt.trees = listOf("tree_1", "tree_2", "tree_3").map { prop(it) }
         GameState.enabled = true
         GameState.look = 1
+        // which renderer draws the street (the AI panel's switch; the classic unless Filament was chosen)
+        StreetRenderer.load(applicationContext)
         val engine = DialogueEngine.shared(applicationContext)
         dialogue = engine
         val v = com.timerpg.street.voice.NpcVoiceService(applicationContext)
@@ -589,6 +591,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             p = p, ui = HabitsUi(focus = data.streets[0].shops[0].id), visible = true, top = 0f, bottom = 0f, cover = 0f, inset = 0f,
             accent = Color(0xFF6FA8FF), actions = StageActions(), modifier = Modifier.fillMaxSize(),
         )
+        // the renderer trial: Filament draws the street over the stage's sky
+        if (room == null && StreetRenderer.filament) FilamentLayer(Modifier.fillMaxSize())
         Text("${street.name} · ${data.town}", 14.sp, Modifier.align(Alignment.TopStart).padding(14.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
         if (door > 0f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = door)))
         // walking: one floating stick under the left thumb (it comes to where the thumb lands); under every button and
@@ -934,6 +938,27 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
         }
         Text(ram, 11.sp, color = DIM)
         Text(frames, 11.sp, color = DIM)
+        // the renderer trial: the classic street or Filament, and how each runs here
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("Renderer", 12.sp)
+            Chip("Classic", !StreetRenderer.filament) { StreetRenderer.set(ctx, false) }
+            Chip("Filament trial", StreetRenderer.filament) { StreetRenderer.error = null; StreetRenderer.set(ctx, true) }
+        }
+        StreetRenderer.error?.let { Text(it, 11.sp, color = Color(0xFFFFB4A0)) }
+        var heat by remember { mutableStateOf("") }
+        var fil by remember { mutableStateOf("") }
+        LaunchedEffect(Unit) {
+            val pm = ctx.getSystemService(android.os.PowerManager::class.java)
+            while (true) {
+                heat = if (android.os.Build.VERSION.SDK_INT >= 30 && pm != null)
+                    "Heat: status ${pm.currentThermalStatus} · headroom %.2f (1 = throttling)".format(java.util.Locale.US, pm.getThermalHeadroom(10))
+                else ""
+                fil = if (StreetRenderer.filament) FilamentStats.summary() else ""
+                kotlinx.coroutines.delay(1000)
+            }
+        }
+        if (fil.isNotEmpty()) Text(fil, 11.sp, color = DIM)
+        if (heat.isNotEmpty()) Text(heat, 11.sp, color = DIM)
         // the game itself: this build, and a newer one if there is
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Build ${updater.current}", 11.sp, color = DIM)
