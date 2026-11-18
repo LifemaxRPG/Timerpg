@@ -59,6 +59,17 @@ town: { seed, year, k, unitPerTile, spawn:{row, x, lane},
   to the same side's next row), `turnIn` (round the corner building, a 90 degree turn: today's up-key turn), `cross`
   (to the facing row across the road).
 - Lot rects (scaled) are exported for yards, driveways and gardens (owner request: neighbourhoods that feel real).
+- As built (T3, shared/.../domain/TownMap.kt, JunctionFrame.kt): `Town.parse(streetJson)` reads the `graph` section (null
+  for a v1 file). `Row.pointAt(x, lane)` is exact along each segment (lanes `Crossroads.LANE` out from the building line
+  towards the road); within 40 units of a bend the offset swings through the corner's mitre, so walks are continuous.
+  `Row.layout(mirrored)` spans the row node to node (0..length) from the exported x0/x1; mirrored, x' = length - x.
+  `Crossroads.at(town, node, fromRow, toRow)` takes a turn-in: at fromRow's end a right turn (plan as is), at its start a
+  left turn (both rows' layouts mirrored, so CornerWalk still walks +X). The plan is the real geometry (Crossroads got
+  optional `westEdge`, `zOff`, `frame` parameters; defaults unchanged): main building line Z = 0, cross building line
+  X = 0, the node at (89, -89); the cross street's layout starts at the corner (89). `Crossroads.frame` (JunctionFrame)
+  maps plan to world and each street's layout x to its row x. No east row (`east = null`) and `boxes` keep the old
+  sprite-sized boxes: the town's real footprints come from the rows. Tests: desktop TownMapTest (walks CornerWalk round
+  a right and a mirrored left turn and checks it keeps out of every real footprint).
 
 ## Phases (separate files so agents can run in parallel)
 
