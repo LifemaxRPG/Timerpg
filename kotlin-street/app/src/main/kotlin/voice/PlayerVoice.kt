@@ -12,12 +12,14 @@ import android.os.Looper
 import android.os.Process
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.timerpg.street.dialogue.ModelDownloads
 import com.timerpg.street.llm.AiLane
 import com.timerpg.street.llm.NativeAsr
 import com.timerpg.street.llm.Ram
+import com.timerpg.voice.SpeechSegmenter
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -76,7 +78,7 @@ class PlayerVoice(private val ctx: Context) {
     /** Starts listening (the mic button pressed). The model starts loading now if it is not yet, while the player talks. */
     @SuppressLint("MissingPermission")
     fun start() {
-        if (recording || state == State.THINKING) return
+        if (recording || listening || state == State.THINKING) return
         problem = null
         if (!hasPermission()) { problem = "The game needs the microphone to hear you."; return }
         if (!ownFits()) {
@@ -222,7 +224,8 @@ class PlayerVoice(private val ctx: Context) {
     }
 
     private val idle = Runnable { worker.execute { asr.close() } }
-    private fun touch() { main.removeCallbacks(idle); main.postDelayed(idle, IDLE_MS) }
+    // (never while listening all the time: the model is kept then)
+    private fun touch() { main.removeCallbacks(idle); if (!listening) main.postDelayed(idle, IDLE_MS) }
 
     /** Worker thread: the speech model, loaded in the lane (it takes the CPU while it reads its files). */
     private fun loadNow(): Boolean {
@@ -241,8 +244,129 @@ class PlayerVoice(private val ctx: Context) {
         if (!asr.loaded) worker.execute { loadNow() }
     }
 
+    // ------------------------------------------------------------------------------------------------ always listening
+
+    /** Listening all the time (the settings' mic), between [listen] and [stopListening]. */
+    var always by mutableStateOf(false)
+        private set
+    /** Someone is speaking into the mic now (an utterance is being cut). */
+    var hearing by mutableStateOf(false)
+        private set
+    /** Utterances being written down now (or waiting for the speech model). */
+    var writing by mutableIntStateOf(0)
+        private set
+    /** Not hearing for now (an NPC's voice is playing, so the game does not hear itself): what comes in is dropped. */
+    @Volatile var muted = false
+    /** The words to expect (the town's names), for the speech model. */
+    @Volatile var expect = ""
+    @Volatile private var listening = false
+    private var listener: Thread? = null
+    private val queued = java.util.concurrent.atomic.AtomicInteger(0)
+
+    /**
+     * Listens from now until [stopListening]: the mic stays open, a cheap voice-activity detector ([SpeechSegmenter]) cuts
+     * what is said into utterances, and only those go to the speech model (loaded now, kept while listening is on), each
+     * written down and handed to [onText] (main thread). Ours only: the phone's recognizer cannot listen all the time.
+     */
+    @SuppressLint("MissingPermission")
+    fun listen(onText: (String) -> Unit) {
+        if (listening) return
+        problem = null
+        if (!hasPermission()) { problem = "The game needs the microphone to hear you."; return }
+        if (!installed) { problem = "Download the speech model in the AI panel first."; return }
+        if (recording) return
+        // (the last listening's mic is closed first: it ends within one read)
+        listener?.join(300)
+        usingPhone = false
+        main.removeCallbacks(idle)
+        if (!asr.loaded) worker.execute { loadNow() }
+        val rate = SAMPLE_RATE
+        val min = AudioRecord.getMinBufferSize(rate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_FLOAT)
+        val rec = try {
+            AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION, rate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_FLOAT, maxOf(min, rate / 5 * 4))
+        } catch (e: Exception) { problem = "The microphone could not be opened."; return }
+        if (rec.state != AudioRecord.STATE_INITIALIZED) { rec.release(); problem = "The microphone could not be opened."; return }
+        listening = true
+        always = true
+        listener = Thread({
+            Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
+            val seg = SpeechSegmenter(rate) { pcm -> heard(pcm, onText) }
+            val buf = FloatArray(rate * SpeechSegmenter.FRAME_MS / 1000 * 5)   // 100 ms a read: the thread wakes 10 times a second
+            var shown = -1f; var wasHearing = false; var wasMuted = false
+            try {
+                rec.startRecording()
+                while (listening) {
+                    val n = rec.read(buf, 0, buf.size, AudioRecord.READ_BLOCKING)
+                    if (n <= 0) continue
+                    val m = muted
+                    if (m) { if (!wasMuted) seg.reset() } else seg.feed(buf, n)
+                    wasMuted = m
+                    // the meter and the "hearing you" mark, only when they change
+                    val lv = if (m) 0f else (seg.level * 8f).coerceIn(0f, 1f)
+                    val h = seg.speaking
+                    if (h != wasHearing || kotlin.math.abs(lv - shown) > .08f) {
+                        shown = lv; wasHearing = h
+                        main.post { if (listening) { level = lv; hearing = h } }
+                    }
+                }
+            } catch (e: Exception) {
+                main.post { problem = "The microphone stopped: ${e.message}" }
+            } finally {
+                runCatching { rec.stop() }
+                rec.release()
+                main.post { level = 0f; hearing = false }
+            }
+        }, "player-mic-always").apply { start() }
+    }
+
+    /** One utterance cut from the stream (the mic's thread): written down on the speech thread, at most two waiting. */
+    private fun heard(pcm: FloatArray, onText: (String) -> Unit) {
+        if (queued.get() >= 2) return   // the speech model is behind: this one is dropped rather than heard late
+        queued.incrementAndGet()
+        main.post { writing++ }
+        val words = expect
+        val at = android.os.SystemClock.elapsedRealtime()
+        worker.execute {
+            var text: String? = null
+            var loadedFirst = false
+            try {
+                if (listening) {
+                    loadedFirst = !asr.loaded
+                    if (asr.loaded || loadNow()) text = AiLane.run("speech") { asr.transcribe(pcm, words) }
+                }
+            } finally {
+                queued.decrementAndGet()
+                val t = text?.trim()
+                main.post {
+                    writing = (writing - 1).coerceAtLeast(0)
+                    if (t == null) { if (listening && asr.error != null) problem = asr.error }
+                    // (a word at least: the speech model can write a lone "." or "Hmm" for a noise)
+                    else if (always && t.count { it.isLetter() } >= 2) {
+                        problem = null
+                        lastHeard = "heard in %.1f s (our speech model%s)".format((android.os.SystemClock.elapsedRealtime() - at) / 1000.0, if (loadedFirst) ", loaded first" else "")
+                        onText(t)
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Stops listening. [release]: the speech model is let go at once (listening switched off); otherwise it goes after a
+     * minute unused (the game paused), so coming straight back does not load it again.
+     */
+    fun stopListening(release: Boolean) {
+        if (!listening && !always) return
+        listening = false
+        always = false
+        level = 0f; hearing = false
+        if (release) { asr.cancel(); worker.execute { asr.close() } } else touch()
+    }
+
     /** Lets go of the speech model (the panel closed for a while, or memory is short). */
     fun release() {
+        listening = false
+        always = false
         recording = false
         asr.cancel()
         worker.execute { asr.close() }

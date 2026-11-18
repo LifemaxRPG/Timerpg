@@ -343,6 +343,30 @@ time with its drawing (it renders each frame twice in `-Dmode=move` to measure);
   Vance", "Holloway's Bakery"); ~0.4x real time (a 5 s question in ~2 s) after a one-time load. The S25: not measured yet.
 - The AI panel's download fetches the speech model with the rest (about 8.9 GB in all). The microphone permission is
   asked the first time the button is held.
+- **Always listening** (2026-11-18, the owner's request; built and unit-tested on the computer, NOT yet run on a phone): the
+  AI panel's "Mic: always listening" chip (off by default, kept in the `mic` preferences; asks for the microphone when
+  switched on) replaces holding the button. While it is on and the game is in front, the mic stays open and
+  `shared/.../voice/SpeechSegmenter.kt` (energy VAD per 20 ms frame: a noise floor that follows the room's quiet, a
+  4-frame onset, 700 ms hangover, 300 ms kept from before the onset, under 300 ms of voice dropped, cut at 12 s, a steady
+  noise learnt as the new quiet) cuts what is said into utterances; only those are written down (at most two waiting).
+  The speech model loads when listening starts and stays while it is on; switched off it is let go at once, paused (the
+  game in the background) after a minute. Not listening: in the background, turning the corner, going through a door,
+  in a room with nobody in it, and while an NPC's voice plays. Ours only (the phone's recognizer cannot listen all the
+  time): with too little free memory for the speech model the words are dropped with a note.
+- Who hears it: `shared/.../scene/TalkRange.kt` - the nearest person standing at a door within `TalkRange.distance` (70
+  street units of ground; the pavement is deep ground, so ~70 along the wall or ~37 along from the kerb) of the player,
+  from the same places the street draws them (`centers[b] + 30`, lane 3.6). "Hey" is enough to start; later words go on
+  in the same conversation (walking past `leaveDistance`, 90, ends it). Nobody near: a faint "no one near enough to hear
+  you". Inside, the person in the room when standing by them. A conversation by voice shows no panel: the answer is a
+  bubble over their head (thinking dots while it is written, square-edged and outlined; it fades after 2.5 s + 55 ms a
+  character, at most 12 s) and the player's words a smaller one over theirs. The bubbles follow the heads through
+  `TalkRange.screen` (the stage's last frame: the same numbers the classic draws people with and the Filament street at
+  rest; hidden while the camera turns the corner). "Talk to" still opens the panel; its mic button is hidden while the
+  mic always listens. Tests: `gradle :desktop:crossroadsTest --tests TalkByVoiceTest` (the segmenter on made-up audio,
+  the nearest-in-range rule).
+- **NPC voices are off by default** (the owner, 2026-11-18: until they sound better). "Voices: off" is kept in the
+  `voices` preferences; off, nothing is voiced (live, fillers or ahead), queued voice work is dropped and both engines and
+  their voices are let go at once. Switching on brings back everything as before.
 
 ## GPU rain (verified in the desktop preview with Skia's runtime shaders; NOT yet seen on a phone)
 - `scene/RainFx.kt`: shaders the platform runs (`StageFx`: Android 13+ RuntimeShader/AGSL via `AndroidFx`, the preview
