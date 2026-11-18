@@ -1337,100 +1337,14 @@ def board_side(lit, depth, h, rng, corner, windows=(), base=None):
     side[..., :3] = np.clip(side[..., :3].astype(int) + grain[..., None], 0, 255).astype(np.uint8)
     return side, glow
 
+def tile_x(pic, w):
+    """`pic` repeated across to `w` columns."""
+    return np.concatenate([pic] * (w // pic.shape[1] + 1), axis=1)[:, :w].copy()
+
 def pent_end(color, run, rise):
     """A pent roof's end as a hipped roof's side piece (columns up the slope, rows along its depth): its edge colour."""
     pic = np.zeros((run, max(2, int(rise)), 4), np.uint8); pic[..., :3] = color[:3]; pic[..., 3] = 255
     return pic
-
-def estate_japanese(shop, rng):
-    """The Japanese house: a front-gabled main house of two storeys in corrugated siding, a pent roof of copper tiles
-    along the ground floor's front (a lean-to strip on the wall between the storeys), the ground floor running on left
-    under it beneath a tall narrow annex standing back, and a low shed on the right under a board roof. The art draws
-    the pent roof from above inside the front: in the front it is the wall's corrugation carried down (each column
-    keeps its colour), and the engine builds the roof."""
-    art = solid(np.array(load('estate_japanese_house')))
-    at = Atlas(512)
-    G = 447
-    AX, X0, X1 = 242, 66, 418                                        # the main gable's apex and eaves
-    def rake(x): return int(170 + .5 * abs(x - AX))                   # its barge board's top in column x
-    P = 10                                                           # the corrugation repeats every 10 columns
-    W = 470
-    roof_c = art[150, 150]; rake_c = art[rake(150) + 8, 150]; edge_c = art[rake(150) + 18, 150]; lip_c = art[rake(150) - 2, 150]
-    wall_c = art[322, 142]
-    # --- the main front, the gable down to the ground (columns 54..429); the pent roof (rows 340..382) painted out with
-    # the corrugation above it
-    face = art[170:G + 1, 54:430].copy()
-    for c in range(face.shape[1]):
-        x = c + 54
-        face[:max(0, rake(x) - 170), c] = 0
-        if x < 56 or x > 426: face[max(0, rake(x) - 170 + 26):, c] = 0
-    pm = np.zeros(face.shape[:2], bool); pm[340 - 170:383 - 170, :292 - 54] = True
-    face = column_fill(face, pm, lambda x: range(339 - 170, 300 - 170, -1))
-    f_panes, f_glow = hand_panes(face, [(66, 118, 95, 30, 1), (222, 118, 98, 30, 1), (258, 186, 92, 16, 1), (146, 222, 90, 30, 1)])
-    face_r = at.add(face, f_glow)
-    # --- its slopes from above, up to the barge boards
-    keep = np.zeros(art.shape[:2], bool)
-    for x in range(X0, X1 + 1): keep[:rake(x), x] = art[:rake(x), x, 3] > 0
-    left = at.add(cut(art[0:rake(X0) + 1, X0:AX], keep[0:rake(X0) + 1, X0:AX]))
-    right = at.add(cut(art[0:rake(X1) + 1, AX:X1 + 1], keep[0:rake(X1) + 1, AX:X1 + 1]))
-    lw, rw = AX - X0, X1 + 1 - AX
-    # --- the ground floor running on left under the pent roof (its lattice window), the pent's rows the annex's siding
-    gl = art[363:G + 1, 16:56].copy(); m = np.zeros(gl.shape[:2], bool); m[:383 - 363] = True
-    gl[:383 - 363] = art[300:301, 16:56]
-    gl_panes, gl_glow = hand_panes(gl, [(14, 28, 26, 36, 1)])
-    gl_r = at.add(gl, gl_glow)
-    # --- the annex standing back on the left: its siding and shutters from row 196 down, its roof's dark edge on top
-    an = np.concatenate([art[122:126, 16:56], art[196:340, 16:56]]); an[:4, :, 3] = 255
-    an = np.concatenate([an, np.repeat(art[300:301, 16:56], 255 - an.shape[0], 0)])[:255]
-    an_r = at.add(an)
-    # --- the pent roof: its tiles from above every other row (one screen row each), its ends in its edge colour
-    pent = art[340:383:2, 18:292].copy()
-    prun = 24; prise = rise_for(pent.shape[0], prun)
-    pent_r = at.add(pent)
-    pend = pent_end(art[378, 100], prun, prise); pend_r = at.add(pend)
-    pq = [0, prun - 1, 0, 0, pend.shape[1] - 1, 0, pend.shape[1] - 1, 1]
-    # --- the shed on the right: its front (the downpipe as drawn) and its board roof from above
-    shed = art[352:G + 1, 420:466]; shed_r = at.add(shed); shed_top = at.add(art[110:350, 420:466][::4])
-    # --- the side walls in the front's corrugation, a window of the front's on the upper storey
-    lit = art[322, 140:140 + P]
-    corner = shade(wall_c, .75) + (255,)
-    foot = [tuple(art[440, 330, :3])] * 3
-    win = art[282:322, 268:332]
-    ms, ms_glow = board_side(lit, 220, G - rake(X0), rng, corner, [(win, .5, 30, (8, 6, 48, 28, 1))], foot)
-    ls, _ = board_side(lit, 40, 84, rng, corner, (), foot)
-    ans, _ = board_side(lit, 110, 255, rng, corner, (), foot)
-    ss, _ = board_side(lit, 170, 95, rng, corner, (), foot)
-    ms_r = at.add(ms, ms_glow); ls_r = at.add(ls); ans_r = at.add(ans); ss_r = at.add(ss)
-    E = G - rake(X0)
-    cap = art[124, 30]
-    parts = [
-        # the annex standing back on the left, the shed on the right
-        mbox((16, 56), (0, 255), (40, 150), (cap, wall_c, wall_c), ft=an_r, st=ans_r),
-        mbox((420, 466), (0, 95), (24, 194), (art[200, 440], wall_c, wall_c), ft=shed_r, tt=shed_top, st=ss_r),
-        # the ground floor under the pent on the left
-        mbox((16, 56), (0, 84), (0, 40), (wall_c, wall_c, wall_c), ft=gl_r, st=ls_r, panes=gl_panes),
-        # the main house and its gable
-        mgable((X0, X1), (E, G - 170), (0, 220), left, (0, rake(X0), lw, 170, lw, 0, 0, 95), right, (rw - 1, rake(X1), 0, 170, 0, 0, rw - 1, 95),
-               (rake_c, edge_c), roof_c, lip=lip_c),
-        mbox((56, 426), (0, E), (0, 220), (wall_c, wall_c, wall_c), ft=face_r, fx=54, st=ms_r, panes=f_panes, top=False),
-        # the pent roof along the ground floor's front
-        mhip((18, 292), (G - 382, G - 382 + prise), (-prun, 0), (18, 292, -1, 0), pent_r, pend_r, pq, pend_r, pq, art[360, 100]),
-    ]
-    setback = int(shop.get('yard', {}).get('front', 2)) * 32 + 24
-    style = shop.get('yard', {}).get('style', 'compact')
-    lawn, fence, fence_snow = yard(rng, W, setback + 220, False, (150, 200, setback), style, [(144, 206)], ground='paving')
-    H = G - 170 + 1
-    front = np.zeros((H + 4, W, 4), np.uint8); emis = np.zeros_like(front)
-    def over(pic, x, y_top, glow=None):
-        r0 = H + 4 - y_top - 1 if False else (H - y_top); h, w = pic.shape[:2]; m = pic[..., 3] > 0
-        front[r0:r0 + h, x:x + w][m] = pic[m]
-        emis[r0:r0 + h, x:x + w][m] = glow[m] if glow is not None else 0
-    over(an, 16, 255); over(shed, 420, 95); over(gl, 16, 84, gl_glow); over(face, 54, G - 170 + 1, f_glow)
-    over(art[340:383, 18:292], 18, G - 340 + 1)
-    model = dict(kind='estate', w=W, frontX=(224 - W) / 2, setback=setback, lawn='paving', style=style, parts=parts,
-                 fence=dict(d=3, foot=28 if style != 'formal' else 32) if fence is not None else None,
-                 roofTint=rgb_int(roof_c), lamp=[204, 60, 0], lights='home', smoke=[], fpx=0)
-    return model, at, front, ms, emis, lawn, fence, fence_snow
 
 def apt_maker(key):
     """The apartment blocks' and the hotel's builder (tools/buildings_apt.py) for this sprite, or None."""
@@ -1497,7 +1411,7 @@ def showcase(out):
     # the terraced houses (single-pitch roofs): every design, in a colour each
     terr = [add(f'house_terraced_{d}{c}', ('compact', 'formal', 'natural', 'flower', 'compact')[i])
             for i, (d, c) in enumerate(((1, ''), (2, '_c3'), (4, '_c1'), (5, ''), (6, '_c3')))]
-    estates = [add('estate_one_story_house', 'formal'), add('estate_country_house', 'compact'), add('estate_japanese_house', 'natural')]
+    estates = [add('estate_one_story_house', 'formal'), add('estate_country_house', 'compact'), add('estate_japanese_house', 'natural'), add('estate_modern_house', 'flower')]
     # the one-story and country estates on a street of their own (street 6)
     estates_a = [add('estate_one_story_house', 'formal'), add('estate_country_house', 'compact'), add('estate_one_story_house', 'flower')]
     estates_b = [add('estate_japanese_house', 'natural'), add('estate_modern_house', 'formal')]

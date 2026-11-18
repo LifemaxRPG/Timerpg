@@ -266,6 +266,7 @@ class ModelShape(
                     val c = p.getJSONArray("c")
                     ModelPart(ModelPart.RAIL, x.f(0), x.f(1), y.f(0), y.f(1), d.f(0), d.f(1), p.optInt("ga", 0), c.getInt(0), c.getInt(1),
                         railH = p.getDouble("h").toFloat(), railW = p.optDouble("w", 2.0).toFloat(), posts = p.optDouble("posts", 0.0).toFloat())
+                }
                 "cyl" -> {
                     val c = p.getJSONArray("c"); val r = p.getJSONArray("r"); val a = p.getJSONArray("a"); val col = p.getJSONArray("col")
                     val ri = p.optJSONArray("ri")
