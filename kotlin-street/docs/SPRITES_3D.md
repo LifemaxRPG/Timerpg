@@ -75,7 +75,7 @@ Contact sheets were made with a throwaway script from the folders below (houses,
 
 ### The police station (`landmark_police_1..3`), and the rounded wall
 
-Done (2026-11-18) in a preview row (`make_buildings.py --showcase`, `-Dmode=models -Dstreet=6 -Dtall=760`), not on a
+Done (2026-11-18) in a preview row (`make_buildings.py --showcase`, `-Dmode=models -Dstreet=9 -Dtall=760`), not on a
 street yet: no lot tier uses a landmark. Its builder is `tools/buildings_civB.py` (`police`); the three colours share
 one shape and are each cut from their own art.
 
@@ -245,7 +245,7 @@ sprite wear it on the exported streets (`town-streets.ts`; eta's two streets hav
 ## The Japanese and the modern estate (`tools/buildings_estB.py`, 2026-11-18)
 
 Both modelled by hand from their sprites as lists of parts (`ESTATES`, dispatched from `make_buildings.build_model`);
-showcase street 6 (`--showcase`, `-Dmode=models -Dstreet=6 -Dtall=600`); estate-tier lots wearing either sprite are
+showcase street 7 (`--showcase`, `-Dmode=models -Dstreet=7 -Dtall=600`); estate-tier lots wearing either sprite are
 built as themselves (`tools/town-streets.ts`; none on eta's two streets yet).
 
 - **Japanese house** (`estate_japanese_house`): the front-gabled main house in corrugated siding (its gable and walls
@@ -291,7 +291,7 @@ built as themselves (`tools/town-streets.ts`; none on eta's two streets yet).
 
 ## Civic buildings: the fire station, the hospital, the post office (2026-11-18)
 
-**Done** in a showcase row (`make_buildings.py --showcase DIR`, `-Dmode=models -Dstreet=6 -Dtall=900`), not on the
+**Done** in a showcase row (`make_buildings.py --showcase DIR`, `-Dmode=models -Dstreet=8 -Dtall=900`), not on the
 exported streets (landmarks are not lots there). Builders in `tools/buildings_civA.py` (`fire_station`, `hospital`,
 `post_office`); `build_model` asks that module first. Each volume stands at the depth its foot row in the art gives it
 (a part drawn lower stands further forward by as much) and wears its front as drawn; what the art draws from above in
@@ -341,3 +341,46 @@ a front is painted out of it and built as its own part.
 - Checked by eye at day, dusk, night and snow in the classic street. Still to do: the hospital entrance and the fire
   station's door above its foot are reconstructed, not drawn by the artist; side walls are each front's courses with
   its windows (none of these buildings shows a side in the art).
+
+## The apartment blocks and the hotel (`tools/buildings_apt.py`, 2026-11-18)
+
+**Done**: `condo_3_44`, `condo_3_45`, `condo_5_1..3`, `condo_9` and `landmark_hotel_1`, each a list of model parts
+(`models.json`) built by `tools/buildings_apt.py` (dispatched from `build()` / `build_model()` in `make_buildings.py`).
+Showcase street 10 (`make_buildings.py --showcase DIR`, then `-Dmode=models -Dassets=DIR -Dstreet=10 -Dtall=900`).
+Apartment lots whose game sprite is one of the condo blocks wear it (`tools/town-streets.ts`; eta's b17, in the corner
+turn's cross street east side, is now `condo_3_45`); the modular condo stacks stay as they were. The hotel is in the
+showcase only, as the other landmarks.
+
+- **The front is a true elevation**: `Elev` keeps the art's rows that are wall and leaves out the rows it draws from
+  above (the roof, a ledge's top between storeys); every height in the model is then measured on that elevation.
+- **Flat roof inside a parapet** (`flat_roof`): the art's floor from above is the body box's top (the back parapet's
+  inner face, which the art paints on the floor, replaced by the floor's own rows); the parapet is four boxes the
+  coping's width thick: the front wears the front's own top rows (its cornice), the back the inner face as drawn, each
+  wearing its coping from above on top. The art's tops are one row per pixel of depth, so the depths come from them
+  (`condo_3_*` 124, `condo_5` 86, `condo_9` 142, the hotel 200).
+- **What stands out of the wall** (`relief`): a shallow box wearing its own columns of the elevation as its front, its
+  top the art's rows from above where it draws them: `condo_3_*` lintels and flower-box sills (3 deep), the door frame,
+  the plinth either side of the door (4), `condo_3_45`'s ledge between storeys (6, its top the art's 6 rows);
+  `condo_5`'s cream frames (the band under the roof, the ledges, the posts either side of each storey, 4 deep), its
+  plinth, the portal round its door (6) and a step out onto the pavement.
+- **`condo_3_45`'s TV antenna**: found as what differs from `condo_3_44`'s otherwise identical roof, taken off the
+  roof (that roof's pixels put back) and stood on the floor as a card, its foot where the art's mast ends.
+- **`condo_9`** (drawn obliquely): one box; its front the front strip (columns 18..133), its side the side strip with
+  the 32 rows its higher foot hides put back in its brickwork and its plain wall between the pipes carried back along
+  the depth; the roof the art's narrowed to the front's width (the stretch over the side strip taken out); the mast a
+  thin box on the left parapet (its foot, drawn in the parapet's shade, given the mast's own colours: the engine shades
+  it); the Juliet balcony a slab, two end rails and a railing card open between its balusters.
+- **The hotel**: the pilasters stand 4 out of the side bays and the middle bay is set back 32 (their feet are drawn 4
+  and 30 rows higher). Because the engine draws parts in list order, the walls are cut so that no face can be painted
+  over a wall in front of it from either side: the two blocks behind the middle bay's front line, the middle bay, the
+  two walls in front of them (the bays' fronts with the pilasters' between), the pilasters (4 deep), the pilasters'
+  copper running back along the roof 6 proud of it (the front's green band carried up), then the HOTEL sign: taken off
+  the roof (what is not the roof's own colours, plus the ink between its topmost and lowest pixels in each column; the
+  roof and its shadow under it repainted from the roof's rows below) and stood as a card on the two middle pilasters'
+  copper, as far back as the art draws its foot. Its night light is in the atlas's glow picture (the letters' faces and
+  bulbs); the classic renderer lights only panes, so it shows only in a renderer that reads the glow.
+- Side walls: each row the front's wall colour clear of windows, the front's own windows laid along the depth
+  (`side_windows` / `side_windows_lit`; `condo_5`'s teal brick shares the glass's blue-greys, so its panes are placed by
+  hand with a lightness threshold each: `lit_panes`).
+- Still to do: `condo_5`'s barred ground windows as grilles standing out (they are flat on the front), the side bays'
+  window hoods on the hotel as relief, the hotel's sign glow in the classic renderer, and a lighting map for these fronts.

@@ -11,8 +11,10 @@
 //  - shops: every building above, once, for tools/make_buildings.py (each has its sprite name bN).
 // Shops are drawn as the game draws them (shopFacade). A small or medium home wears the very mobile home the game draws
 // on its lot (the engine builds it as a pitched-roof house: tools/make_buildings.py), and a villa its own villa (built
-// with a front-facing gable, its terrace, balcony and porch), and a terraced house its own (a single-pitch roof), and
-// the one-story and country estates their own (modelled by hand); the other homes (other estates, apartments) are
+// with a front-facing gable, its terrace, balcony and porch), and a terraced house its own (a single-pitch roof), the
+// one-story, country, Japanese and modern estates their own (modelled by hand), and an apartment block its own
+// (condo_3_44/45, condo_5_*, condo_9: a flat roof, ledges, porch and steps); the other homes (other estates, the
+// modular condo apartments) are
 // still stood in by a modular condo front in the district's colour, until the engine can build them too. Every home is
 // named after the household that really lives there.
 import { runTimeline, worldAt } from '../../src/sim';
@@ -133,7 +135,9 @@ export function townStreets(seed: string, year: number): TownStreets {
     /** A mobile home (built by the engine as a pitched-roof house), with its lot's palette, and its street.json entry's house. */
     house?: House; palette?: Parameters<typeof houseArt>[3]; entry?: { house?: House };
     /** A villa (built by the engine with a front-facing gable): its sprite. */
-    villa?: string }>();
+    villa?: string;
+    /** An apartment block wearing its own sprite (built by the engine under its flat roof): kept as the game has it. */
+    block?: boolean }>();
   /** Which mobile home a sprite key is: house_small_7_c9 -> small, 7, c9 (the grey original has no colour). */
   const houseOf = (key: string): House | undefined => {
     const m = key.match(/^house_(small|medium)_(\d+)(?:_(c\d+))?$/);
@@ -168,7 +172,10 @@ export function townStreets(seed: string, year: number): TownStreets {
       const estateA = l.tier === 'estate' && /^estate_(one_story|country)_house$/.test(l.art.layers[0]?.key ?? '');
       // the Japanese and the modern estate: their own (each modelled by hand from its parts: tools/buildings_estB.py)
       const estateB = l.tier === 'estate' && /^estate_(japanese|modern)_house$/.test(l.art.layers[0]?.key ?? '');
-      const built = mobile || villa || terraced || estateA || estateB;
+      // an apartment block: its own (built by the engine: its flat roof, ledges, porch and steps); the modular condo
+      // stacks the game also draws for apartments stay as they are
+      const block = l.tier === 'apartment' && /^condo_(3_4[45]|5_[123]|9)$/.test(l.art.layers[0]?.key ?? '');
+      const built = mobile || villa || terraced || estateA || estateB || block;
       const art = built ? l.art : homeFacade(colour, l.look, l.residents.length);
       const parts = art.layers.map((ly) => ({ key: ly.key, w: ly.w, h: ly.h, y: ly.y }));
       const nb = neighborhoodOf(layout.plan, l.neighborhood);
@@ -178,7 +185,7 @@ export function townStreets(seed: string, year: number): TownStreets {
       // the house the engine builds, and its yard (the game's: how deep its front yard is, and how it is fenced)
       if (mobile) e.house = mobile;
       if (built) e.yard = { front: l.front, style: nb.yard };
-      made.set(sprite, { kind: 'Home', look: l.look, colour, home: true, residents: l.residents.length, parts, house: mobile, palette: nb.palette, entry: e, villa });
+      made.set(sprite, { kind: 'Home', look: l.look, colour, home: true, residents: l.residents.length, parts, house: mobile, palette: nb.palette, entry: e, villa, block });
       entries.push(e);
     }
     return sprite;
@@ -230,6 +237,7 @@ export function townStreets(seed: string, year: number): TownStreets {
         recent.push(m.villa); if (recent.length > 2) recent.shift();
         continue;
       }
+      if (m.block) continue;
       if (usedGround.has(ground(m.parts))) {
         let found: { key: string; w: number; h: number; y: number }[] | null = null;
         const order = [m.colour, ...COLOURS.filter((c) => c !== m.colour)];

@@ -127,7 +127,7 @@ def relief_mask(im, spec):
 def build(shop, out):
     if shop['parts'][0]['key'].startswith(('house_small_', 'house_medium_')): return build_house(shop, out)
     if shop['parts'][0]['key'].startswith(('villa_', 'landmark_clocktower_', 'landmark_school_', 'house_terraced_')) or \
-            shop['parts'][0]['key'].startswith(('estate_', 'landmark_police_')): return build_model(shop, out)
+            shop['parts'][0]['key'].startswith(('estate_', 'landmark_police_')) or apt_maker(shop['parts'][0]['key']): return build_model(shop, out)
     if shop['parts'][0]['key'].startswith(('landmark_fire_', 'landmark_hospital_', 'landmark_post_')): return build_model(shop, out)
     parts = shop['parts']; ground = next(p for p in parts if not p['key'].startswith(('roof_', 'roofprop_', 'middle_')))
     mids = [p for p in parts if p['key'].startswith('middle_')]
@@ -1432,13 +1432,18 @@ def estate_japanese(shop, rng):
                  roofTint=rgb_int(roof_c), lamp=[204, 60, 0], lights='home', smoke=[], fpx=0)
     return model, at, front, ms, emis, lawn, fence, fence_snow
 
+def apt_maker(key):
+    """The apartment blocks' and the hotel's builder (tools/buildings_apt.py) for this sprite, or None."""
+    import buildings_apt
+    return buildings_apt.maker(key)
+
 def build_model(shop, out):
     """One of our villas or landmarks as the parts the engine builds it from (models.json) and the pictures they wear."""
     key = shop['parts'][0]['key']; n = shop['sprite']
     rng = np.random.default_rng(zlib.crc32(n.encode()))
     import buildings_estA, buildings_estB, buildings_civA
     from buildings_civB import police
-    make = (buildings_estB.ESTATES[key] if key in buildings_estB.ESTATES else police if key.startswith('landmark_police_') else buildings_civA.builder(key) or (villa if key.startswith('villa_') else tower if key.startswith('landmark_clocktower_') else terraced if key.startswith('house_terraced_')
+    make = apt_maker(key) or (buildings_estB.ESTATES[key] if key in buildings_estB.ESTATES else police if key.startswith('landmark_police_') else buildings_civA.builder(key) or (villa if key.startswith('villa_') else tower if key.startswith('landmark_clocktower_') else terraced if key.startswith('house_terraced_')
             else buildings_estA.estate_one_story if key == 'estate_one_story_house' else buildings_estA.estate_country if key == 'estate_country_house' else school))
     model, at, front, side, emis, lawn, fence, fence_snow = make(shop, rng)
     # which boxes' sides have windows that light at night (the engine lights no other: a railing's side has none)
@@ -1465,7 +1470,8 @@ def pixels(path):
 def showcase(out):
     """Every house sprite (8 designs x 2 sizes x 10 colours) on a street.json of its own, in out/ (street.json and
     buildings/), for checking them by eye: street 0 has every design once in a colour each, street 1 every colour of
-    one design, street 2 the five villas, street 3 the clock towers and the school, street 4 the terraced houses, street 6 the one-story and country estates. The preview reads it with
+    one design, street 2 the five villas, street 3 the clock towers and the school, street 4 the terraced houses, street 5 the
+    estates, streets 6 to 10 each group's own (estates A, the Japanese and modern estates, civic, police, apartments and the hotel). The preview reads it with
     -Dassets=out -Dmode=houses (or -Dmode=models for streets 2 and 3)."""
     shops, row, colours = [], [], []
     names = {}
@@ -1483,7 +1489,7 @@ def showcase(out):
     # the villas (each built with a front-facing gable), and the landmarks with hipped roofs, which no street has yet
     def add(key, yard_style):
         im = load(key); sprite = f'b{len(shops)}'
-        shops.append(dict(id=f'show:{key}', sprite=sprite, home=key.startswith(('villa_', 'house_', 'estate_')), name=key, kind='Home' if key.startswith(('villa_', 'house_', 'estate_')) else 'Landmark',
+        shops.append(dict(id=f'show:{key}', sprite=sprite, home=key.startswith(('villa_', 'house_', 'estate_', 'condo_')), name=key, kind='Home' if key.startswith(('villa_', 'house_', 'estate_', 'condo_')) else 'Landmark',
                           owner='', colour='base', parts=[dict(key=key, w=im.width, h=im.height, y=0)], yard=dict(front=2, style=yard_style)))
         return sprite
     villas = [add(f'villa_{i}', ('compact', 'formal', 'natural', 'flower', 'formal')[i - 1]) for i in range(1, 6)]
@@ -1497,6 +1503,7 @@ def showcase(out):
     estates_b = [add('estate_japanese_house', 'natural'), add('estate_modern_house', 'formal')]
     civic = [add(k, 'natural') for k in ('landmark_fire_1', 'landmark_hospital_1', 'landmark_post_1', 'landmark_post_2', 'landmark_post_3', 'landmark_post_4')]
     police = [add(f'landmark_police_{i}', 'natural') for i in (1, 2, 3)]
+    apts = [add(k, 'natural') for k in ('condo_3_44', 'condo_3_45', 'condo_5_1', 'condo_5_2', 'condo_5_3', 'condo_9', 'landmark_hotel_1')]
     os.makedirs(out + '/buildings', exist_ok=True)
     json.dump(dict(town='showcase', year=2025, type='every house sprite', shops=shops,
                    streets=[dict(name='Every design', buildings=row), dict(name='Every colour', buildings=colours),
@@ -1504,8 +1511,8 @@ def showcase(out):
                             dict(name='Terraced', buildings=terr), dict(name='Estates', buildings=estates),
                             dict(name='Estates A', buildings=estates_a),
                             dict(name='Japanese and modern estates', buildings=estates_b),
-                            dict(name='Civic', buildings=civic)),
-                            dict(name='Police', buildings=police)]),
+                            dict(name='Civic', buildings=civic), dict(name='Police', buildings=police),
+                            dict(name='Apartments and the hotel', buildings=apts)]),
               open(out + '/street.json', 'w'), indent=1)
     return out + '/street.json', out + '/buildings'
 
