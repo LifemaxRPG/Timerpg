@@ -3536,6 +3536,38 @@ internal class BuildingPainter {
     }
 
     /**
+     * A railing ([com.lifemax.rpg.feature.habits.domain.ModelPart.RAIL]): its glass panel (the sky's light faintly on
+     * it), its posts and its handrail over them, as pixel rows; snow along the handrail.
+     */
+    private fun DrawScope.modelRail(v: com.lifemax.rpg.feature.habits.domain.ModelView, p: com.lifemax.rpg.feature.habits.domain.ModelPart, sky: SkyColors) {
+        val k = v.k
+        val ax = v.x(p.x0, p.d0); val ay = v.y(p.y0, p.d0); val bx = v.x(p.x1, p.d1); val by = v.y(p.y1, p.d1)
+        val h = p.railH * k; val t = p.railW * k
+        if (p.side >= 0 && p.top > 0) {
+            rowsPath.rewind()
+            rowQuad(ax, ay - h + t, bx, by - h + t, bx, by, ax, ay)
+            drawPath(rowsPath, houseInk(lerp(rgb(p.side), sky.sky.first(), .25f)), alpha = p.top / 255f)
+        }
+        val bar = houseInk(rgb(p.front))
+        val len = kotlin.math.hypot(p.x1 - p.x0, p.d1 - p.d0)
+        val n = if (p.posts > 0f) max(1, kotlin.math.round(len / p.posts).toInt()) else 1
+        rowsPath.rewind()
+        for (i in 0..n) {
+            val f = i.toFloat() / n
+            val px = ax + (bx - ax) * f; val py = ay + (by - ay) * f
+            rowQuad(px - t / 2f, py - h, px + t / 2f, py - h, px + t / 2f, py, px - t / 2f, py)
+        }
+        rowQuad(ax - t / 2f, ay - h, bx + t / 2f, by - h, bx + t / 2f, by - h + t, ax - t / 2f, ay - h + t)
+        drawPath(rowsPath, bar)
+        val snow = season.snow
+        if (snow > .01f) {
+            rowsPath.rewind()
+            rowQuad(ax - t / 2f, ay - h - .8f * k, bx + t / 2f, by - h - .8f * k, bx + t / 2f, by - h + .4f * k, ax - t / 2f, ay - h + .4f * k)
+            drawPath(rowsPath, snowInk(sky), alpha = ROOF_SNOW * snow)
+        }
+    }
+
+    /**
      * One box of a villa or a landmark: its shown side (the art's side wall laid on it, its windows lit at night, or a
      * plain face), its top (the art's boards, tiles or a colour; snow on it), its front (the art's own, which may reach
      * above the box: a gable's face over a wall) lit as the houses' fronts are, and its windows.
@@ -3553,8 +3585,9 @@ internal class BuildingPainter {
         val d1 = if (p.card) p.d0 + .01f else p.d1
         val snowy = season.snow
         val toSun = if (sideShift < 0f) -sunSide else sunSide
-        // --- the shown side
-        if (v.showsSide && d1 > d0 + .5f) {
+        // --- the shown side (not one standing against another volume)
+        val hidden = p.hideSide == (if (v.rightSide) 2 else 1)
+        if (v.showsSide && d1 > d0 + .5f && !hidden) {
             val xs = if (v.rightSide) p.x1 else p.x0
             val path = quadPath(v.x(xs, d0), v.y(p.y1, d0), v.x(xs, d1), v.y(p.y1, d1), v.x(xs, d1), v.y(p.y0, d1), v.x(xs, d0), v.y(p.y0, d0))
             val st = p.st
@@ -3884,6 +3917,7 @@ internal class BuildingPainter {
             when (p.type) {
                 com.lifemax.rpg.feature.habits.domain.ModelPart.BOX -> modelBox(v, p, ma, sky, seed + i * 7)
                 com.lifemax.rpg.feature.habits.domain.ModelPart.GABLE -> frontGable(v, p, ma, sky, seed + i * 7, eaves = !sh.eaveLater[i])
+                com.lifemax.rpg.feature.habits.domain.ModelPart.RAIL -> modelRail(v, p, sky)
                 else -> hippedRoof(v, p, ma, sky)
             }
             // the eave boards of the gable this box carries, over its side wall

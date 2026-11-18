@@ -143,3 +143,38 @@ Street pitched roofs and the shops' rooftop signs (on screen all the time), then
   (`roof_2/4/6`, `roof_8/9/11` are pitched in the game) could use the same machinery next.
 - **Cheap volume:** ground decals and upright prop cards (about 115 sprites) mostly need placement rules, not new
   rendering.
+
+## The Japanese and the modern estate (`tools/buildings_estB.py`, 2026-11-18)
+
+Both modelled by hand from their sprites as lists of parts (`ESTATES`, dispatched from `make_buildings.build_model`);
+showcase street 6 (`--showcase`, `-Dmode=models -Dstreet=6 -Dtall=600`); estate-tier lots wearing either sprite are
+built as themselves (`tools/town-streets.ts`; none on eta's two streets yet).
+
+- **Japanese house** (`estate_japanese_house`): the front-gabled main house in corrugated siding (its gable and walls a
+  true elevation, used as drawn); the **pent roof** of copper sheets along the ground floor's front as a lean-to strip
+  (a hipped part: the art's sheets from above every other row, one screen row each), its rows in the front painted out
+  with the siding above them; the two **upper windows as bays** standing 8 out of the wall on their lattice sills;
+  **an annex on each side**, each a box under its own **lean-to roof running back** (the art draws those roofs from
+  above, 150-odd rows tall, which read as towers if taken as walls): the corrugated iron on the left, the board roof
+  on the right, every fourth row of the art so the pitch is gentle and meets the main eave; their ends the wall's
+  siding under the roof's edge. The lattice windows glow between their slats at night and mirror no square of sky.
+- **Modern house** (`estate_modern_house`, from 1985): the art is an oblique view (a thing `d` back and `y` up stands at
+  row 444 - y - d), which gives every depth: the **single-pitch roof** high at its left end (only its right slope:
+  the slab from above laid on it, its fascia found column by column), the upper storey 34 back on the flat roof of
+  the long glazed ground storey (its glazing, doors and curtains run down to the ground: the art draws their foot
+  higher, behind the frame), the **entrance 78 back under the overhang** (its wall carried up in the soffit's shade
+  to the roof's underside), the slanted strut and a round column holding the roof's corners; on the **terrace** its
+  floor from above (the furniture, rails and column painted out with the floor's own tiles), a glass-edged railing,
+  a **cantilever parasol** (mast, arm and hanger as boxes, the canopy a low pyramid: a hipped part whose top is a
+  point), an armchair, a chair and a table as cards; behind it the **deck** behind its tiled wall and glass railing;
+  up the left side a **stair** of 13 steps (each a box from the ground, only its own tread deep) with its glass
+  railing; potted plants as cards.
+- New in models.json for them (the Kotlin classic renderer draws each simply): a **`rail`** part (a handrail `h` above
+  the line between two points, any direction: a stair's nosings or a terrace's edge; a glass panel under it at `ga`
+  of 255, posts every `posts`); a box's **`hs`** (`l`/`r`: that side stands against another volume, as an annex's
+  against the house, and no view sees it: the painter, drawing back to front, would otherwise paint it over its
+  neighbour); a gable with **only a right slope** (`r`, no `l`) and its apex `ax` at its left end: a single-pitch roof
+  high on the left.
+- Still to do: the modern house's pergola-like parasol arm is a box frame, not the art's shaded beam; the left annex
+  of the Japanese house leaves out the narrow horizontally boarded screen the art shows past it; neither has
+  the corner turn's own volumes (they wear their whole fronts there, as the other estates).

@@ -164,7 +164,10 @@ export function townStreets(seed: string, year: number): TownStreets {
       const villa = l.tier === 'villa' && /^villa_\d+$/.test(l.art.layers[0]?.key ?? '') ? l.art.layers[0]!.key : undefined;
       // a terraced family house: its own (built by the engine as a single-pitch roof over its front)
       const terraced = l.tier === 'house' && /^house_terraced_\d+(_c\d+)?$/.test(l.art.layers[0]?.key ?? '');
-      const art = mobile || villa || terraced ? l.art : homeFacade(colour, l.look, l.residents.length);
+      // the Japanese and the modern estate: their own (each modelled by hand from its parts: tools/buildings_estB.py)
+      const estateB = l.tier === 'estate' && /^estate_(japanese|modern)_house$/.test(l.art.layers[0]?.key ?? '');
+      const built = mobile || villa || terraced || estateB;
+      const art = built ? l.art : homeFacade(colour, l.look, l.residents.length);
       const parts = art.layers.map((ly) => ({ key: ly.key, w: ly.w, h: ly.h, y: ly.y }));
       const nb = neighborhoodOf(layout.plan, l.neighborhood);
       const e: Record<string, unknown> & { house?: House } = { id: `home:${l.slot}`, sprite, home: true, name: l.residents.length > 2 ? `${surname} House`.trim() : `The ${surname} home`.trim(),
@@ -172,7 +175,7 @@ export function townStreets(seed: string, year: number): TownStreets {
         parts };
       // the house the engine builds, and its yard (the game's: how deep its front yard is, and how it is fenced)
       if (mobile) e.house = mobile;
-      if (mobile || villa || terraced) e.yard = { front: l.front, style: nb.yard };
+      if (built) e.yard = { front: l.front, style: nb.yard };
       made.set(sprite, { kind: 'Home', look: l.look, colour, home: true, residents: l.residents.length, parts, house: mobile, palette: nb.palette, entry: e, villa });
       entries.push(e);
     }
