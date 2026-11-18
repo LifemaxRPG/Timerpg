@@ -105,6 +105,31 @@ Contact sheets were made with a throwaway script from the folders below (houses,
 | `fountain1_*`, `fountain2_*` | 8 | **round**: a circular basin (a cylinder in perspective) and a statue | basin as a cylinder ring drawn in the street's perspective, water as the same AGSL water we have; the statue as an upright card |
 | `characters` | 8 sheets | sprites, not geometry | stay 2D cards (as now); only their shadows and lighting are 3D |
 
+## What is left, re-checked after the pitched, front-gable and hipped roofs (2026-11-18, by eye from contact sheets)
+
+Ranked by how much each still needs, now that the roof machinery (near-slope-as-texture, front gables, hipped roofs,
+multi-part models) exists.
+
+| Sprites | Count | What it still needs | Built on |
+|---|---|---|---|
+| `houseTerraced_*` | 30 | **Less hard than it looked.** The bottom third is a usable front elevation (door, windows, garage, planter, steps); the top two thirds is one **single-pitch (lean-to) roof seen from above**, rising away from the street; a strip on the right is the side wall. A monopitch is the houses' near slope with no ridge and no far slope, plus a tall back wall the street never sees; side wall from the strip; skylights and vents on the slope as the flue is | houses' slope, `build_house` |
+| `houseEstate` (country, Japanese, modern, one-story) | 4 | Hand-modelled each, as a list of parts: **country** a front-gable main volume, a lower side wing with its own roof, a wrap-round deck with railings and steps; **Japanese** a front gable whose lower floor has a **pent roof** (a lean-to strip along the facade, the same monopitch) and a side annex; **modern** a monopitch main block beside a **flat-roof terrace** with a pergola, parasol and railings (props on a deck), and a stair up the side; **one-story** a front gable with a **second, lower gabled garage** standing forward of it (a cross gable, as the school's) | villa models, front gables, decks |
+| `landmark_police` | 3 | The **curved wing** (a quarter-cylinder with a curved parapet and windows round it) still needs a new shape; the rest is a tall square block, a lower wing, a **flat roof drawn from above** (cut off, our roof with the parapet, spotlights and the hipped skylight as props), entrance steps | new: cylinder segment |
+| `landmark_fire` | 1 | Two volumes: the hose tower (left) under a **pyramid roof** (the hipped machinery) with its sign and a **porch/canopy** standing forward at the bottom; the engine bay block with a **flat roof seen from above** (cut off), two garage doors set into the front | hipped roof, models |
+| `landmark_hospital` | 1 | Stepped multi-volume: a main block, a wing set back on the right (emergency), a **canopy on pillars** over the entrance standing forward; the big **flat roof from above with the helipad** becomes our flat roof with the H as a roof decal; a rooftop plant room box | models |
+| `condo_9` | 1 | Drawn like the terraced houses: oblique, its **side wall showing** (pipes, a round window), flat roof from above. Rebuild as a box from the front strip and the side strip | terraced approach |
+| `condo_3_44/45`, `condo_5_1..3` | 5 | Fronts are fine; the top is the **flat roof from above** (cut it, use the engine's roof with the parapet colour) and the condo_5 **entrance steps and canopy** stand forward (a deck box, as a porch) | `build_model` |
+| Main Street roofs `roof_2/4/6/8/9/11` | 6 | Pitched tile roofs in the game: `roof_2/4/6` a plain pitched slab (the houses' slope along the street), `roof_8/9/11` a pitched roof **between two parapet firewalls** (stone posts at each end) — slope plus two small end boxes. `roof_1/3/5/7/10` are flat roofs with parapets: already right | houses' slope |
+| `shop_*` (modern fronts) | 66 | Every one has a **sculpture sign standing on its roof** (the fish, the loaf, the meat and cleavers, the dumbbell, the cone, the music sign): an upright card on the roof line, set back a little so it parallaxes and casts a shadow, lit at night. The ice cream parlour's **striped awnings** stand forward (small sloped boxes) | prop cards |
+| `landmark_post` | 4 | Front storey fine; the upper storey's **roof is drawn from above** with a hatch, ladder and vents (cut off, our flat roof, the vents as props); the **awning band** over the windows stands forward | `build_model` |
+| `landmark_hotel` | 1 | Flat tall front; the **HOTEL sign on the roof** as a card, the green pilasters could stand forward a few pixels. 736 px tall: needs the taller frame the landmarks need | boxes |
+| `middle_2/8/14` (and kin) | ~6 | A **planter shelf / window box** under the windows stands forward: a small box; the rest of the middle storeys are flat and right | boxes |
+| `classic_*` shop fronts | 72 | Right as boxes. Polish only: the ice cream and butcher **awnings** as small sloped boxes | boxes |
+
+Order that gets the most on screen soonest: the terraced houses (30, and they fill residential streets), the Main
+Street pitched roofs and the shops' rooftop signs (on screen all the time), then the estates, then the civic buildings
+(fire, hospital, post, police last for its curve).
+
 ## What this means
 
 - **Hardest overall:** the terraced houses (another projection) and the estates (many volumes), then the police
