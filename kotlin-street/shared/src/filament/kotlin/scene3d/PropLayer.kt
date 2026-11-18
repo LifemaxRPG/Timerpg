@@ -51,10 +51,18 @@ internal class PropLayer(
     /** The shadow proxy material, or null for no shadows (the albedo comparison). */
     private val proxy: Material?,
     srgb: Boolean = true,
+    /** Pictures shared with others (by content; its owner frees them), or null for the layer's own. */
+    sharedTextures: StreetTextures? = null,
+    /** Whether Filament may cull each batch by its box (true only where Filament's camera is the camera drawn through). */
+    private val cull: Boolean = false,
 ) {
-    private val textures = StreetTextures(engine, srgb)
-    private val crisp = TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.CLAMP_TO_EDGE)
+    private val ownTextures = sharedTextures == null
+    private val textures = sharedTextures ?: StreetTextures(engine, srgb)
+    private val crisp = TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.CLAMP_TO_EDGE).also { it.anisotropy = 16f }
     private val nearest = TextureSampler(TextureSampler.MinFilter.NEAREST, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.CLAMP_TO_EDGE)
+
+    /** Whether the last frame drew them faded (the next whole one sets the fade back). */
+    private var faded = false
 
     private class Batch(val entity: Int, val proxy: Int, val mi: MaterialInstance, val pmi: MaterialInstance?, val glows: Boolean, val vb: VertexBuffer, val ib: IndexBuffer)
     private val batches = ArrayList<Batch>()
@@ -62,23 +70,55 @@ internal class PropLayer(
     /** How many props were placed, and drawn in how many batches. */
     var count = 0; private set
     val draws: Int get() = batches.size
+    /** How many of the batches throw a shadow (have a shadow twin), and the triangles of all of them. */
+    val casters: Int get() = batches.count { it.proxy != 0 }
+    val triangles: Int get() = batches.sumOf { it.ib.indexCount / 3 }
 
     /** Adds [props]: those of one look (the same mesh) go into one batch. */
     fun add(props: List<WorldProp>) {
-        val groups = LinkedHashMap<PropMesh, MutableList<WorldProp>>()
-        for (p in props) groups.getOrPut(PropKit.mesh(p.spot.kind, p.spot.variant, p.spot.text, p.spot.seed)) { ArrayList() } += p
-        for ((mesh, list) in groups) {
-            addMesh(mesh, list.map { p -> floatArrayOf(p.x, p.z, p.ax, p.az, p.ox, p.oz, p.spot.turn) }, list.first().spot.kind.shadow)
-            count += list.size
-        }
+        for ((packed, casts, n) in Packing.packProps(props)) { upload(packed, casts); count += n }
     }
 
     /**
      * Adds [mesh] at each of [at] (world x, z, along x, z, out x, z, turn), as one batch; [casts]: it throws a shadow.
-     * (The desktop preview lays its ground this way too.)
+     * (The desktop preview lays its ground this way too.) Returns the batch's material instance (for a caller that
+     * animates its picture, as [YardLayer] scrolls its water), or null for nothing to add.
      */
-    fun addMesh(mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean = false) {
-        if (at.isEmpty()) return
+    fun addMesh(mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean = false): MaterialInstance? =
+        Packing.pack(mesh, at)?.let { upload(it, casts, tiled) }
+
+    /**
+     * A batch made ready for the GPU on any thread ([pack]: no engine call): its vertices and indices, its box, its
+     * pictures; [upload] hands it to Filament on the engine's thread.
+     */
+    class Packed internal constructor(
+        internal val vb: ByteBuffer, internal val ib: ByteBuffer, val vertices: Int, val indices: Int, internal val box: FloatArray,
+        internal val tex: StreetTextures.Prepared, internal val mask: StreetTextures.Prepared?,
+    ) {
+        val bytes: Int get() = vb.capacity() + ib.capacity()
+    }
+
+    /** Uploads a [Packed] batch (the engine's thread); [casts]: it throws a shadow; [tiled]: its picture repeats. */
+    fun upload(p: Packed, casts: Boolean, tiled: Boolean = false): MaterialInstance {
+        val vertices = VertexBuffer.Builder().bufferCount(1).vertexCount(p.vertices)
+            .attribute(VertexBuffer.VertexAttribute.POSITION, 0, VertexBuffer.AttributeType.FLOAT3, 0, STRIDE)
+            .attribute(VertexBuffer.VertexAttribute.UV0, 0, VertexBuffer.AttributeType.FLOAT2, 12, STRIDE)
+            .attribute(VertexBuffer.VertexAttribute.TANGENTS, 0, VertexBuffer.AttributeType.FLOAT4, 20, STRIDE)
+            .build(engine)
+        vertices.setBufferAt(engine, 0, p.vb)
+        val indices = IndexBuffer.Builder().indexCount(p.indices).bufferType(IndexBuffer.Builder.IndexType.UINT).build(engine)
+        indices.setBuffer(engine, p.ib)
+        val b = p.box
+        val box = Box(b[0], b[1], b[2], b[3], b[4], b[5])
+        val tex: Texture = textures.make(p.tex)
+        val mask: Texture = p.mask?.let { textures.make(it) } ?: textures.black
+        return finish(vertices, indices, box, tex, mask, p.mask != null, casts, tiled)
+    }
+
+    object Packing {
+        /** [mesh] at each of [at] (see [addMesh]) packed for [upload], on any thread; null for nothing to add. */
+        fun pack(mesh: PropMesh, at: List<FloatArray>): Packed? {
+        if (at.isEmpty()) return null
         val nv = mesh.vertexCount * at.size
         val vb = ByteBuffer.allocateDirect(nv * STRIDE).order(ByteOrder.nativeOrder())
         val ib = ByteBuffer.allocateDirect(mesh.idx.size * at.size * 4).order(ByteOrder.nativeOrder())
@@ -109,17 +149,22 @@ internal class PropLayer(
             for (i in mesh.idx) ib.putInt(base + i)
         }
         vb.flip(); ib.flip()
-        val vertices = VertexBuffer.Builder().bufferCount(1).vertexCount(nv)
-            .attribute(VertexBuffer.VertexAttribute.POSITION, 0, VertexBuffer.AttributeType.FLOAT3, 0, STRIDE)
-            .attribute(VertexBuffer.VertexAttribute.UV0, 0, VertexBuffer.AttributeType.FLOAT2, 12, STRIDE)
-            .attribute(VertexBuffer.VertexAttribute.TANGENTS, 0, VertexBuffer.AttributeType.FLOAT4, 20, STRIDE)
-            .build(engine)
-        vertices.setBufferAt(engine, 0, vb)
-        val indices = IndexBuffer.Builder().indexCount(mesh.idx.size * at.size).bufferType(IndexBuffer.Builder.IndexType.UINT).build(engine)
-        indices.setBuffer(engine, ib)
-        val box = Box((minX + maxX) / 2f, (minY + maxY) / 2f, (minZ + maxZ) / 2f, (maxX - minX) / 2f + .5f, (maxY - minY) / 2f + .5f, (maxZ - minZ) / 2f + .5f)
-        val tex: Texture = textures.make(mesh.tex, mesh.texW, mesh.texH, mips = true)
-        val mask: Texture = mesh.mask?.let { textures.make(it, mesh.texW, mesh.texH, linear = true) } ?: textures.black
+        val box = floatArrayOf((minX + maxX) / 2f, (minY + maxY) / 2f, (minZ + maxZ) / 2f, (maxX - minX) / 2f + .5f, (maxY - minY) / 2f + .5f, (maxZ - minZ) / 2f + .5f)
+        return Packed(vb, ib, nv, mesh.idx.size * at.size, box, StreetTextures.prepare(mesh.tex, mesh.texW, mesh.texH, mips = true),
+            mesh.mask?.let { StreetTextures.prepare(it, mesh.texW, mesh.texH, linear = true, mips = true) })
+        }
+
+        /** [props] packed for [upload] by look (one batch each), on any thread: each batch, whether it casts, how many props. */
+        fun packProps(props: List<WorldProp>): List<Triple<Packed, Boolean, Int>> {
+            val groups = LinkedHashMap<PropMesh, MutableList<WorldProp>>()
+            for (p in props) groups.getOrPut(PropKit.mesh(p.spot.kind, p.spot.variant, p.spot.text, p.spot.seed)) { ArrayList() } += p
+            return groups.mapNotNull { (mesh, list) ->
+                pack(mesh, list.map { p -> floatArrayOf(p.x, p.z, p.ax, p.az, p.ox, p.oz, p.spot.turn) })?.let { Triple(it, list.first().spot.kind.shadow, list.size) }
+            }
+        }
+    }
+
+    private fun finish(vertices: VertexBuffer, indices: IndexBuffer, box: Box, tex: Texture, mask: Texture, glows: Boolean, casts: Boolean, tiled: Boolean): MaterialInstance {
         val sampler = if (tiled) TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.REPEAT).also { it.anisotropy = 8f } else crisp
         val mi = visible.createInstance().also { m ->
             m.setParameter("albedo", tex, sampler); m.setParameter("mask", mask, nearest)
@@ -128,7 +173,7 @@ internal class PropLayer(
             m.setParameter("fade", 1f); m.setParameter("cell", 2f)
         }
         val e = EntityManager.get().create()
-        RenderableManager.Builder(1).boundingBox(box).culling(false).castShadows(false).receiveShadows(true).priority(4)
+        RenderableManager.Builder(1).boundingBox(box).culling(cull).castShadows(false).receiveShadows(true).priority(4)
             .geometry(0, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices).material(0, mi).build(engine, e)
         scene.addEntity(e)
         var pe = 0
@@ -140,23 +185,27 @@ internal class PropLayer(
                 .geometry(0, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices).material(0, pmi).build(engine, pe)
             scene.addEntity(pe)
         }
-        batches += Batch(e, pe, mi, pmi, mesh.mask != null, vertices, indices)
+        batches += Batch(e, pe, mi, pmi, glows, vertices, indices)
+        return mi
     }
 
     /**
      * This frame: [look] the true camera's clip-space matrix, [dark] how dark it is (0 day, 1 night), [shown] whether
-     * the props are drawn at all (not through the classic's leaned looks, which they do not follow).
+     * the props are drawn at all (not through the classic's leaned looks, which they do not follow), [fade] how far they
+     * are faded out (1: whole; the screen-door cut of the street view), [shadows] whether their shadow twins cast.
      */
-    fun update(look: FloatArray, dark: Float, shown: Boolean = true) {
+    fun update(look: FloatArray, dark: Float, shown: Boolean = true, fade: Float = 1f, shadows: Boolean = shown) {
         val rm = engine.renderableManager
         val on = smooth((dark - .3f) / .4f)
         for (b in batches) {
             rm.getInstance(b.entity).takeIf { it != 0 }?.let { rm.setLayerMask(it, 0xff, if (shown) 1 else 0) }
-            if (b.proxy != 0) rm.getInstance(b.proxy).takeIf { it != 0 }?.let { rm.setLayerMask(it, 0xff, if (shown) 1 else 0) }
+            if (b.proxy != 0) rm.getInstance(b.proxy).takeIf { it != 0 }?.let { rm.setLayerMask(it, 0xff, if (shadows) 1 else 0) }
             if (!shown) continue
             b.mi.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
             if (b.glows) b.mi.setParameter("glow", GLOW, GLOW, GLOW, on)
+            if (fade < 1f || faded) b.mi.setParameter("fade", fade)
         }
+        if (shown) faded = fade < 1f
     }
 
     fun destroy() {
@@ -168,14 +217,14 @@ internal class PropLayer(
         for (b in batches) { engine.destroyMaterialInstance(b.mi); b.pmi?.let { engine.destroyMaterialInstance(it) } }
         for (b in batches) { engine.destroyVertexBuffer(b.vb); engine.destroyIndexBuffer(b.ib) }
         batches.clear()
-        textures.destroy(all = true)
+        if (ownTextures) textures.destroy(all = true)
         count = 0
     }
 
     private fun smooth(t: Float): Float { val u = t.coerceIn(0f, 1f); return u * u * (3f - 2f * u) }
 
     companion object {
-        private const val STRIDE = 36
+        internal const val STRIDE = 36
         /** How strongly the glowing parts shine at night (their own colours, times the material's 1.8). */
         const val GLOW = 1.6f
 

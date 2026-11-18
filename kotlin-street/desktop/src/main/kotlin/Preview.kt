@@ -310,6 +310,27 @@ fun main(args: Array<String>) {
         k.getMethod("renderProps", String::class.java).invoke(null, out)
         return
     }
+    if (mode == "filament-yards") {
+        // every yard item kind's lineup and three real yards of gamma (FilamentYardsPreview.kt; Filament's desktop build needed)
+        val k = runCatching { Class.forName("FilamentYardsPreviewKt") }.getOrNull()
+            ?: error("Filament is not built in: run tools/build-filament.sh (or pass -Pfilament.dist=DIR)")
+        k.getMethod("renderYards", String::class.java).invoke(null, out)
+        return
+    }
+    if (mode == "filament-models") {
+        // our villas and landmarks in Filament, each from several views (compiled in only with Filament: see build.gradle.kts)
+        val k = runCatching { Class.forName("FilamentModelsPreviewKt") }.getOrNull()
+            ?: error("Filament is not built in: run tools/build-filament.sh (or pass -Pfilament.dist=DIR)")
+        k.getMethod("renderFilamentModels", String::class.java).invoke(null, out)
+        return
+    }
+    if (mode == "filament-town") {
+        // the whole town (build-town/gamma) in Filament: aerials, the civic centre, street views (FilamentTownPreview.kt)
+        val k = runCatching { Class.forName("FilamentTownPreviewKt") }.getOrNull()
+            ?: error("Filament is not built in: run tools/build-filament.sh (or pass -Pfilament.dist=DIR)")
+        k.getMethod("renderFilamentTown", String::class.java).invoke(null, out)
+        return
+    }
     if (mode == "junction") {
         // walking past the junction: the side street seen through its mouth, from either side and straight on
         StageTuning.crossroads = loadCrossroads()

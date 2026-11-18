@@ -174,3 +174,103 @@ both hands); load time (decode textures in the background, build nearest-first).
   rule the yards use for `house`; T8 must stand the buildings the same way so what is drawn is what blocks the walk.
   The Kotlin fixture desktop/src/test/resources/town-gamma.json is the graph without yards (town-graph.test.ts keeps
   it); T8's tests will want a fixture with yards.
+
+## T4 and T8: the whole town in Filament (branch wf-town3d)
+
+- `domain/TownYards.kt`: graph.yards and graph.lanes parsed (`TownYards`, `TownYard`, `TownYardItem`, `TownLane`), and
+  `TownPlace`: where a building of a row stands (the walk's rigid box on its front's middle: origin on the building line
+  at the middle, local z into the lot, local -x the art's left-to-right seen from the street, a proper rotation, so no
+  mirrored art). Tested (desktop TownPlaceTest): every building's box is TownWalk's footprint, the frame's determinant
+  is +1, and the yards' `house` rect is the same box (on build-town/gamma when it is there).
+- `scene3d/BuildingMeshes.kt` (T4): the three kinds of building (box with sign, pitched roof, gables and billboard;
+  mobile home; FilamentModels' villas, blocks and landmarks) built once in that local frame, night windows included,
+  placed by one transform. A lot with a yard drops the house's and the model's own front lawn and fence (not the
+  landmarks'). FilamentStreet (the eta crossroads) is untouched and still builds in world space.
+- `scene3d/TownGround.kt`: grass over every tile that is not water (one seamless 2048-texel picture from the pack's grass
+  tiles: their tufts and stones scattered over a base broken into five shades by wrapped noise, dithered) and fields on
+  to the horizon; roads as strips per segment (sidewalk and asphalt tiles, kerbs, the centre's dashes) cut back 89 at
+  each end; a patch at every node and corner painted by which sides a road leaves (cross, tee, bend, dead end's head;
+  rounded kerbs); zebras over every arm of a crossing or tee; the plaza paved; the river 9 units down with stone banks;
+  bridges' decks' edges and parapets; the edge's trees and bushes as crossed cards, flower bushes as the props' planter,
+  flowers flat; a 3D fountain; the rows' lamps (3D, lanterns lit at night), benches and trees; the street props by
+  PropRules along every row (on a row whose +x runs against the art's right, along and turn are flipped so signs keep
+  their handedness).
+- `scene3d/TownYardHook.kt`: the yard kit's hook, `FilamentTown.yardBuilder: YardBuilder` (`build(town, yards, sink)`,
+  the sink takes meshes and street props). `PlaceholderYards` lays items as flat colours and objects as boxes meanwhile.
+- `scene3d/FilamentTown.kt` (T8): `buildGround()` once, then `buildNearest(x, z, budgetMs)` each frame (nearest the
+  player first) until `pending` is 0; `frame(pose, hour)` lights the hour, culls each building by a sphere against the
+  view's four sides (its shadow twin kept within 300 of the view), and in the street view fades out (screen door) what
+  stands nearer than 110 short of the building line looked at (the row across the road). `TownFrame.street(walk, w, h)`
+  is the true camera from TownWalk's camera (CameraRig's eye and back, backing off through a turn, the building line's
+  foot at 82% of the screen); `TownFrame.aerial(...)` a free camera. `stats` counts what was drawn.
+- Preview: `gradle :desktop:preview -Dmode=filament-town` (-Dtown=DIR, -DassetsRoot=DIR, -Dshots=a,b, -Dw=) writes
+  build/preview/filament-town/: aerial_13h, aerial_dusk, aerial_top, civic_13h/dusk, street_{spawn,main,heights,
+  woodside,turn}_{13h,night}, behind_{spawn,main,heights,woodside}, and town.txt (build times, draws per view). On the
+  4-core build server (software GL, not the S25): ground and everything static 1.3-1.9 s; 98 buildings in ~62 batches of
+  4 ms, 1.4 s in all (the first box ~200 ms: first use, its art's decoding included); whole town in view 252 renderables,
+  ~1020 draws; street views 180-250 renderables, 380-1000 draws.
+- Not yet: the near side's lamps, trees and props are not cut; street signs crowd some corners (one per row meeting there);
+  forest trees are cards of the street's scale (1.25-1.6x); the landmarks' grounds and corner lots' second side are not
+  drawn; Stage3D/GameActivity are not wired (the app still ships eta).
+
+### The yard kit in the town (wf-town3d)
+
+- `FilamentTown.yardBuilder` is now `YardKitBuilder` (scene3d/YardLayer.kt): every lot's yard and every lane's and verge's
+  items are baked by `YardKit.bake(items, perKind = false)` a lot (or a lane) at a time: one batch for what throws a
+  shadow, one for what does not, one per ground tile (at most 12 a lot; 94 patches, 712 batches for gamma's 92 yards and
+  2 lanes with items). `-DtownYards=placeholder` brings back the flat placeholders to check the layout alone.
+- The hook's sink takes a `YardPatch` with each mesh (the lot's ground circle and its building's sprite) and returns the
+  batch's material instance; `sink.animate { seconds -> }` steps the water's tile (`YardLayer.shimmer`), run each frame by
+  `frame(pose, hour, seconds)`. The town draws each patch in its own PropLayer: culled by its circle (its shadow twins
+  within 150 of the view), and in the street view faded with its own house (the same cut, from the building's middle),
+  so the near side's front hedges, fences and lawns go with the row across the road; a cut lot throws no shadow (a
+  fence's shadow without its fence read wrong). Tested (TownYardsKitTest, in crossroadsTest): a patch for every lot and
+  lane, at most 14 batches each, every vertex inside its circle, every lot's building in the town.
+- Draws and triangles (4-core server, software GL, not the S25): street views 245-1130 draws, 230k-1.2M triangles;
+  whole-town aerial 1735 draws, 1.7M triangles (the yards are 1.59M triangles in all: side fences 429k, greenhouses 278k,
+  flower beds 189k, post-and-rail 168k lead). The per-lot atlases hold 29M texels in all (pictures repeated lot by lot).
+- Preview: `yard_{pool,woodside,garden}_{street_13h,street_night,above,top,back,back_dusk}` (the Heights pool b69, a
+  Woodside lot b45, a garden b79), and town.txt lists the yards' triangles by kind.
+- Left: near-pavement props and the edge's tree cards are still not cut; the mobile homes show their front picture from
+  behind too; the side fences, greenhouses and flower beds are heavy in triangles; the atlases could be shared across lots.
+
+### Review fixes (wf-town3d, after the review at a98bbba)
+
+- Buildings: a box shop's back wall carries its side picture on at its own texel size (two copies joined at their
+  best-matching column, so no window is cut), not stretched 1.87x; a pitched roof with stone end posts stands its gables
+  inside the posts (the bank in eta too); the buildings', models' and props' pictures are sampled with 16x anisotropy
+  (side walls no longer smear); a mobile home's back is plain siding (each row the front's commonest colour) with two
+  thirds of its windows, not its front picture.
+- Pictures are shared by content (StreetTextures: a picture never updated is one texture however many batches wear it;
+  every layer of the town shares the town's): 651 textures for 2866 asks. The per-lot yard atlases are still per lot
+  (67.8M texels in all): one global yard atlas is left.
+- Culling: renderables carry their boxes and Filament culls them (`culling(true)`; the look's depth now reaches 1 at the
+  camera's own near, so Filament's camera and the drawn one agree). The street view has a range (`TownPose.range`, the
+  haze's start + 3600): buildings, yards and chunks fade out (screen door) over the last 500 and are not drawn past it;
+  the haze there is total (max opacity 1). Free cameras have no range. The haze starts 1400 past the building line
+  looked at (was 700) and is thinner (.00045), so the next blocks read solid.
+- Chunks: the rows' furniture and street props in stretches of 800 along each row side, the edge's greenery in 2000
+  squares, each culled by its sphere and range, and in the street view cut with its row (judged at the row's building
+  line, as its buildings are): the near pavement's lamps, mailboxes and planters go with the row across the road.
+- Trees: far, a crossed card plus a level crown card (the sprite's own leaves on a disc: no more plus signs from above);
+  near (a chunk within 1100 of the eye), the yard kit's 3D trees (round broadleaves for the round sprites, poplars for the
+  tall ones), made the first time a chunk comes near (in `buildNearest`'s spare budget, or `prepare(pose)`). The forest's
+  trees are shaken off the map's grid, and past its straight outer edge trees thin out into the fields in clumps.
+- Night: the 12 lanterns nearest the point looked at are Filament point lights (warm, reach 260; the farthest four dim
+  so a switch does not pop); the lantern glass glows warm, not blown white.
+- Building off the engine's thread: `startGround()` makes the ground, greenery, furniture, props and yards on workers
+  (every core but one; the yards baked a few lots per core at a time) as packed batches (`PropLayer.Packing`,
+  `StreetTextures.prepare`); `uploadGround(budgetMs)` uploads them a frame at a time (`buildGround()` still does both,
+  waiting). The buildings' art is decoded on the workers, nearest first, before `buildNearest` builds them. Measured on
+  the 4-core build server (software GL, not the S25): workers 2.4 s, the engine's thread 138 ms of uploads in 4 ms steps
+  (longest 25 ms); buildings 934 ms in 53 batches, the school (b93, a FilamentModels model) still 114 ms in one go: the
+  models' build needs a prepare/upload split of its own (left for after wf-fbuild's last commits are merged).
+- Street name signs: one per crossing (signs within 260 of one kept are left out). Landmarks get a paved path from the
+  pavement to the door and an apron along the front (their side and back grounds are still lawn).
+- Preview: free cameras back off out of any building (yard_woodside_back was inside one); new shots landmark_b92/b96/b97
+  and heights_backyards_above; town.txt reports the ground's worker/upload split, textures, chunks and lamps lit.
+- Left from the review: the yards' triangles (fences, greenhouses, flower beds: LODs, plank fences as alpha quads), the
+  per-MI `look` (a material change shared with eta), the vertex format, the river's outline and banks, bridges'
+  structure, lawn edges against the town grass, shop back lots (gravel, no gate), side windows' glass mask, the school's
+  back seams, repeated shop art, the yard kit's minor issues, people for scale. Draws went up in the aerials (3052, was
+  1735: chunks are per kind) while street views draw 834-1448 with fewer triangles (0.6-0.96M, was 0.65-1.7M).

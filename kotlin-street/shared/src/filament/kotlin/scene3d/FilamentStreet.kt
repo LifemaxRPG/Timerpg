@@ -78,7 +78,7 @@ class FilamentStreet(
     private val nearest = TextureSampler(TextureSampler.MinFilter.NEAREST, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.CLAMP_TO_EDGE)
     // the pictures: crisp where a picture pixel is a screen pixel or more, blended from their mipmaps where a face is
     // seen small or edge on (nearest there turns siding and stripes into moire)
-    private val crisp = TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.CLAMP_TO_EDGE)
+    private val crisp = TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.CLAMP_TO_EDGE).also { it.anisotropy = 16f }
     // the ground's tiles, repeated along their street
     private val tiled = TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.REPEAT).also {
         it.anisotropy = 8f
@@ -218,6 +218,7 @@ class FilamentStreet(
                 // the windows' lamps: warm, as strong as it is dark
                 for (mi in t.mis) { mi.setParameter("glow", glow[0], glow[1], glow[2], glow[3]); mi.setParameter("glass", glass[0], glass[1], glass[2], 1f) }
                 t.windows?.update(f.hour)
+                t.hourly?.invoke(f.hour)
             }
         }
         props?.update(trueLook, f.dark, shown = !classic)
@@ -369,6 +370,9 @@ class FilamentStreet(
             val s = sides.getOrNull(bx.street) ?: continue
             val l = s.layouts.getOrNull(bx.index) ?: continue
             val sb = SpriteArt.buildings[s.arts[bx.index].stack.id] ?: continue
+            // a villa or a landmark: its own parts (FilamentModels)
+            val ma = sb.model
+            if (ma != null) { modelThing(world, cr, s, bx, ma, l.height); continue }
             val faces = ArrayList<Face>()
             val boards = ArrayList<Face>()
             val win = if (sb.house != null) houseFaces(world, cr, s, bx, sb, faces) else boxFaces(world, cr, s, bx, sb, l.height, faces, boards)
@@ -444,8 +448,10 @@ class FilamentStreet(
             out += face(rx, hf + rise, rz, ax * B.W / pw, 0f, az * B.W / pw, -nx * DEPTH / 2f / rows, -rise / rows, -nz * DEPTH / 2f / rows, pw, rows, textures.of(pitch), null, -nx * sy, cy, -nz * sy)
             // the gable ends: the side wall's top storey carried up into the triangle
             val gp = sb.gablePic
+            // (with stone end walls the pitch's art is clear over the posts: the gables stand inside them, not past them)
+            val inset = if (sb.postL != null && sb.postR != null) (sb.pitchInfo?.getOrNull(2) ?: 0f) * kk else 0f
             if (gp != null) for (end in 0..1) {
-                val e = if (end == 0) -hw else hw
+                val e = if (end == 0) -(hw - inset) else hw - inset
                 val bx0 = ox + ax * e; val bz0 = oz + az * e
                 out += Face(
                     floatArrayOf(bx0, hf, bz0, bx0 - nx * DEPTH, hf, bz0 - nz * DEPTH, bx0 - nx * DEPTH / 2f, hf + rise, bz0 - nz * DEPTH / 2f),
@@ -499,6 +505,24 @@ class FilamentStreet(
         val grey = Color(0xFF5C6070).toArgb() and 0xFFFFFF
         val back = IntArray(px.size) { i -> if ((px[i] ushr 24) > 0) (px[i] and 0xFF000000.toInt()) or grey else 0 }
         return empty to textures.make(back, w, h, mips = true)
+    }
+
+    /** A villa or a landmark ([FilamentModels]): standing back in its yard in its lot, its model's x along the row. */
+    private fun modelThing(world: CornerWorld, cr: Crossroads, s: CrossSide, bx: Crossroads.Box, ma: com.lifemax.rpg.feature.habits.presentation.scene.ModelArt, height: Float) {
+        val (ax, az) = world.rowA(s.k)
+        val (nx, nz) = world.rowN(s.k)
+        val kk = B.W / SpriteArt.SRC_W
+        val sh = ma.shape
+        val left = -B.W / 2f + sh.frontX * kk
+        val ox = world.frontX(cr, s, bx.index) + ax * left - nx * sh.setback * kk
+        val oz = world.frontZ(cr, s, bx.index) + az * left - nz * sh.setback * kk
+        val m = FilamentModels.build(engine, visibleMat, if (albedo) null else proxyMat, textures, ma, ModelPlace(ox, oz, ax, az, nx, nz, kk),
+            s.arts[bx.index].stack.id.hashCode(), linear = !albedo)
+        vbs += m.vb; ibs += m.ib
+        scene.addEntity(m.entity)
+        if (m.proxy != 0) scene.addEntity(m.proxy)
+        things += Thing(BOX, bx.street, m.entity, m.mis, m.proxy, m.proxyMis, (bx.x0 + bx.x1) / 2f, height / 3f, (bx.z0 + bx.z1) / 2f, bx, s, 0, null)
+            .also { it.hourly = m.night }
     }
 
     /** One of the mobile homes: its walls, its gabled ends (the side picture carries the triangle), the roof's two slopes, its yard. */
@@ -1141,6 +1165,8 @@ class FilamentStreet(
         val proxyMis: Array<MaterialInstance>, val refX: Float, val refY: Float, val refZ: Float,
         val box: Crossroads.Box?, val side: CrossSide?, val level: Int, val windows: Windows?,
     ) {
+        /** A modelled building's night windows, brought to the hour. */
+        var hourly: ((Float) -> Unit)? = null
         /** How far forward its depth is drawn (street units): a billboard over its own roof. */
         var pull = 0f
         var lookX = refX

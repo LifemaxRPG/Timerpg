@@ -75,9 +75,14 @@ tasks.register<JavaExec>("preview") {
     // the crossroads and the seam test: where along the mouth, which screen, which way round, the whole sequence, a name
     for (k in listOf("at", "size", "dir", "seq", "tag", "shots"))
         System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
-    for (k in listOf("turn", "rest", "sky", "look", "eye", "back")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
+    for (k in listOf("turn", "rest", "sky", "look", "eye", "back", "w")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     // the street props' preview: which half (lineup, street) and which rows of the town
     for (k in listOf("props", "rows")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
+    // the yards' preview: which half (lineup, real)
+    for (k in listOf("yards")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
+    // the whole town's preview (-Dmode=filament-town): which town folder, where the pack's pictures are, the yards'
+    // builder (kit, or placeholder: flat colours)
+    for (k in listOf("town", "assetsRoot", "townYards")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     if (withFilament) {
         jvmArgs("-Djava.library.path=" + File(filamentDist, "lib").absolutePath)
         // Mesa's EGL with no display: headless software GL
