@@ -342,6 +342,8 @@ def hospital(shop, rng):
                      + [(art[536:582, 382:478], f, 184) for f in (.2, .5, .8)])
     ws, ws_g = walls(column_rows(art[192:GW], list(range(552, 584)) + list(range(820, 848))), BACK - DW, rng, corner,
                      [(art[230:274, 588:660], .3, 38), (art[230:274, 588:660], .75, 38)])
+    # the wing's louvred band (rows 296..396, a fin every 16 columns) runs round its side as on its front
+    ws[296 - 192:396 - 192, 2:-2] = tile(art[296:396, 562:578], 100, ws.shape[1] - 4)
     ms_r = at.add(ms[24:], ms_g[24:])
     # the chamfered corner: a face 101 long (plan (256, 0) to (288, -96)) with the middle block's courses and, as the
     # art's strip shows, two tall narrow windows (a light of the front's grid each, from 56 to 216 up)
@@ -357,7 +359,7 @@ def hospital(shop, rng):
     ws_lo = at.add(ws[120:], ws_g[120:]); ws_hi = at.add(ws[24:120], ws_g[24:120])
     # --- the roofs: the art's grey roof (its tiles laid over each), the copings round them (their face as the fronts
     # draw it, their tops the art's light coping)
-    floor = art[110:250, 40:250]
+    floor = art[166:260, 40:256]                   # (under the plant room's front, which ends on row 165)
     roofs = {}
     def roof_of(w, d):
         if (w, d) not in roofs: roofs[(w, d)] = at.add(tile(floor, d, w))
@@ -482,8 +484,11 @@ def post_office(shop, rng):
         sf[304 - 216:320 - 216, a:b] = sf[304 - 216:320 - 216, band_c:band_c + 1]
     sf_panes, sf_glow = lit_panes(sf)
     sf_r = at.add(sf, sf_glow)
-    side, side_g = walls(column_rows(art[216:G], list(range(2, 8)) + list(range(248, 254))), 144, rng, art[300, 1],
+    # (the courses of the pilasters just inside the dark corner posts: the wall's colour and the orange band)
+    side, side_g = walls(column_rows(art[216:G], [9, 10, 11]), 144, rng, art[300, 1],
                          [(art[236:300, 40:96], .3, 20), (art[236:300, 40:96], .72, 20)])
+    # the band under the upper windows (rows 304..320) runs round the corner as the front's middle shows it
+    side[304 - 216:320 - 216, 2:-2, :3] = art[304:320, 128:129, :3]
     side_r = at.add(side, side_g)
     # --- its roof (y 194, the parapet 8 above it): the art's grey floor, laid over it; the parapet's face and top
     floor = art[152:190, 40:216]

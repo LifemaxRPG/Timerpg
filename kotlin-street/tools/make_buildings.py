@@ -7,6 +7,7 @@ house_medium_*) is cut into the pictures of a pitched-roof house instead (see bu
 houses.json. Usage: python3 make_buildings.py street.json out_dir; python3 make_buildings.py --showcase out_dir builds
 every house sprite into out_dir for the preview's houses mode."""
 import glob, json, os, sys, zlib
+import importlib
 import numpy as np
 from PIL import Image
 
@@ -1239,7 +1240,7 @@ def terraced(shop, rng):
     def siding(h): return np.resize(up_rows, (h,) + up_rows.shape[1:])
     ms, _ = side_wall(siding(main_h), T_DEPTH, None, 0, (), rng, corner)
     hs, _ = side_wall(siding(high_h), T_DEPTH, None, 0, (), rng, corner)
-    ws, _ = side_wall(column_rows(wing, list(range(8, 30))), 250, None, 0, (), rng, corner)
+    ws = importlib.import_module('buildings_wf-sprites').ribbed_side(wing, 250, corner)   # the wing's ribs carried round
     ms_r = at.add(ms); hs_r = at.add(hs); ws_r = at.add(ws)
     wall_c = art[440, 60]; wing_c = art[400, 330]
     yr0, yr1 = T_FOOT - t_roof_edge(x0), T_FOOT - t_roof_edge(T_RIDGE)

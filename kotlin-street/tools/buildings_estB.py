@@ -90,9 +90,9 @@ def estate_japanese(shop, rng):
     P = 10                                                           # the corrugation repeats every 10 columns
     W = 470
     roof_c = art[150, 150]; rake_c = art[rake(150) + 8, 150]; edge_c = art[rake(150) + 18, 150]; lip_c = art[rake(150) - 2, 150]
-    wall_c = art[322, 142]
+    wall_c = art[300, 232]
     PENT0, PENT1 = 340, 383                                          # the pent roof's rows (from above) in the art
-    lit = art[322, 140:140 + P]
+    lit = art[300, 230:230 + 2 * P]                                  # the plain corrugation between the bays (x 140 is a bay's sill)
     corner = shade(wall_c, .75) + (255,)
     foot = [tuple(art[440, 330, :3])] * 3
     # --- the main front, the gable down to the ground (columns 54..429); the pent roof painted out with the

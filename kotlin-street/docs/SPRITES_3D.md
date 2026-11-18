@@ -393,3 +393,37 @@ showcase only, as the other landmarks.
 - Part types in models.json and their `ModelPart` numbers: `box` 0, `gable` 1, `hip` 2, `rail` 3, `decal` 4, `slope` 5,
   `prism` 6, `cyl` 7, `wall` 8. A box's sides against another volume are one key for everyone, `hs` (`l`, `r`, `lr`;
   bit 1 left, bit 2 right); the civic group's `abut` became `hs`.
+
+## Final audit of every modelled building (2026-11-18, `tools/buildings_wf-sprites.py`)
+
+Every building the data describes (showcase streets 2 to 10 and the app's street.json, whose one model is condo_3_45)
+rendered from the left, middle and right of the view at day, dusk, night and snow, and each part's front, side and top
+pictures laid side by side from models.json and the atlas (a throwaway script) to compare every side with its front.
+Fixed, in the builders:
+
+- **Terraced houses: the side wing's side.** It was each row of the wing's front averaged across, which smeared its
+  upright corrugated panels (or boards) into horizontal streaks (in design 5 the potted plant became a green band). It
+  is now one rib period of the wing's own front repeated along the depth, the plant (its own card) painted out
+  (`ribbed_side` in `tools/buildings_wf-sprites.py`, a module of its own so the groups' files stay as merged;
+  make_buildings imports it with importlib).
+- **Japanese estate: the main house's and the left annex's sides** wore brown vertical boards: the corrugation's
+  period was taken at x 140 on row 322, which is inside an upper window's bay (its sill). Now the plain corrugation
+  between the bays (row 300, x 230..249), so the sides are the front's grey corrugated iron; the walls' colour likewise.
+- **Hospital: the roofs** wore the plant room's doors and windows tiled over them (the floor sample began on row 110,
+  inside the plant room's front, which ends on row 165). Now the floor under it only. **The emergency wing's side**
+  carries the front's louvred band (a fin every 16 columns) instead of a plain dark band.
+- **Post office: the side** took its courses from the dark corner posts (the four colours' sides were all one dark
+  grey); now from the pilasters just inside them (the wall's own maroon, green, light grey or grey), with the band under
+  the upper windows (orange in two colours) carried round.
+- **condo_9: the side's plain wall** repeated a period that held the back corner's outline (a dark line every 14
+  columns down the brick) and the art's stepped shading under the coping (dark teeth); the period is now clear of the
+  outline and the shading rows are each their own colour.
+- **condo_5_1..3: the side's ground storey** now has the front's barred window, as its upper storeys have their windows.
+- **The hotel: the sides' ground storey** was the doors' green smeared along the depth (the side's courses were taken
+  from the bays' columns, which on the ground storey are doors); it carries the storey above's brick down.
+
+Checked and left as they are: the villas, clock towers, school, the one-story and country estates, the modern estate,
+the fire station, the police station and condo_3_44/45 have sides, gables and roofs that match their fronts, and
+nothing floats or shows sky through it in any of the three views; condo_3_44's skylight is drawn flat on the roof (a
+glass panel in the floor, so it stays flat). Left to do: the Japanese estate's upper bays and long window do not light
+at night; the hotel is taller than the preview's 820-pixel frame (render it with `-Dtall=1150`).

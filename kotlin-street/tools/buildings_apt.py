@@ -276,6 +276,8 @@ def condo5(shop, rng):
     win = el.crop(130, 156, 30, 66)
     wins = [(win, el.at[130] - o, (.3, .72), [(3, 2, 30, 20)]), (win, el.at[194] - o, (.3, .72), [(3, 2, 30, 20)])]
     wins = [(p_, y_, f_, [q + (540,) for q in pn]) for (p_, y_, f_, pn) in wins]
+    # (and the ground storey's barred window, as the front has either side of its portal; no glass shows to light)
+    wins.append((el.crop(274, 304, 14, 56), el.at[274] - o, (.5,), []))
     side, side_g = side_windows_lit(rows, D, wins, rng, shade(wall_c, .8) + (255,))
     parts.insert(0, mbox((2, W - 2), (0, Y), (0, D), (roof_c, wall_c, shade(wall_c, .8)), ft=body_r, fx=0, tt=at.add(floor),
                          st=at.add(side, side_g), panes=b_panes))
@@ -354,9 +356,18 @@ def condo9(shop, rng):
     strip = np.concatenate([strip[:336 - 198], art[304:336, C9_X1:C9_SIDE], strip[336 - 198:]])
     top = np.repeat(column_rows(art[196:198], list(range(40, 110)))[:, None], C9_SIDE - C9_X1, axis=1)
     strip = np.concatenate([top, strip])                             # (the two rows of the parapet's outline over it)
-    plain = strip[:, 172 - C9_X1:186 - C9_X1]
-    n = D - (172 - C9_X1) - 6
-    side = np.concatenate([strip[:, :172 - C9_X1], np.tile(plain, (1, n // plain.shape[1] + 1, 1))[:, :n], strip[:, -6:]], axis=1)
+    plain = strip[:, 170 - C9_X1:184 - C9_X1].copy()                # (184.. is the back corner's outline)
+    # above the brick the art shades the plaster in a staircase under the coping, which repeated would stand in streaks:
+    # there each row is its own colour
+    med = np.median(plain[..., :3].astype(int), axis=1)
+    grey = med[:, 0] < med[:, 2] + 12
+    plain[grey, :, :3] = med[grey][:, None].astype(np.uint8)
+    # (and the staircase's grey steps reaching into the brick's top courses, and its dark ones under the coping)
+    px = plain[..., :3].astype(int)
+    steps = ((~grey)[:, None] & (px[..., 2] > px[..., 0] - 15)) | (px.sum(-1) < med.sum(-1)[:, None] - 100)
+    plain[..., :3][steps] = np.broadcast_to(med[:, None], plain[..., :3].shape)[steps].astype(np.uint8)
+    n = D - (170 - C9_X1) - 6
+    side = np.concatenate([strip[:, :170 - C9_X1], np.tile(plain, (1, n // plain.shape[1] + 1, 1))[:, :n], strip[:, -6:]], axis=1)
     side = side.copy(); side[..., 3] = 255
     side[:, -2:, :3] = ink
     grain = np.kron(rng.integers(-3, 4, (side.shape[0] // 2 + 1, D // 2 + 1)), np.ones((2, 2), np.int32))[:side.shape[0], :D]
@@ -447,6 +458,10 @@ def hotel(shop, rng):
     # the building's sides: the bays' brick under their cornice, an arched window of the front's on each storey
     bay = art[BT:BG, 64:160]
     rows = column_rows(bay, list(range(4, 14)) + list(range(84, 92)))
+    # (on the ground storey those columns are the doors' green: the side carries the storey above's brick down)
+    rgb = rows[:, :3].astype(int); door = np.nonzero(rgb[:, 1] > rgb[:, 0] + 12)[0]
+    door = door[door > 3 * 126]
+    if len(door): rows[door.min():door.max() + 1] = rows[door.min() - 126:door.max() + 1 - 126]
     win = art[244:370, 80:144]
     w_p = glass_panes(win)[0]
     wins = [(win, (244 - BT) + k * 126, (.3, .72), w_p) for k in range(3)]
