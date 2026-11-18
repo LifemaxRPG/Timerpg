@@ -436,7 +436,7 @@ internal class CornerWorld {
             if (n >= MAX) break
             val s = sides.getOrNull(bx.street) ?: continue
             val l = s.layouts.getOrNull(bx.index) ?: continue
-            val a = if (bx.street == restStreet) 1f else fadeOf(bx)
+            val a = (if (bx.street == restStreet) 1f else fadeOf(bx)) * farFade(bx.street, bx.x0, bx.x1)
             if (a <= 0f) continue
             boxMatrix(cr, s, bx, bm)
             var minX = Float.MAX_VALUE; var maxX = -Float.MAX_VALUE; var minY = Float.MAX_VALUE; var maxY = -Float.MAX_VALUE
@@ -460,7 +460,7 @@ internal class CornerWorld {
                 if (n >= MAX) break
                 val x = if (k == 0) cr.mainX(f.x) else 0f
                 val z = if (k == 0) 0f else cr.crossZ(f.x)
-                if (!billboard(n, x, z, w, 160f, 300f)) continue
+                if (!billboard(n, x, z, w, 160f, 300f, k)) continue
                 kind[n] = FURNITURE; sideOf[n] = k; idx[n] = i
                 n++
             }
@@ -470,7 +470,7 @@ internal class CornerWorld {
                 val p = life.passers[i]
                 val x = if (k == 0) cr.mainX(p.x) else cr.crossX(p.lane)
                 val z = if (k == 0) cr.mainZ(p.lane) else cr.crossZ(p.x)
-                if (!billboard(n, x, z, w, 120f, 120f)) continue
+                if (!billboard(n, x, z, w, 120f, 120f, k)) continue
                 kind[n] = PERSON; sideOf[n] = k; idx[n] = i
                 n++
             }
@@ -481,8 +481,9 @@ internal class CornerWorld {
      * Places a billboard standing at world ([x], [z]) as item [q]: its foot on screen and its scale; false if out of view
      * or faded out. One on the camera's side of the corner fades as the cut passes it, as the buildings there do.
      */
-    private fun billboard(q: Int, x: Float, z: Float, w: Float, reach: Float, tall: Float): Boolean {
-        val a = if (restStreet < 0 && nearSide(x, x, z, z)) 1f - smooth((cam.cutDepth - cam.depth(x, z)) / FADE_POINT) else 1f
+    private fun billboard(q: Int, x: Float, z: Float, w: Float, reach: Float, tall: Float, street: Int): Boolean {
+        val a = (if (restStreet < 0 && nearSide(x, x, z, z)) 1f - smooth((cam.cutDepth - cam.depth(x, z)) / FADE_POINT) else 1f) *
+            farFade(street, x, x)
         if (a <= 0f) return false
         cam.project(ground(x, z), x, 0f, z, pt)
         if (pt[2] < NEAR) return false
@@ -505,8 +506,22 @@ internal class CornerWorld {
     /** How much is left of building [i] of street [k] this frame (1 for the street at rest, and for every one never faded). */
     fun shown(cr: Crossroads, k: Int, i: Int): Float {
         if (k == restStreet) return 1f
-        for (bx in cr.boxes) if (bx.street == k && bx.index == i) return fadeOf(bx)
+        for (bx in cr.boxes) if (bx.street == k && bx.index == i) return fadeOf(bx) * farFade(bx.street, bx.x0, bx.x1)
         return 1f
+    }
+
+    /**
+     * How much is left of the main street's things between world x [x0] and [x1] as the camera settles into the cross
+     * street's own look. That look is the stage's cabinet view, a pinhole far back with its horizon high on the screen:
+     * fine for a row seen from the front, but a street running away from it climbs up the screen and hardly shrinks, so
+     * the main street seen from the cross street stood in the sky like a stack of boxes. Mid-turn the camera is plain
+     * perspective and the main street recedes as it should; as the cross street's look comes in ([leanCross]) everything
+     * of the main street but its two corner buildings (and what stands by them) fades out.
+     */
+    private fun farFade(street: Int, x0: Float, x1: Float): Float {
+        if (street != 0 || leanCross <= 0f) return 1f
+        if (x1 >= -FAR_KEEP && x0 <= MOUTH + FAR_KEEP) return 1f
+        return 1f - smooth(leanCross / FAR_BY)
     }
 
     /** Opens the layer item [q] fades in, if it is fading: true if one was opened (closed by [endFade]). */
@@ -770,6 +785,10 @@ internal class CornerWorld {
          * looks) into it; a lamp or a person once the cut is [FADE_POINT] street units past it.
          */
         const val FADE_SHARE = .55f
+        /** The main street's corner buildings stay in the cross street's view: within this of the corner (street units). */
+        const val FAR_KEEP = 1f
+        /** ... and the rest of it is gone once the cross street's look is this far in. */
+        const val FAR_BY = .6f
         const val FADE_POINT = 40f
         const val EAST_FROM = 12f
         const val EAST_TO = 28f
