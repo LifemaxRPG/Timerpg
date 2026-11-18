@@ -119,7 +119,7 @@ exactly. (Version 1 of this prompt.)
 
 - Every fact: general, approximately right, no names/brands/titles/quotes, right years, under 25 words.
 - Nothing repeats "Already covered".
-- Valid JSON only, no text before or after it.
+- The file you commit is valid JSON only, with no text before or after it.
 
 ## This run
 
