@@ -1,0 +1,651 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-13191",
+      "kind": "scenario",
+      "title": "The Radio Club That Moved Its Founder’s Voice",
+      "category": "place",
+      "pitch": "Help a licensed amateur operator afford the equipment shortfall for a local radio club. Its later shared station may need a quieter site, leaving the founder with a journey to make before speaking on the air.",
+      "present_hook": {
+        "what_you_notice": "An amateur operator’s archived proposal shows willing members and an unfunded equipment shortfall; no club station was established.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposed club in {year} already had qualified operators, but its actual budget did not balance."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            18,
+            25
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            30,
+            35
+          ],
+          "wealth": "comfortable"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A and B are actual licensed amateur operators with suitable privileges; B has agreed to the real club proposal. The small gift covers its evidenced shortfall. Baseline has no club station, and no emergency, recipient, licence or transmission success is invented."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the operator a week’s wages toward the documented club equipment shortfall."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "establish_amateur_station": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Radio Club Opens Its Shared Station",
+          "body": "The consenting members complete their funded, inspected station and operating agreement."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "install_club_repeater": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "The Club Adds a Lawfully Coordinated Relay",
+          "body": "Qualified operators install the approved equipment at the tested site, with actual permissions and operating costs."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "relocate_club_station": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "The Club Moves Its Station to Resolve Interference",
+          "body": "A verified interference problem is resolved by the funded, technically tested move. The founder’s home no longer contains the shared station."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Equipment Plan Remains a Proposal",
+        "body": "The gift is real, but no approved working club station opens. No imagined rescue or message follows."
+      },
+      "present_day": {
+        "best": "If the chain and premises persist in {now}, the club’s notice lists the actual new station location and visiting hours; its original home room no longer houses the shared equipment.",
+        "worst": "If a stage fails, retain the actual station, permissions and equipment already established; do not claim a relay, interference problem or relocation without its records.",
+        "twist": "{A} gains the shared facilities but must make the actual journey to the new site instead of operating that station from home."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "We fixed the interference. Now I have to put my shoes on before I can say hello."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "establish_amateur_station creates a voluntary radio club organization and a single shared equipment inventory, not a business. Require current valid operator and station permissions, actual suitable existing room in A home with owner consent, safe installation, affordable itemized purchases and agreed governance. Debit real costs once; the gift is not awarded again.",
+        "install_club_repeater requires the club still active, a real coverage need and tested feasible site, lawful frequency coordination and licensing, clear access, qualified safe installation and funded maintenance. Record only actual equipment, authority and measured coverage; no guaranteed communication or commercial broadcasting.",
+        "relocate_club_station requires independently evidenced actionable interference attributable to the still-operating relay installed in step 2 and resolved by moving its associated station equipment, a qualified assessment showing relocation resolves it, lawful notice, actual suitable accessible premises with owner consent, affordable club funds and member approval. Move the existing shared station and remove its former home installation atomically, paying actual costs. Do not move A residence or remove unrelated personal equipment. Gate A dialogue on step 3, survival, current membership, actual former home use and a real nonzero journey to the new site."
+      ],
+      "era_notes": "Licensing, equipment, coordination and interference standards follow each event year; early equipment is not described as digital.",
+      "why_fun": "A club can widen a voice’s reach while making the familiar act of speaking less convenient."
+    },
+    {
+      "id": "scenario-20261117-13192",
+      "kind": "scenario",
+      "title": "The Weather Vane That Came Down Intact",
+      "category": "place",
+      "pitch": "Spread truthful praise of a metalworker’s documented craftsmanship. A public commission may follow, then conservation that preserves the vane by taking it out of the sky.",
+      "present_hook": {
+        "what_you_notice": "An unaccepted weather-vane drawing is filed beside a verified metalworking reference; the specified public roof stayed bare.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The workmanship praised in {year} was real. The commission still needed a lawful decision and funding."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "wealth": "comfortable",
+          "trait": {
+            "diligence": "high"
+          }
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1990
+        ],
+        "notes": "A is a qualified metalworker; B is the actual authorized custodian of the identified existing public building and later collection room. Baseline includes the authentic design, suitable roof assessment and no installed vane. B has no unilateral power to spend public money. No new building or office is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": 0.2,
+          "how_it_looks": "Repeat a verifiable account of the metalworker’s careful work without promising a commission."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "commission_weather_vane": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Metalworker’s Vane Takes Its Approved Place",
+          "body": "The authorized funded commission is completed and inspected on the identified public roof."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "conserve_weather_vane": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Aging Vane Comes Down for Conservation",
+          "body": "A real condition assessment leads to safe removal and funded conservation. The original object enters secure custody."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "display_conserved_vane": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "The Old Rooftop Vane Gets an Indoor Home",
+          "body": "The lawful collection accepts the conserved original for its funded indoor display. Its maker pays the agreed contribution."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "Praise Does Not Place a Vane on the Roof",
+        "body": "The truthful recommendation changes standing through the normal rumor action, but no public commission is completed."
+      },
+      "present_day": {
+        "best": "If the chain and display persist in {now}, the original vane stands in the actual collection room and its old roof mounting is empty.",
+        "worst": "Without the commission there is no vane to remove; without later conservation or display, show only its actual location and condition.",
+        "twist": "{A} pays the real agreed display contribution and loses the sight of the work above the street, even though the original survives indoors."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "uncanny",
+          "line": "It used to point into weather. Now it points into a room."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "commission_weather_vane requires a valid authorized selection process without favoritism overrides, real public budget and payment contract, A consent and current qualifications, actual materials, roof title and permissions, structural and lightning-safety approvals and completed inspected installation. Create one identified object, paying actual fees and fabrication costs only.",
+        "conserve_weather_vane requires the same original still owned by the actual authority, independently recorded deterioration, approved qualified safe removal, real conservation funding, documentation and secure existing storage. Remove it from the roof and record its conserved condition; do not invent injury, condemnation or a replacement.",
+        "display_conserved_vane requires the same original in lawful custody, an actual qualified collection and existing accessible room, owner consent, accession authority, safe affordable mounting and documented maintenance. Transfer custody under the actual agreement and debit A voluntary agreed positive contribution from available funds once. No sale or wealth bonus is implied. Gate A dialogue on step 3, survival, remembered rooftop installation and current indoor display."
+      ],
+      "era_notes": "Fabrication, roof safety and conservation methods must fit the actual decade. Records can be handwritten before later catalogues.",
+      "why_fun": "Preservation can win an object a longer life while losing the view that made it matter."
+    },
+    {
+      "id": "scenario-20261117-13193",
+      "kind": "scenario",
+      "title": "The Tip Jar with Two Columns",
+      "category": "money",
+      "pitch": "Introduce a café owner to a server who has a lawful plan for sharing tips. A durable agreement may eventually bring a guaranteed wage, giving the server steadier pay while ending a lucrative share on busy nights.",
+      "present_hook": {
+        "what_you_notice": "A café’s records contain an unsigned proposed tip-sharing agreement and payroll showing that it was never adopted.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The server’s proposal in {year} included real shift figures, not a promise that every worker would earn more."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "café"
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            25
+          ],
+          "wealth": "getting_by",
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "B is a qualified prospective server, a stranger relative to A, with real prior shift records and permission to share them. Bind cafe to A adult-owned business. Baseline has an actual vacant paid position and no tip pool. Require legal employment and informed terms; neither employment nor extra customers follows just from meeting."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the consenting owner and applicant with the server’s costed pay proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "hire": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "adopt_lawful_tip_pool": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Café Hires under an Agreed Tip-Sharing Plan",
+          "body": "The server takes the actual funded job. Eligible workers adopt the lawful documented pool with their rights intact."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "renew_tip_agreement": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Columns Keep Tips and Wages Separate",
+          "body": "The actual continuing staff approve a compliant renewed agreement after reviewing real shifts and distributions."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "replace_pool_with_wage": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Café Signs a Funded Wage Agreement",
+          "body": "The consenting staff move to the actual guaranteed wage plan. Existing tips and accrued pay are settled before the old pool ends."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Meeting Ends without the Agreed Hire",
+        "body": "The introduction occurs, but the actual joint job-and-pay agreement does not take effect. No unpaid trial or tip transfer is created."
+      },
+      "present_day": {
+        "best": "If the chain and employment terms persist in {now}, the café posts the actual wage agreement and its payroll records the pool’s lawful closing settlement.",
+        "worst": "Without a valid later agreement, retain actual worker rights, tips, accrued wages and the last lawful terms rather than silently changing pay.",
+        "twist": "{B} gains a funded wage floor but gives up an actual pool entitlement that paid more on documented busy shifts."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I can count on the floor now. I still remember the nights that paid above it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add café as a business kind. Bind cafe to A actual business. Step 1 is atomic: hire requires an affordable real vacant paid role, B qualifications and consent; adopt_lawful_tip_pool requires legally eligible actual consenting staff, lawful tip ownership, minimum wages, distribution records and exclusion of ineligible owners or managers. No employment or pool is committed alone. Do not invent tips or debit preexisting employee tips to fund wages.",
+        "renew_tip_agreement requires A still authorized and B still employed, real eligible current staff, valid informed agreement, correct actual shift and tip records and compliance with the law of that event year. Record the actual new terms and settle all existing entitlements without creating customers or revenue.",
+        "replace_pool_with_wage requires the café still operating, actual continuing B employment, lawful informed worker agreement, independently viable funded payroll and a real guaranteed floor. Eligibility additionally requires recorded ordinary shifts where B lawful former pool share exceeded the new corresponding wage, supporting the concrete loss without manufacturing traffic. Settle actual accrued tips and pay, end only the agreed future pool, and prohibit unlawful employer retention of tips or unilateral waivers. Gate B dialogue on step 3, survival, continued actual wage protection and remembered qualifying busy shifts."
+      ],
+      "era_notes": "Wage law, eligible tip pools, records and payroll methods follow the exact event year; no universal historical rule or rate is asserted.",
+      "why_fun": "A fairer-looking pay sheet can make security and a lucky evening pull in different directions."
+    },
+    {
+      "id": "scenario-20261117-13194",
+      "kind": "scenario",
+      "title": "The Recipe That Left the Kitchen Drawer",
+      "category": "secrets",
+      "pitch": "Ask a recipe’s actual owner to authorize a small public cookery demonstration. The recipe may later become part of a booklet, then a freely reusable text, costing its author the right to charge for the released material.",
+      "present_hook": {
+        "what_you_notice": "A community cookery file holds an authentic recipe and an unanswered request for permission to demonstrate it.",
+        "where": "the church",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The recipe in {year} had an identifiable author, clear rights and no permission for public use."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            45
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1950,
+          1995
+        ],
+        "notes": "A is the actual recipe-text author with clear rights; B is the real authorized organizer of an existing cookery event. No family relation is implied. The event has actual premises, equipment and food-safety approvals. Baseline has no authorized demonstration or publication. A method’s legal protection is distinguished from rights in authored text."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:request_recipe_permission",
+          "target": "A",
+          "organizer": "B",
+          "how_it_looks": "Present the real event’s limited permission request and leave the author free to refuse."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "demonstrate_recipe": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Cook Shares a Recipe on Agreed Terms",
+          "body": "The author grants the limited informed permission and the qualified cook completes the real approved demonstration."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "license_recipe_booklet": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Demonstrated Recipe Enters a Licensed Booklet",
+          "body": "The parties execute an affordable lawful licence for the actual text, settling its real fee and publication costs."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "release_recipe_text": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Recipe’s Author Opens Its Text for Reuse",
+          "body": "The rights holder makes the documented voluntary release covering the identified text. Earlier obligations are settled and future covered reuse no longer requires a fee."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Permission Request Does Not Become a Demonstration",
+        "body": "The request is real, but no completed authorized demonstration follows. Private text is not published anyway."
+      },
+      "present_day": {
+        "best": "If the chain and release persist in {now}, the actual booklet’s rights notice identifies the freely reusable text and the archived agreement records its scope.",
+        "worst": "Without the corresponding permission, no demonstration, booklet or rights release is created. Existing lawful rights and agreements remain in force.",
+        "twist": "{A} makes the text freely reusable but voluntarily gives up the actual ability to demand future licence fees for reuse covered by the release."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "People still ask whose recipe it is. They no longer have to ask what I charge."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "request_recipe_permission",
+          "does": "Record a limited permission request from actual organizer B to actual author A for one identified recipe demonstration; grant no rights, disclose no private text publicly and allow refusal without penalty."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "request_recipe_permission records only the actual limited request to A for B real event; it grants no permission, changes no bond and discloses no protected text to the public.",
+        "demonstrate_recipe requires A freely given documented limited permission, B event authority, a real competent consenting cook, lawful safe actual ingredients and equipment, affordable event funds and completed demonstration. Record only actual attendance and permission scope; no commercial food business or guaranteed audience is created.",
+        "license_recipe_booklet requires A still owns the applicable text rights, B actual publication authority, freely negotiated scope and positive fee, actual funded lawful production and clear third-party rights. Transfer only the agreed licence and settle real payments once; distinguish unprotectable cooking methods from authored wording and illustrations.",
+        "release_recipe_text requires A alive and still controlling the relevant enforceable rights, independently informed voluntary consent and a valid irrevocable licence or dedication permitted in the event year. Precisely identify the original text, permitted reuse and surviving attribution obligations; settle existing publisher exclusivity and creditor or coauthor claims. No universal public-domain claim or release of another person’s work. Eligibility requires an actual ongoing ability to charge for covered use before release; end it without inventing lost sales. Gate A dialogue on step 3, survival, actual authorship and current release permitting fee-free covered reuse."
+      ],
+      "era_notes": "Permission, reproduction and rights instruments follow the actual decade; early demonstrations use the existing kitchen and later booklets only the available printing methods.",
+      "why_fun": "A secret can become a gift that cannot be pulled back into the kitchen drawer."
+    }
+  ]
+}

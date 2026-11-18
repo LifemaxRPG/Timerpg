@@ -1,0 +1,677 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-12621",
+      "kind": "scenario",
+      "title": "The Derby That Retired Its Grown-Up Racers",
+      "category": "rivalry",
+      "pitch": "Help a child afford an approved soapbox-race entry. The hobby may become an adult racing tradition, then return to a youth-only event that its former junior entrant can no longer enter.",
+      "present_hook": {
+        "what_you_notice": "A school file holds an unpaid junior derby entry beside the approved cart-inspection sheet.",
+        "where": "the high school",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The cart passed its preliminary check in {year}; the entry and final inspection costs did not get paid."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            12,
+            14
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "B is the actual authorized derby organizer. Baseline has A genuine interest, guardian permission, approved suitable cart, affordable fee shortfall and an existing permitted junior event. No race win, injury or athletic career is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the household the actual shortfall for the approved entry and final inspection."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "enter_junior_derby": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Junior Entry Finally Reaches the Starting List",
+          "body": "The inspected cart and eligible young driver enter the actual permitted event. The result follows the real race."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "start_adult_derby_class": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Former Junior Racers Get an Adult Class",
+          "body": "The authorized organizers add the approved adult class. Its actual consenting entrants include the former junior driver."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "return_derby_to_youth": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Derby Gives Its Limited Race Days Back to the Young",
+          "body": "The valid organizing process adopts a youth-only schedule for the limited permitted race days. Existing adult entries are settled under their actual terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Junior Entry Stays Unused",
+        "body": "The gift remains real, but no eligible completed entry is recorded. The race result and later adult class are not promised."
+      },
+      "present_day": {
+        "best": "If the chain and rules persist in {now}, the derby notice lists only the adopted youth ages and {A} is ineligible for that event’s former adult class.",
+        "worst": "Without the adult class or adopted change, show only actual entries and rules; no champion, injury or replacement race is invented.",
+        "twist": "Young entrants gain the reassigned limited race slots, while {A} loses the option to compete in that event as an adult."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I helped ask for the adult class. Apparently growing up eventually includes giving the starting line back."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "enter_junior_derby requires A still within the actual junior age bracket, guardian consent where needed, paid real fees, final qualified vehicle inspection, protective requirements and permitted event conditions. Record one entry and only the actual race result; no victory follows from a paid fee.",
+        "start_adult_derby_class requires B still authorized, lawful suitable course use, funded inspected safe vehicles and event operations, actual adult demand and separate approved rules. A must actually be adult, eligible and a paid consenting entrant. Record actual slots, fees and completed races without conferring a champion title.",
+        "return_derby_to_youth requires B current authority, actual permitted-date limits and evidenced youth demand, valid organizer approval and notice. Set this event’s eligible driver ages to twelve through seventeen, with safe appropriate rules; remove the adult class only after honoring bookings, refunds and permits. Do not bar adults from other events or invent additional young residents. Gate A dialogue on step 3, survival, remembered request for the adult class and actual lost eligibility."
+      ],
+      "era_notes": "Carts, course approval and protective standards fit the actual race year; the player supplies funds, not construction instructions.",
+      "why_fun": "The first small entry can lead to a tradition whose later fairness costs its original beneficiary a turn."
+    },
+    {
+      "id": "scenario-20261117-12622",
+      "kind": "scenario",
+      "title": "The Film Club and the Closed Projection Booth",
+      "category": "business",
+      "pitch": "Invest in a music store’s licensed projector-hire proposal. A public film club may grow from it, then adopt a new playback system that ends a projectionist’s familiar paid shifts.",
+      "present_hook": {
+        "what_you_notice": "A music-store file contains an unused projector-hire quote and the hall’s rejected screening proposal.",
+        "where": "the music store",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The room and audience existed in {year}; the approved hire equipment lacked its funding."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "music store"
+          ]
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "wealth": "getting_by"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1990
+        ],
+        "notes": "Bind music_shop to A actual business and hall to an actual consenting authorized public venue. B is a qualified available projectionist. Baseline contains the genuine costed equipment and licensed-screening proposal but no hire service or club. No real film, performer or brand is named. The existing hall includes the actual permitted projection booth; its safe use, title and permitted closure must be verified at every affected step."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "music_shop",
+          "amount": "large",
+          "how_it_looks": "Invest ordinary business capital in the approved safe equipment-hire proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "launch_projector_hire": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Local Projector Hire Holds Its First Screening",
+          "body": "The shop provides actual approved equipment and pays the qualified projectionist for a completed licensed screening."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "form_hall_film_club": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Hall Adopts a Regular Film Club",
+          "body": "The authorized venue adopts a funded recurring film program with actual screening rights and a projection contract."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "replace_club_projection_system": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Film Club Changes Systems and Closes Its Booth",
+          "body": "The club installs its approved replacement playback system. The old paid projection arrangement ends after its real notice and settlement terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Hire Proposal Finds No First Screening",
+        "body": "The investment has its ordinary business result, but no qualifying completed screening is recorded. No film club or paid projection shifts follow automatically."
+      },
+      "present_day": {
+        "best": "If the whole chain and venue persist in {now}, the hall uses its actual approved replacement system and its old projection booth is closed to that former role.",
+        "worst": "If later steps fail, show only real equipment, screenings and contracts; do not claim public access to films without rights.",
+        "twist": "The club gains a supported replacement system, while {B} loses the future paid projection shifts specifically ended by the transition."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "The pictures kept coming. It was the little room behind them that went away."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "launch_projector_hire requires A ownership, funded actual safe inspected equipment, B current qualification, venue permission, paid public-performance rights and a feasible funded event. Record real hire, wages, maintenance and audience admissions only as they occur.",
+        "form_hall_film_club requires venue authority and funded recurring demand, actual licensed programming, approved safe operations and signed supplier and projection terms. Add film club as a venue program, not a newly generated cinema business. Membership does not create new residents or guaranteed annual attendance.",
+        "replace_club_projection_system requires the original equipment genuinely beyond economical supported operation under an actual qualified assessment, real available era-appropriate replacement equipment and screening rights, public venue approval, installation funding, trained authorized operators and safe inspection. A must still hold the hire arrangement and B the actual paid projection role. End the specified old contracts lawfully with required notice, final wages and compensation; record the new actual operating roles without inventing a worker or making B unemployed from every job. Keep the actual retired equipment under its true ownership and close only that old booth role. Gate B dialogue on step 3, survival and actual lost shifts."
+      ],
+      "era_notes": "A replacement before digital playback is practical must use an actually supported film or video system; later years may use a supported digital system. No technology appears merely because it is newer.",
+      "why_fun": "A gathering can survive while a familiar way of making it happen quietly disappears."
+    },
+    {
+      "id": "scenario-20261117-12623",
+      "kind": "scenario",
+      "title": "The Lane That Outgrew Its First Snowplow",
+      "category": "place",
+      "pitch": "Introduce a private-lane owner to a qualified snow-clearing contractor. A useful route may eventually become publicly maintained, then pass to a different contractor when the district adopts a new lawful bid.",
+      "present_hook": {
+        "what_you_notice": "A private-lane file contains an unsigned clearing agreement beside a contractor’s unused route quote.",
+        "where": "the edge of town",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The owner and qualified contractor never discussed the feasible route in {year}."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            40,
+            50
+          ],
+          "wealth": "comfortable",
+          "relation": "strangers"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "snow-removal service"
+          ],
+          "relation": "strangers"
+        },
+        "C": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "snow-removal service"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are strangers relative to each other. A legally controls the actual lane and can contract for its clearing. C is a distinct existing qualified competing operator, not a future generated bidder. The baseline has a feasible quote and no route contract; snowfall and road conditions follow actual simulation."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the consenting lane owner and contractor with the genuine route plan."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "contract_lane_clearing": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Private Lane Signs Its First Clearing Agreement",
+          "body": "The owner and contractor sign the funded feasible route agreement. Work and payment occur only under actual qualifying conditions."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "adopt_lane_maintenance_district": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Long-Used Lane Joins a Funded Maintenance District",
+          "body": "The lawful public process accepts the lane and its funded maintenance obligations. Existing rights and the contractor’s actual agreement are settled."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "rebid_snow_route": [
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A District Route Goes to a Different Qualified Bidder",
+          "body": "The authorized procurement process awards the actual route to the qualified competing bidder. The former contract ends on its lawful terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Route Quote Remains Unsigned",
+        "body": "The introduction happens, but no clearing agreement is completed. No snowfall, public adoption or later award is promised."
+      },
+      "present_day": {
+        "best": "If the chain and awards persist in {now}, the actual district map includes the lane and its current snow-route contract names the legally appointed operator represented by {C}.",
+        "worst": "Without adoption or a valid award, retain actual private rights and contracts; never render an imaginary plowed road or public duty.",
+        "twist": "Residents gain the funded district arrangement, while {B} loses future revenue from the route transferred to {C}."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I taught that lane where the road ended. The new bid sheet was much straighter."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add snow-removal service as a business kind; bind separate adult-owned businesses to B and C. contract_lane_clearing requires actual lane rights, feasible qualified safe operations, real maintained equipment, lawful disposal and access terms, consent and an affordable funded contract. Record only real weather-triggered work, costs and payments; never force snow or unsafe travel.",
+        "adopt_lane_maintenance_district requires competent public authority, actual suitable road standard, legal transfer or easements with every necessary owner’s consent, approved public process, lawful funded assessments and maintenance capacity. Record the precise lane rights, real public duty and actual levy; do not create road land or erase existing contracts. B must actually retain or lawfully obtain the maintenance contract pending later procurement.",
+        "rebid_snow_route requires the district still responsible, B actual expiring route contract, a real legally authorized competitive process, current qualified available C equipment and a supported funded C bid that actually wins under published criteria. Settle B work, notice and compensation and start only the recorded C contract; pay no fictitious profit or blanket wealth penalty. No favoritism, corruption or inferior safety is implied by losing. Gate B dialogue on step 3, survival, remembered actual route and lost future work."
+      ],
+      "era_notes": "Plows, road standards, insurance and public procurement follow each event year; the story does not assume a modern vehicle in an early decade.",
+      "why_fun": "A first useful agreement can make a road important enough to stop belonging to the same routine."
+    },
+    {
+      "id": "scenario-20261117-12624",
+      "kind": "scenario",
+      "title": "The Empty Plot Beside the Corrected Record",
+      "category": "family",
+      "pitch": "Report a documented cemetery plot-record error. A corrected map may let a relative purchase an unused neighboring right, then freely give that reserved space to someone outside the family.",
+      "present_hook": {
+        "what_you_notice": "A cemetery register and a surveyed plot map disagree about an existing grave’s catalogue number; a related reservation request was rejected because of that mismatch.",
+        "where": "the cemetery archive",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The survey attached to the unfiled report in {year} identified a records error, not a misplaced burial."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "B": {
+          "age": [
+            40,
+            50
+          ],
+          "wealth": "comfortable"
+        },
+        "C": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A is the actual authorized cemetery records clerk. B is a verified relative with lawful standing concerning the existing grave; C is a distinct existing prospective plot-right recipient, with no assumed kinship or impending death. The grave is physically correct. The genuinely vacant adjacent plot has verified available rights, subject to actual cemetery rules. Verify C is unrelated to B for this outside-family transfer story, and bind the grave to its already existing deceased resident record without rebinding that person to a living role."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:report_plot_record_error",
+          "target": "A",
+          "how_it_looks": "Submit the genuine register discrepancy and existing qualified survey through the authorized cemetery process."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "correct_plot_catalogue": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Grave’s Register Entry Finds Its Correct Number",
+          "body": "The authorized clerk corrects the verified catalogue mismatch. No burial or physical grave is moved."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "reserve_adjacent_plot": "B"
+            }
+          ],
+          "headline": "A Relative Purchases an Actual Neighboring Plot Right",
+          "body": "The cemetery completes the lawful funded sale of the still-available adjacent reservation right. The space remains physically unused."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "gift_reserved_plot": [
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "An Unused Family Reservation Goes to Another Resident",
+          "body": "The holder freely transfers the eligible unused right under the cemetery’s actual rules. The recipient receives a reservation, not a newly created grave."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Register Entry Remains Disputed",
+        "body": "The report remains filed, but no verified authorized catalogue correction is completed. No plot sale, move or burial is created."
+      },
+      "present_day": {
+        "best": "If the chain and rights persist in {now}, the register has the corrected catalogue entry and the unused adjacent reservation belongs to {C} under its actual legal terms.",
+        "worst": "Without completed correction or rights transfer, retain actual records and holders; no death, exhumation or family reunion is assumed.",
+        "twist": "{C} receives a real reservation right, while {B} permanently gives up the paid option to use or retain that specific family-adjacent space."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I spent years arguing over a number. In the end, I could choose what to do with the empty space beside it."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "report_plot_record_error",
+          "does": "Submit one genuine cemetery catalogue discrepancy to authorized clerk A with the existing qualified survey and records; create only a review request without moving graves, identifying new relatives or transferring plot rights."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "report_plot_record_error creates one authorized discrepancy review request using the existing register and qualified survey. It changes no burial identity, grave position, kinship or title directly.",
+        "correct_plot_catalogue requires A current authority, authenticated records and a qualified verified match, B actual standing and all required notices. Correct only the catalogue-number linkage and audit trail. Preserve the true deceased resident identity and physical location; no remains are disturbed and no new person is generated.",
+        "reserve_adjacent_plot requires B alive, genuine eligible request, the specific plot still vacant and legally available, corrected records, informed consent, affordable actual purchase funds and a completed cemetery agreement. Debit the real purchase price and record exactly the granted reservation rights, fees and limits; ownership of land is not implied.",
+        "gift_reserved_plot requires B still clear holder, the space still unused, C alive and eligible under the actual cemetery policy, B informed independent consent with no pressure, actual operator approval and funded transfer fees. Move only the one transferable reservation right to C and extinguish B former right; no sale proceeds, death, funeral service or future burial is invented. Gate B dialogue on step 3, survival, remembered dispute and completed voluntary gift."
+      ],
+      "era_notes": "Records, surveys, cemetery rights and transfers follow the actual event decade and operator rules; no universal right to transfer a plot is assumed.",
+      "why_fun": "A corrected little square on a map can eventually become a family decision to make room for somebody else."
+    }
+  ]
+}

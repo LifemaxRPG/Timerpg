@@ -1,0 +1,669 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-13081",
+      "kind": "scenario",
+      "title": "The Haircut Paid for in Tomatoes",
+      "category": "money",
+      "pitch": "Introduce a barber to a gardener offering a genuine exchange. Their small arrangement may become a neighborhood barter club, then bring an actual tax bill for trade that felt as if it involved no money.",
+      "present_hook": {
+        "what_you_notice": "A barber’s file contains an unsigned haircut-for-produce proposal and two separately accepted price estimates.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "Both sides could make the exchange in {year}, but neither had met the other."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "barber shop"
+          ],
+          "relation": "strangers"
+        },
+        "B": {
+          "age": [
+            40,
+            45
+          ],
+          "wealth": "getting_by",
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are strangers relative to each other. A owns the actual qualified barber business; B legally owns the actual suitable surplus garden produce. Baseline has the genuine costed offer but no trade. Do not invent a harvest, food-safety approval, business licence or exemption."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the consenting barber and gardener with the real prices and proposed terms."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "exchange_haircut_produce": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Haircut and a Basket Settle Each Other’s Price",
+          "body": "The parties complete the actual lawful service and produce exchange at the agreed recorded values."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "form_barter_club": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Few Trades Acquire a Neighborhood Ledger",
+          "body": "Actual consenting participants establish the funded barter arrangement and its agreed accounting rules. Recorded credits represent completed real trades, not free money."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "settle_barter_tax_return": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Barter Ledger Adds Income to a Tax Return",
+          "body": "The qualified filing process reports the actual taxable trade values. The barber pays the resulting evidenced tax liability on its lawful due date."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Two Estimates Never Become an Exchange",
+        "body": "The introduction happens, but no completed barter transaction is recorded. No credits or tax consequences arise from an unperformed trade."
+      },
+      "present_day": {
+        "best": "If the chain and club persist in {now}, the actual ledger records completed exchanges and the current filed return records the paid liability attributable to {A}’s actual trade income.",
+        "worst": "Without real completed trades and a valid applicable liability, no credits, taxable value or payment is invented.",
+        "twist": "The participants gain a way to trade without immediate cash prices, while {A} still spends real money on the actual tax due."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "I called it a basket of tomatoes. The return called it income."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add barber shop as a business kind owned by qualified adult A. exchange_haircut_produce requires A authority, B clear ownership of actual available lawful produce, safe permitted handling, both parties’ informed consent and actual completed haircut. Record fair agreed values and the real goods and service only once; invent no extra cash or harvest.",
+        "form_barter_club requires actual willing residents and lawful governance, affordable operating funds and transparent agreed valuation, records and settlement rules. Add barter club as an organization type. Credits may be issued only for real completed eligible exchanges with corresponding obligations; enforce redemption, transfer and reporting rules rather than creating wealth or shops.",
+        "settle_barter_tax_return requires the club and A actual current commercial trades still active, authentic records, an independently qualified real filing and a strictly positive liability attributable to those current trade values under the actual law after lawful expenses, exemptions and credits. Pay the exact due amount from real available A funds once, with no fabricated penalty or stale retroactive assessment. B transactions and every other member follow their own actual liability, not a universal invented tax. Gate A dialogue on step 3, survival and the actual filed return."
+      ],
+      "era_notes": "Barter valuation, food permissions, recordkeeping and tax rules follow the actual event year; no universal exemption or tax rate is assumed.",
+      "why_fun": "A friendly trade can grow into an institution that eventually insists a basket belongs in a column."
+    },
+    {
+      "id": "scenario-20261117-13082",
+      "kind": "scenario",
+      "title": "The Antenna Everyone Owned for a While",
+      "category": "business",
+      "pitch": "Invest in a music store’s costed shared-antenna proposal. A member-owned reception network may follow, then sell to an actual operator, giving members the agreed proceeds while ending their voting control.",
+      "present_hook": {
+        "what_you_notice": "A music-store file contains a rejected communal television antenna plan and signed expressions of household interest.",
+        "where": "the music store",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The tested site in {year} could support the proposed service; the equipment and lawful connection budget were missing."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "music store"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1985
+        ],
+        "notes": "Bind music_shop to A actual business. B is a genuine prospective household subscriber with an actual suitable receiver. Baseline has a feasible tested site and no communal network. All roof, land, reception, distribution and subscriber rights must be real; the story creates no television programs or guaranteed signal."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "music_shop",
+          "amount": "large",
+          "how_it_looks": "Invest ordinary business capital in the approved shared-reception equipment and connection plan."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "launch_shared_antenna": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Shared Antenna Begins Its Approved Service",
+          "body": "Qualified workers complete the permitted real system and connect the consenting household under the funded service agreement."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "form_reception_cooperative": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Subscribers Take Documented Ownership of Their Network",
+          "body": "The authorized parties complete the actual funded cooperative transfer. Members receive only the ownership and voting rights specified in its real charter."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "sell_reception_network": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Member-Owned Network Completes an Approved Sale",
+          "body": "The actual charter process approves a funded lawful sale to the qualified operator. Proceeds and service duties follow the signed agreement; former members no longer vote as owners."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Antenna Proposal Does Not Become Service",
+        "body": "The investment follows its ordinary business result, but no working approved connection is completed."
+      },
+      "present_day": {
+        "best": "If the full chain and service persist in {now}, the actual network service notice identifies its present operator and the cooperative records show the completed sale and settled former member rights.",
+        "worst": "Without a completed transfer or sale, retain actual equipment title, subscriber terms and charter rights; no buyer, proceeds or program lineup appears automatically.",
+        "twist": "{B} receives only the actual entitled sale proceeds and gives up the former ownership vote over the network."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I got my share of the sale. I stopped getting a vote."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "launch_shared_antenna requires A authority, actual tested reception, legal site and route access, era-appropriate permitted equipment, qualified installation and inspection, lawful distribution rights, B real receiver and consent and a funded affordable agreement. Record real equipment, connections, costs and paid fees; no new media business or subscribers appear automatically.",
+        "form_reception_cooperative requires actual existing consenting members, lawful governance, proper valuation and informed transfer agreements, sufficient real purchase funds or lawful financing, clear network title and necessary operating permissions. Add television distribution service as a business kind and reception cooperative as an organization type. B becomes an actual member only through the recorded funded agreement; A prior investment is not counted again as sale profit.",
+        "sell_reception_network requires the actual cooperative still owns the network, a qualified real willing buyer with actual funds and permissions, independent informed member notice and a valid charter vote, settled dissent and creditor rights, binding service obligations and lawful closing. Transfer title and distribute only real net proceeds by the actual recorded shares, ending only the sold membership votes. No guaranteed future prices, signal improvement or free windfall is created. Gate B dialogue on step 3, survival, actual former vote and actual received proceeds."
+      ],
+      "era_notes": "Antenna, cable, licensing and cooperative arrangements must actually be feasible in the selected event year; no satellite or digital system is assumed early.",
+      "why_fun": "Neighbors can build something together and later discover that selling it changes the meaning of having a say."
+    },
+    {
+      "id": "scenario-20261117-13083",
+      "kind": "scenario",
+      "title": "The Fare to a Child’s Graduation",
+      "category": "family",
+      "pitch": "Help a parent afford a real graduation visit. Sustained contact may help an adult child choose to return years later, then inherit the actual family home after the parent’s ordinary natural death.",
+      "present_hook": {
+        "what_you_notice": "A household file contains an unused graduation invitation and the unaffordable return-fare quote.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The parent had permission and time for the trip in {year}, but not the actual fare."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            55,
+            60
+          ],
+          "has_children": true,
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            18,
+            22
+          ],
+          "relation": "parent_child"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A is B actual parent, and B the child. A legally owns the identified home despite limited cash. B has an actual funded course completion and graduation scheduled at intervention+1; the missed visit is the baseline. A later natural death and any will must follow independent actual simulation, never be caused to create an inheritance. Require the small gift to cover the evidenced fare shortfall; the gift transfers its normal fixed amount, not a second custom payment."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the parent the actual shortfall for the approved outward and return journey."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            1
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "attend_graduation": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Parent Makes the Graduation Journey",
+          "body": "The parent completes the actual paid journey and attends the real course-completion event. The visit is recorded without promising a later duty."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "return_to_parent_home": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Adult Child Chooses a Return to the Family Home",
+          "body": "With a real funded plan and the parent’s consent, the adult child returns from actual residence elsewhere. Existing work and housing obligations are settled."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": false
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "inherit": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Estate Transfers Its Actual Family Home",
+          "body": "After the independently recorded natural death and lawful estate process, the eligible child receives the actual home under the valid succession rules."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Invitation Remains an Unmade Journey",
+        "body": "The gift remains real, but no completed graduation visit is recorded. Neither return nor inheritance is promised."
+      },
+      "present_day": {
+        "best": "If the chain and title persist in {now}, the family home belongs to {B} through the actual completed estate; the household file includes the real visit and return records.",
+        "worst": "Without a qualifying death, title and lawful succession, no inheritance occurs; without the actual return, {B}’s residence follows ordinary simulation.",
+        "twist": "{B} gains the later home but first gives up the actual work and housing arrangement elsewhere, paying the real return costs while the parent is still alive."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I kept that invitation. By the time I came home for good, it had softened at every fold."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "attend_graduation requires both residents alive, an actual completed course and authorized event, consent, available lawful transport, actual tickets and affordable trip costs paid once from A funds. Record the attendance and genuine resulting contact through ordinary relationship rules; confer no qualification on the parent or child beyond B actual course result.",
+        "return_to_parent_home requires B adult and actually resident elsewhere through recorded ordinary events, A alive and consenting, an actual mutually wanted household-support plan, legally suitable existing space and a viable budget. B freely settles the actual former job, tenancy and moving costs and moves into that home; no illness, incapacity, unpaid care obligation or off-map income is invented. Record actual foregone opportunity and expenses without an arbitrary second wealth penalty.",
+        "Exception to living-role checks: the final step requires A already dead from an independently resolved natural cause, with B surviving. Require clear actual home title after real debts, taxes, claims and other heirs’ rights, and a valid will or statutory succession actually granting this home to B. Transfer title and settle actual estate costs once, never before death or by silently overriding a spouse or other child. Gate B dialogue on step 3, survival, actual retained invitation and recorded voluntary permanent return; otherwise suppress the keepsake line."
+      ],
+      "era_notes": "Transport, graduation, household arrangements and succession law follow each event decade; no real school or distant place is named.",
+      "why_fun": "The small purchased journey can matter to a household long before there is an estate to divide."
+    },
+    {
+      "id": "scenario-20261117-13084",
+      "kind": "scenario",
+      "title": "The Watch That Went Back to the Pawnbroker",
+      "category": "crime",
+      "pitch": "Report a genuinely identified stolen watch through the lawful process. Its owner may later trust the innocent holder with a paid repair, then voluntarily sell the same keepsake to that holder years after recovering it.",
+      "present_hook": {
+        "what_you_notice": "A documented stolen-watch description matches an actual pawn-shop inventory entry; the matching report was never submitted.",
+        "where": "the pawn shop",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The identifiers and original ownership evidence were already available in {year}."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by"
+        },
+        "C": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "pawn shop"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A is the actual authorized property-case clerk; B the verified legal owner; C the actual lawful current holder who acquired the watch in good faith. Bind one existing identifiable watch and a genuine unresolved theft report. C is not the thief by implication. Require an applicable lawful process that can return this specific property to B after all competing rights are resolved."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:report_identified_watch",
+          "target": "A",
+          "owner": "B",
+          "holder": "C",
+          "how_it_looks": "Submit the authentic identifier match and ownership evidence to the authorized case clerk without taking the watch."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "return_identified_watch": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Verified Property Claim Returns a Watch",
+          "body": "The competent process resolves the actual claim and returns the single identified watch to its legal owner. Good-faith possession alone is not declared a crime."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "repair_returned_watch": [
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Returned Keepsake Comes Back for a Paid Repair",
+          "body": "Its owner freely hires the qualified former holder for an actual affordable repair. Ownership stays with the customer."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "sell_recovered_watch": [
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "An Old Property Dispute Ends in a Voluntary Sale",
+          "body": "The owner accepts the former holder’s actual supported offer. Clear title to the repaired keepsake transfers against the real agreed payment."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Identifier Match Produces No Completed Return",
+        "body": "The report remains in the lawful process, but no completed qualifying ownership decision and return are recorded. No seizure or criminal finding is invented."
+      },
+      "present_day": {
+        "best": "If the full chain and title persist in {now}, the pawn-shop’s actual ownership record shows a lawful voluntary purchase of the same watch after the earlier return and repair. Display it only if it remains in current stock.",
+        "worst": "Without the competent return decision, retain actual custody and competing rights; without the later sale, {B} keeps only the title actually established.",
+        "twist": "{B} first regains the power to choose, then gives up the physical keepsake in exchange for its actual sale price; {C} pays real money for clear title rather than gaining the object from the theft."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I needed it back before selling it could be my decision."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "report_identified_watch",
+          "does": "Submit one authentic stolen-property identifier match to authorized clerk A, identifying claimed owner B and actual holder C through lawful records; create only a review request without taking property, changing title or accusing the holder."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add pawn shop as a business kind owned by adult C. report_identified_watch creates one documented property-claim review request from authentic existing identifiers and lawful ownership evidence. It changes no custody, reputation or title and makes no accusation against the good-faith holder.",
+        "return_identified_watch requires A current authority, authenticated match, lawful notice and review of every competing interest, a competent actual order or fully informed lawful settlement and completed custody transfer. Move the single existing watch to B and record the established title; handle C actual good-faith purchase loss or recovery rights under real law without inventing compensation or treating C as guilty. Do not create a thief, arrest, death or second watch.",
+        "repair_returned_watch requires B actual clear title and consent, the same watch still present, real repair need, C current independently verified watch-repair skill and lawful shop capacity, agreed affordable quote, actual parts and completed safe specialist work. Debit B real invoice once and record C real service income and costs, not a free restoration or automatic friendship.",
+        "sell_recovered_watch requires B and C alive, B still clear owner and freely willing to sell without pressure, C still operating and making a funded supported offer, lawful sale records and actual payment sufficient under their agreed price. Transfer that one object and title atomically; settle real fees and do not add another wealth bonus. C later stock or resale follows ordinary events. Gate B dialogue on step 3, survival, remembered return and actual free choice to sell."
+      ],
+      "era_notes": "Property identification, pawn records, good-faith rights and repair methods follow the actual event year; no universal power to seize property is assumed.",
+      "why_fun": "A changed past can restore a choice even when the final shop window eventually looks familiar."
+    }
+  ]
+}

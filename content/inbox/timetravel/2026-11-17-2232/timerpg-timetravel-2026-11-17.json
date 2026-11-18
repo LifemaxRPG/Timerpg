@@ -1,0 +1,672 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-13521",
+      "kind": "scenario",
+      "title": "The Flood Policy That Ended with an Empty Lot",
+      "category": "money",
+      "pitch": "Help a homeowner afford an actual flood-insurance premium. A later valid claim may keep the household financially afloat, then make a voluntary buyout possible at the price of giving up the home’s site.",
+      "present_hook": {
+        "what_you_notice": "A household file contains an expired insurance quote and the unchanged history’s unrepaired flood-loss assessment.",
+        "where": "the river",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The policy offered in {year} covered the actual eligible home, but its premium was not paid."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A owns the identified eligible home; B is the actual authorized insurance agent. A real available policy covers the documented flood peril, and the small gift covers its premium shortfall. The seed has an independently scheduled nonfatal property flood at intervention+12. Require an era-valid policy and later buyout program, not invented insurance availability or a forced disaster."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the homeowner a week’s wages toward the real quoted premium."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "bind_flood_policy": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Homeowner Binds the Offered Flood Coverage",
+          "body": "The actual premium is paid and the authorized insurer issues the real policy. Its limits and exclusions remain in force."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            12
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "settle_flood_claim": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Documented Flood Claim Reaches Settlement",
+          "body": "The actual covered property loss is assessed under the in-force policy. Only the supported indemnity is paid after the deductible and other claim terms."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "complete_flood_buyout": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Voluntary Buyout Leaves a Protected Empty Site",
+          "body": "The informed owner completes the real funded purchase and relocation. The authorized program removes the unoccupied home and records the actual restriction against rebuilding it."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Quote Does Not Become Bound Coverage",
+        "body": "The gift remains real, but no qualifying policy is issued. No claim payment is created from an unused quote."
+      },
+      "present_day": {
+        "best": "If the chain and restriction persist in {now}, the former home site is visibly empty and its title record prohibits the specified rebuilding; the archive holds the actual paid claim and buyout records.",
+        "worst": "Without in-force coverage, a covered loss or a valid buyout, retain actual damage, ownership and obligations. A donation alone creates neither compensation nor relocation.",
+        "twist": "{A} gains only the actual insurance and buyout payments, settles real losses and debts, and permanently gives up this home site."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "The papers finally added up. The house is the part that is missing."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "bind_flood_policy requires an actual authorized insurer and valid offer, A title and informed consent, correct risk disclosures, eligible property, paid real premium and effective coverage after any waiting period. Renewal premiums must remain actually paid through the claim year under ordinary household budgeting; no free perpetual policy.",
+        "settle_flood_claim requires the independently seeded flood actually affects this home at year+12 after ordinary physical simulation, a still-valid covered peril, honest documented damage and a competent adjustment. Transfer only the real owed amount, respecting deductible, limits, lender interests and other recovery. No duplicate wealth bonus, death, injury or fabricated flood is added. B must hold authority or the step fails.",
+        "complete_flood_buyout requires an actual current funded lawful program, willing authorized buyer, A continued clear transferable title, informed voluntary consent, supported valuation, settled mortgages and claims, proper treatment of earlier payments and viable actual replacement housing. Pay only actual net entitlement, relocate the household lawfully, remove only the empty identified house with required permissions and record the real permanent land-use restriction. B participates only within current actual authority; no continued insurance authority is assumed to authorize a buyout. Gate A dialogue on step 3, survival, actual former ownership and completed removal."
+      ],
+      "era_notes": "Insurance availability, premiums, flood claims and buyout powers must exist in their actual event years; no modern program is projected backward.",
+      "why_fun": "Financial rescue can leave a blank space where the player expected a repaired house."
+    },
+    {
+      "id": "scenario-20261117-13522",
+      "kind": "scenario",
+      "title": "The Reunion That Stopped Being an Annual Dinner",
+      "category": "family",
+      "pitch": "Introduce an adoptive parent to the birth parent of an existing young resident, when everyone wants lawful contact. Years of joint gatherings may follow before the adult child chooses a less demanding family calendar.",
+      "present_hook": {
+        "what_you_notice": "A family archive holds an unanswered consensual contact request and no record of the proposed joint gathering.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The people involved in {year} wanted a mediated introduction, but no meeting was arranged."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            40,
+            45
+          ],
+          "has_children": true
+        },
+        "B": {
+          "age": [
+            34,
+            39
+          ],
+          "has_children": true,
+          "relation": "strangers"
+        },
+        "C": {
+          "age": [
+            16,
+            17
+          ],
+          "relation": "parent_child"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A is C actual adoptive parent and B C actual birth parent under established records; C is the child in both directed relationships. B is a stranger relative to A. The adoption already exists and is not reversed. Bind only where lawful record access, all necessary guardian approvals, C affirmative wishes and both parents’ genuine interest are present. Baseline has no agreed contact arrangement."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Arrange the welcomed mediated introduction under the existing lawful contact request."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "agree_family_contact": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Family Records Its Chosen Contact Terms",
+          "body": "The actual participants freely agree to the mediated contact plan. Existing parentage and privacy rights remain unchanged."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "establish_joint_family_gathering": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Joint Family Gathering Becomes a Voluntary Tradition",
+          "body": "The now-adult child and both parents establish the actual affordable annual gathering by mutual agreement."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "end_annual_family_gathering": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Family Agrees to Retire Its Annual Gathering",
+          "body": "The adult child’s real wish for a different schedule is heard. The parties end only the standing annual event, leaving other contact to their actual choices."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Introduction Produces No Contact Agreement",
+        "body": "The welcomed meeting occurs, but no qualifying continuing plan is agreed. No parental right, reunion tradition or obligation is invented."
+      },
+      "present_day": {
+        "best": "If the chain remains applicable in {now}, the family calendar no longer contains the standing annual gathering; its actual contact records distinguish that change from any later separate visits.",
+        "worst": "Without a contact plan or tradition, no reunion schedule is created. Ending an event never erases actual adoption, birth relationships or ordinary contact.",
+        "twist": "{C} gains a less demanding calendar, while {A} and {B} lose the standing scheduled occasion they had come to share; no other visits are promised."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "grateful",
+          "line": "I wanted to know everybody. I did not mean every year had to come with a seating plan."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "agree_family_contact requires current lawful record access, actual existing adoption and birth links, informed willing participants, required guardian approvals while C is a minor, qualified mediation and an affordable safe plan. At adulthood C controls C own participation. Record only agreed contact, not a new parent-child bond, custody transfer or automatic affection.",
+        "establish_joint_family_gathering requires C now an independently consenting adult, both parents alive and willing, actual successful voluntary contact since step 1, an existing suitable available venue and affordable travel and hosting. Record exact annual scheduling and costs as a revocable agreement, not guaranteed attendance or an invented wider family.",
+        "end_annual_family_gathering requires the actual tradition still active, C actual freely expressed preference for ending its standing schedule, informed agreement and settlement of any real bookings or deposits. Remove that recurring event only; retain existing relationships and allow independent ordinary visits. Do not force estrangement or reconciliation. Gate C dialogue on step 3, survival and remembered freely chosen scheduling change."
+      ],
+      "era_notes": "Adoption records, mediation, adulthood and contact law follow each actual event year. No universal access right or modern open-adoption practice is assumed early.",
+      "why_fun": "A successful reunion can grow into a tradition that the person it was meant to help eventually needs permission to change."
+    },
+    {
+      "id": "scenario-20261117-13523",
+      "kind": "scenario",
+      "title": "The Number That Cost More to Leave Out",
+      "category": "secrets",
+      "pitch": "Introduce a directory printer to a resident willing to be listed. A long-lived listing may later end through a paid unlisted-number arrangement, trading an easy public lookup for a recurring bill.",
+      "present_hook": {
+        "what_you_notice": "A printer’s archived proof has a blank where a resident’s voluntarily proposed household listing would have appeared.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposed listing in {year} was accurate and authorized; it never reached an agreed printed edition."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "print shop"
+          ]
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ],
+          "wealth": "getting_by",
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "B is a stranger relative to A and holds the actual telephone subscription with authority over its listing. Bind print_shop to A adult-owned business. Baseline has the genuine proposed entry and no completed agreement for it. Later paid unlisted service must actually be available and applicable; no universal fee or ability to erase old books is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the consenting subscriber and printer over the actual proposed directory entry."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "publish_consented_phone_entry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Resident Approves a Place in the Local Directory",
+          "body": "The funded real edition prints only the verified entry the subscriber has approved."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "renew_phone_entry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Familiar Listing Receives Fresh Permission",
+          "body": "The actual current subscriber checks the new proof and renews permission for the funded edition."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "withdraw_phone_entry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Subscriber Pays for an Unlisted Arrangement",
+          "body": "The subscriber buys the actual available service and withdraws permission for future directory editions. The settled service agreement records the real charge."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Proof Does Not Become an Agreed Entry",
+        "body": "The introduction happens, but no qualifying authorized entry is printed. No permission or telephone subscription is created by meeting."
+      },
+      "present_day": {
+        "best": "If the chain and arrangement persist in {now}, the actual new directory omits the entry and the subscriber’s account carries only the real agreed unlisted-service charge. Old editions remain historical records.",
+        "worst": "Without an actual later withdrawal or service agreement, preserve the real permissions, entries and bills. Do not erase old books or guarantee that callers cannot find the number.",
+        "twist": "{B} gains the specific paid listing restriction and gives up the included public lookup, while owing the actual applicable recurring fee."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "My number costs more when it is not printed."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add print shop as a business kind, bound to A actual adult-owned business. publish_consented_phone_entry requires a viable funded actual directory edition, verified current subscription, B lawful authority and explicit informed permission for exact fields and distribution. Print that entry once with ordinary real production costs; invent no new telephone, subscribers or guaranteed callers.",
+        "renew_phone_entry requires A still authorized to publish, an actual funded later edition, B current authority over the same eligible subscription, verified updated details and fresh voluntary permission. Record the exact renewed scope, not irrevocable consent or a second fee without contract.",
+        "withdraw_phone_entry requires B actual wish to withdraw, lawful current subscriber authority, an actual authorized carrier offering an applicable positive-priced unlisted service, informed agreement and sufficient real funds. Settle the exact initial charge and ordinary recurring obligations, record carrier restriction and remove only the withdrawn entry from A future editions under actual publication deadlines. Never seize old books, erase unrelated directories or promise silence. Gate B dialogue on step 3, survival, the actual positive price and current omitted entry."
+      ],
+      "era_notes": "Directory permissions, carrier offerings, fees and printing methods follow their actual years; no modern privacy right is imposed on earlier records.",
+      "why_fun": "A tiny blank line can be a visible improvement that arrives as a less welcome line on a bill."
+    },
+    {
+      "id": "scenario-20261117-13524",
+      "kind": "scenario",
+      "title": "The Child Missing from the Earlier Photograph",
+      "category": "uncanny",
+      "pitch": "Show a couple their own authenticated future household photograph. If they freely choose to wait before parenthood, a later child may grow up and leave town, while the earlier possible child is never born in this changed history.",
+      "present_hook": {
+        "what_you_notice": "An authenticated household photograph shows the couple with their early child, beside their recorded permission to show it to their earlier selves.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The earlier child in this source photograph was conceived after {year}; nobody is already expecting a child at the intervention."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            24
+          ],
+          "sex": "F",
+          "married": true,
+          "has_children": false
+        },
+        "B": {
+          "age": [
+            20,
+            26
+          ],
+          "sex": "M",
+          "married": true,
+          "has_children": false,
+          "relation": "spouses"
+        }
+      },
+      "window": {
+        "years": [
+          1950,
+          1990
+        ],
+        "notes": "A and B are spouses relative to each other, actual eligible prospective biological parents and not currently pregnant or already committed to an existing conception. Baseline has a recorded potential conception at intervention+1 and its later birth, plus the authorized source photograph. Show only a genuinely recorded originating timeline. Present must be at least intervention+29. No existing resident is killed or removed by a retroactive effect."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:show_future_household_photo",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Privately show the consenting couple the authenticated photograph and its originating date without directing their reproductive decision."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            1
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "no_child": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Couple Freely Chooses to Wait before Parenthood",
+          "body": "Before the identified possible conception, both spouses choose a real postponement. That specific unbegun conception does not occur; no pregnancy is ended."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            6,
+            8
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "child": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Later Beginning Adds a Different Child to a Household",
+          "body": "The still-eligible willing parents have the actual later child through the ordinary conception and birth simulation. The earlier photographed child is not renamed or substituted."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            27,
+            29
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true,
+              "age": [
+                19,
+                23
+              ]
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "move_away": "C"
+            }
+          ],
+          "headline": "An Adult Child Takes a Funded Opportunity Elsewhere",
+          "body": "The later-born adult freely completes an actual affordable move for a real opportunity. The parents remain subject to their ordinary residence choices."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "A Photograph Does Not Set a Family’s Timetable",
+        "body": "The permitted viewing happens, but the identified postponement is not chosen. Parenthood follows the actual simulation; the carried source image does not command a birth."
+      },
+      "present_day": {
+        "best": "If the chain is realized by {now}, the household record contains the distinct later-born {C}; the current residence record shows {C} living away only while that remains true. The source photograph retains its original-timeline provenance.",
+        "worst": "Without a qualifying later birth, no C is bound or move attempted. The source child is never treated as someone who died; show only the actual resulting household.",
+        "twist": "The couple gains the time they freely chose before parenthood and later has a different child, while the earlier photographed possible child has no birth in this changed branch. The later child’s actual move also leaves the parents without that co-resident."
+      },
+      "npc_lines_after": [
+        {
+          "who": "C",
+          "mood": "uncanny",
+          "line": "I know which picture you mean. It is not a picture of me."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "show_future_household_photo",
+          "does": "Privately display one authenticated source-timeline household photograph to its actual consenting parents A and B; preserve provenance and alter no reproductive event merely through viewing."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Override the common present bound to intervention+29. show_future_household_photo displays only an authenticated originating-timeline image under both parents’ real permission and lawful authority; keep the carried source immutable across replay. It changes no conception, pregnancy or bond on its own.",
+        "no_child applies once to the specific independently identified potential conception scheduled at year+1, before conception resolution and only with both parents’ current free informed choice to postpone. Resolve ordinary mortality, then this voluntary decision, then the scheduled conception; reserve the conception event against concurrent resolution. The effect suppresses that conception ID, not an existing pregnancy, born child or all future fertility. If it already occurred or either declines, the step is ineligible. Log the decision without creating a dead or ghost resident.",
+        "child at step 2 denotes a completed later birth after a distinct ordinary eligible conception and actual gestation. Require A and B alive, still mutually consenting eligible parents, actual reproductive feasibility, suitable funded care and supported household conditions. Their ages at birth are A 26–32 and B 26–34. Create C only on this committed birth, using a stable seed/scenario/parent-IDs/new-conception-ID resident binding and ordinary genetics and sex selection. C is absent from initial roles and distinct from every source-timeline child. No intervening incompatible pregnancy, marriage or child is silently overwritten.",
+        "move_away requires bound C alive, age at least 18, actually resident in town and freely accepting a real available opportunity with viable destination housing, settled work or tenancy obligations and affordable actual moving costs. At elapsed years 27–29, C is 19–23 depending on the actual birth year. Do not guarantee wages, education or permanent absence. Gate C dialogue on step 3, survival, actual knowledge of the authorized source image and ability to speak in the present through a real visit or call; otherwise suppress it."
+      ],
+      "era_notes": "Family planning options, healthcare, photographs and adult moving arrangements follow actual event years; waiting is never imposed through assumed medical access.",
+      "why_fun": "A changed family tree is personal when a surviving photograph belongs to a life that no longer begins."
+    }
+  ]
+}

@@ -1,0 +1,645 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-13361",
+      "kind": "scenario",
+      "title": "The Former Owner on the Other Side of the Counter",
+      "category": "business",
+      "pitch": "Wreck a toy shop’s chances in one difficult year. A younger resident may eventually open a replacement business, then offer the former owner a paid job on the other side of the counter.",
+      "present_hook": {
+        "what_you_notice": "The Gazette archive shows a toy shop that survived a precarious year, beside an unfulfilled younger applicant’s business plan.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The accounts in {year} show how little room the shop had for a bad season."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "toy store"
+          ]
+        },
+        "B": {
+          "age": [
+            18,
+            22
+          ],
+          "owns_shop": false,
+          "wealth": "poor",
+          "trait": {
+            "ambition": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1980,
+          1995
+        ],
+        "notes": "Bind old_toy_shop to A actual adult-owned business. B is a real qualified prospective retailer with a documented plan, not A child or automatic successor. Baseline requires that this particular shop survives without intervention. Sabotage harms that year only; later closure is a separately eligible decision, not a second sabotage."
+      },
+      "interventions": [
+        {
+          "verb": "sabotage",
+          "business": "old_toy_shop",
+          "how_it_looks": "Undermine the toy shop’s business prospects for the intervention year."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "close_shop": "old_toy_shop"
+            }
+          ],
+          "headline": "A Toy Shop Closes after a Failed Season",
+          "body": "The owner completes the actual lawful closure and settles the business’s obligations. The business name and stock are not handed to anyone for free."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "found_business": "B",
+              "kind": "toy store"
+            }
+          ],
+          "headline": "A New Owner Opens a Different Toy Shop",
+          "body": "The younger retailer completes a separately funded opening with actual premises and stock. This is a new business, not an inherited identity."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "hire": [
+                "B",
+                "A"
+              ]
+            }
+          ],
+          "headline": "A Former Proprietor Takes a Paid Place at the Counter",
+          "body": "The new owner and former proprietor agree to a real affordable position. The employment contract gives no ownership share."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Bad Season Does Not End the Shop",
+        "body": "The annual sabotage still applies, but the business does not complete the qualifying closure. No replacement opening or later job is promised."
+      },
+      "present_day": {
+        "best": "If the chain and employment persist in {now}, the new toy shop’s staff listing includes {A}, while its ownership record names {B}. The old shop’s Gazette closure notice remains in the archive.",
+        "worst": "Without the qualifying closure, retain the old shop’s actual fortunes; without later steps, no new shop or employment relationship appears.",
+        "twist": "{B} gains a business and {A} later gains wages, but {A} has already lost the original enterprise and returns with an employee’s authority."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I know where everything belongs. I still have to ask before moving it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "close_shop targets only old_toy_shop while A still owns it, after independently resolved insolvency or A informed closure decision attributable to the changed season. Require lawful creditor, staff, tenancy and stock settlements. Do not delete a building, duplicate the annual sabotage loss or assign assets to B.",
+        "found_business requires B alive, adult, resident, currently qualified and willing, with actual affordable capital or valid financing, legally available suitable premises, permissions, purchased stock and a viable budget. Create one new B-owned toy store with its own identifier; no vacant site, loan or old-shop assets are assumed. Bind new_toy_shop to that identifier.",
+        "hire requires B still owns operating new_toy_shop and has a funded vacant paid role, A alive and independently able and willing to do its actual work, and a lawful voluntary contract. Set actual duties, wages and supervision without inventing a retirement reversal or ownership. Gate A dialogue on step 3, survival, present employment and an actual duty requiring B permission."
+      ],
+      "era_notes": "Stock, accounting and job duties follow the actual decade; do not describe early electronic inventory systems.",
+      "why_fun": "A cruel first act can eventually create an offer that is both useful and hard to accept."
+    },
+    {
+      "id": "scenario-20261117-13362",
+      "kind": "scenario",
+      "title": "The Chimney That Kept Its Summer Guests",
+      "category": "place",
+      "pitch": "Help an owner repair a chimney with a documented seasonal bird roost. A lasting habitat agreement may eventually move the obligation to a purpose-built tower, freeing the old building while reserving part of the owner’s land.",
+      "present_hook": {
+        "what_you_notice": "A building file contains a cancelled chimney-repair quote and a qualified survey of its former seasonal roost.",
+        "where": "the edge of town",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The survey in {year} identified a real occupied roost, before its lawful later loss in the unchanged history."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "A owns the identified cash-poor property with clear title; B is an actual qualified wildlife surveyor with relevant authority. Baseline records an occupied nesting chimney, a feasible unaffordable repair and lawful later habitat loss, without invented bird injury. The large gift covers the documented repair shortfall. No land, substitute habitat or future birds are assumed."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "large",
+          "how_it_looks": "Give the owner a year’s wages toward the costed safe repair outside the actual protected nesting period."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "repair_nesting_chimney": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Repaired Chimney Retains Its Seasonal Roost",
+          "body": "Qualified workers complete the funded safe repair during a lawful unoccupied work period. The existing habitat remains available; no birds are promised to return."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "record_roost_agreement": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Owner Records a Funded Habitat Agreement",
+          "body": "The informed parties execute the lawful conservation agreement for the actual chimney. Its access, maintenance and alteration obligations become recorded property constraints."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "replace_roost_with_tower": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Dedicated Tower Takes over a Chimney’s Habitat Duty",
+          "body": "An approved replacement tower has documented actual use before the agreement transfers. The old unoccupied chimney is safely removed, while the tower site remains reserved under the amended terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Quote Does Not Become a Completed Repair",
+        "body": "The gift remains real, but no qualifying completed habitat repair is recorded. Ordinary property and wildlife events continue without invented injury."
+      },
+      "present_day": {
+        "best": "If the chain and amended agreement persist in {now}, the old building has no original chimney and the actual tower occupies its recorded reserved site at the edge of town. Show birds only when the current survey records them.",
+        "worst": "Without a completed stage, show the actual surviving chimney, habitat and title constraints. No replacement tower or animal relocation is inferred from a donation.",
+        "twist": "{A} gains freedom to alter the old building but gives up other uses of the actual tower footprint and retains the agreed maintenance obligation."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "The guests have their own place now. I still pay for the roof."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "repair_nesting_chimney requires A current clear title and informed consent, actual suitable chimney and survey, lawful protected-species permissions, an independently verified unoccupied work period, qualified structural and fire-safety design, actual contractor and sufficient real funds. Complete and record the repair and its real cost once without repeating the gift or moving animals. No continued occupancy is guaranteed.",
+        "record_roost_agreement requires the repaired chimney still suitable and actual subsequent roost use documented, A informed consent and title authority, actual qualified lawful conservation counterparty represented by B, valid enforceable instrument and affordable funded maintenance. Record exact footprint, inspection access, costs, alteration limits and lawful replacement procedure; do not create a new public office, landowner or automatic subsidy.",
+        "replace_roost_with_tower is one atomic compound effect with staged prerequisite work: require the actual agreement permits substitution, A still owns the original property and a separately identified suitable available site at the edge of town, all affected owners and authorities consent, clear title, approved safe design, qualified contractors and an actually funded budget. Record construction as pending until a real tower is completed and independently observed voluntary use by the actual relevant birds supports equivalent habitat. Use only ordinary animal movement, never forced relocation. If adoption or approval fails, retain the old protection and any actual tower construction costs; do not report final-step success or remove the chimney. Once legally authorized in an actual unoccupied period, amend the recorded footprint to the tower, retain the specified maintenance obligations and complete safe removal of the old chimney. Preserve completed preparatory construction on failure as an explicit exception to whole-step rollback; final title amendment and removal remain atomic. Require no other actual heating or structural use depends on the old chimney. Gate A dialogue on step 3, survival, current responsibility for real tower upkeep and its actual sheltered design. Schedule funded preparatory construction and observation only after committed step 2 and before the selected final year, with each actual cost and site change logged at its own year. The final keyed success roll is used once at completion, with no rerolls; failed observation, eligibility or completion leaves only the actual logged preparatory changes and the old habitat protection."
+      ],
+      "era_notes": "Wildlife protections, survey methods, chimney work and conservation instruments follow each actual event year; no modern legal mechanism is assumed earlier.",
+      "why_fun": "A favor to summer visitors can redraw what an owner is free to do with a building decades later."
+    },
+    {
+      "id": "scenario-20261117-13363",
+      "kind": "scenario",
+      "title": "The Mayor Who Had to Feed the Meter",
+      "category": "politics",
+      "pitch": "Spread a truthful account of a resident’s workable parking proposal. An election may put the idea into public debate, and a later funded policy may finally make its original champion pay to park too.",
+      "present_hook": {
+        "what_you_notice": "A dated campaign clipping contains an unused, costed proposal for timed paid parking on Main Street.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The figures praised in {year} were documented, but the proposal never reached an authorized installation."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "reputation": "mid",
+          "trait": {
+            "ambition": "high"
+          }
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A is the actual eligible prospective candidate and proposal author; B the actual authorized election administrator, not an opponent. A lawful scheduled mayoral election occurs at intervention+2. Baseline has no completed candidacy by A and no meters on the identified eligible spaces. A owns a real vehicle and regularly uses those spaces. No election result or council approval is assumed."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": 0.2,
+          "how_it_looks": "Repeat the verifiable strengths of the resident’s actual parking budget without inventing endorsements."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            1
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "run_for_mayor": "A"
+            }
+          ],
+          "headline": "A Parking Proposal Gains a Registered Candidate",
+          "body": "The resident completes the actual lawful filing and becomes a viable candidate in the scheduled election."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            2,
+            2
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.55,
+          "effects": [
+            {
+              "win_election": "A"
+            }
+          ],
+          "headline": "The Certified Count Elects a New Mayor",
+          "body": "The eligible candidate wins the actual contested election under the recorded lawful result. A proposal alone has not installed any meters."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "build": "the approved Main Street parking meters",
+              "where": "Main Street"
+            },
+            {
+              "pay_first_meter_fee": "A"
+            }
+          ],
+          "headline": "Main Street Installs Its Approved Parking Meters",
+          "body": "The current authority completes the funded lawful installation. The original champion makes an actual chargeable parking visit and pays the posted fee."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "A Praised Budget Does Not Produce a Candidate",
+        "body": "The ordinary reputation change remains, but no qualifying candidacy is completed. No vote total or public project is created."
+      },
+      "present_day": {
+        "best": "If the chain and installation persist in {now}, Main Street displays the actual meter hours and charges, and the archived first receipt records {A} paying under the same rules.",
+        "worst": "Without a certified win or later valid project, no mayoral history, installation or fee is invented. Later elections and authority follow ordinary simulation.",
+        "twist": "{A} helps put a real public policy in motion and later loses the former free use of those spaces, paying the actual applicable parking charge."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "I asked for the same rules for everybody. The little slot has an excellent memory."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "run_for_mayor requires A current legal eligibility, residency, voluntary candidacy, all actual filings and resources for the real scheduled election. B must currently hold the relevant authority. Reputation helps only ordinary viability; it does not register votes.",
+        "win_election requires the registered candidacy survives, legal eligibility and a real election with actual eligible electorate and opponents. Resolve its conditional keyed result through the election simulator: this scenario roll selects the winning branch only where a lawful viable A-winning result can be constructed and certified; do not also independently roll an incompatible winner. If unavailable, fail the step. Record actual votes and certification, with later terms determined by ordinary elections.",
+        "The build effect requires the actual current governing authority, not continued A office, to approve this surviving proposal through lawful process. Require current evidence, identified existing lawful parking spaces, applicable ownership and access rights, public notice, accessible design, actual affordable budget and qualified completed installation. Create only the approved meters and posted actual tariff. No road, land, new taxes or later election wins are implied.",
+        "pay_first_meter_fee requires A alive, actual vehicle use at one newly metered space during chargeable hours, sufficient real money, no applicable exemption and a voluntary actual parking visit. Debit the precise posted fee once, credit the real municipal account and record its receipt. The whole final step requires a supported visit and installation; do not charge before it operates. Gate A dialogue on step 3, survival, actual paid visit and remembered proposal."
+      ],
+      "era_notes": "Election eligibility, records, meter hardware, parking authority and payment methods follow the actual years; no early electronic payment is assumed.",
+      "why_fun": "A decades-long public argument can end with its champion looking for the right coin."
+    },
+    {
+      "id": "scenario-20261117-13364",
+      "kind": "scenario",
+      "title": "The Apology That Waited for Its Opening Date",
+      "category": "uncanny",
+      "pitch": "Show a resident an authentic later apology that the resident has authorized you to carry back. A new letter may enter a time capsule, delaying a chance at reconciliation until the date written on its lid.",
+      "present_hook": {
+        "what_you_notice": "An opened time capsule contains an authenticated apology whose first line says the writer had already seen a copy years before writing it.",
+        "where": "the church",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The archive dates the sealed letter to after {year}; the author’s recorded permission allows showing its contents to the earlier author."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "relation": "rivals"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "relation": "rivals"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are actual rivals relative to each other over a documented nonviolent broken agreement. Baseline contains the authenticated later letter, lawful capsule provenance and explicit permission from both affected parties for this limited earlier viewing. Preserve that source timeline record. B is the letter’s actual intended recipient; no future child, death or new offense is implied."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:show_future_apology",
+          "target": "A",
+          "recipient": "B",
+          "how_it_looks": "Privately show the earlier author the permitted copy, including its authenticated later date."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "write_capsule_apology": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Resident Writes a New Apology for a Future Opening",
+          "body": "The writer freely creates and signs a fresh letter addressing the actual earlier dispute. Its content and new date are recorded."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "seal_capsule_apology": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Consenting Pair Sets an Apology’s Opening Date",
+          "body": "The parties accept the actual custody terms and seal the letter for the specified opening. Neither has agreed that an apology guarantees forgiveness."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "open_capsule_apology": [
+                "A",
+                "B"
+              ]
+            },
+            {
+              "bond": [
+                "A",
+                "B"
+              ],
+              "by": 0.3
+            }
+          ],
+          "headline": "A Time Capsule Opens and a Dispute Softens",
+          "body": "The lawful custodian opens the real capsule on its recorded date. The recipient reads the letter and both residents freely accept a modest improvement in their relationship."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "A Future Copy Produces No Fresh Letter",
+        "body": "The authorized viewing happens, but no new signed apology is written. The carried source record remains authentic to its original timeline, not proof of a new reconciliation."
+      },
+      "present_day": {
+        "best": "If the full chain is realized by {now}, the opened capsule’s actual catalogue holds the newly dated letter and custody record; the relationship view shows only the surviving simulated bond change.",
+        "worst": "Without the fresh letter, seal or opening, show only realized records. Neither a future source nor a sealed envelope creates forgiveness.",
+        "twist": "{A} and {B} may gain a later reconciliation, but the agreed sealed interval denies {B} access to this particular fresh apology until its actual opening."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "uncanny",
+          "line": "The date on the lid kept its promise. People are harder to schedule."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "show_future_apology",
+          "does": "Privately display to A one authenticated later apology addressed to B, with both parties’ actual source-timeline permission; preserve its provenance but change no relationship, custody or authorship merely by displaying it."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "show_future_apology displays only the authenticated source copy to A under the actual permissions recorded in the originating timeline. Keep its provenance immutable across resimulation; showing it creates no new letter, bond change or causal certainty. If source consent or authenticity is absent, do not offer this scenario.",
+        "write_capsule_apology requires A freely willing, actual authorship and a truthful fresh account of the existing dispute without new accusations. Create one new letter with stable scenario/object identifier and actual creation date; record text and clear ownership, distinct from the carried future copy. It grants no forgiveness or obligation to B.",
+        "seal_capsule_apology requires the new letter still owned by consenting A, B informed agreement to delayed access, an actual funded existing capsule and authorized custodian, secure suitable premises and enforceable lawful custody terms. Select the final opening year with its separate timing key before sealing and put that exact date in the agreement; the final step must use it. Transfer custody and record the actual sealed interval, without sealing away other correspondence or preventing earlier ordinary reconciliation.",
+        "open_capsule_apology requires that exact capsule and letter survive intact, lawful current opening authority, the recorded date, both residents alive and freely willing to read and discuss it, and an actual unresolved part of the same dispute with room for the bond increase. Open and deliver the existing letter once, then apply the modest bond change atomically; no complete forgiveness, marriage or erased wrongdoing. Gate B dialogue on step 3, survival and actual remembered custody date."
+      ],
+      "era_notes": "Paper, sealing, storage and catalogues fit each event decade; the only uncanny element is the authenticated copied letter crossing time.",
+      "why_fun": "The player can bring back the ending of a letter without being able to hurry the people who must live toward it."
+    }
+  ]
+}

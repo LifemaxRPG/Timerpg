@@ -1,0 +1,641 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-13661",
+      "kind": "scenario",
+      "title": "The Strike Fund That Outlived the Jobs",
+      "category": "rivalry",
+      "pitch": "Help a mill worker afford a voluntary strike contribution. A negotiated gain may eventually become a funded retraining agreement when the actual old jobs disappear.",
+      "present_hook": {
+        "what_you_notice": "A mill-worker archive contains an unpaid strike-fund pledge and the rejected version of a real wage proposal.",
+        "where": "the mill",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The pledge in {year} was voluntary. The worker could not meet it and the household’s actual bills."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1990
+        ],
+        "notes": "A is an actual employee and eligible union member; B the actual elected fund trustee. Bind an existing lawful union, mill employer and real pending dispute. Baseline has no paid A contribution and no qualifying negotiated agreement. The small gift covers the pledge shortfall, not unlimited strike pay. No strike, employer concession or later job loss is guaranteed."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the worker a week’s wages toward the freely chosen fund pledge."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "contribute_strike_fund": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Worker Meets a Voluntary Strike-Fund Pledge",
+          "body": "The member pays the actual affordable contribution into the existing accountable fund. Assistance follows its actual rules."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "ratify_mill_agreement": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Mill Workers Ratify a Funded Negotiated Agreement",
+          "body": "The authorized parties and actual members approve the viable agreement after their real bargaining process. Only its recorded wages and obligations take effect."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "settle_mill_retraining": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Mill Settlement Pays for Training after Old Jobs End",
+          "body": "After independently recorded lawful restructuring removes the identified positions, the actual funded settlement covers the eligible worker’s agreed training. The old position does not remain available."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Pledge Remains Unpaid",
+        "body": "The gift remains real, but the voluntary qualifying contribution is not completed. No strike pay or bargaining outcome is invented."
+      },
+      "present_day": {
+        "best": "If the full chain is realized by {now}, the mill’s actual staffing record no longer contains the old position, while the settlement record shows the real funded training entitlement used by {A}. Later work follows actual qualifications and vacancies.",
+        "worst": "Without the negotiated agreement or actual restructuring, no job is removed or training benefit created through this chain. Existing pay and rights remain actual.",
+        "twist": "{A} gains only the real negotiated pay and later training support, but loses the actual old mill position; a course is not a promised replacement job."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "The agreement paid for a new beginning. I still knew how to do the job that ended."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "contribute_strike_fund requires A current eligible employment and free informed choice, an actual lawful organization and fund, B current authority, transparent real ledger and sufficient available A money. Debit the actual pledge and credit the real fund once; the gift is not repeated and membership does not imply a strike. Add mill as an industrial-employer business kind and labor union with a restricted strike fund as organization/account types; bind existing actual entities, not a new mill or automatic union recognition.",
+        "ratify_mill_agreement requires the same active actual bargaining relationship, A eligible continuing employment, B current lawful representative authority, real independently developed bargaining, a viable funded employer offer and a valid member ratification. Record precise term, pay, dues, assistance and renewal rules. Actual wages accrue only for actual work and pay periods; no arbitrary wealth bonus or forced employer concession.",
+        "settle_mill_retraining requires independently simulated restructuring and actual removal of A identified position, valid notice and worker rights, a currently enforceable funded agreement derived from step 2, informed worker consent and an actual eligible affordable course with real capacity. Use the recorded end of the specific job without applying a second dismissal, settle real pay and benefits, and pay only actual training costs or entitled support once. Neither the gift nor bargaining causes automatic automation or closure. No qualification is awarded without completing its requirements. Gate A dialogue on step 3, survival, remembered lost position and actual paid training support."
+      ],
+      "era_notes": "Union recognition, bargaining, strike rules and training arrangements must fit the actual years and local industry.",
+      "why_fun": "A small contribution can join a long argument whose eventual settlement pays for leaving the work it once protected."
+    },
+    {
+      "id": "scenario-20261117-13662",
+      "kind": "scenario",
+      "title": "The Balcony Seat That Made Room for a Lift",
+      "category": "place",
+      "pitch": "Introduce two residents who want a local theater company. Their later venue may become more accessible by replacing a real balcony seat that one founder had reserved for years.",
+      "present_hook": {
+        "what_you_notice": "A community-theater file contains two separate expressions of interest and an unused plan for leasing an existing auditorium.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The prospective founders in {year} had complementary real skills, but had never met."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            30
+          ],
+          "relation": "strangers"
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ],
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A and B are strangers relative to each other, actual qualified willing theater volunteers. A works on performance and B on venue management under independently verified skills. Baseline has no joint company. Bind an actual existing suitable auditorium with a balcony, available only through a later lawful funded lease; no building or vacant land is created by meeting."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Bring the consenting prospective volunteers together over their genuine plans."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "form_theater_company": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Volunteers Establish a Local Theater Company",
+          "body": "The actual consenting members adopt funded governance and a feasible licensed program."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "lease_theater_balcony": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Theater Company Leases an Existing Auditorium",
+          "body": "The lawful funded lease opens the actual venue. The approved seating plan grants the founder only the documented revocable seat reservation."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "install_balcony_lift": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Balcony Lift Takes the Place of a Reserved Seat",
+          "body": "Qualified contractors complete the approved funded access work. The affected reservation is lawfully settled and its physical seat is removed."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Two Plans Do Not Become a Company",
+        "body": "The introduction occurs, but no qualifying organization is established. No lease, performances or audience is invented."
+      },
+      "present_day": {
+        "best": "If the chain and venue persist in {now}, the auditorium’s actual plan shows the operational lift and fewer seats; the removed reserved seat no longer appears in the booking system.",
+        "worst": "Without the funded company, lease or approved alteration, show only actual premises and reservations. Do not promise a lift or an available audience.",
+        "twist": "The venue gains the actual accessible route, while {A} gives up the particular reserved balcony seat and receives only the real agreed settlement or alternative."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "It is a better balcony. I still look for my old seat before I remember."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "form_theater_company creates an actual voluntary organization with informed members, viable accounts, lawful governance and only a genuinely affordable program. Obtain actual performance rights and qualified workers for each real production; no new theater business, building or guaranteed audience. Add theater company as an organization type and auditorium as an existing venue type, without assuming a new business or premises.",
+        "lease_theater_balcony requires the company still active, actual owner consent, valid funded lease, suitable inspected existing auditorium, lawful occupancy and operating permissions. Record exact premises, costs and seating. A reservation must be an actual freely granted revocable benefit under documented terms, not invented property ownership. Later renewals require actual funds and consent.",
+        "install_balcony_lift requires continued lawful venue control, actual access need, a qualified design showing the specific reserved seat must be removed, structural and fire approvals, owner and other affected rights-holder consent, real affordable funding and completed inspected work. Lawfully settle A actual reservation before removing that one seat, paying only the actual agreed costs and installing one operational lift. Require a safe actual alternative for affected users; no arbitrary exclusion or phantom compensation. Gate A dialogue on step 3, survival, remembered reservation and current completed lift."
+      ],
+      "era_notes": "Venue law, performance licensing, reservations and available lift technology follow each actual event year.",
+      "why_fun": "A town can gain a useful entrance to a familiar room by losing one person’s exact familiar place."
+    },
+    {
+      "id": "scenario-20261117-13663",
+      "kind": "scenario",
+      "title": "The Locker That Stopped Belonging to One Member",
+      "category": "business",
+      "pitch": "Invest in a gym’s costed locker plan. A long-term member may later rent a fixed compartment, then give it up when a lawful day-use plan makes the same storage available to more actual members.",
+      "present_hook": {
+        "what_you_notice": "A gym file contains an unfunded locker quote and a member’s unaccepted request for a reserved compartment.",
+        "where": "the gym",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The room in {year} had the verified capacity, but no funded approved locker installation."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "gym"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by"
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "Bind gym to A actual adult-owned business. B is a real consenting member with actual equipment to store. Baseline has no installed proposed lockers or reservation. Require an existing suitable inspected room and actual unmet storage demand, not a new building or presumed membership growth."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "gym",
+          "amount": "large",
+          "how_it_looks": "Invest ordinary business capital toward the actual approved locker-room quote."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "install_gym_lockers": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Gym Completes Its Funded Locker Installation",
+          "body": "The real approved compartments are installed and inspected. Ownership stays with the gym."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "lease_gym_locker": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Member Rents a Fixed Locker under Written Terms",
+          "body": "The member takes the actual affordable revocable rental and stores only the permitted real equipment."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "end_fixed_locker_lease": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Gym Settles a Fixed Rental before Starting Day Use",
+          "body": "The lawful agreement ends with proper notice and settlement. The real compartment becomes day-use storage under the funded current plan."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Quote Does Not Become Usable Lockers",
+        "body": "The investment remains subject to ordinary business results, but no completed approved locker installation is recorded."
+      },
+      "present_day": {
+        "best": "If the chain and plan persist in {now}, the gym posts its actual day-use terms and the compartment is no longer assigned to {B}. The former rental account shows its real settlement.",
+        "worst": "Without completed installation or later agreements, retain actual equipment title and member rights. No storage, deposit or policy change is invented.",
+        "twist": "The actual members gain the funded day-use option, while {B} loses a fixed storage place and must remove the real equipment under the settled terms."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I used to leave my shoes here. Now the shoes have a commute."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "install_gym_lockers requires A current authority over the existing inspected room, real affordable equipment and qualified installation, owner approvals, safe access and completed usable compartments. Debit actual capital costs once; do not repeat the investment or create a separate shop.",
+        "lease_gym_locker requires the same gym still operates, B actual eligible membership and consent, an available identified compartment, lawful revocable written terms, affordable real rent and deposit if applicable. Record exact equipment, access, fees and renewal obligations. Gym owns the fixture and B retains title to stored belongings.",
+        "end_fixed_locker_lease requires the actual active rental permits ending or B informed agreement, valid notice, funded lawful day-use plan supported by actual member demand, settled real prepaid rent and deposit, and B able to retrieve all real possessions safely. End the assignment and record day-use availability without inventing customers, profit or abandoned property. Gate B dialogue on step 3, survival, actual former stored shoes and present membership requiring B to bring them for each visit."
+      ],
+      "era_notes": "Locker materials, keys, rental records and gym routines follow the actual decades; early compartments do not acquire electronic locks.",
+      "why_fun": "One small compartment can reveal how a growing institution changes the meaning of belonging."
+    },
+    {
+      "id": "scenario-20261117-13664",
+      "kind": "scenario",
+      "title": "The Warning That Cost the House Its Old Stove",
+      "category": "rescue",
+      "pitch": "Warn an owner about a documented heater defect that becomes dangerous next winter in the unchanged history. A proper repair may lead to later inspections and a safer replacement system, at the cost of an old stove the owner genuinely uses.",
+      "present_hook": {
+        "what_you_notice": "An authentic later inspection file identifies a specific preexisting heater defect and the unchanged history’s serious exposure incident.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The defect described in the later file was already physically present in {year}; a current qualified inspection could identify it."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            45
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "A owns and occupies the identified home and actually uses the old stove; B is an independently qualified current heating technician. Baseline requires an existing verifiable venting defect and a seeded exposure incident at intervention+1 if unrepaired. Warn before that hazard, never after exposure. No injury or death is added by the scenario."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:warn_heater_defect",
+          "target": "A",
+          "technician": "B",
+          "how_it_looks": "Show the owner the authenticated warning and recommend a current qualified inspection before the next heating season."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            1
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "repair_hazardous_venting": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Qualified Repair Removes a Documented Heater Hazard",
+          "body": "The technician completes the actual funded inspected venting repair before the scheduled exposure. Only the hazard it physically resolves is removed."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "agree_heating_inspections": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Household Takes an Actual Recurring Inspection Plan",
+          "body": "The informed owner buys the real affordable maintenance agreement. Inspections create findings only when qualified checks actually support them."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "replace_old_stove": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Home Completes Its Approved Heating Replacement",
+          "body": "A real condition and capacity assessment supports the funded safe replacement. The incompatible old stove is lawfully decommissioned and removed."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "A Warning Produces No Completed Repair",
+        "body": "The warning is delivered, but no qualifying repair is completed before the hazard. Resolve only the actual seeded exposure and its independently simulated outcome; never announce an invented casualty."
+      },
+      "present_day": {
+        "best": "If the full chain and system persist in {now}, the home has the actual inspected replacement controls and the original stove is absent; the file records the paid repairs, inspections and removal.",
+        "worst": "If the warning or repair fails, ordinary physical exposure and survival rules apply. A warning alone does not heal anyone, repair a flue or guarantee safety.",
+        "twist": "{A} avoids only the physically prevented exposure and gains the replacement system, but pays the actual maintenance and installation costs and loses the particular usable old stove."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I miss the old stove. I am glad I get to be the one missing it."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "warn_heater_defect",
+          "does": "Give A one authenticated notice identifying an actually preexisting heater defect and a real qualified inspection option involving B; alter no physical condition, money or survival merely by warning."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "warn_heater_defect creates only an authenticated risk notice and an offered real inspection, not a diagnosis, repair, money transfer or survival override. Require the future file’s lawful provenance and its defect verifiable by current evidence; later documentation cannot make an absent defect real.",
+        "Exception to annual ordering: schedule the first step before the independently keyed year+1 exposure event. Recheck A alive at that moment, A informed consent and title, B current qualifications, an actual diagnosis, permits, sufficient real funds and completed inspected repair before the deadline. repair_hazardous_venting changes the specific physical vent condition and pays actual costs once. The ordinary hazard resolver then recomputes exposure from that changed system; suppress no unrelated illness, mortality or later hazards. If late or incomplete, no protective effect is applied.",
+        "agree_heating_inspections requires actual continued residence and authority, a qualified real provider, informed contract, affordable budget, exact service interval and paid actual invoices. Record completed inspections and supported findings rather than guaranteed safety or invented failures. B must retain actual authority to perform the scenario service. If the real provider operates commercially, add heating service as a business kind; bind its actual licensed operator and do not create one merely to satisfy this scenario.",
+        "replace_old_stove requires A actual continuing ownership, real qualified assessment supporting replacement and physical incompatibility of the still-used original stove, informed owner consent, permitted suitable funded replacement and qualified completed safe work. Remove the existing stove only after safe alternative heat is operating; settle actual costs and disposal rights without inventing resale proceeds. Gate A dialogue on step 3, survival, remembered old stove, its actual removal and a genuinely prevented baseline exposure."
+      ],
+      "era_notes": "Venting, heating fuels, technician qualifications, inspections and available replacement systems follow actual event years.",
+      "why_fun": "The present can be safer and visibly poorer in one familiar comfort at the same time."
+    }
+  ]
+}

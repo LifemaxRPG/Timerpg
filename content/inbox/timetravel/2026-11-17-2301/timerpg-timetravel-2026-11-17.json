@@ -1,0 +1,660 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-13811",
+      "kind": "scenario",
+      "title": "The Spouse Who Left the Bank Payroll",
+      "category": "love",
+      "pitch": "Introduce a bank owner and a qualified applicant who are free to meet. Employment may become marriage, then a lawful conflict policy may lead the employee to a real job elsewhere with less generous future benefits.",
+      "present_hook": {
+        "what_you_notice": "An old bank recruitment file contains an unanswered qualified application beside the owner’s interview calendar.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "In {year}, the applicant had never met the owner; both were unmarried and the actual vacancy was funded."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "married": false,
+          "owns_shop": true,
+          "shop_kind": [
+            "bank"
+          ]
+        },
+        "B": {
+          "age": [
+            22,
+            28
+          ],
+          "married": false,
+          "relation": "strangers"
+        },
+        "C": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "law office"
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1990
+        ],
+        "notes": "B is a stranger relative to A. Bind bank to A actual business and law_office to C actual qualified adult-owned practice. A and B are unrelated eligible adults with no current partners and freely welcome an introduction. B has actual banking and clerical qualifications. Baseline has no A-B employment or marriage, not an invented alternative spouse."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Make the welcome introduction without promising a job or romantic interest."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "hire": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Bank Fills Its Actual Clerical Vacancy",
+          "body": "The qualified applicant freely accepts the funded lawful role under the documented pay and benefit terms."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "marry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Adults Choose Marriage beyond Their Working Lives",
+          "body": "The mutually eligible adults freely marry after their actual relationship develops. The marriage does not change bank ownership or staff rights."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "transfer_clerical_employment": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Bank Employee Takes an Independent Clerical Position",
+          "body": "The employee completes a freely agreed lawful move to the actual law-office vacancy. Existing earned benefits remain protected; future accrual follows the new contract."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "A Meeting Does Not Become a Hire",
+        "body": "The introduction happens, but no qualifying employment begins. No salary, household or marriage is created."
+      },
+      "present_day": {
+        "best": "If the chain and employment persist in {now}, the law office’s actual staff record lists {B} and the bank’s payroll does not; the marriage record is shown only while its actual status supports it.",
+        "worst": "If any stage fails, retain actual jobs, partners and benefit rights. A marriage never automatically dismisses a worker.",
+        "twist": "{B} gains the independent actual position but gives up the old job’s greater future employer-funded benefit accrual, retaining everything already lawfully earned."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I stopped working for my spouse. I stopped earning the old plan’s extra benefits, too."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "hire requires A authority, an actual paid funded vacancy, B verified qualifications, voluntary informed contract and recorded wages and benefits. Employment confers no romance, ownership or authority over personal decisions.",
+        "marry requires A and B currently unmarried eligible unrelated adults, actual mutually developed relationship, free consent without employment pressure and valid ceremony. Apply actual property law without silently transferring the bank or creating children. Require an actually valid separate-property arrangement preserving A recorded bank title and the existing lawful staff rights at this marriage; otherwise this particular bulletin is ineligible.",
+        "transfer_clerical_employment requires the marriage still intact, actual continuing bank employment, an independently adopted lawful applicable conflict policy with due process, B freely preferring the real available C vacancy and actual clerical qualifications. C must still own the operating law office with a funded role. Settle bank notice, pay and protected vested rights once, then begin the agreed new contract. Eligibility requires evidenced lower future employer-funded benefit accrual under the new terms; no arbitrary confiscation or guaranteed future pension amount. Gate B dialogue on step 3, survival, current independent employment and actual lower future benefit terms."
+      ],
+      "era_notes": "Employment, marriage, conflict rules and benefit vesting follow the actual years; no universal ban on employing a spouse is assumed.",
+      "why_fun": "A welcome introduction can change both a household and which counter somebody stands behind each morning."
+    },
+    {
+      "id": "scenario-20261117-13812",
+      "kind": "scenario",
+      "title": "The Game Cabinet That Lost Its Corner",
+      "category": "business",
+      "pitch": "Invest in a toy shop’s costed game-cabinet proposal. A later local competition may make the corner familiar, before a quieter play area replaces it and takes away a regular player’s practice spot.",
+      "present_hook": {
+        "what_you_notice": "A toy-shop file contains an unfunded cabinet quote and a floor plan showing the unused corner.",
+        "where": "the toy store",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposed equipment in {year} was actually available and the room had verified safe capacity."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "toy store"
+          ]
+        },
+        "B": {
+          "age": [
+            19,
+            23
+          ],
+          "wealth": "getting_by"
+        }
+      },
+      "window": {
+        "years": [
+          1975,
+          1995
+        ],
+        "notes": "Bind toy_shop to A adult-owned business. B is a real interested player, not a guaranteed champion. Baseline has no proposed cabinet or competition. Require an era-available licensed skill game, existing suitable space and real feasible demand; no gambling, new building or invented score."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "toy_shop",
+          "amount": "large",
+          "how_it_looks": "Invest ordinary shop capital toward the real cabinet, inspection and installation budget."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "install_skill_game": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Toy Shop Opens Its Approved Game Corner",
+          "body": "The actual licensed cabinet is purchased, safely installed and opened under its real play terms."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "hold_local_game_competition": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Local Skill Competition Records Its Actual Scores",
+          "body": "The funded lawful event takes place with actual eligible entrants. The results record only real play, without promising any particular winner."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "convert_game_corner_to_quiet_play": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Quieter Play Corner Replaces a Familiar Cabinet",
+          "body": "The owner completes the approved funded change and lawfully removes the old cabinet. The actual play-area terms replace the former game access."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Quote Does Not Become a Working Cabinet",
+        "body": "The investment follows ordinary business results, but no approved usable game corner opens."
+      },
+      "present_day": {
+        "best": "If the chain and layout persist in {now}, the shop’s actual corner contains the funded quiet-play fittings and no original cabinet; the archive retains the real competition results.",
+        "worst": "Without completed stages, show only actual equipment, events and access rights. No crowd, score or replacement play area appears automatically.",
+        "twist": "The shop gains the real quieter play option while {B} loses access to the particular cabinet used for practice, receiving no invented substitute machine."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "I still turn toward that corner with a coin in my hand."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "install_skill_game requires A continued title and authority, actual commercially available licensed non-gambling skill equipment, funded purchase, safe inspected room and actual operating permissions. Record one cabinet, real costs and play charges; the investment is not awarded twice.",
+        "hold_local_game_competition requires the same cabinet still operating, actual qualified organizer and eligible consenting entrants including B, lawful skill-based rules, affordable real costs and any actual prizes funded independently of chance-based wagering. Resolve scores through the one keyed skill-event simulator and record B actual participation, not automatic victory or celebrity.",
+        "convert_game_corner_to_quiet_play requires A actual continuing authority, an independently evidenced current use need, actual existing space, safe suitable affordable design, settled operator, supplier and user commitments and informed lawful decision. Remove the single identified cabinet through real return, sale or disposal terms and install the documented fittings. No childcare custody, diagnosis or new customers are implied. Gate B dialogue on step 3, survival, remembered paid practice on that cabinet and a real current visit; otherwise suppress the habit line."
+      ],
+      "era_notes": "Game hardware, licensing, coins, competition rules and play fittings must exist in their actual decades; no real game or brand is named.",
+      "why_fun": "A changed present can be recognizable from the place where a familiar sound no longer comes from."
+    },
+    {
+      "id": "scenario-20261117-13813",
+      "kind": "scenario",
+      "title": "The Jury Summons That Led to a Different Desk",
+      "category": "politics",
+      "pitch": "Help a summoned resident afford the real cost of jury service. The experience may later lead to qualified mediation work, at the price of leaving an actual mill job and its seniority behind.",
+      "present_hook": {
+        "what_you_notice": "A household archive holds a genuine jury summons and an unaffordable attendance-cost worksheet.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The resident summoned in {year} was eligible; the actual uncovered attendance expenses were the problem."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            25
+          ],
+          "wealth": "poor"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1990
+        ],
+        "notes": "A is an actual eligible independently summoned juror and mill employee; B is the actual authorized court clerk. Baseline has no completed qualifying service. The small gift covers real uncovered lawful attendance expenses after actual juror compensation and employer rules. No case outcome, legal qualification or later job follows automatically. Require the actual assigned or lawfully deferred service date to fall within elapsed years 1–3; do not create a deferral to fit the scenario."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the summoned resident a week’s wages toward evidenced lawful attendance costs, without discussing a verdict."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_jury_service": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Summoned Resident Completes Actual Jury Service",
+          "body": "The eligible juror attends and completes the real assigned service under ordinary court procedure. No particular verdict is implied."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "complete_mediation_training": "A"
+            }
+          ],
+          "headline": "A Resident Completes a Real Mediation Qualification",
+          "body": "The applicant completes the actual funded course, assessments and required supervised practice. The qualification covers only its lawful scope."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "open_mediation_practice": "A"
+            }
+          ],
+          "headline": "A Qualified Mediator Leaves a Mill Job for a New Practice",
+          "body": "The informed worker settles the actual mill employment and opens the independently viable qualified practice. Future clients and earnings remain subject to ordinary events."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Gift Does Not Complete the Summoned Service",
+        "body": "The money remains real, but no qualifying completed jury service is recorded. Apply actual lawful court procedure without inventing a verdict or penalty."
+      },
+      "present_day": {
+        "best": "If the chain and practice persist in {now}, the actual mediation-office record names {A} as its qualified operator and the old mill payroll no longer includes that employment.",
+        "worst": "Without real service, qualification, funding and voluntary job transition, create no practice or legal authority. Unrelated ordinary work continues.",
+        "twist": "{A} gains the real practice and professional qualification but gives up the actual mill position and its future seniority accrual, with vested benefits protected."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "The first desk had a summons on it. This one has my own appointment book."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_jury_service requires a real preexisting independently issued summons, actual random selection where required, current eligibility and no conflict, B current court authority, completed lawful attendance and sufficient real expenses paid once after compensation. Never buy selection, influence deliberations, choose a verdict or penalize a lawful exemption.",
+        "complete_mediation_training requires A freely choosing the actual available accredited or otherwise legally sufficient program, real entry prerequisites, funded fees and living costs, completed instruction, assessments and supervised practice. Record the actual resulting qualification and scope, not a law licence or guaranteed dispute success.",
+        "Add mediation office as a business kind. open_mediation_practice requires A current sufficient qualifications, lawful registration and scope, an actual affordable viable business plan, available suitable permitted premises and real capital. Require A still holds the actual mill job and freely chooses a funded transition with valid notice and settled pay, leave, vested rights and liabilities. End only that job, lose only actual future seniority accrual and establish one A-operated practice with real startup costs. Do not invent clients or legal representation. Gate A dialogue on step 3, survival, remembered service and current actual practice. Register mill as an industrial-employer business kind if not already supported, binding A actual existing employer rather than creating a mill."
+      ],
+      "era_notes": "Jury expenses, leave rights, mediation qualifications and permitted professional scope follow the actual event years.",
+      "why_fun": "A small payment can make room for a civic experience that eventually changes where a resident works."
+    },
+    {
+      "id": "scenario-20261117-13814",
+      "kind": "scenario",
+      "title": "The Bond Behind the Forgotten Combination",
+      "category": "uncanny",
+      "pitch": "Show a shop owner the authenticated later record of the owner’s unchanged safe combination. Recovering a genuine bond may eventually make retirement affordable, leaving town without the original music shop.",
+      "present_hook": {
+        "what_you_notice": "An authenticated later inventory lists a forgotten bond and the owner’s recorded permission to show the unchanged safe code to the earlier owner.",
+        "where": "the music store",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The source record identifies the same owned safe and unchanged code in {year}, not a key to anybody else’s property."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            45
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "music store"
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "Bind music_shop to A actual adult-owned business. A owns the identified safe and lawful bond; B is the actual authorized redemption agent for its real solvent issuer. Baseline has no recovered certificate. The actual bond matures at intervention+12. Require authenticated source provenance, unchanged working code and owner permission; no money or access right is invented."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:show_own_safe_code",
+          "target": "A",
+          "how_it_looks": "Privately show the consenting owner the authenticated later record identifying the owner’s own unchanged safe code."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "recover_owned_bond": "A"
+            }
+          ],
+          "headline": "An Owner Recovers a Genuine Bond from a Forgotten Safe",
+          "body": "The lawful owner opens the actual safe and identifies the existing certificate. Its value is not paid merely by finding it."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            12,
+            12
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "redeem_matured_bond": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Matured Bond Pays Only Its Actual Entitlement",
+          "body": "The authorized agent verifies the real claim and completes lawful redemption. The issuer pays only the actual net amount owed."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "close_shop": "music_shop"
+            },
+            {
+              "move_away": "A"
+            }
+          ],
+          "headline": "A Music-Shop Owner Completes a Funded Retirement Move",
+          "body": "The owner freely completes the real business closure and affordable relocation. No successor shop or resident is invented."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "A Code Record Produces No Recovered Certificate",
+        "body": "The permitted display happens, but no qualifying certificate is recovered. A future list creates neither property nor money in the changed past."
+      },
+      "present_day": {
+        "best": "If the full chain is realized by {now}, the original music-shop business is closed and {A} is absent from local residence records only while still actually living away. The archive records real redemption and closure.",
+        "worst": "Without lawful recovery, valid redemption and a viable retirement choice, retain actual property and shop fortunes. Do not pay a duplicated or unenforceable bond.",
+        "twist": "{A} gains the actual retirement choice and gives up the operating music shop and local residence; the town loses that particular business without a promised replacement."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "uncanny",
+          "line": "The money was waiting for me. I did not know it was waiting to take me away."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "show_own_safe_code",
+          "does": "Privately display to A an authenticated source-timeline record of A own unchanged safe combination under A actual permission; grant no new ownership, access to others’ property or money."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "show_own_safe_code displays only the authenticated owner-authorized originating-timeline record to A. Require the same actual safe, unchanged valid code and clear present ownership; preserve source provenance across replay. It changes no safe state, possession or wealth by itself.",
+        "recover_owned_bond requires A alive and actual title to both safe and certificate, lawful access, matching physical inventory and supported issuer records. Open the actual safe and bind the single existing certificate with its stable asset identifier. Move it to A accessible inventory without creating a second bond, interest or cash.",
+        "redeem_matured_bond requires the bound certificate unredeemed, legally valid and mature at year+12, actual entitled holder, clear claim after any liens, B current lawful authority and issuer actual ability and obligation to pay. Cancel or mark that asset redeemed and transfer only the real net principal and accrued entitlement once. No arbitrary wealth multiplier, double interest or guaranteed issuer solvency.",
+        "The final compound effect requires A still owns the operating music_shop, actual independently chosen retirement, sufficient real remaining assets for the costed plan, actual available destination housing and lawful business settlements for staff, lease, stock, creditors and taxes. Commit closure and voluntary move atomically; pay actual costs and retain only actual sale proceeds if any. Do not infer demolition, a replacement owner or an inheritance. Gate A dialogue on step 3, survival, real remembered redemption and an actual present visit or call from the changed residence."
+      ],
+      "era_notes": "Safe records, bond rights, maturity, redemption and retirement costs follow actual event years. No real financial brand or guaranteed investment return is used.",
+      "why_fun": "The secret is not a fortune appearing from nowhere, but what an already-owned asset lets someone finally leave."
+    }
+  ]
+}

@@ -1,0 +1,637 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-12761",
+      "kind": "scenario",
+      "title": "The First-Aid Certificate in the Lunchbox",
+      "category": "rescue",
+      "pitch": "Help a worker afford an approved first-aid course. A later qualified response may change a neighbor’s fatal emergency, then inspire a public defibrillator cabinet paid for from the worker’s own savings.",
+      "present_hook": {
+        "what_you_notice": "A memorial notice records a fatal cardiac emergency beside an unused first-aid course application.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The approved course in {year} had one place available and an unpaid fee."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "wealth": "getting_by"
+        },
+        "B": {
+          "age": [
+            55,
+            60
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1975,
+          1995
+        ],
+        "notes": "A is an actual willing eligible course applicant. Baseline has the real fee shortfall and a specific fatal cardiac-arrest event affecting B at intervention+2, with A genuinely present and emergency services actually available. Do not invent a diagnosis, instruct a procedure or guarantee full recovery."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the willing applicant the actual approved course-fee shortfall."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            1
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "complete_first_aid_course": "A"
+            }
+          ],
+          "headline": "A Worker Completes the Approved First-Aid Course",
+          "body": "{A} attends the actual course and passes its assessment. The certificate records only the qualification actually earned."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            2,
+            2
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "resolve_qualified_resuscitation": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Timely Response Changes an Emergency’s Outcome",
+          "body": "A currently qualified {A} assists during the actual emergency while professional services respond. The recorded treatment outcome is survival of that event, not a promise of recovery without consequences."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "install_public_defibrillator": "A",
+              "where": "Main Street"
+            }
+          ],
+          "headline": "A Public Emergency Cabinet Opens with a Paid Care Plan",
+          "body": "The qualified project installs its approved defibrillator cabinet at the actual authorized site. Its purchase and real maintenance reserve come from the donor’s savings."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Course Application Stays Unfinished",
+        "body": "The gift remains real, but no completed qualification is recorded. The later emergency follows ordinary simulation without this promised response."
+      },
+      "present_day": {
+        "best": "If the chain and maintained equipment persist in {now}, the authorized Main Street site has the actual approved cabinet and the archive records the survival of {B} in the identified emergency.",
+        "worst": "Without the qualified rescue outcome, the specific baseline emergency can still be fatal; without the installation effect, no cabinet or later saved life is claimed.",
+        "twist": "The town gains the funded cabinet, while {A} gives up the actual savings spent on its purchase and committed maintenance."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "The certificate used to fit in my lunchbox. I never expected its last receipt to be this large."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "complete_first_aid_course requires A consent, actual affordable payment from gift funds, qualified instruction, attendance, assessment and issued certification. Do not create medical licensure, equipment or later competence beyond the course.",
+        "Exception to the common mortality order: resolve_qualified_resuscitation runs immediately before the identified +2 cardiac-arrest mortality event while B is alive at its onset. Require A present with current appropriate training and safe ability to assist, actual timely professional response and a medically supported nonfatal outcome under the existing clinical resolver. Use the one keyed outcome instead of double-applying the baseline death. Earlier unrelated death cancels the step; failure leaves the actual emergency resolver intact. Preserve all actual aftercare, impairments and later mortality; give no procedural instructions.",
+        "install_public_defibrillator requires A alive and independently consenting, actual sufficient unencumbered savings after a viable personal budget, an authorized suitable site, currently approved era-appropriate available device, qualified installation, required training and oversight, inspection and a funded real maintenance plan. Debit actual invoices and reserve once; create only that maintained device and its access record. No later rescue is automatic. Gate A dialogue on step 3, survival and actual purchase. The lunchbox dialogue additionally requires an actual recorded choice by A to keep the issued certificate in an owned lunchbox after step 1; otherwise suppress that line instead of inventing the keepsake habit."
+      ],
+      "era_notes": "Only approved training and equipment actually available in the event year may be used; public access and oversight must follow the actual local rules.",
+      "why_fun": "A small fee can leave a very ordinary object carrying the memory of a life that continued."
+    },
+    {
+      "id": "scenario-20261117-12762",
+      "kind": "scenario",
+      "title": "The Waiting Room That Stopped Being a Morning Club",
+      "category": "place",
+      "pitch": "Invest in a clinic’s costed appointment service. More orderly visits may eventually turn the old waiting room into another examination room, leaving a regular visitor without a familiar place to sit and talk.",
+      "present_hook": {
+        "what_you_notice": "A clinic’s rejected appointment proposal lies beside a floor plan marking its informal morning waiting area.",
+        "where": "the doctor’s office",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The appointment plan in {year} lacked the actual administrative budget."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "doctor's office"
+          ]
+        },
+        "B": {
+          "age": [
+            45,
+            50
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "Bind clinic to A actual qualified practice and legal control of its premises. B is an existing patient who also attends its genuinely permitted informal morning social waiting period. Baseline has the proposal and real seating use, not a new illness or guaranteed medical delay."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "clinic",
+          "amount": "large",
+          "how_it_looks": "Invest ordinary practice capital in the approved affordable appointment-service proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "start_clinic_appointments": "A"
+            }
+          ],
+          "headline": "A Clinic Begins Its Funded Appointment Service",
+          "body": "The approved service starts with actual staffing and a working appointment book. Urgent access follows the clinic’s real policy."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "adopt_clinic_room_plan": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Practice Adopts a Plan for Its Existing Rooms",
+          "body": "The authorized practice adopts a funded feasible plan for scheduled arrivals and another examination room, with patient access and privacy preserved."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "convert_social_waiting_room": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Old Waiting Room Becomes an Examination Room",
+          "body": "Qualified work and inspection complete the approved conversion. The clinic ends the old informal morning gathering period while retaining adequate actual patient waiting space."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Appointment Proposal Does Not Open",
+        "body": "The investment follows its ordinary business outcome, but no funded operating appointment service is completed."
+      },
+      "present_day": {
+        "best": "If the full chain and practice persist in {now}, the old room is an approved examination room and the former social waiting period is absent from the actual opening policy.",
+        "worst": "If later steps fail, show only real appointments and room plans; never invent improved health, an available clinician or a completed room.",
+        "twist": "The practice gains the actual clinical room, while {B} loses the permitted social gathering place without losing required access to care."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I used to come for my appointment and stay for the talk."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "start_clinic_appointments requires A practice authority and actual qualification, lawful funded administration and real staff, accessible scheduling, confidentiality and approved urgent-care arrangements. Create only actual appointments and their staffing obligations, not better outcomes or an automatic receptionist.",
+        "adopt_clinic_room_plan requires A still controls the actual premises, independent professional space assessment, funded safe plans, enough real scheduled demand, meaningful patient consultation including willing B and a viable accessible waiting arrangement. Record only the approved plan and real planning costs; no room changes before completed work.",
+        "convert_social_waiting_room requires A still authorized, the actual plan still valid, legal space control, permits, funded qualified construction, ventilation and privacy compliance, inspection, adequate accessible waiting and real staff for any clinical use. Repurpose exactly the existing social room and end only its actual optional gathering hours after notice. Do not remove medical access, force loneliness or create relationships; the lost gathering opportunity is the effect. Gate B dialogue on step 3, survival, actual prior social attendance and current appointment access."
+      ],
+      "era_notes": "Appointment books, communications and room standards follow the event decade; no electronic scheduling or medical improvement is assumed.",
+      "why_fun": "A practical improvement can remove a town ritual that was never written on the clinic’s sign."
+    },
+    {
+      "id": "scenario-20261117-12763",
+      "kind": "scenario",
+      "title": "The Puzzle That Outgrew the Bread Bag",
+      "category": "business",
+      "pitch": "Introduce a baker to a puzzle maker offering a modest paid promotion. The printed puzzles may become a booklet, then leave the bread bags when the maker reserves new work for a different contract.",
+      "present_hook": {
+        "what_you_notice": "A bakery sample bag has a blank puzzle panel beside an unsigned illustrator’s quotation.",
+        "where": "the bakery",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "Both people had agreed the sample was feasible in {year}, but they had never met to settle the terms."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bakery"
+          ],
+          "relation": "strangers"
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ],
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A and B are strangers relative to each other. B actually owns original suitable puzzles and seeks a paid licensing arrangement. The bakery has a funded printing quote once terms are agreed, but no licence or puzzle bags in the baseline. No real puzzle, character or brand is named."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the willing baker and puzzle maker with their actual original sample and priced print quote."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "license_bread_bag_puzzles": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Bakery Bag Gives Customers Something to Work Out",
+          "body": "The baker pays for actual licensed original puzzles and approved printed bags. The licence covers only its written uses."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "publish_puzzle_booklet": "B"
+            }
+          ],
+          "headline": "Old Bag Puzzles Find a Booklet of Their Own",
+          "body": "A funded consenting publisher issues the maker’s actual cleared collection. Payments follow the real publishing agreement."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "end_bag_puzzle_license": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "New Puzzles Leave the Bread Bags",
+          "body": "The maker lawfully reserves new work for an actual incompatible publishing agreement. After notice and settlement, the bakery orders its funded replacement bag design without the new puzzles."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Sample Bag Remains a Sample",
+        "body": "The introduction happens, but no signed licence or completed paid printing run is recorded. No publishing success is promised."
+      },
+      "present_day": {
+        "best": "If the chain and business persist in {now}, new bakery bags use the actual replacement design and the archive lists only the booklet actually published.",
+        "worst": "Without publication or lawful licence ending, retain actual contracts, bags and rights; no royalties or vanished puzzles are invented.",
+        "twist": "{B} gains control of the new publishing arrangement, while {A} loses the contracted stream of new puzzle content and pays for the actual replacement design."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "I used to sell a loaf with a puzzle on it. Now people ask whether the puzzle comes with a loaf."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "license_bread_bag_puzzles requires A ownership, B actual rights to original suitable content, informed agreement, paid real licensing and print invoices, and compliant bag materials. Create only the funded printed stock and licensed uses; retain B copyright under the agreement. Sales and audience interest follow actual events.",
+        "publish_puzzle_booklet requires B owns or has cleared all selected actual works, a real willing publisher, funded production and distribution and compatibility with existing bag licences. Track actual copies, costs, advances and earned royalties without inventing a bestseller or extra shop.",
+        "end_bag_puzzle_license requires A still operating and B still the rights holder, an actual consenting new agreement whose specific exclusivity conflicts only with future new bag content, and lawful expiry or freely agreed termination of the earlier licence. Honor existing stock, permitted old puzzles, payments, notice and compensation; do not revoke vested licences. Debit actual affordable replacement design and printing costs once. Gate A dialogue on step 3, survival and actual remembered customer questions recorded through ordinary interactions; otherwise suppress that line."
+      ],
+      "era_notes": "Printing, publishing and licence terms follow the event decade; no digital audience or modern promotional platform appears automatically.",
+      "why_fun": "A little distraction on a paper bag can become valuable enough to change who is allowed to print the next one."
+    },
+    {
+      "id": "scenario-20261117-12764",
+      "kind": "scenario",
+      "title": "The Correction That Kept Its Envelope",
+      "category": "secrets",
+      "pitch": "Report a documented misquotation to the responsible publisher. A correction and lawful damages claim may follow, then leave an archive with the original correspondence the injured resident voluntarily gives up.",
+      "present_hook": {
+        "what_you_notice": "A weekly paper’s printed quotation disagrees with its retained source notes; the injured resident’s unfiled correction request is attached.",
+        "where": "the Gazette archive",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The original source notes were already available in {year}, but nobody filed the documented discrepancy."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "newspaper office"
+          ]
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ],
+          "reputation": "low"
+        }
+      },
+      "window": {
+        "years": [
+          1965,
+          1995
+        ],
+        "notes": "A owns the actual existing weekly paper, distinct from the Gazette. B is the actual misquoted resident, with verified source evidence and lawful standing. Bind one genuine published material misquotation and its documented harm; do not invent an underlying crime or automatically equate poor reputation with guilt. The original source notes and timely review route must exist."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:report_documented_misquotation",
+          "target": "A",
+          "subject": "B",
+          "how_it_looks": "Submit the genuine printed-source discrepancy through the paper’s authorized correction process."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            1
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "publish_quote_correction": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Weekly Prints Its Supported Correction",
+          "body": "The paper prints the verified correction and links it to the identified original item. The old issue remains part of the historical record."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            2,
+            4
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "settle_actual_publication_claim": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Publication Claim Reaches Its Lawful Settlement",
+          "body": "The actual civil process completes its supported settlement or judgment. The responsible publisher pays only the amount and costs actually required."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "archive_correction_correspondence": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Correction’s Original Letters Enter the Archive",
+          "body": "With all required permissions, the injured resident gives the identified surviving original correspondence to an approved archive. Public access follows the actual gift terms."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Documented Request Remains Unresolved",
+        "body": "The report remains filed, but no supported completed correction is recorded. No damages payment or later archive gift is promised."
+      },
+      "present_day": {
+        "best": "If the full chain and collection survive to {now}, the archive catalogue links the original issue, its real correction and the donated correspondence under actual access terms.",
+        "worst": "Without an actual civil disposition, no money changes hands; without the archival gift, no private correspondence becomes public.",
+        "twist": "{B} gains the supported correction and actual compensation but later gives up physical ownership of the donated original letters; {A} bears the actual publication-claim payment."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "I kept the envelope longer than I kept most of the anger. Now someone else has to keep it flat."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "report_documented_misquotation",
+          "does": "Submit one authentic printed-source discrepancy to authorized publisher A, identifying the actual misquoted resident B; create only the dated review request, without publishing, changing reputation or deciding a legal claim."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add newspaper office as an existing business kind, owned by adult A, for the actual non-Gazette weekly. report_documented_misquotation creates one authorized review request with authentic existing source evidence. It does not print a correction, alter reputation or decide liability directly.",
+        "publish_quote_correction requires A current publication authority, authenticated discrepancy and B consent where needed, lawful review and a funded actual correction item. Record its exact link to the original and the resulting real paper correspondence, with provenance and true ownership. Do not silently rewrite historical issues, expose protected notes or add an arbitrary reputation bonus.",
+        "settle_actual_publication_claim requires B independently chose a lawful timely civil claim before the actual limitation deadline, actual admissible evidence and standing, a competent real settlement or final judgment and sufficient lawful payer funds. Transfer the exact mandated principal and costs once under the actual order, recognizing insurance only if an actual policy applies. No automatic liability follows from a correction, no invented wealth fraction is added and insolvency follows ordinary process instead of conjuring cash.",
+        "archive_correction_correspondence requires A and B alive, the identified originals actually survive, B clear title and informed voluntary gift, all copyright, confidentiality and third-party rights cleared, an existing consenting qualified archive and funded preservation. Transfer the single original collection and only the expressly licensed access rights; no new scandal, full public case disclosure or memory erasure is created. Gate B dialogue on step 3, survival and actual retained envelope among the donated records."
+      ],
+      "era_notes": "Source notes, correction standards, civil time limits and archive formats follow the event year; no particular national defamation rule is assumed.",
+      "why_fun": "The smallest surviving part of a public argument may be the piece of paper that carried it."
+    }
+  ]
+}

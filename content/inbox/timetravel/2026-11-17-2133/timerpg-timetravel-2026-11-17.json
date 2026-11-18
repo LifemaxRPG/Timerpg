@@ -1,0 +1,672 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-12931",
+      "kind": "scenario",
+      "title": "The Child Who Needed Room for Bicycles",
+      "category": "family",
+      "pitch": "Introduce two single adults whose paths never crossed. Their possible child may someday open a bicycle repair shop, with a parent pledging savings that were meant to stay freely available.",
+      "present_hook": {
+        "what_you_notice": "Two unaccepted invitations sit in separate household files; the original present has no shared marriage or child in those family records.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "Both residents nearly attended the same small gathering in {year}."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            20,
+            25
+          ],
+          "sex": "F",
+          "married": false
+        },
+        "B": {
+          "age": [
+            20,
+            25
+          ],
+          "sex": "M",
+          "married": false
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1990
+        ],
+        "notes": "A and B are unrelated single residents with no other binding partnership, both independently willing to meet. Baseline has the actual missed invitations and no child of this pair. Require present year at least intervention+30. C does not exist as an intervention-year role and can be bound only by the child effect."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Bring the two consenting adults together at the genuine gathering opportunity."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            2
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "marry": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Neighbors Choose a Shared Household",
+          "body": "{A} and {B} complete their freely chosen lawful marriage under the actual relationship facts."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            3,
+            4
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "child": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Household Adds a New Birth Record",
+          "body": "The household records the birth of a child and the actual parent relationships."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            28,
+            30
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true,
+              "age": [
+                24,
+                27
+              ]
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "pledge_startup_collateral": [
+                "A",
+                "C"
+              ]
+            },
+            {
+              "found_business": "C",
+              "kind": "bicycle repair shop"
+            }
+          ],
+          "headline": "A New Repair Shop Opens with a Family Guarantee",
+          "body": "The qualified adult child opens the funded bicycle repair shop. A parent’s actual savings are pledged under the disclosed loan agreement."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Meeting Does Not Become a Marriage",
+        "body": "The introduction happens, but no marriage is recorded through this chain. No child or future business is promised."
+      },
+      "present_day": {
+        "best": "If the full chain and business survive to {now}, the town contains the real resident represented by {C} and the operating bicycle repair shop; the bank records the actual pledge and its current release status.",
+        "worst": "Without the birth, C is never bound or mentioned as an existing person. Without the loan closing and shop effect, no business or restricted savings is shown.",
+        "twist": "{C} gains a funded start, while {A} gives up free use of the actually pledged savings until the loan’s real release terms are met."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "grateful",
+          "line": "I used to picture that money sitting quietly. It has acquired an alarming number of wheels."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "marry requires A and B alive, unrelated, currently legally eligible and unmarried, freely consenting and at the ordinary relationship threshold through actual interactions; the introduction alone does not produce a romance or a house.",
+        "child requires the marriage or other legally supported consenting parent arrangement still valid, actual reproductive eligibility, A appropriate age and clinical facts at the birth year, parental consent and the ordinary funded household requirements. Create exactly one ordinary child record through the supported birth resolver, with a stable seed/scenario/parent-IDs/birth-event identity. Bind its returned resident ID to future alias C only after the event commits; generate attributes under ordinary birth rules, never adult skills or a named person. Never bind an unrelated existing child to C. If no birth occurs, cancel descendants and suppress every C placeholder.",
+        "Add bicycle repair shop as a business kind. At the final step C must actually be adult, alive, resident or lawfully returning, independently trained and equipped for the trade, with available lawful premises, permits, viable demand and real business funds. A must survive and freely provide affordable unencumbered cash collateral after a viable personal budget, with independent informed agreement, an actual willing licensed lender and a lawful funded startup loan. Reserve the exact real collateral without spending or counting it twice, record its release and default rules, and close the loan and found_business atomically. A later repayment releases only the actual remaining pledge; no default, foreclosure, free profit or permanent restriction is promised. Gate A dialogue on step 3, survival, actual pledge and knowledge of the shop."
+      ],
+      "era_notes": "Household law, birth eligibility, lending and bicycle equipment follow the actual event decade.",
+      "why_fun": "The return to the present can contain a new person whose ordinary ambitions put an older household’s plans in motion."
+    },
+    {
+      "id": "scenario-20261117-12932",
+      "kind": "scenario",
+      "title": "The Wedding Slice That Finally Left the Freezer",
+      "category": "love",
+      "pitch": "Invest in a bakery’s carefully separated keepsake-storage proposal. A couple may preserve an actual wedding-cake slice for years, then jointly decide to let that physical keepsake go and release the space.",
+      "present_hook": {
+        "what_you_notice": "A bakery file contains an unsigned keepsake-storage quote beside a couple’s original wedding order.",
+        "where": "the bakery",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The couple already had a properly stored keepsake in {year}; the bakery lacked the capital to offer its proposed service."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "bakery"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            30
+          ],
+          "married": true
+        },
+        "C": {
+          "age": [
+            25,
+            30
+          ],
+          "married": true,
+          "relation": "spouses"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "B and C are spouses relative to each other; A is unrelated. Bind bakery to A and the actual existing jointly owned frozen keepsake to B and C. Baseline has the real wedding order, existing personal storage and rejected business proposal. The keepsake is not treated as food for consumption through this scenario."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "bakery",
+          "amount": "large",
+          "how_it_looks": "Invest ordinary business capital in the approved separate keepsake-storage service and its actual operating reserve."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "store_wedding_keepsake": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Bakery Accepts a Wedding Keepsake under Contract",
+          "body": "The couple transfers custody of the actual labeled keepsake to the approved separate storage service. Ownership remains with the couple."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.7,
+          "effects": [
+            {
+              "renew_keepsake_storage": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "An Old Anniversary Keeps Its Place on a Storage Shelf",
+          "body": "The actual owners renew the funded custody agreement after checking the surviving keepsake and its terms."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "retire_wedding_keepsake": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Couple Releases a Long-Kept Wedding Slice",
+          "body": "Both owners authorize the agreed disposal of the actual keepsake and settle the storage account. Its recorded compartment becomes available under the bakery’s actual service plan."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Storage Quote Remains Unsigned",
+        "body": "The investment follows its ordinary business result, but no custody agreement is completed. The keepsake stays with its actual owners and ordinary storage conditions."
+      },
+      "present_day": {
+        "best": "If the whole chain persists in {now}, the storage record shows the agreed retirement and settled account, and the actual kept slice no longer occupies its compartment.",
+        "worst": "Without a completed transfer, renewal or agreed disposal, retain actual ownership, condition and storage; no perpetual intact cake or shared household is assumed.",
+        "twist": "The bakery regains usable contracted space, while {B} and {C} give up the single physical wedding keepsake they chose to preserve."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "grateful",
+          "line": "We kept a slice so long that making room felt like another anniversary."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "store_wedding_keepsake requires A ownership and approved actual separate storage suitable for the labeled non-consumption keepsake, legal compliance, funded equipment and maintenance, both owners’ consent, real transport and a written affordable custody agreement. Track the single object, custody, condition and actual fees. Do not mix it with saleable stock or promise edible preservation.",
+        "renew_keepsake_storage requires all owners alive, A still providing the real lawful service, the object still present and suitable for the agreed non-consumption storage, actual affordable renewal payments and honest disclosure of condition. Ordinary equipment failures, loss and later ownership changes are never suppressed.",
+        "retire_wedding_keepsake requires B and C still jointly entitled and independently consenting, the actual object present, A authorized to perform the agreed lawful disposal, paid costs and all existing custody obligations settled. Remove exactly that object, close its account and release only its actual allocated capacity; do not create a new paying customer, photograph or replacement memento. Gate B dialogue on step 3, survival, remembered keepsake and B and C actual continuing marriage; otherwise suppress that shared-anniversary line."
+      ],
+      "era_notes": "Equipment, custody terms and separate storage requirements follow the event year; no eating, tasting or food-safety claim is part of the story.",
+      "why_fun": "A shared choice to stop keeping something can become one more part of a long marriage."
+    },
+    {
+      "id": "scenario-20261117-12933",
+      "kind": "scenario",
+      "title": "The Overdue Book That Lost Its Borrowing Card",
+      "category": "rivalry",
+      "pitch": "Spread the verified story of a long-overdue library volume. Its return may permit real conservation and a supervised-reading policy, giving readers access while ending the privilege of taking that particular book home.",
+      "present_hook": {
+        "what_you_notice": "An old loan register lists a missing local-history volume beside an unfilled conservation request.",
+        "where": "the library",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The recorded borrower still had the same volume in {year}; the loan terms and return reminders survive."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            35,
+            45
+          ],
+          "reputation": "mid"
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1995
+        ],
+        "notes": "A is the actual living borrower with the library-owned overdue volume and valid notice of its terms. B is the actual authorized librarian. The documented overdue account and missing volume must exist; overdue borrowing is not automatically theft or evidence of another crime."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": -0.2,
+          "how_it_looks": "Repeat the truthful documented overdue account without inventing theft or other misconduct."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "return_overdue_volume": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Overdue Volume Finally Comes Back",
+          "body": "The borrower returns the same identifiable library-owned volume. Its actual condition and account settlement are recorded."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "conserve_library_volume": "B"
+            }
+          ],
+          "headline": "A Returned Book Receives Its Funded Conservation",
+          "body": "The library completes qualified funded conservation of the actual surviving volume and records its condition."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "restrict_volume_to_reading_room": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Fragile Volume Stays Available at a Reading Desk",
+          "body": "A supported condition review and authorized policy place the volume in supervised reading-room use. Its ordinary take-home lending ends."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Overdue Story Does Not Bring the Book Back",
+        "body": "The reputation effect remains real, but no return is completed. Ownership and recovery follow ordinary records rather than a promised seizure."
+      },
+      "present_day": {
+        "best": "If the full chain and volume survive in {now}, the actual library catalogue marks the conserved volume for supervised reading-room access and no take-home loan.",
+        "worst": "If the book is absent or later lost, no conservation or reading-room copy is conjured; if policy fails, use its actual lending terms.",
+        "twist": "Readers regain access to the returned volume, while {A} bears the actual reputation harm from the gossip and loses the option of borrowing that particular copy home under the later policy."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "bitter",
+          "line": "I brought it back. Now everybody has to come to it."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "return_overdue_volume requires A alive, actual possession, informed voluntary return or an independently lawful ordinary return process, B current authority and the genuine title and loan record. Transfer custody to the true library owner, settle only actual lawful fees and record condition. Do not repeat the rumor’s reputation effect or invent a criminal finding.",
+        "conserve_library_volume requires B still authorized, that actual volume present and eligible, an independent qualified assessment, real preservation funds, rights and permissions, completed specialist work and a documented resulting condition. It creates no replacement text, duplicate book or historical fact.",
+        "restrict_volume_to_reading_room requires B current authority, the same volume still present, a current qualified condition assessment supporting restricted handling, accessible actual supervised reader facilities and a lawful approved policy after notice. Change only that volume’s lending status, respecting real access rights and existing loans; do not bar A from the library or invent publicity benefits. A must remain an actual eligible reader who otherwise could request a normal loan for the stated loss of borrowing option. Gate A dialogue on step 3, survival, remembered return and actual current access policy."
+      ],
+      "era_notes": "Registers, reminders, conservation and access tools follow the actual decade; no digital scan appears automatically.",
+      "why_fun": "A cruel piece of accurate gossip can bring something public home and still leave its subject with a fair grievance."
+    },
+    {
+      "id": "scenario-20261117-12934",
+      "kind": "scenario",
+      "title": "The Flag Design That Arrived before the Contest",
+      "category": "uncanny",
+      "pitch": "Show a designer an authentic later drawing of a town flag with the creator’s permission. It may inspire a new early design and public adoption, then a voluntary rights release that lets the town use the adopted design without its former licensing limits.",
+      "present_hook": {
+        "what_you_notice": "A signed later flag drawing sits in a household collection; the file of an earlier announced but uncompleted design contest records no entry from its creator.",
+        "where": "the Gazette archive",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The later designer never entered the contest announced in {year}."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ]
+        },
+        "B": {
+          "age": [
+            20,
+            30
+          ],
+          "trait": {
+            "diligence": "high"
+          }
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A is the actual authorized contest clerk and B its eligible skilled prospective designer. Original-present records identify B as the real creator and rights holder of the actual later drawing, with B alive and consenting to lend and show it to the earlier self. Baseline contest had no B entry. The past entry must be newly completed under actual contemporary rules, not automatically owned because of the future artifact. The contest is announced at intervention, accepts entries during intervention+1 through +3, and has no completed adoption in the baseline. Later adoption requires a lawful funded reconsideration of retained eligible entries with renewed permissions, not an assumed decade-long open submission window."
+      },
+      "interventions": [
+        {
+          "verb": "proposed:show_later_flag_drawing",
+          "target": "B",
+          "how_it_looks": "With the source creator’s permission, show the consenting earlier designer the actual unaltered later drawing and recorded provenance."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.75,
+          "effects": [
+            {
+              "submit_early_flag_design": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Designer Completes an Entry for the Town Contest",
+          "body": "The designer completes and submits an actual eligible new drawing under the contest’s real terms. The unusual source is recorded without claiming scientific proof of the future."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "adopt_town_flag_design": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Town Adopts a Funded Flag Design under Licence",
+          "body": "The competent public process adopts the actual cleared entry and its agreed licence. Only funded approved flags are made and installed."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "release_flag_design_rights": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Town Flag Receives a Freer Use Agreement",
+          "body": "The actual rights holder completes an informed voluntary rights release under the applicable law. The public design record states its true new permitted uses."
+        }
+      ],
+      "fails": {
+        "chance": 0.25,
+        "effects": [],
+        "headline": "The Borrowed Drawing Starts No Entry",
+        "body": "The viewing happens, but no qualifying new contest entry is completed. No adopted flag, licence or rights release is promised."
+      },
+      "present_day": {
+        "best": "If the full chain and adoption persist in {now}, the actual funded civic flag sites display the adopted design and its public record carries the completed permitted-use release.",
+        "worst": "Without an accepted actual entry or public adoption, no flag is installed. The carried source drawing retains its original provenance rather than rewriting itself to match the changed contest.",
+        "twist": "The town gains the actual released uses, while {B} voluntarily gives up the specific exclusive licensing rights and future fees surrendered by that real instrument."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "uncanny",
+          "line": "I recognized the hand before I understood the date. The new drawing still took me weeks."
+        }
+      ],
+      "proposed_verbs": [
+        {
+          "verb": "show_later_flag_drawing",
+          "does": "With the original creator and owner’s permission, carry one existing later drawing to consenting earlier designer B, show its unaltered image and date, record single-object temporal provenance and actual viewing, then return it; create no new work, submission or legal rights directly."
+        }
+      ],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "show_later_flag_drawing borrows one existing original-present drawing with its owner and creator’s permission, carries it to consenting earlier B and displays the actual image and date. Record immutable content, true authorship, source branch, single artifact identity and B actual viewing; return the borrowed original without duplicating it. Create no contest entry, legal right or imposed belief directly.",
+        "submit_early_flag_design requires A current contest authority, a real valid submission window, B current eligibility and skill, an actual independently completed new drawing, lawful source permissions, no conflicting assignment and actual paid costs. Identify the new work separately from the returned source and record its real authorship and rights; the source holder must explicitly permit any authorized adaptation. A late, copied-without-permission or otherwise invalid entry cancels the chain.",
+        "adopt_town_flag_design requires A still acting under actual public authority, the real submitted work selected through a lawful actual process, B consent and clear rights, an enforceable disclosed use licence reserving specified rights to B, public approval and actual production and installation funds. Record each installed flag at an existing authorized site; do not invent a new town name, seal, resident or unrestricted ownership. If the original contest has closed, require the actual authorized reconsideration process, retained eligible entry and renewed creator consent before selection; do not silently reopen deadlines or displace an already adopted winner.",
+        "release_flag_design_rights requires A still authorized to record the change, B alive and actually retaining transferable specified exclusive rights, informed voluntary consent without pressure, clearance of all co-owners and contracts and a legally effective supported release or equivalent irrevocable free-use licence. Name exactly the released reproduction and public-display uses, preserve any legally retained attribution rights and settle actual fees. Do not promise public-domain status where the law does not permit it, erase prior debts or generate future royalties. Gate B dialogue on step 3, survival, actual remembered viewing and independently recorded weeks spent completing the new drawing."
+      ],
+      "era_notes": "Contest, flag production and design-rights law follow the event year. The later drawing is the only displaced artifact and is never treated as an unavoidable design instruction.",
+      "why_fun": "A future image can start a new piece of work without deciding who will eventually be allowed to use it."
+    }
+  ]
+}

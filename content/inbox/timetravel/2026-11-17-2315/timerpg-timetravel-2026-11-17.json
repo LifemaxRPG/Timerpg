@@ -1,0 +1,651 @@
+{
+  "batch": "2026-11-17",
+  "kind": "timetravel",
+  "items": [
+    {
+      "id": "scenario-20261117-13951",
+      "kind": "scenario",
+      "title": "The Child Who Later Hired the Babysitter",
+      "category": "family",
+      "pitch": "Help a qualified caregiver afford a real home-childcare licence. An existing child may later open a qualified center and offer the former caregiver a steadier job with less control over the working day.",
+      "present_hook": {
+        "what_you_notice": "A household file contains a cancelled home-childcare application beside an actual parent’s request for care.",
+        "where": "a home",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The caregiver in {year} had the qualifications and suitable space, but could not cover the remaining licence costs."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            30
+          ],
+          "wealth": "poor",
+          "owns_shop": false
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ],
+          "has_children": true
+        },
+        "C": {
+          "age": [
+            6,
+            8
+          ],
+          "relation": "parent_child"
+        }
+      },
+      "window": {
+        "years": [
+          1955,
+          1990
+        ],
+        "notes": "B is C actual parent and C the child relative to B. A is the actual qualified prospective caregiver in a suitable existing home, with all owner and guardian permissions. The small gift covers the evidenced licensing shortfall. Baseline has no A-operated care business. Present must be at least intervention+27; no child or qualification is invented."
+      },
+      "interventions": [
+        {
+          "verb": "gift",
+          "target": "A",
+          "amount": "small",
+          "how_it_looks": "Give the caregiver a week’s wages toward the real remaining licensing costs."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "open_home_childcare": [
+                "A",
+                "B",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Qualified Caregiver Opens an Approved Home Service",
+          "body": "The funded lawful service opens and the parent freely agrees to actual affordable care for the existing child."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            15,
+            17
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "C",
+              "kind": "childcare center"
+            }
+          ],
+          "headline": "A Former Childcare Client Opens a Qualified Center",
+          "body": "The now-adult founder completes the real funded opening with current qualifications, suitable premises and an actual viable staffing plan."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            25,
+            27
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            },
+            "C": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "transfer_childcare_work": [
+                "A",
+                "C"
+              ]
+            }
+          ],
+          "headline": "A Former Caregiver Joins a Former Client’s Staff",
+          "body": "The caregiver voluntarily settles the existing home business and accepts the center’s real funded role. Its actual schedule replaces the former self-set hours."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Gift Does Not Complete the Licence",
+        "body": "The money remains real, but no qualifying home service opens. No care arrangement or later business is created."
+      },
+      "present_day": {
+        "best": "If the chain and employment persist in {now}, the center’s ownership record names {C}, its staff record lists {A}, and the former home business is closed without changing the home’s residential title.",
+        "worst": "Without completed stages, retain actual care, qualifications and ownership. An earlier client never automatically becomes an employer.",
+        "twist": "{A} gains the actual employee pay arrangement but gives up the home business and the documented freedom to choose its working hours."
+      },
+      "npc_lines_after": [
+        {
+          "who": "A",
+          "mood": "unaware",
+          "line": "I used to tell the child when to put the toys away. Now I check the staff schedule."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Override the common present bound to intervention+27. Add home childcare and childcare center as business kinds. open_home_childcare requires actual completed licensing, A current qualifications and checks, suitable inspected existing premises with owner consent, lawful capacity, real funds, B guardian authority and voluntary affordable care contract. Create one A-operated business and enroll only actual consenting clients; C is an existing child, not a new resident.",
+        "found_business requires C alive, adult and actually qualified through independently completed education, checks and required experience, with real capital, affordable staffing, safe permitted available premises and a viable plan. C is 21–25 at elapsed years 15–17. Create one C-owned center; prior childcare does not grant qualifications, money or children.",
+        "transfer_childcare_work requires C still owns the qualified operating center and an actual funded vacancy, A current qualifications and free consent, and A still operates the actual home business. Require documented self-chosen old hours and materially more employer-directed new hours. Settle contracts, guardian notices, safe alternative care for every current child, pay, premises and business liabilities before closure and hire commit atomically. Do not move any child automatically or alter A home title. Gate A dialogue on step 3, survival, current employment and remembered care of C."
+      ],
+      "era_notes": "Licensing, childcare capacity, education and employment rules follow each event year; no modern credential is projected backward.",
+      "why_fun": "The player can return to find a familiar childhood relationship reversed across a staff-room table."
+    },
+    {
+      "id": "scenario-20261117-13952",
+      "kind": "scenario",
+      "title": "The Crossing That Went Quiet, Then Closed",
+      "category": "place",
+      "pitch": "Spread truthful praise of a resident’s documented crossing-safety work. Better protection may lead to a lawful quiet zone, then a later closure that removes one resident’s familiar short route.",
+      "present_hook": {
+        "what_you_notice": "A crossing file contains an unaccepted safety proposal beside the unchanged history’s routine horn schedule.",
+        "where": "Main Street",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The measurements praised in {year} were real; the proposed work still needed funds and operating approval."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            25,
+            35
+          ],
+          "reputation": "mid"
+        },
+        "B": {
+          "age": [
+            30,
+            40
+          ]
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A is the actual qualified proposal author; B an actual authorized railway engineer and regular lawful user of the crossing route. Bind one existing mapped public crossing with real sightlines, traffic and rail operations. Baseline has no proposed protection or quiet-zone designation. No collision, casualty or available replacement route is invented."
+      },
+      "interventions": [
+        {
+          "verb": "rumor",
+          "target": "A",
+          "amount": 0.2,
+          "how_it_looks": "Repeat the verifiable merits of the resident’s actual safety measurements."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "upgrade_rail_crossing": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Existing Crossing Receives Its Approved Protection",
+          "body": "Qualified workers complete the actual funded protection and inspections under rail and road authority."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "designate_crossing_quiet_zone": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Crossing Qualifies for a Lawful Quiet Zone",
+          "body": "The actual current assessment and approvals allow the specified routine horn restriction. Emergency warnings remain available."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "close_public_rail_crossing": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Crossing Closes under an Approved Access Plan",
+          "body": "The authorities complete the real closure after settling public access rights. The actual longer alternative remains safely available."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "Praise Does Not Complete Crossing Protection",
+        "body": "The ordinary reputation change remains, but the funded qualifying upgrade is not completed. No quiet zone or closure is inferred."
+      },
+      "present_day": {
+        "best": "If the chain and closure persist in {now}, the actual crossing barriers prevent public passage and route signs point to the existing lawful alternative. Its quiet-zone records reflect the current rail configuration.",
+        "worst": "Without valid stages, keep actual protection, horn rules and access rights. A quiet-zone proposal never guarantees silence or safety.",
+        "twist": "The town gains the actual approved rail arrangement, while {B} loses the shorter legal route and must use the evidenced longer route for the same trip."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "It got quieter. My walk got longer."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add railway operator as a transport-employer kind if needed, binding existing actual operations. upgrade_rail_crossing requires real current need, authorized rail and road parties, B current technical authority, qualified design, available rights and affordable actual budget. Install and inspect only specified equipment at the existing mapped crossing; no new track, collision or casualty.",
+        "designate_crossing_quiet_zone requires the completed protection still compliant, current measured conditions, legally available designation, actual authority and all required approvals. Record exact hours, exemptions, remaining emergency horn rights and maintenance conditions. Do not suppress warnings or assert no future accidents.",
+        "close_public_rail_crossing requires actual independently approved current access and operating plan, lawful public process, all affected rights settled, actual funded physical closure and a preexisting safe lawful accessible alternative. Eligibility requires B real continuing trip and route-graph evidence that this alternative is longer. Recompute routes and current horn designation under actual rules; create no bridge or new land. Gate B dialogue on step 3, survival, actual remembered change in routine horns and current longer walk."
+      ],
+      "era_notes": "Rail protections, horn rules, quiet-zone powers and road rights must exist in the actual event years.",
+      "why_fun": "A public improvement can change both the town’s sound and the length of one ordinary walk."
+    },
+    {
+      "id": "scenario-20261117-13953",
+      "kind": "scenario",
+      "title": "The Last House Call on the Old Route",
+      "category": "business",
+      "pitch": "Invest in a doctor’s costed home-visit service. A later outreach clinic may bring care together while ending a nurse’s familiar individual round.",
+      "present_hook": {
+        "what_you_notice": "A doctor’s office file contains a funded-in-part home-visit plan and an unfilled qualified nursing application.",
+        "where": "the doctor’s office",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "The proposed route in {year} had actual willing patients and a qualified applicant, but its budget did not balance."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            30,
+            40
+          ],
+          "owns_shop": true,
+          "shop_kind": [
+            "doctor's office"
+          ]
+        },
+        "B": {
+          "age": [
+            25,
+            35
+          ],
+          "wealth": "getting_by"
+        }
+      },
+      "window": {
+        "years": [
+          1960,
+          1995
+        ],
+        "notes": "Bind practice to A actual qualified adult-owned doctor’s office. B is a genuinely qualified consenting nurse; no clinical qualification is granted by investment. Baseline has no proposed route. Require actual eligible consenting patients, real travel access and lawful funded clinical arrangements, not invented diagnoses or cures."
+      },
+      "interventions": [
+        {
+          "verb": "invest",
+          "business": "practice",
+          "amount": "large",
+          "how_it_looks": "Invest ordinary practice capital toward the real staffing, transport and equipment shortfall."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "start_home_visit_round": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Practice Starts Its Funded Nursing Round",
+          "body": "The qualified nurse accepts the actual paid role and completes the approved real visits under lawful clinical supervision."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "open_outreach_clinic": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "An Existing Room Becomes a Qualified Outreach Clinic",
+          "body": "The practice completes the actual funded inspected service in suitable existing premises, with real staff and clinical authority."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "consolidate_nursing_round": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Practice Settles Its Old Route before Consolidating Care",
+          "body": "The actual care transitions and staffing agreement take effect only after suitable alternatives exist for every affected current patient. The nurse’s independent round ends."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "The Investment Does Not Establish the Round",
+        "body": "The capital follows ordinary practice finances, but no qualifying staffed home-visit service starts. No patient outcome is invented."
+      },
+      "present_day": {
+        "best": "If the chain and service persist in {now}, the practice posts the actual outreach schedule and no longer assigns B the old individual route. Show current patient care only from actual records.",
+        "worst": "Without a completed transition, retain actual visits and clinical responsibilities. A new room alone never withdraws necessary home care.",
+        "twist": "The practice gains the actual consolidated service, while {B} gives up the documented discretion and familiar visits of the former round under the agreed new role."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "bitter",
+          "line": "I know where the desks go. I used to know which porch step creaked."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "start_home_visit_round requires A current clinical and business authority, actual qualified B, funded lawful employment, suitable transport and equipment, real consenting eligible patients and supported appointments. Create only the actual contract and completed services; pay costs and wages normally, never an investment bonus or guaranteed cure.",
+        "open_outreach_clinic adds outreach clinic as a service and venue type under the same bound practice, not an automatic separate business. Require actual available suitable existing premises, title and owner consent, permits, qualified clinical staff, affordable budget, safe inspected equipment and real consenting service demand. Record exact service scope, schedule and costs.",
+        "consolidate_nursing_round requires actual continuing practice and nurse employment, independently supported current service plan, informed lawful staff agreement and completed safe clinically suitable arrangements for each actual affected patient. Homebound patients need real available equivalent home care or genuinely suitable affordable accessible transport, not assumed mobility. Preserve all continuing clinical duties and patient choice. Settle route commitments and change B actual role and hours, recording the real loss of prior scheduling discretion; do not erase relationships or assume treatment success. Gate B dialogue on step 3, survival, remembered actual porch visits and current changed role."
+      ],
+      "era_notes": "Nursing scope, supervision, transport, facilities and patient access follow each event year; no modern mobile technology is assumed early.",
+      "why_fun": "The changed present can offer more organized care and fewer familiar footsteps at a front door."
+    },
+    {
+      "id": "scenario-20261117-13954",
+      "kind": "scenario",
+      "title": "The Campground Where the Fire Rings Stayed Cold",
+      "category": "money",
+      "pitch": "Introduce a prospective campground operator to a willing landowner. A real campsite may grow into a licensed business, then retire its fire rings under an actual later safety plan, costing a regular visitor a familiar evening ritual.",
+      "present_hook": {
+        "what_you_notice": "A land file contains an unanswered camping proposal and a survey of the suitable existing parcel.",
+        "where": "the river",
+        "clues": [
+          {
+            "who": "the Gazette archive",
+            "line": "Both parties in {year} had real terms to discuss, but had never met and no camping agreement was signed."
+          }
+        ]
+      },
+      "roles": {
+        "A": {
+          "age": [
+            22,
+            30
+          ],
+          "wealth": "getting_by",
+          "relation": "strangers"
+        },
+        "B": {
+          "age": [
+            35,
+            45
+          ],
+          "relation": "strangers"
+        }
+      },
+      "window": {
+        "years": [
+          1970,
+          1995
+        ],
+        "notes": "A and B are strangers relative to each other. B owns the identified suitable parcel and actually enjoys permitted camping there; A is a qualified prospective operator. Baseline has no agreement or campground. Require actual lawful access and suitable existing land; river access, water, sanitation and future fire restrictions are not assumed."
+      },
+      "interventions": [
+        {
+          "verb": "introduce",
+          "a": "A",
+          "b": "B",
+          "how_it_looks": "Introduce the consenting prospective operator and landowner over the real surveyed proposal."
+        }
+      ],
+      "ripples": [
+        {
+          "step": 1,
+          "after_years": [
+            1,
+            3
+          ],
+          "if": {
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.8,
+          "effects": [
+            {
+              "lease_permitted_campsite": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "Two Parties Sign a Real Permitted Camping Agreement",
+          "body": "The lawful funded lease and actual limited camping permissions take effect on the identified parcel."
+        },
+        {
+          "step": 2,
+          "after_years": [
+            11,
+            13
+          ],
+          "if": {
+            "step": 1,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.6,
+          "effects": [
+            {
+              "found_business": "A",
+              "kind": "campground"
+            }
+          ],
+          "headline": "A Qualified Operator Opens a Funded Campground",
+          "body": "The operator completes the licensed affordable opening with real access, sanitation and staffing. Only the actual approved amenities are offered."
+        },
+        {
+          "step": 3,
+          "after_years": [
+            23,
+            25
+          ],
+          "if": {
+            "step": 2,
+            "A": {
+              "alive": true
+            },
+            "B": {
+              "alive": true
+            }
+          },
+          "chance": 0.65,
+          "effects": [
+            {
+              "retire_campground_fire_rings": [
+                "A",
+                "B"
+              ]
+            }
+          ],
+          "headline": "A Campground Removes Fire Rings under Its Actual Safety Plan",
+          "body": "The approved funded plan removes the existing fire rings and supplies the real permitted cooking alternative. No wildfire is invented to justify the change."
+        }
+      ],
+      "fails": {
+        "chance": 0.2,
+        "effects": [],
+        "headline": "A Meeting Does Not Become a Camping Lease",
+        "body": "The introduction happens, but no qualifying lawful agreement is completed. No land, river right or visitor is created."
+      },
+      "present_day": {
+        "best": "If the chain and plan persist in {now}, the actual campground contains its permitted alternative cooking facilities and no original fire rings; its notice states the real current fire rules.",
+        "worst": "Without completed stages, show only actual title, permits and facilities. No campground or fire ban follows merely from an introduction.",
+        "twist": "{A} gains the actual viable campground and later safe operating arrangement, while {B} loses the permitted campfire ritual previously exercised at the now-removed rings."
+      },
+      "npc_lines_after": [
+        {
+          "who": "B",
+          "mood": "unaware",
+          "line": "Same patch of sky. Different sound after supper."
+        }
+      ],
+      "proposed_verbs": [],
+      "new_rules_needed": [
+        "Bind distinct actual living residents at intervention; require present year at least intervention+25. Select each elapsed year uniformly within its interval using a stable seed/scenario/role-IDs/intervention-year/step/timing key; each step uses a separate independently keyed uniform success roll. Later steps require the preceding committed step and all current prerequisites. Recheck age, survival, residence, consent, authority, title, skills and resources. Invalid eligibility or roll failure stops descendants, retaining earlier changes and ordinary simulation. fails.chance complements the first valid step roll, never a separate event; invalid eligibility has no failure bulletin. Reserve affected funds, residents, assets and sites and commit effects atomically once after ordinary mortality. Resolve concurrent conflicts in stable scenario-ID order without rerolls or partial effects. Do not repeat direct intervention effects. Present descriptions and dialogue require their recorded changes and still-valid current facts; show only realized prefixes otherwise. No new people, relationships, buildings or ownership are implied.",
+        "Add campground as a business kind. lease_permitted_campsite requires B clear actual title, both parties’ informed consent, supported valuation, an affordable funded lease, legal access, site suitability and actual limited-use permissions. Record exact parcel, terms, fees and retained owner camping rights without creating land or river access.",
+        "found_business requires A current qualifications, valid surviving or lawfully renewed land rights, informed owner approval, real available capital, viable budget, permitted safe actual access, water, sanitation and operations. Create one A-operated campground. Require actual lawful fire rings and recorded B use during the business’s realized history if the final ritual-loss branch is to become eligible; no visitor or fire is automatic.",
+        "retire_campground_fire_rings requires the campground still lawfully operates, an actual qualified current risk assessment and legally applicable approved safety plan, all lease and guest rights settled, actual funding and suitable permitted non-flame cooking facilities completed before removal. Remove only the identified real rings and amend actual rules. Do not invent a wildfire, permanent universal ban, extinguished legal right without process or improved profit. Gate B dialogue on step 3, survival, real remembered permitted campfires and an actual current visit."
+      ],
+      "era_notes": "Camping licences, leases, sanitation, fire rules and cooking alternatives follow their actual event years.",
+      "why_fun": "A small introduction can eventually change a riverbank business and what people listen to after supper."
+    }
+  ]
+}
