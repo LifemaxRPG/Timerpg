@@ -1,4 +1,5 @@
 import { rand } from '../sim/rng';
+import { pickVariant } from '../game/art';
 
 // Civic LANDMARKS: big one-off buildings (post office, school, fire station...). Which ones a
 // town has, where they stand and the year each opens are all pure functions of the seed.
@@ -46,6 +47,15 @@ export interface LandmarkPlot extends Box {
   look: number;
   /** Rows (from the bottom) that block walking. */
   foot: number;
+}
+
+/**
+ * The sprite a landmark wears: `landmark_<kind>_<n>` (scripts/extract-assets.mjs), chosen from its manifest group
+ * `landmark:<kind>` by its look exactly as the game draws it (src/game/TownView.ts drawLandmark, pickVariant).
+ */
+export function landmarkArtKey(l: Pick<LandmarkPlot, 'id' | 'look'>): string {
+  const variants = Array.from({ length: LANDMARK_VARIANTS[l.id] }, (_, i) => i + 1);
+  return `landmark_${l.id}_${pickVariant(variants, l.look)}`;
 }
 
 interface Params {
