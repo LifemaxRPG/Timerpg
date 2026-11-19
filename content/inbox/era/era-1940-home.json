@@ -1,0 +1,297 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1940,
+  "topic": "home",
+  "facts": [
+    {
+      "id": "1940-home-01",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Families place a washable oilcloth over the kitchen table before messy meals.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-02",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Children wash their hands at the sink before sitting down to supper.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-03",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A parent calls everyone to the table when the evening meal is ready.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-04",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Many households serve potatoes and seasonal vegetables with the main meal.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-05",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A family saves leftover roast meat for sandwiches the following day.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-06",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Home cooks keep flour and sugar in covered kitchen canisters.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-07",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Some households preserve summer fruit in sealed jars for winter meals.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-08",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A homemaker rolls pie dough on a floured board in the kitchen.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-09",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Children help shell peas or snap beans on the porch.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-10",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A family stores potatoes in a cool cellar to keep them longer.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-11",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Neighbors sometimes bring a covered dish when a household welcomes a new baby.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-12",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Householders beat small rugs outdoors to shake loose dust.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-13",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A parent patches torn knees in children's trousers to extend their wear.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-14",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A sewing basket holds needles, thread, spare buttons, and a thimble.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-15",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Families air blankets outdoors when the weather is dry.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-16",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A household sets a washbasin near the back door for muddy hands.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-17",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Some families keep a vegetable garden behind the house.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-18",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Children carry kitchen scraps to a backyard compost heap or chickens.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-19",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A family hangs coats on hooks beside the entry door.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-20",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A parlor may be kept tidy for guests while daily life happens in the kitchen.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-21",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Relatives gather around the dining table to play cards on a quiet evening.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-22",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Children do homework at the kitchen table after clearing supper dishes.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-23",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A parent sets out school clothes the night before a busy morning.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-24",
+      "year_from": 1942,
+      "year_to": 1945,
+      "text": "During wartime, families collect used cooking fat for a local salvage drive.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-25",
+      "year_from": 1942,
+      "year_to": 1945,
+      "text": "During wartime, households plant extra vegetables in small backyard plots.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-home-26",
+      "year_from": 1945,
+      "year_to": 1949,
+      "text": "After the war, some returning service members move in with relatives while seeking housing.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
