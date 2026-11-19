@@ -1,0 +1,21 @@
+{
+  "revision": 2,
+  "glb_bytes": 295336,
+  "visible_triangles": 2964,
+  "materials": 12,
+  "embedded_textures": 12,
+  "art_pixel_grid": "all texture pixels are exact 2x2 blocks",
+  "uv_scale_max_edge_error_m": 2.073669435276315e-06,
+  "pump_triangles": {
+    "pump_01": 214,
+    "pump_02": 214,
+    "pump_03": 214,
+    "pump_04": 214
+  },
+  "doors": "ground-level named nodes verified",
+  "collision": "separate collision-only mesh verified",
+  "lot": "optional lot hierarchy verified",
+  "dynamic_prices": "dedicated sign_price node/material, two faces, independent full-UV 48x84 texture; year changes verified without changing static sign; long-price glyphs and negative-price rejection checked",
+  "amenities": "ice chest, propane cage and two island waste/squeegee groups verified",
+  "renderer": "Blender previews; no Filament or phone benchmark"
+}

@@ -1,0 +1,679 @@
+{
+  "name": "Crossfield Fuel & Market",
+  "era": {
+    "built": 2005,
+    "typical_years": [
+      2005,
+      2029
+    ]
+  },
+  "units": "metres",
+  "axes": "glTF Y up, front +Z",
+  "origin": "Ground level at the middle of the store front edge",
+  "footprint_m": {
+    "store_width": 17.3824,
+    "store_depth": 8.6912,
+    "lot_width": 32.2816,
+    "lot_depth": 35.0752,
+    "asphalt_depth": 32.2816,
+    "store_roof_width": 17.848,
+    "store_roof_depth": 9.1568
+  },
+  "heights_m": {
+    "store_roof": 4.5008,
+    "store_sign_top": 4.656000000000001,
+    "roof_equipment_top": 5.3544,
+    "canopy": 5.7424,
+    "canopy_clearance": 4.809648,
+    "canopy_ceiling": 5.0440000000000005,
+    "price_pylon": 7.76
+  },
+  "triangles_visible": 2964,
+  "triangles_collision": 468,
+  "materials": [
+    "detail_utility",
+    "glass_storefront",
+    "glow_station_signs_and_lamps",
+    "ground_asphalt",
+    "ground_paving",
+    "roof_membrane",
+    "sign_price",
+    "trim_enamel_charcoal",
+    "trim_enamel_terracotta",
+    "wall_brick_base",
+    "wall_concrete",
+    "wall_corrugated"
+  ],
+  "doors": [
+    {
+      "node": "door_main",
+      "position": [
+        0,
+        0,
+        0.1552
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "node": "door_back",
+      "position": [
+        4.9664,
+        0,
+        -8.924
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ]
+    }
+  ],
+  "pixel_grid": {
+    "metres_per_texel": 0.0388,
+    "texels_per_art_pixel": 2
+  },
+  "lot_node": "lot",
+  "interior": "Shell plus fixed checkout counter; no loose furniture",
+  "collision": {
+    "node": "collision",
+    "render": false,
+    "boxes_blender_z_up": [
+      {
+        "center": [
+          -8.6136,
+          4.3456,
+          1.8624
+        ],
+        "size": [
+          0.1552,
+          8.6912,
+          3.7248
+        ],
+        "group": "structure",
+        "source": "Left exterior wall"
+      },
+      {
+        "center": [
+          8.6136,
+          6.208,
+          1.8624
+        ],
+        "size": [
+          0.1552,
+          4.9664,
+          3.7248
+        ],
+        "group": "structure",
+        "source": "Right wall rear"
+      },
+      {
+        "center": [
+          8.6136,
+          0.6208,
+          1.8624
+        ],
+        "size": [
+          0.1552,
+          1.2416,
+          3.7248
+        ],
+        "group": "structure",
+        "source": "Right wall front"
+      },
+      {
+        "center": [
+          8.6136,
+          2.4832,
+          0.388
+        ],
+        "size": [
+          0.1552,
+          2.4832,
+          0.776
+        ],
+        "group": "structure",
+        "source": "Right window sill"
+      },
+      {
+        "center": [
+          8.6136,
+          2.4832,
+          3.3368
+        ],
+        "size": [
+          0.1552,
+          2.4832,
+          0.776
+        ],
+        "group": "structure",
+        "source": "Right window lintel"
+      },
+      {
+        "center": [
+          -2.1728,
+          8.6136,
+          1.8624
+        ],
+        "size": [
+          13.0368,
+          0.1552,
+          3.7248
+        ],
+        "group": "structure",
+        "source": "Rear wall"
+      },
+      {
+        "center": [
+          7.139200000000001,
+          8.6136,
+          1.8624
+        ],
+        "size": [
+          3.104,
+          0.1552,
+          3.7248
+        ],
+        "group": "structure",
+        "source": "Rear wall"
+      },
+      {
+        "center": [
+          4.9664,
+          8.6136,
+          3.104
+        ],
+        "size": [
+          1.2416,
+          0.1552,
+          1.2416
+        ],
+        "group": "structure",
+        "source": "Service exit lintel"
+      },
+      {
+        "center": [
+          -4.8888,
+          0.0776,
+          0.3104
+        ],
+        "size": [
+          6.984,
+          0.1552,
+          0.6208
+        ],
+        "group": "structure",
+        "source": "Front knee wall"
+      },
+      {
+        "center": [
+          4.8888,
+          0.0776,
+          0.3104
+        ],
+        "size": [
+          6.984,
+          0.1552,
+          0.6208
+        ],
+        "group": "structure",
+        "source": "Front knee wall"
+      },
+      {
+        "center": [
+          -8.536,
+          0.0776,
+          1.8624
+        ],
+        "size": [
+          0.3104,
+          0.1552,
+          3.7248
+        ],
+        "group": "structure",
+        "source": "Front structural jamb"
+      },
+      {
+        "center": [
+          8.536,
+          0.0776,
+          1.8624
+        ],
+        "size": [
+          0.3104,
+          0.1552,
+          3.7248
+        ],
+        "group": "structure",
+        "source": "Front structural jamb"
+      },
+      {
+        "center": [
+          -1.3192,
+          0.0776,
+          1.8624
+        ],
+        "size": [
+          0.3104,
+          0.1552,
+          3.7248
+        ],
+        "group": "structure",
+        "source": "Front structural jamb"
+      },
+      {
+        "center": [
+          1.3192,
+          0.0776,
+          1.8624
+        ],
+        "size": [
+          0.3104,
+          0.1552,
+          3.7248
+        ],
+        "group": "structure",
+        "source": "Front structural jamb"
+      },
+      {
+        "center": [
+          -4.9664,
+          -13.0368,
+          2.5220000000000002
+        ],
+        "size": [
+          0.4656,
+          0.4656,
+          5.0440000000000005
+        ],
+        "group": "structure",
+        "source": "Canopy column"
+      },
+      {
+        "center": [
+          4.9664,
+          -13.0368,
+          2.5220000000000002
+        ],
+        "size": [
+          0.4656,
+          0.4656,
+          5.0440000000000005
+        ],
+        "group": "structure",
+        "source": "Canopy column"
+      },
+      {
+        "center": [
+          -4.9664,
+          -15.6752,
+          0.1552
+        ],
+        "size": [
+          1.552,
+          1.2416,
+          0.3104
+        ],
+        "group": "structure",
+        "source": "Pump plinth"
+      },
+      {
+        "center": [
+          -4.9664,
+          -10.3984,
+          0.1552
+        ],
+        "size": [
+          1.552,
+          1.2416,
+          0.3104
+        ],
+        "group": "structure",
+        "source": "Pump plinth"
+      },
+      {
+        "center": [
+          4.9664,
+          -15.6752,
+          0.1552
+        ],
+        "size": [
+          1.552,
+          1.2416,
+          0.3104
+        ],
+        "group": "structure",
+        "source": "Pump plinth"
+      },
+      {
+        "center": [
+          4.9664,
+          -10.3984,
+          0.1552
+        ],
+        "size": [
+          1.552,
+          1.2416,
+          0.3104
+        ],
+        "group": "structure",
+        "source": "Pump plinth"
+      },
+      {
+        "center": [
+          -4.9664,
+          -17.3048,
+          0.5432
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          1.0864
+        ],
+        "group": "lot",
+        "source": "Safety bollard"
+      },
+      {
+        "center": [
+          -4.9664,
+          -8.7688,
+          0.5432
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          1.0864
+        ],
+        "group": "lot",
+        "source": "Safety bollard"
+      },
+      {
+        "center": [
+          4.9664,
+          -17.3048,
+          0.5432
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          1.0864
+        ],
+        "group": "lot",
+        "source": "Safety bollard"
+      },
+      {
+        "center": [
+          4.9664,
+          -8.7688,
+          0.5432
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          1.0864
+        ],
+        "group": "lot",
+        "source": "Safety bollard"
+      },
+      {
+        "center": [
+          -13.192,
+          -19.2448,
+          3.5696000000000003
+        ],
+        "size": [
+          0.6208,
+          0.6208,
+          6.8288
+        ],
+        "group": "lot",
+        "source": "Price pylon mast"
+      },
+      {
+        "center": [
+          2.3280000000000003,
+          10.3208,
+          0.6208
+        ],
+        "size": [
+          0.9312,
+          0.9312,
+          1.2416
+        ],
+        "group": "lot",
+        "source": "Waste bin"
+      },
+      {
+        "center": [
+          3.5696000000000003,
+          10.3208,
+          0.6208
+        ],
+        "size": [
+          0.9312,
+          0.9312,
+          1.2416
+        ],
+        "group": "lot",
+        "source": "Waste bin"
+      },
+      {
+        "center": [
+          -7.9928,
+          10.476,
+          0.9312
+        ],
+        "size": [
+          0.1552,
+          2.7936,
+          1.8624
+        ],
+        "group": "lot",
+        "source": "Enclosure side"
+      },
+      {
+        "center": [
+          -2.7936,
+          10.476,
+          0.9312
+        ],
+        "size": [
+          0.1552,
+          2.7936,
+          1.8624
+        ],
+        "group": "lot",
+        "source": "Enclosure side"
+      },
+      {
+        "center": [
+          -5.3932,
+          11.8728,
+          0.9312
+        ],
+        "size": [
+          5.3544,
+          0.1552,
+          1.8624
+        ],
+        "group": "lot",
+        "source": "Enclosure rear"
+      },
+      {
+        "center": [
+          12.028,
+          5.5872,
+          1.0864
+        ],
+        "size": [
+          1.552,
+          0.9312,
+          2.0176
+        ],
+        "group": "lot",
+        "source": "Air station body"
+      },
+      {
+        "center": [
+          -6.7512,
+          -0.4656,
+          1.0088
+        ],
+        "size": [
+          2.6384,
+          0.776,
+          2.0176
+        ],
+        "group": "lot",
+        "source": "Ice chest cabinet"
+      },
+      {
+        "center": [
+          6.596,
+          -0.4656,
+          1.0088
+        ],
+        "size": [
+          2.4832,
+          0.776,
+          2.0176
+        ],
+        "group": "lot",
+        "source": "Propane cage cabinet"
+      },
+      {
+        "center": [
+          -8.3032,
+          -1.3192,
+          0.5432
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          1.0864
+        ],
+        "group": "lot",
+        "source": "Safety bollard"
+      },
+      {
+        "center": [
+          -5.1992,
+          -1.3192,
+          0.5432
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          1.0864
+        ],
+        "group": "lot",
+        "source": "Safety bollard"
+      },
+      {
+        "center": [
+          5.0440000000000005,
+          -1.3192,
+          0.5432
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          1.0864
+        ],
+        "group": "lot",
+        "source": "Safety bollard"
+      },
+      {
+        "center": [
+          8.148,
+          -1.3192,
+          0.5432
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          1.0864
+        ],
+        "group": "lot",
+        "source": "Safety bollard"
+      },
+      {
+        "center": [
+          -4.3456,
+          -13.0368,
+          0.776
+        ],
+        "size": [
+          0.776,
+          0.776,
+          1.2416
+        ],
+        "group": "lot",
+        "source": "Island trash bin"
+      },
+      {
+        "center": [
+          5.5872,
+          -13.0368,
+          0.776
+        ],
+        "size": [
+          0.776,
+          0.776,
+          1.2416
+        ],
+        "group": "lot",
+        "source": "Island trash bin"
+      }
+    ],
+    "note": "Importer must suppress collision mesh rendering and use these boxes for blocking; door openings remain clear. Skip boxes tagged lot when dropping the optional lot group."
+  },
+  "swatches_used": [
+    "concrete_office_light",
+    "metal_corrugated_hotel",
+    "asphalt_plain",
+    "sidewalk_cream",
+    "brick_red_terrace"
+  ],
+  "swatch_license": "LimeZu: Timerpg game use only, credit required",
+  "renders": "Blender desktop previews, not Filament or S25 captures",
+  "revision": 2,
+  "amenity_nodes": [
+    "ice_chest",
+    "propane_cage",
+    "island_waste_01",
+    "island_waste_02"
+  ],
+  "dynamic_prices": {
+    "node": "sign_price",
+    "material": "sign_price",
+    "texture": "textures/prices.png",
+    "image_texels": [
+      48,
+      84
+    ],
+    "uv": "full 0..1 on each of the two faces; no shared atlas",
+    "rows_top_down_art_pixels": [
+      {
+        "grade": "regular",
+        "y": 0,
+        "height": 7
+      },
+      {
+        "grade": "plus",
+        "y": 14,
+        "height": 7
+      },
+      {
+        "grade": "diesel",
+        "y": 28,
+        "height": 7
+      }
+    ],
+    "writer": "price_art.write_prices(path, year, regular, plus, diesel)",
+    "instructions": "Use simulation-owned values. Rebind base-color and emissive texture slots of sign_price for each year; fixed labels and geometry do not change."
+  }
+}

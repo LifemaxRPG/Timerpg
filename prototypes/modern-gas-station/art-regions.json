@@ -1,0 +1,317 @@
+{
+  "edge_front": {
+    "texture": "signs.png",
+    "rect_art": [
+      0,
+      110,
+      244,
+      2
+    ]
+  },
+  "edge_side": {
+    "texture": "signs.png",
+    "rect_art": [
+      248,
+      0,
+      2,
+      154
+    ]
+  },
+  "brand": {
+    "texture": "signs.png",
+    "rect_art": [
+      0,
+      0,
+      80,
+      12
+    ]
+  },
+  "canopy_brand": {
+    "texture": "signs.png",
+    "rect_art": [
+      84,
+      0,
+      96,
+      8
+    ]
+  },
+  "market": {
+    "texture": "signs.png",
+    "rect_art": [
+      0,
+      15,
+      64,
+      10
+    ]
+  },
+  "price": {
+    "texture": "signs.png",
+    "rect_art": [
+      190,
+      0,
+      40,
+      64
+    ]
+  },
+  "air": {
+    "texture": "signs.png",
+    "rect_art": [
+      80,
+      15,
+      24,
+      12
+    ]
+  },
+  "exit": {
+    "texture": "signs.png",
+    "rect_art": [
+      110,
+      15,
+      32,
+      12
+    ]
+  },
+  "lamp": {
+    "texture": "signs.png",
+    "rect_art": [
+      0,
+      104,
+      16,
+      4
+    ]
+  },
+  "number1": {
+    "texture": "signs.png",
+    "rect_art": [
+      10,
+      90,
+      8,
+      10
+    ]
+  },
+  "number2": {
+    "texture": "signs.png",
+    "rect_art": [
+      20,
+      90,
+      8,
+      10
+    ]
+  },
+  "number3": {
+    "texture": "signs.png",
+    "rect_art": [
+      30,
+      90,
+      8,
+      10
+    ]
+  },
+  "number4": {
+    "texture": "signs.png",
+    "rect_art": [
+      40,
+      90,
+      8,
+      10
+    ]
+  },
+  "ice_chest": {
+    "texture": "utility.png",
+    "rect_art": [
+      0,
+      92,
+      32,
+      24
+    ]
+  },
+  "propane_cage": {
+    "texture": "utility.png",
+    "rect_art": [
+      34,
+      92,
+      32,
+      24
+    ]
+  },
+  "pump_bin": {
+    "texture": "utility.png",
+    "rect_art": [
+      70,
+      92,
+      10,
+      16
+    ]
+  },
+  "bucket_water": {
+    "texture": "utility.png",
+    "rect_art": [
+      84,
+      92,
+      8,
+      8
+    ]
+  },
+  "paint_strip": {
+    "texture": "utility.png",
+    "rect_art": [
+      64,
+      70,
+      2,
+      16
+    ]
+  },
+  "leaf": {
+    "texture": "utility.png",
+    "rect_art": [
+      44,
+      70,
+      16,
+      16
+    ]
+  },
+  "metal": {
+    "texture": "utility.png",
+    "rect_art": [
+      0,
+      0,
+      32,
+      32
+    ]
+  },
+  "white": {
+    "texture": "utility.png",
+    "rect_art": [
+      32,
+      0,
+      32,
+      32
+    ]
+  },
+  "orange": {
+    "texture": "utility.png",
+    "rect_art": [
+      64,
+      0,
+      32,
+      32
+    ]
+  },
+  "dark": {
+    "texture": "utility.png",
+    "rect_art": [
+      96,
+      0,
+      32,
+      32
+    ]
+  },
+  "yellow": {
+    "texture": "utility.png",
+    "rect_art": [
+      0,
+      34,
+      16,
+      16
+    ]
+  },
+  "rubber": {
+    "texture": "utility.png",
+    "rect_art": [
+      18,
+      34,
+      16,
+      16
+    ]
+  },
+  "pump": {
+    "texture": "utility.png",
+    "rect_art": [
+      36,
+      34,
+      16,
+      20
+    ]
+  },
+  "louvre": {
+    "texture": "utility.png",
+    "rect_art": [
+      56,
+      34,
+      24,
+      16
+    ]
+  },
+  "service_door": {
+    "texture": "utility.png",
+    "rect_art": [
+      82,
+      34,
+      16,
+      32
+    ]
+  },
+  "drain": {
+    "texture": "utility.png",
+    "rect_art": [
+      0,
+      70,
+      24,
+      8
+    ]
+  },
+  "bin": {
+    "texture": "utility.png",
+    "rect_art": [
+      26,
+      70,
+      12,
+      16
+    ]
+  },
+  "front_glass": {
+    "texture": "glass.png",
+    "rect_art": [
+      0,
+      0,
+      90,
+      36
+    ]
+  },
+  "front_glass_hot": {
+    "texture": "glass.png",
+    "rect_art": [
+      0,
+      40,
+      90,
+      36
+    ]
+  },
+  "side_glass": {
+    "texture": "glass.png",
+    "rect_art": [
+      92,
+      0,
+      32,
+      28
+    ]
+  },
+  "entry_glass": {
+    "texture": "glass.png",
+    "rect_art": [
+      0,
+      80,
+      32,
+      32
+    ]
+  },
+  "price_digits": {
+    "texture": "prices.png",
+    "rect_art": [
+      0,
+      0,
+      24,
+      42
+    ]
+  }
+}
