@@ -32,11 +32,6 @@ object ModelDownloads {
 
     val ITEMS: List<Item> = buildList {
         add(Item(QWEN, ModelFiles.NAME, 5_680_522_464L))
-        // the same model in Q4_0, the format llama.cpp's Hexagon NPU code was first built around: tried by the NPU tuner,
-        // used on the NPU when it is faster there (Q4_K_M stays for the CPU and the GPU)
-        add(Item(QWEN.replace("Q4_K_M", "Q4_0"), ModelFiles.NPU_Q4_0, 5_379_417_312L))
-        // and with its MTP head: the model guesses a few words ahead and checks them in one pass (speculative decoding)
-        add(Item("https://huggingface.co/unsloth/Qwen3.5-9B-MTP-GGUF/resolve/main/Qwen3.5-9B-Q4_K_M.gguf", ModelFiles.MTP, ModelFiles.MTP_BYTES))
         // hearing the player: Qwen3-ASR 1.7B and its audio encoder
         add(Item(ASR + "Qwen3-ASR-1.7B-Q8_0.gguf", com.timerpg.street.voice.PlayerVoice.ASR_MODEL, 2_165_034_944L))
         add(Item(ASR + "mmproj-Qwen3-ASR-1.7B-Q8_0.gguf", com.timerpg.street.voice.PlayerVoice.ASR_MMPROJ, 355_709_344L))
@@ -56,12 +51,32 @@ object ModelDownloads {
         for (s in SUPERTONIC_STYLES) add(Item(SUPERTONIC + "voice_styles/$s.json", "supertonic/voice_styles/$s.json", -1L))
     }
 
-    val totalBytes: Long get() = ITEMS.sumOf { if (it.bytes > 0) it.bytes else 300_000L }
+    /**
+     * Optional extras, not in the one-tap download (the owner's call: two more full copies of the same 9B model took the
+     * download from about 12 to 23 GB). Fetched only from their own button in the AI panel, for trying them out:
+     * - the same model in Q4_0, the format llama.cpp's Hexagon NPU code was first built around: tried by the NPU tuner,
+     *   used on the NPU when it is faster there (Q4_K_M stays for the CPU and the GPU);
+     * - the same model with its MTP head: it guesses a few words ahead and checks them in one pass (speculative decoding).
+     * The game runs fully without them (DialogueEngine and NpuTune use them only when they are there).
+     */
+    val EXTRAS: List<Item> = listOf(
+        Item(QWEN.replace("Q4_K_M", "Q4_0"), ModelFiles.NPU_Q4_0, 5_379_417_312L),
+        Item("https://huggingface.co/unsloth/Qwen3.5-9B-MTP-GGUF/resolve/main/Qwen3.5-9B-Q4_K_M.gguf", ModelFiles.MTP, ModelFiles.MTP_BYTES),
+    )
+
+    private fun size(list: List<Item>) = list.sumOf { if (it.bytes > 0) it.bytes else 300_000L }
+    val totalBytes: Long get() = size(ITEMS)
 
     fun dir(ctx: Context): File = ModelFiles.dir(ctx)
 
     /** The files still missing (or the wrong size). */
-    fun missing(ctx: Context): List<Item> = ITEMS.filter { val f = File(dir(ctx), it.path); !f.isFile || (it.bytes > 0 && f.length() != it.bytes) }
+    fun missing(ctx: Context, items: List<Item> = ITEMS): List<Item> = items.filter { val f = File(dir(ctx), it.path); !f.isFile || (it.bytes > 0 && f.length() != it.bytes) }
+
+    /** The extras' files on the device (whole or partly downloaded), so they can be removed to free the space. */
+    fun extrasOnDevice(ctx: Context): List<File> = EXTRAS.flatMap { listOf(File(dir(ctx), it.path), File(dir(ctx), it.path + ".part")) }.filter { it.isFile }
+
+    /** Deletes the extras (and any half-downloaded part of them); returns the MB freed. */
+    fun removeExtras(ctx: Context): Long { val fs = extrasOnDevice(ctx); val mb = fs.sumOf { it.length() } shr 20; fs.forEach { it.delete() }; return mb }
 
     sealed interface Result {
         object Done : Result
@@ -72,10 +87,10 @@ object ModelDownloads {
      * Downloads every missing file, reporting (bytes done so far across everything, total) a few times a second.
      * [cancelled] is checked between chunks; a cancelled or failed download keeps its partial file to resume next time.
      */
-    fun download(ctx: Context, cancelled: () -> Boolean, progress: (Long, Long) -> Unit): Result {
+    fun download(ctx: Context, cancelled: () -> Boolean, items: List<Item> = ITEMS, progress: (Long, Long) -> Unit): Result {
         val root = dir(ctx); root.mkdirs()
-        val todo = missing(ctx)
-        val total = totalBytes
+        val todo = missing(ctx, items)
+        val total = size(items)
         var done = total - todo.sumOf { if (it.bytes > 0) it.bytes else 300_000L }
         val need = todo.sumOf { if (it.bytes > 0) it.bytes else 300_000L }
         if (root.usableSpace < need + (128L shl 20)) return Result.Failed("Not enough free storage: ${need shr 20} MB needed, ${root.usableSpace shr 20} MB free.")

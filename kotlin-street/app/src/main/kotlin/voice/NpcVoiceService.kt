@@ -109,6 +109,9 @@ class NpcVoiceService(private val ctx: Context) {
 
     val installed: Boolean get() = bank.kokoroInstalled || bank.supertonicInstalled
     val missingMb: Long get() = ModelDownloads.missing(ctx).sumOf { if (it.bytes > 0) it.bytes else 300_000L } shr 20
+    /** The optional extra model versions still to fetch (MB), and what of them is on the device now (MB). */
+    val extrasMissingMb: Long get() = ModelDownloads.missing(ctx, ModelDownloads.EXTRAS).sumOf { it.bytes } shr 20
+    val extrasOnDeviceMb: Long get() = ModelDownloads.extrasOnDevice(ctx).sumOf { it.length() } shr 20
 
     /** The last line's timing, for the AI panel: how long its first sound took and how fast the voice was made. */
     var lastTiming by mutableStateOf<String?>(null)
@@ -326,12 +329,17 @@ class NpcVoiceService(private val ctx: Context) {
     }
 
     /** Fetch every model (dialogue, voices, speech, memory), resuming a stopped download. */
-    fun download(onDone: () -> Unit) {
+    fun download(onDone: () -> Unit) = download(ModelDownloads.ITEMS, onDone)
+
+    /** Fetch the optional extra versions of the dialogue model (NPU Q4_0, MTP), for trying them out. */
+    fun downloadExtras(onDone: () -> Unit) = download(ModelDownloads.EXTRAS, onDone)
+
+    private fun download(items: List<ModelDownloads.Item>, onDone: () -> Unit) {
         if (downloading >= 0f) return
         cancelDownload = false
         downloading = 0f; downloadNote = "Starting…"
         Thread({
-            val r = ModelDownloads.download(ctx, { cancelDownload }) { done, total ->
+            val r = ModelDownloads.download(ctx, { cancelDownload }, items) { done, total ->
                 main.post { downloading = done.toFloat() / total; downloadNote = "${done shr 20} of ${total shr 20} MB" }
             }
             main.post {
