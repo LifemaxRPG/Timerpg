@@ -1,0 +1,338 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1960,
+  "topic": "media",
+  "facts": [
+    {
+      "id": "1960-media-01",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Families gather around the television for evening entertainment and news.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-02",
+      "year_from": 1960,
+      "year_to": 1965,
+      "text": "Black-and-white television broadcasts remain familiar in living rooms.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-03",
+      "year_from": 1966,
+      "year_to": 1969,
+      "text": "More evening television programs appear in color as stations expand color broadcasting.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-04",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "The local newspaper prints movie listings beside television schedules.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-05",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Radio announcers introduce popular songs between advertisements and weather reports.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-06",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Teenagers listen to popular music on portable radios after school.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-07",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A small-town radio station announces school closings during severe weather.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-08",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Local newspapers publish wedding announcements and photographs of newly married couples.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-09",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "The weekly newspaper reports school sports scores and community meetings.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-10",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Families subscribe to magazines delivered through the mail.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-11",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Children read comic books purchased at newsstands and drugstores.",
+      "ages": "kids",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-12",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Movie theaters show cartoons or short subjects before some feature films.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-13",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Drive-in theaters offer evening movies that families watch from parked cars.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-14",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Movie advertisements list showtimes in the local newspaper.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-15",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A household may receive only a few television channels clearly.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-16",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Viewers sometimes adjust an antenna to improve a snowy television picture.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-17",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A radio news bulletin interrupts music when important news breaks.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-18",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Families follow major national events through evening television news.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-19",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A newspaper carrier delivers the morning or afternoon edition to neighborhood homes.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-20",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Readers find classified advertisements for jobs and used furniture in the newspaper.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-21",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Teenagers buy inexpensive records featuring one song on each side.",
+      "ages": "teens",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-22",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Record shops let customers browse albums by musical style.",
+      "ages": "teens",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-23",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A telephone operator can help callers place certain long-distance calls.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-24",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Telephone directories list local household and business numbers.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-25",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Some local radio stations broadcast church services on Sunday mornings.",
+      "ages": "elders",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-media-26",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Public libraries lend books and newspapers to residents who cannot buy every issue.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "video streaming services",
+      "first_common": 2007,
+      "say_instead": "Watch scheduled television broadcasts or rent films later when available."
+    },
+    {
+      "thing": "home video cassette recorders",
+      "first_common": 1980,
+      "say_instead": "See the program when it airs or catch a later broadcast."
+    },
+    {
+      "thing": "compact disc music players",
+      "first_common": 1985,
+      "say_instead": "Play vinyl records or listen to the radio."
+    },
+    {
+      "thing": "portable digital music players",
+      "first_common": 2003,
+      "say_instead": "Carry a battery-powered transistor radio."
+    },
+    {
+      "thing": "online newspapers",
+      "first_common": 1998,
+      "say_instead": "Read the printed newspaper or listen to radio news."
+    },
+    {
+      "thing": "social media feeds",
+      "first_common": 2008,
+      "say_instead": "Share news by telephone, letter, or face-to-face conversation."
+    },
+    {
+      "thing": "smartphone news alerts",
+      "first_common": 2012,
+      "say_instead": "Hear a radio bulletin or read the next newspaper edition."
+    },
+    {
+      "thing": "cable television in ordinary small-town homes",
+      "first_common": 1985,
+      "say_instead": "Tune in broadcast stations received by antenna."
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
