@@ -143,12 +143,20 @@ fun renderFilamentFarms(out: String) {
     // (the player in the farmyard, by the lane)
     val gr = farm.ground ?: farm.rect
     val px = (gr[0] + gr[2]) / 2f; val pz = (gr[1] + gr[3]) / 2f
-    view("farmstead_front", px, pz, -fx, -fz, frontYaw, 22f, 760f, 13f, 200, "the farmstead from the road")
-    view("farmstead_left", px, pz, -fx, -fz, frontYaw - 90f, 24f, 760f, 13f, 200, "from its left")
-    view("farmstead_right", px, pz, -fx, -fz, frontYaw + 90f, 24f, 760f, 13f, 200, "from its right")
-    view("farmstead_back", px, pz, -fx, -fz, frontYaw + 180f, 26f, 820f, 13f, 200, "from behind (the windbreak)")
-    view("farmstead_close", px, pz, -fx, -fz, frontYaw + 30f, 12f, 300f, 16f, 200, "close, at a person's height")
-    view("farmstead_dusk", px, pz, -fx, -fz, frontYaw - 30f, 18f, 600f, 19.6f, 200, "dusk")
+    // (each from a side: the player stands just outside the yard on the camera's side, looking over it, so nothing of the
+    // farm stands between the camera and the player to be cut away)
+    val half = kotlin.math.max(farm.rect[2] - farm.rect[0], farm.rect[3] - farm.rect[1]) / 2f
+    fun side(name: String, yaw: Float, pitch: Float, dist: Float, hour: Float, where: String, out: Float = half + 90f) {
+        val a = Math.toRadians(yaw.toDouble()); val lx = kotlin.math.sin(a).toFloat(); val lz = -kotlin.math.cos(a).toFloat()
+        view(name, px - lx * out, pz - lz * out, lx, lz, yaw, pitch, dist, hour, 200, where)
+    }
+    side("farmstead_front", frontYaw, 24f, 640f, 13f, "the farmstead from the road")
+    side("farmstead_left", frontYaw + 90f, 24f, 640f, 13f, "from its left")
+    side("farmstead_right", frontYaw - 90f, 24f, 640f, 13f, "from its right")
+    side("farmstead_back", frontYaw + 180f, 26f, 700f, 13f, "from behind (the windbreak)")
+    side("farmstead_close", frontYaw + 25f, 10f, 260f, 16f, "close, at a person's height", out = half - 120f)
+    side("farmstead_dusk", frontYaw - 35f, 18f, 560f, 19.6f, "dusk")
+    side("farmstead_night", frontYaw + 20f, 20f, 560f, 22.5f, "night")
     above("farmstead_above", fm[0], fm[1], frontYaw + 20f, 55f, 2200f, 13f, 200, "from above")
 
     // one farm's fields through the year: the player at the gate of its biggest field
