@@ -150,7 +150,8 @@ internal object StoreMarkets {
         val seed = info.seed
         val L = info.lot; val D = info.deep
         val sixties = info.year >= 1960
-        val closed = info.state != StoreState.OPEN
+        val closed = info.state == StoreState.CLOSED
+        val reused = info.state == StoreState.REUSED
         val W = (L - 160f).coerceIn(440f, 640f)
         val x0 = -W / 2f; val x1 = W / 2f
         val zf = -min(320f, D * .3f)
@@ -169,7 +170,7 @@ internal object StoreMarkets {
         StoreKit.fillFrom(B, StoreKit.panelTile(band, seed, 40, 40, 20))
         B.rect(0, bh - 8, bw - 1, bh - 4, if (sixties) CREAM_ENAMEL.b else TURQ.b); B.hline(0, bw - 1, bh - 8, Pix.mix(B[0, bh - 9], c(0xFFFFFF), .3f))
         B.rect(0, 0, bw - 1, 3, ALU.l); B.hline(0, bw - 1, 3, ALU.d)
-        val name = info.name
+        val name = info.signName
         val lettersCol = if (closed) Pix.mix(SIGN_RED, band.b, .55f) else SIGN_RED
         StoreSigns.letters(B, name, 10, 6, bw - 11, bh - 11, if (closed) null else c(0xFFFFFF), if (closed) null else band.o, 6) { r, h -> if (r < h / 4) Pix.mix(lettersCol, c(0xFFFFFF), .3f) else lettersCol }
         if (!closed) for (i in B.px.indices) if (B.px[i] == SIGN_RED || B.px[i] == c(0xFFFFFF) || B.px[i] == Pix.mix(SIGN_RED, c(0xFFFFFF), .3f)) { B.glow(0, 0, 0, 0, 0); B.mask[i] = (255 shl 24) or (255 shl 16) or 255 }
@@ -194,13 +195,13 @@ internal object StoreMarkets {
             S.rect(a - 1, row(100f), e + 1, sfh - 1, ALU.d)
             if (k in doorBays) {
                 // a door pair (the magic-eye doors) with its mat, IN / OUT over it
-                if (closed) StoreSigns.boarded(S, a + 1, row(80f), e - 1, row(2f), seed + k) else StoreSigns.aisles(S, a + 1, row(80f), e - 1, row(2f), seed + k, 0)
+                if (closed) StoreSigns.boarded(S, a + 1, row(80f), e - 1, row(2f), seed + k) else StoreSigns.inside(S, a + 1, row(80f), e - 1, row(2f), seed + k, 0, (if (reused) info.reuse ?: StoreReuse.CHURCH else null))
                 S.vline((a + e) / 2, row(80f), sfh - 1, ALU.b); S.hline(a, e, row(40f), ALU.l)
-                S.rect(a, row(92f), e, row(82f), c(0x1A1A22)); if (!closed) { StoreSigns.small(S, (a + e) / 2, row(90f), if (k == bays / 2 - 1) "IN" else "OUT", c(0x5AF07A)); S.glow(a, row(92f), e, row(82f), 220) }
+                S.rect(a, row(92f), e, row(82f), c(0x1A1A22)); if (!closed && !reused) { StoreSigns.small(S, (a + e) / 2, row(90f), if (k == bays / 2 - 1) "IN" else "OUT", c(0x5AF07A)); S.glow(a, row(92f), e, row(82f), 220) }
             } else {
                 S.rect(a, row(14f), e, sfh - 1, c(0x6A5A4A)); for (x in a until e step 3) S.vline(x, row(14f), sfh - 1, c(0x5A4A3A))
-                if (closed) StoreSigns.boarded(S, a + 1, row(92f), e - 1, row(16f), seed + k * 3) else StoreSigns.aisles(S, a + 1, row(92f), e - 1, row(16f), seed + k * 5, 0)
-                if (!closed && (k + seed) % 2 == 0) { val sp = specials[(k + seed) % specials.size]; StoreSigns.special(S, a + 3, row(60f), e - a - 6, tx(26f), sp.first, sp.second, if (k % 3 == 0) c(0xF6E83A) else c(0xF6F0E0), c(0xC82A2A)) }
+                if (closed) StoreSigns.boarded(S, a + 1, row(92f), e - 1, row(16f), seed + k * 3) else StoreSigns.inside(S, a + 1, row(92f), e - 1, row(16f), seed + k * 5, 0, (if (reused) info.reuse ?: StoreReuse.CHURCH else null))
+                if (!closed && !reused && (k + seed) % 2 == 0) { val sp = specials[(k + seed) % specials.size]; StoreSigns.special(S, a + 3, row(60f), e - a - 6, tx(26f), sp.first, sp.second, if (k % 3 == 0) c(0xF6E83A) else c(0xF6F0E0), c(0xC82A2A)) }
                 if (closed && k % 3 == 1) StoreSigns.card(S, a + 3, row(64f), "FOR LEASE", c(0xF0F0F0), c(0x1A1A6A))
             }
             S.vline(a - 1, row(100f), sfh - 1, ALU.l)
@@ -240,7 +241,8 @@ internal object StoreMarkets {
     fun supermarket(b: StoreB, info: StoreInfo): Site {
         val seed = info.seed
         val L = info.lot; val D = info.deep
-        val closed = info.state != StoreState.OPEN
+        val closed = info.state == StoreState.CLOSED
+        val reused = info.state == StoreState.REUSED
         val eighties = info.year >= 1980
         val W = (L - 300f).coerceIn(800f, 1120f).coerceAtMost(L - 240f)
         val cx = -L / 2f + 80f + W / 2f
@@ -281,7 +283,7 @@ internal object StoreMarkets {
         val signCol = if (eighties) c(0xC82A2A) else c(0x8A3A14)
         val face = PixImg(tx(sw), tx(sh)).also { im ->
             im.fill(c(0xF6F2E6)); im.border(ALU.d); im.hline(1, im.w - 2, 1, ALU.l)
-            StoreSigns.letters(im, info.name, 6, 4, im.w - 7, im.h - 5, null, null, 6) { r, h -> if (closed) Pix.mix(signCol, c(0xF6F2E6), .6f) else signCol }
+            StoreSigns.letters(im, info.signName, 6, 4, im.w - 7, im.h - 5, null, null, 6) { r, h -> if (closed) Pix.mix(signCol, c(0xF6F2E6), .6f) else signCol }
             if (closed) { val r = Paint.Rnd(seed); repeat(5) { val x = r.int(im.w - 20); im.rect(x, 3 + r.int(im.h - 10), x + 6 + r.int(14), 3 + r.int(im.h - 10) + 3, c(0x3A3A40)) } }
             else CinemaKit.glowAll(im, 230)
         }
@@ -289,7 +291,8 @@ internal object StoreMarkets {
         b.box(det, cx - sw / 2f - 3f, (my0 + my1) / 2f - sh / 2f - 3f, sz - 34f, cx + sw / 2f + 3f, (my0 + my1) / 2f + sh / 2f + 3f, sz, ALU, 3, bottom = true)
         CinemaKit.face(signM, face, cx, (my0 + my1) / 2f, sz + .1f, sw, sh, Side.FRONT)
         for (k in listOf(-1f, 1f)) {
-            val word = if (k < 0f) "BAKERY  DELI" else if (eighties) "FOOD & DRUG" else "MEAT  PRODUCE"
+            val word = if (reused) (if (k < 0f) "WELCOME" else when (info.reuse) { StoreReuse.GYM -> "OPEN 24 HRS"; StoreReuse.CHURCH -> "SUNDAY 10 AM"; StoreReuse.THRIFT, StoreReuse.FLEA -> "DONATIONS"; StoreReuse.OUTLET -> "CLEARANCE"; else -> "ALL WELCOME" })
+                else if (k < 0f) "BAKERY  DELI" else if (eighties) "FOOD & DRUG" else "MEAT  PRODUCE"
             val sub = b.pic("sub$word$closed") { PixImg(tx(200f), tx(24f)).also { im -> im.fill(c(0x3A2A1E)); im.border(c(0x1A120C)); StoreSigns.letters(im, word, 3, 3, im.w - 4, im.h - 4, null, null, 3) { _, _ -> if (closed) c(0x8A7A6A) else c(0xF6E8C0) }; if (!closed) CinemaKit.glowAll(im, 220, c(0x3A2A1E)) } }
             b.box(det, cx + k * (sw / 2f + 160f) - 102f, (my0 + my1) / 2f - 14f, sz - 30f, cx + k * (sw / 2f + 160f) + 102f, (my0 + my1) / 2f + 14f, sz - 1f, Paint.BLACK, 3, bottom = true)
             CinemaKit.face(signM, sub, cx + k * (sw / 2f + 160f), (my0 + my1) / 2f, sz - .9f, 200f, 24f, Side.FRONT)
@@ -302,19 +305,19 @@ internal object StoreMarkets {
         val bayPics = (0 until 3).map { k -> b.pic("sbay$k$closed$eighties") {
             PixImg(tx(bw), tx(my0 - 4f)).also { im ->
                 im.fill(ALU.b)
-                if (closed) StoreSigns.boarded(im, 2, 2, im.w - 3, im.h - 12, seed + k) else StoreSigns.aisles(im, 2, 2, im.w - 3, im.h - 12, seed + k * 17, 1)
+                if (closed) StoreSigns.boarded(im, 2, 2, im.w - 3, im.h - 12, seed + k) else StoreSigns.inside(im, 2, 2, im.w - 3, im.h - 12, seed + k * 17, 1, (if (reused) info.reuse ?: StoreReuse.CHURCH else null))
                 im.rect(0, im.h - 11, im.w - 1, im.h - 1, Paint.CONCRETE.b); im.hline(0, im.w - 1, im.h - 11, ALU.h)
                 im.vline(0, 0, im.h - 1, ALU.d); im.vline(im.w - 1, 0, im.h - 1, ALU.l); im.hline(0, im.w - 1, 0, ALU.d)
-                if (!closed && k != 1) StoreSigns.special(im, 4, im.h / 3, im.w - 8, tx(24f), listOf("SAVE", "SALE", "SPECIALS")[k], listOf("EVERY DAY", "THIS WEEK", "SEE INSIDE")[k], if (k == 0) c(0xF6E83A) else c(0xF6F0E0), c(0xC82A2A))
+                if (!closed && !reused && k != 1) StoreSigns.special(im, 4, im.h / 3, im.w - 8, tx(24f), listOf("SAVE", "SALE", "SPECIALS")[k], listOf("EVERY DAY", "THIS WEEK", "SEE INSIDE")[k], if (k == 0) c(0xF6E83A) else c(0xF6F0E0), c(0xC82A2A))
                 if (closed && k == 1) StoreSigns.card(im, 4, im.h / 3, "FOR LEASE", c(0xF0F0F0), c(0x1A1A6A))
             }
         } }
         val doorPic = { inOut: String -> b.pic("sdoorP$inOut$closed") {
             PixImg(tx(bw), tx(my0 - 4f)).also { im ->
                 im.fill(ALU.b)
-                if (closed) StoreSigns.boarded(im, 2, 12, im.w - 3, im.h - 2, seed + 9) else StoreSigns.aisles(im, 2, 12, im.w - 3, im.h - 2, seed + inOut.length * 7, 1)
+                if (closed) StoreSigns.boarded(im, 2, 12, im.w - 3, im.h - 2, seed + 9) else StoreSigns.inside(im, 2, 12, im.w - 3, im.h - 2, seed + inOut.length * 7, 1, (if (reused) info.reuse ?: StoreReuse.CHURCH else null))
                 im.vline(im.w / 2, 12, im.h - 1, ALU.d); im.vline(im.w / 2 + 1, 12, im.h - 1, ALU.l)
-                im.rect(0, 0, im.w - 1, 10, c(0x1A1A22)); if (!closed) { StoreSigns.small(im, im.w / 2, 3, inOut, c(0x5AF07A)); im.glow(1, 1, im.w - 2, 9, 230) }
+                im.rect(0, 0, im.w - 1, 10, c(0x1A1A22)); if (!closed && !reused) { StoreSigns.small(im, im.w / 2, 3, inOut, c(0x5AF07A)); im.glow(1, 1, im.w - 2, 9, 230) }
                 im.vline(0, 0, im.h - 1, ALU.d); im.vline(im.w - 1, 0, im.h - 1, ALU.l)
             }
         } }
@@ -328,7 +331,7 @@ internal object StoreMarkets {
         // the walk and its things (machines, an ice chest, a bench, a phone, carts by the doors)
         b.box(det, x0 - out - 6f, 0f, zf, x1 + out + 6f, 4f, zf + out + 14f, Paint.CONCRETE, 7)
         val walk = b.det("walk")
-        if (!closed) {
+        if (!closed && !reused) {
             frontThings(b, walk, info, gx0 - 30f, gx1 + 30f, x0 - out + 30f, x1 + out - 30f, zf, 4f, piers)
             StoreGrounds.cartRow(b, walk, gx0 + bw * .3f, zf + 14f, 6, along = true, handle = c(0xC82A2A))
         }
@@ -406,7 +409,8 @@ internal object StoreMarkets {
     fun superstore(b: StoreB, info: StoreInfo): Site {
         val seed = info.seed
         val L = info.lot; val D = info.deep
-        val closed = info.state != StoreState.OPEN
+        val closed = info.state == StoreState.CLOSED
+        val reused = info.state == StoreState.REUSED
         val brand = BRANDS[(seed / 2) % BRANDS.size]
         val garden = 430f
         val W = (L - garden - 180f).coerceIn(1500f, 2300f).coerceAtMost(L - garden - 60f)
@@ -472,11 +476,11 @@ internal object StoreMarkets {
         b.tile(eifs).box(cx - nW / 2f - 30f, H, zf - 4f, cx + nW / 2f + 30f, 280f, zf + 2f, setOf(Side.FRONT, Side.LEFT, Side.RIGHT, Side.BACK))
         CinemaKit.ledge(det, cx - nW / 2f - 34f, 280f, zf - 6f, cx + nW / 2f + 34f, 286f, zf + 4f, brand.accent, bottom = true)
         b.tile(StoreKit.ROOF).box(cx - nW / 2f - 28f, 0f, zf - 4f, cx + nW / 2f + 28f, 279.8f, zf + 2f, setOf(Side.TOP))
-        val nameText = info.name.uppercase().replace(" SUPERCENTER", "")
+        val nameText = info.signName.uppercase().replace(" SUPERCENTER", "")
         if (!closed) {
             channel(b, nameText, brand.accent.b, c(0xFFFFFF), cx - 30f, 226f, zf + 2f, nW - 80f, 70f, 8)
             sunburst(b, cx + nW / 2f - 22f, 236f, zf + 4.5f, 34f, brand.star)
-            channel(b, if (info.year >= 2000) "SUPERCENTER" else "DISCOUNT CITY", brand.deep.b, c(0xFFFFFF), cx, 172f, zf + 4f, nW * .55f, 22f, 3)
+            if (!reused) channel(b, if (info.year >= 2000) "SUPERCENTER" else "DISCOUNT CITY", brand.deep.b, c(0xFFFFFF), cx, 172f, zf + 4f, nW * .55f, 22f, 3)
         } else {
             // the letters taken down: their ghost on the panels, bolt holes
             val ghost = PixImg(tx(nW - 80f), tx(70f)).also { im -> StoreSigns.letters(im, nameText, 0, 0, im.w - 1, im.h - 1, null, null, 8) { _, _ -> Pix.mix(EIFS.b, c(0x5A5A50), .35f) } }
@@ -498,7 +502,7 @@ internal object StoreMarkets {
         val bollard = Paint.strip(Paint.stripSize(3f, 30f).first, 36, Paint.YELLOW, 3)
         var bxp = x0 + 40f
         while (bxp < x1 - 40f) { if (towers.none { abs(it.first - bxp) < 170f }) walk.upright(bxp, zf + 140f, 4f, 36f, 3f, 3f, 8, bollard, cap = Paint.cap(3f, Paint.YELLOW)); bxp += 60f }
-        if (!closed) {
+        if (!closed && !reused) {
             for ((tcx, _) in towers) {
                 StoreGrounds.cartRow(b, walk, tcx - 260f, zf + 16f, 8, along = true, handle = brand.accent.b)
                 StoreGrounds.cartRow(b, walk, tcx + 190f, zf + 16f, 6, along = true, handle = brand.accent.b)

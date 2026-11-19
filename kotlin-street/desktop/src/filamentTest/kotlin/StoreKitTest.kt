@@ -25,6 +25,9 @@ class StoreKitTest {
         StoreInfo.sample(StoreKind.MARKET, 1956, seed = 3),
         StoreInfo.sample(StoreKind.MARKET, 1966, seed = 6),
         StoreInfo.sample(StoreKind.MARKET, 1984, seed = 3, state = StoreState.CLOSED),
+        StoreInfo.sample(StoreKind.MARKET, 1995, seed = 3, state = StoreState.REUSED, reuse = StoreReuse.THRIFT),
+        StoreInfo.sample(StoreKind.SUPERMARKET, 2020, seed = 5, state = StoreState.REUSED, reuse = StoreReuse.GYM),
+        StoreInfo.sample(StoreKind.GENERAL, 2030, seed = 6, state = StoreState.REUSED, reuse = StoreReuse.FEED).copy(style = "brick"),
         StoreInfo.sample(StoreKind.SUPERMARKET, 1975, seed = 3),
         StoreInfo.sample(StoreKind.SUPERMARKET, 1986, seed = 8),
         StoreInfo.sample(StoreKind.SUPERSTORE, 1998, seed = 3),
@@ -102,12 +105,12 @@ class StoreKitTest {
 
     @Test fun readsTheTownsBlock() {
         val g = org.json.JSONObject("""{"town":"gamma","stores":[
-            {"id":"landmark:store:0","kind":"general","name":"Pruett Mercantile","year":1990,"state":"reused","reuse":{"kind":"antiques","name":"Old Pruett Antiques"},"opened":1898,"closed":1979,"seed":12,"footprint":{"width":340,"depth":600}},
+            {"id":"store:generalstore","kind":"general","style":"frontier","name":"Pruett Mercantile","sign":"Old Pruett Antiques","year":1990,"state":"reused","reuse":{"kind":"antiques","name":"Old Pruett Antiques"},"opened":1898,"closed":1979,"seed":12,"features":["porch","bench","reuse:antiques"],"footprint":{"width":340,"depth":600}},
             {"id":"landmark:store:1","kind":"superstore","name":"Openfield","year":1990,"state":"open","opened":1988,"seed":3,"footprint":{"width":2800,"depth":3300}}]}""")
         val s = StoreInfo.fromGraph(g)
         assertEquals(2, s.size)
         assertEquals(StoreState.REUSED, s[0].state); assertEquals(StoreReuse.ANTIQUES, s[0].reuse); assertEquals("Old Pruett Antiques", s[0].signName)
-        assertEquals(340f, s[0].lot); assertEquals(1979, s[0].closed)
+        assertEquals(340f, s[0].lot); assertEquals(1979, s[0].closed); assertEquals("frontier", s[0].style); assertTrue("bench" in s[0].features)
         assertEquals(StoreKind.SUPERSTORE, s[1].kind); assertEquals(3300f, s[1].deep)
         assertNotNull(StoreKit.build(s[0]))
     }

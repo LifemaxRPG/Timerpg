@@ -76,6 +76,13 @@ object StoreNames {
             StoreReuse.ANTIQUES -> pick(ANTIQUE, seed, 19).format(who)
             StoreReuse.CHURCH -> pick(CHURCH, seed, 23).format(who)
             StoreReuse.CAFE -> pick(CAFE, seed, 29).format(who)
+            StoreReuse.MUSEUM -> "$who Historical Museum"
+            StoreReuse.FEED -> "$who Feed & Seed"
+            StoreReuse.THRIFT -> "$who Thrift Shop"
+            StoreReuse.GYM -> "$who Fitness"
+            StoreReuse.FLEA -> "$who Flea Market"
+            StoreReuse.OUTLET -> "$who Discount Outlet"
+            StoreReuse.COMMUNITY -> "$who Community Center"
         }
         return if (isReal(n)) "$who Hall" else n
     }
@@ -293,6 +300,104 @@ internal object StoreSigns {
         for (x in x0 + 3 until x1 - 2 step 6) { im[x, y0 + 1] = c(0x2A2A2A); im[x, y0 + 2] = c(0xFFE8A0) }
         im.vline((x0 + x1) / 2, y0, y1, c(0x2A1E14))
         im.glow(x0, y0, x1, y1, 130)
+    }
+
+    /**
+     * What a store's glass shows inside: the aisles while it sells groceries ([reuse] null), else the new use's room by
+     * its look (old goods, a chapel's paper glass, a cafe), a gym's machines, or a thrift or outlet floor of clothes racks.
+     */
+    fun inside(im: PixImg, x0: Int, y0: Int, x1: Int, y1: Int, seed: Int, era: Int, reuse: StoreReuse?, glow: Int = 110) {
+        when {
+            reuse == null -> aisles(im, x0, y0, x1, y1, seed, era, glow)
+            reuse == StoreReuse.GYM -> gymWindow(im, x0, y0, x1, y1, seed)
+            reuse == StoreReuse.THRIFT || reuse == StoreReuse.OUTLET || reuse == StoreReuse.FLEA -> rackWindow(im, x0, y0, x1, y1, seed, reuse == StoreReuse.OUTLET)
+            reuse.look == StoreReuse.CHURCH -> churchRoom(im, x0, y0, x1, y1, seed)
+            reuse.look == StoreReuse.CAFE -> cafeWindow(im, x0, y0, x1, y1, seed)
+            reuse.look == StoreReuse.FEED -> generalWindow(im, x0, y0, x1, y1, seed, false)
+            else -> antiquesWindow(im, x0, y0, x1, y1, seed)
+        }
+    }
+
+    /** A gym through the glass: a mirror wall, a row of treadmills with people on some, a rack of weights, rubber floor (scaled to the glass). */
+    fun gymWindow(im: PixImg, x0: Int, y0: Int, x1: Int, y1: Int, seed: Int) {
+        val h = y1 - y0
+        val u = max(1, h / 34)
+        val ct = y0 + max(2, h / 7); val ft = y1 - max(3, h / 6)
+        im.rect(x0, y0, x1, ct, c(0x9A9EA8))
+        im.rect(x0, ct + 1, x1, ft, c(0x7A8AA0))
+        for (x in x0 + 2 until x1 step 9 * u) im.vline(x, ct + 1, ft, c(0xA8B8CC))
+        // a red band and a painted word on the back wall
+        im.rect(x0, ct + 2, x1, ct + 1 + u, c(0xC82A2A))
+        im.rect(x0, ft + 1, x1, y1, c(0x2A2A30)); for (x in x0 until x1 step 3) im[x, ft + 2] = c(0x3A3A42)
+        for (x in x0 + 3 until x1 - 2 step 10 * u) im.rect(x, y0 + 1, x + 4 * u, y0 + 1, c(0xFFFFF6))
+        val r = Paint.Rnd(seed)
+        val base = y1 - 2
+        var x = x0 + 2
+        while (x < x1 - 10 * u) {
+            // a treadmill: deck, upright, console; a runner on some
+            im.rect(x, base - 2 * u, x + 9 * u, base, c(0x1A1A1E)); im.rect(x + 8 * u, base - 13 * u, x + 8 * u + u - 1, base - 2 * u, c(0x5A5A62))
+            im.rect(x + 6 * u, base - 15 * u, x + 10 * u, base - 13 * u, c(0x2A2A30)); im.rect(x + 7 * u, base - 14 * u, x + 7 * u + u - 1, base - 14 * u + u - 1, c(0x5AF07A))
+            if (r.next() < .55f) {
+                val sh = GOODS[r.int(GOODS.size)]; val px = x + 3 * u
+                im.rect(px, base - 15 * u, px + 2 * u, base - 9 * u, sh); im.rect(px, base - 18 * u, px + 2 * u - 1, base - 16 * u, c(0xC89A72))
+                im.rect(px - u, base - 8 * u, px - 1, base - 2 * u - 1, c(0x2A2A3A)); im.rect(px + 2 * u, base - 8 * u, px + 3 * u - 1, base - 3 * u, c(0x2A2A3A))
+            }
+            x += 13 * u
+            if (r.next() < .3f && x < x1 - 10 * u) { // a rack of dumbbells
+                im.rect(x, base - 8 * u, x + 8 * u, base - 7 * u, c(0x5A5A62)); im.rect(x, base - 7 * u, x + u - 1, base, c(0x5A5A62)); im.rect(x + 8 * u - u + 1, base - 7 * u, x + 8 * u, base, c(0x5A5A62))
+                for (k in 0 until 3) im.rect(x + u + k * 2 * u, base - 10 * u, x + u + k * 2 * u + u - 1, base - 8 * u, c(0x1A1A1E))
+                x += 11 * u
+            }
+        }
+        im.glow(x0, y0, x1, y1, 130)
+    }
+
+    /** A thrift, flea or outlet floor through the glass: shelves of odds and ends, clothes racks in every colour, a card or two. */
+    fun rackWindow(im: PixImg, x0: Int, y0: Int, x1: Int, y1: Int, seed: Int, outlet: Boolean) {
+        val h = y1 - y0
+        val u = max(1, h / 34)
+        val ct = y0 + max(2, h / 7); val ft = y1 - max(3, h / 6)
+        im.rect(x0, y0, x1, ct, c(0xC0BCB0))
+        im.rect(x0, ct + 1, x1, ft, if (outlet) c(0xB8B8C0) else c(0xC8B898))
+        im.rect(x0, ft + 1, x1, y1, c(0x8A8274))
+        for (x in x0 + 3 until x1 - 2 step 12 * u) im.rect(x, y0 + 1, x + 6 * u, y0 + 1, c(0xFFFFF6))
+        // the back wall's shelves of housewares
+        shelves(im, x0 + 1, ct + 2, x1 - 1, ct + 2 + (ft - ct) * 5 / 10, c(0x9A8A6A), seed + 1, 3 * u + 3, false)
+        val r = Paint.Rnd(seed + 3)
+        val base = y1 - 2
+        var x = x0 + 2
+        while (x < x1 - 9 * u) {
+            val rw = (7 + r.int(4)) * u; val top = base - (15 + r.int(3)) * u
+            im.hline(x, x + rw, top, c(0x8A8A90)); im.vline(x, top, base, c(0x6A6A70)); im.vline(x + rw, top, base, c(0x6A6A70))
+            for (k in 1 until rw) { val g = GOODS[(seed + (x + k) / max(1, u) * 3) % GOODS.size]; im.vline(x + k, top + 1, top + (6 + (k / max(1, u)) % 3 * 2) * u, Pix.mix(g, c(0xF0E8E0), .2f)) }
+            x += rw + 3 * u
+        }
+        card(im, x0 + 2, y0 + h / 4, if (outlet) "50% OFF" else listOf("ALL 1.00", "BAG SALE", "OPEN")[r.int(3)])
+        im.glow(x0, y0, x1, y1, 120)
+    }
+
+    /** A store become a church, through its big glass: paper "stained glass" along the top, a warm room, a cross on the back wall, rows of pews. */
+    fun churchRoom(im: PixImg, x0: Int, y0: Int, x1: Int, y1: Int, seed: Int) {
+        val h = y1 - y0
+        val band = y0 + h * 3 / 10
+        chapelWindow(im, x0, y0, x1, band, seed)
+        val ft = y1 - max(3, h / 5)
+        im.rect(x0, band + 1, x1, ft, c(0xD8C8A8))
+        im.rect(x0, ft + 1, x1, y1, c(0x7A3A3A))
+        val u = max(1, h / 34)
+        // a cross on the back wall (in some bays), a banner in others
+        val cx = (x0 + x1) / 2
+        if (seed % 3 == 0) { im.rect(cx - u / 2, band + 3, cx + u / 2 + 1, ft - 2, c(0x7A4A2A)); im.rect(cx - 4 * u, band + 3 + (ft - band) / 4, cx + 4 * u, band + 4 + (ft - band) / 4 + u, c(0x7A4A2A)) }
+        else if (seed % 3 == 1) { im.rect(cx - 5 * u, band + 3, cx + 5 * u, ft - 4 * u, GOODS[seed % GOODS.size]); im.rect(cx - 5 * u, band + 3, cx + 5 * u, band + 3 + u, c(0xE8C84A)) }
+        // pews: dark rows with heads above some
+        val r = Paint.Rnd(seed)
+        for (row in 0 until 3) {
+            val py = y1 - 2 - row * 4 * u
+            im.rect(x0 + 1, py - 2 * u, x1 - 1, py, Pix.mix(c(0x5A3A22), c(0x000000), row * .12f))
+            var hx = x0 + 3; while (hx < x1 - 3) { if (r.next() < .2f) im.rect(hx, py - 4 * u, hx + u, py - 3 * u, c(0x6A4A3A)); hx += 3 * u }
+        }
+        im.vline(cx, y0, band, c(0x1A1A22))
+        im.glow(x0, band + 1, x1, y1, 110)
     }
 
     /** Boards nailed over a window or door: weathered planks, an X of two more, nail heads. */

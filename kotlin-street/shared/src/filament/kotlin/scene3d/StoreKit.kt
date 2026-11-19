@@ -49,7 +49,13 @@ enum class StoreState { OPEN, CLOSED, REUSED }
 
 /** What a closed general store became. */
 enum class StoreReuse {
-    ANTIQUES, CHURCH, CAFE;
+    ANTIQUES, CHURCH, CAFE, MUSEUM, FEED, THRIFT, GYM, FLEA, OUTLET, COMMUNITY;
+
+    /** The general store's windows and porch for this use (the three looks it has: old goods, a chapel, a cafe; or a store's goods). */
+    val look: StoreReuse get() = when (this) { ANTIQUES, MUSEUM, THRIFT, FLEA -> ANTIQUES; CHURCH -> CHURCH; CAFE, COMMUNITY, GYM -> CAFE; FEED, OUTLET -> FEED }
+    /** The porch fascia's word for it. */
+    val word: String get() = when (this) { ANTIQUES -> "ANTIQUES  COLLECTIBLES"; CHURCH -> "ALL ARE WELCOME"; CAFE -> "COFFEE  PIE  LUNCH"; MUSEUM -> "HISTORICAL MUSEUM";
+        FEED -> "FEED  SEED  SUPPLY"; THRIFT -> "THRIFT SHOP"; GYM -> "FITNESS"; FLEA -> "FLEA MARKET"; OUTLET -> "DISCOUNT OUTLET"; COMMUNITY -> "COMMUNITY CENTER" }
     companion object { fun parse(s: String): StoreReuse? = entries.firstOrNull { it.name.equals(s, ignoreCase = true) } }
 }
 
@@ -72,6 +78,10 @@ data class StoreInfo(
     val depth: Float = 0f,
     val town: String = "",
     val seed: Int = 1,
+    /** The general store's build: "frontier" (a wooden false front), "brick", or "" to pick by seed. */
+    val style: String = "",
+    /** What the town's generator says shows this year (docs/STORES.md: gasPump, boarded, ...); empty: by year. */
+    val features: Set<String> = emptySet(),
 ) {
     /** The plot as built: the given size or the kind's own. */
     val lot: Float get() = if (width > 0f) width else StoreKit.defaultLot(kind)
@@ -91,9 +101,12 @@ data class StoreInfo(
             val st = when (o.optString("state").lowercase()) { "closed" -> StoreState.CLOSED; "reused" -> StoreState.REUSED; else -> StoreState.OPEN }
             val ru = o.optJSONObject("reuse")
             val fp = o.optJSONObject("footprint")
-            return StoreInfo(kind, o.optString("name"), o.optInt("year"), st, ru?.optString("kind")?.let { StoreReuse.parse(it) }, ru?.optString("name") ?: "",
+            val feats = o.optJSONArray("features")?.let { a -> (0 until a.length()).map { a.optString(it) }.toSet() } ?: emptySet()
+            val reuse = ru?.optString("kind")?.let { StoreReuse.parse(it) }
+            val sign = o.optString("sign").ifBlank { ru?.optString("name") ?: "" }
+            return StoreInfo(kind, o.optString("name"), o.optInt("year"), st, reuse, if (st == StoreState.REUSED) sign else ru?.optString("name") ?: "",
                 o.optInt("opened"), o.optInt("closed"), fp?.optDouble("width")?.toFloat() ?: 0f, fp?.optDouble("depth")?.toFloat() ?: 0f,
-                o.optString("town", town), o.optInt("seed", 1))
+                o.optString("town", town), o.optInt("seed", 1), o.optString("style"), feats)
         }
 
         /** Every store in a street.json v2 `graph` (`graph.stores`), or none. */
@@ -374,8 +387,9 @@ object StoreKit {
         val rnd = Paint.Rnd(seed * 7 + 1)
         val open = info.state == StoreState.OPEN
         val closed = info.state == StoreState.CLOSED
-        val reuse = if (info.state == StoreState.REUSED) info.reuse ?: StoreReuse.ANTIQUES else null
-        val brick = seed % 3 == 2
+        val reuseKind = if (info.state == StoreState.REUSED) info.reuse ?: StoreReuse.ANTIQUES else null
+        val reuse = reuseKind?.look
+        val brick = when (info.style) { "brick" -> true; "frontier" -> false; else -> seed % 3 == 2 }
         val paint = listOf(WHITEWASH, BARN, SAGE, MUSTARD)[seed % 4]
         val trim = if (paint == WHITEWASH || paint == MUSTARD) TRIM_G else TRIM_W
         val wallTile = if (brick) CinemaKit.brickTile(RED_BRICK, c(0xB8A088), seed) else clapboard(paint, seed, if (closed) .16f else if (info.year - info.opened > 60 && reuse == null) .12f else 0f)
@@ -455,6 +469,7 @@ object StoreKit {
             when {
                 closed -> StoreSigns.boarded(F, gx0, gy0, gx1, gy1, seed + ca)
                 reuse == StoreReuse.ANTIQUES -> StoreSigns.antiquesWindow(F, gx0, gy0, gx1, gy1, seed + ca)
+                reuse == StoreReuse.FEED -> StoreSigns.generalWindow(F, gx0, gy0, gx1, gy1, seed + ca, true)
                 reuse == StoreReuse.CHURCH -> StoreSigns.chapelWindow(F, gx0, gy0, gx1, gy1, seed + ca)
                 reuse == StoreReuse.CAFE -> StoreSigns.cafeWindow(F, gx0, gy0, gx1, gy1, seed + ca)
                 else -> StoreSigns.generalWindow(F, gx0, gy0, gx1, gy1, seed + ca, info.year < 1950)
@@ -533,7 +548,7 @@ object StoreKit {
             b.box(det, cx - pw - 3f, FFH + 16f, zf - 5f, cx + pw + 3f, FFH + 19f, zf + 4f, corn, 9, bottom = true)
             for (k in listOf(-1f, 1f)) det.beam(v(cx + k * W * .3f, FFH - 12f, zf - 5f), v(cx + k * W * .18f, RH - 16f + 4f, zf - 70f), 3f, b.swatch(c(0x6A5A48)))
         } else CinemaKit.ledge(det, cx - ffw - 3f, FFH, zf - 6f, cx + ffw + 3f, FFH + 4f, zf + 3f, Paint.CONCRETE, bottom = true)
-        if (reuse == StoreReuse.CHURCH) {
+        if (reuseKind == StoreReuse.CHURCH) {
             // a cross over the front, a little belfry on the ridge
             val gold = b.swatch(c(0xF0E8D8))
             val top = FFH + (if (brick) 4f else 19f)
@@ -610,7 +625,7 @@ object StoreKit {
         b.tile(bead).quad(v(px0 - 3f, roofLo, prz1), v(px1 + 3f, roofLo, prz1), v(px1 + 3f, roofHi, pz0), v(px0 - 3f, roofHi, pz0))
         b.tile(BOARDS).quad(v(px0 - 3f, roofHi + 3f, pz0), v(px0 - 3f, roofLo + 3f, prz1), v(px0 - 3f, roofLo - 12f, prz1), v(px0 - 3f, roofHi, pz0))
         b.tile(BOARDS).quad(v(px1 + 3f, roofLo + 3f, prz1), v(px1 + 3f, roofHi + 3f, pz0), v(px1 + 3f, roofHi, pz0), v(px1 + 3f, roofLo - 12f, prz1))
-        val fasciaWord = when (reuse) { StoreReuse.ANTIQUES -> "ANTIQUES  COLLECTIBLES"; StoreReuse.CHURCH -> "ALL ARE WELCOME"; StoreReuse.CAFE -> "COFFEE  PIE  LUNCH"; null -> if (info.year < 1930) "GENERAL MERCHANDISE" else "GENERAL STORE" }
+        val fasciaWord = reuseKind?.word ?: if (info.year < 1930) "GENERAL MERCHANDISE" else "GENERAL STORE"
         val fasc = PixImg(tx(px1 - px0 + 6f), tx(15f)).also { im ->
             im.fill(trim.l); im.hline(0, im.w - 1, 0, trim.h); im.hline(0, im.w - 1, im.h - 1, trim.o); im.hline(0, im.w - 1, im.h - 2, trim.d)
             val inkF = if (closed) Pix.mix(sb.b, trim.l, .6f) else sb.b
@@ -641,7 +656,7 @@ object StoreKit {
             b.lights += CinemaLight(cx, roofHi - 10f, zf + 32f, 1f, .8f, .5f, 12000f, 120f, down = true, cone = 1.5f)
         }
         // the gas pump out front in the early decades (rusting without its globe once the store has shut)
-        val pumpAt = if (info.year < 1966 || (info.opened in 1..1965 && !open && info.state != StoreState.REUSED)) floatArrayOf(px1 + 46f, -26f) else null
+        val pumpAt = if (if (info.features.isNotEmpty()) "gasPump" in info.features else info.year < 1966 || (info.opened in 1..1965 && !open && info.state != StoreState.REUSED)) floatArrayOf(px1 + 46f, -26f) else null
         if (pumpAt != null) gasPump(b, pumpAt[0], pumpAt[1], info.year, open)
         return Site(x0, x1, zf, lzb, listOf(floatArrayOf(px0 - 4f, pz0, px1 + 4f, pz1 + 22f), floatArrayOf(lx0 - 6f, lzb - 22f, lx1 + 6f, zb), floatArrayOf(x1, sdz - 18f, x1 + 28f, sdz + 18f)), pumpAt)
     }

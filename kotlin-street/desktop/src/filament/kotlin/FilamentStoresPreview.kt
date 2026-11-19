@@ -49,7 +49,7 @@ import com.lifemax.rpg.feature.habits.presentation.scene3d.StoreState
  * variant (the general store open in 1925 and 1955, closed and boarded, reused as an antiques shop, a chapel and a cafe;
  * the market of 1956 and 1966; the supermarket of 1975 and 1986; the superstore of 1998 and 2016, and closed) on its
  * plot by the road, from the street, the storefront close up, three-quarter, behind and above, at 13:00, dusk (19.3) and
- * night (22.5). -Dstores=general,market,... (variant names or kinds) for some only; -Dhour= one hour.
+ * night (22.5). -DstoresFrom=street.json renders the town's own graph.stores[] instead. -Dstores=general,market,... (variant names or kinds) for some only; -Dhour= one hour.
  * Writes into build/preview/stores/ and stores.txt (each variant's pictures in texels and bytes, its triangles, parts and lights).
  */
 fun renderStores(out: String) {
@@ -68,12 +68,21 @@ fun renderStores(out: String) {
         "market_1956" to StoreInfo.sample(StoreKind.MARKET, 1956, seed = 3),
         "market_1966" to StoreInfo.sample(StoreKind.MARKET, 1966, seed = 6),
         "market_closed_1984" to StoreInfo.sample(StoreKind.MARKET, 1984, seed = 3, state = StoreState.CLOSED),
+        "market_thrift_1995" to StoreInfo.sample(StoreKind.MARKET, 1995, seed = 3, state = StoreState.REUSED, reuse = StoreReuse.THRIFT),
         "supermarket_1975" to StoreInfo.sample(StoreKind.SUPERMARKET, 1975, seed = 3),
         "supermarket_1986" to StoreInfo.sample(StoreKind.SUPERMARKET, 1986, seed = 8),
+        "supermarket_gym_2020" to StoreInfo.sample(StoreKind.SUPERMARKET, 2020, seed = 5, state = StoreState.REUSED, reuse = StoreReuse.GYM),
         "superstore_1998" to StoreInfo.sample(StoreKind.SUPERSTORE, 1998, seed = 3),
         "superstore_2016" to StoreInfo.sample(StoreKind.SUPERSTORE, 2016, seed = 4),
         "superstore_closed_2038" to StoreInfo.sample(StoreKind.SUPERSTORE, 2038, seed = 4, state = StoreState.CLOSED),
-    ).filter { (n, i) -> only == null || n in only || i.kind.name.lowercase() in only }
+    ).let { samples ->
+        // -DstoresFrom=street.json: the town's own stores (graph.stores[], as the generator exported them) instead
+        val from = System.getProperty("storesFrom")?.let { File(it) }
+        if (from == null) samples else {
+            val root = org.json.JSONObject(from.readText())
+            StoreInfo.fromGraph(root.optJSONObject("graph") ?: root).map { "${from.parentFile?.name ?: "town"}_${it.kind.name.lowercase()}_${it.year}" to it }
+        }
+    }.filter { (n, i) -> only == null || n in only || i.kind.name.lowercase() in only }
     if (variants.isEmpty()) return
     Filament.init()
     val engine = Engine.create(Engine.Backend.OPENGL)

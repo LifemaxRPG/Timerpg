@@ -166,6 +166,15 @@ nearest-sampled, like the cinema. Each kind on its whole plot, with its grounds,
 
 Closed big stores are dark (FOR LEASE, letters taken down leaving their ghost, an empty car park); reused ones are lit
 under the new name (WELCOME on the road sign, no specials, few cars).
+The builder reads the generator's block as it is: `sign` is the name shown, `style` picks frontier or brick, `features`
+(when given) decides the gas pump, and every reuse kind has its look. A general store reused as antiques, museum, thrift
+or flea shows old goods; church a chapel; cafe, community or gym a cafe room; feed or outlet sacks and shelves. A market
+or supermarket reused shows, through its glass, a church room (paper stained glass along the top, a cross, pews), a gym
+(treadmills, weights, a mirror wall), or a thrift, flea or outlet floor (clothes racks, shelves of housewares)
+(`StoreSigns.inside`); its door signs and specials are gone, the road tower reads CHAPEL / GYM / THRIFT, the mansard's
+boards WELCOME and SUNDAY 10 AM / OPEN 24 HRS / DONATIONS, and there are no carts or corrals and few cars. Render a
+town's own stores with `-DstoresFrom=build-town/gamma/street.json` (gamma 2025: the antiques shop, Cornerstone Chapel
+in the old market, the closed Prairie Larder, Broadmeadow on its full 159 x 206 m site).
 
 The model's frame: x along the street with the plot's middle at 0, y up, z out towards the road, the plot's front edge at
 z 0 and its back at -depth (the generator's `layout` has x from the plot's left and z back from the front: model x =

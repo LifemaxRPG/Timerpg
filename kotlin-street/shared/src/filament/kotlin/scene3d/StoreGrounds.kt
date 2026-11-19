@@ -153,7 +153,7 @@ internal object StoreGrounds {
             postSign(b, px1 - 50f, -24f, "FOR SALE", "INQUIRE", c(0xF6F0E0), c(0xA82A2A))
         }
         if (info.reuse == StoreReuse.CHURCH && info.state == StoreState.REUSED) noticeBoard(b, px0 + 50f, -26f, info.signName)
-        if (info.reuse == StoreReuse.ANTIQUES && info.state == StoreState.REUSED) postSign(b, px1 - 46f, -24f, "ANTIQUES", "OPEN", c(0x2A3A2A), c(0xF6E8C0))
+        if (info.reuse != null && info.reuse != StoreReuse.CHURCH && info.state == StoreState.REUSED) postSign(b, px1 - 46f, -24f, info.reuse.word.substringBefore("  "), "OPEN", c(0x2A3A2A), c(0xF6E8C0))
     }
 
     private fun yardLight(b: StoreB, x: Float, z: Float, year: Int) {
@@ -197,7 +197,8 @@ internal object StoreGrounds {
     private fun lotSite(b: StoreB, info: StoreInfo, s: Site, roadSign: (StoreB, StoreInfo, Float, Float) -> Unit, lampH: Float, walk: Float) {
         val L = info.lot; val D = info.deep
         val px0 = -L / 2f + 1f; val px1 = L / 2f - 1f; val pzb = -D + 1f
-        val closed = info.state != StoreState.OPEN
+        val closed = info.state == StoreState.CLOSED
+        val reused = info.state == StoreState.REUSED
         val r = Paint.Rnd(info.seed * 17 + info.kind.ordinal)
         val big = info.kind == StoreKind.SUPERSTORE
         val asphalt = if (closed || info.year - info.opened > 25) OLD_ASPHALT else ASPHALT
@@ -232,9 +233,9 @@ internal object StoreGrounds {
             }
             // a corral every few bays in the double rows (in place of two bays), carts in it
             val corrals = HashSet<Int>()
-            if (info.kind != StoreKind.MARKET) { var k = 6 + rowPair * 3; while (k < nx - 4) { corrals += k; k += if (big) 11 else 9 } }
+            if (info.kind != StoreKind.MARKET && !reused) { var k = 6 + rowPair * 3; while (k < nx - 4) { corrals += k; k += if (big) 11 else 9 } }
             // the cars, seeded, fewer at a closed store (none) and in the far rows
-            val fill = if (closed) 0f else (.62f - rowPair * .12f).coerceAtLeast(.18f)
+            val fill = if (closed) 0f else if (reused) (.3f - rowPair * .1f).coerceAtLeast(.04f) else (.62f - rowPair * .12f).coerceAtLeast(.18f)
             for (k in 0 until nx) {
                 val x = bx0 + (k + .5f) * bayW
                 if (k in corrals) { if (!closed) corral(b, x + bayW / 2f, zm, info) ; continue }
@@ -258,7 +259,7 @@ internal object StoreGrounds {
             val bx0 = (s.x0 + s.x1) / 2f - nx * bayW / 2f
             for (k in 0..nx) { val x = bx0 + k * bayW; line(b, x - .8f, z0, x + .8f, z0 + bayD, PAINT) }
             CinemaKit.ledge(b.det("ground:kerb"), bx0, 0f, z0, bx0 + nx * bayW, 3f, z0 + 4f, CURB)
-            val fill = if (closed) 0f else .55f
+            val fill = if (closed) 0f else if (reused) .25f else .55f
             for (k in 0 until nx) if (r.next() < fill) car(b, cars, bx0 + (k + .5f) * bayW + (r.next() - .5f) * 4f, z0 + bayD / 2f + 4f, carLook(b, info.year, 0, r.int(10)), nose = -1f, along = false)
             var lx = bx0 + 60f
             while (lx < bx0 + nx * bayW) { lampsAt += floatArrayOf(lx, -strip - 14f); lx += 240f }
@@ -287,7 +288,7 @@ internal object StoreGrounds {
             dumpster(b, m, s.x1 - 80f, s.zb - 30f, Paint.BLUE)
             compactor(b, m, s.x0 + (s.x1 - s.x0) * .2f, s.zb, big)
             for (k in 0 until (if (big) 10 else 4)) pallet(b, m, s.x0 + (s.x1 - s.x0) * .3f + k * 50f, s.zb - 30f - (k % 2) * 4f, r, k)
-            if (!closed) {
+            if (!closed && !reused) {
                 val n = if (big) 4 else 1
                 val dockX0 = if (big) s.x0 + (s.x1 - s.x0) * .35f else s.x0 + (s.x1 - s.x0) * .08f
                 val dockStep = if (big) 220f else 0f
@@ -530,12 +531,14 @@ internal object StoreGrounds {
     /** The fifties market's sign tower at the road: a tall slab with FOOD stacked down it, the name across its top, a star. */
     private fun marketTower(b: StoreB, info: StoreInfo, x: Float, z: Float) {
         val m = b.det("sign")
-        val closed = info.state != StoreState.OPEN
+        val closed = info.state == StoreState.CLOSED
         val H = 280f; val w = 36f; val d = 14f
         b.box(m, x - 30f, 0f, z - 14f, x + 30f, 20f, z + 14f, Ramp(c(0x3A1E1A), c(0x7A3A2A), c(0x9A4A34), c(0xB4603E), c(0xC87A52)), 3)
-        val slab = b.pic("towerSlab$closed") { PixImg(tx(w), tx(H - 60f)).also { im ->
+        val slab = b.pic("towerSlab$closed${info.state}${info.reuse}") { PixImg(tx(w), tx(H - 60f)).also { im ->
             im.fill(c(0xF6F0DC)); im.border(c(0x8A1A1A)); im.rect(1, 1, 2, im.h - 2, c(0xC82A2A)); im.rect(im.w - 3, 1, im.w - 2, im.h - 2, c(0xC82A2A))
-            val word = "FOOD"
+            val word = if (info.state != StoreState.REUSED) "FOOD" else when (info.reuse) {
+                StoreReuse.CHURCH -> "CHAPEL"; StoreReuse.GYM -> "GYM"; StoreReuse.THRIFT -> "THRIFT"; StoreReuse.FLEA -> "FLEA"
+                StoreReuse.OUTLET -> "SALE"; StoreReuse.COMMUNITY -> "HALL"; else -> "OPEN" }
             val pitch = im.h / word.length
             for ((k, ch) in word.withIndex()) StoreSigns.letters(im, ch.toString(), 3, k * pitch + 4, im.w - 4, (k + 1) * pitch - 4, if (closed) null else c(0xFFFFFF), null, 6) { _, _ -> if (closed) c(0xB89A90) else c(0xD82A2A) }
             if (!closed) CinemaKit.glowAll(im, 200)
@@ -545,7 +548,7 @@ internal object StoreGrounds {
         CinemaKit.face(sm, slab, x, 20f + (H - 60f) / 2f, z + d / 2f + .1f, w, H - 60f, Side.FRONT)
         CinemaKit.face(sm, slab, x, 20f + (H - 60f) / 2f, z - d / 2f - .1f, w, H - 60f, Side.BACK)
         // the name board across the top and a star
-        val board = b.pic("towerBoard$closed") { PixImg(tx(150f), tx(34f)).also { im -> im.fill(c(0x1E7A7A)); im.border(c(0x0E3A3A)); StoreSigns.letters(im, info.name, 3, 3, im.w - 4, im.h - 4, null, null, 3) { _, _ -> if (closed) c(0x6A9A9A) else c(0xFFF6E0) }; if (!closed) CinemaKit.glowAll(im, 220, c(0x1E7A7A)) } }
+        val board = b.pic("towerBoard$closed") { PixImg(tx(150f), tx(34f)).also { im -> im.fill(c(0x1E7A7A)); im.border(c(0x0E3A3A)); StoreSigns.letters(im, info.signName, 3, 3, im.w - 4, im.h - 4, null, null, 3) { _, _ -> if (closed) c(0x6A9A9A) else c(0xFFF6E0) }; if (!closed) CinemaKit.glowAll(im, 220, c(0x1E7A7A)) } }
         b.box(m, x - 75f, H - 44f, z - 5f, x + 75f, H - 10f, z + 5f, Paint.STEEL, 5)
         CinemaKit.face(sm, board, x, H - 27f, z + 5.1f, 150f, 34f, Side.FRONT)
         CinemaKit.face(sm, board, x, H - 27f, z - 5.1f, 150f, 34f, Side.BACK)
@@ -567,7 +570,7 @@ internal object StoreGrounds {
     /** The seventies-eighties supermarket's pole sign: a steel pole, a backlit box with the name, a reader board under it. */
     private fun poleSign(b: StoreB, info: StoreInfo, x: Float, z: Float) {
         val m = b.det("sign")
-        val closed = info.state != StoreState.OPEN
+        val closed = info.state == StoreState.CLOSED
         val H = 300f; val w = 220f; val h = 80f
         m.upright(x, z, 0f, H - h, 6f, 6f, 10, Paint.strip(Paint.stripSize(6f, H).first, 60, Paint.STEEL, 3), cap = null)
         b.box(m, x - 14f, 0f, z - 14f, x + 14f, 10f, z + 14f, Paint.CONCRETE, 2)
@@ -575,7 +578,7 @@ internal object StoreGrounds {
         val face = b.pic("pole$closed") { PixImg(tx(w), tx(h)).also { im ->
             im.fill(c(0xF6F2E6))
             if (closed) { im.fill(c(0x3A3A40)); for (k in 0 until 6) Pix.line(im, k * 30, 0, k * 30 + 40, im.h - 1, c(0x5A5A60)) }
-            else { StoreSigns.letters(im, info.name, 6, 6, im.w - 7, im.h - 7, null, null, 6) { r, hh -> if (info.year >= 1980) c(0xC82A2A) else c(0x8A3A14) }; CinemaKit.glowAll(im, 230) }
+            else { StoreSigns.letters(im, info.signName, 6, 6, im.w - 7, im.h - 7, null, null, 6) { r, hh -> if (info.year >= 1980) c(0xC82A2A) else c(0x8A3A14) }; CinemaKit.glowAll(im, 230) }
             im.border(Paint.BROWN.o)
         } }
         val sm = if (closed) m else b.sign("road")
@@ -583,7 +586,8 @@ internal object StoreGrounds {
         CinemaKit.face(sm, face, x, H - h / 2f, z - 9.1f, w, h, Side.BACK)
         val reader = b.pic("reader$closed") { PixImg(tx(180f), tx(36f)).also { im ->
             im.fill(c(0xF6F6F0)); im.border(c(0x2A2A30))
-            if (!closed) { StoreSigns.letters(im, "DOUBLE COUPONS", 4, 3, im.w - 5, im.h / 2 - 1, null, null, 2) { _, _ -> c(0x1A1A22) }; StoreSigns.letters(im, "OPEN 7 TO 11", 4, im.h / 2 + 1, im.w - 5, im.h - 4, null, null, 2) { _, _ -> c(0xC82A2A) }; CinemaKit.glowAll(im, 180) }
+            if (!closed && info.state == StoreState.REUSED) { StoreSigns.letters(im, "WELCOME", 4, 4, im.w - 5, im.h - 5, null, null, 3) { _, _ -> c(0x1A1A22) }; CinemaKit.glowAll(im, 180) }
+            else if (!closed) { StoreSigns.letters(im, "DOUBLE COUPONS", 4, 3, im.w - 5, im.h / 2 - 1, null, null, 2) { _, _ -> c(0x1A1A22) }; StoreSigns.letters(im, "OPEN 7 TO 11", 4, im.h / 2 + 1, im.w - 5, im.h - 4, null, null, 2) { _, _ -> c(0xC82A2A) }; CinemaKit.glowAll(im, 180) }
             else StoreSigns.letters(im, "FOR LEASE", 4, 4, im.w - 5, im.h - 5, null, null, 3) { _, _ -> c(0x1A1A6A) }
         } }
         b.box(m, x - 92f, H - h - 60f, z - 5f, x + 92f, H - h - 20f, z + 5f, Paint.STEEL, 6, bottom = true)
@@ -594,18 +598,18 @@ internal object StoreGrounds {
     /** The superstore's pylon at the road: two clad legs, a tall cabinet with the name lit both ways, OPEN 24 HOURS under it. */
     private fun pylon(b: StoreB, info: StoreInfo, x: Float, z: Float) {
         val m = b.det("sign")
-        val closed = info.state != StoreState.OPEN
+        val closed = info.state == StoreState.CLOSED
         val H = 420f; val w = 280f; val legW = 40f
         val leg = b.tile(StoreKit.blockTile(Ramp(c(0x3A3630), c(0x8A8074), c(0xA0968A), c(0xB4AA9E), c(0xC8C0B4)), 9))
         for (dx in listOf(-w / 2f + legW / 2f, w / 2f - legW / 2f)) leg.box(x + dx - legW / 2f, 0f, z - 18f, x + dx + legW / 2f, H - 120f, z + 18f, setOf(Side.FRONT, Side.BACK, Side.LEFT, Side.RIGHT))
         m.box(x - w / 2f - 6f, H - 124f, z - 22f, x + w / 2f + 6f, H + 6f, z + 22f) { sd, ww, hh -> when (sd) { Side.FRONT, Side.BACK -> b.swatch(Paint.GREY.d); Side.TOP, Side.BOTTOM -> b.swatch(Paint.GREY.b); else -> b.panel(ww, hh, Paint.GREY, 3) } }
         CinemaKit.ledge(m, x - w / 2f - 10f, H + 6f, z - 26f, x + w / 2f + 10f, H + 14f, z + 26f, Paint.GREY, bottom = true)
-        val name = info.name.uppercase().replace(" SUPERCENTER", "")
+        val name = info.signName.uppercase().replace(" SUPERCENTER", "")
         val face = b.pic("pylon$closed") { PixImg(tx(w), tx(116f)).also { im ->
             im.fill(if (closed) c(0x2A2A30) else c(0x1E5A3A).let { if (info.seed % 4 == 1) c(0x8A1A1A) else if (info.seed % 4 == 2) c(0x1E285A) else if (info.seed % 4 == 3) c(0x9A4A12) else it })
             if (!closed) {
                 StoreSigns.letters(im, name, 6, 6, im.w - 7, im.h * 6 / 10, null, null, 8) { _, _ -> c(0xFFFFFF) }
-                StoreSigns.letters(im, if (info.year >= 2000) "SUPERCENTER" else "DISCOUNT CITY", 10, im.h * 6 / 10 + 4, im.w - 11, im.h - 8, null, null, 3) { _, _ -> c(0xF6D83A) }
+                StoreSigns.letters(im, if (info.state == StoreState.REUSED) "WELCOME" else if (info.year >= 2000) "SUPERCENTER" else "DISCOUNT CITY", 10, im.h * 6 / 10 + 4, im.w - 11, im.h - 8, null, null, 3) { _, _ -> c(0xF6D83A) }
                 CinemaKit.glowAll(im, 230)
             } else for (k in 0 until 8) Pix.line(im, k * 40, 0, k * 40 + 50, im.h - 1, c(0x4A4A50))
             im.border(c(0x1A1A1E))
