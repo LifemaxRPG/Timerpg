@@ -77,6 +77,10 @@ fun renderFilamentOpen(out: String) {
     val ft = FilamentTown(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, cinema = cinema,
         stores = storeSites, collision = collision)
     ft.nightBudgetNs = Long.MAX_VALUE
+    // (a still picture shows everyone in its one frame)
+    ft.sheetsOnWorker = false
+    // (and the see-through cone open or shut at once in it)
+    com.lifemax.rpg.feature.habits.presentation.scene3d.SeeThrough.ease = false
     val report = StringBuilder()
     report.appendLine("open world, town ${town.seed} ${town.year}: ${ft.slots.size} buildings, ${yards.yards.size} yards; far yards ${if (com.lifemax.rpg.feature.habits.presentation.scene3d.YardKitBuilder.far) "baked" else "off (-DtownLod=0)"}")
     ft.startGround()
@@ -148,6 +152,7 @@ fun renderFilamentOpen(out: String) {
         ft.prepare(pose0)
         val pose = run.draw(walk, w.toFloat(), h.toFloat(), hour, clock, sheets)
         val drawn = stats()
+        if (System.getProperty("debugeye") != null) report.appendLine("  eye (%.0f, %.0f, %.0f) near: %s".format(pose.ex, pose.ey, pose.ez, ft.near(pose.ex, pose.ey, pose.ez)))
         // the sky as the stage lays it under the town: its gradient down to the horizon, the orb where the light comes from
         val orbXY = FloatArray(2)
         val key = com.lifemax.rpg.feature.habits.domain.SceneLight.key(hour)
@@ -156,6 +161,7 @@ fun renderFilamentOpen(out: String) {
         TownPlay.playerHead()?.let { marks += it to 0x40E0FF }
         val stage = stageSky(hour, w, h)
         shooter.save(File(dir, "$name.png"), w, h, hour, marks, skyRow = skyRow(hour, h), orb = if (stage != null) null else orb, skyImg = stage)
+        if (System.getProperty("gpucost")?.let { gc -> gc == "all" || gc.split(",").any { name.startsWith(it) } } == true) report.appendLine(gpuCost(name, walk, run, ft, shooter, sheets, w, h, hour, clock))
         report.appendLine("%-26s %s; player (%.0f, %.0f) on %s (%s); %s".format(name, where, walk.wx, walk.wz, walk.row.id, TownPlay.streetName(), OrbitCamera.describe()))
         report.appendLine("%-26s free as before: %s | draw distance: %s | as drawn (+ far yards past %.0f): %s; people %d; %.0f ms; orb %s".format(
             "", free, ranged, pose.lodFar, drawn, run.peopleDrawn, (System.nanoTime() - t0) / 1e6, orb?.let { "(%.0f, %.0f)".format(it[0], it[1]) } ?: "behind"))
@@ -451,8 +457,27 @@ fun renderFilamentOpen(out: String) {
     // and the forest's trees cut in half far off
     view("fb_horizon", 3219.6f, 4148.5f, 0f, -1f, 23.38f, 11.85f, 420f, 17.6f, "015705: Church Street, the horizon")
     view("fb_trees_half", 14316.6f, 5916.4f, 0f, 1f, 153.57f, 10f, 420f, 17.6f, "020102: by the woods, trees far off")
+    // build 0.1.385 (the S25, 2026-11-19, 17:36 summer): stutter, things faded as the player walks by, the camera in a
+    // tower, ghostly mid-distance buildings and half-drawn far trees; the same spots and cameras (-Dshots=fb3)
+    view("fb3_053921", 12564.6f, 5807.3f, -0.7840f, -0.6208f, -60.70f, 10.00f, 420f, 17.6f, "053921: Main Street, trees far off half drawn, pale towers")
+    view("fb3_054003", 10538.4f, 4790.9f, -0.8802f, 0.4746f, -24.51f, 12.94f, 420f, 17.6f, "054003: Main Street, everything walked by fades out")
+    view("fb3_054054", 9291.6f, 5065.1f, 0.1848f, -0.9828f, -142.58f, 10.48f, 420f, 17.6f, "054054: Wharf Road, the camera inside a tower")
+    view("fb3_054115", 8619.4f, 4963.3f, -0.9946f, -0.1038f, -84.08f, 12.09f, 420f, 17.6f, "054115: Main Street, texture glitching (mid-distance towers)")
+    view("fb3_054136", 8622.1f, 4969.3f, 0.2605f, 0.9655f, -84.08f, 12.09f, 420f, 17.6f, "054136: Main Street")
+    // build 0.1.389 (the S25, 120 Hz, GPU p50 46-48 ms there): King Street by a facade-kit tower, on the bike (the ride's
+    // camera stands back: 546 for a 420 zoom), the cone cutting the tower beside the player (-Dshots=fb4)
+    view("fb4_061255", 3471.5f, 2636.4f, 0.0571f, 0.9984f, -120.90f, 27.41f, 546f, 17.6f, "061255: King Street, the tower beside the player fading")
+    view("fb4_061348", 3553.0f, 2648.5f, 0.9953f, -0.0965f, -168.12f, 10.77f, 546f, 17.6f, "061348: King Street, the tower and the green house")
+    view("fb3_054141", 8615.3f, 4968.6f, -0.9973f, -0.0729f, -84.08f, 12.09f, 420f, 17.6f, "054141: Main Street")
     File(dir, "open.txt").writeText(report.toString())
     print(report)
+    if (only != null && "bench" in only) {
+        // (as the app plays: sheets read on workers, the cone eased)
+        ft.sheetsOnWorker = true
+        ft.nightBudgetNs = FilamentTown.NIGHT_BUDGET_NS
+        com.lifemax.rpg.feature.habits.presentation.scene3d.SeeThrough.ease = true
+        benchWalk(dir, walk, run, ft, shooter, sheets)
+    }
     if (want("walk")) scriptedWalk(dir, town, yards, walk, run, shooter, sheets, w, h, events)
     TownPlay.stop()
     TownPlay.onEvent = null
@@ -615,7 +640,7 @@ private fun skyRow(hour: Float, h: Int): (Int) -> Color {
  * A walkable path from ([x0], [z0]) to ([x1], [z1]) over [c]'s grid of 6 units (a walker's radius clear), 8-connected, in a
  * box round both padded by 400; the straight line if none is found. Every few cells, so the walker cuts the corners a grid makes.
  */
-private fun plan(c: com.lifemax.rpg.feature.habits.domain.TownCollision, x0: Float, z0: Float, x1: Float, z1: Float): List<Pair<Float, Float>> {
+internal fun plan(c: com.lifemax.rpg.feature.habits.domain.TownCollision, x0: Float, z0: Float, x1: Float, z1: Float): List<Pair<Float, Float>> {
     val s = 6f; val pad = 400f
     val ox = minOf(x0, x1) - pad; val oz = minOf(z0, z1) - pad
     val nx = ((kotlin.math.abs(x1 - x0) + 2 * pad) / s).toInt() + 1
@@ -652,4 +677,36 @@ private fun plan(c: com.lifemax.rpg.feature.habits.domain.TownCollision, x0: Flo
     out.reverse()
     out += x1 to z1
     return out
+}
+
+/**
+ * What a view costs the GPU, part by part (-Dgpucost=name,name or all): the software GL's time to draw the frame as it
+ * stands, then with one thing changed at a time (the see-through cone open as before 0.1.390, the haze off, the shadows
+ * off, post-processing off, the far boxes, buildings, yards, greenery or ground left out). The build server's llvmpipe
+ * shades on the CPU, so the times stand in for the fill rate and the shading's cost, not for the S25's GPU: the shares
+ * are what to read.
+ */
+internal fun gpuCost(name: String, walk: com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk, run: TownRun, ft: FilamentTown, shooter: Shooter,
+                     sheets: List<androidx.compose.ui.graphics.ImageBitmap>, w: Int, h: Int, hour: Float, clock: Float): String {
+    val st = com.lifemax.rpg.feature.habits.presentation.scene3d.SeeThrough
+    fun redraw() { run.draw(walk, w.toFloat(), h.toFloat(), hour, clock, sheets) }
+    fun gl(): Float { repeat(2) { shooter.renderFrame(w, h) }; val ts = (0 until 5).map { shooter.renderFrame(w, h).second }.sorted(); return ts[2] }
+    // (a still view's first frames still upload the trees' detail and the far cells, two a frame: settled first, so each
+    // change is measured against the same scene; the base measured again at the end says how steady the times are)
+    repeat(120) { redraw() }
+    val base = gl()
+    val out = StringBuilder("%-26s software GL %.0f ms at %dx%d (%d draws, %d triangles, %d casters); changed one at a time:".format(name, base, w, h, ft.stats.draws, ft.stats.triangles, ft.stats.casters))
+    fun part(label: String, set: () -> Unit, unset: () -> Unit) {
+        set(); redraw(); val t = gl(); unset(); redraw()
+        out.append(" %s %+.0f%%;".format(label, (t - base) / base * 100f))
+    }
+    part("cone always open (as 0.1.385)", { st.always = true }, { st.always = false })
+    part("no haze", { ft.hazeOff = true }, { ft.hazeOff = false })
+    part("no shadows", { ft.view.isShadowingEnabled = false }, { ft.view.isShadowingEnabled = true })
+    part("no post", { ft.view.isPostProcessingEnabled = false }, { ft.view.isPostProcessingEnabled = true })
+    for ((label, bit) in listOf("no far boxes" to FilamentTown.HIDE_FAR, "no buildings" to FilamentTown.HIDE_BUILDINGS, "no yards" to FilamentTown.HIDE_YARDS,
+            "no greenery/props" to FilamentTown.HIDE_GREEN, "no ground" to FilamentTown.HIDE_GROUND))
+        part(label, { ft.debugHide = bit }, { ft.debugHide = 0 })
+    out.append(" (the base again: %.0f ms)".format(gl()))
+    return out.toString()
 }

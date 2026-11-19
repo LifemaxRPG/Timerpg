@@ -107,6 +107,9 @@ internal class TownPeople(
      * Stands [n] of [figures] for [pose] (whose [look] matrix the town's frame just made), wearing [sheets]; [sun] the sun's
      * direction (its shadow twins stand across it), [fade] the street view's cut at a world point (1 drawn, 0 cut away).
      */
+    /** Where a townsperson's sheet is read when first seen ([StreetTextures.warmLater]); null: read in the frame. */
+    var warmPool: java.util.concurrent.Executor? = null
+
     fun update(pose: TownPose, look: FloatArray, figures: List<TownFigure>, n: Int, sheets: List<ImageBitmap>, sun: FloatArray, fade: (Float, Float) -> Float) {
         while (cards.size < n) card()
         var px = -sun[2]; var pz = sun[0]
@@ -115,18 +118,23 @@ internal class TownPeople(
         val k = SpriteArt.PIXEL
         drawn = 0
         var riding = false
-        for ((i, c) in cards.withIndex()) {
+        for (i in cards.indices) {
+            val c = cards[i]
             val f = if (i < n) figures[i] else null
             if (f == null || sheets.isEmpty()) { show(c.e, false); show(c.proxy, false); continue }
             // (the player is never cut away: the camera follows them, also through a turn where it backs off past the corner)
             val fd = if (f.me) 1f else fade(f.x, f.z) * pose.rangeFade(f.x, 30f, f.z, 40f)
-            val on = fd > .02f && pose.sees(f.x, 30f, f.z, 40f) && pose.distance(f.x, 30f, f.z) > CameraRig.NEAR + 10f
-            show(c.e, on); show(c.proxy, on && fd > .5f)
-            if (!on) continue
-            drawn++
+            var on = fd > .02f && pose.sees(f.x, 30f, f.z, 40f) && pose.distance(f.x, 30f, f.z) > CameraRig.NEAR + 10f
             // (the townspeople wear their own baked sheets, by their seed, sex and age; the player their chosen one)
             val folk = TownFolk.sheets
             val sheet = if (!f.me && f.folk in folk.indices) folk[f.folk] else sheets[TownPlay.sheetOf(f, sheets.size)]
+            // (a townsperson whose sheet is not read yet waits a frame or two for a worker to read it, rather than the
+            // frame reading it: they come into view at the live rows' edge, far off)
+            val wp = warmPool
+            if (on && !f.me && wp != null && !textures.ready(sheet)) { textures.warmLater(sheet, wp); on = false }
+            show(c.e, on); show(c.proxy, on && fd > .5f)
+            if (!on) continue
+            drawn++
             val bk = f.bike
             if (bk != null) {
                 riding = true
@@ -135,10 +143,11 @@ internal class TownPeople(
             }
             // (the sheet's front, back or side by the angle between the way they face and the camera's look; in the open world
             // the player's own too: the street view's up-and-down-the-pavement override is the street view's)
-            val (view, flip) = if (pose.open && f.me && f.facing != 0) {
+            val code = if (pose.open && f.me && f.facing != 0) {
                 val facing = f.facing; f.facing = 0
-                TownPlay.view(f, pose.groundX, pose.groundZ, pose.rx, pose.rz).also { f.facing = facing }
-            } else TownPlay.view(f, pose.groundX, pose.groundZ, pose.rx, pose.rz)
+                TownPlay.viewCode(f, pose.groundX, pose.groundZ, pose.rx, pose.rz).also { f.facing = facing }
+            } else TownPlay.viewCode(f, pose.groundX, pose.groundZ, pose.rx, pose.rz)
+            val view = code shr 1; val flip = if (code and 1 == 1) -1f else 1f
             val sx = (view * 6 + f.frame) * 32f
             // (a baked sheet holds only the idle and walk rows; ours have the pack's preview row above them)
             val sy = (if (f.still) 1 else 2) * 64f - (if (sheet.height <= 128) 64f else 0f)

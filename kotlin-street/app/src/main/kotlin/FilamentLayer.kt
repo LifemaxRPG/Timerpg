@@ -82,6 +82,18 @@ object StreetRenderer {
         town = p.getString("town", TownSession.DEFAULT) ?: TownSession.DEFAULT
         setView(ctx, p.getString("view", OPEN) ?: OPEN)
         setGrab(ctx, p.getBoolean("grabWorld", false))
+        setBikeFollow(ctx, p.getBoolean("bikeFollow", true))
+    }
+
+    /** The open world's camera on the bike (the AI panel's "On the bike"): true (the default) swings round behind the rider. */
+    var bikeFollow by mutableStateOf(true)
+        private set
+
+    fun setBikeFollow(ctx: Context, on: Boolean) {
+        if (on != bikeFollow) com.timerpg.street.shot.Crumbs.add("bike camera: " + if (on) "follows" else "stays")
+        bikeFollow = on
+        com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera.bikeFollow = on
+        prefs(ctx).edit().putBoolean("bikeFollow", on).apply()
     }
 
     /** The open world's drag (the AI panel's "Drag"): false turns the camera the way the finger goes, true moves the world with it. */
@@ -238,7 +250,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
     /** The stage's frame last drawn, and whether the surface changed since (then it is drawn again). */
     private var lastN = -1L
     private var dirty = true
-    private val history = arrayOf(Renderer.FrameInfo())
+    private val history = Array(4) { Renderer.FrameInfo() }
     private val onFrame: () -> Unit = { frame() }
 
     init {
@@ -306,16 +318,24 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
                 if (s.buildMs > 0f) FilamentStats.buildMs = s.buildMs
                 s.view
             } else townFrame(e, f) ?: return
+            val r0 = System.nanoTime()
             if (r.beginFrame(sc, System.nanoTime())) {
                 r.render(view)
                 r.endFrame()
             }
+            com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.add(com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.RENDER, System.nanoTime() - r0)
             lastN = f.n; dirty = false
             val cpu = (System.nanoTime() - t0) / 1e6f
             // the GPU's time for an earlier frame, where the driver reports it
             val got = r.getFrameInfoHistory(history)
             val g = if (got > 0 && history[0].gpuFrameDuration > 0) history[0].gpuFrameDuration / 1e6f else -1f
             FilamentStats.add(cpu, g)
+            // the frame-spike profiler: this frame's parts, the GPU's frames, the collections (the town only)
+            if (townMode) {
+                val gs = com.lifemax.rpg.feature.habits.presentation.scene.GameState
+                val oc = com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera
+                FrameSpikes.frame(gs.inMotion || oc.moving, history, got)
+            } else com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.reset()
             // it has drawn: the start did not die in native code (the town's: once its first view is built, behind the
             // loading screen; the rest of its build has a mark of its own, townBuilding)
             if ((!townMode || TownSession.ready) && ++good == StreetRenderer.GOOD_FRAMES) {

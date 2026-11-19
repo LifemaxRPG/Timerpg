@@ -28,7 +28,15 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     val black: Texture = solid(0x00000000)
 
     /** The texture of [img] as drawn. */
-    fun of(img: ImageBitmap): Texture = byImage[img] ?: make(warmed.remove(img) ?: prepare(argb(img), img.width, img.height, mips = true)).also { byImage[img] = it }
+    fun of(img: ImageBitmap): Texture = byImage[img] ?: run {
+        // (a picture drawn for the first time, a person's sheet: made here; read and packed here too if it was not warmed)
+        com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.count(com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.UP_SHEETS)
+        val w = warmed.remove(img)
+        if (w == null) coldSheets++
+        make(w ?: prepare(argb(img), img.width, img.height, mips = true)).also { byImage[img] = it }
+    }
+    /** Pictures [of] had to read and pack on the engine's thread (not warmed on a worker first). */
+    var coldSheets = 0; private set
 
     /**
      * Reads and packs [img] for [of] (any thread: no engine call), so the engine's thread only makes the texture. Nothing
@@ -37,6 +45,20 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     fun warm(img: ImageBitmap) {
         if (byImage.containsKey(img) || warmed.containsKey(img)) return
         warmed[img] = prepare(argb(img), img.width, img.height, mips = true)
+    }
+
+    /** Whether [img]'s texture is to be had at once: made already, or read and packed by [warm]. */
+    fun ready(img: ImageBitmap): Boolean = byImage.containsKey(img) || warmed.containsKey(img)
+    private val warming: MutableSet<ImageBitmap> = java.util.concurrent.ConcurrentHashMap.newKeySet()
+
+    /**
+     * [warm]s [img] on [pool] unless it is [ready] or on its way: a townsperson's sheet seen for the first time is read and
+     * packed on a worker (a frame or two), not on the engine's thread in the middle of a frame (a spike: half a MB read,
+     * packed and mipmapped, then collected).
+     */
+    fun warmLater(img: ImageBitmap, pool: java.util.concurrent.Executor) {
+        if (ready(img) || !warming.add(img)) return
+        pool.execute { try { warm(img) } catch (t: Throwable) { } finally { warming.remove(img) } }
     }
 
     /**
@@ -92,6 +114,7 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
         var bytes = 0L
         for (l in 0 until levels) bytes += maxOf(1, w shr l).toLong() * maxOf(1, h shr l) * 4
         gpu.textures.addAndGet(bytes)
+        com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.bytes += w.toLong() * h * 4
         return t
     }
 

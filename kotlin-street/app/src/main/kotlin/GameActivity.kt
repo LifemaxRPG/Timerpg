@@ -380,6 +380,8 @@ private fun loadStreet(ctx: android.content.Context): StreetData = try {
 
 @Composable
 private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.NpcVoiceService, sound: com.timerpg.street.audio.SoundScape? = null) {
+    // (the frame-spike profiler counts the HUD's recompositions: this screen's own and its texts')
+    androidx.compose.runtime.SideEffect { FrameSpikes.recomposed++ }
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val data = remember { loadStreet(ctx) }
     // the main street and the cross street: one place, the stage draws whichever the player is on and walks them round
@@ -471,7 +473,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             if (last != 0L) FrameStats.add((now - last) / 1e6f)
             last = now
             // moving (walking, a turn or a crossing): nothing new is written ahead until the player has stood a moment
-            if (GameState.walking || (GameState.riding && GameState.motion.speed > 1f) || townPlay.walk?.transit != null) { movedAt = now; if (!movingNow) { movingNow = true; engine.setMoving(true) } }
+            if (GameState.walking || (GameState.riding && GameState.motion.speed > 1f) || townPlay.walk?.transit != null ||
+                (townPlay.active && com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera.open && com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera.moving)) { movedAt = now; if (!movingNow) { movingNow = true; engine.setMoving(true) } }
             else if (movingNow && now - movedAt > STILL_NS) { movingNow = false; engine.setMoving(false) }
             near = GameState.nearest
             atCorner = GameState.atCorner
@@ -601,7 +604,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         FrameStats.window(); FilamentStats.window()
         while (true) {
             kotlinx.coroutines.delay(10_000)
-            if (!TownSession.ready || StreetRenderer.paused) { FrameStats.window(); FilamentStats.window(); continue }
+            if (!TownSession.ready || StreetRenderer.paused) { FrameStats.window(); FilamentStats.window(); FrameSpikes.window(); continue }
             val heat = runCatching {
                 if (android.os.Build.VERSION.SDK_INT >= 30) "thermal ${pm.currentThermalStatus}, headroom %.2f".format(java.util.Locale.US, pm.getThermalHeadroom(10))
                 else "thermal ${pm.currentThermalStatus}"
@@ -609,7 +612,10 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             val w = townPlay.walk
             com.timerpg.street.shot.Crumbs.add("frames 10 s: ${FrameStats.window()}; ${FilamentStats.window()}; $heat; " +
                 "${com.timerpg.street.llm.MemoryWatch.freeMb} MB free; AI ${engine.status.value.state}${engine.status.value.working?.let { " writing" } ?: ""}" +
+                " (held while moving: ${engine.held} lines, ${engine.heldMs / 1000} s in all)" +
                 (if (w != null) "; ${if (GameState.walking) "walking" else "standing"} on ${w.row.id}" else ""))
+            // what ran in the frames that came late (the frame-spike profiler)
+            com.timerpg.street.shot.Crumbs.add("frame spikes 10 s: " + FrameSpikes.window())
         }
     }
     // where the memory goes, every 30 s in the breadcrumbs: each model resident and the game's own parts (the phone's
@@ -911,7 +917,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             "doorFade" to (doorTo != null),
             "time" to linkedMapOf("hour" to hour, "clock" to "%d:%02d".format(java.util.Locale.US, h, m),
                 "season" to SEASON_NAMES.getOrNull(season), "weather" to WEATHERS.getOrNull(weather)?.first),
-            "frames" to linkedMapOf("compose" to FrameStats.summary(), "filament" to if (StreetRenderer.filament) FilamentStats.summary() else null),
+            "frames" to linkedMapOf("compose" to FrameStats.summary(), "filament" to if (StreetRenderer.filament) FilamentStats.summary() else null,
+                "spikes" to FrameSpikes.last),
             "ai" to linkedMapOf("state" to ai.state.name, "detail" to ai.detail, "runsOn" to listOf("CPU", "GPU", "NPU").getOrNull(ai.runsOn),
                 "modelMb" to ai.modelMb, "role" to ai.role?.name?.lowercase(), "forceBank" to ai.forceBank, "gpuNote" to ai.gpuNote, "lane" to com.timerpg.street.llm.AiLane.current,
                 "linesWritten" to ai.lines, "builtIn" to ai.builtIn, "queued" to ai.queued, "paused" to ai.paused, "working" to ai.working,
@@ -1074,7 +1081,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             Modifier.align(Alignment.TopCenter).padding(top = 10.dp).background(Color(0x99101420), RoundedCornerShape(12.dp)).padding(horizontal = 14.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val h = hour.toInt(); val m = ((hour - h) * 60).toInt()
+            // (the slider's end, 24, is midnight: 12:00 AM, not noon)
+            val h = hour.toInt() % 24; val m = ((hour - hour.toInt()) * 60).toInt()
             Text("%d:%02d %s".format(((h + 11) % 12) + 1, m, if (h < 12) "AM" else "PM"))
             Spacer(Modifier.width(10.dp))
             Slider(hour, { hour = it }, 0f, 24f, Modifier.width(240.dp))
@@ -1579,6 +1587,13 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             Chip("Turns the camera", !StreetRenderer.grabWorld) { StreetRenderer.setGrab(ctx, false) }
             Chip("Moves the world", StreetRenderer.grabWorld) { StreetRenderer.setGrab(ctx, true) }
         }
+        // (on the bike the camera swings round behind the rider by itself, paused while the player turns it: the owner's
+        // one exception to the camera rule; on foot it never turns by itself)
+        if (StreetRenderer.filament && StreetRenderer.view == StreetRenderer.OPEN) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("On the bike", 12.sp)
+            Chip("Camera follows", StreetRenderer.bikeFollow) { StreetRenderer.setBikeFollow(ctx, true) }
+            Chip("Camera stays", !StreetRenderer.bikeFollow) { StreetRenderer.setBikeFollow(ctx, false) }
+        }
         // (the street view's camera heights)
         if (StreetRenderer.filament && StreetRenderer.view == StreetRenderer.STREET) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Camera", 12.sp)
@@ -1862,12 +1877,14 @@ private fun Modifier.opaque(): Modifier = pointerInput(Unit) { awaitPointerEvent
 
 @Composable
 private fun Text(s: String, fontSize: androidx.compose.ui.unit.TextUnit = 15.sp, modifier: Modifier = Modifier, color: Color = Color.White,
-                 maxLines: Int = Int.MAX_VALUE, overflow: androidx.compose.ui.text.style.TextOverflow = androidx.compose.ui.text.style.TextOverflow.Clip) =
+                 maxLines: Int = Int.MAX_VALUE, overflow: androidx.compose.ui.text.style.TextOverflow = androidx.compose.ui.text.style.TextOverflow.Clip) {
+    androidx.compose.runtime.SideEffect { FrameSpikes.recomposed++ }
     androidx.compose.foundation.text.BasicText(
         s, modifier,
         style = androidx.compose.ui.text.TextStyle(color = color, fontSize = fontSize, fontWeight = FontWeight.SemiBold),
         overflow = overflow, maxLines = maxLines,
     )
+}
 
 @Composable
 private fun Slider(value: Float, onChange: (Float) -> Unit, from: Float, to: Float, modifier: Modifier) {

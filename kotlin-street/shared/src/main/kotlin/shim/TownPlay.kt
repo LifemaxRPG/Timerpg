@@ -214,6 +214,11 @@ object TownPlay {
      * a mouth a turn leads off). Returns a number that changes whenever the view must be drawn again.
      */
     fun step(dt: Float): Float {
+        val t0 = System.nanoTime()
+        try { return stepTimed(dt) } finally { FrameWork.add(FrameWork.STEP, System.nanoTime() - t0) }
+    }
+
+    private fun stepTimed(dt: Float): Float {
         val v = sync() ?: return 0f
         if (frozen) { GameState.moveX = 0f; GameState.moveLane = 0f }
         if (v is OpenWalk) return stepOpen(v, dt)
@@ -458,14 +463,20 @@ object TownPlay {
      * view and the flip (1 or -1).
      */
     fun view(f: TownFigure, fx: Float, fz: Float, rx: Float, rz: Float): Pair<Int, Float> {
-        if (f.me && f.facing != 0) return f.facing to 1f
+        val c = viewCode(f, fx, fz, rx, rz)
+        return (c shr 1) to (if (c and 1 == 1) -1f else 1f)
+    }
+
+    /** [view] as one number (the view times 2, plus 1 when flipped): nothing allocated, a person a frame. */
+    fun viewCode(f: TownFigure, fx: Float, fz: Float, rx: Float, rz: Float): Int {
+        if (f.me && f.facing != 0) return f.facing * 2
         val l = hypot(f.dx, f.dz)
-        if (l < 1e-5f) return 3 to 1f
+        if (l < 1e-5f) return 3 * 2
         val across = (f.dx * rx + f.dz * rz) / l
         val away = (f.dx * fx + f.dz * fz) / l
         // (standing people face a little more towards the camera: someone at their door faces the street)
-        return if (abs(away) > abs(across) * (if (f.still) .8f else 1.2f)) (if (away > 0f) 1 else 3) to 1f
-        else 0 to (if (across >= 0f) 1f else -1f)
+        return if (abs(away) > abs(across) * (if (f.still) .8f else 1.2f)) (if (away > 0f) 1 else 3) * 2
+        else if (across >= 0f) 0 else 1
     }
 
     /** Which of [n] character sheets figure [f] wears: the player's own ([GameState.look]), the others never theirs. */

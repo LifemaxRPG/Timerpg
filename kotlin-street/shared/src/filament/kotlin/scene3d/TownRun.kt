@@ -47,6 +47,10 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
      */
     fun build(x: Float, z: Float, budgetMs: Float): Boolean {
         val s = System.nanoTime()
+        try { return buildTimed(x, z, budgetMs, s) } finally { com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.add(com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.BUILD, System.nanoTime() - s) }
+    }
+
+    private fun buildTimed(x: Float, z: Float, budgetMs: Float, s: Long): Boolean {
         if (!groundDone) { groundDone = town.uploadGround(budgetMs); if (groundDone) TownMemory.mark("ground in") }
         val left = budgetMs - (System.nanoTime() - s) / 1e6f
         if (groundDone || left > 1f) town.buildNearest(x, z, left.coerceAtLeast(1f))
@@ -76,8 +80,12 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
         val p = if (OrbitCamera.open) orbit(walk, w, h, seconds) else TownFrame.street(walk, w, h).also { SeeThrough.off() }
         town.frame(p, hour, seconds.toDouble())
         // (no people behind the loading screen: their sheets are still being read, and nobody sees them)
+        val t0 = System.nanoTime()
         val n = if (TownPlay.walk === walk && firstViewMs >= 0f) TownPlay.people(seconds, hour = hour) else 0
+        val t1 = System.nanoTime()
         peopleDrawn = town.people(TownPlay.figures, n, sheets)
+        com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.add(com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.PEOPLE, t1 - t0)
+        com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.add(com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.CARDS, System.nanoTime() - t1)
         TownPlay.projector = projector
         pose = p
         return p
@@ -103,6 +111,10 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
         if (dt == 0f && hypot(c.tx - walk.wx, c.tz - walk.wz) > RESET_FAR) c.reset(walk.wx, walk.wz, heading)
         else if (c.behindNext) c.behind(walk.wx, walk.wz, heading)
         c.behindNext = false
+        // (on the bike, and only there, the camera swings round behind the rider unless the player turned it lately: the
+        // owner's one exception; on foot nothing but the player turns it)
+        val ow = walk as? com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk
+        if (ow != null && ow.riding) c.ride(dt, heading, ow.bike.speed) else c.onFoot(dt)
         c.step(dt)
         c.follow(walk.wx, walk.wz)
         // (on the bike the camera stands a little further back, eased: a zoom out the player's own zoom rides on, never a turn)
@@ -112,9 +124,11 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
         // (the open walk's stick pushes relative to where the camera looks; the walk never turns the camera)
         (walk as? com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk)?.cameraYaw = c.yawRad
         val want = TownFrame.orbit(walk.wx, OrbitCamera.EYE, walk.wz, c.yaw, c.pitch, dist, w, h, OrbitCamera.FOV_Y)
+        val o0 = System.nanoTime()
         town.occlude(walk.wx, OrbitCamera.EYE, walk.wz, want.ex, want.ey, want.ez)
         val fit = if (c.pullIn && town.eyeInside < 1f) (town.eyeInside * dist - PULL_MARGIN).coerceIn(min(PULL_MIN, dist), dist) else dist
         town.fadeBetween(fit / dist)
+        com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.add(com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.OCCLUDE, System.nanoTime() - o0)
         // (eased both ways: in quickly, out slowly; never a jump)
         val tau = if (fit < c.pulled) PULL_IN else PULL_OUT
         // (no pull: the camera stands where the player put it, their own zoom unlagged)
@@ -122,7 +136,7 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
         if (c.pulled > dist) c.pulled = dist
         val p = if (abs(c.pulled - dist) < .5f) want else TownFrame.orbit(walk.wx, OrbitCamera.EYE, walk.wz, c.yaw, c.pitch, c.pulled, w, h, OrbitCamera.FOV_Y)
         // (whatever is left between the eye and the player, merged trees too, is cut in a cone by the material)
-        SeeThrough.aim(walk.wx, walk.wz, p.ex, p.ey, p.ez)
+        SeeThrough.aim(walk.wx, walk.wz, p.ex, p.ey, p.ez, town.hidden, dt)
         c.lensPx = p.fl
         // (the horizon: where a level line from the eye falls; above the screen's top when looking well down)
         c.horizonY = p.cy - p.fl * (-p.fy) / hypot(p.fx, p.fz).coerceAtLeast(1e-4f)

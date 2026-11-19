@@ -8,7 +8,8 @@ import kotlin.math.exp
 import kotlin.math.sin
 
 /**
- * The open world's camera (the owner's decision: the player turns the camera, nothing else does). It orbits the player:
+ * The open world's camera (the owner's decision: the player turns the camera, nothing else does; the one exception, also
+ * the owner's: on the bike it swings round behind the rider, paused while the player turns it ([ride], [bikeFollow])). It orbits the player:
  * the point it looks at is the player's feet plus [EYE] up, it stands [dist] street units from that point, turned
  * [yaw] degrees (0 looking north, clockwise, as the walk's heading) and looking [pitch] degrees down.
  *
@@ -122,6 +123,7 @@ object OrbitCamera {
         goalYaw += (if (grabWorld) -dx else dx) / w * YAW_PER_WIDTH
         goalPitch = (goalPitch + dy / h * PITCH_PER_HEIGHT).coerceIn(PITCH_MIN, PITCH_MAX)
         moving = true
+        touched()
     }
 
     /** A pinch by [scale] (fingers apart: > 1, nearer). */
@@ -129,10 +131,57 @@ object OrbitCamera {
         if (scale <= 0f || scale.isNaN()) return
         goalDist = (goalDist / scale).coerceIn(DIST_MIN, DIST_MAX)
         moving = true
+        touched()
     }
 
     /** Behind a player heading [headingDeg]: the shortest way round (eased, as the player's own input). */
-    fun recentre(headingDeg: Float) { goalYaw = yaw + wrap(headingDeg - yaw); moving = true }
+    fun recentre(headingDeg: Float) { goalYaw = yaw + wrap(headingDeg - yaw); moving = true; touched() }
+
+    // ------------------------------------------------------------------ on the bike (the owner's one exception)
+
+    /**
+     * On the bike the camera swings round behind the rider by itself (the owner's one exception to the camera rule, for
+     * the bike only; the AI panel's "On the bike", kept by the app). On foot it never turns by itself.
+     */
+    @Volatile var bikeFollow = true
+    /** Seconds since the player last turned, tilted or zoomed the camera (a drag, a pinch, a recentre). */
+    @Volatile var sinceInput = Float.MAX_VALUE; private set
+    /** How far the bike's follow is back on after the player's own input (0 paused .. 1 full), eased in. */
+    private var followIn = 1f
+    /** The player's input pauses the bike's follow this long (s); then it eases back in over [FOLLOW_EASE_IN]. */
+    const val FOLLOW_PAUSE = 3f
+    const val FOLLOW_EASE_IN = 1.2f
+    /** How lazily the camera swings round behind the bike (s: about two thirds of the way in this long), and at most how fast (degrees a second). */
+    const val FOLLOW_LAG = .9f
+    const val FOLLOW_MAX_RATE = 75f
+    /** Below this speed (street units a second) the camera does not swing (stopped, wobbling, walking the bike); full from [FOLLOW_FULL_SPEED]. */
+    const val FOLLOW_MIN_SPEED = 30f
+    const val FOLLOW_FULL_SPEED = 120f
+
+    private fun touched() { sinceInput = 0f; followIn = 0f }
+
+    /**
+     * One frame on the bike ([dt] s): the rider heads [headingDeg] at [speed] street units a second. Unless the player
+     * turned the camera in the last [FOLLOW_PAUSE] s, its goal swings round towards behind them with a gentle lag
+     * ([FOLLOW_LAG]), never faster than [FOLLOW_MAX_RATE], and not at all when stopped or crawling (no spin on the spot).
+     * Pitch and zoom stay the player's. Call before [step]; call [onFoot] when not riding.
+     */
+    fun ride(dt: Float, headingDeg: Float, speed: Float) {
+        if (dt <= 0f) return
+        if (sinceInput < Float.MAX_VALUE / 2f) sinceInput += dt
+        if (!bikeFollow || sinceInput < FOLLOW_PAUSE) return
+        followIn = (followIn + dt / FOLLOW_EASE_IN).coerceAtMost(1f)
+        val pace = ((speed - FOLLOW_MIN_SPEED) / (FOLLOW_FULL_SPEED - FOLLOW_MIN_SPEED)).coerceIn(0f, 1f)
+        if (pace <= 0f) return
+        val off = wrap(headingDeg - goalYaw)
+        val k = 1f - exp(-dt / FOLLOW_LAG)
+        val ease = followIn * followIn * (3f - 2f * followIn)
+        val turn = (off * k * pace * ease).coerceIn(-FOLLOW_MAX_RATE * dt, FOLLOW_MAX_RATE * dt)
+        if (abs(turn) > 1e-4f) { goalYaw += turn; moving = true }
+    }
+
+    /** A frame on foot: the input clock runs on (nothing turns). */
+    fun onFoot(dt: Float) { if (dt > 0f && sinceInput < Float.MAX_VALUE / 2f) sinceInput += dt }
 
     /** Eases the camera [dt] seconds towards the goal the player set. Returns true while it still moves. */
     fun step(dt: Float): Boolean {

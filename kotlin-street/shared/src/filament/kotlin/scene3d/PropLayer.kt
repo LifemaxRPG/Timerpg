@@ -116,6 +116,7 @@ internal class PropLayer(
         val indices = TownVertex.indices(engine, p.indices, p.shortIndices)
         indices.setBuffer(engine, p.ib)
         textures.gpu.buffers(p.vb.limit(), p.ib.limit())
+        com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.bytes += p.vb.limit() + p.ib.limit()
         val b = p.box
         val box = Box(b[0], b[1], b[2], b[3], b[4], b[5])
         val tex: Texture = textures.make(p.tex)
@@ -208,6 +209,11 @@ internal class PropLayer(
      */
     /** Whether the open world's see-through cone ([SeeThrough]) cuts this layer (not the ground's). */
     var seeThrough = true
+    /**
+     * Its fade is the inverse screen door (the far boxes): at a fade of t it keeps exactly the pixels a thing faded to
+     * 1 - t drops, so a crossover between the two never shows both, nor neither, at a pixel.
+     */
+    var inverseFade = false
 
     fun update(look: FloatArray, dark: Float, shown: Boolean = true, fade: Float = 1f, shadows: Boolean = shown, castFade: Float = 1f) {
         val rm = engine.renderableManager
@@ -225,7 +231,7 @@ internal class PropLayer(
             b.mi.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
             if (seeThrough) SeeThrough.apply(b.mi)
             if (b.glows) b.mi.setParameter("glow", GLOW, GLOW, GLOW, on)
-            if (f < 1f || faded) b.mi.setParameter("fade", f)
+            if (f < 1f || faded) b.mi.setParameter("fade", if (inverseFade) -f else f)
         }
         if (shown) faded = fade < 1f || castFade < 1f
     }

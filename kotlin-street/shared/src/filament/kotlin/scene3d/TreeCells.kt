@@ -93,6 +93,7 @@ internal class TreeCells(
             val job = c.detailJob
             if (job != null && job.isDone && c.detail == null && uploadsLeft > 0) {
                 uploadsLeft--
+                com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.count(com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.UP_TREES)
                 c.detail = try { job.get() } catch (e: java.util.concurrent.ExecutionException) { null }?.let { c.layer(it) }
                 c.detailJob = null
             }
@@ -106,6 +107,27 @@ internal class TreeCells(
             if (shadows) (if (showDetail) c.detail else c.simple)?.let { casters += it.casters }
             if (showDetail) detailed++
         }
+    }
+
+    /**
+     * Whether a tree's crown stands across the line from ([ax], [ay], [az]) to ([bx], [by], [bz]) (the player's chest or
+     * head to the eye): each crown taken as a box (a fifth of its height either side of the trunk, from half way
+     * up to its top). A crown the line starts in counts (the player under it). For the see-through cone, which cuts only
+     * while something really hides the player. Allocates nothing.
+     */
+    fun blocks(ax: Float, ay: Float, az: Float, bx: Float, by: Float, bz: Float): Boolean {
+        val lx = min(ax, bx); val hx = max(ax, bx); val lz = min(az, bz); val hz = max(az, bz)
+        for (c in cells.values) {
+            if (c.x1 < lx || c.x0 > hx || c.z1 < lz || c.z0 > hz || c.top < min(ay, by)) continue
+            for (i in c.trees.indices) {
+                val (s, at) = c.trees[i]
+                val h = s.height
+                if (h < CROWN_MIN) continue
+                val r = h * CROWN_SIDE
+                if (segmentHitsBox(ax, ay, az, bx, by, bz, at[0] - r, h * CROWN_FROM, at[1] - r, at[0] + r, h, at[1] + r)) return true
+            }
+        }
+        return false
     }
 
     /** Makes the detail [pose] would show at once (a preview's or a teleport's; unbudgeted). */
@@ -129,6 +151,30 @@ internal class TreeCells(
         /** The detail is packed this far ahead of [TownFrame.LOD_DETAIL], and let go this far past it. */
         const val REACH_AHEAD = 300f
         const val LET_GO = 700f
+        /** Trees and bushes lower than this hide no one standing (street units: the player's chest is 30 up). */
+        const val CROWN_MIN = 34f
+        /** A crown's half width (a share of the tree's height) and where it begins (a share of the height up). */
+        const val CROWN_SIDE = .22f
+        const val CROWN_FROM = .5f
+
+        /** Whether the segment ([ax], [ay], [az])-([bx], [by], [bz]) meets the box (inside counts). Allocates nothing. */
+        fun segmentHitsBox(ax: Float, ay: Float, az: Float, bx: Float, by: Float, bz: Float,
+                           x0: Float, y0: Float, z0: Float, x1: Float, y1: Float, z1: Float): Boolean {
+            var t0 = 0f; var t1 = 1f
+            for (k in 0..2) {
+                val o = when (k) { 0 -> ax; 1 -> ay; else -> az }
+                val d = when (k) { 0 -> bx - ax; 1 -> by - ay; else -> bz - az }
+                val lo = when (k) { 0 -> x0; 1 -> y0; else -> z0 }
+                val hi = when (k) { 0 -> x1; 1 -> y1; else -> z1 }
+                if (kotlin.math.abs(d) < 1e-6f) { if (o < lo || o > hi) return false; continue }
+                var a = (lo - o) / d; var b = (hi - o) / d
+                if (a > b) { val t = a; a = b; b = t }
+                if (a > t0) t0 = a
+                if (b < t1) t1 = b
+                if (t0 > t1) return false
+            }
+            return true
+        }
         private val IDENTITY = listOf(floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 0f))
         /** Detailed cells uploaded per frame, all chunks together ([newFrame] sets it). */
         private var uploadsLeft = 2

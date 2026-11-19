@@ -96,7 +96,7 @@ tasks.register<JavaExec>("preview") {
     // builder (kit, or placeholder: flat colours)
     for (k in listOf("town", "assetsRoot", "townYards", "memtrace", "heapBudget", "memlive", "coldOnly")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     // the open world's preview (-Dmode=filament-open): -DtownLod=0 bakes no far yards (to compare)
-    for (k in listOf("townLod", "townFar", "folk", "see")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
+    for (k in listOf("townLod", "townFar", "folk", "see", "debugeye", "bench", "benchSecs", "gpucost")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     if (withFilament) {
         jvmArgs("-Djava.library.path=" + File(filamentDist, "lib").absolutePath)
         // Mesa's EGL with no display: headless software GL

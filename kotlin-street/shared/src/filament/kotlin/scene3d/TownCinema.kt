@@ -48,6 +48,40 @@ internal class TownCinema(
     var cx = 0f; var cy = 60f; var cz = 0f; var r = 0f
     /** Whether it was drawn last frame. */
     var shown = false; private set
+    /** Its footprint in its own frame (x along, z out: x0, z0, x1, z1) and its height, once built: the open world's cutaway. */
+    private var box: FloatArray? = null
+    /** The open world: it stands between the camera and the player, or by the eye ([FilamentTown.occlude]); eased out. */
+    var occluded = false
+    var occFade = 1f
+
+    /**
+     * Where along the line from ([ox], [oy], [oz]) to the eye ([ex], [ey], [ez]) it begins (0..1), 0 with the eye within
+     * [clear] of it (or in it), MAX_VALUE if it is not in the way (not built yet: never).
+     */
+    fun inWay(ox: Float, oy: Float, oz: Float, ex: Float, ey: Float, ez: Float, clear: Float): Float {
+        val b = box ?: return Float.MAX_VALUE
+        val a = at
+        fun lx(x: Float, z: Float) = (x - a[0]) * a[2] + (z - a[1]) * a[3]
+        fun lz(x: Float, z: Float) = (x - a[0]) * a[4] + (z - a[1]) * a[5]
+        val exl = lx(ex, ez); val ezl = lz(ex, ez)
+        val dx = maxOf(b[0] - exl, 0f, exl - b[2]); val dz = maxOf(b[1] - ezl, 0f, ezl - b[3]); val dy = maxOf(-ey, 0f, ey - b[4])
+        if (dx * dx + dy * dy + dz * dz < clear * clear) return 0f
+        val oxl = lx(ox, oz); val ozl = lz(ox, oz)
+        var t0 = 0f; var t1 = 1f
+        for (k in 0..2) {
+            val o = when (k) { 0 -> oxl; 1 -> oy; else -> ozl }
+            val d = when (k) { 0 -> exl - oxl; 1 -> ey - oy; else -> ezl - ozl }
+            val lo = when (k) { 0 -> b[0]; 1 -> 0f; else -> b[1] }
+            val hi = when (k) { 0 -> b[2]; 1 -> b[4]; else -> b[3] }
+            if (kotlin.math.abs(d) < 1e-6f) { if (o < lo || o > hi) return Float.MAX_VALUE; continue }
+            var u = (lo - o) / d; var v = (hi - o) / d
+            if (u > v) { val t = u; u = v; v = t }
+            if (u > t0) t0 = u
+            if (v < t1) t1 = v
+            if (t0 > t1) return Float.MAX_VALUE
+        }
+        return t0
+    }
 
     /** Where the model's frame stands: its front's middle, along the street (the art's left-to-right), out towards the road. */
     private val at: FloatArray = place.world(0f, setback).let { p -> floatArrayOf(p.x, p.z, place.rx, place.rz, -place.nx, -place.nz, 0f) }
@@ -83,6 +117,7 @@ internal class TownCinema(
         // its sphere from what was built (the footprint in the model's frame: x along, z out; the height)
         val mx = (fp[0] + fp[2]) / 2f; val mz = (fp[1] + fp[3]) / 2f
         cx = at[0] + at[2] * mx + at[4] * mz; cz = at[1] + at[3] * mx + at[5] * mz; cy = fp[4] / 2f
+        box = floatArrayOf(minOf(fp[0], fp[2]), minOf(fp[1], fp[3]), maxOf(fp[0], fp[2]), maxOf(fp[1], fp[3]), fp[4])
         r = sqrt((fp[2] - fp[0]) * (fp[2] - fp[0]) + (fp[3] - fp[1]) * (fp[3] - fp[1]) + fp[4] * fp[4]) / 2f
         done = true
         return true
@@ -95,10 +130,12 @@ internal class TownCinema(
     fun frame(pose: TownPose, look: FloatArray, dark: Float, seconds: Double, cut: (Float, Float) -> Float, out: IntArray): IntArray {
         out.fill(0)
         if (!done) return out
-        val fade = kotlin.math.min(cut(cx, cz), pose.rangeFade(cx, cy, cz, r))
+        val kept = kotlin.math.min(cut(cx, cz), pose.rangeFade(cx, cy, cz, r))
+        val fade = kotlin.math.min(kept, occFade)
         val on = fade > .02f && pose.sees(cx, cy, cz, r)
-        val near = fade > .5f && (on || pose.sees(cx, cy, cz, r + 300f))
-        layer.update(look, dark, on, fade, near)
+        // (cut away for the camera, it keeps its shadow, as a building does)
+        val near = kept > .5f && (on || pose.sees(cx, cy, cz, r + 300f))
+        layer.update(look, dark, on, fade, near, castFade = 1f)
         if (on) glow.update(dark, seconds)
         lamps.update(dark, on && near)
         shown = on

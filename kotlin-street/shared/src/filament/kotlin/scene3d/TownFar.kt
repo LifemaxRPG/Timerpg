@@ -17,7 +17,8 @@ import kotlin.math.sqrt
  * cell's buildings are drawn as this instead of in full, out to [REACH] (the far end of the world), where the haze (the
  * sky's own horizon colour) takes them: nothing pops or fades at the old draw distance any more. A cell switches with
  * [SLACK] either side of the line (no flicker as the camera moves) and crosses over in [SWITCH_SECONDS] by the lit
- * material's screen door (the full buildings dissolve as the cell's boxes come in).
+ * material's screen door, the boxes' the inverse of the buildings' ([PropLayer.inverseFade]: every pixel shows one or the
+ * other, never both, which z-fought and read as glitching, nor neither, which read as ghosts).
  *
  * The town ([FilamentTown]) hands each building in as it is built ([add]: its corners, height and pictures, the pictures
  * made from its [SpriteBuilding] on a worker by [pics]); a cell is packed on a worker once all its buildings are in, and
@@ -80,18 +81,21 @@ internal class TownFar(
         c.packing = pool.submit(java.util.concurrent.Callable { pack(items) })
     }
 
-    /** Uploads the cells packed since (the engine's thread); true if any. */
+    /** Uploads a cell packed since (the engine's thread; one a call: a cell's upload was a 20 ms frame on the build server); true if any. */
     fun upload(): Boolean {
         var any = false
         for (c in cells.values) {
+            if (any) break
             val f = c.packing ?: continue
             if (!f.isDone) continue
             c.packing = null
             val p = try { f.get() } catch (e: java.util.concurrent.ExecutionException) { throw BuildFailure("packing the far buildings of a cell", e.cause ?: e) }
             if (p == null) continue
             val l = PropLayer(engine, scene, lit, null, sharedTextures = textures, cull = true)
+            l.inverseFade = true
             l.upload(p, casts = false)
             c.layer = l; c.triangles = l.triangles
+            com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.count(com.lifemax.rpg.feature.habits.presentation.scene.FrameWork.UP_FAR)
             c.items.clear(); c.items.trimToSize()
             any = true
         }
@@ -121,7 +125,7 @@ internal class TownFar(
      * edge): each cell's crossing eased by [step] (a share of the switch a frame), its far boxes drawn or not; [look] and
      * [dark] as every layer's. Returns draws and triangles drawn.
      */
-    fun frame(pose: TownPose, look: FloatArray, dark: Float, detail: Float, step: Float, out: IntArray) {
+    fun frame(pose: TownPose, look: FloatArray, dark: Float, detail: Float, step: Float, out: IntArray, hide: Boolean = false) {
         var draws = 0; var tris = 0
         for (c in cells.values) {
             val l = c.layer
@@ -132,7 +136,7 @@ internal class TownFar(
             c.t = if (c.far) min(1f, c.t + step) else max(0f, c.t - step)
             val r = hypot(c.x1 - c.x0, c.z1 - c.z0) / 2f + c.top / 2f
             val mx = (c.x0 + c.x1) / 2f; val mz = (c.z0 + c.z1) / 2f
-            val on = c.t > .02f && d < REACH && pose.sees(mx, c.top / 2f, mz, r)
+            val on = c.t > .02f && d < REACH && pose.sees(mx, c.top / 2f, mz, r) && !hide
             l.update(look, dark, on, c.t, false)
             if (on) { draws += l.draws; tris += c.triangles }
         }
@@ -157,9 +161,9 @@ internal class TownFar(
         /** The far boxes are drawn out to this from the eye (street units): the far end of the town and its woods. */
         const val REACH = 24000f
         /** A cell switches this far either side of the detail line (street units). */
-        const val SLACK = 120f
+        const val SLACK = 200f
         /** How long a cell's crossing over takes. */
-        const val SWITCH_SECONDS = .4f
+        const val SWITCH_SECONDS = .3f
         /** The far pictures are the building's shrunk this many times. */
         const val SHRINK = 4
 

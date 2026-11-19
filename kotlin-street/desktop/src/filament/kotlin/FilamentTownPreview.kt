@@ -86,6 +86,7 @@ fun renderFilamentTown(out: String) {
     if (System.getProperty("townYards") == "placeholder") ft.yardBuilder = PlaceholderYards
     // (each shot is one frame: every building's windows lit for its hour in it, not a few a frame as the game does)
     ft.nightBudgetNs = Long.MAX_VALUE
+    ft.sheetsOnWorker = false
     val report = StringBuilder()
     report.appendLine("shadow map ${ft.shadowMap} x ${ft.shadowCascades} cascades")
     report.appendLine("town ${town.seed} ${town.year}: ${town.rows.size} rows, ${ft.slots.size} buildings, ${town.roads.size} roads, ${town.nodes.size} nodes, ${town.props.size} edge props, ${yards.yards.size} yards")
@@ -395,6 +396,25 @@ internal class Shooter(val engine: Engine, val town: FilamentTown) {
                 if (x in 0 until w && y in 0 until h) img.setRGB(x, y, c)
         }
         javax.imageio.ImageIO.write(img, "png", file)
+    }
+
+    /**
+     * One frame of [town] rendered off screen at [w] x [h] as the game would (no read back): how long the render calls
+     * took on this thread (ms), and how long the GL thread then took to finish it (ms; software GL here, so a stand-in for
+     * the fill rate, not the phone's GPU).
+     */
+    fun renderFrame(w: Int, h: Int): Pair<Float, Float> {
+        if (swap == null || sw != w || sh != h) {
+            swap?.let { engine.destroySwapChain(it) }
+            swap = engine.createSwapChain(w, h, SwapChainFlags.CONFIG_READABLE or SwapChainFlags.CONFIG_TRANSPARENT)
+            sw = w; sh = h
+            pixels = ByteBuffer.allocateDirect(w * h * 4).order(ByteOrder.nativeOrder())
+        }
+        val t0 = System.nanoTime()
+        if (renderer.beginFrame(swap!!, 0L)) { renderer.render(town.view); renderer.endFrame() }
+        val t1 = System.nanoTime()
+        engine.flushAndWait()
+        return (t1 - t0) / 1e6f to (System.nanoTime() - t1) / 1e6f
     }
 
     fun destroy() {

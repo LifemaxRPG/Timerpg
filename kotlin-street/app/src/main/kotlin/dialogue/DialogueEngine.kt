@@ -185,7 +185,7 @@ class DialogueEngine private constructor(private val app: Context) {
     private val wake = lock.newCondition()
     // guarded by lock
     private val commands = ArrayDeque<() -> Unit>()
-    private var demand: Gen? = null
+    @Volatile private var demand: Gen? = null
     private var running: Gen? = null
     private val pauses = HashSet<String>()
     private var queue = PregenQueue(intArrayOf(1, 1))
@@ -210,8 +210,11 @@ class DialogueEngine private constructor(private val app: Context) {
     /** The model was unloaded under memory pressure this many times (after [MEMORY_UNLOADS], it waits for the Load button). */
     @Volatile private var memoryUnloads = 0
     @Volatile private var lastMemoryUnload = 0L
-    /** The player is moving: no line is started ahead of time (one being written finishes). */
+    /** The player is moving (or turning the camera): no line is started ahead of time (one being written holds). */
     @Volatile private var moving = false
+    /** Lines written ahead of time that were held while the player moved, and for how long in all (ms): the frame profiler's crumbs. */
+    @Volatile var held = 0; private set
+    @Volatile var heldMs = 0L; private set
     // worker only
     private var failures = 0
     private var timeouts = 0
@@ -372,8 +375,8 @@ class DialogueEngine private constructor(private val app: Context) {
     }
 
     /**
-     * The player is moving ([on]) or has stood still a moment: while moving no line is started ahead of time (the one
-     * being written finishes), so the cores and the memory bus are the frame's (CLAUDE.md: heavy work in bursts while
+     * The player is moving ([on]) or has stood still a moment: while moving no line is started ahead of time and the one
+     * being written holds between two words until they stand (its threads asleep), so the cores and the memory bus are the frame's (CLAUDE.md: heavy work in bursts while
      * standing, not during heavy animation). Asked-for lines are not held.
      */
     fun setMoving(on: Boolean) {
@@ -1353,6 +1356,20 @@ class DialogueEngine private constructor(private val app: Context) {
                 if (firstAt == 0L) firstAt = SystemClock.elapsedRealtime()
                 // the worker's own thread: someone began waiting for this line, so it gets full speed now
                 if (g.wanted && !raised) { raised = true; priority(Process.THREAD_PRIORITY_DEFAULT) }
+                // a line written ahead of time holds between two words while the player walks or rides (the model's threads
+                // sleep, so the CPU and the heat go to the frames; 0.1.385 stuttered with it writing on six cores while
+                // walking) and goes on from the same word once they stand; not one someone waits for, nor overnight
+                if (moving && !raised && !night && demand == null && !g.cancelled && !closed) {
+                    main.removeCallbacks(watchdog)
+                    val h0 = SystemClock.elapsedRealtime()
+                    held++
+                    while (moving && !g.wanted && demand == null && !g.cancelled && !closed) {
+                        try { Thread.sleep(HOLD_POLL_MS) } catch (e: InterruptedException) { break }
+                    }
+                    heldMs += SystemClock.elapsedRealtime() - h0
+                    if (g.wanted && !raised) { raised = true; priority(Process.THREAD_PRIORITY_DEFAULT) }
+                    main.postDelayed(watchdog, if (night && g.listeners.isEmpty() && !g.speed) NIGHT_TIMEOUT_MS else TIMEOUT_MS)
+                }
                 sb.append(piece)
                 val done = completeSentences(Dialogue.preview(sb.toString())) ?: return !g.cancelled && !closed
                 if (done.first != checked) {
@@ -1617,6 +1634,8 @@ class DialogueEngine private constructor(private val app: Context) {
         private val FIRST = Regex("""^(.{8,}?[.!?])(\s|$)""")
         /** A reply that takes longer than this is given up (the template stays). */
         const val TIMEOUT_MS = 45_000L
+        /** How often a line held while the player moves looks whether it may go on (ms). */
+        const val HOLD_POLL_MS = 50L
         /** Native errors that come from the prompt itself, not from the model: they would happen every time. */
         private val PROMPT_ERRORS = listOf("prompt too long", "could not tokenize", "empty prompt")
         private const val SETTINGS = "v1 tokens=$MAX_TOKENS temperature=$TEMPERATURE"

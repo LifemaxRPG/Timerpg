@@ -434,6 +434,44 @@ class BikeRideTest {
         }
     }
 
+    /**
+     * The camera on the bike (the owner's one exception to the camera rule): it swings round behind the rider with a lag,
+     * never faster than its limit, not when stopped; a drag pauses it for three seconds; on foot it never turns.
+     */
+    @Test fun theCameraFollowsTheBikeOnlyOnTheBike() {
+        val c = com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera
+        val dt = 1f / 60f
+        c.bikeFollow = true
+        c.set(0f, 20f, 420f)
+        // on foot, heading east for 10 s: the yaw never changes
+        repeat(600) { c.onFoot(dt); c.step(dt) }
+        assertEquals(0f, c.yaw, 1e-4f)
+        // riding east (90) at speed: it swings round, smoothly, within its rate
+        var last = c.yaw; var maxRate = 0f
+        repeat(600) { c.ride(dt, 90f, 200f); c.step(dt); maxRate = maxOf(maxRate, abs(c.yaw - last) / dt); last = c.yaw }
+        assertTrue("swung behind the rider: ${c.yaw}", abs(c.yaw - 90f) < 3f)
+        assertTrue("no faster than its limit: $maxRate", maxRate <= c.FOLLOW_MAX_RATE + 1f)
+        // stopped, facing back west: it does not spin
+        val y0 = c.yaw
+        repeat(300) { c.ride(dt, -90f, 0f); c.step(dt) }
+        assertEquals(y0, c.yaw, 1e-3f)
+        // a drag pauses it: for under three seconds nothing but the drag turns it
+        c.drag(100f, 0f, 2000f, 1000f)
+        repeat(30) { c.ride(dt, 90f, 200f); c.step(dt) }
+        val yd = c.goalYaw
+        repeat(120) { c.ride(dt, 90f, 200f); c.step(dt) }
+        assertEquals(yd, c.goalYaw, 1e-3f)
+        // ... then eases back to following
+        repeat(600) { c.ride(dt, 90f, 200f); c.step(dt) }
+        assertTrue("following again: ${c.yaw}", abs(c.yaw - 90f) < 3f)
+        // switched off: it stays
+        c.bikeFollow = false
+        c.set(0f, 20f, 420f)
+        repeat(600) { c.ride(dt, 90f, 200f); c.step(dt) }
+        assertEquals(0f, c.yaw, 1e-4f)
+        c.bikeFollow = true
+    }
+
     @Test fun aRideStepAllocatesNothing() {
         val w = walk()
         assertTrue(w.mount())

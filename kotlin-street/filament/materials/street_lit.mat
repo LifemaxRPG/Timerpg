@@ -21,7 +21,8 @@ material {
         { type : float4, name : glow },
         // what the glass mirrors at this hour (multiplies the glass, the mask's green)
         { type : float4, name : glass },
-        // how much of the thing is left (a building fading out mid-turn): screen-door, whole art pixels
+        // how much of the thing is left (a building fading out mid-turn): screen-door, whole art pixels; negative: the
+        // inverse screen door (-t keeps what a fade of 1 - t drops: a far box crossing over with its building)
         { type : float, name : fade },
         // the size of an art pixel on screen, for that screen door
         { type : float, name : cell },
@@ -63,7 +64,12 @@ fragment {
         float lod = 0.5 * log2(max(max(dot(ddx, ddx), dot(ddy, ddy)), 1e-8));
         c.a = textureLod(materialParams_albedo, uv, max(0.0, lod - 2.0)).a * materialParams.tint.a;
         vec4 m = texture(materialParams_mask, uv);
-        if (materialParams.fade < 1.0 && bayer4(gl_FragCoord.xy / materialParams.cell) > materialParams.fade) c.a = 0.0;
+        // (a negative fade is the same screen door turned inside out: what crosses over to it (a far box) keeps exactly
+        // the pixels a positive fade of 1 + fade drops, so at every step of a crossover each pixel shows one of the two)
+        if (materialParams.fade < 1.0) {
+            float d = bayer4(gl_FragCoord.xy / materialParams.cell);
+            if (materialParams.fade >= 0.0 ? d > materialParams.fade : d <= 1.0 + materialParams.fade) c.a = 0.0;
+        }
         if (materialParams.oneSided > 0.5 && dot(getWorldGeometricNormalVector(), getWorldViewVector()) < 0.0) c.a = 0.0;
         // what stands in the cone from the eye to the player is cut, its edge a dither in whole art pixels; never the
         // ground (nothing under 1.5 up), never past the player
