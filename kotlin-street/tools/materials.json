@@ -1,0 +1,7530 @@
+{
+ "format": 1,
+ "note": "rect/repeat in px of the 32 px art; file = path inside the pack zip (pack: exteriors=Modern_Exteriors_v42.3.zip, interiors=Modern_Interiors_v41.4.zip, farm=Modern_Farm_v1.3.zip). tile: seamless = rect tiles as is; needs-fix = seam fix or crop needed. kind: tile (default), strip (tile along one axis only), decal (place once), autotile (whole autotile sheet). seam = wrap-around score per axis (<=1.6 good). repeat = natural pattern period; floors/wallpapers: metric is conservative, see sheets.",
+ "entries": [
+  {
+   "id": "fl_0_00",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    0,
+    64,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#d7d6e2",
+    "#c0beca",
+    "#c4c4ce",
+    "#7f8292",
+    "#a5a5b6",
+    "#c2c0d2"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.56,
+    1.55
+   ]
+  },
+  {
+   "id": "fl_0_01",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    0,
+    128,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#d2d1d6",
+    "#e5e4ea",
+    "#bdbcc1",
+    "#d6d6db",
+    "#c9c8cd",
+    "#ccccd1"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.42,
+    1.59
+   ]
+  },
+  {
+   "id": "fl_0_02",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    64,
+    192,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#c2bfb4",
+    "#d4d0c4",
+    "#c7c6b9",
+    "#b4b2a7",
+    "#cbcabb",
+    "#dad6c8"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.36,
+    1.11
+   ]
+  },
+  {
+   "id": "fl_0_03",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    0,
+    256,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#d5cc96",
+    "#ccb580",
+    "#e8e8a8",
+    "#dfdbae",
+    "#e0d898",
+    "#f0f0c8"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    0.86,
+    1.07
+   ]
+  },
+  {
+   "id": "fl_0_04",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    32,
+    352,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#f3e8ca",
+    "#9c8a81",
+    "#f0d690",
+    "#f0c190"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    0.0,
+    0.55
+   ]
+  },
+  {
+   "id": "fl_0_05",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    32,
+    416,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#c49e53",
+    "#bb984e",
+    "#b2924a",
+    "#a88a44",
+    "#ad8d44",
+    "#c8a157"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.79,
+    1.96
+   ]
+  },
+  {
+   "id": "fl_0_06",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    32,
+    480,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#96865d",
+    "#a39573",
+    "#908058",
+    "#a0916c",
+    "#9d8e67",
+    "#96865e"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.8,
+    2.0
+   ]
+  },
+  {
+   "id": "fl_0_07",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    0,
+    544,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#786858",
+    "#8f734c",
+    "#958064",
+    "#6d5e4e",
+    "#8c7b66",
+    "#7e6e5c"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    2.2,
+    1.78
+   ]
+  },
+  {
+   "id": "fl_0_08",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    32,
+    608,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#786858",
+    "#958064",
+    "#a48252",
+    "#817260",
+    "#867056",
+    "#8c7b66"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    2.0,
+    0.84
+   ]
+  },
+  {
+   "id": "fl_0_09",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    0,
+    640,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#ceb499",
+    "#baa798",
+    "#dbceaa",
+    "#ab9787",
+    "#a4837c",
+    "#c3b6a2"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.63,
+    1.57
+   ]
+  },
+  {
+   "id": "fl_0_10",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    32,
+    736,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#d0be9c"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "fl_0_11",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    0,
+    800,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#d0be9c",
+    "#ae937a",
+    "#c8a991",
+    "#d0b99c",
+    "#b99e86",
+    "#9c786b"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.15,
+    1.1
+   ]
+  },
+  {
+   "id": "fl_0_12",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    0,
+    832,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#b99e86",
+    "#9c786b",
+    "#d0be9c"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.9,
+    1.88
+   ]
+  },
+  {
+   "id": "fl_0_13",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    64,
+    928,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#aa9076",
+    "#9e896f",
+    "#714036",
+    "#a28b75",
+    "#775648",
+    "#a49070"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.98,
+    2.0
+   ]
+  },
+  {
+   "id": "fl_0_14",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    0,
+    960,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#a18a71",
+    "#7a5245",
+    "#a68f72",
+    "#b0987d",
+    "#b8a080",
+    "#9c886f"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    2.27,
+    1.4
+   ]
+  },
+  {
+   "id": "fl_0_15",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    32,
+    1056,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#b3a799",
+    "#afa395",
+    "#7c615c",
+    "#bcaf9f",
+    "#b8ab9c",
+    "#837169"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.99,
+    1.99
+   ]
+  },
+  {
+   "id": "fl_0_16",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    0,
+    1088,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#9f9487",
+    "#7a665f",
+    "#b9ac9d",
+    "#a4988b",
+    "#afa495",
+    "#a79c8d"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    2.27,
+    1.46
+   ]
+  },
+  {
+   "id": "fl_0_17",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    32,
+    1152,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#bab9bf",
+    "#c2c3ca",
+    "#b0afb4",
+    "#b5b5bb",
+    "#a9a7b2",
+    "#bdbdc3"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.38,
+    1.24
+   ]
+  },
+  {
+   "id": "fl_1_00",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    192,
+    96,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#ddd6cb",
+    "#d5ccc0",
+    "#d8cfc4",
+    "#d7cabf",
+    "#dbd3c8"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.67,
+    1.86
+   ]
+  },
+  {
+   "id": "fl_1_01",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    128,
+    128,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#d2c3b8",
+    "#cbbdb1",
+    "#bdb0a5",
+    "#e6d6c9",
+    "#d9cbbe",
+    "#d4c5ba"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.42,
+    1.6
+   ]
+  },
+  {
+   "id": "fl_1_02",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    128,
+    192,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#bbaa95",
+    "#b7a58f",
+    "#cfbca5",
+    "#c9b69d",
+    "#bbaa94",
+    "#c0ad97"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.88,
+    2.0
+   ]
+  },
+  {
+   "id": "fl_1_03",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    160,
+    288,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#b99e86",
+    "#d0be9c"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "fl_1_04",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    128,
+    320,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#b99e86",
+    "#d0be9c",
+    "#9c786b"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.78,
+    1.89
+   ]
+  },
+  {
+   "id": "fl_1_05",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    128,
+    416,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#917a62",
+    "#ab937a",
+    "#9e876f",
+    "#796653",
+    "#86725e",
+    "#917d6a"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.29,
+    1.51
+   ]
+  },
+  {
+   "id": "fl_1_06",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    160,
+    480,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#b2785c",
+    "#6e6365"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "fl_1_07",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    192,
+    512,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#675b5f",
+    "#6e6365",
+    "#b2785c",
+    "#5a4e55"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.67,
+    1.72
+   ]
+  },
+  {
+   "id": "fl_1_08",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    128,
+    576,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#675b5f",
+    "#ab6957",
+    "#b2785c",
+    "#5a4e55",
+    "#6e6365"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.68,
+    1.67
+   ]
+  },
+  {
+   "id": "fl_1_09",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    160,
+    640,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#675b5f",
+    "#6e6365",
+    "#ab6957",
+    "#b2785c",
+    "#5a4e55"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.5,
+    1.49
+   ]
+  },
+  {
+   "id": "fl_1_10",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    128,
+    736,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#a18272",
+    "#b29782",
+    "#60483f",
+    "#6f5248",
+    "#8c665f",
+    "#c1aa8d"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    0.96,
+    2.13
+   ]
+  },
+  {
+   "id": "fl_1_11",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    160,
+    800,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#bc9e8d",
+    "#b49180",
+    "#856258",
+    "#9e7669",
+    "#ad8878",
+    "#b59484"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    0.6,
+    0.6
+   ]
+  },
+  {
+   "id": "fl_1_12",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    192,
+    864,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#9f8677",
+    "#916d5f",
+    "#71534b",
+    "#866459",
+    "#93776a",
+    "#997d70"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    0.55,
+    0.55
+   ]
+  },
+  {
+   "id": "fl_1_13",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    128,
+    928,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#c8c1c0",
+    "#b5afae",
+    "#c9c6c5",
+    "#b9b5b4",
+    "#baadac",
+    "#d1cecc"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    0.45,
+    2.0
+   ]
+  },
+  {
+   "id": "fl_1_14",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    128,
+    992,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#d6d2d4",
+    "#c1bec0",
+    "#d7d5d6",
+    "#c4c0c3",
+    "#cbc7c9",
+    "#dfddde"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    0.52,
+    2.0
+   ]
+  },
+  {
+   "id": "fl_1_15",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    192,
+    1056,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#959597",
+    "#9a9a9d",
+    "#919196",
+    "#97979b",
+    "#939396",
+    "#8d8d93"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.75,
+    1.27
+   ]
+  },
+  {
+   "id": "fl_1_16",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    128,
+    1088,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#b4b4b8",
+    "#bdbcc2",
+    "#aeadb4",
+    "#b0afb4",
+    "#a7a5b0",
+    "#b7b5be"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.57,
+    1.61
+   ]
+  },
+  {
+   "id": "fl_1_17",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    160,
+    1152,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#b0afb4",
+    "#bbbac0",
+    "#b4b4b8",
+    "#b9b8bd",
+    "#c0bfc4",
+    "#a9a8b2"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.35,
+    1.02
+   ]
+  },
+  {
+   "id": "fl_2_00",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    256,
+    64,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#996767",
+    "#b18c84",
+    "#ab7676",
+    "#bc9e8d",
+    "#7e636c",
+    "#6f5b62"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.77,
+    1.72
+   ]
+  },
+  {
+   "id": "fl_2_01",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    256,
+    128,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#96766e",
+    "#8e6d65",
+    "#987b74",
+    "#88665e"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.67,
+    1.63
+   ]
+  },
+  {
+   "id": "fl_2_02",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    256,
+    192,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#a58581",
+    "#b4918f",
+    "#9c7d78",
+    "#93716b",
+    "#9d7f79"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.02,
+    0.87
+   ]
+  },
+  {
+   "id": "fl_2_03",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    288,
+    288,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#ddaca4",
+    "#f4d9d4",
+    "#8d534a"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "fl_2_04",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    256,
+    320,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#a25e48",
+    "#572c27",
+    "#a7524a",
+    "#b87451",
+    "#b56b4d",
+    "#743c36"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.59,
+    1.96
+   ]
+  },
+  {
+   "id": "fl_2_05",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    256,
+    416,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#4f3825",
+    "#be7249",
+    "#ab4a36",
+    "#be8150",
+    "#995e3c",
+    "#6e402c"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    0.86,
+    2.1
+   ]
+  },
+  {
+   "id": "fl_2_06",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    256,
+    448,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#a76262",
+    "#ac5c56",
+    "#994b4b",
+    "#613639",
+    "#744141",
+    "#b57a6f"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.69,
+    1.67
+   ]
+  },
+  {
+   "id": "fl_2_07",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    320,
+    512,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#8b90a6",
+    "#8f95a9",
+    "#8185a4",
+    "#888ca7"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.94,
+    1.94
+   ]
+  },
+  {
+   "id": "fl_2_08",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    256,
+    576,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#75779e",
+    "#8888ae",
+    "#7e7eab",
+    "#9a98bc",
+    "#626585"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    0.67,
+    0.65
+   ]
+  },
+  {
+   "id": "fl_2_09",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    256,
+    640,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#625c95",
+    "#2d3058",
+    "#8188b4",
+    "#403f6e",
+    "#766ba3",
+    "#9093c1"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.85,
+    1.81
+   ]
+  },
+  {
+   "id": "fl_2_10",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    288,
+    736,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#c6cdd5",
+    "#98a0a8",
+    "#b2b9c1"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.25,
+    1.25
+   ]
+  },
+  {
+   "id": "fl_2_11",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    256,
+    768,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#83b5b9",
+    "#b0dad7",
+    "#6e92a2",
+    "#a4d5d5",
+    "#bdf1e5",
+    "#7ea9b0"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.29,
+    1.4
+   ]
+  },
+  {
+   "id": "fl_2_12",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    256,
+    832,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#989ea5",
+    "#979ca3",
+    "#a7acaf",
+    "#a9afb0"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    2.0,
+    2.0
+   ]
+  },
+  {
+   "id": "fl_2_13",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    320,
+    928,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#585d63",
+    "#60666b",
+    "#8a8e93",
+    "#666b70"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.83,
+    1.75
+   ]
+  },
+  {
+   "id": "fl_2_14",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    288,
+    960,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#7799bf",
+    "#6d8bad",
+    "#7b9abf",
+    "#6e8eae",
+    "#7da1c2",
+    "#7392b5"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    2.0,
+    1.48
+   ]
+  },
+  {
+   "id": "fl_2_15",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    256,
+    1024,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#c5c7cc",
+    "#d9dce2",
+    "#c7cacd",
+    "#b2b4ba",
+    "#dde0e3",
+    "#d2d5d9"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.32,
+    1.44
+   ]
+  },
+  {
+   "id": "fl_2_16",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    288,
+    1120,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#a9a5a7",
+    "#afabad",
+    "#ada8aa",
+    "#a49b9f",
+    "#a8a2a5",
+    "#a7a0a3"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.74,
+    1.29
+   ]
+  },
+  {
+   "id": "fl_2_17",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    256,
+    1152,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#b8b5b1",
+    "#b5b2ab",
+    "#c2bfb9",
+    "#b2afaa",
+    "#b0a9a0",
+    "#beb9b0"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.66,
+    1.63
+   ]
+  },
+  {
+   "id": "fl_3_00",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    448,
+    64,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#8b968f",
+    "#818a86",
+    "#868b88",
+    "#8e9992",
+    "#84928a"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.52,
+    1.49
+   ]
+  },
+  {
+   "id": "fl_3_01",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    384,
+    128,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#afaaa7",
+    "#898887",
+    "#767673",
+    "#7d7c7a",
+    "#a9a7a4",
+    "#6a6865"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.65,
+    1.66
+   ]
+  },
+  {
+   "id": "fl_3_02",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    416,
+    224,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#92938d"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "fl_3_03",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    384,
+    256,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#978f8c",
+    "#847b7a",
+    "#8e8385",
+    "#867f7c",
+    "#877f7a",
+    "#9a908e"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.47,
+    2.0
+   ]
+  },
+  {
+   "id": "fl_3_04",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    416,
+    352,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#918986",
+    "#968a8e",
+    "#918589",
+    "#8c8885",
+    "#88837e",
+    "#8d8183"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    0.0,
+    0.92
+   ]
+  },
+  {
+   "id": "fl_3_05",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    384,
+    384,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#918788",
+    "#7d7274",
+    "#857a7e",
+    "#76706a",
+    "#807977",
+    "#857e78"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    0.74,
+    2.0
+   ]
+  },
+  {
+   "id": "fl_3_06",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    384,
+    448,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#8b8285",
+    "#6e6764",
+    "#706966",
+    "#7e7673",
+    "#787173",
+    "#7d7576"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.61,
+    2.0
+   ]
+  },
+  {
+   "id": "fl_3_07",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    416,
+    544,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#767370",
+    "#6d6a67",
+    "#7c7976",
+    "#6d6a68",
+    "#6c6966"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    0.74,
+    1.25
+   ]
+  },
+  {
+   "id": "fl_3_08",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    416,
+    608,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#766e64",
+    "#6d635a",
+    "#6d655b",
+    "#7c7369",
+    "#6d645b",
+    "#6c6459"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    0.82,
+    1.3
+   ]
+  },
+  {
+   "id": "fl_3_09",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    416,
+    672,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#767370",
+    "#938f89",
+    "#84807b"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    2.0,
+    2.0
+   ]
+  },
+  {
+   "id": "fl_3_10",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    416,
+    736,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#767370",
+    "#84807b",
+    "#8a8680",
+    "#938f89"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.79,
+    1.79
+   ]
+  },
+  {
+   "id": "fl_3_11",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    448,
+    800,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#63605d",
+    "#6b6866",
+    "#85817c",
+    "#706e6b",
+    "#7d7974"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.88,
+    1.75
+   ]
+  },
+  {
+   "id": "fl_3_12",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    416,
+    864,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#6c4d23",
+    "#75572e",
+    "#674922",
+    "#72542c",
+    "#70522a",
+    "#6b4d25"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.81,
+    2.0
+   ]
+  },
+  {
+   "id": "fl_3_13",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    448,
+    928,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#b2c9d7",
+    "#b7cdda",
+    "#9db3cc",
+    "#a4bad2",
+    "#849bb5"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.1,
+    1.4
+   ]
+  },
+  {
+   "id": "fl_3_14",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    384,
+    960,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#b5c1ca",
+    "#c8d5df",
+    "#bbc6cb",
+    "#a1a9b9",
+    "#cfdbe1",
+    "#c5cfd6"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.41,
+    1.51
+   ]
+  },
+  {
+   "id": "fl_3_15",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    384,
+    1024,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#b8cac4",
+    "#cbdfd8",
+    "#bdcbc5",
+    "#a4b9b7",
+    "#d1e1da",
+    "#c7d6d1"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.32,
+    1.43
+   ]
+  },
+  {
+   "id": "fl_3_16",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    416,
+    1088,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#b5b2ab",
+    "#c0bdb6",
+    "#b8b5b1",
+    "#bdbab5",
+    "#c4c1bc",
+    "#b0aaa1"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.33,
+    1.07
+   ]
+  },
+  {
+   "id": "fl_3_17",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
+   "rect": [
+    416,
+    1152,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#b6b3ad",
+    "#c1beb8",
+    "#a8a39f",
+    "#b2aca8",
+    "#afa89d",
+    "#bdbab5"
+   ],
+   "tags": [
+    "interior",
+    "floor"
+   ],
+   "seam": [
+    1.13,
+    1.22
+   ]
+  },
+  {
+   "id": "wp_0_00",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    128,
+    0,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#e6e6f0",
+    "#9fc5bc",
+    "#c4c0b2",
+    "#d4d2df",
+    "#3a3a50",
+    "#efeff7"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_0_01",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    128,
+    64,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#e8e6e1",
+    "#eceae8",
+    "#d5d4da",
+    "#3a3a50",
+    "#e2e0e3",
+    "#d9d8de"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.71
+   ]
+  },
+  {
+   "id": "wp_0_02",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    128,
+    128,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    8
+   ],
+   "palette": [
+    "#cccccc",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_0_03",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    128,
+    192,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#f3efe3",
+    "#c4beb6",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_0_04",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    128,
+    256,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    8
+   ],
+   "palette": [
+    "#d4d2c6",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_0_05",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    128,
+    320,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    8
+   ],
+   "palette": [
+    "#bcb9a9",
+    "#c0bdae",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_0_06",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    128,
+    384,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    8
+   ],
+   "palette": [
+    "#dad8bb",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_0_07",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    128,
+    448,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    8
+   ],
+   "palette": [
+    "#cfcab2",
+    "#d5d1bd",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_0_08",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    128,
+    512,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    16
+   ],
+   "palette": [
+    "#e0d0b2",
+    "#d0be9c",
+    "#e0d4b8",
+    "#c8af95",
+    "#e7dcc7",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_0_09",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    128,
+    576,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#f0d793",
+    "#f0e5c7",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_0_10",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    128,
+    640,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#f0e8a0",
+    "#e08860",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_0_11",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    128,
+    704,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    8
+   ],
+   "palette": [
+    "#d0be9c",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_0_12",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    128,
+    768,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    8
+   ],
+   "palette": [
+    "#c0a48c",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_0_13",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    128,
+    832,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    8
+   ],
+   "palette": [
+    "#dec4a9",
+    "#ae9276",
+    "#dec0a1",
+    "#c1a990",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_0_14",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    128,
+    896,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#c6b495",
+    "#af8a7b",
+    "#3a3a50",
+    "#b99884",
+    "#8a786a",
+    "#c0a58c"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_0_15",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    128,
+    960,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#8a8581",
+    "#8c8783",
+    "#908b86",
+    "#3a3a50",
+    "#88827d"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    1.45
+   ]
+  },
+  {
+   "id": "wp_0_16",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    128,
+    1024,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#8a8186",
+    "#8c8388",
+    "#90868b",
+    "#3a3a50",
+    "#887d83"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    1.44
+   ]
+  },
+  {
+   "id": "wp_0_17",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    128,
+    1088,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    8,
+    16
+   ],
+   "palette": [
+    "#5c6067",
+    "#5a5c64",
+    "#5f6267",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_1_00",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    480,
+    0,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#c08c54",
+    "#a2784b",
+    "#3a3a50",
+    "#8a6b4f",
+    "#b6824c",
+    "#625245"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    1.26
+   ]
+  },
+  {
+   "id": "wp_1_01",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    480,
+    64,
+    93,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    31,
+    8
+   ],
+   "palette": [
+    "#957251",
+    "#bd9a77",
+    "#ad8a69",
+    "#a3805e",
+    "#a98665",
+    "#836449"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    1.97,
+    1.86
+   ]
+  },
+  {
+   "id": "wp_1_02",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    480,
+    128,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    8,
+    8
+   ],
+   "palette": [
+    "#b49180",
+    "#bc9e8d",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_1_03",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    485,
+    192,
+    90,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    15,
+    8
+   ],
+   "palette": [
+    "#726567",
+    "#b6734a",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    1.3,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_1_04",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    480,
+    256,
+    96,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    16,
+    8
+   ],
+   "palette": [
+    "#726567",
+    "#b6734a",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    2.0
+   ]
+  },
+  {
+   "id": "wp_1_05",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    480,
+    320,
+    93,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    31,
+    32
+   ],
+   "palette": [
+    "#726567",
+    "#6b5c5f",
+    "#67585d",
+    "#b26a47",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    1.94,
+    0.99
+   ]
+  },
+  {
+   "id": "wp_1_06",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    480,
+    384,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    8,
+    16
+   ],
+   "palette": [
+    "#a2786e",
+    "#ae8f7f",
+    "#a98678",
+    "#3a3a50",
+    "#343447"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.07,
+    0.09
+   ]
+  },
+  {
+   "id": "wp_1_07",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    480,
+    448,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    8
+   ],
+   "palette": [
+    "#947052",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_1_08",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    480,
+    512,
+    96,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#64493f",
+    "#9c786b",
+    "#b99e86",
+    "#845c56",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    1.92
+   ]
+  },
+  {
+   "id": "wp_1_09",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    480,
+    576,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#996d59",
+    "#7e6052",
+    "#3a3a50",
+    "#6e5850",
+    "#8c6756",
+    "#504542"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    1.34
+   ]
+  },
+  {
+   "id": "wp_1_10",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    480,
+    645,
+    96,
+    24
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    12
+   ],
+   "palette": [
+    "#543a25",
+    "#b35e3f",
+    "#ca8854",
+    "#ab4a36",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_1_11",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    480,
+    704,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#b35e3f",
+    "#8f5641",
+    "#3a3a50",
+    "#795144",
+    "#a25a40",
+    "#56413c"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    1.3
+   ]
+  },
+  {
+   "id": "wp_1_12",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    480,
+    768,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    8,
+    8
+   ],
+   "palette": [
+    "#c56a5d",
+    "#67342e",
+    "#c5605d",
+    "#c5745d",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_1_13",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    480,
+    832,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    8,
+    8
+   ],
+   "palette": [
+    "#c4a195",
+    "#f3d3bb",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_1_14",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    480,
+    896,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#d18c6b",
+    "#b95159",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_1_15",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    480,
+    960,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#aeb2c3",
+    "#d9dce2",
+    "#b5bbc8",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_1_16",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    480,
+    1024,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#ce5f68",
+    "#cc5b64",
+    "#cf616b",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    1.39
+   ]
+  },
+  {
+   "id": "wp_1_17",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    480,
+    1088,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#5280bb",
+    "#4f7dba",
+    "#5482bc",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    1.41
+   ]
+  },
+  {
+   "id": "wp_1_18",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    480,
+    1152,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#8370b4",
+    "#816eb3",
+    "#8472b4",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    1.19
+   ]
+  },
+  {
+   "id": "wp_2_00",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    832,
+    0,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    8
+   ],
+   "palette": [
+    "#e07070",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_2_01",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    832,
+    64,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    8
+   ],
+   "palette": [
+    "#b15855",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_2_02",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    832,
+    128,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#8185c1",
+    "#685aa3",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_2_03",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    832,
+    192,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    8
+   ],
+   "palette": [
+    "#a9acbc",
+    "#aeb1c0",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_2_04",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    832,
+    256,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    8
+   ],
+   "palette": [
+    "#86b8df",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_2_05",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    832,
+    320,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    8
+   ],
+   "palette": [
+    "#89bcc6",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_2_06",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    832,
+    384,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    8
+   ],
+   "palette": [
+    "#4b999c",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_2_07",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    832,
+    449,
+    96,
+    30
+   ],
+   "tile": "seamless",
+   "repeat": [
+    16,
+    15
+   ],
+   "palette": [
+    "#e2f2f3",
+    "#bad2e0",
+    "#989ebe",
+    "#a4bbd5",
+    "#3a3a50",
+    "#cce6ec"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.1
+   ]
+  },
+  {
+   "id": "wp_2_08",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    832,
+    512,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#bad2e0",
+    "#e2f2f3",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_2_09",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    832,
+    576,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#d3f6ee",
+    "#eec39a",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_2_10",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    832,
+    640,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    8
+   ],
+   "palette": [
+    "#9ca99e",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_2_11",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    832,
+    704,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    16
+   ],
+   "palette": [
+    "#d1c0a0",
+    "#e0d0b2",
+    "#e1d4ba",
+    "#e8ddc9",
+    "#aa9989",
+    "#e3d9c1"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.38
+   ]
+  },
+  {
+   "id": "wp_2_12",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    832,
+    768,
+    96,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#689183",
+    "#eee1b7",
+    "#c1c6a5",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    2.0
+   ]
+  },
+  {
+   "id": "wp_2_13",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    832,
+    832,
+    96,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#608d83",
+    "#689183",
+    "#ebdaae",
+    "#eee1b7",
+    "#d3cea8",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    2.0
+   ]
+  },
+  {
+   "id": "wp_2_14",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    832,
+    896,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#bad5b3",
+    "#e2f2f3",
+    "#a4cda2",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.45
+   ]
+  },
+  {
+   "id": "wp_2_15",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    832,
+    960,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#c0e2f7",
+    "#e2f2f3",
+    "#afd0f4",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "wp_2_16",
+   "family": "wallpaper",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Walls_32x32.png",
+   "rect": [
+    832,
+    1024,
+    96,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    96,
+    32
+   ],
+   "palette": [
+    "#b8dcf6",
+    "#b5d9f5",
+    "#c1e1f8",
+    "#3a3a50"
+   ],
+   "tags": [
+    "interior",
+    "wall"
+   ],
+   "seam": [
+    0.0,
+    0.24
+   ]
+  },
+  {
+   "id": "brick_red_terrace",
+   "family": "brick",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/1_Terrains_and_Fences_32x32.png",
+   "rect": [
+    23,
+    806,
+    62,
+    48
+   ],
+   "tile": "seamless",
+   "repeat": [
+    31,
+    48
+   ],
+   "palette": [
+    "#a14f44",
+    "#b99e86",
+    "#943c3f",
+    "#b18a74",
+    "#a7604a",
+    "#9b766a"
+   ],
+   "tags": [
+    "red",
+    "brick",
+    "running-bond",
+    "1950s"
+   ],
+   "seam": [
+    0.0,
+    0.21
+   ],
+   "note": "warm red courses, tan mortar, dark outline; light from top"
+  },
+  {
+   "id": "brick_red_school",
+   "family": "brick",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/13_School_32x32.png",
+   "rect": [
+    340,
+    646,
+    84,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    84,
+    32
+   ],
+   "palette": [
+    "#a14f44",
+    "#a7604a",
+    "#9d433e",
+    "#943c3f",
+    "#7a5f4f"
+   ],
+   "tags": [
+    "red",
+    "brick",
+    "running-bond",
+    "mixed-wear"
+   ],
+   "seam": [
+    0.17,
+    2.25
+   ],
+   "note": "weathered red with dark flecks"
+  },
+  {
+   "id": "brick_red_school_col",
+   "family": "brick",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/13_School_32x32.png",
+   "rect": [
+    966,
+    561,
+    32,
+    96
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    48
+   ],
+   "palette": [
+    "#a14f44",
+    "#a7604a",
+    "#943c3f",
+    "#9d433e",
+    "#7a5f4f",
+    "#7d3846"
+   ],
+   "tags": [
+    "red",
+    "brick",
+    "pilaster"
+   ],
+   "seam": [
+    1.97,
+    0.0
+   ],
+   "note": "vertical strip with shaded left edge",
+   "kind": "strip"
+  },
+  {
+   "id": "brick_brown_weathered",
+   "family": "brick",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/4_Generic_Buildings_32x32.png",
+   "rect": [
+    448,
+    5010,
+    84,
+    56
+   ],
+   "tile": "seamless",
+   "repeat": [
+    84,
+    56
+   ],
+   "palette": [
+    "#9c786b",
+    "#976e63",
+    "#916662",
+    "#8a8481",
+    "#7e6151",
+    "#807673"
+   ],
+   "tags": [
+    "brown",
+    "brick",
+    "weathered",
+    "industrial",
+    "1980s"
+   ],
+   "seam": [
+    2.07,
+    0.11
+   ],
+   "note": "faded brown, grey patches"
+  },
+  {
+   "id": "stucco_cream_hotel",
+   "family": "stucco",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/12_Hotel_and_Hospital_32x32.png",
+   "rect": [
+    68,
+    228,
+    88,
+    104
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    88,
+    104
+   ],
+   "palette": [
+    "#cbbead",
+    "#c3b8ab",
+    "#c7bbab",
+    "#c2b3a6"
+   ],
+   "tags": [
+    "stucco",
+    "cream",
+    "plaster",
+    "smooth"
+   ],
+   "seam": [
+    2.35,
+    2.17
+   ]
+  },
+  {
+   "id": "stucco_cream_hotel2",
+   "family": "stucco",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/12_Hotel_and_Hospital_32x32.png",
+   "rect": [
+    388,
+    228,
+    88,
+    104
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    88,
+    104
+   ],
+   "palette": [
+    "#cbbead",
+    "#c3b8ab",
+    "#c7bbab",
+    "#c2b3a6"
+   ],
+   "tags": [
+    "stucco",
+    "cream",
+    "plaster",
+    "smooth"
+   ],
+   "seam": [
+    1.86,
+    1.61
+   ]
+  },
+  {
+   "id": "stucco_teal_hotel",
+   "family": "stucco",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/12_Hotel_and_Hospital_32x32.png",
+   "rect": [
+    8,
+    230,
+    52,
+    108
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    52,
+    108
+   ],
+   "palette": [
+    "#5ea592",
+    "#629e92",
+    "#62a194",
+    "#539b8f"
+   ],
+   "tags": [
+    "stucco",
+    "teal",
+    "paint"
+   ],
+   "seam": [
+    2.25,
+    1.61
+   ]
+  },
+  {
+   "id": "stucco_teal_shop",
+   "family": "stucco",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/9_Shopping_Center_and_Markets_32x32.png",
+   "rect": [
+    380,
+    1140,
+    56,
+    100
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    56,
+    100
+   ],
+   "palette": [
+    "#46756a",
+    "#3d6f63",
+    "#3a3a50",
+    "#427265",
+    "#46465e",
+    "#b9c3d5"
+   ],
+   "tags": [
+    "stucco",
+    "green-teal",
+    "flat",
+    "panels"
+   ],
+   "seam": [
+    2.09,
+    1.96
+   ]
+  },
+  {
+   "id": "stucco_yellow_shop",
+   "family": "stucco",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/9_Shopping_Center_and_Markets_32x32.png",
+   "rect": [
+    860,
+    1140,
+    56,
+    100
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    56,
+    100
+   ],
+   "palette": [
+    "#a59359",
+    "#a28a56",
+    "#3a3a50",
+    "#a1835a",
+    "#46465e",
+    "#b9c3d5"
+   ],
+   "tags": [
+    "stucco",
+    "mustard",
+    "flat"
+   ],
+   "seam": [
+    2.0,
+    1.93
+   ]
+  },
+  {
+   "id": "stucco_beige_school",
+   "family": "stucco",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/13_School_32x32.png",
+   "rect": [
+    212,
+    452,
+    56,
+    80
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    56,
+    80
+   ],
+   "palette": [
+    "#bca086",
+    "#c3ac90",
+    "#c0a68b",
+    "#978072",
+    "#b69c85"
+   ],
+   "tags": [
+    "stucco",
+    "sand"
+   ],
+   "seam": [
+    1.78,
+    2.26
+   ]
+  },
+  {
+   "id": "concrete_office_light",
+   "family": "concrete",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/16_Office_32x32.png",
+   "rect": [
+    38,
+    2520,
+    132,
+    132
+   ],
+   "tile": "seamless",
+   "repeat": [
+    22,
+    22
+   ],
+   "palette": [
+    "#b9c3d5",
+    "#b3bcd0",
+    "#acafbf"
+   ],
+   "tags": [
+    "concrete",
+    "panel",
+    "pale",
+    "blue-grey",
+    "grid",
+    "glass",
+    "curtain-wall",
+    "flat-roof",
+    "membrane"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ],
+   "note": "faint panel grid"
+  },
+  {
+   "id": "concrete_office_col",
+   "family": "concrete",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/16_Office_32x32.png",
+   "rect": [
+    348,
+    1876,
+    96,
+    152
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    16,
+    152
+   ],
+   "palette": [
+    "#b9c3d5",
+    "#b3bcd0",
+    "#acafbf",
+    "#3a3a50"
+   ],
+   "tags": [
+    "concrete",
+    "panel"
+   ],
+   "seam": [
+    1.95,
+    1.9
+   ]
+  },
+  {
+   "id": "concrete_fire_grey",
+   "family": "concrete",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/18_Fire_Station_32x32.png",
+   "rect": [
+    200,
+    132,
+    280,
+    48
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    40,
+    48
+   ],
+   "palette": [
+    "#7d7f99",
+    "#777995",
+    "#565972"
+   ],
+   "tags": [
+    "concrete",
+    "flat",
+    "grey",
+    "strip"
+   ],
+   "seam": [
+    0.0,
+    2.02
+   ],
+   "kind": "strip"
+  },
+  {
+   "id": "concrete_post_dark",
+   "family": "concrete",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/22_Post_Office_32x32.png",
+   "rect": [
+    548,
+    276,
+    120,
+    40
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    10,
+    40
+   ],
+   "palette": [
+    "#565972",
+    "#595e75",
+    "#46465e",
+    "#3a3a50",
+    "#4c4d66",
+    "#5c4a44"
+   ],
+   "tags": [
+    "concrete",
+    "dark",
+    "slate"
+   ],
+   "seam": [
+    2.07,
+    3.26
+   ]
+  },
+  {
+   "id": "concrete_add_flat",
+   "family": "concrete",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/24_Additional_Houses_32x32.png",
+   "rect": [
+    52,
+    4604,
+    240,
+    150
+   ],
+   "tile": "seamless",
+   "repeat": [
+    240,
+    150
+   ],
+   "palette": [
+    "#c6bdd5",
+    "#b2aecb",
+    "#b1bac8",
+    "#b8b5cb",
+    "#a4bbd5",
+    "#60647e"
+   ],
+   "tags": [
+    "concrete",
+    "light",
+    "flat",
+    "roofing",
+    "slab"
+   ],
+   "seam": [
+    1.23,
+    1.6
+   ]
+  },
+  {
+   "id": "siding_villa_orange",
+   "family": "siding",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/7_Villas_32x32.png",
+   "rect": [
+    3,
+    66,
+    36,
+    114
+   ],
+   "tile": "seamless",
+   "repeat": [
+    12,
+    114
+   ],
+   "palette": [
+    "#c0723b",
+    "#984723",
+    "#833026",
+    "#d08945",
+    "#3a3a50"
+   ],
+   "tags": [
+    "vertical",
+    "plank",
+    "siding",
+    "board-and-batten",
+    "warm",
+    "orange"
+   ],
+   "seam": [
+    0.03,
+    2.0
+   ]
+  },
+  {
+   "id": "siding_villa_brown",
+   "family": "siding",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/7_Villas_32x32.png",
+   "rect": [
+    323,
+    66,
+    36,
+    114
+   ],
+   "tile": "seamless",
+   "repeat": [
+    12,
+    114
+   ],
+   "palette": [
+    "#7c5c46",
+    "#6f4a39",
+    "#663731",
+    "#826c57",
+    "#3a3a50"
+   ],
+   "tags": [
+    "vertical",
+    "plank",
+    "siding",
+    "dark",
+    "brown"
+   ],
+   "seam": [
+    0.04,
+    2.0
+   ]
+  },
+  {
+   "id": "siding_villa_plum",
+   "family": "siding",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/7_Villas_32x32.png",
+   "rect": [
+    643,
+    66,
+    36,
+    114
+   ],
+   "tile": "seamless",
+   "repeat": [
+    12,
+    114
+   ],
+   "palette": [
+    "#9d5a68",
+    "#8b3d60",
+    "#703b57",
+    "#aa746e",
+    "#3a3a50"
+   ],
+   "tags": [
+    "vertical",
+    "plank",
+    "siding",
+    "plum"
+   ],
+   "seam": [
+    0.03,
+    2.0
+   ]
+  },
+  {
+   "id": "siding_villa_red",
+   "family": "siding",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/7_Villas_32x32.png",
+   "rect": [
+    3,
+    514,
+    36,
+    114
+   ],
+   "tile": "seamless",
+   "repeat": [
+    12,
+    114
+   ],
+   "palette": [
+    "#d33d38",
+    "#bb2328",
+    "#911d38",
+    "#de4e3b",
+    "#3a3a50"
+   ],
+   "tags": [
+    "vertical",
+    "plank",
+    "siding",
+    "red",
+    "barn"
+   ],
+   "seam": [
+    0.06,
+    2.0
+   ]
+  },
+  {
+   "id": "siding_villa_blue",
+   "family": "siding",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/7_Villas_32x32.png",
+   "rect": [
+    323,
+    514,
+    36,
+    114
+   ],
+   "tile": "seamless",
+   "repeat": [
+    12,
+    114
+   ],
+   "palette": [
+    "#4d9bb9",
+    "#3576b0",
+    "#365892",
+    "#4eaec2",
+    "#3a3a50"
+   ],
+   "tags": [
+    "vertical",
+    "plank",
+    "siding",
+    "blue"
+   ],
+   "seam": [
+    0.04,
+    2.0
+   ]
+  },
+  {
+   "id": "boards_beach_light",
+   "family": "siding",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/21_Beach_32x32.png",
+   "rect": [
+    6,
+    1868,
+    344,
+    144
+   ],
+   "tile": "seamless",
+   "repeat": [
+    8,
+    16
+   ],
+   "palette": [
+    "#d0a686",
+    "#d6ac8c",
+    "#a08e87",
+    "#b2938c",
+    "#bb8d7e",
+    "#958484"
+   ],
+   "tags": [
+    "boardwalk",
+    "planks",
+    "light",
+    "sand"
+   ],
+   "seam": [
+    3.25,
+    0.09
+   ],
+   "note": "horizontal planks with dark gaps"
+  },
+  {
+   "id": "boards_beach_dark",
+   "family": "siding",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/21_Beach_32x32.png",
+   "rect": [
+    391,
+    684,
+    344,
+    144
+   ],
+   "tile": "seamless",
+   "repeat": [
+    8,
+    16
+   ],
+   "palette": [
+    "#ca8854",
+    "#d5935e",
+    "#7b6256",
+    "#99695d",
+    "#a85f46",
+    "#674e50"
+   ],
+   "tags": [
+    "boardwalk",
+    "planks",
+    "warm",
+    "wood"
+   ],
+   "seam": [
+    2.2,
+    0.1
+   ]
+  },
+  {
+   "id": "boards_garden_pale",
+   "family": "siding",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/17_Garden_32x32.png",
+   "rect": [
+    332,
+    4693,
+    144,
+    120
+   ],
+   "tile": "seamless",
+   "repeat": [
+    144,
+    20
+   ],
+   "palette": [
+    "#7c6e6f",
+    "#b69c85",
+    "#c3ac90",
+    "#3b3a50",
+    "#978072",
+    "#8a7a77"
+   ],
+   "tags": [
+    "deck",
+    "planks",
+    "pale",
+    "horizontal"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "boards_subway_wood",
+   "family": "siding",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/20_Subway_and_Train_Station_32x32.png",
+   "rect": [
+    380,
+    3390,
+    96,
+    52
+   ],
+   "tile": "seamless",
+   "repeat": [
+    8,
+    52
+   ],
+   "palette": [
+    "#c18452",
+    "#ca8854",
+    "#b48f54",
+    "#c78c59"
+   ],
+   "tags": [
+    "platform",
+    "wood",
+    "orange",
+    "planks"
+   ],
+   "seam": [
+    4.47,
+    1.5
+   ]
+  },
+  {
+   "id": "siding_barn_orange",
+   "family": "siding",
+   "pack": "farm",
+   "file": "32x32/3_Props_and_Buildings_32x32.png",
+   "rect": [
+    140,
+    4236,
+    112,
+    160
+   ],
+   "tile": "seamless",
+   "repeat": [
+    112,
+    160
+   ],
+   "palette": [
+    "#d5935e",
+    "#ca8854",
+    "#a46a54",
+    "#d9a16a",
+    "#776059",
+    "#b99e86"
+   ],
+   "tags": [
+    "barn",
+    "vertical",
+    "planks",
+    "orange"
+   ],
+   "seam": [
+    1.76,
+    2.28
+   ]
+  },
+  {
+   "id": "siding_barn_brown_h",
+   "family": "siding",
+   "pack": "farm",
+   "file": "32x32/3_Props_and_Buildings_32x32.png",
+   "rect": [
+    780,
+    2431,
+    176,
+    96
+   ],
+   "tile": "seamless",
+   "repeat": [
+    176,
+    16
+   ],
+   "palette": [
+    "#7e6151",
+    "#6b5052",
+    "#5c4a44",
+    "#716467",
+    "#46465e"
+   ],
+   "tags": [
+    "barn",
+    "horizontal",
+    "planks",
+    "brown"
+   ],
+   "seam": [
+    2.02,
+    0.07
+   ]
+  },
+  {
+   "id": "siding_barn_brown_h2",
+   "family": "siding",
+   "pack": "farm",
+   "file": "32x32/3_Props_and_Buildings_32x32.png",
+   "rect": [
+    564,
+    4292,
+    152,
+    64
+   ],
+   "tile": "seamless",
+   "repeat": [
+    152,
+    64
+   ],
+   "palette": [
+    "#7e6151",
+    "#716467",
+    "#5e5051",
+    "#6d5150",
+    "#46465e",
+    "#af927d"
+   ],
+   "tags": [
+    "barn",
+    "horizontal",
+    "planks",
+    "brown"
+   ],
+   "seam": [
+    0.59,
+    1.84
+   ]
+  },
+  {
+   "id": "siding_barn_pale",
+   "family": "siding",
+   "pack": "farm",
+   "file": "32x32/3_Props_and_Buildings_32x32.png",
+   "rect": [
+    532,
+    204,
+    72,
+    56
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    72,
+    56
+   ],
+   "palette": [
+    "#c3ac90",
+    "#d0be9c",
+    "#b99e86",
+    "#4d4757",
+    "#af8f7c",
+    "#cbbead"
+   ],
+   "tags": [
+    "weathered",
+    "pale",
+    "planks"
+   ],
+   "seam": [
+    0.16,
+    4.42
+   ]
+  },
+  {
+   "id": "roof_tile_red",
+   "family": "roof",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/5_Floor_Modular_Buildings_32x32.png",
+   "rect": [
+    332,
+    818,
+    200,
+    104
+   ],
+   "tile": "seamless",
+   "repeat": [
+    10,
+    13
+   ],
+   "palette": [
+    "#a14f44",
+    "#613242",
+    "#943c3f",
+    "#7d3846"
+   ],
+   "tags": [
+    "roof",
+    "clay",
+    "tile",
+    "terracotta"
+   ],
+   "seam": [
+    0.0,
+    0.74
+   ]
+  },
+  {
+   "id": "roof_tile_slate",
+   "family": "roof",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/5_Floor_Modular_Buildings_32x32.png",
+   "rect": [
+    260,
+    3250,
+    310,
+    104
+   ],
+   "tile": "seamless",
+   "repeat": [
+    10,
+    13
+   ],
+   "palette": [
+    "#5d617c",
+    "#3a3a50",
+    "#565972",
+    "#4a4861",
+    "#5e5051",
+    "#8f6d42"
+   ],
+   "tags": [
+    "roof",
+    "slate",
+    "blue-grey",
+    "shingle"
+   ],
+   "seam": [
+    0.07,
+    0.83
+   ]
+  },
+  {
+   "id": "roof_tile_charcoal",
+   "family": "roof",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/5_Floor_Modular_Buildings_32x32.png",
+   "rect": [
+    260,
+    5676,
+    310,
+    112
+   ],
+   "tile": "seamless",
+   "repeat": [
+    10,
+    14
+   ],
+   "palette": [
+    "#3a3a50",
+    "#6a6a6a",
+    "#545652",
+    "#454944",
+    "#5a5153",
+    "#4b4242"
+   ],
+   "tags": [
+    "roof",
+    "dark",
+    "green-grey",
+    "shingle"
+   ],
+   "seam": [
+    0.12,
+    1.57
+   ]
+  },
+  {
+   "id": "roof_metal_ribbed_h",
+   "family": "roof",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/24_Additional_Houses_32x32.png",
+   "rect": [
+    396,
+    3732,
+    296,
+    240
+   ],
+   "tile": "seamless",
+   "repeat": [
+    8,
+    8
+   ],
+   "palette": [
+    "#8b8bab",
+    "#6c6e85",
+    "#565972",
+    "#828597",
+    "#45455d",
+    "#989ebe"
+   ],
+   "tags": [
+    "roof",
+    "metal",
+    "ribbed",
+    "horizontal",
+    "grey"
+   ],
+   "seam": [
+    4.61,
+    0.65
+   ]
+  },
+  {
+   "id": "roof_metal_ribbed_h2",
+   "family": "roof",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/24_Additional_Houses_32x32.png",
+   "rect": [
+    596,
+    3852,
+    96,
+    120
+   ],
+   "tile": "seamless",
+   "repeat": [
+    8,
+    8
+   ],
+   "palette": [
+    "#8b8bab",
+    "#6c6e85",
+    "#4f5169",
+    "#838897",
+    "#827f92",
+    "#989ebe"
+   ],
+   "tags": [
+    "roof",
+    "metal",
+    "ribbed",
+    "horizontal"
+   ],
+   "seam": [
+    7.43,
+    1.01
+   ]
+  },
+  {
+   "id": "roof_scale_grey",
+   "family": "roof",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/24_Additional_Houses_32x32.png",
+   "rect": [
+    48,
+    3724,
+    288,
+    256
+   ],
+   "tile": "seamless",
+   "repeat": [
+    24,
+    8
+   ],
+   "palette": [
+    "#8b8bab",
+    "#6c6e85",
+    "#53566f",
+    "#838897",
+    "#7e7f98",
+    "#989ebe"
+   ],
+   "tags": [
+    "roof",
+    "scale",
+    "shingle",
+    "grey"
+   ],
+   "seam": [
+    0.31,
+    0.24
+   ]
+  },
+  {
+   "id": "roof_scale_grey_b",
+   "family": "roof",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/24_Additional_Houses_32x32.png",
+   "rect": [
+    236,
+    6964,
+    192,
+    120
+   ],
+   "tile": "seamless",
+   "repeat": [
+    192,
+    120
+   ],
+   "palette": [
+    "#6c6e85",
+    "#9da3b6",
+    "#878aa1",
+    "#7d7f99",
+    "#4e4e63",
+    "#738ca8"
+   ],
+   "tags": [
+    "roof",
+    "scale",
+    "shingle",
+    "grey"
+   ],
+   "seam": [
+    1.35,
+    1.17
+   ]
+  },
+  {
+   "id": "glass_mod_blue",
+   "family": "glass",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/5_Floor_Modular_Buildings_32x32.png",
+   "rect": [
+    663,
+    3380,
+    72,
+    51
+   ],
+   "tile": "seamless",
+   "repeat": [
+    18,
+    17
+   ],
+   "palette": [
+    "#565972",
+    "#4a4861",
+    "#97aacd",
+    "#3a3a50",
+    "#6e8ca1",
+    "#616c88"
+   ],
+   "tags": [
+    "window",
+    "grid",
+    "blue",
+    "panes"
+   ],
+   "seam": [
+    0.0,
+    1.24
+   ]
+  },
+  {
+   "id": "glass_mod_grey",
+   "family": "glass",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/5_Floor_Modular_Buildings_32x32.png",
+   "rect": [
+    663,
+    5815,
+    72,
+    36
+   ],
+   "tile": "seamless",
+   "repeat": [
+    18,
+    18
+   ],
+   "palette": [
+    "#6f6f73",
+    "#454944",
+    "#738ca8",
+    "#96a3ba",
+    "#3a3a50",
+    "#545652"
+   ],
+   "tags": [
+    "window",
+    "grid",
+    "grey",
+    "panes"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "glass_mod_red",
+   "family": "glass",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/5_Floor_Modular_Buildings_32x32.png",
+   "rect": [
+    663,
+    951,
+    72,
+    36
+   ],
+   "tile": "seamless",
+   "repeat": [
+    18,
+    18
+   ],
+   "palette": [
+    "#995e54",
+    "#899fbf",
+    "#7d3846",
+    "#3a3a50",
+    "#943c3f",
+    "#bd8461"
+   ],
+   "tags": [
+    "window",
+    "grid",
+    "red",
+    "frames"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "metal_corrugated_hotel",
+   "family": "metal",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/12_Hotel_and_Hospital_32x32.png",
+   "rect": [
+    556,
+    1348,
+    288,
+    104
+   ],
+   "tile": "seamless",
+   "repeat": [
+    16,
+    104
+   ],
+   "palette": [
+    "#b9b3ce",
+    "#565972",
+    "#7d7f99",
+    "#3a3a51",
+    "#6c6e85",
+    "#989ebe"
+   ],
+   "tags": [
+    "corrugated",
+    "metal",
+    "siding",
+    "blue-grey",
+    "vertical"
+   ],
+   "seam": [
+    0.01,
+    1.79
+   ]
+  },
+  {
+   "id": "metal_shutter_shop",
+   "family": "metal",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/9_Shopping_Center_and_Markets_32x32.png",
+   "rect": [
+    188,
+    148,
+    376,
+    120
+   ],
+   "tile": "seamless",
+   "repeat": [
+    8,
+    120
+   ],
+   "palette": [
+    "#77746d",
+    "#6a6660",
+    "#4f4a46",
+    "#615c56",
+    "#3a3a50",
+    "#46465e"
+   ],
+   "tags": [
+    "corrugated",
+    "shutter",
+    "wall",
+    "dark",
+    "olive"
+   ],
+   "seam": [
+    1.29,
+    0.16
+   ]
+  },
+  {
+   "id": "metal_shutter_gar",
+   "family": "metal",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/6_Garage_Sales_32x32.png",
+   "rect": [
+    620,
+    812,
+    80,
+    40
+   ],
+   "tile": "seamless",
+   "repeat": [
+    80,
+    8
+   ],
+   "palette": [
+    "#46465e",
+    "#9da3b7",
+    "#8b8bab",
+    "#a9afbd",
+    "#777a93",
+    "#3a3a50"
+   ],
+   "tags": [
+    "roller",
+    "shutter",
+    "light",
+    "grey"
+   ],
+   "seam": [
+    2.46,
+    2.02
+   ]
+  },
+  {
+   "id": "metal_shutter_police",
+   "family": "metal",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/15_Police_Station_32x32.png",
+   "rect": [
+    428,
+    476,
+    64,
+    48
+   ],
+   "tile": "seamless",
+   "repeat": [
+    8,
+    12
+   ],
+   "palette": [
+    "#b2aecb",
+    "#6c6e85",
+    "#c6bdd5"
+   ],
+   "tags": [
+    "roller",
+    "shutter"
+   ],
+   "seam": [
+    0.0,
+    1.64
+   ]
+  },
+  {
+   "id": "metal_plate_add",
+   "family": "metal",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/24_Additional_Houses_32x32.png",
+   "rect": [
+    836,
+    6924,
+    80,
+    80
+   ],
+   "tile": "seamless",
+   "repeat": [
+    80,
+    80
+   ],
+   "palette": [
+    "#838897",
+    "#7d7f99",
+    "#6c6e85",
+    "#877c7d",
+    "#7b6e71",
+    "#565972"
+   ],
+   "tags": [
+    "metal",
+    "plate",
+    "grey",
+    "riveted"
+   ],
+   "seam": [
+    0.94,
+    0.03
+   ]
+  },
+  {
+   "id": "stone_cobble_brown",
+   "family": "stone",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/1_Terrains_and_Fences_32x32.png",
+   "rect": [
+    627,
+    1359,
+    62,
+    64
+   ],
+   "tile": "seamless",
+   "repeat": [
+    31,
+    32
+   ],
+   "palette": [
+    "#ad7b66",
+    "#8a6156",
+    "#9d6c5f"
+   ],
+   "tags": [
+    "cobblestone",
+    "brown"
+   ],
+   "seam": [
+    0.66,
+    0.0
+   ]
+  },
+  {
+   "id": "stone_rock_grey",
+   "family": "stone",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/1_Terrains_and_Fences_32x32.png",
+   "rect": [
+    4,
+    2010,
+    88,
+    52
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    88,
+    52
+   ],
+   "palette": [
+    "#795653",
+    "#53393b",
+    "#a1796c",
+    "#c99a81",
+    "#d26e3f",
+    "#ab4a36"
+   ],
+   "tags": [
+    "rock",
+    "face",
+    "dark"
+   ],
+   "seam": [
+    0.08,
+    4.12
+   ]
+  },
+  {
+   "id": "stone_rock_beach",
+   "family": "stone",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/21_Beach_32x32.png",
+   "rect": [
+    708,
+    3452,
+    128,
+    64
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    128,
+    64
+   ],
+   "palette": [
+    "#795653",
+    "#53393b",
+    "#a1796c",
+    "#c99b82",
+    "#cc6840",
+    "#ab4a36"
+   ],
+   "tags": [
+    "rock",
+    "face",
+    "brown",
+    "pebbles"
+   ],
+   "seam": [
+    2.52,
+    4.44
+   ]
+  },
+  {
+   "id": "asphalt_plain",
+   "family": "asphalt",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/2_City_Terrains_32x32.png",
+   "rect": [
+    8,
+    136,
+    144,
+    112
+   ],
+   "tile": "seamless",
+   "repeat": [
+    144,
+    112
+   ],
+   "palette": [
+    "#534f52",
+    "#595555",
+    "#565254",
+    "#4f4a4f",
+    "#605755",
+    "#4a4549"
+   ],
+   "tags": [
+    "asphalt",
+    "dark",
+    "grey"
+   ],
+   "seam": [
+    1.81,
+    1.66
+   ]
+  },
+  {
+   "id": "sidewalk_cream",
+   "family": "pavement",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/2_City_Terrains_32x32.png",
+   "rect": [
+    332,
+    40,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#dad4cb",
+    "#d5cec6",
+    "#9a958f",
+    "#c8c2b8",
+    "#84807d",
+    "#b4aea8"
+   ],
+   "tags": [
+    "sidewalk",
+    "paving",
+    "slabs",
+    "cream"
+   ],
+   "seam": [
+    0.12,
+    0.01
+   ]
+  },
+  {
+   "id": "sidewalk_grey",
+   "family": "pavement",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/2_City_Terrains_32x32.png",
+   "rect": [
+    1292,
+    40,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#b4b4b4",
+    "#aeaeae",
+    "#a3a2a1",
+    "#b1b1b1",
+    "#8a8a8a",
+    "#797979"
+   ],
+   "tags": [
+    "sidewalk",
+    "paving",
+    "slabs",
+    "grey"
+   ],
+   "seam": [
+    0.22,
+    0.06
+   ]
+  },
+  {
+   "id": "sidewalk_mid",
+   "family": "pavement",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/2_City_Terrains_32x32.png",
+   "rect": [
+    364,
+    1512,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#919498",
+    "#8b8c90",
+    "#7a777f",
+    "#81818a"
+   ],
+   "tags": [
+    "sidewalk",
+    "paving",
+    "slabs",
+    "mid"
+   ],
+   "seam": [
+    0.25,
+    0.0
+   ]
+  },
+  {
+   "id": "sidewalk_blue",
+   "family": "pavement",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/2_City_Terrains_32x32.png",
+   "rect": [
+    1292,
+    776,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#8f9aa8",
+    "#8894a1",
+    "#727a89",
+    "#848b99",
+    "#656d82",
+    "#76808e"
+   ],
+   "tags": [
+    "sidewalk",
+    "paving",
+    "slabs",
+    "blue"
+   ],
+   "seam": [
+    0.24,
+    0.02
+   ]
+  },
+  {
+   "id": "roofflat_tan_condo",
+   "family": "roof-flat",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/4_Generic_Buildings_32x32.png",
+   "rect": [
+    301,
+    1675,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#c3ac90",
+    "#bea78d"
+   ],
+   "tags": [
+    "flat",
+    "roof",
+    "tan",
+    "tar",
+    "gravel"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "roofflat_grey_condo",
+   "family": "roof-flat",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/4_Generic_Buildings_32x32.png",
+   "rect": [
+    182,
+    1000,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#8a7a77",
+    "#7c6e6f",
+    "#716467",
+    "#6c5d62"
+   ],
+   "tags": [
+    "flat",
+    "roof",
+    "tar",
+    "grey-brown"
+   ],
+   "seam": [
+    0.42,
+    0.56
+   ]
+  },
+  {
+   "id": "roofflat_blue_office",
+   "family": "roof-flat",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/4_Generic_Buildings_32x32.png",
+   "rect": [
+    70,
+    3990,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#7d7f99",
+    "#7e7d86"
+   ],
+   "tags": [
+    "flat",
+    "roof",
+    "membrane",
+    "blue-grey"
+   ],
+   "seam": [
+    0.22,
+    0.25
+   ]
+  },
+  {
+   "id": "at_dirt_tan",
+   "family": "dirt",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/Autotiles_32x32/Game_Maker_Studio_Autotiles_32x32.png",
+   "rect": [
+    32,
+    0,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#aa8f5a"
+   ],
+   "tags": [
+    "dirt",
+    "autotile",
+    "fill",
+    "cell"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "at_dirt_orange",
+   "family": "dirt",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/Autotiles_32x32/Game_Maker_Studio_Autotiles_32x32.png",
+   "rect": [
+    32,
+    128,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#ca8854"
+   ],
+   "tags": [
+    "dirt",
+    "autotile",
+    "fill",
+    "cell"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "at_dirt_grey_mud",
+   "family": "dirt",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/Autotiles_32x32/Game_Maker_Studio_Autotiles_32x32.png",
+   "rect": [
+    32,
+    384,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#a29177"
+   ],
+   "tags": [
+    "dirt",
+    "mud",
+    "autotile",
+    "fill",
+    "cell"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "at_grass_flat",
+   "family": "grass",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/Autotiles_32x32/Game_Maker_Studio_Autotiles_32x32.png",
+   "rect": [
+    32,
+    1536,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#479757"
+   ],
+   "tags": [
+    "grass",
+    "autotile",
+    "fill",
+    "cell"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "at_sand",
+   "family": "dirt",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/Autotiles_32x32/Game_Maker_Studio_Autotiles_32x32.png",
+   "rect": [
+    352,
+    1056,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#e6ae55",
+    "#e09b4e",
+    "#e8bb5b",
+    "#e3a652",
+    "#e8b65b",
+    "#e9c062"
+   ],
+   "tags": [
+    "sand",
+    "autotile",
+    "fill",
+    "cell"
+   ],
+   "seam": [
+    1.3,
+    1.24
+   ]
+  },
+  {
+   "id": "at_water_deep",
+   "family": "water",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/Autotiles_32x32/Game_Maker_Studio_Autotiles_32x32.png",
+   "rect": [
+    32,
+    1920,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#215c81"
+   ],
+   "tags": [
+    "water",
+    "autotile",
+    "fill",
+    "cell"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "sand_terrain",
+   "family": "dirt",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/1_Terrains_and_Fences_32x32.png",
+   "rect": [
+    552,
+    1804,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#e09b4e",
+    "#e6ae55",
+    "#e3a652",
+    "#e8b65b"
+   ],
+   "tags": [
+    "sand",
+    "wavy",
+    "dunes"
+   ],
+   "seam": [
+    2.0,
+    1.28
+   ]
+  },
+  {
+   "id": "water_pond",
+   "family": "water",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/1_Terrains_and_Fences_32x32.png",
+   "rect": [
+    548,
+    1224,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#369ab0",
+    "#3ca3b2",
+    "#3690ae"
+   ],
+   "tags": [
+    "water",
+    "pond",
+    "teal",
+    "flat"
+   ],
+   "seam": [
+    0.51,
+    0.17
+   ]
+  },
+  {
+   "id": "water_basic",
+   "family": "water",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/Animated_32x32/Animated_Terrains_32x32/Water_Tileset_32x32.png",
+   "rect": [
+    32,
+    32,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#3ca3b2"
+   ],
+   "tags": [
+    "water",
+    "animated",
+    "frame"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "water_sea",
+   "family": "water",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/Animated_32x32/Animated_Terrains_32x32/Sea_Water_Tileset_Basic_32x32.png",
+   "rect": [
+    32,
+    32,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#3ca3b2",
+    "#3a93b0",
+    "#5bc9d2",
+    "#41b5be",
+    "#5bc2cb"
+   ],
+   "tags": [
+    "sea",
+    "water",
+    "animated",
+    "frame"
+   ],
+   "seam": [
+    1.25,
+    1.28
+   ]
+  },
+  {
+   "id": "gravel_worksite",
+   "family": "dirt",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/8_Worksite_32x32.png",
+   "rect": [
+    20,
+    556,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#bf8456",
+    "#c18a56",
+    "#c59756",
+    "#b57650",
+    "#bb7f54",
+    "#9d5d45"
+   ],
+   "tags": [
+    "gravel",
+    "dirt",
+    "orange",
+    "noisy"
+   ],
+   "seam": [
+    0.98,
+    1.32
+   ]
+  },
+  {
+   "id": "foliage_bush",
+   "family": "grass",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/17_Garden_32x32.png",
+   "rect": [
+    4,
+    364,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#64b63b",
+    "#49a92f",
+    "#2da233",
+    "#268b49",
+    "#21983d",
+    "#17704b"
+   ],
+   "tags": [
+    "hedge",
+    "bush",
+    "foliage",
+    "dense",
+    "green"
+   ],
+   "seam": [
+    1.24,
+    1.48
+   ]
+  },
+  {
+   "id": "foliage_tree_villa",
+   "family": "grass",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/7_Villas_32x32.png",
+   "rect": [
+    316,
+    1508,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#268b49",
+    "#17704b",
+    "#21983d",
+    "#2da233",
+    "#49a92f",
+    "#245356"
+   ],
+   "tags": [
+    "tree",
+    "canopy",
+    "dense",
+    "green"
+   ],
+   "seam": [
+    1.31,
+    2.78
+   ]
+  },
+  {
+   "id": "soil_tilled",
+   "family": "dirt",
+   "pack": "farm",
+   "file": "32x32/1_Terrains_32x32.png",
+   "rect": [
+    12,
+    300,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#6b4b30",
+    "#7b5b3a",
+    "#7e6151",
+    "#63412f",
+    "#5c4a44",
+    "#573c2c"
+   ],
+   "tags": [
+    "soil",
+    "tilled",
+    "furrows",
+    "brown"
+   ],
+   "seam": [
+    2.25,
+    1.93
+   ]
+  },
+  {
+   "id": "soil_dark",
+   "family": "dirt",
+   "pack": "farm",
+   "file": "32x32/1_Terrains_32x32.png",
+   "rect": [
+    44,
+    396,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#63433b",
+    "#734d44",
+    "#573830"
+   ],
+   "tags": [
+    "soil",
+    "dark",
+    "wet",
+    "brown"
+   ],
+   "seam": [
+    0.72,
+    0.94
+   ]
+  },
+  {
+   "id": "soil_field_big",
+   "family": "dirt",
+   "pack": "farm",
+   "file": "32x32/1_Terrains_32x32.png",
+   "rect": [
+    4,
+    548,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#7b5b3a",
+    "#6b4b30",
+    "#63412f",
+    "#7e6151",
+    "#573c2c",
+    "#5c4a44"
+   ],
+   "tags": [
+    "plowed",
+    "field",
+    "rows"
+   ],
+   "seam": [
+    0.93,
+    1.31
+   ]
+  },
+  {
+   "id": "dirt_farm",
+   "family": "dirt",
+   "pack": "farm",
+   "file": "32x32/1_Terrains_32x32.png",
+   "rect": [
+    44,
+    44,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#aa8f5a"
+   ],
+   "tags": [
+    "dirt",
+    "packed",
+    "tan"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "sand_farm",
+   "family": "dirt",
+   "pack": "farm",
+   "file": "32x32/1_Terrains_32x32.png",
+   "rect": [
+    44,
+    172,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#e6ae55",
+    "#e8bb5b",
+    "#e8b65b",
+    "#e9c062"
+   ],
+   "tags": [
+    "sand",
+    "wavy"
+   ],
+   "seam": [
+    1.26,
+    0.81
+   ]
+  },
+  {
+   "id": "fence_iron_black",
+   "family": "fence",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/1_Terrains_and_Fences_32x32.png",
+   "rect": [
+    540,
+    582,
+    64,
+    26
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    8,
+    26
+   ],
+   "palette": [
+    "#3a3a50",
+    "#46465e",
+    "#565972",
+    "#6c6e85",
+    "#5e5051",
+    "#7d7f99"
+   ],
+   "tags": [
+    "fence",
+    "iron",
+    "picket",
+    "black"
+   ],
+   "seam": [
+    0.63,
+    2.04
+   ],
+   "kind": "strip"
+  },
+  {
+   "id": "fence_iron_wood_base",
+   "family": "fence",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/1_Terrains_and_Fences_32x32.png",
+   "rect": [
+    540,
+    796,
+    64,
+    38
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    8,
+    38
+   ],
+   "palette": [
+    "#3a3a50",
+    "#565972",
+    "#685052",
+    "#46465e",
+    "#907976",
+    "#916662"
+   ],
+   "tags": [
+    "fence",
+    "iron",
+    "picket",
+    "on",
+    "timber",
+    "base"
+   ],
+   "seam": [
+    1.63,
+    1.84
+   ],
+   "kind": "strip"
+  },
+  {
+   "id": "fence_iron_orange_base",
+   "family": "fence",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/1_Terrains_and_Fences_32x32.png",
+   "rect": [
+    540,
+    1020,
+    64,
+    34
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    8,
+    34
+   ],
+   "palette": [
+    "#3a3a50",
+    "#5b5e77",
+    "#a14f44",
+    "#46465e",
+    "#b66e4c",
+    "#5e5051"
+   ],
+   "tags": [
+    "fence",
+    "iron",
+    "picket",
+    "on",
+    "orange",
+    "base"
+   ],
+   "seam": [
+    2.27,
+    1.49
+   ],
+   "kind": "strip"
+  },
+  {
+   "id": "wall_brick_cap",
+   "family": "fence",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/1_Terrains_and_Fences_32x32.png",
+   "rect": [
+    802,
+    590,
+    28,
+    92
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    28,
+    92
+   ],
+   "palette": [
+    "#a25345",
+    "#b4927b",
+    "#2e354d",
+    "#956d65",
+    "#6e5052"
+   ],
+   "tags": [
+    "low",
+    "brick",
+    "wall",
+    "with",
+    "stone",
+    "cap"
+   ],
+   "seam": [
+    0.27,
+    4.11
+   ],
+   "kind": "strip"
+  },
+  {
+   "id": "fence_farm_picket",
+   "family": "fence",
+   "pack": "farm",
+   "file": "32x32/2_Fences_32x32.png",
+   "rect": [
+    32,
+    36,
+    96,
+    34
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    96,
+    34
+   ],
+   "palette": [
+    "#745851",
+    "#907870",
+    "#c3ac90",
+    "#5c4a44",
+    "#3e3e54",
+    "#d0be9c"
+   ],
+   "tags": [
+    "fence",
+    "farm",
+    "round-top",
+    "posts"
+   ],
+   "seam": [
+    0.52,
+    2.18
+   ],
+   "kind": "strip"
+  },
+  {
+   "id": "fence_farm_rail_wood",
+   "family": "fence",
+   "pack": "farm",
+   "file": "32x32/2_Fences_32x32.png",
+   "rect": [
+    606,
+    196,
+    192,
+    36
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    192,
+    36
+   ],
+   "palette": [
+    "#3a3a50",
+    "#baa088",
+    "#926b65",
+    "#6b5052",
+    "#46465e",
+    "#785e47"
+   ],
+   "tags": [
+    "fence",
+    "farm",
+    "3-rail",
+    "wood"
+   ],
+   "seam": [
+    2.39,
+    1.72
+   ],
+   "kind": "strip"
+  },
+  {
+   "id": "fence_farm_rail_steel",
+   "family": "fence",
+   "pack": "farm",
+   "file": "32x32/2_Fences_32x32.png",
+   "rect": [
+    4,
+    196,
+    92,
+    34
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    92,
+    34
+   ],
+   "palette": [
+    "#3a3a50",
+    "#e1ddea",
+    "#9396b6",
+    "#b8b8ce",
+    "#46465e",
+    "#62657c"
+   ],
+   "tags": [
+    "fence",
+    "farm",
+    "steel",
+    "rails",
+    "white"
+   ],
+   "seam": [
+    1.93,
+    0.78
+   ],
+   "kind": "strip"
+  },
+  {
+   "id": "awning_blue_cream",
+   "family": "awning",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/4_Generic_Buildings_32x32.png",
+   "rect": [
+    304,
+    5352,
+    224,
+    36
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    224,
+    36
+   ],
+   "palette": [
+    "#72a3ba",
+    "#d0be9c",
+    "#73b8c6",
+    "#c3ac90",
+    "#e0d0b2",
+    "#4c719d"
+   ],
+   "tags": [
+    "awning",
+    "striped",
+    "fabric",
+    "blue",
+    "cream"
+   ],
+   "seam": [
+    0.0,
+    2.04
+   ],
+   "kind": "strip"
+  },
+  {
+   "id": "awning_red_cream",
+   "family": "awning",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/4_Generic_Buildings_32x32.png",
+   "rect": [
+    304,
+    5420,
+    224,
+    36
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    224,
+    36
+   ],
+   "palette": [
+    "#9f4a42",
+    "#d0be9c",
+    "#a7604a",
+    "#c1a88e",
+    "#e0d0b2",
+    "#813b43"
+   ],
+   "tags": [
+    "awning",
+    "striped",
+    "fabric",
+    "red",
+    "cream"
+   ],
+   "seam": [
+    2.02,
+    2.09
+   ],
+   "kind": "strip"
+  },
+  {
+   "id": "awning_red_white_shop",
+   "family": "awning",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/4_Generic_Buildings_32x32.png",
+   "rect": [
+    16,
+    5318,
+    224,
+    40
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    224,
+    40
+   ],
+   "palette": [
+    "#9f4a42",
+    "#d0be9c",
+    "#a86c56",
+    "#c3ac90",
+    "#843941",
+    "#e0d0b2"
+   ],
+   "tags": [
+    "awning",
+    "striped",
+    "red",
+    "white"
+   ],
+   "seam": [
+    0.0,
+    2.65
+   ],
+   "kind": "strip"
+  },
+  {
+   "id": "trim_cornice_white",
+   "family": "trim",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/4_Generic_Buildings_32x32.png",
+   "rect": [
+    32,
+    2960,
+    144,
+    40
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    144,
+    40
+   ],
+   "palette": [
+    "#c6bdd5",
+    "#b2aecb",
+    "#3a3a50",
+    "#d8d0e0",
+    "#9093b3",
+    "#52546d"
+   ],
+   "tags": [
+    "cornice",
+    "white",
+    "dentil"
+   ],
+   "seam": [
+    0.73,
+    0.1
+   ],
+   "kind": "strip"
+  },
+  {
+   "id": "trim_cornice_white_b",
+   "family": "trim",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/4_Generic_Buildings_32x32.png",
+   "rect": [
+    416,
+    1808,
+    128,
+    40
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    128,
+    40
+   ],
+   "palette": [
+    "#c6bdd5",
+    "#b2aecb",
+    "#3a3a50",
+    "#d8d0e0",
+    "#8f91b1",
+    "#51536b"
+   ],
+   "tags": [
+    "cornice",
+    "white",
+    "dentil"
+   ],
+   "seam": [
+    0.74,
+    0.08
+   ],
+   "kind": "strip"
+  },
+  {
+   "id": "road_crosswalk",
+   "family": "roadpaint",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/2_City_Terrains_32x32.png",
+   "rect": [
+    162,
+    128,
+    60,
+    60
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    60,
+    60
+   ],
+   "palette": [
+    "#d8d0e0",
+    "#534f52",
+    "#dad4cb",
+    "#d5cec6",
+    "#414052",
+    "#736f6f"
+   ],
+   "tags": [
+    "crosswalk",
+    "white",
+    "stripes",
+    "on",
+    "asphalt"
+   ],
+   "seam": [
+    0.04,
+    0.01
+   ],
+   "kind": "decal"
+  },
+  {
+   "id": "road_lane_white",
+   "family": "roadpaint",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/Autotiles_32x32/Game_Maker_Studio_Autotiles_32x32.png",
+   "rect": [
+    0,
+    3072,
+    384,
+    128
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    384,
+    128
+   ],
+   "palette": [
+    "#534f52",
+    "#565254",
+    "#595555",
+    "#d8d0e0"
+   ],
+   "tags": [
+    "lane",
+    "markings",
+    "white",
+    "autotile"
+   ],
+   "seam": [
+    0.48,
+    0.13
+   ],
+   "kind": "decal"
+  },
+  {
+   "id": "road_lane_yellow",
+   "family": "roadpaint",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/Autotiles_32x32/Game_Maker_Studio_Autotiles_32x32.png",
+   "rect": [
+    0,
+    3200,
+    384,
+    128
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    384,
+    128
+   ],
+   "palette": [
+    "#534f52",
+    "#565254",
+    "#595555",
+    "#f2b22b"
+   ],
+   "tags": [
+    "lane",
+    "markings",
+    "yellow",
+    "autotile"
+   ],
+   "seam": [
+    0.65,
+    0.07
+   ],
+   "kind": "decal"
+  },
+  {
+   "id": "kerb_cream_autotile",
+   "family": "kerb",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/Autotiles_32x32/Game_Maker_Studio_Autotiles_32x32.png",
+   "rect": [
+    0,
+    2304,
+    384,
+    128
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    384,
+    128
+   ],
+   "palette": [
+    "#dad4cb",
+    "#504d52",
+    "#3d3d52",
+    "#b4aea8",
+    "#d5cec6",
+    "#787371"
+   ],
+   "tags": [
+    "sidewalk",
+    "kerb",
+    "autotile",
+    "cream"
+   ],
+   "seam": [
+    1.75,
+    3.16
+   ],
+   "kind": "autotile"
+  },
+  {
+   "id": "kerb_grey_autotile",
+   "family": "kerb",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/Autotiles_32x32/Game_Maker_Studio_Autotiles_32x32.png",
+   "rect": [
+    0,
+    2560,
+    384,
+    128
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    384,
+    128
+   ],
+   "palette": [
+    "#b4b4b4",
+    "#504d52",
+    "#3d3d52",
+    "#9f9f9f",
+    "#aeaeae",
+    "#6b696a"
+   ],
+   "tags": [
+    "sidewalk",
+    "kerb",
+    "autotile",
+    "grey"
+   ],
+   "seam": [
+    1.9,
+    2.94
+   ],
+   "kind": "autotile"
+  },
+  {
+   "id": "kerb_blue_autotile",
+   "family": "kerb",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/Autotiles_32x32/Game_Maker_Studio_Autotiles_32x32.png",
+   "rect": [
+    0,
+    2944,
+    384,
+    128
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    384,
+    128
+   ],
+   "palette": [
+    "#8f9aa8",
+    "#504d52",
+    "#76808e",
+    "#3d3d52",
+    "#8894a1"
+   ],
+   "tags": [
+    "sidewalk",
+    "kerb",
+    "autotile",
+    "blue-grey"
+   ],
+   "seam": [
+    2.12,
+    2.93
+   ],
+   "kind": "autotile"
+  },
+  {
+   "id": "carpet_generic_purple",
+   "family": "carpet",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Theme_Sorter_32x32/1_Generic_32x32.png",
+   "rect": [
+    462,
+    750,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#564d9e",
+    "#974d9e",
+    "#3a3a50"
+   ],
+   "tags": [
+    "carpet",
+    "rug",
+    "purple",
+    "patterned"
+   ],
+   "seam": [
+    0.85,
+    1.01
+   ]
+  },
+  {
+   "id": "floor_tatami",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Theme_Sorter_32x32/20_Japanese_interiors_32x32.png",
+   "rect": [
+    0,
+    64,
+    32,
+    32
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#bea983",
+    "#baac88",
+    "#bbb38e",
+    "#c0b28c"
+   ],
+   "tags": [
+    "floor",
+    "tatami",
+    "mat",
+    "japanese"
+   ],
+   "seam": [
+    2.0,
+    2.0
+   ]
+  },
+  {
+   "id": "floor_gym_checker",
+   "family": "floor",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Theme_Sorter_32x32/8_Gym_32x32.png",
+   "rect": [
+    10,
+    340,
+    32,
+    32
+   ],
+   "tile": "seamless",
+   "repeat": [
+    32,
+    32
+   ],
+   "palette": [
+    "#6c6e85",
+    "#8b8bab",
+    "#565972"
+   ],
+   "tags": [
+    "floor",
+    "checker",
+    "blue-grey"
+   ],
+   "seam": [
+    1.37,
+    1.33
+   ]
+  },
+  {
+   "id": "carpet_path_0",
+   "family": "carpet",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floor_Paths_32x32.png",
+   "rect": [
+    56,
+    40,
+    16,
+    16
+   ],
+   "tile": "seamless",
+   "repeat": [
+    16,
+    16
+   ],
+   "palette": [
+    "#f0f0c8"
+   ],
+   "tags": [
+    "carpet",
+    "rug",
+    "path",
+    "fill"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "carpet_path_1",
+   "family": "carpet",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floor_Paths_32x32.png",
+   "rect": [
+    248,
+    40,
+    16,
+    16
+   ],
+   "tile": "seamless",
+   "repeat": [
+    16,
+    16
+   ],
+   "palette": [
+    "#bdf1e5"
+   ],
+   "tags": [
+    "carpet",
+    "rug",
+    "path",
+    "fill"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "carpet_path_2",
+   "family": "carpet",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floor_Paths_32x32.png",
+   "rect": [
+    440,
+    40,
+    16,
+    16
+   ],
+   "tile": "seamless",
+   "repeat": [
+    16,
+    16
+   ],
+   "palette": [
+    "#9093c1"
+   ],
+   "tags": [
+    "carpet",
+    "rug",
+    "path",
+    "fill"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "carpet_path_3",
+   "family": "carpet",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floor_Paths_32x32.png",
+   "rect": [
+    632,
+    40,
+    16,
+    16
+   ],
+   "tile": "seamless",
+   "repeat": [
+    16,
+    16
+   ],
+   "palette": [
+    "#f4d9d4"
+   ],
+   "tags": [
+    "carpet",
+    "rug",
+    "path",
+    "fill"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "carpet_path_4",
+   "family": "carpet",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floor_Paths_32x32.png",
+   "rect": [
+    824,
+    40,
+    16,
+    16
+   ],
+   "tile": "seamless",
+   "repeat": [
+    16,
+    16
+   ],
+   "palette": [
+    "#f0d690"
+   ],
+   "tags": [
+    "carpet",
+    "rug",
+    "path",
+    "fill"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "carpet_path_5",
+   "family": "carpet",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floor_Paths_32x32.png",
+   "rect": [
+    1064,
+    56,
+    16,
+    16
+   ],
+   "tile": "seamless",
+   "repeat": [
+    16,
+    16
+   ],
+   "palette": [
+    "#5a402b",
+    "#cb8955",
+    "#ab4a36",
+    "#be7249",
+    "#543a25",
+    "#6b4c34"
+   ],
+   "tags": [
+    "carpet",
+    "rug",
+    "path",
+    "fill"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "carpet_path_6",
+   "family": "carpet",
+   "pack": "interiors",
+   "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floor_Paths_32x32.png",
+   "rect": [
+    1224,
+    72,
+    16,
+    16
+   ],
+   "tile": "seamless",
+   "repeat": [
+    16,
+    16
+   ],
+   "palette": [
+    "#c38456"
+   ],
+   "tags": [
+    "carpet",
+    "rug",
+    "path",
+    "fill"
+   ],
+   "seam": [
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "id": "door_hotel_teal",
+   "family": "door",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/12_Hotel_and_Hospital_32x32.png",
+   "rect": [
+    72,
+    872,
+    80,
+    48
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    80,
+    48
+   ],
+   "palette": [
+    "#2e7177",
+    "#367f82",
+    "#2a575b",
+    "#6a9ca7",
+    "#3a3a50",
+    "#6c6e85"
+   ],
+   "tags": [
+    "door",
+    "pair",
+    "teal",
+    "glass"
+   ],
+   "seam": [
+    0.07,
+    2.5
+   ],
+   "kind": "decal"
+  },
+  {
+   "id": "door_police_blue",
+   "family": "door",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/15_Police_Station_32x32.png",
+   "rect": [
+    680,
+    1858,
+    72,
+    56
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    72,
+    56
+   ],
+   "palette": [
+    "#6499ba",
+    "#7caec2",
+    "#416095",
+    "#353d5f",
+    "#5085b4",
+    "#9e2b2d"
+   ],
+   "tags": [
+    "door",
+    "blue",
+    "pair"
+   ],
+   "seam": [
+    1.25,
+    1.55
+   ],
+   "kind": "decal"
+  },
+  {
+   "id": "door_school_wood",
+   "family": "door",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/13_School_32x32.png",
+   "rect": [
+    64,
+    2040,
+    64,
+    88
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    64,
+    88
+   ],
+   "palette": [
+    "#b27650",
+    "#a85f46",
+    "#3a3a50",
+    "#695052",
+    "#c28f64",
+    "#7d655c"
+   ],
+   "tags": [
+    "door",
+    "wooden",
+    "planks",
+    "iron",
+    "straps"
+   ],
+   "seam": [
+    0.14,
+    2.64
+   ],
+   "kind": "decal"
+  },
+  {
+   "id": "stone_grave_dark",
+   "family": "stone",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/19_Graveyard_32x32.png",
+   "rect": [
+    92,
+    742,
+    44,
+    76
+   ],
+   "tile": "needs-fix",
+   "repeat": [
+    44,
+    76
+   ],
+   "palette": [
+    "#5c4a44",
+    "#4d3f36",
+    "#676b83",
+    "#3a3a50",
+    "#46465e",
+    "#3c514d"
+   ],
+   "tags": [
+    "stone",
+    "dark",
+    "blue-grey",
+    "slabs"
+   ],
+   "seam": [
+    2.42,
+    3.37
+   ]
+  }
+ ]
+}
