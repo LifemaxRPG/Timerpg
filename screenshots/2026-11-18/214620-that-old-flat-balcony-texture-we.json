@@ -1,0 +1,157 @@
+{
+  "kind": "screenshot",
+  "time": "2026-11-18T21:46:20.196-0500",
+  "epochMs": 1795056380196,
+  "note": "that old flat balcony texture.  we need to make the balcony a 3d shapes",
+  "app": {
+    "versionName": "0.1.321 (dd7bb74)",
+    "versionCode": 321,
+    "git": "dd7bb74",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "image": {
+    "file": "214620-that-old-flat-balcony-texture-we.png",
+    "format": "png",
+    "scale": 1,
+    "width": 2340,
+    "height": 1080,
+    "bytes": 2038448,
+    "captured": "PixelCopy of the window"
+  },
+  "screen": {
+    "widthPx": 2244,
+    "heightPx": 1038,
+    "density": 2.8125,
+    "densityDpi": 450
+  },
+  "device": {
+    "ramFreeMb": 2865,
+    "ramTotalMb": 11113,
+    "lowMemory": false,
+    "gamePssMb": 1238,
+    "thermalStatus": 0,
+    "thermalHeadroom10s": 0.7692483
+  },
+  "game": {
+    "renderer": "Filament",
+    "camera": "medium",
+    "rendererError": null,
+    "town": "eta · Commuter suburb · 2025",
+    "walkableTown": {
+      "seed": "gamma",
+      "loading": false,
+      "ready": true,
+      "progress": 1,
+      "error": null,
+      "loadMs": 350.4478,
+      "firstViewMs": 15944.499,
+      "built": "town built: ground 15944 ms (workers 15939), buildings 296 ms here (slowest b21 10.0 ms, largest batch 19.1 ms), 16164 ms on workers (slowest b5 2067 ms); textures 692, 69.8M texels, 2312 shared",
+      "memory": {
+        "when": "town built",
+        "graphicsMb": 967,
+        "nativeMb": 97,
+        "javaMb": 103,
+        "codeMb": 31,
+        "totalPssMb": 1232
+      },
+      "row": "3L",
+      "street": "Main Street",
+      "neighbourhood": "Old Town",
+      "x": 632.3218,
+      "lane": 3,
+      "wx": 3613.8218,
+      "wz": 4411.68,
+      "heading": -1.5707964,
+      "front": "b1",
+      "transit": null,
+      "liveRows": [
+        "3L",
+        "0L",
+        "5R",
+        "3R",
+        "6L",
+        "8L"
+      ],
+      "people": 28
+    },
+    "street": {
+      "index": 0,
+      "name": "Main Street",
+      "nearestBuilding": 1,
+      "building": "Ellis's Bait Shop",
+      "owner": "Howard Ingram",
+      "atCorner": false,
+      "edge": 0
+    },
+    "player": {
+      "x": 632.3218,
+      "lane": 3,
+      "street": 0,
+      "dir": -1,
+      "walking": false,
+      "running": false,
+      "viewMiddle": 284.625
+    },
+    "turn": {
+      "active": false,
+      "forward": true,
+      "p": 0,
+      "yaw": 0,
+      "ease": 0,
+      "blocked": false
+    },
+    "inRoom": false,
+    "room": null,
+    "doorFade": false,
+    "time": {
+      "hour": 17.6,
+      "clock": "17:36",
+      "season": "summer",
+      "weather": "Clear"
+    },
+    "frames": {
+      "compose": "Frames: 16.6 ms (60 fps) · p95 16.7 ms · 0.4% late · display 60 Hz",
+      "filament": "Filament: CPU 7.7 ms (p95 10.0) · GPU 19.1 ms (p95 31.1) · start 9 ms, street 471 ms"
+    },
+    "ai": {
+      "state": "WAITING",
+      "detail": "Not enough free memory to load the model (2955 MB free, about 3908 MB needed with room for the game). Waiting for memory to free up (try 3 of 8).",
+      "runsOn": "CPU",
+      "modelMb": 5417,
+      "role": null,
+      "forceBank": false,
+      "gpuNote": null,
+      "lane": null,
+      "linesWritten": 55,
+      "builtIn": 0,
+      "queued": 0,
+      "paused": "",
+      "working": null,
+      "pregenOff": null,
+      "prefillTokPerSec": 0,
+      "genTokPerSec": 0,
+      "firstTokenMs": 0,
+      "loadInfo": null
+    },
+    "conversation": null,
+    "voices": {
+      "enabled": false,
+      "speaking": false,
+      "only": 2,
+      "timing": null
+    },
+    "mic": {
+      "always": false,
+      "granted": false,
+      "listening": false,
+      "state": "IDLE"
+    },
+    "panels": {
+      "aiPanel": false,
+      "crashShown": false,
+      "tuningNpu": false
+    }
+  }
+}
