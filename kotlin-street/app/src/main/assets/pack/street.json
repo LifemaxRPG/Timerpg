@@ -476,6 +476,62 @@
    }
   },
   {
+   "id": "show:pk_o3a",
+   "sprite": "pk_o3a",
+   "home": false,
+   "name": "pk_o3a",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_o3a",
+     "w": 96,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_o3a",
+    "kit": "office",
+    "style": 3,
+    "mid": 2,
+    "blocks": 2
+   }
+  },
+  {
+   "id": "show:pk_o4a",
+   "sprite": "pk_o4a",
+   "home": false,
+   "name": "pk_o4a",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_o4a",
+     "w": 96,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_o4a",
+    "kit": "office",
+    "style": 4,
+    "mid": 1,
+    "blocks": 3
+   }
+  },
+  {
    "id": "show:pk_b38",
    "sprite": "pk_b38",
    "home": false,
@@ -1015,6 +1071,8 @@
     "pk_c7b",
     "pk_o1a",
     "pk_o2a",
+    "pk_o3a",
+    "pk_o4a",
     "pk_c1a",
     "pk_c1b"
    ]

@@ -458,3 +458,21 @@ Wood_Grave x18 (32x64 / 32x96), Stone x9, Dirt_Ditch x9 (64x96 / 96x96: open gra
 shovels, pumpkins x~30 (a Halloween event). Needs: **cards** per prop (upright, nearest-filtered, as the trees), the graves and ditches as
 **ground decals**, the gates as thin boxes with a card, the chapel's lot (a cemetery behind the nave, gates in front); placement rules and era (the
 Halloween set only in October) are for the props job.
+
+## Built (2026-11-19): round 1 leftovers (office 3 and 4, Condo_8's balconies, roof props, shop variety)
+
+`tools/buildings_pack.py`, `tools/kits.py`; showcase streets 0 to 3; `final/C_*`.
+- **Office styles 3 and 4**: the missing piece is built from neighbours (`office_middles`). Style 3 has no lobby middle: a run of its own
+  Left_2 shutter columns (a shuttered shopfront lobby). Style 4 has no 192 middle: two floors, each the cornice band of its Left over its
+  `Window_4_Middle_Modular`. Both in the showcase (`pk_o3a`, `pk_o4a`). Their night light fills whole ribbon windows (a lit band), as style 2.
+- **Condo_8**: the three balconies are painted out of the front (the wall's own row colours) and built as a slab 16 deep with a railing on its
+  three open sides (`mrail`); its windows now light at night (`strict_panes`). The fire-escape ladders are still flat on the wall; the wall
+  behind the painted-out balconies shows faint horizontal streaks (the row fill).
+- **Roof props**: every flat-roofed pack building now carries 1-3 small boxes picked from the stair housing (Roof_Props_1), two air-conditioning
+  units (6, 7) and a plant cabinet (8): each box's top the sprite's top rows from above, its front the rest (`ROOF_PROPS`, `roof_prop_parts`; set
+  `props: false` in a spec to leave a roof bare). Not done: water tanks (no sprite in theme 5: the City-props Water_Tower is the item-4 prop job),
+  the pipes and the Roof_Props_2-5 vents (small cards: add with the props job).
+- **Shop variety**: `kits.py` adds whole 7-tile fronts of other kinds to every palette (bakery, butchery, gym: 2 open and 2 shutters-down each;
+  music store: 4 open), cut from the bottom 96 rows of the pack's `Ground_Floor_<kind>_n` pieces (the sign above them is left off, the lower
+  sign band stays); `auto_ground` picks a slot from the five signature pairs and these kinds without repeating a slot in a building, one slot in
+  twelve shut. Signature pairs are still two of every five choices.
