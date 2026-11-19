@@ -1,0 +1,393 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2000,
+  "topic": "money",
+  "facts": [
+    {
+      "id": "2000-money-01",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A cashier counts paper bills and coins before handing change across the counter.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-02",
+      "year_from": 2000,
+      "year_to": 2006,
+      "text": "Many customers still pay for groceries with personal checks.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-03",
+      "year_from": 2000,
+      "year_to": 2005,
+      "text": "A customer may write a check and show identification at the register.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-04",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Debit cards let shoppers pay directly from their checking accounts.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-05",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A customer enters a secret number on a keypad when paying by debit card.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-06",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Credit card users receive monthly statements listing purchases and interest charges.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-07",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A household mails checks with paper bills to pay utilities and insurance.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-08",
+      "year_from": 2002,
+      "year_to": 2009,
+      "text": "Some households begin paying bills through their bank's website.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-09",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Workers often receive wages by direct deposit instead of collecting a paper paycheck.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-10",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "An hourly worker compares the take-home paycheck with deductions for taxes and benefits.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-11",
+      "year_from": 2000,
+      "year_to": 2007,
+      "text": "The federal minimum hourly wage remains about five dollars and fifteen cents through mid-2007.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-money-12",
+      "year_from": 2007,
+      "year_to": 2009,
+      "text": "The federal minimum hourly wage rises in stages during the final years of the decade.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-money-13",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A family clips grocery coupons from a Sunday newspaper before shopping.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-14",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A supermarket advertises discounts through a free customer loyalty card.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-15",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A shopper compares the unit price on shelf labels before choosing a larger package.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-16",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A restaurant customer usually leaves a tip based on the meal bill.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-17",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A diner often leaves a few dollars in cash on the table for the server.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-18",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A teenager saves allowance money for a game or new clothes.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-19",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Parents may give children cash for lunch or school activities.",
+      "ages": "kids",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-20",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A worker withdraws cash from an automated teller machine before a weekend outing.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-21",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Some banks charge fees when customers use another bank's cash machine.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-22",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A family sets aside money each month for rent, groceries, and car payments.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-23",
+      "year_from": 2004,
+      "year_to": 2008,
+      "text": "Rising gasoline prices make the weekly drive to work more expensive in the middle of the decade.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "newspaper"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-24",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Many homeowners make monthly mortgage payments with interest and property taxes included.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-25",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A shopper may put a large purchase on a store credit account and pay over several months.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2000-money-26",
+      "year_from": 2008,
+      "year_to": 2009,
+      "text": "Families become more cautious about borrowing and spending during the late-decade recession.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "newspaper"
+      ],
+      "confidence": "medium"
+    }
+  ],
+  "not_yet": [],
+  "prices": [
+    {
+      "item": "federal minimum hourly wage",
+      "usd": 5.15,
+      "year": 2005,
+      "confidence": "medium"
+    },
+    {
+      "item": "first-class letter stamp",
+      "usd": 0.37,
+      "year": 2005,
+      "confidence": "medium"
+    },
+    {
+      "item": "gallon of regular gasoline",
+      "usd": 2.3,
+      "year": 2005,
+      "confidence": "medium"
+    },
+    {
+      "item": "gallon of whole milk",
+      "usd": 3.2,
+      "year": 2005,
+      "confidence": "medium"
+    },
+    {
+      "item": "dozen large eggs",
+      "usd": 1.22,
+      "year": 2005,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound loaf of white bread",
+      "usd": 1.05,
+      "year": 2005,
+      "confidence": "medium"
+    },
+    {
+      "item": "single local newspaper",
+      "usd": 0.5,
+      "year": 2005,
+      "confidence": "medium"
+    },
+    {
+      "item": "vending-machine soft drink",
+      "usd": 1,
+      "year": 2005,
+      "confidence": "medium"
+    },
+    {
+      "item": "basic diner coffee",
+      "usd": 1.25,
+      "year": 2005,
+      "confidence": "medium"
+    },
+    {
+      "item": "local bus fare",
+      "usd": 1.25,
+      "year": 2005,
+      "confidence": "medium"
+    },
+    {
+      "item": "basic men's haircut",
+      "usd": 12,
+      "year": 2005,
+      "confidence": "medium"
+    },
+    {
+      "item": "self-service laundry wash",
+      "usd": 1.5,
+      "year": 2005,
+      "confidence": "medium"
+    }
+  ],
+  "phrases": []
+}
