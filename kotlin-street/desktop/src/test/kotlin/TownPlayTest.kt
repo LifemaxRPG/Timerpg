@@ -69,7 +69,7 @@ class TownPlayTest {
         assertEquals(seed, town.seed)
         assertTrue("yards shipped", TownYards.parse(json).yards.isNotEmpty())
         val sprites = town.rows.flatMap { r -> r.buildings.map { it.sprite } }.toSet()
-        assertEquals(99, sprites.size)
+        assertEquals(105, sprites.size)
         // the movie theater (graph.cinema) stands as one of them, drawn by code (CinemaKit): no art files, a bill to show
         val cinema = root.getJSONObject("graph").getJSONObject("cinema")
         val cinemaSprite = root.getJSONObject("graph").getJSONArray("landmarks").let { a -> (0 until a.length()).map { a.getJSONObject(it) } }
@@ -94,7 +94,11 @@ class TownPlayTest {
         for (k in keys) assertTrue("room $k is a building", k in sprites)
         // every building has its art, and the ground's pictures are shipped
         val files = File(dir, "buildings").list()!!.toSet()
-        for (sp in sprites - cinemaSprite) assertTrue("art of $sp", files.any { it.startsWith("${sp}_") || it.startsWith("$sp.") })
+        // (the cinema and the stores are built by code: CinemaKit, StoreKit)
+        val stores = com.lifemax.rpg.feature.habits.domain.StoreLots.parse(root).map { it.sprite }.toSet()
+        assertEquals(4, stores.size)
+        for (sp in stores) assertTrue("store $sp has no art", files.none { it.startsWith("${sp}_") || it.startsWith("$sp.") })
+        for (sp in sprites - cinemaSprite - stores) assertTrue("art of $sp", files.any { it.startsWith("${sp}_") || it.startsWith("$sp.") })
         for (p in listOf("asphalt/asphalt_24.png", "sidewalk/sidewalk_25.png", "sidewalk/sidewalk_27.png", "grass/grass_9.png", "tree/tree_1.png"))
             assertTrue("art $p", File("../app/src/main/assets/town/art/$p").exists())
     }
@@ -224,7 +228,7 @@ class TownPlayTest {
         val yards = TownYards.parse(root)
         val map = com.lifemax.rpg.feature.habits.domain.TownCollision.build(town, yards,
             com.lifemax.rpg.feature.habits.domain.ModelShape.parseAll(File(dir, "buildings/models.json").readText()),
-            com.lifemax.rpg.feature.habits.domain.CinemaSiteShape.parse(root))
+            com.lifemax.rpg.feature.habits.domain.CinemaSiteShape.parse(root), com.lifemax.rpg.feature.habits.domain.StoreLots.parse(root).map { it.sprite }.toSet())
         val cam = com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera
         val wasOpen = cam.open
         try {

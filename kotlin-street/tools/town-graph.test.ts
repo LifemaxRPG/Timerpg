@@ -77,17 +77,17 @@ describe('town graph', () => {
     expect(g.graph.roads[spawn.road]!.name).toBe('Civic Avenue');
     expect(g.graph.spawn.x).toBeGreaterThan(89);
     expect(g.graph.spawn.x).toBeLessThan(spawn.length - 89);
-    // the school on the spawn's side, the fire station and clock tower across
+    // the hotel on the spawn's side, the clock tower across (since the stores took their sites: src/town/stores.ts)
     const across = rows.get(spawn.ends.start.cross!)!;
-    expect(spawn.buildings.map((b) => b.lot)).toContain('landmark:school');
-    expect(across.buildings.map((b) => b.lot)).toEqual(expect.arrayContaining(['landmark:fire', 'landmark:clocktower']));
+    expect(spawn.buildings.map((b) => b.lot)).toContain('landmark:hotel');
+    expect(across.buildings.map((b) => b.lot)).toEqual(expect.arrayContaining(['landmark:clocktower']));
   });
 
   it('keeps the v1 fields, for the spawn junction, and names buildings as v1 does', () => {
     const j = g.json as Record<string, unknown> & { shops: { sprite: string }[]; junction: { x: number } };
     expect(j.town).toBe(TOWN.seed);
     expect(j.version).toBe(2);
-    expect(j.junction.x).toBe(136);
+    expect(j.junction.x).toBe(164);
     expect(j.shops.map((s) => s.sprite)).toEqual(j.shops.map((_, i) => `b${i}`));
     const v1 = townStreets(TOWN.seed, TOWN.year);
     for (const [sprite, lot] of v1.lotOf) expect(g.buildings.lotOf.get(sprite)?.slot, sprite).toBe(lot.slot);
@@ -95,6 +95,7 @@ describe('town graph', () => {
     expect(`${JSON.stringify(townStreets('eta', 2025).json, null, 2)}\n`).toBe(readFileSync(join(__dirname, '../app/src/main/assets/street.json'), 'utf8'));
   });
 
+  // the fixture pins the Kotlin town tests (TownMapTest, TownWalkTest, TownPlaceTest, StreetPropRulesTest, OpenWalkTest)
   it('matches the Kotlin tests\' fixture', () => {
     expect(readFileSync(join(__dirname, '../desktop/src/test/resources/town-gamma.json'), 'utf8')).toBe(`${JSON.stringify(g.json)}\n`);
   });

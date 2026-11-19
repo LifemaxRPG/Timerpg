@@ -24,7 +24,8 @@ import kotlin.math.sqrt
  *  - buildings: a box or mobile home is its slot's rigid box (TownWalk's footprint, the yards' `house`); a modelled one
  *    (villas, flats, landmarks) its parts that stand on the ground below head height, so a porch's posts, a fire
  *    station's apparatus bay or a school's front block are where they are drawn; the cinema its body, drum, stair tower,
- *    canopy posts and its site's walls and rails ([CinemaSiteShape]);
+ *    canopy posts and its site's walls and rails ([CinemaSiteShape]); a store's plot ([StoreLots]) is left to what its
+ *    store, as built, stands there ([setExtra]: the building, posts, fences, corrals, the garden centre, parked cars);
  *  - yard edges: fences (front, side, back, post and rail), hedges and low walls; gates and side gates are gaps in them
  *    (the export splits the fences round the gates);
  *  - yard objects: sheds, garages, greenhouses, play sets, pools, ponds, trampolines, tables, benches, grills, bins,
@@ -57,23 +58,67 @@ class TownCollision private constructor(
     private val cellStart: IntArray,
     private val cellItems: IntArray,
 ) {
-    /** How many shapes. */
+    /** How many shapes (those the map was built with; [extraSize] more were added since). */
     val size: Int get() = type.size
+
+    /** The shapes added since by key ([setExtra]: the stores' sites and their parked cars), as one map of their own. */
+    @Volatile private var extra: TownCollision? = null
+    /** The overlay this query reads (taken once at its start, so a swap by another thread does not mix two). */
+    private var q: TownCollision? = null
+    private val extraSets = LinkedHashMap<String, Triple<FloatArray, SolidKind, String?>>()
+    /** How many shapes were added since the map was built ([setExtra]); their indices follow [size]. */
+    val extraSize: Int get() = extra?.size ?: 0
+
+    /**
+     * Sets the solid shapes kept under [key] (replacing what it had; null or empty removes them): oriented boxes, six
+     * floats each as the constructor's (centre x, z, unit axis x, z, half extents along it and across), of [kind], owned
+     * by [owner]. For what is built after the map: a store's site once its model is up, its parked cars each hour. Safe
+     * to call from another thread than the queries' (the overlay is rebuilt and swapped in whole).
+     */
+    fun setExtra(key: String, boxes: FloatArray?, kind: SolidKind = SolidKind.BUILDING, owner: String? = null) {
+        synchronized(extraSets) {
+            if (boxes == null || boxes.isEmpty()) { if (extraSets.remove(key) == null) return } else extraSets[key] = Triple(boxes, kind, owner)
+            val b = Builder()
+            for ((bx, k, o) in extraSets.values) {
+                var i = 0
+                while (i + 5 < bx.size) { b.box(bx[i], bx[i + 1], bx[i + 2], bx[i + 3], bx[i + 4], bx[i + 5], k, o); i += 6 }
+            }
+            extra = if (extraSets.isEmpty()) null else b.finishGrid(minX, minZ, cols, rows)
+        }
+    }
+
+    /** The doors added since by key ([setExtraDoors]: the stores' entrances), read by [TownDoors]. */
+    @Volatile var extraDoors: Array<TownDoor> = emptyArray(); private set
+    private val doorSets = LinkedHashMap<String, List<TownDoor>>()
+
+    /** Sets the doors kept under [key] (null or empty removes them). */
+    fun setExtraDoors(key: String, doors: List<TownDoor>?) {
+        synchronized(doorSets) {
+            if (doors.isNullOrEmpty()) doorSets.remove(key) else doorSets[key] = doors
+            extraDoors = doorSets.values.flatten().toTypedArray()
+        }
+    }
 
     /** The cinema's site the map was built with, if the town has one (for its door). */
     var cinema: CinemaSiteShape? = null
+        internal set
+    /** The sprites of the stores' plots the map was built with (left open: their stores add their shapes, [setExtra]). */
+    var stores: Set<String> = emptySet()
         internal set
 
     /** The world's edges (inside them the walk may go): min x, min z, max x, max z. */
     val maxX: Float get() = minX + cols * cell
     val maxZ: Float get() = minZ + rows * cell
 
-    fun kind(i: Int): SolidKind = kinds[i]
+    fun kind(i: Int): SolidKind = if (i >= size) extra!!.kinds[i - size] else kinds[i]
     /** What the shape belongs to (a building's or a yard's sprite, a row, "river"...), if anything. */
-    fun owner(i: Int): String? = owners[i]
-    fun isCircle(i: Int): Boolean = type[i].toInt() == 1
+    fun owner(i: Int): String? = if (i >= size) extra!!.owners[i - size] else owners[i]
+    fun isCircle(i: Int): Boolean = if (i >= size) extra!!.type[i - size].toInt() == 1 else type[i].toInt() == 1
     /** The shape's six numbers (see the constructor), into [out]. */
-    fun shape(i: Int, out: FloatArray): FloatArray { System.arraycopy(data, i * 6, out, 0, 6); return out }
+    fun shape(i: Int, out: FloatArray): FloatArray {
+        if (i >= size) System.arraycopy(extra!!.data, (i - size) * 6, out, 0, 6) else System.arraycopy(data, i * 6, out, 0, 6)
+        return out
+    }
 
     // a per-query stamp, so a shape lying in several cells is looked at once a query
     private val seen = IntArray(type.size)
@@ -95,6 +140,22 @@ class TownCollision private constructor(
                 if (f(i)) return
             }
         }
+        // the shapes added since (the same grid)
+        val ex = extra
+        q = ex
+        if (ex == null) return
+        ex.stamp++
+        if (ex.stamp == Int.MAX_VALUE) { ex.seen.fill(0); ex.stamp = 1 }
+        val n = size
+        for (r in r0..r1) for (c in c0..c1) {
+            val k = r * cols + c
+            for (j in ex.cellStart[k] until ex.cellStart[k + 1]) {
+                val i = ex.cellItems[j]
+                if (ex.seen[i] == ex.stamp) continue
+                ex.seen[i] = ex.stamp
+                if (f(n + i)) return
+            }
+        }
     }
 
     /**
@@ -102,6 +163,7 @@ class TownCollision private constructor(
      * direction out of it from there.
      */
     private fun distance(i: Int, x: Float, z: Float, push: FloatArray?): Float {
+        if (i >= size) return q!!.distance(i - size, x, z, push)
         val o = i * 6
         if (type[i].toInt() == 1) {
             val dx = x - data[o]; val dz = z - data[o + 1]
@@ -257,33 +319,36 @@ class TownCollision private constructor(
         fun fromStreetJson(streetJson: String, modelsJson: String?): TownCollision? {
             val root = org.json.JSONObject(streetJson)
             val town = Town.parse(root) ?: return null
-            return build(town, TownYards.parse(root), ModelShape.parseAll(modelsJson), CinemaSiteShape.parse(root))
+            return build(town, TownYards.parse(root), ModelShape.parseAll(modelsJson), CinemaSiteShape.parse(root), StoreLots.parse(root).map { it.sprite }.toSet())
         }
 
         /**
          * Builds the map: [town]'s rows (their buildings, furniture, street props), [yards] (edges and objects), the
          * forest and plaza props, the river less its bridges and the bridges' parapets, [models] (by sprite) for the
-         * modelled buildings' parts, [cinema] for the theater's site, if the town has one.
+         * modelled buildings' parts, [cinema] for the theater's site, if the town has one; [stores] the sprites of the
+         * stores' plots ([StoreLots]), left open here: their stores add what stands on them when built ([setExtra]).
          */
-        fun build(town: Town, yards: TownYards, models: Map<String, ModelShape> = emptyMap(), cinema: CinemaSiteShape? = null): TownCollision {
+        fun build(town: Town, yards: TownYards, models: Map<String, ModelShape> = emptyMap(), cinema: CinemaSiteShape? = null,
+                  stores: Set<String> = emptySet()): TownCollision {
             val b = Builder()
-            buildings(b, town, models, cinema)
+            buildings(b, town, models, cinema, stores)
             for (y in yards.yards) yardItems(b, y.items, y.sprite)
             for (l in yards.lanes) yardItems(b, l.items, l.id)
             furniture(b, town)
             streetProps(b, town)
             greenery(b, town)
             water(b, town)
-            return b.finish(town).also { it.cinema = cinema }
+            return b.finish(town).also { it.cinema = cinema; it.stores = stores }
         }
 
         // ------------------------------------------------------------------ buildings
 
-        private fun buildings(b: Builder, town: Town, models: Map<String, ModelShape>, cinema: CinemaSiteShape?) {
+        private fun buildings(b: Builder, town: Town, models: Map<String, ModelShape>, cinema: CinemaSiteShape?, stores: Set<String>) {
             val kk = BuildingSpec.W / 224f
             for (row in town.rows) for (p in row.buildings) {
                 val place = TownPlace.of(row, p)
                 if (cinema != null && p.sprite == cinema.sprite) { cinema.addTo(b, place, p); continue }
+                if (p.sprite in stores) continue
                 val m = models[p.sprite]
                 val solid = m?.parts?.filter { standsOnGround(it) }.orEmpty()
                 if (m == null || solid.isEmpty()) {
@@ -541,9 +606,6 @@ class TownCollision private constructor(
         }
 
         fun finish(town: Town): TownCollision {
-            val n = type.size
-            val d = FloatArray(data.size) { data[it] }
-            val t = ByteArray(n) { type[it] }
             // the world: the town's data and every shape, and a margin past it
             var x0 = Float.MAX_VALUE; var z0 = Float.MAX_VALUE; var x1 = -Float.MAX_VALUE; var z1 = -Float.MAX_VALUE
             fun take(x: Float, z: Float) { x0 = min(x0, x); z0 = min(z0, z); x1 = max(x1, x); z1 = max(z1, z) }
@@ -552,8 +614,14 @@ class TownCollision private constructor(
             for (nd in town.nodes) take(nd.x, nd.z)
             if (x0 > x1) { x0 = 0f; z0 = 0f; x1 = 1f; z1 = 1f }
             x0 -= EDGE_MARGIN; z0 -= EDGE_MARGIN; x1 += EDGE_MARGIN; z1 += EDGE_MARGIN
-            val cols = max(1, ceil((x1 - x0) / CELL).toInt())
-            val rows = max(1, ceil((z1 - z0) / CELL).toInt())
+            return finishGrid(x0, z0, max(1, ceil((x1 - x0) / CELL).toInt()), max(1, ceil((z1 - z0) / CELL).toInt()))
+        }
+
+        /** The map of these shapes over a grid of [cols] x [rows] cells from ([x0], [z0]). */
+        fun finishGrid(x0: Float, z0: Float, cols: Int, rows: Int): TownCollision {
+            val n = type.size
+            val d = FloatArray(data.size) { data[it] }
+            val t = ByteArray(n) { type[it] }
             val counts = IntArray(cols * rows + 1)
             val bounds = FloatArray(4)
             fun cellsOf(i: Int, f: (Int) -> Unit) {

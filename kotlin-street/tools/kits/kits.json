@@ -1,0 +1,2933 @@
+{
+ "tile": 32,
+ "kits": {
+  "brick": {
+   "family": "fm",
+   "palette": "brick",
+   "tile": 32,
+   "edge": {
+    "w_px": 3,
+    "mid": [
+     "Middle_Floor_1"
+    ],
+    "condo": [
+     "Ground_Floor_Condo_1"
+    ],
+    "shop": [
+     "Ground_Floor_Shop_1"
+    ]
+   },
+   "filler": {
+    "tiles": 1
+   },
+   "middle": {
+    "h_tiles": 4,
+    "motifs": {
+     "win": {
+      "tiles": 2,
+      "parts": [
+       [
+        "fm",
+        "Middle_Floor_Modular_1",
+        0,
+        32
+       ],
+       [
+        "fm",
+        "Middle_Floor_Modular_2",
+        0,
+        32
+       ]
+      ],
+      "weight": 5,
+      "balcony": false
+     },
+     "balc": {
+      "tiles": 2,
+      "parts": [
+       [
+        "fm",
+        "Middle_Floor_Modular_3",
+        0,
+        32
+       ],
+       [
+        "fm",
+        "Middle_Floor_Modular_4",
+        0,
+        32
+       ]
+      ],
+      "weight": 0,
+      "balcony": true
+     },
+     "sign": {
+      "tiles": 2,
+      "parts": [
+       [
+        "fm",
+        "Middle_Floor_Modular_5",
+        0,
+        32
+       ],
+       [
+        "fm",
+        "Middle_Floor_Modular_6",
+        0,
+        32
+       ]
+      ],
+      "weight": 2,
+      "balcony": false
+     },
+     "twin": {
+      "tiles": 2,
+      "parts": [
+       [
+        "fm",
+        "Middle_Floor_Modular_7",
+        0,
+        32
+       ],
+       [
+        "fm",
+        "Middle_Floor_Modular_8",
+        0,
+        32
+       ]
+      ],
+      "weight": 3,
+      "balcony": false
+     },
+     "slit": {
+      "tiles": 2,
+      "parts": [
+       [
+        "fm",
+        "Middle_Floor_Modular_9",
+        0,
+        32
+       ],
+       [
+        "fm",
+        "Middle_Floor_Modular_10",
+        0,
+        32
+       ]
+      ],
+      "weight": 2,
+      "balcony": false
+     }
+    },
+    "full": [
+     "Middle_Floor_1",
+     "Middle_Floor_2",
+     "Middle_Floor_3",
+     "Middle_Floor_4",
+     "Middle_Floor_5",
+     "Middle_Floor_6"
+    ]
+   },
+   "ground": {
+    "shop": {
+     "h_tiles": 3,
+     "motifs": {
+      "disp0": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_1",
+         0,
+         160,
+         true,
+         false
+        ]
+       ]
+      },
+      "door0": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_1",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true
+      },
+      "disp1": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_5",
+         0,
+         160,
+         true,
+         false
+        ]
+       ]
+      },
+      "door1": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_5",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true
+      },
+      "disp2": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_7",
+         0,
+         160,
+         true,
+         false
+        ]
+       ]
+      },
+      "door2": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_7",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true
+      },
+      "disp3": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_9",
+         0,
+         160,
+         true,
+         false
+        ]
+       ]
+      },
+      "door3": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_9",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true
+      },
+      "disp4": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_11",
+         0,
+         160,
+         true,
+         false
+        ]
+       ]
+      },
+      "door4": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_11",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true
+      },
+      "cdisp0": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_2",
+         0,
+         160,
+         true,
+         false
+        ]
+       ],
+       "closed": true
+      },
+      "cdoor0": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_2",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true,
+       "closed": true
+      },
+      "cdisp1": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_6",
+         0,
+         160,
+         true,
+         false
+        ]
+       ],
+       "closed": true
+      },
+      "cdoor1": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_6",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true,
+       "closed": true
+      },
+      "cdisp2": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_8",
+         0,
+         160,
+         true,
+         false
+        ]
+       ],
+       "closed": true
+      },
+      "cdoor2": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_8",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true,
+       "closed": true
+      },
+      "cdisp3": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_10",
+         0,
+         160,
+         true,
+         false
+        ]
+       ],
+       "closed": true
+      },
+      "cdoor3": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_10",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true,
+       "closed": true
+      },
+      "cdisp4": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_12",
+         0,
+         160,
+         true,
+         false
+        ]
+       ],
+       "closed": true
+      },
+      "cdoor4": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_12",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true,
+       "closed": true
+      },
+      "bakery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_1",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "bakery"
+      },
+      "bakery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_3",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "bakery"
+      },
+      "cbakery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_2",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "bakery"
+      },
+      "cbakery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_4",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "bakery"
+      },
+      "butchery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_1",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "butchery"
+      },
+      "butchery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_3",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "butchery"
+      },
+      "cbutchery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_2",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "butchery"
+      },
+      "cbutchery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_4",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "butchery"
+      },
+      "gym0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_1",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "gym"
+      },
+      "gym1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_3",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "gym"
+      },
+      "cgym0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_2",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "gym"
+      },
+      "cgym1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_4",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "gym"
+      },
+      "music0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_1",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      },
+      "music1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_2",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      },
+      "music2": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_7",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      },
+      "music3": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_8",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      }
+     },
+     "full": [
+      "Ground_Floor_Shop_1",
+      "Ground_Floor_Shop_5",
+      "Ground_Floor_Shop_7",
+      "Ground_Floor_Shop_9",
+      "Ground_Floor_Shop_11"
+     ]
+    },
+    "condo": {
+     "h_tiles": 3,
+     "motifs": {
+      "smallwin": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_1",
+         0,
+         32
+        ],
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_2",
+         0,
+         32
+        ]
+       ]
+      },
+      "atm": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_3",
+         0,
+         32
+        ],
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_4",
+         0,
+         32
+        ]
+       ]
+      },
+      "pipe": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_5",
+         0,
+         32
+        ],
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_6",
+         0,
+         32
+        ]
+       ]
+      },
+      "tall": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_7",
+         0,
+         32
+        ],
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_8",
+         0,
+         32
+        ]
+       ]
+      },
+      "door_glass": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_1",
+         128,
+         192,
+         false,
+         false
+        ]
+       ],
+       "door": true
+      },
+      "door_canopy": {
+       "tiles": 3,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_2",
+         64,
+         160,
+         false,
+         false
+        ]
+       ],
+       "door": true
+      },
+      "door_arch": {
+       "tiles": 3,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_3",
+         96,
+         192,
+         false,
+         false
+        ]
+       ],
+       "door": true
+      },
+      "door_wood": {
+       "tiles": 3,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_4",
+         64,
+         160,
+         false,
+         false
+        ]
+       ],
+       "door": true
+      },
+      "win2": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_2",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": false
+      },
+      "bigwin3": {
+       "tiles": 3,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_3",
+         0,
+         96,
+         true,
+         false
+        ]
+       ],
+       "door": false
+      }
+     },
+     "full": [
+      "Ground_Floor_Condo_1",
+      "Ground_Floor_Condo_2",
+      "Ground_Floor_Condo_3",
+      "Ground_Floor_Condo_4"
+     ]
+    }
+   },
+   "roof": {
+    "flat": {
+     "teal": {
+      "columns": [
+       "Roof_Modular_1",
+       "Roof_Modular_2"
+      ],
+      "rows": {
+       "back_top": [
+        2,
+        12
+       ],
+       "back_face": [
+        12,
+        26
+       ],
+       "floor": [
+        44,
+        164
+       ],
+       "front_top": [
+        166,
+        180
+       ],
+       "front_face": [
+        178,
+        190
+       ]
+      },
+      "depth_tiles": 6
+     },
+     "gold": {
+      "columns": [
+       "Roof_Modular_4",
+       "Roof_Modular_5"
+      ],
+      "rows": {
+       "back_top": [
+        2,
+        12
+       ],
+       "back_face": [
+        12,
+        26
+       ],
+       "floor": [
+        44,
+        164
+       ],
+       "front_top": [
+        166,
+        180
+       ],
+       "front_face": [
+        178,
+        190
+       ]
+      },
+      "depth_tiles": 6
+     },
+     "stone": {
+      "columns": [
+       "Roof_Modular_7",
+       "Roof_Modular_8"
+      ],
+      "rows": {
+       "back_top": [
+        2,
+        12
+       ],
+       "back_face": [
+        12,
+        26
+       ],
+       "floor": [
+        44,
+        164
+       ],
+       "front_top": [
+        166,
+        180
+       ],
+       "front_face": [
+        178,
+        190
+       ]
+      },
+      "depth_tiles": 6
+     }
+    },
+    "corners": {
+     "teal": {
+      "tl": 14,
+      "tr": 15,
+      "left": 17,
+      "right": 16
+     },
+     "gold": {
+      "tl": 22,
+      "tr": 23,
+      "left": 24,
+      "right": 25
+     },
+     "stone": {
+      "tl": 26,
+      "tr": 27,
+      "left": 28,
+      "right": 29
+     }
+    }
+   }
+  },
+  "blue": {
+   "family": "fm",
+   "palette": "blue",
+   "tile": 32,
+   "edge": {
+    "w_px": 3,
+    "mid": [
+     "Middle_Floor_7"
+    ],
+    "condo": [
+     "Ground_Floor_Condo_5"
+    ],
+    "shop": [
+     "Ground_Floor_Shop_13"
+    ]
+   },
+   "filler": {
+    "tiles": 1
+   },
+   "middle": {
+    "h_tiles": 4,
+    "motifs": {
+     "win": {
+      "tiles": 2,
+      "parts": [
+       [
+        "fm",
+        "Middle_Floor_Modular_11",
+        0,
+        32
+       ],
+       [
+        "fm",
+        "Middle_Floor_Modular_12",
+        0,
+        32
+       ]
+      ],
+      "weight": 5,
+      "balcony": false
+     },
+     "balc": {
+      "tiles": 2,
+      "parts": [
+       [
+        "fm",
+        "Middle_Floor_Modular_13",
+        0,
+        32
+       ],
+       [
+        "fm",
+        "Middle_Floor_Modular_14",
+        0,
+        32
+       ]
+      ],
+      "weight": 0,
+      "balcony": true
+     },
+     "sign": {
+      "tiles": 2,
+      "parts": [
+       [
+        "fm",
+        "Middle_Floor_Modular_15",
+        0,
+        32
+       ],
+       [
+        "fm",
+        "Middle_Floor_Modular_16",
+        0,
+        32
+       ]
+      ],
+      "weight": 2,
+      "balcony": false
+     },
+     "twin": {
+      "tiles": 2,
+      "parts": [
+       [
+        "fm",
+        "Middle_Floor_Modular_17",
+        0,
+        32
+       ],
+       [
+        "fm",
+        "Middle_Floor_Modular_18",
+        0,
+        32
+       ]
+      ],
+      "weight": 3,
+      "balcony": false
+     },
+     "slit": {
+      "tiles": 2,
+      "parts": [
+       [
+        "fm",
+        "Middle_Floor_Modular_19",
+        0,
+        32
+       ],
+       [
+        "fm",
+        "Middle_Floor_Modular_20",
+        0,
+        32
+       ]
+      ],
+      "weight": 2,
+      "balcony": false
+     }
+    },
+    "full": [
+     "Middle_Floor_7",
+     "Middle_Floor_8",
+     "Middle_Floor_9",
+     "Middle_Floor_10",
+     "Middle_Floor_11",
+     "Middle_Floor_12"
+    ]
+   },
+   "ground": {
+    "shop": {
+     "h_tiles": 3,
+     "motifs": {
+      "disp0": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_13",
+         0,
+         160,
+         true,
+         false
+        ]
+       ]
+      },
+      "door0": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_13",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true
+      },
+      "disp1": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_17",
+         0,
+         160,
+         true,
+         false
+        ]
+       ]
+      },
+      "door1": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_17",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true
+      },
+      "disp2": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_19",
+         0,
+         160,
+         true,
+         false
+        ]
+       ]
+      },
+      "door2": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_19",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true
+      },
+      "disp3": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_21",
+         0,
+         160,
+         true,
+         false
+        ]
+       ]
+      },
+      "door3": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_21",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true
+      },
+      "disp4": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_23",
+         0,
+         160,
+         true,
+         false
+        ]
+       ]
+      },
+      "door4": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_23",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true
+      },
+      "cdisp0": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_14",
+         0,
+         160,
+         true,
+         false
+        ]
+       ],
+       "closed": true
+      },
+      "cdoor0": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_14",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true,
+       "closed": true
+      },
+      "cdisp1": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_18",
+         0,
+         160,
+         true,
+         false
+        ]
+       ],
+       "closed": true
+      },
+      "cdoor1": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_18",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true,
+       "closed": true
+      },
+      "cdisp2": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_20",
+         0,
+         160,
+         true,
+         false
+        ]
+       ],
+       "closed": true
+      },
+      "cdoor2": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_20",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true,
+       "closed": true
+      },
+      "cdisp3": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_22",
+         0,
+         160,
+         true,
+         false
+        ]
+       ],
+       "closed": true
+      },
+      "cdoor3": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_22",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true,
+       "closed": true
+      },
+      "cdisp4": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_24",
+         0,
+         160,
+         true,
+         false
+        ]
+       ],
+       "closed": true
+      },
+      "cdoor4": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_24",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true,
+       "closed": true
+      },
+      "bakery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_5",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "bakery"
+      },
+      "bakery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_7",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "bakery"
+      },
+      "cbakery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_6",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "bakery"
+      },
+      "cbakery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_8",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "bakery"
+      },
+      "butchery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_5",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "butchery"
+      },
+      "butchery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_7",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "butchery"
+      },
+      "cbutchery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_6",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "butchery"
+      },
+      "cbutchery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_8",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "butchery"
+      },
+      "gym0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_5",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "gym"
+      },
+      "gym1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_7",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "gym"
+      },
+      "cgym0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_6",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "gym"
+      },
+      "cgym1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_8",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "gym"
+      },
+      "music0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_3",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      },
+      "music1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_4",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      },
+      "music2": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_9",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      },
+      "music3": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_10",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      }
+     },
+     "full": [
+      "Ground_Floor_Shop_13",
+      "Ground_Floor_Shop_17",
+      "Ground_Floor_Shop_19",
+      "Ground_Floor_Shop_21",
+      "Ground_Floor_Shop_23"
+     ]
+    },
+    "condo": {
+     "h_tiles": 3,
+     "motifs": {
+      "smallwin": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_9",
+         0,
+         32
+        ],
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_10",
+         0,
+         32
+        ]
+       ]
+      },
+      "atm": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_11",
+         0,
+         32
+        ],
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_12",
+         0,
+         32
+        ]
+       ]
+      },
+      "pipe": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_13",
+         0,
+         32
+        ],
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_14",
+         0,
+         32
+        ]
+       ]
+      },
+      "tall": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_15",
+         0,
+         32
+        ],
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_16",
+         0,
+         32
+        ]
+       ]
+      },
+      "door_glass": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_5",
+         128,
+         192,
+         false,
+         false
+        ]
+       ],
+       "door": true
+      },
+      "door_canopy": {
+       "tiles": 3,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_6",
+         64,
+         160,
+         false,
+         false
+        ]
+       ],
+       "door": true
+      },
+      "door_arch": {
+       "tiles": 3,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_7",
+         96,
+         192,
+         false,
+         false
+        ]
+       ],
+       "door": true
+      },
+      "door_wood": {
+       "tiles": 3,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_8",
+         64,
+         160,
+         false,
+         false
+        ]
+       ],
+       "door": true
+      },
+      "win2": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_6",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": false
+      },
+      "bigwin3": {
+       "tiles": 3,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_7",
+         0,
+         96,
+         true,
+         false
+        ]
+       ],
+       "door": false
+      }
+     },
+     "full": [
+      "Ground_Floor_Condo_5",
+      "Ground_Floor_Condo_6",
+      "Ground_Floor_Condo_7",
+      "Ground_Floor_Condo_8"
+     ]
+    }
+   },
+   "roof": {
+    "flat": {
+     "teal": {
+      "columns": [
+       "Roof_Modular_1",
+       "Roof_Modular_2"
+      ],
+      "rows": {
+       "back_top": [
+        2,
+        12
+       ],
+       "back_face": [
+        12,
+        26
+       ],
+       "floor": [
+        44,
+        164
+       ],
+       "front_top": [
+        166,
+        180
+       ],
+       "front_face": [
+        178,
+        190
+       ]
+      },
+      "depth_tiles": 6
+     },
+     "gold": {
+      "columns": [
+       "Roof_Modular_4",
+       "Roof_Modular_5"
+      ],
+      "rows": {
+       "back_top": [
+        2,
+        12
+       ],
+       "back_face": [
+        12,
+        26
+       ],
+       "floor": [
+        44,
+        164
+       ],
+       "front_top": [
+        166,
+        180
+       ],
+       "front_face": [
+        178,
+        190
+       ]
+      },
+      "depth_tiles": 6
+     },
+     "stone": {
+      "columns": [
+       "Roof_Modular_7",
+       "Roof_Modular_8"
+      ],
+      "rows": {
+       "back_top": [
+        2,
+        12
+       ],
+       "back_face": [
+        12,
+        26
+       ],
+       "floor": [
+        44,
+        164
+       ],
+       "front_top": [
+        166,
+        180
+       ],
+       "front_face": [
+        178,
+        190
+       ]
+      },
+      "depth_tiles": 6
+     }
+    },
+    "corners": {
+     "teal": {
+      "tl": 14,
+      "tr": 15,
+      "left": 17,
+      "right": 16
+     },
+     "gold": {
+      "tl": 22,
+      "tr": 23,
+      "left": 24,
+      "right": 25
+     },
+     "stone": {
+      "tl": 26,
+      "tr": 27,
+      "left": 28,
+      "right": 29
+     }
+    }
+   }
+  },
+  "grey": {
+   "family": "fm",
+   "palette": "grey",
+   "tile": 32,
+   "edge": {
+    "w_px": 3,
+    "mid": [
+     "Middle_Floor_13"
+    ],
+    "condo": [
+     "Ground_Floor_Condo_9"
+    ],
+    "shop": [
+     "Ground_Floor_Shop_25"
+    ]
+   },
+   "filler": {
+    "tiles": 1
+   },
+   "middle": {
+    "h_tiles": 4,
+    "motifs": {
+     "win": {
+      "tiles": 2,
+      "parts": [
+       [
+        "fm",
+        "Middle_Floor_Modular_21",
+        0,
+        32
+       ],
+       [
+        "fm",
+        "Middle_Floor_Modular_22",
+        0,
+        32
+       ]
+      ],
+      "weight": 5,
+      "balcony": false
+     },
+     "balc": {
+      "tiles": 2,
+      "parts": [
+       [
+        "fm",
+        "Middle_Floor_Modular_23",
+        0,
+        32
+       ],
+       [
+        "fm",
+        "Middle_Floor_Modular_24",
+        0,
+        32
+       ]
+      ],
+      "weight": 0,
+      "balcony": true
+     },
+     "sign": {
+      "tiles": 2,
+      "parts": [
+       [
+        "fm",
+        "Middle_Floor_Modular_25",
+        0,
+        32
+       ],
+       [
+        "fm",
+        "Middle_Floor_Modular_26",
+        0,
+        32
+       ]
+      ],
+      "weight": 2,
+      "balcony": false
+     },
+     "twin": {
+      "tiles": 2,
+      "parts": [
+       [
+        "fm",
+        "Middle_Floor_Modular_27",
+        0,
+        32
+       ],
+       [
+        "fm",
+        "Middle_Floor_Modular_28",
+        0,
+        32
+       ]
+      ],
+      "weight": 3,
+      "balcony": false
+     },
+     "slit": {
+      "tiles": 2,
+      "parts": [
+       [
+        "fm",
+        "Middle_Floor_Modular_29",
+        0,
+        32
+       ],
+       [
+        "fm",
+        "Middle_Floor_Modular_30",
+        0,
+        32
+       ]
+      ],
+      "weight": 2,
+      "balcony": false
+     }
+    },
+    "full": [
+     "Middle_Floor_13",
+     "Middle_Floor_14",
+     "Middle_Floor_15",
+     "Middle_Floor_16",
+     "Middle_Floor_17",
+     "Middle_Floor_18"
+    ]
+   },
+   "ground": {
+    "shop": {
+     "h_tiles": 3,
+     "motifs": {
+      "disp0": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_25",
+         0,
+         160,
+         true,
+         false
+        ]
+       ]
+      },
+      "door0": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_25",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true
+      },
+      "disp1": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_29",
+         0,
+         160,
+         true,
+         false
+        ]
+       ]
+      },
+      "door1": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_29",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true
+      },
+      "disp2": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_31",
+         0,
+         160,
+         true,
+         false
+        ]
+       ]
+      },
+      "door2": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_31",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true
+      },
+      "disp3": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_33",
+         0,
+         160,
+         true,
+         false
+        ]
+       ]
+      },
+      "door3": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_33",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true
+      },
+      "disp4": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_35",
+         0,
+         160,
+         true,
+         false
+        ]
+       ]
+      },
+      "door4": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_35",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true
+      },
+      "cdisp0": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_26",
+         0,
+         160,
+         true,
+         false
+        ]
+       ],
+       "closed": true
+      },
+      "cdoor0": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_26",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true,
+       "closed": true
+      },
+      "cdisp1": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_30",
+         0,
+         160,
+         true,
+         false
+        ]
+       ],
+       "closed": true
+      },
+      "cdoor1": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_30",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true,
+       "closed": true
+      },
+      "cdisp2": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_32",
+         0,
+         160,
+         true,
+         false
+        ]
+       ],
+       "closed": true
+      },
+      "cdoor2": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_32",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true,
+       "closed": true
+      },
+      "cdisp3": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_34",
+         0,
+         160,
+         true,
+         false
+        ]
+       ],
+       "closed": true
+      },
+      "cdoor3": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_34",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true,
+       "closed": true
+      },
+      "cdisp4": {
+       "tiles": 5,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_36",
+         0,
+         160,
+         true,
+         false
+        ]
+       ],
+       "closed": true
+      },
+      "cdoor4": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Shop_36",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": true,
+       "closed": true
+      },
+      "bakery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_9",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "bakery"
+      },
+      "bakery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_11",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "bakery"
+      },
+      "cbakery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_10",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "bakery"
+      },
+      "cbakery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_12",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "bakery"
+      },
+      "butchery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_9",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "butchery"
+      },
+      "butchery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_11",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "butchery"
+      },
+      "cbutchery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_10",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "butchery"
+      },
+      "cbutchery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_12",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "butchery"
+      },
+      "gym0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_9",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "gym"
+      },
+      "gym1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_11",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "gym"
+      },
+      "cgym0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_10",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "gym"
+      },
+      "cgym1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_12",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "gym"
+      },
+      "music0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_5",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      },
+      "music1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_6",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      },
+      "music2": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_11",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      },
+      "music3": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_12",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      }
+     },
+     "full": [
+      "Ground_Floor_Shop_25",
+      "Ground_Floor_Shop_29",
+      "Ground_Floor_Shop_31",
+      "Ground_Floor_Shop_33",
+      "Ground_Floor_Shop_35"
+     ]
+    },
+    "condo": {
+     "h_tiles": 3,
+     "motifs": {
+      "smallwin": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_17",
+         0,
+         32
+        ],
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_18",
+         0,
+         32
+        ]
+       ]
+      },
+      "atm": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_19",
+         0,
+         32
+        ],
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_20",
+         0,
+         32
+        ]
+       ]
+      },
+      "pipe": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_21",
+         0,
+         32
+        ],
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_22",
+         0,
+         32
+        ]
+       ]
+      },
+      "tall": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_23",
+         0,
+         32
+        ],
+        [
+         "fm",
+         "Ground_Floor_Condo_Modular_24",
+         0,
+         32
+        ]
+       ]
+      },
+      "door_glass": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_9",
+         128,
+         192,
+         false,
+         false
+        ]
+       ],
+       "door": true
+      },
+      "door_canopy": {
+       "tiles": 3,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_10",
+         64,
+         160,
+         false,
+         false
+        ]
+       ],
+       "door": true
+      },
+      "door_arch": {
+       "tiles": 3,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_11",
+         96,
+         192,
+         false,
+         false
+        ]
+       ],
+       "door": true
+      },
+      "door_wood": {
+       "tiles": 3,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_12",
+         64,
+         160,
+         false,
+         false
+        ]
+       ],
+       "door": true
+      },
+      "win2": {
+       "tiles": 2,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_10",
+         160,
+         224,
+         false,
+         true
+        ]
+       ],
+       "door": false
+      },
+      "bigwin3": {
+       "tiles": 3,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_11",
+         0,
+         96,
+         true,
+         false
+        ]
+       ],
+       "door": false
+      }
+     },
+     "full": [
+      "Ground_Floor_Condo_9",
+      "Ground_Floor_Condo_10",
+      "Ground_Floor_Condo_11",
+      "Ground_Floor_Condo_12"
+     ]
+    }
+   },
+   "roof": {
+    "flat": {
+     "teal": {
+      "columns": [
+       "Roof_Modular_1",
+       "Roof_Modular_2"
+      ],
+      "rows": {
+       "back_top": [
+        2,
+        12
+       ],
+       "back_face": [
+        12,
+        26
+       ],
+       "floor": [
+        44,
+        164
+       ],
+       "front_top": [
+        166,
+        180
+       ],
+       "front_face": [
+        178,
+        190
+       ]
+      },
+      "depth_tiles": 6
+     },
+     "gold": {
+      "columns": [
+       "Roof_Modular_4",
+       "Roof_Modular_5"
+      ],
+      "rows": {
+       "back_top": [
+        2,
+        12
+       ],
+       "back_face": [
+        12,
+        26
+       ],
+       "floor": [
+        44,
+        164
+       ],
+       "front_top": [
+        166,
+        180
+       ],
+       "front_face": [
+        178,
+        190
+       ]
+      },
+      "depth_tiles": 6
+     },
+     "stone": {
+      "columns": [
+       "Roof_Modular_7",
+       "Roof_Modular_8"
+      ],
+      "rows": {
+       "back_top": [
+        2,
+        12
+       ],
+       "back_face": [
+        12,
+        26
+       ],
+       "floor": [
+        44,
+        164
+       ],
+       "front_top": [
+        166,
+        180
+       ],
+       "front_face": [
+        178,
+        190
+       ]
+      },
+      "depth_tiles": 6
+     }
+    },
+    "corners": {
+     "teal": {
+      "tl": 14,
+      "tr": 15,
+      "left": 17,
+      "right": 16
+     },
+     "gold": {
+      "tl": 22,
+      "tr": 23,
+      "left": 24,
+      "right": 25
+     },
+     "stone": {
+      "tl": 26,
+      "tr": 27,
+      "left": 28,
+      "right": 29
+     }
+    }
+   }
+  },
+  "condo7": {
+   "family": "gb",
+   "tile": 32,
+   "widthTiles": 3,
+   "bottom": "Condo_7_Modular_Bottom",
+   "middle": "Condo_7_Modular_Middle",
+   "top": "Condo_7_Modular_Top",
+   "windows": [
+    "Condo_7_Modular_Window_1",
+    "Condo_7_Modular_Window_2",
+    "Condo_7_Modular_Window_3",
+    "Condo_7_Modular_Window_4",
+    "Condo_7_Modular_Window_5"
+   ],
+   "roof_prop": "Condo_7_Roof_Air_Unit"
+  },
+  "condo12": {
+   "family": "gb",
+   "tile": 32,
+   "colours": [
+    1,
+    2
+   ],
+   "columns": {
+    "tall": {
+     "h": 384,
+     "w3": [
+      "Condo_{c}_1",
+      "Condo_{c}_2"
+     ],
+     "w2": [
+      "Condo_{c}_3"
+     ],
+     "w1": [
+      "Condo_{c}_4",
+      "Condo_{c}_5"
+     ]
+    },
+    "short": {
+     "h": 320,
+     "w3": [
+      "Condo_{c}_6",
+      "Condo_{c}_7"
+     ],
+     "w2": [
+      "Condo_{c}_8"
+     ],
+     "w1": [
+      "Condo_{c}_9",
+      "Condo_{c}_10"
+     ]
+    }
+   }
+  }
+ }
+}

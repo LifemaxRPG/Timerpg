@@ -1,0 +1,665 @@
+{
+ "roof_membrane_green": {
+  "x": 0,
+  "y": 0,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "roof_membrane_green",
+   "family": "roof",
+   "pack": "exteriors",
+   "file": "9_Shopping_Center_and_Markets_Singles_32x32/ME_Singles_Shopping_Center_and_Markets_32x32_Market_Medium_1.png",
+   "rect": [
+    60,
+    72,
+    32,
+    32
+   ],
+   "tags": [
+    "flat",
+    "membrane"
+   ],
+   "wrap": "xy"
+  }
+ },
+ "roof_membrane_ochre": {
+  "x": 33,
+  "y": 0,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "roof_membrane_ochre",
+   "family": "roof",
+   "pack": "exteriors",
+   "file": "9_Shopping_Center_and_Markets_Singles_32x32/ME_Singles_Shopping_Center_and_Markets_32x32_Market_Medium_5.png",
+   "rect": [
+    60,
+    72,
+    32,
+    32
+   ],
+   "tags": [
+    "flat",
+    "membrane"
+   ],
+   "wrap": "xy"
+  }
+ },
+ "roof_membrane_tan": {
+  "x": 66,
+  "y": 0,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "roof_membrane_tan",
+   "family": "roof",
+   "pack": "exteriors",
+   "file": "9_Shopping_Center_and_Markets_Singles_32x32/ME_Singles_Shopping_Center_and_Markets_32x32_Market_Medium_9.png",
+   "rect": [
+    60,
+    72,
+    32,
+    32
+   ],
+   "tags": [
+    "flat",
+    "membrane"
+   ],
+   "wrap": "xy"
+  }
+ },
+ "roof_membrane_grey": {
+  "x": 99,
+  "y": 0,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "roof_membrane_grey",
+   "family": "roof",
+   "pack": "exteriors",
+   "file": "24_Additional_Houses_32x32.png",
+   "rect": [
+    300,
+    5380,
+    32,
+    32
+   ],
+   "tags": [
+    "flat",
+    "membrane"
+   ],
+   "wrap": "xy"
+  }
+ },
+ "roof_tar_brown": {
+  "x": 132,
+  "y": 0,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "roof_tar_brown",
+   "family": "roof",
+   "pack": "exteriors",
+   "file": "4_Generic_Buildings_32x32.png",
+   "rect": [
+    506,
+    900,
+    32,
+    32
+   ],
+   "tags": [
+    "flat",
+    "tar"
+   ],
+   "wrap": "xy"
+  }
+ },
+ "roof_slate": {
+  "x": 165,
+  "y": 0,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "roof_slate",
+   "family": "roof",
+   "pack": "exteriors",
+   "file": "24_Additional_Houses_32x32.png",
+   "rect": [
+    240,
+    5496,
+    32,
+    32
+   ],
+   "tags": [
+    "pitched",
+    "slate"
+   ],
+   "wrap": "xy"
+  }
+ },
+ "roof_tin_orange": {
+  "x": 198,
+  "y": 0,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "roof_tin_orange",
+   "family": "roof",
+   "pack": "exteriors",
+   "file": "7_Villas_32x32.png",
+   "rect": [
+    30,
+    90,
+    32,
+    32
+   ],
+   "tags": [
+    "pitched",
+    "metal"
+   ],
+   "wrap": "xy"
+  }
+ },
+ "roof_tin_brown": {
+  "x": 0,
+  "y": 33,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "roof_tin_brown",
+   "family": "roof",
+   "pack": "exteriors",
+   "file": "7_Villas_32x32.png",
+   "rect": [
+    360,
+    90,
+    32,
+    32
+   ],
+   "tags": [
+    "pitched",
+    "metal"
+   ],
+   "wrap": "xy"
+  }
+ },
+ "roof_tin_blue": {
+  "x": 33,
+  "y": 33,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "roof_tin_blue",
+   "family": "roof",
+   "pack": "exteriors",
+   "file": "7_Villas_32x32.png",
+   "rect": [
+    360,
+    550,
+    32,
+    32
+   ],
+   "tags": [
+    "pitched",
+    "metal"
+   ],
+   "wrap": "xy"
+  }
+ },
+ "roof_tin_red": {
+  "x": 66,
+  "y": 33,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "roof_tin_red",
+   "family": "roof",
+   "pack": "exteriors",
+   "file": "7_Villas_32x32.png",
+   "rect": [
+    30,
+    550,
+    32,
+    32
+   ],
+   "tags": [
+    "pitched",
+    "metal"
+   ],
+   "wrap": "xy"
+  }
+ },
+ "wall_stucco_red": {
+  "x": 99,
+  "y": 33,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "wall_stucco_red",
+   "family": "wall",
+   "pack": "exteriors",
+   "file": "4_Generic_Building_Singles_32x32/ME_Singles_Generic_Building_32x32_Condo_4_38.png",
+   "rect": [
+    162,
+    270,
+    32,
+    32
+   ],
+   "tags": [
+    "stipple",
+    "brick"
+   ],
+   "wrap": "xy"
+  }
+ },
+ "wall_slate_light": {
+  "x": 132,
+  "y": 33,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "wall_slate_light",
+   "family": "wall",
+   "pack": "exteriors",
+   "file": "24_Additional_Houses_32x32.png",
+   "rect": [
+    60,
+    5490,
+    32,
+    32
+   ],
+   "tags": [
+    "stone"
+   ],
+   "wrap": "xy"
+  }
+ },
+ "wall_slate_dark": {
+  "x": 165,
+  "y": 33,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "wall_slate_dark",
+   "family": "wall",
+   "pack": "exteriors",
+   "file": "24_Additional_Houses_32x32.png",
+   "rect": [
+    134,
+    5330,
+    32,
+    32
+   ],
+   "tags": [
+    "stone"
+   ],
+   "wrap": "xy"
+  }
+ },
+ "plank_vertical": {
+  "x": 198,
+  "y": 33,
+  "w": 32,
+  "h": 22,
+  "entry": {
+   "id": "plank_vertical",
+   "family": "wood",
+   "pack": "exteriors",
+   "file": "11_Camping_32x32.png",
+   "rect": [
+    184,
+    356,
+    32,
+    22
+   ],
+   "tags": [
+    "plank",
+    "boards"
+   ],
+   "wrap": "xy"
+  }
+ },
+ "plank_horizontal": {
+  "x": 0,
+  "y": 66,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "plank_horizontal",
+   "family": "wood",
+   "pack": "exteriors",
+   "file": "11_Camping_32x32.png",
+   "rect": [
+    132,
+    486,
+    32,
+    32
+   ],
+   "tags": [
+    "plank",
+    "deck"
+   ],
+   "wrap": "xy"
+  }
+ },
+ "awning_red_cream": {
+  "x": 33,
+  "y": 66,
+  "w": 20,
+  "h": 46,
+  "entry": {
+   "id": "awning_red_cream",
+   "family": "awning",
+   "pack": "exteriors",
+   "file": "4_Generic_Building_Singles_32x32/ME_Singles_Generic_Building_32x32_Hardware_Store.png",
+   "rect": [
+    24,
+    196,
+    20,
+    46
+   ],
+   "tags": [
+    "stripe"
+   ],
+   "seam": "exact",
+   "wrap": "x",
+   "kind": "strip"
+  }
+ },
+ "awning_green_cream": {
+  "x": 54,
+  "y": 66,
+  "w": 16,
+  "h": 24,
+  "entry": {
+   "id": "awning_green_cream",
+   "family": "awning",
+   "pack": "exteriors",
+   "file": "9_Shopping_Center_and_Markets_Singles_32x32/ME_Singles_Shopping_Center_and_Markets_32x32_Market_Medium_1.png",
+   "rect": [
+    12,
+    194,
+    16,
+    24
+   ],
+   "tags": [
+    "stripe"
+   ],
+   "seam": "exact",
+   "wrap": "x",
+   "kind": "strip"
+  }
+ },
+ "awning_yellow": {
+  "x": 71,
+  "y": 66,
+  "w": 16,
+  "h": 24,
+  "entry": {
+   "id": "awning_yellow",
+   "family": "awning",
+   "pack": "exteriors",
+   "file": "9_Shopping_Center_and_Markets_Singles_32x32/ME_Singles_Shopping_Center_and_Markets_32x32_Market_Medium_5.png",
+   "rect": [
+    12,
+    194,
+    16,
+    24
+   ],
+   "tags": [
+    "stripe"
+   ],
+   "seam": "exact",
+   "wrap": "x",
+   "kind": "strip"
+  }
+ },
+ "awning_red_pink": {
+  "x": 88,
+  "y": 66,
+  "w": 16,
+  "h": 24,
+  "entry": {
+   "id": "awning_red_pink",
+   "family": "awning",
+   "pack": "exteriors",
+   "file": "9_Shopping_Center_and_Markets_Singles_32x32/ME_Singles_Shopping_Center_and_Markets_32x32_Market_Medium_9.png",
+   "rect": [
+    12,
+    194,
+    16,
+    24
+   ],
+   "tags": [
+    "stripe"
+   ],
+   "seam": "exact",
+   "wrap": "x",
+   "kind": "strip"
+  }
+ },
+ "asphalt": {
+  "x": 105,
+  "y": 66,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "asphalt",
+   "family": "ground",
+   "pack": "exteriors",
+   "file": "2_City_Terrains_Singles_32x32/ME_Singles_City_Terrains_32x32_Asphalt_1_Variation_25.png",
+   "rect": [
+    0,
+    0,
+    32,
+    32
+   ],
+   "tags": [
+    "road",
+    "carpark"
+   ],
+   "wrap": "xy"
+  }
+ },
+ "asphalt_brown": {
+  "x": 138,
+  "y": 66,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "asphalt_brown",
+   "family": "ground",
+   "pack": "exteriors",
+   "file": "2_City_Terrains_Singles_32x32/ME_Singles_City_Terrains_32x32_Asphalt_1_Variation_26.png",
+   "rect": [
+    0,
+    0,
+    32,
+    32
+   ],
+   "tags": [
+    "road"
+   ],
+   "wrap": "xy"
+  }
+ },
+ "pavement": {
+  "x": 171,
+  "y": 66,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "pavement",
+   "family": "ground",
+   "pack": "exteriors",
+   "pick": {
+    "glob": "2_City_Terrains_Singles_32x32/*Sidewalk_1_*.png",
+    "opaque": true,
+    "lum": [
+     150,
+     255
+    ]
+   },
+   "tags": [
+    "sidewalk",
+    "concrete"
+   ],
+   "wrap": "xy"
+  }
+ },
+ "ballast": {
+  "x": 204,
+  "y": 66,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "ballast",
+   "family": "roof",
+   "pack": "paint",
+   "paint": "ballast",
+   "rect": [
+    0,
+    0,
+    32,
+    32
+   ],
+   "seam": "none",
+   "tags": [
+    "flat",
+    "gravel",
+    "painted"
+   ],
+   "wrap": "xy",
+   "size": [
+    32,
+    32
+   ]
+  }
+ },
+ "asphalt_worn": {
+  "x": 0,
+  "y": 113,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "asphalt_worn",
+   "family": "ground",
+   "pack": "paint",
+   "paint": "asphalt_worn",
+   "rect": [
+    0,
+    0,
+    32,
+    32
+   ],
+   "seam": "none",
+   "tags": [
+    "carpark",
+    "painted"
+   ],
+   "wrap": "xy",
+   "size": [
+    32,
+    32
+   ]
+  }
+ },
+ "brick_courses": {
+  "x": 33,
+  "y": 113,
+  "w": 32,
+  "h": 32,
+  "entry": {
+   "id": "brick_courses",
+   "family": "wall",
+   "pack": "paint",
+   "paint": "brick",
+   "rect": [
+    0,
+    0,
+    32,
+    32
+   ],
+   "seam": "none",
+   "tags": [
+    "brick",
+    "tone",
+    "painted"
+   ],
+   "wrap": "xy",
+   "size": [
+    32,
+    32
+   ]
+  }
+ },
+ "block_courses": {
+  "x": 66,
+  "y": 113,
+  "w": 48,
+  "h": 48,
+  "entry": {
+   "id": "block_courses",
+   "family": "wall",
+   "pack": "paint",
+   "paint": "brickbig",
+   "rect": [
+    0,
+    0,
+    48,
+    48
+   ],
+   "seam": "none",
+   "tags": [
+    "block",
+    "tone",
+    "painted"
+   ],
+   "wrap": "xy",
+   "size": [
+    48,
+    48
+   ]
+  }
+ },
+ "brick_red": {
+  "x": 115,
+  "y": 113,
+  "w": 60,
+  "h": 48,
+  "entry": {
+   "id": "brick_red",
+   "family": "wall",
+   "pack": "exteriors",
+   "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/1_Terrains_and_Fences_32x32.png",
+   "rect": [
+    23,
+    806,
+    62,
+    48
+   ],
+   "tile": "seamless",
+   "repeat": [
+    31,
+    48
+   ],
+   "palette": [
+    "#a14f44",
+    "#b99e86",
+    "#943c3f",
+    "#b18a74",
+    "#a7604a",
+    "#9b766a"
+   ],
+   "tags": [
+    "brick",
+    "art"
+   ],
+   "seam": [
+    0.0,
+    0.21
+   ],
+   "note": "warm red courses, tan mortar, dark outline; light from top"
+  }
+ }
+}

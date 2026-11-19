@@ -34,6 +34,8 @@ class TownData(
     val cinema: com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite? = null,
     /** The town's solid shapes for the open world's walk (buildings, fences, hedges, props; null if it could not be built). */
     val collision: com.lifemax.rpg.feature.habits.domain.TownCollision? = null,
+    /** The town's store sites (graph.storeSites / stores), drawn by StoreKit in their slots; none for a town without. */
+    val stores: List<com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite> = emptyList(),
 )
 
 /**
@@ -177,12 +179,14 @@ object TownSession {
         val collision = try {
             com.lifemax.rpg.feature.habits.domain.TownCollision.build(town, yards,
                 com.lifemax.rpg.feature.habits.domain.ModelShape.parseAll(modelsText),
-                com.lifemax.rpg.feature.habits.domain.CinemaSiteShape.parse(root))
+                com.lifemax.rpg.feature.habits.domain.CinemaSiteShape.parse(root),
+                com.lifemax.rpg.feature.habits.domain.StoreLots.parse(root).map { it.sprite }.toSet())
         } catch (t: Throwable) {
             com.timerpg.street.shot.Crumbs.add("town collision failed: ${t.javaClass.simpleName}: ${t.message}"); null
         }
         collision?.let { com.timerpg.street.shot.Crumbs.add("town collision: ${it.size} shapes, %.0f ms".format(java.util.Locale.US, (System.nanoTime() - c0) / 1e6f)) }
         return TownData(seed, town, yards, art, building, names, root.optString("type"), dir,
-            com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite.parse(root), collision)
+            com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite.parse(root), collision,
+            com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root))
     }
 }

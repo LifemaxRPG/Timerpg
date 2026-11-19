@@ -27,7 +27,7 @@ class TownDoor(
  * [collision] has there until a walker of [radius] stands clear. The people to talk to stand where [keeperSpot] puts
  * them (as TownPlay stands them on the pavement).
  */
-class TownDoors(val town: Town, yards: TownYards, collision: TownCollision?, cinema: CinemaSiteShape? = null, radius: Float = 6f) {
+class TownDoors(val town: Town, yards: TownYards, private val collision: TownCollision?, cinema: CinemaSiteShape? = null, radius: Float = 6f) {
     val doors: List<TownDoor>
     private val bySprite: Map<String, TownDoor>
 
@@ -38,7 +38,9 @@ class TownDoors(val town: Town, yards: TownYards, collision: TownCollision?, cin
 
     init {
         val out = ArrayList<TownDoor>()
-        for (row in town.rows) for (b in row.buildings) out += door(row, b, yards, collision, cinema, radius)
+        // (a store's doors are its entrances as built: [TownCollision.extraDoors], added once its model is up)
+        val stores = collision?.stores ?: emptySet()
+        for (row in town.rows) for (b in row.buildings) if (b.sprite !in stores) out += door(row, b, yards, collision, cinema, radius)
         doors = out
         bySprite = out.associateBy { it.sprite }
         val all = town.rows.flatMap { r -> r.buildings.map { r to it } }
@@ -49,7 +51,7 @@ class TownDoors(val town: Town, yards: TownYards, collision: TownCollision?, cin
 
     private val all: Array<TownDoor> = doors.toTypedArray()
 
-    fun of(sprite: String): TownDoor? = bySprite[sprite]
+    fun of(sprite: String): TownDoor? = bySprite[sprite] ?: collision?.extraDoors?.firstOrNull { it.sprite == sprite }
 
     /**
      * The door a walker at ([px], [pz]) heading ([hx], [hz]) is at: within [range] of where one stands at it, on its
@@ -58,20 +60,25 @@ class TownDoors(val town: Town, yards: TownYards, collision: TownCollision?, cin
     fun at(px: Float, pz: Float, hx: Float, hz: Float, range: Float = RANGE): TownDoor? {
         var best: TownDoor? = null
         var bestD = Float.MAX_VALUE
-        for (d in all) {
-            val dx = d.x - px; val dz = d.z - pz
-            val dist = sqrt(dx * dx + dz * dz)
-            if (dist > range || dist >= bestD) continue
-            // on its outside: in front of its wall
-            if ((px - d.wallX) * d.outX + (pz - d.wallZ) * d.outZ < -1f) continue
-            if (dist > AT) {
-                val wx = d.wallX - px; val wz = d.wallZ - pz
-                val wl = hypot(wx, wz).coerceAtLeast(1e-4f)
-                if ((wx * hx + wz * hz) / wl < FACING) continue
-            }
-            best = d; bestD = dist
-        }
+        for (d in all) { val dist = reach(d, px, pz, hx, hz, range); if (dist < bestD) { best = d; bestD = dist } }
+        val extra = collision?.extraDoors
+        if (extra != null) for (d in extra) { val dist = reach(d, px, pz, hx, hz, range); if (dist < bestD) { best = d; bestD = dist } }
         return best
+    }
+
+    /** How far a walker at ([px], [pz]) heading ([hx], [hz]) is from standing at door [d], or MAX_VALUE if not at it ([at]'s test). */
+    private fun reach(d: TownDoor, px: Float, pz: Float, hx: Float, hz: Float, range: Float): Float {
+        val dx = d.x - px; val dz = d.z - pz
+        val dist = sqrt(dx * dx + dz * dz)
+        if (dist > range) return Float.MAX_VALUE
+        // on its outside: in front of its wall
+        if ((px - d.wallX) * d.outX + (pz - d.wallZ) * d.outZ < -1f) return Float.MAX_VALUE
+        if (dist > AT) {
+            val wx = d.wallX - px; val wz = d.wallZ - pz
+            val wl = hypot(wx, wz).coerceAtLeast(1e-4f)
+            if ((wx * hx + wz * hz) / wl < FACING) return Float.MAX_VALUE
+        }
+        return dist
     }
 
     /**
@@ -106,6 +113,22 @@ class TownDoors(val town: Town, yards: TownYards, collision: TownCollision?, cin
         const val KEEPER_LANE = 3.6f
 
         fun keeperSpot(r: Row, b: Placement): TownPoint = r.pointAt(b.mid + KEEPER_DX, KEEPER_LANE)
+
+        /**
+         * A door on a wall at ([wallX], [wallZ]) facing out along ([outX], [outZ]) (unit), for [sprite] on [row]: where a
+         * walker of [radius] stands at it, walked out from the wall until [collision] has them clear (a store's entrance
+         * as its builder puts it; the shapes in front, a vestibule's glass or a porch's steps, already in the map).
+         */
+        fun standing(sprite: String, row: String, kind: PlacementKind, wallX: Float, wallZ: Float, outX: Float, outZ: Float,
+                     collision: TownCollision, radius: Float = 6f): TownDoor {
+            var t = 0f
+            while (t < 160f) {
+                val x = wallX + outX * t; val z = wallZ + outZ * t
+                if (collision.clearance(x, z, radius * 4f) >= radius + 1f) return TownDoor(sprite, row, kind, wallX, wallZ, x, z, outX, outZ)
+                t += 2f
+            }
+            return TownDoor(sprite, row, kind, wallX, wallZ, wallX + outX * (radius + 2f), wallZ + outZ * (radius + 2f), outX, outZ)
+        }
 
         private fun door(row: Row, b: Placement, yards: TownYards, collision: TownCollision?, cinema: CinemaSiteShape?, radius: Float): TownDoor {
             val place = TownPlace.of(row, b)

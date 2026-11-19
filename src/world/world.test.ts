@@ -48,7 +48,7 @@ describe('world map', () => {
   });
 
   it('never lets neighbouring towns overlap, with room to walk between them', () => {
-    // Real plans: the biggest towns are ~280x236 tiles; cells must leave a walkable gap.
+    // Real plans: the biggest towns are ~450x250 tiles (with their stores at the edge); cells must leave a walkable gap.
     for (const world of ['demo', 'orbit', 'maple']) {
       const grid: Record<string, { site: ReturnType<typeof siteAt>; rect: Rect }> = {};
       for (let cy = 0; cy < 3; cy++)

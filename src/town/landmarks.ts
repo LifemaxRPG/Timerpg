@@ -1,6 +1,7 @@
 import { rand } from '../sim/rng';
 import { pickVariant } from '../game/art';
 import { hasCinema, type CinemaEra } from './cinema';
+import { isStoreSite, type StoreState, type StoreVariant } from './stores';
 
 // Civic LANDMARKS: big one-off buildings (post office, school, fire station...). Which ones a
 // town has, where they stand and the year each opens are all pure functions of the seed.
@@ -9,7 +10,8 @@ import { hasCinema, type CinemaEra } from './cinema';
 
 interface Box { x: number; y: number; w: number; h: number }
 
-export type LandmarkKind = 'post' | 'school' | 'fire' | 'police' | 'hospital' | 'hotel' | 'clocktower' | 'cinema';
+export type LandmarkKind = 'post' | 'school' | 'fire' | 'police' | 'hospital' | 'hotel' | 'clocktower' | 'cinema'
+  | 'generalstore' | 'market' | 'supermarket' | 'superstore';
 
 interface Spec {
   name: string;
@@ -37,13 +39,21 @@ export const LANDMARK_SPECS: Record<LandmarkKind, Spec> = {
   // towns that grow big enough have one (src/town/cinema.ts hasCinema), and it stands on or just off the main street.
   // No LimeZu sprite: the 3D building is made in the engine, its front by era (landmark_cinema_<era>).
   cinema: { name: 'Cinema', blurb: 'Pictures every night, and a matinee on Saturdays.', w: 24, h: 36, foot: 36, chance: 1, open: [1936, 1949] },
+  // The stores (src/town/stores.ts, placed by src/town/storeSites.ts, not chooseLandmarks): sizes and years come from
+  // there (STORE_SIZES, storeHistories); no LimeZu sprite, the engine builds each era's building (landmark_store_<variant>).
+  generalstore: { name: 'General Store', blurb: 'Groceries, hardware, feed and gossip under one roof.', w: 12, h: 15, foot: 15, chance: 1, open: [1885, 1935] },
+  market: { name: 'Market', blurb: 'The town\'s first supermarket: plate glass, bright lights and a little lot.', w: 22, h: 30, foot: 30, chance: 1, open: [1950, 1969] },
+  supermarket: { name: 'Supermarket', blurb: 'Long aisles under a flat roof, and a car park out front.', w: 52, h: 40, foot: 40, chance: 1, open: [1970, 2025] },
+  superstore: { name: 'Superstore', blurb: 'Everything under one enormous roof, at the edge of town.', w: 128, h: 98, foot: 98, chance: 1, open: [1990, 2025] },
 };
 export const LANDMARK_KINDS = Object.keys(LANDMARK_SPECS) as LandmarkKind[];
 /** The cinema's plots, best first (width x depth in tiles): the full 24 x 36 hall, then wider and shallower ones (the hall turned to run along the street behind the lobby). */
 export const CINEMA_SIZES: readonly [number, number][] = [[24, 36], [26, 32], [30, 28], [34, 24], [40, 20], [44, 18]];
 
+const STORE_DEFAULT: Record<'generalstore' | 'market' | 'supermarket' | 'superstore', StoreVariant> = { generalstore: 'general', market: 'market', supermarket: 'supermarket', superstore: 'superstore' };
+
 /** Sprite variants available per kind (see the manifest group `landmark:<kind>`). */
-export const LANDMARK_VARIANTS: Record<LandmarkKind, number> = { post: 4, school: 1, fire: 1, police: 3, hospital: 1, hotel: 1, clocktower: 2, cinema: 4 };
+export const LANDMARK_VARIANTS: Record<LandmarkKind, number> = { post: 4, school: 1, fire: 1, police: 3, hospital: 1, hotel: 1, clocktower: 2, cinema: 4, generalstore: 1, market: 1, supermarket: 1, superstore: 1 };
 
 export interface LandmarkPlot extends Box {
   id: LandmarkKind;
@@ -56,15 +66,19 @@ export interface LandmarkPlot extends Box {
   foot: number;
   /** The cinema's front in the layout's year (layout.ts sets it; the plan's cinema has none). */
   era?: CinemaEra;
+  /** A store's state in the layout's year (layout.ts sets it: src/town/stores.ts storeState). */
+  store?: StoreState;
 }
 
 /**
  * The sprite a landmark wears: `landmark_<kind>_<n>` (scripts/extract-assets.mjs), chosen from its manifest group
  * `landmark:<kind>` by its look exactly as the game draws it (src/game/TownView.ts drawLandmark, pickVariant).
  */
-export function landmarkArtKey(l: Pick<LandmarkPlot, 'id' | 'look'> & { era?: CinemaEra }): string {
+export function landmarkArtKey(l: Pick<LandmarkPlot, 'id' | 'look'> & { era?: CinemaEra; store?: { variant: StoreVariant } }): string {
   // the cinema has no sprite variants: its front is the era's (built in the engine)
   if (l.id === 'cinema') return `landmark_cinema_${l.era ?? 'palace'}`;
+  // nor do the stores: the building of the year (the supermarket site's market or bigger store)
+  if (isStoreSite(l.id)) return `landmark_store_${l.store?.variant ?? STORE_DEFAULT[l.id]}`;
   const variants = Array.from({ length: LANDMARK_VARIANTS[l.id] }, (_, i) => i + 1);
   return `landmark_${l.id}_${pickVariant(variants, l.look)}`;
 }
@@ -103,7 +117,7 @@ const hit = (a: Box, b: Box, pad = 0): boolean =>
 /** Which landmarks this town has (always at least three civic ones, and a cinema if it grows big enough), in a stable order. */
 export function chooseLandmarks(seed: string): LandmarkKind[] {
   const roll = (k: LandmarkKind): number => rand(seed, 'landmark', 'has', k) / LANDMARK_SPECS[k].chance;
-  const sorted = LANDMARK_KINDS.filter((k) => k !== 'cinema').sort((a, b) => roll(a) - roll(b));
+  const sorted = LANDMARK_KINDS.filter((k) => k !== 'cinema' && !isStoreSite(k)).sort((a, b) => roll(a) - roll(b));
   const civic = sorted.filter((k, i) => i < 3 || roll(k) < 1).sort((a, b) => LANDMARK_KINDS.indexOf(a) - LANDMARK_KINDS.indexOf(b));
   return hasCinema(seed) ? [...civic, 'cinema'] : civic;
 }

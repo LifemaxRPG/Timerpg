@@ -81,7 +81,8 @@ fun renderFilamentTown(out: String) {
     val engine = Engine.Builder().backend(Engine.Backend.OPENGL).config(com.lifemax.rpg.feature.habits.presentation.scene3d.TownEngine.config()).build()
     val mats = File("../app/src/main/assets/filament")
     val cinema = com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite.parse(root)
-    val ft = FilamentTown(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, cinema = cinema)
+    val storeSites = com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root)
+    val ft = FilamentTown(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, cinema = cinema, stores = storeSites)
     if (System.getProperty("townYards") == "placeholder") ft.yardBuilder = PlaceholderYards
     // (each shot is one frame: every building's windows lit for its hour in it, not a few a frame as the game does)
     ft.nightBudgetNs = Long.MAX_VALUE
@@ -93,7 +94,7 @@ fun renderFilamentTown(out: String) {
     // walking while the rest comes in): -Dshots=cold alone renders only this
     val onlyShots = System.getProperty("shots")?.split(",")?.map { it.trim() }?.toSet()
     if (onlyShots == null || "cold" in onlyShots || onlyShots.any { it.startsWith("cold") })
-        coldStart(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, report, dir, 2340, 1080, cinema)
+        coldStart(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, report, dir, 2340, 1080, cinema, storeSites)
     // (the memory check: the cold start alone)
     if (System.getProperty("coldOnly") != null) { File(dir, "town.txt").writeText(report.toString()); return }
 
@@ -500,9 +501,10 @@ private fun playTown(
 private fun coldStart(
     engine: Engine, mats: (String) -> ByteArray, town: Town, yards: TownYards, art: TownArt, building: (String) -> SpriteBuilding?,
     report: StringBuilder, dir: File, sw: Int, shh: Int, cinema: com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite? = null,
+    stores: List<com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite> = emptyList(),
 ) {
     val t0 = System.nanoTime()
-    val ft = FilamentTown(engine, mats, town, yards, art, building, cinema = cinema)
+    val ft = FilamentTown(engine, mats, town, yards, art, building, cinema = cinema, stores = stores)
     GameState.enabled = true; GameState.look = 1
     GameState.moveX = 0f; GameState.moveLane = 0f
     val walk = TownPlay.start(town)

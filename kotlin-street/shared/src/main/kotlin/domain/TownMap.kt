@@ -378,13 +378,18 @@ class Town(
             )
         }
 
-        /** The sprites of the rows' buildings that are cinemas (the landmark of kind cinema). */
+        /**
+         * The sprites of the rows' buildings whose fronts are kept clear: cinemas (the landmark of kind cinema) and stores
+         * ([StoreLots]: their porches, glass fronts, car parks' edges and road signs are their own).
+         */
         private fun cinemaSprites(g: JSONObject): Set<String> =
-            g.optJSONArray("landmarks")?.objects()?.filter { it.optString("kind") == "cinema" }?.map { it.optString("sprite") }?.toSet() ?: emptySet()
+            (g.optJSONArray("landmarks")?.objects()?.filter { it.optString("kind") == "cinema" }?.map { it.optString("sprite") }?.toSet() ?: emptySet()) +
+                StoreLots.spritesOf(g)
 
         /**
-         * [list] kept off a cinema's entrance: the lamps and benches standing along a cinema's front are moved to its two
-         * ends (a lamp each end, if none stands there), so nothing stands before its doors, ticket booth or poster cases.
+         * [list] kept off a cinema's or a store's front: the lamps and benches standing along it are moved to its two
+         * ends (a lamp each end, if none stands there), so nothing stands before its doors, ticket booth or poster cases,
+         * a store's porch, glass or the mouth of its car park.
          */
         private fun clearOfCinemas(list: List<RowFurniture>, buildings: List<Triple<String, Float, Float>>, cinemas: Set<String>): List<RowFurniture> {
             val fronts = buildings.filter { it.first in cinemas }.map { it.second to it.third }

@@ -278,6 +278,12 @@ class FilamentTown(
     val shadowCascades: Int = TownQuality.cascades,
     /** The town's movie theater (street.json's graph.cinema), drawn by [CinemaKit] in its building's place; null: none. */
     cinema: CinemaSite? = null,
+    /** The town's store sites (street.json's graph.storeSites / stores: [StoreSite.parse]), each drawn by [StoreKit] in its slot's place. */
+    stores: List<StoreSite> = emptyList(),
+    /** The year the stores are built for (each site as it stands then: [StoreSite.at]); 0: the export's own. */
+    storeYear: Int = 0,
+    /** The open world's collision: the stores' solid shapes and doors go into it once built (null: none). */
+    private val collision: com.lifemax.rpg.feature.habits.domain.TownCollision? = null,
 ) {
     val scene: Scene = engine.createScene()
     val view: View = engine.createView()
@@ -406,6 +412,8 @@ class FilamentTown(
     private var lastPose: TownPose? = null
     /** The clock at the last [frame] (what is cut away for the camera eases by it). */
     private var lastFrameSeconds = Double.NaN
+    /** The hour of the last [frame] (the stores' cars are parked for it). */
+    private var lastHour = 13f
     private val sunDir = FloatArray(3)
 
     /** One building of the town: where it stands and, once built, its renderables. */
@@ -439,13 +447,41 @@ class FilamentTown(
         s.missing = true; TownCinema(engine, scene, lit, proxyMat, textures, c, s.place, s.b.setback, town.seed.hashCode()) } }
     private val cinemaOut = IntArray(3)
 
+    /** The stores, built by code in their slots' places (the slots have no art), cars by the hour of [weekday]. */
+    private val storeSites: List<StoreSite> = stores
+    private var storeDraws: List<TownStore> = makeStores(storeYear)
+
+    private fun makeStores(year: Int): List<TownStore> = storeSites.mapNotNull { st -> slots.firstOrNull { it.b.sprite == st.sprite }?.let { s ->
+        s.missing = true
+        TownStore(engine, scene, lit, proxyMat, textures, st, s.place, s.b.setback, s.row.id, if (year > 0) year else st.year.takeIf { it > 0 } ?: town.year, collision)
+    } }
+
+    /** The year the stores stand as (0: the export's own); set it to another and they are built again for that year. */
+    var storeYear: Int = storeYear
+        set(v) {
+            if (v == field) return
+            field = v
+            for (st in storeDraws) st.destroy()
+            storeDraws = makeStores(v)
+        }
+    private val storeOut = IntArray(3)
+    /** The main block of the store at [sprite] in the world (x0, z0, x1, z1, height), once built; null otherwise. */
+    fun storeBlock(sprite: String): FloatArray? = storeDraws.firstOrNull { it.site.sprite == sprite }?.block
+
+    /** Parks the stores' cars for [hour] (a preview's, waiting on the workers: call until true); true once every store's are up. */
+    fun parkStores(hour: Float): Boolean { for (st in storeDraws) st.stepCars(pool, hour, weekday); return storeDraws.all { it.carsFor(hour, weekday) } }
+    /** The day of the week the stores' car parks are filled for (0 Sunday .. 6 Saturday). */
+    var weekday = 3
+    /** The stores as built (for previews and tests): sprite, triangles, solid shapes, cars standing, whether drawn. */
+    val storeReport: List<String> get() = storeDraws.map { "${it.site.sprite} ${it.site.landmark}: ${it.triangles} triangles, ${it.solidCount} solid shapes, ${it.carCount} cars${if (it.shown) ", shown" else ""}" }
+
     /** The town's pictures: textures made, their texels, and how many asks were answered by one already made. */
     val textureStats: Triple<Int, Long, Int> get() = Triple(textures.madeCount, textures.texels, textures.shared)
 
     /** How long the ground took (ms), the buildings so far (ms), and how many are left to build. */
     var groundMs = 0f; private set
     var buildingsMs = 0f; private set
-    val pending: Int get() = slots.count { it.built == null && !it.missing } + (if (cinemaDraw?.done == false) 1 else 0)
+    val pending: Int get() = slots.count { it.built == null && !it.missing } + (if (cinemaDraw?.done == false) 1 else 0) + storeDraws.count { !it.done }
     var stats = TownStats(slots.size, 0, 0, 0, 0, 0, 0); private set
     /** Each batch [buildNearest] made: how many it built and how long it took (ms). */
     val batches = ArrayList<Pair<Int, Float>>()
@@ -730,6 +766,7 @@ class FilamentTown(
      */
     fun buildNearest(x: Float, z: Float, budgetMs: Float): Int {
         cinemaDraw?.let { c -> c.start(pool); if (!c.done && c.step()) engine.flush() }
+        for (st in storeDraws) { st.start(pool, lastHour, weekday); if (!st.done && st.step()) engine.flush() }
         if (todo == 0 && chunksTodo == 0 && groundBuilt) return 0
         val t0 = System.nanoTime()
         var n = 0
@@ -873,6 +910,7 @@ class FilamentTown(
     /** Brings the scene to camera [pose] at [hour]; [seconds] is the clock (the yards' water shimmers by it). */
     fun frame(pose: TownPose, hour: Float, seconds: Double = 0.0) {
         lastPose = pose
+        lastHour = hour
         view.viewport = Viewport(0, 0, pose.w.toInt(), pose.h.toInt())
         // (the look's depth reaches 1 at the camera's own near: Filament's lights are sorted into the view's depth slices
         // by the camera's projection, so the two must agree or the street lamps' light lands in the wrong slices)
@@ -992,6 +1030,12 @@ class FilamentTown(
         }
         cinemaDraw?.frame(pose, look, dark, seconds, { x, z -> if (pose.cut > 0f) fadeOf(pose, x, z) else 1f }, cinemaOut)?.let { o ->
             if (o[0] > 0) { visible++; renderables += o[0]; draws += o[0]; tris += o[1] }; casters += o[2] }
+        for (st in storeDraws) {
+            st.stepCars(pool, hour, weekday)
+            st.occFade = if (pose.open && st.occluded) max(OCCLUDED, st.occFade - occStep) else min(1f, st.occFade + occStep)
+            val o = st.frame(pose, look, dark, seconds, { x, z -> if (pose.cut > 0f) fadeOf(pose, x, z) else 1f }, storeOut)
+            if (o[0] > 0) { visible++; renderables += o[0]; draws += o[0]; tris += o[1] }; casters += o[2]
+        }
         val lampsLit = lamps(pose, dark)
         for (t in synchronized(ticks) { ticks.toList() }) t(seconds)
         stats = TownStats(slots.size, slots.count { it.built != null }, visible, renderables, draws, tris, casters, nChunks, nNear, lampsLit)
@@ -1089,6 +1133,21 @@ class FilamentTown(
                 if (t0 >= 0f && t0 < eyeInside) eyeInside = t0
             }
         }
+        // the stores' main blocks (world boxes, from the ground): as a building
+        for (stD in storeDraws) {
+            stD.occT = Float.MAX_VALUE
+            val bk = stD.block ?: continue
+            lo[0] = bk[0]; lo[1] = 0f; lo[2] = bk[1]; hi[0] = bk[2]; hi[1] = bk[4]; hi[2] = bk[3]
+            if (boxDistance(ex, ey, ez, bk[0], 0f, bk[1], bk[2], bk[4], bk[3]) < EYE_CLEAR) stD.occT = .999f
+            for (k in 0 until 5) {
+                o[0] = st[k * 3]; o[1] = st[k * 3 + 1]; o[2] = st[k * 3 + 2]
+                d[0] = ex - o[0]; d[1] = ey - o[1]; d[2] = ez - o[2]
+                val t0 = slab(o, d, lo, hi)
+                if (t0 < 0f || t0 > 1f) continue
+                if (t0 < stD.occT) stD.occT = t0
+                if (k == 0 && t0 < first) first = t0
+            }
+        }
         // the yards' tall things (world boxes): any of the cone's lines through one, or the eye near it, cuts its lot's
         val tb = tallBoxes
         tallHit.fill(false)
@@ -1178,6 +1237,7 @@ class FilamentTown(
      */
     fun fadeBetween(t: Float) {
         for (s in slots) s.occluded = s.occT < t
+        for (s in storeDraws) s.occluded = s.occT < t
         occludedLots.clear()
         for (k in tallKeys.indices) if (tallHit[k]) occludedLots.add(tallKeys[k])
     }
@@ -1305,6 +1365,7 @@ class FilamentTown(
         val em = EntityManager.get()
         crowd.destroy()
         cinemaDraw?.destroy()
+        for (st in storeDraws) st.destroy()
         for (s in slots) {
             val b = s.built ?: continue
             for (e in listOf(b.entity, b.proxy)) if (e != 0) { scene.remove(e); engine.destroyEntity(e); em.destroy(e) }

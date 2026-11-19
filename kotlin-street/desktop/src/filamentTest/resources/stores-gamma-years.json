@@ -1,0 +1,573 @@
+{
+ "seed": "gamma",
+ "storeSites": [
+  {
+   "id": "store:generalstore",
+   "landmark": "landmark:generalstore",
+   "site": "generalstore",
+   "style": "frontier",
+   "seed": 10529,
+   "dog": true,
+   "events": [
+    {
+     "year": 1927,
+     "event": "opened",
+     "name": "Haskell's General Store",
+     "variant": "general"
+    },
+    {
+     "year": 2015,
+     "event": "closed",
+     "name": "Haskell's General Store",
+     "why": "superstore"
+    },
+    {
+     "year": 2016,
+     "event": "reused",
+     "name": "Mapleridge Antiques & Collectibles",
+     "reuse": "antiques"
+    }
+   ],
+   "footprint": {
+    "tilesW": 12,
+    "tilesD": 15,
+    "width": 315.429,
+    "depth": 667.5
+   },
+   "layouts": {
+    "general": {
+     "height": 137.647,
+     "width": 315.529,
+     "depth": 667.059,
+     "porch": [
+      21.176,
+      42.353,
+      222.353,
+      105.882
+     ],
+     "building": [
+      21.176,
+      105.882,
+      222.353,
+      444.706
+     ],
+     "sideYard": [
+      232.941,
+      21.176,
+      304.941,
+      444.706
+     ],
+     "backyard": [
+      10.588,
+      455.294,
+      304.941,
+      656.471
+     ],
+     "shed": [
+      209.647,
+      561.176,
+      283.765,
+      635.294
+     ]
+    }
+   },
+   "rect": [
+    124,
+    113,
+    136,
+    128
+   ]
+  },
+  {
+   "id": "store:market",
+   "landmark": "landmark:market",
+   "site": "market",
+   "style": "modern",
+   "seed": 74470,
+   "dog": true,
+   "events": [
+    {
+     "year": 1968,
+     "event": "opened",
+     "name": "Whitlock's Super Market",
+     "variant": "market"
+    },
+    {
+     "year": 1984,
+     "event": "closed",
+     "name": "Whitlock's Super Market",
+     "why": "moved"
+    },
+    {
+     "year": 1985,
+     "event": "reused",
+     "name": "Cornerstone Chapel",
+     "reuse": "church"
+    }
+   ],
+   "footprint": {
+    "tilesW": 22,
+    "tilesD": 30,
+    "width": 578.286,
+    "depth": 1335
+   },
+   "layouts": {
+    "market": {
+     "height": 127.059,
+     "width": 578.118,
+     "depth": 1334.118,
+     "building": [
+      31.765,
+      487.059,
+      546.353,
+      1164.706
+     ],
+     "carPark": [
+      21.176,
+      42.353,
+      556.941,
+      444.706
+     ],
+     "bays": 23,
+     "corrals": 1,
+     "serviceYard": [
+      31.765,
+      1164.706,
+      546.353,
+      1312.941
+     ]
+    }
+   },
+   "rect": [
+    239,
+    82,
+    261,
+    112
+   ]
+  },
+  {
+   "id": "store:supermarket",
+   "landmark": "landmark:supermarket",
+   "site": "supermarket",
+   "style": "modern",
+   "seed": 58433,
+   "dog": true,
+   "events": [
+    {
+     "year": 1984,
+     "event": "moved",
+     "name": "Prairie Larder",
+     "variant": "supermarket"
+    },
+    {
+     "year": 2016,
+     "event": "closed",
+     "name": "Prairie Larder",
+     "why": "superstore"
+    }
+   ],
+   "footprint": {
+    "tilesW": 52,
+    "tilesD": 40,
+    "width": 1366.857,
+    "depth": 1780
+   },
+   "layouts": {
+    "supermarket": {
+     "height": 158.824,
+     "width": 1365.882,
+     "depth": 1780.941,
+     "building": [
+      133.412,
+      764.471,
+      1234.588,
+      1611.529
+     ],
+     "carPark": [
+      42.353,
+      42.353,
+      1323.529,
+      722.118
+     ],
+     "bays": 96,
+     "corrals": 1,
+     "serviceYard": [
+      133.412,
+      1611.529,
+      1234.588,
+      1759.765
+     ],
+     "docks": [
+      794.118,
+      1611.529,
+      1192.235,
+      1759.765
+     ]
+    }
+   },
+   "rect": [
+    274,
+    116,
+    326,
+    156
+   ]
+  },
+  {
+   "id": "store:superstore",
+   "landmark": "landmark:superstore",
+   "site": "superstore",
+   "style": "modern",
+   "seed": 17274,
+   "dog": true,
+   "events": [
+    {
+     "year": 2015,
+     "event": "opened",
+     "name": "Broadmeadow",
+     "variant": "superstore"
+    }
+   ],
+   "footprint": {
+    "tilesW": 128,
+    "tilesD": 98,
+    "width": 3364.571,
+    "depth": 4361
+   },
+   "layouts": {
+    "superstore": {
+     "height": 211.765,
+     "width": 3364.941,
+     "depth": 4360.235,
+     "building": [
+      127.059,
+      1924.941,
+      2625.882,
+      3936.706
+     ],
+     "carPark": [
+      42.353,
+      63.529,
+      3322.588,
+      1861.412
+     ],
+     "bays": 652,
+     "corrals": 5,
+     "gardenCentre": [
+      2625.882,
+      2094.353,
+      3134.118,
+      3153.176
+     ],
+     "serviceYard": [
+      127.059,
+      3936.706,
+      2625.882,
+      4339.059
+     ],
+     "docks": [
+      501.882,
+      3936.706,
+      1626.353,
+      4317.882
+     ]
+    }
+   },
+   "rect": [
+    274,
+    14,
+    402,
+    112
+   ]
+  }
+ ],
+ "storePeople": [
+  [
+   1950,
+   79
+  ],
+  [
+   1955,
+   93
+  ],
+  [
+   1960,
+   99
+  ],
+  [
+   1965,
+   111
+  ],
+  [
+   1970,
+   133
+  ],
+  [
+   1975,
+   149
+  ],
+  [
+   1980,
+   156
+  ],
+  [
+   1985,
+   164
+  ],
+  [
+   1990,
+   169
+  ],
+  [
+   1995,
+   179
+  ],
+  [
+   2000,
+   182
+  ],
+  [
+   2005,
+   198
+  ],
+  [
+   2010,
+   210
+  ],
+  [
+   2015,
+   216
+  ],
+  [
+   2020,
+   223
+  ],
+  [
+   2025,
+   231
+  ]
+ ],
+ "years": {
+  "generalstore": [
+   {
+    "year": 1900
+   },
+   {
+    "year": 1927,
+    "kind": "general",
+    "state": "open",
+    "name": "Haskell's General Store",
+    "sign": "Haskell's General Store",
+    "style": "frontier",
+    "features": [
+     "porch",
+     "bench",
+     "paintedSign",
+     "backyard",
+     "shed",
+     "barrels",
+     "crates",
+     "iceChest",
+     "windowGoods",
+     "gasPump",
+     "dogOnPorch"
+    ]
+   },
+   {
+    "year": 1975,
+    "kind": "general",
+    "state": "open",
+    "name": "Haskell's General Store",
+    "sign": "Haskell's General Store",
+    "style": "frontier",
+    "features": [
+     "porch",
+     "bench",
+     "paintedSign",
+     "backyard",
+     "shed",
+     "barrels",
+     "crates",
+     "iceChest",
+     "windowGoods",
+     "soda",
+     "propaneCage",
+     "dogOnPorch"
+    ]
+   },
+   {
+    "year": 2015,
+    "kind": "general",
+    "state": "closed",
+    "name": "Haskell's General Store",
+    "sign": "Haskell's General Store",
+    "style": "frontier",
+    "features": [
+     "porch",
+     "bench",
+     "paintedSign",
+     "backyard",
+     "shed",
+     "boarded",
+     "fadedSign",
+     "emptyLot"
+    ]
+   },
+   {
+    "year": 2016,
+    "kind": "general",
+    "state": "reused",
+    "name": "Haskell's General Store",
+    "sign": "Mapleridge Antiques & Collectibles",
+    "style": "frontier",
+    "features": [
+     "porch",
+     "bench",
+     "paintedSign",
+     "backyard",
+     "shed",
+     "reuse:antiques"
+    ]
+   }
+  ],
+  "market": [
+   {
+    "year": 1900
+   },
+   {
+    "year": 1968,
+    "kind": "market",
+    "state": "open",
+    "name": "Whitlock's Super Market",
+    "sign": "Whitlock's Super Market",
+    "style": "modern",
+    "features": [
+     "plateGlass",
+     "litSign",
+     "awning",
+     "smallLot",
+     "serviceYard",
+     "windowPosters",
+     "carts"
+    ]
+   },
+   {
+    "year": 1984,
+    "kind": "market",
+    "state": "closed",
+    "name": "Whitlock's Super Market",
+    "sign": "Whitlock's Super Market",
+    "style": "modern",
+    "features": [
+     "plateGlass",
+     "litSign",
+     "awning",
+     "smallLot",
+     "serviceYard",
+     "forLease",
+     "emptyLot",
+     "securityLights"
+    ]
+   },
+   {
+    "year": 1985,
+    "kind": "market",
+    "state": "reused",
+    "name": "Whitlock's Super Market",
+    "sign": "Cornerstone Chapel",
+    "style": "modern",
+    "features": [
+     "plateGlass",
+     "litSign",
+     "awning",
+     "smallLot",
+     "serviceYard",
+     "reuse:church"
+    ]
+   }
+  ],
+  "supermarket": [
+   {
+    "year": 1900
+   },
+   {
+    "year": 1984,
+    "kind": "supermarket",
+    "state": "open",
+    "name": "Prairie Larder",
+    "sign": "Prairie Larder",
+    "style": "modern",
+    "features": [
+     "longGlassFront",
+     "flatRoof",
+     "pylonSign",
+     "carPark",
+     "serviceYard",
+     "cartCorrals",
+     "windowPosters"
+    ]
+   },
+   {
+    "year": 2016,
+    "kind": "supermarket",
+    "state": "closed",
+    "name": "Prairie Larder",
+    "sign": "Prairie Larder",
+    "style": "modern",
+    "features": [
+     "longGlassFront",
+     "flatRoof",
+     "pylonSign",
+     "carPark",
+     "serviceYard",
+     "forLease",
+     "emptyLot",
+     "securityLights"
+    ]
+   }
+  ],
+  "superstore": [
+   {
+    "year": 1900
+   },
+   {
+    "year": 2015,
+    "kind": "superstore",
+    "state": "open",
+    "name": "Broadmeadow",
+    "sign": "Broadmeadow",
+    "style": "modern",
+    "features": [
+     "flatRoof",
+     "pylonSign",
+     "carPark",
+     "gardenCentre",
+     "loadingDocks",
+     "carParkLamps",
+     "cartCorrals",
+     "pharmacy",
+     "pickupBays"
+    ]
+   },
+   {
+    "year": 2020,
+    "kind": "superstore",
+    "state": "open",
+    "name": "Broadmeadow",
+    "sign": "Broadmeadow",
+    "style": "modern",
+    "features": [
+     "flatRoof",
+     "pylonSign",
+     "carPark",
+     "gardenCentre",
+     "loadingDocks",
+     "carParkLamps",
+     "cartCorrals",
+     "pharmacy",
+     "pickupBays",
+     "evChargers"
+    ]
+   }
+  ]
+ }
+}

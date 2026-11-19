@@ -355,9 +355,124 @@ selects the chamfer set. The tool output per unique spec is one atlas strip per 
 3. `compose_facade(spec)` in `make_buildings.py` (bake + models.json), then the generator hook.
 4. Office, Condo_7, Condo_1/2 follow with only a new kit entry each.
 
+## Built (2026-11-19): the modular facade kit, item 1 of the build order
+
+`tools/kits.py` (writes `tools/kits/kits.json` and 28 generated caps and fillers), `tools/buildings_pack.py` (`compose_facade(spec)`),
+hooked into `make_buildings.py` (`pk_*` sprite keys; `--pack-showcase DIR`), `tools/pack-export.sh` (writes
+`app/src/main/assets/pack/`). Not wired into the town generator. Preview: `python3 tools/make_buildings.py --pack-showcase DIR`, then
+`gradle :desktop:preview -Dmode=filament-models -Dassets=DIR -Dstreet=0-3`. The kit works from the 32 px art
+(`PACK_ART=.../ME_Theme_Sorter_32x32`, from `packs/join.sh`; the pack is never copied into the repo).
+
+What the trial showed, against the audit's guesses:
+- **Middle floors and condo grounds: as audited.** Motif m of palette p is the pair of slices (10p+2m+1, +2) (condo ground 8p+2m+1); every
+  motif is 2 tiles. Slices carry no edge, so every row is capped with 3 px pilasters cut from the full floor of the same kind
+  (`<palette>_<mid|condo|shop>_capl/capr.png`) and an odd width takes a 1-tile wall filler (`..._filler.png`). The brick courses are
+  not periodic, so the filler is two clean strips laid end to end, every other one mirrored: no seam shows.
+- **Condo doors and windows come from the full floors**, cut at tile edges (`door_glass`, `door_canopy`, `door_arch`, `door_wood`, `win2`,
+  `bigwin3`; the cut's pilaster replaced by the wall beside it); the condo slices have no door.
+- **Shop grounds: the audit was wrong.** The 36 `Ground_Floor_Shop_Modular` slices are single tiles (the left tile of a display window, a
+  door, each open or shuttered), not 2-tile motifs, and no middle tiles of a display exist. The kit takes shops from the 7-wide full
+  floors, cut into a 5-tile display (`dispK`) and a 2-tile door (`doorK`), so a shop ground is 7, 14, ... tiles, or a display alone (5), a
+  door alone (2..4), plus fillers. Shuttered variants (`cdispK`) are in the data, not yet picked by the generator.
+- **The U balcony motif is a flat decal on a bare wall** (it belongs next to a window in the full floor), so it has weight 0 in the
+  generator; it needs real geometry (`_balc`) before use.
+- **Roof corners: unverified guess was wrong.** Trial (`final/item1_roof_corner_trial.png`): `Roof_Modular_14/15` are the back-left/right
+  end blocks of a parapet, `17/16` the left/right rim stubs (each ends in its outline and does not repeat into a rim), there are no front
+  corners: the slices cannot frame a roof. The columns do carry the back cap and inner face, the floor and the front cap (rows 2-12,
+  12-26, 44-164, 166-180), so the tool takes those and builds the side rims as parapet boxes wearing a stub's coping
+  (`apt.flat_roof`). Three colours (teal, gold, stone); the 224-tall grey roof set is not used.
+- **Condo_7** (a 3-tile tower, N floors, window sprites laid over the middles, steps as boxes, the air unit a card), **Condo_1/2** (a row of 96/64/32 px
+  columns, tall 384 or short 320; the right end closed with the mirrored pilaster; the roof's party-wall rims show between columns,
+  as in a terrace) and **office styles 1 and 2** (ground Left_2 + k x Middle_2 + Right_2, n blocks of two floors, width 4+3k tiles; styles 3
+  and 4 lack a ground or a middle piece) are kit entries in the same tool. The office roof's inner face is 36 rows tall: the tool uses its lowest 14.
+- The side wall is each floor's wall rows with windows (`side_segment`; the ground floor's from a clean wall tile, since the shop display would colour it
+  dark), without corner boards (the back wears the side picture repeated, and boards showed as seams). Sill courses stand 3 px out.
+- Scale checked beside `condo_3_45`, `condo_5_1` and `villa_1` (`final/item1_scale_street_*.png`): a tile is 32 px in both.
+- Still to do: balconies as geometry, roof props (the 11 + 5 cards) and signs, shuttered shops, office styles 3 and 4, the diagonal corner pieces, a
+  per-floor window-light randomisation, the generator hook (`tools/town-buildings.ts` emitting `modular` specs; the spec format is
+  `compose_facade`'s).
+
+## Built (2026-11-19): the red-brick corner blocks and the apartment variants, item 4 of the build order
+
+`compose_corner`, `compose_octagon`, `compose_block`, `compose_b6` in `tools/buildings_pack.py` (specs `kit: c4_38 | c4_39 | c4_40 | b3_46 | b8 | b6`,
+in the pack showcase street 3; `final/item4_*`).
+- **Condo_4_38/39**: a wing box (the elevation from the art's front parapet down to the foot, the art's roof from above as its top), a back box behind
+  the corner, and the corner as a prism (a wedge on the plan: chamfer forward from the wing, the entrance bay across, a chamfer back to the end wall) whose three
+  faces are `wall` parts. 39 is 38 mirrored in the pack and is built from its own art with the plan mirrored. The art draws a chamfer sheared (its foot
+  falls one row per two columns, 30 rows over the corner), so each column is let down by its own step (as the police tower), and the 30 rows are the
+  corner's depth in pixels (the roof's rows are one per pixel of depth: the roof's notch is the same 30 rows deep, which checked the scale). Plan: wing 208 deep, corner 30 forward.
+- **Condo_4_40**: an octagonal prism, the front three faces from the art (the chamfers' far ends are higher: columns taken up), the other five a brick wall
+  with the chamfer's window, the octagon roof from above as its top.
+- **Condo_3_46** (five storeys, same family as 3_44/45) and **Condo_8**: the elevation under a plain flat roof from the shared parapet code. Their roofs in the art carry
+  dishes, a AC unit and a stepped parapet: not built (the floor would show them flat); Condo_8's fire-escape balconies are still drawn flat on the front, and its
+  few panes are not lit (the steel passed for glass). **Condo_6**: two boxes, the four-storey block and the one-storey annex whose flat roof is the art's (vents
+  included); the stepped rooftop room with the door and the AC units are not built; its sides are plain grey.
+- Night light: the stone's lilac shades pass for glass by the shops' colour rule and lit whole facades, so the new kits find panes with a stricter blue test
+  (`strict_panes`).
+- Still to do: real coping and parapet boxes along the corner prism (the roof's coping is painted flat there), balconies and fire escapes as geometry
+  (Condo_8), roof props, a `wall` shear check at the corner's join with the wing under a low sun.
+
 ## Honest limits of this audit
 - Done by reading the file names and sizes of all 6 222 singles and looking at contact sheets of the buildings, the modular sets and every important theme;
   props themes (garden 570, camping 693, beach, military) were inspected by name and size, not sprite by sprite.
 - Mapping of which roof slice is which corner, the exact meaning of each shop motif, and the pack cars' era are **unverified**.
 - No S25 measurement is involved: triangle and texture costs of any of this on the phone are estimates until built.
 - The Haunted House is a Halloween/abandoned-house asset; the Gun Store front is optional.
+
+## Built (2026-11-19): the Victorian civic buildings, the haunted mansion, the windmill and the chapel (items 5 and 7)
+
+`tools/buildings_civic.py` (reached from `buildings_pack.compose_facade`, kits `v1..v7`, `haunted`, `windmill`, `chapel`, `chapel_gate`;
+pack showcase streets 5 to 7; `final/A_*`, `final/B_*`). Measurements are the 32 px art's own pixels. The art draws everything
+oblique (a thing `d` back stands `d` rows higher, k = 1), which gives every depth.
+- **V6** (mansard block, `pk_v6`): the brick elevation (the roof's rows taken off) under a hipped roof (`hip_roof`: the slate near
+  slope every other row as the front face, side faces tiled anew with the face's own tiles, the art's flat roof inside its coping as
+  the flat top). Plain windows and sill courses on the sides from the front's own windows.
+- **V5 old school / depot** (`pk_v5`): V6's recipe for the long wing (ridge flat, 100 px runs) plus the **clock tower**: a 176 px square
+  box wearing its front on every side (round window and tall arched window) under a hipped roof whose flat top is the art's skylight
+  frame (the same numbers as the Condo/clock-tower recipe: run 64, top 48 square). **V4 town hall** (`pk_v4`) is V5 192 rows lower in the
+  art with a mansard flat roof on the wing; the chimney the art draws on the slope is painted out of the slate and rebuilt as a brick stack
+  and cap. The art's V4 left half of the flat roof is shaded by the tower's roof: the flat top is cut clear of it.
+- **V1 big mansion / boarding house** (`pk_v1`), **V2 / V3** (`pk_v2`, `pk_v3`): the **front-gabled wing** (box wearing the art's front with
+  the gable's triangle cut above the rake, two slopes from above on quads as the villas', 300 deep) with the tower standing at its back end
+  (d 300: the ridge's far end in the art is 300 rows up, and the tower's eave is 314 high); V1 adds the long mansard wing set back 26 and the
+  tall pier at the far end; V3 adds the side entrance as a crude stair box (stair art on a box: placeholder). V7 is the tower alone
+  (`pk_v7`, the same elevation as V5's: it is what V2/V3/V1 use for their towers).
+- **Haunted mansion** (`pk_haunted`, rare landmark): the ground storey with its bay gables and portal, the central block under a steep plank
+  gable (slopes from the art), the octagonal turret set back 90 under a conical hipped roof. Sides are tiled brick patches. Not built: the left
+  lantern tower and the terrace railings.
+- **Windmill** (`pk_windmill`): lattice cards front and back, posts, the wheel card on top.
+- **Grace Chapel, both** (`pk_chapel`, `pk_chapel_gate`): the art's facade (stone portal, stepped rake, plank gable) as the front of a 300 deep
+  nave under a steep slate roof (V5's tiles; the art draws no roof), a belfry (stone) and a pyramid spire on the ridge, the art's cross on its
+  top. The spire is our addition: the sprite has pinnacles but no steeple. Nave sides are stone-block tiles without windows.
+- Not in the pack, so not built: "tall chalet houses" and a "barn-style garage" do not exist under those names in 24_Additional_Houses (the
+  Country_House is built already; the Post_Apocalyptic_House 1/2 are long corrugated-roof cabins with a stone annex: **not built**).
+- Checked: scale beside the existing Victorian-era tower (tile 32 px) and the shop street by eye; `ModelGeometryTest`, `HouseGeometryTest`,
+  `crossroadsTest` pass.
+
+### Graveyard props (cut and listed; props, placed by a later job)
+All from `19_Graveyard_Singles_32x32` (the 32 px art): Gate x4 sizes (Big 128x160, Medium 128x128, Small 96x128, High 96x160, each with a red-orb
+variant, 8), Cross (black, brown, grey x4 each, 64x64 / 64x96, 12), Marble tombstones (brown, grey x4 each), Long tombstone x2, Wood_Cross x3,
+Wood_Grave x18 (32x64 / 32x96), Stone x9, Dirt_Ditch x9 (64x96 / 96x96: open graves with coffins red/silver/yellow, skull variants), Squared_* x16
+(open graves, coffin, skeleton, bones; 64x96), Coffin x6, Grave_Cage 128x160, Candle_Holder x2 (32x96), Wall_Candle x3, Candles, Big/Medium/Small tree
+(128x128, 64x96, 64x64) and dead Tree_Trunk, Crow x4 views, flowers x~20 (32x32 and 64x64 groups), pebbles, tufts, clover, sprouts, mushrooms,
+shovels, pumpkins x~30 (a Halloween event). Needs: **cards** per prop (upright, nearest-filtered, as the trees), the graves and ditches as
+**ground decals**, the gates as thin boxes with a card, the chapel's lot (a cemetery behind the nave, gates in front); placement rules and era (the
+Halloween set only in October) are for the props job.
+
+## Built (2026-11-19): round 1 leftovers (office 3 and 4, Condo_8's balconies, roof props, shop variety)
+
+`tools/buildings_pack.py`, `tools/kits.py`; showcase streets 0 to 3; `final/C_*`.
+- **Office styles 3 and 4**: the missing piece is built from neighbours (`office_middles`). Style 3 has no lobby middle: a run of its own
+  Left_2 shutter columns (a shuttered shopfront lobby). Style 4 has no 192 middle: two floors, each the cornice band of its Left over its
+  `Window_4_Middle_Modular`. Both in the showcase (`pk_o3a`, `pk_o4a`). Their night light fills whole ribbon windows (a lit band), as style 2.
+- **Condo_8**: the three balconies are painted out of the front (the wall's own row colours) and built as a slab 16 deep with a railing on its
+  three open sides (`mrail`); its windows now light at night (`strict_panes`). The fire-escape ladders are still flat on the wall; the wall
+  behind the painted-out balconies shows faint horizontal streaks (the row fill).
+- **Roof props**: every flat-roofed pack building now carries 1-3 small boxes picked from the stair housing (Roof_Props_1), two air-conditioning
+  units (6, 7) and a plant cabinet (8): each box's top the sprite's top rows from above, its front the rest (`ROOF_PROPS`, `roof_prop_parts`; set
+  `props: false` in a spec to leave a roof bare). Not done: water tanks (no sprite in theme 5: the City-props Water_Tower is the item-4 prop job),
+  the pipes and the Roof_Props_2-5 vents (small cards: add with the props job).
+- **Shop variety**: `kits.py` adds whole 7-tile fronts of other kinds to every palette (bakery, butchery, gym: 2 open and 2 shutters-down each;
+  music store: 4 open), cut from the bottom 96 rows of the pack's `Ground_Floor_<kind>_n` pieces (the sign above them is left off, the lower
+  sign band stays); `auto_ground` picks a slot from the five signature pairs and these kinds without repeating a slot in a building, one slot in
+  twelve shut. Signature pairs are still two of every five choices.

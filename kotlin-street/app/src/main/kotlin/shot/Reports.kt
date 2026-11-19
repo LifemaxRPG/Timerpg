@@ -218,6 +218,10 @@ object Reports {
             } ?: continue
             // a Kotlin crash already has its own report (with its stack): Android's record of it adds nothing
             if (x.reason == ApplicationExitInfo.REASON_CRASH && kotlin.math.abs(x.timestamp - jvmT) < 30_000) continue
+            // Android clearing the game out of memory while it sat in the background (cached, not on screen and not
+            // running the overnight writer's service) is ordinary housekeeping, not a crash: only kills while it was
+            // on screen, visible or in a foreground service are reported
+            if (x.reason == ApplicationExitInfo.REASON_LOW_MEMORY && x.importance >= ActivityManager.RunningAppProcessInfo.IMPORTANCE_CACHED) continue
             val trace = runCatching {
                 x.traceInputStream?.use { s ->
                     val b = s.readBytes()
