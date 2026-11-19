@@ -101,6 +101,8 @@ export interface Farmstead {
   founded: number;
   household: { surname: string; rural: true; members: number };
   things: FarmThing[];
+  /** The farmyard's beaten ground (between the house, the barn and the shed). */
+  ground: Rect;
   /** The gravel lane from the road's edge into the yard: its centre line and width (tiles). */
   lane: { a: [number, number]; b: [number, number]; w: number };
   /** The windbreak's trees (tile points). */
@@ -364,10 +366,12 @@ function farmstead(seed: string, id: string, road: CountryRoad, rect: Rect, fron
   for (let x = 1; x < YARD.w; x += 2.6 + R('wb', x) * 0.8) trees.push(W(x, YARD.d - 0.8 - R('wbz', x) * 0.6).map(r3) as [number, number]);
   for (let z = 9; z < YARD.d - 3; z += 2.8 + R('ws', z) * 0.8) trees.push(W(0.8, z).map(r3) as [number, number]);
   const family = FAMILIES[Math.floor(R('family') * FAMILIES.length)]!;
+  const g0 = W(9.5, 7), g1 = W(28.5, 24.5);
+  const ground: Rect = { x: Math.min(g0[0], g1[0]), y: Math.min(g0[1], g1[1]), w: Math.abs(g1[0] - g0[0]), h: Math.abs(g1[1] - g0[1]) };
   return {
     id, rect, front, road: road.id, family, founded: 1855 + Math.floor(R('founded') * 80),
     household: { surname: family, rural: true, members: 2 + Math.floor(R('members') * 5) },
-    things, lane: { a: la.map(r3) as [number, number], b: lb.map(r3) as [number, number], w: 1.6 }, trees, produce,
+    things, ground, lane: { a: la.map(r3) as [number, number], b: lb.map(r3) as [number, number], w: 1.6 }, trees, produce,
   };
 }
 

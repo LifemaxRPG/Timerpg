@@ -481,7 +481,15 @@ class FilamentTown(
     /** How long the ground took (ms), the buildings so far (ms), and how many are left to build. */
     var groundMs = 0f; private set
     var buildingsMs = 0f; private set
-    val pending: Int get() = slots.count { it.built == null && !it.missing } + (if (cinemaDraw?.done == false) 1 else 0) + storeDraws.count { !it.done }
+    val pending: Int get() = slots.count { it.built == null && !it.missing } + (if (cinemaDraw?.done == false) 1 else 0) + storeDraws.count { !it.done } + extras.count { it.pending }
+
+    // ------------------------------------------------------------------ more the town draws (the farms: TownFarms)
+    private val extras = ArrayList<TownExtra>()
+    /** Adds something more the town draws ([TownExtra]: the farms), made with the town's engine, scene, materials and workers. */
+    internal fun <T : TownExtra> addExtra(make: (TownExtra.Kit) -> T): T =
+        make(TownExtra.Kit(engine, scene, lit, proxyMat, textures, pool)).also { extras += it }
+    /** The extras' report lines (for previews). */
+    val extraReport: List<String> get() = extras.map { it.report }
     var stats = TownStats(slots.size, 0, 0, 0, 0, 0, 0); private set
     /** Each batch [buildNearest] made: how many it built and how long it took (ms). */
     val batches = ArrayList<Pair<Int, Float>>()
@@ -767,6 +775,7 @@ class FilamentTown(
     fun buildNearest(x: Float, z: Float, budgetMs: Float): Int {
         cinemaDraw?.let { c -> c.start(pool); if (!c.done && c.step()) engine.flush() }
         for (st in storeDraws) { st.start(pool, lastHour, weekday); if (!st.done && st.step()) engine.flush() }
+        for (x in extras) x.step()
         if (todo == 0 && chunksTodo == 0 && groundBuilt) return 0
         val t0 = System.nanoTime()
         var n = 0
@@ -1036,6 +1045,10 @@ class FilamentTown(
             val o = st.frame(pose, look, dark, seconds, { x, z -> if (pose.cut > 0f) fadeOf(pose, x, z) else 1f }, storeOut)
             if (o[0] > 0) { visible++; renderables += o[0]; draws += o[0]; tris += o[1] }; casters += o[2]
         }
+        if (extras.isNotEmpty()) {
+            val fc = TownExtra.Frame(pose, look, dark, hour, seconds, floatArrayOf(g0, g1, g2, ga), floatArrayOf(gl0, gl1, gl2), occStep)
+            for (x in extras) { val o = x.frame(fc, storeOut); if (o[0] > 0) { visible++; renderables += o[0]; draws += o[0]; tris += o[1] }; casters += o[2] }
+        }
         val lampsLit = lamps(pose, dark)
         for (t in synchronized(ticks) { ticks.toList() }) t(seconds)
         stats = TownStats(slots.size, slots.count { it.built != null }, visible, renderables, draws, tris, casters, nChunks, nNear, lampsLit)
@@ -1173,6 +1186,7 @@ class FilamentTown(
                 else if (t0 <= 1f) { tallHit[li] = true; break }
             }
         }
+        for (x in extras) x.occlude(st, ex, ey, ez)
         return first.coerceIn(0f, 1f)
     }
 
@@ -1238,6 +1252,7 @@ class FilamentTown(
     fun fadeBetween(t: Float) {
         for (s in slots) s.occluded = s.occT < t
         for (s in storeDraws) s.occluded = s.occT < t
+        for (x in extras) x.fadeBetween(t)
         occludedLots.clear()
         for (k in tallKeys.indices) if (tallHit[k]) occludedLots.add(tallKeys[k])
     }
@@ -1366,6 +1381,7 @@ class FilamentTown(
         crowd.destroy()
         cinemaDraw?.destroy()
         for (st in storeDraws) st.destroy()
+        for (x in extras) x.destroy()
         for (s in slots) {
             val b = s.built ?: continue
             for (e in listOf(b.entity, b.proxy)) if (e != 0) { scene.remove(e); engine.destroyEntity(e); em.destroy(e) }

@@ -462,7 +462,7 @@ private fun stageSky(hour: Float, w: Int, h: Int): java.awt.image.BufferedImage?
     return javax.imageio.ImageIO.read(java.io.ByteArrayInputStream(png))
 }
 
-private fun skyRow(hour: Float, h: Int): (Int) -> Color {
+internal fun skyRow(hour: Float, h: Int): (Int) -> Color {
     val sky = skyColors(hour).sky
     val hy = OrbitCamera.horizonY
     val span = h * .9f
