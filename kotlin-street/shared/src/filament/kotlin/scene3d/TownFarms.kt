@@ -319,7 +319,9 @@ class TownFarms internal constructor(
             soilOf(pic).level(sx0, sz0, sx1, sz1, .4f, TILE_UNITS)
             when (now.look) {
                 FieldLook.GROWING, FieldLook.RIPE -> if (atlas != null && b != null) b.crops[now.crop]?.let { info ->
-                    plantRows(plantsOf(atlas), atlas, f, info.name, info.frameW, info.variants, now.stage, rows, sp, ridge, sx0, sz0, sx1, sz1)
+                    // (sprouts are small; under snow only the odd tuft shows)
+                    val small = if (now.stage <= 1) Spacing(sp.row, sp.plant * (if (snowy) 2.2f else 1f), sp.ridge, sp.scale * (if (snowy) .55f else .75f)) else sp
+                    plantRows(plantsOf(atlas), atlas, f, info.name, info.frameW, info.variants, now.stage, rows, small, ridge, sx0, sz0, sx1, sz1)
                     if (now.stage >= 1 && !(snowy && now.stage <= 1)) {
                         val v = info.variants[0]
                         val frame = frameOf(info.name, now.stage, .3f)

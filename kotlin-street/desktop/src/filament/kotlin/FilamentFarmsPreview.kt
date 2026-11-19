@@ -182,6 +182,13 @@ fun renderFilamentFarms(out: String) {
         view("hay_bales", hg[0] - hg[2] * 200f, hg[1] - hg[3] * 200f, -hg[2], -hg[3], OrbitCamera.headingOf(-hg[2], -hg[3]) + 20f, 22f, 560f, 15f, 172, "hay ${hf.id} mown in June, bales lying")
         view("hay_meadow", hg[0] - hg[2] * 200f, hg[1] - hg[3] * 200f, -hg[2], -hg[3], OrbitCamera.headingOf(-hg[2], -hg[3]) + 20f, 22f, 560f, 15f, 150, "hay ${hf.id} growing in May")
     }
+    // a field the town built over (the same camera in a 1955 export shows it farmed): from above and from the ground
+    farmData.fields.filter { it.becomes == "houses" }.maxByOrNull { (it.rect[2] - it.rect[0]) * (it.rect[3] - it.rect[1]) }?.let { sf ->
+        val cx = (sf.rect[0] + sf.rect[2]) / 2f; val cz = (sf.rect[1] + sf.rect[3]) / 2f
+        report.appendLine("sold field ${sf.id}: farmed from ${sf.from}, built over in ${sf.sold} (${sf.becomes}); farmed in ${town.year}: ${sf.farmedIn(town.year)}")
+        above("sold_field_above", cx, cz, 200f, 50f, 3200f, 13f, 215, "field ${sf.id}, built over in ${sf.sold}")
+        above("sold_field_wide", cx, cz, 200f, 45f, 7000f, 13f, 215, "the town's edge round ${sf.id}")
+    }
     // a stand by the road in summer
     farmData.farms.firstOrNull { it.produce }?.let { pf ->
         val st = pf.things.first { it.summer }
