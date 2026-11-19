@@ -1,0 +1,396 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1990,
+  "topic": "shops",
+  "facts": [
+    {
+      "id": "1990-shops-01",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A grocery store stacks weekly sale circulars near the entrance.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-02",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Shoppers push metal carts through aisles of packaged foods and household supplies.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-03",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A produce clerk weighs loose vegetables and replaces bruised fruit on display.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-04",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A deli worker slices lunch meat to order behind a refrigerated counter.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-05",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A bakery case displays iced cakes with messages added while customers wait.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-06",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A supermarket may stay open late even when smaller downtown stores close earlier.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-07",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A corner convenience store sells snacks, drinks, and basic groceries near the register.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-08",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A hardware clerk helps customers match screws, hinges, and replacement plumbing parts.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-09",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A garden center sets out bags of soil and flowering plants each spring.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-10",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A pharmacy counter fills prescriptions behind shelves of toiletries and greeting cards.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-11",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A discount store sells school supplies, clothing, toys, and household goods under one roof.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-12",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A department store arranges clothing by size on circular racks.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-13",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A shoe shop measures children's feet before bringing boxes from the stockroom.",
+      "ages": "kids",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-14",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A clothing shop offers fitting rooms where shoppers try on jeans and jackets.",
+      "ages": "teens",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-15",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A music store lets customers browse compact discs by category.",
+      "ages": "teens",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-16",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A bookstore displays paperbacks, calendars, and magazines near its front windows.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-17",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A toy store places new action figures and board games on bright shelves.",
+      "ages": "kids",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-18",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "An electronics shop demonstrates televisions and stereos on a crowded display wall.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-19",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A photo counter accepts film for developing and gives customers a pickup date.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-20",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A florist prepares bouquets in a cooler and delivers arrangements around town.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-21",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A dry cleaner tags garments and hangs finished orders on numbered racks.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-22",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A thrift store sorts donated coats, dishes, and furniture for resale.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-23",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A mall food court offers several counters around shared tables.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-24",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A storefront window displays handwritten signs announcing seasonal clearance sales.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-25",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A local repair shop orders replacement appliance parts through a supplier catalog.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-shops-26",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A store manager changes shelf labels before the weekend sale begins.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [
+    {
+      "item": "single greeting card",
+      "usd": 1.5,
+      "year": 1995,
+      "confidence": "medium"
+    },
+    {
+      "item": "basic spiral notebook",
+      "usd": 0.89,
+      "year": 1995,
+      "confidence": "medium"
+    },
+    {
+      "item": "box of crayons",
+      "usd": 1.29,
+      "year": 1995,
+      "confidence": "medium"
+    },
+    {
+      "item": "roll of color print film",
+      "usd": 3.49,
+      "year": 1995,
+      "confidence": "medium"
+    },
+    {
+      "item": "film developing and standard prints",
+      "usd": 6.99,
+      "year": 1995,
+      "confidence": "medium"
+    },
+    {
+      "item": "pair of basic canvas sneakers",
+      "usd": 19.99,
+      "year": 1995,
+      "confidence": "medium"
+    },
+    {
+      "item": "paperback novel",
+      "usd": 5.99,
+      "year": 1995,
+      "confidence": "medium"
+    },
+    {
+      "item": "music compact disc",
+      "usd": 14.99,
+      "year": 1995,
+      "confidence": "medium"
+    },
+    {
+      "item": "basic board game",
+      "usd": 12.99,
+      "year": 1995,
+      "confidence": "medium"
+    },
+    {
+      "item": "bag of potting soil",
+      "usd": 3.99,
+      "year": 1995,
+      "confidence": "medium"
+    },
+    {
+      "item": "dozen plain pencils",
+      "usd": 1.49,
+      "year": 1995,
+      "confidence": "medium"
+    },
+    {
+      "item": "small bouquet of flowers",
+      "usd": 9.99,
+      "year": 1995,
+      "confidence": "medium"
+    }
+  ],
+  "phrases": []
+}
