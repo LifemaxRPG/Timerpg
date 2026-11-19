@@ -1,0 +1,297 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1950,
+  "topic": "home",
+  "facts": [
+    {
+      "id": "1950-home-01",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Families often eat supper together at the kitchen table.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-02",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A parent calls children inside to wash their hands before supper.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-03",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Sunday dinner may bring relatives together around a roast and vegetables.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-04",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Leftover meat becomes sandwiches or another meal the following day.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-05",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A cook keeps a handwritten recipe collection in a kitchen drawer.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-06",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Families store flour and sugar in covered kitchen canisters.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-07",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A mother may pack sandwiches and fruit in a child's school lunch.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-08",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Some children carry lunch to school in a metal lunch box.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-09",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A family puts a pitcher of water on the supper table.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-10",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Household members take turns washing and drying dishes after meals.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-11",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A dish towel hangs near the kitchen sink for drying plates.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-12",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Parents assign children chores before they can go out to play.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-13",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Children may sweep the porch or carry out household rubbish.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-14",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A family hangs damp bath towels on a rack to dry.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-15",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Fresh sheets are tucked tightly around mattresses when beds are made.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-16",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A cedar chest may hold spare blankets and treasured linens.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-17",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Families keep a guest room ready when relatives visit from out of town.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-18",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A front porch offers a place to sit and talk on warm evenings.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-19",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Neighbors may stop at the front door without arranging a visit beforehand.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-20",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Children play board games at the table on rainy afternoons.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-21",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A family sets out playing cards for an evening game.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-22",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Parents remind children to turn off lights when leaving a room.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-23",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A household keeps a calendar marked with birthdays and appointments.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-24",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A family may save colorful wrapping paper for another occasion.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-25",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A child keeps schoolbooks and pencils together for the next morning.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-home-26",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Family photographs stand in frames on a mantel or side table.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
