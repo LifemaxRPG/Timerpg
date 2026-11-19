@@ -435,19 +435,52 @@ oblique (a thing `d` back stands `d` rows higher, k = 1), which gives every dept
 - **V1 big mansion / boarding house** (`pk_v1`), **V2 / V3** (`pk_v2`, `pk_v3`): the **front-gabled wing** (box wearing the art's front with
   the gable's triangle cut above the rake, two slopes from above on quads as the villas', 300 deep) with the tower standing at its back end
   (d 300: the ridge's far end in the art is 300 rows up, and the tower's eave is 314 high); V1 adds the long mansard wing set back 26 and the
-  tall pier at the far end; V3 adds the side entrance as a crude stair box (stair art on a box: placeholder). V7 is the tower alone
+  tall pier at the far end; V3 adds the side entrance (rebuilt 2026-11-19, below). V7 is the tower alone
   (`pk_v7`, the same elevation as V5's: it is what V2/V3/V1 use for their towers).
 - **Haunted mansion** (`pk_haunted`, rare landmark): the ground storey with its bay gables and portal, the central block under a steep plank
-  gable (slopes from the art), the octagonal turret set back 90 under a conical hipped roof. Sides are tiled brick patches. Not built: the left
-  lantern tower and the terrace railings.
-- **Windmill** (`pk_windmill`): lattice cards front and back, posts, the wheel card on top.
-- **Grace Chapel, both** (`pk_chapel`, `pk_chapel_gate`): the art's facade (stone portal, stepped rake, plank gable) as the front of a 300 deep
-  nave under a steep slate roof (V5's tiles; the art draws no roof), a belfry (stone) and a pyramid spire on the ridge, the art's cross on its
-  top. The spire is our addition: the sprite has pinnacles but no steeple. Nave sides are stone-block tiles without windows.
+  gable (slopes from the art), the octagonal turret set back 90 under a conical hipped roof. Reworked 2026-11-19 (below).
+- **Windmill** (`pk_windmill`): reworked 2026-11-19 (below).
+- **Grace Chapel, both** (`pk_chapel`, `pk_chapel_gate`): first built as the whole sprite pasted on a box's front under a grey slate roof;
+  the owner found it flat ("it still looks flat"): rebuilt 2026-11-19 (below).
 - Not in the pack, so not built: "tall chalet houses" and a "barn-style garage" do not exist under those names in 24_Additional_Houses (the
   Country_House is built already; the Post_Apocalyptic_House 1/2 are long corrugated-roof cabins with a stone annex: **not built**).
 - Checked: scale beside the existing Victorian-era tower (tile 32 px) and the shop street by eye; `ModelGeometryTest`, `HouseGeometryTest`,
   `crossroadsTest` pass.
+
+### Rebuilt (2026-11-19): the chapel cut into its parts; the haunted mansion, V3's porch and the windmill
+
+`tools/buildings_civic.py`; judged in `-Dmode=filament-models` (the preview now adds two views: `near`, closer at a person's height, and
+`nightside`, the long side at night). Final renders outside git in the scratchpad's `chapel/final/` (before/after pairs).
+- **Grace Chapel.** The art (160 x 288) is oblique from above: the front gable wall a true elevation (foot row 272), the brown shingle roof
+  drawn from above behind it (78 rows deep, ridge running back), a buttress with a pinnacle at each corner (foot row 288: 16 before the wall).
+  Now: the **front wall** is only the rows that are wall, cut under the roof's slope (the art's own 45-degree rake: eave 100 up at x 20, ridge
+  160), worn as a card so the **portal** opens into the wall: jambs and the wall over the arch 16 deep, the arch's soffit in steps, oak doors
+  at the back of the recess (the art shows it dark), three steps running in under the arch; the gate variant's iron gate is a card in the
+  opening. The **roof** is a real gable over a 256-deep nave wearing the art's shingles on both slopes: each column of the art's left slope
+  unrolled from its front edge back (a column up the slope, a row along the depth), a clean 40-row stretch repeated the full depth, the lit
+  slope mirrored for the right (the engine shades it); a stone ridge cap wearing the art's ridge. The **stepped copings** are five stone
+  steps up each rake, front and back, standing proud of the wall and 3 over the roof; the **crosses** cards on the apex and the spire. The
+  **corner buttresses** are boxes (the art's panelled pier as their face, a weathering, a narrower upper stage) carrying **pinnacles**
+  (stone pyramids to a light tip). The **rose window** is its own part standing 2 proud, glowing warm at night. The **long sides** are coursed
+  stone in the art's own colours (`ashlar`) with a **lancet window** (pointed, leaded, warm at night: `lancet`) in each of four bays between
+  stepped **side buttresses**. The **back** is its own elevation (a lancet either side, an oculus in the gable) with a lower, narrower
+  **chancel** under its own smaller gable and lancets. The belfry stays (stone, a louvred opening each side, a cornice) under a **spire of the
+  same shingles** (a pyramid to a 3-pixel top; to a true point its side faces get no picture).
+- **Haunted mansion.** Sides are the mansion's brick (its own colours, `brick`) with the front's arched windows (two rows on the ground
+  storey, the block's pointed ones, the turret's), lit at night; the **left lantern tower** stands on the terrace 128 back (its ledge, its
+  storey, its steep front gable with the art's round window as its face, lit, and the art's slopes from above); **iron railings** run along the
+  terrace's front either side of the block and down its sides; the turret's cone stops at a ring under the art's **metal cap** (a pyramid) and
+  spike, and its sides are tiled from the face's whole columns (they were sampled outside the face's trapezoid: black streaks).
+- **V3's side entrance**: eight steps rising back from the street to a landing, the doorway (the art's) as a wall at its back with brick
+  sides, two posts carrying a balcony slab (its edge the art's, its floor the art's between the balusters) with a balustrade on its open
+  sides. It was the stair picture on a plain box.
+- **Windmill**: the two full-height posts stood outside the lattice at its sides (the "stray post"); now the art's lattice is a card front
+  and back, the four legs lean in (78 square at the foot, 62 at the top) and the sides' girts and cross braces are timbers along their lines,
+  a plank platform on top, a gearbox and a tail vane behind the wheel card.
+- Honest limits: the copings are plain stone blocks, not the art's pixels; the shingle field repeats every 40 rows (visible from above as
+  repeating cracked shingles); the portal's spandrels over the arch are a card (thin seen from the side); the haunted mansion's ground storey
+  is still the art's front including the bay-window roofs it draws from above (the bays are not volumes); V1/V2/V4-V7 were looked at and left
+  (their roofs and sides are already real volumes).
 
 ### Graveyard props (cut and listed; props, placed by a later job)
 All from `19_Graveyard_Singles_32x32` (the 32 px art): Gate x4 sizes (Big 128x160, Medium 128x128, Small 96x128, High 96x160, each with a red-orb

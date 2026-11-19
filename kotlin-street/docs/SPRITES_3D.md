@@ -510,3 +510,8 @@ Built through the same pipeline (`models.json` + atlas, Filament renders `-Dmode
 windmill and the Grace Chapel with a belfry and spire. Recipes: a hipped roof helper (`hip_roof`: slate face every other row, sides tiled anew, the art's
 flat top or ridge), the clock tower as a square box under a hip to a flat top, a front-gabled wing as the villas' gable (slopes on quads, 300 deep) with the tower
 at its back, a point-topped hip for turrets and spires. Details and limits: `PACK_EXTERIORS.md`. Not on a town street.
+
+Rebuilt the same day after the owner found the chapel flat: the chapel cut into its parts (front wall with a recessed portal, the art's
+shingles from above on a real 256-deep gable, stepped copings, corner buttresses with pinnacles, lancet bays between side buttresses, a
+chancel at the back), the haunted mansion's brick sides, left lantern tower and railings, V3's porch and the windmill's frame
+(`PACK_EXTERIORS.md`, "Rebuilt").
