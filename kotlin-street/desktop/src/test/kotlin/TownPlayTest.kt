@@ -69,7 +69,13 @@ class TownPlayTest {
         assertEquals(seed, town.seed)
         assertTrue("yards shipped", TownYards.parse(json).yards.isNotEmpty())
         val sprites = town.rows.flatMap { r -> r.buildings.map { it.sprite } }.toSet()
-        assertEquals(98, sprites.size)
+        assertEquals(99, sprites.size)
+        // the movie theater (graph.cinema) stands as one of them, drawn by code (CinemaKit): no art files, a bill to show
+        val cinema = root.getJSONObject("graph").getJSONObject("cinema")
+        val cinemaSprite = root.getJSONObject("graph").getJSONArray("landmarks").let { a -> (0 until a.length()).map { a.getJSONObject(it) } }
+            .first { it.getString("id") == cinema.getString("landmark") }.getString("sprite")
+        assertTrue("cinema $cinemaSprite is a building", cinemaSprite in sprites)
+        assertTrue("the cinema has a bill", cinema.getJSONArray("nowShowing").length() > 0 && cinema.getJSONArray("marquee").length() > 1)
         // the dialogue and the rooms are of the same town and year (DialogueEngine refuses a mismatch), at its buildings
         val d = JSONObject(File(dir, "dialogue.json").readText())
         assertEquals(seed, d.getString("town")); assertEquals(year, d.getInt("year")); assertEquals(2, d.getInt("version"))
@@ -88,7 +94,7 @@ class TownPlayTest {
         for (k in keys) assertTrue("room $k is a building", k in sprites)
         // every building has its art, and the ground's pictures are shipped
         val files = File(dir, "buildings").list()!!.toSet()
-        for (sp in sprites) assertTrue("art of $sp", files.any { it.startsWith("${sp}_") || it.startsWith("$sp.") })
+        for (sp in sprites - cinemaSprite) assertTrue("art of $sp", files.any { it.startsWith("${sp}_") || it.startsWith("$sp.") })
         for (p in listOf("asphalt/asphalt_24.png", "sidewalk/sidewalk_25.png", "sidewalk/sidewalk_27.png", "grass/grass_9.png", "tree/tree_1.png"))
             assertTrue("art $p", File("../app/src/main/assets/town/art/$p").exists())
     }

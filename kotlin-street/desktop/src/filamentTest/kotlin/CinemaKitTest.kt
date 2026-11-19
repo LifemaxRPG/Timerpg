@@ -72,4 +72,20 @@ class CinemaKitTest {
             assertTrue("$decade/$seed is blank", px.toSet().size > 3)
         }
     }
+
+    /** The shipped town's cinema reads as a site: its building, era, bill and plot, and builds within the plot. */
+    @Test fun shippedTownCinemaSite() {
+        val json = java.io.File("../app/src/main/assets/town/gamma/street.json").readText()
+        val site = com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite.parse(json)!!
+        assertEquals("b98", site.sprite)
+        assertEquals(CinemaEra.MULTIPLEX, site.info.era)
+        assertTrue(site.info.nowShowing.size >= 6)
+        assertTrue(site.info.marquee.drop(1).all { m -> site.info.nowShowing.any { it.title.uppercase() == m } })
+        // every era's theater stays on the plot (the marquee and canopy may reach over the pavement in front)
+        for (era in CinemaEra.values()) {
+            val m = CinemaKit.build(site.info.copy(era = era))
+            assertTrue("$era: x ${m.footprint[0]}..${m.footprint[2]} on a plot ${site.info.width} wide", m.footprint[0] >= -site.info.width / 2f - 2f && m.footprint[2] <= site.info.width / 2f + 2f)
+            assertTrue("$era: back at ${m.footprint[1]} on a plot ${site.info.depth} deep", -m.footprint[1] <= site.info.depth + 2f)
+        }
+    }
 }

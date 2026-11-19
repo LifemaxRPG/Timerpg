@@ -30,6 +30,8 @@ class TownData(
     val kind: String,
     /** The folder its files are in (assets), for the dialogue and the rooms. */
     val dir: String,
+    /** The town's movie theater (graph.cinema), or null for a town without one. */
+    val cinema: com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite? = null,
 )
 
 /**
@@ -164,6 +166,7 @@ object TownSession {
         } catch (e: Exception) { null }
         val art = TownArt { path -> img("town/art/$path") }
         val building: (String) -> SpriteBuilding? = { sp -> SpriteBuildingLoad.load(sp, mids[sp] ?: 0, windows, houses, models) { img("$dir/buildings/$it.png") } }
-        return TownData(seed, town, yards, art, building, names, root.optString("type"), dir)
+        return TownData(seed, town, yards, art, building, names, root.optString("type"), dir,
+            com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite.parse(root))
     }
 }

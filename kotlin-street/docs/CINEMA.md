@@ -78,3 +78,20 @@ chasing at 7 steps a second). Pictures per era: about 2.4-3.2 MiB of ARGB on the
 repeating tiles); drop the model after adding it. Preview: `gradle :desktop:preview -Dmode=filament-cinema` (each era from
 street, three-quarter, marquee, side, behind and above at day, dusk and night, chase frames, a poster sheet per decade;
 `-DcinemaBills=DIR` for the town's own bills), tests in `desktop/src/filamentTest/kotlin/CinemaKitTest.kt`.
+
+## In the town (Integrate)
+
+- `CinemaSite.parse(street.json)` (scene3d/TownCinema.kt) reads the cinema landmark's sprite and `graph.cinema`; the app's
+  `TownData.cinema` and the town preview pass it to `FilamentTown(..., cinema = ...)`.
+- `FilamentTown` leaves that slot to `TownCinema` (the slot has no art: `make_buildings.py` skips it): `CinemaKit.build`
+  runs on a town worker, its parts are packed there (`CinemaLayer.pack`), the engine's thread uploads them into the
+  cinema's own culled `PropLayer`, and the model is let go. It stands in the slot's own frame (`TownPlace`, front on the
+  setback), is culled, range-faded and cut with the street view like a building, counts in `pending` until it is up, and
+  `CinemaLayer.update` lights the signs and chases the bulbs each frame.
+- Every era stays on its plot (CinemaKitTest): the back's fittings and the multiplex's drum are kept inside it.
+- The app ships the regenerated gamma (assets/town/gamma: street.json v2 with graph.cinema, buildings/, and dialogue.json
+  and interiors.json re-exported): every NPC's fact sheet has the week's bill, and about 40% what they saw.
+- The town is exported for one year (gamma: 2025, the multiplex "Avalon 8"); another year needs the town exported for it.
+  The cinema has no interior in interiors.json yet (landmarks are skipped by the rooms' sprite check).
+- Town preview shots: `-Dmode=filament-town -Dshots=cinema` (street day/dusk/night, three-quarter, low aerial, behind).
+  The town memory check passes with the cinema (held peak about 200 MB of the 256 MB budget, desktop).

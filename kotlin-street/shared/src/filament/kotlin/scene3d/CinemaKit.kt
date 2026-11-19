@@ -168,6 +168,10 @@ internal class TileMesh(val img: PixImg) {
 
 /** Builds the movie theater for a town's [CinemaInfo]. */
 object CinemaKit {
+    /** How far the back's fittings (ladders, fire escapes, the loading door's hood) stand out behind the hall: kept on the plot. */
+    private const val BACK_FITTINGS = 10f
+    /** How far the multiplex's drum stands out past the front block's side (its radius and offset). */
+    private const val DRUM_REACH = 32f
     private fun c(rgb: Long) = Paint.c(rgb)
     private val v = MeshBuilder.Companion::v
     private fun tx(u: Float) = max(1, (u / TEXEL).roundToInt())
@@ -728,7 +732,7 @@ object CinemaKit {
     private fun palace(info: CinemaInfo, seed: Int): CinemaModel {
         val b = B(CinemaEra.PALACE)
         val lot = if (info.width > 0f) info.width else 300f
-        val W = lot.coerceIn(300f, 380f); val H = 150f; val LD = 72f; val AD = (if (info.depth > 0f) info.depth else 402f) - LD; val AH = 120f
+        val W = lot.coerceIn(300f, 380f); val H = 150f; val LD = 72f; val AD = (if (info.depth > 0f) info.depth - BACK_FITTINGS else 402f) - LD; val AH = 120f
         val x0 = -W / 2f; val x1 = W / 2f
         // the hall behind as wide as the plot (the lobby block in front of it; a wide hall shows beside it)
         auditorium(b, -max(W, lot) / 2f + 10f, max(W, lot) / 2f - 10f, -LD, -LD - AD, AH, brickTile(BRICK, c(0xC8A890), 11), Paint.CONCRETE, seed)
@@ -926,7 +930,7 @@ object CinemaKit {
     private fun modern(info: CinemaInfo, seed: Int): CinemaModel {
         val b = B(CinemaEra.MODERN)
         val lot = if (info.width > 0f) info.width else 330f
-        val W = lot.coerceIn(330f, 420f); val H = 136f; val LD = 66f; val AD = (if (info.depth > 0f) info.depth else 406f) - LD; val AH = 118f
+        val W = lot.coerceIn(330f, 420f); val H = 136f; val LD = 66f; val AD = (if (info.depth > 0f) info.depth - BACK_FITTINGS else 406f) - LD; val AH = 118f
         val x0 = -W / 2f; val x1 = W / 2f
         auditorium(b, -max(W, lot) / 2f + 8f, max(W, lot) / 2f - 8f, -LD, -LD - AD, AH, brickTile(Ramp(c(0x3A2A22), c(0x6A4A3A), c(0x8A6048), c(0xA07454), c(0xB88A66)), c(0xB8A894), 21), Paint.CONCRETE, seed)
         val stone = Ramp(c(0x5A5040), c(0xC0B49A), c(0xD8CCB0), c(0xE6DCC4), c(0xF4ECDA))
@@ -1024,12 +1028,12 @@ object CinemaKit {
     private fun twin(info: CinemaInfo, seed: Int): CinemaModel {
         val b = B(CinemaEra.TWIN)
         val lot = if (info.width > 0f) info.width else 380f
-        val W = lot.coerceIn(380f, 560f); val H = 96f; val LD = 64f; val AD = (if (info.depth > 0f) info.depth else 394f) - LD; val AH = 108f
+        val W = lot.coerceIn(380f, 560f); val H = 96f; val LD = 64f; val AD = (if (info.depth > 0f) info.depth - BACK_FITTINGS else 394f) - LD; val AH = 108f
         val x0 = -W / 2f; val x1 = W / 2f
         val screens = if (info.screens > 0) info.screens else 3
         // two (or three) auditoria side by side: a split roof line shows from above and behind
         val halls = screens.coerceIn(2, 3)
-        val hx0 = -max(W, lot) / 2f + 6f; val hx1 = max(W, lot) / 2f - 6f
+        val hx0 = -max(W, lot) / 2f + 14f; val hx1 = max(W, lot) / 2f - 14f
         for (k in 0 until halls) {
             val a = hx0 + (hx1 - hx0) * k / halls + (if (k > 0) 2f else 0f); val e = hx0 + (hx1 - hx0) * (k + 1) / halls - (if (k < halls - 1) 2f else 0f)
             auditorium(b, a, e, -LD, -LD - AD + (k % 2) * 30f, AH - (k % 2) * 10f, renderTile(STUCCO, 31), Paint.CONCRETE, seed + k * 5)
@@ -1122,7 +1126,8 @@ object CinemaKit {
     /** 2000s-2020s: the multiplex: a glass atrium, a wide lit sign, a digital marquee and a poster wall. */
     private fun multiplex(info: CinemaInfo, seed: Int): CinemaModel {
         val b = B(CinemaEra.MULTIPLEX)
-        val W = (if (info.width > 0f) info.width else 480f).coerceIn(480f, 720f); val H = 150f; val LD = 70f; val AD = (if (info.depth > 0f) info.depth else 470f) - LD; val AH = 140f
+        // (on a plot: the drum at the left corner stands out past the front block, so the block keeps clear of the plot's edge)
+        val W = (if (info.width > 0f) info.width - 2f * DRUM_REACH else 480f).coerceIn(480f, 720f); val H = 150f; val LD = 70f; val AD = (if (info.depth > 0f) info.depth - BACK_FITTINGS else 470f) - LD; val AH = 140f
         val x0 = -W / 2f; val x1 = W / 2f
         val screens = if (info.screens > 0) info.screens else 12
         val clad = claddingTile(PANEL)

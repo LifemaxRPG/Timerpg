@@ -23,6 +23,17 @@ internal class CinemaLayer(private val props: PropLayer) {
         }
     }
 
+    /** One part packed for [upload] on any thread ([pack]): its batch, whether it casts, repeats, how it glows. */
+    class Packed(val packed: PropLayer.Packed, val casts: Boolean, val tiled: Boolean, val role: CinemaPart.Role)
+
+    /** Uploads parts [pack] made ready (the engine's thread): as [add], without the model. */
+    fun upload(parts: List<Packed>) {
+        for (p in parts) {
+            val mi = props.upload(p.packed, p.casts, p.tiled)
+            if (p.role != CinemaPart.Role.BODY) lits += Lit(mi, p.role)
+        }
+    }
+
     /** [dark] how dark it is (0 day, 1 night), [seconds] the clock the bulbs chase by. */
     fun update(dark: Float, seconds: Double) {
         val night = smooth((dark - .3f) / .4f)
@@ -42,6 +53,10 @@ internal class CinemaLayer(private val props: PropLayer) {
     private fun smooth(t: Float): Float { val u = t.coerceIn(0f, 1f); return u * u * (3f - 2f * u) }
 
     companion object {
+        /** [model]'s parts packed at [at] (as [add]) for [upload], on any thread: no engine call; drop the model after. */
+        fun pack(model: CinemaModel, at: FloatArray): List<Packed> =
+            model.parts.mapNotNull { p -> PropLayer.Packing.pack(p.mesh, listOf(at))?.let { Packed(it, p.casts, p.tiled, p.role) } }
+
         /** Chase steps a second. */
         const val CHASE_RATE = 7.0
     }
