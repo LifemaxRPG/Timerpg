@@ -1,0 +1,87 @@
+{
+  "licence": "LimeZu swatches: Timerpg game use only, original credit required. Other art/geometry original.",
+  "swatches": [
+    {
+      "id": "wall_stucco_red",
+      "atlas_rect": [
+        99,
+        33,
+        32,
+        32
+      ],
+      "source": {
+        "id": "wall_stucco_red",
+        "family": "wall",
+        "pack": "exteriors",
+        "file": "4_Generic_Building_Singles_32x32/ME_Singles_Generic_Building_32x32_Condo_4_38.png",
+        "rect": [
+          162,
+          270,
+          32,
+          32
+        ],
+        "tags": [
+          "stipple",
+          "brick"
+        ],
+        "wrap": "xy"
+      },
+      "tint": "warm cream"
+    },
+    {
+      "id": "roof_membrane_grey",
+      "atlas_rect": [
+        99,
+        0,
+        32,
+        32
+      ],
+      "source": {
+        "id": "roof_membrane_grey",
+        "family": "roof",
+        "pack": "exteriors",
+        "file": "24_Additional_Houses_32x32.png",
+        "rect": [
+          300,
+          5380,
+          32,
+          32
+        ],
+        "tags": [
+          "flat",
+          "membrane"
+        ],
+        "wrap": "xy"
+      },
+      "tint": null
+    },
+    {
+      "id": "pavement",
+      "atlas_rect": [
+        171,
+        66,
+        32,
+        32
+      ],
+      "source": {
+        "id": "pavement",
+        "family": "ground",
+        "pack": "exteriors",
+        "pick": {
+          "glob": "2_City_Terrains_Singles_32x32/*Sidewalk_1_*.png",
+          "opaque": true,
+          "lum": [
+            150,
+            255
+          ]
+        },
+        "tags": [
+          "sidewalk",
+          "concrete"
+        ],
+        "wrap": "xy"
+      },
+      "tint": null
+    }
+  ]
+}
