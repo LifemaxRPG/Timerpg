@@ -1,0 +1,218 @@
+{
+  "kind": "screenshot",
+  "time": "2026-11-19T06:12:55.880-0500",
+  "epochMs": 1795086775880,
+  "note": "We're still getting We're still getting the effect that is from when we were trying to make it so that the woods don't block our view but whenever we're near anything now it starts to fade that out like you could see that the building starting to fade because I'm next to it",
+  "app": {
+    "versionName": "0.1.389 (2467b5f)",
+    "versionCode": 389,
+    "git": "2467b5f",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "image": {
+    "file": "061255-we-re-still-getting-we-re-still-g.png",
+    "format": "png",
+    "scale": 1,
+    "width": 2340,
+    "height": 1080,
+    "bytes": 1612968,
+    "captured": "PixelCopy of the window"
+  },
+  "screen": {
+    "widthPx": 2244,
+    "heightPx": 1038,
+    "density": 2.8125,
+    "densityDpi": 450
+  },
+  "device": {
+    "ramFreeMb": 2848,
+    "ramTotalMb": 11113,
+    "lowMemory": false,
+    "gamePssMb": 2924,
+    "thermalStatus": 2,
+    "thermalHeadroom10s": 0.9298227
+  },
+  "game": {
+    "renderer": "Filament",
+    "camera": "medium",
+    "view": "open",
+    "orbit": {
+      "yaw": -120.89845,
+      "pitch": 27.40576,
+      "dist": 420,
+      "pulled": 546,
+      "goalYaw": -120.89845,
+      "goalPitch": 27.40576,
+      "goalDist": 420,
+      "tx": 3471.5454,
+      "tz": 2636.386,
+      "line": "camera open yaw -120.9 pitch 27.4 dist 420 (pulled to 546) at (3472, 2636)"
+    },
+    "rendererError": null,
+    "town": "eta · Commuter suburb · 2025",
+    "walkableTown": {
+      "seed": "gamma",
+      "loading": false,
+      "ready": true,
+      "progress": 1,
+      "error": null,
+      "loadMs": 1220.2445,
+      "firstViewMs": 39303.438,
+      "built": "town built: ground 39302 ms (workers 39282), buildings 1030 ms here (slowest b99 7.3 ms, largest batch 15.8 ms), 37638 ms on workers (slowest b98 4350 ms); textures 989, 107.8M texels, 3916 shared",
+      "memory": {
+        "when": "town built",
+        "graphicsMb": 1137,
+        "nativeMb": 137,
+        "javaMb": 94,
+        "codeMb": 30,
+        "totalPssMb": 1447
+      },
+      "row": "21R",
+      "street": "King Street",
+      "neighbourhood": "Oak Heights",
+      "x": 755.9546,
+      "lane": -26.886402,
+      "wx": 3471.5454,
+      "wz": 2636.386,
+      "heading": 3.0844452,
+      "front": "b56",
+      "transit": null,
+      "liveRows": [
+        "21R",
+        "21L",
+        "6R",
+        "22R",
+        "20R",
+        "20L",
+        "6L",
+        "22L",
+        "8L",
+        "24L",
+        "23R",
+        "23L",
+        "8R",
+        "24R",
+        "29R",
+        "3R",
+        "30L",
+        "17R",
+        "17L",
+        "30R",
+        "29L",
+        "3L"
+      ],
+      "people": 24,
+      "talkTo": "b56",
+      "walk": "open",
+      "open": {
+        "door": "b56 (HOME) at (3478, 2650)",
+        "yard": "b56",
+        "speed": 0,
+        "blocked": 0,
+        "cameraYaw": -2.110076,
+        "hx": 0.057116352,
+        "hz": 0.99836755
+      }
+    },
+    "street": {
+      "index": 0,
+      "name": "Main Street",
+      "nearestBuilding": 1,
+      "building": "Radcliffe's Bank",
+      "owner": "Louise Radcliffe",
+      "atCorner": false,
+      "edge": 0
+    },
+    "player": {
+      "x": 755.9546,
+      "lane": -26.886402,
+      "street": 0,
+      "dir": -1,
+      "walking": false,
+      "running": false,
+      "viewMiddle": 284.625
+    },
+    "turn": {
+      "active": false,
+      "forward": true,
+      "p": 0,
+      "yaw": 0,
+      "ease": 0,
+      "blocked": false
+    },
+    "inRoom": false,
+    "room": null,
+    "doorFade": false,
+    "time": {
+      "hour": 17.6,
+      "clock": "17:36",
+      "season": "summer",
+      "weather": "Clear"
+    },
+    "frames": {
+      "compose": "Frames: 25.0 ms (40 fps) · p95 58.3 ms · 33.5% late · display 120 Hz",
+      "filament": "Filament: CPU 12.5 ms (p95 18.9) · GPU 48.2 ms (p95 55.3) · start 30 ms, street 1699 ms"
+    },
+    "ai": {
+      "state": "READY",
+      "detail": "Ready: the light model answers in play. Lines ahead of time are written by the main model (overnight, or when it fits).",
+      "runsOn": "CPU",
+      "modelMb": 2463,
+      "role": "live",
+      "forceBank": false,
+      "gpuNote": "Not enough free memory for the NPU copy of the light model right now (3046 MB free, 3513 MB needed), so it runs on the CPU from the file (it moves to the NPU once there is room: checked every 30 s).",
+      "lane": null,
+      "linesWritten": 21,
+      "builtIn": 0,
+      "queued": 600,
+      "paused": "light model loaded",
+      "working": null,
+      "pregenOff": null,
+      "prefillTokPerSec": 0,
+      "genTokPerSec": 0,
+      "firstTokenMs": 0,
+      "loadInfo": null
+    },
+    "conversation": null,
+    "voices": {
+      "enabled": false,
+      "speaking": false,
+      "only": 2,
+      "timing": null
+    },
+    "mic": {
+      "always": true,
+      "granted": false,
+      "listening": false,
+      "state": "IDLE"
+    },
+    "panels": {
+      "aiPanel": false,
+      "crashShown": false,
+      "tuningNpu": false
+    }
+  },
+  "annotations": {
+    "note": "Drawn by the player on the screenshot; coordinates are pixels of the original image (2340 x 1080), origin top left. An arrow points at its \"to\" end.",
+    "imageWidth": 2340,
+    "imageHeight": 1080,
+    "markedImage": "061255-we-re-still-getting-we-re-still-g.png",
+    "rawImage": "061255-we-re-still-getting-we-re-still-g-raw.png",
+    "marks": [
+      {
+        "type": "arrow",
+        "color": "red",
+        "from": {
+          "x": 1486,
+          "y": 328
+        },
+        "to": {
+          "x": 1140,
+          "y": 489
+        }
+      }
+    ]
+  }
+}
