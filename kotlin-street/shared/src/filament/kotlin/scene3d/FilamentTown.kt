@@ -920,6 +920,7 @@ class FilamentTown(
         light(pose, hour, sky)
         haze(pose, sky)
         val dark = sky.dark
+        crowd.dark = dark
         val wl = SceneInk.WindowLit
         val g0 = lin(wl.red); val g1 = lin(wl.green) * .9f; val g2 = lin(wl.blue) * .7f
         val ga = .75f * smooth((dark - .35f) / .5f)

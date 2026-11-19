@@ -83,6 +83,12 @@
   rebuilds it.
 
 ## Added since (all verified by headless renders only)
+- **A bicycle in the open world** (branch wf-bike; desktop renders and JVM tests only, NOT yet ridden on the S25): the HUD's
+  bike button right of the stick (tap on/off, long press: the bell); momentum, coasting, braking, a turning radius that
+  grows with the speed, cruise 290 / sprint 400 units/s (walk 72, run 150), slower on grass, sliding along walls; a 3D bike
+  of the town's era (1950s cruiser, 1970s ten-speed, 1980s BMX, modern hybrid) with turning wheels, cranks and bar, leaning
+  into turns, the player seated on it; tyre and freewheel sounds made live; the camera 30% further back. docs/TOWN.md
+  "Open world: the bicycle".
 - Pixel-perfect scaling (zoom snapped to whole pixels; `StageTuning.pixelPerfect`), props/characters at 1x/1.5x pixel scale.
 - Shop name and owner shown at the bottom while standing at a shop. Collisions: walk round lamps/trees/benches at the kerb (radii are guesses).
 - The corner turn is now the crossroads and the walk round it (see "The crossroads and the walk round the corner" below).

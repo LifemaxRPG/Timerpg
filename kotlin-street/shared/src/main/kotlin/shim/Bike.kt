@@ -110,17 +110,22 @@ class BikeState {
     /** The side a turn round goes (1 right, -1 left), kept while the push is behind the bike. */
     var roundSide = 0f
     /** The wheels' radius (street units) and how many wheel turns a crank turn makes. */
-    val wheelRadius: Float get() = if (style == BikeStyle.BMX) 5.4f else 7f
+    val wheelRadius: Float get() = (if (style == BikeStyle.BMX) 5.4f else 7f) * SCALE
     val gear: Float get() = when (style) { BikeStyle.CRUISER -> 2.2f; BikeStyle.BMX -> 2.0f; BikeStyle.TEN_SPEED -> 3.0f; BikeStyle.HYBRID -> 2.6f }
 
     fun stop() { stuckFor = 0f; lifted = false; speed = 0f; rate = 0f; lean = 0f; steer = 0f; pedalling = false; sprinting = false; fullFor = 0f; roundSide = 0f }
 
     companion object {
+        /**
+         * The bike is drawn this much bigger than a real one would be beside a 1.7 m person (its model is made to real
+         * measure): our people are the pack's big-headed figures, and a true-size bike vanishes under them.
+         */
+        const val SCALE = 1.45f
         /** The bike's body on the ground: a circle this wide at its middle (it fits gates: 28 wide, 21.8 between posts). */
         const val RADIUS = 7f
         /** The front wheel's probe: a circle of [FRONT_R] this far ahead of the middle (the tyre's front at ~18). */
-        const val FRONT = 12.5f
-        const val FRONT_R = 4.5f
+        const val FRONT = 17f
+        const val FRONT_R = 5f
         /** How far the front probe may graze something (units) before the frame is undone. */
         const val FRONT_SLACK = .5f
         /** Getting on needs a clear spot for the bike within this of where the player stands. */
