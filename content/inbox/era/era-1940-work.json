@@ -1,0 +1,310 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1940,
+  "topic": "work",
+  "facts": [
+    {
+      "id": "1940-work-01",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A town carpenter measures lumber and marks cuts before building a porch railing.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-02",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A plumber carries a toolbox to repair leaking pipes in a customer's house.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-03",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "An electrician installs switches and repairs wiring in homes and storefronts.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-04",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A barber stands through much of the day while cutting hair at his chair.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-05",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A waitress takes orders by hand and carries plates between the kitchen and tables.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-06",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A cook arrives before breakfast service to prepare food for the morning customers.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-07",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A baker starts work early so fresh loaves are ready when the shop opens.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-08",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A farmhand rises early to feed livestock before other fieldwork begins.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-09",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Farm workers harvest crops by hand where machines cannot do the job.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-10",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A dairy worker cleans milking equipment after the morning's work.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-11",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A postal carrier sorts letters before starting a delivery route.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-12",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A schoolteacher prepares lessons and marks pupils' written exercises after class.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-13",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A nurse checks patients and records observations on paper charts.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-14",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A doctor makes house calls for patients who cannot easily visit the office.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-15",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A mechanic uses hand tools to service engines in a repair garage.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-16",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A railroad crew inspects equipment before a scheduled departure.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-17",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A telephone operator connects callers through a switchboard at the exchange.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-18",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A secretary types correspondence and arranges appointments for an office.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-19",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A bookkeeper enters daily business transactions in a paper ledger.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-20",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A factory foreman assigns tasks and checks the progress of workers on the floor.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-21",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Some factory workers belong to unions that negotiate pay and working conditions.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-22",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Many married women work for pay, though some employers prefer to hire unmarried women.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "guard"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-work-23",
+      "year_from": 1942,
+      "year_to": 1945,
+      "text": "During the war, women take factory jobs previously held mainly by men.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-24",
+      "year_from": 1942,
+      "year_to": 1945,
+      "text": "During the war, factories add shifts to meet demand for military supplies.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-25",
+      "year_from": 1945,
+      "year_to": 1949,
+      "text": "After the war, returning service members seek civilian jobs and apprenticeships.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-work-26",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "An apprentice learns a skilled trade by assisting an experienced worker.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
