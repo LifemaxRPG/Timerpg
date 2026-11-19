@@ -1,0 +1,297 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1960,
+  "topic": "fashion",
+  "facts": [
+    {
+      "id": "1960-fashion-01",
+      "year_from": 1960,
+      "year_to": 1964,
+      "text": "Women wear fitted dresses with narrow waists and knee-length skirts for everyday outings.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-02",
+      "year_from": 1960,
+      "year_to": 1963,
+      "text": "Teenage girls wear full skirts and cardigan sweaters to school early in the decade.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-03",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Men wear pressed trousers and collared shirts for many office jobs.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-04",
+      "year_from": 1960,
+      "year_to": 1965,
+      "text": "A man may put on a narrow necktie with his business suit.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-05",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Women often wear matching jackets and skirts to offices or formal appointments.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-06",
+      "year_from": 1960,
+      "year_to": 1965,
+      "text": "A girl may wear a cotton dress with ankle socks and flat shoes to school.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-07",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Boys commonly wear button-front shirts and long trousers for school.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-08",
+      "year_from": 1960,
+      "year_to": 1964,
+      "text": "Teenage boys wear crew cuts or neatly combed side parts early in the decade.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-09",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Many women set their hair in rollers to make curls or waves.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-10",
+      "year_from": 1960,
+      "year_to": 1966,
+      "text": "Some women tease their hair into tall, rounded styles.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-11",
+      "year_from": 1961,
+      "year_to": 1965,
+      "text": "A woman may wear a pillbox hat with a tailored outfit for a dressy occasion.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-12",
+      "year_from": 1960,
+      "year_to": 1967,
+      "text": "Women wear gloves and hats for some church services and formal visits.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-13",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Girls wear headbands or ribbons to keep their hair neatly arranged.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-14",
+      "year_from": 1962,
+      "year_to": 1967,
+      "text": "Teenage girls increasingly wear straight skirts instead of full petticoat skirts.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-15",
+      "year_from": 1965,
+      "year_to": 1969,
+      "text": "Young women begin wearing shorter hemlines as the decade progresses.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-16",
+      "year_from": 1965,
+      "year_to": 1969,
+      "text": "Some young women wear brightly colored shift dresses with simple straight shapes.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-17",
+      "year_from": 1966,
+      "year_to": 1969,
+      "text": "Young women wear patterned tights with short skirts during the later sixties.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-18",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Teenagers wear loafers or canvas sneakers for casual outings.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-19",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Men often wear leather dress shoes with suits and work trousers.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-20",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Denim jeans remain common for chores, outdoor work, and casual teenage wear.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-21",
+      "year_from": 1966,
+      "year_to": 1969,
+      "text": "Some teenage boys grow longer hair toward the end of the decade.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-22",
+      "year_from": 1967,
+      "year_to": 1969,
+      "text": "Sideburns become more noticeable on some younger men late in the decade.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-23",
+      "year_from": 1966,
+      "year_to": 1969,
+      "text": "Young adults wear bold geometric prints and contrasting colors in the later sixties.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-24",
+      "year_from": 1968,
+      "year_to": 1969,
+      "text": "Some young adults wear bell-bottom trousers near the end of the decade.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-25",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Children wear heavier wool coats, knitted caps, and mittens during cold weather.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-fashion-26",
+      "year_from": 1960,
+      "year_to": 1966,
+      "text": "A woman may carry a structured handbag that matches her shoes for a formal outing.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
