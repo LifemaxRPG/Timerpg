@@ -112,6 +112,9 @@ def compose_facade(spec, shop=None, rng=None):
     if kit == 'office': return compose_office(spec, shop)
     if kit.startswith('c4_'): return compose_corner(spec, shop)
     if kit in ('b3_46', 'b8', 'b6'): return compose_block(spec, shop)
+    if kit in CIVIC_KITS:
+        import buildings_civic
+        return buildings_civic.compose_civic(spec, shop)
     W = int(spec['widthTiles'])
     seed = zlib.crc32(spec['id'].encode()) + int(spec.get('seed', 0))
     r = np.random.default_rng(seed)
@@ -461,6 +464,7 @@ def compose_b6(spec, shop=None):
     emis = np.zeros_like(main); emis[:] = gm
     return model, at, main, side, emis, lawn, fence, fence_snow
 
+CIVIC_KITS = ('v4', 'v5', 'v6', 'v1', 'v2', 'v3', 'v7', 'haunted', 'windmill', 'chapel', 'chapel_gate')
 KEYS = ('pk_',)
 
 
@@ -489,10 +493,16 @@ def showcase_specs():
     ]
 
 
+def civic_specs():
+    """The Victorian civic buildings, the other Additional Houses and the chapel (streets 5 and 6 of the pack showcase)."""
+    return [dict(id='pk_' + k, kit=k, widthTiles=24) for k in CIVIC_KITS]
+
+
 def showcase(out):
     """street.json + buildings/ for the pack's buildings: street 0 the facade kit's shops and condos, 1 the other kits."""
     shops, names = [], []
-    for sp in showcase_specs():
+    cspecs = civic_specs(); nbase = len(showcase_specs())
+    for sp in showcase_specs() + cspecs:
         shops.append(dict(id=f'show:{sp["id"]}', sprite=sp['id'], home=False, name=sp['id'], kind='Shop', owner='', colour='base',
                           parts=[dict(key=sp['id'], w=sp.get('widthTiles', 3) * 32, h=200, y=0)], yard=dict(front=1, style='compact'), spec=sp))
         names.append(sp['id'])
@@ -505,6 +515,7 @@ def showcase(out):
         scale.append(sp)
     os.makedirs(out + '/buildings', exist_ok=True)
     json.dump(dict(town='pack', year=2025, type='pack showcase', shops=shops,
-                   streets=[dict(name='Facade kit', buildings=names[:5]), dict(name='Facade kit 2', buildings=names[5:9]), dict(name='Towers and terraces', buildings=[n for n in names[9:] if not n.startswith(('pk_b', 'pk_k'))]), dict(name='Red-brick corners and blocks', buildings=[n for n in names if n.startswith(('pk_b', 'pk_k'))]), dict(name='Scale against the game\'s own', buildings=scale)]),
+                   streets=[dict(name='Facade kit', buildings=names[:5]), dict(name='Facade kit 2', buildings=names[5:9]), dict(name='Towers and terraces', buildings=[n for n in names[9:nbase] if not n.startswith(('pk_b', 'pk_k'))]), dict(name='Red-brick corners and blocks', buildings=[n for n in names[:nbase] if n.startswith(('pk_b', 'pk_k'))]), dict(name='Scale against the game\'s own', buildings=scale),
+                            dict(name='Victorian civic', buildings=names[nbase:nbase + 3]), dict(name='Victorian wings and landmarks', buildings=names[nbase + 3:nbase + 7]), dict(name='Other Additional Houses and chapel', buildings=names[nbase + 7:])]),
               open(out + '/street.json', 'w'), indent=1)
     return out + '/street.json', out + '/buildings'
