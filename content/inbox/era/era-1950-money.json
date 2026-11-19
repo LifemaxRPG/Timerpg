@@ -1,0 +1,370 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1950,
+  "topic": "money",
+  "facts": [
+    {
+      "id": "1950-money-01",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A household often keeps grocery money in a weekly cash envelope.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-money-02",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A shopper counts coins carefully when paying for a small purchase.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-money-03",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A store clerk gives change in coins and paper bills.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-money-04",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A customer may pay for groceries by personal check if the merchant accepts it.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1950-money-05",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A local merchant may let a trusted family put purchases on a running account.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1950-money-06",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A family settles its store account when the next paycheck arrives.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-money-07",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Workers often receive wages in cash or by paper paycheck.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-money-08",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A bank teller records deposits in a customer's passbook.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-money-09",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A saver brings coins to the bank to add to a savings account.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-money-10",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A child saves allowance money in a jar for a bicycle or toy.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-money-11",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A family compares newspaper grocery advertisements before shopping.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-money-12",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A shopper looks for marked-down canned goods to stretch the food budget.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-money-13",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A diner leaves a few coins for the server after a modest meal.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-money-14",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A barber may receive a small cash tip from a satisfied customer.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1950-money-15",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A household sets aside money each month for rent and utility bills.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-money-16",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A family may buy a major appliance through monthly installment payments.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1950-money-17",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A department store may offer a layaway plan for an expensive purchase.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1950-money-18",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A worker checks the pay stub for deductions before planning expenses.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-money-19",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A family keeps receipts in a drawer to track household spending.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-money-20",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A shopkeeper writes prices on paper tags attached to merchandise.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-money-21",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A child earns a few coins by mowing a neighbor's lawn.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-money-22",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A household budgets separately for coal, heating oil, or other winter fuel.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-money-23",
+      "year_from": 1950,
+      "year_to": 1958,
+      "text": "A customer can buy a postage stamp for three cents early in the decade.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-money-24",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A worker may buy a money order to send payment through the mail.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1950-money-25",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A household compares the cost of repairing a worn appliance with buying a replacement.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-money-26",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A local shop advertises a special price in the weekly newspaper.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [
+    {
+      "item": "first-class domestic letter postage",
+      "usd": 0.03,
+      "year": 1955,
+      "confidence": "high"
+    },
+    {
+      "item": "first-class domestic letter postage",
+      "usd": 0.04,
+      "year": 1959,
+      "confidence": "high"
+    },
+    {
+      "item": "federal hourly minimum wage",
+      "usd": 0.75,
+      "year": 1950,
+      "confidence": "high"
+    },
+    {
+      "item": "federal hourly minimum wage",
+      "usd": 1,
+      "year": 1956,
+      "confidence": "high"
+    },
+    {
+      "item": "gallon of regular gasoline",
+      "usd": 0.27,
+      "year": 1955,
+      "confidence": "medium"
+    },
+    {
+      "item": "loaf of white bread",
+      "usd": 0.18,
+      "year": 1955,
+      "confidence": "medium"
+    },
+    {
+      "item": "quart of whole milk",
+      "usd": 0.24,
+      "year": 1955,
+      "confidence": "medium"
+    },
+    {
+      "item": "dozen eggs",
+      "usd": 0.61,
+      "year": 1955,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of ground beef",
+      "usd": 0.43,
+      "year": 1955,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of butter",
+      "usd": 0.71,
+      "year": 1955,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of coffee",
+      "usd": 0.93,
+      "year": 1955,
+      "confidence": "medium"
+    },
+    {
+      "item": "movie admission",
+      "usd": 0.5,
+      "year": 1955,
+      "confidence": "medium"
+    }
+  ],
+  "phrases": []
+}
