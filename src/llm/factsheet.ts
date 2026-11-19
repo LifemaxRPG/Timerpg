@@ -55,6 +55,12 @@ export function cinemaFacts(c: TalkCtx): string[] {
   return out;
 }
 
+/** What a person does at an old store's new use (none: not somewhere people go each week). */
+const REUSE_HABIT: Partial<Record<NonNullable<StoreState['reuse']>, string>> = {
+  church: 'go to church at', gym: 'work out at', thrift: 'look for bargains at', flea: 'browse on weekends at', outlet: 'look for bargains at',
+  cafe: 'often have coffee at', community: 'go to events at', feed: 'buy garden seed at',
+};
+
 /**
  * The town's stores in the talk's year (src/town/stores.ts): where this person buys their groceries, and the latest
  * change they would talk about (the superstore opening, the supermarket moving out of town, the old general store
@@ -69,8 +75,12 @@ export function storeFacts(c: TalkCtx): string[] {
     if (s) st.set(s.site, s);
   }
   const open = [...st.values()].filter((s) => s.status === 'open');
-  if (!open.length) return [];
   const age = w.year - p.birthYear;
+  if (!open.length) {
+    // every store in town has shut: the last one's closing is what people know
+    const last = [...st.values()].filter((s) => s.closed !== undefined).sort((a, b) => b.closed! - a.closed!)[0];
+    return last ? [`Since ${last.name} closed in ${last.closed}, ${age < 14 ? 'your family drives' : 'you drive'} to the next town over for groceries.`] : [];
+  }
   const where = (s: StoreState): string => s.site === 'generalstore' ? `${s.name} on Main Street`
     : s.site === 'market' ? `${s.name} downtown` : `${s.name} out on the main road at the edge of town`;
   // the newest store most people use; the general store keeps the old and the loyal while it stands
@@ -87,8 +97,11 @@ export function storeFacts(c: TalkCtx): string[] {
     if (e.event === 'opened' && s.site === 'market') return `${e.name}, the town's first supermarket, opened downtown in ${e.year}.`;
     if (e.event === 'opened' && s.site === 'supermarket') return `${e.name}, the town's first supermarket, opened at the edge of town in ${e.year}.`;
     if (e.event === 'moved') return `${st.get('market')?.name ?? 'The market'} moved out of downtown in ${e.year} into a big new store at the edge of town, ${e.name}.`;
+    if (e.event === 'renamed' && e.trade) return `The old general store became ${e.name} in ${e.year}.`;
     if (e.event === 'renamed') return `The general store changed hands in ${e.year} and is now ${e.name}.`;
+    if (e.event === 'expanded') return `${e.name} was made twice as big in ${e.year}, with groceries and a pharmacy.`;
     if (e.event === 'closed' && e.why === 'superstore') return `${e.name} closed in ${e.year}${superstore ? ` after ${superstore.name} opened` : ''}.`;
+    if (e.event === 'closed' && e.why === 'supermarket') return `${e.name} closed in ${e.year}; the supermarket had taken its trade.`;
     if (e.event === 'reused') return `The old ${s.name} building is ${REUSE_WORDS[e.reuse!]} now, ${e.name}.`;
     return undefined;
   };
@@ -102,9 +115,17 @@ export function storeFacts(c: TalkCtx): string[] {
       out.push(`You miss ${old.name}, which closed in ${old.closed}.`);
     }
   }
+  // some go to what an old store became (church on Sunday, the gym, the thrift store, coffee)
+  if (out.length < 2 && age >= 14) {
+    const used = [...st.values()].filter((s) => s.status === 'reused' && s.reuse && REUSE_HABIT[s.reuse]);
+    const u = used.length ? used[Math.floor(rand(w.seed, 'store-reuse-which', p.id) * used.length)]! : undefined;
+    if (u && rand(w.seed, 'store-reuse', p.id) < 0.3) out.push(`You ${REUSE_HABIT[u.reuse!]} ${u.sign}, in the old ${u.name} building.`);
+  }
   if (superstore && superstore.status === 'open' && w.year - superstore.opened <= 6 && out.length < 2) {
+    // blame only once one of the old stores has actually closed after it came
+    const blamed = [...st.values()].some((s) => s.why === 'superstore' && s.closed !== undefined && s.closed <= w.year);
     const v = rand(w.seed, 'store-opinion', p.id);
-    out.push(v < 0.4 ? `You like ${superstore.name}'s low prices.` : v < 0.75 ? `You blame ${superstore.name} for the old stores closing.` : `You think ${superstore.name} is too big for a town like this.`);
+    out.push(v < 0.4 ? `You like ${superstore.name}'s low prices.` : v < 0.75 && blamed ? `You blame ${superstore.name} for the old stores closing.` : `You think ${superstore.name} is too big for a town like this.`);
   }
   return out.slice(0, 2);
 }

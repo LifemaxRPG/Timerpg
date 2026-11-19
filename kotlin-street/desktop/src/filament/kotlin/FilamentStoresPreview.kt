@@ -40,6 +40,8 @@ import kotlin.math.sqrt
 import kotlin.math.tan
 
 import com.lifemax.rpg.feature.habits.presentation.scene3d.StoreInfo
+import com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSiteInfo
+import com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSitePlaceholder
 import com.lifemax.rpg.feature.habits.presentation.scene3d.StoreKind
 import com.lifemax.rpg.feature.habits.presentation.scene3d.StoreKit
 import com.lifemax.rpg.feature.habits.presentation.scene3d.StoreReuse
@@ -52,37 +54,54 @@ import com.lifemax.rpg.feature.habits.presentation.scene3d.StoreState
  * night (22.5). -DstoresFrom=street.json renders the town's own graph.stores[] instead. -Dstores=general,market,... (variant names or kinds) for some only; -Dhour= one hour.
  * Writes into build/preview/stores/ and stores.txt (each variant's pictures in texels and bytes, its triangles, parts and lights).
  */
+private val placeholders = HashMap<String, Pair<StoreSiteInfo, Int>>()
+
 fun renderStores(out: String) {
     val dir = File(out, "stores").also { it.mkdirs() }
     val only = System.getProperty("stores")?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }?.toSet()
     val hours = System.getProperty("hour")?.toFloatOrNull()?.let { listOf(it) } ?: listOf(13f, 19.3f, 22.5f)
     val report = StringBuilder()
+    val weekday = System.getProperty("weekday")?.toIntOrNull() ?: 3
+    fun f(kind: StoreKind, year: Int, trade: String? = null, discount: Boolean = false, dog: Boolean = false) =
+        StoreSiteInfo.featuresOf(kind, StoreState.OPEN, year, null, trade, discount, dog).toSet()
     val variants = listOf(
         "general_1925" to StoreInfo.sample(StoreKind.GENERAL, 1925, seed = 4),
         "general_1955" to StoreInfo.sample(StoreKind.GENERAL, 1955, seed = 5),
         "general_brick_1940" to StoreInfo.sample(StoreKind.GENERAL, 1940, seed = 2),
+        "general_country_1982" to StoreInfo.sample(StoreKind.GENERAL, 1982, seed = 6).copy(features = f(StoreKind.GENERAL, 1982, dog = true)),
+        "general_deli_1996" to StoreInfo.sample(StoreKind.GENERAL, 1996, seed = 5).copy(name = "Pruitt's Store & Deli", features = f(StoreKind.GENERAL, 1996, trade = "deli", dog = true)),
         "general_closed_1995" to StoreInfo.sample(StoreKind.GENERAL, 1995, seed = 4, state = StoreState.CLOSED).copy(closed = 1988),
         "general_antiques_2010" to StoreInfo.sample(StoreKind.GENERAL, 2010, seed = 4, state = StoreState.REUSED, reuse = StoreReuse.ANTIQUES),
         "general_church_2000" to StoreInfo.sample(StoreKind.GENERAL, 2000, seed = 7, state = StoreState.REUSED, reuse = StoreReuse.CHURCH),
         "general_cafe_2022" to StoreInfo.sample(StoreKind.GENERAL, 2022, seed = 9, state = StoreState.REUSED, reuse = StoreReuse.CAFE),
         "market_1956" to StoreInfo.sample(StoreKind.MARKET, 1956, seed = 3),
         "market_1966" to StoreInfo.sample(StoreKind.MARKET, 1966, seed = 6),
-        "market_closed_1984" to StoreInfo.sample(StoreKind.MARKET, 1984, seed = 3, state = StoreState.CLOSED),
+        "market_closed_1984" to StoreInfo.sample(StoreKind.MARKET, 1984, seed = 3, state = StoreState.CLOSED).copy(closed = 1980),
+        "market_church_1995" to StoreInfo.sample(StoreKind.MARKET, 1995, seed = 4, state = StoreState.REUSED, reuse = StoreReuse.CHURCH),
         "market_thrift_1995" to StoreInfo.sample(StoreKind.MARKET, 1995, seed = 3, state = StoreState.REUSED, reuse = StoreReuse.THRIFT),
         "supermarket_1975" to StoreInfo.sample(StoreKind.SUPERMARKET, 1975, seed = 3),
         "supermarket_1986" to StoreInfo.sample(StoreKind.SUPERMARKET, 1986, seed = 8),
         "supermarket_gym_2020" to StoreInfo.sample(StoreKind.SUPERMARKET, 2020, seed = 5, state = StoreState.REUSED, reuse = StoreReuse.GYM),
-        "superstore_1998" to StoreInfo.sample(StoreKind.SUPERSTORE, 1998, seed = 3),
-        "superstore_2016" to StoreInfo.sample(StoreKind.SUPERSTORE, 2016, seed = 4),
-        "superstore_closed_2038" to StoreInfo.sample(StoreKind.SUPERSTORE, 2038, seed = 4, state = StoreState.CLOSED),
+        "supermarket_closed_2025" to StoreInfo.sample(StoreKind.SUPERMARKET, 2025, seed = 3, state = StoreState.CLOSED).copy(closed = 2016),
+        "superstore_1996" to StoreInfo.sample(StoreKind.SUPERSTORE, 1996, seed = 3).copy(features = f(StoreKind.SUPERSTORE, 1996, discount = true)),
+        "superstore_2008" to StoreInfo.sample(StoreKind.SUPERSTORE, 2008, seed = 26),
+        "superstore_2016" to StoreInfo.sample(StoreKind.SUPERSTORE, 2016, seed = 4).copy(features = f(StoreKind.SUPERSTORE, 2016)),
+        "superstore_2022" to StoreInfo.sample(StoreKind.SUPERSTORE, 2022, seed = 41).copy(features = f(StoreKind.SUPERSTORE, 2022)),
+        "superstore_closed_2038" to StoreInfo.sample(StoreKind.SUPERSTORE, 2038, seed = 4, state = StoreState.CLOSED).copy(closed = 2030),
     ).let { samples ->
         // -DstoresFrom=street.json: the town's own stores (graph.stores[], as the generator exported them) instead
+        // with -DstoresYears=1955,1975,...: every reserved site in each of those years (graph.storeSites[]: a field before
+        // its store opens, a building site the year before)
         val from = System.getProperty("storesFrom")?.let { File(it) }
-        if (from == null) samples else {
+        val years = System.getProperty("storesYears")?.split(",")?.mapNotNull { it.trim().toIntOrNull() }
+        if (from == null) samples.map { (n, i) -> n to (i as StoreInfo?) } else {
             val root = org.json.JSONObject(from.readText())
-            StoreInfo.fromGraph(root.optJSONObject("graph") ?: root).map { "${from.parentFile?.name ?: "town"}_${it.kind.name.lowercase()}_${it.year}" to it }
+            val graph = root.optJSONObject("graph") ?: root
+            val town = from.parentFile?.name ?: "town"
+            if (years == null) StoreInfo.fromGraph(graph).map { "${town}_${it.kind.name.lowercase()}_${it.year}" to (it as StoreInfo?) }
+            else StoreSiteInfo.fromGraph(graph).flatMap { site -> years.map { y -> "${town}_${site.site}_$y" to site.at(y, 13f, weekday).also { if (it == null) placeholders["${town}_${site.site}_$y"] = site to y } } }
         }
-    }.filter { (n, i) -> only == null || n in only || i.kind.name.lowercase() in only }
+    }.filter { (n, i) -> only == null || n in only || i?.kind?.name?.lowercase() in only || only.any { n.contains(it) } }
     if (variants.isEmpty()) return
     Filament.init()
     val engine = Engine.create(Engine.Backend.OPENGL)
@@ -90,16 +109,19 @@ fun renderStores(out: String) {
     fun mat(n: String): Material { val b = File(assets, "$n.filamat").readBytes(); return Material.Builder().payload(ByteBuffer.allocateDirect(b.size).put(b).flip(), b.size).build(engine) }
     val lit = mat("street_lit")
     val proxy = mat("shadow_proxy")
-    for ((name, info) in variants) {
+    for ((name, info0) in variants) for ((hi, hour) in hours.withIndex()) {
         val rt = Runtime.getRuntime()
         System.gc()
         val before = rt.totalMemory() - rt.freeMemory()
         val t0 = System.nanoTime()
-        val built = StoreKit.buildWithSite(info)
+        val ph = placeholders[name]
+        val info = info0?.copy(hour = hour, weekday = weekday) ?: StoreInfo(StoreKind.parse(ph!!.first.events.first().variant) ?: StoreKind.GENERAL, "(field)", ph.second,
+            width = ph.first.width, depth = ph.first.depth, seed = ph.first.seed)
+        val built = if (info0 != null) StoreKit.buildWithSite(info) else StoreKit.StoreModel(StoreSitePlaceholder.build(ph!!.first, ph.second), floatArrayOf(-info.lot * .3f, -info.deep * .3f, info.lot * .3f, -info.deep * .7f))
         val ms = (System.nanoTime() - t0) / 1e6
         val m = built.model
         val heap = (rt.totalMemory() - rt.freeMemory() - before) / 1024
-        report.appendLine("$name (${info.kind}, ${info.year}, ${info.state}${info.reuse?.let { " as $it" } ?: ""}, \"${info.signName}\"): ${m.parts.size} parts, ${m.triangles} triangles, " +
+        if (hi == 0) report.appendLine("$name (${info.kind}, ${info.year}, ${info.state}${info.reuse?.let { " as $it" } ?: ""}, \"${info.signName}\"): ${m.parts.size} parts, ${m.triangles} triangles, " +
             "${m.lights.size} lights, pictures ${m.texels} texels = ${m.bytes / 1024} KiB (${m.parts.withIndex().joinToString(" ") { (i, p) -> "${built.names.getOrElse(i) { p.role.name.lowercase() }}:${p.mesh.texW}x${p.mesh.texH}${if (p.mesh.mask != null) "+mask" else ""}" }}), " +
             "built in ${"%.0f".format(ms)} ms, heap +$heap KiB; plot ${info.lot.toInt()} x ${info.deep.toInt()}, footprint x ${m.footprint[0].toInt()}..${m.footprint[2].toInt()} z ${m.footprint[1].toInt()}..${m.footprint[3].toInt()}, ${m.height.toInt()} tall")
         val w = 1600; val h = 900
@@ -124,10 +146,8 @@ fun renderStores(out: String) {
             "behind" to Triple(floatArrayOf(bcx + bw * .9f + 150f, 200f + bw * .3f, D + bw * .6f + 160f), floatArrayOf(bcx, 40f, (fz + bz) / 2f + (bz - fz) * .2f), 54f),
             "above" to Triple(floatArrayOf(-L * .45f, maxOf(L, D) * 1.05f + 300f, -D * .35f - 200f), floatArrayOf(0f, 0f, D * .5f), 52f),
         )
-        for (hour in hours) {
-            val tag = "%.1f".format(hour).replace(".0", "").replace(".", "_")
-            for ((sn, sh) in shots) stage.shoot(File(dir, "${name}_${sn}_$tag.png"), hour, sh.first, sh.second, sh.third)
-        }
+        val tag = "%.1f".format(hour).replace(".0", "").replace(".", "_")
+        for ((sn, sh) in shots) stage.shoot(File(dir, "${name}_${sn}_$tag.png"), hour, sh.first, sh.second, sh.third)
         lamps.destroy()
         stage.destroy()
     }

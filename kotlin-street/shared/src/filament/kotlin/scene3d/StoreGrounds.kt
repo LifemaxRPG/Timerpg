@@ -210,12 +210,21 @@ internal object StoreGrounds {
         val gx0 = if (big) s.keep.getOrNull(1)?.get(0) ?: s.x0 else s.x0
         pave(b, asphalt, px0, s.zf - 2f, px1, -strip, .14f)
         pave(b, asphalt, px0, s.zb - 2f, gx0 - 2f, s.zf - 2f, .14f)
-        pave(b, asphalt, s.x1 + 2f, s.zb - 2f, px1, s.zf - 2f, .14f)
+        // (beside the 1990s discount store, the land its extension will take is still grass)
+        val sideEnd = if (info.has("discountStore")) min(px1, s.x1 + 240f) else px1
+        pave(b, asphalt, s.x1 + 2f, s.zb - 2f, sideEnd, s.zf - 2f, .14f)
+        if (sideEnd < px1) pave(b, GRASS, sideEnd, s.zb - 2f, px1, s.zf - 2f, .1f)
         pave(b, CONCRETE, px0, pzb, px1, s.zb - 2f, .16f)
         // the car park's rows: a fire lane by the walk, then double rows of bays with an aisle between each pair
         val bayW = 56f; val bayD = 112f; val aisle = 150f
-        val cars = b.det("cars")
         val lampsAt = ArrayList<FloatArray>()
+        // where the doors are (the shoppers park nearest them), the paint (faded on a lot shut for years)
+        val doors = if (big) StoreMarkets.facade(info).entrances.map { (k, _) -> (s.x0 + s.x1) / 2f + k * (s.x1 - s.x0) } else listOf((s.x0 + s.x1) / 2f)
+        fun door(x: Float, z: Float) = doors.minOf { abs(it - x) } + abs(z - s.zf)
+        val longShut = closed && info.yearsClosed >= 3
+        val paint = if (longShut) Pix.mix(PAINT, c(0x4A4A50), .55f) else PAINT
+        val yellow = if (longShut) Pix.mix(YELLOW, c(0x4A4A50), .55f) else YELLOW
+        val corralsOn = info.has("cartCorrals") || (closed && info.yearsClosed >= 2 && info.kind != StoreKind.MARKET)
         var z = front + aisle * .8f
         var rowPair = 0
         val ex0 = px0 + 60f; val ex1 = px1 - 60f
@@ -224,8 +233,8 @@ internal object StoreGrounds {
             // the bays: lines across both rows, the middle line, the ends' islands
             val nx = ((ex1 - ex0 - 120f) / bayW).toInt()
             val bx0 = (ex0 + ex1) / 2f - nx * bayW / 2f
-            for (k in 0..nx) { val x = bx0 + k * bayW; line(b, x - .8f, z, x + .8f, z + bayD * 2f, PAINT) }
-            line(b, bx0, zm - .8f, bx0 + nx * bayW, zm + .8f, if (big) YELLOW else PAINT)
+            for (k in 0..nx) { val x = bx0 + k * bayW; line(b, x - .8f, z, x + .8f, z + bayD * 2f, paint) }
+            line(b, bx0, zm - .8f, bx0 + nx * bayW, zm + .8f, if (big) yellow else paint)
             for ((ix, w) in listOf(bx0 - 50f to 48f, bx0 + nx * bayW + 2f to 48f)) {
                 CinemaKit.ledge(b.det("ground:kerb"), ix, 0f, z + 6f, ix + w, 5f, z + bayD * 2f - 6f, CURB)
                 pave(b, GRASS, ix + 2f, z + 8f, ix + w - 2f, z + bayD * 2f - 8f, 5.2f)
@@ -233,17 +242,15 @@ internal object StoreGrounds {
             }
             // a corral every few bays in the double rows (in place of two bays), carts in it
             val corrals = HashSet<Int>()
-            if (info.kind != StoreKind.MARKET && !reused) { var k = 6 + rowPair * 3; while (k < nx - 4) { corrals += k; k += if (big) 11 else 9 } }
-            // the cars, seeded, fewer at a closed store (none) and in the far rows
-            val fill = if (closed) 0f else if (reused) (.3f - rowPair * .1f).coerceAtLeast(.04f) else (.62f - rowPair * .12f).coerceAtLeast(.18f)
+            if (corralsOn) { var k = 6 + rowPair * 3; while (k < nx - 4) { corrals += k; k += if (big) 11 else 9 } }
+            // the bays the cars park in ([StoreCars] fills them by the hour); a shut store's corrals left behind, a few
             for (k in 0 until nx) {
                 val x = bx0 + (k + .5f) * bayW
-                if (k in corrals) { if (!closed) corral(b, x + bayW / 2f, zm, info) ; continue }
+                if (k in corrals) { if (!closed || k % 3 == 0) corral(b, x + bayW / 2f, zm, info); continue }
                 if (k - 1 in corrals) continue
                 for (side in 0..1) {
-                    if (r.next() > fill) continue
                     val cz = if (side == 0) z + bayD / 2f + 4f else zm + bayD / 2f - 4f
-                    car(b, cars, x + (r.next() - .5f) * 4f, cz + (r.next() - .5f) * 6f, carLook(b, info.year, 0, r.int(10)), nose = if (side == 0) 1f else -1f, along = false)
+                    b.bays += StoreBay(x, cz, if (side == 0) 1f else -1f, false, door(x, cz))
                 }
             }
             // lamps down the middle line
@@ -257,25 +264,42 @@ internal object StoreGrounds {
             val z0 = front + 2f
             val nx = ((s.x1 - s.x0 - 40f) / bayW).toInt()
             val bx0 = (s.x0 + s.x1) / 2f - nx * bayW / 2f
-            for (k in 0..nx) { val x = bx0 + k * bayW; line(b, x - .8f, z0, x + .8f, z0 + bayD, PAINT) }
+            for (k in 0..nx) { val x = bx0 + k * bayW; line(b, x - .8f, z0, x + .8f, z0 + bayD, paint) }
             CinemaKit.ledge(b.det("ground:kerb"), bx0, 0f, z0, bx0 + nx * bayW, 3f, z0 + 4f, CURB)
-            val fill = if (closed) 0f else if (reused) .25f else .55f
-            for (k in 0 until nx) if (r.next() < fill) car(b, cars, bx0 + (k + .5f) * bayW + (r.next() - .5f) * 4f, z0 + bayD / 2f + 4f, carLook(b, info.year, 0, r.int(10)), nose = -1f, along = false)
+            for (k in 0 until nx) { val x = bx0 + (k + .5f) * bayW; b.bays += StoreBay(x, z0 + bayD / 2f + 4f, -1f, false, door(x, z0)) }
             var lx = bx0 + 60f
             while (lx < bx0 + nx * bayW) { lampsAt += floatArrayOf(lx, -strip - 14f); lx += 240f }
         }
         // arrows and a crosswalk by the doors (the bigger stores), the fire lane's red kerb at the superstore
         if (info.kind != StoreKind.MARKET) {
-            val cw = b.pic("zebra") { PixImg(8, 8).also { im -> im.fill(0); for (x in 0 until 4) im.vline(x, 0, 7, PAINT) } }
+            val cw = b.pic("zebra") { PixImg(8, 8).also { im -> im.fill(0); for (x in 0 until 4) im.vline(x, 0, 7, paint) } }
             val cxs = if (big) listOf(s.x0 + (s.x1 - s.x0) * .26f, s.x0 + (s.x1 - s.x0) * .74f) else listOf((s.x0 + s.x1) / 2f)
             for (cx in cxs) {
                 var x = cx - 60f
-                while (x < cx + 60f) { line(b, x, front, x + 8f, front + aisle * .8f, PAINT, .28f); x += 16f }
+                while (x < cx + 60f) { line(b, x, front, x + 8f, front + aisle * .8f, paint, .28f); x += 16f }
             }
             if (big) CinemaKit.ledge(b.det("ground:kerb"), s.x0, 0f, front - 2f, s.x1, 4.4f, front, Ramp(c(0x4A0A0A), c(0x8A1A1A), c(0xB82A26), c(0xC84A3A), c(0xE07060)))
         }
-        // the lamps (a real light at every other one)
-        for ((k, p) in lampsAt.withIndex()) lotLamp(b, p[0], p[1], lampH, info.year, light = !closed && k % 2 == 0, double = big || info.kind == StoreKind.SUPERMARKET)
+        // the staff's bays down the building's right side (by the side door), when there is room
+        if (px1 - s.x1 > 140f) {
+            val sx = s.x1 + 70f
+            var sz = s.zf - 80f
+            while (sz > s.zb + 60f && b.bays.count { it.staff } < (if (big) 30 else 10)) {
+                line(b, sx - 52f, sz + bayW / 2f - .8f, sx + 52f, sz + bayW / 2f + .8f, paint)
+                b.bays += StoreBay(sx, sz, 1f, true, 1e6f, staff = true); sz -= bayW
+            }
+        }
+        // the pickup bays (2012 on) by the right entrance, EV chargers (2020 on) at the end of the first row
+        if (info.has("pickupBays")) pickupBays(b, s.x1 - 260f, front + aisle * .8f + 4f)
+        if (info.has("evChargers")) evChargers(b, ex0 + 70f, front + aisle * .8f + bayD - 6f, info.year)
+        // a lot shut for years: cracks, weeds in the joints, a stray cart or two, one on its side
+        if (longShut) decay(b, px0 + 60f, front + 20f, px1 - 60f, -strip - 20f, info)
+        // the lamps (a real light at every other one; a pool of light on the asphalt under each); a shut store keeps
+        // its security lights: a wall-pack at each front corner and one lamp, dim
+        for ((k, p) in lampsAt.withIndex()) lotLamp(b, p[0], p[1], lampH, info.year, light = !closed && k % 2 == 0, double = big || info.kind == StoreKind.SUPERMARKET,
+            security = closed && k == lampsAt.size / 2 && info.has("securityLights"),
+            pool = if (closed) null else floatArrayOf(px0, pzb, px1, -2f))
+        if (closed && info.has("securityLights")) for (x in listOf(s.x0 + 30f, s.x1 - 30f)) StoreMarkets.wallPack(b, x, 100f, s.zf + .5f, Side.FRONT, info.year < 2010, security = true)
         // the road sign at the car park's entrance corner
         roadSign(b, info, px1 - (if (big) 230f else if (info.kind == StoreKind.SUPERMARKET) 130f else 100f), -strip / 2f - 4f)
         // the back: dumpsters, pallets, a compactor and trailers at the docks; a chain-link fence round the yard
@@ -298,11 +322,14 @@ internal object StoreGrounds {
         chainLink(b, px0 + 6f, pzb + 6f, px1 - 6f, pzb + 6f, 70f)
         chainLink(b, px0 + 6f, pzb + 6f, px0 + 6f, s.zb - 4f, 70f)
         chainLink(b, px1 - 6f, pzb + 6f, px1 - 6f, s.zb - 4f, 70f)
+        // a tree line along the back fence (the plot's edge from above is a hedge of trees, not bare ground)
+        var tx0 = px0 + 80f
+        while (tx0 < px1 - 80f) { tree(b, tx0 + (r.next() - .5f) * 20f, pzb + 70f + r.next() * 12f, .65f + r.next() * .3f, info.seed + tx0.toInt()); tx0 += if (big) 150f else 110f }
         if (big) gardenCentre(b, info, s)
     }
 
     /** A car park lamp: a tall pole (concrete base), one or two heads; warm before 1965, sodium to 2010, white LED after. */
-    private fun lotLamp(b: StoreB, x: Float, z: Float, h: Float, year: Int, light: Boolean, double: Boolean) {
+    private fun lotLamp(b: StoreB, x: Float, z: Float, h: Float, year: Int, light: Boolean, double: Boolean, security: Boolean = false, pool: FloatArray? = null) {
         val m = b.det("lamps")
         val sodium = year in 1965..2009
         val warm = year < 1965
@@ -313,13 +340,98 @@ internal object StoreGrounds {
         val arms = if (double) listOf(-1f, 1f) else listOf(1f)
         for (d in arms) {
             m.beam(v(x, h - 3f, z), v(x + d * 16f, h, z), 1.6f, b.swatch(Paint.STEEL.l))
-            b.sign("lamps").box(x + d * 16f - 9f, h - 3f, z - 5f, x + d * 16f + 9f, h + 1.5f, z + 5f) { s, w, hh -> when (s) { Side.BOTTOM -> lens; Side.TOP -> b.top(w, hh, Paint.STEEL); else -> b.swatch(Paint.STEEL.b) } }
+            b.sign(if (security) "sec" else "lamps").box(x + d * 16f - 9f, h - 3f, z - 5f, x + d * 16f + 9f, h + 1.5f, z + 5f) { s, w, hh -> when (s) { Side.BOTTOM -> lens; Side.TOP -> b.top(w, hh, Paint.STEEL); else -> b.swatch(Paint.STEEL.b) } }
         }
+        if (security) b.secLights += CinemaLight(x, h - 8f, z, 1f, .7f, .4f, 20000f, h * 1.3f, down = true, cone = 1.1f)
+        if (pool != null) lightPool(b, x, z, h * 1.15f, key, pool)
         if (light) b.lights += when (key) {
             0 -> CinemaLight(x, h - 8f, z, 1f, .8f, .55f, 40000f, h * 1.7f, down = true, cone = 1.2f)
             1 -> CinemaLight(x, h - 8f, z, 1f, .66f, .3f, 60000f, h * 1.7f, down = true, cone = 1.2f)
             else -> CinemaLight(x, h - 8f, z, .92f, .95f, 1f, 60000f, h * 1.7f, down = true, cone = 1.2f)
         }
+    }
+
+    /**
+     * A pool of lamplight baked onto the asphalt under a lamp: a disc of the asphalt's own speckle (3 texels a pixel)
+     * glowing in the lamp's colour from dusk, strongest under the head and dithered out at its edge, so a big lot reads
+     * evenly lit at night with only every other lamp a real light.
+     */
+    private fun lightPool(b: StoreB, x: Float, z: Float, r: Float, key: Int, clip: FloatArray) {
+        val n = max(8, (r * 2f / (TEXEL * 3f)).toInt())
+        val tint = when (key) { 0 -> c(0xFFE0A0); 1 -> c(0xFFB860); else -> c(0xE8F0FF) }
+        val im = b.pic("pool$n,$key") { PixImg(n, n).also { im ->
+            val c0 = n / 2f
+            val bayer = intArrayOf(0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5)
+            for (y in 0 until n) for (xx in 0 until n) {
+                val d = kotlin.math.sqrt((xx + .5f - c0) * (xx + .5f - c0) + (y + .5f - c0) * (y + .5f - c0)) / c0
+                if (d >= 1f) continue
+                val keep = d < .45f || (1f - d) / .55f * 16f > bayer[(y % 4) * 4 + xx % 4]
+                if (!keep) continue
+                im[xx, y] = Pix.mix(ASPHALT[(xx * 3) % 32, (y * 3) % 32], tint, .05f)
+                im.glowAt(xx, y, (95f * (1f - d).let { it * it }).toInt().coerceIn(8, 95))
+            }
+        } }
+        // cut to the plot (x0, z0, x1, z1): the picture's matching part (one picture for every pool of this lamp)
+        val a = max(x - r, clip[0]); val e = min(x + r, clip[2]); val f = max(z - r, clip[1]); val g = min(z + r, clip[3])
+        if (e - a < 4f || g - f < 4f) return
+        fun u(xx: Float) = (xx - (x - r)) / (2f * r) * n
+        b.sign("pool").quad(v(a, .2f, f), v(e, .2f, f), v(e, .2f, g), v(a, .2f, g), im, u(a), u(f - z + x), u(e), u(g - z + x))
+    }
+
+    /** Painted pickup bays with their orange signs ("ORDER PICKUP"), four bays from [x] along the row at [z]. */
+    private fun pickupBays(b: StoreB, x: Float, z: Float) {
+        val orange = c(0xE8742A)
+        val sign = b.pic("pickup") { PixImg(StoreKit.tx(30f), StoreKit.tx(24f)).also { im -> im.fill(orange); im.border(c(0x6A2A0A)); StoreSigns.small(im, im.w / 2, 3, "ORDER", c(0xFFFFFF)); StoreSigns.small(im, im.w / 2, 10, "PICKUP", c(0xFFFFFF)); StoreSigns.small(im, im.w / 2, 17, "1-4", c(0xFFFFFF)); CinemaKit.glowAll(im, 170) } }
+        b.texts += "ORDER PICKUP"
+        val m = b.det("pickup")
+        for (k in 0..4) line(b, x + k * 56f - 1.5f, z, x + k * 56f + 1.5f, z + 112f, orange, .27f)
+        line(b, x, z + 108f, x + 4 * 56f, z + 111f, orange, .27f)
+        for (k in 0 until 4) {
+            val px = x + k * 56f + 28f
+            m.upright(px, z + 4f, 0f, 70f, 1.6f, 1.6f, 6, Paint.strip(Paint.stripSize(1.6f, 70f).first, 20, Paint.STEEL, k), cap = null)
+            CinemaKit.face(b.sign("pickup"), sign, px, 60f, z + 5f, 30f, 24f, Side.FRONT)
+        }
+    }
+
+    /** A row of EV chargers (2020 on): slim posts with a lit screen and a cable, green-painted bays. */
+    private fun evChargers(b: StoreB, x: Float, z: Float, year: Int) {
+        val post = b.pic("evpost") { PixImg(StoreKit.tx(12f), StoreKit.tx(56f)).also { im -> im.fill(c(0xF0F0F4)); im.border(c(0x3A3A44)); im.rect(2, 4, im.w - 3, 14, c(0x1A2A3A)); im.rect(3, 6, im.w - 4, 12, c(0x3AE08A)); im.glow(3, 6, im.w - 4, 12, 220); im.rect(2, 20, im.w - 3, 22, c(0x2A8A4A)) } }
+        b.texts += "EV"
+        val m = b.det("ev")
+        for (k in 0 until 4) {
+            val px = x + k * 56f
+            line(b, px - 26f, z - 100f, px + 26f, z - 2f, c(0x2A7A4A), .25f)
+            m.box(px - 6f, 0f, z - 5f, px + 6f, 56f, z + 5f) { s, w, h -> when (s) { Side.BOTTOM -> null; Side.FRONT, Side.BACK -> post; Side.TOP -> b.swatch(c(0xD8D8E0)); else -> b.swatch(c(0xE0E0E8)) } }
+            m.beam(v(px + 6f, 30f, z - 5f), v(px + 10f, 8f, z - 14f), 1f, b.swatch(c(0x1A1A1E)))
+        }
+    }
+
+    /** A car park shut for years: dark cracks, weeds in the joints and along the kerbs, stray carts (one on its side). */
+    private fun decay(b: StoreB, x0: Float, z0: Float, x1: Float, z1: Float, info: StoreInfo) {
+        if (x1 <= x0 || z1 <= z0) return
+        val r = Paint.Rnd(info.seed * 3 + info.yearsClosed)
+        val n = ((x1 - x0) * (z1 - z0) / 9000f * (info.yearsClosed.coerceAtMost(12) / 6f)).toInt().coerceIn(20, 900)
+        val weeds = listOf(c(0x4A7A32), c(0x6A8A3A), c(0x3A5A2A), c(0x8A9A4A))
+        repeat(n) {
+            val x = x0 + r.next() * (x1 - x0); val z = z0 + r.next() * (z1 - z0)
+            if (r.next() < .45f) {
+                // a crack: two or three short dark segments, zigzag
+                var cx = x; var cz = z
+                repeat(2 + r.int(2)) { val nx = cx + (r.next() - .5f) * 40f; val nz = cz + 6f + r.next() * 20f; line(b, min(cx, nx), cz, max(cx, nx) + 1.2f, cz + 1.4f, c(0x24242A), .24f); line(b, nx, min(cz, nz), nx + 1.4f, max(cz, nz), c(0x24242A), .24f); cx = nx; cz = nz }
+            } else {
+                val w = 2f + r.next() * 5f
+                line(b, x, z, x + w, z + w * .7f, weeds[r.int(weeds.size)], .3f)
+                if (r.next() < .5f) b.solid(b.det("ground:weeds"), x + 1f, 0f, z + 1f, x + 2.2f, 3f + r.next() * 4f, z + 2f, weeds[r.int(weeds.size)])
+            }
+        }
+        val m = b.det("strays")
+        repeat(2) { cart(b, m, x0 + r.next() * (x1 - x0), z0 + r.next() * (z1 - z0), c(0x8A8A90), sideways = r.next() < .5f) }
+        // one on its side: the basket's wire box lying down, a wheel up
+        val tx = x0 + r.next() * (x1 - x0); val tz = z0 + r.next() * (z1 - z0)
+        val wire = b.pic("wire") { PixImg(8, 8).also { im -> for (yy in 0 until 8) for (xx in 0 until 8) if (xx % 3 == 0 || yy % 3 == 0) im[xx, yy] = c(0xB8BCC4) } }
+        b.tile(wire).box(tx, 0f, tz, tx + 30f, 18f, tz + 20f, setOf(Side.FRONT, Side.BACK, Side.LEFT, Side.RIGHT, Side.TOP))
+        b.solid(m, tx + 30f, 2f, tz + 2f, tx + 40f, 4f, tz + 18f, c(0x9A9AA2))
+        for (dz in listOf(3f, 15f)) b.solid(m, tx + 40f, 1f, tz + dz, tx + 44f, 7f, tz + dz + 3f, c(0x1A1A1E))
     }
 
     // ------------------------------------------------------------------ carts
@@ -370,21 +482,24 @@ internal object StoreGrounds {
         1 to listOf(0x8A5A22, 0xD87A2A, 0x6A7A2A, 0xE8D8A8, 0x3A5A8A, 0xA82A22, 0x2A2A2A, 0xC8A85A),
         2 to listOf(0x1A3A6A, 0x6A1A2A, 0xC8C8D0, 0x2A5A3A, 0xE8E8E8, 0x1A1A1E, 0x8A8A92, 0xA8862A),
         3 to listOf(0xC8CCD4, 0xF0F0F0, 0x1A1A1E, 0x6A6E78, 0x8A1A1A, 0x1A3A6A, 0x3A4A5A, 0xD8D4C8),
+        // the 1910s-20s: black, a few dark greens and maroons
+        4 to listOf(0x16161A, 0x1A1A1E, 0x1E2A22, 0x16161A, 0x3A1A1A, 0x1A1A1E, 0x22261E, 0x16161A),
     )
 
     internal fun carLook(b: StoreB, year: Int, salt: Int, k: Int, truck: Boolean = false): CarLook {
-        val era = when { year < 1965 -> 0; year < 1985 -> 1; year < 2005 -> 2; else -> 3 }
+        val era = when { year < 1932 -> 4; year < 1965 -> 0; year < 1985 -> 1; year < 2005 -> 2; else -> 3 }
         val cols = ERA_COLOURS[era]!!
         val rgb = cols[(k + salt) % cols.size].toLong()
         val base = c(rgb)
         val r = Ramp(Pix.mix(base, c(0x000000), .7f), Pix.mix(base, c(0x000000), .3f), base, Pix.mix(base, c(0xFFFFFF), .2f), Pix.mix(base, c(0xFFFFFF), .5f))
         val suv = era == 3 && k % 3 == 0
         val isTruck = truck || (era >= 2 && k % 5 == 1)
-        val len = when (era) { 0 -> 104f; 1 -> 100f; 2 -> 92f; else -> 92f }
-        val wid = 38f
-        val bodyH = if (suv || isTruck) 18f else 14f
-        val cabH = if (suv) 16f else 12f
-        val cabLen = if (isTruck) 30f else if (suv) 60f else 48f
+        // the 1920s car: short, narrow and tall, its cab a box upright on it
+        val len = when (era) { 4 -> 80f; 0 -> 104f; 1 -> 100f; 2 -> 92f; else -> 92f }
+        val wid = if (era == 4) 32f else 38f
+        val bodyH = if (era == 4) 12f else if (suv || isTruck) 18f else 14f
+        val cabH = if (era == 4) 22f else if (suv) 16f else 12f
+        val cabLen = if (era == 4) (if (isTruck) 26f else 40f) else if (isTruck) 30f else if (suv) 60f else 48f
         val key = "car$era,$rgb,$isTruck,$suv"
         val glass = c(0x2A3A54); val hi = c(0x6A8AA8)
         val side = b.pic("$key:side") { Paint.panel(tx(len), tx(bodyH), r, 3, wear = .4f).also { im ->
@@ -562,8 +677,19 @@ internal object StoreGrounds {
             }
             if (!closed) CinemaKit.glowAll(im, 255)
         } }
-        CinemaKit.face(sm, star, x, H + 8f, z + .2f, 40f, 40f, Side.FRONT)
-        CinemaKit.face(sm, star, x, H + 8f, z - .2f, 40f, 40f, Side.BACK)
+        if (info.state == StoreState.REUSED) {
+            // the new use's changeable-letter board where the starburst was
+            val lines = when (info.reuse) { StoreReuse.CHURCH -> listOf("SUNDAY 10 AM", "ALL WELCOME"); StoreReuse.GYM -> listOf("OPEN 5 AM", "JOIN NOW")
+                StoreReuse.THRIFT, StoreReuse.FLEA -> listOf("DONATIONS", "WELCOME"); StoreReuse.COMMUNITY -> listOf("BINGO FRIDAY", "ALL WELCOME"); else -> listOf("OPEN", "COME IN") }
+            b.texts += lines
+            val lb = b.pic("letterBoard${info.reuse}") { PixImg(tx(110f), tx(40f)).also { StoreSigns.letterBoard(it, lines, true) } }
+            b.box(m, x - 57f, H - 4f, z - 4f, x + 57f, H + 40f, z + 4f, Paint.STEEL, 5, bottom = true)
+            CinemaKit.face(sm, lb, x, H + 18f, z + 4.1f, 110f, 40f, Side.FRONT)
+            CinemaKit.face(sm, lb, x, H + 18f, z - 4.1f, 110f, 40f, Side.BACK)
+        } else {
+            CinemaKit.face(sm, star, x, H + 8f, z + .2f, 40f, 40f, Side.FRONT)
+            CinemaKit.face(sm, star, x, H + 8f, z - .2f, 40f, 40f, Side.BACK)
+        }
         if (!closed) b.lights += CinemaLight(x, H - 60f, min(-2f, z + 30f), 1f, .9f, .8f, 6000f, 120f)
     }
 
@@ -604,12 +730,14 @@ internal object StoreGrounds {
         for (dx in listOf(-w / 2f + legW / 2f, w / 2f - legW / 2f)) leg.box(x + dx - legW / 2f, 0f, z - 18f, x + dx + legW / 2f, H - 120f, z + 18f, setOf(Side.FRONT, Side.BACK, Side.LEFT, Side.RIGHT))
         m.box(x - w / 2f - 6f, H - 124f, z - 22f, x + w / 2f + 6f, H + 6f, z + 22f) { sd, ww, hh -> when (sd) { Side.FRONT, Side.BACK -> b.swatch(Paint.GREY.d); Side.TOP, Side.BOTTOM -> b.swatch(Paint.GREY.b); else -> b.panel(ww, hh, Paint.GREY, 3) } }
         CinemaKit.ledge(m, x - w / 2f - 10f, H + 6f, z - 26f, x + w / 2f + 10f, H + 14f, z + 26f, Paint.GREY, bottom = true)
-        val name = info.signName.uppercase().replace(" SUPERCENTER", "")
-        val face = b.pic("pylon$closed") { PixImg(tx(w), tx(116f)).also { im ->
+        val name = info.signName.uppercase()
+        val under = if (info.state == StoreState.REUSED) "WELCOME" else StoreMarkets.facade(info).under
+        b.texts += listOf(name, under)
+        val face = b.pic("pylon$closed$under") { PixImg(tx(w), tx(116f)).also { im ->
             im.fill(if (closed) c(0x2A2A30) else c(0x1E5A3A).let { if (info.seed % 4 == 1) c(0x8A1A1A) else if (info.seed % 4 == 2) c(0x1E285A) else if (info.seed % 4 == 3) c(0x9A4A12) else it })
             if (!closed) {
                 StoreSigns.letters(im, name, 6, 6, im.w - 7, im.h * 6 / 10, null, null, 8) { _, _ -> c(0xFFFFFF) }
-                StoreSigns.letters(im, if (info.state == StoreState.REUSED) "WELCOME" else if (info.year >= 2000) "SUPERCENTER" else "DISCOUNT CITY", 10, im.h * 6 / 10 + 4, im.w - 11, im.h - 8, null, null, 3) { _, _ -> c(0xF6D83A) }
+                StoreSigns.letters(im, under, 10, im.h * 6 / 10 + 4, im.w - 11, im.h - 8, null, null, 3) { _, _ -> c(0xF6D83A) }
                 CinemaKit.glowAll(im, 230)
             } else for (k in 0 until 8) Pix.line(im, k * 40, 0, k * 40 + 50, im.h - 1, c(0x4A4A50))
             im.border(c(0x1A1A1E))

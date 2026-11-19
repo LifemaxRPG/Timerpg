@@ -35,7 +35,7 @@ import type { World } from '../../src/sim/types';
 import { layoutTown, type LandmarkPlot, type Lot, type Prop, type TownLayout } from '../../src/town/layout';
 import { LANDMARK_SPECS, landmarkArtKey } from '../../src/town/landmarks';
 import { cinemaBlock, cinemaLandmark, type CinemaFootprint, type CinemaJson } from './town-cinema';
-import { storeLandmark, storesBlock, type StoreFootprint, type StoreJson } from './town-stores';
+import { storeLandmark, storesBlock, storeSitesBlock, type StoreFootprint, type StoreJson, type StoreSiteJson } from './town-stores';
 import { neighborhoodOf } from '../../src/town/neighborhoods';
 import { hash, makeBuildings, townLots, type Buildings } from './town-buildings';
 import { townStreets } from './town-streets';
@@ -130,6 +130,9 @@ export interface TownMapJson {
   cinema?: CinemaJson;
   /** The town's stores standing in the export's year (town-stores.ts): the general store, market, supermarket, superstore. */
   stores?: StoreJson[];
+  /** Every store site the plan reserves, for all years (town-stores.ts), and the town's people every 5 years. */
+  storeSites?: StoreSiteJson[];
+  storePeople?: [number, number][];
   plaza: { rect: [number, number, number, number]; props: { kind: string; x: number; z: number; look: number }[] };
   water: { kind: string; polys: P[][] } | null;
   bridges: { rect: [number, number, number, number]; horizontal: boolean }[];
@@ -648,6 +651,7 @@ export function townGraph(seed: string, year: number): TownGraph {
     landmarks: layout.landmarks.map((l) => ({ id: `landmark:${l.id}`, kind: l.id, name: l.name, sprite: landmarkSprite.get(l)!, art: landmarkArtKey(l), row: rowIdOfSprite.get(landmarkSprite.get(l)!) ?? '', rect: rectW(l), ...cinemaLandmark(l), ...storeLandmark(l) })),
     ...cinemaBlock(seed, year, layout),
     ...storesBlock(seed, year, layout),
+    ...storeSitesBlock(seed, plan.landmarks, rectW),
     plaza: { rect: rectW(pz), props: plazaProps },
     water,
     bridges: (plan.water?.bridges ?? []).map((b) => ({ rect: rectW(b), horizontal: b.horizontal })),

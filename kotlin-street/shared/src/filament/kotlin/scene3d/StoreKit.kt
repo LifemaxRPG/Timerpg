@@ -54,8 +54,8 @@ enum class StoreReuse {
     /** The general store's windows and porch for this use (the three looks it has: old goods, a chapel, a cafe; or a store's goods). */
     val look: StoreReuse get() = when (this) { ANTIQUES, MUSEUM, THRIFT, FLEA -> ANTIQUES; CHURCH -> CHURCH; CAFE, COMMUNITY, GYM -> CAFE; FEED, OUTLET -> FEED }
     /** The porch fascia's word for it. */
-    val word: String get() = when (this) { ANTIQUES -> "ANTIQUES  COLLECTIBLES"; CHURCH -> "ALL ARE WELCOME"; CAFE -> "COFFEE  PIE  LUNCH"; MUSEUM -> "HISTORICAL MUSEUM";
-        FEED -> "FEED  SEED  SUPPLY"; THRIFT -> "THRIFT SHOP"; GYM -> "FITNESS"; FLEA -> "FLEA MARKET"; OUTLET -> "DISCOUNT OUTLET"; COMMUNITY -> "COMMUNITY CENTER" }
+    val word: String get() = when (this) { ANTIQUES -> "ANTIQUES & COLLECTIBLES"; CHURCH -> "ALL ARE WELCOME"; CAFE -> "COFFEE  PIE  LUNCH"; MUSEUM -> "HISTORICAL MUSEUM";
+        FEED -> "FEED & SEED"; THRIFT -> "THRIFT SHOP"; GYM -> "FITNESS"; FLEA -> "FLEA MARKET"; OUTLET -> "DISCOUNT OUTLET"; COMMUNITY -> "COMMUNITY CENTER" }
     companion object { fun parse(s: String): StoreReuse? = entries.firstOrNull { it.name.equals(s, ignoreCase = true) } }
 }
 
@@ -82,7 +82,21 @@ data class StoreInfo(
     val style: String = "",
     /** What the town's generator says shows this year (docs/STORES.md: gasPump, boarded, ...); empty: by year. */
     val features: Set<String> = emptySet(),
+    /** The hour (0-24) and day of the week (0 Sunday .. 6 Saturday) the car park is filled for ([StoreTraffic]). */
+    val hour: Float = 13f,
+    val weekday: Int = 3,
+    /** The town's living people that year (0: unknown, taken as a superstore town's 215): the car parks fill by it. */
+    val people: Int = 0,
 ) {
+    /** The features the builder draws: the generator's, else worked out as it would ([StoreSiteInfo.featuresOf]). */
+    val shows: Set<String> by lazy { features.ifEmpty { StoreSiteInfo.featuresOf(kind, state, year, reuse, null, false, false).toSet() } }
+
+    /** Whether [f] (docs/STORES.md `features`) shows this year. */
+    fun has(f: String): Boolean = f in shows
+
+    /** Years since a closed store shut (0 while it trades, or when the year is unknown). */
+    val yearsClosed: Int get() = if (state == StoreState.CLOSED && closed > 0) (year - closed).coerceAtLeast(0) else 0
+
     /** The plot as built: the given size or the kind's own. */
     val lot: Float get() = if (width > 0f) width else StoreKit.defaultLot(kind)
     val deep: Float get() = if (depth > 0f) depth else StoreKit.defaultDeep(kind)
@@ -134,8 +148,13 @@ internal class StoreB {
     private val cache = HashMap<String, PixImg>()
     /** Tiles that throw no shadow (ground). */
     val flat = HashSet<PixImg>()
-    /** A shut store: nothing glows and no lamp is lit (masks dropped, lights off). */
+    /** A shut store: nothing glows and no lamp is lit (masks dropped, lights off), but its security lights ([secLights], "sign:sec"). */
     var dark = false
+    /** The lights left on at a shut store (a wall-pack or two, one lot lamp), and the car park's bays ([StoreCars]). */
+    val secLights = ArrayList<CinemaLight>()
+    val bays = ArrayList<StoreBay>()
+    /** Every word the store's signs spell (for the tests: never a real chain's, nor its trade dress). */
+    val texts = ArrayList<String>()
 
     fun tile(img: PixImg) = tiles.getOrPut(img) { TileMesh(img) }
     fun ground(img: PixImg) = tile(img).also { flat += img }
@@ -173,9 +192,10 @@ internal class StoreB {
         for ((name, g) in groups) {
             val mesh = g.first.build()
             if (mesh.idx.isEmpty()) continue
-            val casts = !name.startsWith("det:ground")
+            // (ground decals throw no shadow: a flat quad over the asphalt would only shade itself)
+            val casts = !name.startsWith("det:ground") && name != "sign:pool"
             names += name
-            parts += if (dark) CinemaPart(PropMesh(mesh.pos, mesh.uv, mesh.nrm, mesh.tan, mesh.idx, mesh.texW, mesh.texH, mesh.tex, null, mesh.bounds), casts, false, CinemaPart.Role.BODY)
+            parts += if (dark && !name.startsWith("sign:sec")) CinemaPart(PropMesh(mesh.pos, mesh.uv, mesh.nrm, mesh.tan, mesh.idx, mesh.texW, mesh.texH, mesh.tex, null, mesh.bounds), casts, false, CinemaPart.Role.BODY)
             else CinemaPart(mesh, casts, false, g.second)
         }
         val fp = floatArrayOf(Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE)
@@ -183,19 +203,29 @@ internal class StoreB {
         for (p in parts) { val bd = p.mesh.bounds; fp[0] = min(fp[0], bd[0]); fp[1] = min(fp[1], bd[2]); fp[2] = max(fp[2], bd[3]); fp[3] = max(fp[3], bd[5]); top = max(top, bd[4]) }
         // (the cinema's era is a theater's; a store carries the nearest in look, unused by the layer)
         val era = when (kind) { StoreKind.GENERAL -> CinemaEra.PALACE; StoreKind.MARKET -> CinemaEra.MODERN; StoreKind.SUPERMARKET -> CinemaEra.TWIN; StoreKind.SUPERSTORE -> CinemaEra.MULTIPLEX }
-        return CinemaModel(era, parts, fp, top, width, depth, if (dark) emptyList() else lights.toList())
+        return CinemaModel(era, parts, fp, top, width, depth, if (dark) secLights.toList() else lights + secLights)
     }
 }
 
 /** Builds a store for a town's [StoreInfo]. */
 object StoreKit {
+    /**
+     * Every feature the town's generator can emit (src/town/stores.ts STORE_FEATURES; its test reads this set): the
+     * builder draws each one when it is in [StoreInfo.features] (porch, paintedSign, backyard, shed and the car parks'
+     * ground are always built for their kinds; `reuse:<kind>` comes as [StoreInfo.reuse]).
+     */
+    val FEATURES = setOf("porch", "bench", "paintedSign", "backyard", "shed", "barrels", "crates", "iceChest", "windowGoods", "gasPump",
+        "soda", "propaneCage", "boarded", "deli", "bait", "dogOnPorch", "plateGlass", "litSign", "awning", "smallLot", "serviceYard", "windowPosters",
+        "carts", "longGlassFront", "flatRoof", "pylonSign", "carPark", "cartCorrals", "gardenCentre", "loadingDocks", "carParkLamps", "discountStore",
+        "pharmacy", "pickupBays", "evChargers", "fadedSign", "forLease", "emptyLot", "securityLights")
+
     internal fun c(rgb: Long) = Paint.c(rgb)
     internal val v = MeshBuilder.Companion::v
     internal fun tx(u: Float) = max(1, (u / TEXEL).roundToInt())
 
     /** The plot each kind is built for when the town gives none (street units: about 21 a metre). */
-    fun defaultLot(k: StoreKind) = when (k) { StoreKind.GENERAL -> 360f; StoreKind.MARKET -> 780f; StoreKind.SUPERMARKET -> 1360f; StoreKind.SUPERSTORE -> 2900f }
-    fun defaultDeep(k: StoreKind) = when (k) { StoreKind.GENERAL -> 640f; StoreKind.MARKET -> 1060f; StoreKind.SUPERMARKET -> 1720f; StoreKind.SUPERSTORE -> 3400f }
+    fun defaultLot(k: StoreKind) = when (k) { StoreKind.GENERAL -> 360f; StoreKind.MARKET -> 780f; StoreKind.SUPERMARKET -> 1360f; StoreKind.SUPERSTORE -> 3365f }
+    fun defaultDeep(k: StoreKind) = when (k) { StoreKind.GENERAL -> 640f; StoreKind.MARKET -> 1060f; StoreKind.SUPERMARKET -> 1720f; StoreKind.SUPERSTORE -> 4361f }
 
     /**
      * The store for [info] on its plot with the site round it ([StoreGrounds]): building, grounds, signs and lights, one
@@ -204,7 +234,7 @@ object StoreKit {
     fun build(info: StoreInfo): CinemaModel = buildWithSite(info).model
 
     /** [build], with where the main block stands ([StoreModel.block]: x0, front z, x1, back z), for cameras and the town. */
-    fun buildWithSite(info: StoreInfo): StoreModel {
+    fun buildWithSite(info: StoreInfo, cars: Boolean = true): StoreModel {
         val b = StoreB()
         b.dark = info.state == StoreState.CLOSED
         val site = when (info.kind) {
@@ -214,12 +244,26 @@ object StoreKit {
             StoreKind.SUPERSTORE -> StoreMarkets.superstore(b, info)
         }
         StoreGrounds.build(b, info, site)
+        if (cars) StoreCars.place(b, b.det("cars"), info, b.bays)
         val model = b.model(info.kind, info.lot, info.deep)
-        return StoreModel(model, floatArrayOf(site.x0, site.zf, site.x1, site.zb), b.names.toList())
+        return StoreModel(model, floatArrayOf(site.x0, site.zf, site.x1, site.zb), b.names.toList(), b.bays.toList(), b.texts.toList())
     }
 
-    /** A built store: its [model] (the engine's parts and lights) and its main block's plan [block] (x0, front z, x1, back z). */
-    class StoreModel(val model: CinemaModel, val block: FloatArray, val names: List<String> = emptyList())
+    /** A superstore's storefront as words (its entrances and what they say, its emblem, the line under its name, the towers' tops). */
+    fun facadeLook(info: StoreInfo): String = StoreMarkets.facade(info).let { f -> "${f.entrances.size} ${f.entrances.map { it.second }} ${f.emblem} ${f.under} ${if (f.gable) "gabled" else "flat"}" }
+
+    /** [s] lettered as the signs letter it on a [w] x [h] picture (for the tests): its pixels (0 where empty) and the scale used. */
+    fun lettering(s: String, w: Int, h: Int, maxScale: Int = 6): Pair<IntArray, Int> {
+        val im = PixImg(w, h)
+        val sc = StoreSigns.letters(im, s, 0, 0, w - 1, h - 1, null, null, maxScale) { _, _ -> c(0xFFFFFF) }
+        return im.px.copyOf() to sc
+    }
+
+    /**
+     * A built store: its [model] (the engine's parts and lights), its main block's plan [block] (x0, front z, x1, back z),
+     * the car park's [bays] (fill them with [StoreCars.build] when built with `cars = false`) and the words on its signs.
+     */
+    class StoreModel(val model: CinemaModel, val block: FloatArray, val names: List<String> = emptyList(), val bays: List<StoreBay> = emptyList(), val texts: List<String> = emptyList())
 
     /**
      * Where the building stands on its plot, for the grounds: the main block [x0]..[x1] from its front wall [zf] back to
@@ -472,6 +516,7 @@ object StoreKit {
                 reuse == StoreReuse.FEED -> StoreSigns.generalWindow(F, gx0, gy0, gx1, gy1, seed + ca, true)
                 reuse == StoreReuse.CHURCH -> StoreSigns.chapelWindow(F, gx0, gy0, gx1, gy1, seed + ca)
                 reuse == StoreReuse.CAFE -> StoreSigns.cafeWindow(F, gx0, gy0, gx1, gy1, seed + ca)
+                !info.has("windowGoods") && reuse == null -> StoreSigns.glass(F, gx0, gy0, gx1, gy1, seed + ca)
                 else -> StoreSigns.generalWindow(F, gx0, gy0, gx1, gy1, seed + ca, info.year < 1950)
             }
             F.rect(ca, gy0 - 2, ce, gy0 - 1, trim.l); F.vline(ca, gy0, gy1, trim.o); F.vline(ce, gy0, gy1, trim.o)
@@ -658,6 +703,7 @@ object StoreKit {
         // the gas pump out front in the early decades (rusting without its globe once the store has shut)
         val pumpAt = if (if (info.features.isNotEmpty()) "gasPump" in info.features else info.year < 1966 || (info.opened in 1..1965 && !open && info.state != StoreState.REUSED)) floatArrayOf(px1 + 46f, -26f) else null
         if (pumpAt != null) gasPump(b, pumpAt[0], pumpAt[1], info.year, open)
+        else if (info.has("propaneCage")) propaneCage(b, px1 + 40f, -30f)
         return Site(x0, x1, zf, lzb, listOf(floatArrayOf(px0 - 4f, pz0, px1 + 4f, pz1 + 22f), floatArrayOf(lx0 - 6f, lzb - 22f, lx1 + 6f, zb), floatArrayOf(x1, sdz - 18f, x1 + 28f, sdz + 18f)), pumpAt)
     }
 
@@ -691,13 +737,23 @@ object StoreKit {
                 bench(b, m, right - 20f, z0 + 14f, y)
             }
             else -> {
-                bench(b, m, left + 22f, z0 + 12f, y)
-                // barrels by the door, crates, sacks, the ice chest, a broom rack
-                for (k in 0 until 2) m.prism(v(right - 10f - k * 18f, y, z0 + 14f), v(0f, 1f, 0f), v(0f, 0f, 1f), 7.5f, 7.5f, 20f, 10, StoreKit.barrelStrip(b), capFar = Paint.cap(7.5f, DECK))
-                b.box(m, right - 30f, y, z0 + 30f, right - 12f, y + 14f, z0 + 46f, wood, 4)
-                b.box(m, right - 28f, y + 14f, z0 + 32f, right - 14f, y + 24f, z0 + 44f, wood, 5)
+                // what the generator says stands on the porch (features): the bench, barrels by the door, crates, sacks,
+                // the ice chest, a soda cooler (1975 on), a deli or bait board, the dog asleep
+                if (info.has("bench")) bench(b, m, left + 22f, z0 + 12f, y)
+                if (info.has("barrels")) for (k in 0 until 2) m.prism(v(right - 10f - k * 18f, y, z0 + 14f), v(0f, 1f, 0f), v(0f, 0f, 1f), 7.5f, 7.5f, 20f, 10, StoreKit.barrelStrip(b), capFar = Paint.cap(7.5f, DECK))
+                if (info.has("crates")) {
+                    b.box(m, right - 30f, y, z0 + 30f, right - 12f, y + 14f, z0 + 46f, wood, 4)
+                    b.box(m, right - 28f, y + 14f, z0 + 32f, right - 14f, y + 24f, z0 + 44f, wood, 5)
+                }
                 for (k in 0 until 3) b.box(m, cx + 30f + k * 9f, y, z0 + 6f, cx + 38f + k * 9f, y + 11f, z0 + 12f, Ramp(c(0x6A604A), c(0xB8A884), c(0xD8C8A0), c(0xE8DAB4), c(0xF6EACC)), 6 + k)
-                if (info.year >= 1925) {
+                if (info.has("soda")) {
+                    val front = b.pic("soda") { PixImg(tx(26f), tx(30f)).also { im -> im.fill(c(0xC82A2A)); im.border(c(0x5A0A0A)); im.rect(1, 3, im.w - 2, 10, c(0xF6F0E0)); StoreSigns.letters(im, "COLD", 1, 3, im.w - 2, 10, null, null, 1) { _, _ -> c(0xC82A2A) }; StoreSigns.letters(im, "POP", 2, 13, im.w - 3, im.h - 6, null, null, 2) { _, _ -> c(0xFFFFFF) }; im.glow(2, 3, im.w - 3, 10, 160) } }
+                    m.box(right - 66f, y, z0 + 6f, right - 40f, y + 30f, z0 + 22f) { s, w, h -> when (s) { Side.BOTTOM -> null; Side.FRONT -> front; Side.TOP -> b.top(w, h, Paint.RED); else -> b.panel(w, h, Paint.RED) } }
+                }
+                if (info.has("deli")) sandwich(b, m, cx - 46f, z1 + 14f, "DELI", "SUBS")
+                if (info.has("bait")) sandwich(b, m, cx - 46f, z1 + 14f, "BAIT", "TACKLE")
+                if (info.has("dogOnPorch")) dog(b, m, cx - 30f, z0 + 30f, y, seed)
+                if (info.has("iceChest") && info.year >= 1925) {
                     val ice = b.pic("ice") { PixImg(tx(40f), tx(28f)).also { im -> im.fill(c(0xE8ECF0)); im.border(c(0x5A6A7A)); im.hline(1, im.w - 2, 2, c(0xFFFFFF)); StoreSigns.letters(im, "ICE", 3, 5, im.w - 4, im.h - 6, null, null, 2) { _, _ -> c(0x2A5AA8) } } }
                     val iceSide = b.pic("iceS") { PixImg(tx(22f), tx(28f)).also { im -> im.fill(c(0xD8DCE0)); im.border(c(0x5A6A7A)) } }
                     m.box(left + 50f, y, z0 + 6f, left + 90f, y + 28f, z0 + 28f) { s, w, h -> when (s) { Side.BOTTOM -> null; Side.TOP -> b.top(w, h, Paint.WHITE); Side.FRONT -> ice; Side.BACK -> b.panel(w, h, Paint.WHITE); else -> iceSide } }
@@ -713,6 +769,16 @@ object StoreKit {
         im.fill(c(0x9A6438)); for (x in 0 until 40 step 3) im.vline(x, 0, 23, c(0x6A4428))
         for (yy in listOf(2, 11, 12, 21)) im.hline(0, 39, yy, c(0x4A4A5A))
     } }
+
+    /** A dog asleep on the boards: a curled body, a head on its paws, a tail. */
+    private fun dog(b: StoreB, m: MeshBuilder, x: Float, z: Float, y: Float, seed: Int) {
+        val fur = listOf(c(0x8A5A2A), c(0x2A2420), c(0xD8C8A0), c(0xB8782E))[Math.floorMod(seed, 4)]
+        val r = Ramp(Pix.mix(fur, c(0x000000), .6f), Pix.mix(fur, c(0x000000), .25f), fur, Pix.mix(fur, c(0xFFFFFF), .2f), Pix.mix(fur, c(0xFFFFFF), .4f))
+        b.box(m, x - 11f, y, z - 6f, x + 9f, y + 7f, z + 6f, r, 7)
+        b.box(m, x + 7f, y, z + 2f, x + 15f, y + 6f, z + 9f, r, 8)
+        b.solid(m, x + 13f, y + 4f, z + 8.8f, x + 14.4f, y + 5f, z + 9.2f, c(0x101010))
+        b.box(m, x - 16f, y, z - 4f, x - 10f, y + 2.5f, z - 2f, r, 9)
+    }
 
     private fun bench(b: StoreB, m: MeshBuilder, x: Float, z: Float, y: Float) {
         val wood = b.swatch(DECK.l); val dark = b.swatch(DECK.d)
@@ -744,6 +810,17 @@ object StoreKit {
     }
 
     /** A gas pump at ([x], [z]): the tall visible-glass pump before the war, the boxy pump of the fifties; a lit globe on top while it pumps. */
+    /** A cage of propane cylinders for exchange (the 1975-on country store's), white bottles behind white mesh. */
+    private fun propaneCage(b: StoreB, x: Float, z: Float) {
+        val m = b.det("yard")
+        val cage = b.pic("cage") { PixImg(8, 8).also { im -> for (yy in 0 until 8) for (xx in 0 until 8) if (xx % 4 == 0 || yy % 4 == 0) im[xx, yy] = c(0xD8DCE4); im.hline(0, 7, 0, c(0x6C6E85)) } }
+        val sign = b.pic("propane") { PixImg(tx(40f), tx(10f)).also { im -> im.fill(c(0x1E4A8A)); StoreSigns.letters(im, "PROPANE", 1, 1, im.w - 2, im.h - 2, null, null, 1) { _, _ -> c(0xFFFFFF) } } }
+        b.texts += "PROPANE"
+        b.tile(cage).box(x - 22f, 0f, z - 14f, x + 22f, 50f, z + 14f, setOf(Side.FRONT, Side.LEFT, Side.RIGHT, Side.TOP, Side.BACK))
+        for (k in 0 until 4) m.upright(x - 15f + k * 10f, z, 0f, 26f, 4.2f, 4.2f, 8, Paint.strip(Paint.stripSize(4.2f, 26f).first, 22, Paint.WHITE, k), cap = Paint.cap(4.2f, Paint.WHITE))
+        CinemaKit.face(m, sign, x, 44f, z + 14.3f, 40f, 10f, Side.FRONT)
+    }
+
     private fun gasPump(b: StoreB, x: Float, z: Float, year: Int, working: Boolean) {
         val m = b.det("pump")
         val red = if (working) Paint.RED else Ramp(c(0x3A2A22), c(0x6A3A2A), c(0x8A4A34), c(0x9A5A40), c(0xA86A50))

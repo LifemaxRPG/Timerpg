@@ -17,12 +17,17 @@ object StoreNames {
     private val SURNAMES = listOf("Hollis", "Pruett", "Abernathy", "Tolliver", "Kessling", "Marrow", "Dunmore", "Whitlock", "Beaumont", "Carver",
         "Haskell", "Ledbetter", "Oakes", "Pemberton", "Rowley", "Satterly", "Thorne", "Vance", "Wexler", "Yardley", "Corliss", "Fenwick")
     private val GENERAL = listOf("%s General Store", "%s Mercantile", "%s & Sons", "%s Bros. General", "%s Dry Goods", "%s Trading Co.")
-    private val MARKET = listOf("Meadowlark Market", "Bluebell Market", "Larkspur Foods", "Sunfair Market", "Kettle Creek Market", "Tallgrass Foods",
-        "Silverbell Market", "Orchard Lane Market", "Copperleaf Foods", "Hearthside Market", "Wrenfield Market", "Daybreak Market")
-    private val SUPER = listOf("Fieldstone Foods", "Brightbasket", "Sunvale Foods", "Greenmeadow Market", "Harvestwell", "Pinecrest Foods",
-        "Daisyfield Market", "Goldengrain Foods", "Larkhaven Market", "Marigold Market", "Bramblewood Market", "Kestrel Foods")
-    private val BIG = listOf("Brightwell", "Openfield", "Sunvale Max", "Prairieway", "Wideland", "Allday Depot", "Granary Max", "Northstar Supercenter",
-        "Bluewater Supercenter", "Bigsky Supercenter", "Tallpine Max", "Everfield")
+    // (the preview's samples; the town's own names come from the generator, src/town/stores.ts, and these lists must be
+    //  drawn from its lists: src/town/stores.test.ts checks)
+    private val MARKET = listOf("Sunnyside", "Hilltop", "Brookside", "Larkspur", "Dogwood", "Bellwether", "Goldenrod", "Orchard Row", "Bluebell", "Meadowlark")
+    private val SUPER = listOf("Fairbasket", "Larderly", "Goodacre Foods", "Hollowbrook Foods", "Brightbasket", "Hearthside Foods", "Prairie Larder", "Kettle Creek Foods")
+    private val BIG = listOf("Bountiway", "Everwide", "Thriftacre", "Plenwell", "Allbright", "Grandacre", "Harvestone", "Sunvale", "Broadmeadow", "Wellstock")
+
+    /**
+     * Words and formats that are a real chain's trade dress even under a made-up name (the big-box "Supercenter", a
+     * "Depot"): never on a sign (StoreKitTest reads every sign a store spells).
+     */
+    val LOOKALIKE: List<String> = listOf("Supercenter", "Supercentre", "Super Center", "Depot", "Neighborhood Market", "Hypermart", "Save Money", "Live Better", "Rollback")
     private val ANTIQUE = listOf("%s Antiques", "Old %s Antiques", "%s Attic Antiques", "%s Antiques & Curios")
     private val CHURCH = listOf("%s Community Church", "Grace Chapel", "%s Gospel Chapel", "New Hope Fellowship", "Living Water Chapel")
     private val CAFE = listOf("%s Coffee", "The Old Store Cafe", "%s Coffee House", "Porch Light Cafe")
@@ -45,6 +50,7 @@ object StoreNames {
         "Pamida", "Bi-Mart", "Fareway", "Brookshire", "Buehler", "Marsh", "Kash n Karry", "Jitney Jungle", "Bruno's", "Food World", "Big Star",
         "Colonial Stores", "National Tea", "Kohl's", "Mayfair", "Sunflower", "Super Fresh", "Superfresh", "Thrifty", "Lucky", "Alpha Beta", "Hughes",
         "Fred's", "Bill's", "Western Auto", "Coast to Coast", "Gamble's", "Mercantile Stores", "Dollar Store", "Supercenter Walmart",
+        "Thrifty Foods", "Thrifton",
     )
 
     private fun words(s: String) = s.uppercase().replace(Regex("[^A-Z0-9&]+"), " ").trim()
@@ -55,6 +61,12 @@ object StoreNames {
         return REAL.any { r -> val w = words(r); w.isNotEmpty() && t.contains(" $w ") }
     }
 
+    /** Whether [s] carries a real chain's format word ([LOOKALIKE]), whole words. */
+    fun looksLikeChain(s: String): Boolean {
+        val t = " ${words(s)} "
+        return LOOKALIKE.any { r -> val w = words(r); w.isNotEmpty() && t.contains(" $w ") }
+    }
+
     private fun pick(list: List<String>, seed: Int, salt: Int) = list[((seed * 31 + salt) and 0x7fffffff) % list.size]
 
     /** A made-up name for a store of [kind] (seeded; a general store or a reuse takes a family's or the [town]'s name). */
@@ -62,7 +74,7 @@ object StoreNames {
         val sur = pick(SURNAMES, seed, 7)
         val n = when (kind) {
             StoreKind.GENERAL -> pick(GENERAL, seed, 3).format(sur)
-            StoreKind.MARKET -> pick(MARKET, seed, 5)
+            StoreKind.MARKET -> pick(MARKET, seed, 5) + " Market"
             StoreKind.SUPERMARKET -> pick(SUPER, seed, 11)
             StoreKind.SUPERSTORE -> pick(BIG, seed, 13)
         }
@@ -97,7 +109,7 @@ internal object StoreSigns {
     /** The largest BigFont scale (1..[maxScale]) at which [s] fits [w] x [h] texels. */
     fun fit(s: String, w: Int, h: Int, maxScale: Int = 4, gap: Int = 1): Int {
         var sc = maxScale
-        while (sc > 1 && (BigFont.width(s, sc, gap * sc.coerceAtMost(2)) > w || BigFont.H * sc > h)) sc--
+        while (sc > 1 && (BigFont.width(s, sc, gap * sc) > w || BigFont.H * sc > h)) sc--
         return sc
     }
 
@@ -114,9 +126,10 @@ internal object StoreSigns {
         val pad = if (out != null) 2 else 0
         val w = x1 - x0 + 1 - pad * 2; val h = y1 - y0 + 1 - pad * 2
         var sc = fit(s, w, h, maxScale)
-        while (s.isNotEmpty() && BigFont.width(s, sc, sc.coerceAtMost(2)) > w) s = if (s.contains(' ')) s.substringBeforeLast(' ') else s.dropLast(1)
+        // one font pixel between letters at every scale (a fixed advance: the gaps stay even when the sign is far away)
+        while (s.isNotEmpty() && BigFont.width(s, sc, sc) > w) s = if (s.contains(' ')) s.substringBeforeLast(' ') else s.dropLast(1)
         if (s.isEmpty()) return sc
-        val gap = sc.coerceAtMost(2)
+        val gap = sc
         val tw = BigFont.width(s, sc, gap); val th = BigFont.H * sc
         val lx = x0 + (x1 - x0 + 1 - tw) / 2; val ly = y0 + (y1 - y0 + 1 - th) / 2
         if (out != null) BigFont.outlined(im, s, lx, ly, sc, gap, out, shadow) { fill(it, th) }
@@ -311,7 +324,7 @@ internal object StoreSigns {
             reuse == null -> aisles(im, x0, y0, x1, y1, seed, era, glow)
             reuse == StoreReuse.GYM -> gymWindow(im, x0, y0, x1, y1, seed)
             reuse == StoreReuse.THRIFT || reuse == StoreReuse.OUTLET || reuse == StoreReuse.FLEA -> rackWindow(im, x0, y0, x1, y1, seed, reuse == StoreReuse.OUTLET)
-            reuse.look == StoreReuse.CHURCH -> churchRoom(im, x0, y0, x1, y1, seed)
+            reuse.look == StoreReuse.CHURCH -> churchFront(im, x0, y0, x1, y1, seed)
             reuse.look == StoreReuse.CAFE -> cafeWindow(im, x0, y0, x1, y1, seed)
             reuse.look == StoreReuse.FEED -> generalWindow(im, x0, y0, x1, y1, seed, false)
             else -> antiquesWindow(im, x0, y0, x1, y1, seed)
@@ -398,6 +411,47 @@ internal object StoreSigns {
         }
         im.vline(cx, y0, band, c(0x1A1A22))
         im.glow(x0, band + 1, x1, y1, 110)
+    }
+
+    /**
+     * A store's plate glass become a church's front: painted over in opaque panels (most of it), and in one bay of three a
+     * tall narrow pane of coloured glass lit from inside.
+     */
+    fun churchFront(im: PixImg, x0: Int, y0: Int, x1: Int, y1: Int, seed: Int) {
+        val panel = c(0xE6DFCE); val seam = c(0xC8C0AC)
+        im.rect(x0, y0, x1, y1, panel)
+        var x = x0 + 6; while (x < x1) { im.vline(x, y0, y1, seam); x += 12 }
+        im.hline(x0, x1, y0 + (y1 - y0) * 2 / 3, seam)
+        if (Math.floorMod(seed, 3) == 0) {
+            val cx = (x0 + x1) / 2; val hw = max(2, (x1 - x0) / 10)
+            val top = y0 + max(2, (y1 - y0) / 10); val bot = y1 - max(2, (y1 - y0) / 10)
+            val panes = intArrayOf(c(0xC83A3A), c(0x3A6AC8), c(0xE8C04A), c(0x3A9A5A), c(0x8A4AB8))
+            im.rect(cx - hw - 1, top - 1, cx + hw + 1, bot + 1, c(0x3A3030))
+            var y = top; var k = seed
+            while (y <= bot) { for (xx in cx - hw..cx + hw) for (yy in y until min(bot + 1, y + 4)) im[xx, yy] = panes[Math.floorMod(k + xx, panes.size)]; im.hline(cx - hw, cx + hw, min(bot, y + 3), c(0x3A3030)); y += 4; k++ }
+            im.vline(cx, top, bot, c(0x3A3030))
+            im.glow(cx - hw, top, cx + hw, bot, 200)
+        }
+    }
+
+    /** A church's glass doors (where a store's were): dark warm glass, a small cross above. */
+    fun churchDoor(im: PixImg, x0: Int, y0: Int, x1: Int, y1: Int) {
+        im.rect(x0, y0, x1, y1, c(0x3A2E26))
+        im.rect(x0 + 2, y0 + (y1 - y0) / 3, x1 - 2, y1, c(0x8A6A3A)); im.glow(x0 + 2, y0 + (y1 - y0) / 3, x1 - 2, y1, 120)
+        val cx = (x0 + x1) / 2; val u = max(1, (y1 - y0) / 24)
+        im.rect(cx - u / 2, y0 + 2, cx + u / 2, y0 + 2 + 8 * u, c(0xF0E8D0)); im.rect(cx - 3 * u, y0 + 2 + 2 * u, cx + 3 * u, y0 + 2 + 3 * u, c(0xF0E8D0))
+    }
+
+    /**
+     * A changeable-letter board (black letters slid into a white lit face, the kind on church and motel signs): [lines]
+     * of text centred, filling [im].
+     */
+    fun letterBoard(im: PixImg, lines: List<String>, lit: Boolean) {
+        im.fill(c(0xF4F2EA)); im.border(c(0x2A2A30))
+        for (y in 3 until im.h - 2 step 7) im.hline(1, im.w - 2, y, c(0xD8D6CE))
+        val h = (im.h - 4) / lines.size
+        for ((k, ln) in lines.withIndex()) letters(im, ln, 3, 2 + k * h, im.w - 4, 1 + (k + 1) * h, null, null, 2) { _, _ -> c(0x16161C) }
+        if (lit) CinemaKit.glowAll(im, 200)
     }
 
     /** Boards nailed over a window or door: weathered planks, an X of two more, nail heads. */

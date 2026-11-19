@@ -7,7 +7,7 @@ import { landmarkArtKey } from './landmarks';
 import { planTown, type Rect } from './plan';
 import { firstYearReaching, populationIn } from './population';
 import {
-  EXPAND_FROM, generalStoreName, isStoreSite, MARKET_POPULATION, reuseOf, STORE_SITES, storeHistories, storeLayout, storeNeeds,
+  EXPAND_FROM, generalStoreName, STORE_FEATURES, STORE_NAMES, isStoreSite, MARKET_POPULATION, reuseOf, STORE_SITES, storeHistories, storeLayout, storeNeeds,
   storeState, STORE_SIZES, SUPERMARKET_POPULATION, supermarketName, superstoreName, SUPERSTORE_FROM, SUPERSTORE_POPULATION,
   townStoreHistories, ALONG_M, DEEP_M, type StoreSite,
 } from './stores';
@@ -130,10 +130,21 @@ describe('stores: their history', () => {
       }
       const ss = by('superstore'), gs = by('generalstore')!, mk = by('market'), sm = by('supermarket');
       const S = ss?.events[0]!.year;
-      // the general store closes only when (and soon after) the superstore comes
+      // the general store closes 2-10 years after the town's first supermarket (sometimes), else soon after the superstore
       const gClosed = gs.events.find((e) => e.event === 'closed');
-      if (S === undefined) expect(gClosed, seed).toBeUndefined();
+      const firstMarket = Math.min(...[mk, sm].filter((x) => !!x).map((x) => x!.events[0]!.year));
+      if (gClosed?.why === 'supermarket') {
+        expect(gClosed.year - firstMarket, seed).toBeGreaterThanOrEqual(2); expect(gClosed.year - firstMarket).toBeLessThanOrEqual(10);
+        if (S !== undefined) expect(gClosed.year).toBeLessThan(S + 2);
+      } else if (S === undefined) expect(gClosed, seed).toBeUndefined();
       else { expect(gClosed!.year - S).toBeGreaterThanOrEqual(0); expect(gClosed!.year - S).toBeLessThanOrEqual(2); }
+      // a 1990s trade only for one still trading with no superstore in town
+      for (const e of gs.events.filter((x) => x.trade)) { expect(S, seed).toBeUndefined(); expect(e.year).toBeGreaterThanOrEqual(1988); }
+      // a superstore before 2005 opens as the discount store, and any extension comes from 2005
+      if (ss) {
+        expect(!!ss.events[0]!.discount).toBe(S! < 2005);
+        for (const e of ss.events.filter((x) => x.event === 'expanded')) { expect(ss.events[0]!.discount).toBe(true); expect(e.year).toBeGreaterThanOrEqual(2005); }
+      }
       // the market closes the year its business moves out to the supermarket, else after the superstore
       if (mk && sm) {
         expect(sm.events[0]!.event).toBe('moved');
@@ -165,6 +176,55 @@ describe('stores: their history', () => {
   });
 });
 
+describe('stores: across the seeds', () => {
+  const ALL = [...SEEDS, ...Array.from({ length: 40 }, (_, i) => `water${i}`)];
+  it('closes some general stores when the supermarket comes, keeps the superstore path the commonest, and turns some survivors', () => {
+    let bySupermarket = 0, bySuperstore = 0, turned = 0, discount = 0;
+    let early = 0;
+    for (const seed of ALL) for (const h of historiesOf(seed)) {
+      const c = h.events.find((e) => e.event === 'closed');
+      const big = historiesOf(seed).some((x) => x.site === 'superstore');
+      if (h.site === 'generalstore' && c?.why === 'supermarket') { early++; if (big) bySupermarket++; }
+      if (h.site === 'generalstore' && c?.why === 'superstore') bySuperstore++;
+      if (h.events.some((e) => e.trade)) turned++;
+      if (h.site === 'superstore' && h.events[0]!.discount) discount++;
+    }
+    // some general stores go when the supermarket comes; where a superstore comes, most hang on until it does
+    expect(early).toBeGreaterThan(5);
+    expect(bySuperstore, `${bySuperstore} ${bySupermarket}`).toBeGreaterThan(bySupermarket);
+    expect(turned).toBeGreaterThan(3);
+    expect(discount).toBeGreaterThan(2);
+  });
+
+  it('emits only the features the Kotlin builder knows (StoreKit FEATURES)', async () => {
+    const { readFileSync } = await import('node:fs');
+    const kt = readFileSync(new URL('../../kotlin-street/shared/src/filament/kotlin/scene3d/StoreKit.kt', import.meta.url), 'utf8');
+    const m = /val FEATURES\s*=\s*setOf\(([^)]*)\)/.exec(kt);
+    expect(m, 'StoreKit.FEATURES').toBeTruthy();
+    const known = new Set([...m![1]!.matchAll(/"([A-Za-z]+)"/g)].map((x) => x[1]!));
+    expect([...STORE_FEATURES].filter((f) => !known.has(f))).toEqual([]);
+    for (const seed of ALL) for (const h of historiesOf(seed)) for (let y = 1900; y <= 2040; y += 3) {
+      for (const f of storeState(seed, h, y)?.features ?? []) expect(f.startsWith('reuse:') || (STORE_FEATURES as readonly string[]).includes(f), f).toBe(true);
+    }
+  });
+
+  it('keeps the Kotlin fixture of gamma through the years current (StoreSiteInfo.at parity)', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { storesFixture, FIXTURE } = await import('../../kotlin-street/tools/stores-fixture');
+    expect(readFileSync(FIXTURE, 'utf8') === storesFixture(), 'npx tsx kotlin-street/tools/stores-fixture.ts').toBe(true);
+  });
+
+  it('the Kotlin preview names come from these lists', async () => {
+    const { readFileSync } = await import('node:fs');
+    const kt = readFileSync(new URL('../../kotlin-street/shared/src/filament/kotlin/scene3d/StoreSigns.kt', import.meta.url), 'utf8');
+    const list = (name: string): string[] => [...(new RegExp(`val ${name} = listOf\\(([^)]*)\\)`).exec(kt)?.[1] ?? '').matchAll(/"([^"]+)"/g)].map((x) => x[1]!);
+    expect(list('BIG').length).toBeGreaterThan(4);
+    for (const n of list('BIG')) expect(STORE_NAMES.superstores, n).toContain(n);
+    for (const n of list('SUPER')) expect(STORE_NAMES.chains70s, n).toContain(n);
+    for (const n of list('MARKET')) expect(STORE_NAMES.marketWords, n).toContain(n);
+  });
+});
+
 describe('stores: names', () => {
   // Real grocery, supermarket, variety and big-box chains (past and present, here and abroad): none may appear.
   const REAL = ['Walmart', 'Wal-Mart', 'Wal Mart', 'Kroger', 'Safeway', 'Piggly Wiggly', 'Piggly', 'A&P', 'A & P', 'Great Atlantic', 'Target',
@@ -179,7 +239,9 @@ describe('stores: names', () => {
     'Cub Foods', 'Fareway', 'Dillons', 'King Soopers', 'Alpha Beta', 'Skaggs', "Dominick's", 'Eagle Food', 'Clover Farm', 'Gold Circle',
     'Two Guys', 'Korvettes', 'W. T. Grant', 'McCrory', 'Newberry', 'Big Lots', 'Fedco', 'Gemco', 'FedMart', 'Value City', 'Supercenter',
     'Hypermart', 'Kwik', 'Foodland', 'Foodtown', 'Food Town', 'Key Food', 'Pantry Pride', 'Shopwell', 'Save Mart', 'Valu-Mart', 'ValuMart',
-    'Mega Mart', 'Harvest Foods', 'Fairway', 'Country Mart', 'Furr', 'Kash n', 'Bargain Barn', 'Good Neighbor', 'Bi-Mart', 'Hills Department'];
+    'Mega Mart', 'Harvest Foods', 'Fairway', 'Country Mart', 'Furr', 'Kash n', 'Bargain Barn', 'Good Neighbor', 'Bi-Mart', 'Hills Department',
+    // too close to a real chain's name or trade-name: Thrifty Foods, the Depot stores, the Supercenter / Neighborhood Market formats
+    'Thrifton', 'Thrifty', 'Depot', 'Supercentre', 'Neighborhood Market', 'Superstore', 'Hypermarket', 'Save Money'];
   const hit = (name: string): string | undefined => REAL.find((r) => new RegExp(`(^|[^a-z])${r.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[^a-z])`).test(name.toLowerCase()));
 
   it('are all made up: no real chain, ever', () => {

@@ -57,11 +57,11 @@ internal object StoreMarkets {
     }
 
     /** A wall pack lamp on a wall facing [n] at ([x], [y], [z]) throwing [warm] or cool light out. */
-    fun wallPack(b: StoreB, x: Float, y: Float, z: Float, n: Side, sodium: Boolean) {
+    fun wallPack(b: StoreB, x: Float, y: Float, z: Float, n: Side, sodium: Boolean, security: Boolean = false) {
         val lens = b.pic("pack$sodium") { PixImg(6, 4).also { im -> im.fill(if (sodium) c(0xFFC870) else c(0xF0F4FF)); im.border(Paint.IRON.b); CinemaKit.glowAll(im) } }
         val out = if (n == Side.BACK) -1f else 1f
-        b.sign("lamps").box(x - 5f, y - 4f, min(z, z + out * 6f), x + 5f, y + 2f, max(z, z + out * 6f)) { s, w, h -> if (s == Side.BOTTOM) lens else b.swatch(Paint.IRON.l) }
-        b.lights += if (sodium) CinemaLight(x, y - 6f, z + out * 14f, 1f, .66f, .3f, 18000f, 150f, down = true, cone = 1.3f) else CinemaLight(x, y - 6f, z + out * 14f, .92f, .95f, 1f, 18000f, 150f, down = true, cone = 1.3f)
+        b.sign(if (security) "sec" else "lamps").box(x - 5f, y - 4f, min(z, z + out * 6f), x + 5f, y + 2f, max(z, z + out * 6f)) { s, w, h -> if (s == Side.BOTTOM) lens else b.swatch(Paint.IRON.l) }
+        (if (security) b.secLights else b.lights) += if (sodium) CinemaLight(x, y - 6f, z + out * 14f, 1f, .66f, .3f, 18000f, 150f, down = true, cone = 1.3f) else CinemaLight(x, y - 6f, z + out * 14f, .92f, .95f, 1f, 18000f, 150f, down = true, cone = 1.3f)
     }
 
     /** Loading docks along a back wall at [z] (facing -z): [n] doors from [x0] to [x1], dock height 44, seals, bumpers, lights. */
@@ -138,6 +138,7 @@ internal object StoreMarkets {
 
     /** Cut-out channel letters: [s] in [col] on a transparent picture [w] x [h] units, with a darker return behind for depth; glowing. */
     fun channel(b: StoreB, s: String, col: Int, rim: Int, cx: Float, cy: Float, z: Float, w: Float, h: Float, maxScale: Int = 6) {
+        b.texts += s
         val face = PixImg(tx(w), tx(h))
         StoreSigns.letters(face, s, 0, 0, face.w - 1, face.h - 1, rim, null, maxScale) { r, hh -> if (r < hh / 4) Pix.mix(col, c(0xFFFFFF), .35f) else col }
         CinemaKit.glowAll(face, 255)
@@ -171,8 +172,11 @@ internal object StoreMarkets {
         B.rect(0, bh - 8, bw - 1, bh - 4, if (sixties) CREAM_ENAMEL.b else TURQ.b); B.hline(0, bw - 1, bh - 8, Pix.mix(B[0, bh - 9], c(0xFFFFFF), .3f))
         B.rect(0, 0, bw - 1, 3, ALU.l); B.hline(0, bw - 1, 3, ALU.d)
         val name = info.signName
-        val lettersCol = if (closed) Pix.mix(SIGN_RED, band.b, .55f) else SIGN_RED
-        StoreSigns.letters(B, name, 10, 6, bw - 11, bh - 11, if (closed) null else c(0xFFFFFF), if (closed) null else band.o, 6) { r, h -> if (r < h / 4) Pix.mix(lettersCol, c(0xFFFFFF), .3f) else lettersCol }
+        b.texts += name
+        val longShut = closed && info.yearsClosed >= 2
+        // a store shut for years has had its letters taken down: their ghost on the enamel, a row of bolt holes
+        val lettersCol = if (longShut) Pix.mix(band.b, c(0x3A3A30), .18f) else if (closed) Pix.mix(SIGN_RED, band.b, .55f) else SIGN_RED
+        StoreSigns.letters(B, name, 10, 6, bw - 11, bh - 11, if (closed) null else c(0xFFFFFF), if (closed) null else band.o, 6) { r, h -> if (longShut) (if (r == h / 2) c(0x2A2A26) else lettersCol) else if (r < h / 4) Pix.mix(lettersCol, c(0xFFFFFF), .3f) else lettersCol }
         if (!closed) for (i in B.px.indices) if (B.px[i] == SIGN_RED || B.px[i] == c(0xFFFFFF) || B.px[i] == Pix.mix(SIGN_RED, c(0xFFFFFF), .3f)) { B.glow(0, 0, 0, 0, 0); B.mask[i] = (255 shl 24) or (255 shl 16) or 255 }
         StoreKit.front(if (closed) det else b.sign("band"), B, x0, x1, 100f, PH, zf)
         b.tile(brick).box(x0, H - 1f, zf - 6f, x1, PH, zf - .02f, setOf(Side.LEFT, Side.RIGHT, Side.BACK))
@@ -195,7 +199,9 @@ internal object StoreMarkets {
             S.rect(a - 1, row(100f), e + 1, sfh - 1, ALU.d)
             if (k in doorBays) {
                 // a door pair (the magic-eye doors) with its mat, IN / OUT over it
-                if (closed) StoreSigns.boarded(S, a + 1, row(80f), e - 1, row(2f), seed + k) else StoreSigns.inside(S, a + 1, row(80f), e - 1, row(2f), seed + k, 0, (if (reused) info.reuse ?: StoreReuse.CHURCH else null))
+                if (closed) StoreSigns.boarded(S, a + 1, row(80f), e - 1, row(2f), seed + k)
+                else if (reused && info.reuse == StoreReuse.CHURCH) StoreSigns.churchDoor(S, a + 1, row(80f), e - 1, row(2f))
+                else StoreSigns.inside(S, a + 1, row(80f), e - 1, row(2f), seed + k, 0, (if (reused) info.reuse ?: StoreReuse.CHURCH else null))
                 S.vline((a + e) / 2, row(80f), sfh - 1, ALU.b); S.hline(a, e, row(40f), ALU.l)
                 S.rect(a, row(92f), e, row(82f), c(0x1A1A22)); if (!closed && !reused) { StoreSigns.small(S, (a + e) / 2, row(90f), if (k == bays / 2 - 1) "IN" else "OUT", c(0x5AF07A)); S.glow(a, row(92f), e, row(82f), 220) }
             } else {
@@ -208,6 +214,7 @@ internal object StoreMarkets {
         }
         S.hline(0, sfw - 1, sfh - 1, c(0x2A2A30))
         StoreKit.front(if (closed) det else b.sign("glass"), S, x0, x1, 0f, 100f, zf)
+        if (closed && info.has("forLease")) forLease(b, 0f, 128f, zf + 1f, min(260f, W * .45f), seed, info.yearsClosed)
         // the canopy: a flat slab out over the walk on slim steel columns, its soffit of downlights, its aluminium fascia
         val cz1 = zf + 48f
         val fascia = b.pic("mfascia$sixties") { PixImg(16, tx(9f)).also { im -> im.fill(ALU.l); im.hline(0, 15, 0, ALU.h); im.rect(0, im.h / 2 - 1, 15, im.h / 2, if (sixties) TURQ.b else SIGN_RED); im.hline(0, 15, im.h - 1, ALU.o) } }
@@ -283,19 +290,25 @@ internal object StoreMarkets {
         val signCol = if (eighties) c(0xC82A2A) else c(0x8A3A14)
         val face = PixImg(tx(sw), tx(sh)).also { im ->
             im.fill(c(0xF6F2E6)); im.border(ALU.d); im.hline(1, im.w - 2, 1, ALU.l)
-            StoreSigns.letters(im, info.signName, 6, 4, im.w - 7, im.h - 5, null, null, 6) { r, h -> if (closed) Pix.mix(signCol, c(0xF6F2E6), .6f) else signCol }
-            if (closed) { val r = Paint.Rnd(seed); repeat(5) { val x = r.int(im.w - 20); im.rect(x, 3 + r.int(im.h - 10), x + 6 + r.int(14), 3 + r.int(im.h - 10) + 3, c(0x3A3A40)) } }
-            else CinemaKit.glowAll(im, 230)
+            // shut for years: the backlit faces taken out of the box, a blank grey panel with the name's shadow
+            if (closed && info.yearsClosed >= 2) { im.fill(c(0xB8B8B4)); im.border(ALU.d); StoreSigns.letters(im, info.signName, 6, 4, im.w - 7, im.h - 5, null, null, 6) { _, _ -> c(0xAAAAA4) } }
+            else StoreSigns.letters(im, info.signName, 6, 4, im.w - 7, im.h - 5, null, null, 6) { r, h -> if (closed) Pix.mix(signCol, c(0xF6F2E6), .6f) else signCol }
+            if (!closed) CinemaKit.glowAll(im, 230)
         }
         val signM = if (closed) det else b.sign("box")
         b.box(det, cx - sw / 2f - 3f, (my0 + my1) / 2f - sh / 2f - 3f, sz - 34f, cx + sw / 2f + 3f, (my0 + my1) / 2f + sh / 2f + 3f, sz, ALU, 3, bottom = true)
         CinemaKit.face(signM, face, cx, (my0 + my1) / 2f, sz + .1f, sw, sh, Side.FRONT)
+        b.texts += info.signName
+        // the two boards either side of the name, fitted between it and the mansard's ends
+        val subW = min(200f, W / 2f - sw / 2f - 40f).coerceAtLeast(80f)
+        val kx = sw / 2f + 16f + subW / 2f
         for (k in listOf(-1f, 1f)) {
-            val word = if (reused) (if (k < 0f) "WELCOME" else when (info.reuse) { StoreReuse.GYM -> "OPEN 24 HRS"; StoreReuse.CHURCH -> "SUNDAY 10 AM"; StoreReuse.THRIFT, StoreReuse.FLEA -> "DONATIONS"; StoreReuse.OUTLET -> "CLEARANCE"; else -> "ALL WELCOME" })
+            val word = if (closed && info.yearsClosed >= 2) "" else if (reused) (if (k < 0f) "WELCOME" else when (info.reuse) { StoreReuse.GYM -> "OPEN 24 HRS"; StoreReuse.CHURCH -> "SUNDAY 10 AM"; StoreReuse.THRIFT, StoreReuse.FLEA -> "DONATIONS"; StoreReuse.OUTLET -> "CLEARANCE"; else -> "ALL WELCOME" })
                 else if (k < 0f) "BAKERY  DELI" else if (eighties) "FOOD & DRUG" else "MEAT  PRODUCE"
-            val sub = b.pic("sub$word$closed") { PixImg(tx(200f), tx(24f)).also { im -> im.fill(c(0x3A2A1E)); im.border(c(0x1A120C)); StoreSigns.letters(im, word, 3, 3, im.w - 4, im.h - 4, null, null, 3) { _, _ -> if (closed) c(0x8A7A6A) else c(0xF6E8C0) }; if (!closed) CinemaKit.glowAll(im, 220, c(0x3A2A1E)) } }
-            b.box(det, cx + k * (sw / 2f + 160f) - 102f, (my0 + my1) / 2f - 14f, sz - 30f, cx + k * (sw / 2f + 160f) + 102f, (my0 + my1) / 2f + 14f, sz - 1f, Paint.BLACK, 3, bottom = true)
-            CinemaKit.face(signM, sub, cx + k * (sw / 2f + 160f), (my0 + my1) / 2f, sz - .9f, 200f, 24f, Side.FRONT)
+            b.texts += word
+            val sub = b.pic("sub$word$closed$subW") { PixImg(tx(subW), tx(24f)).also { im -> im.fill(c(0x3A2A1E)); im.border(c(0x1A120C)); StoreSigns.letters(im, word, 3, 3, im.w - 4, im.h - 4, null, null, 3) { _, _ -> if (closed) c(0x8A7A6A) else c(0xF6E8C0) }; if (!closed) CinemaKit.glowAll(im, 220, c(0x3A2A1E)) } }
+            b.box(det, cx + k * kx - subW / 2f - 2f, (my0 + my1) / 2f - 14f, sz - 30f, cx + k * kx + subW / 2f + 2f, (my0 + my1) / 2f + 14f, sz - 1f, Paint.BLACK, 3, bottom = true)
+            CinemaKit.face(signM, sub, cx + k * kx, (my0 + my1) / 2f, sz - .9f, subW, 24f, Side.FRONT)
         }
         // the storefront under the walk: glass bays between the middle piers (aisles behind, specials on the glass),
         // two entrances with sliding doors, brick to either end with a bench and the machines
@@ -315,7 +328,9 @@ internal object StoreMarkets {
         val doorPic = { inOut: String -> b.pic("sdoorP$inOut$closed") {
             PixImg(tx(bw), tx(my0 - 4f)).also { im ->
                 im.fill(ALU.b)
-                if (closed) StoreSigns.boarded(im, 2, 12, im.w - 3, im.h - 2, seed + 9) else StoreSigns.inside(im, 2, 12, im.w - 3, im.h - 2, seed + inOut.length * 7, 1, (if (reused) info.reuse ?: StoreReuse.CHURCH else null))
+                if (closed) StoreSigns.boarded(im, 2, 12, im.w - 3, im.h - 2, seed + 9)
+                else if (reused && info.reuse == StoreReuse.CHURCH) StoreSigns.churchDoor(im, 2, 12, im.w - 3, im.h - 2)
+                else StoreSigns.inside(im, 2, 12, im.w - 3, im.h - 2, seed + inOut.length * 7, 1, (if (reused) info.reuse ?: StoreReuse.CHURCH else null))
                 im.vline(im.w / 2, 12, im.h - 1, ALU.d); im.vline(im.w / 2 + 1, 12, im.h - 1, ALU.l)
                 im.rect(0, 0, im.w - 1, 10, c(0x1A1A22)); if (!closed && !reused) { StoreSigns.small(im, im.w / 2, 3, inOut, c(0x5AF07A)); im.glow(1, 1, im.w - 2, 9, 230) }
                 im.vline(0, 0, im.h - 1, ALU.d); im.vline(im.w - 1, 0, im.h - 1, ALU.l)
@@ -328,6 +343,7 @@ internal object StoreMarkets {
             lit.quad(v(a, my0 - 4f, zf + .3f), v(a + bw, my0 - 4f, zf + .3f), v(a + bw, 0f, zf + .3f), v(a, 0f, zf + .3f), pic)
         }
         if (!closed) for (k in 0 until 4) b.lights += CinemaLight(gx0 + (gx1 - gx0) * (k + .5f) / 4f, my0 - 8f, zf + out / 2f, .92f, .94f, 1f, 40000f, 170f, down = true, cone = 1.4f)
+        if (closed && info.has("forLease")) forLease(b, cx, 70f, zf + 1.5f, min(300f, (gx1 - gx0) * .4f), seed, info.yearsClosed)
         // the walk and its things (machines, an ice chest, a bench, a phone, carts by the doors)
         b.box(det, x0 - out - 6f, 0f, zf, x1 + out + 6f, 4f, zf + out + 14f, Paint.CONCRETE, 7)
         val walk = b.det("walk")
@@ -413,10 +429,13 @@ internal object StoreMarkets {
         val reused = info.state == StoreState.REUSED
         val brand = BRANDS[(seed / 2) % BRANDS.size]
         val garden = 430f
-        val W = (L - garden - 180f).coerceIn(1500f, 2300f).coerceAtMost(L - garden - 60f)
+        val face = facade(info)
+        // the 1990s discount store is about 60% as wide and 75% as deep as the supercenter it is extended into
+        val Wfull = (L - garden - 180f).coerceIn(1500f, 2300f).coerceAtMost(L - garden - 60f)
+        val W = if (face.discount) Wfull * .6f else Wfull
         val x0 = -L / 2f + garden + 30f; val x1 = x0 + W
         val cx = (x0 + x1) / 2f
-        val Db = (D * .47f).coerceIn(1100f, 1650f)
+        val Db = (D * .47f).coerceIn(1100f, 1650f) * (if (face.discount) .75f else 1f)
         val zf = -(D - Db - 300f).coerceAtLeast(900f)
         val zb = zf - Db
         val H = 190f
@@ -439,9 +458,10 @@ internal object StoreMarkets {
         while (px < x1 - 60f) { CinemaKit.ledge(b.det("pil"), px - 10f, 0f, zf, px + 10f, H + 6f, zf + 6f, pil); CinemaKit.ledge(b.det("pil"), px - 10f, 0f, zb - 6f, px + 10f, H + 6f, zb, pil); px += 200f }
         var pz = zf - 150f
         while (pz > zb + 60f) { CinemaKit.ledge(b.det("pil"), x1, 0f, pz - 10f, x1 + 6f, H + 6f, pz + 10f, pil); CinemaKit.ledge(b.det("pil"), x0 - 6f, 0f, pz - 10f, x0, H + 6f, pz + 10f, pil); pz -= 220f }
-        // two entrance towers with their canopies and glass vestibules
-        val towers = listOf(cx - W * .24f to (if (info.year >= 2000) "HOME  PHARMACY" else "GENERAL MERCHANDISE"), cx + W * .24f to "GROCERY")
-        val TH = 300f; val TW = 300f; val TD = 40f
+        // the entrances (one or two by the chain's facade), each a tower with its canopy and glass vestibule
+        val towers = face.entrances.map { (k, word) -> cx + k * W to word }
+        val TW = 300f; val TD = 40f
+        val TH = if (face.gable) 280f else 300f
         val towerWall = b.tile(StoreKit.panelTile(brand.deep, seed + 3, 48, 48, 30))
         for ((tcx, word) in towers) {
             val a = tcx - TW / 2f; val e = tcx + TW / 2f
@@ -451,9 +471,21 @@ internal object StoreMarkets {
             b.tile(StoreKit.ROOF).box(a + 2f, 0f, zf - 2f, e - 2f, TH - .3f, zf + TD - 2f, setOf(Side.TOP))
             CinemaKit.ledge(det, a - 4f, TH, zf - 6f, e + 4f, TH + 6f, zf + TD + 4f, brand.accent, bottom = true)
             CinemaKit.ledge(det, a - 2f, 116f, zf + TD - 1f, e + 2f, 124f, zf + TD + 3f, BLOCK, bottom = true)
-            // the tower's word in lit letters
-            if (!closed) channel(b, word, c(0xFFFFFF), brand.deep.o, tcx, 250f, zf + TD, TW - 40f, 40f, 4)
-            else { val ghost = b.pic("ghost$word") { PixImg(tx(TW - 40f), tx(40f)).also { im -> StoreSigns.letters(im, word, 0, 0, im.w - 1, im.h - 1, null, null, 4) { _, _ -> Pix.mix(brand.deep.b, c(0x000000), .35f) } } }; CinemaKit.face(det, ghost, tcx, 250f, zf + TD + .2f, TW - 40f, 40f, Side.FRONT) }
+            // a gabled tower top (a farmhouse front) for some chains, its ends closed
+            if (face.gable) {
+                val gm = b.tile(StoreKit.panelTile(brand.accent, seed + 5, 32, 32, 10))
+                val ry = TH + 6f; val peak = ry + 70f; val gz0 = zf - 6f; val gz1 = zf + TD + 4f
+                gm.quad(v(a - 6f, ry, gz1), v(tcx, peak, gz1), v(tcx, peak, gz0), v(a - 6f, ry, gz0))
+                gm.quad(v(tcx, peak, gz1), v(e + 6f, ry, gz1), v(e + 6f, ry, gz0), v(tcx, peak, gz0))
+                val tri = b.tile(StoreKit.panelTile(brand.deep, seed + 7, 32, 32, 10))
+                tri.quad(v(a - 4f, ry, gz1 - .5f), v(tcx, peak - 2f, gz1 - .5f), v(tcx, peak - 2f, gz1 - .5f), v(e + 4f, ry, gz1 - .5f))
+                tri.quad(v(e + 4f, ry, gz0 + .5f), v(tcx, peak - 2f, gz0 + .5f), v(tcx, peak - 2f, gz0 + .5f), v(a - 4f, ry, gz0 + .5f))
+            }
+            // the entrance's word in lit letters (or none), the ghost of it once the store has long shut
+            if (word.isNotEmpty()) {
+                if (!closed) channel(b, word, c(0xFFFFFF), brand.deep.o, tcx, TH - 50f, zf + TD, TW - 40f, 40f, 4)
+                else { val ghost = b.pic("ghost$word") { PixImg(tx(TW - 40f), tx(40f)).also { im -> StoreSigns.letters(im, word, 0, 0, im.w - 1, im.h - 1, null, null, 4) { _, _ -> Pix.mix(brand.deep.b, c(0x000000), .35f) } } }; CinemaKit.face(det, ghost, tcx, TH - 50f, zf + TD + .2f, TW - 40f, 40f, Side.FRONT) }
+            }
             // the vestibule: glass, sliding doors, the store lit inside
             val ves = b.pic("ves$closed") { PixImg(tx(TW - 80f), tx(116f)).also { im ->
                 im.fill(ALU.b)
@@ -471,21 +503,32 @@ internal object StoreMarkets {
             for (k in 0 until 4) det.upright(a + 24f + (TW - 48f) * k / 3f, cz1 - 10f, 4f, 120f, 4f, 4f, 10, Paint.strip(Paint.stripSize(4f, 116f).first, 40, BLOCK, k), cap = null)
             if (!closed) { b.lights += CinemaLight(tcx - 70f, 114f, zf + TD + 46f, .95f, .96f, 1f, 50000f, 200f, down = true, cone = 1.4f); b.lights += CinemaLight(tcx + 70f, 114f, zf + TD + 46f, .95f, .96f, 1f, 50000f, 200f, down = true, cone = 1.4f) }
         }
-        // the name sign over the middle on a raised parapet, a sunburst beside it, SUPERCENTER under it
+        // the name sign on a raised parapet clear of the entrances, the chain's emblem beside it, its line under it
         val nW = min(760f, W * .36f)
-        b.tile(eifs).box(cx - nW / 2f - 30f, H, zf - 4f, cx + nW / 2f + 30f, 280f, zf + 2f, setOf(Side.FRONT, Side.LEFT, Side.RIGHT, Side.BACK))
-        CinemaKit.ledge(det, cx - nW / 2f - 34f, 280f, zf - 6f, cx + nW / 2f + 34f, 286f, zf + 4f, brand.accent, bottom = true)
-        b.tile(StoreKit.ROOF).box(cx - nW / 2f - 28f, 0f, zf - 4f, cx + nW / 2f + 28f, 279.8f, zf + 2f, setOf(Side.TOP))
-        val nameText = info.signName.uppercase().replace(" SUPERCENTER", "")
+        val ncx = if (towers.size == 1) (if (towers[0].first < cx) cx + W * .14f else cx - W * .14f) else cx
+        b.tile(eifs).box(ncx - nW / 2f - 30f, H, zf - 4f, ncx + nW / 2f + 30f, 280f, zf + 2f, setOf(Side.FRONT, Side.LEFT, Side.RIGHT, Side.BACK))
+        CinemaKit.ledge(det, ncx - nW / 2f - 34f, 280f, zf - 6f, ncx + nW / 2f + 34f, 286f, zf + 4f, brand.accent, bottom = true)
+        b.tile(StoreKit.ROOF).box(ncx - nW / 2f - 28f, 0f, zf - 4f, ncx + nW / 2f + 28f, 279.8f, zf + 2f, setOf(Side.TOP))
+        val nameText = info.signName.uppercase()
+        val longShut = closed && info.yearsClosed >= 2
         if (!closed) {
-            channel(b, nameText, brand.accent.b, c(0xFFFFFF), cx - 30f, 226f, zf + 2f, nW - 80f, 70f, 8)
-            sunburst(b, cx + nW / 2f - 22f, 236f, zf + 4.5f, 34f, brand.star)
-            if (!reused) channel(b, if (info.year >= 2000) "SUPERCENTER" else "DISCOUNT CITY", brand.deep.b, c(0xFFFFFF), cx, 172f, zf + 4f, nW * .55f, 22f, 3)
+            channel(b, nameText, brand.accent.b, c(0xFFFFFF), ncx + 26f, 226f, zf + 2f, nW - 80f, 70f, 8)
+            emblem(b, face.emblem, ncx - nW / 2f + 26f, 230f, zf + 4.5f, 38f, brand)
+            if (!reused) channel(b, face.under, brand.deep.b, c(0xFFFFFF), ncx, 172f, zf + 4f, nW * .6f, 22f, 3)
+            if (info.has("pharmacy")) channel(b, "PHARMACY", brand.deep.b, c(0xFFFFFF), x0 + W * .1f, 230f - 58f, zf + 4f, 220f, 24f, 3)
+        } else if (longShut) {
+            // the letters taken down: their ghost on the panels, bolt holes in rows
+            val ghost = PixImg(tx(nW - 80f), tx(70f)).also { im ->
+                StoreSigns.letters(im, nameText, 0, 0, im.w - 1, im.h - 1, null, null, 8) { _, _ -> Pix.mix(EIFS.b, c(0x5A5A50), .35f) }
+                for (y in listOf(im.h / 4, im.h * 3 / 4)) for (x in 2 until im.w - 2 step 7) if (im[x, y] != 0) im[x, y] = c(0x2A2A26)
+            }
+            StoreKit.front(det, ghost, ncx + 26f - (nW - 80f) / 2f, ncx + 26f + (nW - 80f) / 2f, 191f, 261f, zf + 2.2f)
         } else {
-            // the letters taken down: their ghost on the panels, bolt holes
-            val ghost = PixImg(tx(nW - 80f), tx(70f)).also { im -> StoreSigns.letters(im, nameText, 0, 0, im.w - 1, im.h - 1, null, null, 8) { _, _ -> Pix.mix(EIFS.b, c(0x5A5A50), .35f) } }
-            StoreKit.front(det, ghost, cx - 30f - (nW - 80f) / 2f, cx - 30f + (nW - 80f) / 2f, 191f, 261f, zf + 2.2f)
+            // just shut: the name still up, unlit
+            val dead = PixImg(tx(nW - 80f), tx(70f)).also { im -> StoreSigns.letters(im, nameText, 0, 0, im.w - 1, im.h - 1, null, null, 8) { _, _ -> Pix.mix(brand.accent.b, c(0x3A3A40), .45f) } }
+            StoreKit.front(det, dead, ncx + 26f - (nW - 80f) / 2f, ncx + 26f + (nW - 80f) / 2f, 191f, 261f, zf + 2.2f)
         }
+        if (closed && info.has("forLease")) forLease(b, ncx, 105f, zf + 7f, min(420f, nW), seed, info.yearsClosed)
         // the garden centre's sign on the left end, the auto care's at the right
         if (!closed) {
             channel(b, "GARDEN CENTER", brand.accent.h, brand.deep.o, x0 + 190f, 172f, zf + 4f, 300f, 26f, 3)
@@ -508,15 +551,15 @@ internal object StoreMarkets {
                 StoreGrounds.cartRow(b, walk, tcx + 190f, zf + 16f, 6, along = true, handle = brand.accent.b)
             }
             val ice = b.pic("ice3") { PixImg(tx(70f), tx(40f)).also { im -> im.fill(c(0xF0F4F8)); im.border(c(0x4A6A8A)); StoreSigns.letters(im, "ICE", 4, 6, im.w - 5, im.h - 7, c(0x1A3A7A), null, 3) { _, _ -> c(0x6AB0F0) } } }
-            val ix = towers[1].first + 290f
+            val ix = towers.last().first + 290f
             walk.box(ix - 35f, 4f, zf + 2f, ix + 35f, 44f, zf + 30f) { s, w, h -> when (s) { Side.BOTTOM -> null; Side.FRONT -> ice; Side.TOP -> b.top(w, h, Paint.WHITE); else -> b.panel(w, h, Paint.WHITE) } }
             val cage = b.pic("cage") { PixImg(8, 8).also { im -> for (yy in 0 until 8) for (xx in 0 until 8) if (xx % 4 == 0 || yy % 4 == 0) im[xx, yy] = c(0xD8DCE4); im.hline(0, 7, 0, c(0x6C6E85)) } }
-            val cgx = towers[0].first - 300f
+            val cgx = towers.first().first - 300f
             b.tile(cage).box(cgx - 30f, 4f, zf + 4f, cgx + 30f, 54f, zf + 34f, setOf(Side.FRONT, Side.LEFT, Side.RIGHT, Side.TOP))
             for (k in 0 until 5) walk.upright(cgx - 22f + k * 11f, zf + 18f, 4f, 30f, 4.2f, 4.2f, 8, Paint.strip(Paint.stripSize(4.2f, 26f).first, 22, Paint.WHITE, k), cap = Paint.cap(4.2f, Paint.WHITE))
             if (info.year >= 2005) {
                 val kiosk = b.pic("kiosk") { PixImg(tx(34f), tx(70f)).also { im -> im.fill(c(0xB82A2A)); im.border(c(0x4A0A0A)); im.rect(4, 6, im.w - 5, 22, c(0x1A1A22)); StoreSigns.small(im, "MOVIES", im.w / 2, 12, c(0xF6E8C0)); im.rect(5, 28, im.w - 6, 44, c(0x6A9AC8)); CinemaKit.glowAll(im, 180, c(0xB82A2A)) } }
-                val kx = towers[1].first + 220f
+                val kx = towers.last().first + 220f
                 walk.box(kx - 17f, 4f, zf + 2f, kx + 17f, 74f, zf + 26f) { s, w, h -> if (s == Side.BOTTOM) null else if (s == Side.TOP) b.top(w, h, Paint.RED) else b.panel(w, h, Paint.RED) }
                 CinemaKit.face(b.sign("machines"), kiosk, kx, 39f, zf + 26.1f, 34f, 70f, Side.FRONT)
             }
@@ -539,19 +582,79 @@ internal object StoreMarkets {
         return Site(x0, x1, zf, zb - 6f, listOf(floatArrayOf(x0, zf, x1, zf + 150f), floatArrayOf(x0 - garden, zf - 640f, x0, zf + 30f)))
     }
 
-    /** A made-up chain's sunburst: a lit disc with eight rays (cut-out), on a wall facing +z. */
-    private fun sunburst(b: StoreB, cx: Float, cy: Float, z: Float, r: Float, col: Int) {
+    /** The chain's emblem (never a real chain's: no spark or sunburst): a leaf, a wave, a barn, or a star in a ring. */
+    enum class Emblem { LEAF, WAVE, BARN, RING_STAR }
+
+    /**
+     * A made-up chain's storefront, by its seed: how many entrances and what they say, its emblem, the line under its name,
+     * the tower tops. Varied so no superstore wears one real chain's trade dress (StoreKitTest).
+     */
+    class Facade(val entrances: List<Pair<Float, String>>, val emblem: Emblem, val under: String, val gable: Boolean, val discount: Boolean)
+
+    private val ENTRANCE_WORDS = listOf("MARKET" to "HOME", "FOODS" to "GENERAL", "" to "", "FRESH FOODS" to "HOME & MORE", "" to "")
+    private val UNDER = listOf("DISCOUNT FOODS", "FAMILY CENTER", "VALUE CENTER", "EVERYDAY SAVINGS", "FOODS & MORE", "FAMILY STORE")
+
+    fun facade(info: StoreInfo): Facade {
+        val s = info.seed
+        val discount = info.has("discountStore")
+        val two = !discount && Math.floorMod(s / 3, 3) != 0
+        val (wa, wb) = ENTRANCE_WORDS[Math.floorMod(s / 5, ENTRANCE_WORDS.size)]
+        val entrances = if (two) listOf(-.24f to wa, .24f to wb) else listOf((if (Math.floorMod(s, 2) == 0) -.2f else .2f) to "")
+        val under = if (discount) "FAMILY DISCOUNT" else UNDER[Math.floorMod(s / 7, UNDER.size)]
+        return Facade(entrances, Emblem.entries[Math.floorMod(s / 11, Emblem.entries.size)], under, Math.floorMod(s / 13, 2) == 0, discount)
+    }
+
+    /** The chain's [e] emblem, [r] across, lit, cut out on a wall facing +z at ([cx], [cy], [z]). */
+    private fun emblem(b: StoreB, e: Emblem, cx: Float, cy: Float, z: Float, r: Float, brand: Brand) {
         val n = tx(r * 2f)
         val im = PixImg(n, n)
         val c0 = n / 2f
+        val col = brand.star; val dark = brand.deep.b; val light = c(0xFFFFFF)
         for (y in 0 until n) for (x in 0 until n) {
-            val dx = x + .5f - c0; val dy = y + .5f - c0
-            val d = kotlin.math.sqrt(dx * dx + dy * dy)
-            val a = kotlin.math.atan2(dy, dx)
-            val ray = abs(cos(a * 4f)) > .82f
-            if (d < c0 * .42f || (ray && d < c0 * .98f)) im[x, y] = if (d < c0 * .3f) Pix.mix(col, c(0xFFFFFF), .4f) else col
+            val u = (x + .5f - c0) / c0; val w = (y + .5f - c0) / c0
+            val d = kotlin.math.sqrt(u * u + w * w)
+            val px = when (e) {
+                // a leaf: a pointed oval leaning right, its midrib
+                Emblem.LEAF -> { val p = (u - w) * .7071f; val q = (u + w) * .7071f; if (p * p / .9f + q * q / .2f < 1f) (if (abs(q) < .06f) dark else col) else 0 }
+                // three waves in a disc
+                Emblem.WAVE -> if (d < .95f) (if (kotlin.math.sin((u * 3.2f + w * 0f) * 3.14f) * .12f + ((w + 1f) * 3f % 1f) < .32f && w > -.6f) light else col) else 0
+                // a barn front: a gambrel roof over a square with a white X door
+                Emblem.BARN -> {
+                    val roof = w < -.1f && abs(u) < .9f + (w + .1f) * .9f && w > -.95f + abs(u) * .5f
+                    val wall = w >= -.1f && w < .9f && abs(u) < .75f
+                    if (wall && w > .25f && abs(u) < .35f && (abs(abs(u) - (w - .25f) * .54f) < .07f || abs(u) > .3f || w > .85f)) light else if (roof || wall) col else 0
+                }
+                // a five-point star inside a ring
+                Emblem.RING_STAR -> {
+                    val a = kotlin.math.atan2(w, u) + 1.5708f
+                    val k = ((a / (2f * 3.14159f / 5f)) % 1f + 1f) % 1f
+                    val edge = .38f + .45f * abs(k - .5f) * 2f
+                    if (d > .8f && d < .97f) col else if (d < (1f - edge) * .9f + .2f && d < .74f) light else 0
+                }
+            }
+            if (px != 0) im[x, y] = px
         }
         CinemaKit.glowAll(im, 255)
         CinemaKit.face(b.sign("letters"), im, cx, cy, z, r * 2f, r * 2f, Side.FRONT)
+    }
+
+    /**
+     * A shut big store's banner: a vinyl AVAILABLE / FOR LEASE with a made-up agent and number, [w] wide, centred at
+     * ([cx], [cy]) on a wall facing +z; weathered once it has hung for years.
+     */
+    fun forLease(b: StoreB, cx: Float, cy: Float, z: Float, w: Float, seed: Int, years: Int) {
+        val agents = listOf("PRAIRIE REALTY", "OAKES COMMERCIAL", "TRI COUNTY PROPERTIES", "BELL & VARNEY REALTY", "HOMESTEAD LAND CO")
+        val agent = agents[Math.floorMod(seed, agents.size)]
+        val phone = "555-" + (1000 + Math.floorMod(seed * 37, 9000))
+        val h = w * .28f
+        val im = b.pic("lease$seed$years$w") { PixImg(tx(w), tx(h)).also { p ->
+            p.fill(c(0xF4F4F0)); p.border(c(0x1E3A7A)); p.rect(1, 1, p.w - 2, p.h * 2 / 5, c(0x1E3A7A))
+            StoreSigns.letters(p, "AVAILABLE", 3, 2, p.w - 4, p.h * 2 / 5 - 1, null, null, 3) { _, _ -> c(0xF4F4F0) }
+            StoreSigns.letters(p, "FOR LEASE", 3, p.h * 2 / 5 + 2, p.w - 4, p.h * 3 / 4, null, null, 3) { _, _ -> c(0xC82A2A) }
+            StoreSigns.small(p, p.w / 2, p.h * 3 / 4 + 2, "$agent $phone", c(0x1E3A7A))
+            if (years >= 5) { val r = Paint.Rnd(seed); repeat(p.w * p.h / 30) { val x = r.int(p.w); val y = r.int(p.h); p[x, y] = Pix.mix(p[x, y], c(0x8A8470), .45f) }; Pix.line(p, p.w - 12, 0, p.w - 1, 10, 0) }
+        } }
+        b.texts += "AVAILABLE FOR LEASE $agent"
+        CinemaKit.face(b.det("lease"), im, cx, cy, z, w, h, Side.FRONT)
     }
 }

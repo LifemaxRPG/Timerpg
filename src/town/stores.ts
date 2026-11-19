@@ -34,6 +34,8 @@ export const SUPERSTORE_POPULATION = 215;
 export const EXPAND_FROM = 1970;
 /** The big-box era. */
 export const SUPERSTORE_FROM = 1990;
+/** A superstore opened before this is first the smaller discount store (about 60 x 75 m), extended later. */
+export const DISCOUNT_UNTIL = 2005;
 
 /** The four sites a town can have (landmark kinds in src/town/landmarks.ts), one building (era) each. */
 export type StoreSite = 'generalstore' | 'market' | 'supermarket' | 'superstore';
@@ -89,9 +91,11 @@ const SURNAMES = ['Hollis', 'Pruitt', 'Ashby', 'Calloway', 'Whitlock', 'Dunmore'
   'Eckert', 'Lindqvist', 'Oakes', 'Bramwell', 'Fenwick', 'Garrity', 'Beckwith', 'Marlow', 'Stroud', 'Quimby', 'Corliss', 'Ambler'];
 const MARKET_WORDS = ['Sunnyside', 'Hilltop', 'Brookside', 'Larkspur', 'Dogwood', 'Bellwether', 'Goldenrod', 'Orchard Row', 'Bluebell', 'Meadowlark'];
 /** Made-up regional supermarket chains of the 1970s-80s. */
-const CHAINS_70S = ['Fairbasket', 'Larderly', 'Goodacre Foods', 'Thrifton Foods', 'Brightbasket', 'Hearthside Foods', 'Prairie Larder', 'Kettle Creek Foods'];
+const CHAINS_70S = ['Fairbasket', 'Larderly', 'Goodacre Foods', 'Hollowbrook Foods', 'Brightbasket', 'Hearthside Foods', 'Prairie Larder', 'Kettle Creek Foods'];
 /** Made-up big-box chains. */
 const SUPERSTORE_BRANDS = ['Bountiway', 'Everwide', 'Thriftacre', 'Plenwell', 'Allbright', 'Grandacre', 'Harvestone', 'Sunvale', 'Broadmeadow', 'Wellstock'];
+/** The made-up name lists (the Kotlin preview's sample names must come from these: src/town/stores.test.ts). */
+export const STORE_NAMES = { marketWords: MARKET_WORDS, chains70s: CHAINS_70S, superstores: SUPERSTORE_BRANDS } as const;
 const CHURCHES = ['Grace Fellowship Church', 'Cornerstone Chapel', 'Living Water Church', 'New Hope Fellowship', 'Calvary Chapel of the Valley'];
 
 const pickOf = <T>(items: readonly T[], r: number): T => items[Math.min(items.length - 1, Math.floor(r * items.length))]!;
@@ -157,7 +161,11 @@ export const REUSE_WORDS: Record<StoreReuse, string> = {
 
 // ------------------------------------------------------------------------------------------------ a store's life
 /** opened; renamed (sold to a new owner); moved (the market's business opened here, bigger, under a new name); closed; reused. */
-export type StoreEventKind = 'opened' | 'renamed' | 'moved' | 'closed' | 'reused';
+export type StoreEventKind = 'opened' | 'renamed' | 'moved' | 'expanded' | 'closed' | 'reused';
+/** What a general store that outlived the supermarkets turned to in the 1990s (its sign and porch say so). */
+export type StoreTrade = 'country' | 'deli' | 'bait';
+/** Why a store closed: its business moved to the bigger store, a supermarket took a general store's trade, the superstore took it. */
+export type StoreCloseWhy = 'moved' | 'supermarket' | 'superstore';
 export interface StoreEvent {
   year: number;
   event: StoreEventKind;
@@ -166,8 +174,12 @@ export interface StoreEvent {
   /** The building from this year (opened, expanded). */
   variant?: StoreVariant;
   reuse?: StoreReuse;
-  /** Why it closed: the business moved out to the bigger store, or the superstore took its trade. */
-  why?: 'moved' | 'superstore';
+  /** Why it closed. */
+  why?: StoreCloseWhy;
+  /** A general store's new trade from this rename (a deli, bait and tackle, a country store). */
+  trade?: StoreTrade;
+  /** A superstore opened as the smaller 1990s discount store (expanded later into the supercenter, or never). */
+  discount?: boolean;
 }
 export interface StoreHistory {
   site: StoreSite;
@@ -200,13 +212,28 @@ export function storeHistories(seed: string, placed: ReadonlySet<StoreSite>): St
   if (placed.has('generalstore')) {
     const built = generalStoreBuilt(seed);
     const ev: StoreEvent[] = [{ year: built, event: 'opened', name: generalStoreName(seed, 0), variant: 'general' }];
-    const closed = S === undefined ? undefined : S + Math.floor(R(seed, 'general-close') * 3);
+    // the superstore takes its trade (0-2 years after it opens); or, sometimes, the town's first supermarket already
+    // did, 2-10 years after it opened (most general stores went in the 1950s-70s)
+    const bySuper = S === undefined ? undefined : S + Math.floor(R(seed, 'general-close') * 3);
+    const firstMarket = [placed.has('market') ? needs.market : undefined, placed.has('supermarket') ? needs.supermarket : undefined]
+      .filter((y): y is number => y !== undefined).sort((a, b) => a - b)[0];
+    const byMarket = firstMarket !== undefined && R(seed, 'general-lose') < 0.25 ? firstMarket + 2 + Math.floor(R(seed, 'general-lose-year') * 9) : undefined;
+    const closed = byMarket !== undefined && (bySuper === undefined || byMarket < bySuper) ? byMarket : bySuper;
     if (R(seed, 'general-sold') < 0.45) {
       const sold = 1952 + Math.floor(R(seed, 'general-sold-year') * 34);
       const name = generalStoreName(seed, 1);
       if ((closed === undefined || sold < closed) && name !== ev[0]!.name) ev.push({ year: sold, event: 'renamed', name });
     }
-    if (closed !== undefined) after('generalstore', ev, closed, 'superstore', 0.22, 8);
+    // one still trading in the 1990s with no superstore near turns to what keeps it going: a deli counter, bait and
+    // tackle, or a country store for the tourists
+    const turn = 1988 + Math.floor(R(seed, 'general-turn-year') * 11);
+    if ((closed === undefined || turn < closed) && S === undefined && R(seed, 'general-turn') < 0.6) {
+      const trade: StoreTrade = pickOf(['deli', 'bait', 'country'] as const, R(seed, 'general-trade'));
+      const sur = owner(seed, 'generalstore', 2), town = townName(seed);
+      const name = trade === 'deli' ? `${sur}'s Store & Deli` : trade === 'bait' ? `${town} Bait & Tackle` : `${sur}'s Country Store`;
+      ev.push({ year: turn, event: 'renamed', name, trade });
+    }
+    if (closed !== undefined) after('generalstore', ev, closed, closed === byMarket ? 'supermarket' : 'superstore', 0.22, 8);
     out.push({ site: 'generalstore', style: R(seed, 'general-style') < 0.55 ? 'frontier' : 'brick', events: ev });
   }
 
@@ -226,7 +253,14 @@ export function storeHistories(seed: string, placed: ReadonlySet<StoreSite>): St
     out.push({ site: 'supermarket', style: 'modern', events: ev });
   }
 
-  if (S !== undefined) out.push({ site: 'superstore', style: 'modern', events: [{ year: S, event: 'opened', name: superstoreName(seed), variant: 'superstore' }] });
+  // the superstore: before 2005 the smaller discount store, most of them extended into the supercenter some years on
+  if (S !== undefined) {
+    const name = superstoreName(seed);
+    const discount = S < DISCOUNT_UNTIL;
+    const ev: StoreEvent[] = [{ year: S, event: 'opened', name, variant: 'superstore', ...(discount ? { discount } : {}) }];
+    if (discount && R(seed, 'superstore-expand') < 0.8) ev.push({ year: Math.max(DISCOUNT_UNTIL, S + 6 + Math.floor(R(seed, 'superstore-expand-year') * 8)), event: 'expanded', name });
+    out.push({ site: 'superstore', style: 'modern', events: ev });
+  }
   return out;
 }
 
@@ -255,7 +289,11 @@ export interface StoreState {
   /** The year it closed, once it has. */
   closed?: number;
   /** Why it closed. */
-  why?: 'moved' | 'superstore';
+  why?: StoreCloseWhy;
+  /** A general store's 1990s trade (deli, bait, country), once it turned to one. */
+  trade?: StoreTrade;
+  /** The superstore is still the smaller discount store. */
+  discount?: boolean;
   /** The supermarket that is the downtown market moved out (it opened as the market's bigger store). */
   movedFrom?: 'market';
   /** What stands and shows on the site this year, for the builder (kotlin-street: StoreKit). */
@@ -269,17 +307,21 @@ export function storeState(seed: string, h: StoreHistory, year: number): StoreSt
   const past = h.events.filter((e) => e.year <= year);
   if (!past.length) return undefined;
   let variant: StoreVariant = 'general', name = '', sign = '', status: StoreStatus = 'open';
-  let reuse: StoreReuse | undefined, closed: number | undefined, why: StoreEvent['why'];
+  let reuse: StoreReuse | undefined, closed: number | undefined, why: StoreEvent['why'], trade: StoreTrade | undefined, discount = false;
   for (const e of past) {
     if (e.variant) variant = e.variant;
+    if (e.trade) trade = e.trade;
+    if (e.event === 'opened') discount = !!e.discount;
+    if (e.event === 'expanded') discount = false;
     if (e.event === 'opened' || e.event === 'renamed' || e.event === 'moved') { name = e.name; sign = e.name; }
     if (e.event === 'closed') { status = 'closed'; closed = e.year; why = e.why; }
     if (e.event === 'reused') { status = 'reused'; reuse = e.reuse; sign = e.name; }
   }
   return {
     site: h.site, year, status, variant, style: h.style, name, sign, ...(reuse ? { reuse } : {}), opened: h.events[0]!.year,
-    ...(closed !== undefined ? { closed } : {}), ...(why ? { why } : {}), ...(h.events[0]!.event === 'moved' ? { movedFrom: 'market' as const } : {}),
-    features: storeFeatures(seed, variant, status, year, reuse), history: past,
+    ...(closed !== undefined ? { closed } : {}), ...(why ? { why } : {}), ...(trade ? { trade } : {}), ...(discount ? { discount } : {}),
+    ...(h.events[0]!.event === 'moved' ? { movedFrom: 'market' as const } : {}),
+    features: storeFeatures(seed, variant, status, year, reuse, { trade, discount }), history: past,
   };
 }
 
@@ -288,7 +330,23 @@ export function storeState(seed: string, h: StoreHistory, year: number): StoreSt
  * 1970s, the markets' plate glass and lit signs, the car parks' cart corrals, the superstore's garden centre and docks;
  * boards over a closed store's windows, the new use's sign on a reused one.
  */
-export function storeFeatures(seed: string, variant: StoreVariant, status: StoreStatus, year: number, reuse?: StoreReuse): string[] {
+export function storeFeatures(seed: string, variant: StoreVariant, status: StoreStatus, year: number, reuse?: StoreReuse,
+  more: { trade?: StoreTrade | undefined; discount?: boolean } = {}): string[] {
+  return featuresOf(variant, status, year, reuse, { ...more, dog: storeDog(seed) });
+}
+
+/** The seeded touch the builder cannot work out for itself: a dog asleep on the general store's porch. */
+export const storeDog = (seed: string): boolean => rand(seed, 'store', 'general-dog') < 0.4;
+
+/** Every feature name the generator can emit (kotlin-street StoreKit knows each one: src/town/stores.test.ts checks). */
+export const STORE_FEATURES = ['porch', 'bench', 'paintedSign', 'backyard', 'shed', 'barrels', 'crates', 'iceChest', 'windowGoods', 'gasPump',
+  'soda', 'propaneCage', 'boarded', 'deli', 'bait', 'dogOnPorch', 'plateGlass', 'litSign', 'awning', 'smallLot', 'serviceYard', 'windowPosters',
+  'carts', 'longGlassFront', 'flatRoof', 'pylonSign', 'carPark', 'cartCorrals', 'gardenCentre', 'loadingDocks', 'carParkLamps', 'discountStore',
+  'pharmacy', 'pickupBays', 'evChargers', 'fadedSign', 'forLease', 'emptyLot', 'securityLights'] as const;
+
+/** [storeFeatures] from plain values (the Kotlin builder mirrors this: StoreSiteInfo.features, kept equal by a fixture test). */
+export function featuresOf(variant: StoreVariant, status: StoreStatus, year: number, reuse: StoreReuse | undefined,
+  more: { trade?: StoreTrade | undefined; discount?: boolean; dog?: boolean }): string[] {
   const f: string[] = [];
   const open = status === 'open';
   if (variant === 'general') {
@@ -296,6 +354,8 @@ export function storeFeatures(seed: string, variant: StoreVariant, status: Store
     if (open) f.push('barrels', 'crates', 'iceChest', 'windowGoods');
     if (open && year < 1975) f.push('gasPump');
     if (open && year >= 1975) f.push('soda', 'propaneCage');
+    if (open && more.trade === 'deli') f.push('deli');
+    if (open && more.trade === 'bait') f.push('bait');
     if (status === 'closed') f.push('boarded');
   } else if (variant === 'market') {
     f.push('plateGlass', 'litSign', 'awning', 'smallLot', 'serviceYard');
@@ -304,15 +364,17 @@ export function storeFeatures(seed: string, variant: StoreVariant, status: Store
     f.push('longGlassFront', 'flatRoof', 'pylonSign', 'carPark', 'serviceYard');
     if (open) f.push('cartCorrals', 'windowPosters');
   } else {
-    f.push('flatRoof', 'pylonSign', 'carPark', 'cartCorrals', 'gardenCentre', 'loadingDocks', 'carParkLamps', 'twoEntrances');
-    if (year >= 2000) f.push('pharmacy');
-    if (year >= 2012) f.push('pickupBays');
-    if (year >= 2020) f.push('evChargers');
+    f.push('flatRoof', 'pylonSign', 'carPark', 'gardenCentre', 'loadingDocks', 'carParkLamps');
+    if (open) f.push('cartCorrals');
+    if (more.discount) f.push('discountStore');
+    if (open && year >= 2000 && !more.discount) f.push('pharmacy');
+    if (open && year >= 2012) f.push('pickupBays');
+    if (open && year >= 2020) f.push('evChargers');
   }
   if (status === 'closed') f.push(variant === 'general' ? 'fadedSign' : 'forLease', 'emptyLot');
+  if (status === 'closed' && variant !== 'general') f.push('securityLights');
   if (status === 'reused' && reuse) f.push(`reuse:${reuse}`);
-  // seeded touches the builder may pick from
-  if (variant === 'general' && rand(seed, 'store', 'general-dog') < 0.4 && open) f.push('dogOnPorch');
+  if (variant === 'general' && more.dog && open) f.push('dogOnPorch');
   return f;
 }
 
