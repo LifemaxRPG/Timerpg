@@ -116,7 +116,12 @@ internal class TownPeople(
             if (!on) continue
             drawn++
             val sheet = sheets[TownPlay.sheetOf(f, sheets.size)]
-            val (view, flip) = TownPlay.view(f, pose.groundX, pose.groundZ, pose.rx, pose.rz)
+            // (the sheet's front, back or side by the angle between the way they face and the camera's look; in the open world
+            // the player's own too: the street view's up-and-down-the-pavement override is the street view's)
+            val (view, flip) = if (pose.open && f.me && f.facing != 0) {
+                val facing = f.facing; f.facing = 0
+                TownPlay.view(f, pose.groundX, pose.groundZ, pose.rx, pose.rz).also { f.facing = facing }
+            } else TownPlay.view(f, pose.groundX, pose.groundZ, pose.rx, pose.rz)
             val sx = (view * 6 + f.frame) * 32f
             val sy = (if (f.still) 1 else 2) * 64f
             // (textures are stored bottom row first, so a row band counts from the bottom)

@@ -348,3 +348,48 @@ and the player walks anywhere. The walk and what blocks it are engine-agnostic (
 - Not yet: parked cars, dumpsters and bins on the cinema's site; the landmarks' own front fences (models.json `fence`);
   the trees thinned out past the forest's edge (TownGround's feather); people and cars as moving obstacles; the shops'
   back lots have no gate.
+
+## The open world's camera and drawing (branch wf-open, task B)
+
+The owner's decision (CLAUDE.md): the camera is the player's. `scene/OrbitCamera.kt` (shared, no platform) is its state:
+it orbits the player's chest (feet + `EYE` 30 up) at `yaw` (0 north, clockwise, as the walk's heading), `pitch` 10-60
+degrees down and `dist` 140-1400; only the player's input moves it (`drag`, `pinch`, `recentre`), eased over ~70 ms
+(`step`), never turned by itself; it follows the player's position exactly. `worldMove(moveX, moveLane)` turns the
+stick's push into a ground direction relative to the camera (the open walk takes `yawRad` as its `cameraYaw`). `open`
+is the AI panel's "View: Open world / Street" (prefs `renderer/view`, open by default); the street view is untouched.
+
+- Drawing (`TownRun.orbit` -> `TownFrame.orbit`): a true perspective, 50 degrees tall, centred lens. Buildings between
+  the camera and the player: the camera comes in in front of the first one if that leaves it at least 40% of its
+  distance (and 130) off; otherwise it stays and the buildings between fade to a screen door (`FilamentTown.occlude`,
+  `fadeBetween`, eased .12 a frame to 30%), unless the camera itself would stand inside one (then it comes in to that
+  wall). Pulled in at once, eased back out over .35 s. A scene starting 300+ from where the camera last followed puts it
+  behind the player.
+- Draw distance and LOD: the street view's range and haze, measured from the eye (radial): everything past
+  `dist + 1400 + 3600` is not drawn, the haze total there. Each yard has a far version (`YardKit.bake(far = true)`:
+  small things left out, fences as one slab of their own size in their average colour, meadows without tufts) drawn
+  past `dist + 1300` from the eye in place of the near one (`YardPatch.far`, `-DtownLod=0` bakes none). The yard kit's
+  one-colour pictures are now one quad however long the face (`PixImg.uniform` in `tq`): the yards went from 1.59M to
+  568k triangles with the same pixels (street views differ in 3-43 pixels of 2.5M: shadow-map edges); far versions 237k.
+- Light and sky: in the open world the sun stands still in the world (`OrbitCamera.sunAzimuth`: east at six, south at
+  noon, west at six; the moon from six in the evening), as high as the street's key light. The stage's sky turns with the
+  camera (`backdrop.yaw = -lens * yaw`), its horizon where the camera puts it (`OrbitCamera.horizonY`), the sun or moon
+  drawn where the light comes from (`OrbitCamera.orbAt`; off the screen when behind the camera).
+- People: cards upright and square to the camera (as before); each shows the front, back or side of its sheet by the
+  angle between the way it faces and the camera's look, the player's own too (the street view's up/down facing override
+  is the street view's).
+- Input (app `OrbitGestures.kt`): chained outside the stick's handler on its layer, so the stick takes its touches first
+  and buttons theirs; one finger turns (200 degrees a screen width, 90 of pitch a screen height), two pinch, a double
+  tap or the "Behind me" chip recentres. Screenshots and crash snapshots carry `view` and `orbit` (yaw, pitch, distance,
+  goal, pulled, the point followed).
+- Preview: `gradle :desktop:preview -Dmode=filament-open` (`-Dshots=`, `-Dw=`, `-DtownLod=0`) renders
+  build/preview/filament-open/: Main Street (behind, fronts, three-quarter, high, close, through the block, dusk west),
+  the civic avenue, a Heights backyard (b69: the back, along the backs, above, night), on a bridge, the cinema, Woodside;
+  open.txt gives each view's draws and triangles three ways (a free camera as before: no draw distance, all yards near;
+  the draw distance alone; as drawn). The player is placed by a position and a heading (`TownWalk.placeAt`).
+- Measured on the 4-core build server, software GL (not the S25): open views draw 460-1610 draws and 120k-256k
+  triangles as drawn (the same views free as before: 480-2850 draws, 140k-620k triangles; the Heights backyard 595k ->
+  229k). townMemoryCheck: held 194 MB at the peak of 256 (the far yards are baked too).
+- Left: the occluder fade is a screen door and reads busy when a whole building fades right in front of the camera; the
+  far version's slab fences are solid where a picket fence is see-through; bridges still look like a road over water from
+  above; no LOD yet for buildings, chunks' props or the edge's trees beyond the range; the yards' far bake doubles the
+  yards' worker time on the build server (1.7 s -> ~5 s with other builds running: measure on the S25).

@@ -66,6 +66,9 @@ internal class YardLayer(engine: Engine, scene: Scene, visible: Material, proxy:
  * shimmer through the sink's [YardSink.animate].
  */
 object YardKitBuilder : YardBuilder {
+    /** Also bake each lot's far version (for the open world's distance); off, the town holds only the near ones. */
+    @Volatile var far = System.getProperty("townLod") != "0"
+
     override fun build(town: com.lifemax.rpg.feature.habits.domain.Town, yards: com.lifemax.rpg.feature.habits.domain.TownYards, sink: YardSink) {
         fun item(i: com.lifemax.rpg.feature.habits.domain.TownYardItem) =
             YardItem(i.kind, i.rect[0], i.rect[1], i.rect[2], i.rect[3], i.faceX, i.faceZ, i.variant, i.layer, i.on, i.zone)
@@ -91,11 +94,15 @@ object YardKitBuilder : YardBuilder {
         val step = maxOf(2, Runtime.getRuntime().availableProcessors() / 4)
         for (from in work.indices step step) {
             val group = work.subList(from, minOf(work.size, from + step))
-            val baked: MutableList<List<YardBatch>?> = group.parallelStream().map { (items, _) -> YardKit.bake(items, perKind = false) }.collect(java.util.stream.Collectors.toList())
+            // (each lot twice: as near by, and its far version for the open world's distance, [YardKit.bake] far)
+            val baked: MutableList<Pair<List<YardBatch>, List<YardBatch>>?> = group.parallelStream().map { (items, _) ->
+                YardKit.bake(items, perKind = false) to (if (far) YardKit.bake(items, perKind = false, far = true) else emptyList())
+            }.collect(java.util.stream.Collectors.toList())
             for (k in baked.indices) {
                 val patch = group[k].second
-                for (b in baked[k]!!) {
-                    val mi = sink.mesh("yard:${patch.id}:${b.group}", b.mesh, at, b.casts, b.tiled, patch, water = b.water)
+                val (near, farOnes) = baked[k]!!
+                for ((p, list) in listOf(patch to near, patch.farTwin() to farOnes)) for (b in list) {
+                    val mi = sink.mesh("yard:${p.id}:${b.group}", b.mesh, at, b.casts, b.tiled, p, water = b.water)
                     if (b.water && mi != null) sink.animate { s -> YardLayer.shimmer(mi, b.mesh, s) }
                 }
                 // (each lot's meshes let go as soon as the sink has them)

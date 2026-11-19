@@ -59,6 +59,13 @@ class TownPose(
      * out over [TownFrame.RANGE_FADE] short of it, and are not drawn beyond).
      */
     val range: Float = Float.MAX_VALUE,
+    /**
+     * The open world's camera ([TownFrame.orbit]): the sun stands still in the world (its azimuth by the hour) instead of
+     * turning with the view, and far things are drawn simpler ([lodFar]).
+     */
+    val open: Boolean = false,
+    /** Past this distance from the eye the yards are drawn in their far version (simpler fences, no small things). */
+    val lodFar: Float = Float.MAX_VALUE,
 ) {
     /** Right (unit), up (unit). */
     val rx: Float; val ry: Float; val rz: Float
@@ -172,6 +179,30 @@ object TownFrame {
     }
 
     /**
+     * The open world's camera (the player's [com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera]): looking at
+     * ([tx], [ty], [tz]) (the player's chest) from [dist] street units away, turned [yaw] degrees (0 north, clockwise),
+     * [pitch] degrees down, [fovY] degrees tall; a true perspective with a centred lens. It draws out to [OPEN_RANGE]
+     * past the player with the haze thickening into it, the yards far off in their far version past [LOD_YARDS].
+     */
+    fun orbit(tx: Float, ty: Float, tz: Float, yaw: Float, pitch: Float, dist: Float, w: Float, h: Float, fovY: Float = 50f, lod: Boolean = true): TownPose {
+        val ya = Math.toRadians(yaw.toDouble()); val pa = Math.toRadians(pitch.toDouble())
+        val cp = cos(pa).toFloat(); val sp = sin(pa).toFloat()
+        val fx = sin(ya).toFloat() * cp; val fy = -sp; val fz = -cos(ya).toFloat() * cp
+        val fl = (h / 2f) / tan(Math.toRadians(fovY / 2.0)).toFloat()
+        val ex = tx - fx * dist; val ey = (ty - fy * dist).coerceAtLeast(6f); val ez = tz - fz * dist
+        // (the near plane close in: a fence or a hedge between the camera and the player is still drawn whole)
+        val near = (dist * .04f).coerceIn(4f, 16f)
+        val hazeFrom = dist + HAZE_FROM
+        return TownPose(ex, ey, ez, fx, fy, fz, fl, w / 2f, h / 2f, w, h, near, dist + OPEN_SHADOWS, hazeFrom, HAZE,
+            range = hazeFrom + STREET_RANGE, open = true, lodFar = if (lod) dist + LOD_YARDS else Float.MAX_VALUE)
+    }
+
+    /** How far past the player the open world's shadows reach (street units): the four cascades over this depth. */
+    const val OPEN_SHADOWS = 2600f
+    /** Past this far beyond the player the yards are drawn in their far version (street units). */
+    const val LOD_YARDS = 1300f
+
+    /**
      * The haze's thickness at street level (per street unit) and where it starts past the building line looked at: thin
      * enough that the next blocks read solid, thick (80%) by [STREET_RANGE] further, where the street view stops drawing.
      */
@@ -257,6 +288,8 @@ class FilamentTown(
     private inner class Patch(val p: YardPatch) {
         val layer = PropLayer(engine, scene, lit, proxyMat, sharedTextures = textures, cull = true)
         val slot: Slot? = p.sprite?.let { sp -> slots.firstOrNull { it.b.sprite == sp } }
+        /** Its far version's key (a near patch's; made once, not a frame). */
+        val farKey: String = p.id + YardPatch.FAR
     }
     private val patches = LinkedHashMap<String, Patch>()
 
@@ -346,6 +379,11 @@ class FilamentTown(
         var cx = 0f; var cy = 40f; var cz = 0f; var r = 0f
         var missing = false
         var shown = false
+        /** Between the open world's camera and the player ([occlude]), and how far faded for it now (eased a frame at a time). */
+        var occluded = false
+        var occFade = 1f
+        /** Where the open world camera's line enters it (a share of the way from the player; MAX_VALUE: not in the way). */
+        var occT = Float.MAX_VALUE
 
         init {
             val c = place.world(0f, b.setback + b.depth / 2f)
@@ -811,7 +849,9 @@ class FilamentTown(
         for (s in slots) {
             val b = s.built ?: continue
             // the street view: what stands between the camera and the street in view fades out
-            val fade = min(if (pose.cut > 0f) fadeOf(pose, s.cx, s.cz) else 1f, pose.rangeFade(s.cx, s.cy, s.cz, s.r))
+            // (the open world: a building between the camera and the player fades to a screen door, eased in and out)
+            s.occFade = if (pose.open && s.occluded) max(OCCLUDED, s.occFade - OCCLUDE_STEP) else min(1f, s.occFade + OCCLUDE_STEP)
+            val fade = min(min(if (pose.cut > 0f) fadeOf(pose, s.cx, s.cz) else 1f, pose.rangeFade(s.cx, s.cy, s.cz, s.r)), s.occFade)
             val on = fade > .02f && pose.sees(s.cx, s.cy, s.cz, s.r)
             s.shown = on
             rm.getInstance(b.entity).takeIf { it != 0 }?.let { rm.setLayerMask(it, 0xff, if (on) 1 else 0) }
@@ -848,9 +888,15 @@ class FilamentTown(
             casters += layer.casters
             tris += layer.triangles
         }
-        // the yards a lot at a time: culled to the view (their shadows while near it), faded with their house
+        // the yards a lot at a time: culled to the view (their shadows while near it), faded with their house; in the open
+        // world, past [TownPose.lodFar] each lot's far version is drawn in its place
         for (pt in patches.values) {
             val p = pt.p
+            if (p.far || pose.lodFar < Float.MAX_VALUE) {
+                val far = pose.distance(p.x, 15f, p.z) > pose.lodFar
+                val off = if (p.far) !far else far && patches.containsKey(pt.farKey)
+                if (off) { pt.layer.update(look, dark, false, 0f, false); continue }
+            }
             val fade = min(if (pose.cut <= 0f) 1f else pt.slot?.let { fadeOf(pose, it.cx, it.cz) } ?: fadeOf(pose, p.x, p.z), pose.rangeFade(p.x, 15f, p.z, p.r))
             val on = fade > .02f && pose.sees(p.x, 15f, p.z, p.r + 30f)
             // (a cut lot throws no shadow: a fence's shadow without its fence reads wrong)
@@ -919,6 +965,61 @@ class FilamentTown(
         return lit
     }
 
+    /**
+     * The open world's camera against the buildings, on the line from ([tx], [ty], [tz]) (the player's chest) to
+     * ([ex], [ey], [ez]) (where the camera wants to stand). Returns how far along the line the first building in the way
+     * begins (a share of the way, 1: nothing in the way), and keeps for each building where the line enters it, so
+     * [fadeBetween] can fade the ones left between the camera and the player; [eyeInside] is where the line enters a
+     * building the camera itself would stand in (kept [pad] off its walls and roof; 1: none). A building the player
+     * stands in (or against, within the pad) does not count.
+     */
+    fun occlude(tx: Float, ty: Float, tz: Float, ex: Float, ey: Float, ez: Float, pad: Float = 12f): Float {
+        var first = 1f
+        eyeInside = 1f
+        val sx = ex - tx; val sy = ey - ty; val sz = ez - tz
+        val len2 = (sx * sx + sy * sy + sz * sz).coerceAtLeast(1e-6f)
+        val lo = FloatArray(3); val hi = FloatArray(3); val o = FloatArray(3); val d = FloatArray(3)
+        for (s in slots) {
+            s.occT = Float.MAX_VALUE
+            val bb = s.built?.bounds ?: continue
+            // (quick: the slot's sphere against the segment)
+            val u = (((s.cx - tx) * sx + (s.cy - ty) * sy + (s.cz - tz) * sz) / len2).coerceIn(0f, 1f)
+            val qx = tx + sx * u - s.cx; val qy = ty + sy * u - s.cy; val qz = tz + sz * u - s.cz
+            if (qx * qx + qy * qy + qz * qz > (s.r + pad) * (s.r + pad)) continue
+            val pl = s.place
+            fun lx(x: Float, z: Float) = (x - pl.ox) * pl.nz - (z - pl.oz) * pl.nx
+            fun lz(x: Float, z: Float) = (x - pl.ox) * pl.nx + (z - pl.oz) * pl.nz
+            o[0] = lx(tx, tz); o[1] = ty; o[2] = lz(tx, tz)
+            d[0] = lx(ex, ez) - o[0]; d[1] = sy; d[2] = lz(ex, ez) - o[2]
+            // (the bare box decides what is in the way; the padded one where the camera may stand)
+            for (padded in booleanArrayOf(false, true)) {
+                val pd = if (padded) pad else 0f
+                lo[0] = bb[0] - pd; lo[1] = bb[1]; lo[2] = bb[2] - pd; hi[0] = bb[3] + pd; hi[1] = bb[4] + pd; hi[2] = bb[5] + pd
+                var t0 = -Float.MAX_VALUE; var t1 = Float.MAX_VALUE
+                var miss = false
+                for (k in 0..2) {
+                    if (abs(d[k]) < 1e-6f) { if (o[k] < lo[k] || o[k] > hi[k]) { miss = true; break }; continue }
+                    var a = (lo[k] - o[k]) / d[k]; var b = (hi[k] - o[k]) / d[k]
+                    if (a > b) { val t = a; a = b; b = t }
+                    t0 = max(t0, a); t1 = min(t1, b)
+                }
+                if (miss || t1 < max(t0, 0f) || t0 > 1f) continue
+                // the player inside it (or against it): not in the way
+                if (t0 < 0f) break
+                if (!padded) { s.occT = t0; if (t0 < first) first = t0 }
+                // the camera inside it: it must come in to where the line enters it
+                else if (t1 >= 1f && t0 < eyeInside) eyeInside = t0
+            }
+        }
+        return first.coerceIn(0f, 1f)
+    }
+
+    /** Where the line of the last [occlude] enters a building the camera would stand in (a share of the way; 1: none). */
+    var eyeInside = 1f; private set
+
+    /** The buildings the last [occlude]'s line enters nearer the player than [t] (a share of the way) fade next [frame]. */
+    fun fadeBetween(t: Float) { for (s in slots) s.occluded = s.occT < t }
+
     /** The street view's cut for something whose middle is at ([x], [z]): 1 beyond the cut, fading to 0 nearer the eye. */
     private fun fadeOf(pose: TownPose, x: Float, z: Float): Float =
         smooth((pose.groundX * (x - pose.ex) + pose.groundZ * (z - pose.ez) - pose.cut + TownFrame.CUT_FADE) / TownFrame.CUT_FADE)
@@ -940,9 +1041,16 @@ class FilamentTown(
         val li = lm.getInstance(sun)
         val gx = p.groundX; val gz = p.groundZ
         // the view's right on the ground (-gz, gx); out of the fronts towards the viewer is -look
-        val dx = key.across * -gz - key.out * gx
+        var dx = key.across * -gz - key.out * gx
         val dy = -key.down
-        val dz = key.across * gx - key.out * gz
+        var dz = key.across * gx - key.out * gz
+        if (p.open) {
+            // the open world: the sun (the moon at night) stands still in the world whichever way the camera looks, at its
+            // azimuth for the hour (east at six, south at noon, west at six), as high as the street's key puts it
+            val az = Math.toRadians(com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera.sunAzimuth(hour, key.cool > .5f).toDouble())
+            val across = hypot(key.across, key.out)
+            dx = -sin(az).toFloat() * across; dz = cos(az).toFloat() * across
+        }
         val dl = sqrt(dx * dx + dy * dy + dz * dz).coerceAtLeast(1e-4f)
         lm.setDirection(li, dx / dl, dy / dl, dz / dl)
         val warm = (1f - key.down).coerceIn(0f, 1f)
@@ -1055,6 +1163,9 @@ class FilamentTown(
     }
 
     companion object {
+        /** How far a building between the open world's camera and the player fades (its screen door's share kept), and by how much a frame. */
+        const val OCCLUDED = .3f
+        const val OCCLUDE_STEP = .12f
         /** The sun's and the sky light's strength by day (the street's). */
         private const val SUN = .45f
         private const val AMB = .8f

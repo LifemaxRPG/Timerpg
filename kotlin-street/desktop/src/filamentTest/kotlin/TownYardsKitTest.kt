@@ -20,7 +20,7 @@ class TownYardsKitTest {
     private fun gamma(): String? = listOf("../build-town/gamma/street.json", "build-town/gamma/street.json").map { File(it) }.firstOrNull { it.exists() }?.readText()
 
     /** A baked mesh, kept small: its patch, how far its farthest vertex lies outside the patch's circle, its texels. */
-    private class Got(val name: String, val patch: YardPatch?, val outside: Float, val texels: Long)
+    private class Got(val name: String, val patch: YardPatch?, val outside: Float, val texels: Long, val triangles: Int = 0)
 
     @Test fun everyLotIsAPatchInAFewDrawsWithEverythingInsideIt() {
         val json = gamma() ?: return
@@ -31,15 +31,24 @@ class TownYardsKitTest {
             override fun mesh(name: String, mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean, patch: YardPatch?, water: Boolean): MaterialInstance? {
                 var worst = -Float.MAX_VALUE
                 if (patch != null) for (i in 0 until mesh.vertexCount) worst = maxOf(worst, hypot(mesh.pos[i * 3] - patch.x, mesh.pos[i * 3 + 2] - patch.z) - patch.r)
-                got += Got(name, patch, worst, mesh.texW.toLong() * mesh.texH); return null
+                got += Got(name, patch, worst, mesh.texW.toLong() * mesh.texH, mesh.idx.size / 3); return null
             }
             override fun props(list: List<WorldProp>) {}
         })
         assertTrue("every mesh belongs to a patch", got.all { it.patch != null })
+        // (each lot and lane twice: near by, and its far version for the open world's distance)
         val byPatch = got.groupBy { it.patch!!.id }
+        val near = byPatch.filterValues { !it.first().patch!!.far }
+        val far = byPatch.filterValues { it.first().patch!!.far }
         val lots = yards.yards.count { it.items.isNotEmpty() }
         val lanes = yards.lanes.count { it.items.isNotEmpty() }
-        assertTrue("${byPatch.size} patches for $lots lots and $lanes lanes", byPatch.size == lots + lanes)
+        assertTrue("${near.size} patches for $lots lots and $lanes lanes", near.size == lots + lanes)
+        if (YardKitBuilder.far) {
+            assertTrue("every far version has its near patch", far.keys.all { it.removeSuffix(YardPatch.FAR) in near })
+            val nearTris = near.values.sumOf { l -> l.sumOf { it.triangles } }; val farTris = far.values.sumOf { l -> l.sumOf { it.triangles } }
+            assertTrue("the far yards ($farTris triangles) are lighter than the near ($nearTris)", farTris * 2 < nearTris)
+            println("yards' triangles: near $nearTris, far $farTris")
+        }
         val sprites = town.rows.flatMap { r -> r.buildings.map { it.sprite } }.toSet()
         val bad = ArrayList<String>()
         for ((id, list) in byPatch) {

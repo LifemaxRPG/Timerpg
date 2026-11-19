@@ -816,6 +816,10 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         linkedMapOf(
             "renderer" to if (StreetRenderer.filament) "Filament" else "classic",
             "camera" to StreetRenderer.camera,
+            "view" to StreetRenderer.view,
+            "orbit" to if (townMode && StreetRenderer.view == StreetRenderer.OPEN) com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera.let { c ->
+                linkedMapOf("yaw" to c.yaw, "pitch" to c.pitch, "dist" to c.dist, "pulled" to c.pulled, "goalYaw" to c.goalYaw,
+                    "goalPitch" to c.goalPitch, "goalDist" to c.goalDist, "tx" to c.tx, "tz" to c.tz, "line" to c.describe()) } else null,
             "rendererError" to StreetRenderer.error,
             "town" to data.town,
             "walkableTown" to if (!townMode) null else {
@@ -881,7 +885,14 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         // walking: one floating stick under the left thumb (it comes to where the thumb lands); under every button and
         // panel, which get their taps first. Still while a door fades or a panel covers the street; live through the walk
         // round the corner (pushing down walks it back)
-        MoveStick(enabled = doorTo == null && !aiPanel && lastCrash == null && !tuning && shot == null && !townLoading, Modifier.fillMaxSize())
+        // the open world: a finger the stick does not take turns the camera round the player, two pinch it, a double tap
+        // puts it behind them (OrbitGestures, chained outside the stick's own handler so the stick picks first)
+        val stickOpen = doorTo == null && !aiPanel && lastCrash == null && !tuning && shot == null && !townLoading
+        val orbiting by rememberUpdatedState(townMode && StreetRenderer.view == StreetRenderer.OPEN && inside == null && stickOpen && talk == null)
+        MoveStick(enabled = stickOpen, Modifier.fillMaxSize().orbitGestures({ orbiting }, { townPlay.walk?.let { Math.toDegrees(it.heading.toDouble()).toFloat() } }))
+        if (orbiting) Chip("Behind me", false, Modifier.align(Alignment.CenterEnd).padding(end = 12.dp)) {
+            townPlay.walk?.let { com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera.recentre(Math.toDegrees(it.heading.toDouble()).toFloat()) }
+        }
         // the stick's corner is not the system's back gesture (Android allows 200 dp of an edge: the bottom of it, where a
         // left thumb rests; a thumb landing higher on the very edge still swipes back, which the back handler above keeps
         // from leaving the game)
@@ -1413,7 +1424,14 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             Chip(TownSession.DEFAULT, StreetRenderer.town != StreetRenderer.CROSSROADS) { StreetRenderer.setTown(ctx, TownSession.DEFAULT) }
             Chip("Old crossroads", StreetRenderer.town == StreetRenderer.CROSSROADS) { StreetRenderer.setTown(ctx, StreetRenderer.CROSSROADS) }
         }
+        // the open world (the player turns the camera: one finger drags it round, two pinch it nearer) or the street view
         if (StreetRenderer.filament) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("View", 12.sp)
+            Chip("Open world", StreetRenderer.view == StreetRenderer.OPEN) { StreetRenderer.setView(ctx, StreetRenderer.OPEN) }
+            Chip("Street", StreetRenderer.view == StreetRenderer.STREET) { StreetRenderer.setView(ctx, StreetRenderer.STREET) }
+        }
+        // (the street view's camera heights)
+        if (StreetRenderer.filament && StreetRenderer.view == StreetRenderer.STREET) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Camera", 12.sp)
             for ((name, label) in listOf("low" to "Low", "medium" to "Medium", "high" to "High"))
                 Chip(label, StreetRenderer.camera == name) { StreetRenderer.setCamera(ctx, name) }

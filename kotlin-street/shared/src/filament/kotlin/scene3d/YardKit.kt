@@ -509,6 +509,9 @@ private fun MeshBuilder.tq(a: FloatArray, b: FloatArray, d: FloatArray, img: Pix
     val eu = vsub(b, a); val ev = vsub(d, a)
     val lu = vlen(eu); val lv = vlen(ev)
     if (lu < 1e-3f || lv < 1e-3f) return
+    // a picture of one colour (a swatch: a fence's top, a rail's end) looks the same however it is tiled, so one quad
+    // wears it whole: tiled a texel at a time, the side fences' tops alone were most of their 429k triangles
+    if (img.uniform) { quad(a, b, vadd(b, ev), d, img); return }
     val tw = img.w * TEXEL; val th = img.h * TEXEL
     val rows = max(1, ceil(lv / th - 1e-3f).toInt())
     val first = lv - (rows - 1) * th
@@ -707,6 +710,43 @@ object YardKit {
         return m
     }
 
+    /** Left out of a yard's far version ([bake] far): too small to read from past [TownFrame.LOD_YARDS]. */
+    val FAR_DROP = setOf(
+        "bench", "bins", "birdbath", "chair", "compost", "doghouse", "firePit", "flowerBed", "grill", "hammock", "logPile",
+        "mailbox", "pallets", "planter", "sandpit", "table", "washingLine", "kerbCut",
+    )
+    /** Fences drawn far off as one slab in their own average colour, as tall and thick as the real one. */
+    private val FAR_SLABS = setOf("frontFence", "gate", "sideFence", "sideGate", "postRail")
+
+    /**
+     * [kind]'s far model: the ground's and surfaces' flats alone (no tufts or edging), fences as a slab of the near model's
+     * own size in its average colour (a chain-link fence, see-through, and the backs' lap and board fences keep theirs:
+     * already a handful of quads), the rest as near.
+     */
+    internal fun farModel(kind: String, variant: Int, w: Float, d: Float, zone: String = "back"): YardModel {
+        val near = model(kind, variant, w, d, zone)
+        if (kind in GROUND || kind in SURFACES && kind != "deck") return YardModel(null, near.flats, emptyList())
+        val slab = kind in FAR_SLABS || (kind == "backFence" && variant % 3 == 1)
+        val mesh = near.mesh
+        if (!slab || mesh == null) return near
+        val rw = (w * 2f).roundToInt() / 2f; val rd = (d * 2f).roundToInt() / 2f
+        val key = "far/$kind/$variant/$rw/$rd/$zone"
+        synchronized(cache) { cache[key]?.let { return it } }
+        // its average colour over its opaque texels (the posts, rails and boards together), its height and thickness
+        var r = 0L; var g = 0L; var b = 0L; var n = 0L
+        for (c in mesh.tex) if ((c ushr 24) > 128) { r += (c shr 16) and 255; g += (c shr 8) and 255; b += c and 255; n++ }
+        val avg = if (n == 0L) Paint.c(0x8A6A4AL) else (0xFF shl 24) or ((r / n).toInt() shl 16) or ((g / n).toInt() shl 8) or (b / n).toInt()
+        val bb = mesh.bounds
+        val o = Out(rw, rd)
+        val t = max(.6f, min(1.2f, (bb[5] - bb[2]) / 2f))
+        val zc = (bb[2] + bb[5]) / 2f
+        o.m.sbox(bb[0], 0f, zc - t, bb[3], bb[4], zc + t, avg)
+        o.any = true
+        val m = YardModel(o.m.build(), emptyList(), emptyList())
+        synchronized(cache) { if (cache.put(key, m) == null) cache.bytes += sizeOf(m) }
+        return m
+    }
+
     /** Whether an item of [kind] throws a shadow. */
     fun casts(kind: String) = kind !in FLATS_ONLY && kind != "pond" && kind != "kerbCut"
 
@@ -716,14 +756,16 @@ object YardKit {
      * atlas would grow past [maxAtlas] texels), one tiled mesh per ground or surface tile. [perKind] false: every kind
      * together instead (one atlas for those that throw a shadow, one for those that do not: a lot in a few draws).
      */
-    fun bake(items: List<YardItem>, maxAtlas: Int = 2048, perKind: Boolean = true): List<YardBatch> {
+    fun bake(items: List<YardItem>, maxAtlas: Int = 2048, perKind: Boolean = true, far: Boolean = false): List<YardBatch> {
         val byKind = LinkedHashMap<String, MutableList<Pair<PropMesh, FloatArray>>>()
         val flats = LinkedHashMap<String, MutableList<FloatArray>>() // surface -> world polys: [y, ox, oz, ux, uz, x0, z0, x1, z1, ...]
         val subsCast = HashMap<String, Boolean>()
         for (it in items) {
             if (it.kind !in KINDS) continue
+            // (far off: the small things left out, the ground's and surfaces' tufts and edging too, fences as plain slabs)
+            if (far && it.kind in FAR_DROP) continue
             val f = frame(it)
-            val m = model(it.kind, it.variant, f.w, f.d, it.zone)
+            val m = if (far) farModel(it.kind, it.variant, f.w, f.d, it.zone) else model(it.kind, it.variant, f.w, f.d, it.zone)
             m.mesh?.let { mesh -> byKind.getOrPut(it.kind) { ArrayList() } += mesh to floatArrayOf(f.cx, f.cz, f.ax, f.az, f.ox, f.oz) }
             for (s in m.subs) {
                 val wx = f.wx(s.x, s.z); val wz = f.wz(s.x, s.z)

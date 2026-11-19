@@ -316,13 +316,18 @@ fun renderFilamentTown(out: String) {
 }
 
 /** Renders the town's view to a readable swap chain and saves it over the hour's sky. */
-private class Shooter(val engine: Engine, val town: FilamentTown) {
+internal class Shooter(val engine: Engine, val town: FilamentTown) {
     private val renderer = engine.createRenderer().also { it.clearOptions = Renderer.ClearOptions().apply { clear = true; setClearColor(0.0, 0.0, 0.0, 0.0) } }
     private var swap: com.google.android.filament.SwapChain? = null
     private var sw = 0; private var sh = 0
     private var pixels: ByteBuffer? = null
 
-    fun save(file: File, w: Int, h: Int, hour: Float, marks: List<Pair<androidx.compose.ui.geometry.Offset, Int>> = emptyList()) {
+    /**
+     * [skyRow]: the sky's colour at a screen row (the open world's, laid by its horizon), in place of the hour's gradient
+     * over the whole height; [orb]: a sun or moon disc behind the town (x, y, radius, 0xRRGGBB), where the stage draws it.
+     */
+    fun save(file: File, w: Int, h: Int, hour: Float, marks: List<Pair<androidx.compose.ui.geometry.Offset, Int>> = emptyList(),
+             skyRow: ((Int) -> Color)? = null, orb: FloatArray? = null) {
         if (swap == null || sw != w || sh != h) {
             swap?.let { engine.destroySwapChain(it) }
             swap = engine.createSwapChain(w, h, SwapChainFlags.CONFIG_READABLE or SwapChainFlags.CONFIG_TRANSPARENT)
@@ -346,9 +351,14 @@ private class Shooter(val engine: Engine, val town: FilamentTown) {
         for (y in 0 until h) {
             val t = y / (h - 1f) * (sky.size - 1)
             val i = t.toInt().coerceIn(0, maxOf(0, sky.size - 2))
-            val sc = if (sky.size < 2) sky.firstOrNull() ?: Color.Gray else lerp(sky[i], sky[i + 1], (t - i).coerceIn(0f, 1f))
-            val sr = (sc.red * 255).toInt(); val sg = (sc.green * 255).toInt(); val sb = (sc.blue * 255).toInt()
+            val sc = skyRow?.invoke(y) ?: if (sky.size < 2) sky.firstOrNull() ?: Color.Gray else lerp(sky[i], sky[i + 1], (t - i).coerceIn(0f, 1f))
+            val sr0 = (sc.red * 255).toInt(); val sg0 = (sc.green * 255).toInt(); val sb0 = (sc.blue * 255).toInt()
             for (x in 0 until w) {
+                var sr = sr0; var sg = sg0; var sb = sb0
+                if (orb != null) {
+                    val dx = x - orb[0]; val dy = y - orb[1]
+                    if (dx * dx + dy * dy < orb[2] * orb[2]) { val c = orb[3].toInt(); sr = (c shr 16) and 255; sg = (c shr 8) and 255; sb = c and 255 }
+                }
                 val k = ((h - 1 - y) * w + x) * 4
                 val r = buf.get(k).toInt() and 255; val g = buf.get(k + 1).toInt() and 255; val b = buf.get(k + 2).toInt() and 255; val a = buf.get(k + 3).toInt() and 255
                 fun ch(c: Int, s: Int) = (c + s * (255 - a) / 255).coerceAtMost(255)
@@ -389,6 +399,9 @@ private fun playTown(
         m
     }
     GameState.enabled = true; GameState.look = 1
+    // (the street view's walk, turns and crossings: the open world has its own preview, -Dmode=filament-open)
+    val wasOpen = com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera.open
+    com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera.open = false
     val events = ArrayList<String>()
     TownPlay.onEvent = { events += it }
     val walk = TownPlay.start(town)
@@ -449,6 +462,7 @@ private fun playTown(
     hold(0f, 0f, .5f)
     shot("play_crossed_night", 22.5f)
     report.appendLine("play events: " + events.joinToString(" | "))
+    com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera.open = wasOpen
     TownPlay.stop()
     TownPlay.onEvent = null
 }

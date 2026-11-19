@@ -80,6 +80,24 @@ object StreetRenderer {
         set(ctx, p.getBoolean("filament", true))
         setCamera(ctx, p.getString("camera", "medium")!!)
         town = p.getString("town", TownSession.DEFAULT) ?: TownSession.DEFAULT
+        setView(ctx, p.getString("view", OPEN) ?: OPEN)
+    }
+
+    /**
+     * How the town is seen (the AI panel's "View"): the open world ([OPEN], the default: the player turns the camera round
+     * themselves, [com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera]) or the old street view ([STREET]).
+     */
+    var view by mutableStateOf(OPEN)
+        private set
+    const val OPEN = "open"
+    const val STREET = "street"
+
+    fun setView(ctx: Context, name: String) {
+        val v = if (name == STREET) STREET else OPEN
+        if (v != view) com.timerpg.street.shot.Crumbs.add("view: $v")
+        view = v
+        com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera.open = v == OPEN
+        prefs(ctx).edit().putString("view", v).apply()
     }
 
     /**

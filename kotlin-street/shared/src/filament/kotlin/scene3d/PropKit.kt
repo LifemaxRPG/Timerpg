@@ -36,6 +36,9 @@ internal class PixImg(val w: Int, val h: Int) {
     private var maskArr: IntArray? = null
     var glows = false; private set
 
+    /** Every texel the same colour and nothing glowing (worked out when asked: pictures are painted once, then only read). */
+    val uniform: Boolean get() = !glows && px.isNotEmpty() && px.all { it == px[0] }
+
     operator fun set(x: Int, y: Int, c: Int) { if (x in 0 until w && y in 0 until h) px[y * w + x] = c }
     operator fun get(x: Int, y: Int): Int = if (x in 0 until w && y in 0 until h) px[y * w + x] else 0
     fun fill(c: Int) = px.fill(c)

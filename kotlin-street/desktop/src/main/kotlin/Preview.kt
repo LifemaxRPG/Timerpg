@@ -329,6 +329,15 @@ fun main(args: Array<String>) {
         val k = runCatching { Class.forName("FilamentCinemaPreviewKt") }.getOrNull() ?: error("Filament is not built in: run tools/build-filament.sh")
         k.getMethod("renderCinema", String::class.java).invoke(null, out); return
     }
+    if (mode == "filament-open") {
+        // the open world: the player's orbit camera at several yaws, pitches and zooms (FilamentOpenPreview.kt)
+        val k = runCatching { Class.forName("FilamentOpenPreviewKt") }.getOrNull()
+            ?: error("Filament is not built in: run tools/build-filament.sh (or pass -Pfilament.dist=DIR)")
+        try { k.getMethod("renderFilamentOpen", String::class.java).invoke(null, out); kotlin.system.exitProcess(0) } catch (t: Throwable) {
+            (if (t is java.lang.reflect.InvocationTargetException) t.targetException else t).printStackTrace()
+            kotlin.system.exitProcess(1)
+        }
+    }
     if (mode == "filament-town") {
         // the whole town (build-town/gamma) in Filament: aerials, the civic centre, street views (FilamentTownPreview.kt)
         val k = runCatching { Class.forName("FilamentTownPreviewKt") }.getOrNull()
