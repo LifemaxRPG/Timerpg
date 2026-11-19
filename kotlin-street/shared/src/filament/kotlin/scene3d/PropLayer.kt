@@ -59,7 +59,7 @@ internal class PropLayer(
      * The pictures' anisotropic filtering (16 by default). The desktop's software GL (llvmpipe) lets it blur a magnified
      * picture despite the nearest magnification; a close-up preview passes 1 to see the texels as the phone draws them.
      */
-    anisotropy: Float = 16f,
+    private val anisotropy: Float = 16f,
 ) {
     private val ownTextures = sharedTextures == null
     private val textures = sharedTextures ?: StreetTextures(engine, srgb)
@@ -177,7 +177,7 @@ internal class PropLayer(
     }
 
     private fun finish(vertices: VertexBuffer, indices: IndexBuffer, box: Box, tex: Texture, mask: Texture, glows: Boolean, casts: Boolean, tiled: Boolean): MaterialInstance {
-        val sampler = if (tiled) TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.REPEAT).also { it.anisotropy = 8f } else crisp
+        val sampler = if (tiled) TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.REPEAT).also { it.anisotropy = min(8f, anisotropy) } else crisp
         val mi = visible.createInstance().also { m ->
             m.setParameter("albedo", tex, sampler); m.setParameter("mask", mask, nearest)
             m.setParameter("uvRect", 0f, 0f, 1f, 1f); m.setParameter("tint", 1f, 1f, 1f, 1f)

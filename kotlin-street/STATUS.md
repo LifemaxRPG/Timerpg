@@ -15,6 +15,11 @@
 
 ## The walkable town in the app (T10; desktop renders and JVM tests only, NOT yet run on the S25)
 
+- Hand-made landmark models (glTF .glb, docs/LANDMARKS_GLB.md): the modern gas station, the 1950s Main Street service
+  station, the Junction Diner (re-skinned to our swatches and art grid) and Starling Lanes load through our own reader
+  into the town's lit material, with role lighting, collision, doors and the year's gas prices on the price panels;
+  previewed (`-Dmode=filament-landmarks`), not yet placed in towns. Desktop renders and JVM tests only.
+
 - The town has its stores (docs/STORES.md, "In the town"): gamma's general store (now an antiques shop), the old market
   (Cornerstone Chapel), the shut Prairie Larder and the Broadmeadow superstore on its 159 x 206 m lot, built in their
   slots, solid in the open world's walk (read off their geometry, parked cars included, rebuilt on the hour) with "Go
