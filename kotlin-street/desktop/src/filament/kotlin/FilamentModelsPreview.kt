@@ -45,7 +45,8 @@ import org.jetbrains.skia.Image as SkiaImage
  * showcase street N's villas and landmarks (tools/make_buildings.py --showcase, built into build/showcase when no
  * -Dassets= is given) drawn by [FilamentModels] with a plain perspective camera, nothing of the classic's leaned looks:
  * each building alone in its lot, straight on, three-quarter from the left and the right, from behind at a corner and
- * from higher up onto its roofs at 13:00, then three-quarter at dusk and straight on at night; and the whole street.
+ * from higher up onto its roofs at 13:00, then three-quarter at dusk and straight on at night, closer at a person's
+ * height, and its long side at night; and the whole street.
  * Writes build/preview/filament-models/street<N>_<building>_<view>.png and street<N>_sheet.png, a contact sheet (a row
  * a building, a column a view).
  */
@@ -101,6 +102,8 @@ fun renderFilamentModels(out: String) {
             View3("front", 13f, 0f, 0f), View3("left", 13f, -38f, 0f), View3("right", 13f, 38f, 0f),
             View3("behind", 13f, 140f, 0f), View3("high", 13f, 25f, 38f),
             View3("dusk", 19.3f, -38f, 0f), View3("night", 22.5f, 0f, 0f),
+            // closer at a person's height, and the long side at night (its windows lit)
+            View3("near", 13f, -24f, 0f), View3("nightside", 22.5f, -38f, 0f),
         )
         for ((i, pair) in built.withIndex()) {
             val (sp, _) = pair
@@ -264,7 +267,7 @@ private class ModelStage(val engine: Engine, val lit: Material, val proxyMat: Ma
         val cx = (b[0] + b[3]) / 2f; val cy = (b[1] + b[4]) / 2f; val cz = (b[2] + b[5]) / 2f
         val r = sqrt((b[3] - b[0]) * (b[3] - b[0]) + (b[4] - b[1]) * (b[4] - b[1]) + (b[5] - b[2]) * (b[5] - b[2])) / 2f
         val fov = 40.0
-        val dist = r / sin(Math.toRadians(fov / 2)).toFloat() * (if (v.name.startsWith("street")) .9f else 1f)
+        val dist = r / sin(Math.toRadians(fov / 2)).toFloat() * (if (v.name.startsWith("street")) .9f else if (v.name == "near") .55f else 1f)
         val be = Math.toRadians(v.bearing.toDouble()); val el = Math.toRadians(v.elevation.toDouble())
         // in front is -z; a bearing to the right is +x
         val dx = (sin(be) * cos(el)).toFloat(); val dz = (-cos(be) * cos(el)).toFloat(); val dy = sin(el).toFloat()
