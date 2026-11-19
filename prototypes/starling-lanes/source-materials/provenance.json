@@ -1,0 +1,191 @@
+{
+  "atlas": "kotlin-street/tools/swatches/atlas/atlas.png",
+  "licence": "LimeZu: Timerpg game use only, credit required",
+  "swatches": [
+    {
+      "id": "brick_red",
+      "atlas_rect": [
+        115,
+        113,
+        60,
+        48
+      ],
+      "source": {
+        "id": "brick_red",
+        "family": "wall",
+        "pack": "exteriors",
+        "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/1_Terrains_and_Fences_32x32.png",
+        "rect": [
+          23,
+          806,
+          62,
+          48
+        ],
+        "tile": "seamless",
+        "repeat": [
+          31,
+          48
+        ],
+        "palette": [
+          "#a14f44",
+          "#b99e86",
+          "#943c3f",
+          "#b18a74",
+          "#a7604a",
+          "#9b766a"
+        ],
+        "tags": [
+          "brick",
+          "art"
+        ],
+        "seam": [
+          0.0,
+          0.21
+        ],
+        "note": "warm red courses, tan mortar, dark outline; light from top"
+      }
+    },
+    {
+      "id": "block_courses",
+      "atlas_rect": [
+        66,
+        113,
+        48,
+        48
+      ],
+      "source": {
+        "id": "block_courses",
+        "family": "wall",
+        "pack": "paint",
+        "paint": "brickbig",
+        "rect": [
+          0,
+          0,
+          48,
+          48
+        ],
+        "seam": "none",
+        "tags": [
+          "block",
+          "tone",
+          "painted"
+        ],
+        "wrap": "xy",
+        "size": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "id": "roof_tin_blue",
+      "atlas_rect": [
+        33,
+        33,
+        32,
+        32
+      ],
+      "source": {
+        "id": "roof_tin_blue",
+        "family": "roof",
+        "pack": "exteriors",
+        "file": "7_Villas_32x32.png",
+        "rect": [
+          360,
+          550,
+          32,
+          32
+        ],
+        "tags": [
+          "pitched",
+          "metal"
+        ],
+        "wrap": "xy"
+      }
+    },
+    {
+      "id": "asphalt_worn",
+      "atlas_rect": [
+        0,
+        113,
+        32,
+        32
+      ],
+      "source": {
+        "id": "asphalt_worn",
+        "family": "ground",
+        "pack": "paint",
+        "paint": "asphalt_worn",
+        "rect": [
+          0,
+          0,
+          32,
+          32
+        ],
+        "seam": "none",
+        "tags": [
+          "carpark",
+          "painted"
+        ],
+        "wrap": "xy",
+        "size": [
+          32,
+          32
+        ]
+      }
+    },
+    {
+      "id": "pavement",
+      "atlas_rect": [
+        171,
+        66,
+        32,
+        32
+      ],
+      "source": {
+        "id": "pavement",
+        "family": "ground",
+        "pack": "exteriors",
+        "pick": {
+          "glob": "2_City_Terrains_Singles_32x32/*Sidewalk_1_*.png",
+          "opaque": true,
+          "lum": [
+            150,
+            255
+          ]
+        },
+        "tags": [
+          "sidewalk",
+          "concrete"
+        ],
+        "wrap": "xy"
+      }
+    },
+    {
+      "id": "plank_vertical",
+      "atlas_rect": [
+        198,
+        33,
+        32,
+        22
+      ],
+      "source": {
+        "id": "plank_vertical",
+        "family": "wood",
+        "pack": "exteriors",
+        "file": "11_Camping_32x32.png",
+        "rect": [
+          184,
+          356,
+          32,
+          22
+        ],
+        "tags": [
+          "plank",
+          "boards"
+        ],
+        "wrap": "xy"
+      }
+    }
+  ]
+}

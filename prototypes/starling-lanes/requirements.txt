@@ -1,0 +1,4 @@
+Pillow
+numpy
+# Optional, for offline render denoising with finish_renders.py:
+oidn==0.2.1
