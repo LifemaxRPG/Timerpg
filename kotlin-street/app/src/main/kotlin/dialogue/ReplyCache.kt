@@ -19,7 +19,12 @@ import java.util.concurrent.ConcurrentHashMap
  * stale; they are kept a while ([retain]) because the world may come back to those facts.
  *
  * Kept in memory and in [file] (JSON), so lines survive restarts. Reads are safe from any thread; [load] and [save] run
- * on the dialogue worker. Pure Kotlin and org.json (tested on the JVM).
+ * on the dialogue worker. Two processes may hold the bank (the game, and Writer mode or the overnight writer in their
+ * own process): [save] takes a lock on the file and first merges what the other one saved,
+ * so neither loses the other's lines. Pure Kotlin and org.json (tested on the JVM).
+ *
+ * [Entry.light]: a line written by the light model (Writer mode, when the main model's copy does not fit): used like any
+ * other, and rewritten by the main model when it writes ([replaceLine]).
  */
 class ReplyCache(private val file: File) {
     /**
@@ -27,7 +32,8 @@ class ReplyCache(private val file: File) {
      * [tries]: variant attempts that failed (rejected, or the same as a line already there). [shown]: times a line of
      * this entry was given out (the rotation), [last] the variant given out last (-1 none).
      */
-    class Entry(lines: List<String>, @Volatile var slot: String = "", @Volatile var tries: Int = 0, @Volatile var shown: Int = 0, @Volatile var last: Int = -1) {
+    class Entry(lines: List<String>, @Volatile var slot: String = "", @Volatile var tries: Int = 0, @Volatile var shown: Int = 0, @Volatile var last: Int = -1,
+                @Volatile var light: Boolean = false) {
         @Volatile var lines: List<String> = lines
             internal set
         /** The first line (the one written first), or null for the template. */
@@ -42,16 +48,25 @@ class ReplyCache(private val file: File) {
     fun get(key: String): Entry? = map[key]
     val size: Int get() = map.size
 
-    fun putLine(key: String, line: String, slot: String = "") {
+    fun putLine(key: String, line: String, slot: String = "", light: Boolean = false) {
         val e = map[key]
         if (e != null && e.lines.isNotEmpty()) { if (slot.isNotEmpty()) e.slot = slot; return }
         if (e == null && map.size >= MAX) return
-        map[key] = Entry(listOf(line), slot.ifEmpty { e?.slot ?: "" })
+        map[key] = Entry(listOf(line), slot.ifEmpty { e?.slot ?: "" }, light = light)
+        dropped.remove(key)
+    }
+
+    /** The main model's line in place of the light model's (its variants go too: the main model writes its own). */
+    fun replaceLine(key: String, line: String, slot: String = "") {
+        val e = map[key]
+        if (e == null) return putLine(key, line, slot)
+        synchronized(e) { e.lines = listOf(line); e.light = false; e.tries = 0; e.last = -1; if (slot.isNotEmpty()) e.slot = slot }
     }
 
     fun putTemplate(key: String, slot: String = "") {
         if (map.containsKey(key) || map.size >= MAX) return
         map[key] = Entry(emptyList(), slot)
+        dropped.remove(key)
     }
 
     /** Records [slot] for a key whose entry has none yet (entries from before slots were kept). */
@@ -108,14 +123,17 @@ class ReplyCache(private val file: File) {
 
     // ---- counts
 
-    /** Entries with a model line, entries that stay the template. */
+    /** Entries with a model line, entries that stay the template, model lines in all (variants included), and entries
+     *  written by the light model. */
     val lines: Int get() = map.values.count { it.lines.isNotEmpty() }
+    val allLines: Int get() = map.values.sumOf { it.lines.size }
+    val light: Int get() = map.values.count { it.light && it.lines.isNotEmpty() }
     val templates: Int get() = map.values.count { it.lines.isEmpty() }
 
     /** What the bank holds for a [plan] (key to slot of every line the game can ask for now), see [Bank]. */
     fun bank(plan: Map<String, String>, cap: Int = VARIANTS, maxTries: Int = VARIANT_TRIES): Bank {
         val planSlots = plan.values.toHashSet()
-        var ready = 0; var templ = 0; var missing = 0; var variants = 0; var full = 0; var stale = 0
+        var ready = 0; var templ = 0; var missing = 0; var variants = 0; var full = 0; var stale = 0; var light = 0
         val years = sortedSetOf<Int>()
         val staleSlots = sortedSetOf<String>()
         for ((k, slot) in plan) {
@@ -125,6 +143,7 @@ class ReplyCache(private val file: File) {
                 e.lines.isEmpty() -> templ++
                 else -> {
                     ready++
+                    if (e.light) light++
                     variants += e.lines.size
                     if (variantsDone(k, cap, maxTries)) full++
                     BankPlan.yearOf(slot)?.let { years += it }
@@ -132,11 +151,14 @@ class ReplyCache(private val file: File) {
             }
         }
         for ((k, e) in map) if (e.slot.isNotEmpty() && e.slot in planSlots && plan[k] != e.slot) { stale++; staleSlots += e.slot }
-        return Bank(plan.size, ready, templ, missing, variants, full, stale, years.toList(), staleSlots.toList())
+        return Bank(plan.size, ready, templ, missing, variants, full, stale, years.toList(), staleSlots.toList(), light)
     }
 
     /** Forget the rejected ones (a new model gets its own try). */
-    fun dropTemplates() { map.entries.removeIf { it.value.lines.isEmpty() } }
+    fun dropTemplates() { map.entries.removeIf { e -> e.value.lines.isEmpty().also { if (it) dropped += e.key } } }
+
+    /** Keys this cache let go of on purpose ([retain], [dropTemplates]): a merge does not bring them back. */
+    private val dropped = java.util.Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
 
     /**
      * Keep only the lines of these prompts (the dialogue files changed), and the stale ones of [slots] still in the game
@@ -147,32 +169,14 @@ class ReplyCache(private val file: File) {
         map.entries.removeIf { (k, e) ->
             if (k in keys) false
             else if (e.slot.isNotEmpty() && e.slot in slots && e.lines.isNotEmpty() && kept < MAX_STALE) { kept++; false }
-            else true
+            else { dropped += k; true }
         }
     }
 
     fun load() {
         if (!file.isFile) return
         try {
-            val j = JSONObject(file.readText())
-            when (j.optInt("v")) {
-                1 -> {
-                    // the first cache: one line per prompt, no slots
-                    val lines = j.optJSONObject("lines")
-                    if (lines != null) for (k in lines.keys()) lines.optString(k).takeIf { it.isNotEmpty() }?.let { map[k] = Entry(listOf(it)) }
-                    val templates = j.optJSONArray("templates")
-                    if (templates != null) for (i in 0 until templates.length()) templates.optString(i).takeIf { it.isNotEmpty() }?.let { map[it] = Entry(emptyList()) }
-                }
-                VERSION -> {
-                    val es = j.optJSONObject("entries") ?: return
-                    for (k in es.keys()) {
-                        val o = es.optJSONObject(k) ?: continue
-                        val ls = o.optJSONArray("l")
-                        val lines = if (ls == null) emptyList() else (0 until ls.length()).mapNotNull { ls.optString(it).takeIf { s -> s.isNotEmpty() } }
-                        map[k] = Entry(lines, o.optString("s"), o.optInt("t"), o.optInt("n"), o.optInt("last", -1))
-                    }
-                }
-            }
+            map.putAll(read(file.readText()))
         } catch (e: Exception) {
             // a damaged cache is only lost lines: start again
             warn("reply cache unreadable, starting empty: $e")
@@ -180,25 +184,94 @@ class ReplyCache(private val file: File) {
         }
     }
 
-    /** Writes the cache (to a temporary file, then renamed over the old one, so a crash never leaves half a file). */
+    private fun read(text: String): Map<String, Entry> {
+        val out = HashMap<String, Entry>()
+        val j = JSONObject(text)
+        when (j.optInt("v")) {
+            1 -> {
+                // the first cache: one line per prompt, no slots
+                val lines = j.optJSONObject("lines")
+                if (lines != null) for (k in lines.keys()) lines.optString(k).takeIf { it.isNotEmpty() }?.let { out[k] = Entry(listOf(it)) }
+                val templates = j.optJSONArray("templates")
+                if (templates != null) for (i in 0 until templates.length()) templates.optString(i).takeIf { it.isNotEmpty() }?.let { out[it] = Entry(emptyList()) }
+            }
+            VERSION -> {
+                val es = j.optJSONObject("entries") ?: return out
+                for (k in es.keys()) {
+                    val o = es.optJSONObject(k) ?: continue
+                    val ls = o.optJSONArray("l")
+                    val lines = if (ls == null) emptyList() else (0 until ls.length()).mapNotNull { ls.optString(it).takeIf { s -> s.isNotEmpty() } }
+                    out[k] = Entry(lines, o.optString("s"), o.optInt("t"), o.optInt("n"), o.optInt("last", -1), o.optInt("w") == 1)
+                }
+            }
+        }
+        return out
+    }
+
+    /**
+     * What another process saved since this one last read the file: its new entries and its longer ones (more variants,
+     * a model line where this one has the template, the main model's line over the light one's) come in; keys this one
+     * let go of on purpose stay out. Returns the entries taken.
+     */
+    internal fun merge(other: Map<String, Entry>): Int {
+        var n = 0
+        for ((k, d) in other) {
+            if (k in dropped) continue
+            val e = map[k]
+            if (e == null) { if (map.size < MAX) { map[k] = d; n++ }; continue }
+            synchronized(e) {
+                when {
+                    d.lines.isEmpty() -> {}
+                    e.lines.isEmpty() || (e.light && !d.light) -> { e.lines = d.lines; e.light = d.light; e.tries = d.tries; n++ }
+                    e.light == d.light && d.lines.any { l -> e.lines.none { norm(it) == norm(l) } } -> {
+                        val add = d.lines.filter { l -> e.lines.none { norm(it) == norm(l) } }
+                        e.lines = (e.lines + add).take(maxOf(VARIANTS, e.lines.size)); n++
+                    }
+                }
+                e.tries = maxOf(e.tries, d.tries)
+                if (d.shown > e.shown) { e.shown = d.shown; e.last = d.last }
+                if (e.slot.isEmpty()) e.slot = d.slot
+            }
+        }
+        return n
+    }
+
+    /**
+     * Writes the cache (to a temporary file, then renamed over the old one, so a crash never leaves half a file), under a
+     * lock on the file shared with the other process, after merging what that one saved since ([merge]).
+     */
     fun save() {
         try {
-            val es = JSONObject()
-            for ((k, e) in map) {
-                val o = JSONObject().put("l", JSONArray(e.lines))
-                if (e.slot.isNotEmpty()) o.put("s", e.slot)
-                if (e.tries > 0) o.put("t", e.tries)
-                if (e.shown > 0) o.put("n", e.shown).put("last", e.last)
-                es.put(k, o)
-            }
-            val text = JSONObject().put("v", VERSION).put("entries", es).toString()
             file.parentFile?.mkdirs()
-            val tmp = File(file.path + ".tmp")
-            tmp.writeText(text)
-            if (!tmp.renameTo(file)) { file.delete(); if (!tmp.renameTo(file)) tmp.delete() }
+            synchronized(LOCK) {
+                java.io.RandomAccessFile(File(file.path + ".lock"), "rw").use { raf ->
+                    raf.channel.lock().use {
+                        // (always: a file time cannot tell two saves within the same tick apart)
+                        if (file.isFile) runCatching { merge(read(file.readText())) }
+                            .onFailure { warn("the saved reply cache could not be merged: $it") }
+                        write()
+                    }
+                }
+            }
         } catch (e: Exception) {
             warn("could not save the reply cache: $e")
         }
+    }
+
+    private fun write() {
+        val es = JSONObject()
+        for ((k, e) in map) {
+            val o = JSONObject().put("l", JSONArray(e.lines))
+            if (e.slot.isNotEmpty()) o.put("s", e.slot)
+            if (e.tries > 0) o.put("t", e.tries)
+            if (e.shown > 0) o.put("n", e.shown).put("last", e.last)
+            if (e.light) o.put("w", 1)
+            es.put(k, o)
+        }
+        val text = JSONObject().put("v", VERSION).put("entries", es).toString()
+        val tmp = File(file.path + ".tmp")
+        tmp.writeText(text)
+        if (!tmp.renameTo(file)) { file.delete(); if (!tmp.renameTo(file)) tmp.delete() }
     }
 
     /** What the bank holds for the game's lines now (see [bank]). */
@@ -216,10 +289,14 @@ class ReplyCache(private val file: File) {
         val stale: Int = 0,
         val years: List<Int> = emptyList(),
         val staleSlots: List<String> = emptyList(),
+        /** Prompts whose line the light model wrote (the main model rewrites them when it writes). */
+        val light: Int = 0,
     )
 
     companion object {
         private const val VERSION = 2
+        /** One save at a time in this process (a file lock is per process). */
+        private val LOCK = Any()
         private const val MAX = 20_000
         private const val MAX_STALE = 4_000
         /** Lines per prompt, the first included (the extra ones written overnight, see com.timerpg.street.night). */
@@ -252,6 +329,31 @@ object BankPlan {
     fun slotOf(town: String, year: Int, npc: String, intent: String) = "$town/$year/$npc/$intent"
 
     fun yearOf(slot: String): Int? = slot.split('/').getOrNull(1)?.toIntOrNull()
+
+    /** The lines still to write, counted by year, person (most first) and topic (most first). */
+    data class Queue(val byYear: List<Pair<String, Int>>, val byPerson: List<Pair<String, Int>>, val byTopic: List<Pair<String, Int>>) {
+        val total: Int get() = byYear.sumOf { it.second }
+    }
+
+    /**
+     * [slots]: one per line still to write ("town/year/npc/topic", repeated for each variant still wanted); [names]:
+     * a person's name by id. Topics: "theme:x" counts as "your themes", "next" as "follow-ups". Persons beyond [people]
+     * are summed as "others".
+     */
+    fun queue(slots: List<String>, names: (String) -> String? = { null }, people: Int = 8): Queue {
+        val y = java.util.TreeMap<String, Int>(); val p = HashMap<String, Int>(); val t = HashMap<String, Int>()
+        for (s in slots) {
+            val parts = s.split('/')
+            y.merge(parts.getOrNull(1)?.takeIf { it.isNotEmpty() } ?: "?", 1, Int::plus)
+            val id = parts.getOrNull(2) ?: "?"
+            p.merge(names(id) ?: id, 1, Int::plus)
+            val topic = parts.getOrNull(3) ?: "?"
+            t.merge(when { topic.startsWith("theme:") -> "your themes"; topic == "next" -> "follow-ups"; else -> topic }, 1, Int::plus)
+        }
+        val ps = p.entries.sortedWith(compareBy({ -it.value }, { it.key })).map { it.key to it.value }
+        val top = ps.take(people) + if (ps.size > people) listOf("others (${ps.size - people})" to ps.drop(people).sumOf { it.second }) else emptyList()
+        return Queue(y.entries.map { it.key to it.value }, top, t.entries.sortedWith(compareBy({ -it.value }, { it.key })).map { it.key to it.value })
+    }
 
     /** Every prompt of [d] (fingerprint by [keyOf]) and its slot; one key per distinct prompt, the first slot kept. */
     fun of(d: DialogueData, keyOf: (String) -> String): Map<String, String> {
