@@ -12,7 +12,14 @@ import java.nio.ByteOrder
  * is said now. Pure Kotlin (no Android), so the search is tested on the JVM; [MemoryService] runs the model and saves it.
  */
 class NpcMemory {
-    class Entry(val npc: String, val time: Long, val said: String, val answered: String, val vec: FloatArray)
+    /**
+     * One exchange. Also the player's conversation log (town-wide: [all]), which steers the overnight writer
+     * ([Steer]): the [town] and [year] it was in, the [intent] (topic) answered, [how] the answer came ("ready": a line
+     * written ahead; "live": the model wrote it then; "template"), and [q], the player's words alone as the memory model
+     * reads a question (null without it). Stays on the phone (memories.json).
+     */
+    class Entry(val npc: String, val time: Long, val said: String, val answered: String, val vec: FloatArray,
+                val town: String = "", val year: Int = 0, val intent: String = "", val how: String = "", val q: FloatArray? = null)
 
     private val entries = ArrayList<Entry>()
     val size: Int get() = synchronized(entries) { entries.size }
@@ -20,10 +27,14 @@ class NpcMemory {
 
     fun add(e: Entry) = synchronized(entries) {
         entries += e
-        // a person keeps their most recent memories; the oldest go first
+        // a person keeps their most recent memories; the oldest go first (and the town's as a whole the same way)
         val mine = entries.filter { it.npc == e.npc }
         if (mine.size > PER_PERSON) entries.remove(mine.minByOrNull { it.time })
+        if (entries.size > TOTAL) entries.remove(entries.minByOrNull { it.time })
     }
+
+    /** Every exchange, every person (the town-wide log). */
+    fun all(): List<Entry> = synchronized(entries) { entries.toList() }
 
     /**
      * What [npc] remembers that bears on [query] (a unit vector), best first: at most [k], each at least [minScore] alike;
@@ -62,7 +73,15 @@ class NpcMemory {
         synchronized(entries) { entries.filter { it.npc == npc }.maxByOrNull { it.time } }?.takeIf { now - it.time <= recentMs }
 
     fun toJson(): String = synchronized(entries) {
-        JSONArray(entries.map { JSONObject().put("npc", it.npc).put("t", it.time).put("said", it.said).put("answered", it.answered).put("v", pack(it.vec)) }).toString()
+        JSONArray(entries.map {
+            JSONObject().put("npc", it.npc).put("t", it.time).put("said", it.said).put("answered", it.answered).put("v", pack(it.vec)).apply {
+                if (it.town.isNotEmpty()) put("town", it.town)
+                if (it.year != 0) put("year", it.year)
+                if (it.intent.isNotEmpty()) put("intent", it.intent)
+                if (it.how.isNotEmpty()) put("how", it.how)
+                it.q?.let { q -> put("q", pack(q)) }
+            }
+        }).toString()
     }
 
     fun load(json: String) = synchronized(entries) {
@@ -70,12 +89,15 @@ class NpcMemory {
         val a = JSONArray(json)
         for (i in 0 until a.length()) {
             val o = a.getJSONObject(i)
-            entries += Entry(o.getString("npc"), o.getLong("t"), o.getString("said"), o.getString("answered"), unpack(o.getString("v")))
+            entries += Entry(o.getString("npc"), o.getLong("t"), o.getString("said"), o.getString("answered"), unpack(o.optString("v")),
+                o.optString("town"), o.optInt("year"), o.optString("intent"), o.optString("how"), o.optString("q").takeIf { it.isNotEmpty() }?.let { unpack(it) })
         }
     }
 
     companion object {
         const val PER_PERSON = 200
+        /** The whole town's exchanges kept (two 1024-float vectors each: about 20 MB of memories.json when full). */
+        const val TOTAL = 2000
         const val MIN_SCORE = .3f
         const val STANDS_OUT = 2f
         const val FEW_SCORE = .45f

@@ -247,6 +247,24 @@ object ShotUploader {
         }
     }
 
+    /** Sends the overnight writer's summaries waiting on the phone (quietly; each deleted once it is in the repository). */
+    fun sendNight(ctx: Context) {
+        val app = ctx.applicationContext
+        worker.execute {
+            ShotSettings.load(app)
+            val token = ShotSettings.token(app) ?: return@execute
+            if (!online(app)) return@execute
+            for (f in Reports.pendingNight(app).reversed()) {
+                val path = Reports.remotePath(f)
+                val bytes = runCatching { f.readBytes() }.getOrNull() ?: continue
+                val (r, _) = put(token, ShotRequests.REPORT_BRANCH, path, bytes, "Overnight writer: ${path.removePrefix("night/")}") { k ->
+                    path.removeSuffix(".json") + "-${k + 1}.json"
+                }
+                if (ok(r.code)) f.delete() else break
+            }
+        }
+    }
+
     /** On each start, in the background: Android's record of how the last runs ended, then any reports sent. */
     fun onLaunch(ctx: Context, filamentDied: Boolean) {
         val app = ctx.applicationContext
@@ -255,6 +273,7 @@ object ShotUploader {
             runCatching { Reports.scanExits(app, filamentDied) }
             Reports.prune(app)
             if (ShotSettings.hasToken && ShotSettings.autoReports) sendReports(app)
+            if (ShotSettings.hasToken) sendNight(app)
         }
     }
 }

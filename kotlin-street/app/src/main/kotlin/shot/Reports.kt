@@ -123,7 +123,18 @@ object Reports {
         prune(ctx)
     }
 
-    fun prune(ctx: Context) { pending(ctx).drop(KEEP).forEach { it.delete() } }
+    fun prune(ctx: Context) {
+        pending(ctx).drop(KEEP).forEach { it.delete() }
+        pendingNight(ctx).drop(KEEP_NIGHT).forEach { it.delete() }
+    }
+
+    /** The overnight writer's summaries waiting to be sent (night/<date>/<time>.json), newest first. */
+    fun pendingNight(ctx: Context): List<File> = (dir(ctx).listFiles { f -> f.name.startsWith("night~") && f.name.endsWith(".json") } ?: emptyArray())
+        .sortedByDescending { it.name }
+
+    /** Keeps a night's summary to send ([path]: night/<date>/<time>.json). */
+    fun writeNight(ctx: Context, path: String, text: String) = write(ctx, path, text)
+    private const val KEEP_NIGHT = 30
 
     /** In the uncaught-exception handler: the report, written now (synchronously), before the process goes. */
     fun writeJvmCrash(ctx: Context, thread: Thread, e: Throwable) {
