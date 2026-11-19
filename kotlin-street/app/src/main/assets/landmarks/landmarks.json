@@ -8,9 +8,41 @@
       "role": "gas_station",
       "file": "modern-gas-station/modern-gas-station.glb",
       "info": "modern-gas-station/model-info.json",
-      "era": {"from": 2005, "to": 2040, "built": 2005},
-      "footprint": {"lot": [32.28, 35.08], "building": [17.38, 8.69]},
-      "price": {"node": "sign_price", "grades": ["regular", "plus", "diesel"], "art": [24, 42], "paper": "#4b5268", "ink": "#e0c389", "rows": [0, 14, 28], "font": "5x7"}
+      "era": {
+        "from": 2005,
+        "to": 2040,
+        "built": 2005
+      },
+      "footprint": {
+        "lot": [
+          32.28,
+          35.08
+        ],
+        "building": [
+          17.38,
+          8.69
+        ]
+      },
+      "price": {
+        "node": "sign_price",
+        "grades": [
+          "regular",
+          "plus",
+          "diesel"
+        ],
+        "art": [
+          24,
+          42
+        ],
+        "paper": "#4b5268",
+        "ink": "#e0c389",
+        "rows": [
+          0,
+          14,
+          28
+        ],
+        "font": "5x7"
+      }
     },
     {
       "kind": "landmark_glb_main_street_service_station",
@@ -18,10 +50,43 @@
       "role": "gas_station",
       "file": "main-street-service-station/main-street-service-station.glb",
       "info": "main-street-service-station/model-info.json",
-      "era": {"from": 1950, "to": 1969, "built": 1953},
-      "footprint": {"lot": [23.28, 21.73], "building": [15.52, 8.07]},
-      "swatches": {"roof_tar_membrane": "ballast"},
-      "price": {"node": "sign_price", "grades": ["regular", "premium"], "art": [16, 20], "paper": "#dad4cb", "ink": "#a14f44", "rows": [0, 12], "left": 1, "font": "3x5"}
+      "era": {
+        "from": 1950,
+        "to": 1969,
+        "built": 1953
+      },
+      "footprint": {
+        "lot": [
+          23.28,
+          21.73
+        ],
+        "building": [
+          15.52,
+          8.07
+        ]
+      },
+      "swatches": {
+        "roof_tar_membrane": "ballast"
+      },
+      "price": {
+        "node": "sign_price",
+        "grades": [
+          "regular",
+          "premium"
+        ],
+        "art": [
+          16,
+          20
+        ],
+        "paper": "#dad4cb",
+        "ink": "#a14f44",
+        "rows": [
+          0,
+          12
+        ],
+        "left": 1,
+        "font": "3x5"
+      }
     },
     {
       "kind": "landmark_glb_junction_diner",
@@ -30,8 +95,21 @@
       "room": "hall",
       "file": "junction-diner/junction-diner.glb",
       "info": "junction-diner/model-info.json",
-      "era": {"from": 1940, "to": 1965, "built": 1948},
-      "footprint": {"lot": [17.0, 21.0], "building": [12.0, 12.3]}
+      "era": {
+        "from": 1940,
+        "to": 1965,
+        "built": 1948
+      },
+      "footprint": {
+        "lot": [
+          17.0,
+          21.0
+        ],
+        "building": [
+          12.0,
+          12.3
+        ]
+      }
     },
     {
       "kind": "landmark_glb_starling_lanes",
@@ -40,8 +118,44 @@
       "room": "hall",
       "file": "starling-lanes/starling-lanes.glb",
       "info": "starling-lanes/model-info.json",
-      "era": {"from": 1960, "to": 1969, "built": 1964},
-      "footprint": {"lot": [34.76, 42.21], "building": [22.35, 31.04]}
+      "era": {
+        "from": 1960,
+        "to": 1969,
+        "built": 1964
+      },
+      "footprint": {
+        "lot": [
+          34.76,
+          42.21
+        ],
+        "building": [
+          22.35,
+          31.04
+        ]
+      }
+    },
+    {
+      "kind": "landmark_glb_starlight_drive_in",
+      "name": "Starlight Drive-In",
+      "role": "cinema",
+      "room": "hall",
+      "file": "starlight-drive-in/starlight-drive-in.glb",
+      "info": "starlight-drive-in/model-info.json",
+      "era": {
+        "from": 1950,
+        "to": 1966,
+        "built": 1956
+      },
+      "footprint": {
+        "lot": [
+          34.76,
+          42.21
+        ],
+        "building": [
+          16.14,
+          7.45
+        ]
+      }
     }
   ]
 }

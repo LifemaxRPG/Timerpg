@@ -1,0 +1,241 @@
+{
+  "header": {
+    "magic": "glTF",
+    "version": 2,
+    "byte_length": 432396
+  },
+  "materials": {
+    "count": 12,
+    "max": 12,
+    "pass": true
+  },
+  "samplers": {
+    "values": [
+      {
+        "magFilter": 9728,
+        "minFilter": 9984,
+        "wrapS": 10497,
+        "wrapT": 10497
+      }
+    ],
+    "pass": true
+  },
+  "textures": {
+    "images": [
+      {
+        "name": "wall_cream",
+        "size": [
+          128,
+          128
+        ],
+        "even": true,
+        "block2x2": true
+      },
+      {
+        "name": "wall_brick",
+        "size": [
+          60,
+          48
+        ],
+        "even": true,
+        "block2x2": true
+      },
+      {
+        "name": "wall_block",
+        "size": [
+          48,
+          48
+        ],
+        "even": true,
+        "block2x2": true
+      },
+      {
+        "name": "wall_wood_siding",
+        "size": [
+          32,
+          22
+        ],
+        "even": true,
+        "block2x2": true
+      },
+      {
+        "name": "trim_teal",
+        "size": [
+          128,
+          128
+        ],
+        "even": true,
+        "block2x2": true
+      },
+      {
+        "name": "roof_tin_blue",
+        "size": [
+          32,
+          32
+        ],
+        "even": true,
+        "block2x2": true
+      },
+      {
+        "name": "roof_ballast",
+        "size": [
+          32,
+          32
+        ],
+        "even": true,
+        "block2x2": true
+      },
+      {
+        "name": "ground_asphalt",
+        "size": [
+          32,
+          32
+        ],
+        "even": true,
+        "block2x2": true
+      },
+      {
+        "name": "ground_paving",
+        "size": [
+          32,
+          32
+        ],
+        "even": true,
+        "block2x2": true
+      },
+      {
+        "name": "glass_concession",
+        "size": [
+          512,
+          256
+        ],
+        "even": true,
+        "block2x2": true
+      },
+      {
+        "name": "glow_signage",
+        "size": [
+          512,
+          256
+        ],
+        "even": true,
+        "block2x2": true
+      },
+      {
+        "name": "detail_utility",
+        "size": [
+          256,
+          256
+        ],
+        "even": true,
+        "block2x2": true
+      }
+    ],
+    "pass": true
+  },
+  "triangles": {
+    "visible": 4298,
+    "collision": 684,
+    "visible_max": 12000,
+    "props": {
+      "marquee_pylon": 200,
+      "service_yard": 152,
+      "speaker_posts": 432
+    },
+    "pass": true
+  },
+  "uv_scale": {
+    "edges_checked": 12894,
+    "max_error_m": 3.3e-06,
+    "bad_edges_over_1mm": 0,
+    "pass": true
+  },
+  "utility_uv_patch_checks": {
+    "bad_faces": 0,
+    "pass": true
+  },
+  "scale_and_bounds": {
+    "min_y_m": 0.0,
+    "max_y_m": 11.4848,
+    "ground_non_negative": true,
+    "height_in_3_to_12m": true,
+    "pass": true
+  },
+  "doors": {
+    "nodes": {
+      "door_main": {
+        "translation": [
+          0.0,
+          0.0,
+          0.1552
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "out_dir": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "extras": {
+          "interaction": "Go inside"
+        },
+        "is_empty_leaf": true
+      },
+      "door_back": {
+        "translation": [
+          5.432,
+          0.0,
+          -7.6048
+        ],
+        "rotation": [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        "out_dir": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "extras": {
+          "interaction": "Go inside"
+        },
+        "is_empty_leaf": true
+      },
+      "door_side": {
+        "translation": [
+          -14.8992,
+          0.0,
+          -0.9312
+        ],
+        "rotation": [
+          0.0,
+          -0.7071068,
+          0.0,
+          0.7071068
+        ],
+        "out_dir": [
+          -1.0,
+          -0.0,
+          -0.0
+        ],
+        "extras": {
+          "interaction": "Go inside"
+        },
+        "is_empty_leaf": true
+      }
+    },
+    "door_main_front_probe_clear": true,
+    "pass": true
+  },
+  "collision": {
+    "boxes_count": 57,
+    "pass": true
+  },
+  "all_passed": true
+}

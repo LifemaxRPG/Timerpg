@@ -1,0 +1,1082 @@
+{
+  "name": "Starlight Drive-In",
+  "slug": "starlight-drive-in",
+  "era": "1950s",
+  "Category": "landmark_entertainment",
+  "role": "cinema_drive_in",
+  "units": "metres",
+  "up_axis": "Y",
+  "front_axis": "+Z",
+  "origin": "Ground level (y = 0) at horizontal center of the front concession pavilion edge (z = 0)",
+  "pixel_grid": {
+    "art_pixel_m": 0.0776,
+    "art_pixel_texels": 2,
+    "texel_m": 0.0388
+  },
+  "footprint_m": {
+    "building_width": 16.1408,
+    "building_depth": 7.4496,
+    "screen_tower_width": 17.848,
+    "screen_tower_depth": 5.7424,
+    "lot_width": 34.7648,
+    "lot_depth": 42.2144,
+    "max_height": 11.4848
+  },
+  "triangles": {
+    "visible": 4298,
+    "collision": 684,
+    "total": 4982,
+    "budget_visible_max": 12000
+  },
+  "optional_prop_groups": {
+    "lot": 1650,
+    "marquee_pylon": 200,
+    "service_yard": 152,
+    "speaker_posts": 432,
+    "door_panel_main": 26,
+    "door_panel_back": 12,
+    "door_panel_side": 12
+  },
+  "doors": {
+    "door_main": {
+      "position": [
+        0.0,
+        0.0,
+        0.1552
+      ],
+      "facing": "+Z",
+      "panel_node": "door_panel_main"
+    },
+    "door_back": {
+      "position": [
+        5.432,
+        0.0,
+        -7.6048
+      ],
+      "facing": "-Z",
+      "panel_node": "door_panel_back"
+    },
+    "door_side": {
+      "position": [
+        -14.8992,
+        0.0,
+        -0.9312
+      ],
+      "facing": "-X",
+      "panel_node": "door_panel_side"
+    }
+  },
+  "materials": [
+    {
+      "name": "wall_cream",
+      "texture": "textures/cream.png",
+      "size": [
+        128,
+        128
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "Sun-warmed cream painted stucco and porcelain fascia panels"
+    },
+    {
+      "name": "wall_brick",
+      "texture": "textures/brick_red.png",
+      "size": [
+        60,
+        48
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "Red running-bond masonry wainscoting, piers, and planter bases (LimeZu brick_red swatch)"
+    },
+    {
+      "name": "wall_block",
+      "texture": "textures/block_courses.png",
+      "size": [
+        48,
+        48
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "Painted concrete block projection wing and screen tower vault base (LimeZu block_courses swatch)"
+    },
+    {
+      "name": "wall_wood_siding",
+      "texture": "textures/plank_vertical.png",
+      "size": [
+        32,
+        22
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "Weathered timber cladding on screen tower rear backing and perimeter acoustic light-shield fence (LimeZu plank_vertical)"
+    },
+    {
+      "name": "trim_teal",
+      "texture": "textures/teal.png",
+      "size": [
+        128,
+        128
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "1950s Googie turquoise/teal enameled structural steel fascia, pylon fins, and canopy trim"
+    },
+    {
+      "name": "roof_tin_blue",
+      "texture": "textures/roof_tin_blue.png",
+      "size": [
+        32,
+        32
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "Blue ribbed metal roof decking over canopy, screen crown, and projection booth (LimeZu roof_tin_blue)"
+    },
+    {
+      "name": "roof_ballast",
+      "texture": "textures/ballast.png",
+      "size": [
+        32,
+        32
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "Aggregate gravel roof ballast on main flat roof deck (LimeZu ballast)"
+    },
+    {
+      "name": "ground_asphalt",
+      "texture": "textures/asphalt_worn.png",
+      "size": [
+        32,
+        32
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "Compacted dark drive-in lot asphalt and tiered viewing berm ramps (LimeZu asphalt_worn)"
+    },
+    {
+      "name": "ground_paving",
+      "texture": "textures/pavement.png",
+      "size": [
+        32,
+        32
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "Concrete front sidewalk, ticket island, and central pedestrian plaza walk (LimeZu pavement)"
+    },
+    {
+      "name": "glass_concession",
+      "texture": "textures/glass.png",
+      "size": [
+        512,
+        256
+      ],
+      "alphaMode": "BLEND",
+      "emissive": false,
+      "role": "Semi-transparent concession storefront, ticket booth, and optical projection port glazing"
+    },
+    {
+      "name": "glow_signage",
+      "texture": "textures/signs.png",
+      "size": [
+        512,
+        256
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": true,
+      "role": "Self-lit neon marquee signage, NOW SHOWING reader board, soffit downlights, and drive-in feature screen"
+    },
+    {
+      "name": "detail_utility",
+      "texture": "textures/utility.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "Four-quadrant utility atlas: brushed steel trusses/speakers, dark rubber/tar, coral accent, interior cream"
+    }
+  ],
+  "collision": {
+    "node": "collision",
+    "boxes_count": 57,
+    "boxes_blender_z_up": [
+      {
+        "center": [
+          -17.072,
+          34.7648,
+          1.164
+        ],
+        "size": [
+          0.2716,
+          4.3068,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_west_-476",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          17.072,
+          34.7648,
+          1.164
+        ],
+        "size": [
+          0.2716,
+          4.3068,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_east_-476",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -17.072,
+          30.1088,
+          1.164
+        ],
+        "size": [
+          0.2716,
+          4.3068,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_west_-416",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          17.072,
+          30.1088,
+          1.164
+        ],
+        "size": [
+          0.2716,
+          4.3068,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_east_-416",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -17.072,
+          25.4528,
+          1.164
+        ],
+        "size": [
+          0.2716,
+          4.3068,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_west_-356",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          17.072,
+          25.4528,
+          1.164
+        ],
+        "size": [
+          0.2716,
+          4.3068,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_east_-356",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -17.072,
+          20.7968,
+          1.164
+        ],
+        "size": [
+          0.2716,
+          4.3068,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_west_-296",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          17.072,
+          20.7968,
+          1.164
+        ],
+        "size": [
+          0.2716,
+          4.3068,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_east_-296",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -17.072,
+          16.1408,
+          1.164
+        ],
+        "size": [
+          0.2716,
+          4.3068,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_west_-236",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          17.072,
+          16.1408,
+          1.164
+        ],
+        "size": [
+          0.2716,
+          4.3068,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_east_-236",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -17.072,
+          11.4848,
+          1.164
+        ],
+        "size": [
+          0.2716,
+          4.3068,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_west_-176",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          17.072,
+          11.4848,
+          1.164
+        ],
+        "size": [
+          0.2716,
+          4.3068,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_east_-176",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -17.072,
+          6.8288,
+          1.164
+        ],
+        "size": [
+          0.2716,
+          4.3068,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_west_-116",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          17.072,
+          6.8288,
+          1.164
+        ],
+        "size": [
+          0.2716,
+          4.3068,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_east_-116",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -17.072,
+          2.1728,
+          1.164
+        ],
+        "size": [
+          0.2716,
+          4.3068,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_west_-56",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          17.072,
+          2.1728,
+          1.164
+        ],
+        "size": [
+          0.2716,
+          4.3068,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_east_-56",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -17.072,
+          -0.776,
+          1.164
+        ],
+        "size": [
+          0.2716,
+          0.8924,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_west_4",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          17.072,
+          -0.776,
+          1.164
+        ],
+        "size": [
+          0.2716,
+          0.8924,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_east_4",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -14.744,
+          35.8512,
+          1.164
+        ],
+        "size": [
+          4.3068,
+          0.2716,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_north_west",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          14.744,
+          35.8512,
+          1.164
+        ],
+        "size": [
+          4.3068,
+          0.2716,
+          2.1728
+        ],
+        "group": "lot",
+        "source": "fence_north_east",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -4.656,
+          0.1552,
+          0.4656
+        ],
+        "size": [
+          6.79,
+          0.2716,
+          0.6208
+        ],
+        "group": "structure",
+        "source": "front_wall_west",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          4.656,
+          0.1552,
+          0.4656
+        ],
+        "size": [
+          6.79,
+          0.2716,
+          0.6208
+        ],
+        "group": "structure",
+        "source": "front_wall_east",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -1.164,
+          0.1552,
+          1.2416
+        ],
+        "size": [
+          0.1164,
+          0.1164,
+          2.1728
+        ],
+        "group": "structure",
+        "source": "door_panel_main_gate",
+        "attachment": "door_panel_main",
+        "gate_node": "door_panel_main"
+      },
+      {
+        "center": [
+          7.9152,
+          3.88,
+          0.4656
+        ],
+        "size": [
+          0.2716,
+          7.1004,
+          0.6208
+        ],
+        "group": "structure",
+        "source": "east_wall",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -7.9152,
+          3.88,
+          0.4656
+        ],
+        "size": [
+          0.2716,
+          7.1004,
+          0.6208
+        ],
+        "group": "structure",
+        "source": "west_wall",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -5.432,
+          7.2944,
+          0.6208
+        ],
+        "size": [
+          4.6172,
+          0.2716,
+          0.9312
+        ],
+        "group": "structure",
+        "source": "rear_wall_west",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          0.0,
+          7.2944,
+          0.9312
+        ],
+        "size": [
+          6.1692,
+          0.2716,
+          1.552
+        ],
+        "group": "structure",
+        "source": "rear_wall_projection_booth",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          3.9576,
+          7.2944,
+          1.7072
+        ],
+        "size": [
+          1.6684,
+          0.2716,
+          3.104
+        ],
+        "group": "structure",
+        "source": "rear_wall_east_inner",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          6.9064,
+          7.2944,
+          1.7072
+        ],
+        "size": [
+          1.6684,
+          0.2716,
+          3.104
+        ],
+        "group": "structure",
+        "source": "rear_wall_east_outer",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          5.432,
+          7.2944,
+          1.3192
+        ],
+        "size": [
+          1.2028,
+          0.1164,
+          2.328
+        ],
+        "group": "structure",
+        "source": "door_panel_back_gate",
+        "attachment": "door_panel_back",
+        "gate_node": "door_panel_back"
+      },
+      {
+        "center": [
+          -4.0352,
+          3.5696,
+          0.582
+        ],
+        "size": [
+          5.5484,
+          0.8924,
+          0.8536
+        ],
+        "group": "structure",
+        "source": "concession_counter_front",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -6.3632,
+          5.432,
+          0.582
+        ],
+        "size": [
+          0.8924,
+          2.7548,
+          0.8536
+        ],
+        "group": "structure",
+        "source": "concession_counter_return",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -0.776,
+          6.5184,
+          1.7072
+        ],
+        "size": [
+          0.2716,
+          1.2028,
+          3.104
+        ],
+        "group": "structure",
+        "source": "proj_booth_west_wall",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          2.9488,
+          5.9752,
+          1.7072
+        ],
+        "size": [
+          0.2716,
+          2.2892,
+          3.104
+        ],
+        "group": "structure",
+        "source": "proj_booth_east_wall",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          1.0864,
+          4.9664,
+          1.7072
+        ],
+        "size": [
+          3.9964,
+          0.2716,
+          3.104
+        ],
+        "group": "structure",
+        "source": "proj_booth_south_wall",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -6.8288,
+          -1.3968,
+          0.388
+        ],
+        "size": [
+          0.4268,
+          0.4268,
+          0.4656
+        ],
+        "group": "structure",
+        "source": "canopy_pier_-88",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          6.8288,
+          -1.3968,
+          0.388
+        ],
+        "size": [
+          0.4268,
+          0.4268,
+          0.4656
+        ],
+        "group": "structure",
+        "source": "canopy_pier_88",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -12.7264,
+          1.2416,
+          0.6208
+        ],
+        "size": [
+          0.2716,
+          3.0652,
+          0.9312
+        ],
+        "group": "structure",
+        "source": "kiosk_east_wall",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -13.6576,
+          -0.1552,
+          0.6208
+        ],
+        "size": [
+          2.134,
+          0.2716,
+          0.9312
+        ],
+        "group": "structure",
+        "source": "kiosk_south_wall",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -13.6576,
+          2.6384,
+          0.6208
+        ],
+        "size": [
+          2.134,
+          0.2716,
+          0.9312
+        ],
+        "group": "structure",
+        "source": "kiosk_north_wall",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -14.5888,
+          2.1728,
+          1.6296
+        ],
+        "size": [
+          0.2716,
+          1.2028,
+          2.9488
+        ],
+        "group": "structure",
+        "source": "kiosk_west_wall_north",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -14.5888,
+          -0.0,
+          1.6296
+        ],
+        "size": [
+          0.2716,
+          0.582,
+          2.9488
+        ],
+        "group": "structure",
+        "source": "kiosk_west_wall_south",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -14.5888,
+          0.9312,
+          1.2416
+        ],
+        "size": [
+          0.1164,
+          1.2028,
+          2.1728
+        ],
+        "group": "structure",
+        "source": "door_panel_side_gate",
+        "attachment": "door_panel_side",
+        "gate_node": "door_panel_side"
+      },
+      {
+        "center": [
+          0.0,
+          33.8336,
+          0.6596
+        ],
+        "size": [
+          17.3436,
+          1.8236,
+          1.164
+        ],
+        "group": "structure",
+        "source": "screen_tower_base_vault",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -6.984,
+          36.9376,
+          0.4268
+        ],
+        "size": [
+          0.7372,
+          0.8924,
+          0.6984
+        ],
+        "group": "structure",
+        "source": "screen_truss_pier_-90",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -4.1904,
+          36.9376,
+          0.4268
+        ],
+        "size": [
+          0.7372,
+          0.8924,
+          0.6984
+        ],
+        "group": "structure",
+        "source": "screen_truss_pier_-54",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -1.3968,
+          36.9376,
+          0.4268
+        ],
+        "size": [
+          0.7372,
+          0.8924,
+          0.6984
+        ],
+        "group": "structure",
+        "source": "screen_truss_pier_-18",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          1.3968,
+          36.9376,
+          0.4268
+        ],
+        "size": [
+          0.7372,
+          0.8924,
+          0.6984
+        ],
+        "group": "structure",
+        "source": "screen_truss_pier_18",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          4.1904,
+          36.9376,
+          0.4268
+        ],
+        "size": [
+          0.7372,
+          0.8924,
+          0.6984
+        ],
+        "group": "structure",
+        "source": "screen_truss_pier_54",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          6.984,
+          36.9376,
+          0.4268
+        ],
+        "size": [
+          0.7372,
+          0.8924,
+          0.6984
+        ],
+        "group": "structure",
+        "source": "screen_truss_pier_90",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          12.7264,
+          -0.9312,
+          0.5044
+        ],
+        "size": [
+          3.0652,
+          2.134,
+          0.8536
+        ],
+        "group": "lot",
+        "source": "marquee_pylon_base",
+        "attachment": "marquee_pylon"
+      },
+      {
+        "center": [
+          11.64,
+          5.2768,
+          1.0864
+        ],
+        "size": [
+          0.2716,
+          3.686,
+          1.8624
+        ],
+        "group": "lot",
+        "source": "service_yard_east_wall",
+        "attachment": "service_yard"
+      },
+      {
+        "center": [
+          9.7776,
+          6.984,
+          1.0864
+        ],
+        "size": [
+          3.3756,
+          0.2716,
+          1.8624
+        ],
+        "group": "lot",
+        "source": "service_yard_north_wall",
+        "attachment": "service_yard"
+      },
+      {
+        "center": [
+          10.5536,
+          3.5696,
+          1.0864
+        ],
+        "size": [
+          1.8236,
+          0.2716,
+          1.8624
+        ],
+        "group": "lot",
+        "source": "service_yard_south_wall",
+        "attachment": "service_yard"
+      },
+      {
+        "center": [
+          10.5536,
+          5.8976,
+          0.6984
+        ],
+        "size": [
+          1.2028,
+          0.8924,
+          1.0864
+        ],
+        "group": "lot",
+        "source": "dumpster_-82",
+        "attachment": "service_yard"
+      },
+      {
+        "center": [
+          10.5536,
+          4.5008,
+          0.6984
+        ],
+        "size": [
+          1.2028,
+          0.8924,
+          1.0864
+        ],
+        "group": "lot",
+        "source": "dumpster_-64",
+        "attachment": "service_yard"
+      },
+      {
+        "center": [
+          8.536,
+          5.9752,
+          0.9312
+        ],
+        "size": [
+          0.8924,
+          1.0476,
+          1.552
+        ],
+        "group": "lot",
+        "source": "transformer_cabinet",
+        "attachment": "service_yard"
+      }
+    ]
+  },
+  "open_questions_and_risks": [
+    "Door panels (door_panel_main, door_panel_back, door_panel_side) are visible and collidable by default; hide the panel node and drop its gated collision box when an interaction opens a doorway.",
+    "Drive-in speaker posts (speaker_post_01..18 under speaker_posts) carry ramp and post_slot extras for vehicle parking alignment; no cars are bundled in the landmark mesh.",
+    "The widescreen feature presentation panel (glow_signage screen_canvas) is authored at 192x72 art pixels (14.90 m x 5.59 m) and can be swapped at runtime for dynamic movie frames."
+  ],
+  "swatches_used": [
+    "brick_red",
+    "block_courses",
+    "ballast",
+    "roof_tin_blue",
+    "plank_vertical",
+    "asphalt_worn",
+    "pavement"
+  ],
+  "licence": "LimeZu swatches: Timerpg game use only, credit required. Original mesh and supplemental pixel artwork."
+}
