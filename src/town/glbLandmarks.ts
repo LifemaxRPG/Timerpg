@@ -21,12 +21,13 @@ export type GlbLandmarkKind =
   | 'landmark_glb_premier_railroad_depot'
   | 'landmark_glb_coin_laundromat'
   | 'landmark_glb_foundry_nightclub'
-  | 'landmark_glb_foundry_factory';
+  | 'landmark_glb_foundry_factory'
+  | 'landmark_glb_funeral_home';
 
 export interface GlbLandmarkSpec {
   name: string;
   /** The business it houses. */
-  role: 'gas_station' | 'diner' | 'bowling' | 'newspaper' | 'feed_mill' | 'nightclub' | 'drive_in' | 'water_tower' | 'motel' | 'railroad_depot' | 'laundromat' | 'factory';
+  role: 'gas_station' | 'diner' | 'bowling' | 'newspaper' | 'feed_mill' | 'nightclub' | 'drive_in' | 'water_tower' | 'motel' | 'railroad_depot' | 'laundromat' | 'factory' | 'funeral_home';
   /** The design's years: built from..to (it may stand long after, as the simulation decides), and its sample year. */
   era: { from: number; to: number; built: number };
   /** The lot, metres: width along the street, depth back from it; the building's walls. */
@@ -67,6 +68,11 @@ export const GLB_LANDMARKS: Record<GlbLandmarkKind, GlbLandmarkSpec> = {
   // the works The Foundry was made from, in its working years: a tin sawtooth roof, a tall brick chimney, the gate gantry;
   // its name painted on the brick in four variants (glbSites.ts FACTORY_NAMES; opens 1900-45, on the club's plot)
   landmark_glb_foundry_factory: { name: 'Hargrove Iron Works', role: 'factory', era: { from: 1900, to: 1945, built: 1938 }, lot: [28.56, 29.8], building: [19.87, 18.0] },
+  // an early-1900s house converted to a funeral home: portico, covered side arrival lane, vaulted chapel wing, rear service bay.
+  // era = the conversion window (drawn from the seed; it stays one to the present). The house was built before that (the
+  // design's years 1910-35, from the seed: glbSites.ts houseBuilt, data only); before the conversion the plot is open ground
+  // in the export, as the other models' plots are before they open. Its family name is painted per town (glbSites.ts FUNERAL_NAMES)
+  landmark_glb_funeral_home: { name: 'Hollis & Sons Funeral Home', role: 'funeral_home', era: { from: 1935, to: 1960, built: 1948 }, lot: [26.38, 22.66], building: [21.74, 17.65] },
 };
 export const GLB_LANDMARK_KINDS = Object.keys(GLB_LANDMARKS) as GlbLandmarkKind[];
 

@@ -3,7 +3,7 @@
 Landmarks modelled by hand to the contract in `docs/CHATGPT_MODEL_GUIDE.md` (glTF 2.0 binary, metres, Y up, entrance
 +Z, materials named by role, door nodes, a collision-only mesh, an optional `lot` group) are read and built by the
 engine like the code-built cinema and stores, and drawn through the same lit material. Status (2026-11-19): fourteen
-models; the generated towns place them (branch wf-place: "In the town" below), desktop renders only, not yet on the S25.
+models (and the funeral home, "The funeral home" below, the fifteenth); the generated towns place them (branch wf-place: "In the town" below), desktop renders only, not yet on the S25.
 
 ## The models (app/src/main/assets/landmarks/)
 
@@ -83,6 +83,50 @@ shut 1970-2005 (at least 20 years on) and stand dark; when the town has 8,000 in
 after they shut, The Foundry opens on the same plot (the works' model stands until that year: `gone` = the club's
 opening). A town that never reaches 8,000 keeps its works shut. No Foundry without its works (a Pulse otherwise). gamma:
 Pelham Foundry & Machine Co., 1909-1980, dark 1980-2022, The Foundry 2022, on the west edge (Larch Road side, row 18R).
+
+## The funeral home (2026-11-19, branch wf-funeral)
+
+`funeral-home/` (source `tools/landmarks/funeral-home/`: `source/funeral-home.glb` is the modeller's file, `python3 make_variants.py`
+writes the six name variants and the .glb files to the assets; model-info.json copied with `git show`). "Willow House Funeral Home": an
+early-1900s house converted, with a portico, a covered side arrival lane, a vaulted chapel wing and a rear service bay; lot 26.4 x 22.7 m,
+building 21.7 x 17.7 m, 4,062 triangles, 12 materials, 7 door anchors (5 exterior, 2 internal), 27 listed collision boxes. Imported as the
+earlier ones (`git show` of the files, catalogue, glbLandmarks.ts, LandmarkGlbTest).
+- **Its name per town**: the sign's two big lines are repainted from the seed (`make_variants.py` SURNAMES; glbSites.ts FUNERAL_FAMILIES /
+  FUNERAL_NAMES, the catalogue's `variants`): "<Hollis | Pruitt | Marlow | Whelan | Ashby | Kessler> & Sons Funeral Home", on both faces
+  (the front and the back panel share one atlas region, both read left to right from their side: checked on the mesh's UVs). The model's own
+  "WILLOW HOUSE" name is not used.
+- **Doors**: five exterior doors are entrances (`door_main` at the portico, `door_arrival`, `door_staff`, `door_chapel_exit`,
+  `door_service_bay`); the two the info file marks `"external": false` (`door_chapel`, `door_service_inner`, and the laundromat's
+  `door_service_inside`) are left out of the entrances (the interiors job's). Every closed door panel and its `gate_node` box stays closed
+  (a box in each doorway), so "Go inside" stands at `door_main` 0.24 m past the front edge, outside its closed box (tested).
+- **Glow**: `glass_home` is door art and glass in one picture; its `pane-emission.png` (the emissive picture) is a mask. The loader now
+  honours an emissive picture of the glass's own size that differs from its base picture (the feed mill's and the Gazette's copy their
+  base picture and keep the old rule): only the texels it lights (luminance over 40) mirror the sky by day and glow at night, so the
+  wooden doors stay dark (tested on the atlas's door regions). The sign is an externally lit board, not emissive (no glow).
+- **Collision**: the 27 boxes are read from model-info.json (Blender Z up, front -Y: glTF x = x, z = -y, height from z) as for all
+  models; checked in `funeral_home_collision.png` (preview `-Dmode=filament-landmarks -Dlandmarks=funeral`) and by test against the
+  listed centres and sizes. The main floor is at 0.4656 m with real steps (no ground change needed: its grounds are at 0 or above).
+- **In the town** (glbSites.ts): a town of 1,500 and more (at its peak) gets one. Lot type `house` (a residential-edge or older-street plot,
+  not a highway strip): on a side street (never the main street) that is there when the plan begins, with no used shop plot within four
+  tiles (neither an old-core street wall nor a strip), clear of the plot's usual ground with a landmark's plot and the plaza/town hall's
+  pad one tile less than the others (a house lot may stand against them); scored for being near the core (about 40 tiles) among houses
+  and on the oldest street. It is placed **last**, after every other model, so it never moves another's plot; a town with no house-sized
+  ground left (gamma: the plot is 22 x 11 tiles, 27 x 23 m) gives it **the first pick instead**; the others are then placed in their order
+  with the big optional ones (the feed mill, the bowling alley, the motel: each subset tried) last, whichever order leaves the most
+  models a plot, and what no longer fits is left out (`glbUnplaced`). The house is built 1910-35 from the seed (`houseBuilt`, data) and
+  converted to a funeral home 1935-60 from the seed (`opened`), and stays one to the present (never closed or pulled down); `owners` lists the
+  families (the founders, and from 1975-2012 in half the towns another: data only, the sign keeps the founders' name). **Before the
+  conversion the plot is open ground in the export**, as every model's plot is before it opens: the model's lane, chapel and service bay
+  are in one merged `structure` mesh and cannot be hidden into a plain house, and a plan house lot belongs to residents the plot cannot
+  take. (An ordinary house on the plot before the conversion needs the engine to draw a plan house on a landmark plot: not done.)
+- **gamma**: Hollis & Sons Funeral Home, the house built 1927, converted 1940, on the west edge (Larch Road, row 18R, plot 17,100, 22 x 11
+  tiles, 108 tiles from the plaza: the core has no free ground) where the Foundry used to be. Gamma had no house-sized ground left, so the
+  funeral home took the first pick: the iron works and its club moved east (237,116) and the **feed mill (Hearthside) found no plot**
+  (gamma already had no bowling alley); the Gazette, water tower, laundry and the drive-in's plot (the 2016 gas station) are where they were.
+  street.json and the desktop fixture are re-exported. Other test towns: mu, quartz, orbit, theta, kappa, beta, zeta each place one on
+  the last pass at 72-107 tiles from their plazas (a residential edge), moving nothing.
+- Left: the attic gable window glows at night (the roof void is closed); a lot's lawn is a duller green than the town's grass (the model's
+  `ground_lawn` swatch); no shut or reused look.
 
 ## The loader (shared/src/filament/kotlin/scene3d/)
 
