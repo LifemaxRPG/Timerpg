@@ -1,0 +1,297 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1970,
+  "topic": "home",
+  "facts": [
+    {
+      "id": "1970-home-01",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Families serve casseroles from baking dishes at weeknight suppers.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-02",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A cook stretches leftover roast meat into sandwiches for the next day's lunch.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-03",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Children set the table with plates, glasses, and silverware before supper.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-04",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A parent calls children inside when supper is ready.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-05",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Families keep a kitchen calendar marked with appointments and birthdays.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-06",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A kitchen bulletin board holds school notices and handwritten reminders.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-07",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Some families eat supper from trays while watching an evening program.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-08",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Parents pack sandwiches and fruit into lunchboxes for schoolchildren.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-09",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Children rinse dishes and clear the table after supper.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-10",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A family stores leftovers in covered bowls in the refrigerator.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-11",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Home cooks save recipe cards in a small box near the kitchen.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-12",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A household hangs damp towels on a bathroom rack to dry.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-13",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Family members take turns using the bathroom on busy school mornings.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-14",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Some households hang clean laundry on an outdoor clothesline when the weather is pleasant.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-15",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A parent irons shirts on a folding board before work or school.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-16",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Families sort dirty clothes into separate piles before washing.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-17",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Children make their beds before leaving for school.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-18",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Many living rooms feature patterned upholstery and wall-to-wall carpeting.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-19",
+      "year_from": 1972,
+      "year_to": 1979,
+      "text": "Some households decorate kitchens with earth-toned wallpaper and patterned curtains.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-20",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A family keeps extra blankets in a hallway linen closet.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-21",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Neighbors bring homemade dishes to a family recovering from illness.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-22",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Children play board games at the dining table on rainy afternoons.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-23",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A family gathers around the dining table for a birthday cake.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-24",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Parents remind children to turn off lights in empty rooms.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-25",
+      "year_from": 1973,
+      "year_to": 1979,
+      "text": "Some households lower the thermostat and wear sweaters indoors to save heating fuel.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-home-26",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A family keeps a flashlight and spare batteries handy for power outages.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
