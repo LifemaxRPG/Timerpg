@@ -31,6 +31,7 @@ object FrameSpikes {
     /** What the AI's lane runs now ("dialogue", "voice", "speech", "memory") or null: [com.timerpg.street.llm.AiLane.current]. */
     private fun aiNow(): String? = com.timerpg.street.llm.AiLane.current
 
+    private val EXTRA = arrayOf("gpu", "gc", "gc (blocking)", "AI", "HUD", "uploads", "unexplained")
     private var lastAt = 0L
     private var lastInterval = 0f
     private var gcCount = -1L
@@ -56,7 +57,6 @@ object FrameSpikes {
         var line = ""
     }
 
-    private val EXTRA = arrayOf("gpu", "gc", "gc (blocking)", "AI", "HUD", "uploads", "unexplained")
     private const val X_GPU = 0; private const val X_GC = 1; private const val X_GC_BLOCK = 2; private const val X_AI = 3
     private const val X_HUD = 4; private const val X_UP = 5; private const val X_NONE = 6
 

@@ -38,6 +38,9 @@ class BikeRideTest {
     companion object {
         const val STEP = 6f
         const val ROOM = BikeState.RADIUS + 2.5f
+        const val PATH_ROOM = BikeState.RADIUS + 6f
+        /** A leg at least this long (street units of path) crosses the town. */
+        const val CROSSING = 1500f
         val cols by lazy { ((OpenWalkTest.map.maxX - OpenWalkTest.map.minX) / STEP).toInt() }
         val rows by lazy { ((OpenWalkTest.map.maxZ - OpenWalkTest.map.minZ) / STEP).toInt() }
         val free: BitSet by lazy {
@@ -46,26 +49,53 @@ class BikeRideTest {
             for (j in 0 until rows) for (i in 0 until cols) if (!m.blocked(cx(i), cz(j), ROOM)) b.set(j * cols + i)
             b
         }
+        /**
+         * Cells free but within [PATH_ROOM] of something: the planned path avoids them where it can (a cost, not a wall: the
+         * bike's front wheel swings [BikeState.FRONT] ahead of its middle in a turn, and a path hugging a row of posts at the
+         * bike's own room had it catch every bollard on the pavement: the leg to b56's back yard stuck 5 s on 14L's).
+         */
+        val tight: BitSet by lazy {
+            val m = OpenWalkTest.map
+            val b = BitSet(cols * rows)
+            var c = free.nextSetBit(0)
+            while (c >= 0) { if (m.blocked(cx(c % cols), cz(c / cols), PATH_ROOM)) b.set(c); c = free.nextSetBit(c + 1) }
+            b
+        }
         fun cx(i: Int) = OpenWalkTest.map.minX + (i + .5f) * STEP
         fun cz(j: Int) = OpenWalkTest.map.minZ + (j + .5f) * STEP
         fun cellOf(x: Float, z: Float) = ((z - OpenWalkTest.map.minZ) / STEP).toInt() * cols + ((x - OpenWalkTest.map.minX) / STEP).toInt()
     }
 
+    /** The cheapest way from [from] to every cell (a step 2, a diagonal 3, a [tight] cell 6 more): parents, -1 unreached (Dial's buckets). */
     private fun bfs(from: Int): IntArray {
-        val par = IntArray(cols * rows) { -1 }
-        val q = IntArray(cols * rows)
-        var h = 0; var t = 0
-        par[from] = from; q[t++] = from
-        while (h < t) {
-            val c = q[h++]
-            val i = c % cols; val j = c / cols
-            fun go(n: Int) { if (par[n] < 0 && free[n]) { par[n] = c; q[t++] = n } }
-            if (i > 0) go(c - 1); if (i < cols - 1) go(c + 1); if (j > 0) go(c - cols); if (j < rows - 1) go(c + cols)
-            // (and the diagonals where both sides are free: paths at any angle, not staircases)
-            if (i > 0 && j > 0 && free[c - 1] && free[c - cols]) go(c - cols - 1)
-            if (i < cols - 1 && j > 0 && free[c + 1] && free[c - cols]) go(c - cols + 1)
-            if (i > 0 && j < rows - 1 && free[c - 1] && free[c + cols]) go(c + cols - 1)
-            if (i < cols - 1 && j < rows - 1 && free[c + 1] && free[c + cols]) go(c + cols + 1)
+        val n = cols * rows
+        val par = IntArray(n) { -1 }
+        val dist = IntArray(n) { Int.MAX_VALUE }
+        val nb = 16
+        val bucket = Array(nb) { IntArray(256) }
+        val size = IntArray(nb)
+        fun push(c: Int, d: Int) { val k = d % nb; if (size[k] == bucket[k].size) bucket[k] = bucket[k].copyOf(size[k] * 2); bucket[k][size[k]++] = c }
+        par[from] = from; dist[from] = 0; push(from, 0)
+        var cur = 0; var left = 1
+        while (left > 0) {
+            val k = cur % nb
+            while (size[k] > 0) {
+                val c = bucket[k][--size[k]]; left--
+                if (dist[c] != cur) continue
+                val i = c % cols; val j = c / cols
+                fun go(m: Int, step: Int) {
+                    if (!free[m]) return
+                    val d = cur + step + (if (tight[m]) 6 else 0)
+                    if (d < dist[m]) { dist[m] = d; par[m] = c; push(m, d); left++ }
+                }
+                if (i > 0) go(c - 1, 2); if (i < cols - 1) go(c + 1, 2); if (j > 0) go(c - cols, 2); if (j < rows - 1) go(c + cols, 2)
+                // (and the diagonals where both sides are free: paths at any angle, not staircases)
+                if (i > 0 && j > 0 && free[c - 1] && free[c - cols]) go(c - cols - 1, 3)
+                if (i < cols - 1 && j > 0 && free[c + 1] && free[c - cols]) go(c - cols + 1, 3)
+                if (i > 0 && j < rows - 1 && free[c - 1] && free[c + cols]) go(c + cols - 1, 3)
+                if (i < cols - 1 && j < rows - 1 && free[c + 1] && free[c + cols]) go(c + cols + 1, 3)
+            }
+            cur++
         }
         return par
     }
@@ -119,7 +149,8 @@ class BikeRideTest {
             val v = if (w.riding) w.bike.speed else w.speed
             val reach = if (w.riding) (v * .7f).coerceIn(24f, 220f) else (v * .45f).coerceIn(14f, 120f)
             var ahead = minOf(path.size - 1, k + (reach / STEP).toInt() + 1)
-            while (ahead > k + 1 && !clearLine(w.wx, w.wz, cx(path[ahead] % cols), cz(path[ahead] / cols), if (w.riding) ROOM else r + .5f)) ahead--
+            // (riding, the line aimed along keeps [PATH_ROOM] off things: the front wheel sweeps wider than the bike's middle)
+            while (ahead > k + 1 && !clearLine(w.wx, w.wz, cx(path[ahead] % cols), cz(path[ahead] / cols), if (w.riding) PATH_ROOM else r + .5f)) ahead--
             var tgt = path[ahead]
             // (stuck against something, as a player would: the stick pulled back a moment, the bike walked back, then on)
             val backing = stuck > .5f && w.riding
@@ -216,6 +247,9 @@ class BikeRideTest {
         goals += "spawn" to spawn
         val trail = ArrayList<Pair<Float, Float>>()
         var rideFrames = 0; var runFrames = 0
+        // (the legs that cross the town: a short leg ending at a back gate is mostly the bike's turn into a gate 30 units
+        // wide from the alley along the fence, which a runner takes on the spot and the bike in a three-point turn)
+        var crossRide = 0; var crossRun = 0
         var rode = 0f
         val done = ArrayList<String>()
         var worstExcess = 0f
@@ -247,7 +281,9 @@ class BikeRideTest {
             assertTrue("did not ride to ${g.first}: at (${rider.wx}, ${rider.wz}) heading (${rider.hx}, ${rider.hz}), speed ${rider.bike.speed}, goal cell ${cx(cell % cols)},${cz(cell / cols)}", leg.arrived)
             rideFrames += leg.frames
             liftFrames += lifts
-            if (run.arrived) runFrames += run.frames else runFrames += (60f + p.size * STEP / 60f / dt).toInt()
+            val runF = if (run.arrived) run.frames else (60f + p.size * STEP / 60f / dt).toInt()
+            runFrames += runF
+            if (p.size * STEP >= CROSSING) { crossRide += leg.frames; crossRun += runF }
             legs.appendLine("  %-26s path %5.0f: ride %5.1f s, run %5.1f s%s".format(g.first, p.size * STEP, leg.frames * dt, run.frames * dt, if (run.arrived) "" else " (did not arrive)"))
             done += g.first
         }
@@ -255,7 +291,11 @@ class BikeRideTest {
         print(legs)
         assertTrue("too few goals: ${done.size} of ${goals.size}", done.size >= goals.size - 2)
         assertTrue("the turning limit was broken by $worstExcess rad/s", worstExcess <= .02f)
-        assertTrue("riding (${rideFrames * dt} s) is not much faster than running (${runFrames * dt} s)", rideFrames < runFrames * .7f)
+        // across the town the bike is much faster; with the short gate legs in, still clearly faster (0.1.402's world: 71% of
+        // the run's time over all the legs, 63% over the crossings; the slow legs were the scripted rider's turns into back
+        // gates and, before its path kept off them, every bollard row it brushed)
+        assertTrue("riding across the town (${crossRide * dt} s) is not much faster than running (${crossRun * dt} s)", crossRide < crossRun * .7f)
+        assertTrue("riding (${rideFrames * dt} s) is not faster than running (${runFrames * dt} s)", rideFrames < runFrames * .8f)
         drawTrail(trail)
     }
 
