@@ -1389,11 +1389,11 @@ private fun chipLabel(t: Topic): String = when (t.intent) {
 private fun aiChipLabel(s: AiStatus): String = when (s.state) {
     ModelState.STARTING -> "AI …"
     ModelState.NO_ENGINE -> "AI off"
-    ModelState.NO_MODEL -> "AI: no model"
+    ModelState.NO_MODEL -> if (s.needLive) "AI: light model missing" else "AI: no model"
     ModelState.COPYING -> if (s.copyPercent >= 0) "AI: copying ${s.copyPercent}%" else "AI: copying ${s.copiedMb} MB"
     ModelState.WAITING -> "AI: waiting"
     ModelState.LOADING -> "AI: loading…"
-    ModelState.READY -> if (s.working != null) "AI ✓ writing" else "AI ✓"
+    ModelState.READY -> (if (s.working != null) "AI ✓ writing" else "AI ✓") + (if (s.runsOn == 0 && s.hasNpu) " (CPU)" else "")
     ModelState.UNLOADED -> "AI: unloaded"
     ModelState.ERROR -> "AI: error"
 }
