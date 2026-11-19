@@ -1,0 +1,396 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1960,
+  "topic": "money",
+  "facts": [
+    {
+      "id": "1960-money-01",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Many families set aside cash for groceries before paying other household bills.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-02",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A shopper often pays for bread and milk with coins and paper bills.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-03",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A cashier counts change back to a customer after a cash purchase.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-04",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A neighborhood grocer may keep a charge account for trusted regular customers.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-05",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Families sometimes pay for furniture or appliances through monthly installment plans.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-06",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A department store may issue its own charge card to approved shoppers.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-07",
+      "year_from": 1966,
+      "year_to": 1969,
+      "text": "Some customers use bank-issued credit cards, but cash and checks remain familiar.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-08",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Many households write checks to pay rent, utilities, and larger bills.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-09",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A worker may receive wages in a paper paycheck rather than an electronic deposit.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-10",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A bank teller handles deposits and withdrawals across the counter.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-11",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A savings passbook records deposits and interest at the bank.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-12",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Parents may give children a small weekly allowance for chores.",
+      "ages": "kids",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-13",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Children save pennies and nickels in a jar for candy or toys.",
+      "ages": "kids",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-14",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A paper route provides some schoolchildren with spending money.",
+      "ages": "kids",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-15",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Teenagers may earn pocket money by babysitting or mowing lawns.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-16",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Customers often leave a cash tip for table service at restaurants.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-17",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A diner patron may leave a few coins beside the plate as a tip.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-18",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A barber may receive a small cash tip after a haircut.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-19",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A family compares prices in newspaper advertisements before shopping.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-20",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A store advertises weekly specials to attract shoppers on a budget.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-21",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A customer may ask to place an item on layaway and pay over time.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-22",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Families budget for gasoline as part of the cost of commuting.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-23",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A local employer may quote wages by the hour rather than by the year.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-24",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Workers compare take-home pay after taxes with the amount on their pay stub.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-25",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A shopper clips discount coupons from the newspaper for groceries.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-money-26",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A customer checks a receipt against the purchases in a grocery bag.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [
+    {
+      "item": "first-class letter postage",
+      "usd": 0.05,
+      "year": 1965,
+      "confidence": "high"
+    },
+    {
+      "item": "federal hourly minimum wage for covered workers",
+      "usd": 1.25,
+      "year": 1965,
+      "confidence": "high"
+    },
+    {
+      "item": "gallon of regular gasoline",
+      "usd": 0.31,
+      "year": 1965,
+      "confidence": "medium"
+    },
+    {
+      "item": "loaf of white bread",
+      "usd": 0.21,
+      "year": 1965,
+      "confidence": "medium"
+    },
+    {
+      "item": "dozen eggs",
+      "usd": 0.53,
+      "year": 1965,
+      "confidence": "medium"
+    },
+    {
+      "item": "gallon of milk",
+      "usd": 1.05,
+      "year": 1965,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of ground beef",
+      "usd": 0.55,
+      "year": 1965,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of butter",
+      "usd": 0.75,
+      "year": 1965,
+      "confidence": "medium"
+    },
+    {
+      "item": "cup of diner coffee",
+      "usd": 0.15,
+      "year": 1965,
+      "confidence": "medium"
+    },
+    {
+      "item": "local newspaper copy",
+      "usd": 0.1,
+      "year": 1968,
+      "confidence": "medium"
+    },
+    {
+      "item": "local bus fare",
+      "usd": 0.2,
+      "year": 1965,
+      "confidence": "medium"
+    },
+    {
+      "item": "basic men's haircut",
+      "usd": 1.75,
+      "year": 1965,
+      "confidence": "medium"
+    }
+  ],
+  "phrases": []
+}
