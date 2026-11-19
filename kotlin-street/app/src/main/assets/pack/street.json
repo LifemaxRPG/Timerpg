@@ -1,0 +1,581 @@
+{
+ "town": "pack",
+ "year": 2025,
+ "type": "pack showcase",
+ "shops": [
+  {
+   "id": "show:pk_m01",
+   "sprite": "pk_m01",
+   "home": false,
+   "name": "pk_m01",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_m01",
+     "w": 224,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_m01",
+    "kit": "brick",
+    "widthTiles": 7,
+    "ground": {
+     "kind": "shop"
+    },
+    "floors": 2,
+    "roof": {
+     "style": "flat",
+     "colour": "teal"
+    },
+    "corner": null,
+    "era": [
+     1950,
+     2029
+    ],
+    "seed": 0
+   }
+  },
+  {
+   "id": "show:pk_m02",
+   "sprite": "pk_m02",
+   "home": false,
+   "name": "pk_m02",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_m02",
+     "w": 320,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_m02",
+    "kit": "brick",
+    "widthTiles": 10,
+    "ground": {
+     "kind": "condo"
+    },
+    "floors": 3,
+    "roof": {
+     "style": "flat",
+     "colour": "teal"
+    },
+    "corner": null,
+    "era": [
+     1950,
+     2029
+    ],
+    "seed": 3
+   }
+  },
+  {
+   "id": "show:pk_m03",
+   "sprite": "pk_m03",
+   "home": false,
+   "name": "pk_m03",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_m03",
+     "w": 256,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_m03",
+    "kit": "blue",
+    "widthTiles": 8,
+    "ground": {
+     "kind": "shop"
+    },
+    "floors": 4,
+    "roof": {
+     "style": "flat",
+     "colour": "gold"
+    },
+    "corner": null,
+    "era": [
+     1950,
+     2029
+    ],
+    "seed": 5
+   }
+  },
+  {
+   "id": "show:pk_m04",
+   "sprite": "pk_m04",
+   "home": false,
+   "name": "pk_m04",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_m04",
+     "w": 192,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_m04",
+    "kit": "grey",
+    "widthTiles": 6,
+    "ground": {
+     "kind": "condo"
+    },
+    "floors": 5,
+    "roof": {
+     "style": "flat",
+     "colour": "stone"
+    },
+    "corner": null,
+    "era": [
+     1950,
+     2029
+    ],
+    "seed": 7
+   }
+  },
+  {
+   "id": "show:pk_m05",
+   "sprite": "pk_m05",
+   "home": false,
+   "name": "pk_m05",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_m05",
+     "w": 384,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_m05",
+    "kit": "blue",
+    "widthTiles": 12,
+    "ground": {
+     "kind": "shop"
+    },
+    "floors": 2,
+    "roof": {
+     "style": "flat",
+     "colour": "gold"
+    },
+    "corner": null,
+    "era": [
+     1950,
+     2029
+    ],
+    "seed": 11
+   }
+  },
+  {
+   "id": "show:pk_m06",
+   "sprite": "pk_m06",
+   "home": false,
+   "name": "pk_m06",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_m06",
+     "w": 288,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_m06",
+    "kit": "grey",
+    "widthTiles": 9,
+    "ground": {
+     "kind": "condo"
+    },
+    "floors": 3,
+    "roof": {
+     "style": "flat",
+     "colour": "stone"
+    },
+    "corner": null,
+    "era": [
+     1950,
+     2029
+    ],
+    "seed": 2
+   }
+  },
+  {
+   "id": "show:pk_m07",
+   "sprite": "pk_m07",
+   "home": false,
+   "name": "pk_m07",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_m07",
+     "w": 160,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_m07",
+    "kit": "brick",
+    "widthTiles": 5,
+    "ground": {
+     "kind": "shop"
+    },
+    "floors": 6,
+    "roof": {
+     "style": "flat",
+     "colour": "teal"
+    },
+    "corner": null,
+    "era": [
+     1950,
+     2029
+    ],
+    "seed": 4
+   }
+  },
+  {
+   "id": "show:pk_m08",
+   "sprite": "pk_m08",
+   "home": false,
+   "name": "pk_m08",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_m08",
+     "w": 128,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_m08",
+    "kit": "blue",
+    "widthTiles": 4,
+    "ground": {
+     "kind": "condo"
+    },
+    "floors": 3,
+    "roof": {
+     "style": "flat",
+     "colour": "gold"
+    },
+    "corner": null,
+    "era": [
+     1950,
+     2029
+    ],
+    "seed": 9
+   }
+  },
+  {
+   "id": "show:pk_m09",
+   "sprite": "pk_m09",
+   "home": false,
+   "name": "pk_m09",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_m09",
+     "w": 448,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_m09",
+    "kit": "grey",
+    "widthTiles": 14,
+    "ground": {
+     "kind": "shop"
+    },
+    "floors": 2,
+    "roof": {
+     "style": "flat",
+     "colour": "stone"
+    },
+    "corner": null,
+    "era": [
+     1950,
+     2029
+    ],
+    "seed": 6
+   }
+  },
+  {
+   "id": "show:pk_c7a",
+   "sprite": "pk_c7a",
+   "home": false,
+   "name": "pk_c7a",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_c7a",
+     "w": 96,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_c7a",
+    "kit": "condo7",
+    "widthTiles": 3,
+    "floors": 3,
+    "seed": 1
+   }
+  },
+  {
+   "id": "show:pk_c7b",
+   "sprite": "pk_c7b",
+   "home": false,
+   "name": "pk_c7b",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_c7b",
+     "w": 96,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_c7b",
+    "kit": "condo7",
+    "widthTiles": 3,
+    "floors": 5,
+    "seed": 4
+   }
+  },
+  {
+   "id": "show:pk_o1a",
+   "sprite": "pk_o1a",
+   "home": false,
+   "name": "pk_o1a",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_o1a",
+     "w": 96,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_o1a",
+    "kit": "office",
+    "style": 1,
+    "mid": 1,
+    "blocks": 2
+   }
+  },
+  {
+   "id": "show:pk_o2a",
+   "sprite": "pk_o2a",
+   "home": false,
+   "name": "pk_o2a",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_o2a",
+     "w": 96,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_o2a",
+    "kit": "office",
+    "style": 2,
+    "mid": 2,
+    "blocks": 3
+   }
+  },
+  {
+   "id": "show:pk_c1a",
+   "sprite": "pk_c1a",
+   "home": false,
+   "name": "pk_c1a",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_c1a",
+     "w": 192,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_c1a",
+    "kit": "condo12",
+    "widthTiles": 6,
+    "colour": 1,
+    "height": "tall",
+    "columns": [
+     1,
+     3,
+     4,
+     5,
+     2
+    ]
+   }
+  },
+  {
+   "id": "show:pk_c1b",
+   "sprite": "pk_c1b",
+   "home": false,
+   "name": "pk_c1b",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_c1b",
+     "w": 256,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_c1b",
+    "kit": "condo12",
+    "widthTiles": 8,
+    "colour": 2,
+    "height": "short",
+    "columns": [
+     6,
+     9,
+     8,
+     10,
+     7
+    ]
+   }
+  }
+ ],
+ "streets": [
+  {
+   "name": "Facade kit",
+   "buildings": [
+    "pk_m01",
+    "pk_m02",
+    "pk_m03",
+    "pk_m04",
+    "pk_m05"
+   ]
+  },
+  {
+   "name": "Facade kit 2",
+   "buildings": [
+    "pk_m06",
+    "pk_m07",
+    "pk_m08",
+    "pk_m09"
+   ]
+  },
+  {
+   "name": "Towers and terraces",
+   "buildings": [
+    "pk_c7a",
+    "pk_c7b",
+    "pk_o1a",
+    "pk_o2a",
+    "pk_c1a",
+    "pk_c1b"
+   ]
+  }
+ ]
+}
