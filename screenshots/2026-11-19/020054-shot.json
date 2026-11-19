@@ -1,0 +1,177 @@
+{
+  "kind": "screenshot",
+  "time": "2026-11-19T02:00:54.154-0500",
+  "epochMs": 1795071654154,
+  "note": null,
+  "app": {
+    "versionName": "0.1.367 (a818642)",
+    "versionCode": 367,
+    "git": "a818642",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "image": {
+    "file": "020054-shot.png",
+    "format": "png",
+    "scale": 1,
+    "width": 2340,
+    "height": 1080,
+    "bytes": 1500219,
+    "captured": "PixelCopy of the window"
+  },
+  "screen": {
+    "widthPx": 2244,
+    "heightPx": 1038,
+    "density": 2.8125,
+    "densityDpi": 450
+  },
+  "device": {
+    "ramFreeMb": 2540,
+    "ramTotalMb": 11113,
+    "lowMemory": false,
+    "gamePssMb": 2405,
+    "thermalStatus": 2,
+    "thermalHeadroom10s": 0.9184466
+  },
+  "game": {
+    "renderer": "Filament",
+    "camera": "medium",
+    "view": "open",
+    "orbit": {
+      "yaw": -119.61799,
+      "pitch": 10,
+      "dist": 420,
+      "pulled": 420,
+      "goalYaw": -119.61799,
+      "goalPitch": 10,
+      "goalDist": 420,
+      "tx": 14087.591,
+      "tz": 5816.607,
+      "line": "camera open yaw -119.6 pitch 10.0 dist 420 (pulled to 420) at (14088, 5817)"
+    },
+    "rendererError": null,
+    "town": "eta · Commuter suburb · 2025",
+    "walkableTown": {
+      "seed": "gamma",
+      "loading": false,
+      "ready": true,
+      "progress": 1,
+      "error": null,
+      "loadMs": 573.827,
+      "firstViewMs": 41848.477,
+      "built": "town built: ground 41848 ms (workers 41839), buildings 665 ms here (slowest b26 9.8 ms, largest batch 16.1 ms), 13063 ms on workers (slowest b0 1484 ms); textures 947, 82.1M texels, 4056 shared",
+      "memory": {
+        "when": "town built",
+        "graphicsMb": 1031,
+        "nativeMb": 92,
+        "javaMb": 80,
+        "codeMb": 31,
+        "totalPssMb": 1303
+      },
+      "row": "15L",
+      "street": "Main Street",
+      "neighbourhood": "Woodside",
+      "x": 4698.091,
+      "lane": 404.17813,
+      "wx": 14087.591,
+      "wz": 5816.607,
+      "heading": -2.2152162,
+      "front": null,
+      "transit": null,
+      "liveRows": [
+        "15L",
+        "15R"
+      ],
+      "people": 11,
+      "talkTo": null,
+      "walk": "open",
+      "open": {
+        "door": null,
+        "yard": null,
+        "speed": 0,
+        "blocked": 0,
+        "cameraYaw": -2.0877278,
+        "hx": -0.7994485,
+        "hz": 0.6007347
+      }
+    },
+    "street": {
+      "index": 0,
+      "name": "Main Street",
+      "nearestBuilding": 2,
+      "building": "Holloway's Bakery",
+      "owner": "Clyde Holloway",
+      "atCorner": false,
+      "edge": 0
+    },
+    "player": {
+      "x": 4698.091,
+      "lane": 404.17813,
+      "street": 0,
+      "dir": -1,
+      "walking": false,
+      "running": false,
+      "viewMiddle": 284.625
+    },
+    "turn": {
+      "active": false,
+      "forward": true,
+      "p": 0,
+      "yaw": 0,
+      "ease": 0,
+      "blocked": false
+    },
+    "inRoom": false,
+    "room": null,
+    "doorFade": false,
+    "time": {
+      "hour": 17.6,
+      "clock": "17:36",
+      "season": "summer",
+      "weather": "Clear"
+    },
+    "frames": {
+      "compose": "Frames: 16.6 ms (60 fps) · p95 16.6 ms · 0.8% late · display 60 Hz",
+      "filament": "Filament: CPU 9.7 ms (p95 10.5) · GPU 9.5 ms (p95 10.5) · start 12 ms, street 1216 ms"
+    },
+    "ai": {
+      "state": "READY",
+      "detail": "Ready: the light model answers in play. Lines ahead of time are written by the main model (overnight, or when it fits).",
+      "runsOn": "CPU",
+      "modelMb": 2463,
+      "role": "live",
+      "forceBank": false,
+      "gpuNote": "Not enough free memory for the GPU copy of the light model right now (3175 MB free, 3513 MB needed), so it runs on the CPU from the file (it moves to the GPU once there is room: checked every 30 s).",
+      "lane": null,
+      "linesWritten": 21,
+      "builtIn": 0,
+      "queued": 600,
+      "paused": "light model loaded",
+      "working": null,
+      "pregenOff": null,
+      "prefillTokPerSec": 0,
+      "genTokPerSec": 0,
+      "firstTokenMs": 0,
+      "loadInfo": null
+    },
+    "conversation": null,
+    "voices": {
+      "enabled": false,
+      "speaking": false,
+      "only": 2,
+      "timing": null
+    },
+    "mic": {
+      "always": true,
+      "granted": false,
+      "listening": false,
+      "state": "IDLE"
+    },
+    "panels": {
+      "aiPanel": false,
+      "crashShown": false,
+      "tuningNpu": false
+    }
+  }
+}
