@@ -37,13 +37,30 @@ im=Image.new('RGBA',(32,32),teal);d=ImageDraw.Draw(im)
 for y in range(0,32,8):
  for x in range(0,32,8):d.polygon([(x+4,y),(x+7,y+4),(x+4,y+7),(x,y+4)],fill=cream if (x+y)%16 else red,outline=ink)
 save(im,'mosaic.png')
-# Fixed flooring: preserve the licensed wood art and its scale.
-src=Image.open(R/'textures/plank_vertical.png').resize((32,32),Image.Resampling.NEAREST)
-im=Image.new('RGBA',(128,128),ink)
-for x in range(0,64,32):
- for y in range(0,64,32):im.paste(src,(x,y))
-REG['wood']={'rect_art':[0,0,64,64]}
-for y in range(32):
- for x in range(14):im.putpixel((67+x,y),src.getpixel((x,y)))
-REG['lane']={'rect_art':[64,0,20,32]};save(im,'lane-wood.png')
+# Bowling-specific maple: quieter honey boards, staggered joints and sparse grain.
+# Original art uses the warm timber palette; the library's orange plank swatch
+# remains credited for the previous finish, but is not stretched into lane stripes.
+im=Image.new('RGBA',(128,128),ink);d=ImageDraw.Draw(im)
+maple=['#a78e6b','#b19976','#ac9270','#b7a180','#ad9472','#b29b79','#a99070']
+def boards(rect):
+ x,y,w,h=rect
+ for xx in range(w):
+  c=maple[(xx//2)%len(maple)]
+  d.line((x+xx,y,x+xx,y+h-1),fill=c)
+  for yy in range((xx//2*11)%29,h,29):
+   if xx%2==0:d.point((x+xx,y+yy),fill='#967c58')
+  for yy in range((xx*7)%23,h,23):d.point((x+xx,y+yy),fill='#b8a07c')
+for key,rect in [('wood',[0,0,64,64]),('lane',[64,0,14,64]),('aim',[64,64,14,32]),('dots',[80,64,14,16]),('deck',[96,64,14,20])]:
+ REG[key]={'rect_art':rect};boards(rect)
+# Seven dark, staggered arrow inlays point down-lane (+Y in Blender).
+for j in range(7):
+ x=64+j*2;y=75+abs(j-3)*4
+ d.rectangle((x,y+1,x+1,y+2),fill=ink);d.point((x,y),fill=ink)
+for x in range(80,94,2):d.point((x,73),fill=ink)
+# Pin spots match the 10-pin triangular rack, within the art-pixel resolution.
+for row in range(4):
+ for j in range(row+1):
+  dx=(2*j-row)*2;dy=row*3.5
+  d.point((96+round(dx+6.5),64+19-round(4+dy)),fill=ink)
+save(im,'lane-wood.png')
 (R/'art-regions.json').write_text(json.dumps(REG,indent=2)+'\n')

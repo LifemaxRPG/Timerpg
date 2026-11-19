@@ -21,7 +21,7 @@
     34.7648,
     42.2144
   ],
-  "triangles_visible": 2954,
+  "triangles_visible": 11936,
   "materials": [
     "detail_utility",
     "floor_lanes",
@@ -337,7 +337,7 @@
         "center": [
           0.0,
           29.9536,
-          0.9312
+          1.0476
         ],
         "size": [
           12.416,
@@ -346,6 +346,201 @@
         ],
         "attachment": "structure",
         "group": "structure"
+      },
+      {
+        "source": "Raised approach",
+        "center": [
+          0.0,
+          8.2256,
+          0.0582
+        ],
+        "size": [
+          12.416,
+          4.0352,
+          0.1164
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Raised lane bed",
+        "center": [
+          -5.432,
+          20.0208,
+          0.0582
+        ],
+        "size": [
+          1.0864,
+          19.5552,
+          0.1164
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Raised lane bed",
+        "center": [
+          -3.88,
+          20.0208,
+          0.0582
+        ],
+        "size": [
+          1.0864,
+          19.5552,
+          0.1164
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Raised lane bed",
+        "center": [
+          -2.3280000000000003,
+          20.0208,
+          0.0582
+        ],
+        "size": [
+          1.0864,
+          19.5552,
+          0.1164
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Raised lane bed",
+        "center": [
+          -0.776,
+          20.0208,
+          0.0582
+        ],
+        "size": [
+          1.0864,
+          19.5552,
+          0.1164
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Raised lane bed",
+        "center": [
+          0.776,
+          20.0208,
+          0.0582
+        ],
+        "size": [
+          1.0864,
+          19.5552,
+          0.1164
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Raised lane bed",
+        "center": [
+          2.3280000000000003,
+          20.0208,
+          0.0582
+        ],
+        "size": [
+          1.0864,
+          19.5552,
+          0.1164
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Raised lane bed",
+        "center": [
+          3.88,
+          20.0208,
+          0.0582
+        ],
+        "size": [
+          1.0864,
+          19.5552,
+          0.1164
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Raised lane bed",
+        "center": [
+          5.432,
+          20.0208,
+          0.0582
+        ],
+        "size": [
+          1.0864,
+          19.5552,
+          0.1164
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Ball return",
+        "center": [
+          -4.656000000000001,
+          9.2344,
+          0.388
+        ],
+        "size": [
+          0.388,
+          1.3968,
+          0.776
+        ],
+        "attachment": "ball_return_01",
+        "group": "equipment"
+      },
+      {
+        "source": "Ball return",
+        "center": [
+          -1.552,
+          9.2344,
+          0.388
+        ],
+        "size": [
+          0.388,
+          1.3968,
+          0.776
+        ],
+        "attachment": "ball_return_02",
+        "group": "equipment"
+      },
+      {
+        "source": "Ball return",
+        "center": [
+          1.552,
+          9.2344,
+          0.388
+        ],
+        "size": [
+          0.388,
+          1.3968,
+          0.776
+        ],
+        "attachment": "ball_return_03",
+        "group": "equipment"
+      },
+      {
+        "source": "Ball return",
+        "center": [
+          4.656000000000001,
+          9.2344,
+          0.388
+        ],
+        "size": [
+          0.388,
+          1.3968,
+          0.776
+        ],
+        "attachment": "ball_return_04",
+        "group": "equipment"
       },
       {
         "source": "Canopy column",
@@ -484,11 +679,104 @@
     "giant_pin",
     "service_yard"
   ],
-  "interior": "Clean lobby and vaulted eight-lane hall; fixed counter, approach and lane inlays, pinsetter masking wall. No loose furniture, balls or pins.",
+  "interior": "Maple lane beds, aiming arrows, approach dots, foul lines, recessed gutters, ten-pin spots and numbered pinsetter masks. Optional bowling_equipment group holds 80 separate pins and four returns with balls.",
+  "bowling_dimensions_m": {
+    "bed_width": 1.0864,
+    "foul_line_to_headpin": 18.3136,
+    "pin_height": 0.388,
+    "raised_deck": 0.1164
+  },
+  "equipment_node": "bowling_equipment",
+  "equipment_props": [
+    "lane_01_pin_01",
+    "lane_01_pin_02",
+    "lane_01_pin_03",
+    "lane_01_pin_04",
+    "lane_01_pin_05",
+    "lane_01_pin_06",
+    "lane_01_pin_07",
+    "lane_01_pin_08",
+    "lane_01_pin_09",
+    "lane_01_pin_10",
+    "lane_02_pin_01",
+    "lane_02_pin_02",
+    "lane_02_pin_03",
+    "lane_02_pin_04",
+    "lane_02_pin_05",
+    "lane_02_pin_06",
+    "lane_02_pin_07",
+    "lane_02_pin_08",
+    "lane_02_pin_09",
+    "lane_02_pin_10",
+    "lane_03_pin_01",
+    "lane_03_pin_02",
+    "lane_03_pin_03",
+    "lane_03_pin_04",
+    "lane_03_pin_05",
+    "lane_03_pin_06",
+    "lane_03_pin_07",
+    "lane_03_pin_08",
+    "lane_03_pin_09",
+    "lane_03_pin_10",
+    "lane_04_pin_01",
+    "lane_04_pin_02",
+    "lane_04_pin_03",
+    "lane_04_pin_04",
+    "lane_04_pin_05",
+    "lane_04_pin_06",
+    "lane_04_pin_07",
+    "lane_04_pin_08",
+    "lane_04_pin_09",
+    "lane_04_pin_10",
+    "lane_05_pin_01",
+    "lane_05_pin_02",
+    "lane_05_pin_03",
+    "lane_05_pin_04",
+    "lane_05_pin_05",
+    "lane_05_pin_06",
+    "lane_05_pin_07",
+    "lane_05_pin_08",
+    "lane_05_pin_09",
+    "lane_05_pin_10",
+    "lane_06_pin_01",
+    "lane_06_pin_02",
+    "lane_06_pin_03",
+    "lane_06_pin_04",
+    "lane_06_pin_05",
+    "lane_06_pin_06",
+    "lane_06_pin_07",
+    "lane_06_pin_08",
+    "lane_06_pin_09",
+    "lane_06_pin_10",
+    "lane_07_pin_01",
+    "lane_07_pin_02",
+    "lane_07_pin_03",
+    "lane_07_pin_04",
+    "lane_07_pin_05",
+    "lane_07_pin_06",
+    "lane_07_pin_07",
+    "lane_07_pin_08",
+    "lane_07_pin_09",
+    "lane_07_pin_10",
+    "lane_08_pin_01",
+    "lane_08_pin_02",
+    "lane_08_pin_03",
+    "lane_08_pin_04",
+    "lane_08_pin_05",
+    "lane_08_pin_06",
+    "lane_08_pin_07",
+    "lane_08_pin_08",
+    "lane_08_pin_09",
+    "lane_08_pin_10",
+    "ball_return_01",
+    "ball_return_02",
+    "ball_return_03",
+    "ball_return_04"
+  ],
   "runtime_handoff": [
     "Hide collision node from rendering; use metadata boxes, excluding lot attachments when hidden.",
     "Closed door_panel_* groups have gate_node collision entries. Hide or animate the matching panel and disable its gated box together only when an interaction unlocks the door. Re-enable both on closure.",
-    "No bowling minigame, scoring, animated pinsetters or business simulation implemented.",
+    "Static bowling props are visual/gameplay handoff pieces; scoring, ball rolling, pin dynamics and pinsetter animation remain unimplemented. Hide bowling_equipment when the game supplies its own props; remove collision group equipment with it. Lane pin nodes carry lane and rack_slot extras. Floor controller must support the 0.1164 m raised approach and lane beds.",
     "Landmark placement needs a suitably sized parcel. Opening, business ownership, rebranding, closure and demolition require simulation facts; age alone never removes it.",
     "Rear plant and optional pin sculpture do not determine historical events."
   ],
@@ -497,8 +785,7 @@
     "block_courses",
     "roof_tin_blue",
     "asphalt_worn",
-    "pavement",
-    "plank_vertical"
+    "pavement"
   ],
   "licence": "LimeZu swatches: Timerpg game use only, credit required. Original mesh and supplemental pixel artwork.",
   "renders": "Blender desktop previews; not Filament or S25 captures"

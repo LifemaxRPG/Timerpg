@@ -6,6 +6,8 @@ An original 1960s eight-lane bowling alley for Timerpg: faceted barrel-vault hal
 
 ![Daylight Blender preview](renders/01-day-front-clean.png)
 
+![Detailed lane and pin-deck Blender preview](renders/07-lane-detail-clean.png)
+
 [Six-view review sheet](starling-review.jpg) · [Preview gallery](preview.html)
 
 ## Files and rebuild
@@ -14,7 +16,7 @@ An original 1960s eight-lane bowling alley for Timerpg: faceted barrel-vault hal
 - `starling-lanes.blend`: packed-texture editable source, saved at the day-front presentation camera.
 - `model-info.json`: dimensions, heights, era, collision boxes, entrances and runtime handoff.
 - `validation.json`: automated checks on the exported GLB, including physical UV density and actual embedded image pixels.
-- `renders/`: six views covering front/day, blue hour, rear, above, person height and interior.
+- `renders/`: seven views covering front/day, blue hour, rear, above, person height, interior overview and pin-deck close-up.
 
 Rebuild using Python with Pillow and Blender 4.3:
 
@@ -30,11 +32,13 @@ python validate_model.py
 
 Design period 1960–1969; suggested opening 1964. Continued operation, reuse, rebranding or demolition must follow simulation history. This does not add a business kind or create an owner. The building is 22.35 × 31.04 m; its optional parcel is 34.76 × 42.21 m, suitable for a larger town parcel.
 
-The interior has a continuous floor, fixed shoe-rental counter, approach, eight floor lane inlays, ceiling fixtures and a pinsetter masking wall. It deliberately contains no loose seating, balls, pins or shoes. The game supplies furniture, equipment, scoring and animation. Playing lanes are approximately 18.31 m long; no certified competition dimensions are claimed.
+The second-pass interior uses quieter honey-maple boards, seven staggered aiming arrows per lane, approach alignment dots, black foul lines, actual lowered six-facet gutters, gutter edge caps, ten-pin deck spots and numbered masking panels. The 1.0864 m lane beds run approximately 18.31 m from foul line to headpin. Their surface is 0.1164 m above the base floor, reached by a short approach ramp. These are art-grid approximations, not certified competition dimensions.
+
+The separate `bowling_equipment` hierarchy contains **80 individual white pins with red neck bands** (eight triangular ten-pin racks), plus four paired ball-return assemblies with red and teal bowling balls. Each pin node has its origin at its foot and carries `lane` and `rack_slot` extras; each pin is 94 triangles and each return assembly is 156. The group is optional and can be removed when the game supplies its own equipment. These are static handoff props: scoring, ball motion, pin physics and pinsetter animation remain runtime work. Loose seating and shoes still come from the game's furniture system.
 
 `door_main`, `door_side` and `door_back` are ground-level outward-facing interaction anchors. Corresponding `door_panel_*` groups are independently addressable closed visuals. Open/hide a panel and disable its `gate_node` collision box together when the game unlocks that door. Re-enable both on closure. No doorway interaction is implemented here.
 
-The `collision` mesh is **collision only**: suppress it in rendering and use its 28 metadata boxes for traversal. The GLB extras explicitly mark it non-rendering; glTF viewers that ignore custom extras must hide it manually. The boxes include glass walls, fixed counter, rear mask, floor, columns and the lobby ceiling. Use actual architectural meshes if full vault ceiling collision is needed. The optional `lot` hierarchy contains paving and markings; `giant_pin` and `service_yard` are separately droppable. Remove collision entries by attachment when dropping a prop, and all `group: lot` entries when dropping the lot. The ground surface itself is flat.
+The `collision` mesh is **collision only**: suppress it in rendering and use its 41 metadata boxes for traversal. The GLB extras explicitly mark it non-rendering; glTF viewers that ignore custom extras must hide it manually. The boxes include glass walls, fixed counter, rear mask, floor, columns and the lobby ceiling. Use actual architectural meshes if full vault ceiling collision is needed. The optional `lot` hierarchy contains paving and markings; `giant_pin` and `service_yard` are separately droppable. Remove collision entries by attachment when dropping a prop, and all `group: lot` entries when dropping the lot. Remove `group: equipment` collision entries when hiding `bowling_equipment`. Raised lane beds and the approach have their own floor boxes; use the actual ramp mesh for sloped contact or support the 0.1164 m step in the player controller.
 
 The twelve materials merge meshes by material within these functional groups. Window and sign names identify the materials for runtime lighting. Blender presentation lights are excluded from the GLB: the game supplies illumination. No lighting is baked into the geometry or textures.
 
@@ -42,4 +46,4 @@ The twelve materials merge meshes by material within these functional groups. Wi
 
 One art pixel is 2 × 2 texels, at 0.0388 m per texel. PNGs use nearest filtering and repeat wrapping. UV checks cover every exported visible triangle edge.
 
-Brick, concrete block, blue metal roofing, asphalt, pavement and wood use Timerpg's shared LimeZu atlas swatches; exact rectangles and source entries are recorded in `source-materials/provenance.json`. These materials are licensed for Timerpg game use only; keep their original credit. Supplemental enamel, ceramic mosaic, window art, signs and mesh geometry are original. The model uses no downloaded geometry, external typeface, real brand, baked GI or photographic texture.
+Brick, concrete block, blue metal roofing, asphalt and pavement use Timerpg's shared LimeZu atlas swatches; exact rectangles and source entries are recorded in `source-materials/provenance.json`. These materials are licensed for Timerpg game use only; keep their original credit. The new maple lane finish, inlays, supplemental enamel, ceramic mosaic, window art, signs and mesh geometry are original. The original plank swatch is retained as a credited reference for the first-pass floor. The model uses no downloaded geometry, external typeface, real brand, baked GI or photographic texture.

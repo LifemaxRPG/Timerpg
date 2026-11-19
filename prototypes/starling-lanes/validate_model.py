@@ -1,5 +1,5 @@
 """Validate the exported bowling-alley asset against the Timerpg handoff contract."""
-import struct,json,io,tempfile,hashlib
+import struct,json,io
 from pathlib import Path
 from PIL import Image
 import numpy as np
@@ -22,7 +22,7 @@ def access(i):
 names={n['name']:n for n in g['nodes']}
 for name in ['lot','giant_pin','service_yard','door_main','door_back','door_side','door_panel_main','door_panel_back','door_panel_side','collision']:assert name in names,name
 assert names['collision']['extras']['collision_only'] is True
-assert len(info['collision']['boxes_blender_z_up'])<=36
+assert len(info['collision']['boxes_blender_z_up'])<=48
 for name,expected,forward_expected in [('door_main',[0,0,2*.0776],[0,0,1]),('door_back',[104*.0776,0,-402*.0776],[0,0,-1]),('door_side',[-146*.0776,0,-240*.0776],[-1,0,0])]:
  node=names[name];assert np.allclose(node.get('translation',[0,0,0]),expected)
  q=node.get('rotation',[0,0,0,1]);v=np.array([0.,0.,1.]);xyz=np.array(q[:3]);forward=v+2*np.cross(xyz,np.cross(xyz,v)+q[3]*v)
@@ -36,6 +36,11 @@ for i,mesh in enumerate(g['meshes']):
         pos=access(p['attributes']['POSITION']);uv=access(p['attributes']['TEXCOORD_0']);idx=access(p['indices']).ravel().astype(int)
         assert np.isfinite(pos).all() and np.isfinite(uv).all() and idx.max()<len(pos) and len(idx)%3==0
         m=g['materials'][p['material']];texture=g['textures'][m['pbrMetallicRoughness']['baseColorTexture']['index']];w,h=images[texture['source']];uv=uv*np.array([w,h])*.0388
+        if m['name']=='detail_utility':
+            pixels=uv/.0388
+            for tri in idx.reshape(-1,3):
+                corners=pixels[tri];tile=np.floor(corners.mean(axis=0)/128)*128
+                assert np.all(corners>=tile-.001) and np.all(corners<=tile+128+.001),'Utility atlas bleed'
         for a,b,c in idx.reshape(-1,3):
             assert np.linalg.norm(np.cross(pos[b]-pos[a],pos[c]-pos[a]))>1e-12,mesh.get('name')
             for j,k in [(a,b),(b,c),(c,a)]:max_error=max(max_error,abs(np.linalg.norm(pos[j]-pos[k])-np.linalg.norm(uv[j]-uv[k])))
@@ -45,7 +50,12 @@ assert sum(counts.values())==info['triangles_visible'] and sum(counts.values())<
 assert max_error<.001,max_error
 def node_count(i):
     n=g['nodes'][i];return counts.get(n.get('mesh'),0)+sum(node_count(j) for j in n.get('children',[]))
-props={n['name']:node_count(i) for i,n in enumerate(g['nodes']) if n['name'] in ('giant_pin','service_yard')}
+props={n['name']:node_count(i) for i,n in enumerate(g['nodes']) if n['name'] in ('giant_pin','service_yard') or n.get('extras',{}).get('gameplay_prop') in ('bowling_pin','ball_return')}
 assert all(0<c<500 for c in props.values()),props
-result={'visible_triangles':sum(counts.values()),'materials':len(g['materials']),'glb_bytes':len(raw),'prop_triangles':props,'collision_boxes':len(info['collision']['boxes_blender_z_up']),'art_grid':'All embedded textures are exact 2x2 texel blocks','uv_scale_max_edge_error_m':max_error,'doors':'All three ground-level outward-facing nodes and gated panels verified','renderer':'Blender desktop previews, not Filament or S25 captures'}
+pins=[n for n in g['nodes'] if n.get('extras',{}).get('gameplay_prop')=='bowling_pin']
+assert len(pins)==80
+assert all(np.isclose(n['translation'][1],1.5*.0776) for n in pins), 'Pin origins must rest on the raised deck'
+assert {(n['extras']['lane'],n['extras']['rack_slot']) for n in pins}=={(i,j) for i in range(1,9) for j in range(1,11)}
+assert sum(n.get('extras',{}).get('gameplay_prop')=='ball_return' for n in g['nodes'])==4
+result={'pins':80,'ball_returns':4,'visible_triangles':sum(counts.values()),'materials':len(g['materials']),'glb_bytes':len(raw),'prop_triangles':props,'collision_boxes':len(info['collision']['boxes_blender_z_up']),'art_grid':'All embedded textures are exact 2x2 texel blocks','uv_scale_max_edge_error_m':max_error,'doors':'All three ground-level outward-facing nodes and gated panels verified','renderer':'Blender desktop previews, not Filament or S25 captures'}
 (R/'validation.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2))

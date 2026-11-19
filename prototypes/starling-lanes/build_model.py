@@ -8,7 +8,7 @@ bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=Fals
 for m in list(bpy.data.materials):bpy.data.materials.remove(m)
 def empty(n,p=None):
  o=bpy.data.objects.new(n,None);bpy.context.collection.objects.link(o);o.parent=p;return o
-ROOT=empty('starling_lanes');STRUCT=empty('structure',ROOT);LOT=empty('lot',ROOT);parent=STRUCT;MOVING=[]
+ROOT=empty('starling_lanes');STRUCT=empty('structure',ROOT);LOT=empty('lot',ROOT);parent=STRUCT;MOVING=[];EQUIPMENT=empty('bowling_equipment',ROOT);EQUIP=[]
 def gate(n):
  o=empty(n,STRUCT);MOVING.append(o);return o
 def mat(n,f,alpha=False,emit=False):
@@ -88,14 +88,62 @@ for sign in (-1,1):
  COLL.append({'center':[sign*152*U,8*U,29.5*U],'size':[4*U,4*U,59*U],'group':'structure','source':'Canopy column','attachment':'structure'})
 for x in (-40,40):box('Sign support',(x,8,57),(2,2,14),teal)
 box('Illuminated sign case',(0,6,64),(98,4,14),teal);panel('STARLING LANES',(0,3.95,64),96,12,'title',glow)
-# Eight fixed lane beds and approach inlays. No loose balls, pins, tables or seats.
+# Raised approach and maple beds; real lowered, faceted gutters on both sides.
+LANE_Z=1.5
 for x,w in [(-48,64),(16,64),(64,32)]:
- mesh('Wood approach',[(a*U,b*U,.015) for a,b in [(x-w/2,72),(x+w/2,72),(x+w/2,132),(x-w/2,132)]],[(0,1,2,3)],wood,'wood')
+ mesh('Approach entry ramp',[(a*U,b*U,z*U) for a,b,z in [(x-w/2,72,0),(x+w/2,72,0),(x+w/2,80,LANE_Z),(x-w/2,80,LANE_Z)]],[(0,1,2,3)],wood,'wood')
+ mesh('Maple approach',[(a*U,b*U,LANE_Z*U) for a,b in [(x-w/2,80),(x+w/2,80),(x+w/2,132),(x-w/2,132)]],[(0,1,2,3)],wood,'wood')
+def floor_patch(n,x,y,w,d,key):
+ return mesh(n,[(a*U,b*U,LANE_Z*U+.002) for a,b in [(x-w/2,y),(x+w/2,y),(x+w/2,y+d),(x-w/2,y+d)]],[(0,1,2,3)],wood,key)
+def small_pin(x,y,lane,slot):
+ global parent
+ parent=empty('lane_%02d_pin_%02d'%(lane,slot),EQUIPMENT);EQUIP.append(parent);parent['gameplay_prop']='bowling_pin';parent['lane']=lane;parent['rack_slot']=slot;parent['pivot_art']=[x,y,LANE_Z]
+ profile=[(0,.35),(1.6,.8),(2.8,.28),(3.2,.28),(4,.43),(4.8,.25)]
+ for (z0,r0),(z1,r1) in zip(profile,profile[1:]):
+  v=[((x+rr*math.cos(j*math.tau/8))*U,(y+rr*math.sin(j*math.tau/8))*U,(LANE_Z+zz)*U) for zz,rr in [(z0,r0),(z1,r1)] for j in range(8)]
+  mesh('Bowling pin body',v,[(j,(j+1)%8,(j+1)%8+8,j+8) for j in range(8)],utility,'pin_red' if z0==2.8 else 'paint')
+ v=[((x+.25*math.cos(j*math.tau/8))*U,(y+.25*math.sin(j*math.tau/8))*U,(LANE_Z+4.8)*U) for j in range(8)]+[(x*U,y*U,(LANE_Z+5)*U)]
+ mesh('Pin head',v,[(j,(j+1)%8,8) for j in range(8)],utility,'paint')
+ v=[((x+.35*math.cos(j*math.tau/8))*U,(y+.35*math.sin(j*math.tau/8))*U,LANE_Z*U) for j in range(8)]
+ mesh('Pin base',v,[tuple(range(7,-1,-1))],utility,'paint')
+ parent=STRUCT
 for i,x in enumerate(range(-70,71,20),1):
- for y in range(132,368,32):
-  d=min(32,368-y);mesh('Lane %d fixed floor'%i,[(a*U,b*U,.02) for a,b in [(x-10,y),(x+10,y),(x+10,y+d),(x-10,y+d)]],[(0,1,2,3)],wood,'lane')
- box('Foul line',(x,132,.3),(20,1,.1),utility,patch='rubber')
- box('Pinsetter masking wall',(x,386,12),(20,4,24),teal);panel('Lane number',(x,383.95,18),8,10,'lane'+str(i),glow)
+ # Uniform maple bed with distinct aiming and pin-deck inlay regions.
+ for y,d,key in [(132,48,'lane'),(180,32,'aim'),(212,64,'lane'),(276,64,'lane'),(340,24,'lane'),(364,20,'deck')]:floor_patch('Lane %d maple bed'%i,x,y,14,d,key)
+ floor_patch('Approach alignment dots',x,80,14,16,'dots')
+ mesh('Black foul line',[(a*U,b*U,(LANE_Z+.08)*U) for a,b in [(x-7,131.5),(x+7,131.5),(x+7,132.5),(x-7,132.5)]],[(0,1,2,3)],utility,'rubber')
+ for side in (-1,1):
+  xx=x+side*8.5
+  prof=[(-1.5,1.5),(-1.1,.55),(-.5,.2),(.5,.2),(1.1,.55),(1.5,1.5)]
+  # Keep every face within the 64-art-pixel metal region: no atlas bleed.
+  for start in (132,195,258,321):
+   v=[((xx+dx)*U,y*U,z*U) for y in (start,start+63) for dx,z in prof]
+   mesh('Recessed gutter',v,[(j,j+1,j+7,j+6) for j in range(5)],utility,'metal')
+  box('Gutter edge cap',(x+side*10,258,1.6),(.6,252,.3),teal)
+ box('Dark pin pit',(x,390,.2),(20,12,.4),utility,patch='rubber')
+ box('Pinsetter masking wall',(x,386,13.5),(20,4,24),teal);panel('Lane number',(x,383.95,19.5),8,10,'lane'+str(i),glow)
+ slot=0
+ for row in range(4):
+  for j in range(row+1):slot+=1;small_pin(x+(2*j-row)*2,368+row*3.5,i,slot)
+# Optional, independently removable ball-return assemblies and loose ball props.
+def ball(n,x,y,z,m):
+ v=[]
+ for zz,rr in [(-1.4,0),(-1,.98),(0,1.4),(1,.98),(1.4,0)]:
+  if rr==0:v.append((x*U,y*U,(z+zz)*U))
+  else:
+   for j in range(8):v.append(((x+rr*math.cos(j*math.tau/8))*U,(y+rr*math.sin(j*math.tau/8))*U,(z+zz)*U))
+ f=[(0,1+(j+1)%8,1+j) for j in range(8)]
+ for a,b in [(1,9),(9,17)]:f += [(a+j,a+(j+1)%8,b+(j+1)%8,b+j) for j in range(8)]
+ f += [(17+j,17+(j+1)%8,25) for j in range(8)]
+ return mesh(n,v,f,m,'pin_red' if m==utility else None)
+for i,x in enumerate((-60,-20,20,60),1):
+ parent=empty('ball_return_%02d'%i,EQUIPMENT);EQUIP.append(parent);parent['gameplay_prop']='ball_return';parent['pivot_art']=[x,119,LANE_Z]
+ box('Return pedestal',(x,119,4),(5,16,5),teal)
+ box('Return hood',(x,124,7),(5,7,7),wall)
+ box('Return opening',(x,120.4,7),(3,.15,3),utility,patch='rubber')
+ for dx in (-1.9,1.9):box('Ball rack rail',(x+dx,113,6),(1,10,1),utility,patch='metal')
+ ball('Red bowling ball',x,111,7.8,utility);ball('Teal bowling ball',x,115,7.8,teal)
+ parent=STRUCT
 box('Fixed shoe counter',(-96,39,8),(64,14,16),mosaic,True);box('Counter top',(-96,39,16.5),(66,16,1),teal)
 for y in (110,200,290,365):
  for x in (-54,54):
@@ -147,7 +195,10 @@ for x,w in [(-24,240),(128,32)]:collider('Back wall',(x,399,26),(w,2,52))
 collider('Rear lintel',(104,399,42),(16,2,20))
 for n,p,s in [('main',(0,0,18),(32,1,36)),('side',(-143,240,16),(1,16,32)),('back',(104,399,16),(16,1,32))]:collider('Closed door',p,s,'door_panel_'+n,gate_node='door_panel_'+n)
 collider('Rear mechanical cabinet',(-128,414,12),(24,20,24))
-collider('Slab',(0,200,-1),(288,400,2));collider('Lobby ceiling',(0,36,51),(288,72,2));collider('Fixed counter',(-96,39,8),(64,14,16));collider('Pinsetter mask',(0,386,12),(160,4,24))
+collider('Slab',(0,200,-1),(288,400,2));collider('Lobby ceiling',(0,36,51),(288,72,2));collider('Fixed counter',(-96,39,8),(64,14,16));collider('Pinsetter mask',(0,386,13.5),(160,4,24))
+collider('Raised approach',(0,106,.75),(160,52,1.5))
+for x in range(-70,71,20):collider('Raised lane bed',(x,258,.75),(14,252,1.5))
+for i,x in enumerate((-60,-20,20,60),1):collider('Ball return',(x,119,5),(5,18,10),'ball_return_%02d'%i,'equipment')
 for x in (-152,152):collider('Canopy column',(x,8,29.5),(4,4,59))
 collider('Pin plinth',(-176,-28,9),(34,34,18),'giant_pin','lot')
 for x in (-104,-40):collider('Yard side',(x,416,12),(2,32,24),'service_yard','lot')
@@ -157,7 +208,7 @@ parent=ROOT;v=[];f=[]
 for c in COLL:
  x,y,z=c['center'];w,d,h=c['size'];o=len(v);v.extend([(x+a*w/2,y+b*d/2,z+s*h/2) for a,b,s in [(-1,-1,-1),(1,-1,-1),(1,1,-1),(-1,1,-1),(-1,-1,1),(1,-1,1),(1,1,1),(-1,1,1)]]);f.extend([tuple(o+j for j in face) for face in [(0,3,2,1),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7),(4,5,6,7)]])
 collision=mesh('collision',v,f,teal);collision.hide_render=True;collision['collision_only']=True;collision['render']=False
-for container in [STRUCT,LOT]+PROPS+MOVING:
+for container in [STRUCT,LOT]+PROPS+MOVING+EQUIP:
  groups={}
  for o in list(container.children):
   if o.type=='MESH':groups.setdefault(o.data.materials[0].name,[]).append(o)
@@ -167,6 +218,14 @@ for container in [STRUCT,LOT]+PROPS+MOVING:
   bpy.context.view_layer.objects.active=obs[0]
   if len(obs)>1:bpy.ops.object.join()
   obs[0].name=container.name+'__'+n
+# Local prop geometry pivots at the pin's foot / return base for runtime transforms.
+for node in EQUIP:
+ pivot=Vector(node['pivot_art'])*U
+ for child in node.children:
+  if child.type=='MESH':
+   for vertex in child.data.vertices:vertex.co-=pivot
+ node.location=pivot
+ del node['pivot_art']
 model=[ROOT]+list(ROOT.children_recursive);triangles=sum(sum(len(p.vertices)-2 for p in o.data.polygons) for o in model if o.type=='MESH' and o!=collision)
 materials=sorted({m.name for o in model if o.type=='MESH' for m in o.data.materials});assert len(materials)<=12 and triangles<=12000
 for im in bpy.data.images:
@@ -174,13 +233,13 @@ for im in bpy.data.images:
 bpy.ops.object.select_all(action='DESELECT')
 for o in model:o.select_set(True)
 bpy.ops.export_scene.gltf(filepath=str(R/'starling-lanes.glb'),use_selection=True,export_format='GLB',export_yup=True,export_extras=True)
-info={'name':'Starling Lanes','design_years':[1960,1969],'suggested_built':1964,'units':'metres','axes':'glTF Y up, front +Z','origin':'Ground level, middle of building front edge','building_m':[288*U,400*U],'heights_m':{'hall_apex':90*U,'lobby_roof':52*U,'pin_sculpture':104*U},'lot_m':[448*U,544*U],'triangles_visible':triangles,'materials':materials,'pixel_grid':{'metres_per_texel':T,'texels_per_art_pixel':2},'collision':{'node':'collision','render':False,'boxes_blender_z_up':COLL},'doors':['door_main','door_back','door_side'],'door_panels':[o.name for o in MOVING],'lot_node':'lot','optional_lot_props':[p.name for p in PROPS],'interior':'Clean lobby and vaulted eight-lane hall; fixed counter, approach and lane inlays, pinsetter masking wall. No loose furniture, balls or pins.','runtime_handoff':['Hide collision node from rendering; use metadata boxes, excluding lot attachments when hidden.','Closed door_panel_* groups have gate_node collision entries. Hide or animate the matching panel and disable its gated box together only when an interaction unlocks the door. Re-enable both on closure.','No bowling minigame, scoring, animated pinsetters or business simulation implemented.','Landmark placement needs a suitably sized parcel. Opening, business ownership, rebranding, closure and demolition require simulation facts; age alone never removes it.','Rear plant and optional pin sculpture do not determine historical events.'],'swatches_used':['brick_red','block_courses','roof_tin_blue','asphalt_worn','pavement','plank_vertical'],'licence':'LimeZu swatches: Timerpg game use only, credit required. Original mesh and supplemental pixel artwork.','renders':'Blender desktop previews; not Filament or S25 captures'}
+info={'name':'Starling Lanes','design_years':[1960,1969],'suggested_built':1964,'units':'metres','axes':'glTF Y up, front +Z','origin':'Ground level, middle of building front edge','building_m':[288*U,400*U],'heights_m':{'hall_apex':90*U,'lobby_roof':52*U,'pin_sculpture':104*U},'lot_m':[448*U,544*U],'triangles_visible':triangles,'materials':materials,'pixel_grid':{'metres_per_texel':T,'texels_per_art_pixel':2},'collision':{'node':'collision','render':False,'boxes_blender_z_up':COLL},'doors':['door_main','door_back','door_side'],'door_panels':[o.name for o in MOVING],'lot_node':'lot','optional_lot_props':[p.name for p in PROPS],'interior':'Maple lane beds, aiming arrows, approach dots, foul lines, recessed gutters, ten-pin spots and numbered pinsetter masks. Optional bowling_equipment group holds 80 separate pins and four returns with balls.', 'bowling_dimensions_m':{'bed_width':14*U,'foul_line_to_headpin':236*U,'pin_height':5*U,'raised_deck':1.5*U},'equipment_node':'bowling_equipment','equipment_props':[o.name for o in EQUIP],'runtime_handoff':['Hide collision node from rendering; use metadata boxes, excluding lot attachments when hidden.','Closed door_panel_* groups have gate_node collision entries. Hide or animate the matching panel and disable its gated box together only when an interaction unlocks the door. Re-enable both on closure.','Static bowling props are visual/gameplay handoff pieces; scoring, ball rolling, pin dynamics and pinsetter animation remain unimplemented. Hide bowling_equipment when the game supplies its own props; remove collision group equipment with it. Lane pin nodes carry lane and rack_slot extras. Floor controller must support the 0.1164 m raised approach and lane beds.','Landmark placement needs a suitably sized parcel. Opening, business ownership, rebranding, closure and demolition require simulation facts; age alone never removes it.','Rear plant and optional pin sculpture do not determine historical events.'],'swatches_used':['brick_red','block_courses','roof_tin_blue','asphalt_worn','pavement'],'licence':'LimeZu swatches: Timerpg game use only, credit required. Original mesh and supplemental pixel artwork.','renders':'Blender desktop previews; not Filament or S25 captures'}
 (R/'model-info.json').write_text(json.dumps(info,indent=2)+'\n')
 if '--export-only' in sys.argv:sys.exit(0)
 parent=None
 bgmat=bpy.data.materials.new('presentation_ground');bgmat.diffuse_color=(.24,.29,.29,1)
 bpy.ops.mesh.primitive_plane_add(size=250,location=(0,12,-.38));bpy.context.object.data.materials.append(bgmat)
-scene=bpy.context.scene;scene.render.engine='CYCLES';scene.cycles.samples=32;scene.cycles.use_denoising=False;scene.cycles.max_bounces=6;scene.cycles.transparent_max_bounces=6
+scene=bpy.context.scene;scene.render.engine='CYCLES';scene.cycles.samples=24;scene.cycles.use_denoising=False;scene.cycles.max_bounces=6;scene.cycles.transparent_max_bounces=6
 scene.render.resolution_x=1280;scene.render.resolution_y=960;scene.render.resolution_percentage=100;scene.render.image_settings.file_format='PNG';scene.view_settings.view_transform='Standard';scene.view_settings.look='Medium High Contrast'
 world=bpy.data.worlds.new('Starling sky');world.use_nodes=True;scene.world=world;bg=world.node_tree.nodes.get('Background')
 sd=bpy.data.lights.new('Sun','SUN');so=bpy.data.objects.new('Sun',sd);bpy.context.collection.objects.link(so);so.rotation_euler=(.42,-.5,-.5);sd.angle=.08
@@ -196,11 +255,13 @@ def shot(n,p,t,scale=54,night=False,perspective=False):
  if n=='01-day-front':bpy.ops.wm.save_as_mainfile(filepath=str(R/'starling-lanes.blend'))
  if ONLY is None or n in ONLY:bpy.ops.render.render(write_still=True)
 if '--draft' in sys.argv:scene.cycles.samples=12;scene.render.resolution_x=1000;scene.render.resolution_y=750
+if '--draft' not in sys.argv:
+ shot('06-interior',(0,5.5,2.7),(0,26,.1),54,True,True)
+ shot('07-lane-detail',(-1.55,23,1.05),(-.8,29,.42),54,True,True)
 shot('01-day-front',(-40,-39,28),(0,11,2),54)
 if '--draft' not in sys.argv:
  shot('02-blue-hour',(-40,-39,23),(0,11,2),54,True)
  shot('03-rear',(40,61,28),(0,14,2),54)
  shot('04-above',(-12,-20,65),(0,12,0),66)
  shot('05-person-height',(-19,-24,1.7),(-1,2,3.1),54,True,True)
- shot('06-interior',(0,7,1.7),(0,28,2),54,True,True)
 print(json.dumps({'triangles':triangles,'materials':len(materials),'collisions':len(COLL)}))
