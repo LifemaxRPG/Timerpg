@@ -1,0 +1,148 @@
+{
+  "model": "reel-time-video (4 states)",
+  "all_passed": true,
+  "textures_2x2_ok": true,
+  "shared_door_nodes_identical": true,
+  "states": [
+    {
+      "year": 1984,
+      "file": "reel-time-video-1984.glb",
+      "passed": true,
+      "materials": 11,
+      "visible_triangles": 1116,
+      "collision_triangles": 264,
+      "lot_prop_tris": {
+        "parking_lot": 146,
+        "rear_service": 140,
+        "curb_props": 0
+      },
+      "uv_edges_checked": 3348,
+      "bad_uv_edges": 0,
+      "max_uv_error_m": 1.2e-06,
+      "utility_quadrant_violations": 0,
+      "height_m": 4.9664,
+      "min_y_m": 0.0,
+      "glow_mesh_area_m2": 16.79,
+      "glow_mask_black_ratio": 0.88,
+      "full_height_wall_collision": true,
+      "door_coords": {
+        "door_main": [
+          -0.8536,
+          0.0,
+          0.1552
+        ],
+        "door_back": [
+          -0.8536,
+          0.0,
+          -11.3296
+        ]
+      },
+      "door_main_blocked_by": []
+    },
+    {
+      "year": 1996,
+      "file": "reel-time-video-1996.glb",
+      "passed": true,
+      "materials": 11,
+      "visible_triangles": 1180,
+      "collision_triangles": 312,
+      "lot_prop_tris": {
+        "parking_lot": 146,
+        "rear_service": 140,
+        "curb_props": 22
+      },
+      "uv_edges_checked": 3540,
+      "bad_uv_edges": 0,
+      "max_uv_error_m": 1.2e-06,
+      "utility_quadrant_violations": 0,
+      "height_m": 4.9664,
+      "min_y_m": 0.0,
+      "glow_mesh_area_m2": 17.8,
+      "glow_mask_black_ratio": 0.859,
+      "full_height_wall_collision": true,
+      "door_coords": {
+        "door_main": [
+          -0.8536,
+          0.0,
+          0.1552
+        ],
+        "door_back": [
+          -0.8536,
+          0.0,
+          -11.3296
+        ]
+      },
+      "door_main_blocked_by": []
+    },
+    {
+      "year": 2011,
+      "file": "reel-time-video-2011.glb",
+      "passed": true,
+      "materials": 11,
+      "visible_triangles": 1332,
+      "collision_triangles": 312,
+      "lot_prop_tris": {
+        "parking_lot": 146,
+        "rear_service": 140,
+        "curb_props": 22
+      },
+      "uv_edges_checked": 3996,
+      "bad_uv_edges": 0,
+      "max_uv_error_m": 1.2e-06,
+      "utility_quadrant_violations": 0,
+      "height_m": 4.9664,
+      "min_y_m": 0.0,
+      "glow_mesh_area_m2": 9.85,
+      "glow_mask_black_ratio": 0.925,
+      "full_height_wall_collision": true,
+      "door_coords": {
+        "door_main": [
+          -0.8536,
+          0.0,
+          0.1552
+        ],
+        "door_back": [
+          -0.8536,
+          0.0,
+          -11.3296
+        ]
+      },
+      "door_main_blocked_by": []
+    },
+    {
+      "year": 2020,
+      "file": "reel-time-video-2020.glb",
+      "passed": true,
+      "materials": 11,
+      "visible_triangles": 1088,
+      "collision_triangles": 228,
+      "lot_prop_tris": {
+        "parking_lot": 146,
+        "rear_service": 140,
+        "curb_props": 2
+      },
+      "uv_edges_checked": 3264,
+      "bad_uv_edges": 0,
+      "max_uv_error_m": 1.2e-06,
+      "utility_quadrant_violations": 0,
+      "height_m": 4.9664,
+      "min_y_m": 0.0,
+      "glow_mesh_area_m2": 9.85,
+      "glow_mask_black_ratio": 0.925,
+      "full_height_wall_collision": true,
+      "door_coords": {
+        "door_main": [
+          -0.8536,
+          0.0,
+          0.1552
+        ],
+        "door_back": [
+          -0.8536,
+          0.0,
+          -11.3296
+        ]
+      },
+      "door_main_blocked_by": []
+    }
+  ]
+}
