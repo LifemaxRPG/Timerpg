@@ -1,0 +1,92 @@
+{
+  "kind": "night",
+  "start": "2026-11-19T06:16:13.744-0500",
+  "end": "2026-11-19T06:20:59.070-0500",
+  "minutes": 4.8,
+  "how": "service",
+  "stopReason": "unplugged",
+  "app": {
+    "versionName": "0.1.389 (2467b5f)",
+    "versionCode": 389,
+    "git": "2467b5f",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "written": {
+    "lines": 0,
+    "variants": 0,
+    "rejected": 0,
+    "linesPerHour": 0,
+    "linesPerWritingHour": 0
+  },
+  "speed": {
+    "runsOn": "CPU",
+    "genTokens": 0,
+    "genTokPerSec": 0,
+    "prefillTokens": 0,
+    "prefillTokPerSec": 0
+  },
+  "time": {
+    "writingMin": 0,
+    "coolingMin": 4.7,
+    "hotPausedMin": 0,
+    "burstRestMin": 0,
+    "batteryWaitMin": 0
+  },
+  "heat": {
+    "coolDowns": 1,
+    "hotPauses": 0,
+    "maxThermalStatus": 2
+  },
+  "battery": {
+    "start": 19,
+    "end": 20
+  },
+  "bank": {
+    "prompts": 602,
+    "ready": 1,
+    "templates": 0,
+    "missing": 601,
+    "lines": 1,
+    "variantsDone": 0,
+    "stale": 0,
+    "years": [
+      2025
+    ]
+  },
+  "player": {
+    "themes": [
+      {
+        "label": "personal: baby, meet",
+        "kind": "personal",
+        "asked": 1,
+        "live": 0,
+        "people": 1
+      },
+      {
+        "label": "personal: baby, old",
+        "kind": "personal",
+        "asked": 1,
+        "live": 0,
+        "people": 1
+      }
+    ],
+    "answersByDay": [
+      {
+        "day": "2026-11-18",
+        "ready": 0,
+        "live": 0,
+        "template": 1,
+        "readyShare": 0
+      },
+      {
+        "day": "2026-11-19",
+        "ready": 0,
+        "live": 0,
+        "template": 1,
+        "readyShare": 0
+      }
+    ]
+  }
+}
