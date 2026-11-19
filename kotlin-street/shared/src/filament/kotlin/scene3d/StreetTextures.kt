@@ -20,6 +20,8 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     /** Pictures read and packed ahead on a worker ([warm]), waiting for [of] on the engine's thread. */
     private val warmed: MutableMap<ImageBitmap, Prepared> = java.util.Collections.synchronizedMap(java.util.WeakHashMap())
     private val made = ArrayList<Texture>()
+    /** What this set's owner has put on the GPU: these textures (with their mipmaps), and the buffers its users count in. */
+    val gpu = GpuBytes()
     val white: Texture = solid(0xFFFFFFFF.toInt())
     val black: Texture = solid(0x00000000)
 
@@ -46,7 +48,7 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
      * buildings wear them (repeated sprites, yard kit pictures baked lot by lot, windows' glass of repeated fronts).
      */
     private val byContent = HashMap<ContentKey, Texture>()
-    internal data class ContentKey(val w: Int, val h: Int, val linear: Boolean, val a: Int, val b: Long)
+    internal data class ContentKey(val w: Int, val h: Int, val linear: Boolean, val a: Int, val b: Long, val mips: Boolean = true)
 
     /** Textures made, texels in them, and how many asks were answered by one already made. */
     var madeCount = 0; private set
@@ -63,7 +65,7 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     fun make(p: Prepared): Texture {
         val key = p.key ?: return build(p.buf, p.w, p.h, p.linear, false)
         byContent[key]?.let { shared++; return it }
-        return build(p.buf, p.w, p.h, p.linear, true).also { byContent[key] = it }
+        return build(p.buf, p.w, p.h, p.linear, key.mips).also { byContent[key] = it }
     }
 
     /** A picture ready for the GPU: its bytes as Filament takes them and, for one never updated, its content's key. */
@@ -79,6 +81,9 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
         t.setImage(engine, 0, Texture.PixelBufferDescriptor(buf, Texture.Format.RGBA, Texture.Type.UBYTE))
         if (levels > 1) t.generateMipmaps(engine)
         made += t
+        var bytes = 0L
+        for (l in 0 until levels) bytes += maxOf(1, w shr l).toLong() * maxOf(1, h shr l) * 4
+        gpu.textures.addAndGet(bytes)
         return t
     }
 
@@ -100,7 +105,8 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     fun destroy(all: Boolean = false) {
         for (t in made) if (all || (t !== white && t !== black)) engine.destroyTexture(t)
         made.clear(); byImage.clear(); warmed.clear(); byContent.clear()
-        if (!all) { made += white; made += black }
+        gpu.textures.set(0L)
+        if (!all) { made += white; made += black; gpu.textures.set(8L) }
     }
 
     companion object {
@@ -110,6 +116,13 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
          */
         fun prepare(px: IntArray, w: Int, h: Int, linear: Boolean = false, mips: Boolean = false): Prepared =
             Prepared(pack(px, w, h), w, h, linear, if (mips) ContentKey(w, h, linear, px.contentHashCode(), hash64(px)) else null)
+
+        /**
+         * [px] packed for [make] as a picture never updated, shared by its content, but without mipmaps: for one only ever
+         * sampled with a nearest filter (the props' and yards' glow masks), whose smaller levels nothing would read.
+         */
+        fun prepareFlat(px: IntArray, w: Int, h: Int, linear: Boolean): Prepared =
+            Prepared(pack(px, w, h), w, h, linear, ContentKey(w, h, linear, px.contentHashCode(), hash64(px), mips = false))
 
         /**
          * A blank (transparent black) picture of [w] x [h] for [make], never updated through [prepare]'s path: its bytes
@@ -126,10 +139,11 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
          * however many batches wear it (a mesh packed for many chunks of the town); the second: whether it was packed now.
          * [share] is the caller's, for one build: a global one would keep every packed picture as long as its mesh lives.
          */
-        fun prepareShared(px: IntArray, w: Int, h: Int, linear: Boolean, share: MutableMap<IntArray, Prepared>?): Pair<Prepared, Boolean> {
-            if (share == null) return prepare(px, w, h, linear, mips = true) to true
-            synchronized(share) { share[px]?.let { if (it.w == w && it.h == h && it.linear == linear) return it to false } }
-            val p = prepare(px, w, h, linear, mips = true)
+        fun prepareShared(px: IntArray, w: Int, h: Int, linear: Boolean, share: MutableMap<IntArray, Prepared>?, mips: Boolean = true): Pair<Prepared, Boolean> {
+            fun make() = if (mips) prepare(px, w, h, linear, mips = true) else prepareFlat(px, w, h, linear)
+            if (share == null) return make() to true
+            synchronized(share) { share[px]?.let { if (it.w == w && it.h == h && it.linear == linear && it.key?.mips == mips) return it to false } }
+            val p = make()
             synchronized(share) { share[px] = p }
             return p to true
         }
@@ -158,4 +172,16 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
             return px
         }
     }
+}
+
+/**
+ * The bytes a town (or a street) has put on the GPU, as made: textures with their mip chains (RGBA8 or SRGB8_A8, 4 bytes
+ * a texel), vertex and index buffers. The driver's own padding, the render targets and the shadow maps are not in it
+ * ([FilamentTown.gpuEstimate] adds those).
+ */
+class GpuBytes {
+    val textures = java.util.concurrent.atomic.AtomicLong(0)
+    val vertices = java.util.concurrent.atomic.AtomicLong(0)
+    val indices = java.util.concurrent.atomic.AtomicLong(0)
+    fun buffers(vb: Int, ib: Int) { vertices.addAndGet(vb.toLong()); indices.addAndGet(ib.toLong()) }
 }

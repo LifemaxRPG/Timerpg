@@ -96,6 +96,8 @@ internal class PropLayer(
         internal val tex: StreetTextures.Prepared, internal val mask: StreetTextures.Prepared?,
         /** Whether its pictures were packed for it (not shared with an earlier batch of the same mesh). */
         private val ownPictures: Boolean = true,
+        /** Its indices are 16-bit ([TownVertex.short]). */
+        internal val shortIndices: Boolean = false,
     ) {
         val bytes: Int get() = vb.capacity() + ib.capacity()
         /** What it alone holds until its upload: vertices, indices and, unless shared, its pictures (on the phone, Java heap). */
@@ -104,14 +106,11 @@ internal class PropLayer(
 
     /** Uploads a [Packed] batch (the engine's thread); [casts]: it throws a shadow; [tiled]: its picture repeats. */
     fun upload(p: Packed, casts: Boolean, tiled: Boolean = false): MaterialInstance {
-        val vertices = VertexBuffer.Builder().bufferCount(1).vertexCount(p.vertices)
-            .attribute(VertexBuffer.VertexAttribute.POSITION, 0, VertexBuffer.AttributeType.FLOAT3, 0, STRIDE)
-            .attribute(VertexBuffer.VertexAttribute.UV0, 0, VertexBuffer.AttributeType.FLOAT2, 12, STRIDE)
-            .attribute(VertexBuffer.VertexAttribute.TANGENTS, 0, VertexBuffer.AttributeType.FLOAT4, 20, STRIDE)
-            .build(engine)
+        val vertices = TownVertex.buffer(engine, p.vertices)
         vertices.setBufferAt(engine, 0, p.vb)
-        val indices = IndexBuffer.Builder().indexCount(p.indices).bufferType(IndexBuffer.Builder.IndexType.UINT).build(engine)
+        val indices = TownVertex.indices(engine, p.indices, p.shortIndices)
         indices.setBuffer(engine, p.ib)
+        textures.gpu.buffers(p.vb.limit(), p.ib.limit())
         val b = p.box
         val box = Box(b[0], b[1], b[2], b[3], b[4], b[5])
         val tex: Texture = textures.make(p.tex)
@@ -124,8 +123,9 @@ internal class PropLayer(
         fun pack(mesh: PropMesh, at: List<FloatArray>, share: MutableMap<IntArray, StreetTextures.Prepared>? = null): Packed? {
         if (at.isEmpty()) return null
         val nv = mesh.vertexCount * at.size
-        val vb = ByteBuffer.allocateDirect(nv * STRIDE).order(ByteOrder.nativeOrder())
-        val ib = ByteBuffer.allocateDirect(mesh.idx.size * at.size * 4).order(ByteOrder.nativeOrder())
+        val vb = ByteBuffer.allocateDirect(nv * TownVertex.STRIDE).order(ByteOrder.nativeOrder())
+        val short = TownVertex.short(nv)
+        val ib = ByteBuffer.allocateDirect(mesh.idx.size * at.size * (if (short) 2 else 4)).order(ByteOrder.nativeOrder())
         val q = FloatArray(4)
         var minX = Float.MAX_VALUE; var minY = Float.MAX_VALUE; var minZ = Float.MAX_VALUE
         var maxX = -Float.MAX_VALUE; var maxY = -Float.MAX_VALUE; var maxZ = -Float.MAX_VALUE
@@ -145,20 +145,20 @@ internal class PropLayer(
                 tx /= tl; ty /= tl; tz /= tl
                 val bx = ny * tz - nz * ty; val by = nz * tx - nx * tz; val bz = nx * ty - ny * tx
                 MathUtils.packTangentFrame(tx, ty, tz, bx, by, bz, nx, ny, nz, q)
-                vb.putFloat(x).putFloat(y).putFloat(z).putFloat(mesh.uv[i * 2]).putFloat(mesh.uv[i * 2 + 1])
-                vb.putFloat(q[0]).putFloat(q[1]).putFloat(q[2]).putFloat(q[3])
+                TownVertex.put(vb, x, y, z, mesh.uv[i * 2], mesh.uv[i * 2 + 1], q)
                 minX = min(minX, x); minY = min(minY, y); minZ = min(minZ, z); maxX = max(maxX, x); maxY = max(maxY, y); maxZ = max(maxZ, z)
             }
             val base = k * mesh.vertexCount
-            for (i in mesh.idx) ib.putInt(base + i)
+            if (short) for (i in mesh.idx) ib.putShort((base + i).toShort()) else for (i in mesh.idx) ib.putInt(base + i)
         }
         vb.flip(); ib.flip()
         val box = floatArrayOf((minX + maxX) / 2f, (minY + maxY) / 2f, (minZ + maxZ) / 2f, (maxX - minX) / 2f + .5f, (maxY - minY) / 2f + .5f, (maxZ - minZ) / 2f + .5f)
         // (one mesh packed for many chunks shares one packed picture: the content key makes them one texture anyway, but
         // each chunk once carried its own copy of the bytes, the town's trees' atlas over and over, until uploaded)
         val (tex, fresh) = StreetTextures.prepareShared(mesh.tex, mesh.texW, mesh.texH, linear = false, share)
-        val mask = mesh.mask?.let { StreetTextures.prepareShared(it, mesh.texW, mesh.texH, linear = true, share).first }
-        return Packed(vb, ib, nv, mesh.idx.size * at.size, box, tex, mask, fresh)
+        // (the mask is sampled nearest, its level 0 only: no mipmaps for it)
+        val mask = mesh.mask?.let { StreetTextures.prepareShared(it, mesh.texW, mesh.texH, linear = true, share, mips = false).first }
+        return Packed(vb, ib, nv, mesh.idx.size * at.size, box, tex, mask, fresh, short)
         }
 
         /** [props] packed for [upload] by look (one batch each), on any thread: each batch, whether it casts, how many props. */
@@ -204,9 +204,11 @@ internal class PropLayer(
     fun update(look: FloatArray, dark: Float, shown: Boolean = true, fade: Float = 1f, shadows: Boolean = shown) {
         val rm = engine.renderableManager
         val on = smooth((dark - .3f) / .4f)
+        // (no boxing: thousands of batches a frame, and an instance boxed for takeIf was a garbage object each)
         for (b in batches) {
-            rm.getInstance(b.entity).takeIf { it != 0 }?.let { rm.setLayerMask(it, 0xff, if (shown) 1 else 0) }
-            if (b.proxy != 0) rm.getInstance(b.proxy).takeIf { it != 0 }?.let { rm.setLayerMask(it, 0xff, if (shadows) 1 else 0) }
+            val bi = rm.getInstance(b.entity)
+            if (bi != 0) rm.setLayerMask(bi, 0xff, if (shown) 1 else 0)
+            if (b.proxy != 0) { val pi = rm.getInstance(b.proxy); if (pi != 0) rm.setLayerMask(pi, 0xff, if (shadows) 1 else 0) }
             if (!shown) continue
             b.mi.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
             if (b.glows) b.mi.setParameter("glow", GLOW, GLOW, GLOW, on)
@@ -231,7 +233,7 @@ internal class PropLayer(
     private fun smooth(t: Float): Float { val u = t.coerceIn(0f, 1f); return u * u * (3f - 2f * u) }
 
     companion object {
-        internal const val STRIDE = 36
+        internal const val STRIDE = TownVertex.STRIDE
         /** How strongly the glowing parts shine at night (their own colours, times the material's 1.8). */
         const val GLOW = 1.6f
 

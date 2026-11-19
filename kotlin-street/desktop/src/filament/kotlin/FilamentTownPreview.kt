@@ -48,6 +48,9 @@ import org.jetbrains.skia.Image as SkiaImage
  */
 fun renderFilamentTown(out: String) {
     watchMemory()
+    // the GPU quality settings to render with (-Djvm="-DshadowMap=2048 -Dcascades=4"; the app's defaults otherwise)
+    System.getProperty("shadowMap")?.toIntOrNull()?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.shadowMap = it }
+    System.getProperty("cascades")?.toIntOrNull()?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.cascades = it }
     val dir = File(out, "filament-town").also { it.mkdirs() }
     val townDir = System.getProperty("town")?.let { File(it) } ?: File("../build-town/gamma")
     val assets = File(System.getProperty("assetsRoot") ?: "../../public/assets")
@@ -82,6 +85,7 @@ fun renderFilamentTown(out: String) {
     // (each shot is one frame: every building's windows lit for its hour in it, not a few a frame as the game does)
     ft.nightBudgetNs = Long.MAX_VALUE
     val report = StringBuilder()
+    report.appendLine("shadow map ${ft.shadowMap} x ${ft.shadowCascades} cascades")
     report.appendLine("town ${town.seed} ${town.year}: ${town.rows.size} rows, ${ft.slots.size} buildings, ${town.roads.size} roads, ${town.nodes.size} nodes, ${town.props.size} edge props, ${yards.yards.size} yards")
 
     // a cold start as the app makes it (a fresh scene through TownRun from the spawn, behind the loading screen, then
@@ -484,6 +488,8 @@ private fun coldStart(
             ft.buildingsMs, ft.slowest.first, ft.slowest.second, ft.prepareMs, ft.slowestPrepare.first, ft.slowestPrepare.second, ft.groundMs))
     report.appendLine("(cold start: main-thread work only, on the build server's CPU with software GL; the render itself and the S25 are not measured)")
     TownMemory.stop()
+    // what the town holds on the GPU (as made; the shadow map, targets and surfaces from their sizes), at the phone's size
+    report.appendLine("cold start, " + ft.gpuEstimate(sw, shh).line() + " (shadow map %d x %d cascades)".format(ft.shadowMap, ft.shadowCascades))
     report.appendLine("cold start, memory: " + TownMemory.summary() + "; the ground's queue peaked at ${TownMemory.mb(ft.queuedPeak)} MB")
     println("  memory: " + TownMemory.summary())
     // the memory check (-DheapBudget=MB, gradle :desktop:townMemoryCheck): the live heap and the direct buffers held at
