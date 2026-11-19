@@ -514,6 +514,11 @@ time with its drawing (it renders each frame twice in `-Dmode=move` to measure);
   model loaded"); the bank is the main model's. Coming back to the game with the main model loaded swaps to the light one
   when that is the choice. The AI panel shows which model is live, on which device, the memory each needs, and a switch
   to put the main model in play for comparison. The 9B's Q4_0 and MTP builds stay optional extras.
+- Quality (4-core x86 server, CPU, NOT the S25; `tools/llm-dialogue-check.sh`, all 75 prompts, the Q4_0 file shipped):
+  73 of 75 (97%) pass `validate()`, the same as the 9B (0.6B: ~89%); chat, work, family and secret all pass, rumors 12
+  of 14 (one says the speaker's own full name, one is assistant talk). Its speed there means little (the server was
+  shared with other builds: 2.3 tok/s generation, 14 tok/s prefill on average, 5.6-6.3 tok/s when quiet). The NPU speed
+  on the S25 is still to be measured (the panel's speed test).
 
 ## The overnight writer and the player's conversation log (built and JVM-tested on a computer; NOT yet run on a phone)
 
