@@ -158,35 +158,50 @@
       }
     },
     {
-      "id": "landmark_glb_mirage_nightclub",
+      "kind": "landmark_glb_mirage_nightclub",
       "name": "Club Mirage",
       "role": "nightclub",
-      "era": "1980s",
-      "asset": "landmarks/mirage-nightclub/mirage-nightclub.glb",
-      "info": "landmarks/mirage-nightclub/model-info.json",
-      "building": [
-        18.62,
-        17.38
-      ],
-      "lot": [
-        27.32,
-        29.8
-      ],
-      "doors": [
-        "door_main",
-        "door_back",
-        "door_side"
-      ],
-      "props": [
-        "marquee_pylon",
-        "service_yard",
-        "vip_rope_line"
-      ],
-      "door_panels": [
-        "door_panel_main",
-        "door_panel_back",
-        "door_panel_side"
-      ]
+      "room": "hall",
+      "file": "mirage-nightclub/mirage-nightclub.glb",
+      "info": "mirage-nightclub/model-info.json",
+      "era": {
+        "from": 1978,
+        "to": 1995,
+        "built": 1984
+      },
+      "footprint": {
+        "lot": [
+          27.32,
+          29.8
+        ],
+        "building": [
+          18.62,
+          17.38
+        ]
+      }
+    },
+    {
+      "kind": "landmark_glb_pulse_nightclub",
+      "name": "Club Pulse",
+      "role": "nightclub",
+      "room": "hall",
+      "file": "pulse-nightclub/pulse-nightclub.glb",
+      "info": "pulse-nightclub/model-info.json",
+      "era": {
+        "from": 2012,
+        "to": 2040,
+        "built": 2022
+      },
+      "footprint": {
+        "lot": [
+          27.32,
+          29.8
+        ],
+        "building": [
+          18.62,
+          17.38
+        ]
+      }
     }
   ]
 }
