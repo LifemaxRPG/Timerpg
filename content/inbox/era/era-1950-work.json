@@ -1,0 +1,297 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1950,
+  "topic": "work",
+  "facts": [
+    {
+      "id": "1950-work-01",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A town carpenter measures lumber on a building site before cutting boards.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-02",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Plumbers travel between houses to repair leaking pipes and install fixtures.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-03",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "An electrician checks wiring in a newly built house before the walls are finished.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-04",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A mechanic works in a garage bay repairing engines and brakes.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-05",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A farmer hires seasonal hands when the harvest needs more workers.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-06",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A farm family may rise before dawn to milk dairy cows.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-07",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A schoolteacher prepares lessons and marks papers after pupils leave.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-08",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A school custodian tends the boiler and cleans classrooms after lessons.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-09",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A nurse works scheduled shifts caring for patients at a local hospital.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-10",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A doctor may make house calls when a patient cannot travel to the office.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-11",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A postal carrier walks a regular route delivering letters to town homes.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-12",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A telephone operator connects calls at a switchboard in some towns.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-13",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A secretary takes dictation and types business correspondence.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-14",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A bookkeeper enters daily receipts and expenses into a ledger.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-15",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A bank clerk balances transaction records at the end of the business day.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-16",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A factory worker clocks in before starting an assigned shift.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-17",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Assembly line workers repeat specialized tasks as products move past their stations.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-18",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A factory foreman assigns jobs and checks whether production is on schedule.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-19",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Some union workers discuss pay and working conditions at local meetings.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-20",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A worker may earn extra pay for hours beyond the regular workweek.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-21",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Many married women work outside the home, though employers may restrict their opportunities.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-22",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Women commonly work as teachers, nurses, clerks, and sales assistants.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-23",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A teenager may deliver newspapers before school for spending money.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-24",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A restaurant cook prepares breakfast before the first customers arrive.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-25",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A barber keeps appointments and serves walk-in customers throughout the day.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-work-26",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A construction crew builds new houses on the edge of town.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
