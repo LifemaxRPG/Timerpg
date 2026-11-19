@@ -354,6 +354,10 @@ fun renderFilamentOpen(out: String) {
     view("fb_yard_a", 2576f, 3674f, 0f, -1f, 124.1f, 22.43f, 420f, 17.6f, "005359: outside a back hedge, the yard behind the player")
     view("fb_yard_b", 2576f, 3674f, 0f, -1f, 98.5f, 20.1f, 420f, 17.6f, "005414: the same spot, the camera turned 25 degrees")
     view("fb_yard_c", 2576f, 3674f, 0f, -1f, 150f, 22f, 420f, 17.6f, "the same spot, the camera turned the other way")
+    // build 0.1.367 (the S25, 2026-11-19, 17:36 summer): the horizon's thin bright line and streaks (GPU p50 22 ms there),
+    // and the forest's trees cut in half far off
+    view("fb_horizon", 3219.6f, 4148.5f, 0f, -1f, 23.38f, 11.85f, 420f, 17.6f, "015705: Church Street, the horizon")
+    view("fb_trees_half", 14316.6f, 5916.4f, 0f, 1f, 153.57f, 10f, 420f, 17.6f, "020102: by the woods, trees far off")
     File(dir, "open.txt").writeText(report.toString())
     print(report)
     if (want("walk")) scriptedWalk(dir, town, yards, walk, run, shooter, sheets, w, h, events)

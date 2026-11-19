@@ -198,7 +198,7 @@ object TownFrame {
         val near = (dist * .04f).coerceIn(4f, 16f)
         val hazeFrom = dist + OPEN_HAZE
         val range = dist + OPEN_REACH
-        return TownPose(ex, ey, ez, fx, fy, fz, fl, w / 2f, h / 2f, w, h, near, range + 20f, hazeFrom, HAZE,
+        return TownPose(ex, ey, ez, fx, fy, fz, fl, w / 2f, h / 2f, w, h, near, range + 20f, hazeFrom, OPEN_HAZE_DENSITY,
             range = range, open = true, lodFar = if (lod) hazeFrom + LOD_YARDS else Float.MAX_VALUE, shadowFar = dist + OPEN_SHADOWS)
     }
 
@@ -209,6 +209,12 @@ object TownFrame {
     const val OPEN_REACH = 2600f
     /** Where the open world's haze starts past the player. */
     const val OPEN_HAZE = 1200f
+    /**
+     * The open world's haze's thickness (per street unit): about 60% at the view's range, 95% where the trees' cards end
+     * ([FilamentTown.GREEN_PAST_RANGE] past it), so what is left out past the range fades in thick haze and the woods and far
+     * boxes dissolve into the sky's horizon colour.
+     */
+    const val OPEN_HAZE_DENSITY = .00062f
     /** How far past the player the open world's shadows reach (street units): the cascades over this depth, so the one at the player stays fine. */
     const val OPEN_SHADOWS = 1400f
     /** The yards are drawn in their far version from this far past where the haze starts (street units), so the switch is in the haze. */
@@ -1045,6 +1051,7 @@ class FilamentTown(
         }
         // the furniture, props and greenery a chunk at a time: culled, cut with their row, cards far and 3D near
         var nChunks = 0; var nNear = 0
+        val farOn = far.readyCount > 0 && pose.range < Float.MAX_VALUE
         TreeCells.newFrame()
         for (c in chunks.values) {
             val cut = if (pose.cut <= 0f) 1f else if (c.byRow) fadeOf(pose, c.refX, c.refZ) else fadeOf(pose, c.cx, c.cz)
@@ -1054,15 +1061,20 @@ class FilamentTown(
             val close = on && c.hasNear && pose.distance(c.cx, c.top / 2f, c.cz) - c.r < TownFrame.LOD_NEAR
             val near3d = close && c.near != null
             c.base.update(look, dark, on, fade, shadows)
-            c.cards.update(look, dark, on && !near3d, fade, shadows && !near3d)
+            // (with the far boxes up, the trees' cards are drawn on past the view's range, into the haze: the woods at the
+            // world's edge dissolve into it instead of standing as a screen door against the sky)
+            val cardFade = if (farOn) min(cut, farFade(pose, c.cx, c.top / 2f, c.cz, c.r)) else fade
+            val cardsOn = cardFade > .02f && pose.sees(c.cx, c.top / 2f, c.cz, c.r)
+            c.cards.update(look, dark, cardsOn && !near3d, cardFade, shadows && !near3d)
             c.near?.update(look, dark, near3d, fade, shadows && near3d)
             val tc = c.trees
             tc?.update(pose, look, dark, near3d, fade, shadows && near3d)
             if (on) {
                 nChunks++
-                val l = (if (near3d) c.near else null) ?: c.cards
-                renderables += c.base.draws + l.draws; draws += c.base.draws + l.draws; tris += c.base.triangles + l.triangles
+                renderables += c.base.draws; draws += c.base.draws; tris += c.base.triangles
+                if (near3d) c.near?.let { renderables += it.draws; draws += it.draws; tris += it.triangles }
             }
+            if (cardsOn && !near3d) { renderables += c.cards.draws; draws += c.cards.draws; tris += c.cards.triangles }
             if (tc != null) { renderables += tc.draws; draws += tc.draws; tris += tc.triangles; casters += tc.casters }
             if (near3d) nNear++
             if (shadows) casters += c.base.casters + (if (near3d) c.near!!.casters else c.cards.casters)
@@ -1286,6 +1298,12 @@ class FilamentTown(
     private fun fadeOf(pose: TownPose, x: Float, z: Float): Float =
         smooth((pose.groundX * (x - pose.ex) + pose.groundZ * (z - pose.ez) - pose.cut + TownFrame.CUT_FADE) / TownFrame.CUT_FADE)
 
+    /** As [TownPose.rangeFade], to [GREEN_PAST_RANGE] past the view's range: the trees' cards with the far boxes up. */
+    private fun farFade(pose: TownPose, x: Float, y: Float, z: Float, r: Float): Float {
+        val t = ((pose.range + GREEN_PAST_RANGE - (pose.distance(x, y, z) - r * .5f)) / TownFrame.RANGE_FADE).coerceIn(0f, 1f)
+        return t * t * (3f - 2f * t)
+    }
+
     private fun aim(p: TownPose) {
         val k = (p.near / p.fl).toDouble()
         // (the far boxes are drawn to the far end of the world: the far plane reaches them once any are up)
@@ -1356,7 +1374,10 @@ class FilamentTown(
     }
 
     private fun haze(p: TownPose, sky: com.lifemax.rpg.feature.habits.presentation.scene.SkyColors) {
-        val tone = sky.sky.lastOrNull() ?: return
+        // (the open world's sky, as the stage lays it, ends at the horizon in its glow (Backdrop's dome and glow band): the
+        // haze takes that colour, so the far ground, woods and far boxes meet the sky with no line; the street view's sky
+        // ends in its lowest band)
+        val tone = (if (p.open) sky.glow else sky.sky.lastOrNull()) ?: return
         fog.enabled = true
         fog.distance = p.hazeFrom
         fog.density = p.haze * (1f - .4f * sky.dark)
@@ -1444,6 +1465,8 @@ class FilamentTown(
         const val OCCLUDED = 0f
         /** The buildings switch to their far boxes this far past where the haze starts (street units from the eye to the cell). */
         const val FAR_PAST_HAZE = 300f
+        /** With the far boxes up, the trees' cards are drawn this far past the view's range (street units), into thick haze. */
+        const val GREEN_PAST_RANGE = 3400f
         /** Whether towns made from now on draw their far boxes ([TownFar]); a preview turns it off to compare (-DtownFar=0). */
         @JvmStatic var farLod = true
         const val OCCLUDE_SECONDS = .2f

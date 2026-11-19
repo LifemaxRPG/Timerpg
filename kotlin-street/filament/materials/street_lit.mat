@@ -52,6 +52,12 @@ fragment {
         prepareMaterial(material);
         vec2 uv = materialParams.uvRect.xy + getUV0() * materialParams.uvRect.zw;
         vec4 c = texture(materialParams_albedo, uv) * materialParams.tint;
+        // the cut-out's edge (a tree's leaves, a fence's gaps) from a sharper mip than the colour: the mipmaps average the
+        // alpha, so far off a crown's leaves fell under the mask's half and the crown went while its trunk stayed
+        vec2 ts = vec2(textureSize(materialParams_albedo, 0));
+        vec2 ddx = dFdx(uv * ts); vec2 ddy = dFdy(uv * ts);
+        float lod = 0.5 * log2(max(max(dot(ddx, ddx), dot(ddy, ddy)), 1e-8));
+        c.a = textureLod(materialParams_albedo, uv, max(0.0, lod - 2.0)).a * materialParams.tint.a;
         vec4 m = texture(materialParams_mask, uv);
         if (materialParams.fade < 1.0 && bayer4(gl_FragCoord.xy / materialParams.cell) > materialParams.fade) c.a = 0.0;
         if (materialParams.oneSided > 0.5 && dot(getWorldGeometricNormalVector(), getWorldViewVector()) < 0.0) c.a = 0.0;
