@@ -1,0 +1,343 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1940,
+  "topic": "fashion",
+  "facts": [
+    {
+      "id": "1940-fashion-01",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Women wear knee-length or below-knee skirts with fitted blouses for ordinary daytime errands.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-02",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Many women choose shirtwaist dresses with buttons down the front for daytime wear.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-03",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A woman may wear a cardigan over her blouse when the weather turns cool.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-04",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Women often wear stockings with skirts when dressing for town or church.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-05",
+      "year_from": 1942,
+      "year_to": 1945,
+      "text": "Some women draw a stocking seam on bare legs when hosiery is scarce.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-06",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Women mend stockings carefully to make each pair last longer.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-07",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A woman pins her hair into rolls or waves before leaving the house.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-08",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Women often set their hair in curls overnight using pins or rollers.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-09",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A headscarf keeps a woman's hair away from machinery or household work.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-10",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Women wear practical low-heeled shoes for walking and everyday work.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-11",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A woman carries a handbag with a clasp when visiting downtown shops.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-12",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Men commonly wear collared shirts and trousers for trips into town.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-13",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A man may add a necktie and jacket for church or a formal visit.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-14",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Many men wear brimmed felt hats with suits and overcoats.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-15",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Men often wear suspenders or belts to hold up their trousers.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-16",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A laborer wears sturdy work trousers and boots for outdoor jobs.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-17",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Some men wear overalls while repairing equipment or tending a farm.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-18",
+      "year_from": 1940,
+      "year_to": 1945,
+      "text": "Boys wear short trousers or knicker-style pants in some younger age groups.",
+      "ages": "kids",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-19",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Schoolboys often wear long trousers with tucked-in shirts.",
+      "ages": "kids",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-20",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Schoolgirls wear dresses or skirts with socks and sturdy shoes.",
+      "ages": "kids",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-21",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Children put on knitted sweaters when classrooms or mornings feel chilly.",
+      "ages": "kids",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-22",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Teenage girls sometimes wear saddle-style shoes with ankle socks.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-23",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Teenage boys may wear letter sweaters to show school team membership.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-24",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A family saves its better clothes for Sunday services and special visits.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-25",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Clothing shops display fabric patterns for customers who sew their own dresses.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-fashion-26",
+      "year_from": 1947,
+      "year_to": 1949,
+      "text": "After wartime restrictions ease, fuller skirts appear in fashionable dress displays.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
