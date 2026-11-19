@@ -1,0 +1,420 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2010,
+  "topic": "shops",
+  "facts": [
+    {
+      "id": "2010-shops-01",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Shoppers pick up weekly sale flyers from a rack just inside the supermarket entrance.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-02",
+      "year_from": 2015,
+      "year_to": 2019,
+      "text": "Some grocery stores offer curbside pickup after customers place orders online.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-03",
+      "year_from": 2015,
+      "year_to": 2019,
+      "text": "Supermarket workers gather ordered groceries into carts for scheduled customer pickup.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-04",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Cashiers scan barcodes while baggers separate frozen foods from household cleaners.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-05",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Self-checkout lanes let shoppers scan and bag a few items themselves.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-06",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A clerk checks identification before completing an age-restricted purchase.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-07",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some stores place small baskets near the entrance for quick shopping trips.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-08",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Pharmacy customers wait near a prescription counter while the pharmacist fills orders.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-09",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A hardware store worker helps customers match replacement screws and bolts.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-10",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Garden centers display seed packets and potted flowers outside during spring.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-11",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A bakery case displays cupcakes and decorated cakes for birthday celebrations.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-12",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Customers order custom cakes several days before a family party.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-13",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A thrift shop sorts donated clothing onto racks by size.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-14",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Clothing stores offer fitting rooms where shoppers try on jeans and jackets.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-15",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Shoppers browse clearance racks for last season's coats and shoes.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-16",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some downtown shops post shortened Sunday hours on their front doors.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-17",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A bookstore arranges children's books near a reading corner.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-18",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A convenience store keeps bottled drinks in refrigerated cases beside the checkout.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-19",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Gift shops wrap purchases in tissue paper before placing them in bags.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-20",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A shopkeeper places a handwritten sign in the window advertising a sidewalk sale.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-21",
+      "year_from": 2013,
+      "year_to": 2019,
+      "text": "Small merchants sometimes use tablet-based registers at craft fairs and temporary stalls.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-22",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A customer asks whether a store can order a missing size from another location.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-23",
+      "year_from": 2014,
+      "year_to": 2019,
+      "text": "Some shops email receipts when customers request them.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-24",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Store employees attach security tags to higher-priced clothing.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-25",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Shoppers bring reusable bags to carry groceries home.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-26",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Local merchants decorate their front windows for Christmas shopping.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-27",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some retailers hold late-night shopping hours during the holiday season.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "2010-shops-28",
+      "year_from": 2015,
+      "year_to": 2019,
+      "text": "Customers collect online purchases from a service desk inside a store.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "medium"
+    }
+  ],
+  "not_yet": [],
+  "prices": [
+    {
+      "item": "a loaf of white bread",
+      "usd": 1.37,
+      "year": 2010,
+      "confidence": "medium"
+    },
+    {
+      "item": "a pound of white rice",
+      "usd": 0.75,
+      "year": 2010,
+      "confidence": "medium"
+    },
+    {
+      "item": "a pound of apples",
+      "usd": 1.18,
+      "year": 2010,
+      "confidence": "medium"
+    },
+    {
+      "item": "a pound of potatoes",
+      "usd": 0.59,
+      "year": 2010,
+      "confidence": "medium"
+    },
+    {
+      "item": "a pound of chicken breast",
+      "usd": 3.06,
+      "year": 2010,
+      "confidence": "medium"
+    },
+    {
+      "item": "a pound of butter",
+      "usd": 3.28,
+      "year": 2010,
+      "confidence": "medium"
+    },
+    {
+      "item": "a pound of coffee",
+      "usd": 4.17,
+      "year": 2010,
+      "confidence": "medium"
+    },
+    {
+      "item": "a loaf of white bread",
+      "usd": 1.44,
+      "year": 2015,
+      "confidence": "medium"
+    },
+    {
+      "item": "a pound of apples",
+      "usd": 1.34,
+      "year": 2015,
+      "confidence": "medium"
+    },
+    {
+      "item": "a pound of chicken breast",
+      "usd": 3.41,
+      "year": 2015,
+      "confidence": "medium"
+    },
+    {
+      "item": "a pound of potatoes",
+      "usd": 0.63,
+      "year": 2015,
+      "confidence": "medium"
+    },
+    {
+      "item": "a pound of white rice",
+      "usd": 0.75,
+      "year": 2015,
+      "confidence": "medium"
+    }
+  ],
+  "phrases": []
+}
