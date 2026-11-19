@@ -1,0 +1,47 @@
+{
+  "format": 1,
+  "note": "Hand-made landmark models (docs/LANDMARKS_GLB.md). kind: the landmark kind the town generator places (src/town/glbLandmarks.ts mirrors this list); era: the design's years (from..to) and the year it is shown built for; footprint in metres: the lot (width along the street, depth back) and the building's walls; swatches: a material's picture replaced by one of ours; price: the sign_price panel drawn for the town's year.",
+  "landmarks": [
+    {
+      "kind": "landmark_glb_modern_gas_station",
+      "name": "Crossfield Fuel & Market",
+      "role": "gas_station",
+      "file": "modern-gas-station/modern-gas-station.glb",
+      "info": "modern-gas-station/model-info.json",
+      "era": {"from": 2005, "to": 2040, "built": 2005},
+      "footprint": {"lot": [32.28, 35.08], "building": [17.38, 8.69]},
+      "price": {"node": "sign_price", "grades": ["regular", "plus", "diesel"], "art": [24, 42], "paper": "#4b5268", "ink": "#e0c389", "rows": [0, 14, 28], "font": "5x7"}
+    },
+    {
+      "kind": "landmark_glb_main_street_service_station",
+      "name": "Main Street Service",
+      "role": "gas_station",
+      "file": "main-street-service-station/main-street-service-station.glb",
+      "info": "main-street-service-station/model-info.json",
+      "era": {"from": 1950, "to": 1969, "built": 1953},
+      "footprint": {"lot": [23.28, 21.73], "building": [15.52, 8.07]},
+      "swatches": {"roof_tar_membrane": "ballast"},
+      "price": {"node": "sign_price", "grades": ["regular", "premium"], "art": [16, 20], "paper": "#dad4cb", "ink": "#a14f44", "rows": [0, 12], "left": 1, "font": "3x5"}
+    },
+    {
+      "kind": "landmark_glb_junction_diner",
+      "name": "Junction Diner",
+      "role": "diner",
+      "room": "hall",
+      "file": "junction-diner/junction-diner.glb",
+      "info": "junction-diner/model-info.json",
+      "era": {"from": 1940, "to": 1965, "built": 1948},
+      "footprint": {"lot": [17.0, 21.0], "building": [12.0, 12.3]}
+    },
+    {
+      "kind": "landmark_glb_starling_lanes",
+      "name": "Starling Lanes",
+      "role": "bowling",
+      "room": "hall",
+      "file": "starling-lanes/starling-lanes.glb",
+      "info": "starling-lanes/model-info.json",
+      "era": {"from": 1960, "to": 1969, "built": 1964},
+      "footprint": {"lot": [34.76, 42.21], "building": [22.35, 31.04]}
+    }
+  ]
+}

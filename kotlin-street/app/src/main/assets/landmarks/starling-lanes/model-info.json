@@ -1,0 +1,792 @@
+{
+  "name": "Starling Lanes",
+  "design_years": [
+    1960,
+    1969
+  ],
+  "suggested_built": 1964,
+  "units": "metres",
+  "axes": "glTF Y up, front +Z",
+  "origin": "Ground level, middle of building front edge",
+  "building_m": [
+    22.3488,
+    31.04
+  ],
+  "heights_m": {
+    "hall_apex": 6.984,
+    "lobby_roof": 4.0352,
+    "pin_sculpture": 8.0704
+  },
+  "lot_m": [
+    34.7648,
+    42.2144
+  ],
+  "triangles_visible": 11936,
+  "materials": [
+    "detail_utility",
+    "floor_lanes",
+    "glass_lobby",
+    "glow_signage",
+    "ground_asphalt",
+    "ground_paving",
+    "roof_vault_blue",
+    "trim_teal",
+    "wall_block",
+    "wall_brick",
+    "wall_cream",
+    "wall_mosaic"
+  ],
+  "pixel_grid": {
+    "metres_per_texel": 0.0388,
+    "texels_per_art_pixel": 2
+  },
+  "collision": {
+    "node": "collision",
+    "render": false,
+    "boxes_blender_z_up": [
+      {
+        "source": "Front wall and glass",
+        "center": [
+          -6.208,
+          0.0776,
+          1.94
+        ],
+        "size": [
+          9.9328,
+          0.1552,
+          3.88
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Front wall and glass",
+        "center": [
+          6.208,
+          0.0776,
+          1.94
+        ],
+        "size": [
+          9.9328,
+          0.1552,
+          3.88
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Entry header",
+        "center": [
+          0.0,
+          0.0776,
+          3.3368
+        ],
+        "size": [
+          2.4832,
+          0.1552,
+          1.0864
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Lobby side and glass",
+        "center": [
+          -11.0968,
+          2.7936,
+          1.94
+        ],
+        "size": [
+          0.1552,
+          5.5872,
+          3.88
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Lobby side and glass",
+        "center": [
+          11.0968,
+          2.7936,
+          1.94
+        ],
+        "size": [
+          0.1552,
+          5.5872,
+          3.88
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Left hall wall and glass",
+        "center": [
+          -11.0968,
+          11.795200000000001,
+          2.0176
+        ],
+        "size": [
+          0.1552,
+          12.416,
+          4.0352
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Left hall wall and glass",
+        "center": [
+          -11.0968,
+          25.142400000000002,
+          2.0176
+        ],
+        "size": [
+          0.1552,
+          11.795200000000001,
+          4.0352
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Side exit lintel",
+        "center": [
+          -11.0968,
+          18.624000000000002,
+          3.2592
+        ],
+        "size": [
+          0.1552,
+          1.2416,
+          1.552
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Right hall wall",
+        "center": [
+          11.0968,
+          18.3136,
+          2.0176
+        ],
+        "size": [
+          0.1552,
+          25.4528,
+          4.0352
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Back wall",
+        "center": [
+          -1.8624,
+          30.962400000000002,
+          2.0176
+        ],
+        "size": [
+          18.624000000000002,
+          0.1552,
+          4.0352
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Back wall",
+        "center": [
+          9.9328,
+          30.962400000000002,
+          2.0176
+        ],
+        "size": [
+          2.4832,
+          0.1552,
+          4.0352
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Rear lintel",
+        "center": [
+          8.0704,
+          30.962400000000002,
+          3.2592
+        ],
+        "size": [
+          1.2416,
+          0.1552,
+          1.552
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          0.0,
+          0.0,
+          1.3968
+        ],
+        "size": [
+          2.4832,
+          0.0776,
+          2.7936
+        ],
+        "attachment": "door_panel_main",
+        "group": "structure",
+        "gate_node": "door_panel_main"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          -11.0968,
+          18.624000000000002,
+          1.2416
+        ],
+        "size": [
+          0.0776,
+          1.2416,
+          2.4832
+        ],
+        "attachment": "door_panel_side",
+        "group": "structure",
+        "gate_node": "door_panel_side"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          8.0704,
+          30.962400000000002,
+          1.2416
+        ],
+        "size": [
+          1.2416,
+          0.0776,
+          2.4832
+        ],
+        "attachment": "door_panel_back",
+        "group": "structure",
+        "gate_node": "door_panel_back"
+      },
+      {
+        "source": "Rear mechanical cabinet",
+        "center": [
+          -9.9328,
+          32.126400000000004,
+          0.9312
+        ],
+        "size": [
+          1.8624,
+          1.552,
+          1.8624
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Slab",
+        "center": [
+          0.0,
+          15.52,
+          -0.0776
+        ],
+        "size": [
+          22.3488,
+          31.04,
+          0.1552
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Lobby ceiling",
+        "center": [
+          0.0,
+          2.7936,
+          3.9576000000000002
+        ],
+        "size": [
+          22.3488,
+          5.5872,
+          0.1552
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Fixed counter",
+        "center": [
+          -7.4496,
+          3.0264,
+          0.6208
+        ],
+        "size": [
+          4.9664,
+          1.0864,
+          1.2416
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Pinsetter mask",
+        "center": [
+          0.0,
+          29.9536,
+          1.0476
+        ],
+        "size": [
+          12.416,
+          0.3104,
+          1.8624
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Raised approach",
+        "center": [
+          0.0,
+          8.2256,
+          0.0582
+        ],
+        "size": [
+          12.416,
+          4.0352,
+          0.1164
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Raised lane bed",
+        "center": [
+          -5.432,
+          20.0208,
+          0.0582
+        ],
+        "size": [
+          1.0864,
+          19.5552,
+          0.1164
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Raised lane bed",
+        "center": [
+          -3.88,
+          20.0208,
+          0.0582
+        ],
+        "size": [
+          1.0864,
+          19.5552,
+          0.1164
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Raised lane bed",
+        "center": [
+          -2.3280000000000003,
+          20.0208,
+          0.0582
+        ],
+        "size": [
+          1.0864,
+          19.5552,
+          0.1164
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Raised lane bed",
+        "center": [
+          -0.776,
+          20.0208,
+          0.0582
+        ],
+        "size": [
+          1.0864,
+          19.5552,
+          0.1164
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Raised lane bed",
+        "center": [
+          0.776,
+          20.0208,
+          0.0582
+        ],
+        "size": [
+          1.0864,
+          19.5552,
+          0.1164
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Raised lane bed",
+        "center": [
+          2.3280000000000003,
+          20.0208,
+          0.0582
+        ],
+        "size": [
+          1.0864,
+          19.5552,
+          0.1164
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Raised lane bed",
+        "center": [
+          3.88,
+          20.0208,
+          0.0582
+        ],
+        "size": [
+          1.0864,
+          19.5552,
+          0.1164
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Raised lane bed",
+        "center": [
+          5.432,
+          20.0208,
+          0.0582
+        ],
+        "size": [
+          1.0864,
+          19.5552,
+          0.1164
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Ball return",
+        "center": [
+          -4.656000000000001,
+          9.2344,
+          0.388
+        ],
+        "size": [
+          0.388,
+          1.3968,
+          0.776
+        ],
+        "attachment": "ball_return_01",
+        "group": "equipment"
+      },
+      {
+        "source": "Ball return",
+        "center": [
+          -1.552,
+          9.2344,
+          0.388
+        ],
+        "size": [
+          0.388,
+          1.3968,
+          0.776
+        ],
+        "attachment": "ball_return_02",
+        "group": "equipment"
+      },
+      {
+        "source": "Ball return",
+        "center": [
+          1.552,
+          9.2344,
+          0.388
+        ],
+        "size": [
+          0.388,
+          1.3968,
+          0.776
+        ],
+        "attachment": "ball_return_03",
+        "group": "equipment"
+      },
+      {
+        "source": "Ball return",
+        "center": [
+          4.656000000000001,
+          9.2344,
+          0.388
+        ],
+        "size": [
+          0.388,
+          1.3968,
+          0.776
+        ],
+        "attachment": "ball_return_04",
+        "group": "equipment"
+      },
+      {
+        "source": "Canopy column",
+        "center": [
+          -11.795200000000001,
+          0.6208,
+          2.2892
+        ],
+        "size": [
+          0.3104,
+          0.3104,
+          4.5784
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Canopy column",
+        "center": [
+          11.795200000000001,
+          0.6208,
+          2.2892
+        ],
+        "size": [
+          0.3104,
+          0.3104,
+          4.5784
+        ],
+        "attachment": "structure",
+        "group": "structure"
+      },
+      {
+        "source": "Pin plinth",
+        "center": [
+          -13.6576,
+          -2.1728,
+          0.6984
+        ],
+        "size": [
+          2.6384,
+          2.6384,
+          1.3968
+        ],
+        "attachment": "giant_pin",
+        "group": "lot"
+      },
+      {
+        "source": "Yard side",
+        "center": [
+          -8.0704,
+          32.2816,
+          0.9312
+        ],
+        "size": [
+          0.1552,
+          2.4832,
+          1.8624
+        ],
+        "attachment": "service_yard",
+        "group": "lot"
+      },
+      {
+        "source": "Yard side",
+        "center": [
+          -3.104,
+          32.2816,
+          0.9312
+        ],
+        "size": [
+          0.1552,
+          2.4832,
+          1.8624
+        ],
+        "attachment": "service_yard",
+        "group": "lot"
+      },
+      {
+        "source": "Yard rear",
+        "center": [
+          -5.5872,
+          33.4456,
+          0.9312
+        ],
+        "size": [
+          5.1216,
+          0.1552,
+          1.8624
+        ],
+        "attachment": "service_yard",
+        "group": "lot"
+      },
+      {
+        "source": "Waste bin",
+        "center": [
+          -6.8288,
+          32.126400000000004,
+          0.6208
+        ],
+        "size": [
+          1.0864,
+          1.0864,
+          1.3192
+        ],
+        "attachment": "service_yard",
+        "group": "lot"
+      },
+      {
+        "source": "Waste bin",
+        "center": [
+          -5.0440000000000005,
+          32.126400000000004,
+          0.6208
+        ],
+        "size": [
+          1.0864,
+          1.0864,
+          1.3192
+        ],
+        "attachment": "service_yard",
+        "group": "lot"
+      }
+    ]
+  },
+  "doors": [
+    "door_main",
+    "door_back",
+    "door_side"
+  ],
+  "door_panels": [
+    "door_panel_main",
+    "door_panel_side",
+    "door_panel_back"
+  ],
+  "lot_node": "lot",
+  "optional_lot_props": [
+    "giant_pin",
+    "service_yard"
+  ],
+  "interior": "Maple lane beds, aiming arrows, approach dots, foul lines, recessed gutters, ten-pin spots and numbered pinsetter masks. Optional bowling_equipment group holds 80 separate pins and four returns with balls.",
+  "bowling_dimensions_m": {
+    "bed_width": 1.0864,
+    "foul_line_to_headpin": 18.3136,
+    "pin_height": 0.388,
+    "raised_deck": 0.1164
+  },
+  "equipment_node": "bowling_equipment",
+  "equipment_props": [
+    "lane_01_pin_01",
+    "lane_01_pin_02",
+    "lane_01_pin_03",
+    "lane_01_pin_04",
+    "lane_01_pin_05",
+    "lane_01_pin_06",
+    "lane_01_pin_07",
+    "lane_01_pin_08",
+    "lane_01_pin_09",
+    "lane_01_pin_10",
+    "lane_02_pin_01",
+    "lane_02_pin_02",
+    "lane_02_pin_03",
+    "lane_02_pin_04",
+    "lane_02_pin_05",
+    "lane_02_pin_06",
+    "lane_02_pin_07",
+    "lane_02_pin_08",
+    "lane_02_pin_09",
+    "lane_02_pin_10",
+    "lane_03_pin_01",
+    "lane_03_pin_02",
+    "lane_03_pin_03",
+    "lane_03_pin_04",
+    "lane_03_pin_05",
+    "lane_03_pin_06",
+    "lane_03_pin_07",
+    "lane_03_pin_08",
+    "lane_03_pin_09",
+    "lane_03_pin_10",
+    "lane_04_pin_01",
+    "lane_04_pin_02",
+    "lane_04_pin_03",
+    "lane_04_pin_04",
+    "lane_04_pin_05",
+    "lane_04_pin_06",
+    "lane_04_pin_07",
+    "lane_04_pin_08",
+    "lane_04_pin_09",
+    "lane_04_pin_10",
+    "lane_05_pin_01",
+    "lane_05_pin_02",
+    "lane_05_pin_03",
+    "lane_05_pin_04",
+    "lane_05_pin_05",
+    "lane_05_pin_06",
+    "lane_05_pin_07",
+    "lane_05_pin_08",
+    "lane_05_pin_09",
+    "lane_05_pin_10",
+    "lane_06_pin_01",
+    "lane_06_pin_02",
+    "lane_06_pin_03",
+    "lane_06_pin_04",
+    "lane_06_pin_05",
+    "lane_06_pin_06",
+    "lane_06_pin_07",
+    "lane_06_pin_08",
+    "lane_06_pin_09",
+    "lane_06_pin_10",
+    "lane_07_pin_01",
+    "lane_07_pin_02",
+    "lane_07_pin_03",
+    "lane_07_pin_04",
+    "lane_07_pin_05",
+    "lane_07_pin_06",
+    "lane_07_pin_07",
+    "lane_07_pin_08",
+    "lane_07_pin_09",
+    "lane_07_pin_10",
+    "lane_08_pin_01",
+    "lane_08_pin_02",
+    "lane_08_pin_03",
+    "lane_08_pin_04",
+    "lane_08_pin_05",
+    "lane_08_pin_06",
+    "lane_08_pin_07",
+    "lane_08_pin_08",
+    "lane_08_pin_09",
+    "lane_08_pin_10",
+    "ball_return_01",
+    "ball_return_02",
+    "ball_return_03",
+    "ball_return_04"
+  ],
+  "runtime_handoff": [
+    "Hide collision node from rendering; use metadata boxes, excluding lot attachments when hidden.",
+    "Closed door_panel_* groups have gate_node collision entries. Hide or animate the matching panel and disable its gated box together only when an interaction unlocks the door. Re-enable both on closure.",
+    "Static bowling props are visual/gameplay handoff pieces; scoring, ball rolling, pin dynamics and pinsetter animation remain unimplemented. Hide bowling_equipment when the game supplies its own props; remove collision group equipment with it. Lane pin nodes carry lane and rack_slot extras. Floor controller must support the 0.1164 m raised approach and lane beds.",
+    "Landmark placement needs a suitably sized parcel. Opening, business ownership, rebranding, closure and demolition require simulation facts; age alone never removes it.",
+    "Rear plant and optional pin sculpture do not determine historical events."
+  ],
+  "swatches_used": [
+    "brick_red",
+    "block_courses",
+    "roof_tin_blue",
+    "asphalt_worn",
+    "pavement"
+  ],
+  "licence": "LimeZu swatches: Timerpg game use only, credit required. Original mesh and supplemental pixel artwork.",
+  "renders": "Blender desktop previews; not Filament or S25 captures"
+}

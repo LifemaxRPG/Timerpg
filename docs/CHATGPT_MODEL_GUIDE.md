@@ -55,7 +55,12 @@ buildings and read as the same world. This guide is the contract; a model that b
 - **Doors:** an empty named node `door_main` (and `door_back`, ...) at each entrance, at ground level just outside,
   facing out. The game puts "Go inside" there.
 - **Collision:** an extra mesh named `collision` (boxes only, a few dozen at most) covering what the player must not
-  walk through, or say "use the walls" in the info file.
+  walk through, or say "use the walls" in the info file. Box each thing a walker must go round **from the ground to
+  its top** (a pump, a sign's post, a bin), not just its foot or plinth, and list every box in `model-info.json`
+  (centre, size, group, attachment): the game reads the boxes from there (boxes that touch at their corners cannot be
+  told apart in the mesh).
+- **Ground at zero:** the lot's paving and asphalt stand at y 0 or above (a kerb step up from the asphalt is fine;
+  asphalt laid below 0 sinks under the town's own ground). The game lifts a model whose forecourt is below 0.
 - **Interior:** a clean shell (floor, walls, ceiling, counters that are part of the building) with no furniture: the
   game furnishes rooms from its own LimeZu furniture pieces. Put the interior floor at the entrance's level.
 - **Lot dressing** (benches, bins, parking lines, planters) as separate nodes under `lot`, so the game can keep or drop
@@ -80,3 +85,6 @@ On a branch `codex/<model-name>` under `prototypes/<model-name>/`:
 - No brands or real names. Era stated.
 - `.glb` in metres, Y up, entrance +Z, origin at the front edge's middle; materials named by role; doors, collision and
   `lot` nodes present; triangle budget kept.
+- Lot ground at y 0 or above; every collision box full height and listed in `model-info.json`.
+
+How the game loads these files (scale, roles, lighting, collision, doors, the price panel): `kotlin-street/docs/LANDMARKS_GLB.md`.

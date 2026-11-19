@@ -354,6 +354,11 @@ fun main(args: Array<String>) {
             kotlin.system.exitProcess(1)
         }
     }
+    if (mode == "filament-landmarks") {
+        // the hand-made landmark models (.glb) built for the town (FilamentLandmarksPreview.kt; Filament's desktop build needed)
+        val k = runCatching { Class.forName("FilamentLandmarksPreviewKt") }.getOrNull() ?: error("Filament is not built in: run tools/build-filament.sh")
+        k.getMethod("renderLandmarks", String::class.java).invoke(null, out); return
+    }
     if (mode == "filament-stores") {
         // the general stores and the supermarkets of each era (FilamentStoresPreview.kt; Filament's desktop build needed)
         val k = runCatching { Class.forName("FilamentStoresPreviewKt") }.getOrNull() ?: error("Filament is not built in: run tools/build-filament.sh")
