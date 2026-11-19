@@ -1,0 +1,343 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2010,
+  "topic": "media",
+  "facts": [
+    {
+      "id": "2010-media-01",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Local newspapers print school sports results and town council meeting notices.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-02",
+      "year_from": 2010,
+      "year_to": 2015,
+      "text": "Families still receive printed television schedules with some newspapers.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-03",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A radio host announces road closures between songs during the morning commute.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-04",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Drivers tune into local radio for weather warnings during severe storms.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-05",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "High school students follow local sports scores through newspaper websites.",
+      "ages": "teens",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-06",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some residents write letters to the editor about neighborhood concerns.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-07",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A community bulletin board displays flyers for concerts and charity events.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-08",
+      "year_from": 2011,
+      "year_to": 2019,
+      "text": "The public library lends printed novels alongside electronic books.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-09",
+      "year_from": 2012,
+      "year_to": 2019,
+      "text": "Some readers borrow electronic books through the public library website.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-10",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A magazine rack stands near the checkout counter at the grocery store.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-11",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Teenagers discuss short online videos shared among classmates.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-12",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A local theater advertises showtimes on its website and entrance marquee.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-13",
+      "year_from": 2010,
+      "year_to": 2017,
+      "text": "Some families rent films on discs from automated kiosks outside stores.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-14",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A household keeps a collection of film discs on a living room shelf.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-15",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A music fan buys a compact disc at a secondhand shop.",
+      "ages": "teens",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-16",
+      "year_from": 2010,
+      "year_to": 2016,
+      "text": "Some listeners buy digital music files to keep on portable players.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-17",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Teenagers make playlists for school dances using digital music libraries.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-18",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A small-town radio station broadcasts announcements for weekend fundraisers.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-19",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some residents subscribe to a printed weekly newspaper for local coverage.",
+      "ages": "elders",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-20",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A television news crew interviews residents after a damaging storm.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-21",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Friends discuss a televised competition the morning after its broadcast.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-22",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Sports fans gather at a diner to watch a game on television.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-23",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A printed community calendar lists performances at the school auditorium.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-24",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some local reporters post breaking updates before the next printed edition.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-25",
+      "year_from": 2012,
+      "year_to": 2019,
+      "text": "Residents share photographs of a town parade through online community pages.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-media-26",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A caller leaves a voicemail when the local radio contest line is busy.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "daily television delivered only through internet streaming",
+      "first_common": null,
+      "say_instead": "broadcast television, cable, or a mix of viewing options"
+    },
+    {
+      "thing": "a short-form video feed used by most teenagers",
+      "first_common": 2021,
+      "say_instead": "online video clips and shared links"
+    },
+    {
+      "thing": "a generative chatbot writing routine local news reports",
+      "first_common": 2023,
+      "say_instead": "human reporters and editors"
+    },
+    {
+      "thing": "an immersive holographic television broadcast",
+      "first_common": null,
+      "say_instead": "a regular television screen"
+    },
+    {
+      "thing": "a printed local newspaper replaced everywhere by a phone news feed",
+      "first_common": null,
+      "say_instead": "a mix of printed papers and online news"
+    },
+    {
+      "thing": "a virtual reality headset used for most movie nights",
+      "first_common": null,
+      "say_instead": "a television or cinema screen"
+    },
+    {
+      "thing": "live video calls projected as life-sized holograms",
+      "first_common": null,
+      "say_instead": "a regular video call on a screen"
+    },
+    {
+      "thing": "a home cinema that routinely creates films from spoken prompts",
+      "first_common": null,
+      "say_instead": "a purchased, rented, or streamed film"
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
