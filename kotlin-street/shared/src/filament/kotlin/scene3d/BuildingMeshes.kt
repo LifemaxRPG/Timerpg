@@ -19,6 +19,9 @@ import com.lifemax.rpg.feature.habits.domain.Ambient
 import com.lifemax.rpg.feature.habits.domain.BuildingSpec as B
 import com.lifemax.rpg.feature.habits.domain.Crossroads.Companion.DEPTH
 import com.lifemax.rpg.feature.habits.domain.Dusk
+import com.lifemax.rpg.feature.habits.domain.HouseShell
+import com.lifemax.rpg.feature.habits.domain.ShellPart
+import com.lifemax.rpg.feature.habits.domain.ShellQuad
 import com.lifemax.rpg.feature.habits.presentation.scene.ModelArt
 import com.lifemax.rpg.feature.habits.presentation.scene.SpriteArt
 import com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuilding
@@ -223,39 +226,32 @@ internal class BuildingMeshes(
         return empty to pic(StreetTextures.prepare(back, w, h, mips = true))
     }
 
-    /** A mobile home: its walls, gabled ends, the roof's two slopes from the ridge; its lawn and fence unless yarded. */
+    /** A mobile home: its walls, gabled ends, the roof as a slab over them ([HouseShell]); its lawn and fence unless yarded. */
     private fun house(sb: SpriteBuilding, setback: Float, yarded: Boolean, seed: Int, out: MutableList<Face>): Windows? {
         val house = sb.house ?: return null
         val sh = house.shape
         val ox = 0f; val oz = 0f
         val hw = B.W / 2f
-        val fw = sb.front.width * kk
-        val depth = sh.depth * kk
         val back = setback
         val left = -hw + sh.frontX * kk
         val fx = ox + ax * left - nx * back; val fz = oz + az * left - nz * back
-        val h = sh.h * kk
         val win = Windows(sb, seed)
-        out += face(fx, h, fz, ax * kk, 0f, az * kk, 0f, -kk, 0f, sb.front.width.toFloat(), sb.front.height.toFloat(), win.albedo, win.mask, nx, 0f, nz)
-        val side = sb.side
-        val sideH = side.height * kk
-        for (end in 0..1) {
-            val ex = fx + ax * (if (end == 0) 0f else fw); val ez = fz + az * (if (end == 0) 0f else fw)
-            out += face(ex, sideH, ez, -nx * depth / side.width, 0f, -nz * depth / side.width, 0f, -kk, 0f, side.width.toFloat(), side.height.toFloat(), pic(side), null,
-                if (end == 0) -ax else ax, 0f, if (end == 0) -az else az)
+        // the walls, the gable ends and the roof as a slab (HouseShell): the roof meets the walls from every side
+        val rake = pic(StreetTextures.prepare(intArrayOf(0xFF000000.toInt() or sh.rake), 1, 1, mips = true))
+        val soffit = pic(StreetTextures.prepare(intArrayOf(0xFF000000.toInt() or sh.rakeEdge), 1, 1, mips = true))
+        val sidePic = pic(sb.side); val slopePic = pic(house.slope)
+        for (q in HouseShell.quads(sh, sb.front.width.toFloat(), sb.side.height.toFloat())) {
+            val (tex, mask) = when (q.part) {
+                ShellPart.FRONT -> win.albedo to win.mask
+                ShellPart.BACK, ShellPart.EAVE_BACK -> win.back to null
+                ShellPart.EAVE_FRONT -> win.albedo to null
+                ShellPart.GABLE -> sidePic to null
+                ShellPart.SLOPE -> slopePic to null
+                ShellPart.RAKE -> rake to null
+                ShellPart.SOFFIT -> soffit to null
+            }
+            out += shellFace(q, fx, fz, tex, mask)
         }
-        out += face(fx + ax * fw - nx * depth, h, fz + az * fw - nz * depth, -ax * kk, 0f, -az * kk, 0f, -kk, 0f, sb.front.width.toFloat(), sb.front.height.toFloat(), win.back, null, -nx, 0f, -nz)
-        val slopeImg = house.slope
-        val rows = slopeImg.height.toFloat(); val pw = slopeImg.width.toFloat()
-        val over = sh.eaveOver * kk
-        val run = depth / 2f + over
-        val rise = sh.rise * kk
-        val ridgeY = h + rise
-        val rx = fx - nx * depth / 2f; val rz = fz - nz * depth / 2f
-        val len = sqrt(run * run + rise * rise); val cyy = run / len; val syy = rise / len
-        val sx = fw / pw
-        out += face(rx, ridgeY, rz, ax * sx, 0f, az * sx, nx * run / rows, -rise / rows, nz * run / rows, pw, rows, pic(slopeImg), null, nx * syy, cyy, nz * syy)
-        out += face(rx, ridgeY, rz, ax * sx, 0f, az * sx, -nx * run / rows, -rise / rows, -nz * run / rows, pw, rows, pic(slopeImg), null, -nx * syy, cyy, -nz * syy)
         if (!yarded) {
             house.lawn?.let { lawn ->
                 out += face(ox - ax * hw, .15f, oz - az * hw, ax * B.W / lawn.width, 0f, az * B.W / lawn.width, -nx * back / lawn.height, 0f, -nz * back / lawn.height,
@@ -321,6 +317,24 @@ internal class BuildingMeshes(
         }
         val ul = sqrt(ux * ux + uy * uy + uz * uz)
         return Face(p, floatArrayOf(0f, 0f, 1f, 0f, 1f, 1f, 0f, 1f), tex, mask, nx, ny, nz, ux / ul, uy / ul, uz / ul)
+    }
+
+    /** A house's [ShellQuad] (sprite pixels in the house's frame) as a face, its front wall's left end at ([fx], [fz]). */
+    private fun shellFace(q: ShellQuad, fx: Float, fz: Float, tex: () -> Texture, mask: (() -> Texture)?): Face {
+        fun wx(x: Float, d: Float) = (ax * x - nx * d) * kk
+        fun wz(x: Float, d: Float) = (az * x - nz * d) * kk
+        val p = FloatArray(12)
+        for (c in 0..3) {
+            val a = if (c == 1 || c == 2) 1f else 0f
+            val b = if (c >= 2) 1f else 0f
+            val x = q.o[0] + q.u[0] * a + q.v[0] * b; val y = q.o[1] + q.u[1] * a + q.v[1] * b; val d = q.o[2] + q.u[2] * a + q.v[2] * b
+            p[c * 3] = fx + wx(x, d); p[c * 3 + 1] = y * kk; p[c * 3 + 2] = fz + wz(x, d)
+        }
+        val (u0, v0, u1, v1) = q.uv
+        val tx = wx(q.u[0], q.u[2]); val ty = q.u[1] * kk; val tz = wz(q.u[0], q.u[2])
+        val tl = sqrt(tx * tx + ty * ty + tz * tz)
+        val nxw = ax * q.n[0] - nx * q.n[2]; val nzw = az * q.n[0] - nz * q.n[2]
+        return Face(p, floatArrayOf(u0, v0, u1, v0, u1, v1, u0, v1), tex, mask, nxw, q.n[1], nzw, tx / tl, ty / tl, tz / tl)
     }
 
     /** A box's or a mobile home's faces packed off the engine's thread ([pack]), waiting for [upload]. */

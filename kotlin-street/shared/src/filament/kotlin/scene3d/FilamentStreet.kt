@@ -28,6 +28,8 @@ import com.google.android.filament.Viewport
 import com.lifemax.rpg.feature.habits.domain.BuildingSpec as B
 import com.lifemax.rpg.feature.habits.domain.Crossroads
 import com.lifemax.rpg.feature.habits.domain.Crossroads.Companion.DEPTH
+import com.lifemax.rpg.feature.habits.domain.HouseShell
+import com.lifemax.rpg.feature.habits.domain.ShellPart
 import com.lifemax.rpg.feature.habits.domain.Crossroads.Companion.KERB
 import com.lifemax.rpg.feature.habits.domain.Crossroads.Companion.MOUTH
 import com.lifemax.rpg.feature.habits.domain.Crossroads.Companion.PAVE
@@ -525,7 +527,7 @@ class FilamentStreet(
             .also { it.hourly = m.night }
     }
 
-    /** One of the mobile homes: its walls, its gabled ends (the side picture carries the triangle), the roof's two slopes, its yard. */
+    /** One of the mobile homes: its walls, its gabled ends (the side picture carries the triangle), the roof as a slab over them ([HouseShell]), its yard. */
     private fun houseFaces(world: CornerWorld, cr: Crossroads, s: CrossSide, bx: Crossroads.Box, sb: com.lifemax.rpg.feature.habits.presentation.scene.SpriteBuilding, out: MutableList<Face>): Windows? {
         val house = sb.house ?: return null
         val sh = house.shape
@@ -536,36 +538,41 @@ class FilamentStreet(
         val oz = world.frontZ(cr, s, i)
         val kk = B.W / SpriteArt.SRC_W
         val hw = B.W / 2f
-        val fw = sb.front.width * kk
         val depth = min(sh.depth * kk, DEPTH)
         val back = min(sh.setback * kk, (DEPTH - depth).coerceAtLeast(0f))
         val left = -hw + sh.frontX * kk
         // the house's front wall: its left end and the way back into the lot
         val fx = ox + ax * left - nx * back; val fz = oz + az * left - nz * back
-        val h = sh.h * kk
         val win = Windows(sb, s.arts[i].stack.id.hashCode())
-        out += face(fx, h, fz, ax * kk, 0f, az * kk, 0f, -kk, 0f, sb.front.width.toFloat(), sb.front.height.toFloat(), win.albedo, win.mask, nx, 0f, nz)
-        val side = sb.side
-        val sideH = side.height * kk
-        for (end in 0..1) {
-            val ex = fx + ax * (if (end == 0) 0f else fw); val ez = fz + az * (if (end == 0) 0f else fw)
-            out += face(ex, sideH, ez, -nx * depth / side.width, 0f, -nz * depth / side.width, 0f, -kk, 0f, side.width.toFloat(), side.height.toFloat(), textures.of(side), null,
-                if (end == 0) -ax else ax, 0f, if (end == 0) -az else az)
+        // the walls, the gable ends and the roof as a slab (HouseShell): the roof meets the walls from every side
+        val rake = textures.make(intArrayOf(0xFF000000.toInt() or sh.rake), 1, 1, mips = true)
+        val soffit = textures.make(intArrayOf(0xFF000000.toInt() or sh.rakeEdge), 1, 1, mips = true)
+        val sc = depth / (sh.depth * kk)
+        for (q in HouseShell.quads(sh, sb.front.width.toFloat(), sb.side.height.toFloat())) {
+            val (tex, mask) = when (q.part) {
+                ShellPart.FRONT -> win.albedo to win.mask
+                // the back wall: the front's own siding (no windows taken from it)
+                ShellPart.BACK, ShellPart.EAVE_BACK -> textures.of(sb.front) to null
+                ShellPart.EAVE_FRONT -> win.albedo to null
+                ShellPart.GABLE -> textures.of(sb.side) to null
+                ShellPart.SLOPE -> textures.of(house.slope) to null
+                ShellPart.RAKE -> rake to null
+                ShellPart.SOFFIT -> soffit to null
+            }
+            // (depth along the lot, squeezed only if the house is deeper than the crossroads' lots)
+            fun px(x: Float, d: Float) = (ax * x - nx * d * sc) * kk
+            fun pz(x: Float, d: Float) = (az * x - nz * d * sc) * kk
+            val p = FloatArray(12)
+            for (c in 0..3) {
+                val ua = if (c == 1 || c == 2) 1f else 0f; val vb = if (c >= 2) 1f else 0f
+                val x = q.o[0] + q.u[0] * ua + q.v[0] * vb; val y = q.o[1] + q.u[1] * ua + q.v[1] * vb; val d = q.o[2] + q.u[2] * ua + q.v[2] * vb
+                p[c * 3] = fx + px(x, d); p[c * 3 + 1] = y * kk; p[c * 3 + 2] = fz + pz(x, d)
+            }
+            val (u0, v0, u1, v1) = q.uv
+            val tx = px(q.u[0], q.u[2]); val ty = q.u[1] * kk; val tz = pz(q.u[0], q.u[2])
+            val tl = sqrt(tx * tx + ty * ty + tz * tz)
+            out += Face(p, floatArrayOf(u0, v0, u1, v0, u1, v1, u0, v1), tex, mask, ax * q.n[0] - nx * q.n[2], q.n[1], az * q.n[0] - nz * q.n[2], tx / tl, ty / tl, tz / tl)
         }
-        // the back wall: the front's own siding (no windows taken from it): its bottom rows stretched
-        out += face(fx + ax * fw - nx * depth, h, fz + az * fw - nz * depth, -ax * kk, 0f, -az * kk, 0f, -kk, 0f, sb.front.width.toFloat(), sb.front.height.toFloat(), textures.of(sb.front), null, -nx, 0f, -nz)
-        // the roof: from the ridge at mid-depth down to each eave, overhanging the walls
-        val slopeImg = house.slope
-        val rows = slopeImg.height.toFloat(); val pw = slopeImg.width.toFloat()
-        val over = sh.eaveOver * kk
-        val run = depth / 2f + over
-        val rise = sh.rise * kk
-        val ridgeY = h + rise
-        val rx = fx - nx * depth / 2f; val rz = fz - nz * depth / 2f
-        val len = sqrt(run * run + rise * rise); val cyy = run / len; val syy = rise / len
-        val sx = fw / pw
-        out += face(rx, ridgeY, rz, ax * sx, 0f, az * sx, nx * run / rows, -rise / rows, nz * run / rows, pw, rows, textures.of(slopeImg), null, nx * syy, cyy, nz * syy)
-        out += face(rx, ridgeY, rz, ax * sx, 0f, az * sx, -nx * run / rows, -rise / rows, -nz * run / rows, pw, rows, textures.of(slopeImg), null, -nx * syy, cyy, -nz * syy)
         // its yard: the lawn along the lot's front, and the fence or hedge at its edge
         house.lawn?.let { lawn ->
             out += face(ox - ax * hw, .15f, oz - az * hw, ax * B.W / lawn.width, 0f, az * B.W / lawn.width, -nx * back / lawn.height, 0f, -nz * back / lawn.height,

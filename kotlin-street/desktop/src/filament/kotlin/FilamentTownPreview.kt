@@ -262,6 +262,32 @@ fun renderFilamentTown(out: String) {
         shoot("yard_${name}_back", aerial(px, pz, yaw, 20f, 760f, 55f), 13f)
         shoot("yard_${name}_back_dusk", aerial(px, pz, yaw, 20f, 760f, 55f), dusk)
     }
+    // --- a street view from a given spot (-Dspot=row,x,lane, e.g. 2L,1928,14: where a phone screenshot was taken)
+    System.getProperty("spot")?.split(",")?.takeIf { it.size >= 2 }?.let { s ->
+        val r = town.row(s[0].trim())
+        val x = s[1].trim().toFloat()
+        CornerWalk.reset(); walk.placeOn(r, x, s.getOrNull(2)?.trim()?.toFloatOrNull() ?: 7f)
+        val pose = TownFrame.street(walk, sw.toFloat(), shh.toFloat())
+        report.appendLine("spot: row ${r.id} x %.0f, player at (%.0f, %.0f)".format(x, walk.wx, walk.wz))
+        shoot("spot_13h", pose, 13f)
+        shoot("spot_17h", pose, 17.6f)
+    }
+    // --- pitched-roof houses close up (-Dhouses=b89,b46 or all): from the front, both three-quarters, both ends, the
+    // back and above, so a roof that does not meet its walls shows from every side
+    System.getProperty("houses")?.let { list ->
+        val names = if (list == "all") houses.keys.sorted() else list.split(",").map { it.trim() }
+        for (sp in names) {
+            val r = town.rows.firstOrNull { row -> row.buildings.any { it.sprite == sp } } ?: continue
+            val b = r.buildings.first { it.sprite == sp }
+            val n = r.normalAt(b.mid)
+            val c = r.pointAt(b.mid, 0f)
+            val tx = c.x + n.x * (b.setback + b.depth / 2f); val tz = c.z + n.z * (b.setback + b.depth / 2f)
+            val front = Math.toDegrees(kotlin.math.atan2(n.x.toDouble(), (-n.z).toDouble())).toFloat()
+            for ((view, dy) in listOf("front" to 0f, "q1" to 45f, "q2" to -45f, "end1" to 90f, "end2" to -90f, "back" to 180f))
+                shoot("house_${sp}_$view", aerial(tx, tz, front + dy, 14f, 330f, 45f), 13f)
+            shoot("house_${sp}_above", aerial(tx, tz, front + 30f, 55f, 380f, 45f), 13f)
+        }
+    }
     // --- the landmarks' grounds: each landmark from low above its front (the paved path and apron)
     for (sp in listOf("b92", "b96", "b97")) {
         val r = town.rows.firstOrNull { row -> row.buildings.any { it.sprite == sp } } ?: continue
