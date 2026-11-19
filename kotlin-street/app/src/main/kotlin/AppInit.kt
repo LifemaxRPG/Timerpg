@@ -10,11 +10,15 @@ import android.content.Context
 object AppInit {
     private var basics = false
     private var native = false
+    /** The app's context, once [basics] ran (for calls made before an activity hands one over). */
+    @Volatile var context: Context? = null
+        private set
 
     @Synchronized
     fun basics(ctx: Context) {
         if (basics) return
         basics = true
+        context = ctx.applicationContext
         com.timerpg.street.shot.Crumbs.init(ctx.applicationContext)
         CrashReport.install(ctx.applicationContext)
     }

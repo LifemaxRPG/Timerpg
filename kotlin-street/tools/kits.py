@@ -51,17 +51,22 @@ def cut(theme, name, x0, x1, fixl=False, fixr=False, bottom=None):
 PALETTES = ('brick', 'blue', 'grey')
 # --- theme 5 ---------------------------------------------------------------------------------------------------------
 # Middle floors: 5 two-tile motifs x 2 slices x 3 palettes (slice numbers 10p + 2m + 1, + 2); the full 7-wide floors are
-# 6 per palette. Condo ground floors: 4 slice motifs x 2 x 3 (8p + 2m + 1), plus doors and windows cut from the full
-# floors (4 per palette). Shop ground floors: only the full 7-wide ones exist (the Shop_Modular slices are single tiles
-# of a display window and of a door, not motifs): a 5-tile display with its end pilaster and a 2-tile door, cut apart.
+# 6 per palette. Condo ground floors: whole features cut from the 4 full floors per palette (below). Shop ground floors:
+# only the full 7-wide ones exist (the Shop_Modular slices are single tiles of a display window and of a door, not motifs): a 5-tile display with its end pilaster and a 2-tile door, cut apart.
 MID_MOTIFS = ('win', 'balc', 'sign', 'twin', 'slit')
-CONDO_SLICES = ('smallwin', 'atm', 'pipe', 'tall')
-# door and window motifs cut from the full condo ground floors (index in 1..4 within the palette, tile span, wall fix)
-CONDO_CUTS = {
-    'door_glass': (1, 4, 6, False, False), 'door_canopy': (2, 2, 5, False, False), 'door_arch': (3, 3, 6, False, False),
-    'door_wood': (4, 2, 5, False, False), 'win2': (2, 5, 7, False, True), 'bigwin3': (3, 0, 3, True, False),
+# Condo ground floors: the 24 Ground_Floor_Condo_Modular slices are NOT motifs. In the theme sheet each sits just left (odd)
+# or right (even) of a full condo ground floor, the cut-off end of the next piece in a row (half a window grid, half an ATM,
+# the left foot of an arch): laid in pairs they made jumbled fronts (a window cut in half, a stray sloped piece of the arch).
+# The ground's features are cut from the full floors instead, each WHOLE, at their own pixel spans (they do not sit on tile
+# lines), and laid on the plain condo wall (filler) between the caps: (full piece 1..4 within the palette, x0, x1, door, weight).
+# The four pieces are four styles (family = piece): a door and the windows that go with it.
+CONDO_ELEMENTS = {
+    'grid': (1, 20, 114, False, 1), 'door_glass': (1, 126, 194, True, 1),
+    'atm': (2, 10, 68, False, 0), 'door_canopy': (2, 72, 162, True, 1), 'win_sill': (2, 160, 212, False, 1),
+    'longwin': (3, 16, 108, False, 1), 'door_arch': (3, 116, 216, True, 1),
+    'win_frame': (4, 24, 72, False, 1), 'door_wood': (4, 70, 154, True, 1),
 }
-CONDO_DOORS = ('door_glass', 'door_canopy', 'door_arch', 'door_wood')
+CONDO_DOORS = tuple(k for k, v in CONDO_ELEMENTS.items() if v[3])
 # open shop fronts per palette (the odd full pieces; 3 is the one with a CLOSED banner, the even ones have shutters down)
 SHOP_OPEN = (1, 5, 7, 9, 11)
 SHOP_CLOSED = (2, 6, 8, 10, 12)
@@ -83,11 +88,8 @@ def kit5(p):
         mid[mid_id] = dict(tiles=2, parts=[['fm', f'Middle_Floor_Modular_{b}', 0, 32], ['fm', f'Middle_Floor_Modular_{b + 1}', 0, 32]],
                            weight=dict(win=5, balc=0, sign=2, twin=3, slit=2)[mid_id], balcony=(mid_id == 'balc'))
     condo = {}
-    for m, cid in enumerate(CONDO_SLICES):
-        b = 8 * p + 2 * m + 1
-        condo[cid] = dict(tiles=2, parts=[['fm', f'Ground_Floor_Condo_Modular_{b}', 0, 32], ['fm', f'Ground_Floor_Condo_Modular_{b + 1}', 0, 32]])
-    for cid, (k, t0, t1, fl, fr) in CONDO_CUTS.items():
-        condo[cid] = dict(tiles=t1 - t0, parts=[['fm', f'Ground_Floor_Condo_{4 * p + k}', t0 * TILE, t1 * TILE, fl, fr]], door=cid in CONDO_DOORS)
+    for cid, (k, x0, x1, door, w) in CONDO_ELEMENTS.items():
+        condo[cid] = dict(px=x1 - x0, family=k, door=door, weight=w, parts=[['fm', f'Ground_Floor_Condo_{4 * p + k}', x0, x1]])
     shop = {}
     for i, k in enumerate(SHOP_OPEN):
         n = 12 * p + k

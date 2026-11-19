@@ -96,21 +96,59 @@ the corner turn and other heavy animations, and back off when the battery is low
 and audio are cached on disk (text as JSON, audio compressed with Opus) keyed by the prompt, so they survive restarts and
 time travel only regenerates the lines whose facts changed.
 
-## The overnight writer (kotlin-street/app/src/main/kotlin/night)
+## The overnight writer and Writer mode (kotlin-street/app/src/main/kotlin/night)
 
 The owner leaves the phone on the charger overnight; the dialogue model writes the bank of lines so the game needs
-little live generation.
+little live generation. Writer mode does the same on demand, from its own screen.
 
-- **When**: plugged in (not "charging": Samsung's battery protection stops charging at 80-85% with the charger in),
-  battery at 30% or more, the game not in sight, the AI panel's switch on. Started as a foreground service (type
-  specialUse; dataSync is for transfers and limited to 6 h a day from Android 15) when the game goes out of sight on the
-  charger, or by a JobScheduler job (requires charging, persisted) at the next charge. Android 12+ refuses a foreground
+- **Why nothing was written before** (the phone's night reports of 2026-11-19): the writer ran in the game's own
+  process beside the town, so only the CPU copy fitted (the main model's NPU copy needs ~6.6 GB, ~4 GB were free); it
+  waited for the battery with the phone plugged in at 9%; it "cooled down" for most of an hour at a moderate thermal
+  status right after playing; and (06:27: 79 min, 22.6 min of "writing", 0 tokens) the game going to the background
+  left a "memory" hold in the engine (onTrimMemory BACKGROUND) that nothing lifted (the memory watch only speaks on a
+  change of level): the model was loaded again, ready, and held. Fixed: with the game closed, background trim levels do
+  not hold the writing (only real pressure unloads the model; the writer loads it again with the hold lifted); the loop
+  counts time held by the engine apart from writing time; the report names the hold, the engine's state at the end, and
+  says when not a single token was generated.
+- **Its own process** (":writer": NightService, NightJob, WriterActivity): no town, Filament, voices, speech or memory
+  model. It closes the game's process when that sits out of sight (Writer mode at once; overnight after 10 minutes out
+  of sight unless there is room beside it already), marked so the game's next start does not report it as a crash. The
+  game's process tells it when it opens (a broadcast, and its process coming to the front): the writer stops, saves the
+  bank, lets the model go and releases `writer.lock`; the game reads the bank once that lock is free (up to 20 s). Both
+  processes save the bank under a file lock, each merging what the other saved since (`ReplyCache.save`). The writer
+  process's breadcrumbs go to crumbs-writer.txt.
+- **Which model**: writing the bank on a phone with an NPU, the main model's copy there, else the light model's copy
+  there, never either from its file on the CPU (`ModelRoles.pick` with `writing`); the NPU whatever device the AI panel
+  was left on. Lines the light model wrote are marked and rewritten by the main model when it writes (stage 5, before
+  variants). The free memory in Writer mode (and what closing the game freed) is measured and shown on the screen and in
+  the report: whether the main model fits there is still to be measured on the S25.
+- **Writer mode** (the AI panel's "Writer mode" button, which closes the game, or its own launcher icon "Timerpg
+  Writer"): starts writing at once; shows the phase, the model and device, free memory and each copy's need, lines
+  this session and in the bank, lines/hour, prefill and generation tok/s, lines left with an estimated time, the queue
+  by year, person and topic, the last lines with the speaker's name, heat (status, headroom, hottest), battery and
+  charging. Start/Pause (the model stays loaded)/Stop, "Keep screen on (dimmed)" (dims after 20 s untouched) and "Write
+  on battery too" (the owner's choice; otherwise only plugged in). A foreground service (specialUse), so it goes on with
+  the screen off; the notification opens Writer mode, not the game. It stops cleanly when the game is opened.
+- **When (overnight)**: plugged in (not "charging": Samsung's battery protection stops charging at 80-85% with the
+  charger in), the game not in sight, the AI panel's switch on. Started as a foreground service when the game goes out of
+  sight on the charger, or by a JobScheduler job (requires charging only: "battery not low" kept a phone plugged in nearly
+  empty from ever running it; an old job with it is scheduled again) at the next charge. Android 12+ refuses a foreground
   service started from the background unless the app's battery use is "Unrestricted"; then the job writes itself for its
   own time (~10 minutes) and is run again. Samsung: set the game's battery to Unrestricted and keep it out of "Sleeping
-  apps"/"Deep sleeping apps", or the job may never run.
-- **Heat**: bursts (8 min writing, 2 min rest), cool-downs at a moderate thermal status or headroom >= 0.9 until light
-  and < 0.75, a pause at severe (the line in progress stopped), a stop at critical. Guesses, to be measured: the night
-  report records every pause and the hottest status.
+  apps"/"Deep sleeping apps". Writer mode's screen starts the service itself (allowed: it is in front).
+- **Battery**: plugged in, it writes at any level while the battery charges; under 15% it waits only when the battery is
+  not charging or falls while it writes (a weak charger). On battery (Writer mode's choice) it writes down to 20%.
+- **Heat** (`NightRules`: scheduling, not quality): at thermal status light or less it starts at once (no cool-down
+  first) and writes in 8-minute bursts with 2-minute rests, with no rest while the headroom is known and under 0.75; at
+  moderate, or headroom >= 0.9, it goes on in 90-second bursts with 4-minute rests (a warm rest ends early once cool); at
+  severe it pauses (the line in progress stopped) until moderate; at critical it stops. Guesses, to be measured: the
+  report records the time spent each way and the hottest status.
+- **The report** (the `reports` branch, night/<date>/<time>.json, `kind` "night" or "writer"): lines, variants,
+  rejected, lines/hour, tok/s, the model and device, the memory (free at start, freed by closing the game, before and
+  after the load, each copy's need), time writing / loading / held by the engine / resting / warm / hot / paused /
+  waiting for the battery, battery and charger at both ends, lines left and the estimate, the queue, the last lines
+  (lines steered by the player's words stay on the phone unless "with my words"), the engine's state at the end, and
+  `inPlainWords`: what was written and where the time went, in one sentence. The AI panel's "Last run" shows it too.
 - **What, in order** (most needed first, see below): every prompt of the town not written yet; the player's patterns
   (follow-ups to recent conversations, the frequent themes for every person); variants, up to 4 lines per prompt,
   written back to back so the model's prompt cache covers the whole prompt (each costs only its generation); other

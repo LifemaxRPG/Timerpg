@@ -32,7 +32,8 @@ object ModelRoles {
         val accelerated: Boolean,
         /** The AI panel's switch: the main model for live replies too (for comparison). */
         val forceBank: Boolean = false,
-        /** The overnight writer is writing the bank: the main model, whatever else holds. */
+        /** The bank is being written (Writer mode, the overnight writer): the main model's copy on its device, else the
+         *  light one's there, never the CPU from the file while there is a device. */
         val writing: Boolean = false,
         /** Each model's own memory beside its weights (KV cache, recurrent state, compute): what its last load measured,
          *  else [WORK_BYTES]. */
@@ -84,8 +85,15 @@ object ModelRoles {
                 return NeedLive("The light model for replies in play is not downloaded, and the main model does not fit beside the town " +
                     "(${i.freeBytes shr 20} MB free, ${need(t) shr 20} MB needed).", need(t))
             }
-            // writing the bank (the game behind, overnight): the main model, on the CPU from its file if its copy will
-            // not fit; the light one only when it is all there is
+            // writing the bank (Writer mode, or overnight with the game closed) on a phone with an NPU: the main model's
+            // copy there, else the light model's copy there (its lines are marked and rewritten by the main one later),
+            // never either from its file on the CPU (several times slower: the owner's nights wrote nothing that way)
+            i.writing && i.accelerated -> {
+                if (bank) add(ModelRole.BANK, true)
+                if (live) add(ModelRole.LIVE, true)
+            }
+            // the game behind (or no accelerator): the main model, on the CPU from its file if its copy will not fit; the
+            // light one only when it is all there is
             !play || !live || (i.forceBank && bank) -> {
                 val r = if (bank) ModelRole.BANK else ModelRole.LIVE
                 add(r, true); add(r, false)

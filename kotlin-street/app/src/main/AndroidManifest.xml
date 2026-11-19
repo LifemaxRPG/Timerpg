@@ -29,17 +29,21 @@
         <uses-native-library android:name="libOpenCL.so" android:required="false" />
         <!-- the Hexagon NPU's driver (FastRPC), for the dialogue model on the NPU (absent: the CPU or GPU) -->
         <uses-native-library android:name="libcdsprpc.so" android:required="false" />
-        <!-- the overnight writer (night/NightWriter.kt): while the phone charges and the game is closed -->
+        <!-- the overnight writer and Writer mode (night/NightWriter.kt): the dialogue model writes the bank of lines with
+             the game closed, in a process of their own (":writer") with nothing of the game's in it, so the main model's
+             copy on the NPU has the most room -->
         <service
             android:name="com.timerpg.street.night.NightService"
+            android:process=":writer"
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="While the phone is charging and the game is closed, the on-device language model writes the game characters' dialogue lines ahead of time and saves them, so the game needs little live generation. Long local computation, no data transfer or media; the user can stop it from the notification or switch it off in the game." />
+                android:value="While the phone is charging and the game is closed, or when the user starts Writer mode, the on-device language model writes the game characters' dialogue lines ahead of time and saves them, so the game needs little live generation. Long local computation, no data transfer or media; the user can stop it from the notification, from Writer mode's screen, or switch it off in the game." />
         </service>
         <service
             android:name="com.timerpg.street.night.NightJob"
+            android:process=":writer"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />
         <!-- restarts the game in a fresh process (the NPU tuner: the backend reads its settings once per process) -->
@@ -53,6 +57,20 @@
             android:name="com.timerpg.street.GameActivity"
             android:exported="true"
             android:screenOrientation="sensorLandscape"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode|density">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <!-- Writer mode: its own screen and launcher icon, in the writer's process (no town, renderer or voices) -->
+        <activity
+            android:name="com.timerpg.street.night.WriterActivity"
+            android:process=":writer"
+            android:label="Timerpg Writer"
+            android:taskAffinity="com.timerpg.street.writer"
+            android:exported="true"
+            android:launchMode="singleTask"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode|density">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -105,6 +105,16 @@
   landmarks have nobody to talk to; going into a room keeps the town's scene (drawn under the room) but a renderer switch
   rebuilds it.
 
+## The railroad (branch wf-rail; desktop renders and JVM tests only, NOT yet run on the S25)
+
+- docs/RAIL.md. The world's railroads (src/world/rail.ts: main lines and branches by year, stations, the national
+  passenger service "Pennant" from 1971, timetables, fares, a route planner by town name; tested that every town an NPC
+  can name is routable), the railroad in each town (src/town/rail.ts: on the town's grid, square crossings, depot,
+  siding), gamma's rail.json, and in the Filament town: track, the roads out of town with gated crossings, the
+  temporary brick depot, trains of each era on the timetable; "Take the train" at the depot opens the ticket window
+  (search by name, route, fare), boarding plays the ride through the countryside at world scale. Arriving in another
+  town is the open hook (one town ships): the ride ends back at the depot with the clock moved on.
+
 ## Added since (all verified by headless renders only)
 - **A bicycle in the open world** (branch wf-bike; desktop renders and JVM tests only, NOT yet ridden on the S25): the HUD's
   bike button right of the stick (tap on/off, long press: the bell); momentum, coasting, braking, a turning radius that

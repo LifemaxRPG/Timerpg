@@ -13,6 +13,44 @@ class BankTest {
     private fun tmp() = File.createTempFile("bank", ".json").apply { delete(); deleteOnExit() }
 
     @Test
+    fun twoProcessesSavingTheSameBankLoseNothing() {
+        val f = tmp()
+        val game = ReplyCache(f); val writer = ReplyCache(f)
+        game.putLine("a", "From the game.", "gamma/2025/a/chat"); game.save()
+        writer.load()
+        writer.putLine("b", "From the writer.", "gamma/2025/b/chat")
+        writer.putLine("light", "A light line.", "gamma/2025/c/work", light = true)
+        writer.save()
+        // the game saves after: the writer's lines are merged in, not overwritten
+        game.putLine("c", "Another from the game.", "gamma/2025/d/chat"); game.save()
+        val back = ReplyCache(f).apply { load() }
+        assertEquals("From the writer.", back.get("b")?.line)
+        assertEquals("Another from the game.", back.get("c")?.line)
+        assertTrue(back.get("light")!!.light)
+        assertEquals(1, back.light)
+        // the main model's rewrite replaces the light line and its variants, and wins a merge
+        back.replaceLine("light", "The main model's line.")
+        assertFalse(back.get("light")!!.light)
+        back.save()
+        writer.addVariant("light", "Another light line."); writer.save()
+        val again = ReplyCache(f).apply { load() }
+        assertEquals(listOf("The main model's line."), again.get("light")!!.lines)
+        // a key one side let go of on purpose is not brought back by the merge
+        again.retain(setOf("a", "b", "light"))
+        again.save()
+        assertEquals(null, ReplyCache(f).apply { load() }.get("c"))
+    }
+
+    @Test
+    fun theQueueByYearPersonAndTopic() {
+        val q = BankPlan.queue(listOf("gamma/2025/ann/work", "gamma/2025/ann/chat", "gamma/2026/bo/theme:t1", "gamma/2025/bo/next"), { mapOf("ann" to "Ann").get(it) }, people = 1)
+        assertEquals(listOf("2025" to 3, "2026" to 1), q.byYear)
+        assertEquals(listOf("Ann" to 2, "others (1)" to 2), q.byPerson)
+        assertEquals(4, q.total)
+        assertTrue(q.byTopic.contains("your themes" to 1) && q.byTopic.contains("follow-ups" to 1))
+    }
+
+    @Test
     fun variantsRotateAndNeverRepeatInARow() {
         val c = ReplyCache(tmp())
         c.putLine("k", "Nice day for it.", "gamma/2025/a/chat")

@@ -4,7 +4,8 @@ import android.app.job.JobParameters
 import android.app.job.JobService
 
 /**
- * Runs when the phone is plugged in (JobScheduler: requires charging, battery not low; kept across reboots): it starts
+ * Runs when the phone is plugged in (JobScheduler: requires charging, at any battery level; kept across reboots; in the
+ * writer's own process): it starts
  * [NightService]. Android 12+ allows that from the background only when the app's battery use is "Unrestricted";
  * otherwise this job writes itself for as long as Android lets a job run (about 10 minutes), then is scheduled again.
  */
@@ -12,7 +13,7 @@ class NightJob : JobService() {
     @Volatile private var mine: NightSession? = null
 
     override fun onStartJob(params: JobParameters): Boolean {
-        if (!NightWriter.enabled(this) || NightWriter.gameOpen || NightWriter.session != null) return false
+        if (!NightWriter.enabled(this) || NightWriter.gameVisible(this) || NightWriter.session != null || WriterLock.heldElsewhere(this)) return false
         if (NightWriter.startService(this)) return false
         val s = NightWriter.begin(this, "job") { stop -> runCatching { jobFinished(params, false) } } ?: return false
         mine = s

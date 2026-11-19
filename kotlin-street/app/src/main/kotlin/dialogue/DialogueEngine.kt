@@ -92,7 +92,8 @@ data class AiStatus(
 
 /**
  * The overnight writer's progress: [stage] 1 the town's lines, 2 the player's own patterns (follow-ups, frequent
- * themes), 3 more ways of saying each line (variants), 4 other years, 0 nothing left; [done] of [total] in that stage.
+ * themes), 5 the main model rewriting what the light one wrote (Writer mode, when only the light one fitted), 3 more
+ * ways of saying each line (variants), 4 other years, 0 nothing left; [done] of [total] in that stage.
  */
 data class NightProgress(val stage: Int, val done: Int, val total: Int) {
     val label: String get() = when (stage) {
@@ -100,6 +101,7 @@ data class NightProgress(val stage: Int, val done: Int, val total: Int) {
         2 -> "What you ask about: $done of $total"
         3 -> "More ways to say it: $done of $total"
         4 -> "Other years: $done of $total"
+        5 -> "Main model rewriting the light model's lines: $done of $total"
         else -> "Dialogue bank complete"
     }
 }
@@ -165,7 +167,7 @@ class DialogueEngine private constructor(private val app: Context) {
 
     /** A line being written. */
     private class Gen(val key: String, val target: Target, val bypass: Boolean = false, val speed: Boolean = false, val variant: Boolean = false,
-                      val slot: String? = null) {
+                      val slot: String? = null, val upgrade: Boolean = false) {
         val listeners = CopyOnWriteArrayList<Request>()
         @Volatile var cancelled = false
         @Volatile var timedOut = false
@@ -399,7 +401,9 @@ class DialogueEngine private constructor(private val app: Context) {
                     command { loadModel() }
                 }
             }
-            1 -> pause("memory")
+            // (writing the bank with the game closed: memory short of the game's comfort is no reason to hold the writing;
+            // the owner's night of 2026-11-19 sat 23 minutes "writing" with the model loaded and nothing written, held so)
+            1 -> if (night && !foreground) resume("memory") else pause("memory")
             else -> {
                 pause("memory")
                 if (backend == null && !loadingNow) return
@@ -431,6 +435,18 @@ class DialogueEngine private constructor(private val app: Context) {
     /** Memory pressure: pause pre-generation, and under real pressure let go of the model (it reloads on return). */
     @Suppress("DEPRECATION")
     fun onTrimMemory(level: Int) {
+        // writing the bank with the game closed: "the app is in the background" is the point, not a reason to hold; only
+        // real pressure lets the model go (the writer loads it again). Before this, the game going out of sight left a
+        // "memory" hold that nothing lifted (the level watch only speaks on a change): the night of 2026-11-19 had the
+        // model loaded again and ready for 23 minutes of writing time and wrote nothing.
+        if (night && !foreground) {
+            @Suppress("DEPRECATION")
+            if (level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL || level >= ComponentCallbacks2.TRIM_MEMORY_COMPLETE) {
+                lock.withLock { running?.let { cancelLocked(it) } ?: cancelBackendLocked() }
+                command { unloadForMemory(force = true) }
+            }
+            return
+        }
         when {
             level >= ComponentCallbacks2.TRIM_MEMORY_BACKGROUND || level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL -> {
                 pause("memory")
@@ -439,7 +455,7 @@ class DialogueEngine private constructor(private val app: Context) {
                 // (critical with the game in front: let go of it too, or Android kills the game for it)
                 command { unloadForMemory(force = level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL) }
             }
-            level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW -> {
+            level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW && !(night && !foreground) -> {
                 // a moment's pressure: hold the lines written ahead for a minute, then try again
                 pause("memory")
                 main.removeCallbacks(liftMemoryPause)
@@ -550,7 +566,8 @@ class DialogueEngine private constructor(private val app: Context) {
         val acc = native?.accelerators ?: 0
         if (acc != 0 && prefs.getInt("accelerators", 0) != acc) prefs.edit().putInt("accelerators", acc).apply()
         val npu = ((if (acc != 0) acc else prefs.getInt("accelerators", 0)) and 2 != 0) || _status.value.hasNpu
-        val w = deviceWanted
+        // (writing the bank: the NPU whenever there is one, whatever device the panel was left on from a test)
+        val w = if (night && npu) com.timerpg.street.llm.NativeLlm.NPU else deviceWanted
         val d = if (w >= 0) w else if (npu) com.timerpg.street.llm.NativeLlm.NPU else com.timerpg.street.llm.NativeLlm.CPU
         return if (role == ModelRole.LIVE && d == com.timerpg.street.llm.NativeLlm.GPU && npu) com.timerpg.street.llm.NativeLlm.NPU else d
     }
@@ -661,6 +678,10 @@ class DialogueEngine private constructor(private val app: Context) {
         night = true
         if (!gameVisible) foreground = false
         nightCount.set(NightCount())
+        upgraded = 0
+        // (a memory hold left from play does not carry into the night; a critical level unloads as before)
+        if (!gameVisible && com.timerpg.street.llm.MemoryWatch.level < 2) resume("memory")
+        synchronized(recent) { recent.clear() }
         nightReady = false
         command {
             loadSteer()
@@ -677,9 +698,10 @@ class DialogueEngine private constructor(private val app: Context) {
         refresh()
     }
 
-    /** The overnight writer stopped: back to the game's rules; [release] lets the model go if the writer loaded it. */
-    fun endNight(release: Boolean) {
-        if (!night) return
+    /** The overnight writer stopped: back to the game's rules; [release] lets the model go if the writer loaded it.
+     *  [done] runs (on the worker) once the bank is saved and the model let go. */
+    fun endNight(release: Boolean, done: (() -> Unit)? = null) {
+        if (!night) { done?.let { command { it() } }; return }
         night = false
         lock.withLock {
             running?.let { if (!it.speed && it.listeners.none { r -> r.live }) cancelLocked(it) }
@@ -697,6 +719,7 @@ class DialogueEngine private constructor(private val app: Context) {
             // (the game in front: the light model again if that is the one for play now)
             } else if (backend?.loaded == true) { if (foreground) loadModel() else enqueueAll() }
             nightLoaded = false
+            done?.invoke()
         }
         refresh()
     }
@@ -704,8 +727,13 @@ class DialogueEngine private constructor(private val app: Context) {
     /** The overnight writer is on. */
     val nightOn: Boolean get() = night
 
+    /** What holds the writing now besides the writer's own rests (e.g. "memory"), or null: shown and reported by the writer. */
+    fun nightHeld(): String? = lock.withLock {
+        pauses.filter { it != "background" && !it.startsWith("night-") }.sorted().joinToString().ifEmpty { null }
+    }
+
     /** Loads the model again for the overnight writer, if it is not loaded (after a memory unload, or a load put off). */
-    fun nightReload() = command { if (night && (backend?.loaded != true || loadedRole != ModelRole.BANK) && !loadingNow) { memoryWaits = 0; loadModel() } }
+    fun nightReload() = command { if (night && !foreground && com.timerpg.street.llm.MemoryWatch.level < 2) resume("memory"); if (night && (backend?.loaded != true || loadedRole != ModelRole.BANK) && !loadingNow) { memoryWaits = 0; loadModel() } }
 
     /** What has been written since [beginNight]. */
     fun nightCount(): NightCount = nightCount.get()
@@ -792,10 +820,15 @@ class DialogueEngine private constructor(private val app: Context) {
         val ex = extraPlans
         var yDone = 0
         for (k in ex.keys) if (cache.get(k) != null || k in nightSkip) yDone++
-        if (all) return NightProgress(0, baseDone + sDone + vDone + yDone, ps.size + sj.size + vTotal + ex.size)
+        // (the light model's lines, rewritten while the main model writes: done as they are rewritten)
+        var uLeft = 0
+        if (loadedRole == ModelRole.BANK) for (k in ps.keys) if (cache.get(k)?.light == true && k !in nightSkip) uLeft++
+        val uTotal = uLeft + upgraded
+        if (all) return NightProgress(0, baseDone + sDone + vDone + yDone + upgraded, ps.size + sj.size + vTotal + ex.size + uTotal)
         return when {
             baseDone < ps.size -> NightProgress(1, baseDone, ps.size)
             sDone < sj.size -> NightProgress(2, sDone, sj.size)
+            uLeft > 0 -> NightProgress(5, upgraded, uTotal)
             vDone < vTotal -> NightProgress(3, vDone, vTotal)
             yDone < ex.size -> NightProgress(4, yDone, ex.size)
             else -> NightProgress(0, ps.size, ps.size)
@@ -814,12 +847,66 @@ class DialogueEngine private constructor(private val app: Context) {
         val ps = s.order(near, { it.target.npc.id }, { it.target.topic.intent })
         for (p in ps) { val k = p.job.key; if (cache.get(k) == null && k !in nightSkip) return Gen(k, p.target) }
         for (j in steered) if (cache.get(j.key) == null && j.key !in nightSkip) return Gen(j.key, j.target, slot = j.slot)
+        // the light model's lines (Writer mode when only it fitted), rewritten once the main model writes
+        if (loadedRole == ModelRole.BANK) for (p in ps) { val k = p.job.key; if (k !in nightSkip && cache.get(k)?.light == true) return Gen(k, p.target, upgrade = true) }
         for (p in ps) { val k = p.job.key; if (k !in nightSkip && cache.wantsVariant(k)) return Gen(k, p.target, variant = true) }
         for (p in extraPlans.values) { val k = p.job.key; if (cache.get(k) == null && k !in nightSkip) return Gen(k, p.target) }
         return null
     }
 
     private fun slotOf(key: String): String = (planned[key] ?: extraPlans[key])?.slot ?: ""
+
+    /** Lines the main model rewrote this session (stage 5). */
+    @Volatile private var upgraded = 0
+
+    /**
+     * The lines still to write tonight by year, person and topic ([BankPlan.queue]): every line not written yet, each
+     * variant still wanted, the light model's lines to rewrite while the main model writes.
+     */
+    fun nightQueue(): BankPlan.Queue = lock.withLock {
+        val slots = ArrayList<String>()
+        for ((k, p) in planned) {
+            if (k in nightSkip) continue
+            val e = cache.get(k)
+            when {
+                e == null -> slots += p.slot
+                e.light && loadedRole == ModelRole.BANK -> slots += p.slot
+                cache.wantsVariant(k) -> repeat(ReplyCache.VARIANTS - e.lines.size) { slots += p.slot }
+            }
+        }
+        for (j in steered) if (cache.get(j.key) == null && j.key !in nightSkip) slots += j.slot
+        for ((k, p) in extraPlans) if (cache.get(k) == null && k !in nightSkip) slots += p.slot
+        val names = _data.value?.npcs?.associate { it.id to it.name }.orEmpty()
+        BankPlan.queue(slots, { names[it] })
+    }
+
+    /** The last lines written this session, newest last (for Writer mode's screen and its report). */
+    fun nightRecent(): List<com.timerpg.street.night.NightReport.Written> = synchronized(recent) { recent.toList() }
+    private val recent = ArrayDeque<com.timerpg.street.night.NightReport.Written>()
+
+    private fun noteWritten(g: Gen, text: String, how: String) {
+        val slot = g.slot ?: slotOf(g.key)
+        // (lines steered by the player's own words stay on the phone unless they chose to send their words)
+        val steeredLine = slot.substringAfterLast('/').let { it == "next" || it.startsWith("theme:") }
+        val w = com.timerpg.street.night.NightReport.Written(g.target.npc.name, g.target.topic.intent, if (steeredLine && !shareWords()) null else text, how)
+        synchronized(recent) { recent.addLast(w); while (recent.size > 8) recent.removeFirst() }
+    }
+
+    private fun shareWords() = app.getSharedPreferences("night", Context.MODE_PRIVATE).getBoolean("shareWords", false)
+
+    /** "main model on the NPU": the model loaded now and its device; empty when none is. */
+    fun modelNow(): String {
+        val b = backend ?: return ""
+        if (!b.loaded) return ""
+        return modelLabel(b)
+    }
+
+    /** The free memory each model's copy on its device needs now (MB): the main one, the light one (0: not on the phone). */
+    fun copyNeedsMb(): Pair<Long, Long> {
+        val main = ModelFiles.file(app).length().takeIf { it > 0 }?.let { ModelRoles.needBytes(it, true, workWanted(ModelRole.BANK)) shr 20 } ?: 0L
+        val light = if (ModelFiles.live(app).length() == ModelFiles.LIVE_BYTES) ModelRoles.needBytes(ModelFiles.LIVE_BYTES, true, workWanted(ModelRole.LIVE)) shr 20 else 0L
+        return main to light
+    }
 
     // ------------------------------------------------------------------------------------------------ the player's log
 
@@ -928,6 +1015,8 @@ class DialogueEngine private constructor(private val app: Context) {
         // (the lines of every town the game ships are kept: switching between them loses nothing written)
         val other = (if (dataDir.isEmpty()) TOWN_DIRS else listOf("")).filter { it != dataDir }.flatMap { d -> loadData(d, plan = false)?.values.orEmpty() }
         loadData()
+        // (Writer mode or the overnight writer in its own process saves its last lines as it stops: read them too)
+        com.timerpg.street.night.WriterLock.awaitFree(app, 20_000L)
         cache.load()
         if (planned.isNotEmpty()) {
             extraPlans = loadYears()
@@ -1029,7 +1118,9 @@ class DialogueEngine private constructor(private val app: Context) {
         var b = backend ?: createBackend() ?: return setState(ModelState.NO_ENGINE, noEngineText())
         val nl = b as? com.timerpg.street.llm.NativeLlm
         // the device chosen in the panel; -1: the NPU when there is one
-        val dev = nl?.let { n -> deviceWanted.let { if (it >= 0) it else if (n.accelerators and 2 != 0) com.timerpg.street.llm.NativeLlm.NPU else com.timerpg.street.llm.NativeLlm.CPU } }
+        // (writing the bank: the NPU when there is one, whatever the panel says, see [deviceFor])
+        val dev = nl?.let { n -> (if (night && n.accelerators and 2 != 0) com.timerpg.street.llm.NativeLlm.NPU else deviceWanted)
+            .let { if (it >= 0) it else if (n.accelerators and 2 != 0) com.timerpg.street.llm.NativeLlm.NPU else com.timerpg.street.llm.NativeLlm.CPU } }
             ?: com.timerpg.street.llm.NativeLlm.CPU
         val onNpu = nl != null && dev == com.timerpg.street.llm.NativeLlm.NPU
         // on the NPU or the GPU (or the CPU's repacked kernels) the whole model is copied into memory the system cannot
@@ -1196,7 +1287,9 @@ class DialogueEngine private constructor(private val app: Context) {
         _status.update { it.copy(role = role, workMb = loadedWork shr 20, kvQ8 = native?.kvQ8Used == true) }
         // the light model answers in play but does not write the bank ahead: the main one does that (overnight, or in
         // play when it is the one that fits); asked-for lines are not held by this
-        if (role == ModelRole.LIVE) pause(LIVE_PAUSE) else resume(LIVE_PAUSE)
+        // (writing the bank with the light model is Writer mode's choice when the main one's copy does not fit: its lines
+        // are marked, and the main model rewrites them when it writes)
+        if (role == ModelRole.LIVE && !night) pause(LIVE_PAUSE) else resume(LIVE_PAUSE)
         setState(ModelState.READY, readyText())
         enqueueAll()
     }
@@ -1320,7 +1413,7 @@ class DialogueEngine private constructor(private val app: Context) {
         val npc = g.target.npc
         val topic = g.target.topic
         val prompt = topic.prompt ?: return g.finish(template(topic, "built-in"))
-        if (!g.bypass && !g.variant) cache.get(g.key)?.let { return g.finish(lineOf(topic, it)) }
+        if (!g.bypass && !g.variant && !g.upgrade) cache.get(g.key)?.let { return g.finish(lineOf(topic, it)) }
         val b = backend
         if (b == null || !b.loaded) {
             g.finish(template(topic, "built-in · the AI is not ready"))
@@ -1421,10 +1514,17 @@ class DialogueEngine private constructor(private val app: Context) {
                 failures = 0
                 val slot = g.slot ?: slotOf(g.key)
                 if (g.variant) {
-                    if (cache.addVariant(g.key, text!!)) addNight(variants = 1) else { cache.variantFailed(g.key); addNight(rejected = 1) }
+                    if (cache.addVariant(g.key, text!!)) { addNight(variants = 1); if (night) noteWritten(g, text!!, "variant") }
+                    else { cache.variantFailed(g.key); addNight(rejected = 1) }
                     saveCache()
-                // (the light model's on-the-spot lines are not banked: the main model writes those overnight)
-                } else if (!g.speed && loadedRole != ModelRole.LIVE) { cache.putLine(g.key, text!!, slot); saveCache(); if (night) addNight(lines = 1) }
+                } else if (g.upgrade) {
+                    cache.replaceLine(g.key, text!!, slot); saveCache(); upgraded++; addNight(lines = 1); noteWritten(g, text!!, "rewrite")
+                // (the light model's on-the-spot lines in play are not banked: the main model writes those; writing the bank
+                // with it (Writer mode, only it fitted), they are, marked as its)
+                } else if (!g.speed && (loadedRole != ModelRole.LIVE || night)) {
+                    cache.putLine(g.key, text!!, slot, light = loadedRole == ModelRole.LIVE); saveCache()
+                    if (night) { addNight(lines = 1); noteWritten(g, text!!, "line") }
+                }
                 g.finish(Line(text!!, true, true, "AI", info("live")))
                 // a line written ahead: its voice can be made ahead too
                 if (!g.speed && g.listeners.isEmpty()) onWritten?.invoke(npc, text!!)
@@ -1433,6 +1533,8 @@ class DialogueEngine private constructor(private val app: Context) {
                 failures = 0
                 if (night && !g.speed) addNight(rejected = 1)
                 if (g.variant) { cache.variantFailed(g.key); saveCache() }
+                // (a rewrite that fails keeps the light model's line; the light model's failure leaves it to the main one)
+                else if (g.upgrade || (night && loadedRole == ModelRole.LIVE)) lock.withLock { nightSkip += g.key }
                 else if (!g.speed && loadedRole != ModelRole.LIVE) { cache.putTemplate(g.key, g.slot ?: slotOf(g.key)); saveCache() }
                 g.finish(template(topic, "built-in · the AI's reply did not pass the check", info = info("template", "the reply did not pass the check")))
             }

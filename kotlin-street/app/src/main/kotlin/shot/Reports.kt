@@ -23,6 +23,12 @@ object Crumbs {
         if (dir != null) return
         val d = Reports.dir(ctx)
         dir = d
+        // (the writer's own process keeps its own events: its start must not move the game's aside)
+        val proc = runCatching { if (android.os.Build.VERSION.SDK_INT >= 28) android.app.Application.getProcessName() else java.io.File("/proc/self/cmdline").readText().trim('\u0000') }.getOrNull().orEmpty()
+        if (proc.contains(':')) {
+            val tag = "-" + proc.substringAfter(':')
+            NOW = "crumbs$tag.txt"; PREV = "crumbs$tag-prev.txt"; STATE_NOW = "state$tag.json"; STATE_PREV = "state$tag-prev.json"
+        }
         runCatching {
             File(d, PREV).delete(); File(d, NOW).renameTo(File(d, PREV))
             File(d, STATE_PREV).delete(); File(d, STATE_NOW).renameTo(File(d, STATE_PREV))
@@ -49,10 +55,10 @@ object Crumbs {
     fun previous(): List<Pair<Long, String>> = dir?.let { d -> runCatching { Breadcrumbs.parse(File(d, PREV).readText()) }.getOrNull() } ?: emptyList()
     fun previousState(): String? = dir?.let { d -> runCatching { File(d, STATE_PREV).readText() }.getOrNull() }
 
-    private const val NOW = "crumbs.txt"
-    private const val PREV = "crumbs-prev.txt"
-    private const val STATE_NOW = "state.json"
-    private const val STATE_PREV = "state-prev.json"
+    private var NOW = "crumbs.txt"
+    private var PREV = "crumbs-prev.txt"
+    private var STATE_NOW = "state.json"
+    private var STATE_PREV = "state-prev.json"
 }
 
 /** What the game is showing now, for the screenshot JSON and crash reports (set by the game screen; read on any thread). */

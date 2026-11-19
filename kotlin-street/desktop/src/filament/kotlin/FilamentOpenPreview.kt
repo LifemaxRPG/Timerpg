@@ -483,6 +483,15 @@ fun renderFilamentOpen(out: String) {
     view("fb5_075528", 9078.7f, 6759.1f, -0.9001f, 0.4358f, 69.44f, 11.60f, 720f, 0.0f, "075528: Spring Lane, buildings cut too easily")
     view("fb5_074956", 1407.5f, 3857.5f, 0.5477f, -0.8367f, -98.07f, 14.15f, 568f, 19.17f, "074956: Larch Road at dusk")
     view("fb3_054141", 8615.3f, 4968.6f, -0.9973f, -0.0729f, -84.08f, 12.09f, 420f, 17.6f, "054141: Main Street")
+    // build 0.1.389 (the S25, 2026-11-19, 17:36 summer): King Street in Oak Heights, the apartment block whose ground floor was
+    // jumbled (and too tall for the street) and the terraced house all one green next to it
+    view("fb3_king", 3553f, 2648.5f, .9953f, -.0965f, -168.12f, 10.77f, 420f, 17.6f, "061348: King Street, Oak Heights")
+    view("fb3_king_close", 3553f, 2648.5f, .9953f, -.0965f, -168.12f, 8f, 220f, 17.6f, "061348's spot, zoomed in")
+    view("fb3_king_high", 3553f, 2648.5f, .9953f, -.0965f, -150f, 30f, 700f, 13f, "061348's spot from above, noon")
+    view("fb3_haddad", 8488.4f, 2446.3f, -.0828f, .9966f, -39.82f, 10f, 420f, 17.6f, "074755: King Street, Riverside (the Haddads' block)")
+    view("fb3_larch", 1407.5f, 3857.5f, .5477f, -.8367f, -98.07f, 14.15f, 437f, 19.2f, "074956: Larch Road, the terraced house across the road")
+    view("fb3_trailers", 4617.1f, 7643.4f, -.9836f, -.1802f, 69.24f, 10f, 437f, 13f, "075232: Elm Street, Old Town, the mobile homes")
+    view("fb3_king_back", 3553f, 2648.5f, .9953f, -.0965f, 20f, 18f, 600f, 13f, "061348's spot, the other way (the backs)")
     File(dir, "open.txt").writeText(report.toString())
     print(report)
     if (only != null && "bench" in only) {

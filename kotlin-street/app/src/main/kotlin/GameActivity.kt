@@ -443,6 +443,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     // the crossroads is at the far end of the main street, and at the start of the cross street
     GameState.cornerAtEnd = streetNo == 0
     var hour by remember { mutableFloatStateOf(17.6f) }
+    var ticketOpen by remember { mutableStateOf(false) }
     var season by remember { mutableIntStateOf(1) }
     var weather by remember { mutableIntStateOf(0) }
     // (the stage takes both streets from the crossroads; the projection is the main street's, so turning the corner
@@ -1042,7 +1043,24 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 }
                 if (inside != null) Chip("Leave", false) { doorTo = false to null }
                 else if (roomHere != null) Chip("Go inside", false) { doorTo = true to roomHere }
+                // the depot: the ticket window (docs/RAIL.md)
+                val rail = townData?.rail
+                val pw = com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.walk
+                if (frameTick.longValue >= 0 && inside == null && rail != null && pw != null && RailTrip.ride == null && !ticketOpen && RailTrip.atDepot(rail, pw.wx, pw.wz))
+                    Chip("Take the train", false) { MoveInput.holdUntilNeutral(); ticketOpen = true }
             }
+        }
+        townData?.rail?.let { rail ->
+            if (ticketOpen) TicketWindow(rail, townData.town.year, hour, heard = emptyList(),
+                onBoard = { route -> ticketOpen = false; RailTrip.request = com.lifemax.rpg.feature.habits.domain.RailRide(rail, route) },
+                onClose = { ticketOpen = false }, modifier = Modifier.align(Alignment.Center).padding(16.dp))
+            val ride = if (frameTick.longValue >= 0) RailTrip.ride else null
+            if (ride != null) RideOverlay(rail, ride, RailTrip.progress, onDone = {
+                // the clock moves on by the trip (the arrival's time of day); the ride's world goes
+                val arrive = ride.route.legs?.lastOrNull()?.arrive
+                if (arrive != null) hour = ((arrive % 1440.0) / 60.0).toFloat()
+                RailTrip.stop = true
+            }, modifier = Modifier.align(Alignment.TopCenter).padding(top = 110.dp))
         }
         // the town being built (the first view nearest the player): a simple loading screen until it is ready
         if (townLoading && inside == null) Box(Modifier.fillMaxSize().background(Color(0xF0101420)), contentAlignment = Alignment.Center) {
@@ -1792,6 +1810,8 @@ private fun NightPanel(s: AiStatus, engine: DialogueEngine) {
     Spacer(Modifier.height(2.dp))
     Text("Overnight writer", 14.sp)
     Chip("Write dialogue while charging: " + if (on) "on" else "off", on) { on = !on; nw.setEnabled(ctx, on) }
+    // Writer mode: its own screen in its own process; the game closes so the main model gets its memory
+    (ctx as? android.app.Activity)?.let { act -> Chip("Writer mode: close the game and write the bank now", false) { com.timerpg.street.night.WriterActivity.open(act) } }
     val b = s.bank
     Text("Bank: ${b.ready} of ${b.prompts} lines ready (${b.templates} built-in, ${b.missing} to write) · ${b.variants} lines with variants, " +
         "${b.variantsDone} prompts complete · stale ${b.stale} · years ${if (b.years.isEmpty()) "none yet" else b.years.joinToString()}", 12.sp, color = DIM)
