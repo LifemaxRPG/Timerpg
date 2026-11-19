@@ -28,7 +28,12 @@ internal const val TEXEL = 184f / 224f
 /** A picture painted texel by texel: colours (ARGB) and a glow mask (red: how much it glows; blue: in its own colours). */
 internal class PixImg(val w: Int, val h: Int) {
     val px = IntArray(w * h)
-    val mask = IntArray(w * h)
+    /**
+     * What glows at night, made only for a picture that glows ([glow]): most do not, and the town's 2048-texel grass
+     * once carried a 16 MB mask of zeros (read only where [glows]).
+     */
+    val mask: IntArray get() = maskArr ?: IntArray(w * h).also { maskArr = it }
+    private var maskArr: IntArray? = null
     var glows = false; private set
 
     operator fun set(x: Int, y: Int, c: Int) { if (x in 0 until w && y in 0 until h) px[y * w + x] = c }
@@ -248,15 +253,16 @@ internal class MeshBuilder {
         }
         val height = y + shelf
         val tex = IntArray(width * height)
-        val mask = IntArray(width * height)
-        var anyGlow = false
+        // (the atlas's mask only if a picture in it glows; a picture that does not glows nowhere: zeros)
+        val anyGlow = imgs.keys.any { it.glows }
+        val mask = if (anyGlow) IntArray(width * height) else null
         for ((im, at) in imgs) {
-            if (im.glows) anyGlow = true
+            val m = if (im.glows) im.mask else null
             for (yy in -1..im.h) for (xx in -1..im.w) {
                 val sx = xx.coerceIn(0, im.w - 1); val sy = yy.coerceIn(0, im.h - 1)
                 val di = (at[1] + yy) * width + at[0] + xx
                 tex[di] = im.px[sy * im.w + sx]
-                mask[di] = im.mask[sy * im.w + sx]
+                if (mask != null && m != null) mask[di] = m[sy * im.w + sx]
             }
         }
         val nv = polys.sumOf { it.p.size / 3 }
@@ -280,7 +286,7 @@ internal class MeshBuilder {
             for (k in 1 until n - 1) { idx[ii++] = vi; idx[ii++] = vi + k; idx[ii++] = vi + k + 1 }
             vi += n
         }
-        return PropMesh(pos, uv, nr, tn, idx, width, height, tex, if (anyGlow) mask else null, floatArrayOf(bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2]))
+        return PropMesh(pos, uv, nr, tn, idx, width, height, tex, mask, floatArrayOf(bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2]))
     }
 
     companion object {

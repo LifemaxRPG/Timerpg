@@ -188,6 +188,15 @@ object TownFrame {
     const val CUT_FADE = 70f
 }
 
+/**
+ * A step of the town's build that failed: [what] it was doing, why (its cause), and the Java heap at that moment (used of
+ * the limit, MB), so the report and the screen say what and why without a debugger.
+ */
+class BuildFailure(what: String, cause: Throwable) : RuntimeException(
+    "$what failed: ${cause.javaClass.simpleName}${cause.message?.let { ": $it" } ?: ""} (Java heap ${TownMemory.mb(TownMemory.used())} of ${TownMemory.mb(TownMemory.limit)} MB used, the build's peak ${TownMemory.mb(TownMemory.peakUsed)} MB)",
+    cause,
+)
+
 /** What the town drew last frame: of [buildings] built, how many in view; renderables and their draws (primitives), shadow casters. */
 data class TownStats(
     val buildings: Int, val built: Int, val visible: Int,
@@ -257,8 +266,36 @@ class FilamentTown(
         val base = PropLayer(engine, scene, lit, proxyMat, sharedTextures = textures, cull = true)
         val cards = PropLayer(engine, scene, lit, proxyMat, sharedTextures = textures, cull = true)
         var near: PropLayer? = null
-        /** Its 3D trees packed and waiting ([buildNear] uploads them the first time it comes close). */
-        val nearTodo = ArrayList<Pair<PropLayer.Packed, Boolean>>()
+        /**
+         * Its 3D trees waiting to come near: their mesh (one per tree look, shared by the whole town) and places, not yet
+         * packed. They were once packed with the ground and held until the chunk came near (or, after, for good): the
+         * whole town's 3D trees, some 230 MB of direct buffers, which on the phone are its Java heap. Now a worker packs a
+         * chunk's as it comes within [TownFrame.LOD_NEAR] + 600 ([startNear]) and the engine's thread uploads them
+         * ([buildNear]) and lets the bytes go, so only the few chunks about to come near hold any.
+         */
+        private val nearSrc = ArrayList<Triple<PropMesh, List<FloatArray>, Boolean>>()
+        private var packing: java.util.concurrent.Future<List<Pair<PropLayer.Packed, Boolean>>>? = null
+        private var packedCount = 0
+        /** It has 3D trees (made or waiting). */
+        var hasNear = false
+        /** Its 3D trees are packed (by [startNear]) and wait for [buildNear]. */
+        val nearReady: Boolean get() = packing?.isDone == true
+
+        /** Takes in 3D trees ([mesh] at [at]) for near by: kept to pack later, or (the chunk near already) put in now. */
+        fun addNear(mesh: PropMesh, at: List<FloatArray>, casts: Boolean) {
+            hasNear = true
+            val n = near
+            // (a piece arriving after the chunk's 3D greenery was made goes straight in, or it would be lost)
+            if (n != null) PropLayer.Packing.pack(mesh, at)?.let { n.upload(it, casts) } else nearSrc += Triple(mesh, at, casts)
+        }
+
+        /** Starts packing its 3D trees on a worker (nothing if made, under way, or none). */
+        fun startNear() {
+            if (near != null || packing != null || nearSrc.isEmpty()) return
+            val src = nearSrc.toList()
+            packedCount = src.size
+            packing = pool.submit(java.util.concurrent.Callable { src.mapNotNull { (m, at, casts) -> PropLayer.Packing.pack(m, at)?.let { it to casts } } })
+        }
         var x0 = Float.MAX_VALUE; var z0 = Float.MAX_VALUE; var x1 = -Float.MAX_VALUE; var z1 = -Float.MAX_VALUE
         var pad = 0f; var top = 0f
         var cx = 0f; var cz = 0f; var r = 0f
@@ -269,10 +306,17 @@ class FilamentTown(
             cx = (x0 + x1) / 2f; cz = (z0 + z1) / 2f
             r = hypot(x1 - x0, z1 - z0) / 2f + pad + top / 2f
         }
+        /** Makes its 3D trees: what [startNear] packed, and (unbudgeted: a preview's, or none started) the rest packed here. */
         fun buildNear() {
             if (near != null) return
+            val got = packing?.let { f ->
+                try { f.get() } catch (e: java.util.concurrent.ExecutionException) { throw BuildFailure("packing a chunk's 3D greenery on a worker", e.cause ?: e) }
+            } ?: emptyList()
+            val from = if (packing != null) packedCount else 0
             val l = PropLayer(engine, scene, lit, proxyMat, sharedTextures = textures, cull = true)
-            for ((p, casts) in nearTodo) l.upload(p, casts)
+            for ((p, casts) in got) l.upload(p, casts)
+            for (i in from until nearSrc.size) { val (m, at, casts) = nearSrc[i]; PropLayer.Packing.pack(m, at)?.let { l.upload(it, casts) } }
+            nearSrc.clear(); nearSrc.trimToSize(); packing = null
             near = l
         }
         fun destroy() { base.destroy(); cards.destroy(); near?.destroy() }
@@ -371,13 +415,39 @@ class FilamentTown(
         /** null: the town's ground (or, with [yard], the yards' always-drawn layer). */
         val chunk: ChunkSpec? = null, val part: Int = 0,
         val patch: YardPatch? = null, val yard: Boolean = false,
-        /** Water to shimmer: its mesh (the shimmer steps by its picture's size). */
-        val water: PropMesh? = null,
+        /** Water to shimmer: its picture's width and height (the shimmer steps a texel at a time; not the mesh, which would be kept for good). */
+        val water: IntArray? = null,
         /** The extent of what it places (x0, z0, x1, z1), its mesh's reach and height, for a chunk's sphere. */
         val extent: FloatArray? = null,
+        /** With a chunk's cards: the same trees in 3D for near by, at [nearAt] (packed later: [Chunk.startNear]). */
+        val near: PropMesh? = null, val nearAt: List<FloatArray>? = null,
     )
 
     private val jobs = java.util.concurrent.ConcurrentLinkedQueue<Job>()
+    /**
+     * The bytes made ready and waiting in [jobs], and the most there have been. The workers outrun the engine's thread
+     * (it uploads a few milliseconds a frame), and once every lot's yard, every chunk's furniture and greenery waited
+     * here at once, hundreds of MB of them on the phone's Java heap (a direct buffer is a Java array on Android). Now a
+     * worker with more to add waits while [QUEUE_BYTES] are queued ([offer]): the queue stays a frame's work deep, the
+     * workers bake no further ahead than the uploads go, and the ground comes in as fast as before (the uploads, not the
+     * baking, were already what it waited for once the workers had a head start).
+     */
+    private val queued = java.util.concurrent.atomic.AtomicLong(0)
+    @Volatile var queuedPeak = 0L; private set
+    val queuedBytes: Long get() = queued.get()
+    private val queueLock = Object()
+    @Volatile private var closed = false
+
+    /** Adds [j] to [jobs] (a worker), first waiting while the queue holds [QUEUE_BYTES] (unless it is empty). */
+    private fun offer(j: Job) {
+        val b = j.packed.heldBytes
+        synchronized(queueLock) {
+            while (!closed && queued.get() > 0 && queued.get() + b > QUEUE_BYTES) queueLock.wait(50)
+            val now = queued.addAndGet(b)
+            if (now > queuedPeak) queuedPeak = now
+        }
+        jobs += j
+    }
     private val running = java.util.concurrent.atomic.AtomicInteger(0)
     @Volatile private var failure: Throwable? = null
     @Volatile private var lampSpots: List<FloatArray>? = null
@@ -401,12 +471,12 @@ class FilamentTown(
         if (groundStarted != 0L || groundBuilt) return
         groundStarted = System.nanoTime()
         running.set(2)
-        pool.execute { work { prepareGround() } }
-        pool.execute { work { prepareYards() } }
+        pool.execute { work("the ground, greenery, furniture and props") { prepareGround() } }
+        pool.execute { work("the yards") { prepareYards() } }
     }
 
-    private fun work(f: () -> Unit) {
-        try { f() } catch (t: Throwable) { failure = t } finally {
+    private fun work(what: String, f: () -> Unit) {
+        try { f() } catch (t: Throwable) { failure = BuildFailure("making $what ready on a worker", t) } finally {
             if (running.decrementAndGet() == 0) groundPrepareMs = (System.nanoTime() - groundStarted) / 1e6f
         }
     }
@@ -415,23 +485,28 @@ class FilamentTown(
     private fun prepareGround() {
         val tg = TownGround(town, art)
         for (p in tg.pieces()) {
+            // (one packed picture per mesh, shared by all its chunks' batches while they wait for their upload; a piece's
+            // own, so it is let go with the piece's batches, not held to the end of the whole ground)
+            val share = java.util.IdentityHashMap<IntArray, StreetTextures.Prepared>()
             val an = p.anchors
-            if (an == null) { PropLayer.Packing.pack(p.mesh, p.at)?.let { jobs += Job(it, p.casts, p.tiled) }; continue }
+            if (an == null) { PropLayer.Packing.pack(p.mesh, p.at, share)?.let { offer(Job(it, p.casts, p.tiled)) }; continue }
             val by = LinkedHashMap<String, Pair<ChunkSpec, MutableList<FloatArray>>>()
             for ((i, a) in p.at.withIndex()) { val sp = specOf(an[i], a[0], a[1]); by.getOrPut(sp.key) { sp to ArrayList() }.second += a }
             for ((sp, at) in by.values) {
                 val ext = extent(at, p.near ?: p.mesh)
-                PropLayer.Packing.pack(p.mesh, at)?.let { jobs += Job(it, p.casts, p.tiled, sp, part = if (p.near != null) 1 else 0, extent = ext) }
-                if (p.near != null) PropLayer.Packing.pack(p.near, at)?.let { jobs += Job(it, p.casts, false, sp, part = 2, extent = ext) }
+                // (the 3D trees go with their cards, to be packed only as the chunk comes near: Chunk.startNear)
+                PropLayer.Packing.pack(p.mesh, at, share)?.let { offer(Job(it, p.casts, p.tiled, sp, part = if (p.near != null) 1 else 0, extent = ext, near = p.near, nearAt = at)) }
             }
         }
+        // (the street props' meshes repeat along every row: one packed picture each for them all; small pictures)
+        val share = java.util.IdentityHashMap<IntArray, StreetTextures.Prepared>()
         val by = LinkedHashMap<String, Pair<ChunkSpec, MutableList<WorldProp>>>()
         for ((a, wp) in tg.anchoredProps()) { val sp = specOf(a, wp.x, wp.z); by.getOrPut(sp.key) { sp to ArrayList() }.second += wp }
         for ((sp, list) in by.values) {
             var x0 = Float.MAX_VALUE; var z0 = Float.MAX_VALUE; var x1 = -Float.MAX_VALUE; var z1 = -Float.MAX_VALUE
             for (wp in list) { x0 = min(x0, wp.x); z0 = min(z0, wp.z); x1 = max(x1, wp.x); z1 = max(z1, wp.z) }
             val ext = floatArrayOf(x0, z0, x1, z1, 40f, 70f)
-            for ((packed, casts, _) in PropLayer.Packing.packProps(list)) jobs += Job(packed, casts, false, sp, part = 0, extent = ext)
+            for ((packed, casts, _) in PropLayer.Packing.packProps(list, share)) offer(Job(packed, casts, false, sp, part = 0, extent = ext))
         }
         lampSpots = tg.lampSpots.toList()
     }
@@ -440,11 +515,11 @@ class FilamentTown(
     private fun prepareYards() {
         val sink = object : YardSink {
             override fun mesh(name: String, mesh: PropMesh, at: List<FloatArray>, casts: Boolean, tiled: Boolean, patch: YardPatch?, water: Boolean): MaterialInstance? {
-                PropLayer.Packing.pack(mesh, at)?.let { jobs += Job(it, casts, tiled, patch = patch, yard = true, water = if (water) mesh else null) }
+                PropLayer.Packing.pack(mesh, at)?.let { offer(Job(it, casts, tiled, patch = patch, yard = true, water = if (water) intArrayOf(mesh.texW, mesh.texH) else null)) }
                 return null
             }
             override fun props(list: List<WorldProp>) {
-                for ((packed, casts, _) in PropLayer.Packing.packProps(list)) jobs += Job(packed, casts, false, yard = true)
+                for ((packed, casts, _) in PropLayer.Packing.packProps(list)) offer(Job(packed, casts, false, yard = true))
             }
             override fun animate(tick: (seconds: Double) -> Unit) { synchronized(ticks) { ticks += tick } }
         }
@@ -465,18 +540,25 @@ class FilamentTown(
     fun uploadGround(budgetMs: Float): Boolean {
         if (groundBuilt) return true
         if (groundStarted == 0L) startGround()
-        failure?.let { throw IllegalStateException("building the town's ground failed", it) }
+        failure?.let { throw IllegalStateException("building the town's ground failed: ${it.message}", it) }
         val t0 = System.nanoTime()
+        var sent = 0
         while (true) {
             val j = jobs.poll() ?: break
             upload(j)
+            sent++
+            queued.addAndGet(-j.packed.heldBytes)
+            synchronized(queueLock) { queueLock.notifyAll() }
             if ((System.nanoTime() - t0) / 1e6f >= budgetMs) break
         }
+        // (the uploads' buffers are the driver's until it has run them; kicked now, it lets them go this frame, not only
+        // when the frame is drawn: a frame the GPU is behind on is skipped, and the preview's cold start draws none)
+        if (sent > 0) engine.flush()
         val ms = (System.nanoTime() - t0) / 1e6f
         groundUploadMs += ms
         groundUploadWorst = max(groundUploadWorst, ms)
         if (running.get() == 0 && jobs.isEmpty()) {
-            failure?.let { throw IllegalStateException("building the town's ground failed", it) }
+            failure?.let { throw IllegalStateException("building the town's ground failed: ${it.message}", it) }
             // the lanterns, and the point lights that will light the nearest of them
             val spots = lampSpots ?: emptyList()
             lanterns = FloatArray(spots.size * 3).also { a ->
@@ -502,10 +584,9 @@ class FilamentTown(
             j.extent?.let { c.take(it) }
             when (j.part) {
                 0 -> c.base.upload(j.packed, j.casts, j.tiled)
-                1 -> c.cards.upload(j.packed, j.casts, j.tiled)
-                // (a piece arriving after the chunk's 3D greenery was made goes straight in, or it would be lost)
-                else -> { c.nearTodo += j.packed to j.casts; c.near?.upload(j.packed, j.casts) }
+                else -> c.cards.upload(j.packed, j.casts, j.tiled)
             }
+            if (j.near != null && j.nearAt != null) c.addNear(j.near, j.nearAt, j.casts)
             return
         }
         val layer = when {
@@ -514,7 +595,7 @@ class FilamentTown(
             else -> ground
         }
         val mi = layer.upload(j.packed, j.casts, j.tiled)
-        j.water?.let { m -> synchronized(ticks) { ticks += { s -> YardLayer.shimmer(mi, m, s) } } }
+        j.water?.let { (w, h) -> synchronized(ticks) { ticks += { s -> YardLayer.shimmer(mi, w, h, s) } } }
     }
 
     /**
@@ -544,7 +625,7 @@ class FilamentTown(
      * game's frames make it in [buildNearest]'s budget).
      */
     fun prepare(pose: TownPose) {
-        for (c in chunks.values) if (c.nearTodo.isNotEmpty() && c.near == null && pose.distance(c.cx, 20f, c.cz) - c.r < TownFrame.LOD_NEAR && pose.sees(c.cx, 20f, c.cz, c.r)) c.buildNear()
+        for (c in chunks.values) if (c.hasNear && c.near == null && pose.distance(c.cx, 20f, c.cz) - c.r < TownFrame.LOD_NEAR && pose.sees(c.cx, 20f, c.cz, c.r)) c.buildNear()
     }
 
     /**
@@ -562,8 +643,11 @@ class FilamentTown(
             for (s in slots) if (s.built == null && !s.missing) order += s
             todo = order.size
             order.sortBy { hypot(it.cx - x, it.cz - z) }
-            // made ready on the workers, nearest first, ahead of being finished here
+            // made ready on the workers, nearest first, ahead of being finished here: at most [readyAhead] at a time (each
+            // holds its packed geometry and pictures, up to tens of MB for a large model, until it is finished here; once
+            // all 98 were started at once and the finished-but-waiting ones piled up on the phone's Java heap)
             for (s in order) if (s !in readyOf) {
+                if (readyOf.size >= readyAhead) break
                 val yarded = s.b.kind != PlacementKind.LANDMARK && yards.of(s.b.sprite) != null
                 val sprite = s.b.sprite; val setback = s.b.setback
                 readyOf[s] = pool.submit(java.util.concurrent.Callable {
@@ -578,26 +662,38 @@ class FilamentTown(
                 if (n > 0 && (System.nanoTime() - t0) / 1e6f >= budgetMs) break
                 val f = readyOf[s] ?: continue
                 if (!f.isDone) continue
-                buildSlot(s, runCatching { f.get() }.getOrNull())
+                // (a building whose art will not load is left out; one that ran out of memory stops the town, saying so,
+                // rather than going missing without a word)
+                val r = try { f.get() } catch (e: java.util.concurrent.ExecutionException) {
+                    val c = e.cause ?: e
+                    if (c is VirtualMachineError) throw BuildFailure("making building ${s.b.sprite} ready on a worker", c)
+                    null
+                }
+                buildSlot(s, r)
                 readyOf.remove(s)
                 todo--
                 n++
             }
             order.clear()
         }
+        if (n > 0) engine.flush()
         val ms = (System.nanoTime() - t0) / 1e6f
         buildingsMs += ms
         if (n > 0) batches += n to ms
         // then, with what is left of the budget, the 3D greenery of the chunks coming near
         if (n == 0 && chunksTodo > 0 && groundBuilt) {
-            // (no list made: the nearest waiting chunk in reach, again and again while the budget lasts)
+            // (no list made: the nearest packed chunk in reach, again and again while the budget lasts; those in reach not
+            // packed yet start packing on a worker)
             var left = 0
-            for (c in chunks.values) if (c.near == null && c.nearTodo.isNotEmpty()) left++
+            for (c in chunks.values) if (c.near == null && c.hasNear) {
+                left++
+                if (hypot(c.cx - x, c.cz - z) - c.r < TownFrame.LOD_NEAR + 600f) c.startNear()
+            }
             chunksTodo = left
             while (left > 0 && (System.nanoTime() - t0) / 1e6f < budgetMs) {
                 var best: Chunk? = null; var bd = Float.MAX_VALUE
                 for (c in chunks.values) {
-                    if (c.near != null || c.nearTodo.isEmpty()) continue
+                    if (c.near != null || !c.hasNear || !c.nearReady) continue
                     val d = hypot(c.cx - x, c.cz - z) - c.r
                     if (d < TownFrame.LOD_NEAR + 600f && d < bd) { bd = d; best = c }
                 }
@@ -617,7 +713,7 @@ class FilamentTown(
     private val order = ArrayList<Slot>()
 
     /** Nothing is left to build: every building, and every chunk's 3D greenery. */
-    val allBuilt: Boolean get() = groundBuilt && pending == 0 && chunks.values.none { it.near == null && it.nearTodo.isNotEmpty() }
+    val allBuilt: Boolean get() = groundBuilt && pending == 0 && chunks.values.none { it.near == null && it.hasNear }
 
     /** Reads and packs [images] on a worker ahead of their first use here ([StreetTextures.warm]). */
     fun warm(images: List<androidx.compose.ui.graphics.ImageBitmap>) {
@@ -629,6 +725,13 @@ class FilamentTown(
     /** The workers' time making buildings ready (ms, all of them), and the slowest one there. */
     @Volatile var prepareMs = 0f; private set
     @Volatile var slowestPrepare: Pair<String, Float> = "" to 0f; private set
+
+    /**
+     * How many buildings may be made ready (or wait, ready) ahead of being finished here: one for each worker and two
+     * more, so no worker waits while the engine's thread finishes the last ones (a frame later at most). Each holds its
+     * pictures packed (a large model's atlas is 7 MB) until finished: twice as many held some 55 MB at once to no gain.
+     */
+    private val readyAhead = max(2, Runtime.getRuntime().availableProcessors() - 1) + 2
 
     /** Each building being made ready on a worker. */
     private val readyOf = HashMap<Slot, java.util.concurrent.Future<BuildingMeshes.Ready?>>()
@@ -750,7 +853,7 @@ class FilamentTown(
             val fade = min(cut, pose.rangeFade(c.cx, c.top / 2f, c.cz, c.r))
             val on = fade > .02f && pose.sees(c.cx, c.top / 2f, c.cz, c.r)
             val shadows = fade > .5f && (on || pose.sees(c.cx, c.top / 2f, c.cz, c.r + 150f))
-            val close = on && c.nearTodo.isNotEmpty() && pose.distance(c.cx, c.top / 2f, c.cz) - c.r < TownFrame.LOD_NEAR
+            val close = on && c.hasNear && pose.distance(c.cx, c.top / 2f, c.cz) - c.r < TownFrame.LOD_NEAR
             val near3d = close && c.near != null
             c.base.update(look, dark, on, fade, shadows)
             c.cards.update(look, dark, on && !near3d, fade, shadows && !near3d)
@@ -904,6 +1007,8 @@ class FilamentTown(
     // ------------------------------------------------------------------ teardown
 
     fun destroy() {
+        closed = true
+        synchronized(queueLock) { queueLock.notifyAll() }
         val em = EntityManager.get()
         crowd.destroy()
         for (s in slots) {
@@ -941,6 +1046,12 @@ class FilamentTown(
         const val CELL = 2000f
         /** How many lanterns light at night (the nearest), how far their light reaches and how strong (lumens). */
         const val LAMP_LIGHTS = 12
+        /**
+         * How many bytes of made-ready ground the workers may queue ahead of the engine's thread's uploads ([offer]): a
+         * few frames' uploads (the 14 ms loading budget takes some 10-20 MB a frame on the desktop, the 4 ms playing budget less), and a small part of
+         * the phone's Java heap however many cores bake.
+         */
+        const val QUEUE_BYTES = 32L shl 20
         const val LAMP_REACH = 260f
         const val LAMP_LUMENS = 60000f
         /** How long the windows' night light may take a frame (ns): a building's first is a whole picture. */
