@@ -1,0 +1,26 @@
+{
+  "visible_triangles": 9970,
+  "materials": 12,
+  "rooms": 12,
+  "court_facing_guest_doors": 12,
+  "doors": 15,
+  "parking_bays": 12,
+  "parking_overlap": "None; pool fence excluded",
+  "collision_boxes": 44,
+  "architectural_collision": "Use the walls and closed door meshes; explicit boxes cover exterior obstructions",
+  "prop_triangles": {
+    "ice_machine": 26,
+    "pool_ladder": 364,
+    "pool_lounger_01": 182,
+    "pool_lounger_02": 182,
+    "service_bin_01": 24,
+    "service_bin_02": 24,
+    "roadside_sign": 332
+  },
+  "glb_bytes": 768300,
+  "art_grid": "All embedded images are exact 2x2 texel art pixels",
+  "uv_scale_max_edge_error_m": 1.5574481722069322e-06,
+  "pool": "Water below grade; asset ground has a true opening. Runtime terrain cutout/swimming pending.",
+  "signs": "Isolated sign_name and glow_vacancy panels; tested name writer and NO-only state change",
+  "renderer": "Blender desktop previews, not Filament/S25 captures"
+}

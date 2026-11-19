@@ -1,0 +1,1407 @@
+{
+  "name": "Sundown Motel",
+  "era": {
+    "design_years": [
+      1950,
+      1969
+    ],
+    "opening": "Simulation history chooses actual opening/closure; no business or guests are spawned."
+  },
+  "units": "metres",
+  "axes": "glTF Y up, main office entrance +Z",
+  "origin": "Ground level at the middle of the office front edge",
+  "building_m": [
+    36.0064,
+    26.0736
+  ],
+  "lot_m": {
+    "width": 47.180800000000005,
+    "depth": 33.5232,
+    "bounds_blender_art": [
+      -128,
+      -48,
+      480,
+      384
+    ]
+  },
+  "heights_m": {
+    "room_roof": 3.492,
+    "sign_starburst": 10.5924,
+    "office_canopy": 3.88
+  },
+  "room_count": 12,
+  "rooms": [
+    {
+      "id": "room_01",
+      "number": 1,
+      "center": [
+        4.9664,
+        0.1552,
+        -22.9696
+      ],
+      "size_m": [
+        3.7248,
+        6.208
+      ],
+      "door": "door_room_01",
+      "window": "room_01_window",
+      "bathroom_zone_blender_art": [
+        64,
+        312,
+        88,
+        336
+      ]
+    },
+    {
+      "id": "room_02",
+      "number": 2,
+      "center": [
+        8.6912,
+        0.1552,
+        -22.9696
+      ],
+      "size_m": [
+        3.7248,
+        6.208
+      ],
+      "door": "door_room_02",
+      "window": "room_02_window",
+      "bathroom_zone_blender_art": [
+        112,
+        312,
+        136,
+        336
+      ]
+    },
+    {
+      "id": "room_03",
+      "number": 3,
+      "center": [
+        12.416,
+        0.1552,
+        -22.9696
+      ],
+      "size_m": [
+        3.7248,
+        6.208
+      ],
+      "door": "door_room_03",
+      "window": "room_03_window",
+      "bathroom_zone_blender_art": [
+        160,
+        312,
+        184,
+        336
+      ]
+    },
+    {
+      "id": "room_04",
+      "number": 4,
+      "center": [
+        16.1408,
+        0.1552,
+        -22.9696
+      ],
+      "size_m": [
+        3.7248,
+        6.208
+      ],
+      "door": "door_room_04",
+      "window": "room_04_window",
+      "bathroom_zone_blender_art": [
+        208,
+        312,
+        232,
+        336
+      ]
+    },
+    {
+      "id": "room_05",
+      "number": 5,
+      "center": [
+        19.8656,
+        0.1552,
+        -22.9696
+      ],
+      "size_m": [
+        3.7248,
+        6.208
+      ],
+      "door": "door_room_05",
+      "window": "room_05_window",
+      "bathroom_zone_blender_art": [
+        256,
+        312,
+        280,
+        336
+      ]
+    },
+    {
+      "id": "room_06",
+      "number": 6,
+      "center": [
+        23.590400000000002,
+        0.1552,
+        -22.9696
+      ],
+      "size_m": [
+        3.7248,
+        6.208
+      ],
+      "door": "door_room_06",
+      "window": "room_06_window",
+      "bathroom_zone_blender_art": [
+        304,
+        312,
+        328,
+        336
+      ]
+    },
+    {
+      "id": "room_07",
+      "number": 7,
+      "center": [
+        27.3152,
+        0.1552,
+        -22.9696
+      ],
+      "size_m": [
+        3.7248,
+        6.208
+      ],
+      "door": "door_room_07",
+      "window": "room_07_window",
+      "bathroom_zone_blender_art": [
+        352,
+        312,
+        376,
+        336
+      ]
+    },
+    {
+      "id": "room_08",
+      "number": 8,
+      "center": [
+        31.04,
+        0.1552,
+        -22.9696
+      ],
+      "size_m": [
+        3.7248,
+        6.208
+      ],
+      "door": "door_room_08",
+      "window": "room_08_window",
+      "bathroom_zone_blender_art": [
+        400,
+        312,
+        424,
+        336
+      ]
+    },
+    {
+      "id": "room_09",
+      "number": 9,
+      "center": [
+        0,
+        0.1552,
+        -6.8288
+      ],
+      "size_m": [
+        6.208,
+        3.7248
+      ],
+      "door": "door_room_09",
+      "window": "room_09_window",
+      "bathroom_zone_blender_art": [
+        -40,
+        88,
+        -16,
+        112
+      ]
+    },
+    {
+      "id": "room_10",
+      "number": 10,
+      "center": [
+        0,
+        0.1552,
+        -10.5536
+      ],
+      "size_m": [
+        6.208,
+        3.7248
+      ],
+      "door": "door_room_10",
+      "window": "room_10_window",
+      "bathroom_zone_blender_art": [
+        -40,
+        136,
+        -16,
+        160
+      ]
+    },
+    {
+      "id": "room_11",
+      "number": 11,
+      "center": [
+        0,
+        0.1552,
+        -14.278400000000001
+      ],
+      "size_m": [
+        6.208,
+        3.7248
+      ],
+      "door": "door_room_11",
+      "window": "room_11_window",
+      "bathroom_zone_blender_art": [
+        -40,
+        184,
+        -16,
+        208
+      ]
+    },
+    {
+      "id": "room_12",
+      "number": 12,
+      "center": [
+        0,
+        0.1552,
+        -18.0032
+      ],
+      "size_m": [
+        6.208,
+        3.7248
+      ],
+      "door": "door_room_12",
+      "window": "room_12_window",
+      "bathroom_zone_blender_art": [
+        -40,
+        232,
+        -16,
+        256
+      ]
+    }
+  ],
+  "doors": [
+    {
+      "node": "door_room_01",
+      "position": [
+        3.880000114440918,
+        0.15520000457763672,
+        -19.710399627685547
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "node": "door_room_02",
+      "position": [
+        7.604800224304199,
+        0.15520000457763672,
+        -19.710399627685547
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "node": "door_room_03",
+      "position": [
+        11.32960033416748,
+        0.15520000457763672,
+        -19.710399627685547
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "node": "door_room_04",
+      "position": [
+        15.054400444030762,
+        0.15520000457763672,
+        -19.710399627685547
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "node": "door_room_05",
+      "position": [
+        18.779199600219727,
+        0.15520000457763672,
+        -19.710399627685547
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "node": "door_room_06",
+      "position": [
+        22.503999710083008,
+        0.15520000457763672,
+        -19.710399627685547
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "node": "door_room_07",
+      "position": [
+        26.22879981994629,
+        0.15520000457763672,
+        -19.710399627685547
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "node": "door_room_08",
+      "position": [
+        29.95359992980957,
+        0.15520000457763672,
+        -19.710399627685547
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "node": "door_room_09",
+      "position": [
+        3.259200096130371,
+        0.15520000457763672,
+        -5.742400169372559
+      ],
+      "outward": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "node": "door_room_10",
+      "position": [
+        3.259200096130371,
+        0.15520000457763672,
+        -9.46720027923584
+      ],
+      "outward": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "node": "door_room_11",
+      "position": [
+        3.259200096130371,
+        0.15520000457763672,
+        -13.192000389099121
+      ],
+      "outward": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "node": "door_room_12",
+      "position": [
+        3.259200096130371,
+        0.15520000457763672,
+        -16.916799545288086
+      ],
+      "outward": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "node": "door_linen",
+      "position": [
+        0.0,
+        0.15520000457763672,
+        -26.22879981994629
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "node": "door_office_service",
+      "position": [
+        -3.259200096130371,
+        0.15520000457763672,
+        -3.7248001098632812
+      ],
+      "outward": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "node": "door_main",
+      "position": [
+        0.0,
+        0.15520000457763672,
+        0.15520000457763672
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "door_panels": [
+    "panel_door_room_01",
+    "panel_door_room_02",
+    "panel_door_room_03",
+    "panel_door_room_04",
+    "panel_door_room_05",
+    "panel_door_room_06",
+    "panel_door_room_07",
+    "panel_door_room_08",
+    "panel_door_room_09",
+    "panel_door_room_10",
+    "panel_door_room_11",
+    "panel_door_room_12",
+    "panel_door_linen",
+    "panel_door_office_service",
+    "panel_door_main"
+  ],
+  "triangles_visible": 9970,
+  "materials": [
+    "detail_utility",
+    "glass_motel",
+    "glow_motel",
+    "glow_vacancy",
+    "ground_asphalt",
+    "ground_paving",
+    "roof_built_up",
+    "sign_name",
+    "trim_teal",
+    "wall_brick_base",
+    "wall_stucco",
+    "water_pool"
+  ],
+  "pixel_grid": {
+    "metres_per_texel": 0.0388,
+    "texels_per_art_pixel": 2
+  },
+  "collision": {
+    "node": "collision",
+    "render": false,
+    "strategy": "Use the walls: architectural walls, closed door meshes and wall-mounted AC housings supply structural collision. The companion boxes add full-height outdoor props, posts, gates and barriers.",
+    "use_the_walls": true,
+    "boxes_blender_z_up": [
+      {
+        "source": "Closed door",
+        "center": [
+          3.88,
+          19.8656,
+          1.1640000000000001
+        ],
+        "size": [
+          0.9312,
+          0.1552,
+          2.3280000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_room_01",
+        "gate_node": "panel_door_room_01"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          7.6048,
+          19.8656,
+          1.1640000000000001
+        ],
+        "size": [
+          0.9312,
+          0.1552,
+          2.3280000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_room_02",
+        "gate_node": "panel_door_room_02"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          11.329600000000001,
+          19.8656,
+          1.1640000000000001
+        ],
+        "size": [
+          0.9312,
+          0.1552,
+          2.3280000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_room_03",
+        "gate_node": "panel_door_room_03"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          15.054400000000001,
+          19.8656,
+          1.1640000000000001
+        ],
+        "size": [
+          0.9312,
+          0.1552,
+          2.3280000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_room_04",
+        "gate_node": "panel_door_room_04"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          18.7792,
+          19.8656,
+          1.1640000000000001
+        ],
+        "size": [
+          0.9312,
+          0.1552,
+          2.3280000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_room_05",
+        "gate_node": "panel_door_room_05"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          22.504,
+          19.8656,
+          1.1640000000000001
+        ],
+        "size": [
+          0.9312,
+          0.1552,
+          2.3280000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_room_06",
+        "gate_node": "panel_door_room_06"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          26.2288,
+          19.8656,
+          1.1640000000000001
+        ],
+        "size": [
+          0.9312,
+          0.1552,
+          2.3280000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_room_07",
+        "gate_node": "panel_door_room_07"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          29.9536,
+          19.8656,
+          1.1640000000000001
+        ],
+        "size": [
+          0.9312,
+          0.1552,
+          2.3280000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_room_08",
+        "gate_node": "panel_door_room_08"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          3.104,
+          5.7424,
+          1.1640000000000001
+        ],
+        "size": [
+          0.1552,
+          0.9312,
+          2.3280000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_room_09",
+        "gate_node": "panel_door_room_09"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          3.104,
+          9.4672,
+          1.1640000000000001
+        ],
+        "size": [
+          0.1552,
+          0.9312,
+          2.3280000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_room_10",
+        "gate_node": "panel_door_room_10"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          3.104,
+          13.192,
+          1.1640000000000001
+        ],
+        "size": [
+          0.1552,
+          0.9312,
+          2.3280000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_room_11",
+        "gate_node": "panel_door_room_11"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          3.104,
+          16.916800000000002,
+          1.1640000000000001
+        ],
+        "size": [
+          0.1552,
+          0.9312,
+          2.3280000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_room_12",
+        "gate_node": "panel_door_room_12"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          0.0,
+          26.0736,
+          1.1640000000000001
+        ],
+        "size": [
+          0.9312,
+          0.1552,
+          2.3280000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_linen",
+        "gate_node": "panel_door_linen"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          -3.104,
+          3.7248,
+          1.1640000000000001
+        ],
+        "size": [
+          0.1552,
+          0.9312,
+          2.3280000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_office_service",
+        "gate_node": "panel_door_office_service"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          0.0,
+          0.0,
+          1.2416
+        ],
+        "size": [
+          1.0864,
+          0.1552,
+          2.4832
+        ],
+        "group": "structure",
+        "attachment": "panel_door_main",
+        "gate_node": "panel_door_main"
+      },
+      {
+        "source": "Gallery column",
+        "center": [
+          4.9664,
+          4.9664,
+          1.6296
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.2592
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Gallery column",
+        "center": [
+          4.9664,
+          8.6912,
+          1.6296
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.2592
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Gallery column",
+        "center": [
+          4.9664,
+          12.416,
+          1.6296
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.2592
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Gallery column",
+        "center": [
+          4.9664,
+          16.1408,
+          1.6296
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.2592
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Gallery column",
+        "center": [
+          4.9664,
+          18.624000000000002,
+          1.6296
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.2592
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Gallery column",
+        "center": [
+          6.8288,
+          18.624000000000002,
+          1.6296
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.2592
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Gallery column",
+        "center": [
+          10.5536,
+          18.624000000000002,
+          1.6296
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.2592
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Gallery column",
+        "center": [
+          14.278400000000001,
+          18.624000000000002,
+          1.6296
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.2592
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Gallery column",
+        "center": [
+          18.0032,
+          18.624000000000002,
+          1.6296
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.2592
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Gallery column",
+        "center": [
+          21.728,
+          18.624000000000002,
+          1.6296
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.2592
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Gallery column",
+        "center": [
+          25.4528,
+          18.624000000000002,
+          1.6296
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.2592
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Gallery column",
+        "center": [
+          29.1776,
+          18.624000000000002,
+          1.6296
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.2592
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Gallery column",
+        "center": [
+          32.9024,
+          18.624000000000002,
+          1.6296
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.2592
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Ice alcove column",
+        "center": [
+          6.0528,
+          2.6384,
+          1.3968
+        ],
+        "size": [
+          0.1164,
+          0.1164,
+          2.7936
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Ice alcove column",
+        "center": [
+          6.0528,
+          4.5008,
+          1.3968
+        ],
+        "size": [
+          0.1164,
+          0.1164,
+          2.7936
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Ice machine",
+        "center": [
+          3.7248,
+          3.5696000000000003,
+          1.1252
+        ],
+        "size": [
+          1.1640000000000001,
+          1.6296,
+          2.2504
+        ],
+        "group": "lot",
+        "attachment": "ice_machine"
+      },
+      {
+        "source": "Service bin",
+        "center": [
+          -1.8624,
+          26.6944,
+          0.4268
+        ],
+        "size": [
+          0.6984,
+          0.6984,
+          0.8536
+        ],
+        "group": "lot",
+        "attachment": "service_bin_01"
+      },
+      {
+        "source": "Service bin",
+        "center": [
+          1.2416,
+          26.6944,
+          0.4268
+        ],
+        "size": [
+          0.6984,
+          0.6984,
+          0.8536
+        ],
+        "group": "lot",
+        "attachment": "service_bin_02"
+      },
+      {
+        "source": "Pool fence",
+        "center": [
+          19.2448,
+          1.8624,
+          0.6596
+        ],
+        "size": [
+          11.1744,
+          0.0776,
+          1.3192
+        ],
+        "group": "pool",
+        "attachment": "pool"
+      },
+      {
+        "source": "Pool fence",
+        "center": [
+          24.832,
+          5.897600000000001,
+          0.6596
+        ],
+        "size": [
+          0.0776,
+          8.0704,
+          1.3192
+        ],
+        "group": "pool",
+        "attachment": "pool"
+      },
+      {
+        "source": "Pool fence",
+        "center": [
+          19.2448,
+          9.9328,
+          0.6596
+        ],
+        "size": [
+          11.1744,
+          0.0776,
+          1.3192
+        ],
+        "group": "pool",
+        "attachment": "pool"
+      },
+      {
+        "source": "Pool fence",
+        "center": [
+          13.6576,
+          2.9488000000000003,
+          0.6596
+        ],
+        "size": [
+          0.0776,
+          2.1728,
+          1.3192
+        ],
+        "group": "pool",
+        "attachment": "pool"
+      },
+      {
+        "source": "Pool fence",
+        "center": [
+          13.6576,
+          7.6048,
+          0.6596
+        ],
+        "size": [
+          0.0776,
+          4.656000000000001,
+          1.3192
+        ],
+        "group": "pool",
+        "attachment": "pool"
+      },
+      {
+        "source": "Closed pool gate",
+        "center": [
+          13.6576,
+          4.656000000000001,
+          0.6596
+        ],
+        "size": [
+          0.0776,
+          1.2416,
+          1.3192
+        ],
+        "group": "pool",
+        "attachment": "pool_gate",
+        "gate_node": "pool_gate"
+      },
+      {
+        "source": "Pool ladder",
+        "center": [
+          18.9344,
+          3.5696000000000003,
+          0.0
+        ],
+        "size": [
+          0.776,
+          0.776,
+          2.0176
+        ],
+        "group": "pool",
+        "attachment": "pool_ladder"
+      },
+      {
+        "source": "Pool lounger",
+        "center": [
+          17.072,
+          2.9488000000000003,
+          0.4656
+        ],
+        "size": [
+          2.1728,
+          0.6984,
+          0.9312
+        ],
+        "group": "pool",
+        "attachment": "pool_lounger_01"
+      },
+      {
+        "source": "Pool lounger",
+        "center": [
+          21.1072,
+          2.9488000000000003,
+          0.4656
+        ],
+        "size": [
+          2.1728,
+          0.6984,
+          0.9312
+        ],
+        "group": "pool",
+        "attachment": "pool_lounger_02"
+      },
+      {
+        "source": "Neon sign post",
+        "center": [
+          -6.984,
+          -0.6208,
+          4.3456
+        ],
+        "size": [
+          0.2328,
+          0.3104,
+          8.6912
+        ],
+        "group": "structure",
+        "attachment": "roadside_sign"
+      },
+      {
+        "source": "Neon sign post",
+        "center": [
+          -4.1904,
+          -0.6208,
+          4.3456
+        ],
+        "size": [
+          0.2328,
+          0.3104,
+          8.6912
+        ],
+        "group": "structure",
+        "attachment": "roadside_sign"
+      }
+    ],
+    "runtime": "Existing importer can infer drawn-part walk cuts; moving a door or pool gate also requires updating its matching gate_node box. Height/swimming behavior is not implemented."
+  },
+  "lot_node": "lot",
+  "pool": {
+    "node": "pool",
+    "water_node_material": "water_pool",
+    "gate_node": "pool_gate",
+    "water_surface_y_gltf": -0.1552,
+    "terrain_cutout_blender_art": [
+      200,
+      48,
+      296,
+      104
+    ],
+    "terrain_cutout_gltf_xz_m": [
+      15.52,
+      -8.0704,
+      22.9696,
+      -3.7248
+    ],
+    "water_m": [
+      7.4496,
+      4.3456
+    ],
+    "depth_m": [
+      0.9312,
+      1.7072
+    ],
+    "requirement": "Cut/mask town ground inside the basin before placement. The GLB cannot carve TownGround automatically. Keep the gate closed until pool traversal is supported. Dropping lot drops all pool geometry; hiding pool alone needs replacement ground."
+  },
+  "sign_name": {
+    "nodes": [
+      "sign_name",
+      "sign_name_back"
+    ],
+    "material": "sign_name",
+    "texture": "textures/sign-name.png",
+    "rect_art": [
+      0,
+      0,
+      80,
+      28
+    ],
+    "writer": "sign_art.write_name",
+    "preview_name": "SUNDOWN",
+    "text_rule": "Explicit supported short name; never auto-truncate or stretch."
+  },
+  "vacancy": {
+    "nodes": [
+      "glow_vacancy_panel",
+      "glow_vacancy_panel_back"
+    ],
+    "material": "glow_vacancy",
+    "texture": "textures/vacancy.png",
+    "available_texture": "textures/vacancy.png",
+    "full_texture": "textures/no-vacancy.png",
+    "rect_art": [
+      0,
+      0,
+      64,
+      12
+    ],
+    "writer": "sign_art.write_vacancy",
+    "occupied_preview": false,
+    "binding": "Preview artwork only. Runtime derives NO from actual occupancy/availability; no business-state binding is implemented."
+  },
+  "ice_machine": {
+    "node": "ice_machine",
+    "behavior": "Static prop; no dispensing logic implemented."
+  },
+  "parking": {
+    "spaces": 12,
+    "north_spaces": 7,
+    "side_spaces": 4,
+    "check_in_spaces": 1,
+    "bays": [
+      {
+        "id": "rear_01",
+        "bounds_blender_art": [
+          192,
+          168,
+          224,
+          232
+        ]
+      },
+      {
+        "id": "rear_02",
+        "bounds_blender_art": [
+          224,
+          168,
+          256,
+          232
+        ]
+      },
+      {
+        "id": "rear_03",
+        "bounds_blender_art": [
+          256,
+          168,
+          288,
+          232
+        ]
+      },
+      {
+        "id": "rear_04",
+        "bounds_blender_art": [
+          288,
+          168,
+          320,
+          232
+        ]
+      },
+      {
+        "id": "rear_05",
+        "bounds_blender_art": [
+          320,
+          168,
+          352,
+          232
+        ]
+      },
+      {
+        "id": "rear_06",
+        "bounds_blender_art": [
+          352,
+          168,
+          384,
+          232
+        ]
+      },
+      {
+        "id": "rear_07",
+        "bounds_blender_art": [
+          384,
+          168,
+          416,
+          232
+        ]
+      },
+      {
+        "id": "side_01",
+        "bounds_blender_art": [
+          68,
+          62,
+          132,
+          98
+        ]
+      },
+      {
+        "id": "side_02",
+        "bounds_blender_art": [
+          68,
+          106,
+          132,
+          142
+        ]
+      },
+      {
+        "id": "side_03",
+        "bounds_blender_art": [
+          68,
+          150,
+          132,
+          186
+        ]
+      },
+      {
+        "id": "side_04",
+        "bounds_blender_art": [
+          68,
+          194,
+          132,
+          230
+        ]
+      },
+      {
+        "id": "check_in",
+        "bounds_blender_art": [
+          80,
+          -16,
+          112,
+          48
+        ]
+      }
+    ],
+    "cars": "None baked into the model; vehicle spawning and traffic belong to the game."
+  },
+  "interior": "Twelve separate clean room shells with carpet, high rear windows and bathroom placement zones; office with fixed reception counter, plus linen/service room. The game supplies furnishings and bathroom partitions/fixtures.",
+  "runtime_handoff": [
+    "Room numbers and door anchors are fixed architectural identifiers, not bookings or occupancy.",
+    "Individual room/window lighting needs a runtime extension; preview night lighting is staged.",
+    "Keep closed door/pool-gate visuals and gate boxes in sync.",
+    "Pool water rendering, terrain cutting and swimming need game integration; no transparency support is assumed.",
+    "sign_name and glow_vacancy are isolated panels with exact texture regions and tested writers."
+  ],
+  "swatches_used": [
+    "wall_stucco_red",
+    "brick_red",
+    "roof_membrane_grey",
+    "pavement",
+    "asphalt_worn"
+  ],
+  "licence": "LimeZu swatches: Timerpg game use only, credit required. Original geometry and supplemental pixel artwork.",
+  "renders": "Blender desktop previews, not Filament/S25 captures."
+}
