@@ -1,0 +1,192 @@
+{
+  "kind": "screenshot",
+  "time": "2026-11-19T05:41:36.654-0500",
+  "epochMs": 1795084896654,
+  "note": null,
+  "app": {
+    "versionName": "0.1.385 (cc98859)",
+    "versionCode": 385,
+    "git": "cc98859",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "image": {
+    "file": "054136-shot.png",
+    "format": "png",
+    "scale": 1,
+    "width": 2340,
+    "height": 1080,
+    "bytes": 1534397,
+    "captured": "PixelCopy of the window"
+  },
+  "screen": {
+    "widthPx": 2244,
+    "heightPx": 1038,
+    "density": 2.8125,
+    "densityDpi": 450
+  },
+  "device": {
+    "ramFreeMb": 2747,
+    "ramTotalMb": 11113,
+    "lowMemory": false,
+    "gamePssMb": 2671,
+    "thermalStatus": 2,
+    "thermalHeadroom10s": 0.9224462
+  },
+  "game": {
+    "renderer": "Filament",
+    "camera": "medium",
+    "view": "open",
+    "orbit": {
+      "yaw": -84.08482,
+      "pitch": 12.0874,
+      "dist": 420,
+      "pulled": 420,
+      "goalYaw": -84.08482,
+      "goalPitch": 12.0874,
+      "goalDist": 420,
+      "tx": 8622.097,
+      "tz": 4969.338,
+      "line": "camera open yaw -84.1 pitch 12.1 dist 420 (pulled to 420) at (8622, 4969)"
+    },
+    "rendererError": null,
+    "town": "eta · Commuter suburb · 2025",
+    "walkableTown": {
+      "seed": "gamma",
+      "loading": false,
+      "ready": true,
+      "progress": 1,
+      "error": null,
+      "loadMs": 592.6427,
+      "firstViewMs": 31154.926,
+      "built": "town built: ground 31154 ms (workers 31142), buildings 627 ms here (slowest b21 9.0 ms, largest batch 22.1 ms), 23965 ms on workers (slowest b86 2067 ms); textures 985, 107.3M texels, 3915 shared",
+      "memory": {
+        "when": "town built",
+        "graphicsMb": 1087,
+        "nativeMb": 83,
+        "javaMb": 84,
+        "codeMb": 27,
+        "totalPssMb": 1387
+      },
+      "row": "12R",
+      "street": "Main Street",
+      "neighbourhood": "Old Town",
+      "x": 900.9033,
+      "lane": 28.719471,
+      "wx": 8622.097,
+      "wz": 4969.338,
+      "heading": 2.8780074,
+      "front": null,
+      "transit": null,
+      "liveRows": [
+        "12L",
+        "12R",
+        "16R",
+        "15L",
+        "15R",
+        "16L",
+        "39L",
+        "14R",
+        "13L",
+        "39R",
+        "9L",
+        "9R",
+        "41L",
+        "42R",
+        "14L",
+        "13R",
+        "42L"
+      ],
+      "people": 35,
+      "talkTo": null,
+      "walk": "open",
+      "open": {
+        "door": null,
+        "yard": null,
+        "speed": 0,
+        "blocked": 0,
+        "cameraYaw": -1.4675571,
+        "hx": 0.26054364,
+        "hz": 0.9654621
+      }
+    },
+    "street": {
+      "index": 0,
+      "name": "Main Street",
+      "nearestBuilding": 3,
+      "building": "Ellis's Bait Shop",
+      "owner": "Howard Ingram",
+      "atCorner": false,
+      "edge": 0
+    },
+    "player": {
+      "x": 900.9033,
+      "lane": 28.719471,
+      "street": 0,
+      "dir": -1,
+      "walking": false,
+      "running": false,
+      "viewMiddle": 284.625
+    },
+    "turn": {
+      "active": false,
+      "forward": true,
+      "p": 0,
+      "yaw": 0,
+      "ease": 0,
+      "blocked": false
+    },
+    "inRoom": false,
+    "room": null,
+    "doorFade": false,
+    "time": {
+      "hour": 17.6,
+      "clock": "17:36",
+      "season": "summer",
+      "weather": "Clear"
+    },
+    "frames": {
+      "compose": "Frames: 16.6 ms (60 fps) · p95 16.7 ms · 0.4% late · display 60 Hz",
+      "filament": "Filament: CPU 9.0 ms (p95 17.3) · GPU 16.4 ms (p95 21.3) · start 18 ms, street 1186 ms"
+    },
+    "ai": {
+      "state": "READY",
+      "detail": "Ready: the light model answers in play. Lines ahead of time are written by the main model (overnight, or when it fits).",
+      "runsOn": "CPU",
+      "modelMb": 2463,
+      "role": "live",
+      "forceBank": false,
+      "gpuNote": "Not enough free memory for the NPU copy of the light model right now (3040 MB free, 3513 MB needed), so it runs on the CPU from the file (it moves to the NPU once there is room: checked every 30 s).",
+      "lane": null,
+      "linesWritten": 21,
+      "builtIn": 0,
+      "queued": 600,
+      "paused": "light model loaded",
+      "working": null,
+      "pregenOff": null,
+      "prefillTokPerSec": 0,
+      "genTokPerSec": 0,
+      "firstTokenMs": 0,
+      "loadInfo": null
+    },
+    "conversation": null,
+    "voices": {
+      "enabled": false,
+      "speaking": false,
+      "only": 2,
+      "timing": null
+    },
+    "mic": {
+      "always": true,
+      "granted": false,
+      "listening": false,
+      "state": "IDLE"
+    },
+    "panels": {
+      "aiPanel": false,
+      "crashShown": false,
+      "tuningNpu": false
+    }
+  }
+}
