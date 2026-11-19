@@ -349,7 +349,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             StreetRenderer.townBuilding(ctx, true)
             buildMarked = true
             val ft = com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown(e, mats, data.town, data.yards, data.art, data.building, cinema = data.cinema,
-                stores = data.stores, collision = data.collision)
+                stores = data.stores, collision = data.collision, rail = data.rail)
             town = ft
             rn = com.lifemax.rpg.feature.habits.presentation.scene3d.TownRun(ft, com.lifemax.rpg.feature.habits.presentation.scene.SpriteSheets.sheets)
             run = rn
@@ -364,6 +364,8 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
                 com.timerpg.street.shot.Crumbs.add("town first view, ${w}x$h: " + town!!.gpuEstimate(w, h).line())
             }
         }
+        // (a ride on the train asked for, under way or ending: RailTrip)
+        RailTrip.frame(town!!)
         rn.draw(walk, w.toFloat(), h.toFloat(), f.hour, f.seconds, com.lifemax.rpg.feature.habits.presentation.scene.SpriteSheets.sheets)
         val ft = town!!
         FilamentStats.buildMs = ft.buildingsMs + ft.groundUploadMs

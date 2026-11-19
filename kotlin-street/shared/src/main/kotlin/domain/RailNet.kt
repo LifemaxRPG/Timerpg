@@ -86,6 +86,8 @@ class RailNet(
     private val transferMin: Double, private val changePenalty: Double, private val firstDeparture: Double, private val serviceHours: Double,
     private val roadFactor: Double, private val roadKmh: Double, private val roadWait: Double,
     val rail: TownRailData,
+    /** World tile of the home town's plan's corner: the town frame is (world tile - origin) x [scale]. */
+    val originX: Double, val originY: Double,
     val towns: List<RailTownInfo>,
     val links: List<RailLinkInfo>,
     val lines: Map<String, RailLine>,
@@ -408,7 +410,7 @@ class RailNet(
                 root.getDouble("scale").toFloat(), root.getDouble("metersPerTile"),
                 sv.getString("name"), sv.getString("full"), sv.getInt("from"), sv.getDouble("transferMin"), sv.getDouble("changePenalty"), sv.getDouble("serviceFrom"), sv.getDouble("serviceHours"),
                 sv.getDouble("roadFactor"), sv.getDouble("roadKmh"), sv.getDouble("roadWait"),
-                parseRail(root.getJSONObject("rail"))!!, towns, links, lines)
+                parseRail(root.getJSONObject("rail"))!!, root.getJSONArray("origin").getDouble(0), root.getJSONArray("origin").getDouble(1), towns, links, lines)
         }
     }
 }

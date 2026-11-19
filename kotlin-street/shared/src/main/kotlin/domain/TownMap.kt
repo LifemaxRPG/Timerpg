@@ -246,6 +246,12 @@ class Town(
     val bridges: List<Bridge>,
     val props: List<Prop>,
 ) {
+    /**
+     * Ground kept clear of the forest's trees and bushes (the railroad's bed: [RailScene.onBed]): set before the town is
+     * drawn or its collision built; null keeps everything.
+     */
+    @Volatile var keepClear: ((Float, Float) -> Boolean)? = null
+
     private val rowIndex: Map<String, Row> = rows.associateBy { it.id }
     private val nodeIndex: Map<Int, Node> = nodes.associateBy { it.id }
     private val roadIndex: Map<Int, Road> = roads.associateBy { it.id }

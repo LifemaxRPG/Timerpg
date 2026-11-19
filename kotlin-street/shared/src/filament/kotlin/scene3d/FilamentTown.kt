@@ -284,6 +284,9 @@ class FilamentTown(
     storeYear: Int = 0,
     /** The open world's collision: the stores' solid shapes and doors go into it once built (null: none). */
     private val collision: com.lifemax.rpg.feature.habits.domain.TownCollision? = null,
+    /** The town's railroad (rail.json: docs/RAIL.md), drawn for [railYear] (0: the town's year) by [TownRailDraw]; null: none. */
+    rail: com.lifemax.rpg.feature.habits.domain.RailNet? = null,
+    railYear: Int = 0,
 ) {
     val scene: Scene = engine.createScene()
     val view: View = engine.createView()
@@ -446,6 +449,67 @@ class FilamentTown(
     private val cinemaDraw: TownCinema? = cinema?.let { c -> slots.firstOrNull { it.b.sprite == c.sprite }?.let { s ->
         s.missing = true; TownCinema(engine, scene, lit, proxyMat, textures, c, s.place, s.b.setback, town.seed.hashCode()) } }
     private val cinemaOut = IntArray(3)
+
+    /** The railroad: track, crossings, depot and trains (docs/RAIL.md). */
+    private val railNet = rail
+    private var railDraw: TownRailDraw? = rail?.let { r ->
+        // (the forest and the woods' edge keep off the track's bed: set before the ground is made)
+        if (town.keepClear == null) town.keepClear = { x, z -> com.lifemax.rpg.feature.habits.domain.RailScene(r, town.year).onBed(x, z) }
+        TownRailDraw(engine, scene, lit, proxyMat, textures, town, r, if (railYear > 0) railYear else town.year, collision)
+    }
+
+    // ------------------------------------------------------------------ riding the train (docs/RAIL.md "Riding")
+
+    private var rideLayer: RideLayer? = null
+    private var rideClock = Double.NaN
+    /** Seconds into the ride under way (its length: [rideSeconds]). */
+    var rideT = 0f; private set
+    val riding: Boolean get() = rideLayer != null
+    val rideSeconds: Float get() = rideLayer?.seconds ?: 0f
+    /** The ride is at its end (the train stands at the last station). */
+    val rideDone: Boolean get() = rideLayer?.let { rideT >= it.seconds } ?: false
+    private val rideFocus = FloatArray(4)
+    private var rideS = 0f
+
+    /** Starts [ride]: its world (fields, track, wilderness, the towns on the way) and its train added to the scene. */
+    fun startRide(ride: com.lifemax.rpg.feature.habits.domain.RailRide) {
+        rideLayer?.destroy()
+        val consist = com.lifemax.rpg.feature.habits.domain.RailScene(ride.net, ride.year).consist(passenger = true, main = true, seed = 0)
+        rideLayer = RideLayer(engine, scene, lit, proxyMat, textures, ride, consist)
+        rideT = 0f; rideClock = Double.NaN
+    }
+
+    /** Ends the ride and takes its world out of the scene. */
+    fun stopRide() { rideLayer?.destroy(); rideLayer = null }
+
+    /**
+     * The ride's camera at the clock's [seconds] (null when not riding): an orbit round the train's middle from beside the
+     * track, a little ahead, [yaw] degrees off its way; the ride's time runs on by the clock (or set it with [at]).
+     */
+    fun ridePose(seconds: Float, w: Float, h: Float, yaw: Float = 70f, pitch: Float = 14f, dist: Float = 620f, at: Float? = null): TownPose? {
+        val r = rideLayer ?: return null
+        if (at != null) rideT = at else {
+            val dt = if (rideClock.isNaN()) 0.0 else (seconds - rideClock).coerceIn(0.0, .25)
+            rideClock = seconds.toDouble()
+            rideT = (rideT + dt.toFloat()).coerceAtMost(r.seconds)
+        }
+        rideS = r.ride.at(rideT, r.seconds)
+        r.focus(rideS, rideFocus)
+        val head = Math.toDegrees(kotlin.math.atan2(rideFocus[2].toDouble(), -rideFocus[3].toDouble())).toFloat()
+        return TownFrame.orbit(rideFocus[0], 40f, rideFocus[1], head + yaw, pitch, dist, w, h)
+    }
+
+    /** Draws the railroad as it stands in [year] instead (its tracks, crossings' gear, depot and trains of that year). */
+    fun setRailYear(year: Int) {
+        val r = railNet ?: return
+        if (railDraw?.year == year) return
+        railDraw?.destroy()
+        rideLayer?.destroy()
+        railDraw = TownRailDraw(engine, scene, lit, proxyMat, textures, town, r, year, collision)
+    }
+    /** The railroad as drawn (its year's scene, the trains of the last frame), for previews and the ticket window. */
+    val railScene: com.lifemax.rpg.feature.habits.domain.RailScene? get() = railDraw?.rail
+    val trainsNow: List<com.lifemax.rpg.feature.habits.domain.TrainNow> get() = railDraw?.trains ?: emptyList()
 
     /** The stores, built by code in their slots' places (the slots have no art), cars by the hour of [weekday]. */
     private val storeSites: List<StoreSite> = stores
@@ -1036,6 +1100,8 @@ class FilamentTown(
             val o = st.frame(pose, look, dark, seconds, { x, z -> if (pose.cut > 0f) fadeOf(pose, x, z) else 1f }, storeOut)
             if (o[0] > 0) { visible++; renderables += o[0]; draws += o[0]; tris += o[1] }; casters += o[2]
         }
+        railDraw?.let { r -> r.frame(look, dark, hour, seconds); renderables += r.draws; draws += r.draws; tris += r.triangles }
+        rideLayer?.let { r -> r.frame(look, dark, rideS); tris += r.triangles }
         val lampsLit = lamps(pose, dark)
         for (t in synchronized(ticks) { ticks.toList() }) t(seconds)
         stats = TownStats(slots.size, slots.count { it.built != null }, visible, renderables, draws, tris, casters, nChunks, nNear, lampsLit)
@@ -1366,6 +1432,7 @@ class FilamentTown(
         crowd.destroy()
         cinemaDraw?.destroy()
         for (st in storeDraws) st.destroy()
+        railDraw?.destroy()
         for (s in slots) {
             val b = s.built ?: continue
             for (e in listOf(b.entity, b.proxy)) if (e != 0) { scene.remove(e); engine.destroyEntity(e); em.destroy(e) }

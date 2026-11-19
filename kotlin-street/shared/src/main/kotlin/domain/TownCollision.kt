@@ -505,7 +505,8 @@ class TownCollision private constructor(
 
         /** The forest's and the plaza's trees (trunks), bushes, planters (the flower bushes), benches and fountain. */
         private fun greenery(b: Builder, town: Town) {
-            for (p in town.props) prop(b, p, edge = true)
+            val clear = town.keepClear
+            for (p in town.props) if (clear == null || !clear(p.x, p.z)) prop(b, p, edge = true)
             for (p in town.plazaProps) prop(b, p, edge = false)
         }
 

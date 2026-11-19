@@ -1,4 +1,6 @@
 import com.lifemax.rpg.feature.habits.domain.RailNet
+import com.lifemax.rpg.feature.habits.domain.RailRide
+import com.lifemax.rpg.feature.habits.domain.RailScene
 import com.lifemax.rpg.feature.habits.domain.WildChunks
 import com.lifemax.rpg.feature.habits.domain.WorldRand
 import org.json.JSONObject
@@ -89,6 +91,48 @@ class RailNetTest {
                 assertEquals(p.getString("kind"), got[j].kind); assertEquals(p.getInt("x"), got[j].x); assertEquals(p.getInt("y"), got[j].y)
                 assertTrue(abs(p.getDouble("look") - got[j].look) < 1e-12)
             }
+        }
+    }
+
+    @Test fun runsTrainsThroughTheTownByTheTimetable() {
+        for (year in listOf(1948, 1960, 1985, 2025)) {
+            val sc = RailScene(net, year)
+            assertTrue(sc.paths.isNotEmpty())
+            var seen = 0; var stopped = 0
+            var m = 0.0
+            while (m < 1440.0) { val ts = sc.trains(m); seen += ts.size; stopped += ts.count { it.stopping }; m += 2.0 }
+            assertTrue("$year: trains seen $seen", seen > 0)
+            // passenger trains stop only while the station is open to passengers
+            if (sc.station != 'p') assertEquals("$year", 0, stopped)
+            // the track's bed is clear of the woods, the town's middle is not on it
+            val p = sc.paths.first()
+            val at = FloatArray(4); p.at(p.length / 3f, at)
+            assertTrue(sc.onBed(at[0], at[1]))
+            assertTrue(!sc.onBed(net.home.x, net.home.z))
+        }
+    }
+
+    @Test fun crossingsWorkWhileATrainIsNear() {
+        val sc = RailScene(net, 2025)
+        val c = sc.crossings.first()
+        var on = 0; var off = 0
+        var m = 0.0
+        while (m < 1440.0) { if (sc.crossingActive(c, sc.trains(m))) on++ else off++; m += .25 }
+        assertTrue("on $on off $off", on > 0 && off > on)
+    }
+
+    @Test fun ridesFollowTheTrackAtWorldScale() {
+        for ((year, dest) in listOf(2025 to "2,0", 1955 to "-2,0", 1960 to "0,2")) {
+            val route = net.planRoute("0,0", dest, year, 9 * 60.0)
+            if (route.legs?.firstOrNull()?.mode != "train") continue
+            val ride = RailRide(net, route)
+            val p = ride.path.pts
+            for (i in 1 until p.size / 2) assertTrue("$dest $year: a jump at $i", kotlin.math.hypot(p[i * 2] - p[i * 2 - 2], p[i * 2 + 1] - p[i * 2 - 1]) < 2000f)
+            // from the home depot to the last stop, which is the destination's station
+            val d = net.rail.depot!!
+            assertTrue(kotlin.math.hypot(p[0] - d.x, p[1] - d.z) < 1f)
+            assertEquals(net.townOf(ride.to)!!.name, ride.stops.last().second)
+            assertTrue(ride.at(0f, 30f) == 0f && ride.at(30f, 30f) == ride.stops.last().first)
         }
     }
 }

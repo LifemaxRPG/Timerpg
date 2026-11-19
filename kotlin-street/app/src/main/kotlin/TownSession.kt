@@ -36,6 +36,8 @@ class TownData(
     val collision: com.lifemax.rpg.feature.habits.domain.TownCollision? = null,
     /** The town's store sites (graph.storeSites / stores), drawn by StoreKit in their slots; none for a town without. */
     val stores: List<com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite> = emptyList(),
+    /** The railroad round the town (rail.json: docs/RAIL.md), or null for a town without one. */
+    val rail: com.lifemax.rpg.feature.habits.domain.RailNet? = null,
 )
 
 /**
@@ -174,6 +176,10 @@ object TownSession {
         } catch (e: Exception) { null }
         val art = TownArt { path -> img("town/art/$path") }
         val building: (String) -> SpriteBuilding? = { sp -> SpriteBuildingLoad.load(sp, mids[sp] ?: 0, windows, houses, models) { img("$dir/buildings/$it.png") } }
+        // the railroad (its track's bed kept clear of the forest before the collision and the ground are made)
+        val rail = try { ctx.assets.open("$dir/rail.json").bufferedReader().use { it.readText() }.let { com.lifemax.rpg.feature.habits.domain.RailNet.parse(it) } } catch (e: Exception) { null }
+        rail?.let { r -> town.keepClear = com.lifemax.rpg.feature.habits.domain.RailScene(r, town.year)::onBed
+            com.timerpg.street.shot.Crumbs.add("rail: ${r.links.size} links, ${r.towns.size} towns, station ${r.status("0,0", town.year)}") }
         // the open world's solid shapes (built here, on the load's thread: a few hundred ms on a computer)
         val c0 = System.nanoTime()
         val collision = try {
@@ -187,6 +193,6 @@ object TownSession {
         collision?.let { com.timerpg.street.shot.Crumbs.add("town collision: ${it.size} shapes, %.0f ms".format(java.util.Locale.US, (System.nanoTime() - c0) / 1e6f)) }
         return TownData(seed, town, yards, art, building, names, root.optString("type"), dir,
             com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite.parse(root), collision,
-            com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root))
+            com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root), rail)
     }
 }

@@ -73,7 +73,8 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
      * the street's clock) wearing [sheets]. Then render [FilamentTown.view].
      */
     fun draw(walk: TownWalkView, w: Float, h: Float, hour: Float, seconds: Float, sheets: List<ImageBitmap>): TownPose {
-        val p = if (OrbitCamera.open) orbit(walk, w, h, seconds) else TownFrame.street(walk, w, h)
+        // (riding the train: the ride's camera round the train; else the player's)
+        val p = town.ridePose(seconds, w, h) ?: if (OrbitCamera.open) orbit(walk, w, h, seconds) else TownFrame.street(walk, w, h)
         town.frame(p, hour, seconds.toDouble())
         // (no people behind the loading screen: their sheets are still being read, and nobody sees them)
         val n = if (TownPlay.walk === walk && firstViewMs >= 0f) TownPlay.people(seconds) else 0
