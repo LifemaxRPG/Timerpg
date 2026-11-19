@@ -105,10 +105,11 @@ describe('town graph', () => {
   });
 
   it('builds no tower on a house lot, and only low walk-ups on apartment lots out in the residential streets', () => {
-    const shops = (g.json as { shops: { sprite: string; spec?: Record<string, unknown> }[] }).shops;
+    const shops = (g.json as { shops: { sprite: string; spec?: Record<string, unknown>; parts: { key: string }[] }[] }).shops;
     let low = 0;
     for (const s of shops) {
       const lot = g.buildings.lotOf.get(s.sprite);
+      if (lot?.tier === 'apartment' && !apartmentNearCore(g.layout.plan, lot.slot)) expect(s.parts[0]!.key, s.sprite).not.toMatch(/^condo_(3_45|5_\d|9)$/);
       if (!lot || lot.kind !== 'house' || !s.spec) continue;
       expect(lot.tier, s.sprite).toBe('apartment');
       if (!apartmentNearCore(g.layout.plan, lot.slot)) { expect(storeysOf(s.spec), s.sprite).toBeLessThanOrEqual(3); low++; }

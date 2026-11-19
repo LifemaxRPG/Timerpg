@@ -638,7 +638,7 @@ Desktop renders and JVM tests only, NOT yet run on the S25.
   others) the pack's condo terraces, Condo_3_46, Condo_8 or a facade-kit condo block, by where the lot stands: by the old
   core (plot rank below CORE_RANK, `apartmentNearCore`) up to five storeys, out in the residential streets among the houses
   and mobile homes only a 2-3 storey walk-up (the short terrace, a facade-kit block of 1-2 middle floors; a pack middle floor
-  is a tall storey). House lots never get a pack block (town-graph.test.ts checks both); half the schools the Victorian old
+  is a tall storey; the game's own 4-6 storey Condo_3_45, Condo_5 and Condo_9 are always replaced there). House lots never get a pack block (town-graph.test.ts checks both); half the schools the Victorian old
   school (V5). The towers, hotels, car parks, town hall and chapel are row buildings of kind `extra` (nobody in them: no
   door, no props, not a front; `flat: true` for car parks, walked over), named after every lot and landmark, listed in
   `graph.extras` (storeys, built, demolished). A tower stands 230 units behind the building line (the shops, then a 44-unit

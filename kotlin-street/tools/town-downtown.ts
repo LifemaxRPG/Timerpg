@@ -82,10 +82,11 @@ export function packOf(e: PackEntry, lot: Lot, plan: TownPlan, seed: string): { 
   // terrace, a facade-kit block of 3-4); out in the residential streets, among the houses and mobile homes, a low walk-up of
   // 2-3 storeys only (the short terrace, a facade-kit block of 2-3: a single middle floor is a tall storey). Never a tower
   // on a house lot: only apartment lots get here.
-  if (lot.tier === 'apartment' && (key0.startsWith('condo_ground_') || R('pack') < 0.5)) {
+  // (out in the residential streets the game's own tall blocks, Condo_3_45, Condo_5 and Condo_9 at 4-6 storeys, are always replaced)
+  const core = lot.tier === 'apartment' && apartmentNearCore(plan, lot.slot);
+  if (lot.tier === 'apartment' && (key0.startsWith('condo_ground_') || R('pack') < 0.5 || (!core && TALL_CONDO.test(key0)))) {
     const r = R('kit');
     const kit = KIT[e.colour] ?? 'brick';
-    const core = apartmentNearCore(plan, lot.slot);
     let spec: Record<string, unknown>; let w = 224;
     if (core) {
       if (r < 0.35) {
@@ -107,6 +108,9 @@ export function packOf(e: PackEntry, lot: Lot, plan: TownPlan, seed: string): { 
   }
   return undefined;
 }
+
+/** The game's own apartment pictures taller than a residential street's 2-3 storeys. */
+const TALL_CONDO = /^condo_(3_45|5_\d|9)$/;
 
 /** Whether apartment lot [slot] stands by the old core (its plot's rank, tiles from the centre, below CORE_RANK), where taller blocks belong. */
 export function apartmentNearCore(plan: TownPlan, slot: string): boolean {

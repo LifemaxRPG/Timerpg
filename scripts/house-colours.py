@@ -19,24 +19,24 @@ from PIL import Image
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'public', 'assets')
 
 H = lambda s: tuple(int(s[i:i + 2], 16) for i in (1, 3, 5))
-# Mobile homes (1960s-2020s): light painted or vinyl siding, a darker metal or shingle roof, contrasting trim, a door of its own.
-# (wall, trim, roof, door)
+# Mobile homes (1960s-2020s), as real ones look (the owner: white, cream, beige or pale pastel siding, darker skirting and trim,
+# a grey or white metal roof; not saturated colours). (wall, trim, roof, door, skirting)
 MOBILE = [
-    ('#e3d5a6', '#3f5a3c', '#4a4d52', '#8c3b32'),   # cream, forest-green trim, charcoal shingles, barn-red door
-    ('#b9cfe0', '#2f4763', '#3a3d44', '#b8402f'),   # pale blue, navy trim, black-grey roof, red door
-    ('#bfd0b0', '#f2efe6', '#5a4636', '#2f5a46'),   # sage, white trim, brown shingles, green door
-    ('#ecd38f', '#6b4a32', '#6e3b2c', '#3f6a5a'),   # butter yellow (70s), brown trim, oxide-red metal roof, teal door
-    ('#f0eeea', '#40474f', '#2f5240', '#9b2f2f'),   # white, slate trim, green metal roof, red door
-    ('#e8c3ae', '#f4efe8', '#5b5552', '#3d4f6d'),   # blush/salmon (60s-70s), white trim, warm grey roof, navy door
-    ('#cfcac0', '#2f3a46', '#2c2e33', '#c08a2e'),   # greige, dark slate trim, black roof, mustard door
-    ('#b7d3c0', '#5a3f2e', '#6a5544', '#7a2f3c'),   # mint, brown trim, brown roof, burgundy door
-    ('#d9c7a4', '#7a2f2a', '#45484d', '#2f4a63'),   # tan, brick-red trim, charcoal roof, navy door
+    ('#eeede8', '#3f5a3c', '#9a9ea3', '#8c3b32', '#5a5f5a'),   # white, forest-green trim, light grey metal roof, barn-red door
+    ('#ebe3cc', '#6b4a32', '#7d8288', '#3d4f6d', '#6b5a48'),   # cream, brown trim, grey roof, navy door, brown skirting
+    ('#ddd1b8', '#5a3f2e', '#c9ccd0', '#7a2f3c', '#5b4a3c'),   # beige, brown trim, white metal roof, burgundy door
+    ('#d8e2e8', '#2f4763', '#8a8f96', '#a8442f', '#4a5560'),   # pale blue, navy trim, grey roof, red door
+    ('#dde5d6', '#4a5a44', '#b9bdc2', '#8f3030', '#55604f'),   # pale green, dark green trim, silver roof, red door
+    ('#eee7cb', '#6b5a3a', '#55595f', '#2f5a46', '#5f5444'),   # pale yellow, brown trim, charcoal roof, green door
+    ('#d9d9d5', '#2f3a46', '#6e7379', '#b8862e', '#3f444b'),   # light grey, slate trim, grey roof, mustard door
+    ('#f1efe9', '#7a2f2a', '#a6aaaf', '#2f4a63', '#5a4a46'),   # white, brick-red trim, grey roof, navy door
+    ('#d9cbb0', '#4f3b2c', '#5c6066', '#3f6a5a', '#4a3d32'),   # tan, dark brown trim, charcoal roof, teal door
 ]
 # Terraced family houses (modern): (wall: the light siding, trim: frames and fascia, roof, accent: the darker cladding round
 # the garage, the wing and the porch, door)
 TERRACED = [
     ('#e2d9c4', '#f6f4ee', '#3a3c40', '#5b4433', '#2d3b4f'),   # warm white, white trim, charcoal roof, dark-wood cladding, navy door
-    ('#aebfa6', '#f1eee4', '#4d5257', '#45484e', '#9a3b2f'),   # sage, cream trim, slate roof, charcoal cladding, red door
+    ('#cfc8b8', '#f1eee4', '#4d5257', '#45484e', '#9a3b2f'),   # greige, cream trim, slate roof, charcoal cladding, red door
     ('#a9bccd', '#ffffff', '#2f3237', '#33415a', '#c39233'),   # pale blue-grey, white, black roof, navy cladding, ochre door
     ('#d8c39a', '#f5efe2', '#5c4637', '#7b4a35', '#3c5a49'),   # sand, cream, brown roof, cedar cladding, green door
     ('#c4c2bd', '#f4f3f0', '#4a3d38', '#8a3c2e', '#2f2f33'),   # light grey, white, dark brown roof, brick-red cladding, black door
@@ -107,7 +107,7 @@ def near_glass(a, pad=4):
 
 
 def mobile(a, pal):
-    wall, trim, roof, door = (H(c) for c in pal)
+    wall, trim, roof, door, skirt = (H(c) for c in pal)
     h, l, s = hls(a)
     op = a[..., 3] > 0; grey = greys(a)
     light = grey & (l > .7)
@@ -120,10 +120,15 @@ def mobile(a, pal):
     yy, xx = np.mgrid[:a.shape[0], :a.shape[1]]
     inwall = (yy >= eave) & (yy <= foot) & (xx >= c0) & (xx <= c1)
     out = a.copy()
+    dbox = door_box(a, inwall & (yy < foot - 2))
     ramp(out, grey & (yy < eave) & (l > .22), roof)                                     # the roof from above, its edge
-    ramp(out, inwall & light, wall)                                                      # the siding
+    # the siding: its greys and the pink and peach tints the pack shades it with
+    ramp(out, inwall & (l > .7) & (s < .45) & ~(dbox & ~grey), wall)
     ramp(out, inwall & grey & ~light & (l > .3) & near_glass(a), trim)                   # window and door frames
-    ramp(out, inwall & ~grey & (h > .04) & (h < .13) & (s < .6) & (l > .4) & door_box(a, inwall & (yy < foot - 2)), door)
+    ramp(out, inwall & ~grey & (h > .04) & (h < .13) & (s < .6) & (l > .4) & dbox, door)
+    # the skirting: the tan band under the siding, down to the wheels (outlines and wheels keep their greys)
+    sk = (yy > foot) & (yy <= foot + 9) & (xx >= c0) & (xx <= c1) & op & (l > .3) & ~grey
+    ramp(out, sk, skirt)
     return out
 
 
