@@ -32,7 +32,7 @@ class TownPlaceTest {
                 n++
             }
         }
-        assertEquals(98, n)
+        assertEquals(99, n)
     }
 
     @Test fun theFrameIsARotationFacingTheStreet() {

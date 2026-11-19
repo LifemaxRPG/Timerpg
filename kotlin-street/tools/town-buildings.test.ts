@@ -24,8 +24,9 @@ describe('town buildings', () => {
   it('leaves the street.json of other towns byte-identical (recorded before the split)', () => {
     const before: Record<string, string> = {
       vale: '9c2d74fb1af31b1aeebf3a432fcff696a0a22d3ca2c8d7ba2655b5bbfd5a09d3',
-      alpha: '84172c09485f733f87f2445f57fc9e64f1f3ceb5cce68b197bf69bdcec759706',
-      gamma: '59fb5c5b42627cf906b165bf8687c11b3729dd7d9d8827bde9df0bb065e40a01',
+      // alpha and gamma re-recorded when towns big enough got a cinema (src/town/cinema.ts): its site takes a few plots
+      alpha: 'f2497c39269aa8db58c1e11f96ab36aace03912d42e2bffa909d3ba0bdfa6362',
+      gamma: '0b98415abe93b1b6caaef815547a65dfd53585fd326ac7495da30f0541180988',
     };
     for (const [seed, h] of Object.entries(before)) expect(sha(streetJson(seed)), seed).toBe(h);
   });
@@ -50,6 +51,8 @@ describe('town buildings', () => {
     let n = 0;
     for (const seed of ['eta', 'gamma', 'vale', 'alpha']) {
       for (const l of townStreets(seed, 2025).layout.landmarks) {
+        // the cinema has no sprite (the engine builds it): its key names the era's front
+        if (l.id === 'cinema') { expect(landmarkArtKey(l)).toBe('landmark_cinema_multiplex'); continue; }
         expect(landmarkArtKey(l)).toBe(pickVariant(manifest[`landmark:${l.id}`]!, l.look).key);
         n++;
       }

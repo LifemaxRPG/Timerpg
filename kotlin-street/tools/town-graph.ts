@@ -34,6 +34,7 @@ import { runTimeline, worldAt } from '../../src/sim';
 import type { World } from '../../src/sim/types';
 import { layoutTown, type LandmarkPlot, type Lot, type Prop, type TownLayout } from '../../src/town/layout';
 import { LANDMARK_SPECS, landmarkArtKey } from '../../src/town/landmarks';
+import { cinemaBlock, cinemaLandmark, type CinemaFootprint, type CinemaJson } from './town-cinema';
 import { neighborhoodOf } from '../../src/town/neighborhoods';
 import { hash, makeBuildings, townLots, type Buildings } from './town-buildings';
 import { townStreets } from './town-streets';
@@ -83,7 +84,9 @@ const BLOCK_FOOT: Record<string, [number, number]> = { condo_3_44: [72, 124], co
  * front tiles back (64 px for the game's 2) and 80 / 88 px deep; villas, terraced houses, estates, apartment blocks and
  * landmarks have the setbacks and depths of their builders.
  */
-export function footprintPx(key: string, artW: number, front = 2): FootPx {
+export function footprintPx(key: string, artW: number, front = 2, artH = 0): FootPx {
+  // the cinema (no sprite; built in the engine): a tile of forecourt, then the lobby and hall to the plot's back
+  if (key.startsWith('landmark_cinema_')) return { setback: 32, depth: Math.max(artH - 32, 320), width: artW };
   const lm = key.match(/^landmark_([a-z]+)_\d+$/);
   if (lm) { const [s, d] = LANDMARK_FOOT[lm[1]!] ?? [32, 200]; return { setback: s, depth: d, width: artW }; }
   if (/^house_small_/.test(key)) return { setback: front * 32, depth: 80, width: Math.max(artW, 224) };
@@ -119,7 +122,9 @@ export interface TownMapJson {
   civic: { road: number; name: string };
   neighbourhoods: { id: string; name: string; palette: string; yard: string; shopColour: string }[];
   nodes: NodeJson[]; roads: RoadJson[]; rows: RowJson[];
-  landmarks: { id: string; kind: string; name: string; sprite: string; art: string; row: string; rect: [number, number, number, number] }[];
+  landmarks: { id: string; kind: string; name: string; sprite: string; art: string; row: string; rect: [number, number, number, number]; era?: string; footprint?: CinemaFootprint }[];
+  /** The town's cinema in the export's year (town-cinema.ts), when it has one. */
+  cinema?: CinemaJson;
   plaza: { rect: [number, number, number, number]; props: { kind: string; x: number; z: number; look: number }[] };
   water: { kind: string; polys: P[][] } | null;
   bridges: { rect: [number, number, number, number]; horizontal: boolean }[];
@@ -339,7 +344,7 @@ export function townGraph(seed: string, year: number): TownGraph {
   };
   const landmarkSprite = new Map<LandmarkPlot, string>();
   for (const l of layout.landmarks) landmarkSprite.set(l, buildings.landmark(l, neighborhoodOf(plan, nbOfPoint(l.x + l.w / 2, l.y + l.h / 2) as Lot['neighborhood']).yard));
-  const entryOf = new Map((buildings.entries as { sprite: string; parts: { key: string; w: number }[]; yard?: { front: number } }[]).map((e) => [e.sprite, e]));
+  const entryOf = new Map((buildings.entries as { sprite: string; parts: { key: string; w: number; h: number }[]; yard?: { front: number } }[]).map((e) => [e.sprite, e]));
 
   /** The road a plot fronts: the one below it first (the art faces south), then above, then beside; main roads first. */
   const frontOf = (r: { x: number; y: number; w: number; h: number }): { seg: number; dir: Dir; gap: number } | undefined => {
@@ -393,7 +398,7 @@ export function townGraph(seed: string, year: number): TownGraph {
     const pl = place(r, f);
     const e = entryOf.get(sprite)!;
     const artW = Math.max(...e.parts.map((p) => p.w));
-    const foot = footprintPx(e.parts[0]!.key, artW, e.yard?.front ?? 2);
+    const foot = footprintPx(e.parts[0]!.key, artW, e.yard?.front ?? 2, e.parts[0]!.h);
     const wT = foot.width / 32;
     pl.row.items.push({
       sprite, kind, lotId, neighbourhood: nb, yard: neighborhoodOf(plan, nb as Lot['neighborhood']).yard, tier, rect: r,
@@ -635,7 +640,8 @@ export function townGraph(seed: string, year: number): TownGraph {
     })),
     roads: chains.map((c) => ({ id: c.id, name: lineName.get(find(c.id))!, main: c.main, a: ids.get(c.a)!, b: ids.get(c.b)!, pts: c.pts.map(w3), width: MOUTH })),
     rows: rows.map((r) => ({ ...rowJson.get(r)!, from: ids.get(r.from)!, to: ids.get(r.to)! })),
-    landmarks: layout.landmarks.map((l) => ({ id: `landmark:${l.id}`, kind: l.id, name: l.name, sprite: landmarkSprite.get(l)!, art: landmarkArtKey(l), row: rowIdOfSprite.get(landmarkSprite.get(l)!) ?? '', rect: rectW(l) })),
+    landmarks: layout.landmarks.map((l) => ({ id: `landmark:${l.id}`, kind: l.id, name: l.name, sprite: landmarkSprite.get(l)!, art: landmarkArtKey(l), row: rowIdOfSprite.get(landmarkSprite.get(l)!) ?? '', rect: rectW(l), ...cinemaLandmark(l) })),
+    ...cinemaBlock(seed, year, layout),
     plaza: { rect: rectW(pz), props: plazaProps },
     water,
     bridges: (plan.water?.bridges ?? []).map((b) => ({ rect: rectW(b), horizontal: b.horizontal })),

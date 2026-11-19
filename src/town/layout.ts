@@ -2,6 +2,7 @@ import { neighborhoodOf, type NeighborhoodId } from './neighborhoods';
 import { rand } from '../sim/rng';
 import { ageIn, fullName, isAlive, type Id, type Person, type World } from '../sim/types';
 import type { LandmarkPlot } from './landmarks';
+import { cinemaEra, cinemaName } from './cinema';
 import { shopFacade } from './facade';
 import { apartmentCapacity, apartmentEligible, houseArt, type ResidentialKind } from './housing';
 import type { BuildingArt } from './buildings';
@@ -280,7 +281,9 @@ export function layoutTown(w: World): TownLayout {
   }
 
   // Landmark plots: wooded until the landmark opens.
-  const landmarks = plan.landmarks.filter((l) => w.year >= l.openYear);
+  // (the cinema wears its era's front and the sign of the year: src/town/cinema.ts)
+  const landmarks = plan.landmarks.filter((l) => w.year >= l.openYear)
+    .map((l) => (l.id === 'cinema' ? { ...l, era: cinemaEra(w.year), name: cinemaName(w.seed, w.year) } : l));
   for (const l of plan.landmarks) {
     if (w.year >= l.openYear) continue;
     const n = 6 + Math.round((l.w * l.h) / 25);

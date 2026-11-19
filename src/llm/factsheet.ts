@@ -1,5 +1,9 @@
 import { fullName, type Person } from '../sim/types';
 import type { TalkCtx } from '../game/dialogue';
+import { rand } from '../sim/rng';
+import { planTown } from '../town/plan';
+import { cinemaProgram } from '../town/cinema';
+import { GENRE_WORDS } from '../town/films';
 
 // THE FACT SHEET. A language model only gives words to what the simulation already decided: it is
 // handed a short sheet of facts about the person and what the player just did, and told to answer in
@@ -27,6 +31,26 @@ function family(c: TalkCtx): string[] {
   if (spouse) out.push(spouse.deathYear === undefined ? `Married to ${fullName(spouse)}.` : 'Widowed.');
   const kids = p.children.map((id) => w.people[id]).filter((k): k is Person => !!k && k.deathYear === undefined);
   if (kids.length) out.push(`Children: ${kids.slice(0, 5).map((k) => k.first).join(', ')}.`);
+  return out;
+}
+
+/**
+ * What is on at the town's cinema this week (src/town/cinema.ts), and for some people what they went to see: small talk
+ * and news only. Two sentences at most, so the sheet stays short.
+ */
+export function cinemaFacts(c: TalkCtx): string[] {
+  const w = c.w;
+  const site = planTown(w.seed).landmarks.find((l) => l.id === 'cinema');
+  if (!site || w.year < site.openYear) return [];
+  const p = cinemaProgram(w.seed, w.year);
+  const on = p.nowShowing.slice(0, 3).map((f) => `"${f.title}" (${GENRE_WORDS[f.genre] ?? f.genre})`);
+  const out = [`${p.name} is showing ${on.length > 1 ? `${on.slice(0, -1).join(', ')} and ${on[on.length - 1]}` : on[0]} this week.`];
+  const r = rand(w.seed, w.year, 'cinema-saw', c.person.id);
+  if (w.year - c.person.birthYear >= 8 && r < 0.4) {
+    const f = p.nowShowing[Math.floor((r / 0.4) * p.nowShowing.length)]!;
+    const liked = rand(w.seed, w.year, 'cinema-liked', c.person.id);
+    out.push(`You saw "${f.title}" there and thought it was ${liked < 0.45 ? 'wonderful' : liked < 0.8 ? 'all right' : 'a waste of a ticket'}.`);
+  }
   return out;
 }
 
@@ -79,6 +103,7 @@ export function brief(c: TalkCtx, intent: string, template: string, facts: strin
     `The player is ${know}.`,
     ...(c.wanted ? ['The player is wanted for a crime. You are afraid of them.'] : []),
     ...relevant,
+    ...(intent === 'chat' || intent === 'news' || intent === 'town' ? cinemaFacts(c) : []),
     ...facts,
   ].join('\n');
   // The rules come first and never change, so the model's prompt cache can reuse them every time.
