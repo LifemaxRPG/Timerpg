@@ -1,0 +1,370 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1980,
+  "topic": "money",
+  "facts": [
+    {
+      "id": "1980-money-01",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Families compare grocery receipts because food bills take a noticeable share of weekly pay.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-02",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A worker receives a paper paycheck and may cash it at a bank or local store.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-03",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Many employees deposit wages into checking accounts and write checks for household bills.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-04",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A customer writes a check at the supermarket while the cashier checks identification.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-05",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Shoppers keep cash for small purchases at lunch counters and corner stores.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-06",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A child counts coins saved from an allowance before buying candy.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-07",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Teenagers save wages from part-time jobs for clothes, outings, or a used car.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-08",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A household sets aside money for rent or mortgage payments before spending on extras.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-09",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Homeowners watch mortgage interest rates closely when considering a move.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-10",
+      "year_from": 1980,
+      "year_to": 1982,
+      "text": "Borrowers face especially high mortgage interest rates early in the decade.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-11",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Families notice gasoline prices when planning a long drive.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-12",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A driver pays for gasoline with cash or a credit card at the station.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-13",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A shopper may put a large appliance on a store installment plan.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-14",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Credit card holders receive monthly statements showing purchases and interest charges.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-15",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A clerk may ask for identification before accepting a personal check.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-16",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Some stores offer layaway so customers can pay toward merchandise before taking it home.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-17",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A family clips grocery coupons from newspapers and advertising inserts.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-18",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Parents compare advertised sale prices before buying school clothes.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-19",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A restaurant customer leaves a cash tip on the table after a meal.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-20",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A diner may calculate a tip of about fifteen percent for satisfactory table service.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-21",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A young worker checks the hourly wage before accepting a summer job.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-22",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A retiree budgets carefully around a monthly pension or benefit check.",
+      "ages": "elders",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-23",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A customer withdraws cash from a bank machine where one is available.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-24",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A shopkeeper counts the register drawer and prepares a bank deposit after closing.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-25",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A household keeps a checkbook register to track payments and avoid overdrawing its account.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-money-26",
+      "year_from": 1980,
+      "year_to": 1983,
+      "text": "Families discuss rising prices and interest costs during the early years of the decade.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [
+    {
+      "item": "gallon of regular gasoline",
+      "usd": 1.19,
+      "year": 1980,
+      "confidence": "high"
+    },
+    {
+      "item": "gallon of whole milk",
+      "usd": 2.16,
+      "year": 1980,
+      "confidence": "high"
+    },
+    {
+      "item": "dozen eggs",
+      "usd": 0.84,
+      "year": 1980,
+      "confidence": "high"
+    },
+    {
+      "item": "loaf of white bread",
+      "usd": 0.5,
+      "year": 1980,
+      "confidence": "high"
+    },
+    {
+      "item": "pound of ground beef",
+      "usd": 1.82,
+      "year": 1980,
+      "confidence": "high"
+    },
+    {
+      "item": "pound of coffee",
+      "usd": 3.14,
+      "year": 1980,
+      "confidence": "high"
+    },
+    {
+      "item": "first-class postage stamp",
+      "usd": 0.15,
+      "year": 1980,
+      "confidence": "high"
+    },
+    {
+      "item": "federal hourly minimum wage",
+      "usd": 3.1,
+      "year": 1980,
+      "confidence": "high"
+    },
+    {
+      "item": "first-class postage stamp",
+      "usd": 0.2,
+      "year": 1982,
+      "confidence": "high"
+    },
+    {
+      "item": "federal hourly minimum wage",
+      "usd": 3.35,
+      "year": 1981,
+      "confidence": "high"
+    },
+    {
+      "item": "first-class postage stamp",
+      "usd": 0.22,
+      "year": 1985,
+      "confidence": "high"
+    },
+    {
+      "item": "first-class postage stamp",
+      "usd": 0.25,
+      "year": 1988,
+      "confidence": "high"
+    }
+  ],
+  "phrases": []
+}
