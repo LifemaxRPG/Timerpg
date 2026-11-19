@@ -24,7 +24,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 /** Where the dialogue AI is. */
-enum class ModelState { STARTING, NO_ENGINE, NO_MODEL, COPYING, LOADING, READY, UNLOADED, ERROR }
+enum class ModelState { STARTING, NO_ENGINE, NO_MODEL, COPYING, WAITING, LOADING, READY, UNLOADED, ERROR }
 
 /** The last speed test: one reply for the first NPC, the cache bypassed. */
 data class SpeedResult(
@@ -127,6 +127,20 @@ class DialogueEngine private constructor(private val app: Context) {
     @Volatile private var unloadedForMemory = false
     @Volatile private var foreground = true
     private val liftMemoryPause = Runnable { resume("memory") }
+    /**
+     * What holds the model's load itself (not only the writing ahead): the town being built ("town-build"). A load asked
+     * for meanwhile waits ([loadWanted]) and starts when the last hold lifts ([releaseLoad]).
+     */
+    private val loadHolds = HashSet<String>().apply { holdAtStart?.let { add(it) } }
+    @Volatile private var loadWanted = false
+    /** Loads put off for want of free memory, in a row (given up after [MEMORY_TRIES]). */
+    @Volatile private var memoryWaits = 0
+    private val retryLoad = Runnable { command { loadModel() } }
+    /** The model was unloaded under memory pressure this many times (after [MEMORY_UNLOADS], it waits for the Load button). */
+    @Volatile private var memoryUnloads = 0
+    @Volatile private var lastMemoryUnload = 0L
+    /** The player is moving: no line is started ahead of time (one being written finishes). */
+    @Volatile private var moving = false
     // worker only
     private var failures = 0
     private var timeouts = 0
@@ -238,6 +252,54 @@ class DialogueEngine private constructor(private val app: Context) {
         refresh()
     }
 
+    /**
+     * Holds the model's load for [reason] (the town's build: its memory and every core go to the first view): a load
+     * asked for meanwhile waits, and a load under way is not stopped.
+     */
+    fun holdLoad(reason: String) { lock.withLock { loadHolds += reason } }
+
+    /** Lifts [holdLoad]'s [reason]; the last one lifted starts a load that waited. */
+    fun releaseLoad(reason: String) {
+        val go = lock.withLock { loadHolds.remove(reason) && loadHolds.isEmpty() && loadWanted }
+        if (go) { com.timerpg.street.shot.Crumbs.add("dialogue model: the load waited for $reason, starting now"); command { loadModel() } }
+    }
+
+    /**
+     * The player is moving ([on]) or has stood still a moment: while moving no line is started ahead of time (the one
+     * being written finishes), so the cores and the memory bus are the frame's (CLAUDE.md: heavy work in bursts while
+     * standing, not during heavy animation). Asked-for lines are not held.
+     */
+    fun setMoving(on: Boolean) {
+        if (on == moving) return
+        moving = on
+        if (!on) lock.withLock { wake.signal() }
+    }
+
+    /**
+     * The phone's free memory as [com.timerpg.street.llm.MemoryWatch] reads it: [level] 0 fine, 1 low (no writing
+     * ahead), 2 critical (the model is let go even with the game in front: a killed game loses more than its lines).
+     */
+    fun onMemoryLevel(level: Int) {
+        when (level) {
+            0 -> {
+                resume("memory")
+                // (back after a memory unload only once things have been calm a while, and not again and again)
+                if (unloadedForMemory && foreground && memoryUnloads < MEMORY_UNLOADS && android.os.SystemClock.elapsedRealtime() - lastMemoryUnload > RELOAD_AFTER_MS) {
+                    unloadedForMemory = false
+                    command { loadModel() }
+                }
+            }
+            1 -> pause("memory")
+            else -> {
+                pause("memory")
+                if (backend == null && !loadingNow) return
+                lock.withLock { running?.let { cancelLocked(it) } ?: cancelBackendLocked() }
+                command { unloadForMemory(force = true) }
+            }
+        }
+    }
+    @Volatile private var loadingNow = false
+
     /** The activity is visible ([on]) or not. Coming back reloads a model that was unloaded to free memory. */
     fun onForeground(on: Boolean) {
         foreground = on
@@ -249,7 +311,7 @@ class DialogueEngine private constructor(private val app: Context) {
         }
         resume("background")
         resume("memory")
-        if (unloadedForMemory) { unloadedForMemory = false; command { loadModel() } }
+        if (unloadedForMemory && memoryUnloads < MEMORY_UNLOADS) { unloadedForMemory = false; command { loadModel() } }
     }
 
     /** Memory pressure: pause pre-generation, and under real pressure let go of the model (it reloads on return). */
@@ -260,7 +322,8 @@ class DialogueEngine private constructor(private val app: Context) {
                 pause("memory")
                 // stop what runs, including a model still loading (it would only be unloaded again)
                 lock.withLock { running?.let { cancelLocked(it) } ?: cancelBackendLocked() }
-                command { unloadForMemory() }
+                // (critical with the game in front: let go of it too, or Android kills the game for it)
+                command { unloadForMemory(force = level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL) }
             }
             level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW -> {
                 // a moment's pressure: hold the lines written ahead for a minute, then try again
@@ -315,7 +378,7 @@ class DialogueEngine private constructor(private val app: Context) {
     @Volatile private var gpuNote: String? = null
 
     /** Loads the model again (after an error, or after it was unloaded). */
-    fun reload() = command { loadModel() }
+    fun reload() = command { memoryUnloads = 0; memoryWaits = 0; loadModel() }
 
     /** Deletes the model file (it can be picked again). */
     fun removeModel() {
@@ -349,6 +412,7 @@ class DialogueEngine private constructor(private val app: Context) {
         closed = true
         copyCancel = true
         main.removeCallbacks(liftMemoryPause)
+        main.removeCallbacks(retryLoad)
         lock.withLock {
             running?.let { cancelLocked(it) } ?: cancelBackendLocked()
             wake.signal()
@@ -371,7 +435,7 @@ class DialogueEngine private constructor(private val app: Context) {
         while (!closed) {
             commands.removeFirstOrNull()?.let { return it }
             demand?.let { demand = null; running = it; return it }
-            if (pauses.isEmpty() && pregenOff == null && backend?.loaded == true) {
+            if (pauses.isEmpty() && !moving && pregenOff == null && backend?.loaded == true) {
                 val j = queue.poll()
                 if (j != null) {
                     val p = planned[j.key]
@@ -498,6 +562,10 @@ class DialogueEngine private constructor(private val app: Context) {
     private fun loadModel() {
         if (closed) return
         if (backend?.loaded == true) { setState(ModelState.READY, READY_TEXT); enqueueAll(); return }
+        // held (the town is being built): the load waits for the hold to lift ([releaseLoad])
+        val held = lock.withLock { loadWanted = loadHolds.isNotEmpty(); loadHolds.sorted().joinToString() }
+        if (held.isNotEmpty()) return setState(ModelState.WAITING, "Waiting for the town to be built before loading the model ($held).")
+        main.removeCallbacks(retryLoad)
         val b = backend ?: createBackend()
             ?: return setState(ModelState.NO_ENGINE, engineError?.let { "$it People use their built-in lines." }
                 ?: "This build has no AI engine, so people use their built-in lines.")
@@ -513,8 +581,26 @@ class DialogueEngine private constructor(private val app: Context) {
         _status.update { it.copy(hasModel = problem == null, modelMb = if (f.isFile) f.length() shr 20 else 0) }
         if (problem == ModelFiles.MISSING) return setState(ModelState.NO_MODEL, NO_MODEL_TEXT)
         if (problem != null) return setState(ModelState.ERROR, problem)
-        memoryProblem(f.length())?.let { return setState(ModelState.ERROR, it) }
+        // on the NPU or the GPU (or the CPU's repacked kernels) the whole model is copied into memory the system cannot
+        // reclaim; from the file's mapping, about half of it has to fit
+        val copied = (b as? com.timerpg.street.llm.NativeLlm)?.let { nl ->
+            val dev = deviceWanted.let { if (it >= 0) it else if (nl.accelerators and 2 != 0) com.timerpg.street.llm.NativeLlm.NPU else com.timerpg.street.llm.NativeLlm.CPU }
+            dev != com.timerpg.street.llm.NativeLlm.CPU || fastCpuWanted
+        } ?: false
+        memoryProblem(f.length(), copied)?.let { why ->
+            // not now: again in a while (the town's last uploads, another app's memory being let go), then give up
+            if (++memoryWaits <= MEMORY_TRIES) {
+                com.timerpg.street.shot.Crumbs.add("dialogue model: load put off ($memoryWaits of $MEMORY_TRIES): $why")
+                main.removeCallbacks(retryLoad); main.postDelayed(retryLoad, MEMORY_RETRY_MS)
+                return setState(ModelState.WAITING, "$why Waiting for memory to free up (try ${memoryWaits} of $MEMORY_TRIES).")
+            }
+            memoryWaits = 0
+            return setState(ModelState.ERROR, "$why Close other apps and tap Retry.")
+        }
+        memoryWaits = 0
         setState(ModelState.LOADING, "Loading the model (${f.length() shr 20} MB)…")
+        com.timerpg.street.shot.Crumbs.add("dialogue model: loading with ${com.timerpg.street.llm.Ram.freeMb(app)} MB free")
+        loadingNow = true
         var thrown: String? = null
         val native = b as? com.timerpg.street.llm.NativeLlm
         native?.device = deviceWanted.let { if (it >= 0) it else if ((native?.accelerators ?: 0) and 2 != 0) com.timerpg.street.llm.NativeLlm.NPU else com.timerpg.street.llm.NativeLlm.CPU }
@@ -535,6 +621,7 @@ class DialogueEngine private constructor(private val app: Context) {
                 try { b.load(f.path, 0, CONTEXT_TOKENS) } catch (t: Throwable) { thrown = t.message ?: t.javaClass.simpleName; false }
             }
         }
+        loadingNow = false
         val acc = native?.accelerators ?: 0
         com.timerpg.street.llm.AiLane.dialogueOffCpu = (native?.runsOn ?: 0) != 0
         _status.update { it.copy(runsOn = native?.runsOn ?: 0, hasGpu = acc and 1 != 0, hasNpu = acc and 2 != 0, gpuNote = gpuNote, loadInfo = native?.loadInfo) }
@@ -575,21 +662,32 @@ class DialogueEngine private constructor(private val app: Context) {
         safely("close") { b.close() }
     }
 
-    /** Enough free memory to load the model without the system killing the game for it? */
-    private fun memoryProblem(fileBytes: Long): String? = try {
+    /**
+     * Enough free memory to load the model without the system killing the game for it? [copied]: the whole model goes
+     * into memory the system cannot reclaim (the NPU, the GPU, the CPU's repacked kernels); otherwise its weights are
+     * mapped from the file and the system can drop and reread them. Either way [com.timerpg.street.llm.Ram.MARGIN_MB]
+     * must stay free beside it (the game itself, the town's GPU memory, Android): both crash reports of build 302 were
+     * the foreground game killed seconds after the model came in beside the town.
+     */
+    private fun memoryProblem(fileBytes: Long, copied: Boolean): String? = try {
         val am = app.getSystemService(ActivityManager::class.java)
         val mi = ActivityManager.MemoryInfo()
         am?.getMemoryInfo(mi)
-        // the weights are mapped from the file (the system can drop and reread them), the KV cache and buffers are not
-        val need = fileBytes / 2 + (300L shl 20)
+        val need = (if (copied) fileBytes else fileBytes / 2) + (300L shl 20) + (com.timerpg.street.llm.Ram.MARGIN_MB shl 20)
         if (am != null && (mi.lowMemory || mi.availMem < need))
-            "Not enough free memory to load the model (${mi.availMem shr 20} MB free, about ${need shr 20} MB needed). Close other apps and tap Retry."
+            "Not enough free memory to load the model (${mi.availMem shr 20} MB free, about ${need shr 20} MB needed with room for the game)."
         else null
     } catch (e: Exception) { null }
 
-    private fun unloadForMemory() {
+    /** Lets the model go to free memory: in the background, or ([force]) with the game in front under critical pressure. */
+    private fun unloadForMemory(force: Boolean = false) {
         // the player came back before this ran: keep the model
-        if (backend == null || foreground) return
+        if (backend == null || (foreground && !force)) return
+        if (force) {
+            memoryUnloads++
+            lastMemoryUnload = android.os.SystemClock.elapsedRealtime()
+            com.timerpg.street.shot.Crumbs.add("dialogue model: unloaded, memory critical (${com.timerpg.street.llm.Ram.freeMb(app)} MB free; time $memoryUnloads)")
+        }
         closeBackend()
         unloadedForMemory = true
         setState(ModelState.UNLOADED, "The model was unloaded to free memory. It loads again when you come back (or tap Load).")
@@ -882,6 +980,16 @@ class DialogueEngine private constructor(private val app: Context) {
 
         /** The walkable towns' folders (each with its own dialogue.json and street.json v2). */
         val TOWN_DIRS = listOf("town/gamma/")
+
+        /** Retries of a load put off for want of memory, how far apart, and the memory unloads before it waits for Load. */
+        const val MEMORY_TRIES = 8
+        const val MEMORY_RETRY_MS = 15_000L
+        const val MEMORY_UNLOADS = 2
+        /** After a memory unload, how long memory must have been fine before the model comes back by itself. */
+        const val RELOAD_AFTER_MS = 120_000L
+
+        /** A hold on the model's load the engine starts with ([holdLoad]; set before [shared] first makes it). */
+        @Volatile var holdAtStart: String? = null
 
         /** The folder the engine starts on (set before [shared] first makes it: the town the game opens in). */
         @Volatile var startDir = ""

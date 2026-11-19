@@ -238,6 +238,9 @@ class PlayerVoice(private val ctx: Context) {
     }
 
     /** Someone to talk to is near: load the speech model now, so it is ready when the mic is held. */
+    /** Memory is short ([com.timerpg.street.llm.MemoryWatch]): the speech model goes unless it is listening. */
+    fun trimForMemory() { if (!listening) worker.execute { asr.close() } }
+
     fun prewarm() {
         if (!installed || !ownFits()) return
         touch()

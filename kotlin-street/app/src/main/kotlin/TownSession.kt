@@ -55,6 +55,8 @@ object TownSession {
     var ready by mutableStateOf(false)
         private set
     var progress by mutableFloatStateOf(0f)
+    /** The whole town is built (the ground and every building): the dialogue model may load now. */
+    @Volatile var built = false
     var error by mutableStateOf<String?>(null)
         private set
     /** How long the load took (ms): reading and parsing; then building the first view. */
@@ -98,7 +100,7 @@ object TownSession {
         save(ctx)
         wanted = null
         TownPlay.stop()
-        loaded = null; loading = false; ready = false; progress = 0f
+        loaded = null; loading = false; ready = false; progress = 0f; built = false
         com.timerpg.street.shot.Crumbs.add("town unloaded")
     }
 
@@ -136,7 +138,7 @@ object TownSession {
     }
 
     /** The Filament layer went (a renderer switch, a crash): the next one builds the scene again behind the loading screen. */
-    fun sceneGone() { if (loaded != null) { ready = false; progress = 0f } }
+    fun sceneGone() { if (loaded != null) { ready = false; progress = 0f; built = false } }
 
     private fun read(ctx: Context, seed: String): TownData {
         val dir = "town/$seed"

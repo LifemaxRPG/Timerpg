@@ -68,6 +68,7 @@ class GameActivity : ComponentActivity() {
     /** NPC voices (Kokoro and Supertonic), and the one-time model download. */
     private var voices: com.timerpg.street.voice.NpcVoiceService? = null
     private var sound: com.timerpg.street.audio.SoundScape? = null
+    private var memoryListener: ((Int) -> Unit)? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // the game's recent events for crash reports (last run's moved aside first), then the crash handler
@@ -113,7 +114,12 @@ class GameActivity : ComponentActivity() {
         com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.onEvent = { com.timerpg.street.shot.Crumbs.add(it) }
         // crash reports: how the last runs ended (Android's record), and any waiting sent to Claude; all in the background
         com.timerpg.street.shot.ShotUploader.onLaunch(applicationContext, StreetRenderer.lastStartDied || StreetRenderer.lastTownBuildDied)
+        // the dialogue model loads only once the town is built (both crash reports of build 302: the 9B model coming in
+        // beside the town's build, then the foreground game killed for memory; the build took 20-40 s against 3.5 on a
+        // computer while the load ran)
+        if (StreetRenderer.townMode) DialogueEngine.holdAtStart = TOWN_BUILD_HOLD
         val engine = DialogueEngine.shared(applicationContext)
+        if (StreetRenderer.townMode && !TownSession.built) engine.holdLoad(TOWN_BUILD_HOLD)
         dialogue = engine
         val v = com.timerpg.street.voice.NpcVoiceService(applicationContext)
         voices = v
@@ -123,6 +129,12 @@ class GameActivity : ComponentActivity() {
         v.onSpeaking = { on -> s.duck(on) }
         // lines written ahead get their voices made ahead too
         engine.onWritten = { npc, text -> v.prepare(npc, text) }
+        // the phone's free memory, watched: short, the writing ahead stops and idle models go; critical, the dialogue
+        // model goes too (Android 14+ sends a running app no warning of its own)
+        com.timerpg.street.llm.MemoryWatch.start(applicationContext)
+        val onMemory: (Int) -> Unit = { level -> engine.onMemoryLevel(level); if (level >= 1) v.trimForMemory() }
+        memoryListener = onMemory
+        com.timerpg.street.llm.MemoryWatch.listeners += onMemory
         setContent { GameScreen(engine, v, s) }
     }
 
@@ -261,6 +273,7 @@ class GameActivity : ComponentActivity() {
     override fun onDestroy() {
         // the engine outlives a recreated activity, not a finished game
         voices?.close()
+        memoryListener?.let { com.timerpg.street.llm.MemoryWatch.listeners -= it }
         if (isFinishing) DialogueEngine.release()
         super.onDestroy()
     }
@@ -397,6 +410,20 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         townPlay.frozen = townLoading
         if (townLoading) engine.pause("town-load") else engine.resume("town-load")
     }
+    // the dialogue model's load waits for the whole town to be built (or 20 s past the first view, if the rest takes
+    // longer), then a moment more for the last uploads to settle; on the crossroads it does not wait
+    LaunchedEffect(townMode) {
+        if (townMode) {
+            var readyAt = 0L
+            while (!TownSession.built) {
+                if (TownSession.ready) { if (readyAt == 0L) readyAt = System.nanoTime() } else readyAt = 0L
+                if (readyAt != 0L && System.nanoTime() - readyAt > 20_000_000_000L) break
+                kotlinx.coroutines.delay(500)
+            }
+            kotlinx.coroutines.delay(2000)
+        }
+        engine.releaseLoad(TOWN_BUILD_HOLD)
+    }
     val shops = street.shops
     val owners = street.owners
     // the crossroads is at the far end of the main street, and at the start of the cross street
@@ -423,12 +450,17 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     val frameTick = remember { mutableLongStateOf(0L) }
     LaunchedEffect(Unit) {
         var last = 0L
+        var movedAt = 0L
+        var movingNow = false
         while (true) {
             val now = androidx.compose.runtime.withFrameNanos { it }
             frameTick.longValue = now
             // how long each frame took, for the AI panel's frame line (is it really 120 Hz on the phone?)
             if (last != 0L) FrameStats.add((now - last) / 1e6f)
             last = now
+            // moving (walking, a turn or a crossing): nothing new is written ahead until the player has stood a moment
+            if (GameState.walking || townPlay.walk?.transit != null) { movedAt = now; if (!movingNow) { movingNow = true; engine.setMoving(true) } }
+            else if (movingNow && now - movedAt > STILL_NS) { movingNow = false; engine.setMoving(false) }
             near = GameState.nearest
             atCorner = GameState.atCorner
             // the walk round the corner swaps the street in the frame it ends: the HUD, the people, the lines follow
@@ -538,10 +570,34 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             kotlinx.coroutines.delay(3000)
         }
     }
+    // in the town, a frame line in the breadcrumbs every 10 s: the frame times, the dropped frames, Filament's CPU and GPU
+    // times, the heat and the free memory (so the next report carries numbers, not only "it stuttered")
+    LaunchedEffect(townMode) {
+        if (!townMode) return@LaunchedEffect
+        val pm = ctx.getSystemService(android.os.PowerManager::class.java)
+        FrameStats.window(); FilamentStats.window()
+        while (true) {
+            kotlinx.coroutines.delay(10_000)
+            if (!TownSession.ready || StreetRenderer.paused) { FrameStats.window(); FilamentStats.window(); continue }
+            val heat = runCatching {
+                if (android.os.Build.VERSION.SDK_INT >= 30) "thermal ${pm.currentThermalStatus}, headroom %.2f".format(java.util.Locale.US, pm.getThermalHeadroom(10))
+                else "thermal ${pm.currentThermalStatus}"
+            }.getOrDefault("thermal ?")
+            val w = townPlay.walk
+            com.timerpg.street.shot.Crumbs.add("frames 10 s: ${FrameStats.window()}; ${FilamentStats.window()}; $heat; " +
+                "${com.timerpg.street.llm.MemoryWatch.freeMb} MB free; AI ${engine.status.value.state}${engine.status.value.working?.let { " writing" } ?: ""}" +
+                (if (w != null) "; ${if (GameState.walking) "walking" else "standing"} on ${w.row.id}" else ""))
+        }
+    }
     // updates from inside the game: a quiet look at start
     val updater = remember { AppUpdater(ctx.applicationContext) }
     LaunchedEffect(Unit) { updater.check(quiet = true) }
-    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { ears.release(); memory.release() } }
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        // memory short: the speech and memory models go unless at work (they load again when next needed)
+        val trim: (Int) -> Unit = { level -> if (level >= 1) { ears.trimForMemory(); memory.trimForMemory() } }
+        com.timerpg.street.llm.MemoryWatch.listeners += trim
+        onDispose { com.timerpg.street.llm.MemoryWatch.listeners -= trim; ears.release(); memory.release() }
+    }
     // what the people here say while they think, voiced ahead (so it plays at once)
     LaunchedEffect(atHere.firstOrNull()?.id, voices.enabled) { if (voices.enabled) atHere.firstOrNull()?.let { voices.prepareFillers(it, Fillers.all(it.warmth)) } }
     // the speech model loads when a conversation opens (not when walking past people)
@@ -1271,6 +1327,7 @@ private fun aiChipLabel(s: AiStatus): String = when (s.state) {
     ModelState.NO_ENGINE -> "AI off"
     ModelState.NO_MODEL -> "AI: no model"
     ModelState.COPYING -> if (s.copyPercent >= 0) "AI: copying ${s.copyPercent}%" else "AI: copying ${s.copiedMb} MB"
+    ModelState.WAITING -> "AI: waiting"
     ModelState.LOADING -> "AI: loading…"
     ModelState.READY -> if (s.working != null) "AI ✓ writing" else "AI ✓"
     ModelState.UNLOADED -> "AI: unloaded"
@@ -1296,6 +1353,7 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
                 ModelState.NO_ENGINE -> "No AI engine on this phone"
                 ModelState.NO_MODEL -> "No model"
                 ModelState.COPYING -> if (s.copyPercent >= 0) "Copying the model: ${s.copyPercent}%" else "Copying the model: ${s.copiedMb} MB"
+                ModelState.WAITING -> "Waiting to load the model"
                 ModelState.LOADING -> "Loading the model…"
                 ModelState.READY -> "Ready (${s.modelMb} MB model)"
                 ModelState.UNLOADED -> "Unloaded (low memory)"
@@ -1477,6 +1535,11 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
 }
 
 private val LEFT_KEYS = setOf(android.view.KeyEvent.KEYCODE_DPAD_LEFT, android.view.KeyEvent.KEYCODE_A)
+/** The hold on the dialogue model's load while the town is built ([DialogueEngine.holdLoad]). */
+private const val TOWN_BUILD_HOLD = "town-build"
+/** How long the player must stand before lines are written ahead again (ns). */
+private const val STILL_NS = 1_500_000_000L
+
 private val RIGHT_KEYS = setOf(android.view.KeyEvent.KEYCODE_DPAD_RIGHT, android.view.KeyEvent.KEYCODE_D)
 private val UP_KEYS = setOf(android.view.KeyEvent.KEYCODE_DPAD_UP, android.view.KeyEvent.KEYCODE_W)
 private val DOWN_KEYS = setOf(android.view.KeyEvent.KEYCODE_DPAD_DOWN, android.view.KeyEvent.KEYCODE_S)
@@ -1491,7 +1554,19 @@ private object FrameStats {
     /** The refresh rate asked for (Hz), 0 if none was. */
     var display = 0f
 
-    @Synchronized fun add(ms: Float) { ring[at] = ms; at = (at + 1) % ring.size; if (n < ring.size) n++ }
+    @Synchronized fun add(ms: Float) { ring[at] = ms; at = (at + 1) % ring.size; if (n < ring.size) n++; if (win.size < 4096) win += ms }
+
+    /** The frames since the last call (the breadcrumbs' 10 s line): p50, p95, the longest, and the refreshes dropped. */
+    private val win = ArrayList<Float>()
+    @Synchronized fun window(): String {
+        val s = win.sorted(); win.clear()
+        if (s.isEmpty()) return "no frames"
+        val period = if (display > 0f) 1000f / display else s[s.size / 2]
+        // (each frame that took longer than a refresh and a half dropped that many refreshes)
+        val dropped = s.sumOf { (it / period - .5f).toInt().coerceAtLeast(0).toInt() }
+        return "frame p50 %.1f ms, p95 %.1f, max %.1f; %d frames, %d refreshes dropped (%.0f Hz)".format(java.util.Locale.US,
+            s[s.size / 2], s[(s.size * 95 / 100).coerceAtMost(s.size - 1)], s.last(), s.size, dropped, if (display > 0f) display else 1000f / period)
+    }
 
     @Synchronized fun summary(): String {
         if (n < 10) return "Frames: measuring…"
