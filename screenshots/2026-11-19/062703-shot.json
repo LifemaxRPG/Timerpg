@@ -1,0 +1,183 @@
+{
+  "kind": "screenshot",
+  "time": "2026-11-19T06:27:03.550-0500",
+  "epochMs": 1795087623550,
+  "note": null,
+  "app": {
+    "versionName": "0.1.389 (2467b5f)",
+    "versionCode": 389,
+    "git": "2467b5f",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "image": {
+    "file": "062703-shot.png",
+    "format": "png",
+    "scale": 1,
+    "width": 2340,
+    "height": 1080,
+    "bytes": 1880764,
+    "captured": "PixelCopy of the window"
+  },
+  "screen": {
+    "widthPx": 2244,
+    "heightPx": 1038,
+    "density": 2.8125,
+    "densityDpi": 450
+  },
+  "device": {
+    "ramFreeMb": 3949,
+    "ramTotalMb": 11113,
+    "lowMemory": false,
+    "gamePssMb": 4598,
+    "thermalStatus": 0,
+    "thermalHeadroom10s": 0.7957929
+  },
+  "game": {
+    "renderer": "Filament",
+    "camera": "medium",
+    "view": "open",
+    "orbit": {
+      "yaw": -117.71169,
+      "pitch": 10.552739,
+      "dist": 420,
+      "pulled": 546,
+      "goalYaw": -117.71169,
+      "goalPitch": 10.552739,
+      "goalDist": 420,
+      "tx": 1146.7202,
+      "tz": 5314.9795,
+      "line": "camera open yaw -117.7 pitch 10.6 dist 420 (pulled to 546) at (1147, 5315)"
+    },
+    "rendererError": null,
+    "town": "eta · Commuter suburb · 2025",
+    "walkableTown": {
+      "seed": "gamma",
+      "loading": false,
+      "ready": true,
+      "progress": 1,
+      "error": null,
+      "loadMs": 599.74115,
+      "firstViewMs": 21101.613,
+      "built": "town built: ground 21101 ms (workers 21097), buildings 409 ms here (slowest b49 5.7 ms, largest batch 13.8 ms), 14714 ms on workers (slowest b98 719 ms); textures 992, 108.0M texels, 3915 shared",
+      "memory": {
+        "when": "town built",
+        "graphicsMb": 1148,
+        "nativeMb": 138,
+        "javaMb": 121,
+        "codeMb": 30,
+        "totalPssMb": 1472
+      },
+      "row": "18R",
+      "street": "Larch Road",
+      "neighbourhood": "Oak Heights",
+      "x": 247.52051,
+      "lane": -48.194073,
+      "wx": 1146.7202,
+      "wz": 5314.9795,
+      "heading": 0.7921842,
+      "front": null,
+      "transit": null,
+      "liveRows": [
+        "18R",
+        "18L",
+        "2L",
+        "2R",
+        "1R",
+        "1L",
+        "3L",
+        "0R"
+      ],
+      "people": 9,
+      "talkTo": null,
+      "walk": "open",
+      "open": {
+        "door": null,
+        "yard": null,
+        "speed": 0,
+        "blocked": 0,
+        "cameraYaw": -2.0544567,
+        "hx": 0.7118889,
+        "hz": -0.70229214
+      }
+    },
+    "street": {
+      "index": 0,
+      "name": "Main Street",
+      "nearestBuilding": 0,
+      "building": "Keller's Gym",
+      "owner": "June Keller",
+      "atCorner": false,
+      "edge": 0
+    },
+    "player": {
+      "x": 247.52051,
+      "lane": -48.194073,
+      "street": 0,
+      "dir": 1,
+      "walking": false,
+      "running": false,
+      "viewMiddle": 284.625
+    },
+    "turn": {
+      "active": false,
+      "forward": true,
+      "p": 0,
+      "yaw": 0,
+      "ease": 0,
+      "blocked": false
+    },
+    "inRoom": false,
+    "room": null,
+    "doorFade": false,
+    "time": {
+      "hour": 17.6,
+      "clock": "17:36",
+      "season": "summer",
+      "weather": "Clear"
+    },
+    "frames": {
+      "compose": "Frames: 8.3 ms (120 fps) · p95 8.3 ms · 4.8% late · display 120 Hz",
+      "filament": "Filament: CPU 3.8 ms (p95 8.8) · GPU 10.5 ms (p95 14.6) · start 15 ms, street 864 ms"
+    },
+    "ai": {
+      "state": "READY",
+      "detail": "Ready: the light model answers in play. Lines ahead of time are written by the main model (overnight, or when it fits).",
+      "runsOn": "CPU",
+      "modelMb": 2463,
+      "role": "live",
+      "forceBank": false,
+      "gpuNote": "Not enough free memory for the NPU copy of the light model right now (3196 MB free, 3513 MB needed), so it runs on the CPU from the file (it moves to the NPU once there is room: checked every 30 s).",
+      "lane": null,
+      "linesWritten": 21,
+      "builtIn": 0,
+      "queued": 600,
+      "paused": "light model loaded",
+      "working": null,
+      "pregenOff": null,
+      "prefillTokPerSec": 0,
+      "genTokPerSec": 0,
+      "firstTokenMs": 0,
+      "loadInfo": null
+    },
+    "conversation": null,
+    "voices": {
+      "enabled": false,
+      "speaking": false,
+      "only": 2,
+      "timing": null
+    },
+    "mic": {
+      "always": true,
+      "granted": false,
+      "listening": false,
+      "state": "IDLE"
+    },
+    "panels": {
+      "aiPanel": false,
+      "crashShown": false,
+      "tuningNpu": false
+    }
+  }
+}
