@@ -1,0 +1,338 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1950,
+  "topic": "transport",
+  "facts": [
+    {
+      "id": "1950-transport-01",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Many families take Sunday drives along two-lane roads.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-02",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Drivers consult folded paper road maps before unfamiliar trips.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-03",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A filling station attendant pumps gasoline and checks the oil.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-04",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Service stations often clean windshields while filling the tank.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-05",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A driver asks an attendant to check tire pressure before a long trip.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-06",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Cars commonly have bench seats across the front.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-07",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A driver shifts gears using a lever mounted on the steering column.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-08",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Some newer cars have automatic transmissions that simplify driving.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-09",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A family packs a picnic basket for a drive into the countryside.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-10",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A roadside motel offers travelers a room for the night.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-11",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Travelers stop at diners along highways for a hot meal.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-12",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Passenger trains still connect many towns with larger cities.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-13",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A traveler buys a paper train ticket at the station window.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-14",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A conductor collects or punches tickets aboard the train.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-15",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Intercity buses carry passengers between towns without train service.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-16",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A bus passenger checks the printed timetable before leaving home.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-17",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Children often walk or bicycle to a nearby school.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-18",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Yellow school buses collect children along rural roads.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-19",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A child secures a bicycle outside the store before buying a treat.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-20",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Teenagers sometimes ride together to a drive-in movie theater.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-21",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Families may own one car and arrange errands around its availability.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-22",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Many residential streets have no painted traffic lanes.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-23",
+      "year_from": 1956,
+      "year_to": 1959,
+      "text": "New highway construction changes routes between towns later in the decade.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-24",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Motorists use roadside signs to locate lodging and fuel.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-25",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A mechanic repairs a punctured tire at a neighborhood garage.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-transport-26",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A driver uses hand signals when a vehicle lacks working turn signals.",
+      "ages": "adults",
+      "use": [
+        "guard"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "satellite navigation in family cars",
+      "first_common": 2000,
+      "say_instead": "Use a folded road map or roadside directions."
+    },
+    {
+      "thing": "ordinary cars with built-in touchscreens",
+      "first_common": 2010,
+      "say_instead": "Use dashboard knobs and analog gauges."
+    },
+    {
+      "thing": "ride-hailing through a phone app",
+      "first_common": 2015,
+      "say_instead": "Call a taxi dispatcher or arrange a ride."
+    },
+    {
+      "thing": "electric scooters rented by phone",
+      "first_common": 2018,
+      "say_instead": "Walk, ride a bicycle, or take a bus."
+    },
+    {
+      "thing": "self-driving family cars",
+      "first_common": null,
+      "say_instead": "A licensed driver controls the vehicle."
+    },
+    {
+      "thing": "high-speed interstate highways across the country",
+      "first_common": 1970,
+      "say_instead": "Use existing state highways and local roads."
+    },
+    {
+      "thing": "routine passenger seat belt use",
+      "first_common": 1970,
+      "say_instead": "Passengers generally ride without fastening belts."
+    },
+    {
+      "thing": "electronic toll payment",
+      "first_common": 2000,
+      "say_instead": "Pay a toll collector with cash."
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
