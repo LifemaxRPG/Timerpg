@@ -80,6 +80,10 @@ object OrbitCamera {
     @Volatile var tz = 0f; private set
     /** How far it stands this frame after the renderer pulled it in front of a wall (== [dist] when nothing was in the way). */
     @Volatile var pulled = DIST0
+    /** On the bike: 0 on foot .. 1 riding, eased by the town's frame; the camera stands [RIDE_BACK] further back at 1. */
+    @Volatile var rideBack = 0f
+    /** How much further back the camera stands on the bike (a share of the player's own distance). */
+    const val RIDE_BACK = .3f
 
     /**
      * What the renderer last drew, for the stage's sky under it: the lens (pixels per unit of tangent) and where the

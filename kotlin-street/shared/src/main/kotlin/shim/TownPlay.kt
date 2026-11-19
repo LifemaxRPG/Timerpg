@@ -32,6 +32,8 @@ class TownFigure {
     var keeper: String? = null
     /** The player's own view of the sheet when it is not the side view (1 back, 3 front: walking up or down the pavement). */
     var facing = 0
+    /** The bicycle this figure rides (the player's, in the open world), or null on foot. */
+    var bike: BikeState? = null
 }
 
 /**
@@ -139,7 +141,7 @@ object TownPlay {
         val o = open
         val want: TownWalkView = if (OrbitCamera.open && o != null) o else street ?: return cur
         if (want === cur) return cur
-        if (want is OpenWalk) want.takeOver(cur) else (want as TownWalk).placeAt(cur.wx, cur.wz, cur.hx, cur.hz)
+        if (want is OpenWalk) want.takeOver(cur) else { (cur as? OpenWalk)?.dismount(); (want as TownWalk).placeAt(cur.wx, cur.wz, cur.hx, cur.hz) }
         CornerWalk.reset()
         GameState.facing = 0
         walk = want
@@ -162,6 +164,35 @@ object TownPlay {
     }
 
     private fun event(what: String) { runCatching { onEvent?.invoke(what) } }
+
+    // ------------------------------------------------------------------ the bicycle
+
+    /** The player rides the bicycle (the open world only). */
+    val riding: Boolean get() = (walk as? OpenWalk)?.riding == true
+
+    /** The bicycle can be had here: the open world is played and the town is not still loading. */
+    val canRide: Boolean get() = walk is OpenWalk && !frozen
+
+    /**
+     * The HUD's bike button: gets on (where there is room for the bike) or off. Returns whether the player now rides.
+     * The breadcrumbs say which, and where.
+     */
+    fun toggleBike(): Boolean {
+        val w = walk as? OpenWalk ?: return false
+        if (w.riding) { w.dismount(); event("bike off at (${w.wx.toInt()}, ${w.wz.toInt()})"); return false }
+        if (frozen) return false
+        val ok = w.mount()
+        event(if (ok) "bike on (${w.bike.style.label}) at (${w.wx.toInt()}, ${w.wz.toInt()})" else "bike: no room at (${w.wx.toInt()}, ${w.wz.toInt()})")
+        return ok
+    }
+
+    /** Off the bike, if on it (a door, a conversation, a room). */
+    fun dismount(why: String) {
+        val w = walk as? OpenWalk ?: return
+        if (!w.riding) return
+        w.dismount()
+        event("bike off ($why)")
+    }
 
     /**
      * One frame of the game loop (the keys are in [GameState.moveX], [GameState.moveLane]): walks, turns or crosses, and
@@ -225,8 +256,9 @@ object TownPlay {
         }
         GameState.nearest = nearestOnRow(w.row, w.x)
         GameState.atCorner = false
-        val mark = w.wx * 3f + w.wz * 7f + w.hx * 13f + w.hz * 17f + rowChanges * 31f + (if (GameState.walking) GameState.gait * 5f else 0f)
-        GameState.inMotion = mark != lastMark || GameState.walking || renderBusy
+        val mark = w.wx * 3f + w.wz * 7f + w.hx * 13f + w.hz * 17f + rowChanges * 31f + (if (GameState.walking) GameState.gait * 5f else 0f) +
+            (if (w.riding) w.bike.lean * 1000f + w.bike.crank * 50f else 0f)
+        GameState.inMotion = mark != lastMark || GameState.walking || renderBusy || (w.riding && (w.bike.speed > 0f || abs(w.bike.lean) > 1e-3f))
         lastMark = mark
         return mark
     }
@@ -328,7 +360,7 @@ object TownPlay {
 
     private fun next(): TownFigure {
         if (figureCount == figures.size) figures += TownFigure()
-        return figures[figureCount++].also { it.keeper = null; it.me = false; it.facing = 0 }
+        return figures[figureCount++].also { it.keeper = null; it.me = false; it.facing = 0; it.bike = null }
     }
 
     /**
@@ -380,6 +412,7 @@ object TownPlay {
         // open world the way they face (the camera then shows their front, back or side, as everyone's)
         if (w.transit != null || w is OpenWalk) { me.dx = w.hx; me.dz = w.hz } else { me.dx = a.x * GameState.dir; me.dz = a.z * GameState.dir }
         me.sheet = -1
+        me.bike = if (w is OpenWalk && w.riding) w.bike else null
         me.still = !moving
         me.facing = if (w.transit != null || w is OpenWalk) 0 else GameState.facing
         me.frame = if (me.still) ((seconds * 5f).toInt()).mod(6) else ((GameState.gait * StreetGait.FRAMES).toInt().coerceIn(0, StreetGait.FRAMES - 1)) * 6 / StreetGait.FRAMES

@@ -313,6 +313,77 @@ fun renderFilamentOpen(out: String) {
     view("fb_yard_a", 2576f, 3674f, 0f, -1f, 124.1f, 22.43f, 420f, 17.6f, "005359: outside a back hedge, the yard behind the player")
     view("fb_yard_b", 2576f, 3674f, 0f, -1f, 98.5f, 20.1f, 420f, 17.6f, "005414: the same spot, the camera turned 25 degrees")
     view("fb_yard_c", 2576f, 3674f, 0f, -1f, 150f, 22f, 420f, 17.6f, "the same spot, the camera turned the other way")
+    // --- the bicycle (docs/TOWN.md "Open world: the bicycle"): each era's bike from several sides, leaning into a turn,
+    // at night with its lamp, then a ride through the game loop (TownPlay.step at 60 Hz) rendered each second
+    run {
+        if (only == null || only.none { it.startsWith("bike") }) return@run
+        val r = town.rows.filter { town.road(it.road).name == "Main Street" }.maxByOrNull { it.buildings.size }!!
+        val x = mid(r)
+        // (in the road's near lane, clear of the pavement's passers and furniture)
+        val p = r.pointAt(x + 60f, 34f); val a = r.alongAt(x)
+        val along = heading(a.x, a.z)
+        fun bikeView(name: String, style: com.lifemax.rpg.feature.habits.presentation.scene.BikeStyle, yaw: Float, pitch: Float, dist: Float, hour: Float,
+                     lean: Float = 0f, steer: Float = 0f, crank: Float = .6f, speed: Float = 0f) {
+            if (!want(name)) return
+            if (walk.riding) walk.dismount()
+            walk.placeAt(p.x, p.z, a.x, a.z)
+            check(walk.mount()) { "no room for the bike at $name" }
+            val b = walk.bike
+            b.style = style; b.lean = lean; b.steer = steer; b.crank = crank; b.wheel = crank * 2.4f; b.speed = speed; b.pedalling = speed > 0f
+            OrbitCamera.set(yaw, pitch, dist); OrbitCamera.follow(walk.wx, walk.wz)
+            val pose0 = run.orbit(walk, w.toFloat(), h.toFloat(), clock)
+            ft.prepare(pose0)
+            run.draw(walk, w.toFloat(), h.toFloat(), hour, clock, sheets)
+            shooter.save(File(dir, "$name.png"), w, h, hour, emptyList(), skyRow = skyRow(hour, h), skyImg = stageSky(hour, w, h))
+            report.appendLine("%-26s the %s on Main Street; %s".format(name, style.label, OrbitCamera.describe()))
+            println("  $name")
+            clock += 1f
+        }
+        for (st in com.lifemax.rpg.feature.habits.presentation.scene.BikeStyle.values()) {
+            val n = st.name.lowercase()
+            bikeView("bike_${n}_side", st, along + 90f, 8f, 140f, 13f)
+            bikeView("bike_${n}_quarter", st, along + 40f, 14f, 140f, 13f)
+            bikeView("bike_${n}_behind", st, along, 12f, 150f, 13f)
+            bikeView("bike_${n}_front", st, along + 180f, 10f, 140f, 13f)
+            bikeView("bike_${n}_above", st, along + 120f, 50f, 160f, 13f)
+        }
+        val st0 = walk.bike.style
+        bikeView("bike_lean_behind", st0, along, 12f, 190f, 13f, lean = .45f, steer = -.25f, speed = 250f)
+        bikeView("bike_lean_quarter", st0, along + 30f, 14f, 170f, 13f, lean = -.4f, steer = .2f, speed = 250f)
+        bikeView("bike_night", st0, along + 60f, 14f, 200f, night)
+        bikeView("bike_street", st0, along + 25f, 20f, 480f, 17.6f)
+        if (want("bike_ride")) {
+            if (walk.riding) walk.dismount()
+            walk.placeAt(p.x, p.z, a.x, a.z)
+            OrbitCamera.set(along, 13f, 190f); OrbitCamera.follow(walk.wx, walk.wz)
+            run.orbit(walk, w.toFloat(), h.toFloat(), clock)
+            TownPlay.toggleBike()
+            val dt = 1f / 60f
+            var t = 0f
+            for (frame in 1..(60 * 8)) {
+                // a full push up the street (the sprint after 0.8 s), a gentle bend out towards the middle of the road, then let go: it coasts
+                val tt = frame * dt
+                GameState.moveX = if (tt in 2.5f..3.3f) .4f else 0f
+                GameState.moveLane = if (tt < 4.5f) -1f else 0f
+                TownPlay.step(dt)
+                clock += dt
+                run.orbit(walk, w.toFloat(), h.toFloat(), clock)
+                if (frame % 60 == 0) {
+                    val pose0 = run.orbit(walk, w.toFloat(), h.toFloat(), clock)
+                    ft.prepare(pose0)
+                    run.draw(walk, w.toFloat(), h.toFloat(), 13f, clock, sheets)
+                    val name = "bike_ride_%02ds".format(frame / 60)
+                    shooter.save(File(dir, "$name.png"), w, h, 13f, emptyList(), skyRow = skyRow(13f, h), skyImg = stageSky(13f, w, h))
+                    report.appendLine("%-26s %.0f units/s, lean %.0f deg, sprint %s, at (%.0f, %.0f)".format(name, walk.bike.speed, Math.toDegrees(walk.bike.lean.toDouble()), walk.bike.sprinting, walk.wx, walk.wz))
+                    println("  $name")
+                }
+                t += dt
+            }
+            GameState.moveX = 0f; GameState.moveLane = 0f
+            TownPlay.dismount("preview")
+        }
+        if (walk.riding) walk.dismount()
+    }
     File(dir, "open.txt").writeText(report.toString())
     print(report)
     if (want("walk")) scriptedWalk(dir, town, yards, walk, run, shooter, sheets, w, h, events)

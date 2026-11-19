@@ -507,3 +507,68 @@ is the AI panel's "View: Open world / Street" (prefs `renderer/view`, open by de
   old near trees, the detail only round the camera); a detailed tree is
   500-1160 triangles (the old 3D tree about 330), its simple level 80-170 (desktop TreeKitTest prints each yard look).
   townMemoryCheck held 184 MB of 256.
+
+## Open world: the bicycle (branch wf-bike)
+
+The owner (2026-11-19): "We need a basic vehicle like a bicycle, because walking around is slow." The player's bike, in
+the open world only (the street view dismounts):
+
+- Getting on and off: the HUD's round bike button just right of the stick's corner (one tap on or off, a long press
+  rings the bell). `TownPlay.toggleBike()` / `OpenWalk.mount()`: the bike needs its own clear circle (radius 7) and a clear
+  front wheel within 14 of where the player stands (else "no room for the bike here"), and rolls on at the walking speed.
+  It is left at once by "Go inside", a door's fade, any conversation (by button or by voice) and the view switch
+  (`TownPlay.dismount(why)`). Breadcrumbs: "bike on (style) at", "bike off (why)", "bike: no room at".
+- Riding (`OpenWalk.stepRide`, tuning in `shim/Bike.kt` `RideTuning`, all plain vars): the stick, relative to the camera as
+  walking, is where the rider wants to go and how fast. Momentum: pedalling up to the push's share of the cruise (290
+  units/s, ~13.7 m/s, ~4x the walk; 90% of it in ~1 s from standing), the sprint (400) after holding a full push 0.8 s,
+  coasting with the stick let go (rolling 18 + drag 0.00035 v^2: 400 -> 335 in a second), braking (420) when the push
+  points more than 115 degrees from where the bike goes, then a tight turn round at <= 70. The heading turns towards the
+  push no faster than `RideTuning.maxRate(v)`: the grip (520 units/s^2 sideways) over the speed, at most 3.2 rad/s, a
+  2.4 rad/s pivot below 25 (radius 36 units at 145 units/s, 218 at 372; a turn round from 387 takes 1.1 s). Slower into
+  sharp turns. Surfaces (`RideSurface`): grass 55% of the top speed and 60% of the pedalling with 5x the rolling loss,
+  gravel 80%, boards 95%.
+- Against the town: the bike's circle (radius 7: it fits the 28-wide gates, 21.8 between the posts) and a probe for the
+  front wheel (radius 5, 17 ahead): a glancing hit slides the front along what it meets and the bike follows it, losing
+  what was stopped and 1.2/s more while scraping, swinging along the slide; head on it stops with the tyre at the wall. A
+  turn never puts the front wheel into something; nearly still with the front at a wall the rider swings the back round
+  the front wheel, rolls it back a little, or (stick pulled back) walks the bike backwards (40 units/s). Held fast with
+  the stick pushed for 0.6 s (a slot narrower than the bike's length), the rider lifts the front wheel round (its probe off
+  until it rides free). Fences, hedges and walls are solid; gates are open. The front wheel may graze 0.5 (a few cm).
+- Drawn (`scene3d/TownBike.kt`, `BikeKit`): real geometry in our style, one entity a part with a shadow twin, through the
+  street's lit material: two wheels (a knurled tread band and a 32-texel spoked disc each side, clear between the spokes,
+  hub and rim in chrome, whitewalls on the cruiser) that turn with the distance rolled; the frame's tubes (a lit stripe on
+  top, a darker underside), seat post and saddle, chain ring and chain; the fork and bar turned about the head tube's
+  line by the turn's radius; the cranks turning with the pedalling only (they stop coasting) and the pedals kept level
+  with orange reflectors; a lamp on the fork that glows at night. The whole bike leans into turns (the real lean,
+  atan(v x rate / g), eased 0.12 s, at most 34 degrees). One style an era, by the town's year (`BikeStyle.of`): a red and
+  cream 1950s cruiser (balloon whitewalls, swept-back bars, mudguards, chain guard, wicker basket), an orange 1970s
+  ten-speed (thin tyres, taped drop bars, a bottle), a blue 1980s BMX (20" wheels, high-rise bar with its crossbar pad,
+  chrome fork), a sage modern hybrid (flat bar, mudguards, rear rack). The pack has no bicycles (10_Vehicles: cars,
+  buses, boats, carts; City props none), so the pictures are painted in its palette. The bike is drawn 1.45x real size
+  (`BikeState.SCALE`): our people are the pack's big-headed figures and a true-size bike vanished under them.
+- The rider (`TownPeople.ride`): the player's card stands in the bike's leaned frame (it leans with it) across the
+  camera's right. From the side, the sheet's seated frames (row 4: right-facing 0-5, left 6-11) on the saddle; from the
+  front or back, the walk's frames standing on the pedals, one walk cycle a crank turn (the idle frames coasting). The app
+  now decodes the sheets' rows down to y 320 (was 192) for the seated row.
+- The camera stands 30% further back on the bike (`OrbitCamera.RIDE_BACK`, eased over 0.8 s: a zoom, never a turn) and
+  follows the position exactly, as walking.
+- Sound (app `audio/BikeSound.kt`, mixed live by SoundScape; nothing recorded): no footsteps while riding; the tyres' hiss
+  growing brighter and louder with the speed on the road, a dull swish on grass (and on snow), crackles on gravel, a
+  knock on boards, a faint thump each wheel turn; coasting, the freewheel's ticks (18 a wheel turn: a tick-tick slowing
+  to a stop); the bell (two strikes, 2.1 and 5.3 kHz partials, 1.6 s) on a long press. The dialogue's writing ahead pauses
+  while riding as while walking.
+- Tests: desktop `BikeRideTest` (gamma): a scripted rider (the stick through a camera swinging round all the while, an
+  autopilot over a bike-sized grid that brakes for bends and backs out when stuck, as a player would) rides to 22 goals
+  (back yards through their gates, both ends of four bridges, the plaza, the cinema's car park, back to the spawn):
+  ~73k units in 304 s, mean 240 units/s, vs 467 s for a runner on the same legs (0.65x the time); never inside anything,
+  the front wheel never in anything but while lifted (69 of ~18300 frames), the turning limit never broken; the cruise,
+  sprint, coast and turn round; the radius growing with speed; a fence slid along at 30 degrees in (192 -> 95 units/s,
+  9.3 from it) and stopped head on 22 off it; a lawn at most 71 units/s after 0.5 s; on and off (no footsteps, no room
+  between things a walker fits); a ride step 1.4-3 us allocating nothing (build server JVM, not the S25). Run with
+  `gradle :desktop:test -DtestOnly=OpenWalkTest,BikeRideTest`.
+- Preview: `gradle :desktop:preview -Dmode=filament-open -Dshots=bike` renders each era's bike from the side, three-quarter,
+  behind, in front and above, leaning both ways, at night (lamp), from a street-wide view, and an 8 s ride through
+  `TownPlay.step` at 60 Hz rendered each second (bike_ride_NNs).
+- Not yet / to check on the S25: the feel (all the numbers are tunable live), heat with the town streaming past at
+  ~4x the walking speed (the build's 4 ms a frame budget and the live rows may need to look further ahead), parked bikes
+  at home, other people on bikes, a rider's own pedalling legs from the side (the sheets have no cycling frames).
