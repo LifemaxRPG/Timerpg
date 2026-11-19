@@ -232,6 +232,9 @@ internal class TownRailDraw(
         }
     }
 
+    /** The next frame stands the gates as they should be at once (a preview's jump in time). */
+    fun snap() { lastSeconds = Double.NaN }
+
     fun destroy() {
         static.destroy()
         for (c in crossings) { c.lampL.destroy(); c.lampR.destroy(); for ((l, _) in c.arms) l.destroy() }

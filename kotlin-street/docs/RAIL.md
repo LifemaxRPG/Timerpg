@@ -65,7 +65,7 @@ of the world seed and the year, so a town an NPC names is a real place the plann
   never followed; rivers bridged, never followed; drawn towards the plaza). **Inside the built-up area the line keeps
   to the town's grid** (the owner's note: in American railroad towns the grid was platted along the line, crossings are
   square): it runs east-west or north-south only, turns square, never within 6 tiles of a street (so every crossing in
-  town is square), and its corners get tight curves (4 tiles); outside, in the woods and fields, it curves freely
+  town is square), and its corners get curves of up to 10 tiles; outside, in the woods and fields, it curves freely
   (wide fillets, 30 tiles) to meet the line's route between towns. Tests: every crossing within 15 degrees of square
   (at most one skewed per town, at its edge), the track inside the built-up area on the grid (only the corners' short
   curves off it), never doubling back.

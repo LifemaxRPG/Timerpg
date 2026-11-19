@@ -248,7 +248,7 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
     for (let i = 1; i + 1 < p.length; i++) {
       const a = out[out.length - 1]!, v = p[i]!, b = p[i + 1]!;
       const la = Math.hypot(a.x - v.x, a.y - v.y), lb = Math.hypot(b.x - v.x, b.y - v.y);
-      const r = Math.min(inBox(v.x, v.y) ? 4 : 30, la / 2.2, lb / 2.2);
+      const r = Math.min(inBox(v.x, v.y) ? 10 : 30, la / 2.2, lb / 2.2);
       if (r < 0.5) { out.push(v); continue; }
       const p1 = { x: v.x + ((a.x - v.x) / la) * r, y: v.y + ((a.y - v.y) / la) * r };
       const p2 = { x: v.x + ((b.x - v.x) / lb) * r, y: v.y + ((b.y - v.y) / lb) * r };

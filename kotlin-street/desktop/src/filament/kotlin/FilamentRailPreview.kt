@@ -76,6 +76,7 @@ fun renderFilamentRail(out: String) {
         val hour = (minute / 60.0).toFloat()
         // (two frames: the trains and the gates settle)
         ft.prepare(pose)
+        ft.snapRail()
         repeat(30) { ft.frame(pose, hour, clock); clock += 1.0 / 30 }
         shooter.save(File(dir, "$name.png"), w, h, hour)
         val trains = ft.trainsNow.joinToString("; ") { t -> "${if (t.passenger) "passenger" else "freight"} ${t.cars.first()}+${t.cars.size - 1} on ${t.path.line} at %.0f".format(t.front) }
@@ -118,7 +119,9 @@ fun renderFilamentRail(out: String) {
             if (!want(name)) continue
             val sc = RailScene(net, year)
             // a stopping train standing at the platform, else any train by the depot
+            // (standing at the platform: where it is now and half a minute on)
             val m = findMinute(year, 9 * 60.0, 18 * 60.0) { ts -> ts.any { t -> t.passenger && t.stopping && t.span.let { (lo, hi) -> t.path.depotS in lo..hi } } }
+                ?.let { m0 -> var m1 = m0; while (m1 < m0 + 10 && sc.trains(m1).zip(sc.trains(m1 + .3)).none { (a, b) -> a.passenger && a.front == b.front }) m1 += .1; m1 + .1 }
                 ?: findMinute(year, 9 * 60.0, 18 * 60.0) { ts -> ts.any { t -> t.passenger && t.span.let { (lo, hi) -> t.path.depotS in lo + 300f..hi - 300f } } }
                 ?: findMinute(year, 6 * 60.0, 22 * 60.0) { ts -> ts.any { t -> t.path.depotS in t.span.first..t.span.second } }
             if (m == null) { report.appendLine("$name: no train by the depot that day"); continue }

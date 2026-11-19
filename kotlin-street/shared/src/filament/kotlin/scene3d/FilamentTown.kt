@@ -507,6 +507,9 @@ class FilamentTown(
         return TownFrame.orbit(rideFocus[0], 40f, rideFocus[1], head + yaw, pitch, dist, w, h)
     }
 
+    /** The railroad's gates and lamps stand as they should at the next frame (a preview's jump in time). */
+    fun snapRail() { railDraw?.snap() }
+
     /** Draws the railroad as it stands in [year] instead (its tracks, crossings' gear, depot and trains of that year). */
     fun setRailYear(year: Int) {
         val r = railNet ?: return
