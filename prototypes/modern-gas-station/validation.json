@@ -1,0 +1,18 @@
+{
+  "glb_bytes": 246056,
+  "visible_triangles": 2512,
+  "materials": 12,
+  "embedded_textures": 12,
+  "art_pixel_grid": "all texture pixels are exact 2x2 blocks",
+  "uv_scale_max_edge_error_m": 2.073669435276315e-06,
+  "pump_triangles": {
+    "pump_01": 214,
+    "pump_02": 214,
+    "pump_03": 214,
+    "pump_04": 214
+  },
+  "doors": "ground-level named nodes verified",
+  "collision": "separate collision-only mesh verified",
+  "lot": "optional lot hierarchy verified",
+  "renderer": "Blender previews; no Filament or phone benchmark"
+}
