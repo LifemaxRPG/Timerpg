@@ -32,6 +32,8 @@ class TownData(
     val dir: String,
     /** The town's movie theater (graph.cinema), or null for a town without one. */
     val cinema: com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite? = null,
+    /** The town's solid shapes for the open world's walk (buildings, fences, hedges, props; null if it could not be built). */
+    val collision: com.lifemax.rpg.feature.habits.domain.TownCollision? = null,
 )
 
 /**
@@ -87,7 +89,7 @@ object TownSession {
                 if (wanted != seed) return@post
                 loadMs = (System.nanoTime() - startedAt) / 1e6f
                 loaded = d
-                val w = TownPlay.start(d.town)
+                val w = TownPlay.start(d.town, d.collision, d.yards)
                 // where the player was last time in this town (the world position), if anywhere
                 restore(app, d.town.seed, w)
                 loading = false
@@ -127,8 +129,9 @@ object TownSession {
         val near = w.town.nearestRow(x, z)?.first ?: return
         if (w.blockedAt(x, z, near)) return
         com.lifemax.rpg.feature.habits.presentation.scene.GameState.dir = if (p.getFloat("dir", 1f) < 0f) -1f else 1f
-        w.placeAt(x, z, p.getFloat("hx", w.hx), p.getFloat("hz", w.hz))
-        com.timerpg.street.shot.Crumbs.add("town: back where the player stood, row ${w.row.id} at x ${w.x.toInt()}, lane ${w.lane}")
+        // (both walks: the open world's lands on the clear spot nearest, the street view's on the pavement)
+        TownPlay.placeAt(x, z, p.getFloat("hx", w.hx), p.getFloat("hz", w.hz))
+        com.timerpg.street.shot.Crumbs.add("town: back where the player stood, (${x.toInt()}, ${z.toInt()}), row ${w.row.id} at x ${w.x.toInt()}, lane ${w.lane}")
     }
 
     /** The Filament layer has built the first view ([ms] from making the scene). */
@@ -150,7 +153,8 @@ object TownSession {
         fun text(n: String): String? = try { ctx.assets.open("$dir/buildings/$n").bufferedReader().use { it.readText() } } catch (e: Exception) { null }
         val windows = SpriteBuildingLoad.windows(text("windows.json"))
         val houses = SpriteBuildingLoad.houses(text("houses.json"))
-        val models = SpriteBuildingLoad.models(text("models.json"))
+        val modelsText = text("models.json")
+        val models = SpriteBuildingLoad.models(modelsText)
         val root = org.json.JSONObject(json)
         val mids = HashMap<String, Int>()
         val names = HashMap<String, Pair<String, String>>()
@@ -168,7 +172,17 @@ object TownSession {
         } catch (e: Exception) { null }
         val art = TownArt { path -> img("town/art/$path") }
         val building: (String) -> SpriteBuilding? = { sp -> SpriteBuildingLoad.load(sp, mids[sp] ?: 0, windows, houses, models) { img("$dir/buildings/$it.png") } }
+        // the open world's solid shapes (built here, on the load's thread: a few hundred ms on a computer)
+        val c0 = System.nanoTime()
+        val collision = try {
+            com.lifemax.rpg.feature.habits.domain.TownCollision.build(town, yards,
+                com.lifemax.rpg.feature.habits.domain.ModelShape.parseAll(modelsText),
+                com.lifemax.rpg.feature.habits.domain.CinemaSiteShape.parse(root))
+        } catch (t: Throwable) {
+            com.timerpg.street.shot.Crumbs.add("town collision failed: ${t.javaClass.simpleName}: ${t.message}"); null
+        }
+        collision?.let { com.timerpg.street.shot.Crumbs.add("town collision: ${it.size} shapes, %.0f ms".format(java.util.Locale.US, (System.nanoTime() - c0) / 1e6f)) }
         return TownData(seed, town, yards, art, building, names, root.optString("type"), dir,
-            com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite.parse(root))
+            com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite.parse(root), collision)
     }
 }

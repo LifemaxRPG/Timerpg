@@ -705,16 +705,19 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         val out = ArrayList<Triple<Float, Float, Float>>()
         val step = 52f
         var i = 0
-        var x = fx0 - FEATHER
-        while (x <= fx1 + FEATHER) {
-            var z = fz0 - FEATHER
-            while (z <= fz1 + FEATHER) {
+        val reach = BELT_TO
+        var x = fx0 - reach
+        while (x <= fx1 + reach) {
+            var z = fz0 - reach
+            while (z <= fz1 + reach) {
                 val dx = max(fx0 - x, x - fx1); val dz = max(fz0 - z, z - fz1)
                 val d = max(dx, dz)
                 if (d > 0f) {
                     val h = Ambient.hash(91, i, 17)
                     val n = noise((x / 3f).toInt(), (z / 3f).toInt())
-                    val p = (1f - d / FEATHER).coerceIn(0f, 1f).let { it * it } * (.35f + .9f * n)
+                    // (and at the world's end a dense belt of woods all round, where the walk stops: a boundary seen, not an
+                    // invisible wall in open grass)
+                    val p = if (d in BELT_FROM..BELT_TO) BELT_DENSITY else (1f - d / FEATHER).coerceIn(0f, 1f).let { it * it } * (.35f + .9f * n)
                     if (h < p) out += Triple(x + (Ambient.hash(91, i, 18) - .5f) * step * .8f, z + (Ambient.hash(91, i, 19) - .5f) * step * .8f, Ambient.hash(91, i, 20))
                 }
                 i++
@@ -860,6 +863,13 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         const val N = 1; const val E = 2; const val S = 4; const val W = 8
         /** How far past the forest's edge its trees thin out to none. */
         const val FEATHER = 1100f
+        /**
+         * The woods round the world's end: from this far past the forest's edge to [BELT_TO] (the walk's edge,
+         * TownCollision.EDGE_MARGIN, lies inside it), this share of the grid's spots a tree.
+         */
+        const val BELT_FROM = 820f
+        const val BELT_TO = 1400f
+        const val BELT_DENSITY = .6f
         /** Street name signs nearer each other than this are one corner's (or one crossing's): one is kept. */
         const val SIGN_APART = 260f
         /** The kit's tree each of [variants]' sprites becomes close by: the round ones broadleaves, the tall ones poplars. */

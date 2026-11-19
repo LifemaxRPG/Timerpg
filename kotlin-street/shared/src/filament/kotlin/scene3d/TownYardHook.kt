@@ -24,7 +24,20 @@ fun interface YardBuilder {
  * view culls by, and the building it goes with ([sprite]), whose street-view cut it shares (the camera's own side of the
  * road fades out, yards with their houses). Meshes without one are always drawn.
  */
-class YardPatch(val id: String, val x: Float, val z: Float, val r: Float, val sprite: String? = null)
+class YardPatch(
+    val id: String, val x: Float, val z: Float, val r: Float, val sprite: String? = null,
+    /**
+     * The far version of patch [id] (the open world draws it past [TownPose.lodFar] in its place: fences as slabs, the
+     * small things left out; [YardKit.bake] far). The street view never draws it.
+     */
+    val far: Boolean = false,
+) {
+    /** The patch whose far version this is (its own id when it is no far version). */
+    val nearId: String get() = if (far) id.removeSuffix(FAR) else id
+    fun farTwin(): YardPatch = YardPatch(id + FAR, x, z, r, sprite, far = true)
+
+    companion object { const val FAR = "#far" }
+}
 
 /** What a [YardBuilder] adds its work to: meshes in world coordinates (or placed at several spots), and street props. */
 interface YardSink {

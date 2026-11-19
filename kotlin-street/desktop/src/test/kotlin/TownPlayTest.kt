@@ -212,4 +212,73 @@ class TownPlayTest {
         assertTrue(other in b)
         assertFalse(a === b)
     }
+
+    /**
+     * The open world through [TownPlay] as the app plays it: with the town's collision the open walk is played (the
+     * default view), the stick walks the way the camera looks and never turns it, the HUD's street and the dialogue's
+     * nearest building follow the derived row, "Talk to" finds the nearest person from any side, and the view switch hands
+     * the player over to the street view's walk and back where they stand.
+     */
+    @Test fun openWorldPlaysTheOpenWalkAndSwitchesView() {
+        val root = JSONObject(json)
+        val yards = TownYards.parse(root)
+        val map = com.lifemax.rpg.feature.habits.domain.TownCollision.build(town, yards,
+            com.lifemax.rpg.feature.habits.domain.ModelShape.parseAll(File(dir, "buildings/models.json").readText()),
+            com.lifemax.rpg.feature.habits.domain.CinemaSiteShape.parse(root))
+        val cam = com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera
+        val wasOpen = cam.open
+        try {
+            cam.open = true
+            TownPlay.keepers = keepers()
+            val street = TownPlay.start(town, map, yards)
+            val o = TownPlay.open!!
+            assertTrue(TownPlay.walk === o && TownPlay.openWorld)
+            assertTrue(events.first().contains("open world"))
+            // stick up with the camera looking east: the player walks east, whatever the street's direction
+            o.cameraYaw = (Math.PI / 2).toFloat()
+            val x0 = o.wx; val z0 = o.wz
+            hold(0f, -1f, 1f)
+            assertTrue("walked east ${o.wx - x0}", o.wx - x0 > 30f && kotlin.math.abs(o.wz - z0) < (o.wx - x0) * .5f + 1f)
+            assertEquals("the walk never turns the camera", (Math.PI / 2).toFloat(), o.cameraYaw, 0f)
+            assertNotNull(TownPlay.streetName())
+            assertFalse(GameState.atCorner)
+            assertTrue(GameState.nearest in o.row.buildings.indices || o.row.buildings.isEmpty())
+            // someone to talk to, approached from four sides: found by world distance
+            val (r, b) = town.rows.firstNotNullOf { r -> r.buildings.firstOrNull { it.sprite in TownPlay.keepers }?.let { r to it } }
+            var found = 0
+            for (side in 0 until 4) {
+                val q = TownPlay.keeperSpot(r, b); val p = q.x to q.z
+                val a = side * Math.PI / 2
+                TownPlay.placeAt(p.first + 20f * kotlin.math.cos(a).toFloat(), p.second + 20f * kotlin.math.sin(a).toFloat(), 1f, 0f)
+                TownPlay.step(dt)
+                if (o.fromKeeper(b.sprite) <= TalkRange.distance) {
+                    // (the nearest, this one unless a neighbour's stands nearer)
+                    val n = TownPlay.nearestKeeper()!!
+                    assertTrue(o.fromKeeper(n) <= o.fromKeeper(b.sprite))
+                    assertNotNull(TownPlay.talkSprite())
+                    found++
+                    assertTrue(TownPlay.fromPlayer(b.sprite) < TalkRange.distance)
+                }
+            }
+            assertTrue("found from $found of 4 sides", found >= 3)
+            // the player's figure faces the way they walk (the camera then picks front, back or side)
+            hold(1f, 0f, .4f)
+            TownPlay.people(600f)
+            val me = TownPlay.figures.first { it.me }
+            assertEquals(o.hx, me.dx, 1e-6f); assertEquals(0, me.facing)
+            // the view switch: to the street view where the player stands, and back
+            val ox = o.wx; val oz = o.wz
+            cam.open = false
+            TownPlay.step(dt)
+            assertTrue(TownPlay.walk === street && !TownPlay.openWorld)
+            assertTrue("handed over near (${street.wx}, ${street.wz}) from ($ox, $oz)", kotlin.math.hypot(street.wx - ox, street.wz - oz) < 120f)
+            hold(1f, 0f, .5f)
+            cam.open = true
+            TownPlay.step(dt)
+            assertTrue(TownPlay.walk === o)
+            assertTrue(kotlin.math.hypot(street.wx - o.wx, street.wz - o.wz) < 20f)
+            assertFalse(map.blocked(o.wx, o.wz, com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk.RADIUS - .5f))
+            assertTrue(events.any { it.startsWith("view street") } && events.any { it.startsWith("view open world") })
+        } finally { cam.open = wasOpen }
+    }
 }

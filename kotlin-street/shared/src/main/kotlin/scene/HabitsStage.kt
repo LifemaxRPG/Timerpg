@@ -476,7 +476,7 @@ private fun StageCanvas(
             val start = withFrameNanos { it }
             var last = 0L
             while (true) withFrameNanos {
-                if (it - last >= TICK_NANOS || (GameState.enabled && GameState.inMotion)) {
+                if (it - last >= TICK_NANOS || (GameState.enabled && (GameState.inMotion || (OrbitCamera.open && TownPlay.active && OrbitCamera.moving)))) {
                     last = it
                     seconds = (it - start) / 1e9f + .001f
                 }
@@ -890,7 +890,10 @@ private fun StageCanvas(
             GameState.groundPx = f.ground
         }
         val d = density.density
-        val horizon = f.ground - HORIZON_DP * d * f.scale.coerceAtMost(1f)
+        // the open world (OrbitCamera): the sky turns with the player's camera, its horizon where the town's camera puts it
+        // (above the screen's top when looking well down), the sun or moon where the town's light comes from
+        val openSky = townSky && OrbitCamera.open && OrbitCamera.lensPx > 0f && !OrbitCamera.horizonY.isNaN()
+        val horizon = if (openSky) OrbitCamera.horizonY.coerceAtLeast(2f) else f.ground - HORIZON_DP * d * f.scale.coerceAtMost(1f)
         if (GameState.enabled) { GameState.frameGround = f.ground; GameState.frameHorizon = horizon; GameState.framePx = SpriteArt.PIXEL * f.unit }
         val skyOnly = StageTuning.skyOnly
         // the sun or the moon stands beside the building in front
@@ -902,8 +905,12 @@ private fun StageCanvas(
         // turns with it, the sun and the moon too (a quarter turn takes them out of the cross street's view)
         if (cr != null) aimWorld(world, cr, sides!!, f.middle, f.ground, horizon, f.unit, Perspective.k(f.zoom), this.size.width, orb.first * d)
         // (the sky settles a little before the street at either end of a walk round the corner: CornerWalk.skyYaw)
-        val yawPx = if (cr != null) world.cam.f * (if (CornerWalk.active) CornerWalk.skyYaw else world.cam.yaw) else 0f
-        val orbX = orb.first * d + yawPx
+        val yawPx = if (openSky) OrbitCamera.skyPx(this.size.width)
+            else if (cr != null) world.cam.f * (if (CornerWalk.active) CornerWalk.skyYaw else world.cam.yaw) else 0f
+        val openOrb = if (openSky) OPEN_ORB.takeIf { OrbitCamera.orbAt(p.hour, this.size.width, this.size.height, it) } else null
+        // (behind the camera: well off the screen)
+        val orbX = if (openSky) openOrb?.get(0) ?: -10000f else orb.first * d + yawPx
+        val orbY = if (openSky) openOrb?.get(1) ?: -10000f else orb.second * d
         // the trees are lit from the side the sun or the moon stands on; the light stands where the
         // orb is drawn, so shadows swing and facades turn to it as the street scrolls under it
         painter.lightFrom = if (orbX < this.size.width / 2f) -1f else 1f
@@ -962,10 +969,10 @@ private fun StageCanvas(
         }
         backdrop.sunClear = if (townSky) 1f else if (cr != null && world.nearRest >= 0) sides!![world.nearRest].let { rs ->
             val half = this.size.width / 2f / f.unit
-            sunClear(orbX, orb.second * d, rs.layouts, rs.street, world.nearOrigin(rs.viewX), f.ground, f.unit, rs.viewX - half - B.GAP, rs.viewX + half + B.GAP, d) {
+            sunClear(orbX, orbY, rs.layouts, rs.street, world.nearOrigin(rs.viewX), f.ground, f.unit, rs.viewX - half - B.GAP, rs.viewX + half + B.GAP, d) {
                 Perspective.shift(Perspective.sideAt(it, rs.viewX, this.size.width / f.unit, Perspective.k(f.zoom)))
             }
-        } else if (cr != null) 1f else sunClear(orbX, orb.second * d, layouts, street, f, from, to, d)
+        } else if (cr != null) 1f else sunClear(orbX, orbY, layouts, street, f, from, to, d)
         // the clouds hang under one ceiling for the whole street: the highest any building's roof
         // (with the "add a floor" outline on it) is drawn when it stands in front, so scrolling
         // from
@@ -1001,7 +1008,7 @@ private fun StageCanvas(
         } else sunEdge(sunGlare.edge, layouts, arts, street, f, from, to)
         sunGlare.edge.ceiling = if (fades) f.top + TOP_FADE * d * .5f else f.top
         val sunR = SunMoonSprites.SUN_R * d
-        val sunAt = Offset(orbX, orb.second * d)
+        val sunAt = Offset(orbX, orbY)
         sunGlare.edge.measure(sunAt.x, sunAt.y, sunR)
         // how far the camera looks into the sun (the cloud across it as last drawn); while the camera swings round the
         // corner the sun's glow fades over a good part of the swing as the sun leaves the picture (or grows as it comes
@@ -1030,7 +1037,7 @@ private fun StageCanvas(
                 sky,
                 horizon,
                 f.skyTop,
-                Offset(orbX, orb.second * d),
+                Offset(orbX, orbY),
                 ceiling,
                 if (cr != null && CornerWalk.active) lerp(CornerWalk.fromMiddle, CornerWalk.toMiddle, CornerWalk.skyEase)
                 else f.middle + (if (skyOnly) GameState.skyPan else 0f),
@@ -1734,3 +1741,6 @@ internal fun aimWorld(
     }
     world.crossView = sides[1].viewX
 }
+
+/** Where the open world's sun or moon stands on the screen this frame ([OrbitCamera.orbAt]; drawn on the main thread). */
+private val OPEN_ORB = FloatArray(2)

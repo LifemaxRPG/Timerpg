@@ -37,8 +37,9 @@ class YardKitTest {
             val batches = YardKit.bake(listOf(it))
             assertTrue("$it built nothing", batches.isNotEmpty())
             var minY = Float.MAX_VALUE
-            // (a little slack: edging one texel wide, a post's cap)
-            val slack = 1.0f
+            // (a little slack: edging one texel wide, a post's cap; a gate's leaves stand open, swung back into the yard
+            // as far as they are wide)
+            val slack = if (it.kind == "gate" || it.kind == "sideGate") maxOf(it.x1 - it.x0, it.z1 - it.z0) else 1.0f
             for (b in batches) {
                 val m = b.mesh
                 assertTrue("$it ${b.group}: no triangles", m.idx.isNotEmpty() && m.idx.size % 3 == 0)

@@ -294,3 +294,174 @@ both hands); load time (decode textures in the background, build nearest-first).
   structure, lawn edges against the town grass, shop back lots (gravel, no gate), side windows' glass mask, the school's
   back seams, repeated shop art, the yard kit's minor issues, people for scale. Draws went up in the aerials (3052, was
   1735: chunks are per kind) while street views draw 834-1448 with fewer triangles (0.6-0.96M, was 0.65-1.7M).
+
+## Open world: walking and collision (Task A, as built on wf-open)
+
+The owner's decision (2026-11-19): the camera is the player's (one finger orbits, pinch zooms), it never turns on its own,
+and the player walks anywhere. The walk and what blocks it are engine-agnostic (shared/src/main):
+
+- `domain/TownCollision.kt`: the town's solid shapes, built once (`TownCollision.build(town, yards, models, cinema)` or
+  `fromStreetJson(streetJson, modelsJson)`): oriented boxes and circles in flat arrays under a 64-unit grid. What blocks:
+  box buildings and mobile homes as their slot's rigid box (TownWalk's footprint, the yards' `house`); modelled buildings
+  (villas, flats, landmarks) as their parts standing on the ground below head height (44 px) and above a step or porch deck
+  (14 px), placed exactly as BuildingMeshes/FilamentModels place them (a porch's posts, the fire station's front block);
+  the cinema (`CinemaSiteShape`, CinemaKit's plot numbers: the main block, the multiplex's atrium, canopy posts, drum and
+  stair tower, the site's walls or car park rails); yard fences (front, side, back, post and rail), hedges and low walls,
+  with gates and side gates as the gaps the export leaves; yard objects as their rectangles (sheds, garages, pools, play
+  sets, tables, raised beds...), trees by their trunks, bushes as small circles, carports and gazebos by their posts,
+  washing lines by their posts; the rows' lamps, benches and trees where TownGround stands them; the street props by
+  PropRules (one name sign a crossing); the forest's trees (trunks, shaken off the grid as drawn) and bushes; the plaza's
+  fountain, benches and planters; the river less the bridges, and the bridges' parapets; a wall 1200 past the town's
+  data. Walkable: streets, pavements, lawns, paths, drives, patios, decks, flower beds, sandpits, the plaza, lanes, grass.
+  Queries allocate nothing: `blocked(x, z, r)`, `clearance`, `nearest`, `resolve` (push out), `move(x, z, dx, dz, r, out)`
+  (half-radius sub-steps, push-out sliding, corner fallback per axis; a walker that starts clear never ends inside
+  anything), `nearestClear` (never spawn inside).
+- `domain/TownDoors.kt`: every building's front door (on its front wall at the yard's front path, else the front's middle,
+  the cinema's at its entrance), walked out of the collision to where a walker stands clear; `at(x, z, hx, hz)` is the door
+  within 44 of the player, on its outside and roughly faced (within ~70 degrees; any facing within 14); the people to talk
+  to stand where TownPlay stands them, and `nearestKeeper(x, z, keepers, range)` finds the nearest within range from any
+  direction.
+- `shim/OpenWalk.kt` (a `TownWalkView`): the player's world point and facing are the truth. Each frame the camera sets
+  `cameraYaw` (0 north, clockwise, as `TownCamera.yaw`) and the app calls `step(dt)` (the stick's `GameState.moveX` right,
+  `moveLane` down): the push turned from the camera's facing into the world, eased by `Locomotion` (MoveTuning's walk 72
+  and run 150, now the same in every direction), moved with `TownCollision.move` (radius 6), the velocity cut to the slide,
+  the facing turned towards the walk (0.06 s), the legs advanced by what was really walked (GameState gait, footfalls,
+  walking, running, travel; `GameState.facing` 0 and `dir` the side the camera sees, for the figure's view). Derived and
+  kept: `row`, `x`, `lane` (the nearest building line, a line the player stands behind counting 1.6x, 12 units of
+  hysteresis; GameState.x/lane follow), `door` ("Go inside"), `front` (the door's building), `yard` (the parcel stood in),
+  `streetName()`, `hoodName()`, `nearestKeeper(keepers)`, `fromKeeper(sprite)`, `liveRows()` (rows within 1400, kept
+  until the player moves 120), `camera` (looking along `cameraYaw` at the player), `transit` always null. `placeAt`,
+  `spawn`, `takeOver(streetWalk)` stand the player (on the nearest clear spot); the street view's TownWalk takes over with
+  its own `placeAt(wx, wz)`.
+- Tests (desktop OpenWalkTest, on the shipped gamma assets): 7803 shapes (177 building pieces, 460 fences, 54 hedges, 35
+  low walls, 1254 yard objects, 4625 trees, 1085 props, 105 water pieces, 8 parapets); every gate open and every fence
+  solid; a 6-unit flood fill from the spawn reaches 98.8% of the clear ground: every row's pavement, every bridge, every
+  door and person to talk to, the cinema's car park, and 67 of 92 back yards (every one with a side gate; the 25 shut are
+  the shops' fenced back lots b0-b26 and b49, b50, b80, which have no gate in the data); a scripted walker (the stick
+  turned through a camera swinging round all the while) walks to 11 back yards through their gates, a back lane, both
+  sides of all four bridges, the plaza, the cinema's car park, the forest and back to the spawn (~12 minutes of play,
+  ~100k units) and is never inside anything, never jumps; pushed at 45 degrees into a fence the walker slides along it
+  at ~94% of the push's along-the-fence speed (149 units in 1.5 s from standing), 6.0 from it; doors found from in front at three angles (277 of 277), not when facing away or from behind; the
+  people to talk to from 8 sides. Build server JVM (not the S25): build 160-410 ms, `move` 100-280 ns, `blocked` 17-45 ns,
+  a whole frame's `step` 1.1-4 us, allocating nothing. Pictures: desktop/build/open-walk/*.png (top-down map, reached
+  ground, the walker's trail).
+- Not yet: parked cars, dumpsters and bins on the cinema's site; the landmarks' own front fences (models.json `fence`);
+  the trees thinned out past the forest's edge (TownGround's feather); people and cars as moving obstacles; the shops'
+  back lots have no gate.
+
+## The open world's camera and drawing (branch wf-open, task B)
+
+The owner's decision (CLAUDE.md): the camera is the player's. `scene/OrbitCamera.kt` (shared, no platform) is its state:
+it orbits the player's chest (feet + `EYE` 30 up) at `yaw` (0 north, clockwise, as the walk's heading), `pitch` 10-60
+degrees down and `dist` 140-1400; only the player's input moves it (`drag`, `pinch`, `recentre`), eased over ~70 ms
+(`step`), never turned by itself; it follows the player's position exactly. `worldMove(moveX, moveLane)` turns the
+stick's push into a ground direction relative to the camera (the open walk takes `yawRad` as its `cameraYaw`). `open`
+is the AI panel's "View: Open world / Street" (prefs `renderer/view`, open by default); the street view is untouched.
+
+- Drawing (`TownRun.orbit` -> `TownFrame.orbit`): a true perspective, 50 degrees tall, centred lens. Buildings between
+  the camera and the player: the camera comes in in front of the first one if that leaves it at least 40% of its
+  distance (and 130) off; otherwise it stays and the buildings between fade to a screen door (`FilamentTown.occlude`,
+  `fadeBetween`, eased .12 a frame to 30%), unless the camera itself would stand inside one (then it comes in to that
+  wall). Pulled in at once, eased back out over .35 s. A scene starting 300+ from where the camera last followed puts it
+  behind the player.
+- Draw distance and LOD: the street view's range and haze, measured from the eye (radial): everything past
+  `dist + 1400 + 3600` is not drawn, the haze total there. Each yard has a far version (`YardKit.bake(far = true)`:
+  small things left out, fences as one slab of their own size in their average colour, meadows without tufts) drawn
+  past `dist + 1300` from the eye in place of the near one (`YardPatch.far`, `-DtownLod=0` bakes none). The yard kit's
+  one-colour pictures are now one quad however long the face (`PixImg.uniform` in `tq`): the yards went from 1.59M to
+  568k triangles with the same pixels (street views differ in 3-43 pixels of 2.5M: shadow-map edges); far versions 237k.
+- Light and sky: in the open world the sun stands still in the world (`OrbitCamera.sunAzimuth`: east at six, south at
+  noon, west at six; the moon from six in the evening), as high as the street's key light. The stage's sky turns with the
+  camera (`backdrop.yaw = -lens * yaw`), its horizon where the camera puts it (`OrbitCamera.horizonY`), the sun or moon
+  drawn where the light comes from (`OrbitCamera.orbAt`; off the screen when behind the camera).
+- People: cards upright and square to the camera (as before); each shows the front, back or side of its sheet by the
+  angle between the way it faces and the camera's look, the player's own too (the street view's up/down facing override
+  is the street view's).
+- Input (app `OrbitGestures.kt`): chained outside the stick's handler on its layer, so the stick takes its touches first
+  and buttons theirs; one finger turns (200 degrees a screen width, 90 of pitch a screen height), two pinch, a double
+  tap or the "Behind me" chip recentres. Screenshots and crash snapshots carry `view` and `orbit` (yaw, pitch, distance,
+  goal, pulled, the point followed).
+- Preview: `gradle :desktop:preview -Dmode=filament-open` (`-Dshots=`, `-Dw=`, `-DtownLod=0`) renders
+  build/preview/filament-open/: Main Street (behind, fronts, three-quarter, high, close, through the block, dusk west),
+  the civic avenue, a Heights backyard (b69: the back, along the backs, above, night), on a bridge, the cinema, Woodside;
+  open.txt gives each view's draws and triangles three ways (a free camera as before: no draw distance, all yards near;
+  the draw distance alone; as drawn). The player is placed by a position and a heading (`TownWalk.placeAt`).
+- Measured on the 4-core build server, software GL (not the S25): open views draw 460-1610 draws and 120k-256k
+  triangles as drawn (the same views free as before: 480-2850 draws, 140k-620k triangles; the Heights backyard 595k ->
+  229k). townMemoryCheck: held 194 MB at the peak of 256 (the far yards are baked too).
+- Left: the occluder fade is a screen door and reads busy when a whole building fades right in front of the camera; the
+  far version's slab fences are solid where a picket fence is see-through; bridges still look like a road over water from
+  above; no LOD yet for buildings, chunks' props or the edge's trees beyond the range; the yards' far bake doubles the
+  yards' worker time on the build server (1.7 s -> ~5 s with other builds running: measure on the S25).
+
+## The open world in the game loop (branch wf-open, integration)
+
+- `TownSession` builds the town's `TownCollision` on the load thread (crumb `town collision: N shapes, X ms`) and
+  `TownPlay.start(town, collision, yards)` makes both walks at the spawn: `TownPlay.open` (an `OpenWalk`) and
+  `TownPlay.street` (the `TownWalk` of the street view). `TownPlay.walk` (a `TownWalkView`) is the one played: the open
+  walk while `OrbitCamera.open` (the AI panel's "View: Open world", the default), else the street walk. A switch hands the
+  player over at the next `TownPlay.step`, where they stand and the way they face (crumb `view street` / `view open world`).
+  Without a collision map the street view is played.
+- The open world's frame (`TownPlay.stepOpen`): the walk steps against the collision with the stick relative to
+  `OpenWalk.cameraYaw`, which only `TownRun.orbit` sets from the player's orbit camera. No corners, turns or crossings
+  (`GameState.atCorner` stays false). `GameState.nearest` is the building on the derived row nearest the player, so the
+  dialogue's writing order (`DialogueEngine.setPlayerRow(row, nearest, liveRows)`) keeps working from the derived row and
+  `OpenWalk.liveRows()` (rows within 1400, nearest first). Breadcrumbs: row changes (with the camera's state) and the
+  area (into / out of a yard).
+- HUD and talking: the street name and neighbourhood from `OpenWalk.streetName()/hoodName()`; "Talk to" offers
+  `TownPlay.talkSprite()` (the nearest person within `TalkRange.distance` from any direction, kept until past
+  `TalkRange.leaveDistance` unless someone clearly nearer comes, else the door's building); "Go inside" the door the
+  player stands at, facing it (`OpenWalk.door`). The mic's listener and a voice conversation's end use
+  `TownPlay.nearestKeeper()` / `fromPlayer()`, which go by world distance in the open world. Speech bubbles stand over
+  heads projected through the camera last drawn (the orbit camera's), as before.
+- The player's figure faces `OpenWalk.hx/hz` with no forced sheet facing, so the camera shows their front, back or side.
+- The screenshot JSON's town block adds `walk` (open or street), `talkTo` and an `open` block (door, yard, speed,
+  blocked share, camera yaw, heading); the orbit camera's state was already in `orbit`.
+- `gradle :desktop:preview -Dmode=filament-open` (or `-Dshots=walk`) also plays a scripted 30 s walk through
+  `TownPlay.step` at 60 Hz: the stick pushed relative to the camera by an autopilot that steers round obstacles (a path
+  over the collision grid), the camera turned and zoomed only by scripted drags and pinches. walk_XXs.png every 5 s and
+  walk.txt (the path, the breadcrumbs, frames the camera turned without input, frames inside anything).
+
+## Open world: review fixes (branch wf-open, after the review at 6236343)
+
+- The camera never moves by itself, zoom included: no pull-in for buildings in the way (the old pull snapped in and eased
+  out as buildings crossed the line while walking). Whatever stands between it and the player is cut away instead:
+  `FilamentTown.occlude` casts a cone of five lines (the player's chest, feet, head and 12 either side to the eye) against
+  every building's box and the yards' tall things (sheds, garages, greenhouses, carports, gazebos, play sets, swings,
+  back hedges, trees: `TownFrame`'s `tallHeight`, kept as world boxes per lot); anything within 60 of the eye is cut too
+  (no wall or sign filling the screen at the near plane). Cut means faded to nothing over 0.2 s by the clock (not a
+  screen door at 30%, and the same at 60 and 120 Hz); a cut building keeps its shadow. A lot whose tall thing is in the
+  way has its batches that throw shadows (fences, sheds, trees) cut with their shadows, its lawn and paths kept
+  (`PropLayer.update(castFade)`).
+  A player standing under a tree's crown or a carport counts as hidden by it. `OrbitCamera.pullIn` (off) keeps the old
+  idea as an option: only when the eye itself would stand inside a building, eased in (0.15 s) and out (0.5 s).
+  `occlude` allocates nothing.
+- Draw distance by the player, not the zoom: the open world draws 2600 past the player (`OPEN_REACH`; the camera's far
+  plane just past it, things fading out over the last 500, so nothing is cut off hard), the haze from 1200 past the
+  player, the sun's shadows only 1400 past the player (Filament's `shadowFar`, set as the zoom changes), so the cascade at
+  the player stays fine at every zoom. The yards' far versions start 600 past the haze's start with 80 of hysteresis.
+  The zoom's far limit is 900 (was 1400) until wide views are measured on the S25.
+  Build server, software GL (estimates, not S25 numbers): the widest views now 680-850 draws, 126k-220k triangles,
+  260-335 shadow casters (were up to 2118 draws, 363k triangles, 812 casters at 1400); street-level views 230-850 draws.
+- Gates are drawn open (each leaf swung 90 degrees into the yard on its hinge post: `MeshBuilder.turnSince`), their posts
+  solid where the gap leaves a walker room (`TownCollision.gate`); the leaves lie back along the gap's edges and are not
+  solid (a solid leaf made wedges a walker got caught in). The walker's radius is 5 (was 6).
+- Every back yard can be walked into: the export (tools/town-yards.ts) puts a gate in the middle of the back fence of
+  every lot with no side way in (the 22 shops' service yards, houses filling their lot's width): 26 back gates. The test
+  now asks for 80% of each back yard's free ground reached: 92 of 92. The scripted walker aims only at path points in
+  plain sight (it cut corners across thin fences).
+- The world's end is a belt of woods all round (TownGround's feather: dense from 820 to 1400 past the forest's edge;
+  the walk stops at 1200), not an invisible wall in open grass.
+- The sky: the yaw wraps at 180 degrees (camera and goal together) and the sky slides a whole number of its patterns per
+  full turn (`OrbitCamera.skyPx`: a multiple of three screen widths), so there is no jump.
+- Input: in the open world the stick takes only the lower-left corner (a third of the width, at most 300 dp, the lower
+  half), leaving the rest to the camera; "Behind me" sits under the street's name at the top left (not where the right
+  thumb drags); the AI panel's "Drag: Turns the camera / Moves the world" sets which way a drag turns
+  (`OrbitCamera.grabWorld`, prefs `renderer/grabWorld`). Back from the street view, the camera starts behind the player
+  (`OrbitCamera.behindNext`).
+- "Talk to" no longer falls back to a door whose person stands further than a conversation lasts (90).
+- Preview: walk renders have the stage's sky; check views `chk_*` (gates, people from four sides, the widest views, low
+  and close in a back yard, the world's edges) and `backyards_low_13h`, `cinema_quarter_13h`.
+- Left: cutting a lot's tall things cuts all of that lot's fences and sheds together (per-object batches would cost
+  draws); shop backs are still bare brick and gravel; the river's banks are still stepped; no fling and no game-pad
+  camera stick; nothing of this measured on the S25.

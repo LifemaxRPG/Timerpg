@@ -48,6 +48,8 @@ const PAVE = 38;
 /** How far a parcel may widen into the free ground on each side. */
 const SIDE_MAX = 200;
 const DRIVE_W = 72, PATH_W = 26, FENCE = 4, HEDGE = 16, WALL = 8;
+/** A back gate's width (a garden gate of boards, as the side gates). */
+const BACK_GATE = 36;
 const LANE_MIN = 56, LANE_W = 80;
 /** How far a driveway's dropped kerb keeps from the row's street lamps and benches (row x). */
 const FURNITURE_CLEAR = 14;
@@ -325,7 +327,21 @@ export function townYards(g: TownGraph): Yards {
       add('sideFence', { u0, u1, d0, d1 }, 'edge', 'side', side === 'u0' ? [1, 0] : [-1, 0], v('sf', 3));
     };
     sideFence('u0'); sideFence('u1');
-    if (!(nbB && nbB.index < pc.index)) add(backFenceKind, { u0: P.u0 + (nb0 && nb0.index < pc.index ? 0 : FENCE), u1: P.u1 - FENCE, d0: P.d1 - bfw, d1: P.d1 }, 'edge', 'back', [0, -1], v('bf', 3));
+    // the back: its fence (a neighbour's back fence may stand there already), with a gate in its middle where the yard has
+    // no other way in (a shop's service yard, a house filling its lot's width): every backyard can be walked into
+    const sideWay = pc.kind !== 'shop' && (leftW >= 20 || rightW >= 20);
+    if (!(nbB && nbB.index < pc.index)) {
+      const f0 = P.u0 + (nb0 && nb0.index < pc.index ? 0 : FENCE), f1 = P.u1 - FENCE;
+      const gc = (f0 + f1) / 2;
+      if (!sideWay && f1 - f0 >= BACK_GATE + 24) {
+        const g0 = gc - BACK_GATE / 2, g1 = gc + BACK_GATE / 2;
+        add(backFenceKind, { u0: f0, u1: g0, d0: P.d1 - bfw, d1: P.d1 }, 'edge', 'back', [0, -1], v('bf', 3));
+        add('sideGate', { u0: g0, u1: g1, d0: P.d1 - bfw, d1: P.d1 }, 'edge', 'back', [0, -1], v('bg', 3));
+        add(backFenceKind, { u0: g1, u1: f1, d0: P.d1 - bfw, d1: P.d1 }, 'edge', 'back', [0, -1], v('bf', 3));
+        // (kept clear on the yard's side, so nothing is put in front of it)
+        block({ u0: g0 - 6, u1: g1 + 6, d0: P.d1 - bfw - 46, d1: P.d1 });
+      } else add(backFenceKind, { u0: f0, u1: f1, d0: P.d1 - bfw, d1: P.d1 }, 'edge', 'back', [0, -1], v('bf', 3));
+    }
     // across each side strip at the back corner of the house: a gate (over the driveway, or a garden gate by the house)
     // and fence for the rest of the strip
     for (const side of ['u0', 'u1'] as const) {
