@@ -3,7 +3,7 @@
 Landmarks modelled by hand to the contract in `docs/CHATGPT_MODEL_GUIDE.md` (glTF 2.0 binary, metres, Y up, entrance
 +Z, materials named by role, door nodes, a collision-only mesh, an optional `lot` group) are read and built by the
 engine like the code-built cinema and stores, and drawn through the same lit material. Status (2026-11-19): fourteen
-models (and the funeral home, "The funeral home" below, the fifteenth); the generated towns place them (branch wf-place: "In the town" below), desktop renders only, not yet on the S25.
+models (and the funeral home, "The funeral home" below, the fifteenth; the strip centre in four states, "Reel Time Video", the sixteenth to nineteenth files); the generated towns place them (branch wf-place: "In the town" below), desktop renders only, not yet on the S25.
 
 ## The models (app/src/main/assets/landmarks/)
 
@@ -127,6 +127,57 @@ earlier ones (`git show` of the files, catalogue, glbLandmarks.ts, LandmarkGlbTe
   the last pass at 72-107 tiles from their plazas (a residential edge), moving nothing.
 - Left: the attic gable window glows at night (the roof void is closed); a lot's lawn is a duller green than the town's grass (the model's
   `ground_lawn` swatch); no shut or reused look.
+
+## Reel Time Video (2026-11-19, branch wf-video)
+
+`reel-time-video/` (source `tools/landmarks/reel-time-video/`, the modeller's scripts and README copied with `git show`; the four .glb files and the combined
+model-info.json too): a 32.3 x 11.2 m single-storey strip centre (built 1981, four bays, a covered walk, 12 parking spaces in front, a finished back with a
+service lane, bins and a grease trap) on a 36.0 x 28.6 m lot, in **four states on one shell, lot, origin and door nodes** (`door_main` +Z, `door_back` -Z;
+1,116 / 1,180 / 1,332 / 1,088 visible triangles, 11 materials each, 22 / 26 / 26 / 19 listed full-height collision boxes). One catalogue entry per state
+(`landmark_glb_reel_time_video_1984|1996|2011|2020`; name "Reel Time Video" for the first three, "Cell Fix" for the last); the combined info file nests each
+state's `collision`, which the loader reads at the top level, so `model-info-<year>.json` are that file split per state (top-level fields + the state's
+materials and collision) and the catalogue points at them.
+- 1984: the video store in bay 2 (plain lit box sign, NEW RELEASES banner, two film posters, a VHS return slot), bay 3 FOR LEASE. 1996: bays 2 and 3 (a wider
+  backlit sign, 2 NIGHT RENTALS, a curb drop box). 2011: closing down (sign unlit and faded, STORE CLOSING / EVERYTHING MUST GO papers, a taped drop box).
+  2020: bay 2 is CELL FIX (a vinyl banner over the old sign frame, the old sign's ghost and bolt holes on the fascia), bay 3 FOR LEASE. Bay 1 "Suds Laundry"
+  and bay 4 "Ruby Nails" are quiet in all four. No name variants (the name is the model's story); the kind per state is the whole "variant".
+- **Glow**: `glow_signs` has a separate emissive picture (`glow_mask_*.png`: black but for the lit sign faces and the walk's four soffit bulbs, its lit
+  values only 90-145 of 255). The loader's sign rule lit texels over 150 of the emissive picture, so **nothing glowed**. Now (as the glass already did) an
+  emissive picture of the material's own size that differs from its base picture is a mask, lit wherever it is not dark (over 40, `EMISSION_PANE`); a model that
+  copies its base picture keeps the old bright-texel rule (no other model's file has a true sign mask: checked on all of them). Tested: exactly the mask's texels glow
+  (about 11-13% of the picture in 1984/1996, 6.5% in 2011/2020), nothing dark does. `glass_storefront` is BLEND with 83% see-through texels (no glass mask): the
+  rule for clear glass lights every bay's panes at night, vacant ones too (left, below).
+- **Glass room**: `room` is `hall` (a lit wall and a counter band behind the panes). The loader makes the glass solid, so the model's real shelves
+  (`wood_shelf`, inside the shell) are hidden; `shelves` would stock every bay's window, the vacant and laundry bays too, so it is not used.
+- **No swatch re-skin**: the surfaces are the guide's swatches (block courses, stucco fascia, ballast, membrane, worn asphalt, pavement, planks) painted with
+  outlines and wear; nothing flat (checked on the renders, validation.json: 0 bad UV edges, textures on the 2 x 2 grid), so `swatches` is empty.
+- **In the town** (glbSites.ts `VIDEO_STATES`, `glbTenures`): a town of 2,500 and more (at its peak) has one strip centre on **one plot through time**:
+  built 1972-82 from the seed (never before the town's early years; the 1984 state stands from then, so before the store opens the plot already shows the
+  store's lettering: no vacant strip state exists), the store opens 1980-86 (`shopOpened`, data), takes its second bay 1990-97 (at least four years after it
+  opens: the 1996 state), closes down 2008-13 (the 2011 state, a year or two) and the bay is reused from 1-2 years later (the 2020 state, to the present).
+  Each state is a tenure whose `gone` is the next one's `opened` (like the works and The Foundry, with four models). Lot type `highway`: a post-war strip
+  plot with its own car park in front, on a street built by the strip's year or the main street, scored like the other highway models (the main street's outer
+  stretches, near them), never beside a used shop plot of the old core's street wall (the frontage rule), and **never within 10 tiles of a coin
+  laundry's plot** (its own neighbour bay is a laundry). It never takes a pulled-down model's plot (its own, 30 x 14 tiles).
+- **Placement order**: after every other model and after the funeral home, so it never moves another's plot where there is room. Where there is none
+  (gamma: its east strip is a single free stretch), the search that gave the funeral home the first pick now also tries the strip centre first, the big
+  optional models (feed mill, bowling alley, motel: each subset) last, and the strip centre at either end of the free ground (it packs the strip tighter),
+  and keeps the order that places the funeral home, then the most other models, then the strip centre (so the strip centre never costs a town models on balance;
+  towns whose baseline order already placed both are untouched). Other test towns: quartz, orbit and beta place one; mu, theta, kappa and zeta have no 30 x 14 ground left for
+  it (theta's search found its drive-in a plot on the way: one model gained, none lost).
+- **gamma**: the strip centre built 1972 (store opens 1983), the second bay 1992, closing down 2013, Cell Fix from 2014, on the main street's north side at
+  plot (237, 116), 30 x 14 tiles, the old iron works' east spot. The east strip (x 237-243 and 327-408 on the main road: the rest is streets and lots) holds
+  the strip centre, the iron works / Foundry (now 327), the **feed mill (352: it came back, "Hearthside Brewing Co." from 2008-18)** and the drive-in / Crossfield (379);
+  it cannot hold the **motel too** (39 tiles; about 117 tiles of free frontage against about 122 needed), so the motel is the one model gamma gives up for the strip centre (the bowling
+  alley was already out): gamma now has the funeral home, strip centre, works, Gazette, water tower, feed mill, drive-in and laundry and lacks the motel and bowling alley
+  (before: the motel placed, the feed mill and bowling alley out). street.json and the desktop fixture are re-exported.
+- **Breaches of the guide / notes for the modeller**: no must-rule broken (11 materials, 1.1-1.3k triangles, ground at 0, doors, full-height boxes, lot
+  group). Format: the combined model-info.json nests collision per state (split here). Looks: the glow mask's lit values never exceed 145, so a glTF viewer lights
+  signs at about half strength (use 255); no glass mask, so vacant bays glow at night; the drop box's label is illegible (a 3 x 5 font crammed into about 10 art
+  pixels: it reads ".15" in 1996 and "UIT" in 2011); "2 NIGHT RENTALS" starts on the banner's frame; "70 OFF" touches the poster's lower edge; the faded 2011
+  sign and the 2020 ghost are fine but the CELL FIX banner is crisp and rigid (not strapped); nothing shows the strip before the store (a 1981-83 state, all
+  bays for lease, would give the plot an honest first state); the 2020 ghost shows only "TIME VIDEO" (the banner hides REEL, and overhangs the old frame by 3 m).
+- Left: the engine builds the export's year only (gamma 2025 shows Cell Fix); no interior; the sign names of the neighbour bays are the model's.
 
 ## The loader (shared/src/filament/kotlin/scene3d/)
 

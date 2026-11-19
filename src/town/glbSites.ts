@@ -56,6 +56,11 @@ const LOT_TYPE: Record<GlbLandmarkKind, GlbLotType> = {
   landmark_glb_foundry_nightclub: 'edge',
   landmark_glb_foundry_factory: 'edge',
   landmark_glb_funeral_home: 'house',
+  // the strip centre: a post-war highway or strip plot with its own car park in front
+  landmark_glb_reel_time_video_1984: 'highway',
+  landmark_glb_reel_time_video_1996: 'highway',
+  landmark_glb_reel_time_video_2011: 'highway',
+  landmark_glb_reel_time_video_2020: 'highway',
   landmark_glb_water_tower: 'civic',
   landmark_glb_feed_mill: 'edge',
   landmark_glb_modern_gas_station: 'highway',
@@ -70,6 +75,14 @@ const LOT_TYPE: Record<GlbLandmarkKind, GlbLotType> = {
 /** Street-wall buildings: at the pavement in a block face of the old core, never beside a strip of car parks. */
 const WALL: ReadonlySet<GlbLandmarkKind> = new Set(['landmark_glb_gazette_office']);
 
+/** The strip centre's four states on its one plot, in date order (the model files share shell, lot, origin and doors). */
+export const VIDEO_STATES: readonly GlbLandmarkKind[] = [
+  'landmark_glb_reel_time_video_1984', 'landmark_glb_reel_time_video_1996', 'landmark_glb_reel_time_video_2011', 'landmark_glb_reel_time_video_2020',
+];
+/** Towns of this many inhabitants (at the peak) have the strip centre. */
+export const VIDEO_PEOPLE = 2500;
+const isVideo = (kind: GlbLandmarkKind): boolean => VIDEO_STATES.includes(kind);
+
 /** One business's time on a site: opened, closed (still standing, dark, or reused), pulled down. */
 export interface GlbTenure {
   kind: GlbLandmarkKind;
@@ -83,6 +96,8 @@ export interface GlbTenure {
   gone?: number;
   /** Which of the model's painted variants (the works' name: [FACTORY_NAMES]; the funeral home's family: [FUNERAL_NAMES]). */
   variant?: number;
+  /** The strip centre (its first state): the year the video store opens in it (the 1984 state stands from [opened], the strip's building). */
+  shopOpened?: number;
   /** The funeral home: the year its house was built (data; the plot is open ground before [opened], the conversion). */
   houseBuilt?: number;
   /** The funeral home's families, oldest first (data only: the painted sign keeps the founders' name). */
@@ -91,6 +106,9 @@ export interface GlbTenure {
 
 /** The works' names, in the order of the model's painted variants (tools/landmarks/foundry-factory/make_art.py VARIANTS). */
 export const FACTORY_NAMES = ['Hargrove Iron Works', 'Whitcomb Foundry & Machine Co.', 'Ostrander Iron Works', 'Pelham Foundry & Machine Co.'];
+
+/** The strip centre keeps this many tiles from a coin laundry's plot (its own neighbour bay is a laundry). */
+const LAUNDRY_APART = 10;
 
 /** The funeral home's painted family names, in the order of the model's variants (tools/landmarks/funeral-home/make_variants.py SURNAMES). */
 export const FUNERAL_FAMILIES = ['Hollis', 'Pruitt', 'Marlow', 'Whelan', 'Ashby', 'Kessler'];
@@ -273,6 +291,18 @@ export function glbTenures(seed: string): GlbTenure[] {
     }
     out.push({ kind: 'landmark_glb_funeral_home', name: FUNERAL_NAMES[variant]!, opened, variant, houseBuilt, owners });
   }
+  // the strip centre, in a town of 2,500 and more: built 1972-82 (never before the town's early years), the video store opens 1980-86 in
+  // its second bay (the 1984 state stands from the strip's building to the expansion), takes the next bay 1990-97, closes down
+  // 2008-13 (the 2011 state for a year or two) and the bay is reused as a phone repair shop (the 2020 state) to the present
+  if (peak >= VIDEO_PEOPLE) {
+    const built = Math.max(yr(1972, 1982, 'built', 'video'), Math.min(1982, townFounded(seed) + 5));
+    const shopOpened = yr(Math.max(1980, built), 1986, 'open', 'video');
+    const expand = yr(Math.max(1990, shopOpened + 4), 1997, 'expand', 'video');
+    const closing = yr(2008, 2013, 'closing', 'video');
+    const reuse = closing + yr(1, 2, 'reuse', 'video');
+    const at = [built, expand, closing, reuse];
+    VIDEO_STATES.forEach((kind, i) => out.push({ kind, name: GLB_LANDMARKS[kind].name, opened: at[i]!, ...(i < 3 ? { gone: at[i + 1]! } : {}), ...(i === 0 ? { shopOpened } : {}) }));
+  }
   return out.sort((a, b) => a.opened - b.opened || (a.kind < b.kind ? -1 : 1));
 }
 
@@ -335,6 +365,8 @@ export function glbSites(plan: TownPlan, input: GlbInput): GlbSite[] {
     return !wet(b);
   };
 
+  /** The strip centre's pick among the plots that fit: 0 the best by score, 1 the first along the streets, 2 the last (the search packs the strip). */
+  let videoPick = 0;
   const place = (t: GlbTenure): void => {
     const lotType = LOT_TYPE[t.kind];
     const [along, deep] = glbLandmarkTiles(t.kind);
@@ -347,9 +379,14 @@ export function glbSites(plan: TownPlan, input: GlbInput): GlbSite[] {
       w?.tenures.push(t);
       return;
     }
+    // the strip centre's later states on the first state's plot (one plot through time: the states share shell, lot and doors)
+    if (isVideo(t.kind) && t.kind !== VIDEO_STATES[0]) {
+      sites.find((q) => q.tenures.some((x) => x.kind === VIDEO_STATES[0]))?.tenures.push(t);
+      return;
+    }
     const pulse = t.kind === 'landmark_glb_pulse_nightclub';
-    // (a house lot is never a pulled-down business's)
-    for (const s of lotType === 'house' ? [] : [...sites].sort((p, q) => (pulse ? clubFirst(q) - clubFirst(p) : 0))) {
+    // (a house lot is never a pulled-down business's, nor the strip centre's: it has a plot of its own)
+    for (const s of lotType === 'house' || isVideo(t.kind) ? [] : [...sites].sort((p, q) => (pulse ? clubFirst(q) - clubFirst(p) : 0))) {
       const last = s.tenures[s.tenures.length - 1]!;
       if (!pulse && last.kind === 'landmark_glb_mirage_nightclub' && pulseLater) continue;
       if (last.kind === 'landmark_glb_foundry_factory') continue;
@@ -378,6 +415,8 @@ export function glbSites(plan: TownPlan, input: GlbInput): GlbSite[] {
           // the frontage rule: a street-wall building only beside the old core's wall, a building behind its own car park
           // never beside one
           const near = faceShops(b, ri, face, 4);
+          // (its neighbour bay is a laundry: never right beside a coin laundry)
+          if (isVideo(t.kind) && sites.some((q) => q.tenures.some((x) => x.kind === 'landmark_glb_coin_laundromat') && hit(b, q.rect, LAUNDRY_APART))) continue;
           if (lotType === 'house' ? near.length > 0 : wall ? near.some((s) => stripFace(plan, s)) : near.some((s) => !stripFace(plan, s))) continue;
           const mx = b.x + b.w / 2, my = b.y + b.h / 2;
           const d = Math.hypot(mx - cx, (my - cy) * 1.3);
@@ -404,6 +443,7 @@ export function glbSites(plan: TownPlan, input: GlbInput): GlbSite[] {
             }
           }
           s += jit;
+          if (isVideo(t.kind) && videoPick) s = (r.main ? 0 : 1e4) + (videoPick === 1 ? 1 : -1) * (b.x + b.y);
           if (!best || s < best.s) best = { s, b, ri, face };
         }
       }
@@ -414,22 +454,32 @@ export function glbSites(plan: TownPlan, input: GlbInput): GlbSite[] {
   const all = glbTenures(seed);
   const pulseLater = all.some((t) => t.kind === 'landmark_glb_pulse_nightclub');
   const clubFirst = (s: GlbSite): number => (s.tenures.some((t) => t.kind === 'landmark_glb_mirage_nightclub') ? 1 : 0);
-  // The funeral home last: it takes what ground is left and never moves another model's plot. A town with no house-sized ground left
-  // gives it the first pick instead; then the other models are placed in their order with the ones that ask the most ground
-  // (or all of them) last, whichever of those orders leaves the most models a plot (LANDMARKS_GLB.md "The funeral home").
-  const fh = all.filter((t) => t.kind === 'landmark_glb_funeral_home'), rest = all.filter((t) => t.kind !== 'landmark_glb_funeral_home');
-  rest.forEach(place); fh.forEach(place);
-  if (fh.length && !sites.some((q) => q.tenures.includes(fh[0]!))) {
+  // The funeral home, then the strip centre, last: they take what ground is left and never move another model's plot. A town with no
+  // ground left for one of them gives it the first pick instead, and the big optional models (the feed mill, the bowling alley, the
+  // motel: each subset tried) go after the rest; the strip centre also tries the ends of the free ground (packing the strip tighter).
+  // Of those orders the one that places the funeral home, then the most other models, then the strip centre wins, so the strip
+  // centre never costs a town more models than it gains (LANDMARKS_GLB.md "The funeral home", "Reel Time Video").
+  const fh = all.filter((t) => t.kind === 'landmark_glb_funeral_home'), vid = all.filter((t) => isVideo(t.kind));
+  const rest = all.filter((t) => t.kind !== 'landmark_glb_funeral_home' && !isVideo(t.kind));
+  const placedFh = (): boolean => !fh.length || sites.some((q) => q.tenures.includes(fh[0]!));
+  const placedVid = (): boolean => !vid.length || sites.some((q) => q.tenures.includes(vid[0]!));
+  rest.forEach(place); fh.forEach(place); vid.forEach(place);
+  if (!placedFh() || !placedVid()) {
     const late = ['landmark_glb_feed_mill', 'landmark_glb_starling_lanes', 'landmark_glb_roadside_motel'];
-    let best: { sites: GlbSite[]; n: number } | undefined;
-    for (let m = 0; m < 1 << late.length; m++) {
+    let best: { sites: GlbSite[]; score: number[] } | undefined;
+    for (const fhFirst of [false, true]) for (const vidFirst of [false, true]) for (const pick of [0, 1, 2]) for (let m = 0; m < 1 << late.length; m++) {
+      if (pick && !vidFirst) continue;
       const set = new Set(late.filter((_, i) => m & (1 << i)));
-      sites.length = 0; fh.forEach(place);
+      sites.length = 0; videoPick = pick;
+      if (fhFirst) fh.forEach(place);
+      if (vidFirst) vid.forEach(place);
       rest.filter((t) => !set.has(t.kind)).forEach(place); rest.filter((t) => set.has(t.kind)).forEach(place);
-      const n = sites.reduce((c, q) => c + q.tenures.length, 0);
-      if (sites.some((q) => q.tenures.includes(fh[0]!)) && (!best || n > best.n)) best = { sites: [...sites], n };
+      if (!fhFirst) fh.forEach(place);
+      if (!vidFirst) vid.forEach(place);
+      const score = [placedFh() ? 1 : 0, sites.reduce((c, q) => c + q.tenures.filter((t) => t.kind !== 'landmark_glb_funeral_home' && !isVideo(t.kind)).length, 0), placedVid() ? 1 : 0];
+      if (!best || score[0]! > best.score[0]! || (score[0] === best.score[0] && (score[1]! > best.score[1]! || (score[1] === best.score[1] && score[2]! > best.score[2]!)))) best = { sites: [...sites], score };
     }
-    sites.length = 0;
+    sites.length = 0; videoPick = 0;
     if (best) sites.push(...best.sites);
   }
   return sites;

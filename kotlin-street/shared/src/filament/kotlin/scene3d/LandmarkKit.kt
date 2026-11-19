@@ -468,12 +468,17 @@ object LandmarkKit {
     private fun glowMask(im: PixImg, emissive: Png.Image?, factor: FloatArray?, whole: Boolean) {
         im.glow(0, 0, 0, 0, 0)
         val strong = (factor?.maxOrNull() ?: 0f) > 0f
+        // a separate glow mask (the video store's glow_mask_*.png: black except the lit faces and bulbs, whose values run
+        // 90-145) is lit wherever it is not dark (EMISSION_PANE); a copy of the base picture keeps the bright-texel rule (150)
+        val same = emissive != null && emissive.w == im.w && emissive.h == im.h
+        val mask = same && emissive!!.px.indices.any { emissive.px[it] != im.px[it] }
+        val bar = if (mask) EMISSION_PANE else 150
         for (i in im.px.indices) {
             val p = im.px[i]
             if (p ushr 24 < 128) { im.mask[i] = 0; continue }
-            val e = if (emissive != null && emissive.w == im.w && emissive.h == im.h) emissive.px[i] else p
+            val e = if (same) emissive!!.px[i] else p
             val l = ((e shr 16 and 255) * 3 + (e shr 8 and 255) * 4 + (e and 255)) / 8
-            val on = whole || (strong || emissive != null) && l > 150
+            val on = whole || (strong || emissive != null) && l > bar
             im.mask[i] = if (on) (255 shl 24) or (255 shl 16) or 255 else 0
         }
     }

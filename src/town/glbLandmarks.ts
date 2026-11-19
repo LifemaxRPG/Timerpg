@@ -22,12 +22,16 @@ export type GlbLandmarkKind =
   | 'landmark_glb_coin_laundromat'
   | 'landmark_glb_foundry_nightclub'
   | 'landmark_glb_foundry_factory'
-  | 'landmark_glb_funeral_home';
+  | 'landmark_glb_funeral_home'
+  | 'landmark_glb_reel_time_video_1984'
+  | 'landmark_glb_reel_time_video_1996'
+  | 'landmark_glb_reel_time_video_2011'
+  | 'landmark_glb_reel_time_video_2020';
 
 export interface GlbLandmarkSpec {
   name: string;
   /** The business it houses. */
-  role: 'gas_station' | 'diner' | 'bowling' | 'newspaper' | 'feed_mill' | 'nightclub' | 'drive_in' | 'water_tower' | 'motel' | 'railroad_depot' | 'laundromat' | 'factory' | 'funeral_home';
+  role: 'gas_station' | 'diner' | 'bowling' | 'newspaper' | 'feed_mill' | 'nightclub' | 'drive_in' | 'water_tower' | 'motel' | 'railroad_depot' | 'laundromat' | 'factory' | 'funeral_home' | 'video_store' | 'phone_repair';
   /** The design's years: built from..to (it may stand long after, as the simulation decides), and its sample year. */
   era: { from: number; to: number; built: number };
   /** The lot, metres: width along the street, depth back from it; the building's walls. */
@@ -73,6 +77,14 @@ export const GLB_LANDMARKS: Record<GlbLandmarkKind, GlbLandmarkSpec> = {
   // design's years 1910-35, from the seed: glbSites.ts houseBuilt, data only); before the conversion the plot is open ground
   // in the export, as the other models' plots are before they open. Its family name is painted per town (glbSites.ts FUNERAL_NAMES)
   landmark_glb_funeral_home: { name: 'Hollis & Sons Funeral Home', role: 'funeral_home', era: { from: 1935, to: 1960, built: 1948 }, lot: [26.38, 22.66], building: [21.74, 17.65] },
+  // a four-bay strip centre (built 1972-82) in four states on ONE shell, lot, origin and door layout (glbSites.ts VIDEO_STATES): the video
+  // store in its second bay (the 1984 state stands from the strip's building, until the store takes its second bay; the store opens
+  // 1980-86, data), the store with a second bay, the store closing down, and the bay reused as a phone repair shop (era = the years
+  // each state begins, drawn from the seed)
+  landmark_glb_reel_time_video_1984: { name: 'Reel Time Video', role: 'video_store', era: { from: 1972, to: 1982, built: 1981 }, lot: [36.01, 28.56], building: [32.28, 11.17] },
+  landmark_glb_reel_time_video_1996: { name: 'Reel Time Video', role: 'video_store', era: { from: 1990, to: 1997, built: 1996 }, lot: [36.01, 28.56], building: [32.28, 11.17] },
+  landmark_glb_reel_time_video_2011: { name: 'Reel Time Video', role: 'video_store', era: { from: 2008, to: 2013, built: 2011 }, lot: [36.01, 28.56], building: [32.28, 11.17] },
+  landmark_glb_reel_time_video_2020: { name: 'Cell Fix', role: 'phone_repair', era: { from: 2009, to: 2015, built: 2013 }, lot: [36.01, 28.56], building: [32.28, 11.17] },
 };
 export const GLB_LANDMARK_KINDS = Object.keys(GLB_LANDMARKS) as GlbLandmarkKind[];
 

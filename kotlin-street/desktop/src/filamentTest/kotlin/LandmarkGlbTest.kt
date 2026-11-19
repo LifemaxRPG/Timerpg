@@ -80,11 +80,62 @@ class LandmarkGlbTest {
 
     @Test fun theNewLandmarksAreInTheCatalogue() {
         for (k in listOf("gazette_office", "feed_mill", "mirage_nightclub", "pulse_nightclub", "starlight_drive_in", "water_tower", "roadside_motel", "premier_railroad_depot",
-            "coin_laundromat", "foundry_nightclub", "foundry_factory", "funeral_home"))
+            "coin_laundromat", "foundry_nightclub", "foundry_factory", "funeral_home",
+            "reel_time_video_1984", "reel_time_video_1996", "reel_time_video_2011", "reel_time_video_2020"))
             assertTrue("$k listed", specs.any { it.kind == "landmark_glb_$k" })
         // a swatch re-skin replaces the picture at the same texel size
         val club = specs.first { it.kind.endsWith("mirage_nightclub") }
         assertEquals("ballast", club.swatches["roof_membrane"])
+    }
+
+    @Test fun theVideoStoreSharesOneShellInFourStates() {
+        // the four states stand on one plot: same lot, building, origin and door nodes, each with its own boxes and signs
+        val states = listOf(1984, 1996, 2011, 2020).map { y -> specs.first { it.kind.endsWith("reel_time_video_$y") } }
+        val lms = states.map { build(it) }
+        for (lm in lms) {
+            assertEquals(lms[0].model.footprint.toList(), lm.model.footprint.toList())
+            assertEquals(lms[0].doors.map { Triple(it.name, it.x, it.z) }, lm.doors.map { Triple(it.name, it.x, it.z) })
+            assertEquals(setOf("door_main", "door_back"), lm.doors.map { it.name }.toSet())
+            assertTrue("11 materials", lm.names.size <= 12)
+        }
+        assertEquals(listOf("Reel Time Video", "Reel Time Video", "Reel Time Video", "Cell Fix"), states.map { it.name })
+        // door_main stands 0.155 m past the front edge, outside every box
+        for ((s, lm) in states.zip(lms)) {
+            val main = lm.doors.first { it.name == "door_main" }
+            assertEquals(s.kind, .1552f * U, main.z, .01f)
+        }
+        // 1996 has the curb drop box (the 1984 has none), and the shelves differ between the stocked and the closing-down store
+        assertTrue("states differ in boxes", lms.map { it.solids.size }.distinct().size >= 3)
+    }
+
+    @Test fun theVideoStoreGlowsOnlyItsSignsBulbsAndGlass() {
+        // glow_signs has a separate glow mask (black but for the lit sign faces and the walkway bulbs, values 90-145 of 255): it is lit
+        // wherever the mask is not dark, and the unlit signs and the rest of the picture stay dark (the old rule's bar of 150 lit nothing)
+        for (y in listOf(1984, 1996, 2011, 2020)) {
+            val s = specs.first { it.kind.endsWith("reel_time_video_$y") }
+            val glb = GlbFile.read(File(root, s.file).readBytes())
+            val lm = build(s)
+            val mat = glb.materials.first { it.name == "glow_signs" }
+            val base = glb.image(mat.baseImage)
+            val em = glb.image(mat.emissiveImage)
+            val g = lm.model.parts[lm.names.indexOf("glow_signs")].mesh
+            val mask = g.mask!!
+            fun lum(c: Int) = ((c shr 16 and 255) * 3 + (c shr 8 and 255) * 4 + (c and 255)) / 8
+            var want = 0; var darkLit = 0
+            for (i in em.px.indices) {
+                val lit = lum(em.px[i]) > 40 && base.px[i] ushr 24 >= 128
+                if (lit) want++
+                if (!lit && mask[i] != 0) darkLit++
+            }
+            val got = mask.count { it != 0 }
+            assertTrue("$y: signs and bulbs glow (got $got)", got > 200)
+            assertEquals("$y: exactly the mask's texels glow", want, got)
+            assertEquals("$y: nothing dark glows", 0, darkLit)
+            assertTrue("$y: only a small part of the picture glows ($got of ${mask.size})", got < mask.size / 6)
+            // the glass glows as lit panes too, but not the whole atlas's frames
+            val gl = lm.model.parts[lm.names.indexOf("glass_storefront")].mesh
+            assertTrue("$y: glass is lit", gl.mask!!.any { it != 0 })
+        }
     }
 
     @Test fun theIronworksGlowsOnlyOutside() {

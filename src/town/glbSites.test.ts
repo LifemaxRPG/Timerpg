@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { runTimeline, worldAt } from '../sim';
 import { railSite, type RailWorld } from '../world/rail';
 import { GLB_LANDMARK_KINDS, GLB_LANDMARKS, type GlbLandmarkKind } from './glbLandmarks';
-import { FUNERAL_NAMES, glbSites, glbStandingOn, glbTenures, glbUnplaced, peakPeople, premierDepot, type GlbSite } from './glbSites';
+import { FUNERAL_NAMES, VIDEO_PEOPLE, VIDEO_STATES, glbSites, glbStandingOn, glbTenures, glbUnplaced, peakPeople, premierDepot, type GlbSite } from './glbSites';
 import { planTown } from './plan';
 import { townRail, type TownRail } from './rail';
 import type { Rect } from './kinds';
@@ -165,6 +165,69 @@ describe('hand-made landmark models in the towns', () => {
       for (let y = t.opened; y <= 2025; y++) expect(glbStandingOn(site, y)?.state, `${seed} ${y}`).toBe('open');
     }
     expect(placed).toBeGreaterThanOrEqual(2);
+  }, 120000);
+
+  it('put the strip centre on one plot through its four states, in date order, in a town of 2,500 and more', () => {
+    let placed = 0;
+    for (const seed of [...SEEDS, 'theta', 'kappa', 'beta', 'zeta']) {
+      const ts = glbTenures(seed).filter((t) => VIDEO_STATES.includes(t.kind));
+      expect(ts.length, seed).toBe(peakPeople(seed) >= VIDEO_PEOPLE ? 4 : 0);
+      if (!ts.length) continue;
+      // the four states in date order, each ending where the next begins: no gap and no overlap
+      expect(ts.map((t) => t.kind), seed).toEqual([...VIDEO_STATES]);
+      for (let i = 0; i < 4; i++) {
+        expect(ts[i]!.opened, `${seed} state ${i} in its era`).toBeGreaterThanOrEqual(GLB_LANDMARKS[ts[i]!.kind].era.from);
+        expect(ts[i]!.opened).toBeLessThanOrEqual(GLB_LANDMARKS[ts[i]!.kind].era.to);
+        if (i < 3) expect(ts[i]!.gone, `${seed} state ${i} ends as the next begins`).toBe(ts[i + 1]!.opened);
+        else expect(ts[i]!.gone, 'the last state stands to the present').toBeUndefined();
+      }
+      const [a, b, c, d] = ts as [typeof ts[0], typeof ts[0], typeof ts[0], typeof ts[0]];
+      // the strip is built 1972-82, the store opens 1980-86 (never before the strip), takes its second bay 1990-97, closes down
+      // 2008-13 for a year or two, and the bay is reused from 2009-15
+      expect(a!.opened).toBeGreaterThanOrEqual(1972); expect(a!.opened).toBeLessThanOrEqual(1982);
+      expect(a!.shopOpened!).toBeGreaterThanOrEqual(Math.max(1980, a!.opened)); expect(a!.shopOpened!).toBeLessThanOrEqual(1986);
+      expect(b!.opened).toBeGreaterThanOrEqual(Math.max(1990, a!.shopOpened! + 4)); expect(b!.opened).toBeLessThanOrEqual(1997);
+      expect(c!.opened).toBeGreaterThanOrEqual(2008); expect(c!.opened).toBeLessThanOrEqual(2013);
+      expect(d!.opened - c!.opened, `${seed} closing down for a year or two`).toBeGreaterThanOrEqual(1);
+      expect(d!.opened - c!.opened).toBeLessThanOrEqual(2);
+      expect(d!.name).toBe('Cell Fix');
+      for (const t of [a!, b!, c!]) expect(t.name).toBe('Reel Time Video');
+      expect(JSON.stringify(glbTenures(seed))).toBe(JSON.stringify(glbTenures(seed)));
+    }
+    // placed: all four on ONE plot, the 1984 state before the store opens, each state in its years, never two at once
+    for (const seed of SEEDS) {
+      const { sites } = town(seed);
+      const site = sites.find((s) => s.tenures.some((t) => VIDEO_STATES.includes(t.kind)));
+      if (!site) continue;
+      placed++;
+      expect(site.tenures.map((t) => t.kind), `${seed}: one plot, four states`).toEqual([...VIDEO_STATES]);
+      expect(site.lotType).toBe('highway');
+      expect(sites.filter((s) => s.tenures.some((t) => VIDEO_STATES.includes(t.kind))).length, `${seed} one site`).toBe(1);
+      const t0 = site.tenures[0]!;
+      expect(glbStandingOn(site, t0.opened - 1), `${seed} open ground before the strip is built`).toBeUndefined();
+      for (let y = t0.opened; y <= 2025; y++) {
+        const st = glbStandingOn(site, y)!;
+        expect(st, `${seed} ${y}`).toBeDefined();
+        const want = VIDEO_STATES.filter((k) => site.tenures.find((t) => t.kind === k)!.opened <= y).pop();
+        expect(st.tenure.kind, `${seed} ${y}`).toBe(want);
+        expect(st.state).toBe('open');
+      }
+      // before the store opens the 1984 state stands
+      expect(glbStandingOn(site, Math.max(t0.opened, t0.shopOpened! - 1))?.tenure.kind).toBe(VIDEO_STATES[0]);
+      // its own plot, not beside a coin laundry's (the strip's neighbour bay is a laundry)
+      for (const o of sites) if (o.tenures.some((t) => t.kind === 'landmark_glb_coin_laundromat')) expect(hit(site.rect, o.rect, 10), `${seed} beside the coin laundry`).toBe(false);
+    }
+    // it appears in some seed, and in gamma
+    expect(placed).toBeGreaterThanOrEqual(2);
+    expect(town('gamma').sites.some((s) => s.tenures.some((t) => t.kind === VIDEO_STATES[0]))).toBe(true);
+  }, 120000);
+
+  it('do not let the strip centre cost another model its plot (gamma gets the feed mill back)', () => {
+    const gone = (seed: string): string[] => glbUnplaced(seed, town(seed).sites).filter((k) => !VIDEO_STATES.includes(k));
+    // gamma: the motel and the bowling alley are what its east strip cannot hold with the strip centre; the feed mill is placed
+    expect(gone('gamma')).toEqual(['landmark_glb_roadside_motel', 'landmark_glb_starling_lanes']);
+    expect(town('gamma').sites.some((s) => s.tenures.some((t) => t.kind === 'landmark_glb_feed_mill'))).toBe(true);
+    for (const seed of ['mu', 'quartz', 'orbit']) expect(gone(seed).length, seed).toBeLessThanOrEqual(3);
   }, 120000);
 
   it('put the hand-made depot on its track in a town of 3,000 and more', () => {

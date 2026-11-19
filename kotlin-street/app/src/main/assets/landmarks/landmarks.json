@@ -170,6 +170,46 @@
       "info": "funeral-home/model-info.json",
       "era": {"from": 1935, "to": 1960, "built": 1948},
       "footprint": {"lot": [26.38, 22.66], "building": [21.74, 17.65]}
+    },
+    {
+      "kind": "landmark_glb_reel_time_video_1984",
+      "name": "Reel Time Video",
+      "role": "video_store",
+      "room": "hall",
+      "file": "reel-time-video/reel-time-video-1984.glb",
+      "info": "reel-time-video/model-info-1984.json",
+      "era": {"from": 1972, "to": 1982, "built": 1981},
+      "footprint": {"lot": [36.01, 28.56], "building": [32.28, 11.17]}
+    },
+    {
+      "kind": "landmark_glb_reel_time_video_1996",
+      "name": "Reel Time Video",
+      "role": "video_store",
+      "room": "hall",
+      "file": "reel-time-video/reel-time-video-1996.glb",
+      "info": "reel-time-video/model-info-1996.json",
+      "era": {"from": 1990, "to": 1997, "built": 1996},
+      "footprint": {"lot": [36.01, 28.56], "building": [32.28, 11.17]}
+    },
+    {
+      "kind": "landmark_glb_reel_time_video_2011",
+      "name": "Reel Time Video",
+      "role": "video_store",
+      "room": "hall",
+      "file": "reel-time-video/reel-time-video-2011.glb",
+      "info": "reel-time-video/model-info-2011.json",
+      "era": {"from": 2008, "to": 2013, "built": 2011},
+      "footprint": {"lot": [36.01, 28.56], "building": [32.28, 11.17]}
+    },
+    {
+      "kind": "landmark_glb_reel_time_video_2020",
+      "name": "Cell Fix",
+      "role": "phone_repair",
+      "room": "hall",
+      "file": "reel-time-video/reel-time-video-2020.glb",
+      "info": "reel-time-video/model-info-2020.json",
+      "era": {"from": 2009, "to": 2015, "built": 2013},
+      "footprint": {"lot": [36.01, 28.56], "building": [32.28, 11.17]}
     }
   ]
 }

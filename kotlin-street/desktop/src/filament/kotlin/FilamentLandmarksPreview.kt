@@ -96,13 +96,17 @@ fun renderLandmarks(out: String) {
             "above" to Triple(floatArrayOf(cxm - span * .1f, span * 1.25f + 400f, czw - span * .45f - 150f), floatArrayOf(cxm, 0f, czw), 52f),
             // a person's eyes (1.6 m) some 7 m out from the main door, a little to one side, looking at it
             "person" to personEye(lm, door, dx, dz),
+            // the strip centre's storefront: a person's eyes (1.6 m) 13.5 m out in the car park, looking along the two bays of the store
+            "store" to Triple(floatArrayOf(dx + .85f * U, 1.6f * U, dz - 13.5f * U), floatArrayOf(dx + .85f * U, 2.2f * U, dz), 68f),
         )
-        val hours = listOf(13f to listOf("front", "quarter", "behind", "above", "person"), 19.3f to listOf("front", "quarter", "person"), 22.5f to listOf("front", "quarter", "person"))
+        val strip = spec.kind.contains("reel_time_video")
+        val hours = listOf(13f to listOf("front", "quarter", "behind", "above", "person") + (if (strip) listOf("store") else emptyList()), 19.3f to listOf("front", "quarter", "person"),
+            22.5f to listOf("front", "quarter", "person") + (if (strip) listOf("store") else emptyList()))
         for ((hour, names) in hours) for (sn in names) {
             val (eye, look, fov) = shots.first { it.first == sn }.second
             // the people face the camera: one at the main door, one by the lot's front corner
             val faces = PropLayer(engine, stage.scene, lit, proxy, anisotropy = 1f)
-            if (people.isNotEmpty()) {
+            if (people.isNotEmpty() && sn != "store") {
                 val spots = listOf(floatArrayOf(dx - 70f, dz - 40f), floatArrayOf(fp[0] + 120f, -20f))
                 for ((k, s) in spots.withIndex()) {
                     val turn = atan2(eye[0] - s[0], -(eye[2] - s[1]))

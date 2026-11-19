@@ -1,0 +1,619 @@
+{
+  "name": "Reel Time Video",
+  "kind": "landmark_glb_reel_time_video",
+  "role": "video_store",
+  "room": "hall",
+  "built_year": 1981,
+  "era": {
+    "from": 1982,
+    "to": 2030,
+    "built": 1981
+  },
+  "texel_size_m": 0.0388,
+  "art_pixel_m": 0.0776,
+  "footprint_m": {
+    "lot_width": 36.0064,
+    "lot_depth": 28.5568,
+    "building_width": 32.2816,
+    "building_depth": 11.1744,
+    "canopy_depth": 2.4832,
+    "parapet_front_height": 4.5008,
+    "parapet_rear_height": 4.0352,
+    "max_height": 4.9664
+  },
+  "doors": {
+    "door_main": {
+      "translation_gltf": [
+        -0.8536,
+        0.0,
+        0.1552
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    },
+    "door_back": {
+      "translation_gltf": [
+        -0.8536,
+        0.0,
+        -11.3296
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ]
+    }
+  },
+  "swatches_used": [
+    {
+      "id": "block_courses",
+      "size": [
+        48,
+        48
+      ],
+      "role": "Split-face concrete block side, rear, and lower storefront bulkhead walls"
+    },
+    {
+      "id": "ballast",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Tar-and-gravel flat roof deck"
+    },
+    {
+      "id": "roof_membrane_grey",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Roof parapet flashing, metal coping, and covered walkway soffit"
+    },
+    {
+      "id": "asphalt_worn",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Front 12-space parking lot and rear service lane asphalt"
+    },
+    {
+      "id": "pavement",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Covered front sidewalk, rear dumpster pad, and clean interior floor shell"
+    },
+    {
+      "id": "plank_horizontal",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Store rental shelving wood and rear timber trash-enclosure gate"
+    }
+  ],
+  "state": {
+    "id": "2011",
+    "year": 2011,
+    "title": "Reel Time Video \u2014 Store Closing (2011)",
+    "file": "reel-time-video-2011.glb",
+    "era": {
+      "from": 2007,
+      "to": 2016,
+      "built": 1981
+    },
+    "summary": "Liquidation state: unlit sun-faded fascia sign, yellow/red STORE CLOSING and EVERYTHING MUST GO window paper posters, taped-shut curb drop box, and half-empty shelves visible through the glass.",
+    "triangles": {
+      "visible": 1332,
+      "collision": 312,
+      "by_node": {
+        "structure": 964,
+        "lot": 60,
+        "parking_lot": 146,
+        "rear_service": 140,
+        "curb_props": 22,
+        "collision": 312
+      }
+    }
+  },
+  "glb": "reel-time-video-2011.glb",
+  "materials": [
+    {
+      "name": "wall_block",
+      "file": "block_courses.png",
+      "emissive_file": null,
+      "size": [
+        48,
+        48
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    },
+    {
+      "name": "wall_stucco",
+      "file": "stucco_fascia.png",
+      "emissive_file": null,
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    },
+    {
+      "name": "roof_gravel",
+      "file": "ballast.png",
+      "emissive_file": null,
+      "size": [
+        32,
+        32
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    },
+    {
+      "name": "roof_cap",
+      "file": "roof_membrane_grey.png",
+      "emissive_file": null,
+      "size": [
+        32,
+        32
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    },
+    {
+      "name": "ground_asphalt",
+      "file": "asphalt_worn.png",
+      "emissive_file": null,
+      "size": [
+        32,
+        32
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    },
+    {
+      "name": "ground_pavement",
+      "file": "pavement.png",
+      "emissive_file": null,
+      "size": [
+        32,
+        32
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    },
+    {
+      "name": "wood_shelf",
+      "file": "plank_horizontal.png",
+      "emissive_file": null,
+      "size": [
+        32,
+        32
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    },
+    {
+      "name": "glass_storefront",
+      "file": "glass_2011.png",
+      "emissive_file": null,
+      "size": [
+        512,
+        256
+      ],
+      "alpha": "BLEND",
+      "emissive": false
+    },
+    {
+      "name": "sign_fascia",
+      "file": "signs_2011.png",
+      "emissive_file": null,
+      "size": [
+        512,
+        256
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    },
+    {
+      "name": "glow_signs",
+      "file": "glow_base_2011.png",
+      "emissive_file": "glow_mask_2011.png",
+      "size": [
+        512,
+        128
+      ],
+      "alpha": "OPAQUE",
+      "emissive": true
+    },
+    {
+      "name": "detail_utility",
+      "file": "utility.png",
+      "emissive_file": null,
+      "size": [
+        256,
+        256
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    }
+  ],
+  "collision": {
+    "coordinate_note": "Full-height boxes from ground y=0 to top, Blender Z-up convention (x, y_blender=-z_gltf, z_blender=y_gltf)",
+    "boxes_blender_z_up": [
+      {
+        "source": "curbside_vhs_drop_box",
+        "center": [
+          1.0864,
+          -1.94,
+          0.9894
+        ],
+        "size": [
+          1.3968,
+          0.9312,
+          1.9788
+        ],
+        "height_top_m": 1.9788
+      },
+      {
+        "source": "rear_dumpster_enclosure",
+        "center": [
+          -12.804,
+          14.6664,
+          0.8536
+        ],
+        "size": [
+          5.1216,
+          2.6384,
+          1.7072
+        ],
+        "height_top_m": 1.7072
+      },
+      {
+        "source": "rear_grease_trap",
+        "center": [
+          10.2432,
+          13.58,
+          0.2018
+        ],
+        "size": [
+          2.1728,
+          1.7072,
+          0.4035
+        ],
+        "height_top_m": 0.4035
+      },
+      {
+        "source": "interior_center_support_column",
+        "center": [
+          0.0,
+          5.5096,
+          1.6296
+        ],
+        "size": [
+          0.3104,
+          0.4656,
+          3.2592
+        ],
+        "height_top_m": 3.2592
+      },
+      {
+        "source": "store_checkout_counter",
+        "center": [
+          -5.5096,
+          2.4056,
+          0.5432
+        ],
+        "size": [
+          3.5696,
+          0.776,
+          1.0864
+        ],
+        "height_top_m": 1.0864
+      },
+      {
+        "source": "closing_shelf_unit_1",
+        "center": [
+          -6.1304,
+          4.5008,
+          0.776
+        ],
+        "size": [
+          2.328,
+          0.6208,
+          1.552
+        ],
+        "height_top_m": 1.552
+      },
+      {
+        "source": "closing_shelf_unit_2",
+        "center": [
+          -3.9576,
+          4.5008,
+          0.776
+        ],
+        "size": [
+          2.0176,
+          0.6208,
+          1.552
+        ],
+        "height_top_m": 1.552
+      },
+      {
+        "source": "closing_shelf_unit_3",
+        "center": [
+          -5.044,
+          7.4496,
+          0.776
+        ],
+        "size": [
+          3.2592,
+          0.6208,
+          1.552
+        ],
+        "height_top_m": 1.552
+      },
+      {
+        "source": "closing_shelf_unit_4",
+        "center": [
+          2.9488,
+          4.3456,
+          0.776
+        ],
+        "size": [
+          2.4832,
+          0.6208,
+          1.552
+        ],
+        "height_top_m": 1.552
+      },
+      {
+        "source": "closing_shelf_unit_5",
+        "center": [
+          5.2768,
+          4.3456,
+          0.776
+        ],
+        "size": [
+          2.1728,
+          0.6208,
+          1.552
+        ],
+        "height_top_m": 1.552
+      },
+      {
+        "source": "closing_shelf_unit_6",
+        "center": [
+          3.88,
+          7.4496,
+          0.776
+        ],
+        "size": [
+          3.7248,
+          0.6208,
+          1.552
+        ],
+        "height_top_m": 1.552
+      },
+      {
+        "source": "front_wall_west_full_height",
+        "center": [
+          -8.924,
+          0.1552,
+          2.2504
+        ],
+        "size": [
+          14.4336,
+          0.3104,
+          4.5008
+        ],
+        "height_top_m": 4.5008
+      },
+      {
+        "source": "door_main_gate",
+        "center": [
+          -0.8536,
+          0.1552,
+          1.2416
+        ],
+        "size": [
+          1.7072,
+          0.3104,
+          2.4832
+        ],
+        "height_top_m": 2.4832,
+        "gate_node": "door_main"
+      },
+      {
+        "source": "front_wall_east_full_height",
+        "center": [
+          8.0704,
+          0.1552,
+          2.2504
+        ],
+        "size": [
+          16.1408,
+          0.3104,
+          4.5008
+        ],
+        "height_top_m": 4.5008
+      },
+      {
+        "source": "west_wall_full_height",
+        "center": [
+          -15.9856,
+          5.7424,
+          2.0176
+        ],
+        "size": [
+          0.3104,
+          10.864,
+          4.0352
+        ],
+        "height_top_m": 4.0352
+      },
+      {
+        "source": "east_wall_full_height",
+        "center": [
+          15.9856,
+          5.7424,
+          2.0176
+        ],
+        "size": [
+          0.3104,
+          10.864,
+          4.0352
+        ],
+        "height_top_m": 4.0352
+      },
+      {
+        "source": "rear_wall_west_full_height",
+        "center": [
+          -8.6524,
+          11.0192,
+          2.0176
+        ],
+        "size": [
+          14.356,
+          0.3104,
+          4.0352
+        ],
+        "height_top_m": 4.0352
+      },
+      {
+        "source": "door_back_gate",
+        "center": [
+          -0.8536,
+          11.0192,
+          1.164
+        ],
+        "size": [
+          1.2416,
+          0.3104,
+          2.328
+        ],
+        "height_top_m": 2.328,
+        "gate_node": "door_back"
+      },
+      {
+        "source": "rear_wall_east_full_height",
+        "center": [
+          7.7988,
+          11.0192,
+          2.0176
+        ],
+        "size": [
+          16.0632,
+          0.3104,
+          4.0352
+        ],
+        "height_top_m": 4.0352
+      },
+      {
+        "source": "interior_demising_wall_bay1",
+        "center": [
+          -8.0704,
+          5.5872,
+          1.6296
+        ],
+        "size": [
+          0.3104,
+          10.5536,
+          3.2592
+        ],
+        "height_top_m": 3.2592
+      },
+      {
+        "source": "interior_demising_wall_bay4",
+        "center": [
+          8.0704,
+          5.5872,
+          1.6296
+        ],
+        "size": [
+          0.3104,
+          10.5536,
+          3.2592
+        ],
+        "height_top_m": 3.2592
+      },
+      {
+        "source": "walkway_column_1",
+        "center": [
+          -15.8304,
+          -2.1728,
+          2.2504
+        ],
+        "size": [
+          0.3104,
+          0.3104,
+          4.5008
+        ],
+        "height_top_m": 4.5008
+      },
+      {
+        "source": "walkway_column_2",
+        "center": [
+          -8.0704,
+          -2.1728,
+          2.2504
+        ],
+        "size": [
+          0.3104,
+          0.3104,
+          4.5008
+        ],
+        "height_top_m": 4.5008
+      },
+      {
+        "source": "walkway_column_3",
+        "center": [
+          0.0,
+          -2.1728,
+          2.2504
+        ],
+        "size": [
+          0.3104,
+          0.3104,
+          4.5008
+        ],
+        "height_top_m": 4.5008
+      },
+      {
+        "source": "walkway_column_4",
+        "center": [
+          8.0704,
+          -2.1728,
+          2.2504
+        ],
+        "size": [
+          0.3104,
+          0.3104,
+          4.5008
+        ],
+        "height_top_m": 4.5008
+      },
+      {
+        "source": "walkway_column_5",
+        "center": [
+          15.8304,
+          -2.1728,
+          2.2504
+        ],
+        "size": [
+          0.3104,
+          0.3104,
+          4.5008
+        ],
+        "height_top_m": 4.5008
+      }
+    ]
+  }
+}

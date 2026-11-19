@@ -1,0 +1,642 @@
+{
+  "shared_swatches": [
+    {
+      "id": "block_courses",
+      "size": [
+        48,
+        48
+      ],
+      "role": "Split-face concrete block side, rear, and lower storefront bulkhead walls"
+    },
+    {
+      "id": "ballast",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Tar-and-gravel flat roof deck"
+    },
+    {
+      "id": "roof_membrane_grey",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Roof parapet flashing, metal coping, and covered walkway soffit"
+    },
+    {
+      "id": "asphalt_worn",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Front 12-space parking lot and rear service lane asphalt"
+    },
+    {
+      "id": "pavement",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Covered front sidewalk, rear dumpster pad, and clean interior floor shell"
+    },
+    {
+      "id": "plank_horizontal",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Store rental shelving wood and rear timber trash-enclosure gate"
+    }
+  ],
+  "regions": {
+    "utility": {
+      "galvanized_metal": {
+        "sheet": "utility.png",
+        "rect_art": [
+          0,
+          0,
+          64,
+          64
+        ]
+      },
+      "dumpster_green": {
+        "sheet": "utility.png",
+        "rect_art": [
+          64,
+          0,
+          64,
+          64
+        ]
+      },
+      "vhs_shelves": {
+        "sheet": "utility.png",
+        "rect_art": [
+          0,
+          64,
+          64,
+          64
+        ]
+      },
+      "lot_paint": {
+        "sheet": "utility.png",
+        "rect_art": [
+          64,
+          64,
+          64,
+          64
+        ]
+      }
+    },
+    "states": {
+      "1984": {
+        "bay1_win": {
+          "sheet": "glass_1984.png",
+          "rect_art": [
+            0,
+            0,
+            88,
+            30
+          ]
+        },
+        "bay4_win": {
+          "sheet": "glass_1984.png",
+          "rect_art": [
+            90,
+            0,
+            88,
+            30
+          ]
+        },
+        "hero_door": {
+          "sheet": "glass_1984.png",
+          "rect_art": [
+            184,
+            0,
+            22,
+            30
+          ]
+        },
+        "bay2_glass": {
+          "sheet": "glass_1984.png",
+          "rect_art": [
+            0,
+            36,
+            68,
+            30
+          ]
+        },
+        "bay3_glass": {
+          "sheet": "glass_1984.png",
+          "rect_art": [
+            74,
+            36,
+            88,
+            30
+          ]
+        },
+        "bay1_sign": {
+          "sheet": "glow_base_1984.png",
+          "rect_art": [
+            0,
+            0,
+            76,
+            11
+          ]
+        },
+        "bay4_sign": {
+          "sheet": "glow_base_1984.png",
+          "rect_art": [
+            80,
+            0,
+            64,
+            11
+          ]
+        },
+        "soffit_lamp": {
+          "sheet": "glow_base_1984.png",
+          "rect_art": [
+            148,
+            0,
+            6,
+            4
+          ]
+        },
+        "hero_sign_1984": {
+          "sheet": "glow_base_1984.png",
+          "rect_art": [
+            0,
+            18,
+            96,
+            12
+          ]
+        },
+        "hero_sign_1996": {
+          "sheet": "glow_base_1984.png",
+          "rect_art": [
+            0,
+            38,
+            110,
+            12
+          ]
+        },
+        "hero_sign_2011_faded": {
+          "sheet": "signs_1984.png",
+          "rect_art": [
+            0,
+            0,
+            110,
+            12
+          ]
+        },
+        "fascia_ghost_2020": {
+          "sheet": "signs_1984.png",
+          "rect_art": [
+            0,
+            20,
+            110,
+            12
+          ]
+        },
+        "banner_2020": {
+          "sheet": "signs_1984.png",
+          "rect_art": [
+            116,
+            20,
+            68,
+            12
+          ]
+        },
+        "vhs_return_slot": {
+          "sheet": "signs_1984.png",
+          "rect_art": [
+            0,
+            42,
+            14,
+            16
+          ]
+        },
+        "dropbox_front": {
+          "sheet": "signs_1984.png",
+          "rect_art": [
+            18,
+            42,
+            16,
+            22
+          ]
+        }
+      },
+      "1996": {
+        "bay1_win": {
+          "sheet": "glass_1996.png",
+          "rect_art": [
+            0,
+            0,
+            88,
+            30
+          ]
+        },
+        "bay4_win": {
+          "sheet": "glass_1996.png",
+          "rect_art": [
+            90,
+            0,
+            88,
+            30
+          ]
+        },
+        "hero_door": {
+          "sheet": "glass_1996.png",
+          "rect_art": [
+            184,
+            0,
+            22,
+            30
+          ]
+        },
+        "bay2_glass": {
+          "sheet": "glass_1996.png",
+          "rect_art": [
+            0,
+            36,
+            68,
+            30
+          ]
+        },
+        "bay3_glass": {
+          "sheet": "glass_1996.png",
+          "rect_art": [
+            74,
+            36,
+            88,
+            30
+          ]
+        },
+        "bay1_sign": {
+          "sheet": "glow_base_1996.png",
+          "rect_art": [
+            0,
+            0,
+            76,
+            11
+          ]
+        },
+        "bay4_sign": {
+          "sheet": "glow_base_1996.png",
+          "rect_art": [
+            80,
+            0,
+            64,
+            11
+          ]
+        },
+        "soffit_lamp": {
+          "sheet": "glow_base_1996.png",
+          "rect_art": [
+            148,
+            0,
+            6,
+            4
+          ]
+        },
+        "hero_sign_1984": {
+          "sheet": "glow_base_1996.png",
+          "rect_art": [
+            0,
+            18,
+            96,
+            12
+          ]
+        },
+        "hero_sign_1996": {
+          "sheet": "glow_base_1996.png",
+          "rect_art": [
+            0,
+            38,
+            110,
+            12
+          ]
+        },
+        "hero_sign_2011_faded": {
+          "sheet": "signs_1996.png",
+          "rect_art": [
+            0,
+            0,
+            110,
+            12
+          ]
+        },
+        "fascia_ghost_2020": {
+          "sheet": "signs_1996.png",
+          "rect_art": [
+            0,
+            20,
+            110,
+            12
+          ]
+        },
+        "banner_2020": {
+          "sheet": "signs_1996.png",
+          "rect_art": [
+            116,
+            20,
+            68,
+            12
+          ]
+        },
+        "vhs_return_slot": {
+          "sheet": "signs_1996.png",
+          "rect_art": [
+            0,
+            42,
+            14,
+            16
+          ]
+        },
+        "dropbox_front": {
+          "sheet": "signs_1996.png",
+          "rect_art": [
+            18,
+            42,
+            16,
+            22
+          ]
+        }
+      },
+      "2011": {
+        "bay1_win": {
+          "sheet": "glass_2011.png",
+          "rect_art": [
+            0,
+            0,
+            88,
+            30
+          ]
+        },
+        "bay4_win": {
+          "sheet": "glass_2011.png",
+          "rect_art": [
+            90,
+            0,
+            88,
+            30
+          ]
+        },
+        "hero_door": {
+          "sheet": "glass_2011.png",
+          "rect_art": [
+            184,
+            0,
+            22,
+            30
+          ]
+        },
+        "bay2_glass": {
+          "sheet": "glass_2011.png",
+          "rect_art": [
+            0,
+            36,
+            68,
+            30
+          ]
+        },
+        "bay3_glass": {
+          "sheet": "glass_2011.png",
+          "rect_art": [
+            74,
+            36,
+            88,
+            30
+          ]
+        },
+        "bay1_sign": {
+          "sheet": "glow_base_2011.png",
+          "rect_art": [
+            0,
+            0,
+            76,
+            11
+          ]
+        },
+        "bay4_sign": {
+          "sheet": "glow_base_2011.png",
+          "rect_art": [
+            80,
+            0,
+            64,
+            11
+          ]
+        },
+        "soffit_lamp": {
+          "sheet": "glow_base_2011.png",
+          "rect_art": [
+            148,
+            0,
+            6,
+            4
+          ]
+        },
+        "hero_sign_1984": {
+          "sheet": "glow_base_2011.png",
+          "rect_art": [
+            0,
+            18,
+            96,
+            12
+          ]
+        },
+        "hero_sign_1996": {
+          "sheet": "glow_base_2011.png",
+          "rect_art": [
+            0,
+            38,
+            110,
+            12
+          ]
+        },
+        "hero_sign_2011_faded": {
+          "sheet": "signs_2011.png",
+          "rect_art": [
+            0,
+            0,
+            110,
+            12
+          ]
+        },
+        "fascia_ghost_2020": {
+          "sheet": "signs_2011.png",
+          "rect_art": [
+            0,
+            20,
+            110,
+            12
+          ]
+        },
+        "banner_2020": {
+          "sheet": "signs_2011.png",
+          "rect_art": [
+            116,
+            20,
+            68,
+            12
+          ]
+        },
+        "vhs_return_slot": {
+          "sheet": "signs_2011.png",
+          "rect_art": [
+            0,
+            42,
+            14,
+            16
+          ]
+        },
+        "dropbox_front": {
+          "sheet": "signs_2011.png",
+          "rect_art": [
+            18,
+            42,
+            16,
+            22
+          ]
+        }
+      },
+      "2020": {
+        "bay1_win": {
+          "sheet": "glass_2020.png",
+          "rect_art": [
+            0,
+            0,
+            88,
+            30
+          ]
+        },
+        "bay4_win": {
+          "sheet": "glass_2020.png",
+          "rect_art": [
+            90,
+            0,
+            88,
+            30
+          ]
+        },
+        "hero_door": {
+          "sheet": "glass_2020.png",
+          "rect_art": [
+            184,
+            0,
+            22,
+            30
+          ]
+        },
+        "bay2_glass": {
+          "sheet": "glass_2020.png",
+          "rect_art": [
+            0,
+            36,
+            68,
+            30
+          ]
+        },
+        "bay3_glass": {
+          "sheet": "glass_2020.png",
+          "rect_art": [
+            74,
+            36,
+            88,
+            30
+          ]
+        },
+        "bay1_sign": {
+          "sheet": "glow_base_2020.png",
+          "rect_art": [
+            0,
+            0,
+            76,
+            11
+          ]
+        },
+        "bay4_sign": {
+          "sheet": "glow_base_2020.png",
+          "rect_art": [
+            80,
+            0,
+            64,
+            11
+          ]
+        },
+        "soffit_lamp": {
+          "sheet": "glow_base_2020.png",
+          "rect_art": [
+            148,
+            0,
+            6,
+            4
+          ]
+        },
+        "hero_sign_1984": {
+          "sheet": "glow_base_2020.png",
+          "rect_art": [
+            0,
+            18,
+            96,
+            12
+          ]
+        },
+        "hero_sign_1996": {
+          "sheet": "glow_base_2020.png",
+          "rect_art": [
+            0,
+            38,
+            110,
+            12
+          ]
+        },
+        "hero_sign_2011_faded": {
+          "sheet": "signs_2020.png",
+          "rect_art": [
+            0,
+            0,
+            110,
+            12
+          ]
+        },
+        "fascia_ghost_2020": {
+          "sheet": "signs_2020.png",
+          "rect_art": [
+            0,
+            20,
+            110,
+            12
+          ]
+        },
+        "banner_2020": {
+          "sheet": "signs_2020.png",
+          "rect_art": [
+            116,
+            20,
+            68,
+            12
+          ]
+        },
+        "vhs_return_slot": {
+          "sheet": "signs_2020.png",
+          "rect_art": [
+            0,
+            42,
+            14,
+            16
+          ]
+        },
+        "dropbox_front": {
+          "sheet": "signs_2020.png",
+          "rect_art": [
+            18,
+            42,
+            16,
+            22
+          ]
+        }
+      }
+    }
+  }
+}
