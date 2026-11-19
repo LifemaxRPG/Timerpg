@@ -202,6 +202,29 @@
           17.38
         ]
       }
+    },
+    {
+      "kind": "landmark_glb_foundry_nightclub",
+      "name": "The Foundry",
+      "role": "nightclub",
+      "room": "hall",
+      "file": "foundry-nightclub/foundry-nightclub.glb",
+      "info": "foundry-nightclub/model-info.json",
+      "era": {
+        "from": 2016,
+        "to": 2040,
+        "built": 2024
+      },
+      "footprint": {
+        "lot": [
+          28.56,
+          29.8
+        ],
+        "building": [
+          19.87,
+          18.0
+        ]
+      }
     }
   ]
 }
