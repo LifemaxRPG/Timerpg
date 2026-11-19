@@ -739,9 +739,12 @@ and built over (a field farmed in 1955 is houses by 2025).
 - Measured on the build server, software GL (estimates, not the S25): the farms are 28 farms, 50 fields, 372 models;
   triangles: ground 33k, soil and canopy 15k, crop cards 375k, models 467k (all of them, before culling). Open-world views
   at a farm: 240-320 draws, 104k-127k triangles; at a field's gate 94-128 draws, 103k-186k triangles; the whole farmland from
-  high up (a free camera, nothing culled by range) 10.9k draws, 1.5M triangles. townMemoryCheck (cold start, phone heap):
-  held 200 MB at the peak (186 without the farms) of 256; GPU estimate textures 521 MB (439 without); first view 5.0 s
-  (4.0 s without: the bigger world's ground and woods), the rest of the town and the farms 0.9 s after.
+  high up (a free camera, nothing culled by range) 10.9k draws, 1.5M triangles. townMemoryCheck (cold start, phone heap),
+  after the merge with wf-downtown, the build server loaded (load average 15 on 4 cores): held 213 MB at the peak (202
+  without the farms) of 256; GPU estimate textures 594 MB (512 without); first view 11.6 s (10.0 s without: the bigger
+  world's ground and woods; the farms themselves wait for the ground). Before the merge, an idle server: 200 MB (186),
+  textures 521 MB (439), first view 5.0 s (4.0 s). The farms' first uploads (each model's atlas the first time) still
+  cost frames of 50-130 ms on software GL while walking after the first view: measure on the S25.
 - Tests: vitest `src/town/farms.test.ts` (determinism, farms outside everything the town will build, fields clear of
   streets, landmarks, water, roads, yards and each other, gates on the edge, crops, fields by year: never under anything
   built, fewer in 2025 than 1955, a field farmed in 1955 houses by 2025, a road run in along an unbuilt street),
