@@ -68,6 +68,8 @@ internal class YardLayer(engine: Engine, scene: Scene, visible: Material, proxy:
 object YardKitBuilder : YardBuilder {
     /** Also bake each lot's far version (for the open world's distance); off, the town holds only the near ones. */
     @Volatile var far = System.getProperty("townLod") != "0"
+    /** How far an open gate's leaf may reach past its lot's items (a patch's circle is that much wider). */
+    const val GATE_SWING = 20f
 
     override fun build(town: com.lifemax.rpg.feature.habits.domain.Town, yards: com.lifemax.rpg.feature.habits.domain.TownYards, sink: YardSink) {
         fun item(i: com.lifemax.rpg.feature.habits.domain.TownYardItem) =
@@ -80,7 +82,9 @@ object YardKitBuilder : YardBuilder {
             val p = y.parcel
             var x0 = p[0]; var z0 = p[1]; var x1 = p[2]; var z1 = p[3]
             for (i in y.items) { x0 = minOf(x0, i.rect[0]); z0 = minOf(z0, i.rect[1]); x1 = maxOf(x1, i.rect[2]); z1 = maxOf(z1, i.rect[3]) }
-            work += y.items.map(::item) to YardPatch(y.lot, (x0 + x1) / 2f, (z0 + z1) / 2f, kotlin.math.hypot(x1 - x0, z1 - z0) / 2f, y.sprite)
+            // (a gate is drawn open, its leaves swung through 90 degrees on their hinges: a back gate's can reach past the lot)
+            val swing = if (y.items.any { it.kind == "gate" || it.kind == "sideGate" || it.kind == "backGate" }) GATE_SWING else 0f
+            work += y.items.map(::item) to YardPatch(y.lot, (x0 + x1) / 2f, (z0 + z1) / 2f, kotlin.math.hypot(x1 - x0, z1 - z0) / 2f + swing, y.sprite)
         }
         for (l in yards.lanes) {
             if (l.items.isEmpty()) continue

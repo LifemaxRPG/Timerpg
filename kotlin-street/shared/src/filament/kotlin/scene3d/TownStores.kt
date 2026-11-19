@@ -137,7 +137,8 @@ internal class TownStore(
                 val sm = StoreKit.buildWithSite(inf, cars = false)
                 val m = sm.model
                 val doors = StoreShapes.entrances(sm, inf)
-                val (bodyM, siteM) = split(m, sm.block)
+                // (a small store's one group of details runs over its whole plot: all of it but the ground is cut together)
+                val (bodyM, siteM) = if (inf.kind == StoreKind.GENERAL || inf.kind == StoreKind.MARKET) splitGround(m) else split(m, sm.block)
                 Built(CinemaLayer.pack(siteM, a), CinemaLayer.pack(bodyM, a), box(m), m.lights, inf, sm.bays, StoreSolids.world(StoreSolids.of(listOf(m), l, d), a), doors, sm.block)
             }
         })
@@ -148,6 +149,12 @@ internal class TownStore(
         val x0 = min(block[0], block[2]) - SPLIT_PAD; val x1 = max(block[0], block[2]) + SPLIT_PAD
         val z0 = min(block[1], block[3]) - SPLIT_PAD; val z1 = max(block[1], block[3]) + SPLIT_PAD
         val (on, off) = m.parts.partition { p -> val b = p.mesh.bounds; b[0] >= x0 && b[3] <= x1 && b[2] >= z0 && b[5] <= z1 && b[4] > 40f }
+        return CinemaModel(m.era, on, m.footprint, m.height, m.width, m.depth) to CinemaModel(m.era, off, m.footprint, m.height, m.width, m.depth)
+    }
+
+    /** [m]'s parts standing up (cut away together when in the camera's way) and its flat ground. */
+    private fun splitGround(m: CinemaModel): Pair<CinemaModel, CinemaModel> {
+        val (on, off) = m.parts.partition { p -> p.mesh.bounds[4] > 6f }
         return CinemaModel(m.era, on, m.footprint, m.height, m.width, m.depth) to CinemaModel(m.era, off, m.footprint, m.height, m.width, m.depth)
     }
 

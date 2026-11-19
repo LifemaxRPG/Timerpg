@@ -166,31 +166,68 @@ agree.
 - The v1 two-street export of eta the app ships (assets/street.json, buildings/, dialogue.json, interiors.json) is
   re-exported: eta's plan changed (its general store and market take main-street plots), so its street is 13 buildings
   now (was 18).
-- NOT refreshed: the app's `assets/town/gamma` (the Filament town; integration step) and the Kotlin fixture
-  `desktop/src/test/resources/town-gamma.json`, which pins TownMapTest, TownWalkTest, TownPlaceTest and
-  StreetPropRulesTest (being rewritten by the open-world work). Re-exported with the stores, 11 of their 31 tests fail on
-  pinned counts and rows (rows 47 -> 52, sprites 99 -> 105, turn plans; one camera check, "camera turned -0.598 at 7R",
-  worth a real look). The TS test that checks the fixture is current is skipped until then.
+- The app's `assets/town/gamma` (street.json, buildings/, dialogue.json, interiors.json with the stores' rooms:
+  `export-interiors.ts gamma 2025 --all --street build-town/gamma/street.json`) and the Kotlin fixture
+  `desktop/src/test/resources/town-gamma.json` are re-exported with the stores and the pack looks (branch wf-storeint);
+  TownMapTest, TownWalkTest, TownPlaceTest, StreetPropRulesTest, OpenWalkTest, TownPlayTest and CinemaKitTest are
+  re-pinned (52 nodes, 112 rows, 105 buildings, 11 landmarks, 168 turn plans, 84 mirrored turn pairs, spawn 14L by the
+  hotel) and the TS check that the fixture is current is on again.
+- "camera turned -0.598 at 7R" was a real bug in the street view, not a pin: crossing the road, the camera swung half a
+  turn from this row's look, so where the main street's steps on the two sides are not opposite (7R's at x 5073, 7L's at
+  5251) it landed on the facing row in its bend and snapped to that row's own look. `TownWalk.crossPose` now swings from
+  this row's look onto the facing row's look where the walker lands.
+- eta's shipped v1 street (13 buildings, was 18) loads and renders (`-Dmode=filament`: Main Street and Hill Road, day,
+  dusk, night, the turn); its stores' plots have no v1 art, so they read as gaps between the shops.
 
-## Before the merge (blockers)
+## In the town (as built, branch wf-storeint)
 
-- The Kotlin fixture `desktop/src/test/resources/town-gamma.json` and the app's `assets/town/gamma` are stale (the plan
-  changed for the stores); re-export them and re-pin TownMapTest, TownWalkTest, TownPlaceTest and StreetPropRulesTest
-  (11 of 31 fail on pinned counts once refreshed). The TS freshness check of that fixture is `it.skip` until then. The
-  "camera turned -0.598 at 7R" failure is to be looked at in the open-world branch (which rewrites that camera), not
-  re-pinned.
-- eta's shipped v1 street went from 18 buildings to 13 (its general store and market take main-street plots): check it
-  by eye before merging.
-- `-DstoresFrom` renders need a fresh export with `storeSites` (`npx tsx kotlin-street/tools/export-town.ts gamma 2025`).
-
-## In the town (Integrate, later)
-
-Follow the cinema (`CinemaSite.parse` / `TownCinema` in scene3d/TownCinema.kt): parse `graph.stores` with each store's
-landmark (`StoreInfo.fromGraph`), and let `FilamentTown` leave each store landmark's slot (art `landmark_store_*`, no
-building art in buildings/) to a `TownStores` that builds the store on a town worker, packs it, uploads it into its own
-culled `PropLayer`, places it in the slot's frame (front on the row's building line, setback 0, the plot `footprint.width`
-along by `footprint.depth` back) and lights it from dusk. TownMap should keep lamps and benches off a store's front like
-the cinema's (`clearOfCinemas`) and off the car parks. The superstore's site is big (159 x 206 m): cull it by part.
+- `StoreSite.parse(root)` (scene3d/TownStores.kt): each store landmark with its sprite, its whole life
+  (`graph.storeSites`) and the export year's block (`graph.stores`, the generator's features and people); `at(year,
+  hour, weekday)` the block in its own year, else `StoreSiteInfo.at`; `placeholder(year)` the field or building site.
+- `FilamentTown(..., stores, storeYear, collision)` leaves each store slot to a `TownStore`: `StoreKit.buildWithSite(info,
+  cars = false)` on a town worker, packed there in the slot's frame (`StoreShapes.frameOf`: the plot's front on the
+  row's building line, x along `footprint.width`, `footprint.depth` back), uploaded on the engine's thread into two culled
+  `PropLayer`s (the site, and the main block's parts, so the block alone is cut away when it stands between the open
+  world's camera and the player: `FilamentTown.occlude` treats it as a building; a general store or market, whose
+  details span the plot in one group, is cut whole but for its ground), lit by `CinemaLayer` / `CinemaLights`. It counts
+  in `pending` until it is up. `FilamentTown.storeYear` can be set later: the stores are built again for that year
+  (time travel; the rest of the town stays the export's).
+- The parked cars are a third layer, rebuilt on a worker when the hour or `FilamentTown.weekday` changes
+  (`StoreCars.build`), drawn within 2400 of the store's edge (shadows within 1200); the store is not touched.
+- Walk: `TownCollision.build(..., stores = StoreLots sprites)` leaves the store plots open (no rigid slot box); once a
+  store is up its solid shapes go into `TownCollision.setExtra("store:<sprite>")` and its cars' each hour into
+  `"cars:<sprite>"` (an overlay grid swapped in whole, read by every query: `blocked`, `move`, `resolve`...). The shapes
+  are read off the built geometry (`StoreSolids`): every triangle cut at 16, 25 and 34 units (a step or porch deck is
+  12, the head 36), the cuts rasterised at 2.5 units on the plot, what the plot's edge cannot reach filled, the cells
+  merged into rectangles (gamma 2025: general store 57, chapel 52, Prairie Larder 124, Broadmeadow 703; cars a few
+  hundred at a busy hour). So the building, vestibules, piers, canopy and lamp posts, porch posts and railings, fences
+  and the garden centre, corrals, cart rows, benches, docks, trailers, dumpsters and every parked car are solid; the
+  asphalt, painted lines, kerbs, islands' kerbs, porch decks and steps are walkable, and so is every aisle and the gaps
+  between parked cars a walker fits through.
+- Doors: each builder records its entrances (`StoreB.doors`: the general store's door under the porch, the market's
+  door pair, the supermarket's IN and OUT, each superstore tower's vestibule; the pack's buildings the block's front
+  middle), `StoreShapes.doorsAt` walks each out until a walker stands clear and `TownCollision.setExtraDoors` adds them;
+  `TownDoors.at` and `of` read them, so "Go inside" works at each entrance (a closed store has none). The stores have
+  rooms in interiors.json (`planInterior`'s store templates).
+- Street furniture: `TownMap` keeps lamps, benches and trees off a store's front (as the cinema's: a lamp each end) and
+  `PropRules` keeps the street props off it.
+- Tests: `StoreCollisionTest` (filamentTest, shipped gamma): each store's block solid, its doors clear, on its front,
+  found by `TownDoors.at` and reached by a walker from the road through the car park at Saturday 14:30 with the cars in
+  (100% of the plot's free ground reached), the overlay removed cleanly; the superstore's frame inside its reserved
+  landmark rectangle, as deep as it and centred along it (along the street the plot is at the art's scale, so it is
+  narrower than the rectangle: about 55 m of grass either side of the superstore's lot). OpenWalkTest checks the plots
+  are left open in the static map.
+- Measured on the build server (software GL, not the S25): the superstore with its lot is 31k triangles; the open-world
+  view in its car park draws 209 draws, 171k triangles, 159 shadow casters as drawn (the free camera 1352 draws, 413k);
+  townMemoryCheck passes with the four stores: held peak 195 MB of the 256 budget (was 194 without).
+- Preview: `gradle :desktop:preview -Dmode=filament-open -Dshots=store [-DstoresYears=1955,1975,1995,2025]`: each store's
+  site each year, from the player's height and the camera's usual height by day and night, zoomed out over the edge
+  stores, and (the last year) behind the block with the camera over it and its back.
+- Left: the stores' plots are narrower than the rectangles reserved for them along the street (art scale vs position
+  scale), so grass shows either side; the people to talk to at a store stand on the pavement by the road (TownPlay's
+  keeper spot), far from a superstore's doors; a reused store's room is still the store's (aisles in the chapel); a
+  site that has no slot in the export's year (a store not yet open in it) is not drawn at all; eta's v1 street has no
+  store art.
 
 **Scales (do not place by tiles x one scale):** a plot's `footprint.width` is along the street at the art's scale (26.29
 units a tile) and `footprint.depth` back from it at position scale (44.5 a tile), while the landmark's `rect` is in world
@@ -275,11 +312,7 @@ x - width/2, model z = -z). `StoreKit.build(info)` returns a `CinemaModel` (part
 `CinemaLayer` / `CinemaLights` draw and light it unchanged; `StoreKit.buildWithSite` also gives the main block's plan.
 A closed store's parts carry no glow masks and it has no lights.
 
-**Hook (Integrate, later)**, as `TownCinema` does: a `TownStores` that, for each `graph.stores[]` entry and its landmark's
-slot, runs `StoreKit.build` on a town worker, `CinemaLayer.pack(model, at)` there with `at` = the slot's frame at the
-plot's front edge (the row's building line; the store fills its whole plot, setback 0), uploads on the engine's thread
-into its own culled `PropLayer` (per part for the superstore's 160 x 200 m site), adds `CinemaLights` and calls
-`CinemaLayer.update(dark, seconds)` / `CinemaLights.update(dark)` each frame, then drops the model.
+The hook into the town is as built above ("In the town").
 
 Pictures on the heap while building (ARGB, glow masks counted; measured on the desktop): general store 1.0-2.1 MiB,
 market 1.8-3.5, supermarket 3.9-4.5, superstore 3.1 (closed) to 7.2 MiB; triangles 1.4k-23k; lights 3-26.

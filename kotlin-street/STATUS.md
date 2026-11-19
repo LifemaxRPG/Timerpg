@@ -15,6 +15,11 @@
 
 ## The walkable town in the app (T10; desktop renders and JVM tests only, NOT yet run on the S25)
 
+- The town has its stores (docs/STORES.md, "In the town"): gamma's general store (now an antiques shop), the old market
+  (Cornerstone Chapel), the shut Prairie Larder and the Broadmeadow superstore on its 159 x 206 m lot, built in their
+  slots, solid in the open world's walk (read off their geometry, parked cars included, rebuilt on the hour) with "Go
+  inside" at each entrance; desktop renders and JVM tests only.
+
 - The app now opens in the whole 3D town `gamma` (Filament, the default renderer): `assets/town/gamma/` ships street.json v2
   (graph, lots, yards), buildings/ (849 files), dialogue.json v2 (140 people at 92 buildings, template lines; the model
   writes the rest on the phone on demand and ahead by distance) and interiors.json (92 rooms); `assets/town/art/` the 37

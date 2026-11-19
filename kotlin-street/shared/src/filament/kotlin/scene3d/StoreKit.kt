@@ -694,7 +694,7 @@ object StoreKit {
         b.doors += floatArrayOf(cx, zf)
         b.box(det, cx - 30f, 0f, pz1 + 10f, cx + 30f, 4f, pz1 + 20f, DECK, 6)
         val postR = Ramp(trim.o, trim.d, trim.b, trim.l, trim.h)
-        val nPost = 5
+        val nPost = 6   // (even: no post in front of the door, which is in the middle)
         val roofLo = 100f; val roofHi = porchTop + 2f
         for (k in 0 until nPost) {
             val px = px0 + 5f + (px1 - px0 - 10f) * k / (nPost - 1)

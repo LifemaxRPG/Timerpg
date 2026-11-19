@@ -465,3 +465,18 @@ is the AI panel's "View: Open world / Street" (prefs `renderer/view`, open by de
 - Left: cutting a lot's tall things cuts all of that lot's fences and sheds together (per-object batches would cost
   draws); shop backs are still bare brick and gravel; the river's banks are still stepped; no fling and no game-pad
   camera stick; nothing of this measured on the S25.
+
+## The stores in the open world (branch wf-storeint)
+
+- The stores (docs/STORES.md, "In the town") are drawn in their slots by `TownStore` (scene3d/TownStores.kt) as the
+  cinema is by `TownCinema`, their main blocks cut away like buildings when in the camera's way, their parked cars a
+  layer rebuilt on the hour.
+- `TownCollision` leaves a store's plot open when built and takes what the store as built stands there later: an overlay
+  of shapes by key (`setExtra`, `extraSize`; the stores' sites and their cars) and of doors (`setExtraDoors`,
+  `extraDoors`, read by `TownDoors.at` / `of`), rebuilt and swapped in whole so the walk's queries need no lock and
+  allocate nothing. The shapes are read off the store's own triangles (`StoreSolids`), so what blocks is what is drawn.
+- gamma re-exported with the stores: 52 nodes, 112 rows, 105 buildings, 11 landmarks, the spawn on the civic avenue
+  14L by the hotel; OpenWalkTest: 11551 static shapes (12 parapets: six bridges), the flood from the spawn reaches 100%
+  of the walkable ground, 94 of 94 back yards, 283 of 283 door approaches. The street view's crossing camera now ends
+  on the facing row's own look (it snapped where the main street's steps across the road are staggered).
+- The yards' patches are 20 units wider where a lot has a gate (the open leaves swing past the lot's items).

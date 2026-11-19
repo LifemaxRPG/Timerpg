@@ -1,4 +1,5 @@
 import androidx.compose.ui.graphics.Color
+import kotlin.math.abs
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import com.google.android.filament.Engine
@@ -236,6 +237,17 @@ fun renderFilamentOpen(out: String) {
                     while (!ft.parkStores(h)) Thread.sleep(2)
                     view("store_${tag}_${yr}_low_$hn", px, pz, n.x, n.z, inn, 10f, OrbitCamera.DIST_MIN, h, "$tag in $yr, from the player's height")
                     view("store_${tag}_${yr}_$hn", px, pz, n.x, n.z, inn - 25f, 24f, 560f, h, "$tag in $yr, the camera's usual height")
+                }
+                // behind the main block, the camera on its far side: the block between is cut away
+                val bk = ft.storeBlock(st.sprite)
+                if (yr == years.last() && bk != null && door != null) {
+                    val bx = (bk[0] + bk[2]) / 2f; val bz = (bk[1] + bk[3]) / 2f
+                    // (the block's back: half its depth along the plot's way in, past the middle)
+                    val half = abs((bk[2] - bk[0]) * n.x) / 2f + abs((bk[3] - bk[1]) * n.z) / 2f
+                    val qx = bx + n.x * (half + 90f); val qz = bz + n.z * (half + 90f)
+                    while (!ft.parkStores(13f)) Thread.sleep(2)
+                    view("store_${tag}_${yr}_behind", qx, qz, -n.x, -n.z, inn, 22f, 620f, 13f, "$tag in $yr, behind it, the camera over the block (cut away)")
+                    view("store_${tag}_${yr}_back", qx, qz, n.x, n.z, inn + 180f, 22f, 620f, 13f, "$tag in $yr, its back")
                 }
                 if (st.site?.site == "superstore" || st.site?.site == "supermarket") {
                     while (!ft.parkStores(13f)) Thread.sleep(2)

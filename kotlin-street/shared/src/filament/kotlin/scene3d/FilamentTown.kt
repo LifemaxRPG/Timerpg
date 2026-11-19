@@ -453,6 +453,9 @@ class FilamentTown(
             storeDraws = makeStores(v)
         }
     private val storeOut = IntArray(3)
+    /** The main block of the store at [sprite] in the world (x0, z0, x1, z1, height), once built; null otherwise. */
+    fun storeBlock(sprite: String): FloatArray? = storeDraws.firstOrNull { it.site.sprite == sprite }?.block
+
     /** Parks the stores' cars for [hour] (a preview's, waiting on the workers: call until true); true once every store's are up. */
     fun parkStores(hour: Float): Boolean { for (st in storeDraws) st.stepCars(pool, hour, weekday); return storeDraws.all { it.carsFor(hour, weekday) } }
     /** The day of the week the stores' car parks are filled for (0 Sunday .. 6 Saturday). */
