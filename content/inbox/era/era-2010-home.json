@@ -1,0 +1,297 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2010,
+  "topic": "home",
+  "facts": [
+    {
+      "id": "2010-home-01",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A family keeps a shared calendar on the refrigerator for appointments and school activities.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-02",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Parents pack lunches in insulated bags before children leave for school.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-03",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Children put dirty dishes in the sink after supper.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-04",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A household sorts laundry into separate loads for towels, bedding, and clothes.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-05",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some families use a drying rack for delicate clothes instead of a machine dryer.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-06",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A parent prepares several lunches on Sunday for the coming workweek.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-07",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Families store leftovers in reusable containers for meals later in the week.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-08",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A kitchen drawer holds takeout menus, spare batteries, and household odds and ends.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-09",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some households keep a small vegetable garden behind the house.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-10",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Neighbors exchange extra tomatoes and squash from their summer gardens.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-11",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Children help rake leaves into bags when autumn arrives.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-12",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A family brings muddy shoes inside and leaves them on a mat by the door.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-13",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A parent reminds children to finish homework before going outside.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-14",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A household keeps cleaning supplies beneath the kitchen sink.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-15",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some families cook a large pot of soup to serve over several evenings.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-16",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A family eats supper at different times when work shifts and school activities conflict.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-17",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Many homes have a pantry shelf stocked with canned vegetables, pasta, and rice.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-18",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A parent places a basket near the stairs for items that belong upstairs.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-19",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Families replace worn furnace filters as part of seasonal home maintenance.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-20",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some households use ceiling fans to keep rooms comfortable during warm weather.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-21",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A family sets folding chairs in the yard for a summer cookout.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-22",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Children help carry grocery bags from the car into the kitchen.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-23",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some families set aside a weekend morning to clean bedrooms and bathrooms.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-24",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A household keeps spare blankets in a closet for overnight guests.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-25",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Neighbors shovel snow from their walkways after a winter storm.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-home-26",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A family leaves a porch light on when expecting someone home after dark.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
