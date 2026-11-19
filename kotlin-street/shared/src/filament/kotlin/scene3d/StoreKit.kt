@@ -240,7 +240,8 @@ object StoreKit {
         val b = StoreB()
         b.dark = info.state == StoreState.CLOSED
         b.roof = roofFor(info.kind, info.year, info.seed, b.dark)
-        val site = when (info.kind) {
+        val pack = info.style.removePrefix("pack:").takeIf { PackStores.isPack(info.style) && info.kind != StoreKind.SUPERSTORE }
+        val site = if (pack != null) PackStores.build(b, info, pack) else when (info.kind) {
             StoreKind.GENERAL -> general(b, info)
             StoreKind.MARKET -> StoreMarkets.market(b, info)
             StoreKind.SUPERMARKET -> StoreMarkets.supermarket(b, info)
@@ -251,6 +252,9 @@ object StoreKit {
         val model = b.model(info.kind, info.lot, info.deep)
         return StoreModel(model, floatArrayOf(site.x0, site.zf, site.x1, site.zb), b.names.toList(), b.bays.toList(), b.texts.toList())
     }
+
+    /** The pack's own store buildings the builder has (`style` = "pack:<id>"; src/town/stores.ts PACK_LOOKS lists the same). */
+    val packLooks: List<String> get() = PackStores.ids()
 
     /** Problems with the swatch library (empty when fine): odd sizes, or cut swatches that are not whole 2 x 2 art pixels (for the tests). */
     fun swatchProblems(): List<String> {
@@ -263,6 +267,33 @@ object StoreKit {
                 if (!(im[x, y] == im[x + 1, y] && im[x, y] == im[x, y + 1] && im[x, y] == im[x + 1, y + 1])) { out += "$id has a split art pixel at $x,$y"; break }
         }
         return out
+    }
+
+    /** What is wrong with the pack store [id]'s picture (null when fine). */
+    fun packProblem(id: String): String? {
+        val s = PackStores.sprite(id); val p = PackStores.picture(id)
+        if (p.w != s.w || p.h != s.h) return "$id size"
+        if (p.px.count { it ushr 24 == 255 } <= p.w * p.h / 3) return "$id is mostly empty"
+        if (!(s.top in 0 until s.roofEnd && s.roofEnd < s.bottom && s.bottom <= s.h)) return "$id rows"
+        return null
+    }
+
+    /**
+     * The building alone (no grounds, no cars, no lamps' pools): for judging its pictures beside another's in the preview
+     * ([StoreModel.block] is its plan). Only the pack's buildings and the general store, market and supermarket builders.
+     */
+    fun buildBare(info: StoreInfo): StoreModel {
+        val b = StoreB()
+        b.dark = info.state == StoreState.CLOSED
+        b.roof = roofFor(info.kind, info.year, info.seed, b.dark)
+        val pack = info.style.removePrefix("pack:").takeIf { PackStores.isPack(info.style) && info.kind != StoreKind.SUPERSTORE }
+        val site = if (pack != null) PackStores.build(b, info, pack) else when (info.kind) {
+            StoreKind.GENERAL -> general(b, info)
+            StoreKind.MARKET -> StoreMarkets.market(b, info)
+            StoreKind.SUPERMARKET -> StoreMarkets.supermarket(b, info)
+            StoreKind.SUPERSTORE -> StoreMarkets.superstore(b, info)
+        }
+        return StoreModel(b.model(info.kind, info.lot, info.deep), floatArrayOf(site.x0, site.zf, site.x1, site.zb), b.names.toList(), emptyList(), b.texts.toList())
     }
 
     /** A superstore's storefront as words (its entrances and what they say, its emblem, the line under its name, the towers' tops). */

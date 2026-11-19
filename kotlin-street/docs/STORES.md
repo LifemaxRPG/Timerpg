@@ -287,3 +287,56 @@ Preview: `gradle :desktop:preview -Dmode=filament-stores [-Dstores=general,marke
 from the street, the storefront close up, three-quarter, behind and above at 13:00, dusk and night, into
 build/preview/stores/ with stores.txt. Tests: `desktop/src/filamentTest/kotlin/StoreKitTest.kt` (on the plot, on the
 ground, real scale, small pictures, dark when closed, the block's JSON, names never a real chain's).
+
+## Textures cut from the art (the swatch library)
+
+The code-built stores wear the LimeZu art's own materials, not noise painted from scratch. **The 32 px art is the 16 px
+art at exactly 2 x 2** (checked: every 2 x 2 block of the sprites is one colour), so the art's pixel is **2 texels**; our
+old stores painted at 1 texel, twice as fine as the sprites beside them. Everything below is on the 2-texel grid.
+
+- `tools/swatches/swatches.py` cuts seamless tiles from the sprites (and the Farm / Interiors packs: any pack root) into
+  `tools/swatches/atlas/atlas.png` + `atlas.json` and the generated `scene3d/SwatchData.kt`; `scene3d/Swatches.kt`
+  (`Swatches.get(id)`, `.tinted(id, ramp)`, `.fill`) is how code draws from it. It is general (not store-only) and reads
+  entries in the catalogue's format (`tools/materials.json` of the materials workflow: `{id, family, pack, file, rect,
+  kind, tile, repeat, seam, ...}`, `{"use": "<catalogue id>"}` names one; `kind` strip / decal / autotile are honoured, rects
+  are snapped to the art pixel grid). `swatches.json` lists ours; `pack_stores.py` packs the pack's store buildings.
+  Rebuild: `python3 tools/swatches/swatches.py build --root exteriors=<extracted ME_Theme_Sorter_32x32> --catalog
+  materials.json --out tools/swatches/atlas --kotlin shared/src/filament/kotlin/scene3d/SwatchData.kt` (raw packs: run
+  `kotlin-street/packs/join.sh` into a scratch directory, never into the repo, and delete the zip afterwards).
+- Cut: `brick_red` (the 1_Terrains red running bond; other bricks are this re-toned by tone), `roof_membrane_green/ochre/
+  tan/grey` (the markets' and condos' flat roofs from above, panel seams every 32 px), `roof_tar_brown`, `roof_slate`
+  (dithered slate; asphalt shingles are this re-toned), `roof_tin_*` (standing-seam metal, re-toned for tin and rust),
+  `wall_*`, `plank_vertical` / `plank_horizontal` (boards, decks), `awning_*` (strips: stripe period 8 and 20 texels),
+  `asphalt` (the city terrain's), `pavement` (its slabs). Painted in the pack's palette where no sprite has it:
+  `ballast` (roof gravel), `asphalt_worn` (oil dither, hairline cracks), `brick_courses` / `block_courses` (tone-only
+  courses at the art's size, for the split-face block).
+- In the stores: walls are the art's brick (re-toned per era: buff, tan, red), block courses, clapboard drawn in whole art
+  pixels; flat roofs by era (`StoreKit.roofFor`: tar and ballast to the sixties, then the membranes) instead of grey;
+  car parks the art's asphalt (the worn one for old and shut lots), the pavement slabs for walks and docks; tin and
+  shingles from the art's metal and slate; boards from the art's planks. Sign lettering stays whole art pixels
+  (`StoreSigns.letters`: scale 2, 4, 6 from scale 2 up, positions on the 2-texel grid), as the art's own signs.
+- Honest limits: the small props' outlines and the glass, goods and car art are still painted at 1 texel (a future pass);
+  mips are the engine's (LINEAR_MIPMAP_LINEAR, nearest magnification): because each art pixel is 2 x 2, the first mip
+  level keeps the art's colours exactly, so distance does not turn to mush until the third level; shimmer was not
+  measured on the S25 (desktop stills only).
+- Preview: `-Dref=pack:market_m_5` stands that pack building beside each store, front on the same line, for the
+  same camera (`-Dstores=...`).
+
+## The pack's own stores as variants
+
+Besides ours, a town's stores may wear the pack's own buildings (`style: "pack:<id>"`, `StorePack.kt` builds them: the
+sprite's roof seen from above on a flat roof, its front elevation on the front, sides in the front's wall colour; open the
+windows glow at night, shut the glass is boarded and the plate blank, reused the plate says the new use). The 32 looks:
+`store_s_1..12` (Market_Small, STORE sign, green / ochre / tan), `hardware`, `market_m_1..12` (Market_Medium, MARKET),
+`market_b_1..6` (Market_Big, two storeys) and `mall`. They are shop-sized (6 to 9 m wide, the mall 22 m), as the sprite
+shops of the town; the lot round them is the kind's own.
+
+Generator rule (`src/town/stores.ts`; `StoreSiteInfo.at` mirrors it, the gamma fixture checks the style year by year):
+- the **general store**'s original building is never a pack look (built 1885-1935). When it changes hands (the 1952-1985
+  sale, 45% of towns) the new owner re-fits the front 55% of the time: a pack STORE front, or from 1958 (18%) the hardware
+  store (`look` on the `renamed` event, so `state.style` changes from that year; reuse keeps the look);
+- the **market** (1950s-80s downtown) is a pack MARKET front 50% of the time (a big one 35% of those), for its whole life;
+- the **supermarket** is the mall (50%) when it opens 1970-1989 in a **growing town**: one that reaches `MALL_POPULATION =
+  190` within `MALL_YEARS = 16` of the supermarket opening (the supermarket itself opens at 160, so a bigger-town test at
+  opening time would never pass);
+- the superstore is always ours (a pack look is refused for it).

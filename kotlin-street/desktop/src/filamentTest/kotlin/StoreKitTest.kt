@@ -46,7 +46,13 @@ class StoreKitTest {
         StoreInfo.sample(StoreKind.GENERAL, 1930, seed = 11).copy(width = 300f, depth = 560f),
         StoreInfo.sample(StoreKind.SUPERMARKET, 1978, seed = 2).copy(width = 1200f, depth = 1500f),
         StoreInfo.sample(StoreKind.SUPERSTORE, 2005, seed = 6).copy(width = 2500f, depth = 3000f),
-    )
+    ) + StoreKit.packLooks.flatMap { id ->
+        // the pack's own buildings as variants: open, shut, and reused, on the plot of the kind each stands for
+        val kind = when { id == "mall" -> StoreKind.SUPERMARKET; id.startsWith("market_") -> StoreKind.MARKET; else -> StoreKind.GENERAL }
+        val one = StoreInfo.sample(kind, 1970, seed = 3 + id.length).copy(style = "pack:$id")
+        if (id in setOf("store_s_1", "market_m_5", "market_b_3", "hardware", "mall"))
+            listOf(one, one.copy(state = StoreState.CLOSED, closed = 1980, year = 1985), one.copy(state = StoreState.REUSED, reuse = StoreReuse.CHURCH, reuseName = "Grace Chapel", year = 1995)) else listOf(one)
+    }
 
     @Test fun everyStoreStandsOnItsPlot() {
         for (info in variants) {
@@ -77,6 +83,8 @@ class StoreKitTest {
             // real scale: a figure is 36 units (1.7 m)
             val b = built.block
             val w = b[2] - b[0]; val d = b[1] - b[3]
+            // (the pack's own buildings are shop-sized, as the sprite shops of the town: 6-9 m wide, the mall 22 m)
+            if (info.style.startsWith("pack:") && info.kind != StoreKind.SUPERSTORE) { assertTrue("$tag $w wide", if (info.style == "pack:mall") w in 400f..600f else w in 110f..260f); assertTrue("$tag $d deep", d >= 90f); assertTrue("$tag height ${m.height}", m.height in 80f..320f) } else
             when (info.kind) {
                 StoreKind.GENERAL -> { assertTrue("$tag $w wide", w in 165f..290f); assertTrue("$tag height ${m.height}", m.height in 180f..320f) }
                 StoreKind.MARKET -> { assertTrue("$tag $w wide", w in 420f..660f); assertTrue("$tag $d deep", d >= 380f) }
@@ -227,8 +235,10 @@ class StoreKitTest {
         assertTrue(StoreCars.build(big.copy(hour = 3f, weekday = 3), built.bays).triangles < cars.triangles / 4)
     }
 
-    @Test fun swatchesAreWholeArtPixels() {
+    @Test fun swatchesAreWholeArtPixelsAndPackStoresDecode() {
         // the art's pixel is 2 x 2 texels: every swatch is an even size and (the cut ones) is made of whole 2 x 2 blocks
         assertEquals(emptyList<String>(), StoreKit.swatchProblems())
+        assertEquals(32, StoreKit.packLooks.size)
+        for (id in StoreKit.packLooks) assertEquals(null, StoreKit.packProblem(id))
     }
 }

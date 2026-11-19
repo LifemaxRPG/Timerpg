@@ -89,6 +89,7 @@ tasks.register<JavaExec>("preview") {
     System.getProperty("storesFrom")?.let { jvmArgs("-DstoresFrom=${File(it).absolutePath}") }
     System.getProperty("storesYears")?.let { jvmArgs("-DstoresYears=$it") }
     System.getProperty("weekday")?.let { jvmArgs("-Dweekday=$it") }
+    System.getProperty("ref")?.let { jvmArgs("-Dref=$it") }
     // the whole town's preview (-Dmode=filament-town): which town folder, where the pack's pictures are, the yards'
     // builder (kit, or placeholder: flat colours)
     for (k in listOf("town", "assetsRoot", "townYards", "memtrace", "heapBudget", "memlive", "coldOnly")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
