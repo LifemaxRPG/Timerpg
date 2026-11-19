@@ -515,6 +515,35 @@ time with its drawing (it renders each frame twice in `-Dmode=move` to measure);
   when that is the choice. The AI panel shows which model is live, on which device, the memory each needs, and a switch
   to put the main model in play for comparison. The 9B's Q4_0 and MTP builds stay optional extras.
 
+## The overnight writer and the player's conversation log (built and JVM-tested on a computer; NOT yet run on a phone)
+
+- While the phone is plugged in and the game is closed, the dialogue model keeps writing lines into the bank
+  (`night/`: `NightWriter`, `NightSession`, `NightService`, `NightJob`, `NightRules`, `NightReport`). A foreground service
+  of type specialUse with a low-priority notification ("Writing dialogue: 312 of 580", a Stop button); started when the
+  game goes out of sight on the charger, or by a JobScheduler job at the next charge (Android 12+ lets that job start the
+  service only with "Unrestricted" battery use, which the AI panel asks for; otherwise the job writes itself for its
+  ~10 minutes and comes back). Stops on unplug, when the game opens, when switched off, or when the bank is complete.
+- Order: every line of the town (580 distinct prompts for gamma: 650 topics, the same person at shop and home says the
+  same), most needed first; then the player's own patterns (a follow-up to each person's last conversation, and the
+  player's frequent question themes asked of every person); then up to 4 ways of saying each line (rotated in play,
+  never the same twice in a row); then other years (none ship yet: the phone cannot make other years' fact sheets, see
+  docs/CONVERSATION.md).
+- Heat and battery: bursts of 8 minutes with 2 minutes' rest, cooling down at a moderate thermal status or headroom
+  past 0.9, paused at severe, stopped at critical; waits below 30% battery. A partial wake lock only while writing.
+  Memory: the game's MemoryWatch and load gate; the model loaded once (on the device the panel or NPU tuner chose)
+  and let go when it stops. These thresholds are first guesses, not measured on the S25.
+- Staleness: each line is keyed by a hash of its whole prompt (fact sheet + question), and records its slot
+  (town/year/person/topic): a person whose facts change gets new keys (their old lines unused, counted stale, kept),
+  everyone else's stay valid (unit test on gamma's file).
+- The log: every exchange said or typed is kept in the person's memories (memories.json, now also town, year, topic,
+  ready/live/template and the question's vector), taps as counts (player-stats.json). Themes are clustered from it
+  (vectors, or words without the memory model), and a question close enough to a theme (same kind, same subject, past
+  the threshold) gets that person's ready line instead of a live one. Stays on the phone.
+- AI panel: the switch, the bank (ready, variants, stale, years), last run, the player's top themes, ready/live answers
+  by day, buttons for notifications and "Unrestricted". Breadcrumbs: start, stop and why, speed every 10 minutes.
+  Report: night/<date>/<time>.json on the `reports` branch when a token is set (counts and theme labels only, unless
+  "Night reports: with my words" is on).
+
 ## The Filament renderer trial (verified in headless desktop renders on Mesa's software GL; NOT yet run on a phone)
 - What it is: the street drawn by Google's Filament (1.81) instead of by hand on Compose's Canvas, as a switch in the AI
   panel ("Renderer: Classic / Filament trial"; the classic stays the default, the choice is kept). The stage still

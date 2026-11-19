@@ -15,8 +15,8 @@ class ModelRolesTest {
     private fun mb(n: Long) = n shl 20
 
     private fun pick(freeMb: Long, foreground: Boolean = true, built: Boolean = true, bankBytes: Long = bank, liveBytes: Long = live,
-                     accelerated: Boolean = true, forceBank: Boolean = false, low: Boolean = false) =
-        ModelRoles.pick(ModelRoles.Input(foreground, built, mb(freeMb), low, bankBytes, liveBytes, accelerated, forceBank))
+                     accelerated: Boolean = true, forceBank: Boolean = false, low: Boolean = false, writing: Boolean = false) =
+        ModelRoles.pick(ModelRoles.Input(foreground, built, mb(freeMb), low, bankBytes, liveBytes, accelerated, forceBank, writing))
 
     @Test fun theNeedsAsThePhoneSawThem() {
         // the main model's NPU copy: 6617 MB with the margin (the figure the phone reported); the light one's ~3.7 GB
@@ -51,6 +51,13 @@ class ModelRolesTest {
         // its copy does not fit: on the CPU from the file (the earlier fallback), not the light model
         assertEquals(Load(ModelRole.BANK, copied = false), pick(4067, foreground = false))
         assertEquals(Load(ModelRole.BANK, copied = true), pick(7000, foreground = false, built = false))
+    }
+
+    @Test fun theOvernightWriterAlwaysWritesWithTheMainModel() {
+        assertEquals(Load(ModelRole.BANK, copied = true), pick(7000, writing = true))
+        // even with the game in front (and its town up or not): the bank is the main model's
+        assertEquals(Load(ModelRole.BANK, copied = false), pick(4067, writing = true, foreground = true))
+        assertEquals(Load(ModelRole.BANK, copied = true), pick(7000, writing = true, built = false))
     }
 
     @Test fun thePanelsSwitchPutsTheMainModelInPlay() {

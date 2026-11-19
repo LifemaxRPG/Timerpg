@@ -72,17 +72,13 @@ class GameActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // the game's recent events for crash reports (last run's moved aside first), then the crash handler
-        com.timerpg.street.shot.Crumbs.init(applicationContext)
+        AppInit.basics(applicationContext)
         com.timerpg.street.shot.Crumbs.add("start: build ${BuildConfig.VERSION_NAME}")
-        CrashReport.install(applicationContext)
         AndroidFx.install()
-        // the Hexagon NPU's code (libggml-htp-v79.so) is in this app's native library folder: tell the DSP loader
-        runCatching {
-            val dsp = applicationInfo.nativeLibraryDir + ";/vendor/dsp/cdsp;/vendor/lib/rfsa/adsp;/system/lib/rfsa/adsp;/dsp"
-            android.system.Os.setenv("ADSP_LIBRARY_PATH", dsp, true)
-        }
-        // the NPU backend's settings (the tuned ones, or the one being tried while tuning): before the library loads
-        NpuTune.apply(applicationContext)
+        // the game takes over from the overnight writer (it lets go of a model it loaded: the town is built first)
+        com.timerpg.street.night.NightWriter.gameOpened()
+        // the NPU's code path and its settings (the tuned ones, or the one being tried while tuning): before the library loads
+        AppInit.native(applicationContext)
         super.onCreate(savedInstanceState)
         // the scene's two platform-specific image calls
         PlatformImages.create = { px, w, h, mip ->
@@ -254,12 +250,16 @@ class GameActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
+        com.timerpg.street.night.NightWriter.gameOpened()
         dialogue?.onForeground(true)
         sound?.start()
     }
 
     override fun onStop() {
         dialogue?.onForeground(false)
+        // out of sight: on the charger the overnight writer starts now (allowed while the game was just in front),
+        // otherwise at the next charge
+        com.timerpg.street.night.NightWriter.gameClosed(applicationContext)
         sound?.stop()
         super.onStop()
     }
@@ -274,7 +274,8 @@ class GameActivity : ComponentActivity() {
         // the engine outlives a recreated activity, not a finished game
         voices?.close()
         memoryListener?.let { com.timerpg.street.llm.MemoryWatch.listeners -= it }
-        if (isFinishing) DialogueEngine.release()
+        // (unless the overnight writer has taken it over: it lets the model go itself)
+        if (isFinishing && com.timerpg.street.night.NightWriter.session == null) DialogueEngine.release()
         super.onDestroy()
     }
 }
@@ -1036,16 +1037,22 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
         // a line is spoken once it is final (the model's when it has passed the check, else the game's own)
         var spoken: String? = null
         var early = false
+        var r: DialogueEngine.Request? = null
         fun heard(l: Line) {
             if (!early && voices != null) early = earlyVoice(l, voices)
-            if (l.final && l.text != spoken) { spoken = l.text; voices?.say(npc, l.text) }
+            if (l.final && l.text != spoken) {
+                spoken = l.text; voices?.say(npc, l.text)
+                // the player's log (counts only): what they ask, and whether a line written ahead answered it
+                engine.record(npc, t.intent, if (r?.ready == true) "ready" else if (l.ai) "live" else "template")
+            }
         }
-        val r = engine.ask(npc, t) { line = it; heard(it) }
-        request = r
-        line = r.first
+        val req = engine.ask(npc, t) { line = it; heard(it) }
+        r = req
+        request = req
+        line = req.first
         // the line is still being written: they say something while they think
-        if (r.first?.final != true) filler(t.label, voices)
-        r.first?.let { heard(it) }
+        if (req.first?.final != true) filler(t.label, voices)
+        req.first?.let { heard(it) }
     }
 
     private var fillerSeed = (npc.id.hashCode() and 0xffff)
@@ -1096,6 +1103,9 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
         if (echo != null) voices?.sayEcho(npc, echo)
         val heardBy = heardNote
         var early = false
+        var asked: DialogueEngine.Request? = null
+        var askedTopic: Topic? = null
+        var vec: FloatArray? = null
         fun heard(l: Line) {
             if (l.ai && tFirst == 0L && tAsk > 0L) tFirst = android.os.SystemClock.elapsedRealtime()
             if (!early && voices != null) early = earlyVoice(l, voices)
@@ -1107,13 +1117,20 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
                     "first words %.1f s".format((tFirst.coerceAtLeast(tAsk) - tAsk) / 1000.0), "line done %.1f s".format((end - tAsk) / 1000.0)).joinToString(" · ")
             }
             voices?.say(npc, l.text)
-            // they remember what was said, and what they answered
-            memory?.remember(npc.id, text, l.text)
+            // they remember what was said, and what they answered; the player's log keeps how it was answered (a line
+            // written ahead, or live), which steers what is written overnight
+            val how = if (asked?.ready == true) "ready" else if (l.ai) "live" else "template"
+            val d = engine.data.value
+            val intent = askedTopic?.intent ?: ""
+            memory?.remember(npc.id, text, l.text, d?.town ?: "", d?.year ?: 0, intent, how, vec)
+            engine.record(npc, intent, how)
         }
-        fun go(remembered: List<String>) {
+        fun go(remembered: List<String>, v: FloatArray?) {
             if (said != text) return   // something else was asked meanwhile
             tAsk = android.os.SystemClock.elapsedRealtime()
-            val (tp, r) = engine.askFree(npc, text, remembered) { line = it; heard(it) } ?: return
+            vec = v
+            val (tp, r) = engine.askFree(npc, text, remembered, v) { line = it; heard(it) } ?: return
+            asked = r; askedTopic = tp
             topic = tp
             request = r
             line = r.first
@@ -1121,7 +1138,7 @@ private class Talk(val npc: Npc, val byVoice: Boolean = false, val door: Int = -
             heard(r.first)
         }
         // what they remember that bears on it goes into their fact sheet first
-        if (memory != null && memory.installed) memory.recall(npc.id, text) { go(it) } else go(emptyList())
+        if (memory != null && memory.installed) memory.recall(npc.id, text) { facts, v -> go(facts, v) } else go(emptyList(), null)
     }
 
     fun close(voices: com.timerpg.street.voice.NpcVoiceService? = null) {
@@ -1485,6 +1502,7 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
         Text("Written ahead: ${s.lines} lines (${s.builtIn} kept built-in) · queued ${s.queued}" + (if (s.paused.isNotEmpty()) " · paused: ${s.paused}" else ""), 12.sp, color = DIM)
         s.pregenOff?.let { Text(it, 12.sp, color = DIM) }
         s.working?.let { Text("Writing: $it", 12.sp, color = DIM) }
+        NightPanel(s, engine)
         Chip(if (s.speedTesting) "Testing…" else "Speed test", s.speedTesting) { if (!s.speedTesting) engine.speedTest() }
         // where the dialogue model runs: the phone's GPU (Adreno) or its CPU; run the speed test each way to compare
         if (s.hasGpu || s.hasNpu) {
@@ -1543,6 +1561,45 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             }
         }
     }
+}
+
+/**
+ * The AI panel's overnight writer: its switch, the bank (lines ready, variants, years, stale), last night's run, what
+ * the player's conversations taught it (themes; questions answered by a ready line or live, by day), and what Android
+ * needs allowed for it to start by itself (notifications, "Unrestricted" battery use).
+ */
+@Composable
+private fun NightPanel(s: AiStatus, engine: DialogueEngine) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val nw = com.timerpg.street.night.NightWriter
+    var on by remember { mutableStateOf(nw.enabled(ctx)) }
+    var words by remember { mutableStateOf(nw.shareWords(ctx)) }
+    var tick by remember { mutableIntStateOf(0) }
+    LaunchedEffect(Unit) { while (true) { kotlinx.coroutines.delay(5000); tick++ } }
+    Spacer(Modifier.height(2.dp))
+    Text("Overnight writer", 14.sp)
+    Chip("Write dialogue while charging: " + if (on) "on" else "off", on) { on = !on; nw.setEnabled(ctx, on) }
+    val b = s.bank
+    Text("Bank: ${b.ready} of ${b.prompts} lines ready (${b.templates} built-in, ${b.missing} to write) · ${b.variants} lines with variants, " +
+        "${b.variantsDone} prompts complete · stale ${b.stale} · years ${if (b.years.isEmpty()) "none yet" else b.years.joinToString()}", 12.sp, color = DIM)
+    s.night?.let { Text("Now: ${it.label}", 12.sp) }
+    val last = remember(tick) { nw.lastSummary(ctx) }
+    Text("Last run: " + (last ?: "none yet"), 12.sp, color = DIM)
+    // what the player's conversations taught it (counts and labels; the words stay on the phone)
+    val steer = engine.steer
+    if (steer.themes.isNotEmpty())
+        Text("Your themes: " + steer.themes.take(5).joinToString(" · ") { "${it.label} (${it.count}${if (it.live > 0) ", ${it.live} live" else ""})" }, 12.sp, color = DIM)
+    val days = remember(tick) { engine.answerDays(5) }
+    if (days.isNotEmpty())
+        Text("Answered ready / live: " + days.joinToString(" · ") { (d, a) -> "${d.takeLast(5)} ${a[0]}/${a[1]}" }, 12.sp, color = DIM)
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        if (!remember(tick) { nw.unrestricted(ctx) }) Chip("Let it start by itself (battery: Unrestricted)", false) { nw.askUnrestricted(ctx) }
+        val act = ctx as? android.app.Activity
+        if (android.os.Build.VERSION.SDK_INT >= 33 && act != null &&
+            ctx.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED)
+            Chip("Show its notification", false) { act.requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 41) }
+    }
+    Chip("Night reports: " + if (words) "with my words" else "counts only", words) { words = !words; nw.setShareWords(ctx, words) }
 }
 
 private val LEFT_KEYS = setOf(android.view.KeyEvent.KEYCODE_DPAD_LEFT, android.view.KeyEvent.KEYCODE_A)

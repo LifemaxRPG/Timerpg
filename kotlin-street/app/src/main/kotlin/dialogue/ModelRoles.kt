@@ -32,6 +32,8 @@ object ModelRoles {
         val accelerated: Boolean,
         /** The AI panel's switch: the main model for live replies too (for comparison). */
         val forceBank: Boolean = false,
+        /** The overnight writer is writing the bank: the main model, whatever else holds. */
+        val writing: Boolean = false,
     )
 
     sealed interface Choice
@@ -55,8 +57,8 @@ object ModelRoles {
     fun pick(i: Input): Choice {
         if (i.bankBytes <= 0 && i.liveBytes <= 0) return NoModel
         // the town's build has the memory and the cores to itself
-        if (i.foreground && !i.sceneBuilt) return Wait("The town is being built.")
-        val play = i.foreground && i.sceneBuilt
+        if (i.foreground && !i.sceneBuilt && !i.writing) return Wait("The town is being built.")
+        val play = i.foreground && i.sceneBuilt && !i.writing
         val bank = i.bankBytes > 0
         val live = i.liveBytes > 0
         val tries = ArrayList<Load>()

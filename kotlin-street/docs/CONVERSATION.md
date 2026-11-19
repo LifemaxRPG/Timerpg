@@ -47,3 +47,55 @@ One worker owns the model and one owns the voice engine; they alternate so neith
 the corner turn and other heavy animations, and back off when the battery is low or the phone is hot. Generated lines
 and audio are cached on disk (text as JSON, audio compressed with Opus) keyed by the prompt, so they survive restarts and
 time travel only regenerates the lines whose facts changed.
+
+## The overnight writer (kotlin-street/app/src/main/kotlin/night)
+
+The owner leaves the phone on the charger overnight; the dialogue model writes the bank of lines so the game needs
+little live generation.
+
+- **When**: plugged in (not "charging": Samsung's battery protection stops charging at 80-85% with the charger in),
+  battery at 30% or more, the game not in sight, the AI panel's switch on. Started as a foreground service (type
+  specialUse; dataSync is for transfers and limited to 6 h a day from Android 15) when the game goes out of sight on the
+  charger, or by a JobScheduler job (requires charging, persisted) at the next charge. Android 12+ refuses a foreground
+  service started from the background unless the app's battery use is "Unrestricted"; then the job writes itself for its
+  own time (~10 minutes) and is run again. Samsung: set the game's battery to Unrestricted and keep it out of "Sleeping
+  apps"/"Deep sleeping apps", or the job may never run.
+- **Heat**: bursts (8 min writing, 2 min rest), cool-downs at a moderate thermal status or headroom >= 0.9 until light
+  and < 0.75, a pause at severe (the line in progress stopped), a stop at critical. Guesses, to be measured: the night
+  report records every pause and the hottest status.
+- **What, in order** (most needed first, see below): every prompt of the town not written yet; the player's patterns
+  (follow-ups to recent conversations, the frequent themes for every person); variants, up to 4 lines per prompt,
+  written back to back so the model's prompt cache covers the whole prompt (each costs only its generation); other
+  years. A variant must pass validate() and say something new (not the same words); temperature 0.7 (0.3 for first
+  lines); 4 failed tries and a prompt gets no more.
+- **Other years**: the fact sheets are made by the TypeScript simulation (`tools/export-dialogue.ts <seed> <year>`), not
+  on the phone, and the app has no time travel yet. The writer reads any `town/<town>/years/<year>/dialogue.json`
+  shipped in the assets (none yet). Needed: either export the likely years at build time into those folders, or run
+  the simulation on the phone (a JS engine or a Kotlin port of src/sim and src/llm/factsheet.ts); and time travel in
+  the app to use them.
+- **Staleness**: a line's key is a hash of its whole prompt (fact sheet, question, example) with the generation
+  settings; it records its slot (town/year/person/topic). Changed facts change the key: the old line is not found
+  (stale, counted, kept up to 4000 in case the facts come back), the new key is written again; nobody else's lines
+  change. BankTest checks this on gamma's file.
+
+## The player's conversation log
+
+What the player says steers what is written ahead.
+
+- **Record**: each exchange said or typed (the words, the reply, the person, town, year, topic, and whether a ready line
+  answered it or the model went live) is kept in the person's memories (memories.json, at most 200 a person and 2000 in
+  all), with the question's vector from the memory model when it is installed. Tapped topics are counted
+  (player-stats.json: per person and topic, and ready/live/template answers per day). Nothing leaves the phone except
+  counts and theme labels in the night report (the player's words only with "Night reports: with my words").
+- **Learn** (`Themes`, `Steer`): the kind of question by keywords (directions, gossip, work, family, the past, prices,
+  the town, opinions, personal, flirting, time travel); themes by clustering the questions (cosine >= 0.72 between
+  vectors, or word overlap >= 0.5 without them; the same kind and the same subject word); a theme's weight counts a
+  question that had to go live 3 times. The people the player talks to and their neighbours (same building half,
+  the next building a quarter) and the topics they ask give the writer's order.
+- **Steer**: the overnight order is by that need; each person's last exchange (14 days) gets a follow-up (their small
+  talk with that memory in its facts: what they say next time, said once); the top 8 themes asked twice or more are
+  asked of every person, in the player's own first phrasing, from that person's fact sheet.
+- **Match in play**: words close to a theme (cosine >= 0.80, or word overlap >= 0.6; same kind; a shared subject
+  word) get that person's ready line; otherwise the model answers live as before. The thresholds are guesses, chosen
+  so that a wrong-topic answer is rarer than a needless live one.
+- **Measure**: the AI panel and the night report show the top themes and the questions answered ready vs live per day.

@@ -4,6 +4,15 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- talking to the people in the street: held while the mic button is down, heard on the phone only -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- the overnight writer: a foreground service (special use: long on-device text generation) while charging, its
+         progress notification, a partial wake lock while it writes, its job kept across reboots, and the owner's
+         choice to let it start from the background ("Unrestricted" battery use) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <!-- the phone's own speech recognition, when ours does not fit in memory beside the dialogue model -->
     <queries>
@@ -20,6 +29,19 @@
         <uses-native-library android:name="libOpenCL.so" android:required="false" />
         <!-- the Hexagon NPU's driver (FastRPC), for the dialogue model on the NPU (absent: the CPU or GPU) -->
         <uses-native-library android:name="libcdsprpc.so" android:required="false" />
+        <!-- the overnight writer (night/NightWriter.kt): while the phone charges and the game is closed -->
+        <service
+            android:name="com.timerpg.street.night.NightService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="While the phone is charging and the game is closed, the on-device language model writes the game characters' dialogue lines ahead of time and saves them, so the game needs little live generation. Long local computation, no data transfer or media; the user can stop it from the notification or switch it off in the game." />
+        </service>
+        <service
+            android:name="com.timerpg.street.night.NightJob"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
         <!-- restarts the game in a fresh process (the NPU tuner: the backend reads its settings once per process) -->
         <activity
             android:name="com.timerpg.street.RestartActivity"
