@@ -7,7 +7,7 @@
 import type { Lot, TownLayout } from '../../src/town/layout';
 import type { TownPlan } from '../../src/town/plan';
 import { rand } from '../../src/sim/rng';
-import { chapel, downtownSites, downtownStanding, streetBlock, townHall, type CivicBuilding, type DowntownBuilding } from '../../src/town/downtown';
+import { chapel, CORE_RANK, downtownSites, downtownStanding, streetBlock, townHall, type CivicBuilding, type DowntownBuilding } from '../../src/town/downtown';
 import type { Buildings } from './town-buildings';
 
 /** A footprint in art pixels: the forecourt before the front wall, the building's depth, its width. */
@@ -38,6 +38,8 @@ const PX = 184 / 224;
 export function storeysOf(spec: Record<string, unknown>): number {
   if (spec.kit === 'office') return 2 * Number(spec.blocks ?? 2) + 1;
   if (spec.kit === 'parking') return 0;
+  if (spec.kit === 'b3_46' || spec.kit === 'b8') return 5;
+  if (spec.kit === 'condo12') return spec.height === 'tall' ? 4 : 3;
   const f = spec.floors; return 1 + (typeof f === 'number' ? f : Array.isArray(f) ? f.length : 2);
 }
 
@@ -75,18 +77,27 @@ export function packOf(e: PackEntry, lot: Lot, plan: TownPlan, seed: string): { 
       e.house = { tier: 'big', design: Number(big[1]), colour: (big[2] ?? '').slice(1) };
     } };
   }
-  // an apartment lot: the condo stand-in always, one of the game's own blocks half the time (more variety along the streets)
+  // an apartment lot: the condo stand-in always, one of the game's own blocks half the time (more variety along the streets).
+  // Heights fit the neighbourhood: by the old core (rank below CORE_RANK) up to five storeys (Condo_3_46, Condo_8, the tall
+  // terrace, a facade-kit block of 3-4); out in the residential streets, among the houses and mobile homes, a low walk-up of
+  // 2-3 storeys only (the short terrace, a facade-kit block of 2-3: a single middle floor is a tall storey). Never a tower
+  // on a house lot: only apartment lots get here.
   if (lot.tier === 'apartment' && (key0.startsWith('condo_ground_') || R('pack') < 0.5)) {
     const r = R('kit');
     const kit = KIT[e.colour] ?? 'brick';
+    const core = apartmentNearCore(plan, lot.slot);
     let spec: Record<string, unknown>; let w = 224;
-    if (r < 0.35) {
-      const tall = R('tall') < 0.5;
-      // (seven tiles, the plot's width: a wider block would stand into its neighbours' along the row)
-      spec = { id, kit: 'condo12', widthTiles: 7, colour: R('colour') < 0.5 ? 1 : 2, height: tall ? 'tall' : 'short', columns: tall ? [1, 4, 2] : [6, 9, 7] };
-    } else if (r < 0.55) spec = { id, kit: 'b3_46', widthTiles: 7 };
-    else if (r < 0.68) { spec = { id, kit: 'b8', widthTiles: 5 }; w = 160; }
-    else spec = { id, kit, widthTiles: 7, ground: { kind: 'condo' }, floors: 2 + Math.floor(R('floors') * 2), roof: { style: 'flat' }, seed: Math.floor(R('seed') * 1000) };
+    if (core) {
+      if (r < 0.35) {
+        const tall = R('tall') < 0.5;
+        // (seven tiles, the plot's width: a wider block would stand into its neighbours' along the row)
+        spec = { id, kit: 'condo12', widthTiles: 7, colour: R('colour') < 0.5 ? 1 : 2, height: tall ? 'tall' : 'short', columns: tall ? [1, 4, 2] : [6, 9, 7] };
+      } else if (r < 0.55) spec = { id, kit: 'b3_46', widthTiles: 7 };
+      else if (r < 0.68) { spec = { id, kit: 'b8', widthTiles: 5 }; w = 160; }
+      else spec = { id, kit, widthTiles: 7, ground: { kind: 'condo' }, floors: 2 + Math.floor(R('floors') * 2), roof: { style: 'flat' }, seed: Math.floor(R('seed') * 1000) };
+    } else if (r < 0.45) {
+      spec = { id, kit: 'condo12', widthTiles: 7, colour: R('colour') < 0.5 ? 1 : 2, height: 'short', columns: [6, 9, 7] };
+    } else spec = { id, kit, widthTiles: 7, ground: { kind: 'condo' }, floors: 1 + Math.floor(R('floors') * 2), roof: { style: 'flat' }, seed: Math.floor(R('seed') * 1000) };
     const foot: Foot = { setback: 40, depth: 120, width: w };
     return { foot, apply: () => {
       e.spec = spec; e.foot = foot;
@@ -95,6 +106,12 @@ export function packOf(e: PackEntry, lot: Lot, plan: TownPlan, seed: string): { 
     } };
   }
   return undefined;
+}
+
+/** Whether apartment lot [slot] stands by the old core (its plot's rank, tiles from the centre, below CORE_RANK), where taller blocks belong. */
+export function apartmentNearCore(plan: TownPlan, slot: string): boolean {
+  const c = plan.candidates.find((q) => q.id === slot);
+  return !!c && c.rank < CORE_RANK;
 }
 
 /** Applies [packOf] to every lot's entry of [b] (after `vary`). */

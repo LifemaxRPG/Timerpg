@@ -451,6 +451,12 @@ fun renderFilamentOpen(out: String) {
     // and the forest's trees cut in half far off
     view("fb_horizon", 3219.6f, 4148.5f, 0f, -1f, 23.38f, 11.85f, 420f, 17.6f, "015705: Church Street, the horizon")
     view("fb_trees_half", 14316.6f, 5916.4f, 0f, 1f, 153.57f, 10f, 420f, 17.6f, "020102: by the woods, trees far off")
+    // build 0.1.389 (the S25, 2026-11-19, 17:36 summer): King Street in Oak Heights, the apartment block whose ground floor was
+    // jumbled (and too tall for the street) and the terraced house all one green next to it
+    view("fb3_king", 3553f, 2648.5f, .9953f, -.0965f, -168.12f, 10.77f, 420f, 17.6f, "061348: King Street, Oak Heights")
+    view("fb3_king_close", 3553f, 2648.5f, .9953f, -.0965f, -168.12f, 8f, 220f, 17.6f, "061348's spot, zoomed in")
+    view("fb3_king_high", 3553f, 2648.5f, .9953f, -.0965f, -150f, 30f, 700f, 13f, "061348's spot from above, noon")
+    view("fb3_king_back", 3553f, 2648.5f, .9953f, -.0965f, 20f, 18f, 600f, 13f, "061348's spot, the other way (the backs)")
     File(dir, "open.txt").writeText(report.toString())
     print(report)
     if (want("walk")) scriptedWalk(dir, town, yards, walk, run, shooter, sheets, w, h, events)

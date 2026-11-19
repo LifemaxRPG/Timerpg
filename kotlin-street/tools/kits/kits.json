@@ -686,157 +686,131 @@
     "condo": {
      "h_tiles": 3,
      "motifs": {
-      "smallwin": {
-       "tiles": 2,
-       "parts": [
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_1",
-         0,
-         32
-        ],
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_2",
-         0,
-         32
-        ]
-       ]
-      },
-      "atm": {
-       "tiles": 2,
-       "parts": [
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_3",
-         0,
-         32
-        ],
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_4",
-         0,
-         32
-        ]
-       ]
-      },
-      "pipe": {
-       "tiles": 2,
-       "parts": [
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_5",
-         0,
-         32
-        ],
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_6",
-         0,
-         32
-        ]
-       ]
-      },
-      "tall": {
-       "tiles": 2,
-       "parts": [
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_7",
-         0,
-         32
-        ],
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_8",
-         0,
-         32
-        ]
-       ]
-      },
-      "door_glass": {
-       "tiles": 2,
+      "grid": {
+       "px": 94,
+       "family": 1,
+       "door": false,
+       "weight": 1,
        "parts": [
         [
          "fm",
          "Ground_Floor_Condo_1",
-         128,
-         192,
-         false,
-         false
+         20,
+         114
         ]
-       ],
-       "door": true
+       ]
       },
-      "door_canopy": {
-       "tiles": 3,
+      "door_glass": {
+       "px": 68,
+       "family": 1,
+       "door": true,
+       "weight": 1,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_1",
+         126,
+         194
+        ]
+       ]
+      },
+      "atm": {
+       "px": 58,
+       "family": 2,
+       "door": false,
+       "weight": 0,
        "parts": [
         [
          "fm",
          "Ground_Floor_Condo_2",
-         64,
-         160,
-         false,
-         false
+         10,
+         68
         ]
-       ],
-       "door": true
+       ]
       },
-      "door_arch": {
-       "tiles": 3,
+      "door_canopy": {
+       "px": 90,
+       "family": 2,
+       "door": true,
+       "weight": 1,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_2",
+         72,
+         162
+        ]
+       ]
+      },
+      "win_sill": {
+       "px": 52,
+       "family": 2,
+       "door": false,
+       "weight": 1,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_2",
+         160,
+         212
+        ]
+       ]
+      },
+      "longwin": {
+       "px": 92,
+       "family": 3,
+       "door": false,
+       "weight": 1,
        "parts": [
         [
          "fm",
          "Ground_Floor_Condo_3",
-         96,
-         192,
-         false,
-         false
+         16,
+         108
         ]
-       ],
-       "door": true
+       ]
       },
-      "door_wood": {
-       "tiles": 3,
+      "door_arch": {
+       "px": 100,
+       "family": 3,
+       "door": true,
+       "weight": 1,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_3",
+         116,
+         216
+        ]
+       ]
+      },
+      "win_frame": {
+       "px": 48,
+       "family": 4,
+       "door": false,
+       "weight": 1,
        "parts": [
         [
          "fm",
          "Ground_Floor_Condo_4",
-         64,
-         160,
-         false,
-         false
+         24,
+         72
         ]
-       ],
-       "door": true
+       ]
       },
-      "win2": {
-       "tiles": 2,
+      "door_wood": {
+       "px": 84,
+       "family": 4,
+       "door": true,
+       "weight": 1,
        "parts": [
         [
          "fm",
-         "Ground_Floor_Condo_2",
-         160,
-         224,
-         false,
-         true
+         "Ground_Floor_Condo_4",
+         70,
+         154
         ]
-       ],
-       "door": false
-      },
-      "bigwin3": {
-       "tiles": 3,
-       "parts": [
-        [
-         "fm",
-         "Ground_Floor_Condo_3",
-         0,
-         96,
-         true,
-         false
-        ]
-       ],
-       "door": false
+       ]
       }
      },
      "full": [
@@ -1644,157 +1618,131 @@
     "condo": {
      "h_tiles": 3,
      "motifs": {
-      "smallwin": {
-       "tiles": 2,
-       "parts": [
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_9",
-         0,
-         32
-        ],
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_10",
-         0,
-         32
-        ]
-       ]
-      },
-      "atm": {
-       "tiles": 2,
-       "parts": [
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_11",
-         0,
-         32
-        ],
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_12",
-         0,
-         32
-        ]
-       ]
-      },
-      "pipe": {
-       "tiles": 2,
-       "parts": [
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_13",
-         0,
-         32
-        ],
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_14",
-         0,
-         32
-        ]
-       ]
-      },
-      "tall": {
-       "tiles": 2,
-       "parts": [
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_15",
-         0,
-         32
-        ],
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_16",
-         0,
-         32
-        ]
-       ]
-      },
-      "door_glass": {
-       "tiles": 2,
+      "grid": {
+       "px": 94,
+       "family": 1,
+       "door": false,
+       "weight": 1,
        "parts": [
         [
          "fm",
          "Ground_Floor_Condo_5",
-         128,
-         192,
-         false,
-         false
+         20,
+         114
         ]
-       ],
-       "door": true
+       ]
       },
-      "door_canopy": {
-       "tiles": 3,
+      "door_glass": {
+       "px": 68,
+       "family": 1,
+       "door": true,
+       "weight": 1,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_5",
+         126,
+         194
+        ]
+       ]
+      },
+      "atm": {
+       "px": 58,
+       "family": 2,
+       "door": false,
+       "weight": 0,
        "parts": [
         [
          "fm",
          "Ground_Floor_Condo_6",
-         64,
-         160,
-         false,
-         false
+         10,
+         68
         ]
-       ],
-       "door": true
+       ]
       },
-      "door_arch": {
-       "tiles": 3,
+      "door_canopy": {
+       "px": 90,
+       "family": 2,
+       "door": true,
+       "weight": 1,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_6",
+         72,
+         162
+        ]
+       ]
+      },
+      "win_sill": {
+       "px": 52,
+       "family": 2,
+       "door": false,
+       "weight": 1,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_6",
+         160,
+         212
+        ]
+       ]
+      },
+      "longwin": {
+       "px": 92,
+       "family": 3,
+       "door": false,
+       "weight": 1,
        "parts": [
         [
          "fm",
          "Ground_Floor_Condo_7",
-         96,
-         192,
-         false,
-         false
+         16,
+         108
         ]
-       ],
-       "door": true
+       ]
       },
-      "door_wood": {
-       "tiles": 3,
+      "door_arch": {
+       "px": 100,
+       "family": 3,
+       "door": true,
+       "weight": 1,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_7",
+         116,
+         216
+        ]
+       ]
+      },
+      "win_frame": {
+       "px": 48,
+       "family": 4,
+       "door": false,
+       "weight": 1,
        "parts": [
         [
          "fm",
          "Ground_Floor_Condo_8",
-         64,
-         160,
-         false,
-         false
+         24,
+         72
         ]
-       ],
-       "door": true
+       ]
       },
-      "win2": {
-       "tiles": 2,
+      "door_wood": {
+       "px": 84,
+       "family": 4,
+       "door": true,
+       "weight": 1,
        "parts": [
         [
          "fm",
-         "Ground_Floor_Condo_6",
-         160,
-         224,
-         false,
-         true
+         "Ground_Floor_Condo_8",
+         70,
+         154
         ]
-       ],
-       "door": false
-      },
-      "bigwin3": {
-       "tiles": 3,
-       "parts": [
-        [
-         "fm",
-         "Ground_Floor_Condo_7",
-         0,
-         96,
-         true,
-         false
-        ]
-       ],
-       "door": false
+       ]
       }
      },
      "full": [
@@ -2602,157 +2550,131 @@
     "condo": {
      "h_tiles": 3,
      "motifs": {
-      "smallwin": {
-       "tiles": 2,
-       "parts": [
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_17",
-         0,
-         32
-        ],
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_18",
-         0,
-         32
-        ]
-       ]
-      },
-      "atm": {
-       "tiles": 2,
-       "parts": [
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_19",
-         0,
-         32
-        ],
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_20",
-         0,
-         32
-        ]
-       ]
-      },
-      "pipe": {
-       "tiles": 2,
-       "parts": [
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_21",
-         0,
-         32
-        ],
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_22",
-         0,
-         32
-        ]
-       ]
-      },
-      "tall": {
-       "tiles": 2,
-       "parts": [
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_23",
-         0,
-         32
-        ],
-        [
-         "fm",
-         "Ground_Floor_Condo_Modular_24",
-         0,
-         32
-        ]
-       ]
-      },
-      "door_glass": {
-       "tiles": 2,
+      "grid": {
+       "px": 94,
+       "family": 1,
+       "door": false,
+       "weight": 1,
        "parts": [
         [
          "fm",
          "Ground_Floor_Condo_9",
-         128,
-         192,
-         false,
-         false
+         20,
+         114
         ]
-       ],
-       "door": true
+       ]
       },
-      "door_canopy": {
-       "tiles": 3,
+      "door_glass": {
+       "px": 68,
+       "family": 1,
+       "door": true,
+       "weight": 1,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_9",
+         126,
+         194
+        ]
+       ]
+      },
+      "atm": {
+       "px": 58,
+       "family": 2,
+       "door": false,
+       "weight": 0,
        "parts": [
         [
          "fm",
          "Ground_Floor_Condo_10",
-         64,
-         160,
-         false,
-         false
+         10,
+         68
         ]
-       ],
-       "door": true
+       ]
       },
-      "door_arch": {
-       "tiles": 3,
+      "door_canopy": {
+       "px": 90,
+       "family": 2,
+       "door": true,
+       "weight": 1,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_10",
+         72,
+         162
+        ]
+       ]
+      },
+      "win_sill": {
+       "px": 52,
+       "family": 2,
+       "door": false,
+       "weight": 1,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_10",
+         160,
+         212
+        ]
+       ]
+      },
+      "longwin": {
+       "px": 92,
+       "family": 3,
+       "door": false,
+       "weight": 1,
        "parts": [
         [
          "fm",
          "Ground_Floor_Condo_11",
-         96,
-         192,
-         false,
-         false
+         16,
+         108
         ]
-       ],
-       "door": true
+       ]
       },
-      "door_wood": {
-       "tiles": 3,
+      "door_arch": {
+       "px": 100,
+       "family": 3,
+       "door": true,
+       "weight": 1,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Condo_11",
+         116,
+         216
+        ]
+       ]
+      },
+      "win_frame": {
+       "px": 48,
+       "family": 4,
+       "door": false,
+       "weight": 1,
        "parts": [
         [
          "fm",
          "Ground_Floor_Condo_12",
-         64,
-         160,
-         false,
-         false
+         24,
+         72
         ]
-       ],
-       "door": true
+       ]
       },
-      "win2": {
-       "tiles": 2,
+      "door_wood": {
+       "px": 84,
+       "family": 4,
+       "door": true,
+       "weight": 1,
        "parts": [
         [
          "fm",
-         "Ground_Floor_Condo_10",
-         160,
-         224,
-         false,
-         true
+         "Ground_Floor_Condo_12",
+         70,
+         154
         ]
-       ],
-       "door": false
-      },
-      "bigwin3": {
-       "tiles": 3,
-       "parts": [
-        [
-         "fm",
-         "Ground_Floor_Condo_11",
-         0,
-         96,
-         true,
-         false
-        ]
-       ],
-       "door": false
+       ]
       }
      },
      "full": [

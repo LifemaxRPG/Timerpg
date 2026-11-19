@@ -76,7 +76,7 @@ npm run demo [seed]   # kills the present-day mayor as a child and prints the co
 2j. [x] Signs match the goods: business kinds are limited to ones the art can honestly show (bakery, butcher, ice cream, music, bait, clothing, dress, toy, gym, bank, law office, doctor); each kind only uses window sprites that match it (guarded by a test)
 2i. [x] Classic (pre-1975) storefronts: generated in code (extract script) - flat painted sign boards with block lettering from a built-in pixel font, replacing the pack's big modern signs; 120 sprites, one per business kind
 2h. [x] Era look (`src/town/era.ts`): old-fashioned street lamps and young trees in 1950, modern lamps/billboards/mature trees later
-2g. [x] Color variety: the extract script generates recolored copies (wall + roof colors) of the mobile homes and terraced houses (80 + 80 + 30 sprites), since the pack only ships one gray colorway
+2g. [x] Color variety: `scripts/house-colours.py` (run by the extract script) makes colour variants of the mobile homes and terraced houses, since the pack only ships one gray colorway: a palette per part (wall, trim, roof, accent cladding, door) from era-appropriate combinations, each part recoloured along its own shading ramp (9 per mobile home, 5 per terraced house)
 2f. [x] Ground texture (patches, pebbles, twigs, sprouts baked into the grass) and yards: houses get front yards with picket fence + gate, side/back hedges and a dirt path
 2c. [x] World generation v2: per-seed street networks, districts, plaza, forest edge, street furniture, growth from the center
 2d. [x] Landmarks (post office, school, fire/police station, hospital, hotel, clock tower) with per-seed opening years (`src/town/landmarks.ts`)

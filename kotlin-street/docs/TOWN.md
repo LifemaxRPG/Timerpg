@@ -635,7 +635,10 @@ Desktop renders and JVM tests only, NOT yet run on the S25.
   with `ground.picture`: the business's own storefront as the ground floor, its sign a card over the floor above; the kit's
   palette from the district's shop colour), a corner bank / law office / doctor's office the octagonal corner block; 40% of
   medium mobile homes the big mobile home of the same design and colour; apartment lots' condo stand-ins (and half of the
-  others) the pack's condo terraces, Condo_3_46, Condo_8 or a facade-kit condo block; half the schools the Victorian old
+  others) the pack's condo terraces, Condo_3_46, Condo_8 or a facade-kit condo block, by where the lot stands: by the old
+  core (plot rank below CORE_RANK, `apartmentNearCore`) up to five storeys, out in the residential streets among the houses
+  and mobile homes only a 2-3 storey walk-up (the short terrace, a facade-kit block of 1-2 middle floors; a pack middle floor
+  is a tall storey). House lots never get a pack block (town-graph.test.ts checks both); half the schools the Victorian old
   school (V5). The towers, hotels, car parks, town hall and chapel are row buildings of kind `extra` (nobody in them: no
   door, no props, not a front; `flat: true` for car parks, walked over), named after every lot and landmark, listed in
   `graph.extras` (storeys, built, demolished). A tower stands 230 units behind the building line (the shops, then a 44-unit

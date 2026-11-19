@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { townGraph, townLots, type RowJson } from './town-graph';
 import { townStreets } from './town-streets';
 import { TOWN } from './town-config';
+import { apartmentNearCore, storeysOf } from './town-downtown';
 
 const g = townGraph(TOWN.seed, TOWN.year);
 const rows = new Map(g.graph.rows.map((r) => [r.id, r]));
@@ -101,6 +102,18 @@ describe('town graph', () => {
     for (const [sprite, lot] of v1.lotOf) expect(g.buildings.lotOf.get(sprite)?.slot, sprite).toBe(lot.slot);
     // and the v1 export itself is still what the app ships
     expect(`${JSON.stringify(townStreets('eta', 2025).json, null, 2)}\n`).toBe(readFileSync(join(__dirname, '../app/src/main/assets/street.json'), 'utf8'));
+  });
+
+  it('builds no tower on a house lot, and only low walk-ups on apartment lots out in the residential streets', () => {
+    const shops = (g.json as { shops: { sprite: string; spec?: Record<string, unknown> }[] }).shops;
+    let low = 0;
+    for (const s of shops) {
+      const lot = g.buildings.lotOf.get(s.sprite);
+      if (!lot || lot.kind !== 'house' || !s.spec) continue;
+      expect(lot.tier, s.sprite).toBe('apartment');
+      if (!apartmentNearCore(g.layout.plan, lot.slot)) { expect(storeysOf(s.spec), s.sprite).toBeLessThanOrEqual(3); low++; }
+    }
+    expect(low).toBeGreaterThan(0);
   });
 
   // the fixture pins the Kotlin town tests (TownMapTest, TownWalkTest, TownPlaceTest, StreetPropRulesTest, OpenWalkTest)
