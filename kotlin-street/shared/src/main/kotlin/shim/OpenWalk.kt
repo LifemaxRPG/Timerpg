@@ -10,6 +10,7 @@ import com.lifemax.rpg.feature.habits.domain.TownDoors
 import com.lifemax.rpg.feature.habits.domain.TownYard
 import com.lifemax.rpg.feature.habits.domain.TownYards
 import kotlin.math.abs
+import kotlin.math.atan
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.exp
@@ -99,6 +100,14 @@ class OpenWalk(
 
     private val out = FloatArray(2)
 
+    /** The bicycle ([riding]: the player rides it; [mount], [dismount]). */
+    val bike = BikeState().also { it.style = BikeStyle.of(town.year) }
+    /** The player rides the bicycle: [step] rides ([stepRide]) instead of walking. */
+    var riding = false
+        private set
+    /** The collision radius now: the bike's while riding, else the walker's. */
+    val radius: Float get() = if (riding) BikeState.RADIUS else RADIUS
+
     /** Stands the player at the town's spawn (the civic avenue), on the nearest clear spot. */
     fun spawn() {
         val r = town.row(town.spawn.row)
@@ -112,19 +121,66 @@ class OpenWalk(
      * there (never inside anything), and stops their legs.
      */
     fun placeAt(px: Float, pz: Float, dx: Float = hx, dz: Float = hz) {
-        collision.nearestClear(px, pz, RADIUS, out)
+        collision.nearestClear(px, pz, radius, out)
         wx = out[0]; wz = out[1]
         val l = hypot(dx, dz)
         if (l > 1e-6f) { hx = dx / l; hz = dz / l }
         GameState.motion.vx = 0f; GameState.motion.vy = 0f
+        bike.stop()
         derive(force = true)
         door = doors.at(wx, wz, hx, hz)
         yard = yardAt(wx, wz)
         aim()
     }
 
-    /** Takes over from the street view's walk (the AI panel's view switch): where it stands, the way it heads. */
-    fun takeOver(from: TownWalkView) = placeAt(from.wx, from.wz, from.hx, from.hz)
+    /** Takes over from the street view's walk (the AI panel's view switch): where it stands, the way it heads (on foot). */
+    fun takeOver(from: TownWalkView) { if (riding) dismount(); placeAt(from.wx, from.wz, from.hx, from.hz) }
+
+    /**
+     * Gets on the bicycle where the player stands, heading the way they face, rolling on at their walking speed: the bike
+     * needs a clear spot of its own ([BikeState.RADIUS], its front wheel too) within [BikeState.MOUNT_REACH], else the
+     * player stays on foot (false: no room here, e.g. between a shed and a fence).
+     */
+    fun mount(): Boolean {
+        if (riding) return true
+        if (!collision.nearestClear(wx, wz, BikeState.RADIUS, out, step = 2f, reach = BikeState.MOUNT_REACH)) return false
+        val cx = out[0]; val cz = out[1]
+        if (hypot(cx - wx, cz - wz) > BikeState.MOUNT_REACH) return false
+        // (the front wheel: turned round to the clearest way if it would stand in something)
+        var fx = hx; var fz = hz
+        if (collision.blocked(cx + fx * BikeState.FRONT, cz + fz * BikeState.FRONT, BikeState.FRONT_R)) {
+            var found = false
+            for (k in 1..12) {
+                val a = (if (k % 2 == 1) 1 else -1) * ((k + 1) / 2) * (Math.PI.toFloat() / 6f)
+                val c = cos(a); val s = sin(a)
+                val tx = hx * c - hz * s; val tz = hx * s + hz * c
+                if (!collision.blocked(cx + tx * BikeState.FRONT, cz + tz * BikeState.FRONT, BikeState.FRONT_R)) { fx = tx; fz = tz; found = true; break }
+            }
+            if (!found) return false
+        }
+        val m = GameState.motion
+        val along = (m.vx * fx + m.vy * fz).coerceAtLeast(0f)
+        wx = cx; wz = cz; hx = fx; hz = fz
+        bike.stop()
+        bike.speed = along
+        riding = true
+        GameState.riding = true
+        GameState.walking = false; GameState.running = false
+        aim()
+        return true
+    }
+
+    /** Gets off where the bike stands (the walker's circle is smaller: always clear there), standing still, facing on. */
+    fun dismount() {
+        if (!riding) return
+        riding = false
+        GameState.riding = false
+        bike.stop()
+        GameState.motion.vx = 0f; GameState.motion.vy = 0f
+        collision.nearestClear(wx, wz, RADIUS, out)
+        wx = out[0]; wz = out[1]
+        aim()
+    }
 
     /**
      * One frame of [dt] s: the stick's push ([mx] right, [my] down, as [GameState.moveX] and [GameState.moveLane]) turned
@@ -133,6 +189,7 @@ class OpenWalk(
      * and the derived frame, door and yard kept. Allocates nothing.
      */
     fun step(dt: Float, mx: Float = GameState.moveX, my: Float = GameState.moveLane) {
+        if (riding) { stepRide(dt, mx, my); return }
         val m = GameState.motion
         val fx = sin(cameraYaw); val fz = -cos(cameraYaw)
         val rx = -fz; val rz = fx
@@ -182,6 +239,190 @@ class OpenWalk(
         yard = yardAt(wx, wz)
         GameState.surface = surfaceAt(wx, wz, yard)
         if (walked > 0f) aim()
+    }
+
+    // ------------------------------------------------------------------ riding
+
+    /**
+     * One frame of riding ([RideTuning]): the stick's push, turned from the camera's facing into the world as the walk's,
+     * is where the rider wants to go and how fast. The bike keeps its momentum: it pedals up to the push's speed (the
+     * cruise at a full push, the sprint after holding it), coasts with the stick let go (rolling and air), brakes when the
+     * push points away from where it goes and then turns round tightly at low speed; its heading turns towards the push no
+     * faster than its grip allows at this speed (the radius grows with the speed: no instant turn round). It rides against
+     * the town's solid shapes with its own wider circle and a probe for the front wheel, sliding along walls with a loss,
+     * stopped dead head on; slower on grass and gravel ([RideSurface]). The wheels, cranks, lean and bar follow, for the
+     * renderer and the sound. Allocates nothing.
+     */
+    private fun stepRide(dt: Float, mx: Float, my: Float) {
+        val b = bike
+        val m = GameState.motion
+        val t = min(dt, MoveTuning.dtMax)
+        // (a front wheel left touching something, by a hair: the bike eased back off it first, if its body has the room)
+        val f0x = wx + hx * BikeState.FRONT; val f0z = wz + hz * BikeState.FRONT
+        if (collision.blocked(f0x, f0z, BikeState.FRONT_R) && collision.resolve(f0x, f0z, BikeState.FRONT_R + .05f, out)) {
+            val qx = wx + out[0] - f0x; val qz = wz + out[1] - f0z
+            if (hypot(qx - wx, qz - wz) < 2f && !collision.blocked(qx, qz, BikeState.RADIUS)) { wx = qx; wz = qz }
+        }
+        // (where the frame starts: whatever it does, the front wheel never ends deeper in something than here)
+        val sx0 = wx; val sz0 = wz; val shx = hx; val shz = hz
+        val startIn = collision.blocked(wx + hx * BikeState.FRONT, wz + hz * BikeState.FRONT, BikeState.FRONT_R)
+        val startClear = if (startIn) collision.clearance(wx + hx * BikeState.FRONT, wz + hz * BikeState.FRONT, 16f) else 0f
+        val fx = sin(cameraYaw); val fz = -cos(cameraYaw)
+        val rx = -fz; val rz = fx
+        val px = rx * mx - fx * my
+        val pz = rz * mx - fz * my
+        val push = min(1f, hypot(px, pz))
+        val sf = GameState.surface
+        // the push's angle from the heading (clockwise from above positive: a right turn)
+        var err = 0f
+        if (push > .12f) err = atan2(hx * pz - hz * px, hx * px + hz * pz)
+        val away = push > .12f && abs(err) > RideTuning.brakeAngle * (Math.PI.toFloat() / 180f)
+        // (pushed right round behind: keep turning the side first chosen, no dithering across the back)
+        if (away) { if (b.roundSide == 0f) b.roundSide = if (err >= 0f) 1f else -1f; if (abs(err) > 2.6f) err = b.roundSide * abs(err) } else b.roundSide = 0f
+        // the sprint: a full push held
+        if (push >= RideTuning.full) b.fullFor += t else if (push < RideTuning.sprintOff) b.fullFor = 0f
+        b.sprinting = b.fullFor >= RideTuning.sprintAfter
+        // the speed wanted: the push's share of the cruise (or the sprint), less into a sharp turn, little when turning round
+        val top = (if (b.sprinting) RideTuning.sprint else RideTuning.cruise) * RideSurface.top(sf)
+        var want = push * top
+        if (push > .12f) want *= (.45f + .55f * cos(min(abs(err), Math.PI.toFloat() / 2f)))
+        if (away) want = min(want, RideTuning.turnRound)
+        var v = b.speed
+        b.pedalling = false
+        when {
+            push <= .12f -> v -= (RideTuning.roll * RideSurface.roll(sf) + RideTuning.drag * v * v) * t
+            away && v > RideTuning.turnRound -> v -= RideTuning.brake * t
+            want > v -> {
+                val a = (if (v < RideTuning.cruise) RideTuning.accel else RideTuning.accelSprint) * RideSurface.accel(sf)
+                v = min(want, v + a * t); b.pedalling = true
+            }
+            else -> {
+                // (easing off to a lighter push: coasting down, a touch of brake; still pedalling softly at a steady speed)
+                v = maxOf(want, v - (RideTuning.ease + RideTuning.roll * RideSurface.roll(sf) + RideTuning.drag * v * v) * t)
+                b.pedalling = v - want < 4f
+            }
+        }
+        if (v < 0f) v = 0f
+        // the heading: towards the push, no faster than the grip allows at this speed
+        val most = RideTuning.maxRate(v)
+        b.turnSpeed = v
+        val wantRate = if (push > .12f) (err / RideTuning.steerTime).coerceIn(-most, most) else 0f
+        var turn = wantRate * t
+        // (the front wheel never turns into something: a turn that would put it in a wall waits)
+        if (turn != 0f) {
+            val c = cos(turn); val s = sin(turn)
+            val nhx = hx * c - hz * s; val nhz = hx * s + hz * c
+            val nowIn = collision.blocked(wx + hx * BikeState.FRONT, wz + hz * BikeState.FRONT, BikeState.FRONT_R)
+            // (a front wheel already touching may turn only the way that frees it)
+            var ok = b.lifted || !collision.blocked(wx + nhx * BikeState.FRONT, wz + nhz * BikeState.FRONT, BikeState.FRONT_R) || (nowIn &&
+                collision.clearance(wx + nhx * BikeState.FRONT, wz + nhz * BikeState.FRONT, 16f) >= collision.clearance(wx + hx * BikeState.FRONT, wz + hz * BikeState.FRONT, 16f))
+            if (!ok && v < RideTuning.pivotBelow) {
+                // (nearly still with the front wheel at a wall: the rider swings the bike's back round its front wheel)
+                // (or, in a corner, rolls it back a little as it turns)
+                val bx = wx + (hx - nhx) * BikeState.FRONT; val bz = wz + (hz - nhz) * BikeState.FRONT
+                if (!collision.blocked(bx, bz, BikeState.RADIUS)) { wx = bx; wz = bz; ok = true }
+                else for (k in 1..3) {
+                    val qx = wx - hx * .6f * k; val qz = wz - hz * .6f * k
+                    if (!collision.blocked(qx, qz, BikeState.RADIUS) && !collision.blocked(qx + nhx * BikeState.FRONT, qz + nhz * BikeState.FRONT, BikeState.FRONT_R)) {
+                        wx = qx; wz = qz; ok = true; break
+                    }
+                }
+            }
+            if (!ok) turn = 0f
+            else { val l = hypot(nhx, nhz); hx = nhx / l; hz = nhz / l }
+        }
+        b.rate = if (t > 0f) turn / t else 0f
+        // (nearly still, the front wheel at something and the push away from it: the rider walks the bike back)
+        if (away && v < RideTuning.pivotBelow && (blockedShare > .5f || turn == 0f ||
+            collision.blocked(wx + hx * (BikeState.FRONT + 2f), wz + hz * (BikeState.FRONT + 2f), BikeState.FRONT_R))) {
+            v = 0f
+            collision.move(wx, wz, -hx * RideTuning.backUp * push * t, -hz * RideTuning.backUp * push * t, BikeState.RADIUS, out)
+            val back = hypot(out[0] - wx, out[1] - wz)
+            wx = out[0]; wz = out[1]
+            b.wheel -= back / b.wheelRadius
+            if (back > 0f) aim()
+        }
+        // the ride: the front wheel's probe first (a glancing hit slides it along what it meets), the bike's circle after
+        // it by the front's own move, then back along the way if the front would still stand in something
+        val ax = hx * v * t; val az = hz * v * t
+        var walked = 0f
+        if (ax != 0f || az != 0f) {
+            val ox = wx; val oz = wz
+            val f0x = ox + hx * BikeState.FRONT; val f0z = oz + hz * BikeState.FRONT
+            var mdx = ax; var mdz = az
+            val f0In = !b.lifted && collision.blocked(f0x, f0z, BikeState.FRONT_R)
+            if (!f0In) {
+                collision.move(f0x, f0z, ax, az, BikeState.FRONT_R, out)
+                mdx = out[0] - f0x; mdz = out[1] - f0z
+            }
+            collision.move(ox, oz, mdx, mdz, BikeState.RADIUS, out)
+            var nx = out[0]; var nz = out[1]
+            val fIn = !b.lifted && collision.blocked(nx + hx * BikeState.FRONT, nz + hz * BikeState.FRONT, BikeState.FRONT_R)
+            // (a front wheel touching already may roll only the way that frees it)
+            if (fIn && f0In && collision.clearance(nx + hx * BikeState.FRONT, nz + hz * BikeState.FRONT, 16f) < collision.clearance(f0x, f0z, 16f)) { nx = ox; nz = oz }
+            else if (fIn && !f0In) {
+                var lo = 0f; var hi = 1f
+                for (i in 0 until 8) {
+                    val f = (lo + hi) / 2f
+                    val qx = ox + (nx - ox) * f; val qz = oz + (nz - oz) * f
+                    if (collision.blocked(qx + hx * BikeState.FRONT, qz + hz * BikeState.FRONT, BikeState.FRONT_R) || collision.blocked(qx, qz, BikeState.RADIUS)) hi = f else lo = f
+                }
+                nx = ox + (nx - ox) * lo; nz = oz + (nz - oz) * lo
+            }
+            val dx = nx - ox; val dz = nz - oz
+            walked = sqrt(dx * dx + dz * dz)
+            wx = nx; wz = nz
+            val asked = sqrt(ax * ax + az * az)
+            blockedShare = (1f - walked / asked).coerceIn(0f, 1f)
+            if (walked < asked * .995f) {
+                // against something: what was stopped is gone, scraping along takes more; the bike swings along the slide
+                v = if (t > 0f) min(v, walked / t) * exp(-RideTuning.scrape * t) else 0f
+                if (walked > 1e-3f) {
+                    val k = 1f - exp(-t / .12f)
+                    val sx = dx / walked; val sz = dz / walked
+                    if (sx * hx + sz * hz > .2f) {
+                        val nhx = hx + (sx - hx) * k; val nhz = hz + (sz - hz) * k
+                        val l = hypot(nhx, nhz)
+                        // (only if the front wheel stays clear turned so)
+                        if (l > 1e-5f && !collision.blocked(wx + nhx / l * BikeState.FRONT, wz + nhz / l * BikeState.FRONT, BikeState.FRONT_R)) { hx = nhx / l; hz = nhz / l }
+                    }
+                } else v = 0f
+            }
+        } else blockedShare = 0f
+        // (a hair's touch is let be: the probe is the tyre's front, a few centimetres either way are not seen)
+        if (!b.lifted && collision.blocked(wx + hx * BikeState.FRONT, wz + hz * BikeState.FRONT, BikeState.FRONT_R - BikeState.FRONT_SLACK) &&
+            collision.clearance(wx + hx * BikeState.FRONT, wz + hz * BikeState.FRONT, 16f) < (if (startIn) min(startClear, BikeState.FRONT_R - BikeState.FRONT_SLACK) else BikeState.FRONT_R - BikeState.FRONT_SLACK)) {
+            wx = sx0; wz = sz0; hx = shx; hz = shz; v = 0f; walked = 0f; turn = 0f; b.rate = 0f
+        }
+        b.speed = v
+        // (held fast with the stick pushed: after a moment the rider lifts the front wheel round, as anyone would in a
+        // tight spot; its probe is let go until the bike moves freely again)
+        // (held fast: pushed, yet not 6 units from where it was a moment ago)
+        if (push <= .12f || hypot(wx - b.anchorX, wz - b.anchorZ) > 6f) { b.anchorX = wx; b.anchorZ = wz; b.stuckFor = 0f } else b.stuckFor += t
+        if (b.stuckFor > RideTuning.liftAfter) b.lifted = true
+        else if (b.lifted && walked > 20f * t && !collision.blocked(wx + hx * BikeState.FRONT, wz + hz * BikeState.FRONT, BikeState.FRONT_R)) b.lifted = false
+        // the lean a real turn takes (v x rate against gravity, 207.8 units/s^2), eased; the bar turned for the turn's radius
+        val g = 9.81f * 21.18f
+        val leanWant = atan(v * b.rate / g).coerceIn(-RideTuning.leanMax, RideTuning.leanMax)
+        b.lean += (leanWant - b.lean) * (1f - exp(-t / RideTuning.leanTime))
+        // (the bar: the wheelbase over the radius, v / rate; at a standstill the pivot turns it a fixed way)
+        val steerWant = if (v > 1f) -atan(22f * b.rate / v).coerceIn(-.7f, .7f) else -.5f * (b.rate / RideTuning.pivotRate)
+        b.steer += (steerWant - b.steer) * (1f - exp(-t / .08f))
+        b.wheel += walked / b.wheelRadius
+        if (b.pedalling) b.crank += walked / (b.wheelRadius * b.gear)
+        // the game's state: the velocity, no legs walking (no footsteps), the facing as the walk's
+        m.vx = hx * v; m.vy = hz * v
+        GameState.walking = false
+        GameState.running = false
+        GameState.travel += walked
+        GameState.facing = 0
+        val across = hx * rx + hz * rz
+        if (abs(across) > .1f) GameState.dir = if (across > 0f) 1f else -1f
+        derive(force = false)
+        door = doors.at(wx, wz, hx, hz)
+        yard = yardAt(wx, wz)
+        GameState.surface = surfaceAt(wx, wz, yard)
+        if (walked > 0f || turn != 0f) aim()
     }
 
     // ------------------------------------------------------------------ the derived street frame
@@ -269,7 +510,9 @@ class OpenWalk(
     /** The yard whose parcel holds ([px], [pz]), if any. */
     fun yardAt(px: Float, pz: Float): TownYard? {
         yard?.let { y -> if (inside(y.parcel, px, pz)) return y }
-        for (y in yards.yards) if (inside(y.parcel, px, pz)) return y
+        // (by index: no iterator a frame)
+        val all = yards.yards
+        for (i in all.indices) { val y = all[i]; if (inside(y.parcel, px, pz)) return y }
         return null
     }
 
@@ -277,7 +520,9 @@ class OpenWalk(
     fun surfaceAt(px: Float, pz: Float, y: TownYard?): Int {
         if (y == null) return Surface.HARD
         var best = Surface.GRASS
-        for (it in y.items) {
+        val items = y.items
+        for (k in items.indices) {
+            val it = items[k]
             if (!inside(it.rect, px, pz)) continue
             when (it.kind) {
                 "deck", "porch", "boardwalk", "dock" -> return Surface.WOOD
