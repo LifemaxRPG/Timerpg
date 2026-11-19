@@ -35,8 +35,11 @@ Elite for Galaxy: 8 fast Oryon cores, no little cores; Adreno 830 GPU; Hexagon N
   quality", or better, in the owner's words, "a cross between SNES and PlayStation 2, an era of gaming that never existed":
   stylized pixel art as the basis instead of PS2-era realism. Keep new work in this style (props, cars, yards, the town): pixel-art textures on simple real geometry,
   not smooth high-poly models or blurry filtering.
-- **Build the world complete from every side** (the owner's decision): the game is a side-scrolling street view for now, but
-  an open-world camera may come later, so nothing is built only for the street view. Buildings have real backs and
+- **Open world with a player-controlled camera** (the owner's decision, 2026-11-19, replacing the side-scrolling street view as
+  the default): the player walks anywhere (streets, yards, alleys) with collision, and turns/zooms the camera themselves; the
+  camera follows the player's position but never turns on its own (the owner disliked the camera moving around). The old
+  street view stays only as an option for comparison.
+- **Build the world complete from every side**: nothing is built only for one view. Buildings have real backs and
   roofs, every lot has a front yard AND a backyard (fences, patios, sheds, gardens, play sets, pools for the rich
   homes, clotheslines, bins), blocks have alleys and back lanes, and the player's position is kept in world
   coordinates (kotlin-street/docs/TOWN.md). Judge new work from behind and above too, not only from the street.
