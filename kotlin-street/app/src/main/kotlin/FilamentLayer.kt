@@ -200,6 +200,11 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
     private val onFrame: () -> Unit = { frame() }
 
     init {
+        // (the stage puts off its own heavy art until the town is built: from now, as the town's data loads first)
+        if (townMode) Stage3D.townBuilding = true
+    }
+
+    init {
         try {
             val t0 = System.nanoTime()
             StreetRenderer.starting(ctx, true)
@@ -276,6 +281,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             }
         } catch (t: Throwable) {
             // a report with the whole stack (it waits on the phone until a token can send it), and the real reason shown
+            if (townMode) com.timerpg.street.shot.Crumbs.add("town memory at the failure: " + com.lifemax.rpg.feature.habits.presentation.scene3d.TownMemory.summary())
             com.timerpg.street.shot.Reports.writeCaught(ctx, if (townMode) "town" else "filament", t)
             val why = com.timerpg.street.shot.Reports.explain(t)
             if (townMode) StreetRenderer.townFailed(ctx, "The town stopped: $why")
@@ -296,7 +302,8 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
         if (rn == null || town?.town !== data.town) {
             run = null; town?.destroy(); town = null
             val t0 = System.nanoTime()
-            com.timerpg.street.shot.Crumbs.add("town scene: building ${data.town.seed}")
+            val rt = Runtime.getRuntime()
+            com.timerpg.street.shot.Crumbs.add("town scene: building ${data.town.seed}; Java heap limit ${rt.maxMemory() shr 20} MB, ${(rt.totalMemory() - rt.freeMemory()) shr 20} MB used")
             StreetRenderer.townBuilding(ctx, true)
             buildMarked = true
             val ft = com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown(e, mats, data.town, data.yards, data.art, data.building)
@@ -308,7 +315,10 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
         val ready = rn.build(walk.wx, walk.wz, if (TownSession.ready) TownSession.BUDGET_MS else TownSession.LOADING_BUDGET_MS)
         if (!TownSession.ready) {
             TownSession.progress = rn.progress(walk.wx, walk.wz)
-            if (ready) { TownSession.viewReady(rn.firstViewMs); FilamentStats.measureMemory("town first view") }
+            if (ready) {
+                TownSession.viewReady(rn.firstViewMs); FilamentStats.measureMemory("town first view")
+                com.timerpg.street.shot.Crumbs.add("town first view: " + com.lifemax.rpg.feature.habits.presentation.scene3d.TownMemory.summary())
+            }
         }
         rn.draw(walk, w.toFloat(), h.toFloat(), f.hour, f.seconds, com.lifemax.rpg.feature.habits.presentation.scene.SpriteSheets.sheets)
         val ft = town!!
@@ -325,6 +335,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
                     ft.batches.maxOfOrNull { it.second } ?: 0f, ft.prepareMs, ft.slowestPrepare.first, ft.slowestPrepare.second, n, texels / 1e6, shared)
             FilamentStats.townBuilt = built
             com.timerpg.street.shot.Crumbs.add(built)
+            com.timerpg.street.shot.Crumbs.add("town built, memory: " + com.lifemax.rpg.feature.habits.presentation.scene3d.TownMemory.summary() + "; ground queue peak ${ft.queuedPeak shr 20} MB")
             FilamentStats.measureMemory("town built")
         }
         return ft.view
@@ -337,6 +348,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
         alive = false
         com.timerpg.street.shot.Crumbs.add("Filament stop")
         if (Stage3D.onFrame === onFrame) Stage3D.onFrame = null
+        if (townMode) Stage3D.townBuilding = false
         // (the stage that filled it may be gone: a room; the next one fills it afresh)
         Stage3D.frame.clear()
         runCatching { ui.detach() }

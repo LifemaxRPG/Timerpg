@@ -360,10 +360,17 @@ private fun StageCanvas(
     val shadePath = remember { Path() }
     val shadeBrush = remember { cloudShadeBrush() }
     val scope = rememberCoroutineScope()
-    // the painted skies and trees are made once, off the main thread (a still frame waits for them)
-    LaunchedEffect(Unit) { withContext(Dispatchers.Default) { SceneSprites.warm() } }
-    LaunchedEffect(Unit) { withContext(Dispatchers.Default) { SceneSprites.warmStreet() } }
-    LaunchedEffect(season) { withContext(Dispatchers.Default) { SceneSprites.warm(season) } }
+    // the painted skies and trees are made once, off the main thread (a still frame waits for them); under a 3D renderer
+    // (the stage draws only its sky) only the sky's, the far road's cars once the town is built (SceneSprites.warmSky)
+    val skyOnlyStage = StageTuning.skyOnly
+    LaunchedEffect(skyOnlyStage) {
+        withContext(Dispatchers.Default) {
+            if (skyOnlyStage) SceneSprites.warmSky { while (Stage3D.townBuilding) kotlinx.coroutines.delay(500) }
+            else SceneSprites.warm()
+        }
+    }
+    LaunchedEffect(skyOnlyStage) { if (!skyOnlyStage) withContext(Dispatchers.Default) { SceneSprites.warmStreet() } }
+    LaunchedEffect(season, skyOnlyStage) { if (!skyOnlyStage) withContext(Dispatchers.Default) { SceneSprites.warm(season) } }
     val still = p.reducedMotion
     val zoomedOut = ui.city
     val live = !zoomedOut || ui.weeks == 0

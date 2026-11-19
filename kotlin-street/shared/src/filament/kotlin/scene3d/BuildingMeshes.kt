@@ -87,7 +87,13 @@ internal class BuildingMeshes(
      * A building made ready off the engine's thread ([prepare]): a model's geometry packed, or a box's or a mobile
      * home's faces packed, their pictures read ahead. Null from [prepare]: nothing to draw.
      */
-    class Ready internal constructor(internal val model: FilamentModels.Ready?, internal val faces: Packed?)
+    class Ready internal constructor(internal val model: FilamentModels.Ready?, internal val faces: Packed?) {
+        /** The pictures read ahead for it: let go once it is finished ([StreetTextures.drop]). */
+        internal var warmed: List<ImageBitmap> = emptyList()
+    }
+
+    /** The pictures [pic] reads ahead on this thread, for the [Ready] being made. */
+    private val warming = ThreadLocal<MutableList<ImageBitmap>?>()
 
     /**
      * The part of [build] with no engine call (any thread: the town's workers): the geometry made and its vertices packed,
@@ -98,19 +104,23 @@ internal class BuildingMeshes(
         val ma = sb.model
         if (ma != null) return Ready(prepareModel(ma, setback, yarded, seed), null)
         val faces = ArrayList<Face>()
-        val win = if (sb.house != null) house(sb, setback, yarded, seed, faces) else box(sb, setback, seed, faces)
-        if (faces.isEmpty()) return null
-        return Ready(null, pack(faces, win))
+        val got = ArrayList<ImageBitmap>()
+        warming.set(got)
+        val win = try { if (sb.house != null) house(sb, setback, yarded, seed, faces) else box(sb, setback, seed, faces) } finally { warming.set(null) }
+        if (faces.isEmpty()) { textures.drop(got); return null }
+        return Ready(null, pack(faces, win)).also { it.warmed = got }
     }
 
     /** Makes a [prepare]d building Filament's (the engine's thread). */
     fun finish(r: Ready): BuiltBuilding? {
-        r.model?.let { return finishModel(it) }
-        return r.faces?.let { upload(it) }
+        try {
+            r.model?.let { return finishModel(it) }
+            return r.faces?.let { upload(it) }
+        } finally { textures.drop(r.warmed) }
     }
 
     /** A picture for a face: read ahead now ([StreetTextures.warm]), made a texture when the building is finished. */
-    private fun pic(img: ImageBitmap): () -> Texture { textures.warm(img); return { textures.of(img) } }
+    private fun pic(img: ImageBitmap): () -> Texture { textures.warm(img); warming.get()?.add(img); return { textures.of(img) } }
 
     /** A picture packed now, made a texture (or shared by its content) when the building is finished, once. */
     private fun pic(p: StreetTextures.Prepared): () -> Texture { val t = lazy(LazyThreadSafetyMode.NONE) { textures.make(p) }; return { t.value } }
@@ -412,9 +422,17 @@ internal class BuildingMeshes(
         // (made on a worker, and kept for the hourly light: so it keeps what it needs of [sb], not its pictures)
         private val w = sb.front.width
         private val h = sb.front.height
-        private val art = StreetTextures.argb(sb.front)
-        private val emis = runCatching { StreetTextures.argb(sb.emis) }.getOrNull()?.takeIf { sb.emis.width == w && sb.emis.height == h }
-        private val glass = sb.glass?.let { g -> runCatching { StreetTextures.argb(g) }.getOrNull()?.takeIf { g.width == w && g.height == h } }
+        // Kept for the building's whole life, so kept small: the first version kept five front-sized int arrays (the art,
+        // the emissive and glass pictures, the far city's lights and the mask: 20 bytes a texel, some 70 MB over the
+        // town's fronts, on the phone's Java heap). Now one byte a texel says which pixels are a window's see-through
+        // glass (and which of them show a far city light), the emissive and glass pictures' pixels are kept only where
+        // they are not clear, and each hour's mask is written straight into the buffer Filament takes.
+        /** 0: not a window's see-through pixel; [SEE]: one (the art's alpha under 250 inside a window); [CITY]: one showing a far light. */
+        private val win = ByteArray(w * h)
+        /** The pixels where the emissive or the glass picture shows (sorted), and their mask's red (emissive) and green (glass). */
+        private val egAt: IntArray
+        private val egE: ByteArray
+        private val egG: ByteArray
         private val panes = sb.house?.shape?.panes ?: emptyList()
         private val nw = sb.windows.size
         private val rects = sb.windows + panes
@@ -423,15 +441,35 @@ internal class BuildingMeshes(
             val on = if (n == 0) 0 else maxOf(1, kotlin.math.ceil(n * .7f).toInt())
             (0 until n).sortedBy { Ambient.hash(seed, it, 301) }.take(on).toSet()
         }
-        private val cityLights = IntArray(w * h)
         private var lit = -1L
-        private val maskPx = IntArray(w * h)
         val albedo: () -> Texture
         val mask: () -> Texture
         /** The back wall's picture (a mobile home's: [plainBack]; otherwise the front's). */
         val back: () -> Texture
+        /** Heap bytes kept for the night light. */
+        val bytes: Long get() = win.size + egAt.size * 6L
 
         init {
+            val art = StreetTextures.argb(sb.front)
+            val emis = runCatching { StreetTextures.argb(sb.emis) }.getOrNull()?.takeIf { sb.emis.width == w && sb.emis.height == h }
+            val glass = sb.glass?.let { g -> runCatching { StreetTextures.argb(g) }.getOrNull()?.takeIf { g.width == w && g.height == h } }
+            var n = 0
+            for (i in 0 until w * h) if ((emis?.get(i)?.ushr(24) ?: 0) * 3 / 5 > 0 || (glass?.get(i)?.ushr(24) ?: 0) * 2 / 5 > 0) n++
+            egAt = IntArray(n); egE = ByteArray(n); egG = ByteArray(n)
+            var k = 0
+            for (i in 0 until w * h) {
+                val e = emis?.let { (it[i] ushr 24) * 3 / 5 } ?: 0
+                val g = glass?.let { (it[i] ushr 24) * 2 / 5 } ?: 0
+                if (e == 0 && g == 0) continue
+                egAt[k] = i; egE[k] = e.toByte(); egG[k] = g.toByte(); k++
+            }
+            for (r in rects) {
+                for (y in r[1].toInt() until (r[1] + r[3]).toInt().coerceAtMost(h)) for (x in r[0].toInt() until (r[0] + r[2]).toInt().coerceAtMost(w)) {
+                    if (x < 0 || y < 0) continue
+                    val i = y * w + x
+                    if ((art[i] ushr 24) < 250) win[i] = SEE
+                }
+            }
             val px = art.copyOf()
             val skyHi = Color(0xFF8FA9C8); val skyLo = Color(0xFF34435C)
             val city = Color(0xFF2E3B52)
@@ -448,14 +486,14 @@ internal class BuildingMeshes(
                     val top = .45f + .3f * Ambient.hash(seed + j, col, 77)
                     if (t > top) {
                         g = lerp(g, city, .65f)
-                        if ((x - x0) % 2 == 0 && (y - y0) % 2 == 0 && Ambient.hash(seed + j, x * 31 + y, 78) > .86f) cityLights[i] = 1
+                        if ((x - x0) % 2 == 0 && (y - y0) % 2 == 0 && Ambient.hash(seed + j, x * 31 + y, 78) > .86f) win[i] = CITY
                     }
                     px[i] = blend(g.toArgb(), px[i])
                 }
             }
             albedo = pic(StreetTextures.prepare(px, w, h, mips = true))
-            mask = pic(StreetTextures.prepare(IntArray(w * h), w, h, linear = true))
-            back = if (sb.house != null) pic(StreetTextures.prepare(plainBack(px), w, h, mips = true)) else albedo
+            mask = pic(StreetTextures.blank(w, h, linear = true))
+            back = if (sb.house != null) pic(StreetTextures.prepare(plainBack(art, px), w, h, mips = true)) else albedo
         }
 
         /**
@@ -463,7 +501,7 @@ internal class BuildingMeshes(
          * becomes the siding's commonest colour along it (siding runs level, so a row is one colour), mirrored as the back
          * is seen, and only the windows (their glass filled as on the front) are kept, two thirds of them.
          */
-        private fun plainBack(front: IntArray): IntArray {
+        private fun plainBack(art: IntArray, front: IntArray): IntArray {
             val out = IntArray(w * h)
             for (y in 0 until h) {
                 val counts = HashMap<Int, Int>()
@@ -497,22 +535,28 @@ internal class BuildingMeshes(
             }
             if (bits == lit) return
             lit = bits
-            for (i in maskPx.indices) {
-                val e = emis?.let { (it[i] ushr 24) * 3 / 5 } ?: 0
-                val g = glass?.let { (it[i] ushr 24) * 2 / 5 } ?: 0
-                maskPx[i] = (255 shl 24) or (e shl 16) or (g shl 8) or (if (e > 0) 255 else 0)
+            // the mask as Filament takes it (RGBA, bottom row first): opaque, the emissive's red (and blue) and the
+            // glass's green where they show, then the windows' see-through pixels over them
+            val buf = StreetTextures.blank(w, h, linear = true).buf
+            for (i in 0 until w * h) buf.put(StreetTextures.offset(i, w, h) + 3, 255.toByte())
+            for (k in egAt.indices) {
+                val o = StreetTextures.offset(egAt[k], w, h)
+                buf.put(o, egE[k]).put(o + 1, egG[k])
+                if (egE[k].toInt() != 0) buf.put(o + 2, 255.toByte())
             }
             for ((j, r) in rects.withIndex()) {
                 val on = j < 63 && (bits shr j) and 1L == 1L
                 for (y in r[1].toInt() until (r[1] + r[3]).toInt().coerceAtMost(h)) for (x in r[0].toInt() until (r[0] + r[2]).toInt().coerceAtMost(w)) {
                     if (x < 0 || y < 0) continue
                     val i = y * w + x
-                    if ((art[i] ushr 24) >= 250) continue
-                    val red = if (on) 255 else if (cityLights[i] != 0) 150 else 0
-                    maskPx[i] = (255 shl 24) or (red shl 16) or (255 shl 8)
+                    val c = win[i]
+                    if (c == NONE) continue
+                    val red = if (on) 255 else if (c == CITY) 150 else 0
+                    val o = StreetTextures.offset(i, w, h)
+                    buf.put(o, red.toByte()).put(o + 1, 255.toByte()).put(o + 2, 0).put(o + 3, 255.toByte())
                 }
             }
-            textures.update(mask(), maskPx)
+            textures.update(mask(), buf)
         }
 
         private fun blend(under: Int, over: Int): Int {
@@ -524,5 +568,8 @@ internal class BuildingMeshes(
 
     companion object {
         private const val STRIDE = 36
+        private const val NONE: Byte = 0
+        private const val SEE: Byte = 1
+        private const val CITY: Byte = 2
     }
 }

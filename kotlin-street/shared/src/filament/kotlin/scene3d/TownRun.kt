@@ -50,6 +50,7 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
         val ok = ready(x, z)
         if (ok && firstViewMs < 0f) { firstViewMs = (System.nanoTime() - t0) / 1e6f; TownMemory.mark("first view") }
         if (ok && !finished && done) { finished = true; TownMemory.mark("all built"); TownMemory.stop() }
+        if (finished) com.lifemax.rpg.feature.habits.presentation.scene.Stage3D.townBuilding = false
         return ok
     }
 

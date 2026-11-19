@@ -438,8 +438,8 @@ private fun coldStart(
         if (ms > worst) { worstAt = frames; worstBuild = b; worstDraw = ms - b }
         loading += ms; worst = maxOf(worst, ms); frames++
         // (-Dmemtrace: the memory every 50 frames while it loads)
-        if (System.getProperty("memtrace") != null && frames % 50 == 0) println("  memtrace frame %d: live %d MB, direct %d MB, %d built".format(
-            frames, TownMemory.mb(TownMemory.live?.invoke() ?: 0L), TownMemory.mb(TownMemory.direct?.invoke() ?: 0L), ft.slots.count { it.isBuilt }))
+        if (System.getProperty("memtrace") != null && frames % 50 == 0) println("  memtrace frame %d: live %d MB, direct %d MB, ground queue %d MB, %d built".format(
+            frames, TownMemory.mb(TownMemory.live?.invoke() ?: 0L), TownMemory.mb(TownMemory.direct?.invoke() ?: 0L), TownMemory.mb(ft.queuedBytes), ft.slots.count { it.isBuilt }))
         clock += 1f / 120f
         if (ready || (System.nanoTime() - t0) > 180_000_000_000L) break
         pace(f0)
@@ -484,7 +484,7 @@ private fun coldStart(
             ft.buildingsMs, ft.slowest.first, ft.slowest.second, ft.prepareMs, ft.slowestPrepare.first, ft.slowestPrepare.second, ft.groundMs))
     report.appendLine("(cold start: main-thread work only, on the build server's CPU with software GL; the render itself and the S25 are not measured)")
     TownMemory.stop()
-    report.appendLine("cold start, memory: " + TownMemory.summary() + "")
+    report.appendLine("cold start, memory: " + TownMemory.summary() + "; the ground's queue peaked at ${TownMemory.mb(ft.queuedPeak)} MB")
     println("  memory: " + TownMemory.summary())
     // the memory check (-DheapBudget=MB, gradle :desktop:townMemoryCheck): the live heap and the direct buffers held at
     // once (on the phone both are its Java heap) must stay under the budget, or the preview fails

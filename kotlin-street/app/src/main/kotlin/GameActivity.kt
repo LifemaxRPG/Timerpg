@@ -1314,7 +1314,12 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
                 val mi = android.app.ActivityManager.MemoryInfo().also { am?.getMemoryInfo(it) }
                 val mine = android.os.Debug.getPss() shr 10
                 val busy = com.timerpg.street.llm.AiLane.current ?: "idle"
-                ram = "RAM: ${mi.availMem shr 20} MB free of ${mi.totalMem shr 20} MB · the game ${mine} MB · AI: $busy"
+                // (the Java heap's limit and use, and the town build's peak: what the town's build has to fit in)
+                val rt = Runtime.getRuntime()
+                val tm = com.lifemax.rpg.feature.habits.presentation.scene3d.TownMemory
+                val heap = "Java heap ${(rt.totalMemory() - rt.freeMemory()) shr 20}/${rt.maxMemory() shr 20} MB" +
+                    if (tm.peakUsed > 0) " (town build peak ${tm.peakUsed shr 20} MB)" else ""
+                ram = "RAM: ${mi.availMem shr 20} MB free of ${mi.totalMem shr 20} MB · the game ${mine} MB · $heap · AI: $busy"
                 frames = FrameStats.summary()
                 kotlinx.coroutines.delay(1000)
             }

@@ -11,6 +11,11 @@ import com.lifemax.rpg.feature.habits.domain.KeyLight
  */
 object Stage3D {
     @Volatile var listening = false
+    /**
+     * A 3D renderer is building its scene (the walkable town's whole build): the stage leaves heavy work it can put off
+     * (the far road's cars' art) until it is over, so the two never peak on the Java heap together.
+     */
+    @Volatile var townBuilding = false
     val frame = Frame3D()
     /**
      * Called on the stage's draw right after it filled [frame] (main thread): the 3D renderer draws then, so it shows the

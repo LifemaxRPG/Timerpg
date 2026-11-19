@@ -800,6 +800,36 @@ internal object SceneSprites {
         )
     }
 
+    /**
+     * Makes now (off the main thread) only what the stage draws under a 3D renderer ([StageTuning.skyOnly]: the sky, the
+     * far city and the film grain; [Backdrop]): the street's own pools ([warm], [warmStreet], the trees of [warm] for a
+     * season) are the classic painter's, which Filament never asks for. Baking them anyway cost the phone some 30 to 80 MB
+     * of passing Java heap while the town built (the cars' art ran it out of memory on a 256 MB heap) and 5 s of a core
+     * for the street's people. The far road's cars ([vehicles], drawn by the backdrop only when one drives by) are made
+     * once [later] says the heavy work is over (the town built), not with the rest.
+     */
+    suspend fun warmSky(later: suspend () -> Unit = {}) {
+        clouds
+        sun
+        moon
+        glow
+        beam
+        streak
+        milkyWay
+        flare
+        light
+        weather
+        plane
+        contrail
+        blimp
+        skyline
+        midCity
+        dusk
+        grain
+        later()
+        vehicles
+    }
+
     /** Makes the pools now (call off the main thread): the rooms of every window the street has. */
     fun warm() {
         clouds

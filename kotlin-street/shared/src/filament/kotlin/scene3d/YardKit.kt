@@ -671,7 +671,28 @@ object YardKit {
         return Frame(it.cx, it.cz, ax, az, fx, fz, w, d)
     }
 
-    private val cache = HashMap<String, YardModel>()
+    /**
+     * The models made, by kind, look and size, the least recently used let go past [CACHE_BYTES] (each size of a fence or
+     * a shed is its own mesh with its own atlas: kept all, the town's came to some 60 MB of the phone's Java heap for good).
+     * A model is a pure function of its key, so one made again is the same.
+     */
+    private val cache = object : LinkedHashMap<String, YardModel>(256, .75f, true) {
+        var bytes = 0L
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, YardModel>?): Boolean {
+            if (bytes <= CACHE_BYTES || eldest == null) return false
+            bytes -= sizeOf(eldest.value)
+            return true
+        }
+    }
+    private fun sizeOf(m: YardModel): Long {
+        val me = m.mesh ?: return 64L
+        return (me.pos.size + me.uv.size + me.nrm.size + me.tan.size + me.idx.size + me.tex.size + (me.mask?.size ?: 0)) * 4L +
+            m.subs.sumOf { s -> (s.mesh.pos.size + s.mesh.uv.size + s.mesh.nrm.size + s.mesh.tan.size + s.mesh.idx.size + s.mesh.tex.size) * 4L }
+    }
+    private const val CACHE_BYTES = 16L shl 20
+
+    /** Lets every model made go (the town's yards are baked: the next town makes its own as it needs them). */
+    fun trim() = synchronized(cache) { cache.clear(); cache.bytes = 0L }
 
     /** [kind]'s model in [variant] for a [w] x [d] rect (its own frame), made once per size. */
     internal fun model(kind: String, variant: Int, w: Float, d: Float, zone: String = "back"): YardModel {
@@ -682,7 +703,7 @@ object YardKit {
         build(kind, variant, rw, rd, zone, o)
         val mesh = if (o.any) o.m.build().also { mm -> for (i in 0 until mm.vertexCount) if (mm.pos[i * 3 + 1] < 0f) mm.pos[i * 3 + 1] = 0f; if (mm.bounds[1] < 0f) mm.bounds[1] = 0f } else null
         val m = YardModel(mesh, o.flats, o.subs)
-        synchronized(cache) { cache[key] = m }
+        synchronized(cache) { if (cache.put(key, m) == null) cache.bytes += sizeOf(m) }
         return m
     }
 
@@ -794,16 +815,16 @@ object YardKit {
         val out = ArrayList<PropMesh>()
         for (s in 0..sheet) {
             val h = sheetH[s].let { var p = 16; while (p < it) p *= 2; p }
-            val tex = IntArray(width * h); val mask = IntArray(width * h)
-            var anyMask = false
+            // (the mask only for a sheet that has one: most have none, and it was an atlas-sized array made for nothing)
+            val anyMask = atlases.any { (k, a) -> a.mask != null && slots[k]!!.sheet == s }
+            val tex = IntArray(width * h); val mask = if (anyMask) IntArray(width * h) else null
             for ((k, a) in atlases) {
                 val sl = slots[k]!!; if (sl.sheet != s) continue
-                if (a.mask != null) anyMask = true
                 for (yy in -2 until a.texH + 2) for (xx in -2 until a.texW + 2) {
                     val sx = xx.coerceIn(0, a.texW - 1); val sy = yy.coerceIn(0, a.texH - 1)
                     val di = (sl.y + yy) * width + sl.x + xx
                     tex[di] = a.tex[sy * a.texW + sx]
-                    a.mask?.let { mask[di] = it[sy * a.texW + sx] }
+                    if (mask != null) a.mask?.let { mask[di] = it[sy * a.texW + sx] }
                 }
             }
             val mine = list.filter { slots[keyOf[it.first]!!]!!.sheet == s }
@@ -826,7 +847,7 @@ object YardKit {
                 for (k in m.idx) idx[ii++] = vi + k
                 vi += m.vertexCount
             }
-            out += PropMesh(pos, uv, nr, tn, idx, width, h, tex, if (anyMask) mask else null, b)
+            out += PropMesh(pos, uv, nr, tn, idx, width, h, tex, mask, b)
         }
         return out
     }
