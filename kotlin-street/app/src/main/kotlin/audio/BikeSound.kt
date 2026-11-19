@@ -53,14 +53,14 @@ class BikeSound {
             lp2 += (lp1 - lp2) * bright
             hp += (lp2 - hp) * .004f
             // (the tyres' noise read as a loud wind to the owner: kept only as a whisper; the freewheel's ticks carry the sound)
-            var s = (lp2 - hp) * .12f * loud
+            var s = 0f * loud  // (no tyre noise at all: the owner heard any hiss as wind)
             // a thump once a wheel turn (the tyre's seam), very faint
             wheelPhase += wheelHz * dt
             if (wheelPhase >= 1f) wheelPhase -= 1f
             s *= 1f + .25f * exp(-wheelPhase * 30f)
             // crackles: grit under the tyre
             if (crackRate > 0f && noise() * .5f + .5f < crackRate * (v / 300f) * dt) crackle = .6f + .4f * (noise() * .5f + .5f)
-            if (crackle > 1e-3f) { s += crackle * noise() * .06f; crackle *= .992f }
+            if (crackle > 1e-3f) { s += crackle * noise() * 0f; crackle *= .992f }
             s *= gain
             // the freewheel's ticks: a short bright click each pawl
             if (tickHz > 0f) {
