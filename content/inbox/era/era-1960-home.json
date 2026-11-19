@@ -1,0 +1,297 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1960,
+  "topic": "home",
+  "facts": [
+    {
+      "id": "1960-home-01",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Many families eat supper together at the kitchen or dining room table.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-02",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A kitchen wall calendar holds handwritten reminders for birthdays and appointments.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-03",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Children hang coats on hooks near the back door after school.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-04",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A family keeps extra blankets in a linen closet for visiting relatives.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-05",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A screened porch offers a place to sit during warm evenings.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-06",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Neighbors sometimes visit on the front porch after supper.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-07",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A household keeps a broom and dustpan close to the kitchen.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-08",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Family members wipe muddy shoes on a mat before entering the house.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-09",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Children may share a bedroom and take turns using a dresser.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-10",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Parents remind children to make their beds before leaving for school.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-11",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A dining table may have a leaf added when guests come for dinner.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-12",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A household stores extra dishes in a china cabinet or sideboard.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-13",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Many families serve a home-cooked roast for Sunday dinner.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-14",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Leftover meat may become sandwiches for lunch the next day.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-15",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A pitcher of iced tea stands on the table during summer meals.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-16",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Families keep flour, sugar, and coffee in kitchen canisters.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-17",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A dish towel hangs near the sink for drying washed plates.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-18",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Some households wash delicate clothes by hand in a basin.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-19",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A clothesline in the yard holds sheets and towels on sunny days.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-20",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Children may be asked to rake leaves or sweep the porch.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-21",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A family stores holiday decorations in boxes in the attic.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-22",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Houseguests may sleep on a foldout sofa or spare bed.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-23",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A family keeps board games in a cupboard for rainy afternoons.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-24",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Some homes have a basement used for storage and household projects.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-25",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Families place lamps beside armchairs for reading after dark.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-home-26",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A parent may pack a child's school lunch in a reusable lunchbox.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
