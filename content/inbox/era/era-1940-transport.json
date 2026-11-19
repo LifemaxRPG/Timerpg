@@ -1,0 +1,338 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1940,
+  "topic": "transport",
+  "facts": [
+    {
+      "id": "1940-transport-01",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Many families travel to town by car, while others walk or catch a bus.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-02",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Drivers stop at service stations where attendants pump gasoline.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-03",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A station attendant checks oil and cleans the windshield during a fuel stop.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-04",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Most cars have manual transmissions that drivers shift themselves.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-05",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Car radios offer music and news during longer drives.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-06",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Families plan longer trips using folded paper road maps.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-07",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Many rural roads remain gravel or dirt rather than pavement.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-08",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Drivers slow down for ruts and dust on unpaved roads.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-09",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Children ride bicycles to visit friends or run errands.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-10",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "School buses collect children along country roads.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-11",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Some children walk to a neighborhood school each morning.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-12",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Passenger trains connect towns with larger cities.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-13",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Travelers buy train tickets at a station counter.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-14",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A station agent announces train arrivals and departures.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-15",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Travelers carry suitcases onto trains and buses.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-16",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Local bus passengers pay fares in cash or with tickets.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-17",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Taxis wait near stations or busy downtown streets in some towns.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-18",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Delivery trucks bring goods from warehouses to Main Street stores.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-19",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Farmers haul produce and supplies in pickup trucks.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-20",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Horse-drawn wagons still appear on some rural roads.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-21",
+      "year_from": 1942,
+      "year_to": 1945,
+      "text": "During the war, gasoline rationing limits many private car trips.",
+      "ages": "adults",
+      "use": [
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-22",
+      "year_from": 1942,
+      "year_to": 1945,
+      "text": "During the war, drivers conserve tires because replacements are scarce.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-23",
+      "year_from": 1942,
+      "year_to": 1945,
+      "text": "During the war, civilians share rides to save fuel and rubber.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-24",
+      "year_from": 1945,
+      "year_to": 1949,
+      "text": "New civilian car production resumes after wartime factory restrictions end.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-25",
+      "year_from": 1945,
+      "year_to": 1948,
+      "text": "After the war, families sometimes face waiting lists for new cars.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-transport-26",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A flat tire may send a driver to the roadside with a spare and jack.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "satellite navigation in family cars",
+      "first_common": 2000,
+      "say_instead": "use a paper road map"
+    },
+    {
+      "thing": "interstate highways crossing the country",
+      "first_common": 1960,
+      "say_instead": "use existing state and federal highways"
+    },
+    {
+      "thing": "seat belts routinely worn by all passengers",
+      "first_common": 1980,
+      "say_instead": "show ordinary period seating without modern belt habits"
+    },
+    {
+      "thing": "airbags in ordinary family cars",
+      "first_common": 1995,
+      "say_instead": "show cars without airbags"
+    },
+    {
+      "thing": "electric scooters for short trips",
+      "first_common": 2020,
+      "say_instead": "walk or ride a bicycle"
+    },
+    {
+      "thing": "ride-hailing through a phone application",
+      "first_common": 2015,
+      "say_instead": "call a taxi dispatcher"
+    },
+    {
+      "thing": "electronic toll collection",
+      "first_common": 2000,
+      "say_instead": "pay tolls with cash"
+    },
+    {
+      "thing": "high-speed passenger rail in small towns",
+      "first_common": null,
+      "say_instead": "take a conventional passenger train"
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
