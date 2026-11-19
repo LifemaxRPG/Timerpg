@@ -1,0 +1,676 @@
+{
+  "name": "Willow House Funeral Home",
+  "era": {
+    "design_years": [
+      1910,
+      1935
+    ],
+    "fits": [
+      1950,
+      2030
+    ],
+    "notes": "Converted family house with a later chapel, covered arrival lane and discreet service bay. Fictional business; no operations or resident history is created."
+  },
+  "units": "metres",
+  "axes": "glTF Y up, front entrance +Z",
+  "origin": "Ground at middle of main house front edge",
+  "building_m": [
+    21.74351978302002,
+    17.65399980545044
+  ],
+  "main_house_m": [
+    9.9328,
+    8.0704
+  ],
+  "built_bounds_blender_m": {
+    "min": [
+      -11.562399864196777,
+      -2.8712000846862793,
+      0.0
+    ],
+    "max": [
+      10.181119918823242,
+      14.78279972076416,
+      9.343040466308594
+    ]
+  },
+  "lot_bounds_blender_art": [
+    -170,
+    -68,
+    170,
+    224
+  ],
+  "heights_m": {
+    "ridge": 8.2256,
+    "chimney": 9.34304
+  },
+  "triangles_visible": 4062,
+  "materials": [
+    "detail_steel",
+    "detail_trim",
+    "glass_home",
+    "glow_lamps",
+    "ground_lawn",
+    "ground_oak",
+    "ground_paving",
+    "roof_slate",
+    "sign_name",
+    "wall_brick_base",
+    "wall_interior",
+    "wall_siding"
+  ],
+  "pixel_grid": {
+    "metres_per_texel": 0.0388,
+    "texels_per_art_pixel": 2
+  },
+  "doors": [
+    {
+      "node": "door_main",
+      "position": [
+        0.0,
+        0.46560001373291016,
+        0.2444400042295456
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "floor_m": 0.4656,
+      "panel": "panel_door_main",
+      "external": true
+    },
+    {
+      "node": "door_arrival",
+      "position": [
+        -5.210840225219727,
+        0.46560001373291016,
+        -4.035200119018555
+      ],
+      "outward": [
+        -1,
+        0,
+        0
+      ],
+      "floor_m": 0.4656,
+      "panel": "panel_door_arrival",
+      "external": true
+    },
+    {
+      "node": "door_chapel",
+      "position": [
+        5.210840225219727,
+        0.46560001373291016,
+        -4.035200119018555
+      ],
+      "outward": [
+        1,
+        0,
+        0
+      ],
+      "floor_m": 0.4656,
+      "panel": "panel_door_chapel",
+      "external": false
+    },
+    {
+      "node": "door_staff",
+      "position": [
+        2.4832000732421875,
+        0.46560001373291016,
+        -8.314840316772461
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ],
+      "floor_m": 0.4656,
+      "panel": "panel_door_staff",
+      "external": true
+    },
+    {
+      "node": "door_service_inner",
+      "position": [
+        -2.4832000732421875,
+        0.46560001373291016,
+        -8.314840316772461
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ],
+      "floor_m": 0.4656,
+      "panel": "panel_door_service_inner",
+      "external": false
+    },
+    {
+      "node": "door_chapel_exit",
+      "position": [
+        7.4496002197265625,
+        0.46560001373291016,
+        -9.556440353393555
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ],
+      "floor_m": 0.4656,
+      "panel": "panel_door_chapel_exit",
+      "external": true
+    },
+    {
+      "node": "door_service_bay",
+      "position": [
+        -2.4832000732421875,
+        0.15520000457763672,
+        -14.522839546203613
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ],
+      "floor_m": 0.1552,
+      "panel": "panel_door_service_bay",
+      "external": true
+    }
+  ],
+  "door_panels": [
+    "panel_door_main",
+    "panel_door_arrival",
+    "panel_door_chapel",
+    "panel_door_staff",
+    "panel_door_service_inner",
+    "panel_door_chapel_exit",
+    "panel_door_service_bay"
+  ],
+  "rooms": [
+    {
+      "id": "reception",
+      "floor_m": 0.4656,
+      "ceiling_m": 4.9664,
+      "bounds_blender_art": [
+        -64,
+        0,
+        64,
+        104
+      ],
+      "notes": "Open converted-house shell; fixed reception counter only. Attic is a closed non-occupiable roof void."
+    },
+    {
+      "id": "chapel",
+      "floor_m": 0.4656,
+      "bounds_blender_art": [
+        64,
+        20,
+        128,
+        120
+      ],
+      "notes": "Unfurnished vaulted room with privacy glazing; no religious fittings or staged ceremony."
+    },
+    {
+      "id": "service_bay",
+      "floor_m": 0.1552,
+      "bounds_blender_art": [
+        -64,
+        104,
+        0,
+        184
+      ],
+      "notes": "Empty architectural bay. Two 0.1552m risers from main floor to lower bay; no vehicle or operational behavior."
+    }
+  ],
+  "sign_name": {
+    "node": "sign_name",
+    "back_node": "sign_name_back",
+    "material": "sign_name",
+    "texture": "textures/signs.png",
+    "rect_art": [
+      0,
+      0,
+      48,
+      24
+    ],
+    "text": "WILLOW HOUSE / FUNERAL HOME",
+    "binding": "Static fictional preview label. Runtime must replace both front and back panel regions together."
+  },
+  "collision": {
+    "node": "collision",
+    "render": false,
+    "use_the_walls": true,
+    "boxes_blender_z_up": [
+      {
+        "source": "Closed door_main",
+        "center": [
+          0.0,
+          -0.08924,
+          1.552
+        ],
+        "size": [
+          1.8624,
+          0.1552,
+          3.104
+        ],
+        "group": "structure",
+        "attachment": "panel_door_main",
+        "gate_node": "panel_door_main"
+      },
+      {
+        "source": "Closed door_arrival",
+        "center": [
+          -5.05564,
+          4.0352,
+          1.4744000000000002
+        ],
+        "size": [
+          0.1552,
+          1.3968,
+          2.9488000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_arrival",
+        "gate_node": "panel_door_arrival"
+      },
+      {
+        "source": "Closed door_chapel",
+        "center": [
+          5.05564,
+          4.0352,
+          1.4744000000000002
+        ],
+        "size": [
+          0.1552,
+          1.8624,
+          2.9488000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_chapel",
+        "gate_node": "panel_door_chapel"
+      },
+      {
+        "source": "Closed door_staff",
+        "center": [
+          2.4832,
+          8.159640000000001,
+          1.4744000000000002
+        ],
+        "size": [
+          1.2416,
+          0.1552,
+          2.9488000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_staff",
+        "gate_node": "panel_door_staff"
+      },
+      {
+        "source": "Closed door_service_inner",
+        "center": [
+          -2.4832,
+          8.159640000000001,
+          1.4744000000000002
+        ],
+        "size": [
+          1.2416,
+          0.1552,
+          2.9488000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_service_inner",
+        "gate_node": "panel_door_service_inner"
+      },
+      {
+        "source": "Portico column",
+        "center": [
+          -1.8624,
+          -1.8624,
+          1.8624
+        ],
+        "size": [
+          0.5432,
+          0.5432,
+          3.7248
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Portico column",
+        "center": [
+          -1.8624,
+          -0.3104,
+          1.8624
+        ],
+        "size": [
+          0.5432,
+          0.5432,
+          3.7248
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Portico column",
+        "center": [
+          1.8624,
+          -1.8624,
+          1.8624
+        ],
+        "size": [
+          0.5432,
+          0.5432,
+          3.7248
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Portico column",
+        "center": [
+          1.8624,
+          -0.3104,
+          1.8624
+        ],
+        "size": [
+          0.5432,
+          0.5432,
+          3.7248
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Arrival column",
+        "center": [
+          -10.864,
+          2.1728,
+          1.8236
+        ],
+        "size": [
+          0.6208,
+          0.6208,
+          3.6472
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Arrival column",
+        "center": [
+          -10.864,
+          5.897600000000001,
+          1.8236
+        ],
+        "size": [
+          0.6208,
+          0.6208,
+          3.6472
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Arrival column",
+        "center": [
+          -5.432,
+          2.1728,
+          1.8236
+        ],
+        "size": [
+          0.6208,
+          0.6208,
+          3.6472
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Arrival column",
+        "center": [
+          -5.432,
+          5.897600000000001,
+          1.8236
+        ],
+        "size": [
+          0.6208,
+          0.6208,
+          3.6472
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Closed door_chapel_exit",
+        "center": [
+          7.4496,
+          9.401240000000001,
+          1.4744000000000002
+        ],
+        "size": [
+          1.2416,
+          0.1552,
+          2.9488000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_chapel_exit",
+        "gate_node": "panel_door_chapel_exit"
+      },
+      {
+        "source": "Closed door_service_bay",
+        "center": [
+          -2.4832,
+          14.367640000000002,
+          1.552
+        ],
+        "size": [
+          3.7248,
+          0.1552,
+          3.104
+        ],
+        "group": "structure",
+        "attachment": "panel_door_service_bay",
+        "gate_node": "panel_door_service_bay"
+      },
+      {
+        "source": "Reception counter",
+        "center": [
+          2.3280000000000003,
+          2.1728,
+          0.8924000000000001
+        ],
+        "size": [
+          2.4832,
+          1.0864,
+          1.7848000000000002
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Garden sign",
+        "center": [
+          7.4496,
+          -1.2416,
+          1.552
+        ],
+        "size": [
+          5.1216,
+          1.0864,
+          3.104
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Downpipe",
+        "center": [
+          -5.1216,
+          7.9152000000000005,
+          2.5220000000000002
+        ],
+        "size": [
+          0.0776,
+          0.0776,
+          5.0440000000000005
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Downpipe",
+        "center": [
+          5.1216,
+          7.9152000000000005,
+          2.5220000000000002
+        ],
+        "size": [
+          0.0776,
+          0.0776,
+          5.0440000000000005
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Downpipe",
+        "center": [
+          10.088000000000001,
+          9.1568,
+          1.8624
+        ],
+        "size": [
+          0.0776,
+          0.0776,
+          3.7248
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Shrub",
+        "center": [
+          -4.3456,
+          -1.552,
+          0.4268
+        ],
+        "size": [
+          1.0864,
+          1.0864,
+          0.8536
+        ],
+        "group": "lot",
+        "attachment": "garden_shrub"
+      },
+      {
+        "source": "Shrub",
+        "center": [
+          3.7248,
+          -1.7072,
+          0.4268
+        ],
+        "size": [
+          1.0864,
+          1.0864,
+          0.8536
+        ],
+        "group": "lot",
+        "attachment": "garden_shrub.001"
+      },
+      {
+        "source": "Shrub",
+        "center": [
+          11.0968,
+          3.104,
+          0.4268
+        ],
+        "size": [
+          1.0864,
+          1.0864,
+          0.8536
+        ],
+        "group": "lot",
+        "attachment": "garden_shrub.002"
+      },
+      {
+        "source": "Shrub",
+        "center": [
+          11.0968,
+          7.9152000000000005,
+          0.4268
+        ],
+        "size": [
+          1.0864,
+          1.0864,
+          0.8536
+        ],
+        "group": "lot",
+        "attachment": "garden_shrub.003"
+      },
+      {
+        "source": "Shrub",
+        "center": [
+          3.2592,
+          10.088000000000001,
+          0.4268
+        ],
+        "size": [
+          1.0864,
+          1.0864,
+          0.8536
+        ],
+        "group": "lot",
+        "attachment": "garden_shrub.004"
+      },
+      {
+        "source": "Bench",
+        "center": [
+          7.4496,
+          11.1744,
+          0.6208
+        ],
+        "size": [
+          2.1728,
+          0.776,
+          1.2416
+        ],
+        "group": "lot",
+        "attachment": "garden_bench"
+      },
+      {
+        "source": "Service bins",
+        "center": [
+          -6.1304,
+          13.5024,
+          0.5820000000000001
+        ],
+        "size": [
+          1.3968,
+          0.6984,
+          1.1640000000000001
+        ],
+        "group": "lot",
+        "attachment": "service_bins"
+      }
+    ],
+    "strategy": "Architectural surfaces provide walls, floors, steps and closed panels. Full-height boxes cover posts, counter, low sign and optional props.",
+    "runtime": "Hide collision mesh; gate_node boxes follow each closed door panel. Height-aware steps, interior navigation and vehicle routing remain integration work."
+  },
+  "lot_node": "lot",
+  "runtime_handoff": [
+    "No residents, death events, business history, services or simulation facts are created.",
+    "No bodies, coffins, loose furnishings, vehicles or religious ceremony are modeled.",
+    "Arrival lane is geometry only; no functioning traffic or accessibility certification is claimed.",
+    "Opaque privacy panes use separate emission mask. Importer must retain nearest/repeat sampling and emissive textures.",
+    "Blender lights and terrain/cameras are presentation only; staged lighting is not exported as working runtime lights."
+  ],
+  "swatches_used": [
+    "wall_stucco_red",
+    "brick_red",
+    "roof_slate",
+    "pavement"
+  ],
+  "licence": "Shared LimeZu swatches: Timerpg-only use, retain original credit. Other textures and all geometry original.",
+  "renders": "Blender desktop previews, not Filament/S25 captures."
+}

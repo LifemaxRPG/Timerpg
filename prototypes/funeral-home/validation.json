@@ -1,0 +1,24 @@
+{
+  "file": "funeral-home.glb",
+  "visible_triangles": 4062,
+  "materials": 12,
+  "collision_boxes": 27,
+  "doors": 7,
+  "external_doors": 5,
+  "prop_triangles": {
+    "garden_bench": 60,
+    "garden_shrub": 56,
+    "garden_shrub.001": 56,
+    "garden_shrub.002": 56,
+    "garden_shrub.003": 56,
+    "garden_shrub.004": 56,
+    "service_bins": 48
+  },
+  "uv_scale_max_edge_error_m": 1.0257992570927854e-06,
+  "bytes": 348660,
+  "art": "Every embedded PNG has exact 2x2 texel art pixels; nearest/repeat samplers and physical UV density verified. Door/window atlas containment and separate pane-only emission mask verified.",
+  "architecture": "Upward roof normals, clear seven door apertures, non-overlapping coplanar paving and grade-safe geometry verified.",
+  "collision": "Full-height box corners match actual exported collision mesh. Door translations, outward normals, floors and gate bindings verified.",
+  "runtime": "Clean architectural shells only. Navigation, doors, lighting, business history and simulation integration remain pending.",
+  "renders": "Blender desktop previews, not Filament/S25 captures."
+}
