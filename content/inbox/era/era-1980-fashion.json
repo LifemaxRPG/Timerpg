@@ -1,0 +1,323 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1980,
+  "topic": "fashion",
+  "facts": [
+    {
+      "id": "1980-fashion-01",
+      "year_from": 1982,
+      "year_to": 1989,
+      "text": "Women wear blouses with padded shoulders to give jackets a broad silhouette.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-02",
+      "year_from": 1984,
+      "year_to": 1989,
+      "text": "A teenager rolls the cuffs of blue jeans above high-top sneakers.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-03",
+      "year_from": 1983,
+      "year_to": 1988,
+      "text": "Some girls wear brightly colored plastic bracelets stacked along their wrists.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-04",
+      "year_from": 1983,
+      "year_to": 1989,
+      "text": "A woman pairs a loose sweater with narrow trousers for an everyday outfit.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-05",
+      "year_from": 1985,
+      "year_to": 1989,
+      "text": "Teenagers wear oversized sweatshirts over leggings for casual outings.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-06",
+      "year_from": 1986,
+      "year_to": 1989,
+      "text": "A girl ties her hair back with a fabric-covered elastic band.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-07",
+      "year_from": 1982,
+      "year_to": 1989,
+      "text": "Some women tease their hair high and hold it with hairspray.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-08",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A boy wears a striped polo shirt with shorts during summer vacation.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-09",
+      "year_from": 1980,
+      "year_to": 1986,
+      "text": "A young child wears corduroy trousers and a knitted sweater to school.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-10",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Men wear pleated trousers with tucked-in shirts at office jobs.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-11",
+      "year_from": 1980,
+      "year_to": 1988,
+      "text": "A businessman chooses a wide tie to wear with his suit.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-12",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A woman wears a matching skirt and jacket to a formal office.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-13",
+      "year_from": 1987,
+      "year_to": 1989,
+      "text": "Some teenagers wear acid-washed denim jackets late in the decade.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-14",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A teenager folds the collar of a denim jacket over a plain shirt.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-15",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Girls wear patterned tights beneath skirts during colder months.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-16",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A child wears a puffy winter coat with mittens on the walk to school.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-17",
+      "year_from": 1983,
+      "year_to": 1989,
+      "text": "Some young women wear large hoop earrings with casual clothes.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-18",
+      "year_from": 1982,
+      "year_to": 1989,
+      "text": "A woman chooses bright eye shadow to match her evening outfit.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-19",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A man wears a knit cardigan over a collared shirt on a cool day.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-20",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Older women often keep a practical short hairstyle with regular salon visits.",
+      "ages": "elders",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-21",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "An older man wears a flat cap and a wool coat when going downtown.",
+      "ages": "elders",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-22",
+      "year_from": 1983,
+      "year_to": 1989,
+      "text": "A teenage boy styles his hair into a longer cut at the back.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-23",
+      "year_from": 1984,
+      "year_to": 1988,
+      "text": "Some teenagers wear fingerless gloves as a fashion accessory.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-24",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A girl wears a headband to keep her hair out of her face during exercise.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-25",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A woman wears low-heeled pumps with a tailored skirt for work.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-fashion-26",
+      "year_from": 1982,
+      "year_to": 1989,
+      "text": "Children wear colorful tracksuits for play and trips to the park.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
