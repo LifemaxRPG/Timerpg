@@ -835,3 +835,25 @@ owner's screenshots of builds without these changes).
   `-Dshots=bench [-DbenchSecs=20]` the frame bench (a 20 s walk then ride through downtown, Wharf Road and east Main
   Street through the game loop: CPU by part, allocations, the worst frames with their parts and uploads; bench.txt),
   `-Ddebugeye=1` what stands by the eye in each view.
+
+## The hand-made landmark models in the town (branch wf-place, 2026-11-19)
+
+Desktop renders and JVM tests only, NOT yet run on the S25. Details: docs/LANDMARKS_GLB.md "In the town".
+
+- **Generator** (`src/town/glbSites.ts`, tests `glbSites.test.ts`): which of the fourteen models a town earns (its size at
+  36 inhabitants a simulated person, its kind, its railroad), the years each business stands (opened, shut, reused, pulled
+  down: `glbTenures`), and its plot (`glbSites`): after the plan, on ground beside any street that no lot the town builds
+  by 2025 uses, clear of streets, river, plaza, landmarks, town hall, chapel, farmsteads, country roads, track and depot,
+  the 3D yards and each other, by lot type (downtown, corner, highway on the main street's outer stretches, civic, edge),
+  keeping the frontage rule (a car-park building never beside the old core's street wall, the Gazette never beside a
+  strip). One club a town at a time (Mirage, then Pulse on its plot or The Foundry). A plot is reused once its model is
+  pulled down. The railroad's model depot is rail.ts's (`depot.premier`, a town of 3,000 and more).
+- **Export** (`tools/town-glb.ts`): standing models become row buildings of kind `landmark` (named after every other
+  building, so no bN name moves), `graph.landmarks` (art = the kind) and `graph.glbLandmarks`; props in their plots dropped,
+  fields under them sold (`becomes: 'landmark'`). gamma 2025: the Gazette, the water tower, the feed mill (a brewery), The
+  Foundry, the highway gas station, the coin laundry (shut) and the Union Depot; 6 rows' buildings added (4 rows changed),
+  2 fields gone under the depot's plot, 2 sold (to the motel in 1962, the laundry in 1975). street.json, rail.json and the desktop fixture town-gamma.json re-exported.
+- **Engine**: `FilamentTown(landmarks = LandmarkAssets(...))` builds a `TownLandmark` per slot and one for the depot (the
+  code-built depot left out then), with collision, doors, night lights (dark when shut), the cutaway and the open-world
+  camera's cut; drawn whole to 12,000 units past their reach instead of a far box. The open preview draws the railroad and
+  has `glb_*` shots.

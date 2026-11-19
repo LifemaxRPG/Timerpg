@@ -305,6 +305,8 @@ class FilamentTown(
     /** The town's railroad (rail.json: docs/RAIL.md), drawn for [railYear] (0: the town's year) by [TownRailDraw]; null: none. */
     rail: com.lifemax.rpg.feature.habits.domain.RailNet? = null,
     railYear: Int = 0,
+    /** The hand-made landmark models (docs/LANDMARKS_GLB.md): the catalogue, its files and what the town places; null: none. */
+    landmarks: LandmarkAssets? = null,
 ) {
     val scene: Scene = engine.createScene()
     val view: View = engine.createView()
@@ -478,7 +480,8 @@ class FilamentTown(
     private var railDraw: TownRailDraw? = rail?.let { r ->
         // (the forest and the woods' edge keep off the track's bed: set before the ground is made)
         if (town.keepClear == null) town.keepClear = { x, z -> com.lifemax.rpg.feature.habits.domain.RailScene(r, town.year).onBed(x, z) }
-        TownRailDraw(engine, scene, lit, proxyMat, textures, town, r, if (railYear > 0) railYear else town.year, collision)
+        TownRailDraw(engine, scene, lit, proxyMat, textures, town, r, if (railYear > 0) railYear else town.year, collision,
+            modelDepot = r.rail.depot?.premier != null && landmarks?.catalogue?.any { it.kind == DEPOT_KIND } == true)
     }
 
     // ------------------------------------------------------------------ riding the train (docs/RAIL.md "Riding")
@@ -531,7 +534,8 @@ class FilamentTown(
         if (railDraw?.year == year) return
         railDraw?.destroy()
         rideLayer?.destroy()
-        railDraw = TownRailDraw(engine, scene, lit, proxyMat, textures, town, r, year, collision)
+        railDraw = TownRailDraw(engine, scene, lit, proxyMat, textures, town, r, year, collision, modelDepot = depotSpec != null)
+        depotDraw?.destroy(); depotDraw = makeDepot()
     }
     /** The railroad as drawn (its year's scene, the trains of the last frame), for previews and the ticket window. */
     val railScene: com.lifemax.rpg.feature.habits.domain.RailScene? get() = railDraw?.rail
@@ -545,6 +549,46 @@ class FilamentTown(
         s.missing = true
         TownStore(engine, scene, lit, proxyMat, textures, st, s.place, s.b.setback, s.row.id, if (year > 0) year else st.year.takeIf { it > 0 } ?: town.year, collision)
     } }
+
+    // ------------------------------------------------------------------ the hand-made landmark models (TownLandmark)
+    private val landmarkAssets = landmarks
+    /** The models standing in the rows' slots (built by code: the slots have no art). */
+    private val landmarkDraws: List<TownLandmark> = landmarks?.let { a -> a.placed.mapNotNull { p ->
+        val spec = a.catalogue.firstOrNull { it.kind == p.kind } ?: return@mapNotNull null
+        val s = slots.firstOrNull { it.b.sprite == p.sprite } ?: return@mapNotNull null
+        s.missing = true
+        val c = s.place.world(0f, s.b.setback + s.b.depth / 2f)
+        TownLandmark(engine, scene, lit, proxyMat, textures, spec, { a.file(spec.file) ?: ByteArray(0) }, { spec.info?.let { a.file(it)?.decodeToString() } },
+            p.sprite, s.row.id, TownLandmark.rowFrame(s.place, s.b.setback), floatArrayOf(c.x, c.z, hypot(s.b.width, s.b.depth) / 2f + 60f),
+            town.year, town.seed.hashCode(), collision, closed = p.state == "closed", hide = p.hide)
+    } } ?: emptyList()
+    /** The railroad's hand-made depot, in a town that has it ([RailDepot.premier]), as the railroad stands in its year. */
+    private val depotSpec: LandmarkSpec? get() = landmarkAssets?.catalogue?.firstOrNull { it.kind == DEPOT_KIND }?.takeIf { railNet?.rail?.depot?.premier != null }
+    private var depotDraw: TownLandmark? = null
+    private var depotTried = false
+    private fun makeDepot(): TownLandmark? {
+        val spec = depotSpec ?: return null
+        val a = landmarkAssets ?: return null
+        val d = railNet?.rail?.depot ?: return null
+        val rd = railDraw ?: return null
+        val state = rd.rail.depotState
+        if (state == "none") return null
+        // its front away from the track, the platform's edge (16.14 m behind its origin) 1.75 m from the track's centre
+        val l = hypot(d.dx, d.dz).coerceAtLeast(1e-6f)
+        val fx = d.dz / l * d.side; val fz = -d.dx / l * d.side
+        val off = (DEPOT_PLATFORM_M + DEPOT_EDGE_M) * LandmarkKit.UNITS_PER_METRE
+        val ox = d.x + fx * off; val oz = d.z + fz * off
+        return TownLandmark(engine, scene, lit, proxyMat, textures, spec, { a.file(spec.file) ?: ByteArray(0) }, { spec.info?.let { a.file(it)?.decodeToString() } },
+            "rail-depot", "", TownLandmark.facing(ox, oz, fx, fz), floatArrayOf(ox, oz, spec.width / 2f + 60f),
+            rd.year, town.seed.hashCode(), collision, closed = state == "closed")
+    }
+    private val landmarkOut = IntArray(3)
+    /** The landmark models as built (for previews and tests): sprite, kind, triangles, solid shapes, doors, whether drawn. */
+    val landmarkReport: List<String> get() = (landmarkDraws + listOfNotNull(depotDraw)).map { "${it.sprite} ${it.spec.kind}: ${if (it.done) "${it.triangles} triangles, ${it.solidCount} solid shapes, ${it.doorCount} doors" else "building"}${if (it.closed) ", closed" else ""}${if (it.shown) ", shown" else ""}" }
+    /** The frame (origin x, z; x axis; z axis) of the landmark model in slot [sprite] ("rail-depot": the depot's), once built. */
+    fun landmarkFrame(sprite: String): FloatArray? = (landmarkDraws + listOfNotNull(depotDraw)).firstOrNull { it.sprite == sprite && it.done }?.frame
+    /** The lot of the landmark model in slot [sprite] in its frame (x0, z0, x1, z1, height), once built. */
+    fun landmarkLot(sprite: String): FloatArray? = (landmarkDraws + listOfNotNull(depotDraw)).firstOrNull { it.sprite == sprite && it.done }?.lot
 
     /** The year the stores stand as (0: the export's own); set it to another and they are built again for that year. */
     var storeYear: Int = storeYear
@@ -573,7 +617,7 @@ class FilamentTown(
     /** How long the ground took (ms), the buildings so far (ms), and how many are left to build. */
     var groundMs = 0f; private set
     var buildingsMs = 0f; private set
-    val pending: Int get() = slots.count { it.built == null && !it.missing } + (if (cinemaDraw?.done == false) 1 else 0) + storeDraws.count { !it.done } +
+    val pending: Int get() = slots.count { it.built == null && !it.missing } + (if (cinemaDraw?.done == false) 1 else 0) + storeDraws.count { !it.done } + landmarkDraws.count { !it.done } + (if (depotDraw?.done == false) 1 else 0) +
         (if (farCounted && !far.allReady) 1 else 0) + extras.count { it.pending }
     /** The far cells have been counted (each building's cell, at the first [buildNearest]). */
     private var farCounted = false
@@ -880,6 +924,9 @@ class FilamentTown(
         if (far.upload()) engine.flush()
         cinemaDraw?.let { c -> c.start(pool); if (!c.done && c.step()) engine.flush() }
         for (st in storeDraws) { st.start(pool, lastHour, weekday); if (!st.done && st.step()) engine.flush() }
+        if (depotDraw == null && depotSpec != null && !depotTried) { depotTried = true; depotDraw = makeDepot() }
+        for (lm in landmarkDraws) { lm.start(pool); if (!lm.done && lm.step()) engine.flush() }
+        depotDraw?.let { lm -> lm.start(pool); if (!lm.done && lm.step()) engine.flush() }
         // (the extras' work waits for the ground: the first view comes first)
         if (groundBuilt) for (x in extras) x.step()
         if (todo == 0 && chunksTodo == 0 && groundBuilt) return 0
@@ -1208,6 +1255,11 @@ class FilamentTown(
             val o = st.frame(pose, look, dark, seconds, { x, z -> if (pose.cut > 0f) fadeOf(pose, x, z) else 1f }, storeOut)
             if (o[0] > 0) { visible++; renderables += o[0]; draws += o[0]; tris += o[1] }; casters += o[2]
         }
+        for (lm in landmarkDraws + listOfNotNull(depotDraw)) {
+            lm.occFade = if (pose.open && lm.occluded) max(OCCLUDED, lm.occFade - occStep) else min(1f, lm.occFade + occStep)
+            val o = lm.frame(pose, look, dark, seconds, { x, z -> if (pose.cut > 0f) fadeOf(pose, x, z) else 1f }, landmarkOut)
+            if (o[0] > 0) { visible++; renderables += o[0]; draws += o[0]; tris += o[1] }; casters += o[2]
+        }
         if (extras.isNotEmpty()) {
             val fc = TownExtra.Frame(pose, look, dark, hour, seconds, floatArrayOf(g0, g1, g2, ga), floatArrayOf(gl0, gl1, gl2), occStep)
             for (x in extras) { val o = x.frame(fc, storeOut); if (o[0] > 0) { visible++; renderables += o[0]; draws += o[0]; tris += o[1] }; casters += o[2] }
@@ -1387,6 +1439,14 @@ class FilamentTown(
             if (tc <= 0f) cinemaOccT = .999f
             else if (tc <= 1f && th <= 1f) { cinemaOccT = max(tc, th); blocked = true; if (tc < first) first = tc }
         }
+        // the landmark models (their buildings, not their flat lots): as the cinema
+        for (lm in landmarkDraws + listOfNotNull(depotDraw)) {
+            lm.occT = Float.MAX_VALUE
+            val tc = lm.inWay(st[0], st[1], st[2], ex, ey, ez, EYE_CLEAR)
+            val th = lm.inWay(st[6], st[7], st[8], ex, ey, ez, 0f)
+            if (tc <= 0f) lm.occT = .999f
+            else if (tc <= 1f && th <= 1f) { lm.occT = max(tc, th); blocked = true; if (tc < first) first = tc }
+        }
         // the yards' tall things (world boxes): any of the cone's lines through one, or the eye near it, cuts its lot's
         val tb = tallBoxes
         tallHit.fill(false)
@@ -1512,6 +1572,8 @@ class FilamentTown(
         for (s in slots) s.occluded = s.occT < t
         for (s in storeDraws) s.occluded = s.occT < t
         cinemaDraw?.occluded = cinemaOccT < t
+        for (lm in landmarkDraws) lm.occluded = lm.occT < t
+        depotDraw?.let { it.occluded = it.occT < t }
         for (x in extras) x.fadeBetween(t)
         occludedLots.clear()
         for (k in tallKeys.indices) if (tallHit[k]) occludedLots.add(tallKeys[k])
@@ -1679,6 +1741,8 @@ class FilamentTown(
         cinemaDraw?.destroy()
         skirt.destroy()
         for (st in storeDraws) st.destroy()
+        for (lm in landmarkDraws) lm.destroy()
+        depotDraw?.destroy()
         for (x in extras) x.destroy()
         railDraw?.destroy()
         for (s in slots) {
@@ -1709,6 +1773,11 @@ class FilamentTown(
     }
 
     companion object {
+        /** The railroad's hand-made depot model (its catalogue kind), and where it stands: its platform's edge [DEPOT_PLATFORM_M]
+         * behind its origin, [DEPOT_EDGE_M] from the track's centre (metres). */
+        const val DEPOT_KIND = "landmark_glb_premier_railroad_depot"
+        const val DEPOT_PLATFORM_M = 16.14f
+        const val DEPOT_EDGE_M = 1.75f
         /**
          * What is in the open world camera's way is cut away (kept: 0, not a screen-door haze over the view), over this many
          * seconds out and back.

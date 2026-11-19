@@ -79,11 +79,21 @@ class LandmarkGlbTest {
     }
 
     @Test fun theNewLandmarksAreInTheCatalogue() {
-        for (k in listOf("gazette_office", "feed_mill", "mirage_nightclub", "pulse_nightclub", "starlight_drive_in", "water_tower", "roadside_motel", "premier_railroad_depot"))
+        for (k in listOf("gazette_office", "feed_mill", "mirage_nightclub", "pulse_nightclub", "starlight_drive_in", "water_tower", "roadside_motel", "premier_railroad_depot",
+            "coin_laundromat", "foundry_nightclub"))
             assertTrue("$k listed", specs.any { it.kind == "landmark_glb_$k" })
         // a swatch re-skin replaces the picture at the same texel size
         val club = specs.first { it.kind.endsWith("mirage_nightclub") }
         assertEquals("ballast", club.swatches["roof_membrane"])
+    }
+
+    @Test fun theFoundryGlowsOnlyOutside() {
+        // (its hall's LED floor, light wall, bar and truss lamps are a plain picture: only the signs and trim outside glow,
+        // and no lit ceiling inside the closed shell becomes a spot light)
+        val lm = build(specs.first { it.kind.endsWith("foundry_nightclub") })
+        val i = lm.names.indexOf("detail_led")
+        assertTrue("the hall's LEDs are built", i >= 0)
+        assertTrue("and do not glow", lm.model.parts[i].role != CinemaPart.Role.SIGN && lm.model.parts[i].mesh.mask == null)
     }
 
     @Test fun aPoolIsSolidWaterFlushWithTheGround() {

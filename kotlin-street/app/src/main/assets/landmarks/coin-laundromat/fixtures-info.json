@@ -1,0 +1,201 @@
+{
+  "name": "Optional Suds & Spin machine kit",
+  "file": "laundry-fixtures.glb",
+  "units": "metres",
+  "axes": "glTF Y up, aligned to the main building origin",
+  "triangles_visible": 1214,
+  "materials": [
+    "detail_drum",
+    "detail_enamel",
+    "detail_panels",
+    "detail_steel"
+  ],
+  "machine_nodes": [
+    "washer_01",
+    "washer_02",
+    "washer_03",
+    "washer_04",
+    "washer_05",
+    "washer_06",
+    "dryer_01",
+    "dryer_02",
+    "dryer_03",
+    "dryer_04",
+    "change_unit"
+  ],
+  "machine_count": 11,
+  "placement": "Already positioned in building coordinates. Import the whole kit at the same origin, or use the main slot anchors for engine furniture instead. Do not place both sets of machines.",
+  "floor_m": 0.1552,
+  "collision": {
+    "node": "collision",
+    "render": false,
+    "boxes_blender_z_up": [
+      {
+        "source": "washer_01",
+        "center": [
+          -3.2592,
+          8.0704,
+          0.6208
+        ],
+        "size": [
+          0.9312,
+          1.0088,
+          1.2416
+        ],
+        "group": "fixtures",
+        "attachment": "washer_01"
+      },
+      {
+        "source": "washer_02",
+        "center": [
+          -2.1728,
+          8.0704,
+          0.6208
+        ],
+        "size": [
+          0.9312,
+          1.0088,
+          1.2416
+        ],
+        "group": "fixtures",
+        "attachment": "washer_02"
+      },
+      {
+        "source": "washer_03",
+        "center": [
+          -1.0864,
+          8.0704,
+          0.6208
+        ],
+        "size": [
+          0.9312,
+          1.0088,
+          1.2416
+        ],
+        "group": "fixtures",
+        "attachment": "washer_03"
+      },
+      {
+        "source": "washer_04",
+        "center": [
+          0.0,
+          8.0704,
+          0.6208
+        ],
+        "size": [
+          0.9312,
+          1.0088,
+          1.2416
+        ],
+        "group": "fixtures",
+        "attachment": "washer_04"
+      },
+      {
+        "source": "washer_05",
+        "center": [
+          1.0864,
+          8.0704,
+          0.6208
+        ],
+        "size": [
+          0.9312,
+          1.0088,
+          1.2416
+        ],
+        "group": "fixtures",
+        "attachment": "washer_05"
+      },
+      {
+        "source": "washer_06",
+        "center": [
+          2.1728,
+          8.0704,
+          0.6208
+        ],
+        "size": [
+          0.9312,
+          1.0088,
+          1.2416
+        ],
+        "group": "fixtures",
+        "attachment": "washer_06"
+      },
+      {
+        "source": "dryer_01",
+        "center": [
+          -4.268,
+          1.8624,
+          1.0088
+        ],
+        "size": [
+          1.1640000000000001,
+          1.2416,
+          2.0176
+        ],
+        "group": "fixtures",
+        "attachment": "dryer_01"
+      },
+      {
+        "source": "dryer_02",
+        "center": [
+          -4.268,
+          3.4144,
+          1.0088
+        ],
+        "size": [
+          1.1640000000000001,
+          1.2416,
+          2.0176
+        ],
+        "group": "fixtures",
+        "attachment": "dryer_02"
+      },
+      {
+        "source": "dryer_03",
+        "center": [
+          -4.268,
+          4.9664,
+          1.0088
+        ],
+        "size": [
+          1.1640000000000001,
+          1.2416,
+          2.0176
+        ],
+        "group": "fixtures",
+        "attachment": "dryer_03"
+      },
+      {
+        "source": "dryer_04",
+        "center": [
+          -4.268,
+          6.5184,
+          1.0088
+        ],
+        "size": [
+          1.1640000000000001,
+          1.2416,
+          2.0176
+        ],
+        "group": "fixtures",
+        "attachment": "dryer_04"
+      },
+      {
+        "source": "change_unit",
+        "center": [
+          -3.8024,
+          0.776,
+          1.0088
+        ],
+        "size": [
+          0.9312,
+          0.8536,
+          2.0176
+        ],
+        "group": "fixtures",
+        "attachment": "change_unit"
+      }
+    ]
+  },
+  "behavior": "Static optional fixtures only. No washing/drying cycles, billing, prices, water, power, occupancy, animation or inventory are implemented."
+}

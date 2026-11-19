@@ -23,7 +23,8 @@ object StoreLots {
         for (i in 0 until lms.length()) {
             val l = lms.getJSONObject(i)
             val kind = l.optString("kind")
-            if (kind !in KINDS && !l.optString("art").startsWith("landmark_store_")) continue
+            // (and the hand-made landmark models: [GlbLandmarks])
+            if (kind !in KINDS && !l.optString("art").startsWith("landmark_store_") && !l.optString("art").startsWith("landmark_glb_")) continue
             val sprite = l.optString("sprite")
             if (sprite.isBlank()) continue
             out += StoreLot(sprite, kind, l.optString("id"))

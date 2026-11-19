@@ -20,7 +20,8 @@ describe('town graph', () => {
   it('puts every lot and landmark on exactly one row', () => {
     const where = new Map<string, string[]>();
     for (const r of g.graph.rows) for (const b of r.buildings) where.set(b.lot, [...(where.get(b.lot) ?? []), r.id]);
-    const want = [...townLots(g.layout).map((l) => l.slot), ...g.layout.landmarks.map((l) => `landmark:${l.id}`), ...(g.graph.extras ?? []).map((x) => x.id)];
+    const want = [...townLots(g.layout).map((l) => l.slot), ...g.layout.landmarks.map((l) => `landmark:${l.id}`), ...(g.graph.extras ?? []).map((x) => x.id),
+      ...(g.graph.glbLandmarks ?? []).map((x) => x.landmark)];
     for (const id of want) expect(where.get(id), id).toHaveLength(1);
     expect(where.size).toBe(want.length);
     expect(g.graph.lots.map((l) => l.id).sort()).toEqual(townLots(g.layout).map((l) => l.slot).sort());

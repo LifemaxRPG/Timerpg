@@ -238,7 +238,7 @@ object PropRules {
             // a cinema's whole front is kept clear (its doors, ticket booth, poster cases and the queue under the marquee)
             for (f in st.fronts) if (f.landmark == "cinema") blocked += floatArrayOf(f.x0 + 30f, f.x1 - 30f, -1f, Crossroads.PAVE + Crossroads.KERB)
             // and a store's (its porch and steps, its glass and doors, its car park's mouth and road sign are its own)
-            for (f in st.fronts) if (f.landmark in StoreLots.KINDS) blocked += floatArrayOf(f.x0 + 12f, f.x1 - 12f, -1f, Crossroads.PAVE + Crossroads.KERB)
+            for (f in st.fronts) if (f.landmark in StoreLots.KINDS || f.landmark?.startsWith("landmark_glb_") == true) blocked += floatArrayOf(f.x0 + 12f, f.x1 - 12f, -1f, Crossroads.PAVE + Crossroads.KERB)
             val hoodAt = { x: Float -> st.fronts.minByOrNull { f -> if (x in f.x0..f.x1) 0f else minOf(abs(f.x0 - x), abs(f.x1 - x)) }?.neighbourhood ?: "" }
 
             // 1. the corners: the name sign, the stop or the crossing sign at the crossing road's kerb, a hydrant just past

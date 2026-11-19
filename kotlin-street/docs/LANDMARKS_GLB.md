@@ -2,8 +2,8 @@
 
 Landmarks modelled by hand to the contract in `docs/CHATGPT_MODEL_GUIDE.md` (glTF 2.0 binary, metres, Y up, entrance
 +Z, materials named by role, door nodes, a collision-only mesh, an optional `lot` group) are read and built by the
-engine like the code-built cinema and stores, and drawn through the same lit material. Status (2026-11-19): the path
-works for twelve models on the desktop preview; the town does not place them yet (that is a later job, see the end).
+engine like the code-built cinema and stores, and drawn through the same lit material. Status (2026-11-19): fourteen
+models; the generated towns place them (branch wf-place: "In the town" below), desktop renders only, not yet on the S25.
 
 ## The models (app/src/main/assets/landmarks/)
 
@@ -21,6 +21,8 @@ works for twelve models on the desktop preview; the town does not place them yet
 | `landmark_glb_water_tower` | Water Tower: four-legged riveted steel tower, 26 m, fenced compound | 1920-1965, 1940 (stands 1940+) | 12.7 x 12.7 | 12.7 x 12.7 | 9,210 | `codex/water-tower` |
 | `landmark_glb_roadside_motel` | Sundown Motel: L of twelve rooms round a parking court, pool, neon pylon | 1950-1969, 1957 | 47.2 x 33.5 | 36.0 x 26.1 | 9,970 | `codex/roadside-motel` |
 | `landmark_glb_premier_railroad_depot` | Union Depot: brick-and-timber depot, clock tower (15.5 m), 52 m platform behind | 1900-1935, 1915 (stands 1950+) | 52.1 x 23.6 | 34.8 x 12.4 | 3,875 | `codex/premier-railroad-depot` |
+| `landmark_glb_coin_laundromat` | Suds & Spin Coin Laundry: 1960s butterfly roof, pylon sign, four parking bays in front | 1960-1975, 1964 | 18.6 x 21.1 | 9.9 x 11.2 | 1,898 | `codex/coin-laundromat` |
+| `landmark_glb_foundry_nightclub` | The Foundry: an old sawtooth-roofed works turned club, corner light tower (11.5 m), courtyard behind a street gantry | 2010-2029, 2018 | 28.6 x 29.8 | 19.9 x 18.0 | ~3,000 | `codex/foundry-nightclub`, touched up here |
 
 Each folder holds the `.glb` and its `model-info.json` (the collision boxes' tags are read from it). The catalogue
 `landmarks/landmarks.json` lists them: kind, name, role (the business), era, lot and building in metres, the swatch
@@ -29,6 +31,27 @@ re-skins (`swatches`: material -> swatch id), the price panel (`price`) and what
 eras, lots, the plot in tiles, an opening year from the seed, the gas price table); its test keeps the two in step.
 The era is the design's; a model may stand long after (or be reused, or the business move) as the simulation says.
 The branches were not merged: the files were copied with `git show`.
+
+## The last two (2026-11-19, branch wf-place)
+
+- **Suds & Spin Coin Laundry** (`coin-laundromat/`): imported as the eight before it (`git show` of the .glb and
+  model-info.json; catalogue; glbLandmarks.ts; LandmarkGlbTest). Against the guide: no must-rule broken (grounds at 0,
+  doors `door_main` / `door_back` / `door_service_inside`, a `lot` group, collision boxes plus "use the walls"); 11
+  materials; `roof_membrane` re-skinned to `ballast` as the others' flat roofs; its lot is off-centre (x -10.6..8.1 m: the
+  pylon and the bays to the left); `glow_fluorescent` is the hall's ceiling (2.8-4.4 m up), so the loader lights it as
+  ceiling spots inside the shell (cheap, unseen). Its glass is BLEND (made solid over the painted room, as the others).
+  **The optional machine kit** (`laundry-fixtures.glb` + `fixtures-info.json`: six washers, four dryers, a change machine,
+  their own colliders; the shell's `machine_slots` say where each stands) ships beside it for the interiors job; the
+  town does not load it (no rooms yet).
+- **The Foundry** (`foundry-nightclub/`; source in `tools/landmarks/foundry-nightclub/`: `python3 make_art.py` then
+  `python3 build_model.py` in the folder, then copy the .glb and model-info.json to the assets). Made by the same tool as
+  the other two clubs, given the same scrutiny: the atlas paths pointed at our swatches (the pictures came out identical);
+  the entry lintel read "MAIN HALL" in 45 of its 48 pixels with the shadow over the frame: now "ENTER"; the hall's LED
+  floor, light wall, bar front and truss lamps were `glow_laser` (70 m2 of glow inside a closed shell, and the truss
+  lamps would have become spot lights inside): they are now `detail_led` (the same picture, not emissive), so only the
+  signs, the beacon cube, the gantry, the courtyard lights and the service lamp glow (13 materials, one over the guide's
+  12); `ground_asphalt` re-skinned to `asphalt` as the Mirage's. Checked and left: grounds at 0 or above, collision walls to
+  the eaves (4.35 m, the sawtooth roof above), the tower box full height (11.3 m), doors main / back / side.
 
 ## The loader (shared/src/filament/kotlin/scene3d/)
 
@@ -78,9 +101,10 @@ The branches were not merged: the files were copied with `git show`.
   - **Lot:** `keepLot = false` drops the `lot` group and its boxes; `hide` hides more nodes (the 1950s station's
     repair-only reuse hides `pump_01`, `pump_02`, `roadside_price_board`, `roadside_fuel_sign`).
 - `TownLandmark.kt`: the town's hook, as `TownCinema` / `TownStore`: built on a town worker from the .glb bytes, packed in
-  its slot's frame with the lot's front edge on the row's building line, uploaded on the engine's thread into its own
-  culled `PropLayer`, lit each frame, its boxes and doors into `TownCollision.setExtra` / `setExtraDoors` (key
-  `landmark:<sprite>`). Nothing creates one yet.
+  its frame (a row slot's: the lot's front edge on the row's building line, the lot's middle on the slot's, so an
+  off-centre lot is centred; or the depot's beside the track), uploaded on the engine's thread into its own culled
+  `PropLayer`, lit each frame (dark when the business is shut), its boxes and doors into `TownCollision.setExtra` /
+  `setExtraDoors` (key `landmark:<sprite>`). See "In the town".
 - `PropLayer`: a repeating picture's anisotropy now follows the layer's own (at most 8, as before), so a close-up preview
   can turn it off for every picture.
 
@@ -159,7 +183,7 @@ against `led_monolith`, `service_yard`, `valet_plaza`) and different buildings, 
 | roadside-motel | `ground_asphalt` top at -0.078 m (lifted by the loader); `water_pool` at -0.155 m and the pool shell down to -1.86 m (intentional, by a terrain cutout the guide does not cover: say so in the guide); the lot is not centred on the origin (x -9.9..37.2 m, the L runs right); 9,970 triangles of which 5,838 are in `detail_utility` |
 | premier-railroad-depot | `ground_asphalt` top at -0.078 m (lifted); the tracks are not in the file (platform edge 16.14 m behind the origin, along x); doors at z -1.09 and -11.33 m are recessed behind the front edge; the model is 52.1 m wide, wider than most Main Street plots |
 
-## Where each of the twelve new and old models belongs (for the placement job)
+## Where each model belongs (the placement job's brief; as built: "In the town")
 
 Lot types: downtown (a Main Street plot, buildings on the sidewalk line), highway edge (a plot on the through road
 at the town's edge, a parking apron in front), rail side (beside the rail line), farmland (edge of town, large lots),
@@ -176,6 +200,8 @@ civic (near the square). "Replaces" says what we already draw.
 | roadside-motel | towns on a through road, 1950-1969, standing until redeveloped (an extended-stay in the 2000s) | highway edge, 47.2 x 33.5 m, the L open to the parking court | pair with the 1950s station and the diner for a highway strip; the pool needs a flat hole in the ground |
 | premier-railroad-depot | towns on a rail line, built 1900-35, standing from 1950 (passenger service ends in the 1960s-70s in the simulation: then closed, a museum or a restaurant) | rail side, 52.1 m wide, front on the street, platform behind along the track | replaces our own procedural rail depot (the 52 m platform and clock tower are better; keep the procedural one only as the small-halt variant for towns under 3,000); needs the rail job for tracks |
 | modern-gas-station, main-street-service-station, junction-diner, starling-lanes | as the table above | as placed by the earlier plan | unchanged |
+| coin-laundromat | towns of 2,000+, opens 1960-75, may run to the present (looking older) | downtown or strip-centre lot, its own four bays in front | nothing |
+| foundry-nightclub | towns over ~8,000, 2010s-20s, likelier with industry (mill, mining) | its own plot (an old works) | the town's one club: Mirage (1980s), then Pulse or The Foundry |
 
 ## Preview and tests
 
@@ -212,9 +238,95 @@ while building 0.2-3.2 MiB (the gas station's 512 x 512 sign atlas and 256 x 256
 - Not used yet: the 1950s station's `garage_door_open` / `garage_door_closed` swap and `history_handoff`, the bowling
   alley's `door_panel_*` gate boxes (kept closed) and `bowling_equipment` (kept), the `gameplay_prop` extras.
 
-## Placing them in towns (later)
+## In the town (branch wf-place, 2026-11-19)
 
-The town generator decides where and when (a plot of `glbLandmarkTiles` on a fitting street, its year from the
-simulation's business history), exports it as a landmark slot in street.json, and `FilamentTown` makes a `TownLandmark`
-for it with the asset's bytes, as it does `TownStore`. The street props' rules should keep lamps and benches off its
-front (as the cinema's). The Main Street station's handoff to the highway station is the simulation's to record.
+Desktop renders and JVM tests only, not yet run on the S25.
+
+### The generator (src/town/glbSites.ts, tests glbSites.test.ts)
+
+- **Town size**: each simulated person stands for `INHABITANTS_PER_PERSON` = 36 inhabitants (gamma: 2,844 in 1950, 8,316
+  in 2025; the towns tried run 2,700-11,600). The table's thresholds read on that: the Gazette and the 1950s station from
+  1,500 (peak), the diner and the laundromat from 2,000, the drive-in, the motel and the highway station from 2,500, the
+  hand-made depot from 3,000, the bowling alley from 4,500, a club from 8,000 in its decade.
+- **Who earns what** (`glbTenures`, all `rand(seed, 'glb', ...)`; a tenure is opened / closed / reused / pulled down):
+  water tower every town (built 1920-65, never pulled down); Gazette 85% (built 1905-40; half fold 2008-20 and stand
+  dark); feed mill (every farm town, 70% of small towns, 40% of others; built 1920-60, shut 1972-95, then storage, a brewery
+  from 2008-18, or pulled down 5-15 years on); Main Street station 85% (opens 1950-69, stops selling gas 1972-85 at least
+  four years on: 55% a repair garage with its pumps, price board and fuel sign hidden, half of those pulled down 1995-2015;
+  else shut and pulled down 2-8 years on); highway gas station 80% (opens 2005-2022); diner 80% (opens 1940-65; 65% shut
+  1978-2005 and pulled down within 8 years, the rest run on); bowling alley 70% (opens 1960-69, half shut 1995-2015 and
+  pulled down); drive-in 65% (opens 1950-66, shut 1975-88, cleared within 4 years); motel 70% (opens 1950-69: half an
+  extended stay from 1998-2008, half shut 1990-2010 and pulled down); laundromat 75% (opens 1960-75, 30% shut 1995-2020,
+  standing dark). **One club**: Club Mirage when the town has 8,000 in a year of the 1980s (opens that year, shut
+  1990-97, pulled down 3-10 years on); later The Foundry (2010-29: likelier in a mill or mining town, 75%, harbour 50%,
+  else 25%) or Club Pulse (2020-29), when the town has 8,000 then; a Mirage still standing is pulled down the year before,
+  and a Pulse takes the Mirage's plot (kept for it).
+- **Where** (`glbSites`): the plan is finished first, nothing moves for a model. A plot is `glbLandmarkTiles(kind)` (1.24 m
+  along the street, 2.1 m back, as the stores'), a tile off a street's edge, on either side of any street, and must keep
+  off every street (a tile from the others), the river (2 tiles), the plaza, the landmarks, the town hall and chapel, the
+  farmsteads (4 tiles) and country roads, the railroad (4 tiles from any track's centre line; the depot's, its model plot's
+  and the elevator's ground), the 3D town's yards past the plots, the lots the town ever builds by 2025 (its 2025
+  properties; a tile clear), and each other. It may take plots the town never builds on by 2025 (woodland plots at its
+  edges) and a farmed field over the town's outer plots (the farms sell it the year the model opens: `fieldClear`,
+  `becomes: 'landmark'`). The street must be built by the year the model opens (`developedRoads` by year from the lots'
+  build years), or be the main street. The frontage rule: within 4 tiles along the same side, a model with its own car
+  park in front (all but the Gazette) never stands beside a used shop plot of the old core's street wall (`stripFace`
+  false), the Gazette (a street-wall building) never beside a post-war strip. Lot types and scores: downtown (Gazette,
+  laundromat: nearest the plaza within 120 tiles, the main street first; the Gazette beside a core face if it can), corner
+  (Mirage, Pulse: near the centre, a crossing street at the plot's end preferred), highway (gas stations, diner, motel,
+  drive-in, bowling alley: the main street's outer stretches first, far from the centre, near the other highway models;
+  the 1950s station nearer town), civic (water tower: off the main street, about 45 tiles from the plaza, clear of
+  buildings), edge (feed mill and The Foundry: nearest the railroad's elevator site if it has one, else far out). A plot
+  left by a model pulled down is taken first by a later one that fits (a highway gas station on the drive-in's cleared lot,
+  The Foundry on the motel's), placed in the order the businesses open. A business that finds no plot is left out
+  (`glbUnplaced`): gamma's bowling alley (its edges are taken by the motel, drive-in and feed mill).
+- **The depot** (src/town/rail.ts): in a town of 3,000 and more (`premierDepot`) the depot's search also wants the model's
+  whole plot clear beside the stretch (26 tiles along the track, from 3 to 12 tiles off its centre, on the depot's side; a
+  field's corner allowed, the farms sell it), and `depot.premier` is that plot when it is; else the town keeps the
+  code-built halt. Gamma's depot site and track did not change.
+
+### The export (tools/town-glb.ts, town-graph.ts, town-farms.ts, export-rail.ts)
+
+- `townGlb(seed)`: the sites over all years (the 2025 run's lots, the railroad of the town's world as rail.json lays it,
+  the shipped yards). What stands in the export's year becomes a row building of kind `landmark` in its plot (named after
+  every lot, landmark and extra, so no other name moves; sprite parts key = the kind, so make_buildings.py skips it as a
+  store's), fronting the street its site was chosen on, listed in `graph.landmarks` (art = the kind: StoreLots leaves its
+  plot open, no door guessed, lamps and benches off its front) and in `graph.glbLandmarks` (kind, name, state open / closed
+  / reused, hidden nodes, opened / closed / gone / reuse, the plot's tiles and world rect, sprite, row, the site's whole
+  history). Props inside a standing model's plot are dropped; the farms sell fields under it. rail.json's depot carries
+  `premier` (the model's plot, world units).
+- **gamma 2025** (on world-6): the Gazette (open, built 1926) on the main street's west end, the water tower (1926) on the
+  stub street south of the main street's road east, the feed mill (shut 1975, Hearthside Brewing Co. since then) at the
+  west edge, The Foundry (2022) on the old motel's plot (motel 1962-99, pulled down 2002) and Crossfield Fuel & Market
+  (2016) on the old drive-in's (1964-76, cleared 1980) by the main street's road east, the coin laundry (1975, shut 2019,
+  dark) between them, and the Union Depot at the depot (1866) by the track south-west of town. gamma 1955: the Gazette, the
+  water tower, the feed mill (open); 1985: those (the feed mill shut), the motel and the laundry.
+
+### The engine
+
+- `domain/GlbLandmarks.kt` parses `graph.glbLandmarks`; `RailDepot.premier`; `StoreLots` includes the models' plots;
+  `RailScene.onBed` keeps the forest off the model depot's plot.
+- `FilamentTown(..., landmarks = LandmarkAssets(catalogue, file reader, placed))` (the app: TownSession reads assets/landmarks;
+  the open preview the folder): a `TownLandmark` per placed slot (the slot left to it, as a store's), built on the workers
+  nearest first with the stores, counted in `pending`; drawn each frame with the cutaway and cut in the open-world camera's
+  way by its building's box (walls, roofs, glass; not the flat lot) as the cinema is (`occlude`, `fadeBetween`); its boxes
+  and doors in the collision ("Go inside" where it has a door: the door's room is the interiors job's); signs, windows and
+  lamps lit from dusk unless the business is shut. Far off it stays drawn to 12,000 units past its reach (no far box
+  stands in for it; its shadows only within the view's range). The railroad's model depot is a `TownLandmark` of its own
+  (`rail-depot`), front away from the track, its platform's edge 1.75 m from the track's centre, rebuilt with the rail's
+  year; `TownRailDraw` then leaves its code-built depot out.
+- Preview: `gradle :desktop:preview -Dmode=filament-open -Dshots=glb_` writes `glb_<kind>_{front_13h, quarter_13h, back_13h,
+  above_13h, night}` for each placed model and the depot (`glb_depot_*`); `open.txt` lists them (triangles, solid shapes,
+  doors). The open preview now draws the railroad too (-Drail=0 leaves it out).
+
+### Left
+
+- The models have no shut or reused looks: a shut one is drawn whole and dark (the reused repair garage hides its pumps);
+  the reuse names (Hearthside Brewing Co., Sundown Extended Stay) are data only, not lettered on the signs.
+- The town's name is not lettered on the depot's or the water tower's boards; the Gazette's name panel is the model's.
+- The engine builds the export's year only (no time travel for the models yet, as the downtown).
+- Gamma's bowling alley found no plot; dense towns place fewer of the big highway models.
+- The laundromat's fixtures kit and every model's interior (rooms behind the doors) are the interiors job's.
+- No far box: the models are drawn whole to 12,000 units (3-12k triangles each); measure on the S25.
+
+

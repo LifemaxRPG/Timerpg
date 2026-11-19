@@ -112,7 +112,7 @@ function railBlock(rail: TownRail, L: (x: number, y: number) => P, rect: (q: { x
   return {
     tracks: rail.tracks.map((t) => ({ link: t.link, kind: t.kind, pts: t.pts.map((p) => L(p.x, p.y)) })),
     crossings: rail.crossings.map((c) => ({ at: L(c.x, c.y), dir: [c.dx, c.dy], road: c.road, link: c.link, lightsFrom: c.lightsFrom, ...(c.gatesFrom !== undefined ? { gatesFrom: c.gatesFrom } : {}) })),
-    depot: rail.depot ? { rect: rect(rail.depot.rect), at: L(rail.depot.at.x, rail.depot.at.y), dir: [Math.round(rail.depot.dx * 1e3) / 1e3, Math.round(rail.depot.dy * 1e3) / 1e3], side: rail.depot.side, built: rail.depot.built } : null,
+    depot: rail.depot ? { rect: rect(rail.depot.rect), at: L(rail.depot.at.x, rail.depot.at.y), dir: [Math.round(rail.depot.dx * 1e3) / 1e3, Math.round(rail.depot.dy * 1e3) / 1e3], side: rail.depot.side, built: rail.depot.built, ...(rail.depot.premier ? { premier: rect(rail.depot.premier) } : {}) } : null,
     elevator: rail.elevator ? rect(rail.elevator) : null,
     // the roads out of town (the farms' country roads, drawn by the farms: src/town/farms.ts) as rects
     roadsOut: rail.roadsOut.map(rect),

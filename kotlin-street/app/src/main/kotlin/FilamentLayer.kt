@@ -392,7 +392,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             StreetRenderer.townBuilding(ctx, true)
             buildMarked = true
             val ft = com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown(e, mats, data.town, data.yards, data.art, data.building, cinema = data.cinema,
-                stores = data.stores, collision = data.collision, rail = data.rail)
+                stores = data.stores, collision = data.collision, rail = data.rail, landmarks = data.landmarks)
             // the farms round the town, their fields as they are today
             farms = data.farmArt?.let { fa -> com.lifemax.rpg.feature.habits.presentation.scene3d.TownFarms.attach(ft, data.farms, fa, data.collision, day = farmDay()) }
             town = ft

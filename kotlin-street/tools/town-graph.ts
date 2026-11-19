@@ -39,6 +39,7 @@ import { storeLandmark, storesBlock, storeSitesBlock, type StoreFootprint, type 
 import { neighborhoodOf } from '../../src/town/neighborhoods';
 import { hash, makeBuildings, townLots, type Buildings } from './town-buildings';
 import { townStreets } from './town-streets';
+import { glbStanding, townGlb, type GlbJson } from './town-glb';
 import { extraBuildings, oldSchool, packEntries, packOf, type ExtraBuilding, type PackEntry } from './town-downtown';
 
 /** Street units per tile at the art's size (BuildingSpec.W 184 per 224 px; 32 px a tile). */
@@ -92,7 +93,7 @@ export function footprintPx(key: string, artW: number, front = 2, artH = 0): Foo
   // the cinema (no sprite; built in the engine): a tile of forecourt, then the lobby and hall to the plot's back
   if (key.startsWith('landmark_cinema_')) return { setback: 32, depth: Math.max(artH - 32, 320), width: artW };
   // a store (no sprite; built in the engine with its car park and yards): the whole plot, its depth at position scale
-  if (key.startsWith('landmark_store_')) return { setback: 0, depth: Math.floor((artH / 32) * SCALE / PX * 1000) / 1000 - 0.01, width: artW };
+  if (key.startsWith('landmark_store_') || key.startsWith('landmark_glb_')) return { setback: 0, depth: Math.floor((artH / 32) * SCALE / PX * 1000) / 1000 - 0.01, width: artW };
   const lm = key.match(/^landmark_([a-z]+)_\d+$/);
   if (lm) { const [s, d] = LANDMARK_FOOT[lm[1]!] ?? [32, 200]; return { setback: s, depth: d, width: artW }; }
   if (/^house_small_/.test(key)) return { setback: front * 32, depth: 80, width: Math.max(artW, 224) };
@@ -143,6 +144,8 @@ export interface TownMapJson {
   stores?: StoreJson[];
   /** Every store site the plan reserves, for all years (town-stores.ts), and the town's people every 5 years. */
   storeSites?: StoreSiteJson[];
+  /** The hand-made landmark models standing in the export's year (tools/town-glb.ts, docs/LANDMARKS_GLB.md). */
+  glbLandmarks?: GlbJson[];
   storePeople?: [number, number][];
   plaza: { rect: [number, number, number, number]; props: { kind: string; x: number; z: number; look: number }[] };
   water: { kind: string; polys: P[][] } | null;
@@ -366,6 +369,15 @@ export function townGraph(seed: string, year: number): TownGraph {
   // the pack's buildings: the downtown's towers and parking, the town hall, the chapel (named after every lot and landmark)
   const extras: ExtraBuilding[] = extraBuildings(buildings, plan, layout, year, seed);
   oldSchool(buildings, [...landmarkSprite].find(([l]) => l.id === 'school')?.[1], seed);
+  // the hand-made landmark models standing this year (src/town/glbSites.ts): named after every lot, landmark and extra, so
+  // no other building's name moves; each takes its whole plot (no sprite: the engine builds the model in its slot)
+  const glb = townGlb(seed);
+  const glbNow = glbStanding(glb.sites, year).map((g) => {
+    const vert = g.site.face === 'E' || g.site.face === 'W';
+    const along = vert ? g.site.rect.h : g.site.rect.w, deep = vert ? g.site.rect.w : g.site.rect.h;
+    const sprite = buildings.extra({ id: `landmark:${g.site.id}`, name: g.name, kind: 'Landmark', parts: [{ key: g.tenure.kind, w: along * 32, h: deep * 32, y: 0 }], yard: { front: 0, style: 'natural' } });
+    return { ...g, sprite };
+  });
   /** What the pack makes of each lot's building (its footprint known now; the entries rewritten after `vary`). */
   const packFoot = new Map<string, ReturnType<typeof packOf>>();
   for (const [sprite, l] of buildings.lotOf) packFoot.set(sprite, packOf((buildings.entries as PackEntry[]).find((e) => e.sprite === sprite)!, l, plan, seed));
@@ -417,8 +429,8 @@ export function townGraph(seed: string, year: number): TownGraph {
     return { row: pick, s: pf.s, half, e: edge - FRONT_TILES, depthT };
   };
 
-  const addItem = (r: { x: number; y: number; w: number; h: number }, sprite: string, kind: Item['kind'], lotId: string, nb: string, tier: string): void => {
-    const f = frontOf(r);
+  const addItem = (r: { x: number; y: number; w: number; h: number }, sprite: string, kind: Item['kind'], lotId: string, nb: string, tier: string, front?: { seg: number; dir: Dir }): void => {
+    const f = front ?? frontOf(r);
     if (!f) { conflicts.push(`${sprite} (${lotId}) fronts no road`); return; }
     const pl = place(r, f);
     const e = entryOf.get(sprite)!;
@@ -434,6 +446,13 @@ export function townGraph(seed: string, year: number): TownGraph {
   for (const l of lots) addItem(l, buildings.entry(l), l.kind === 'shop' ? 'shop' : 'home', l.slot, l.neighborhood, l.tier);
   for (const l of layout.landmarks) addItem(l, landmarkSprite.get(l)!, 'landmark', `landmark:${l.id}`, nbOfPoint(l.x + l.w / 2, l.y + l.h / 2), l.id);
   for (const x of extras) addItem(x.rect, x.sprite, 'extra', `extra:${x.id}`, nbOfPoint(x.rect.x + x.rect.w / 2, x.rect.y + x.rect.h / 2), x.kind);
+  // (a model fronts the street its site was chosen on, a corner plot included)
+  for (const g of glbNow) {
+    const seg = layout.roads.indexOf(plan.roads[g.site.road]!);
+    if (seg < 0) { conflicts.push(`${g.sprite} (${g.site.id}): its street is not built in ${year}`); continue; }
+    const r = g.site.rect;
+    addItem(r, g.sprite, 'landmark', `landmark:${g.site.id}`, nbOfPoint(r.x + r.w / 2, r.y + r.h / 2), g.tenure.kind, { seg, dir: g.site.face });
+  }
 
   // ---------------------------------------------------------------------------------------------- row ends
   /** The row of chain [c] that leaves node [n] heading [d] (it starts there), or that arrives at [n] heading [d] (ends there). */
@@ -585,7 +604,7 @@ export function townGraph(seed: string, year: number): TownGraph {
   // ---------------------------------------------------------------------------------------------- the civic avenue and spawn
   const isMainNode = (n: GNode): boolean => [...n.arms.values()].some((p) => p.main);
   const civicChain = chains.filter((c) => !c.main && (isMainNode(c.a) || isMainNode(c.b)))
-    .map((c) => ({ c, n: [rowsOf.get(c)!.L, rowsOf.get(c)!.R].reduce((s, r) => s + r.items.filter((i) => i.kind === 'landmark').length, 0) }))
+    .map((c) => ({ c, n: [rowsOf.get(c)!.L, rowsOf.get(c)!.R].reduce((s, r) => s + r.items.filter((i) => i.kind === 'landmark' && !i.lotId.startsWith('landmark:glb:')).length, 0) }))
     .sort((a, b) => b.n - a.n || a.c.id - b.c.id)[0]?.c ?? chains[0]!;
   const civicNode = isMainNode(civicChain.a) ? civicChain.a : civicChain.b;
   const spawnRow = rowsOf.get(civicChain)!.L.from === civicNode ? rowsOf.get(civicChain)!.L : rowsOf.get(civicChain)!.R;
@@ -616,7 +635,7 @@ export function townGraph(seed: string, year: number): TownGraph {
   const plazaProps: TownMapJson['plaza']['props'] = [];
   const props: TownMapJson['props'] = [];
   let dropped = 0;
-  const plots = [...lots, ...layout.landmarks];
+  const plots = [...lots, ...layout.landmarks, ...glbNow.map((g) => g.site.rect)];
   const hallRects = footprints.filter((f) => extras.some((x) => x.plaza && x.sprite === f.sprite)).map((f) => f.rect);
   for (const p of [...plan.props, ...layout.props]) {
     const q = tileOf(p);
@@ -698,10 +717,17 @@ export function townGraph(seed: string, year: number): TownGraph {
     })),
     roads: chains.map((c) => ({ id: c.id, name: lineName.get(find(c.id))!, main: c.main, a: ids.get(c.a)!, b: ids.get(c.b)!, pts: c.pts.map(w3), width: MOUTH })),
     rows: rows.map((r) => ({ ...rowJson.get(r)!, from: ids.get(r.from)!, to: ids.get(r.to)! })),
-    landmarks: layout.landmarks.map((l) => ({ id: `landmark:${l.id}`, kind: l.id, name: l.name, sprite: landmarkSprite.get(l)!, art: landmarkArtKey(l), row: rowIdOfSprite.get(landmarkSprite.get(l)!) ?? '', rect: rectW(l), ...cinemaLandmark(l), ...storeLandmark(l) })),
+    landmarks: [...layout.landmarks.map((l): TownMapJson['landmarks'][number] => ({ id: `landmark:${l.id}`, kind: l.id, name: l.name, sprite: landmarkSprite.get(l)!, art: landmarkArtKey(l), row: rowIdOfSprite.get(landmarkSprite.get(l)!) ?? '', rect: rectW(l), ...cinemaLandmark(l), ...storeLandmark(l) }))]
+      .concat(glbNow.filter((g) => rowIdOfSprite.has(g.sprite)).map((g) => ({ id: `landmark:${g.site.id}`, kind: g.tenure.kind, name: g.name, sprite: g.sprite, art: g.tenure.kind, row: rowIdOfSprite.get(g.sprite)!, rect: rectW(g.site.rect) }))),
     ...cinemaBlock(seed, year, layout),
     ...storesBlock(seed, year, layout),
     ...storeSitesBlock(seed, plan.landmarks, rectW),
+    ...(glbNow.length ? { glbLandmarks: glbNow.filter((g) => rowIdOfSprite.has(g.sprite)).map((g): GlbJson => ({
+      id: g.site.id, landmark: `landmark:${g.site.id}`, kind: g.tenure.kind, name: g.name, state: g.state, ...(g.hide.length ? { hide: g.hide } : {}),
+      opened: g.tenure.opened, ...(g.tenure.closed !== undefined ? { closed: g.tenure.closed } : {}), ...(g.tenure.gone !== undefined ? { gone: g.tenure.gone } : {}),
+      ...(g.tenure.reuse ? { reuse: { from: g.tenure.reuse.from, as: g.tenure.reuse.as } } : {}),
+      tiles: g.tiles, rect: rectW(g.site.rect), sprite: g.sprite, row: rowIdOfSprite.get(g.sprite)!, history: g.site.tenures,
+    })) } : {}),
     extras: extras.filter((x) => rowIdOfSprite.has(x.sprite)).map((x) => ({ id: `extra:${x.id}`, sprite: x.sprite, kind: x.kind, name: x.name, row: rowIdOfSprite.get(x.sprite)!,
       storeys: x.storeys, built: x.built, ...(x.demolished !== undefined ? { demolished: x.demolished } : {}) })),
     plaza: { rect: rectW(pz), props: plazaProps },

@@ -1,3 +1,4 @@
+import { premierDepot } from './glbSites';
 import { rand } from '../sim/rng';
 import { originOf, type TownSite } from '../world/map';
 import { alignment, linksAt, otherEnd, stationAt, trackIn, type RailLink, type RailWorld, type Pt, type StationStatus } from '../world/rail';
@@ -54,7 +55,9 @@ export interface TownRail {
   portals: { link: string; to: string; at: Pt; beyond: Pt[] }[];
   /** The depot: its rect (plan tiles), the point on the track in front of it, the track's direction there, and which
    * side it stands (+1: left of the track's direction, -1 right). Null in a town without a railroad. */
-  depot: { rect: Rect; at: Pt; dx: number; dy: number; side: 1 | -1; built: number } | null;
+  depot: { rect: Rect; at: Pt; dx: number; dy: number; side: 1 | -1; built: number;
+    /** The hand-made depot's whole plot (a town of 3,000 and more: src/town/glbSites.ts premierDepot), when it has one. */
+    premier?: Rect } | null;
   /** A grain elevator or mill site at the end of the siding (plan tiles), or null. */
   elevator: Rect | null;
   /** The roads out of town: the farms' country roads (src/town/farms.ts: out from the streets' ends, and the section
@@ -337,11 +340,29 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
     for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) if (blocked[y * W + x] || roadAt[y * W + x]! >= 0 || fieldAt[y * W + x]! >= 0 || wet(x, y) || taken[Math.floor(y / CELL) * GW + Math.floor(x / CELL)]) return false;
     return true;
   };
+  // (the hand-made depot's plot may take a field's corner: the farms sell it, src/town/farms.ts fieldClear)
+  const freeBig = (r: Rect): boolean => {
+    if (r.x < 1 || r.y < 1 || r.x + r.w > W - 1 || r.y + r.h > H - 1) return false;
+    for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) if (blocked[y * W + x] || roadAt[y * W + x]! >= 0 || wet(x, y) || taken[Math.floor(y / CELL) * GW + Math.floor(x / CELL)]) return false;
+    return true;
+  };
   const nearRoad = (r: Rect, pad: number): boolean => {
     for (let y = Math.max(0, r.y - pad); y < Math.min(H, r.y + r.h + pad); y++) for (let x = Math.max(0, r.x - pad); x < Math.min(W, r.x + r.w + pad); x++) if (roadAt[y * W + x]! >= 0) return true;
     return false;
   };
   const DEPOT = { len: 12, deep: 6, off: 3 };
+  // the hand-made depot (docs/LANDMARKS_GLB.md): its 52 m platform along the track, its lot 23.6 m deep beside it (the
+  // platform's edge 1.75 m from the track's centre): 26 tiles along, from DEPOT.off to 12 tiles off the centre line
+  const premier = premierDepot(site.seed);
+  const PREMIER = { len: 26, out: 12 };
+  /** The hand-made depot's plot beside the track at [at] (heading dx, dy) on [side]. */
+  const bigOf = (at: Pt, dx: number, dy: number, side: number): Rect => {
+    const nx = dy * side, ny = -dx * side;
+    const c = { x: at.x + nx * (DEPOT.off + PREMIER.out) / 2, y: at.y + ny * (DEPOT.off + PREMIER.out) / 2 };
+    const horiz = Math.abs(dx) >= Math.abs(dy);
+    const rw = horiz ? PREMIER.len : PREMIER.out - DEPOT.off, rh = horiz ? PREMIER.out - DEPOT.off : PREMIER.len;
+    return { x: Math.round(c.x - rw / 2), y: Math.round(c.y - rh / 2), w: rw, h: rh };
+  };
   const STRIP = 20, LEAD = 4;
   interface Strip { s0: Pt; s1: Pt; dx: number; dy: number; rect: Rect; side: 1 | -1; d: number }
   const strips = (): Strip[] => {
@@ -360,6 +381,7 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
         const rw = horiz ? DEPOT.len : DEPOT.deep, rh = horiz ? DEPOT.deep : DEPOT.len;
         const rect = { x: Math.round(c.x - rw / 2), y: Math.round(c.y - rh / 2), w: rw, h: rh };
         if (!freeRect(rect) || !nearRoad(rect, 8)) continue;
+        if (premier && !freeBig(bigOf(mid, dx, dy, side))) continue;
         all.push({ s0: a, s1: b, dx, dy, rect, side, d: Math.hypot(c.x - cx0, c.y - cy0) });
       }
     }
@@ -385,6 +407,7 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
           const rw = horiz ? DEPOT.len : DEPOT.deep, rh = horiz ? DEPOT.deep : DEPOT.len;
           const rect = { x: Math.round(c.x - rw / 2), y: Math.round(c.y - rh / 2), w: rw, h: rh };
           if (!freeRect(rect) || !nearRoad(rect, roadPad)) continue;
+          if (premier && !freeBig(bigOf(at, dx, dy, side))) continue;
           const d = Math.hypot(c.x - cx0, c.y - cy0);
           if (!best || d < best.d) best = { d, v: { rect, at, dx, dy, side, built: builtYear } };
         }
@@ -497,6 +520,12 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
     for (const q of paths) { const d = depotAlong(q.pts, pad); if (d && (!out.depot || Math.hypot(d.at.x - cx0, d.at.y - cy0) < Math.hypot(out.depot.at.x - cx0, out.depot.at.y - cy0))) out.depot = d; }
     if (out.depot) break;
   }
+  // the hand-made depot where its whole plot is clear beside the depot's stretch (else the town keeps the halt)
+  if (out.depot && premier) {
+    const d = out.depot;
+    const big = bigOf(d.at, d.dx, d.dy, d.side);
+    if (freeBig(big)) d.premier = big;
+  }
 
   // ---- a track's end at a portal runs straight out: the search's cells may reach a tile past the portal at the edge
   // (the half cell), and the track would step out and back
@@ -600,7 +629,8 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
   for (const t of out.tracks) t.pts = t.pts.map(un);
   for (const c of out.crossings) { c.x = Math.round((c.x - PAD) * 100) / 100; c.y = Math.round((c.y - PAD) * 100) / 100; }
   for (const p of out.portals) p.at = { x: p.at.x - PAD, y: p.at.y - PAD };
-  if (out.depot) out.depot = { ...out.depot, rect: { ...out.depot.rect, x: out.depot.rect.x - PAD, y: out.depot.rect.y - PAD }, at: un(out.depot.at) };
+  if (out.depot) out.depot = { ...out.depot, rect: { ...out.depot.rect, x: out.depot.rect.x - PAD, y: out.depot.rect.y - PAD }, at: un(out.depot.at),
+    ...(out.depot.premier ? { premier: { ...out.depot.premier, x: out.depot.premier.x - PAD, y: out.depot.premier.y - PAD } } : {}) };
   if (out.elevator) out.elevator = { ...out.elevator, x: out.elevator.x - PAD, y: out.elevator.y - PAD };
   return out;
 }

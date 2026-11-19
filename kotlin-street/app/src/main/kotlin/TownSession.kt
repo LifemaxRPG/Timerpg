@@ -41,6 +41,8 @@ class TownData(
     val farmArt: com.lifemax.rpg.feature.habits.presentation.scene3d.FarmArt? = null,
     /** The railroad round the town (rail.json: docs/RAIL.md), or null for a town without one. */
     val rail: com.lifemax.rpg.feature.habits.domain.RailNet? = null,
+    /** The hand-made landmark models (assets/landmarks: docs/LANDMARKS_GLB.md) and the ones the town places (graph.glbLandmarks). */
+    val landmarks: com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkAssets? = null,
 )
 
 /**
@@ -194,6 +196,14 @@ object TownSession {
             com.timerpg.street.shot.Crumbs.add("town collision failed: ${t.javaClass.simpleName}: ${t.message}"); null
         }
         collision?.let { com.timerpg.street.shot.Crumbs.add("town collision: ${it.size} shapes, %.0f ms".format(java.util.Locale.US, (System.nanoTime() - c0) / 1e6f)) }
+        // the hand-made landmark models the town places (read from the assets on the town's workers when built)
+        fun asset(p: String): ByteArray? = try { ctx.assets.open(p).use { it.readBytes() } } catch (e: Exception) { null }
+        val landmarks = try {
+            val placed = com.lifemax.rpg.feature.habits.domain.GlbLandmarks.parse(root)
+            com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkAssets(
+                com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkSpec.catalogue(asset("landmarks/landmarks.json")!!.decodeToString()), { p -> asset("landmarks/$p") }, placed)
+                .also { com.timerpg.street.shot.Crumbs.add("town landmark models: ${placed.size} placed") }
+        } catch (e: Exception) { com.timerpg.street.shot.Crumbs.add("town landmark models: none (${e.javaClass.simpleName})"); null }
         // the farms round the town: their pictures and models are the farm pack's (assets/farm)
         val farms = com.lifemax.rpg.feature.habits.domain.TownFarmsData.parse(root)
         fun farmText(n: String): String? = try { ctx.assets.open("farm/$n").bufferedReader().use { it.readText() } } catch (e: Exception) { null }
@@ -201,6 +211,6 @@ object TownSession {
         if (!farms.isEmpty) com.timerpg.street.shot.Crumbs.add("town farms: ${farms.farms.size} farms, ${farms.fields.size} fields, ${farms.roads.size} roads")
         return TownData(seed, town, yards, art, building, names, root.optString("type"), dir,
             com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite.parse(root), collision,
-            com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root), farms, farmArt, rail)
+            com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root), farms, farmArt, rail, landmarks)
     }
 }

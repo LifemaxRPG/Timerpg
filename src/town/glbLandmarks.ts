@@ -18,12 +18,14 @@ export type GlbLandmarkKind =
   | 'landmark_glb_starlight_drive_in'
   | 'landmark_glb_water_tower'
   | 'landmark_glb_roadside_motel'
-  | 'landmark_glb_premier_railroad_depot';
+  | 'landmark_glb_premier_railroad_depot'
+  | 'landmark_glb_coin_laundromat'
+  | 'landmark_glb_foundry_nightclub';
 
 export interface GlbLandmarkSpec {
   name: string;
   /** The business it houses. */
-  role: 'gas_station' | 'diner' | 'bowling' | 'newspaper' | 'feed_mill' | 'nightclub' | 'drive_in' | 'water_tower' | 'motel' | 'railroad_depot';
+  role: 'gas_station' | 'diner' | 'bowling' | 'newspaper' | 'feed_mill' | 'nightclub' | 'drive_in' | 'water_tower' | 'motel' | 'railroad_depot' | 'laundromat';
   /** The design's years: built from..to (it may stand long after, as the simulation decides), and its sample year. */
   era: { from: number; to: number; built: number };
   /** The lot, metres: width along the street, depth back from it; the building's walls. */
@@ -57,6 +59,10 @@ export const GLB_LANDMARKS: Record<GlbLandmarkKind, GlbLandmarkSpec> = {
   landmark_glb_roadside_motel: { name: 'Sundown Motel', role: 'motel', era: { from: 1950, to: 1969, built: 1957 }, lot: [47.18, 33.52], building: [36.0, 26.07] },
   // a brick-and-timber passenger depot with a clock tower and a 52 m platform behind; built 1900-35, stands 1950 on
   landmark_glb_premier_railroad_depot: { name: 'Union Depot', role: 'railroad_depot', era: { from: 1900, to: 1935, built: 1915 }, lot: [52.15, 23.59], building: [34.76, 12.42] },
+  // a 1960s coin laundry with a butterfly roof and a pylon sign (an optional washer/dryer kit for the inside ships beside it)
+  landmark_glb_coin_laundromat: { name: 'Suds & Spin Coin Laundry', role: 'laundromat', era: { from: 1960, to: 1975, built: 1964 }, lot: [18.62, 21.11], building: [9.93, 11.17] },
+  // a 2010s-20s club in an old sawtooth-roofed factory, with a courtyard behind a street gantry
+  landmark_glb_foundry_nightclub: { name: 'The Foundry', role: 'nightclub', era: { from: 2010, to: 2029, built: 2018 }, lot: [28.56, 29.8], building: [19.87, 18.0] },
 };
 export const GLB_LANDMARK_KINDS = Object.keys(GLB_LANDMARKS) as GlbLandmarkKind[];
 

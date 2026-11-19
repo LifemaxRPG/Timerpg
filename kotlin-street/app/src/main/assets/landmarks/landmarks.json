@@ -126,6 +126,28 @@
       "info": "premier-railroad-depot/model-info.json",
       "era": {"from": 1900, "to": 1935, "built": 1915},
       "footprint": {"lot": [52.15, 23.59], "building": [34.76, 12.42]}
+    },
+    {
+      "kind": "landmark_glb_coin_laundromat",
+      "name": "Suds & Spin Coin Laundry",
+      "role": "laundromat",
+      "room": "hall",
+      "file": "coin-laundromat/coin-laundromat.glb",
+      "info": "coin-laundromat/model-info.json",
+      "swatches": {"roof_membrane": "ballast"},
+      "era": {"from": 1960, "to": 1975, "built": 1964},
+      "footprint": {"lot": [18.62, 21.11], "building": [9.93, 11.17]}
+    },
+    {
+      "kind": "landmark_glb_foundry_nightclub",
+      "name": "The Foundry",
+      "role": "nightclub",
+      "room": "hall",
+      "file": "foundry-nightclub/foundry-nightclub.glb",
+      "info": "foundry-nightclub/model-info.json",
+      "swatches": {"ground_asphalt": "asphalt"},
+      "era": {"from": 2010, "to": 2029, "built": 2018},
+      "footprint": {"lot": [28.56, 29.8], "building": [19.87, 18.0]}
     }
   ]
 }

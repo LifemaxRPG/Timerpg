@@ -69,13 +69,21 @@ fun renderFilamentOpen(out: String) {
     val engine = Engine.Builder().backend(Engine.Backend.OPENGL).config(com.lifemax.rpg.feature.habits.presentation.scene3d.TownEngine.config()).build()
     val mats = File("../app/src/main/assets/filament")
     val cinema = com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite.parse(root)
+    // the railroad, as the app draws it (-Drail=0 leaves it out), its bed kept clear of the forest before the ground is made
+    val railNet = File(townDir, "rail.json").takeIf { it.exists() && System.getProperty("rail") != "0" }?.let { com.lifemax.rpg.feature.habits.domain.RailNet.parse(it.readText()) }
+    railNet?.let { town.keepClear = com.lifemax.rpg.feature.habits.domain.RailScene(it, town.year)::onBed }
+    // the hand-made landmark models the town places (docs/LANDMARKS_GLB.md)
+    val lmDir = File("../app/src/main/assets/landmarks")
+    val landmarkAssets = com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkAssets(
+        com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkSpec.catalogue(File(lmDir, "landmarks.json").readText()),
+        { p -> File(lmDir, p).takeIf { it.exists() }?.readBytes() }, com.lifemax.rpg.feature.habits.domain.GlbLandmarks.parse(root))
     val collision = com.lifemax.rpg.feature.habits.domain.TownCollision.build(town, yards,
         com.lifemax.rpg.feature.habits.domain.ModelShape.parseAll(File(bdir, "models.json").takeIf { it.exists() }?.readText()),
         com.lifemax.rpg.feature.habits.domain.CinemaSiteShape.parse(root), com.lifemax.rpg.feature.habits.domain.StoreLots.parse(root).map { it.sprite }.toSet())
     val storeSites = com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root)
     com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown.farLod = System.getProperty("townFar") != "0"
     val ft = FilamentTown(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, cinema = cinema,
-        stores = storeSites, collision = collision)
+        stores = storeSites, collision = collision, rail = railNet, landmarks = landmarkAssets)
     ft.nightBudgetNs = Long.MAX_VALUE
     // the farms round the town, as the app attaches them (-Dfarms=0 leaves them out)
     if (System.getProperty("farms") != "0") {
@@ -278,6 +286,27 @@ fun renderFilamentOpen(out: String) {
         view("cinema_quarter_13h", p.x, p.z, a.x, a.z, heading(n.x, n.z) - 40f, 20f, 700f, 13f, "the cinema, three-quarter")
         view("cinema_quarter_dusk", p.x, p.z, a.x, a.z, heading(n.x, n.z) - 40f, 20f, 700f, 19.3f, "the cinema, three-quarter at dusk")
         view("cinema_night", p.x, p.z, a.x, a.z, heading(n.x, n.z) + 25f, 16f, 600f, night, "the cinema at night")
+    }
+    // --- the hand-made landmark models (docs/LANDMARKS_GLB.md): each from the street at a person's height, three-quarter,
+    // from behind, from above and at night; the railroad's model depot from its street side, its platform and above
+    report.appendLine("landmark models: " + ft.landmarkReport.joinToString("; "))
+    for (sp in landmarkAssets.placed.map { it.sprite } + "rail-depot") {
+        val f = ft.landmarkFrame(sp) ?: continue
+        val kind = if (sp == "rail-depot") "depot" else landmarkAssets.placed.first { it.sprite == sp }.kind.removePrefix("landmark_glb_")
+        val spec = landmarkAssets.catalogue.firstOrNull { it.kind == (if (sp == "rail-depot") "landmark_glb_premier_railroad_depot" else "landmark_glb_$kind") } ?: continue
+        val ox = f[0]; val oz = f[1]; val xx = f[2]; val xz = f[3]; val zx = f[4]; val zz = f[5]
+        val lot = ft.landmarkLot(sp) ?: continue
+        // (the lot's front edge, its back, its middle along the model's z; the player before its front, behind its back)
+        val zf = lot[3]; val zb = lot[1]; val xm = (lot[0] + lot[2]) / 2f
+        fun at(x: Float, z: Float) = floatArrayOf(ox + xx * x + zx * z, oz + xz * x + zz * z)
+        val fwd = heading(-zx, -zz); val back = heading(zx, zz)
+        val n = "glb_$kind"
+        val pf = at(xm, zf + 90f); val pb = at(xm, zb - 90f)
+        view("${n}_front_13h", pf[0], pf[1], xx, xz, fwd, 6f, 420f + (lot[2] - lot[0]) * .6f, 13f, "$kind, from the street at a person's height")
+        view("${n}_quarter_13h", pf[0], pf[1], xx, xz, fwd - 35f, 24f, 700f + (lot[2] - lot[0]) * .6f, 13f, "$kind, three-quarter")
+        view("${n}_back_13h", pb[0], pb[1], xx, xz, back, 35f, 650f + (lot[2] - lot[0]) * .5f, 13f, "$kind, from behind and above")
+        view("${n}_above_13h", pf[0], pf[1], xx, xz, fwd + 25f, 62f, OrbitCamera.DIST_MAX, 13f, "$kind, from above")
+        view("${n}_night", pf[0], pf[1], xx, xz, fwd + 20f, 12f, 600f + (lot[2] - lot[0]) * .5f, night, "$kind at night")
     }
     // --- the stores (docs/STORES.md), each year of -DstoresYears (default 1955, 1975, 1995, 2025): the player before each
     // store's door (or the plot's front, before it opens) facing it, the camera low behind them (as near the player's

@@ -1,0 +1,209 @@
+{
+  "front_left": {
+    "sheet": "glass.png",
+    "rect_art": [
+      0,
+      0,
+      72,
+      32
+    ]
+  },
+  "front_right": {
+    "sheet": "glass.png",
+    "rect_art": [
+      74,
+      0,
+      72,
+      32
+    ]
+  },
+  "entry": {
+    "sheet": "glass.png",
+    "rect_art": [
+      148,
+      0,
+      32,
+      36
+    ]
+  },
+  "transom": {
+    "sheet": "glass.png",
+    "rect_art": [
+      182,
+      0,
+      32,
+      12
+    ]
+  },
+  "clerestory": {
+    "sheet": "glass.png",
+    "rect_art": [
+      0,
+      36,
+      128,
+      16
+    ]
+  },
+  "side_win": {
+    "sheet": "glass.png",
+    "rect_art": [
+      130,
+      36,
+      48,
+      32
+    ]
+  },
+  "dj_shield": {
+    "sheet": "glass.png",
+    "rect_art": [
+      180,
+      36,
+      48,
+      16
+    ]
+  },
+  "mezz_rail": {
+    "sheet": "glass.png",
+    "rect_art": [
+      0,
+      72,
+      64,
+      14
+    ]
+  },
+  "vip_win": {
+    "sheet": "glass.png",
+    "rect_art": [
+      66,
+      72,
+      48,
+      24
+    ]
+  },
+  "gantry_sign": {
+    "sheet": "led_industrial.png",
+    "rect_art": [
+      0,
+      0,
+      112,
+      16
+    ]
+  },
+  "yard_sign": {
+    "sheet": "led_industrial.png",
+    "rect_art": [
+      114,
+      0,
+      64,
+      12
+    ]
+  },
+  "entry_badge": {
+    "sheet": "led_industrial.png",
+    "rect_art": [
+      180,
+      0,
+      48,
+      12
+    ]
+  },
+  "lamp": {
+    "sheet": "led_industrial.png",
+    "rect_art": [
+      232,
+      0,
+      16,
+      4
+    ]
+  },
+  "tower_blade": {
+    "sheet": "led_industrial.png",
+    "rect_art": [
+      232,
+      18,
+      24,
+      64
+    ]
+  },
+  "beacon_panel": {
+    "sheet": "led_industrial.png",
+    "rect_art": [
+      196,
+      18,
+      32,
+      32
+    ]
+  },
+  "laser_floor": {
+    "sheet": "led_industrial.png",
+    "rect_art": [
+      0,
+      56,
+      96,
+      64
+    ]
+  },
+  "matrix_wall": {
+    "sheet": "led_industrial.png",
+    "rect_art": [
+      100,
+      56,
+      128,
+      40
+    ]
+  },
+  "craft_bar": {
+    "sheet": "led_industrial.png",
+    "rect_art": [
+      100,
+      100,
+      96,
+      24
+    ]
+  },
+  "courtyard_light": {
+    "sheet": "led_industrial.png",
+    "rect_art": [
+      0,
+      20,
+      64,
+      16
+    ]
+  },
+  "steel": {
+    "sheet": "utility.png",
+    "rect_art": [
+      0,
+      0,
+      64,
+      64
+    ]
+  },
+  "speaker": {
+    "sheet": "utility.png",
+    "rect_art": [
+      64,
+      0,
+      64,
+      64
+    ]
+  },
+  "coral": {
+    "sheet": "utility.png",
+    "rect_art": [
+      0,
+      64,
+      64,
+      64
+    ]
+  },
+  "concrete_dark": {
+    "sheet": "utility.png",
+    "rect_art": [
+      64,
+      64,
+      64,
+      64
+    ]
+  }
+}

@@ -19,6 +19,7 @@ import { townRail } from '../../src/town/rail';
 import { railSite } from '../../src/world/rail';
 import { yardRectsOf } from './export-rail';
 import { WORLD } from './town-config';
+import { glbStanding, townGlb } from './town-glb';
 import type { Rect } from '../../src/town/plan';
 import { SCALE, type TownGraph } from './town-graph';
 
@@ -55,13 +56,17 @@ export function withFarms(g: TownGraph, json: TownGraph['json'] = g.json): TownG
   const fp = planFarms(plan);
   const year = g.year;
   const tl = runTimeline({ seed: g.seed, endYear: Math.max(2025, year) });
+  const glb = townGlb(g.seed);
   const devOf = new Map<number, Developed & { shops: Rect[] }>();
   const dev = (y: number): Developed & { shops: Rect[] } => {
     let d = devOf.get(y);
     if (!d) {
       const L = layoutTown(worldAt(tl, y));
       const lots = [...L.lots, ...L.vacantLots];
-      d = { roads: L.roads, lots, landmarks: L.landmarks, shops: lots.filter((l) => l.kind === 'shop') };
+      // (the hand-made landmark models standing that year, and the railroad's hand-made depot, are built ground too)
+      const glbRects = [...glbStanding(glb.sites, y).map((q) => q.site.rect), ...(glb.rail.depot?.premier ? [glb.rail.depot.premier] : [])];
+      const glbPlots = glbRects.map((r) => ({ ...r, id: 'glb' })) as unknown as typeof L.landmarks;
+      d = { roads: L.roads, lots, landmarks: [...L.landmarks, ...glbPlots], shops: lots.filter((l) => l.kind === 'shop') };
       devOf.set(y, d);
     }
     return d;

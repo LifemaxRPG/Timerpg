@@ -25,6 +25,8 @@ import kotlin.math.sin
 internal class TownRailDraw(
     private val engine: Engine, private val scene: Scene, private val lit: Material, private val proxy: Material, private val textures: StreetTextures,
     private val town: Town, val net: RailNet, val year: Int, collision: TownCollision?,
+    /** The hand-made depot model stands in for the code-built one (FilamentTown draws it: [TownLandmark]). */
+    private val modelDepot: Boolean = false,
 ) {
     val rail = RailScene(net, year)
     private val static = PropLayer(engine, scene, lit, proxy, sharedTextures = textures, cull = true)
@@ -109,7 +111,7 @@ internal class TownRailDraw(
         // the depot, in its rect, its front (the platform) to the track
         val d = net.rail.depot
         val ds = rail.depotState
-        if (d != null && ds != "none") {
+        if (d != null && ds != "none" && !(modelDepot && d.premier != null)) {
             val cx = (d.rect[0] + d.rect[2]) / 2f; val cz = (d.rect[1] + d.rect[3]) / 2f
             var ox = d.x - cx; var oz = d.z - cz
             val along = ox * d.dx + oz * d.dz

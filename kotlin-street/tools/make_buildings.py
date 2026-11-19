@@ -236,7 +236,7 @@ def build(shop, out):
     # graph.cinema), so nothing is cut for it here
     if shop['parts'][0]['key'].startswith('landmark_cinema_'): return
     # nor do the stores (src/town/stores.ts): the engine builds each era's store, its car park and yards (graph.stores)
-    if shop['parts'][0]['key'].startswith('landmark_store_'): return
+    if shop['parts'][0]['key'].startswith(('landmark_store_', 'landmark_glb_')): return
     if shop['parts'][0]['key'].startswith(('house_small_', 'house_medium_', 'house_big_')): return build_house(shop, out)
     if shop['parts'][0]['key'].startswith(('villa_', 'landmark_clocktower_', 'landmark_school_', 'house_terraced_')) or \
             shop['parts'][0]['key'].startswith(('estate_', 'landmark_police_', 'pk_', 'fm_')) or apt_maker(shop['parts'][0]['key']): return build_model(shop, out)

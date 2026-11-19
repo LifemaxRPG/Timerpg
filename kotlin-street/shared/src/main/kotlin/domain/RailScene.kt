@@ -149,7 +149,7 @@ class RailScene(val net: RailNet, val year: Int) {
                 if (hypot(ax + (bx - ax) * t - x, az + (bz - az) * t - z) < half) return true
             }
         }
-        net.rail.depot?.let { d -> val r = d.rect; if (x > r[0] - 20 && x < r[2] + 20 && z > r[1] - 20 && z < r[3] + 20) return true }
+        net.rail.depot?.let { d -> for (r in listOfNotNull(d.rect, d.premier)) if (x > r[0] - 20 && x < r[2] + 20 && z > r[1] - 20 && z < r[3] + 20) return true }
         // (and the roads out of town: the farms' country roads, their verges)
         for (r in net.rail.roadsOut) if (x > r[0] - 60 && x < r[2] + 60 && z > r[1] - 60 && z < r[3] + 60) return true
         return false
