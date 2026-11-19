@@ -59,6 +59,15 @@ Elite for Galaxy: 8 fast Oryon cores, no little cores; Adreno 830 GPU; Hexagon N
   main session and hard work (diagnosis, architecture, judging renders, orchestration) stay on Opus. Check Sonnet's
   output closely and send anything off back for a fix.
 
+- **Usage efficiency** (the owner's decision, 2026-11-19, from the next usage reset; track results in docs/USAGE_LOG.md):
+  get more finished work per token. Opus only for diagnosis, design of new systems and judging hard visual problems;
+  everything else on Sonnet (building conversions, follow-up fixes with a known cause, merges, routine checks). Agents
+  render only a few key views and judge one downscaled contact sheet, not dozens of full-size images; the main session
+  views small previews. Sharp briefs with exact files; read only errors from build/test logs; targeted tests while
+  working, the full set and the APK once at the end. Avoid rework: verify the real cause and check side/back/above
+  views before calling work done. Don't run parallel jobs that edit the same files (sequence them instead of paying
+  for merge jobs). Batch the owner's feedback into one job per batch. Log tokens and finished items per window.
+
 ## The project
 
 - `src/` - the TypeScript game: the deterministic simulation (`rand(seed, ...keys)`), towns, people, schedules, dialogue
