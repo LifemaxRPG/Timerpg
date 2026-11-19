@@ -1,0 +1,198 @@
+{
+  "model": "harlan-county-courthouse (4 near states + courthouse-far)",
+  "all_passed": true,
+  "textures_2x2_ok": true,
+  "shared_door_nodes_identical": true,
+  "emissive_mask_black_ratios": {
+    "clock_dial_mask.png": 0.479,
+    "glow_lamps_mask.png": 0.609
+  },
+  "far_lod": {
+    "file": "courthouse-far.glb",
+    "passed": true,
+    "visible_triangles": 130,
+    "budget": 400
+  },
+  "states": [
+    {
+      "year": 1894,
+      "file": "courthouse-1894.glb",
+      "passed": true,
+      "base_materials": 12,
+      "clock_materials": 4,
+      "clock_emissive_ok": true,
+      "visible_triangles_instanced": 13384,
+      "collision_triangles": 2028,
+      "uv_edges_checked": 15306,
+      "bad_uv_edges": 0,
+      "max_uv_error_m": 4e-06,
+      "detail_quadrant_violations": 0,
+      "glow_area_m2": 57.91,
+      "height_m": 38.024,
+      "min_y_m": 0.0,
+      "tree_nodes": 16,
+      "floor_nodes": 18,
+      "room_door_nodes": 11,
+      "collision_boxes": 169,
+      "full_height_wall_collision": true,
+      "interior_collision_present": true,
+      "door_coords": {
+        "door_main": [
+          0.0,
+          1.0864,
+          -24.832
+        ],
+        "door_north": [
+          0.0,
+          1.0864,
+          -54.6304
+        ],
+        "door_east": [
+          14.8992,
+          1.0864,
+          -39.7312
+        ],
+        "door_west": [
+          -14.8992,
+          1.0864,
+          -39.7312
+        ]
+      }
+    },
+    {
+      "year": 1962,
+      "file": "courthouse-1962.glb",
+      "passed": true,
+      "base_materials": 12,
+      "clock_materials": 4,
+      "clock_emissive_ok": true,
+      "visible_triangles_instanced": 12488,
+      "collision_triangles": 1932,
+      "uv_edges_checked": 14400,
+      "bad_uv_edges": 0,
+      "max_uv_error_m": 4e-06,
+      "detail_quadrant_violations": 0,
+      "glow_area_m2": 49.67,
+      "height_m": 38.024,
+      "min_y_m": 0.0,
+      "tree_nodes": 16,
+      "floor_nodes": 18,
+      "room_door_nodes": 11,
+      "collision_boxes": 161,
+      "full_height_wall_collision": true,
+      "interior_collision_present": true,
+      "door_coords": {
+        "door_main": [
+          0.0,
+          1.0864,
+          -24.832
+        ],
+        "door_north": [
+          0.0,
+          1.0864,
+          -54.6304
+        ],
+        "door_east": [
+          14.8992,
+          1.0864,
+          -39.7312
+        ],
+        "door_west": [
+          -14.8992,
+          1.0864,
+          -39.7312
+        ]
+      }
+    },
+    {
+      "year": 1988,
+      "file": "courthouse-1988.glb",
+      "passed": true,
+      "base_materials": 12,
+      "clock_materials": 4,
+      "clock_emissive_ok": true,
+      "visible_triangles_instanced": 12490,
+      "collision_triangles": 1932,
+      "uv_edges_checked": 14406,
+      "bad_uv_edges": 0,
+      "max_uv_error_m": 4e-06,
+      "detail_quadrant_violations": 0,
+      "glow_area_m2": 3.03,
+      "height_m": 38.024,
+      "min_y_m": 0.0,
+      "tree_nodes": 16,
+      "floor_nodes": 18,
+      "room_door_nodes": 11,
+      "collision_boxes": 161,
+      "full_height_wall_collision": true,
+      "interior_collision_present": true,
+      "door_coords": {
+        "door_main": [
+          0.0,
+          1.0864,
+          -24.832
+        ],
+        "door_north": [
+          0.0,
+          1.0864,
+          -54.6304
+        ],
+        "door_east": [
+          14.8992,
+          1.0864,
+          -39.7312
+        ],
+        "door_west": [
+          -14.8992,
+          1.0864,
+          -39.7312
+        ]
+      }
+    },
+    {
+      "year": 2008,
+      "file": "courthouse-2008.glb",
+      "passed": true,
+      "base_materials": 12,
+      "clock_materials": 4,
+      "clock_emissive_ok": true,
+      "visible_triangles_instanced": 13296,
+      "collision_triangles": 2028,
+      "uv_edges_checked": 15240,
+      "bad_uv_edges": 0,
+      "max_uv_error_m": 4e-06,
+      "detail_quadrant_violations": 0,
+      "glow_area_m2": 64.07,
+      "height_m": 38.024,
+      "min_y_m": 0.0,
+      "tree_nodes": 16,
+      "floor_nodes": 18,
+      "room_door_nodes": 11,
+      "collision_boxes": 169,
+      "full_height_wall_collision": true,
+      "interior_collision_present": true,
+      "door_coords": {
+        "door_main": [
+          0.0,
+          1.0864,
+          -24.832
+        ],
+        "door_north": [
+          0.0,
+          1.0864,
+          -54.6304
+        ],
+        "door_east": [
+          14.8992,
+          1.0864,
+          -39.7312
+        ],
+        "door_west": [
+          -14.8992,
+          1.0864,
+          -39.7312
+        ]
+      }
+    }
+  ]
+}
