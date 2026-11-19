@@ -15,6 +15,7 @@ import kotlin.math.hypot
 class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
     private val t0 = System.nanoTime()
     private var groundDone = false
+    private var finished = false
     /** Milliseconds from the start until the first view was ready (-1 until then). */
     var firstViewMs = -1f; private set
     /** The pose drawn last. */
@@ -30,6 +31,8 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
     val done: Boolean get() = groundDone && town.pending == 0
 
     init {
+        // (the heap is watched from here to the whole town's end: the breadcrumbs and the AI panel's RAM line say it)
+        TownMemory.start()
         town.startGround()
         // the character sheets read on a worker while the first view is built (the people stand only once it is ready)
         town.warm(sheets)
@@ -41,11 +44,12 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
      */
     fun build(x: Float, z: Float, budgetMs: Float): Boolean {
         val s = System.nanoTime()
-        if (!groundDone) groundDone = town.uploadGround(budgetMs)
+        if (!groundDone) { groundDone = town.uploadGround(budgetMs); if (groundDone) TownMemory.mark("ground in") }
         val left = budgetMs - (System.nanoTime() - s) / 1e6f
         if (groundDone || left > 1f) town.buildNearest(x, z, left.coerceAtLeast(1f))
         val ok = ready(x, z)
-        if (ok && firstViewMs < 0f) firstViewMs = (System.nanoTime() - t0) / 1e6f
+        if (ok && firstViewMs < 0f) { firstViewMs = (System.nanoTime() - t0) / 1e6f; TownMemory.mark("first view") }
+        if (ok && !finished && done) { finished = true; TownMemory.mark("all built"); TownMemory.stop() }
         return ok
     }
 

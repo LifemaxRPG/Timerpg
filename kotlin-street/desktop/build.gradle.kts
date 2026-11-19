@@ -58,6 +58,8 @@ tasks.register<JavaExec>("preview") {
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("PreviewKt")
     jvmArgs("-Djava.awt.headless=true", "-Xmx" + (System.getProperty("xmx") ?: "3g"))
+    // (more JVM flags for a measurement, space separated: -Djvm="-Xlog:gc -XX:ActiveProcessorCount=8")
+    System.getProperty("jvm")?.let { jvmArgs(it.split(' ').filter(String::isNotBlank)) }
     System.getProperty("seamdebug")?.let { jvmArgs("-Dseamdebug=$it") }
     System.getProperty("skip")?.let { jvmArgs("-Dskip=$it", "-Donlyone=1") }
     System.getProperty("mode")?.let { jvmArgs("-Dmode=$it") }
@@ -82,11 +84,30 @@ tasks.register<JavaExec>("preview") {
     for (k in listOf("yards")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     // the whole town's preview (-Dmode=filament-town): which town folder, where the pack's pictures are, the yards'
     // builder (kit, or placeholder: flat colours)
-    for (k in listOf("town", "assetsRoot", "townYards")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
+    for (k in listOf("town", "assetsRoot", "townYards", "memtrace", "heapBudget", "memlive", "coldOnly")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     if (withFilament) {
         jvmArgs("-Djava.library.path=" + File(filamentDist, "lib").absolutePath)
         // Mesa's EGL with no display: headless software GL
         environment("EGL_PLATFORM", "surfaceless")
     }
     args(layout.buildDirectory.dir("preview").get().asFile.absolutePath, file("../../public/assets/characters").absolutePath)
+}
+
+// The town's memory check (gradle :desktop:townMemoryCheck): the app's cold start of the whole town (TownRun from the
+// spawn: the ground, greenery, props, yards and all 98 buildings, then walking) at a phone's Java heap. The heap is 320 MB
+// and the direct buffers (on the phone they are on the Java heap too) may take 160 MB more; with a full collection every
+// 100 ms the preview measures what is truly held, and fails if the live heap and the direct buffers held at once pass
+// -DheapBudget (MB, default 256: the phone's 320 MB less room for the rest of the app), or if anything runs out of memory.
+if (withFilament) tasks.register<JavaExec>("townMemoryCheck") {
+    group = "verification"
+    description = "Builds the whole town from a cold start at a phone-sized heap and fails over the memory budget"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("PreviewKt")
+    jvmArgs("-Djava.awt.headless=true", "-Xmx320m", "-XX:MaxDirectMemorySize=160m", "-XX:+ExitOnOutOfMemoryError",
+        // (as many workers as the S25's cores give it)
+        "-XX:ActiveProcessorCount=8",
+        "-Dmode=filament-town", "-Dshots=cold", "-DcoldOnly=1", "-Dmemlive=1", "-DheapBudget=" + (System.getProperty("heapBudget") ?: "256"))
+    jvmArgs("-Djava.library.path=" + File(filamentDist, "lib").absolutePath)
+    environment("EGL_PLATFORM", "surfaceless")
+    args(layout.buildDirectory.dir("memcheck").get().asFile.absolutePath, file("../../public/assets/characters").absolutePath)
 }
