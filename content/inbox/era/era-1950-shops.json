@@ -1,0 +1,390 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1950,
+  "topic": "shops",
+  "facts": [
+    {
+      "id": "1950-shops-01",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A grocer weighs loose potatoes on a counter scale before wrapping the purchase.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-02",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A butcher cuts meat to order behind a refrigerated display case.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-03",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A clerk writes a customer's order on a small paper sales slip.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-04",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A shopkeeper places purchases in brown paper bags for customers to carry home.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-05",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Customers browse bolts of fabric at a dry goods counter.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-06",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A hardware store keeps nails and screws in separate bins behind the counter.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-07",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A shoe clerk measures a child's feet before bringing out boxes to try.",
+      "ages": "kids",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-08",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A pharmacy counter sells toiletries alongside medicines and household necessities.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-09",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Some drugstores have a soda fountain where customers sit on stools.",
+      "ages": "teens",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-10",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A bakery displays fresh rolls and pastries in glass-fronted cases.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-11",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A shop window features carefully arranged seasonal merchandise to attract passersby.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-12",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Many downtown shops close on Sunday or keep limited weekend hours.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-13",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A customer asks the clerk to set aside an item until payday.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1950-shops-14",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A shopkeeper checks a handwritten inventory ledger when a requested size is missing.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-15",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A clerk retrieves merchandise from a storeroom rather than displaying every size.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-16",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A grocery store stocks canned vegetables in neat rows along narrow aisles.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-17",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Some larger groceries offer wheeled carts for customers to gather their own items.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-18",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Small neighborhood groceries may still serve shoppers directly across the counter.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-19",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A department store separates clothing and housewares into different sections.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-20",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A clerk wraps a gift in tissue paper and a box at the sales counter.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-21",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A florist prepares bouquets for birthdays and church occasions.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-22",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A repair shop displays a sign offering fixes for radios and small appliances.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-23",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A customer studies a mail-order catalog when the local store lacks a particular item.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-24",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Some merchants offer local delivery of bulky furniture or household purchases.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-25",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A shop owner sweeps the sidewalk outside the storefront before opening.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-shops-26",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A store may post handwritten sale signs in its front window.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [
+    {
+      "item": "five-pound bag of granulated sugar",
+      "usd": 0.52,
+      "year": 1955,
+      "confidence": "medium"
+    },
+    {
+      "item": "five-pound bag of flour",
+      "usd": 0.49,
+      "year": 1955,
+      "confidence": "medium"
+    },
+    {
+      "item": "ten-pound bag of potatoes",
+      "usd": 0.65,
+      "year": 1955,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of bananas",
+      "usd": 0.17,
+      "year": 1955,
+      "confidence": "medium"
+    },
+    {
+      "item": "can of condensed soup",
+      "usd": 0.16,
+      "year": 1955,
+      "confidence": "medium"
+    },
+    {
+      "item": "bar of bath soap",
+      "usd": 0.12,
+      "year": 1955,
+      "confidence": "medium"
+    },
+    {
+      "item": "bottle of soft drink",
+      "usd": 0.1,
+      "year": 1955,
+      "confidence": "medium"
+    },
+    {
+      "item": "candy bar",
+      "usd": 0.05,
+      "year": 1955,
+      "confidence": "medium"
+    },
+    {
+      "item": "local daily newspaper",
+      "usd": 0.05,
+      "year": 1955,
+      "confidence": "medium"
+    },
+    {
+      "item": "men's basic haircut",
+      "usd": 1.25,
+      "year": 1955,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of bacon",
+      "usd": 0.65,
+      "year": 1955,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of apples",
+      "usd": 0.18,
+      "year": 1955,
+      "confidence": "medium"
+    }
+  ],
+  "phrases": []
+}
