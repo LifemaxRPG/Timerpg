@@ -1,0 +1,358 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1940,
+  "topic": "shops",
+  "facts": [
+    {
+      "id": "1940-shops-01",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A general store stocks canned food, sewing notions, soap, and household supplies.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-02",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A grocer weighs loose produce on a counter scale before naming the price.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-03",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A butcher wraps selected cuts in paper and ties the parcel with string.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-04",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A clerk scoops dry goods from a bulk bin into a paper bag.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-05",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A customer asks the clerk to fetch an item from a shelf behind the counter.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-06",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Many merchants display prices on handwritten cards beside their merchandise.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-07",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A department store separates clothing, housewares, and fabric into different counters.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-08",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A hardware merchant sells nails, hinges, paintbrushes, and tools for household repairs.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-09",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A shoe shop measures a customer's feet before bringing out several pairs.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-10",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A drugstore counter serves fountain drinks and simple snacks.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-11",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A shopkeeper opens a glass display case to show watches or jewelry.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-12",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A bakery puts fresh bread and pastries in its front window each morning.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-13",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A clerk places purchases in a paper sack for the walk home.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-14",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A shopkeeper marks a sale on a paper inventory sheet.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-15",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "The store window advertises seasonal goods with painted lettering.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-16",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Many downtown shops close on Sunday, though local customs vary.",
+      "ages": "all",
+      "use": [
+        "guard"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-17",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Some merchants close for part of the afternoon or early evening.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-18",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A customer asks whether the shop can order an item that is out of stock.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-19",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A neighborhood grocer may send an order to a customer's home by bicycle or truck.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-20",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A shop assistant sweeps the floor and straightens shelves before closing.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-21",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A fabric counter sells cloth by the yard for sewing at home.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-22",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A shop window features school supplies before autumn classes begin.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-23",
+      "year_from": 1942,
+      "year_to": 1945,
+      "text": "During the war, merchants explain limits on scarce goods to waiting customers.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-24",
+      "year_from": 1942,
+      "year_to": 1945,
+      "text": "During the war, stores sometimes have empty spaces where restricted goods usually sit.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-25",
+      "year_from": 1946,
+      "year_to": 1949,
+      "text": "After the war, merchants advertise newly available household goods to returning customers.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-shops-26",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A downtown merchant greets regular customers by name and asks after their families.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    }
+  ],
+  "not_yet": [],
+  "prices": [
+    {
+      "item": "pound of potatoes",
+      "usd": 0.03,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of flour",
+      "usd": 0.04,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of bacon",
+      "usd": 0.25,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of ground beef",
+      "usd": 0.23,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of apples",
+      "usd": 0.05,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "head of lettuce",
+      "usd": 0.08,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "bar of soap",
+      "usd": 0.06,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "box of breakfast cereal",
+      "usd": 0.13,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "pair of cotton work socks",
+      "usd": 0.25,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "yard of plain cotton fabric",
+      "usd": 0.25,
+      "year": 1940,
+      "confidence": "medium"
+    }
+  ],
+  "phrases": []
+}
