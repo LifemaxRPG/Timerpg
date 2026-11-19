@@ -283,6 +283,12 @@ object LandmarkKit {
                 img = s
             }
             if (mi == priceMat && spec.price != null) img = spec.price.picture(year, seed)
+            // water (a pool's surface) is drawn solid: its see-through texels over deep water, and laid flush with the town's
+            // ground (a pool is sunk below the model's zero, which the town's grass in the lot's hole would hide)
+            if (name.startsWith("water_")) {
+                for (i in img.px.indices) img.px[i] = blendOver(img.px[i], DEEP_WATER)
+                for (i in 1 until pos.size step 3) pos[i] = WATER_LEVEL
+            }
             when (role) {
                 CinemaPart.Role.WINDOWS -> glass(img, spec.room == "hall")
                 CinemaPart.Role.SIGN -> glowMask(img, if (mi == priceMat) null else mat?.let { m -> if (m.emissiveImage >= 0) glb.image(m.emissiveImage) else null }, mat?.emissiveFactor ?: floatArrayOf(1f, 1f, 1f), false)
@@ -300,7 +306,7 @@ object LandmarkKit {
             fx0 = min(fx0, b[0]); fz0 = min(fz0, b[2]); fx1 = max(fx1, b[3]); fz1 = max(fz1, b[5]); top = max(top, b[4])
             if (name.startsWith("ground_")) front = max(front, b[5])
             val mesh = PropMesh(pos, uv, nrm, tan, idx, img.w, img.h, img.px, if (img.glows) img.mask else null, b)
-            val flat = name.startsWith("ground_") || name.startsWith("floor_")
+            val flat = name.startsWith("ground_") || name.startsWith("floor_") || name.startsWith("water_")
             parts += CinemaPart(mesh, casts = !flat, tiled = true, role = role)
             names += name
             if (role == CinemaPart.Role.SIGN && mi != priceMat) lights += ceilingLights(pos, nrm, idx)
@@ -348,6 +354,18 @@ object LandmarkKit {
 
     /** Where a landmark's lowest broad ground stands (street units over the town's ground). */
     const val GROUND = .3f
+
+    /** A pool's water (`water_*`) is laid this high over the town's ground (under the paving's [GROUND]), and drawn over [DEEP_WATER]. */
+    const val WATER_LEVEL = .15f
+    private const val DEEP_WATER = 0xFF1E4660.toInt()
+
+    /** [c] (ARGB) made solid over the opaque [back]. */
+    private fun blendOver(c: Int, back: Int): Int {
+        val a = c ushr 24
+        if (a >= 255) return c
+        fun ch(s: Int) = (((c shr s) and 255) * a + ((back shr s) and 255) * (255 - a)) / 255
+        return (0xFF shl 24) or (ch(16) shl 16) or (ch(8) shl 8) or ch(0)
+    }
 
     /** A material's role by its name (the guide's contract). */
     fun roleOf(name: String): CinemaPart.Role = when {

@@ -42,6 +42,90 @@
       "info": "starling-lanes/model-info.json",
       "era": {"from": 1960, "to": 1969, "built": 1964},
       "footprint": {"lot": [34.76, 42.21], "building": [22.35, 31.04]}
+    },
+    {
+      "kind": "landmark_glb_gazette_office",
+      "name": "Gazette Office & Print Shop",
+      "role": "newspaper",
+      "room": "hall",
+      "file": "gazette-office/gazette-office.glb",
+      "info": "gazette-office/model-info.json",
+      "swatches": {"roof_membrane": "ballast"},
+      "era": {"from": 1905, "to": 1940, "built": 1925},
+      "footprint": {"lot": [13.66, 19.09], "building": [9.93, 14.28]}
+    },
+    {
+      "kind": "landmark_glb_feed_mill",
+      "name": "Hearthside Feed & Grain",
+      "role": "feed_mill",
+      "room": "shelves",
+      "file": "feed-mill/feed-mill.glb",
+      "info": "feed-mill/model-info.json",
+      "era": {"from": 1920, "to": 1960, "built": 1938},
+      "footprint": {"lot": [29.8, 19.87], "building": [26.23, 16.68]}
+    },
+    {
+      "kind": "landmark_glb_mirage_nightclub",
+      "name": "Club Mirage",
+      "role": "nightclub",
+      "room": "hall",
+      "file": "mirage-nightclub/mirage-nightclub.glb",
+      "info": "mirage-nightclub/model-info.json",
+      "swatches": {"roof_membrane": "ballast", "ground_asphalt": "asphalt"},
+      "era": {"from": 1980, "to": 1989, "built": 1985},
+      "footprint": {"lot": [27.32, 29.8], "building": [18.62, 17.38]}
+    },
+    {
+      "kind": "landmark_glb_pulse_nightclub",
+      "name": "Club Pulse",
+      "role": "nightclub",
+      "room": "hall",
+      "file": "pulse-nightclub/pulse-nightclub.glb",
+      "info": "pulse-nightclub/model-info.json",
+      "swatches": {"roof_membrane": "ballast"},
+      "era": {"from": 2020, "to": 2029, "built": 2024},
+      "footprint": {"lot": [27.32, 29.8], "building": [18.62, 17.38]}
+    },
+    {
+      "kind": "landmark_glb_starlight_drive_in",
+      "name": "Starlight Drive-In",
+      "role": "drive_in",
+      "room": "hall",
+      "file": "starlight-drive-in/starlight-drive-in.glb",
+      "info": "starlight-drive-in/model-info.json",
+      "era": {"from": 1950, "to": 1966, "built": 1956},
+      "footprint": {"lot": [34.76, 42.21], "building": [16.14, 7.45]}
+    },
+    {
+      "kind": "landmark_glb_water_tower",
+      "name": "Water Tower",
+      "role": "water_tower",
+      "room": "hall",
+      "file": "water-tower/water-tower.glb",
+      "info": "water-tower/model-info.json",
+      "era": {"from": 1920, "to": 1965, "built": 1940},
+      "footprint": {"lot": [12.73, 12.73], "building": [12.73, 12.73]}
+    },
+    {
+      "kind": "landmark_glb_roadside_motel",
+      "name": "Sundown Motel",
+      "role": "motel",
+      "room": "hall",
+      "file": "roadside-motel/roadside-motel.glb",
+      "info": "roadside-motel/model-info.json",
+      "swatches": {"roof_built_up": "ballast"},
+      "era": {"from": 1950, "to": 1969, "built": 1957},
+      "footprint": {"lot": [47.18, 33.52], "building": [36.0, 26.07]}
+    },
+    {
+      "kind": "landmark_glb_premier_railroad_depot",
+      "name": "Union Depot",
+      "role": "railroad_depot",
+      "room": "hall",
+      "file": "premier-railroad-depot/premier-railroad-depot.glb",
+      "info": "premier-railroad-depot/model-info.json",
+      "era": {"from": 1900, "to": 1935, "built": 1915},
+      "footprint": {"lot": [52.15, 23.59], "building": [34.76, 12.42]}
     }
   ]
 }

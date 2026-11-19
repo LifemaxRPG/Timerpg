@@ -1,0 +1,141 @@
+{
+  "name": "Classic Steel Water Tower",
+  "era": {
+    "built_typically": [
+      1920,
+      1965
+    ],
+    "fits": [
+      1940,
+      2030
+    ],
+    "notes": "Riveted municipal steel tower; repainting and preservation can retain it into the present. No service date or town name is assumed."
+  },
+  "units": "metres",
+  "axes": "glTF Y up; front service gate +Z",
+  "origin": "Ground at midpoint of front fence/gate edge (two art pixels ahead of gate)",
+  "footprint_m": [
+    12.7264,
+    12.7264
+  ],
+  "heights_m": {
+    "tank_roof": 25.608,
+    "maximum": 26.2288,
+    "catwalk": 18.375680000000003,
+    "fence": 2.0176
+  },
+  "triangles_visible": 9210,
+  "materials": [
+    "detail_catwalk",
+    "detail_equipment",
+    "detail_frame",
+    "glow_beacon",
+    "ground_concrete",
+    "ground_gravel",
+    "roof_steel",
+    "sign_name",
+    "wall_tank_steel"
+  ],
+  "pixel_grid": {
+    "metres_per_texel": 0.0388,
+    "texels_per_art_pixel": 2
+  },
+  "legs": {
+    "count": 4,
+    "nodes": [
+      "leg_1",
+      "leg_2",
+      "leg_3",
+      "leg_4"
+    ],
+    "base_centres_blender_art": [
+      [
+        -54,
+        28,
+        3
+      ],
+      [
+        54,
+        28,
+        3
+      ],
+      [
+        54,
+        136,
+        3
+      ],
+      [
+        -54,
+        136,
+        3
+      ]
+    ],
+    "upper_centres_z_art": 236
+  },
+  "tank": {
+    "radius_m": 4.1904,
+    "cylinder_base_y_gltf": 18.3136,
+    "cylinder_top_y_gltf": 23.9008,
+    "facets": 16
+  },
+  "sign_name": {
+    "node": "sign_name",
+    "material": "sign_name",
+    "texture": "textures/sign-name.png",
+    "rect_art": [
+      0,
+      0,
+      64,
+      20
+    ],
+    "developed_width_m": 4.9664,
+    "height_m": 1.552,
+    "facets": 3,
+    "blank": true,
+    "runtime": "Separate curved panel; preserve face UVs and write inside the blank region without scaling pixels. No letters or generated town name baked in."
+  },
+  "ladder": {
+    "node": "ladder",
+    "anchor": "access_ladder",
+    "climbable": false,
+    "notes": "Rear fixed ladder with cage, catwalk transition and roof ladder; service access is visual only."
+  },
+  "doors": [],
+  "door_exemption": "Uninhabitable tower: no Go inside doorway. access_ladder is a maintenance anchor, not a door. service_gate remains visibly closed.",
+  "collision": {
+    "node": "collision",
+    "render": false,
+    "strategy": "One full-height exclusion box for the visibly fenced closed maintenance compound. Walking under the tower and climbing are deliberately unavailable.",
+    "boxes_blender_z_up": [
+      {
+        "source": "Closed fenced tower compound",
+        "center": [
+          0,
+          6.3632,
+          13.1144
+        ],
+        "size": [
+          12.7264,
+          12.7264,
+          26.2288
+        ],
+        "group": "structure",
+        "attachment": "water_tower"
+      }
+    ],
+    "gate": "Do not open service_gate or allow entry without replacing this compound collider with detailed structural collision/navigation."
+  },
+  "lot_node": "lot",
+  "lot_notes": "Only gravel pad is removable. Fence, legs, footings and collision remain part of the structure.",
+  "runtime_handoff": [
+    "No water pressure/storage/utility or climbing simulation is implemented.",
+    "Tank town-name binding remains runtime work; default panel is blank.",
+    "Red marker is a steady emissive preview; no blinking or aviation behavior is implied.",
+    "Landmark importer must hide collision from rendering."
+  ],
+  "swatches_used": [
+    "pavement"
+  ],
+  "licence": "LimeZu pavement: Timerpg use only, original credit required. Original geometry and other pixel art.",
+  "renders": "Blender desktop previews, not Filament or S25 captures."
+}

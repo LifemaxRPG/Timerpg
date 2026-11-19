@@ -1,0 +1,4 @@
+textures/
+source-materials/
+*.glb
+model-info.json

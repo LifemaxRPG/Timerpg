@@ -85,11 +85,14 @@ fun renderLandmarks(out: String) {
         val cxm = (fp[0] + fp[2]) / 2f; val czw = wz((fp[1] + fp[3]) / 2f)
         val bz = wz(-spec.buildingD * U / 2f)
         val top = m.height
-        val span = max(L, D)
+        // (a tall tower needs the cameras further out: its height counts like a side)
+        val tall = top > 1.5f * max(L, D)
+        val span = if (tall) top * 1.35f else max(L, D)
+        val aim = if (tall) .55f else .25f
         val shots = listOf(
-            "front" to Triple(floatArrayOf(cxm, 90f + span * .05f, -span * .9f - 200f), floatArrayOf(cxm, top * .35f, bz), 50f),
-            "quarter" to Triple(floatArrayOf(cxm - span * .95f - 150f, 220f + span * .3f, -span * .75f - 120f), floatArrayOf(cxm, top * .25f, czw), 52f),
-            "behind" to Triple(floatArrayOf(cxm + span * .85f + 150f, 230f + span * .3f, wz(fp[1]) + span * .7f + 200f), floatArrayOf(cxm, top * .25f, czw), 52f),
+            "front" to Triple(floatArrayOf(cxm, 90f + span * .05f, -span * .9f - 200f), floatArrayOf(cxm, top * (if (tall) .55f else .35f), bz), 50f),
+            "quarter" to Triple(floatArrayOf(cxm - span * .95f - 150f, 220f + span * .3f, -span * .75f - 120f), floatArrayOf(cxm, top * aim, czw), 52f),
+            "behind" to Triple(floatArrayOf(cxm + span * .85f + 150f, 230f + span * .3f, wz(fp[1]) + span * .7f + 200f), floatArrayOf(cxm, top * aim, czw), 52f),
             "above" to Triple(floatArrayOf(cxm - span * .1f, span * 1.25f + 400f, czw - span * .45f - 150f), floatArrayOf(cxm, 0f, czw), 52f),
             // a person's eyes (1.6 m) some 7 m out from the main door, a little to one side, looking at it
             "person" to personEye(lm, door, dx, dz),

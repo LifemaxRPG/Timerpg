@@ -4,6 +4,7 @@ import com.lifemax.rpg.feature.habits.presentation.scene3d.GlbFile
 import com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkKit
 import com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkSpec
 import com.lifemax.rpg.feature.habits.presentation.scene3d.Png
+import kotlin.math.abs
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -51,12 +52,20 @@ class LandmarkGlbTest {
             assertTrue("${s.kind} width $w vs lot ${s.lotW}", w in s.lotW * .8f..s.lotW * 1.1f + 1f)
             assertTrue("${s.kind} depth $d vs lot ${s.lotD}", d in s.lotD * .8f..s.lotD * 1.1f + 1f)
             // a storey is 3-8 m (no model 21 times too big or small): a figure is 36 units
-            assertTrue("${s.kind} height ${m.height / U} m", m.height / U in 3f..12f)
+            assertTrue("${s.kind} height ${m.height / U} m", m.height / U in 3f..(if (s.kind.endsWith("water_tower")) 30f else 22f))
             // the collision mesh is never drawn (no part carries its boxes' name)
             assertTrue(lm.names.none { it == "collision" })
-            // windows lit by role, signs glowing
-            assertTrue("${s.kind} glass", m.parts.any { it.role == CinemaPart.Role.WINDOWS && it.mesh.mask != null })
+            // windows lit by role, signs glowing (a water tower has no glass, only its beacon, and no door)
+            val tower = s.kind.endsWith("water_tower")
+            if (!tower) assertTrue("${s.kind} glass", m.parts.any { it.role == CinemaPart.Role.WINDOWS && it.mesh.mask != null })
             assertTrue("${s.kind} signs", m.parts.any { it.role == CinemaPart.Role.SIGN && it.mesh.mask != null })
+            // the lot's ground stands on the town's (nothing sunk below zero: the loader lifts it)
+            // (the diner's kerb dips below, as it was made before the guide)
+            if (!s.kind.endsWith("junction_diner")) for ((n, p) in lm.names.zip(m.parts)) if (n.startsWith("ground_")) assertTrue("${s.kind} $n bottom ${p.mesh.bounds[1]}", p.mesh.bounds[1] >= 0f)
+            // every door faces out along its node's +z (door_back to the rear, door_side sideways)
+            for (d in lm.doors) assertTrue("${s.kind} ${d.name} unit", abs(d.outX * d.outX + d.outZ * d.outZ - 1f) < .01f)
+            lm.doors.firstOrNull { it.name == "door_back" }?.let { assertTrue("${s.kind} back door faces back", it.outZ < -.9f) }
+            if (tower) { assertTrue("${s.kind} collision", lm.solids.size / 4 >= 4); continue }
             // a main door at the front, facing out (+z), and boxes to walk round
             val main = lm.doors.first { it.name == "door_main" }
             assertTrue("${s.kind} main door faces the road", main.outZ > .9f)
@@ -67,6 +76,24 @@ class LandmarkGlbTest {
             var i = 0
             while (i + 3 < lm.solids.size) { val a = lm.solids; assertTrue("${s.kind} door blocked", !(fx > a[i] && fx < a[i + 2] && fz > a[i + 1] && fz < a[i + 3])); i += 4 }
         }
+    }
+
+    @Test fun theNewLandmarksAreInTheCatalogue() {
+        for (k in listOf("gazette_office", "feed_mill", "mirage_nightclub", "pulse_nightclub", "starlight_drive_in", "water_tower", "roadside_motel", "premier_railroad_depot"))
+            assertTrue("$k listed", specs.any { it.kind == "landmark_glb_$k" })
+        // a swatch re-skin replaces the picture at the same texel size
+        val club = specs.first { it.kind.endsWith("mirage_nightclub") }
+        assertEquals("ballast", club.swatches["roof_membrane"])
+    }
+
+    @Test fun aPoolIsSolidWaterFlushWithTheGround() {
+        val s = specs.first { it.kind.endsWith("roadside_motel") }
+        val lm = build(s)
+        val i = lm.names.indexOf("water_pool")
+        assertTrue("the pool's water is built", i >= 0)
+        val p = lm.model.parts[i]
+        assertTrue("its water is level and just over the town's ground", p.mesh.bounds[1] == LandmarkKit.WATER_LEVEL && p.mesh.bounds[4] == LandmarkKit.WATER_LEVEL)
+        assertTrue("and opaque", p.mesh.tex.all { it ushr 24 == 255 })
     }
 
     @Test fun droppingTheLotDropsItsThingsAndBoxes() {

@@ -1,0 +1,434 @@
+{
+  "name": "The Gazette Office & Print Shop",
+  "era": {
+    "design_years": [
+      1905,
+      1940
+    ],
+    "fits": [
+      1950,
+      2030
+    ],
+    "notes": "Original masonry newspaper office with an industrial northlight print-room extension. Simulation decides business history and actual archive content."
+  },
+  "units": "metres",
+  "axes": "glTF Y up, public entrance +Z",
+  "origin": "Ground at middle of front masonry edge",
+  "building_m": [
+    9.9328,
+    14.278400000000001
+  ],
+  "structure_bounds_blender_art": [
+    -68,
+    -29,
+    71,
+    212
+  ],
+  "lot_m": [
+    13.6576,
+    19.0896
+  ],
+  "lot_bounds_blender_art": [
+    -88,
+    -30,
+    88,
+    216
+  ],
+  "heights_m": {
+    "main_parapet": 9.3896,
+    "chimney": 9.56032,
+    "print_roof": 5.5872
+  },
+  "triangles_visible": 3066,
+  "materials": [
+    "detail_panels",
+    "detail_steel",
+    "detail_stone",
+    "glass_gazette",
+    "glow_lamps",
+    "ground_asphalt",
+    "ground_paving",
+    "roof_membrane",
+    "roof_metal",
+    "sign_name",
+    "wall_brick",
+    "wall_interior"
+  ],
+  "pixel_grid": {
+    "metres_per_texel": 0.0388,
+    "texels_per_art_pixel": 2
+  },
+  "doors": [
+    {
+      "node": "door_main",
+      "position": [
+        -3.1040000915527344,
+        0.15520000457763672,
+        0.2444400042295456
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "floor_m": 0.1552,
+      "panel": "panel_door_main"
+    },
+    {
+      "node": "door_back",
+      "position": [
+        1.5520000457763672,
+        0.15520000457763672,
+        -14.522839546203613
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ],
+      "floor_m": 0.1552,
+      "panel": "panel_door_back"
+    },
+    {
+      "node": "door_side",
+      "position": [
+        5.210840225219727,
+        0.15520000457763672,
+        -10.088000297546387
+      ],
+      "outward": [
+        1,
+        0,
+        0
+      ],
+      "floor_m": 0.1552,
+      "panel": "panel_door_side"
+    }
+  ],
+  "door_panels": [
+    "panel_door_main",
+    "panel_door_back",
+    "panel_door_side"
+  ],
+  "rooms": [
+    {
+      "id": "public_office",
+      "floor_m": 0.1552,
+      "bounds_blender_art": [
+        -64,
+        0,
+        64,
+        88
+      ],
+      "ceiling_m": 3.7248,
+      "notes": "Fixed subscriptions counter, open stair flight; no loose furniture."
+    },
+    {
+      "id": "editorial",
+      "floor_m": 3.88,
+      "bounds_blender_art": [
+        -64,
+        0,
+        64,
+        88
+      ],
+      "stair_hole_blender_art": [
+        -62,
+        38,
+        -30,
+        86
+      ],
+      "ceiling_m": 7.4496
+    },
+    {
+      "id": "print_room",
+      "floor_m": 0.1552,
+      "bounds_blender_art": [
+        -64,
+        88,
+        64,
+        184
+      ],
+      "press_anchor": "anchor_printing_press",
+      "press_base_top_m": 0.2328,
+      "notes": "Clean shell with sawtooth northlights; actual press/furniture and operations remain runtime work."
+    }
+  ],
+  "stairs": {
+    "node": "stairs",
+    "lower_floor_m": 0.1552,
+    "half_landing_m": 2.0176,
+    "upper_floor_m": 3.88,
+    "risers": 24,
+    "rise_m": 0.1552,
+    "tread_m": 0.2328,
+    "notes": "Actual two-flight geometry; runtime must implement elevation-aware stair traversal and upper-floor navigation."
+  },
+  "sign_name": {
+    "node": "sign_name",
+    "material": "sign_name",
+    "texture": "textures/signs.png",
+    "rect_art": [
+      0,
+      0,
+      100,
+      14
+    ],
+    "text": "THE GAZETTE",
+    "binding": "Static fictional preview title. Edit only masthead region; other regions carry emblem and projecting/dispatch signs."
+  },
+  "collision": {
+    "node": "collision",
+    "render": false,
+    "use_the_walls": true,
+    "boxes_blender_z_up": [
+      {
+        "source": "Closed door_main",
+        "center": [
+          -3.104,
+          -0.08924,
+          1.3192
+        ],
+        "size": [
+          1.2416,
+          0.1552,
+          2.6384
+        ],
+        "group": "structure",
+        "attachment": "panel_door_main",
+        "gate_node": "panel_door_main"
+      },
+      {
+        "source": "Fixed counter",
+        "center": [
+          0.6208,
+          1.8624,
+          0.5820000000000001
+        ],
+        "size": [
+          2.9488000000000003,
+          1.0864,
+          1.1640000000000001
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Closed door_back",
+        "center": [
+          1.552,
+          14.367640000000002,
+          1.4744000000000002
+        ],
+        "size": [
+          3.7248,
+          0.1552,
+          2.9488000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_back",
+        "gate_node": "panel_door_back"
+      },
+      {
+        "source": "Closed door_side",
+        "center": [
+          5.05564,
+          10.088000000000001,
+          1.2416
+        ],
+        "size": [
+          0.1552,
+          1.0864,
+          2.4832
+        ],
+        "group": "structure",
+        "attachment": "panel_door_side",
+        "gate_node": "panel_door_side"
+      },
+      {
+        "source": "Press foundation",
+        "center": [
+          -0.9312,
+          10.5536,
+          0.1164
+        ],
+        "size": [
+          3.104,
+          3.7248,
+          0.2328
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Dispatch canopy post",
+        "center": [
+          -1.2416,
+          16.063200000000002,
+          1.7072
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.4144
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Dispatch canopy post",
+        "center": [
+          4.3456,
+          16.063200000000002,
+          1.7072
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.4144
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Downpipe",
+        "center": [
+          -5.0828,
+          6.6736,
+          2.2504
+        ],
+        "size": [
+          0.0776,
+          0.0776,
+          4.5008
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Downpipe",
+        "center": [
+          5.0828,
+          6.6736,
+          2.2504
+        ],
+        "size": [
+          0.0776,
+          0.0776,
+          4.5008
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Downpipe",
+        "center": [
+          -5.0828,
+          14.1232,
+          2.2504
+        ],
+        "size": [
+          0.0776,
+          0.0776,
+          4.5008
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Downpipe",
+        "center": [
+          5.0828,
+          14.1232,
+          2.2504
+        ],
+        "size": [
+          0.0776,
+          0.0776,
+          4.5008
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "news_box",
+        "center": [
+          4.1904,
+          -1.0864,
+          0.5820000000000001
+        ],
+        "size": [
+          0.6984,
+          0.6984,
+          1.1640000000000001
+        ],
+        "group": "lot",
+        "attachment": "news_box"
+      },
+      {
+        "source": "service_bin",
+        "center": [
+          -5.897600000000001,
+          13.3472,
+          0.5820000000000001
+        ],
+        "size": [
+          0.6984,
+          0.6984,
+          1.1640000000000001
+        ],
+        "group": "lot",
+        "attachment": "service_bin"
+      },
+      {
+        "source": "service_bin",
+        "center": [
+          5.897600000000001,
+          13.3472,
+          0.5820000000000001
+        ],
+        "size": [
+          0.6984,
+          0.6984,
+          1.1640000000000001
+        ],
+        "group": "lot",
+        "attachment": "service_bin.001"
+      },
+      {
+        "source": "Paper roll cart",
+        "center": [
+          -2.4832,
+          15.2872,
+          0.5432
+        ],
+        "size": [
+          1.552,
+          1.2416,
+          1.0864
+        ],
+        "group": "lot",
+        "attachment": "paper_roll_cart"
+      }
+    ],
+    "strategy": "Use architectural walls, floors, stairs and closed panels; explicit full-height boxes cover counter, press base, canopy posts, downpipes and optional yard props.",
+    "runtime": "Hide collision mesh. Keep closed door panels synchronized with matching gate_node boxes. Stairs/upper floors need height collision and navigation integration."
+  },
+  "lot_node": "lot",
+  "press": "Foundation and reference anchor only; no printing machine or newspaper generation behavior is implemented.",
+  "runtime_handoff": [
+    "No fictional headlines, residents, jobs, archive facts or publication history are created.",
+    "Actual Gazette editions and ownership must come from simulation facts.",
+    "Door, stair, upper-floor and press behavior require runtime integration.",
+    "Preview wall/window lighting is staged in Blender, not an S25 measurement."
+  ],
+  "swatches_used": [
+    "brick_red",
+    "roof_membrane_grey",
+    "roof_tin_blue",
+    "pavement",
+    "asphalt_worn"
+  ],
+  "licence": "LimeZu shared swatches: Timerpg game use only, retain original credit; geometry and supplemental art original.",
+  "renders": "Blender desktop previews, not Filament/S25 captures."
+}

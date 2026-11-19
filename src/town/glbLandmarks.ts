@@ -10,12 +10,20 @@ export type GlbLandmarkKind =
   | 'landmark_glb_modern_gas_station'
   | 'landmark_glb_main_street_service_station'
   | 'landmark_glb_junction_diner'
-  | 'landmark_glb_starling_lanes';
+  | 'landmark_glb_starling_lanes'
+  | 'landmark_glb_gazette_office'
+  | 'landmark_glb_feed_mill'
+  | 'landmark_glb_mirage_nightclub'
+  | 'landmark_glb_pulse_nightclub'
+  | 'landmark_glb_starlight_drive_in'
+  | 'landmark_glb_water_tower'
+  | 'landmark_glb_roadside_motel'
+  | 'landmark_glb_premier_railroad_depot';
 
 export interface GlbLandmarkSpec {
   name: string;
   /** The business it houses. */
-  role: 'gas_station' | 'diner' | 'bowling';
+  role: 'gas_station' | 'diner' | 'bowling' | 'newspaper' | 'feed_mill' | 'nightclub' | 'drive_in' | 'water_tower' | 'motel' | 'railroad_depot';
   /** The design's years: built from..to (it may stand long after, as the simulation decides), and its sample year. */
   era: { from: number; to: number; built: number };
   /** The lot, metres: width along the street, depth back from it; the building's walls. */
@@ -33,6 +41,22 @@ export const GLB_LANDMARKS: Record<GlbLandmarkKind, GlbLandmarkSpec> = {
   landmark_glb_junction_diner: { name: 'Junction Diner', role: 'diner', era: { from: 1940, to: 1965, built: 1948 }, lot: [17.0, 21.0], building: [12.0, 12.3] },
   // an eight-lane 1960s bowling alley
   landmark_glb_starling_lanes: { name: 'Starling Lanes', role: 'bowling', era: { from: 1960, to: 1969, built: 1964 }, lot: [34.76, 42.21], building: [22.35, 31.04] },
+  // a two-storey brick newspaper office with a sawtooth print-room wing behind; built 1905-40, stands 1950 on (Main Street)
+  landmark_glb_gazette_office: { name: 'Gazette Office & Print Shop', role: 'newspaper', era: { from: 1905, to: 1940, built: 1925 }, lot: [13.66, 19.09], building: [9.93, 14.28] },
+  // a timber country elevator (20 m) with a feed-store wing and two grain bins; built 1920-60, stands to the present (rail side, farmland)
+  landmark_glb_feed_mill: { name: 'Hearthside Feed & Grain', role: 'feed_mill', era: { from: 1920, to: 1960, built: 1938 }, lot: [29.8, 19.87], building: [26.23, 16.68] },
+  // a 1980s synthwave nightclub with a neon marquee and a rear loading dock
+  landmark_glb_mirage_nightclub: { name: 'Club Mirage', role: 'nightclub', era: { from: 1980, to: 1989, built: 1985 }, lot: [27.32, 29.8], building: [18.62, 17.38] },
+  // the same plot as Club Mirage in a 2020s louvre-and-LED sky-lounge style
+  landmark_glb_pulse_nightclub: { name: 'Club Pulse', role: 'nightclub', era: { from: 2020, to: 2029, built: 2024 }, lot: [27.32, 29.8], building: [18.62, 17.38] },
+  // a 1950s Googie drive-in: concession pavilion, widescreen tower, fenced tiered car lot
+  landmark_glb_starlight_drive_in: { name: 'Starlight Drive-In', role: 'drive_in', era: { from: 1950, to: 1966, built: 1956 }, lot: [34.76, 42.21], building: [16.14, 7.45] },
+  // a four-legged riveted steel municipal water tower in a fenced compound (26 m); stands 1940 on
+  landmark_glb_water_tower: { name: 'Water Tower', role: 'water_tower', era: { from: 1920, to: 1965, built: 1940 }, lot: [12.73, 12.73], building: [12.73, 12.73] },
+  // an L-shaped 1950s-60s motor court: twelve rooms round a parking court, a pool and a neon pylon
+  landmark_glb_roadside_motel: { name: 'Sundown Motel', role: 'motel', era: { from: 1950, to: 1969, built: 1957 }, lot: [47.18, 33.52], building: [36.0, 26.07] },
+  // a brick-and-timber passenger depot with a clock tower and a 52 m platform behind; built 1900-35, stands 1950 on
+  landmark_glb_premier_railroad_depot: { name: 'Union Depot', role: 'railroad_depot', era: { from: 1900, to: 1935, built: 1915 }, lot: [52.15, 23.59], building: [34.76, 12.42] },
 };
 export const GLB_LANDMARK_KINDS = Object.keys(GLB_LANDMARKS) as GlbLandmarkKind[];
 
