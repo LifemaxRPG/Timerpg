@@ -63,6 +63,14 @@ data class AiStatus(
     val hasGpu: Boolean = false,
     val hasNpu: Boolean = false,
     val gpuNote: String? = null,
+    /** Which model is loaded (null: none): the light one for live replies in play, or the main one ([ModelRole]). */
+    val role: ModelRole? = null,
+    /** The light model is on the phone; the free memory each model's load needs on the chosen device (MB). */
+    val hasLive: Boolean = false,
+    val liveNeedMb: Long = 0,
+    val bankNeedMb: Long = 0,
+    /** The AI panel's switch: the main model answers in play too (for comparison). */
+    val forceBank: Boolean = false,
     val speedTesting: Boolean = false,
     val speed: SpeedResult? = null,
     /** How the model's work splits between devices (fewer splits: less of it falls back to the CPU). */
@@ -312,6 +320,8 @@ class DialogueEngine private constructor(private val app: Context) {
         resume("background")
         resume("memory")
         if (unloadedForMemory && memoryUnloads < MEMORY_UNLOADS) { unloadedForMemory = false; command { loadModel() } }
+        // (back in play with the main model loaded, e.g. after writing overnight: the light one if that one is wanted now)
+        else command { if (backend?.loaded == true && loadedRole != ModelRole.LIVE) loadModel() }
     }
 
     /** Memory pressure: pause pre-generation, and under real pressure let go of the model (it reloads on return). */
@@ -371,6 +381,21 @@ class DialogueEngine private constructor(private val app: Context) {
     }
 
     val fastCpuWanted: Boolean get() = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getBoolean("repack", false)
+
+    /** The AI panel's switch: the main model answers in play too, where it fits (for comparing it with the light one). */
+    val forceBankWanted: Boolean get() = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getBoolean("forceBank", false)
+
+    fun setForceBank(on: Boolean) {
+        app.getSharedPreferences("ai", Context.MODE_PRIVATE).edit().putBoolean("forceBank", on).apply()
+        _status.update { it.copy(forceBank = on) }
+        lock.withLock { running?.let { cancelLocked(it) } }
+        command { loadModel() }
+    }
+
+    /** Which model is loaded ([ModelRole]); whether it was copied to its device (not mapped) and its file's size. */
+    @Volatile private var loadedRole: ModelRole? = null
+    @Volatile private var loadedCopied = false
+    @Volatile private var loadedBytes = 0L
 
     /** The device chosen in the AI panel; -1 until one is: the NPU then when there is one (fastest on the S25 Ultra:
      *  8.8 tok/s and a 2.4 s line, against 4.1 tok/s on the CPU and 4.2 on the GPU, measured on the phone). */
@@ -561,41 +586,75 @@ class DialogueEngine private constructor(private val app: Context) {
 
     private fun loadModel() {
         if (closed) return
-        if (backend?.loaded == true) { setState(ModelState.READY, READY_TEXT); enqueueAll(); return }
+        val holds = lock.withLock { loadHolds.sorted().joinToString() }
         // held (the town is being built): the load waits for the hold to lift ([releaseLoad])
-        val held = lock.withLock { loadWanted = loadHolds.isNotEmpty(); loadHolds.sorted().joinToString() }
-        if (held.isNotEmpty()) return setState(ModelState.WAITING, "Waiting for the town to be built before loading the model ($held).")
+        if (backend?.loaded != true && holds.isNotEmpty()) {
+            lock.withLock { loadWanted = true }
+            return setState(ModelState.WAITING, "Waiting for the town to be built before loading the model ($holds).")
+        }
+        lock.withLock { loadWanted = false }
         main.removeCallbacks(retryLoad)
-        val b = backend ?: createBackend()
-            ?: return setState(ModelState.NO_ENGINE, engineError?.let { "$it People use their built-in lines." }
-                ?: "This build has no AI engine, so people use their built-in lines.")
-        // on the NPU, the Q4_0 copy when the tuner found it faster there (and it is downloaded)
+        var b = backend ?: createBackend() ?: return setState(ModelState.NO_ENGINE, noEngineText())
+        val nl = b as? com.timerpg.street.llm.NativeLlm
+        // the device chosen in the panel; -1: the NPU when there is one
+        val dev = nl?.let { n -> deviceWanted.let { if (it >= 0) it else if (n.accelerators and 2 != 0) com.timerpg.street.llm.NativeLlm.NPU else com.timerpg.street.llm.NativeLlm.CPU } }
+            ?: com.timerpg.street.llm.NativeLlm.CPU
+        val onNpu = nl != null && dev == com.timerpg.street.llm.NativeLlm.NPU
+        // on the NPU or the GPU (or the CPU's repacked kernels) the whole model is copied into memory the system cannot
+        // reclaim; from the file's mapping, about half of it has to fit
+        val accelerated = nl != null && (dev != com.timerpg.street.llm.NativeLlm.CPU || fastCpuWanted)
+        // the main model's file: on the NPU, the Q4_0 copy when the tuner found it faster there (and it is downloaded);
+        // with MTP on and its build downloaded, that one (the same weights plus the prediction head)
         val q40 = java.io.File(ModelFiles.dir(app), ModelFiles.NPU_Q4_0)
         val wantsQ40 = app.getSharedPreferences("npu", Context.MODE_PRIVATE).getString("model", null) == "q4_0"
-        val onNpu = (b as? com.timerpg.street.llm.NativeLlm)?.let { deviceWanted == 2 || (deviceWanted < 0 && it.accelerators and 2 != 0) } ?: false
-        // with MTP on and its build downloaded, that one (the same weights plus the prediction head)
         val mtpFile = java.io.File(ModelFiles.dir(app), ModelFiles.MTP)
         val useMtp = mtpWanted > 0 && mtpFile.length() == ModelFiles.MTP_BYTES && !(wantsQ40 && onNpu && q40.length() == 5_379_417_312L)
-        val f = if (wantsQ40 && onNpu && q40.length() == 5_379_417_312L) q40 else if (useMtp) mtpFile else ModelFiles.file(app)
-        val problem = ModelFiles.problem(f)
+        val bankFile = if (wantsQ40 && onNpu && q40.length() == 5_379_417_312L) q40 else if (useMtp) mtpFile else ModelFiles.file(app)
+        val liveFile = ModelFiles.live(app)
+        val bankOk = ModelFiles.problem(bankFile) == null
+        val liveOk = liveFile.length() == ModelFiles.LIVE_BYTES && ModelFiles.problem(liveFile) == null
+        fun choose(): ModelRoles.Choice {
+            val (avail, low) = memoryNow()
+            // a model already loaded gives its copy back if it is let go: counted as free when deciding what goes in its place
+            val held = if (b.loaded && loadedCopied) loadedBytes else 0L
+            return ModelRoles.pick(ModelRoles.Input(
+                foreground = foreground, sceneBuilt = holds.isEmpty(), freeBytes = avail + held, lowMemory = low && held == 0L,
+                bankBytes = if (bankOk) bankFile.length() else 0L, liveBytes = if (liveOk) liveFile.length() else 0L,
+                accelerated = accelerated, forceBank = forceBankWanted,
+            ))
+        }
+        _status.update { it.copy(hasLive = liveOk, forceBank = forceBankWanted,
+            liveNeedMb = ModelRoles.needBytes(ModelFiles.LIVE_BYTES, accelerated) shr 20, bankNeedMb = ModelRoles.needBytes(bankFile.length().takeIf { l -> l > 0 } ?: 5_680_522_464L, accelerated) shr 20) }
+        var choice = choose()
+        if (b.loaded) {
+            val want = (choice as? ModelRoles.Load)?.role
+            if (want == null || want == loadedRole) {
+                // (a model that waits for the town is kept: the load after the build looks again)
+                if (holds.isNotEmpty()) lock.withLock { loadWanted = true }
+                setState(ModelState.READY, readyText()); enqueueAll(); return
+            }
+            // the other model is wanted now: this one goes first (both do not fit)
+            com.timerpg.street.shot.Crumbs.add("dialogue model: ${loadedRole?.name?.lowercase()} model let go for the ${want.name.lowercase()} one (${com.timerpg.street.llm.Ram.freeMb(app)} MB free)")
+            closeBackend()
+            b = createBackend() ?: return setState(ModelState.NO_ENGINE, noEngineText())
+            choice = choose()
+        }
+        val role = (choice as? ModelRoles.Load)?.role ?: (if (bankOk || !liveOk) ModelRole.BANK else ModelRole.LIVE)
+        val f = if (role == ModelRole.LIVE) liveFile else bankFile
+        val problem = if (choice == ModelRoles.NoModel) ModelFiles.problem(bankFile) ?: ModelFiles.MISSING else ModelFiles.problem(f)
         _status.update { it.copy(hasModel = problem == null, modelMb = if (f.isFile) f.length() shr 20 else 0) }
         if (problem == ModelFiles.MISSING) return setState(ModelState.NO_MODEL, NO_MODEL_TEXT)
         if (problem != null) return setState(ModelState.ERROR, problem)
-        // on the NPU or the GPU (or the CPU's repacked kernels) the whole model is copied into memory the system cannot
-        // reclaim; from the file's mapping, about half of it has to fit
-        val copied = (b as? com.timerpg.street.llm.NativeLlm)?.let { nl ->
-            val dev = deviceWanted.let { if (it >= 0) it else if (nl.accelerators and 2 != 0) com.timerpg.street.llm.NativeLlm.NPU else com.timerpg.street.llm.NativeLlm.CPU }
-            dev != com.timerpg.street.llm.NativeLlm.CPU || fastCpuWanted
-        } ?: false
         // the NPU/GPU (or repacked CPU) copy does not fit, but the CPU reading the mapped file does: run there now rather
         // than wait (the phone's owner saw "4067 MB free, 6617 needed" on the NPU while the mapped CPU load needed ~3.6 GB)
-        var cpuFallback = false
-        if (copied && memoryProblem(f.length(), true) != null && memoryProblem(f.length(), false) == null) {
-            cpuFallback = true
+        val cpuFallback = accelerated && (choice as? ModelRoles.Load)?.copied == false
+        if (choice is ModelRoles.Load) gpuNote = null
+        if (cpuFallback) {
             gpuNote = "Not enough free memory for the ${if (deviceWanted == com.timerpg.street.llm.NativeLlm.GPU) "GPU" else "NPU"} copy of the model right now, so it runs on the CPU from the file (it moves back when there is room, next load)."
             com.timerpg.street.shot.Crumbs.add("dialogue model: CPU from the file (copy would not fit, ${com.timerpg.street.llm.Ram.freeMb(app)} MB free)")
         }
-        (if (cpuFallback) null else memoryProblem(f.length(), copied))?.let { why ->
+        (choice as? ModelRoles.Wait)?.let { w ->
+            val why = w.why
             // not now: again in a while (the town's last uploads, another app's memory being let go), then give up
             if (++memoryWaits <= MEMORY_TRIES) {
                 com.timerpg.street.shot.Crumbs.add("dialogue model: load put off ($memoryWaits of $MEMORY_TRIES): $why")
@@ -607,7 +666,7 @@ class DialogueEngine private constructor(private val app: Context) {
         }
         memoryWaits = 0
         setState(ModelState.LOADING, "Loading the model (${f.length() shr 20} MB)…")
-        com.timerpg.street.shot.Crumbs.add("dialogue model: loading with ${com.timerpg.street.llm.Ram.freeMb(app)} MB free")
+        com.timerpg.street.shot.Crumbs.add("dialogue model: loading the ${role.name.lowercase()} model with ${com.timerpg.street.llm.Ram.freeMb(app)} MB free")
         loadingNow = true
         var thrown: String? = null
         val native = b as? com.timerpg.street.llm.NativeLlm
@@ -616,7 +675,8 @@ class DialogueEngine private constructor(private val app: Context) {
         // (repacked CPU kernels copy the weights too: not when falling back for memory)
         native?.fastCpu = fastCpuWanted && !cpuFallback
         val mtpSet = app.getSharedPreferences("npu", Context.MODE_PRIVATE).contains("mtp")
-        native?.mtp = if (useMtp && (mtpSet || native?.device == com.timerpg.street.llm.NativeLlm.NPU)) mtpWanted else 0
+        // (MTP is the main model's own build: the light one runs without it)
+        native?.mtp = if (role == ModelRole.BANK && useMtp && (mtpSet || native?.device == com.timerpg.street.llm.NativeLlm.NPU)) mtpWanted else 0
         // loading holds the AI lane: speech, memory and the voices do not load beside it (their memory added to a load's
         // is what took the phone down)
         var ok = com.timerpg.street.llm.AiLane.run("dialogue") {
@@ -645,9 +705,21 @@ class DialogueEngine private constructor(private val app: Context) {
         timeouts = 0
         pregenOff = null
         stats(b)
-        setState(ModelState.READY, READY_TEXT)
+        loadedRole = role
+        loadedCopied = native != null && (native.runsOn != com.timerpg.street.llm.NativeLlm.CPU || native.fastCpu)
+        loadedBytes = f.length()
+        _status.update { it.copy(role = role) }
+        // the light model answers in play but does not write the bank ahead: the main one does that (overnight, or in
+        // play when it is the one that fits); asked-for lines are not held by this
+        if (role == ModelRole.LIVE) pause(LIVE_PAUSE) else resume(LIVE_PAUSE)
+        setState(ModelState.READY, readyText())
         enqueueAll()
     }
+
+    private fun readyText() = if (loadedRole == ModelRole.LIVE) LIVE_READY_TEXT else READY_TEXT
+
+    private fun noEngineText() = engineError?.let { "$it People use their built-in lines." }
+        ?: "This build has no AI engine, so people use their built-in lines."
 
     private fun createBackend(): LlmBackend? {
         val b = try {
@@ -669,25 +741,19 @@ class DialogueEngine private constructor(private val app: Context) {
             queue.clear()
             b
         } ?: return
+        _status.update { it.copy(role = null) }
         safely("close") { b.close() }
     }
 
     /**
-     * Enough free memory to load the model without the system killing the game for it? [copied]: the whole model goes
-     * into memory the system cannot reclaim (the NPU, the GPU, the CPU's repacked kernels); otherwise its weights are
-     * mapped from the file and the system can drop and reread them. Either way [com.timerpg.street.llm.Ram.MARGIN_MB]
-     * must stay free beside it (the game itself, the town's GPU memory, Android): both crash reports of build 302 were
-     * the foreground game killed seconds after the model came in beside the town.
+     * The free memory Android counts (availMem) and its low-memory flag, for [ModelRoles.pick] (which says what a load
+     * needs beside the game: [ModelRoles.needBytes]). Unreadable: plenty, as before.
      */
-    private fun memoryProblem(fileBytes: Long, copied: Boolean): String? = try {
+    private fun memoryNow(): Pair<Long, Boolean> = try {
         val am = app.getSystemService(ActivityManager::class.java)
         val mi = ActivityManager.MemoryInfo()
-        am?.getMemoryInfo(mi)
-        val need = (if (copied) fileBytes else fileBytes / 2) + (300L shl 20) + (com.timerpg.street.llm.Ram.MARGIN_MB shl 20)
-        if (am != null && (mi.lowMemory || mi.availMem < need))
-            "Not enough free memory to load the model (${mi.availMem shr 20} MB free, about ${need shr 20} MB needed with room for the game)."
-        else null
-    } catch (e: Exception) { null }
+        if (am == null) Long.MAX_VALUE / 4 to false else { am.getMemoryInfo(mi); mi.availMem to mi.lowMemory }
+    } catch (e: Exception) { Long.MAX_VALUE / 4 to false }
 
     /** Lets the model go to free memory: in the background, or ([force]) with the game in front under critical pressure. */
     private fun unloadForMemory(force: Boolean = false) {
@@ -985,6 +1051,9 @@ class DialogueEngine private constructor(private val app: Context) {
         private const val SETTINGS = "v1 tokens=$MAX_TOKENS temperature=$TEMPERATURE"
         private const val NO_MODEL_TEXT = "No model yet: people use their built-in lines. Download it from the AI panel, or choose the model file (Qwen3.5-9B-Q4_K_M.gguf, about 5.7 GB) to give them their own words. It is copied into the game once."
         private const val READY_TEXT = "Ready. Lines near you are written ahead of time."
+        private const val LIVE_READY_TEXT = "Ready: the light model answers in play. Lines ahead of time are written by the main model (overnight, or when it fits)."
+        /** The pause reason while the light model is loaded (pre-generation is the main model's). */
+        const val LIVE_PAUSE = "light model loaded"
 
         fun keyOf(prompt: String): String = ReplyCache.keyOf(prompt, SETTINGS)
 

@@ -498,6 +498,23 @@ time with its drawing (it renders each frame twice in `-Dmode=move` to measure);
   thread count (6 on the S25 Ultra by its cpu_capacity, 2 if only clocks can be read), the panel sizes on small
   landscape screens.
 
+## Live replies: a light model on the NPU in play (built and unit-tested on a computer; NOT yet run on a phone)
+
+- Why (the phone's own numbers): with the town built the S25 Ultra had about 4.1 GB free; the main 9B model's NPU copy
+  needs about 6.6 GB with the game's margin, and on the CPU it was much too slow. So a lighter model of the same family
+  (Qwen3.5-4B, unsloth Q4_0, 2,583,221,408 bytes: Q4_0 is the format llama.cpp's Hexagon code was built around, as for
+  the 9B's NPU extra) is in the one-tap download (now about 14.7 GB) and answers in play on the NPU.
+- Memory (estimated from the file and the model's config, not measured on the S25): weights 2.46 GB copied to the NPU,
+  KV cache for 1024 tokens ~34 MB (8 of 32 layers have attention, 4 KV heads x 256) plus ~50 MB recurrent state, compute
+  buffers in the 300 MB allowance: about 2.8 GB. The load gate asks 3.66 GB free (file + 300 MB + the 900 MB margin),
+  under the 4.07 GB the phone had.
+- Roles (`dialogue/ModelRoles.kt`, `ModelRolesTest`): in play the main model on the NPU if it fits, else the light one on
+  the NPU, else the light one on the CPU from its mapped file; behind the game (the overnight writer) the main model;
+  nothing loads while the town is built. The light model does not write ahead (pre-generation paused, reason "light
+  model loaded"); the bank is the main model's. Coming back to the game with the main model loaded swaps to the light one
+  when that is the choice. The AI panel shows which model is live, on which device, the memory each needs, and a switch
+  to put the main model in play for comparison. The 9B's Q4_0 and MTP builds stay optional extras.
+
 ## The Filament renderer trial (verified in headless desktop renders on Mesa's software GL; NOT yet run on a phone)
 - What it is: the street drawn by Google's Filament (1.81) instead of by hand on Compose's Canvas, as a switch in the AI
   panel ("Renderer: Classic / Filament trial"; the classic stays the default, the choice is kept). The stage still

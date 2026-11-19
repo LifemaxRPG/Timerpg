@@ -562,7 +562,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         // then every 3 s, what the game is doing (for a kill that leaves no stack)
         while (true) {
             val a = engine.status.value
-            val what = "build ${BuildConfig.VERSION_NAME} · AI ${a.state} on ${listOf("CPU", "GPU", "NPU").getOrElse(a.runsOn) { "?" }} · lane ${com.timerpg.street.llm.AiLane.current ?: "idle"} · " +
+            val what = "build ${BuildConfig.VERSION_NAME} · AI ${a.state} (${a.role?.name?.lowercase() ?: "none"}) on ${listOf("CPU", "GPU", "NPU").getOrElse(a.runsOn) { "?" }} · lane ${com.timerpg.street.llm.AiLane.current ?: "idle"} · " +
                 "mic ${if (ears.always) "always" else ears.state} · ${if (talk != null) "talking" else "walking"} · street $streetNo building #$near"
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { CrashReport.breadcrumb(ctx.applicationContext, what) }
             // and the whole game state, for a native crash's report on the next start
@@ -842,7 +842,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 "season" to SEASON_NAMES.getOrNull(season), "weather" to WEATHERS.getOrNull(weather)?.first),
             "frames" to linkedMapOf("compose" to FrameStats.summary(), "filament" to if (StreetRenderer.filament) FilamentStats.summary() else null),
             "ai" to linkedMapOf("state" to ai.state.name, "detail" to ai.detail, "runsOn" to listOf("CPU", "GPU", "NPU").getOrNull(ai.runsOn),
-                "modelMb" to ai.modelMb, "gpuNote" to ai.gpuNote, "lane" to com.timerpg.street.llm.AiLane.current,
+                "modelMb" to ai.modelMb, "role" to ai.role?.name?.lowercase(), "forceBank" to ai.forceBank, "gpuNote" to ai.gpuNote, "lane" to com.timerpg.street.llm.AiLane.current,
                 "linesWritten" to ai.lines, "builtIn" to ai.builtIn, "queued" to ai.queued, "paused" to ai.paused, "working" to ai.working,
                 "pregenOff" to ai.pregenOff, "prefillTokPerSec" to st.prefillPerSec, "genTokPerSec" to st.genPerSec, "firstTokenMs" to st.firstTokenMs,
                 "loadInfo" to ai.loadInfo),
@@ -1494,6 +1494,17 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
                 val order = listOf(0) + (if (s.hasGpu) listOf(1) else emptyList()) + (if (s.hasNpu) listOf(2) else emptyList())
                 engine.setDevice(order[(order.indexOf(s.runsOn).coerceAtLeast(0) + 1) % order.size])
             }
+        }
+        // which model answers in play (the light one on the NPU beside the town; the main one writes the bank), and a
+        // switch to the main one for comparison
+        if (s.hasLive) {
+            val dev = listOf("CPU", "GPU", "NPU").getOrElse(s.runsOn) { "?" }
+            Text(when (s.role) {
+                com.timerpg.street.dialogue.ModelRole.LIVE -> "Live replies: the light model on the $dev"
+                com.timerpg.street.dialogue.ModelRole.BANK -> "Live replies: the main model on the $dev"
+                null -> "Live replies: no model loaded"
+            } + " · needs ${s.liveNeedMb} MB free (light), ${s.bankNeedMb} MB (main)", 12.sp, color = DIM)
+            Chip(if (s.forceBank) "Live replies: main model (comparison)" else "Live replies: light model", s.forceBank) { engine.setForceBank(!s.forceBank) }
         }
         voices.lastTiming?.let { Text("Voice: $it", 12.sp, color = DIM) }
         s.rejected?.let { Text("Last line written again: $it", 12.sp, color = DIM) }

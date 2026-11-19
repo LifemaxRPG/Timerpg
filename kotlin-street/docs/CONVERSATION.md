@@ -1,8 +1,22 @@
 # Conversations that feel live (design)
 
-Goal: back-and-forth spoken dialogue with NPCs that feels snappy on a phone, although the on-device model (Qwen3-0.6B via
+Goal: back-and-forth spoken dialogue with NPCs that feels snappy on a phone, although the on-device models (via
 llama.cpp) and the voice engine take seconds per line. Nothing the model says decides anything: it only voices facts the
 simulation already decided (see `tools/export-dialogue.ts`, `src/llm/factsheet.ts`), and every line is validated.
+
+## Two models: the bank and live replies
+
+- **Bank** (the main model, the strongest that fits the phone): writes the lines ahead of time, mostly overnight with the
+  game closed. Its NPU copy needs about 6.6 GB free with the margin, and beside the built town the S25 Ultra had about
+  4.1 GB (measured), so it is not resident in play unless there is room.
+- **Live** (a lighter model of the same family, Q4_0 for the Hexagon NPU, 2.4 GB): loaded on the NPU right after the town
+  is built, it answers in play: what the player says, and lines the bank does not have yet. It does not write ahead:
+  pre-generation is paused while it is loaded (the overnight writer fills the bank with the main model). Its NPU load
+  needs about 3.7 GB free with the same margin.
+- The choice is `ModelRoles.pick` (unit tested): in play, the main model on the NPU if its copy fits, else the light one on
+  the NPU, else the light one on the CPU from its mapped file; behind the game, the main model (on the CPU from its file
+  if its copy does not fit). Nothing loads while the town is built. The AI panel shows which is live, on which device and
+  what each needs, with a switch to put the main model in play for comparison.
 
 ## Four tiers, fastest first
 
