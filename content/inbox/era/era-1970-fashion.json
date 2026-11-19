@@ -1,0 +1,323 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1970,
+  "topic": "fashion",
+  "facts": [
+    {
+      "id": "1970-fashion-01",
+      "year_from": 1972,
+      "year_to": 1979,
+      "text": "Wide lapels appear on men's jackets and sport coats.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-02",
+      "year_from": 1971,
+      "year_to": 1979,
+      "text": "Some men wear flared trousers with fitted shirts for evenings out.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-03",
+      "year_from": 1970,
+      "year_to": 1978,
+      "text": "Teenagers wear denim bell-bottoms with casual shirts after school.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-04",
+      "year_from": 1970,
+      "year_to": 1978,
+      "text": "Girls wear long straight hair parted down the middle.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-05",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Some boys grow their hair over their ears and collars.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-06",
+      "year_from": 1970,
+      "year_to": 1976,
+      "text": "Women wear long skirts with blouses for everyday outings.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-07",
+      "year_from": 1970,
+      "year_to": 1974,
+      "text": "Some young women choose short skirts and tall boots.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-08",
+      "year_from": 1973,
+      "year_to": 1979,
+      "text": "Platform shoes appear at dances and fashionable gatherings.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-09",
+      "year_from": 1971,
+      "year_to": 1979,
+      "text": "Men wear broad patterned ties with business suits.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-10",
+      "year_from": 1971,
+      "year_to": 1979,
+      "text": "Polyester trousers are popular for their easy care.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-11",
+      "year_from": 1972,
+      "year_to": 1979,
+      "text": "Some women wear matching polyester pantsuits to work.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-12",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Children wear striped knit shirts with corduroy trousers.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-13",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Girls wear patterned tights beneath skirts in cooler weather.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-14",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Denim jackets are common casual outerwear for teenagers.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-15",
+      "year_from": 1971,
+      "year_to": 1979,
+      "text": "Some adults choose earth-toned shirts and sweaters.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-16",
+      "year_from": 1970,
+      "year_to": 1977,
+      "text": "Knitted vests are worn over collared shirts.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-17",
+      "year_from": 1970,
+      "year_to": 1976,
+      "text": "Young people wear colorful headbands with casual outfits.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-18",
+      "year_from": 1970,
+      "year_to": 1978,
+      "text": "Men with longer sideburns visit barbers for trims.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-19",
+      "year_from": 1972,
+      "year_to": 1979,
+      "text": "Some men wear thick mustaches with neatly combed hair.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-20",
+      "year_from": 1975,
+      "year_to": 1979,
+      "text": "Women use curling irons to shape layered hairstyles.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-21",
+      "year_from": 1976,
+      "year_to": 1979,
+      "text": "Some women wear feathered hair brushed away from the face.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-22",
+      "year_from": 1975,
+      "year_to": 1979,
+      "text": "Teenagers wear athletic sneakers with jeans outside the gym.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-23",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Western-style shirts and boots remain familiar in rural communities.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-24",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Older men wear brimmed felt hats with coats for church.",
+      "ages": "elders",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-25",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Some women wear scarves tied around their hair on windy days.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-fashion-26",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Children wear hand-me-down coats and sweaters as they grow.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
