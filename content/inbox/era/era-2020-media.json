@@ -1,0 +1,338 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2020,
+  "topic": "media",
+  "facts": [
+    {
+      "id": "2020-media-01",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Families watch local weather reports on television before outdoor gatherings.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-02",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A resident listens to the morning radio while driving to work.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-03",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A local newspaper prints school sports results and community announcements.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-04",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Some residents read the town newspaper through its website.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-05",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A library lends printed books and digital reading materials.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-06",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A child borrows a picture book from the public library.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-07",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A teenager shares a short video with friends through a social app.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-08",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A household chooses between live television and programs available on demand.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-09",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A viewer turns on captions to follow a program in a noisy room.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-10",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A family watches a rented digital movie together on a weekend evening.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-11",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A local radio station announces road closures after a storm.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-12",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A church posts its weekly bulletin online for members to read.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-13",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A school sends event reminders through email and its website.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-14",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A resident checks a printed community calendar for upcoming fairs.",
+      "ages": "elders",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-15",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A music listener plays a downloaded album when internet service is unavailable.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-16",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Some drivers listen to spoken stories and interviews during long trips.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-17",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A community theater advertises performances on posters around town.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-18",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A shop displays a flyer advertising the next local craft market.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-19",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A family keeps old photo albums alongside pictures stored on phones.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-20",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A resident calls a local radio program to request a song.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-21",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A library bulletin board lists book discussions and children's reading hours.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-22",
+      "year_from": 2020,
+      "year_to": 2020,
+      "text": "During 2020, many local theaters close temporarily or limit screenings.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-23",
+      "year_from": 2020,
+      "year_to": 2020,
+      "text": "During 2020, some congregations broadcast services while indoor gatherings are restricted.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-24",
+      "year_from": 2021,
+      "year_to": 2021,
+      "text": "During 2021, some movie theaters reopen with adjusted seating or cleaning practices.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-25",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A resident receives a printed advertising circular with the weekly mail.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-media-26",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Neighbors discuss a local news story after hearing different accounts of the same event.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "a holographic television replacing ordinary screens in most homes",
+      "first_common": null,
+      "say_instead": "a flat-screen television"
+    },
+    {
+      "thing": "a direct brain-to-brain entertainment broadcast for ordinary households",
+      "first_common": null,
+      "say_instead": "a television or radio program"
+    },
+    {
+      "thing": "a fully immersive virtual reality newspaper used by most townspeople",
+      "first_common": null,
+      "say_instead": "a printed newspaper or news website"
+    },
+    {
+      "thing": "a personal robot presenting live local news in most kitchens",
+      "first_common": null,
+      "say_instead": "a radio or television news report"
+    },
+    {
+      "thing": "a household cinema that projects touchable three-dimensional actors",
+      "first_common": null,
+      "say_instead": "a movie on a television screen"
+    },
+    {
+      "thing": "a universal subscription that includes every film and television program",
+      "first_common": null,
+      "say_instead": "separate services and broadcast channels"
+    },
+    {
+      "thing": "a home device that automatically creates any requested feature film instantly",
+      "first_common": null,
+      "say_instead": "a recorded film or television program"
+    },
+    {
+      "thing": "a daily paper delivered entirely by autonomous flying robots",
+      "first_common": null,
+      "say_instead": "a carrier-delivered paper or online edition"
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
