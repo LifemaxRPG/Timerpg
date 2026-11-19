@@ -34,6 +34,18 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     @Volatile var fastCpu = false
     /** Tokens the model's MTP head guesses ahead from the next load (0: off; needs a model file with the head). */
     @Volatile var mtp = 0
+    /** The attention cache (KV) in 8 bits from the next load (about half its memory; falls back to 16 where it cannot). */
+    @Volatile var kvQ8 = false
+    /** The loaded model's cache is in 8 bits. */
+    val kvQ8Used: Boolean get() = handle != 0L && runCatching { nativeKvQ8(handle) }.getOrDefault(false)
+    /**
+     * What the last load allocated, as llama.cpp logged it (MB): weights mapped from the file, weights copied (to the NPU
+     * or GPU, or repacked), the KV cache, the recurrent state, compute and output buffers. Read right after [load].
+     */
+    var loadMem: DoubleArray = DoubleArray(5)
+        private set
+    /** The model's own working memory beside its weights (KV cache, recurrent state, compute buffers), in bytes. */
+    val workBytes: Long get() = ((loadMem[2] + loadMem[3] + loadMem[4]) * 1048576.0).toLong()
     /** Where the loaded model runs. */
     val runsOn: Int get() = if (handle == 0L) CPU else runCatching { nativeDevice(handle) }.getOrDefault(CPU)
     /** This phone and build's accelerators (after the native library loaded): bit 0 a GPU, bit 1 an NPU. */
@@ -116,7 +128,7 @@ class NativeLlm(context: Context? = null) : LlmBackend {
                 error = "cancelled"
                 return false
             }
-            runCatching { nativeSetDevice(handle, device or (if (fastCpu) 16 else 0) or (mtp.coerceIn(0, 15) shl 8)) }
+            runCatching { nativeSetDevice(handle, device or (if (fastCpu) 16 else 0) or (if (kvQ8) 32 else 0) or (mtp.coerceIn(0, 15) shl 8)) }
             loaded = false  // the native load frees the old model first
             val ok = try {
                 nativeLoad(handle, path.toByteArray(Charsets.UTF_8), t, ctx)
@@ -127,6 +139,7 @@ class NativeLlm(context: Context? = null) : LlmBackend {
                 end()
             }
             stats = readStats()
+            loadMem = runCatching { nativeLoadMem() }.getOrNull()?.takeIf { it.size == 5 } ?: DoubleArray(5)
             if (!ok) return loadFailed(runCatching { nativeError(handle) }.getOrNull()?.ifEmpty { null } ?: "Could not load the model")
             error = null
             loaded = true
@@ -292,6 +305,8 @@ class NativeLlm(context: Context? = null) : LlmBackend {
     private external fun nativeGenerate(handle: Long, prompt: ByteArray, maxTokens: Int, temperature: Float, sink: TokenSink?): String?
     private external fun nativeStats(handle: Long): LongArray?
     private external fun nativeLoadInfo(): String?
+    private external fun nativeLoadMem(): DoubleArray?
+    private external fun nativeKvQ8(handle: Long): Boolean
 
     /** How the model's work splits between devices (llama.cpp's "graph splits" line; more: more fell back to the CPU). */
     val loadInfo: String? get() = if (libraryError != null) null else runCatching { nativeLoadInfo() }.getOrNull()?.takeIf { it.isNotBlank() }

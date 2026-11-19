@@ -26,6 +26,9 @@ class NpcVoiceService(private val ctx: Context) {
     private val bank = VoiceBank(models, File(ctx.filesDir, "voice-cache"),
         { ctx.assets.open("voices/kokoro_lexicon.tsv").bufferedReader().lineSequence() }, threads = 6)  // the dialogue model is on the NPU: the CPU's big cores are the voices'
     init {
+        // the memory breakdown; let go (unless one speaks) for the dialogue model's copy when it is short of room
+        com.timerpg.street.llm.ModelRoom.register(com.timerpg.street.llm.ModelRoom.Resident("voices",
+            mb = { residentMb }, drop = { if (speaking) 0L else residentMb.also { if (it > 0) workerExecute { bank.close() } } }, note = { residentWhich }))
         val p = ctx.getSharedPreferences("voices", Context.MODE_PRIVATE)
         com.timerpg.voice.VoiceBank.xnnpack = p.getBoolean("xnnpack", false)
         com.timerpg.voice.VoiceBank.only = p.getInt("only", 0)
@@ -99,6 +102,23 @@ class NpcVoiceService(private val ctx: Context) {
         workerExecute { bank.close() }
     }
 
+    /**
+     * One line in [v]'s voice (the voices' thread): from the cache, else made, with only [v]'s engine in memory (in play
+     * the other one is let go first: the two voice engines are never both resident beside the dialogue model and speech).
+     */
+    private fun speakOne(v: NpcVoices.Voice, text: String): File? {
+        if (!bank.cached(v, text).isFile && !bank.isLoaded(v.engine)) bank.keepOnly(v)
+        return bank.speak(v, text)
+    }
+
+    /** The voice engines in memory now and about how much they hold (MB), for the memory breakdown. */
+    val residentMb: Long get() =
+        (if (bank.isLoaded(NpcVoices.Engine.KOKORO)) File(models, "kokoro/model.onnx").length() shr 20 else 0L) +
+        (if (bank.isLoaded(NpcVoices.Engine.SUPERTONIC)) listOf("duration_predictor", "text_encoder", "vector_estimator", "vocoder")
+            .sumOf { File(models, "supertonic/onnx/$it.onnx").length() } shr 20 else 0L)
+    val residentWhich: String get() = listOfNotNull(if (bank.isLoaded(NpcVoices.Engine.KOKORO)) "Kokoro" else null,
+        if (bank.isLoaded(NpcVoices.Engine.SUPERTONIC)) "Supertonic" else null).joinToString("+").ifEmpty { "none" }
+
     /** Memory is short ([com.timerpg.street.llm.MemoryWatch]): the voice engines go unless one speaks (they load again for the next line). */
     fun trimForMemory() { if (!speaking) workerExecute { bank.close() } }
 
@@ -157,13 +177,12 @@ class NpcVoiceService(private val ctx: Context) {
             if (g != generation || !enabled) return@workerExecute
             val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@workerExecute
             // memory short (the dialogue model on the NPU): one voice engine at a time
-            if (com.timerpg.street.llm.Ram.freeMb(ctx) < 1100) bank.keepOnly(v)
             val wasLoaded = bank.isLoaded(v.engine)
             var first = -1L; var made = 0L; var audio = 0.0
             for (part in sentences(text)) {
                 if (g != generation) return@workerExecute
                 val a = android.os.SystemClock.elapsedRealtime()
-                val f = try { com.timerpg.street.llm.AiLane.voice { bank.speak(v, part) } } catch (e: Throwable) { null } ?: continue
+                val f = try { com.timerpg.street.llm.AiLane.voice { speakOne(v, part) } } catch (e: Throwable) { null } ?: continue
                 made += android.os.SystemClock.elapsedRealtime() - a
                 audio += (f.length() - 44).coerceAtLeast(0) / 2.0 / wavRate(f)
                 if (first < 0) first = android.os.SystemClock.elapsedRealtime() - t0
@@ -195,7 +214,7 @@ class NpcVoiceService(private val ctx: Context) {
                 if (mine != fillerPrep || !enabled) return@run
                 val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@run
                 if (!bank.isLoaded(v.engine) && com.timerpg.street.llm.Ram.freeMb(ctx) < 1300) return@run
-                if (!bank.cached(v, lines[i]).isFile) try { com.timerpg.street.llm.AiLane.voice { bank.speak(v, lines[i]) } } catch (e: Throwable) { }
+                if (!bank.cached(v, lines[i]).isFile) try { com.timerpg.street.llm.AiLane.voice { speakOne(v, lines[i]) } } catch (e: Throwable) { }
                 next(i + 1)
             }
         }
@@ -231,7 +250,7 @@ class NpcVoiceService(private val ctx: Context) {
         run(LIVE) {
             if (g != generation) return@run
             val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@run
-            val f = try { com.timerpg.street.llm.AiLane.voice { bank.speak(v, echo) } } catch (e: Throwable) { null } ?: return@run
+            val f = try { com.timerpg.street.llm.AiLane.voice { speakOne(v, echo) } } catch (e: Throwable) { null } ?: return@run
             main.post { if (g == generation) enqueue(f) }
         }
     }
@@ -245,7 +264,7 @@ class NpcVoiceService(private val ctx: Context) {
             val v = NpcVoices.assign(npc.id, npc.female, npc.age, npc.warmth, bank.kokoroInstalled, bank.supertonicInstalled) ?: return@workerExecute
             for (part in sentences(rest)) {
                 if (g != generation) return@workerExecute
-                val f = try { com.timerpg.street.llm.AiLane.voice { bank.speak(v, part) } } catch (e: Throwable) { null } ?: continue
+                val f = try { com.timerpg.street.llm.AiLane.voice { speakOne(v, part) } } catch (e: Throwable) { null } ?: continue
                 main.post { if (g == generation) enqueue(f) }
             }
         }
@@ -261,7 +280,7 @@ class NpcVoiceService(private val ctx: Context) {
             // made ahead when the voice is loaded, or there is room to load it
             if (!bank.isLoaded(v.engine) && com.timerpg.street.llm.Ram.freeMb(ctx) < 1300) return@run
             // a sentence per job, so what someone is about to say waits for one sentence at most
-            for (part in sentences(text)) run(AHEAD) { if (enabled) try { com.timerpg.street.llm.AiLane.voice { bank.speak(v, part) } } catch (e: Throwable) { } }
+            for (part in sentences(text)) run(AHEAD) { if (enabled) try { com.timerpg.street.llm.AiLane.voice { speakOne(v, part) } } catch (e: Throwable) { } }
         }
     }
 
@@ -333,6 +352,9 @@ class NpcVoiceService(private val ctx: Context) {
 
     /** Fetch every model (dialogue, voices, speech, memory), resuming a stopped download. */
     fun download(onDone: () -> Unit) = download(ModelDownloads.ITEMS, onDone)
+
+    /** Fetch the light dialogue model alone (replies in play), when it is what is missing. */
+    fun downloadLive(onDone: () -> Unit) = download(ModelDownloads.ITEMS.filter { it.path == com.timerpg.street.dialogue.ModelFiles.LIVE }, onDone)
 
     /** Fetch the optional extra versions of the dialogue model (NPU Q4_0, MTP), for trying them out. */
     fun downloadExtras(onDone: () -> Unit) = download(ModelDownloads.EXTRAS, onDone)

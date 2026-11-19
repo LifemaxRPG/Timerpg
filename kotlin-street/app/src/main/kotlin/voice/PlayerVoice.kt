@@ -3,13 +3,20 @@ package com.timerpg.street.voice
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.os.Build
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.Process
+import android.os.SystemClock
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -20,25 +27,37 @@ import com.timerpg.street.llm.AiLane
 import com.timerpg.street.llm.NativeAsr
 import com.timerpg.street.llm.Ram
 import com.timerpg.voice.SpeechSegmenter
-import android.content.Intent
-import android.os.Build
-import android.os.Bundle
-import android.speech.RecognitionListener
-import android.speech.RecognizerIntent
-import android.speech.SpeechRecognizer
 import java.io.File
 import java.util.concurrent.Executors
 import kotlin.math.sqrt
 
 /**
- * The player's voice: hold the mic, say something, let go, and it comes back as text (Qwen3-ASR on the phone). Records
- * 16 kHz mono while held (at most [MAX_SECONDS]), then transcribes on its own thread with the town's names as hints.
- * The speech model loads on the first use and stays while conversations go on; [release] lets it go. When the phone has
- * no room for it (the dialogue model on the NPU holds 5.4 GB), the phone's own on-device speech recognition hears the
- * player instead ([usingPhone]), so holding the mic never takes the game down.
+ * The player's voice, written down on the phone (the player's words never leave it).
+ *
+ * Two hearers ([Hearer], the AI panel's "Speech" switch):
+ * - [Hearer.PHONE] (the default where the phone has it): Android's on-device speech recognition
+ *   ([SpeechRecognizer.createOnDeviceSpeechRecognizer], API 31+; never the cloud one), with the words shown while the
+ *   player talks (partial results). Always listening restarts it after every result. Our own speech model is then never
+ *   loaded, so its memory goes to the dialogue model.
+ * - [Hearer.GAME]: our own speech model on the CPU (mapped from its file), the small one by default ([AsrSize]); a cheap
+ *   voice-activity detector ([SpeechSegmenter]) cuts the mic's stream into utterances, each written down whole.
+ * Without on-device recognition (older Android, or its language pack missing) the game's model hears the player.
+ *
+ * Hold to talk ([start]/[stop]) and always listening ([listen]/[stopListening]) both go through the chosen hearer.
+ * Each utterance's timing is kept in [lastHeardInfo] (speech end to text, the model's load) for the breadcrumbs.
  */
 class PlayerVoice(private val ctx: Context) {
     enum class State { IDLE, LOADING, LISTENING, THINKING }
+    enum class Hearer { PHONE, GAME }
+    /** Which of our own speech models: the small one (about a third of the memory) or the large one (more accurate). */
+    enum class AsrSize { SMALL, LARGE }
+
+    /** What one utterance took: [by] who wrote it down, [afterEndMs] from the end of speech to the text, [loadMs] the
+     *  speech model's load first (0: it was loaded), [audioMs] how long the player spoke (0: unknown). */
+    data class Heard(val by: String, val afterEndMs: Long, val loadMs: Long = 0, val audioMs: Long = 0) {
+        fun label(): String = "heard %.1f s after you stopped (%s%s)".format(java.util.Locale.US, afterEndMs / 1000.0, by,
+            if (loadMs > 0) ", loaded first in %.1f s".format(java.util.Locale.US, loadMs / 1000.0) else "")
+    }
 
     var state by mutableStateOf(State.IDLE)
         private set
@@ -48,6 +67,7 @@ class PlayerVoice(private val ctx: Context) {
     var problem by mutableStateOf<String?>(null)
         private set
 
+    private val prefs = ctx.getSharedPreferences("mic", Context.MODE_PRIVATE)
     private val asr = NativeAsr()
     private val worker = Executors.newSingleThreadExecutor { r -> Thread(r, "player-voice").apply { isDaemon = true } }
     private val main = Handler(Looper.getMainLooper())
@@ -55,38 +75,98 @@ class PlayerVoice(private val ctx: Context) {
     private var recorder: Thread? = null
     private val samples = FloatArrayBuilder()
 
-    val modelFile: File get() = File(ModelDownloads.dir(ctx), ASR_MODEL)
-    val mmprojFile: File get() = File(ModelDownloads.dir(ctx), ASR_MMPROJ)
-    val installed: Boolean get() = modelFile.isFile && mmprojFile.isFile
+    // ------------------------------------------------------------------------------------------------ which hearer
+
+    /** The phone can recognize speech on the device itself (API 31+; never a cloud recognizer). */
+    val phoneAvailable: Boolean by lazy {
+        Build.VERSION.SDK_INT >= 31 && runCatching { SpeechRecognizer.isOnDeviceRecognitionAvailable(ctx) }.getOrDefault(false)
+    }
+    /** Why the phone's recognizer cannot be used after all (its language pack missing, it kept failing), or null. */
+    var phoneProblem by mutableStateOf<String?>(null)
+        private set
+
+    /** The hearer chosen in the AI panel (kept). */
+    var hearerWanted by mutableStateOf(if (prefs.getString("speech", "phone") == "game") Hearer.GAME else Hearer.PHONE)
+        private set
+    /** The hearer that hears now: the phone's when chosen and it works here, else ours. */
+    val hearer: Hearer get() = if (hearerWanted == Hearer.PHONE && phoneAvailable && phoneProblem == null) Hearer.PHONE else Hearer.GAME
+
+    /** Our speech model's size (kept); the small one by default. */
+    var asrSize by mutableStateOf(if (prefs.getString("asr", "small") == "large") AsrSize.LARGE else AsrSize.SMALL)
+        private set
+
+    fun chooseHearer(h: Hearer) {
+        if (h == hearerWanted) return
+        hearerWanted = h
+        prefs.edit().putString("speech", if (h == Hearer.GAME) "game" else "phone").apply()
+        phoneProblem = null
+        restartListening()
+        // the phone's: ours is let go now (its memory is the dialogue model's)
+        if (hearer == Hearer.PHONE) { asr.cancel(); worker.execute { asr.close() } }
+    }
+
+    fun chooseAsrSize(s: AsrSize) {
+        if (s == asrSize) return
+        asrSize = s
+        prefs.edit().putString("asr", if (s == AsrSize.LARGE) "large" else "small").apply()
+        asr.cancel()
+        worker.execute { asr.close(); loadedFile = null }
+        if (listening && hearer == Hearer.GAME) worker.execute { loadNow() }
+    }
+
+    private fun files(size: AsrSize) = if (size == AsrSize.SMALL) File(ModelDownloads.dir(ctx), ASR_SMALL_MODEL) to File(ModelDownloads.dir(ctx), ASR_SMALL_MMPROJ)
+        else File(ModelDownloads.dir(ctx), ASR_MODEL) to File(ModelDownloads.dir(ctx), ASR_MMPROJ)
+    private fun installed(size: AsrSize) = files(size).let { (m, p) -> m.isFile && p.isFile }
+    private fun other(s: AsrSize) = if (s == AsrSize.SMALL) AsrSize.LARGE else AsrSize.SMALL
+    /** The size that loads: the one chosen, else the other when only that one is on the phone. */
+    private val sizeNow: AsrSize get() = if (!installed(asrSize) && installed(other(asrSize))) other(asrSize) else asrSize
+    val modelFile: File get() = files(sizeNow).first
+    val mmprojFile: File get() = files(sizeNow).second
+    val installed: Boolean get() = installed(AsrSize.SMALL) || installed(AsrSize.LARGE)
+    @Volatile private var loadedFile: File? = null
 
     fun hasPermission() = ctx.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
 
-    /** How long writing down the last thing said took (ms, from letting go of the button), and by whom. */
+    /** The last utterance's timing in words, and in numbers. */
     var lastHeard by mutableStateOf<String?>(null)
         private set
-    private var letGo = 0L
-    @Volatile private var loadedJustNow = false
-
-    /** The phone's own recognizer is hearing the player (ours does not fit in memory beside the dialogue model now). */
-    var usingPhone by mutableStateOf(false)
+    @Volatile var lastHeardInfo: Heard? = null
         private set
+    private var letGo = 0L
+    @Volatile private var loadedJustNow = 0L
 
-    /** Our speech model fits in the memory free now (with a margin), or is loaded already. */
+    /** The phone's own recognizer is hearing the player. */
+    val usingPhone: Boolean get() = phoneSession != null || phoneLoop
+
+    /** Our speech model fits in the memory free now (with a margin, beside its mapped weights' half), or is loaded already. */
     private fun ownFits(): Boolean = asr.loaded ||
-        installed && Ram.freeMb(ctx) >= ((modelFile.length() + mmprojFile.length()) shr 20) + Ram.MARGIN_MB
+        installed && Ram.freeMb(ctx) >= ((modelFile.length() / 2 + mmprojFile.length()) shr 20) + ASR_WORK_MB + Ram.MARGIN_MB
 
-    /** Starts listening (the mic button pressed). The model starts loading now if it is not yet, while the player talks. */
+    init {
+        // the memory breakdown, and what the dialogue model may have back: our speech model, unless it is hearing now
+        com.timerpg.street.llm.ModelRoom.register(com.timerpg.street.llm.ModelRoom.Resident("speech",
+            mb = { residentMb() },
+            drop = { if (listening && hearer == Hearer.GAME) 0L else residentMb().also { if (it > 0) { asr.cancel(); asr.close() } } },
+            note = { "${if (loadedFile?.name?.contains("0.6B") == true) "small" else "large"}, model mapped, encoder ${mmprojFile.length() shr 20} MB, work ${asr.workMb} MB" }))
+    }
+
+    private fun residentMb(): Long = if (!asr.loaded) 0L else ((loadedFile?.length() ?: 0L) + mmprojFile.length()) / 1048576L + asr.workMb
+
+    // ------------------------------------------------------------------------------------------------ hold to talk
+
+    /** Starts listening (the mic button pressed). Our model starts loading now if it is not yet, while the player talks. */
     @SuppressLint("MissingPermission")
     fun start() {
         if (recording || listening || state == State.THINKING) return
         problem = null
         if (!hasPermission()) { problem = "The game needs the microphone to hear you."; return }
+        if (hearer == Hearer.PHONE) { startPhone(); return }
         if (!ownFits()) {
-            if (SpeechRecognizer.isRecognitionAvailable(ctx)) { startPhone(); return }
+            // (on the device only: never a cloud recognizer)
+            if (phoneAvailable && phoneProblem == null) { startPhone(); return }
             if (installed) { problem = "Not enough free memory for the speech model right now."; return }
         }
         if (!installed) { problem = "Download the speech model in the AI panel first."; return }
-        usingPhone = false
         main.removeCallbacks(idle)
         if (!asr.loaded) worker.execute { loadNow() }
         val rate = SAMPLE_RATE
@@ -127,8 +207,8 @@ class PlayerVoice(private val ctx: Context) {
      */
     fun stop(context: String, onText: (String) -> Unit) {
         if (!recording) return
-        letGo = android.os.SystemClock.elapsedRealtime()
-        if (phone != null) { stopPhone(onText); return }
+        letGo = SystemClock.elapsedRealtime()
+        if (phoneSession != null) { stopPhone(onText); return }
         recording = false
         level = 0f
         state = State.THINKING
@@ -136,10 +216,10 @@ class PlayerVoice(private val ctx: Context) {
         worker.execute {
             mic?.join(1000)
             val pcm = samples.toArray()
-            loadedJustNow = !asr.loaded
+            loadedJustNow = 0L
             val text = when {
                 pcm.size < SAMPLE_RATE / 4 -> ""                         // a tap, not a sentence
-                !asr.loaded && !loadNow() -> null
+                !(asr.loaded && loadedFile == modelFile) && !loadNow() -> null
                 else -> AiLane.run("speech") { asr.transcribe(trimSilence(pcm), context) }
             }
             main.post {
@@ -149,7 +229,7 @@ class PlayerVoice(private val ctx: Context) {
                     text == null -> problem = asr.error ?: "Could not hear that."
                     text.isBlank() -> problem = "Didn't catch that. Hold the button while you talk."
                     else -> {
-                        lastHeard = "heard in %.1f s (our speech model%s)".format((android.os.SystemClock.elapsedRealtime() - letGo) / 1000.0, if (loadedJustNow) ", loaded first" else "")
+                        heardBy(Heard(ourName(), SystemClock.elapsedRealtime() - letGo, loadedJustNow, pcm.size * 1000L / SAMPLE_RATE))
                         onText(text)
                     }
                 }
@@ -157,22 +237,39 @@ class PlayerVoice(private val ctx: Context) {
         }
     }
 
-    // ---- the phone's own recognizer (main thread)
-    private var phone: SpeechRecognizer? = null
+    private fun ourName() = "our speech model, ${if (sizeNow == AsrSize.SMALL) "small" else "large"}"
+
+    private fun heardBy(h: Heard) {
+        lastHeardInfo = h
+        lastHeard = h.label()
+    }
+
+    // ---- the phone's own recognizer, hold to talk (main thread)
+    private var phoneSession: SpeechRecognizer? = null
     private var phoneResult: String? = null
     private var phoneDone = false
     private var phoneWant: ((String) -> Unit)? = null
+    private var phoneWhy: String? = null
+
+    /** The on-device recognizer (API 31+), or null where there is none (then ours hears). */
+    private fun onDevice(): SpeechRecognizer? =
+        if (Build.VERSION.SDK_INT < 31 || !phoneAvailable) null else runCatching { SpeechRecognizer.createOnDeviceSpeechRecognizer(ctx) }.getOrNull()
+
+    private fun intent(partial: Boolean, silenceMs: Long) = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+        .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
+        .putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+        .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, partial)
+        .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, silenceMs)
+        .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, silenceMs)
 
     private fun startPhone() {
-        usingPhone = true
-        val r = try {
-            if (Build.VERSION.SDK_INT >= 31 && SpeechRecognizer.isOnDeviceRecognitionAvailable(ctx)) SpeechRecognizer.createOnDeviceSpeechRecognizer(ctx)
-            else SpeechRecognizer.createSpeechRecognizer(ctx)
-        } catch (e: Exception) { problem = "The phone's speech recognition could not start."; return }
-        phone = r; phoneResult = null; phoneDone = false; phoneWant = null
+        val r = onDevice() ?: run { problem = "The phone's on-device speech recognition could not start."; return }
+        phoneSession = r; phoneResult = null; phoneDone = false; phoneWant = null
         r.setRecognitionListener(object : RecognitionListener {
             override fun onResults(b: Bundle?) { finishPhone(b?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull(), null) }
-            override fun onError(error: Int) { finishPhone(null, if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) "" else "The phone's speech recognition failed ($error).") }
+            override fun onError(error: Int) { finishPhone(null, if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) "" else "The phone's speech recognition failed (${errorName(error)}).") }
             override fun onRmsChanged(rmsdB: Float) { level = ((rmsdB + 2f) / 12f).coerceIn(0f, 1f) }
             override fun onReadyForSpeech(p: Bundle?) {}
             override fun onBeginningOfSpeech() {}
@@ -181,15 +278,10 @@ class PlayerVoice(private val ctx: Context) {
             override fun onPartialResults(p: Bundle?) {}
             override fun onEvent(t: Int, p: Bundle?) {}
         })
-        val i = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-            .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
-            .putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
-            .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 20_000L)
-            .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 4_000L)
         recording = true
         state = State.LISTENING
-        try { r.startListening(i) } catch (e: Exception) { finishPhone(null, "The phone's speech recognition could not start.") }
+        try { r.startListening(intent(partial = false, silenceMs = 4_000L).putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 20_000L)) }
+        catch (e: Exception) { finishPhone(null, "The phone's speech recognition could not start.") }
     }
 
     private fun stopPhone(onText: (String) -> Unit) {
@@ -197,52 +289,58 @@ class PlayerVoice(private val ctx: Context) {
         level = 0f
         state = State.THINKING
         phoneWant = onText
-        if (phoneDone) deliverPhone() else runCatching { phone?.stopListening() }
+        if (phoneDone) deliverPhone() else runCatching { phoneSession?.stopListening() }
     }
 
-    private var phoneProblem: String? = null
     private fun finishPhone(text: String?, why: String?) {
-        phoneResult = text; phoneProblem = why; phoneDone = true
+        phoneResult = text; phoneWhy = why; phoneDone = true
         if (phoneWant != null) deliverPhone()
     }
 
     private fun deliverPhone() {
         val want = phoneWant ?: return
         phoneWant = null
-        runCatching { phone?.destroy() }; phone = null
+        runCatching { phoneSession?.destroy() }; phoneSession = null
         recording = false; level = 0f
         state = State.IDLE
         val t = phoneResult
         when {
-            !t.isNullOrBlank() -> {
-                lastHeard = "heard in %.1f s (the phone's recognizer)".format((android.os.SystemClock.elapsedRealtime() - letGo) / 1000.0)
-                want(t)
-            }
-            phoneProblem.isNullOrEmpty() -> problem = "Didn't catch that. Hold the button while you talk."
-            else -> problem = phoneProblem
+            !t.isNullOrBlank() -> { heardBy(Heard("the phone's recognizer", SystemClock.elapsedRealtime() - letGo)); want(t) }
+            phoneWhy.isNullOrEmpty() -> problem = "Didn't catch that. Hold the button while you talk."
+            else -> problem = phoneWhy
         }
     }
 
     private val idle = Runnable { worker.execute { asr.close() } }
-    // (never while listening all the time: the model is kept then)
-    private fun touch() { main.removeCallbacks(idle); if (!listening) main.postDelayed(idle, IDLE_MS) }
+    // (never while listening all the time with our model: it is kept then)
+    private fun touch() { main.removeCallbacks(idle); if (!(listening && hearer == Hearer.GAME)) main.postDelayed(idle, IDLE_MS) }
 
-    /** Worker thread: the speech model, loaded in the lane (it takes the CPU while it reads its files). */
+    /** Worker thread: our speech model, loaded in the lane (it takes the CPU while it reads its files). */
     private fun loadNow(): Boolean {
-        if (asr.loaded) return true
+        val want = modelFile
+        if (asr.loaded && loadedFile == want) return true
+        if (asr.loaded) asr.close()
         // checked again here: the memory may have gone since the mic was pressed
-        if (!ownFits()) { main.post { problem = "Not enough free memory for the speech model right now." }; return false }
-        val ok = AiLane.run("speech") { asr.loaded || asr.load(modelFile, mmprojFile) }
-        if (!ok) main.post { problem = asr.error }
+        if (!ownFits()) { main.post { problem = "Not enough free memory for the speech model right now${if (phoneAvailable) " (the phone's recognizer can hear you: AI panel, Speech)" else ""}." }; return false }
+        val t0 = SystemClock.elapsedRealtime()
+        val ok = AiLane.run("speech") { asr.loaded || asr.load(want, mmprojFile) }
+        val ms = SystemClock.elapsedRealtime() - t0
+        if (ok) {
+            loadedFile = want
+            loadedJustNow = ms
+            val m = asr.loadMem
+            com.timerpg.street.shot.Crumbs.add("speech model: ${ourName()} loaded in $ms ms (weights %.0f MB mapped, encoder ${mmprojFile.length() shr 20} MB, KV %.0f, compute %.0f; ${Ram.freeMb(ctx)} MB free after)"
+                .format(java.util.Locale.US, m[0], m[2], m[4]))
+        } else main.post { problem = asr.error }
         return ok
     }
 
-    /** Someone to talk to is near: load the speech model now, so it is ready when the mic is held. */
-    /** Memory is short ([com.timerpg.street.llm.MemoryWatch]): the speech model goes unless it is listening. */
-    fun trimForMemory() { if (!listening) worker.execute { asr.close() } }
+    /** Memory is short ([com.timerpg.street.llm.MemoryWatch]): our speech model goes unless it is hearing. */
+    fun trimForMemory() { if (!(listening && hearer == Hearer.GAME)) worker.execute { asr.close() } }
 
+    /** Someone to talk to is near: load our speech model now, so it is ready when the mic is held (not when the phone's hears). */
     fun prewarm() {
-        if (!installed || !ownFits()) return
+        if (hearer == Hearer.PHONE || !installed || !ownFits()) return
         touch()
         if (!asr.loaded) worker.execute { loadNow() }
     }
@@ -252,37 +350,54 @@ class PlayerVoice(private val ctx: Context) {
     /** Listening all the time (the settings' mic), between [listen] and [stopListening]. */
     var always by mutableStateOf(false)
         private set
-    /** Someone is speaking into the mic now (an utterance is being cut). */
+    /** Someone is speaking into the mic now (an utterance is being cut, or the phone's recognizer hears speech). */
     var hearing by mutableStateOf(false)
         private set
     /** Utterances being written down now (or waiting for the speech model). */
     var writing by mutableIntStateOf(0)
         private set
-    /** Not hearing for now (an NPC's voice is playing, so the game does not hear itself): what comes in is dropped. */
+    /**
+     * Not hearing for now (an NPC's voice is playing, so the game does not hear itself): what comes in is dropped. The
+     * phone's recognizer is stopped meanwhile and started again after.
+     */
     @Volatile var muted = false
-    /** The words to expect (the town's names), for the speech model. */
+        set(v) {
+            if (v == field) return
+            field = v
+            main.post { if (phoneLoop) { if (v) phoneLoopPause() else phoneLoopNext(150) } }
+        }
+    /** The words to expect (the town's names), for our speech model. */
     @Volatile var expect = ""
     @Volatile private var listening = false
     private var listener: Thread? = null
     private val queued = java.util.concurrent.atomic.AtomicInteger(0)
+    private var onTextNow: ((String) -> Unit)? = null
+    private var onPartialNow: ((String) -> Unit)? = null
 
     /**
-     * Listens from now until [stopListening]: the mic stays open, a cheap voice-activity detector ([SpeechSegmenter]) cuts
-     * what is said into utterances, and only those go to the speech model (loaded now, kept while listening is on), each
-     * written down and handed to [onText] (main thread). Ours only: the phone's recognizer cannot listen all the time.
+     * Listens from now until [stopListening], each thing said handed to [onText] (main thread) once written down; with the
+     * phone's recognizer, the words so far go to [onPartial] while the player talks ("" when they are dropped). Our model:
+     * the mic stays open, a cheap voice-activity detector cuts what is said into utterances, and only those go to the
+     * model (loaded now, kept while listening is on).
      */
     @SuppressLint("MissingPermission")
-    fun listen(onText: (String) -> Unit) {
+    fun listen(onText: (String) -> Unit, onPartial: (String) -> Unit = {}) {
         if (listening) return
         problem = null
         if (!hasPermission()) { problem = "The game needs the microphone to hear you."; return }
-        if (!installed) { problem = "Download the speech model in the AI panel first."; return }
         if (recording) return
+        onTextNow = onText; onPartialNow = onPartial
+        if (hearer == Hearer.PHONE) {
+            listening = true
+            always = true
+            phoneLoopStart()
+            return
+        }
+        if (!installed) { problem = "Download the speech model in the AI panel first."; return }
         // (the last listening's mic is closed first: it ends within one read)
         listener?.join(300)
-        usingPhone = false
         main.removeCallbacks(idle)
-        if (!asr.loaded) worker.execute { loadNow() }
+        if (!asr.loaded || loadedFile != modelFile) worker.execute { loadNow() }
         val rate = SAMPLE_RATE
         val min = AudioRecord.getMinBufferSize(rate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_FLOAT)
         val rec = try {
@@ -293,7 +408,7 @@ class PlayerVoice(private val ctx: Context) {
         always = true
         listener = Thread({
             Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
-            val seg = SpeechSegmenter(rate) { pcm -> heard(pcm, onText) }
+            val seg = SpeechSegmenter(rate, hangoverMs = TAIL_MS) { pcm -> heard(pcm, onText) }
             val buf = FloatArray(rate * SpeechSegmenter.FRAME_MS / 1000 * 5)   // 100 ms a read: the thread wakes 10 times a second
             var shown = -1f; var wasHearing = false; var wasMuted = false
             try {
@@ -328,14 +443,15 @@ class PlayerVoice(private val ctx: Context) {
         queued.incrementAndGet()
         main.post { writing++ }
         val words = expect
-        val at = android.os.SystemClock.elapsedRealtime()
+        // the player stopped speaking the detector's tail ago
+        val ended = SystemClock.elapsedRealtime() - TAIL_MS
         worker.execute {
             var text: String? = null
-            var loadedFirst = false
+            var loadMs = 0L
             try {
                 if (listening) {
-                    loadedFirst = !asr.loaded
-                    if (asr.loaded || loadNow()) text = AiLane.run("speech") { asr.transcribe(pcm, words) }
+                    loadedJustNow = 0L
+                    if ((asr.loaded && loadedFile == modelFile) || loadNow()) { loadMs = loadedJustNow; text = AiLane.run("speech") { asr.transcribe(pcm, words) } }
                 }
             } finally {
                 queued.decrementAndGet()
@@ -346,7 +462,7 @@ class PlayerVoice(private val ctx: Context) {
                     // (a word at least: the speech model can write a lone "." or "Hmm" for a noise)
                     else if (always && t.count { it.isLetter() } >= 2) {
                         problem = null
-                        lastHeard = "heard in %.1f s (our speech model%s)".format((android.os.SystemClock.elapsedRealtime() - at) / 1000.0, if (loadedFirst) ", loaded first" else "")
+                        heardBy(Heard(ourName(), SystemClock.elapsedRealtime() - ended, loadMs, pcm.size * 1000L / SAMPLE_RATE))
                         onText(t)
                     }
                 }
@@ -354,8 +470,141 @@ class PlayerVoice(private val ctx: Context) {
         }
     }
 
+    // ---- the phone's recognizer, always listening (main thread): started again after every result, error and mute
+    private var phoneLoop = false
+    private var loopRec: SpeechRecognizer? = null
+    private var loopActive = false
+    private var loopErrors = 0
+    private var speechEndAt = 0L
+    private var speechStartAt = 0L
+    private var lastPartial = ""
+    private var downloadAsked = false
+    private val loopNext = Runnable { phoneLoopListen() }
+
+    private fun phoneLoopStart() {
+        phoneLoop = true
+        loopErrors = 0
+        // (our model is not needed: its memory is the dialogue model's)
+        if (asr.loaded) { asr.cancel(); worker.execute { asr.close() } }
+        com.timerpg.street.shot.Crumbs.add("mic: the phone's on-device recognizer listens")
+        phoneLoopListen()
+    }
+
+    private fun phoneLoopNext(delayMs: Long) {
+        main.removeCallbacks(loopNext)
+        if (phoneLoop && listening) main.postDelayed(loopNext, delayMs)
+    }
+
+    private fun phoneLoopPause() {
+        main.removeCallbacks(loopNext)
+        if (loopActive) { loopActive = false; runCatching { loopRec?.cancel() } }
+        hearing = false; level = 0f
+        if (lastPartial.isNotEmpty()) { lastPartial = ""; onPartialNow?.invoke("") }
+    }
+
+    private fun phoneLoopListen() {
+        if (!phoneLoop || !listening || loopActive) return
+        if (muted) return   // started again when the voice stops
+        val r = loopRec ?: onDevice()?.also { r ->
+            loopRec = r
+            r.setRecognitionListener(loopListener)
+        } ?: return phoneLoopFail("The phone's on-device speech recognition could not start.")
+        loopActive = true
+        lastPartial = ""
+        try { r.startListening(intent(partial = true, silenceMs = PHONE_SILENCE_MS)) }
+        catch (e: Exception) { loopActive = false; phoneLoopError(-1) }
+    }
+
+    private val loopListener = object : RecognitionListener {
+        override fun onReadyForSpeech(p: Bundle?) {}
+        override fun onBeginningOfSpeech() { speechStartAt = SystemClock.elapsedRealtime(); speechEndAt = 0L; if (!muted) hearing = true }
+        override fun onRmsChanged(rmsdB: Float) { if (!muted) level = ((rmsdB + 2f) / 12f).coerceIn(0f, 1f) }
+        override fun onBufferReceived(b: ByteArray?) {}
+        override fun onEndOfSpeech() { speechEndAt = SystemClock.elapsedRealtime(); hearing = false; level = 0f; writing = 1 }
+        override fun onPartialResults(p: Bundle?) {
+            if (muted || !phoneLoop) return
+            val t = p?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()?.trim().orEmpty()
+            if (t.isNotEmpty() && t != lastPartial) { lastPartial = t; onPartialNow?.invoke(t) }
+        }
+        override fun onEvent(t: Int, p: Bundle?) {}
+        override fun onResults(b: Bundle?) {
+            loopActive = false; writing = 0; hearing = false
+            val t = b?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()?.trim().orEmpty()
+            loopErrors = 0
+            val had = lastPartial
+            lastPartial = ""
+            if (!muted && always && t.count { it.isLetter() } >= 2) {
+                problem = null
+                val now = SystemClock.elapsedRealtime()
+                heardBy(Heard("the phone's recognizer", if (speechEndAt > 0) now - speechEndAt else 0L, 0L,
+                    if (speechStartAt > 0 && speechEndAt > speechStartAt) speechEndAt - speechStartAt else 0L))
+                onTextNow?.invoke(t)
+            } else if (had.isNotEmpty()) onPartialNow?.invoke("")
+            phoneLoopNext(RESTART_MS)
+        }
+        override fun onError(error: Int) {
+            loopActive = false; writing = 0; hearing = false; level = 0f
+            if (lastPartial.isNotEmpty()) { lastPartial = ""; onPartialNow?.invoke("") }
+            phoneLoopError(error)
+        }
+    }
+
+    private fun phoneLoopError(error: Int) {
+        if (!phoneLoop) return
+        when (error) {
+            // nothing said, or said nothing it knew: listen again
+            SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> { loopErrors = 0; phoneLoopNext(RESTART_MS) }
+            // (a cancel of ours, or a start too soon after the last)
+            SpeechRecognizer.ERROR_CLIENT -> phoneLoopNext(300)
+            SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> { runCatching { loopRec?.destroy() }; loopRec = null; phoneLoopNext(600) }
+            SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> { problem = "The game needs the microphone to hear you."; stopPhoneLoop() }
+            // its language pack is not on the phone: asked for (API 33+), and ours hears meanwhile
+            12, 13 -> {
+                if (Build.VERSION.SDK_INT >= 33 && !downloadAsked) {
+                    downloadAsked = true
+                    runCatching { loopRec?.triggerModelDownload(intent(partial = true, silenceMs = PHONE_SILENCE_MS)) }
+                }
+                phoneLoopFail("The phone's on-device speech recognition has no English pack yet (asked to download it); the game's speech model hears you meanwhile.")
+            }
+            else -> {
+                if (++loopErrors >= 5) phoneLoopFail("The phone's on-device speech recognition keeps failing (${errorName(error)}); the game's speech model hears you instead.")
+                else phoneLoopNext(400L * loopErrors)
+            }
+        }
+    }
+
+    /** The phone's recognizer cannot hear here: ours does, from now (if it is on the phone). */
+    private fun phoneLoopFail(why: String) {
+        com.timerpg.street.shot.Crumbs.add("mic: $why")
+        phoneProblem = why
+        stopPhoneLoop()
+        val t = onTextNow; val p = onPartialNow
+        listening = false; always = false
+        if (t != null) listen(t, p ?: {})
+    }
+
+    private fun stopPhoneLoop() {
+        phoneLoop = false
+        main.removeCallbacks(loopNext)
+        loopActive = false
+        runCatching { loopRec?.cancel() }
+        runCatching { loopRec?.destroy() }
+        loopRec = null
+        hearing = false; level = 0f; writing = 0
+        if (lastPartial.isNotEmpty()) { lastPartial = ""; onPartialNow?.invoke("") }
+    }
+
+    /** Listening goes on with the hearer chosen now (the panel's switch changed). */
+    private fun restartListening() {
+        if (!listening) return
+        val t = onTextNow ?: return
+        val p = onPartialNow
+        stopListening(release = false)
+        listen(t, p ?: {})
+    }
+
     /**
-     * Stops listening. [release]: the speech model is let go at once (listening switched off); otherwise it goes after a
+     * Stops listening. [release]: our speech model is let go at once (listening switched off); otherwise it goes after a
      * minute unused (the game paused), so coming straight back does not load it again.
      */
     fun stopListening(release: Boolean) {
@@ -363,16 +612,36 @@ class PlayerVoice(private val ctx: Context) {
         listening = false
         always = false
         level = 0f; hearing = false
+        if (phoneLoop) stopPhoneLoop()
         if (release) { asr.cancel(); worker.execute { asr.close() } } else touch()
     }
 
-    /** Lets go of the speech model (the panel closed for a while, or memory is short). */
+    /** Lets go of our speech model and the phone's recognizer (the game screen goes, or memory is short). */
     fun release() {
         listening = false
         always = false
         recording = false
+        if (phoneLoop) stopPhoneLoop()
+        runCatching { phoneSession?.destroy() }; phoneSession = null
         asr.cancel()
         worker.execute { asr.close() }
+    }
+
+    private fun errorName(e: Int): String = when (e) {
+        SpeechRecognizer.ERROR_AUDIO -> "audio"
+        SpeechRecognizer.ERROR_CLIENT -> "client"
+        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "permission"
+        SpeechRecognizer.ERROR_NETWORK -> "network"
+        SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "network timeout"
+        SpeechRecognizer.ERROR_NO_MATCH -> "no match"
+        SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "busy"
+        SpeechRecognizer.ERROR_SERVER -> "server"
+        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "speech timeout"
+        10 -> "too many requests"
+        11 -> "server disconnected"
+        12 -> "language not supported"
+        13 -> "language unavailable"
+        else -> "error $e"
     }
 
     /** Leading and trailing quiet cut off (with a little margin), so the model reads only the speech. */
@@ -405,9 +674,19 @@ class PlayerVoice(private val ctx: Context) {
     companion object {
         const val SAMPLE_RATE = 16000
         const val MAX_SECONDS = 20
-        /** The speech model is let go this long after it was last needed. */
+        /** Our speech model is let go this long after it was last needed. */
         private const val IDLE_MS = 60_000L
+        /** Quiet this long ends an utterance for our model (it was 700 ms: the wait before anything happens). */
+        const val TAIL_MS = 500
+        /** The phone's recognizer: the quiet that ends an utterance (a hint; the recognizer may keep its own). */
+        const val PHONE_SILENCE_MS = 700L
+        /** The phone's recognizer starts listening again this soon after a result. */
+        private const val RESTART_MS = 80L
+        /** Our speech model's own buffers beside its weights (MB): its cache in 8 bits and one output row. */
+        private const val ASR_WORK_MB = 150L
         const val ASR_MODEL = "asr/Qwen3-ASR-1.7B-Q8_0.gguf"
         const val ASR_MMPROJ = "asr/mmproj-Qwen3-ASR-1.7B-Q8_0.gguf"
+        const val ASR_SMALL_MODEL = "asr/Qwen3-ASR-0.6B-Q8_0.gguf"
+        const val ASR_SMALL_MMPROJ = "asr/mmproj-Qwen3-ASR-0.6B-Q8_0.gguf"
     }
 }

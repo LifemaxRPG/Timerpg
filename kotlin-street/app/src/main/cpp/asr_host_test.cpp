@@ -68,6 +68,8 @@ int main(int argc, char ** argv) {
     llm::Asr asr;
     if (!asr.load(argv[1], argv[2], threads)) { std::fprintf(stderr, "load failed: %s\n", asr.error().c_str()); return 1; }
     std::printf("speech model loaded; %d Hz; %d threads\n", asr.sample_rate(), threads);
+    std::printf("  memory (MiB): weights mapped %.0f, copied %.0f; KV %.1f; state %.1f; compute and output %.1f (the encoder's own not counted)\n",
+                asr.mem()[0], asr.mem()[1], asr.mem()[2], asr.mem()[3], asr.mem()[4]);
     int failed = 0;
     for (const auto & f : files) {
         std::vector<float> pcm; int rate = 0;

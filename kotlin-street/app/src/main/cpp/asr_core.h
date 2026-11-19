@@ -38,8 +38,11 @@ public:
     /** Milliseconds of the last transcription: encoding the audio, writing the text. */
     int64_t encode_ms() const { return encode_ms_; }
     int64_t total_ms() const { return total_ms_; }
+    /** What the load allocated (MiB), as llm::last_load_mem counts it: weights mapped, copied, KV, state, compute. */
+    const double * mem() const { return mem_; }
 
 private:
+    double mem_[5] = {0, 0, 0, 0, 0};
     llama_model * model_ = nullptr;
     llama_context * ctx_ = nullptr;
     mtmd_context * mctx_ = nullptr;

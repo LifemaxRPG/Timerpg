@@ -4,7 +4,7 @@ import android.util.Log
 import java.io.File
 
 /**
- * Speech to text for talking to NPCs: Qwen3-ASR (1.7B, llama.cpp's multimodal library) in the same native library as the
+ * Speech to text for talking to NPCs: Qwen3-ASR (llama.cpp's multimodal library) in the same native library as the
  * dialogue model. [load] and [transcribe] block (seconds): call them from a background thread, one at a time.
  */
 class NativeAsr : AutoCloseable {
@@ -21,6 +21,11 @@ class NativeAsr : AutoCloseable {
         private set
     var lastTotalMs = 0L
         private set
+    /** What the load allocated (MB): weights mapped, copied, the KV cache, state, compute (the audio encoder not counted). */
+    var loadMem = DoubleArray(5)
+        private set
+    /** The model's own buffers beside its mapped weights (MB). */
+    val workMb: Long get() = (loadMem[1] + loadMem[2] + loadMem[3] + loadMem[4]).toLong()
 
     fun load(model: File, mmproj: File, threads: Int = NativeLlm.defaultThreads()): Boolean = synchronized(this) {
         if (!libraryOk) { error = "The speech engine is not available on this device."; return false }
@@ -28,7 +33,8 @@ class NativeAsr : AutoCloseable {
         if (handle == 0L) handle = runCatching { nativeCreate() }.getOrDefault(0L)
         if (handle == 0L) { error = "Could not create the speech engine."; return false }
         loaded = nativeLoad(handle, model.path.toByteArray(), mmproj.path.toByteArray(), threads)
-        if (loaded) { sampleRate = nativeRate(handle).takeIf { it > 0 } ?: 16000; error = null }
+        if (loaded) { sampleRate = nativeRate(handle).takeIf { it > 0 } ?: 16000; error = null
+            loadMem = runCatching { nativeMem(handle) }.getOrNull()?.takeIf { it.size == 5 } ?: DoubleArray(5) }
         else error = nativeError(handle) ?: "Could not load the speech model."
         Log.i(TAG, if (loaded) "speech model loaded ($sampleRate Hz, $threads threads)" else "speech model: $error")
         loaded
@@ -63,6 +69,7 @@ class NativeAsr : AutoCloseable {
     private external fun nativeCancel(handle: Long)
     private external fun nativeTranscribe(handle: Long, pcm: FloatArray, context: ByteArray): String?
     private external fun nativeTimes(handle: Long): LongArray?
+    private external fun nativeMem(handle: Long): DoubleArray?
 
     companion object {
         private const val TAG = "NativeAsr"

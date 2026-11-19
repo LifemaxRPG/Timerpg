@@ -131,7 +131,11 @@ public:
     /** Where the model runs from the next load: 0 the CPU, 1 the GPU, 2 the NPU (the CPU when there is no such device). */
     /** Bit 4 of [kind] (16): the CPU's fast repacked kernels (the weights copied into the process: faster prompts, but
      *  the whole model in memory the system cannot reclaim); without it the weights stay mapped from the file. */
-    void set_device(int kind) { device_ = kind & 3; repack_ = (kind & 16) != 0; mtp_n_ = (kind >> 8) & 15; }
+    /** Bit 5 (32): the attention cache (KV) in 8 bits (q8_0) instead of 16, about half its memory (it needs flash
+     *  attention; where that cannot be had the load falls back to the 16-bit cache). */
+    void set_device(int kind) { device_ = kind & 3; repack_ = (kind & 16) != 0; kv_q8_ = (kind & 32) != 0; mtp_n_ = (kind >> 8) & 15; }
+    /** Whether the loaded model's cache is in 8 bits. */
+    bool kv_q8() const { return ctx_ && kv_q8_used_; }
     /** Whether the loaded model writes with MTP speculative decoding (it has the prediction head and it was asked for). */
     bool mtp() const { return spec_ != nullptr; }
     /** Where the loaded model runs (0 / 1 / 2). */
@@ -186,6 +190,8 @@ private:
     bool recurrent_ = false;
     int device_ = 0;
     bool repack_ = false;
+    bool kv_q8_ = false;
+    bool kv_q8_used_ = false;
     int mtp_n_ = 0;                          // tokens to guess ahead with the MTP head (0: off)
     llama_context * dft_ = nullptr;          // the MTP head's context (shares the main context's memory)
     common_speculative * spec_ = nullptr;
@@ -208,5 +214,10 @@ private:
 
 /** llama.cpp's "graph splits" line for the last model context created ("" if none). */
 std::string last_load_info();
+/** What llama.cpp said the last load allocated (MiB): [0] weights mapped from the file, [1] weights copied (to a device
+ *  or repacked), [2] the attention cache (KV), [3] the recurrent state, [4] compute and output buffers. */
+void last_load_mem(double out[5]);
+/** Starts [last_load_mem]'s count again (before a load of another kind of model: speech). */
+void reset_load_mem();
 
 }  // namespace llm

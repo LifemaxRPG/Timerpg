@@ -34,6 +34,10 @@ object ModelRoles {
         val forceBank: Boolean = false,
         /** The overnight writer is writing the bank: the main model, whatever else holds. */
         val writing: Boolean = false,
+        /** Each model's own memory beside its weights (KV cache, recurrent state, compute): what its last load measured,
+         *  else [WORK_BYTES]. */
+        val bankWorkBytes: Long = WORK_BYTES,
+        val liveWorkBytes: Long = WORK_BYTES,
     )
 
     sealed interface Choice
@@ -42,8 +46,15 @@ object ModelRoles {
     /** Load nothing now ([why]); try again later. */
     data class Wait(val why: String, val needBytes: Long = 0) : Choice
     object NoModel : Choice
+    /**
+     * In play without the light model on the phone, and the main model's copy does not fit beside the town: nothing
+     * loads (the main model from its file on the CPU writes a line in tens of seconds, which reads as broken); the AI
+     * panel says the light model is missing and offers its download. [needBytes]: what the main model's copy needs.
+     */
+    data class NeedLive(val why: String, val needBytes: Long) : Choice
 
-    /** Room for the model's KV cache, recurrent state and compute buffers beside its weights. */
+    /** Room for the model's KV cache, recurrent state and compute buffers beside its weights, until a load has measured
+     *  the real size (llama.cpp's own buffer sizes, [com.timerpg.street.llm.NativeLlm.workBytes]). */
     const val WORK_BYTES = 300L shl 20
 
     /**
@@ -51,8 +62,8 @@ object ModelRoles {
      * system can drop and read again), plus [WORK_BYTES] and [com.timerpg.street.llm.Ram.MARGIN_MB] for the game, the
      * town's GPU memory and Android (both crash reports of build 302 were the game killed beside a fresh model).
      */
-    fun needBytes(fileBytes: Long, copied: Boolean): Long =
-        (if (copied) fileBytes else fileBytes / 2) + WORK_BYTES + (com.timerpg.street.llm.Ram.MARGIN_MB shl 20)
+    fun needBytes(fileBytes: Long, copied: Boolean, workBytes: Long = WORK_BYTES): Long =
+        (if (copied) fileBytes else fileBytes / 2) + workBytes + (com.timerpg.street.llm.Ram.MARGIN_MB shl 20)
 
     fun pick(i: Input): Choice {
         if (i.bankBytes <= 0 && i.liveBytes <= 0) return NoModel
@@ -61,9 +72,18 @@ object ModelRoles {
         val play = i.foreground && i.sceneBuilt && !i.writing
         val bank = i.bankBytes > 0
         val live = i.liveBytes > 0
+        fun need(t: Load) = if (t.role == ModelRole.BANK) needBytes(i.bankBytes, t.copied, i.bankWorkBytes) else needBytes(i.liveBytes, t.copied, i.liveWorkBytes)
         val tries = ArrayList<Load>()
         fun add(role: ModelRole, copied: Boolean) { if (copied && !i.accelerated) return; tries += Load(role, copied) }
         when {
+            // in play without the light model: the main model only where its copy fits (on its device), else nothing:
+            // the panel asks for the light model rather than the main one crawling on the CPU from its file
+            play && !live && !i.forceBank -> {
+                val t = Load(ModelRole.BANK, copied = true)
+                if (i.accelerated && !i.lowMemory && i.freeBytes >= need(t)) return t
+                return NeedLive("The light model for replies in play is not downloaded, and the main model does not fit beside the town " +
+                    "(${i.freeBytes shr 20} MB free, ${need(t) shr 20} MB needed).", need(t))
+            }
             // writing the bank (the game behind, overnight): the main model, on the CPU from its file if its copy will
             // not fit; the light one only when it is all there is
             !play || !live || (i.forceBank && bank) -> {
@@ -78,9 +98,12 @@ object ModelRoles {
                 add(ModelRole.LIVE, false)
             }
         }
-        for (t in tries) if (!i.lowMemory && i.freeBytes >= needBytes(if (t.role == ModelRole.BANK) i.bankBytes else i.liveBytes, t.copied)) return t
+        for (t in tries) if (!i.lowMemory && i.freeBytes >= need(t)) return t
         val last = tries.last()
-        val need = needBytes(if (last.role == ModelRole.BANK) i.bankBytes else i.liveBytes, last.copied)
-        return Wait("Not enough free memory to load the model (${i.freeBytes shr 20} MB free, about ${need shr 20} MB needed with room for the game).", need)
+        return Wait("Not enough free memory to load the model (${i.freeBytes shr 20} MB free, about ${need(last) shr 20} MB needed with room for the game).", need(last))
     }
+
+    /** What [role]'s copy on its device needs (for the breadcrumbs and the panel). */
+    fun copyNeed(i: Input, role: ModelRole): Long =
+        if (role == ModelRole.BANK) needBytes(i.bankBytes, true, i.bankWorkBytes) else needBytes(i.liveBytes, true, i.liveWorkBytes)
 }

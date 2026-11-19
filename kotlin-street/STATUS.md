@@ -428,6 +428,14 @@ time with its drawing (it renders each frame twice in `-Dmode=move` to measure);
   rest; hidden while the camera turns the corner). "Talk to" still opens the panel; its mic button is hidden while the
   mic always listens. Tests: `gradle :desktop:crossroadsTest --tests TalkByVoiceTest` (the segmenter on made-up audio,
   the nearest-in-range rule).
+- **Faster spoken turns** (2026-11-19, after the owner's first phone test of the always-listening mic: slow words, slow
+  replies; built and unit-tested on the computer, NOT yet run on a phone): the phone's on-device recognizer hears by
+  default with the words shown while talking; replies stream a checked sentence at a time and stop at two; a topic's
+  ready line answers at once; the light model on the NPU in play (also with the GPU chosen), the main model never from
+  its file in play, a download button when the light model is missing; speech, memory and voice models let go when the
+  light model's copy is just short; measured working memory and an 8-bit cache; timing and memory lines in the AI panel
+  and the breadcrumbs. See docs/CONVERSATION.md, "A spoken turn in play". Tests: app ModelRolesTest, StreamSentencesTest;
+  desktop TalkByVoiceTest (the 500 ms tail).
 - **NPC voices are off by default** (the owner, 2026-11-18: until they sound better). "Voices: off" is kept in the
   `voices` preferences; off, nothing is voiced (live, fillers or ahead), queued voice work is dropped and both engines and
   their voices are let go at once. Switching on brings back everything as before.

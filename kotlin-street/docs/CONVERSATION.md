@@ -18,6 +18,54 @@ simulation already decided (see `tools/export-dialogue.ts`, `src/llm/factsheet.t
   if its copy does not fit). Nothing loads while the town is built. The AI panel shows which is live, on which device and
   what each needs, with a switch to put the main model in play for comparison.
 
+## A spoken turn in play (the always-listening mic), and where its time goes
+
+The owner's first test on the S25 Ultra (always-listening mic): the words took very long to appear and the reply took
+"way too long". The turn is now:
+
+1. **Hearing** (`voice/PlayerVoice`). By default the phone's own **on-device** recognizer hears the player
+   (`SpeechRecognizer.createOnDeviceSpeechRecognizer`, Android 12+; never the cloud recognizer: the words stay on the
+   phone), with partial results: the player's bubble shows the words while they talk and only stops changing when the
+   result comes. Always listening starts the recognizer again after every result, "no match" and timeout, waits out a
+   "busy", stops it while an NPC's voice plays (so the game does not hear itself) and when the mic is switched off or the
+   game pauses. Without on-device recognition (older Android, its language pack missing: asked for on Android 13+, or it
+   keeps failing) the game's own speech model hears instead. The AI panel's "Speech: phone (on-device) / game model"
+   switch chooses; the game's model has two sizes ("Game speech: small (fast) / large (accurate)", the small one by
+   default: about a third of the memory). With the phone's recognizer our speech model is never loaded, so its memory
+   goes to the dialogue model. Our own path cuts utterances with the voice-activity detector, now ending one after 500 ms
+   of quiet (it was 700).
+2. **Answer at once when one is ready** (`DialogueEngine.askFree`): a frequent theme's line written ahead (as before),
+   then words that plainly ask about one of the person's topics (their family, work, the town, rumours, a secret) get
+   that topic's line from the bank, with no model run. Small talk and anything else goes live.
+3. **Live reply, a sentence at a time**: the model's reply reaches the bubble as each sentence completes, each checked
+   as a whole line is (bar the facts it must name, checked at the end). A sentence that fails stops the model at once
+   (the line is cut after its good first sentence, or tried again); two good sentences are a whole line (the check keeps
+   no more), so the model stops there too. The first sentence is voiced as soon as it is shown. The template still
+   stands in when nothing passes.
+4. **Residency**: in play the light model answers; the main model is loaded in play only where its NPU copy fits (never
+   from its file on the CPU, where a line takes tens of seconds); without the light model on the phone nothing loads in
+   play and the AI panel says so with its own download button. The light model goes on the NPU in play even with the GPU
+   chosen in the panel (the phone's owner had it set from a test). When the copy is just short of room, the models that
+   can go are let go first (our speech model unless it is hearing, the memory model and its judge, the voice engines
+   unless one speaks: `llm/ModelRoom`) and the choice is made again; the breadcrumbs say why the CPU was chosen, with the
+   free memory and what the copy needed. The memory judge (2.5 GB) never loads beside the dialogue model; the memory
+   model loads only with room (else a person recalls only the last exchange). The two voice engines are never both in
+   memory: the one a line needs, the other let go first.
+5. **Memory measured, not guessed**: the dialogue model's load reads llama.cpp's own buffer sizes (weights mapped or
+   copied, the KV cache, the recurrent state, compute) and the next choice counts that instead of a flat 300 MB. The
+   attention cache is in 8 bits (the AI panel's "Model cache" switch; the load falls back to 16 bits where it cannot).
+   On a computer (CPU, measured): the light model's own memory is 163 MB with a 16-bit cache at 1024 tokens (KV 32,
+   recurrent state 50, compute 81) and 150 MB with 8 bits (KV 19): the measured figure instead of the guess frees ~140 MB
+   of the margin, which is what the phone's build 321 lacked (3621 MB free, 3663 needed with the guess, 3513 with the
+   measured 150). The speech model: one output row (no batch of logits over the vocabulary), a 1024-token context and
+   an 8-bit cache: the small one 762 MB mapped + 214 MB encoder + 91 MB of its own; the large one 2059 + 356 + 119.
+   On the NPU the compute buffers will differ: the phone's numbers come in the breadcrumbs.
+6. **Timing on screen and in the breadcrumbs**: each spoken turn logs "voice turn (<name>): heard N s after you stopped
+   (who wrote it down, a speech model load first), memories N s, answer: ready/live/template · which model on which device
+   · first token N s · rest N s (tokens, tries) · first words on screen N s · whole line N s after you stopped"; the AI
+   panel shows the last one, the hearer's last timing, and a memory line: every model resident and its MB, and the
+   game's own memory by part (Java, native, graphics, code, other), also in the breadcrumbs every 30 s when it changes.
+
 ## Four tiers, fastest first
 
 1. **Cached line** - pre-generated in the background (text and, when voices are on, audio). Plays at once.

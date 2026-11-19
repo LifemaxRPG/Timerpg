@@ -40,6 +40,16 @@ class MemoryService(private val ctx: Context) {
         return embedder.loaded
     }
 
+    init {
+        // the memory breakdown; both let go for the dialogue model's copy when it is short of room
+        com.timerpg.street.llm.ModelRoom.register(com.timerpg.street.llm.ModelRoom.Resident("memory",
+            mb = { if (embedder.loaded) modelFile.length() shr 20 else 0L },
+            drop = { if (embedder.loaded) (modelFile.length() shr 20).also { embedder.close() } else 0L }))
+        com.timerpg.street.llm.ModelRoom.register(com.timerpg.street.llm.ModelRoom.Resident("judge",
+            mb = { if (judge.loaded) judgeFile.length() shr 20 else 0L },
+            drop = { if (judge.loaded) (judgeFile.length() shr 20).also { judge.close() } else 0L }))
+    }
+
     private fun touch() { main.removeCallbacks(idle); main.postDelayed(idle, IDLE_MS) }
 
     /** Someone to talk to is near: get the model ready. */
@@ -54,7 +64,8 @@ class MemoryService(private val ctx: Context) {
         worker.execute {
             var q: FloatArray? = null
             val facts = try {
-                if (!ensure()) emptyList()
+                // without the memory model (no room for it beside the dialogue model and speech): the last exchange only
+                if (!ensure()) NpcMemory.asFacts(listOfNotNull(memory.last(npc, System.currentTimeMillis())))
                 else {
                     q = AiLane.run("memory") { embedder.embed(QUERY + said) }
                     q?.let { NpcMemory.asFacts(pick(npc, said, it)) } ?: emptyList()
@@ -75,7 +86,9 @@ class MemoryService(private val ctx: Context) {
         val now = System.currentTimeMillis()
         val cands = memory.candidates(npc, q, 4).filter { it.second >= .2f && (it.third >= 1f || memory.countOf(npc) < 6) }
         // the judge only when something comes close and the phone has room for it (it is 2.5 GB); it goes again right after
-        if (cands.isEmpty() || !judgeFile.isFile || freeMb() < 3500) return memory.recall(npc, q, now)
+        // (never beside the dialogue model in play: it is 2.5 GB, and the light model and speech need that room)
+        val dialogueIn = com.timerpg.street.llm.ModelRoom.residents().any { it.first == "dialogue" }
+        if (cands.isEmpty() || !judgeFile.isFile || dialogueIn || freeMb() < 3500) return memory.recall(npc, q, now)
         if (!judge.loaded && !AiLane.run("memory") { judge.load(judgeFile) }) return memory.recall(npc, q, now)
         val yes = cands.mapNotNull { (e, _, _) ->
             val p = AiLane.run("memory") { judge.score(JUDGE_TASK, said, "The player said: ${e.said} You answered: ${e.answered}") }

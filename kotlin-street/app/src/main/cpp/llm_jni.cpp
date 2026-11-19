@@ -138,6 +138,20 @@ extern "C" JNIEXPORT jstring JNICALL FN(nativeGenerate)(JNIEnv * env, jobject, j
     return to_jstring(env, reply);
 }
 
+/** The last load's memory (MiB): weights mapped, weights copied, KV cache, recurrent state, compute (llm::last_load_mem). */
+extern "C" JNIEXPORT jdoubleArray JNICALL FN(nativeLoadMem)(JNIEnv * env, jobject) {
+    double m[5] = {0, 0, 0, 0, 0};
+    try { llm::last_load_mem(m); } catch (...) {}
+    jdoubleArray a = env->NewDoubleArray(5);
+    if (a) env->SetDoubleArrayRegion(a, 0, 5, m);
+    return a;
+}
+
+/** The loaded model's cache is in 8 bits. */
+extern "C" JNIEXPORT jboolean JNICALL FN(nativeKvQ8)(JNIEnv *, jobject, jlong h) {
+    return h && engine(h)->kv_q8() ? JNI_TRUE : JNI_FALSE;
+}
+
 extern "C" JNIEXPORT jstring JNICALL FN(nativeLoadInfo)(JNIEnv * env, jobject) {
     return to_jstring(env, llm::last_load_info());
 }
@@ -215,6 +229,12 @@ extern "C" JNIEXPORT jlongArray JNICALL ASR(nativeTimes)(JNIEnv * env, jobject, 
     jlong v[2] = { (jlong) asr(h)->encode_ms(), (jlong) asr(h)->total_ms() };
     jlongArray a = env->NewLongArray(2);
     if (a) env->SetLongArrayRegion(a, 0, 2, v);
+    return a;
+}
+
+extern "C" JNIEXPORT jdoubleArray JNICALL ASR(nativeMem)(JNIEnv * env, jobject, jlong h) {
+    jdoubleArray a = env->NewDoubleArray(5);
+    if (a && h) env->SetDoubleArrayRegion(a, 0, 5, asr(h)->mem());
     return a;
 }
 

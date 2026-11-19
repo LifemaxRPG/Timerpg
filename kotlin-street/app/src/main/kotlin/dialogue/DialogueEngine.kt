@@ -71,6 +71,13 @@ data class AiStatus(
     val bankNeedMb: Long = 0,
     /** The AI panel's switch: the main model answers in play too (for comparison). */
     val forceBank: Boolean = false,
+    /** In play the light model is needed and not on the phone (the main one does not fit beside the town): the panel
+     *  offers its download. */
+    val needLive: Boolean = false,
+    /** What the last load measured of the model's own memory (KV cache, recurrent state, compute; MB), and whether
+     *  its cache is in 8 bits. */
+    val workMb: Long = 0,
+    val kvQ8: Boolean = false,
     val speedTesting: Boolean = false,
     val speed: SpeedResult? = null,
     /** How the model's work splits between devices (fewer splits: less of it falls back to the CPU). */
@@ -112,7 +119,27 @@ data class NightCount(
 }
 
 /** A line in the dialogue panel: the model's ([ai]) or the game's template; [final] once it will not change. */
-data class Line(val text: String, val ai: Boolean, val final: Boolean, val note: String)
+data class Line(val text: String, val ai: Boolean, val final: Boolean, val note: String, val info: ReplyInfo? = null)
+
+/**
+ * How a final line came to be, for the timing breadcrumbs and the AI panel: [source] "ready" (written ahead: the bank, a
+ * theme, a follow-up), "live" (the model wrote it now), "template" (the game's own line; [why]); [model] which model on
+ * which device; [waitMs] from the question to the model starting on it, [firstTokenMs] from there to its first token
+ * (the prompt read), [restMs] from the first token to the end, [tokens] written, [tries].
+ */
+data class ReplyInfo(val source: String, val model: String? = null, val waitMs: Long = 0, val firstTokenMs: Long = 0, val restMs: Long = 0,
+                     val tokens: Int = 0, val tries: Int = 0, val why: String? = null) {
+    fun label(): String = buildString {
+        append(source)
+        model?.let { append(" · ").append(it) }
+        if (source != "ready" && (firstTokenMs > 0 || restMs > 0)) {
+            if (waitMs > 50) append(" · waited %.1f s".format(java.util.Locale.US, waitMs / 1000.0))
+            append(" · first token %.1f s · rest %.1f s (%d tokens%s)".format(java.util.Locale.US, firstTokenMs / 1000.0, restMs / 1000.0, tokens,
+                if (tries > 1) ", $tries tries" else ""))
+        }
+        why?.let { append(" · ").append(it) }
+    }
+}
 
 /**
  * NPC dialogue: the game's template lines at once, the model's lines when it has written them.
@@ -146,6 +173,8 @@ class DialogueEngine private constructor(private val app: Context) {
         @Volatile var done = false
         /** Someone started waiting for it while it was being written ahead: the worker goes to full speed. */
         @Volatile var wanted = false
+        /** When it was asked for (the wait before the model starts on it is part of the reply's time). */
+        val createdAt = SystemClock.elapsedRealtime()
     }
 
     /** [slot]: what the line is for ([BankPlan.slotOf]), recorded with it so a changed fact sheet shows as stale. */
@@ -209,6 +238,13 @@ class DialogueEngine private constructor(private val app: Context) {
 
     private val thread = Thread({ loop() }, "dialogue-llm").apply { isDaemon = true }
 
+    init {
+        // the memory breakdown: the dialogue model's weights and its own buffers (never let go for the others)
+        com.timerpg.street.llm.ModelRoom.register(com.timerpg.street.llm.ModelRoom.Resident("dialogue",
+            mb = { if (backend?.loaded == true) (loadedBytes + loadedWork) shr 20 else 0L },
+            note = { "${loadedRole?.name?.lowercase() ?: "?"}, ${if (loadedCopied) "copied" else "mapped"}, work ${loadedWork shr 20} MB${if (_status.value.kvQ8) ", 8-bit KV" else ""}" }))
+    }
+
     // ------------------------------------------------------------------------------------------------ the public side
 
     /**
@@ -220,10 +256,11 @@ class DialogueEngine private constructor(private val app: Context) {
         val prompt = topic.prompt ?: return Request(template(topic, "built-in"), null)
         val key = keyOf(prompt)
         // small talk after a real conversation: what they would say about it next time (written overnight), once
-        if (topic.intent == "chat") followUp(npc)?.let { return Request(Line(it, ai = true, final = true, note = "AI · ready"), null, ready = true) }
+        if (topic.intent == "chat") followUp(npc)?.let { return Request(Line(it, ai = true, final = true, note = "AI · ready", info = ReplyInfo("ready", why = "a follow-up")), null, ready = true) }
         // (a line written several ways: the next of them, so a repeat visit hears another)
-        cache.get(key)?.let { e -> return Request(cache.next(key)?.let { Line(it, ai = true, final = true, note = "AI") } ?: lineOf(topic, e), null, ready = e.lines.isNotEmpty()) }
-        if (closed || _status.value.state != ModelState.READY) return Request(template(topic, "built-in"), null)
+        cache.get(key)?.let { e -> return Request(cache.next(key)?.let { Line(it, ai = true, final = true, note = "AI", info = ReplyInfo("ready")) } ?: lineOf(topic, e), null, ready = e.lines.isNotEmpty()) }
+        if (closed || _status.value.state != ModelState.READY)
+            return Request(template(topic, "built-in · " + (if (closed) "the AI is closed" else "no model ready (${_status.value.state.name.lowercase()})")), null)
         val req = Request(template(topic, "built-in · the AI is writing…", final = false), onLine)
         lock.withLock {
             val cur = running
@@ -256,10 +293,18 @@ class DialogueEngine private constructor(private val app: Context) {
         // words are close enough to the theme (same kind of question, same subject: [Themes.match]); else live
         Themes.match(said, vec, steer.themes)?.let { th ->
             themeAsk(npc, th)?.let { (t, key) ->
-                cache.next(key)?.let { line -> return topicFor(npc, said)!! to Request(Line(line, ai = true, final = true, note = "AI · ready"), null, ready = true) }
+                cache.next(key)?.let { line -> return topicFor(npc, said)!! to Request(Line(line, ai = true, final = true, note = "AI · ready", info = ReplyInfo("ready", why = "a theme you ask about")), null, ready = true) }
             }
         }
         val topic = topicFor(npc, said) ?: return null
+        // words that plainly ask about one of their topics (their family, their work, the town...): that topic's line written
+        // ahead answers at once, while nothing is generated; small talk and anything else goes to the model live
+        if (topic.intent != "chat" && topic.prompt != null) {
+            val k = keyOf(topic.prompt)
+            if (cache.get(k)?.lines?.isNotEmpty() == true) cache.next(k)?.let { line ->
+                return topic to Request(Line(line, ai = true, final = true, note = "AI · ready", info = ReplyInfo("ready", why = "their ${topic.intent} line")), null, ready = true)
+            }
+        }
         fun clean(s: String) = s.replace("<|", "<").replace("|>", ">").replace("\n", " ").trim()
         val words = clean(said).take(400)
         val prompt = topic.prompt?.let { withMemories(withQuestion(it, words), remembered.map { m -> clean(m).take(600) }) }
@@ -447,6 +492,49 @@ class DialogueEngine private constructor(private val app: Context) {
         lock.withLock { running?.let { cancelLocked(it) } }
         command { loadModel() }
     }
+
+    /** The attention cache in 8 bits (the AI panel's switch; on by default: half the cache's memory). */
+    val kvQ8Wanted: Boolean get() = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getBoolean("kvq8", true)
+
+    fun setKvQ8(on: Boolean) {
+        app.getSharedPreferences("ai", Context.MODE_PRIVATE).edit().putBoolean("kvq8", on).apply()
+        lock.withLock { running?.let { cancelLocked(it) } }
+        command { closeBackend(); loadModel() }
+    }
+
+    private fun workKey(role: ModelRole) = "work_${role.name.lowercase()}_${if (kvQ8Wanted) "q8" else "f16"}_${contextFor(role)}"
+
+    /** [role]'s own memory beside its weights as its last load measured (this cache setting and context), else the guess. */
+    private fun workWanted(role: ModelRole): Long =
+        app.getSharedPreferences("ai", Context.MODE_PRIVATE).getLong(workKey(role), ModelRoles.WORK_BYTES).takeIf { it > 0 } ?: ModelRoles.WORK_BYTES
+
+    /** The context each model gets: the light one's live replies fit in [LIVE_CONTEXT_TOKENS] (fact sheet, memories and reply). */
+    private fun contextFor(role: ModelRole) = if (role == ModelRole.LIVE) LIVE_CONTEXT_TOKENS else CONTEXT_TOKENS
+
+    /** What [role]'s copy on its device needs (MB to bytes), with its measured working memory. */
+    private fun copyNeed(role: ModelRole, bankFile: File): Long =
+        ModelRoles.needBytes(if (role == ModelRole.LIVE) ModelFiles.LIVE_BYTES else bankFile.length(), true, workWanted(role))
+
+    private fun describe(c: ModelRoles.Choice): String = when (c) {
+        is ModelRoles.Load -> "${c.role.name.lowercase()} ${if (c.copied) "copied to its device" else "on the CPU from its file"}"
+        is ModelRoles.Wait -> "wait"
+        is ModelRoles.NeedLive -> "the light model is needed"
+        ModelRoles.NoModel -> "no model"
+    }
+
+    /**
+     * The device [role] loads on: the one chosen in the panel (-1: the NPU when there is one). In play the light model goes
+     * on the NPU when there is one even with the GPU chosen (the S25 Ultra: 8.8 tok/s there against 4.2 on the GPU,
+     * measured; the phone's owner had the GPU set from an earlier test); a CPU choice is kept.
+     */
+    private fun deviceFor(role: ModelRole, native: com.timerpg.street.llm.NativeLlm?): Int {
+        val npu = (native?.accelerators ?: 0) and 2 != 0
+        val w = deviceWanted
+        val d = if (w >= 0) w else if (npu) com.timerpg.street.llm.NativeLlm.NPU else com.timerpg.street.llm.NativeLlm.CPU
+        return if (role == ModelRole.LIVE && d == com.timerpg.street.llm.NativeLlm.GPU && npu) com.timerpg.street.llm.NativeLlm.NPU else d
+    }
+
+    @Volatile private var loadedWork = 0L
 
     /** Which model is loaded ([ModelRole]); whether it was copied to its device (not mapped) and its file's size. */
     @Volatile private var loadedRole: ModelRole? = null
@@ -906,9 +994,10 @@ class DialogueEngine private constructor(private val app: Context) {
                 foreground = foreground, sceneBuilt = holds.isEmpty(), freeBytes = avail + held, lowMemory = low && held == 0L,
                 bankBytes = if (bankOk) bankFile.length() else 0L, liveBytes = if (liveOk) liveFile.length() else 0L,
                 accelerated = accelerated, forceBank = forceBankWanted, writing = night,
+                bankWorkBytes = workWanted(ModelRole.BANK), liveWorkBytes = workWanted(ModelRole.LIVE),
             ))
         }
-        _status.update { it.copy(hasLive = liveOk, forceBank = forceBankWanted,
+        _status.update { it.copy(hasLive = liveOk, forceBank = forceBankWanted, needLive = false,
             liveNeedMb = ModelRoles.needBytes(ModelFiles.LIVE_BYTES, accelerated) shr 20, bankNeedMb = ModelRoles.needBytes(bankFile.length().takeIf { l -> l > 0 } ?: 5_680_522_464L, accelerated) shr 20) }
         var choice = choose()
         if (b.loaded) {
@@ -924,6 +1013,28 @@ class DialogueEngine private constructor(private val app: Context) {
             b = createBackend() ?: return setState(ModelState.NO_ENGINE, noEngineText())
             choice = choose()
         }
+        // the copy on the NPU just short of room: the speech and memory models that can go (they load again when there is
+        // room, and the phone's recognizer hears the player meanwhile) are let go, and the choice made again
+        val wantRole = if (liveOk && !forceBankWanted && foreground && !night) ModelRole.LIVE else ModelRole.BANK
+        if (accelerated && foreground && !night && (choice is ModelRoles.Wait || choice is ModelRoles.NeedLive || (choice as? ModelRoles.Load)?.copied == false)) {
+            val (avail, _) = memoryNow()
+            val short = (copyNeed(wantRole, bankFile) - avail) shr 20
+            val droppable = com.timerpg.street.llm.ModelRoom.droppableMb()
+            if (short in 1..(droppable + 100)) {
+                val (freed, _) = com.timerpg.street.llm.ModelRoom.dropFor("the ${if (wantRole == ModelRole.LIVE) "light" else "main"} model's copy ($short MB short)")
+                if (freed > 0) {
+                    try { Thread.sleep(800) } catch (e: InterruptedException) { }
+                    choice = choose()
+                    com.timerpg.street.shot.Crumbs.add("dialogue model: after letting go of $freed MB: ${memoryNow().first shr 20} MB free, " +
+                        "${copyNeed(wantRole, bankFile) shr 20} MB needed for the copy: ${describe(choice)}")
+                }
+            }
+        }
+        (choice as? ModelRoles.NeedLive)?.let { n ->
+            com.timerpg.street.shot.Crumbs.add("dialogue model: none in play: ${n.why}")
+            _status.update { it.copy(needLive = true, hasModel = bankOk) }
+            return setState(ModelState.NO_MODEL, n.why + " People use their lines written ahead and their built-in ones until it is downloaded (AI panel: Download the light model).")
+        }
         val role = (choice as? ModelRoles.Load)?.role ?: (if (bankOk || !liveOk) ModelRole.BANK else ModelRole.LIVE)
         val f = if (role == ModelRole.LIVE) liveFile else bankFile
         val problem = if (choice == ModelRoles.NoModel) ModelFiles.problem(bankFile) ?: ModelFiles.MISSING else ModelFiles.problem(f)
@@ -934,9 +1045,13 @@ class DialogueEngine private constructor(private val app: Context) {
         // than wait (the phone's owner saw "4067 MB free, 6617 needed" on the NPU while the mapped CPU load needed ~3.6 GB)
         val cpuFallback = accelerated && (choice as? ModelRoles.Load)?.copied == false
         if (choice is ModelRoles.Load) gpuNote = null
+        val wantDev = deviceFor(role, native = b as? com.timerpg.street.llm.NativeLlm)
         if (cpuFallback) {
-            gpuNote = "Not enough free memory for the ${if (deviceWanted == com.timerpg.street.llm.NativeLlm.GPU) "GPU" else "NPU"} copy of the model right now, so it runs on the CPU from the file (it moves back when there is room, next load)."
-            com.timerpg.street.shot.Crumbs.add("dialogue model: CPU from the file (copy would not fit, ${com.timerpg.street.llm.Ram.freeMb(app)} MB free)")
+            val devName = listOf("CPU", "GPU", "NPU").getOrElse(wantDev) { "?" }
+            gpuNote = "Not enough free memory for the $devName copy of the ${if (role == ModelRole.LIVE) "light" else "main"} model right now " +
+                "(${memoryNow().first shr 20} MB free, ${copyNeed(role, bankFile) shr 20} MB needed), so it runs on the CPU from the file (it moves back when there is room, next load)."
+            com.timerpg.street.shot.Crumbs.add("dialogue model: the ${role.name.lowercase()} model on the CPU from its file: its $devName copy needs " +
+                "${copyNeed(role, bankFile) shr 20} MB, ${memoryNow().first shr 20} MB free (${com.timerpg.street.llm.ModelRoom.residents().joinToString { "${it.first} ${it.second} MB" }.ifEmpty { "no other model" }} resident; device setting ${deviceWanted})")
         }
         (choice as? ModelRoles.Wait)?.let { w ->
             val why = w.why
@@ -955,8 +1070,13 @@ class DialogueEngine private constructor(private val app: Context) {
         loadingNow = true
         var thrown: String? = null
         val native = b as? com.timerpg.street.llm.NativeLlm
-        native?.device = if (cpuFallback) com.timerpg.street.llm.NativeLlm.CPU
-            else deviceWanted.let { if (it >= 0) it else if ((native?.accelerators ?: 0) and 2 != 0) com.timerpg.street.llm.NativeLlm.NPU else com.timerpg.street.llm.NativeLlm.CPU }
+        native?.device = if (cpuFallback) com.timerpg.street.llm.NativeLlm.CPU else wantDev
+        if (!cpuFallback && wantDev != deviceWanted && deviceWanted == com.timerpg.street.llm.NativeLlm.GPU) {
+            gpuNote = "The light model answers on the NPU in play (about twice the GPU's speed on the S25 Ultra); the GPU setting applies to the main model."
+            com.timerpg.street.shot.Crumbs.add("dialogue model: the light model on the NPU, not the GPU of the device setting")
+        }
+        // the attention cache in 8 bits (half its memory); a load that cannot have it keeps 16
+        native?.kvQ8 = kvQ8Wanted
         // (repacked CPU kernels copy the weights too: not when falling back for memory)
         native?.fastCpu = fastCpuWanted && !cpuFallback
         val mtpSet = app.getSharedPreferences("npu", Context.MODE_PRIVATE).contains("mtp")
@@ -965,7 +1085,7 @@ class DialogueEngine private constructor(private val app: Context) {
         // loading holds the AI lane: speech, memory and the voices do not load beside it (their memory added to a load's
         // is what took the phone down)
         var ok = com.timerpg.street.llm.AiLane.run("dialogue") {
-            try { b.load(f.path, 0, CONTEXT_TOKENS) } catch (t: Throwable) { thrown = t.message ?: t.javaClass.simpleName; false }
+            try { b.load(f.path, 0, contextFor(role)) } catch (t: Throwable) { thrown = t.message ?: t.javaClass.simpleName; false }
         }
         if (!ok && native != null && native.device != com.timerpg.street.llm.NativeLlm.CPU && !closed) {
             // the GPU or NPU could not take it: the CPU then (and say so)
@@ -973,7 +1093,7 @@ class DialogueEngine private constructor(private val app: Context) {
             native.device = com.timerpg.street.llm.NativeLlm.CPU
             gpuNote = "The $which could not load the model (${native.error ?: "unknown"}); it runs on the CPU."
             ok = com.timerpg.street.llm.AiLane.run("dialogue") {
-                try { b.load(f.path, 0, CONTEXT_TOKENS) } catch (t: Throwable) { thrown = t.message ?: t.javaClass.simpleName; false }
+                try { b.load(f.path, 0, contextFor(role)) } catch (t: Throwable) { thrown = t.message ?: t.javaClass.simpleName; false }
             }
         }
         loadingNow = false
@@ -993,12 +1113,27 @@ class DialogueEngine private constructor(private val app: Context) {
         loadedRole = role
         loadedCopied = native != null && (native.runsOn != com.timerpg.street.llm.NativeLlm.CPU || native.fastCpu)
         loadedBytes = f.length()
-        _status.update { it.copy(role = role) }
+        // what this model's cache and buffers really took: the next choice for it counts that, not a guess
+        val m = native?.loadMem
+        if (native != null && native.workBytes > 0) {
+            app.getSharedPreferences("ai", Context.MODE_PRIVATE).edit().putLong(workKey(role), native.workBytes).apply()
+            loadedWork = native.workBytes
+        } else loadedWork = 0
+        if (m != null) com.timerpg.street.shot.Crumbs.add("dialogue model: ${role.name.lowercase()} on ${listOf("CPU", "GPU", "NPU").getOrElse(native.runsOn) { "?" }} " +
+            "in ${b.stats.loadMs} ms with ${com.timerpg.street.llm.Ram.freeMb(app)} MB free after: weights %.0f MB mapped + %.0f copied, KV %.0f (%s), state %.0f, compute %.0f; context ${contextFor(role)}"
+                .format(java.util.Locale.US, m[0], m[1], m[2], if (native.kvQ8Used) "8-bit" else "16-bit", m[3], m[4]))
+        _status.update { it.copy(role = role, workMb = loadedWork shr 20, kvQ8 = native?.kvQ8Used == true) }
         // the light model answers in play but does not write the bank ahead: the main one does that (overnight, or in
         // play when it is the one that fits); asked-for lines are not held by this
         if (role == ModelRole.LIVE) pause(LIVE_PAUSE) else resume(LIVE_PAUSE)
         setState(ModelState.READY, readyText())
         enqueueAll()
+    }
+
+    /** "light model on the NPU" and so on: which model wrote a line, on which device. */
+    private fun modelLabel(b: LlmBackend): String {
+        val dev = listOf("CPU", "GPU", "NPU").getOrElse((b as? NativeLlm)?.runsOn ?: 0) { "?" }
+        return "${if (loadedRole == ModelRole.LIVE) "light" else "main"} model on the $dev"
     }
 
     private fun readyText() = if (loadedRole == ModelRole.LIVE) LIVE_READY_TEXT else READY_TEXT
@@ -1131,24 +1266,37 @@ class DialogueEngine private constructor(private val app: Context) {
         var text: String? = null
         var lastRaw = ""
         var error: String? = null
+        // when the model first wrote (the prompt read), and the tries made
+        var firstAt = 0L
+        var tries = 0
         for (attempt in 1..MAX_TRIES) {
+            tries = attempt
             if (g.cancelled || closed) { end = End.CANCELLED; break }
             if (attempt > 1) { g.shown = ""; g.send(template(topic, "built-in · the AI is trying again…", final = false)) }
             if (g.wanted && !raised) { raised = true; priority(Process.THREAD_PRIORITY_DEFAULT) }
             val sb = StringBuilder()
             val watchdog = Runnable { g.timedOut = true; lock.withLock { cancelLocked(g) } }
             main.postDelayed(watchdog, if (night && g.listeners.isEmpty() && !g.speed) NIGHT_TIMEOUT_MS else TIMEOUT_MS)
+            // the reply is shown a whole sentence at a time, each checked as a line is (bar the facts it must name, which may
+            // come later); a sentence that fails stops the model at once (the line is cut there or tried again), and two
+            // good sentences are a whole line (the check keeps no more): the model stops there too
+            var checked = ""
+            val onPiece = fun(piece: String): Boolean {
+                if (firstAt == 0L) firstAt = SystemClock.elapsedRealtime()
+                // the worker's own thread: someone began waiting for this line, so it gets full speed now
+                if (g.wanted && !raised) { raised = true; priority(Process.THREAD_PRIORITY_DEFAULT) }
+                sb.append(piece)
+                val done = completeSentences(Dialogue.preview(sb.toString())) ?: return !g.cancelled && !closed
+                if (done.first != checked) {
+                    checked = done.first
+                    val ok = Dialogue.validate(done.first, emptyList(), topic.self, topic.prompt ?: "") ?: return false
+                    if (g.listeners.isNotEmpty() && ok != g.shown) { g.shown = ok; g.send(Line(ok, true, false, "AI · writing…")) }
+                    if (done.second >= 2) return false
+                }
+                return !g.cancelled && !closed
+            }
             var raw: String? = try {
-                com.timerpg.street.llm.AiLane.run("dialogue") { b.generate(prompt, MAX_TOKENS, if (g.variant) VARIANT_TEMPERATURE else TEMPERATURE) { piece ->
-                    // the worker's own thread: someone began waiting for this line, so it gets full speed now
-                    if (g.wanted && !raised) { raised = true; priority(Process.THREAD_PRIORITY_DEFAULT) }
-                    sb.append(piece)
-                    if (g.listeners.isNotEmpty()) {
-                        val s = Dialogue.preview(sb.toString())
-                        if (s.isNotEmpty() && s != g.shown) { g.shown = s; g.send(Line(s, true, false, "AI · writing…")) }
-                    }
-                    !g.cancelled && !closed
-                } }
+                com.timerpg.street.llm.AiLane.run("dialogue") { b.generate(prompt, MAX_TOKENS, if (g.variant) VARIANT_TEMPERATURE else TEMPERATURE, onPiece) }
             } catch (t: Throwable) {
                 error = t.message ?: t.javaClass.simpleName
                 null
@@ -1178,7 +1326,11 @@ class DialogueEngine private constructor(private val app: Context) {
             val why = Dialogue.whyRejected(raw, topic.must, topic.self, topic.prompt ?: "")
             _status.update { it.copy(rejected = "${npc.first}: $why: \u201c${Dialogue.preview(raw).take(90)}\u201d") }
         }
-        val ms = SystemClock.elapsedRealtime() - t0
+        val tEnd = SystemClock.elapsedRealtime()
+        val ms = tEnd - t0
+        val tokens = try { b.stats.genTokens } catch (t: Throwable) { 0 }
+        fun info(source: String, why: String? = null) = ReplyInfo(source, modelLabel(b), waitMs = (t0 - g.createdAt).coerceAtLeast(0),
+            firstTokenMs = if (firstAt > 0) firstAt - t0 else 0, restMs = if (firstAt > 0) tEnd - firstAt else 0, tokens = tokens, tries = tries, why = why)
         when (end) {
             End.OK -> {
                 failures = 0
@@ -1188,7 +1340,7 @@ class DialogueEngine private constructor(private val app: Context) {
                     saveCache()
                 // (the light model's on-the-spot lines are not banked: the main model writes those overnight)
                 } else if (!g.speed && loadedRole != ModelRole.LIVE) { cache.putLine(g.key, text!!, slot); saveCache(); if (night) addNight(lines = 1) }
-                g.finish(Line(text!!, true, true, "AI"))
+                g.finish(Line(text!!, true, true, "AI", info("live")))
                 // a line written ahead: its voice can be made ahead too
                 if (!g.speed && g.listeners.isEmpty()) onWritten?.invoke(npc, text!!)
             }
@@ -1197,21 +1349,21 @@ class DialogueEngine private constructor(private val app: Context) {
                 if (night && !g.speed) addNight(rejected = 1)
                 if (g.variant) { cache.variantFailed(g.key); saveCache() }
                 else if (!g.speed && loadedRole != ModelRole.LIVE) { cache.putTemplate(g.key, g.slot ?: slotOf(g.key)); saveCache() }
-                g.finish(template(topic, "built-in · the AI's reply did not pass the check"))
+                g.finish(template(topic, "built-in · the AI's reply did not pass the check", info = info("template", "the reply did not pass the check")))
             }
             End.TIMEOUT -> {
                 // overnight: given up for this night only (no one waited for it)
                 if (night && g.listeners.isEmpty() && !g.speed) {
                     if (g.variant) cache.variantFailed(g.key) else lock.withLock { nightSkip += g.key }
                 } else if (++timeouts >= 2 && pregenOff == null) pregenOff = "The model is too slow on this phone to write lines ahead; it only answers when you ask."
-                g.finish(template(topic, "built-in · the AI took too long"))
+                g.finish(template(topic, "built-in · the AI took too long", info = info("template", "took too long")))
             }
             End.CANCELLED -> {
                 requeue(g)
                 g.finish(template(topic, "built-in"))
             }
             End.ERROR -> {
-                g.finish(template(topic, "built-in · the AI failed"))
+                g.finish(template(topic, "built-in · the AI failed", info = info("template", "the model failed: ${error ?: "unknown"}")))
                 if (error != null && PROMPT_ERRORS.any { error!!.contains(it) }) {
                     // this prompt will always fail (too long for the context, cannot be tokenized): the template it is,
                     // without taking the model down for the rest of the town
@@ -1271,10 +1423,11 @@ class DialogueEngine private constructor(private val app: Context) {
         main.post { if (r.live) r.onLine?.invoke(line) }
     }
 
-    private fun template(topic: Topic, note: String, final: Boolean = true) = Line(topic.template, ai = false, final = final, note = note)
+    private fun template(topic: Topic, note: String, final: Boolean = true, info: ReplyInfo? = null) = Line(topic.template, ai = false, final = final, note = note,
+        info = if (!final) null else info ?: ReplyInfo("template", why = note.removePrefix("built-in").removePrefix(" · ").ifEmpty { null }))
 
     private fun lineOf(topic: Topic, e: ReplyCache.Entry): Line =
-        e.line?.let { Line(it, ai = true, final = true, note = "AI") }
+        e.line?.let { Line(it, ai = true, final = true, note = "AI", info = ReplyInfo("ready")) }
             ?: template(topic, "built-in · the AI's reply did not pass the check")
 
     private fun setState(s: ModelState, detail: String) = _status.update { it.copy(state = s, detail = detail) }
@@ -1377,8 +1530,22 @@ class DialogueEngine private constructor(private val app: Context) {
         /** Overnight no one waits: a line is given up only after this long. */
         const val NIGHT_TIMEOUT_MS = 120_000L
         const val CONTEXT_TOKENS = 1024
+        /** The light model's context in play (see [contextFor]). */
+        const val LIVE_CONTEXT_TOKENS = 1024
         /** Tries per line before it stays the template. */
         const val MAX_TRIES = 2
+        private val SENTENCE_END = Regex("[.!?]+[\"”’')]*\\s+(?=\\S)")
+
+        /**
+         * The whole sentences at the start of [t] (those the model has gone on past: a full stop, then a space and more)
+         * and how many; null when none is complete yet.
+         */
+        fun completeSentences(t: String): Pair<String, Int>? {
+            var n = 0; var end = 0
+            for (m in SENTENCE_END.findAll(t)) { end = m.range.first + m.value.trimEnd().length; n++ }
+            return if (n == 0) null else t.substring(0, end).trim() to n
+        }
+
         private val FIRST = Regex("""^(.{8,}?[.!?])(\s|$)""")
         /** A reply that takes longer than this is given up (the template stays). */
         const val TIMEOUT_MS = 45_000L
