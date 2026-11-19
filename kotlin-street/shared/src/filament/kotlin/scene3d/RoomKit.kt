@@ -376,6 +376,239 @@ object RoomKit {
         return m.build()
     }
 
+    // ---- the pack's pieces from pieces.json (tools/cut_pieces.py) -----------------------------------------------------
+
+    /**
+     * One design from `pieces.json`, as the builders need it: its family and kind, its picture's size, the guessed top/front
+     * split of a box ([splitRow]: the first row of the front) and the family's own row and column ranges ([s], keys joined by
+     * dots: "along.head", "back_top", "seams"; a flag is [1] or [0]). Written by the cutter, read by the preview.
+     */
+    class PieceSpec(val id: String, val family: String, val kind: String, val w: Int, val h: Int, val splitRow: Int, val s: Map<String, IntArray>) {
+        fun r(k: String): IntArray = s[k] ?: error("$id ($family) has no $k")
+        fun has(k: String) = s.containsKey(k)
+        fun flag(k: String) = s[k]?.firstOrNull() == 1
+    }
+
+    /** Heights (texels) for a plan-view box (its front band only a few rows: counters, nightstands, shelves seen from above). */
+    private val FAMILY_H = mapOf(
+        "counter" to 27, "cabinet" to 30, "dresser" to 28, "nightstand" to 20, "wardrobe" to 64, "shop_shelf" to 40, "shop_counter" to 27,
+        "register" to 27, "sink" to 27, "vanity" to 27, "oven" to 27, "display" to 27, "ottoman" to 14, "sofa_corner" to 18, "desk" to 24,
+        "shower" to 60, "fridge" to 52, "stove" to 24, "bookcase" to 50,
+    )
+
+    /** The row of [s] between [y0] and [y1] with the fewest different colours: a plain row to repeat (a panel, a plank). */
+    internal fun plainRow(s: PixImg, y0: Int, y1: Int): Int {
+        var best = y0; var n = Int.MAX_VALUE
+        val lo = (y0 + 2).coerceAtMost(y1 - 1); val hi = (y1 - 2).coerceAtLeast(lo + 1)
+        for (y in lo until hi.coerceAtMost(y1)) {
+            val c = HashSet<Int>(); for (x in 2 until s.w - 2) c += s[x, y]
+            if (c.size < n) { n = c.size; best = y }
+        }
+        return best
+    }
+
+    /** [s] with columns [a] until [b] taken out (an armchair: a sofa with its seats cut down to one). */
+    internal fun colsOut(s: PixImg, a: Int, b: Int): PixImg {
+        val o = PixImg(s.w - (b - a), s.h)
+        var ox = 0
+        for (x in 0 until s.w) if (x < a || x >= b) { for (y in 0 until s.h) o[ox, y] = s[x, y]; ox++ }
+        return o
+    }
+
+    /** [pieceMesh] for a loader outside this module (the tests): the design's picture as a [RoomArt]. */
+    fun pieceMeshOf(p: PieceSpec, a: RoomArt): PropMesh = pieceMesh(p, pix(a.w, a.h, a.argb))
+
+    /** The mesh of design [p] from its picture [s] (the design's own pixels, cropped to its art): dispatches on the family. */
+    internal fun pieceMesh(p: PieceSpec, s: PixImg): PropMesh {
+        val m = MeshBuilder()
+        when (p.family) {
+            "sofa", "chair_front" -> seat(m, s, p, seats = 3)
+            "armchair" -> {
+                val seams = p.r("seams")
+                // one seat: the left arm and first cushion, then the right arm's last 5 columns
+                seat(m, colsOut(s, seams[0] + 1, s.w - 5), p, seats = 1)
+            }
+            "bed_up" -> bedUp(m, s, p)
+            "bed_side" -> bedSide(m, s, p)
+            "toilet" -> toilet(m, s, p)
+            "tub" -> tub(m, s, p)
+            "desk", "table", "table_end", "bench" -> if (p.has("top")) deskTable(m, s, p) else genericBox(m, s, p)
+            "bookcase" -> if (p.has("top") && p.splitRow > 6) bookcase(m, s, p) else genericBox(m, s, p)
+            "chair" -> if (p.has("seat")) chairSide(m, s, p) else genericBox(m, s, p)
+            "window", "door", "curtain", "picture", "tv", "board", "wall_decor" -> plate(m, s)
+            else -> genericBox(m, s, p)
+        }
+        return m.build()
+    }
+
+    /** A box: the guessed top rows on its top, front rows on its front, as [Block] does; a plan-view piece's height from its family. */
+    private fun genericBox(m: MeshBuilder, s: PixImg, p: PieceSpec) {
+        val y = p.splitRow.coerceIn(3, s.h - 3)
+        val frontRows = s.h - y
+        val depth = (y - 1).coerceIn(4, 60)
+        val height = if (frontRows >= 14) frontRows else (FAMILY_H[p.family] ?: 24)
+        val at = (plainRow(s, y, s.h) - y).coerceIn(0, frontRows - 1)
+        block(m, s, Block(0, s.w, 1, y, y, s.h, depth = depth, height = height, topAt = (y - 1) / 2, frontAt = at))
+    }
+
+    /**
+     * Sofa, armchair: a back block (the rail from above, the backrest's face, carried down to the floor behind the seat) and a
+     * seat block (the cushion from above, its front down to the floor), as the booth is; the arms are the picture's end columns.
+     */
+    private fun seat(m: MeshBuilder, s: PixImg, p: PieceSpec, seats: Int) {
+        val bt = p.r("back_top"); val bf = p.r("back_face"); val st = p.r("seat_top"); val sf = p.r("seat_front")
+        val seatH = (sf[1] - sf[0]).coerceIn(10, 18)
+        val sd = st[1] - st[0]; val bd = (bt[1] - bt[0]).coerceAtLeast(3)
+        val faceRows = bf[1] - bf[0]
+        block(m, s, Block(0, s.w, st[0], st[1], sf[0], sf[1], depth = sd, height = seatH, frontAt = ((sf[1] - sf[0]) / 3).coerceAtLeast(0), topAt = sd / 2))
+        block(m, s, Block(0, s.w, bt[0], bt[0] + bd, bf[0], bf[1], depth = bd, height = seatH + faceRows, frontAt = faceRows - 1, topAt = bd / 2, z = sd))
+    }
+
+    /** A bed seen from its foot (the headboard at the top of the picture): frame and mattress, pillows, headboard, four legs. */
+    private fun bedUp(m: MeshBuilder, s: PixImg, p: PieceSpec) {
+        val hd = p.r("along.head"); val pl = p.r("along.pillow"); val rl = p.r("along.rail"); val lg = p.r("along.legs")
+        val legH = (lg[1] - lg[0]).coerceIn(3, 6); val frame = 12
+        val deep = rl[0] - pl[0]
+        // the mattress: its top from the pillows to the foot, the rail's rows its front raised to the frame's height
+        block(m, s, Block(0, s.w, pl[0], rl[0], rl[0], rl[1], depth = deep, height = frame, frontAt = (rl[1] - rl[0]) / 2, topAt = deep / 2, y = legH))
+        // the pillows: a low box over the pillow rows, their lower rows its front
+        val pd = pl[1] - pl[0]
+        block(m, s, Block(2, s.w - 2, pl[0], pl[1], (pl[1] - 3).coerceAtLeast(pl[0]), pl[1], depth = pd, height = 3, frontAt = 1, topAt = pd / 2, y = legH + frame, z = rl[0] - pl[1]))
+        // the headboard: its face the picture's top rows, carried down to the floor behind the mattress and up to 1 m
+        val hh = 28
+        block(m, s, Block(0, s.w, 0, 3, 0, hd[1], depth = 3, height = hh, frontAt = (hd[1] * 2 / 3).coerceAtMost(hd[1] - 1), topAt = 1, z = deep))
+        val c = s[2, lg[0] + 1].takeIf { (it ushr 24) > 127 } ?: outline(s); val dk = outline(s)
+        for (lx in listOf(3f, s.w - 3f)) for (lz in listOf(-3f, -deep + 3f)) leg(m, lx - s.w / 2f, lz, legH.toFloat(), 3f, c, dk)
+    }
+
+    /** A bed seen from its side (the head at one end): frame and mattress along the picture's columns, pillow, headboard, legs. */
+    private fun bedSide(m: MeshBuilder, s: PixImg, p: PieceSpec) {
+        val hc = p.r("cols.head"); val pc = p.r("cols.pillow")
+        val tr = p.r("rows.top"); val rr = p.r("rows.rail"); val lr = p.r("rows.legs")
+        val legH = (lr[1] - lr[0]).coerceIn(3, 6); val frame = 12
+        val deep = tr[1] - tr[0]
+        block(m, s, Block(0, s.w, tr[0], tr[1], rr[0], rr[1], depth = deep, height = frame, frontAt = (rr[1] - rr[0]) / 2, topAt = deep / 2, y = legH))
+        // the pillow, its top from the picture
+        val inset = 3
+        block(m, s, Block(pc[0], pc[1], tr[0] + inset, tr[1] - inset, (tr[1] - 3), tr[1], depth = deep - 2 * inset, height = 3, frontAt = 1, topAt = (deep - 2 * inset) / 2, y = legH + frame, z = inset))
+        // the headboard: a tall slab at the end, its top the strip, its faces the rail's wood
+        block(m, s, Block(hc[0], hc[1], tr[0], tr[1], rr[0], rr[1], depth = deep, height = 28, frontAt = (rr[1] - rr[0]) / 2, topAt = deep / 2))
+        val c = s[(hc[0] + hc[1]) / 2, rr[0] + 1].takeIf { (it ushr 24) > 127 } ?: outline(s); val dk = outline(s)
+        for (lx in listOf(4f, s.w - 4f)) for (lz in listOf(-3f, -deep + 3f)) leg(m, lx - s.w / 2f, lz, legH.toFloat(), 3f, c, dk)
+    }
+
+    /** A toilet from above: its tank (a box at the back), the bowl with its seat (the picture's seat rows on the top). */
+    private fun toilet(m: MeshBuilder, s: PixImg, p: PieceSpec) {
+        val tk = p.r("tank"); val bw = p.r("bowl"); val fr = p.r("front")
+        val bd = bw[1] - bw[0]
+        block(m, s, Block(0, s.w, bw[0], bw[1], fr[0], fr[1], depth = bd, height = 15, frontAt = (fr[1] - fr[0]) / 2, topAt = bd / 2))
+        val td = (tk[1] - tk[0] - 1).coerceAtLeast(4)
+        block(m, s, Block(2, s.w - 2, tk[0] + 1, tk[1], (tk[1] - 4).coerceAtLeast(tk[0]), tk[1], depth = td, height = 22, frontAt = 1, topAt = td / 2, z = bd))
+    }
+
+    /** A bath from above: a box (the picture's tub and taps on its top, its rim's rows the front). */
+    private fun tub(m: MeshBuilder, s: PixImg, p: PieceSpec) {
+        val t = p.r("top"); val f = p.r("front")
+        val d = t[1] - t[0]
+        block(m, s, Block(0, s.w, t[0], t[1], f[0], f[1], depth = d, height = 17, frontAt = (f[1] - f[0]) / 2, topAt = d / 2))
+    }
+
+    /**
+     * A table or desk (a plan-view slab with its rail and legs below): the slab's top from the picture, the rail's rows its
+     * edge, four legs in the legs' colours; a chair behind it (the picture's rows above the top) as a seat and a back board.
+     */
+    private fun deskTable(m: MeshBuilder, s: PixImg, p: PieceSpec) {
+        val ch = p.r("chair"); val tp = p.r("top"); val rl = p.r("rail"); val lg = p.r("legs")
+        val topH = p.s["h"]?.get(0) ?: if (p.family == "desk" || p.family == "table_end") 22 else 20
+        val depth = (tp[1] - tp[0]).coerceIn(6, 70)
+        val thick = (rl[1] - rl[0]).coerceIn(3, 8)
+        val x0 = 0; val x1 = s.w
+        block(m, s, Block(x0, x1, tp[0], tp[1], rl[0], rl[1], depth = depth, height = thick, frontAt = (rl[1] - rl[0]) / 2, topAt = depth / 2, y = topH - thick))
+        val out = outline(s)
+        var lc = out
+        run { val ry = ((lg[0] + lg[1]) / 2).coerceIn(0, s.h - 1); for (x in 0 until s.w / 3) if ((s[x, ry] ushr 24) > 127 && s[x, ry] != out) { lc = s[x, ry]; break } }
+        val inset = 3f
+        for (lx in listOf(inset + 1f, s.w - inset - 1f)) for (lz in listOf(-inset, -depth + inset)) leg(m, lx - s.w / 2f, lz, topH - thick.toFloat(), 3f, lc, out)
+        val cr = ch[1] - ch[0]
+        if (cr >= 6) {
+            // the chair behind: its back (the rows over the top, at most 18) on a board, its seat a slab under the top
+            val rows = cr.coerceAtMost(18); val r0 = ch[1] - rows
+            var cx0 = s.w; var cx1 = 0
+            for (y in ch[0] until ch[1]) for (x in 0 until s.w) if ((s[x, y] ushr 24) > 127) { cx0 = min(cx0, x); cx1 = max(cx1, x + 1) }
+            if (cx1 > cx0 + 4) {
+                block(m, s, Block(cx0, cx1, r0, r0 + 2, r0, ch[1], depth = 2, height = rows, topAt = 0, frontAt = rows / 2, y = 11, z = depth + 4))
+                val seatTop = rowMode(s, ch[1] - 1, cx0, cx1).takeIf { it != 0 } ?: rowMode(s, ch[1] - 2, cx0, cx1)
+                val st = PixImg(cx1 - cx0, 12).also { it.fill(seatTop); it.border(out) }
+                val sd = PixImg(cx1 - cx0, 2).also { it.fill(seatTop); it.hline(0, cx1 - cx0 - 1, 1, out) }
+                val sx0 = (cx0 - s.w / 2f) * T; val sx1 = (cx1 - s.w / 2f) * T
+                m.box(sx0, 9f * T, -(depth + 4 + 12) * T, sx1, 11f * T, -(depth + 4) * T) { side, _, _ ->
+                    when (side) { MeshBuilder.Side.TOP -> st; MeshBuilder.Side.BOTTOM -> null; else -> sd }
+                }
+                for (lx in listOf(cx0 + 2f, cx1 - 2f)) for (lz in listOf(-(depth + 4f) + 1.5f, -(depth + 4f + 12f) + 1.5f)) leg(m, lx - s.w / 2f, lz, 9f, 2f, lc, out)
+            }
+        }
+    }
+
+    /**
+     * A bookcase with depth: two upright sides and a lintel as full boxes, the shelves' face set back [DEEP] texels, so the
+     * books sit inside it and its inner sides, top and plinth show.
+     */
+    private fun bookcase(m: MeshBuilder, s: PixImg, p: PieceSpec) {
+        val y = p.splitRow
+        val D = (y - 1).coerceIn(8, 24); val H = s.h - y
+        val deep = 6; val post = 4
+        // the posts' faces are the picture's own edge columns
+        block(m, s, Block(0, post, 1, y, y, s.h, depth = D, height = H, topAt = (y - 1) / 2, frontAt = H / 2))
+        block(m, s, Block(s.w - post, s.w, 1, y, y, s.h, depth = D, height = H, topAt = (y - 1) / 2, frontAt = H / 2))
+        // the lintel: the top from above, its front the picture's first rows under the top edge
+        block(m, s, Block(post, s.w - post, 1, y, y, y + 4, depth = D, height = 4, topAt = (y - 1) / 2, frontAt = 1, y = H - 4))
+        // the shelves' face, set back
+        block(m, s, Block(post, s.w - post, -1, -1, y + 4, s.h - 3, depth = D - deep, height = H - 7, frontAt = (H - 7) / 2, y = 3, z = deep))
+        // the plinth
+        block(m, s, Block(post, s.w - post, -1, -1, s.h - 3, s.h, depth = D, height = 3, frontAt = 1))
+    }
+
+    /**
+     * A chair drawn from its side (the post at one end, [PieceSpec] "post_left"): turned to face +z, its seat the art's slats from
+     * above, its back a board wearing the post's colours row by row, four legs (the trial's chair, any chair design).
+     */
+    private fun chairSide(m: MeshBuilder, s: PixImg, p: PieceSpec) {
+        val seatR = p.r("seat"); val legs = p.r("legs"); val left = p.flag("post_left")
+        // the seat's slats: the columns not the post, the rows of the seat less its front rail
+        val postW = run { var c = 0; for (x in 0 until s.w) { val col = if (left) x else s.w - 1 - x; if ((s[col, 1] ushr 24) > 127 || (s[col, 3] ushr 24) > 127) c++ else break }; c.coerceIn(3, 9) }
+        val cx0 = if (left) postW + 1 else 1; val cx1 = if (left) s.w - 1 else s.w - postW - 1
+        val r0 = seatR[0] + 2; val r1 = (seatR[1] - 4).coerceAtLeast(r0 + 4)
+        val slats = crop(s, cx0, r0, cx1, r1)
+        // turned: across is the art's rows, depth its columns, the front (+z) the art's end away from the post
+        val seat = PixImg(slats.h, slats.w)
+        for (y in 0 until seat.h) for (x in 0 until seat.w) seat[x, y] = if (left) slats[y, seat.w - 1 - x] else slats[slats.w - 1 - y, seat.w - 1 - x]
+        val w = seat.w.toFloat(); val d = seat.h.toFloat()
+        val sy = 11f; val st = 2f; val out = outline(s)
+        val edgeC = rowMode(s, seatR[1] - 2).takeIf { it != 0 } ?: s[s.w / 2, seatR[1] - 2]
+        val edge = PixImg(seat.w, 2).also { it.fill(edgeC); it.hline(0, seat.w - 1, 1, out) }
+        val sideEdge = PixImg(seat.h, 2).also { it.fill(edgeC); it.hline(0, seat.h - 1, 1, out) }
+        m.box(-w / 2f * T, sy * T, -d * T, w / 2f * T, (sy + st) * T, 0f) { side, _, _ ->
+            when (side) { MeshBuilder.Side.TOP -> seat; MeshBuilder.Side.BOTTOM -> null; MeshBuilder.Side.FRONT, MeshBuilder.Side.BACK -> edge; else -> sideEdge }
+        }
+        // the back: the post's rows (its middle column) up to the seat, 16 at most, on a board across the seat's width
+        val bh = (seatR[0] + 8).coerceIn(10, 18)
+        val face = PixImg(seat.w, bh)
+        val pc = if (left) postW / 2 else s.w - 1 - postW / 2
+        for (y in 0 until bh) { val c = s[pc, y.coerceIn(0, s.h - 1)].takeIf { (it ushr 24) > 127 } ?: edgeC; for (x in 0 until seat.w) face[x, y] = if (x == 0 || x == seat.w - 1 || y == 0) out else c }
+        val top = PixImg(seat.w, 3).also { it.fill(s[pc, 3]); it.border(out) }
+        val thin = PixImg(3, bh).also { im -> for (y in 0 until bh) for (x in 0 until 3) im[x, y] = if (y == 0) out else s[pc, y] }
+        m.box(-w / 2f * T, (sy + st) * T, -d * T, w / 2f * T, (sy + st + bh) * T, (-d + 3f) * T) { side, _, _ ->
+            when (side) { MeshBuilder.Side.FRONT, MeshBuilder.Side.BACK -> face; MeshBuilder.Side.TOP -> top; MeshBuilder.Side.BOTTOM -> null; else -> thin }
+        }
+        val lc = s[if (left) s.w - 6 else 5, (legs[0] + legs[1]) / 2].takeIf { (it ushr 24) > 127 } ?: out
+        for (lx in listOf(-w / 2f + 1.5f, w / 2f - 1.5f)) for (lz in listOf(-1.5f, -d + 1.5f)) leg(m, lx, lz, sy, 2f, lc, out)
+    }
+
+    /** A thin plate (a window, a door, curtains, a picture, a flat TV): the picture on its front, its edge the outline colour. */
+    private fun plate(m: MeshBuilder, s: PixImg) {
+        block(m, s, Block(0, s.w, 0, 1, 0, s.h, depth = 3, height = s.h, topAt = 0, frontAt = s.h / 2))
+    }
+
     // ---- the room's shell ------------------------------------------------------------------------------------------
 
     /** The wall's face height (texels): the art's 50 rows with its plain upper colour carried up to about 3 m. */

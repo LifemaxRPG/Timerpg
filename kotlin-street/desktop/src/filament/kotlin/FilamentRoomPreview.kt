@@ -122,10 +122,10 @@ fun renderRoom(out: String) {
     engine.destroy()
 }
 
-private fun PixImg.width() = w
+internal fun PixImg.width() = w
 
 /** A plain floor square [size] across, centred on the origin, in [c] with a faint 32-texel grid. */
-private fun plainFloor(size: Float, c: Int): PropMesh {
+internal fun plainFloor(size: Float, c: Int): PropMesh {
     val m = MeshBuilder()
     val n = (size / RoomKit.T).toInt()
     val im = PixImg(n, n).also { it.fill(c); for (i in 0 until n step 32) { it.hline(0, n - 1, i, Paint.c(0x8A8A8A)); it.vline(i, 0, n - 1, Paint.c(0x8A8A8A)) } }
@@ -324,7 +324,7 @@ private class Diner(val stage: RoomStage, val art: (String) -> PixImg, val peopl
 }
 
 /** A Filament stage for the room: a sun, a sky light, the night's lamps, one camera, a swap chain to read back. */
-private class RoomStage(val engine: Engine, val lit: Material, val proxy: Material, val w: Int, val h: Int) {
+internal class RoomStage(val engine: Engine, val lit: Material, val proxy: Material, val w: Int, val h: Int) {
     val scene = engine.createScene()
     val view = engine.createView()
     val camera: Camera = engine.createCamera(EntityManager.get().create())

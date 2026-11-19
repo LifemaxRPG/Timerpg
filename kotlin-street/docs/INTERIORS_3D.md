@@ -165,6 +165,44 @@ Rough effort, an estimate:
 - **The whole pack:** a few weeks of focused work.
 - **Furnishing the town's 92 interiors with a few dozen designs each:** a week or two.
 
+## The pipeline (pieces.json, family builders, rooms)
+
+The trial's approach, made data-driven. Nothing here is wired into the game; renders are desktop (Filament, software GL).
+
+- **Cutter** `tools/cut_pieces.py <Modern_Interiors zip> [out] [--sheet DIR]` writes `app/src/main/assets/room3d/pieces/`:
+  `pieces.json` (every design) and `atlas0.png` (188 KB: the designs of the families rooms need, each with up to 6 colour
+  variants). Sources: the pack's numbered singles (clean cuts) plus every sheet object the singles lack (found as
+  connected components: sofas, tubs, the generic tables and chairs), plus a few hand rectangles where neighbours touch (the
+  sofas). Colour variants share a design (same silhouette, matching brightness pattern). Each design gets a `kind` (box /
+  parts / card / flat / wall / hand), a `family`, and for boxes the guessed `split`: the front starts at the first interior row
+  of the outline colour spanning the width (the top's front edge), else at the biggest brightness step. Few-part families
+  get a `spec` of row and column ranges found from the art's own dark lines (a bed's head / pillows / body / rail / legs, a
+  sofa's back top / back face / seat top / seat front and its seams, a desk's chair / top / rail / legs, a toilet's tank and
+  bowl). `--sheet DIR` writes a labelled contact sheet per kind and family: that is how the guesses are checked by eye.
+- **Honest classification**: `reviewed` designs (named by a size rule or hand label after looking at the sheets) are in the
+  atlas; the other ~2,000 boxes are listed with kind, guessed split and a theme default family ("cabinet") but ship no
+  pixels, because the guess has not been looked at. The cheap, large win is to look at their contact sheets and add rules.
+- **Builders** in `RoomKit` (`PieceSpec`, `pieceMesh`): `genericBox` (any box from its split; a plan-view piece with a short
+  front band gets its family's height), `seat` (sofa and armchair: back block carried to the floor, seat block; an armchair is the
+  sofa with its seat columns cut to one), `bedUp` / `bedSide` (frame and mattress, pillows as a low box, headboard, legs),
+  `toilet` (tank and bowl), `tub`, `deskTable` (slab, rail, four legs, a chair behind it from the picture's rows above the top),
+  `bookcase` (posts, lintel, plinth and the shelves' face set back 6 texels, so it has depth), `chairSide` (the trial's chair for
+  any side-view chair), `plate` (windows, doors, curtains, pictures, boards, TVs). Still 1 texel per art texel, nearest, sides
+  from the front's edge column and each row's commonest colour (nothing blank, nothing mirrored).
+- **Rooms** `gradle :desktop:preview -Dmode=rooms3d` (`-Drooms=kitchen,bath`, `-Dhour=13|22`) writes `build/preview/rooms/`:
+  living room, bedroom, kitchen, bathroom, shop, office, classroom, each from the high game camera, a corner and eye level, by
+  day and night; and `pieces_sheet.png`: 34 pieces, each beside its sprite and a person at the same texel size.
+- **Tests**: `RoomKitTest` builds every shipped box and parts design (181) and checks faces, floor contact, width against the
+  picture, depth, texture coordinates and finite vertices, and that the needed families are shipped.
+
+Coverage (3,819 designs in 24 themes plus the generic sheet): box 2,058, card 1,415, flat 259, parts 70, wall 14, hand 3.
+222 designs (480 pictures) have art in the atlas.
+
+Known weak spots (seen in the renders): things drawn standing on furniture (vases and frames on a dresser) are painted on its
+top; bath 61's shower is a plain cabinet; the tub is a block with the picture on top, not hollow; the wall pieces (pictures, TV)
+hang on whichever wall is kept in the cut-away, and float if their wall is cut; armchairs keep the sofa's arm art only at the ends;
+lamps and plants are cards; the pendants are the diner's.
+
 ## Next steps
 
 1. Wire one room into the game: "Go inside" opens it at the building's door, inside the town's scene. TownRun and
