@@ -1,0 +1,323 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1990,
+  "topic": "fashion",
+  "facts": [
+    {
+      "id": "1990-fashion-01",
+      "year_from": 1990,
+      "year_to": 1994,
+      "text": "High-waisted jeans with tapered legs remain popular among teenagers early in the decade.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-02",
+      "year_from": 1992,
+      "year_to": 1999,
+      "text": "Loose-fitting jeans become common among teenagers as the decade progresses.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-03",
+      "year_from": 1992,
+      "year_to": 1998,
+      "text": "Flannel shirts worn open over T-shirts are familiar casual outfits for young people.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-04",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Some teenagers wear oversized sweatshirts with jeans to school.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-05",
+      "year_from": 1990,
+      "year_to": 1995,
+      "text": "Girls pair leggings with long sweaters or tunic tops for casual outings.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-06",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A teenager may wear a denim jacket covered with small pins or patches.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-07",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Canvas sneakers and athletic shoes are common choices for everyday schoolwear.",
+      "ages": "kids",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-08",
+      "year_from": 1993,
+      "year_to": 1999,
+      "text": "Boys often wear loose shorts and graphic T-shirts during summer vacation.",
+      "ages": "kids",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-09",
+      "year_from": 1990,
+      "year_to": 1997,
+      "text": "Children wear colorful windbreakers on cool mornings.",
+      "ages": "kids",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-10",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Some girls wear floral dresses with tights and flat shoes to family gatherings.",
+      "ages": "kids",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-11",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Men wear pleated trousers and tucked-in shirts to many office jobs.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-12",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A man may choose a patterned necktie for church or a formal dinner.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-13",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Women wear tailored blazers with skirts or trousers to office jobs.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-14",
+      "year_from": 1993,
+      "year_to": 1999,
+      "text": "Some office workers adopt more relaxed clothing on designated casual Fridays.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-15",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A woman may wear a long floral skirt with a simple cardigan for an afternoon visit.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-16",
+      "year_from": 1994,
+      "year_to": 1999,
+      "text": "Short layered haircuts are common among women seeking an easy daily style.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-17",
+      "year_from": 1990,
+      "year_to": 1996,
+      "text": "Some women use a curling iron and hairspray to shape bangs before leaving home.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-18",
+      "year_from": 1997,
+      "year_to": 1999,
+      "text": "Teenage girls sometimes fasten their hair with butterfly-shaped clips late in the decade.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-19",
+      "year_from": 1993,
+      "year_to": 1998,
+      "text": "Some teenage boys part their longer hair down the middle.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-20",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Men commonly wear short hair with a neat side part for business occasions.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-21",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A baseball cap is familiar casual headwear for men and boys.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-22",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Older women may wear comfortable slacks with a blouse and cardigan for errands.",
+      "ages": "elders",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-23",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Older men often choose a collared shirt and lightweight jacket for town visits.",
+      "ages": "elders",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-24",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Leather loafers remain a common choice with office trousers.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-25",
+      "year_from": 1996,
+      "year_to": 1999,
+      "text": "Chunky platform shoes become fashionable among some teenage girls late in the decade.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-fashion-26",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A simple black dress is a familiar choice for a formal evening event.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
