@@ -1,0 +1,338 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1990,
+  "topic": "transport",
+  "facts": [
+    {
+      "id": "1990-transport-01",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Many families drive four-door sedans to school, work, and grocery stores.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-02",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Minivans carry children, sports equipment, and groceries on family errands.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-03",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Pickup trucks remain common for farm work, hauling supplies, and weekend chores.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-04",
+      "year_from": 1993,
+      "year_to": 1999,
+      "text": "Sport utility vehicles become more common in suburban driveways during the decade.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-05",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Drivers pull into self-service gasoline stations and fill their own tanks.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-06",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Some gasoline stations still have attendants who pump fuel for customers.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-07",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A driver checks tire pressure with a gauge near the station air pump.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-08",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Drivers keep a folded road atlas in the glove compartment for long trips.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-09",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Families stop at highway rest areas to use bathrooms and stretch their legs.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-10",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A road trip often includes a paper map marked with the planned route.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-11",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Drivers look for exit numbers and roadside signs before leaving the interstate.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-12",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A mechanic posts a handwritten estimate for brake repairs at the service counter.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-13",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Many drivers schedule an oil change by calling a repair shop.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-14",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A teenager practices parallel parking before taking a driving test.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-15",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Parents remind young drivers to buckle their seat belts before leaving.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-16",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A child rides in the back seat while an adult fastens the safety belt.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-17",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "School buses collect students from neighborhood corners and rural roads.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-18",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Some students walk to school along sidewalks with friends.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-19",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Children ride bicycles to parks and friends' houses after school.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-20",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Teenagers ride mountain bikes on trails and neighborhood streets.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-21",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A commuter may take a local bus and pay the fare in cash.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-22",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A bus passenger checks a printed timetable before leaving home.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-23",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Passenger trains connect some towns with larger cities, though many communities lack service.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-24",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A train traveler buys a ticket at a station or by telephone.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-25",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A traveler checks flight departure times by calling the airline or travel agent.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-transport-26",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Some cars have driver-side air bags, while newer models increasingly include passenger-side protection.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "smartphone turn-by-turn directions",
+      "first_common": 2010,
+      "say_instead": "Use a paper road atlas or ask for directions."
+    },
+    {
+      "thing": "navigation apps with live traffic",
+      "first_common": 2012,
+      "say_instead": "Check a radio traffic report or printed map."
+    },
+    {
+      "thing": "ride-hailing smartphone services",
+      "first_common": 2015,
+      "say_instead": "Call a taxi dispatcher or ask for a ride."
+    },
+    {
+      "thing": "electric scooters rented by phone",
+      "first_common": 2018,
+      "say_instead": "Walk, ride a bicycle, or take a bus."
+    },
+    {
+      "thing": "electric cars as an ordinary family choice",
+      "first_common": 2020,
+      "say_instead": "Most families drive gasoline-powered cars."
+    },
+    {
+      "thing": "online tickets displayed on a phone",
+      "first_common": 2010,
+      "say_instead": "Carry a printed ticket or paper confirmation."
+    },
+    {
+      "thing": "contactless fare payment by phone",
+      "first_common": 2018,
+      "say_instead": "Pay cash or use a physical transit pass."
+    },
+    {
+      "thing": "public fast charging for electric vehicles",
+      "first_common": 2020,
+      "say_instead": "Stop at a gasoline station to refuel."
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
