@@ -1,0 +1,338 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2010,
+  "topic": "transport",
+  "facts": [
+    {
+      "id": "2010-transport-01",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Drivers use dashboard navigation screens in newer cars, while many older vehicles still rely on road signs.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-02",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A driver checks tire pressure at a service station before a long trip.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-03",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Many families choose a sport utility vehicle or minivan for errands and vacations.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-04",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A teenager practices parallel parking before taking a driving test.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-05",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Parents wait in a line of cars outside the elementary school at dismissal.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-06",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A yellow school bus stops along rural roads to collect students in the morning.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-07",
+      "year_from": 2013,
+      "year_to": 2019,
+      "text": "Some school districts install cameras on buses to monitor passing vehicles.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-08",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Drivers encounter temporary lane closures near highway resurfacing crews.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-09",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A road crew paints fresh lane markings on the highway after repairs.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-10",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some towns add marked bicycle lanes along busier streets.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-11",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Children wear helmets while riding bicycles around the neighborhood.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-12",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A commuter secures a bicycle to a rack outside the library.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-13",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some commuters arrange carpools to share fuel and parking expenses.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-14",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Drivers use electronic toll passes on highways that charge tolls.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-15",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A traveler prints a boarding pass at home before heading to the airport.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-16",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Airline passengers remove shoes at security checkpoints before boarding domestic flights.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-17",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A passenger train stops at a regional station where travelers wait with luggage.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-18",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A small-town bus route may run only a few times each weekday.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-19",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A family checks highway rest areas before leaving on a long drive.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-20",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A driver pulls into a gas station and pays at the pump with a card.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-21",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some motorists compare fuel economy when shopping for a used car.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-22",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Hybrid cars appear in parking lots alongside conventional gasoline vehicles.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-23",
+      "year_from": 2013,
+      "year_to": 2019,
+      "text": "Electric car charging stations begin appearing at some public parking areas.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-24",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A delivery van stops along Main Street to drop parcels at local businesses.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-25",
+      "year_from": 2013,
+      "year_to": 2019,
+      "text": "Ride-hailing services become an option in some larger nearby cities before reaching many smaller towns.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-transport-26",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A parent checks that a young child is buckled into an appropriate car seat.",
+      "ages": "adults",
+      "use": [
+        "guard"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "self-driving taxis routinely serving small towns",
+      "first_common": null,
+      "say_instead": "a taxi or car driven by a person"
+    },
+    {
+      "thing": "flying personal cars used for daily commuting",
+      "first_common": null,
+      "say_instead": "a conventional road vehicle"
+    },
+    {
+      "thing": "electric cars replacing most gasoline cars",
+      "first_common": null,
+      "say_instead": "mostly gasoline cars with some hybrids and electric vehicles"
+    },
+    {
+      "thing": "a nationwide network of high-speed passenger rail serving small towns",
+      "first_common": null,
+      "say_instead": "regional passenger trains or intercity buses"
+    },
+    {
+      "thing": "a phone application used for every school bus pickup",
+      "first_common": null,
+      "say_instead": "a posted bus schedule or school notice"
+    },
+    {
+      "thing": "delivery drones routinely dropping parcels at neighborhood homes",
+      "first_common": null,
+      "say_instead": "a delivery van or postal carrier"
+    },
+    {
+      "thing": "automated trucks operating without drivers on ordinary local roads",
+      "first_common": null,
+      "say_instead": "trucks driven by people"
+    },
+    {
+      "thing": "public charging stations at nearly every rural gas station",
+      "first_common": null,
+      "say_instead": "gasoline pumps and occasional electric charging stations"
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
