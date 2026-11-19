@@ -1,0 +1,104 @@
+{
+  "licence": "LimeZu: Timerpg game use only, retain original credit. Original geometry and supplemental mill artwork.",
+  "swatches": [
+    {
+      "id": "brick_red",
+      "atlas_rect": [
+        115,
+        113,
+        60,
+        48
+      ],
+      "source": {
+        "id": "brick_red",
+        "family": "wall",
+        "pack": "exteriors",
+        "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/1_Terrains_and_Fences_32x32.png",
+        "rect": [
+          23,
+          806,
+          62,
+          48
+        ],
+        "tile": "seamless",
+        "repeat": [
+          31,
+          48
+        ],
+        "palette": [
+          "#a14f44",
+          "#b99e86",
+          "#943c3f",
+          "#b18a74",
+          "#a7604a",
+          "#9b766a"
+        ],
+        "tags": [
+          "brick",
+          "art"
+        ],
+        "seam": [
+          0.0,
+          0.21
+        ],
+        "note": "warm red courses, tan mortar, dark outline; light from top"
+      },
+      "tint": null
+    },
+    {
+      "id": "roof_tin_blue",
+      "atlas_rect": [
+        33,
+        33,
+        32,
+        32
+      ],
+      "source": {
+        "id": "roof_tin_blue",
+        "family": "roof",
+        "pack": "exteriors",
+        "file": "7_Villas_32x32.png",
+        "rect": [
+          360,
+          550,
+          32,
+          32
+        ],
+        "tags": [
+          "pitched",
+          "metal"
+        ],
+        "wrap": "xy"
+      },
+      "tint": "Weathered slate blue: saturation 0.6, brightness 0.8"
+    },
+    {
+      "id": "pavement",
+      "atlas_rect": [
+        171,
+        66,
+        32,
+        32
+      ],
+      "source": {
+        "id": "pavement",
+        "family": "ground",
+        "pack": "exteriors",
+        "pick": {
+          "glob": "2_City_Terrains_Singles_32x32/*Sidewalk_1_*.png",
+          "opaque": true,
+          "lum": [
+            150,
+            255
+          ]
+        },
+        "tags": [
+          "sidewalk",
+          "concrete"
+        ],
+        "wrap": "xy"
+      },
+      "tint": null
+    }
+  ]
+}
