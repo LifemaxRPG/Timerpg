@@ -1,0 +1,349 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1980,
+  "topic": "media",
+  "facts": [
+    {
+      "id": "1980-media-01",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A family gathers around the television for an evening comedy or drama.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-02",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A local station interrupts regular programming for urgent weather reports.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-03",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "The evening television news summarizes events before families settle into entertainment.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-04",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A household consults the printed television listings to find tonight's programs.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-05",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Saturday morning television offers animated programs aimed at children.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-06",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A television set receives a handful of local broadcast channels without a subscription.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-07",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Some households pay for cable channels that carry movies or specialized programming.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-08",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A viewer records a television program onto a blank videotape for later.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-09",
+      "year_from": 1983,
+      "year_to": 1989,
+      "text": "A video rental shop displays movie cassettes in boxes along its shelves.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-10",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "The local cinema posts showtimes on a sign outside its entrance.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-11",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A drive-in theater offers an outdoor movie where one still operates.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-12",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "The car radio plays popular music during the drive to school.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-13",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A local radio announcer reads community notices between songs.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-14",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Listeners telephone a radio station to request a favorite song.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-15",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "An afternoon radio program reports traffic and weather for commuters.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-16",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A music shop sells records and prerecorded cassette albums.",
+      "ages": "teens",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-17",
+      "year_from": 1985,
+      "year_to": 1989,
+      "text": "Compact discs appear in music shops later in the decade, often costing more than cassettes.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-18",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A teenager shares a homemade cassette compilation with a friend.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-19",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A newspaper carrier delivers the morning paper to neighborhood doorsteps.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-20",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "The weekly town newspaper prints school sports scores and community announcements.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-21",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Families read classified advertisements to find used furniture and job openings.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-22",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A library keeps current magazines and newspapers available for reading.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-23",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A magazine rack near the checkout displays hobby, fashion, and news periodicals.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-24",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A caller checks the printed telephone directory for a business number.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-25",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Long-distance telephone calls may cost more than local calls.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-26",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A public telephone accepts coins for a quick call away from home.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-media-27",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A town resident reads a bulletin board for concert notices and community performances.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "streaming television services",
+      "first_common": 2015,
+      "say_instead": "broadcast television or a rented videotape"
+    },
+    {
+      "thing": "online newspaper websites in ordinary homes",
+      "first_common": 2000,
+      "say_instead": "a printed newspaper"
+    },
+    {
+      "thing": "music downloads to a personal player",
+      "first_common": 2005,
+      "say_instead": "a cassette or a record"
+    },
+    {
+      "thing": "video calls from home computers",
+      "first_common": 2015,
+      "say_instead": "a telephone call"
+    },
+    {
+      "thing": "podcast listening in ordinary homes",
+      "first_common": 2010,
+      "say_instead": "a radio program"
+    },
+    {
+      "thing": "social media news feeds",
+      "first_common": 2010,
+      "say_instead": "a newspaper or television bulletin"
+    },
+    {
+      "thing": "on-demand music streaming",
+      "first_common": 2015,
+      "say_instead": "radio or a purchased album"
+    },
+    {
+      "thing": "digital television broadcasts as the normal signal",
+      "first_common": 2010,
+      "say_instead": "analog broadcast television"
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
