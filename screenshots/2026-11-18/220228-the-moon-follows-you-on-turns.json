@@ -1,0 +1,157 @@
+{
+  "kind": "screenshot",
+  "time": "2026-11-18T22:02:28.693-0500",
+  "epochMs": 1795057348693,
+  "note": "the moon follows you on turns",
+  "app": {
+    "versionName": "0.1.321 (dd7bb74)",
+    "versionCode": 321,
+    "git": "dd7bb74",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "image": {
+    "file": "220228-the-moon-follows-you-on-turns.png",
+    "format": "png",
+    "scale": 1,
+    "width": 2340,
+    "height": 1080,
+    "bytes": 2429466,
+    "captured": "PixelCopy of the window"
+  },
+  "screen": {
+    "widthPx": 2244,
+    "heightPx": 1038,
+    "density": 2.8125,
+    "densityDpi": 450
+  },
+  "device": {
+    "ramFreeMb": 2811,
+    "ramTotalMb": 11113,
+    "lowMemory": false,
+    "gamePssMb": 1429,
+    "thermalStatus": 2,
+    "thermalHeadroom10s": 0.93829256
+  },
+  "game": {
+    "renderer": "Filament",
+    "camera": "medium",
+    "rendererError": null,
+    "town": "eta · Commuter suburb · 2025",
+    "walkableTown": {
+      "seed": "gamma",
+      "loading": false,
+      "ready": true,
+      "progress": 1,
+      "error": null,
+      "loadMs": 350.4478,
+      "firstViewMs": 15944.499,
+      "built": "town built: ground 15944 ms (workers 15939), buildings 296 ms here (slowest b21 10.0 ms, largest batch 19.1 ms), 16164 ms on workers (slowest b5 2067 ms); textures 692, 69.8M texels, 2312 shared",
+      "memory": {
+        "when": "town built",
+        "graphicsMb": 967,
+        "nativeMb": 97,
+        "javaMb": 103,
+        "codeMb": 31,
+        "totalPssMb": 1232
+      },
+      "row": "35L",
+      "street": "Civic Avenue",
+      "neighbourhood": "Riverside",
+      "x": 610.67615,
+      "lane": 12.224484,
+      "wx": 6160.3174,
+      "wz": 6395.6763,
+      "heading": -2.9677694,
+      "front": null,
+      "transit": null,
+      "liveRows": [
+        "35L",
+        "7L",
+        "34R",
+        "35R",
+        "41L",
+        "40L"
+      ],
+      "people": 19
+    },
+    "street": {
+      "index": 0,
+      "name": "Main Street",
+      "nearestBuilding": -1,
+      "building": null,
+      "owner": null,
+      "atCorner": false,
+      "edge": 0
+    },
+    "player": {
+      "x": 610.67615,
+      "lane": 12.224484,
+      "street": 0,
+      "dir": 1,
+      "walking": false,
+      "running": false,
+      "viewMiddle": 284.625
+    },
+    "turn": {
+      "active": false,
+      "forward": true,
+      "p": 1,
+      "yaw": 1.5707964,
+      "ease": 1,
+      "blocked": false
+    },
+    "inRoom": false,
+    "room": null,
+    "doorFade": false,
+    "time": {
+      "hour": 17.6,
+      "clock": "17:36",
+      "season": "autumn",
+      "weather": "Clear"
+    },
+    "frames": {
+      "compose": "Frames: 16.6 ms (60 fps) · p95 16.7 ms · 2.3% late · display 60 Hz",
+      "filament": "Filament: CPU 10.1 ms (p95 14.8) · GPU 16.8 ms (p95 25.9) · start 9 ms, street 480 ms"
+    },
+    "ai": {
+      "state": "NO_MODEL",
+      "detail": "No model yet: people use their built-in lines. Download it from the AI panel, or choose the model file (Qwen3.5-9B-Q4_K_M.gguf, about 5.7 GB) to give them their own words. It is copied into the game once.",
+      "runsOn": "CPU",
+      "modelMb": 0,
+      "role": null,
+      "forceBank": false,
+      "gpuNote": null,
+      "lane": null,
+      "linesWritten": 55,
+      "builtIn": 0,
+      "queued": 0,
+      "paused": "",
+      "working": null,
+      "pregenOff": null,
+      "prefillTokPerSec": 0,
+      "genTokPerSec": 0,
+      "firstTokenMs": 0,
+      "loadInfo": null
+    },
+    "conversation": null,
+    "voices": {
+      "enabled": false,
+      "speaking": false,
+      "only": 2,
+      "timing": null
+    },
+    "mic": {
+      "always": false,
+      "granted": false,
+      "listening": false,
+      "state": "IDLE"
+    },
+    "panels": {
+      "aiPanel": false,
+      "crashShown": false,
+      "tuningNpu": false
+    }
+  }
+}
