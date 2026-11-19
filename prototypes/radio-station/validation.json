@@ -1,0 +1,23 @@
+{
+  "file": "radio-station.glb",
+  "visible_triangles": 4544,
+  "materials": 12,
+  "collision_boxes": 24,
+  "doors": 6,
+  "external_doors": 3,
+  "prop_triangles": {
+    "mast_fence": 396,
+    "parking_stop": 12,
+    "parking_stop.001": 12,
+    "parking_stop.002": 12,
+    "public_bench": 84,
+    "service_bins": 48
+  },
+  "uv_scale_max_edge_error_m": 2.4597497230161025e-06,
+  "bytes": 383448,
+  "art": "Every embedded PNG has exact 2x2 texel art pixels; nearest/repeat samplers and physical UV density verified. Window atlas containment and separate pane emission mask verified.",
+  "architecture": "Closed roof slab orientation, clear six door apertures, non-overlapping coplanar paving and grade-safe geometry verified.",
+  "collision": "Full-height box corners match actual exported collision mesh. Door translations, outward normals, floors and gate bindings verified.",
+  "runtime": "Clean studio/control-room shells, fixed wall lining and observation ledge only. Broadcasts, navigation, doors, lighting and simulation integration remain pending.",
+  "renders": "Blender desktop previews, not Filament/S25 captures."
+}
