@@ -1,0 +1,338 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1970,
+  "topic": "transport",
+  "facts": [
+    {
+      "id": "1970-transport-01",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Families often drive sedans or station wagons for errands and weekend visits.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-02",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A station wagon carries children, groceries, and luggage on family trips.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-03",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Most new cars have seat belts, although some passengers leave them unfastened.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-04",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Drivers consult folded road maps before taking unfamiliar routes.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-05",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A passenger reads highway signs to help the driver find an exit.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-06",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Many service stations still have attendants who pump gasoline.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-07",
+      "year_from": 1974,
+      "year_to": 1979,
+      "text": "Self-service gasoline pumps become more familiar during the decade.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-08",
+      "year_from": 1973,
+      "year_to": 1974,
+      "text": "Drivers sometimes wait in lines at gasoline stations during fuel shortages.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-09",
+      "year_from": 1973,
+      "year_to": 1974,
+      "text": "Some gasoline stations limit purchases when supplies run short.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-10",
+      "year_from": 1979,
+      "year_to": 1979,
+      "text": "Fuel shortages return in some communities near the end of the decade.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-11",
+      "year_from": 1974,
+      "year_to": 1979,
+      "text": "Many motorists choose smaller cars as fuel costs become a concern.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-12",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A mechanic checks tires, belts, and engine fluids during a service visit.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-13",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Car owners keep paper registration and insurance documents in the glove compartment.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-14",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Interstate highways carry travelers past older downtown business districts.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-15",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Roadside rest areas give highway travelers places to stop and stretch.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-16",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "School buses collect children along neighborhood streets and rural roads.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-17",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Some students walk or ride bicycles to school when they live nearby.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-18",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Children often ride bicycles around residential streets after school.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-19",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Bicycle riders use hand signals to indicate turns.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-20",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Some towns have local bus routes with posted stops and printed schedules.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-21",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Residents without cars may depend on relatives for rides to appointments.",
+      "ages": "elders",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-22",
+      "year_from": 1971,
+      "year_to": 1979,
+      "text": "Passenger trains serve some towns, but many smaller stations have lost service.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-23",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Travelers buy bus tickets at a station counter before longer trips.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-24",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A family packs a cooler and snacks for a long summer drive.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-25",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Teenagers practice driving with an adult before taking a license test.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-transport-26",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Motorcycle riders become more visible on town streets and highways.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "navigation screens in ordinary family cars",
+      "first_common": 2005,
+      "say_instead": "a folded paper road map"
+    },
+    {
+      "thing": "smartphone driving directions",
+      "first_common": 2010,
+      "say_instead": "road signs and a paper map"
+    },
+    {
+      "thing": "electric cars as ordinary family vehicles",
+      "first_common": 2020,
+      "say_instead": "a gasoline-powered car"
+    },
+    {
+      "thing": "ride-hailing smartphone applications",
+      "first_common": 2015,
+      "say_instead": "a telephone call to a taxi company"
+    },
+    {
+      "thing": "automatic electronic toll payment in ordinary cars",
+      "first_common": 2000,
+      "say_instead": "cash at a toll booth"
+    },
+    {
+      "thing": "backup cameras in ordinary family cars",
+      "first_common": 2015,
+      "say_instead": "turning to look through the rear window"
+    },
+    {
+      "thing": "hybrid cars as common family vehicles",
+      "first_common": 2010,
+      "say_instead": "a gasoline-powered sedan"
+    },
+    {
+      "thing": "public charging stations for passenger cars",
+      "first_common": 2020,
+      "say_instead": "a gasoline service station"
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
