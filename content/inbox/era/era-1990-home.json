@@ -1,0 +1,297 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1990,
+  "topic": "home",
+  "facts": [
+    {
+      "id": "1990-home-01",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A family keeps a calendar on the refrigerator for appointments and school activities.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-02",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Parents leave written reminders on the kitchen counter before heading to work.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-03",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Children heat leftovers in the microwave after returning from school.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-04",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A parent packs sandwiches and fruit into a child's lunchbox before school.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-05",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Families often eat supper around a kitchen table after work and school.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-06",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A household keeps frozen vegetables and ready-made meals for busy evenings.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-07",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A parent writes a grocery list on a pad kept beside the refrigerator.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-08",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Children set the table and clear dishes as part of their chores.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-09",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A dishwasher runs after supper while the family tidies the kitchen.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-10",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Laundry baskets pile up beside the washing machine on weekends.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-11",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Family members sort light and dark clothes before starting a wash.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-12",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A clothes dryer tumbles towels while someone folds the previous load.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-13",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A parent irons a shirt for work on a folding ironing board.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-14",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Children make their beds before leaving for school.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-15",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A teenager tapes posters and photographs to a bedroom wall.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-16",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Families store seasonal decorations in labeled boxes in the attic or garage.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-17",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A living room often has a fabric sofa, a coffee table, and framed family photographs.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-18",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A family gathers in the living room to play a board game on a rainy evening.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-19",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Children build blanket forts with sofa cushions during indoor play.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-20",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A parent calls children inside when the porch light comes on.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-21",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Neighbors sit on front steps and talk during warm summer evenings.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-22",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A household rolls trash bins to the curb before collection day.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-23",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A family stores lawn tools, bicycles, and holiday boxes in the garage.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-24",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Parents mow the lawn or ask older children to help on Saturdays.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-25",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A family cools the house with window fans or central air conditioning during summer.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-home-26",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A parent posts a weekly chore chart where everyone can see it.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
