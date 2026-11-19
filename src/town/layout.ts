@@ -9,6 +9,7 @@ import { apartmentCapacity, apartmentEligible, houseArt, type ResidentialKind } 
 import type { BuildingArt } from './buildings';
 import { waterNear } from './water';
 import { FRONT } from './kinds';
+import { farmsIn, type FarmsYear } from './farms';
 import { planTown, TILE, type Candidate, type LotKind, type Prop, type Road, type TownPlan } from './plan';
 
 export { TILE };
@@ -52,6 +53,8 @@ export interface TownLayout {
   /** Year-dependent decoration (yards, trees on empty plots). Static props live in the plan. */
   props: Prop[];
   plan: TownPlan;
+  /** The farms round the town this year (src/town/farms.ts): country roads, farmsteads, the fields not yet built over. */
+  farms: FarmsYear;
 }
 
 /**
@@ -331,7 +334,8 @@ export function layoutTown(w: World): TownLayout {
     }
   });
 
-  return { width: plan.width, height: plan.height, roads: builtRoads, lots, vacantLots, landmarks, props, plan };
+  const farms = farmsIn(plan, w.year, { roads: builtRoads, lots: properties, landmarks });
+  return { width: plan.width, height: plan.height, roads: builtRoads, lots, vacantLots, landmarks, props, plan, farms };
 }
 
 /** Infrastructure survives vacancy and population decline. */

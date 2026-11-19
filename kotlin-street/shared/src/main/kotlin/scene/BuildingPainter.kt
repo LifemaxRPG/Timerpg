@@ -3788,6 +3788,8 @@ internal class BuildingPainter {
      * curves), snow on it.
      */
     private fun DrawScope.stripPart(v: com.lifemax.rpg.feature.habits.domain.ModelView, p: com.lifemax.rpg.feature.habits.domain.ModelPart, ma: ModelArt, sky: SkyColors, seed: Int) {
+        // (a lying cylinder, a wheel or a barrel on its side, is the Filament models' only: FilamentModels.cyl)
+        if (p.axis != 0) return
         val ft = p.ft
         val arc = p.arc
         val n = if (arc == null) 1 else ft?.get(2) ?: 24

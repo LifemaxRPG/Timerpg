@@ -557,6 +557,16 @@ def cylp(cx, cd, r, y0, y1, ft=None, rt=None, col=(-1, 0x808080), a=(0, 360), ca
     return p
 
 
+def lying(x0, x1, cd, cy, r, ft=None, ct=None, col=(-1, 0x808080), n=None):
+    """A cylinder lying on its side, its axle along x from x0 to x1, its centre cd back and cy up, radius r (a wheel, a round
+    bale, a barrel on its side): the engine's `cyl` with axis x (FilamentModels.cyl). ft its strip round it (columns round
+    the turn from the bottom, rows along the axle), ct the picture both its ends wear."""
+    p = dict(t='cyl', axis='x', c=[float(cd), float(cy)], r=[float(r), float(r)], a=[0.0, 360.0], y=[float(x0), float(x1)], col=[col[0], col[1]])
+    if ft is not None: p['ft'] = ft
+    if ct is not None: p['ct'] = ct
+    return p
+
+
 def unroll(art, rows, cx, half, n):
     """The art's front unrolled onto a cylinder: for each of n columns round the full turn, the art column cx + half(row) sin(angle)."""
     r0, r1 = rows
@@ -740,6 +750,71 @@ def bale(at, x, y, d, big=True):
     return mbox((x, x + w), (y, y + h), (d, d + 30), (shade(c, 1.1), c, shade(c, .8)), ft=at.add(crop), fx=x, st=at.add(np.ascontiguousarray(art[4:28, w - 8:w - 2].repeat(5, 1))), tt=at.add(np.ascontiguousarray(art[10:20, 8:w - 8].repeat(3, 0))))
 
 
+def round_bale_pics(at):
+    """A round bale's pictures: the hay rolled round it (the big bale's own straw, its bands taken out, wrapped round), and its
+    ends a spiral of the same straw (rings of the art's light and dark hay, wound): (strip, end)."""
+    art = fart('Raw_Bale_Big')
+    straw = np.ascontiguousarray(art[6:26, 8:56])
+    strip = np.ascontiguousarray(np.concatenate([straw, straw[:, ::-1]], axis=1))
+    lo = np.array(med(art, (8, 24, 6, 20)), float); hi = np.array(med(art, (8, 24, 30, 50)), float)
+    n = 32; end = np.zeros((n, n, 4), np.uint8); end[..., 3] = 255
+    rnd = np.random.default_rng(7)
+    for y in range(n):
+        for x in range(n):
+            dx, dy = x - n / 2 + .5, y - n / 2 + .5
+            r = np.hypot(dx, dy); a = np.arctan2(dy, dx)
+            t = (r + a * 1.1) % 3.2
+            c = hi if t < 1.6 else lo
+            c = c * (0.9 + 0.2 * rnd.random())
+            if r > n / 2 - 1.5: c = lo * .8
+            end[y, x, :3] = np.clip(c, 0, 255).astype(np.uint8)
+    return at.add(strip), at.add(end)
+
+
+def round_bale(at, x, d, r=26, w=44, pics=None, along_d=False):
+    """A round bale lying on its curved side, its axle along x (or along d: x is then its centre, d its near end): hay
+    round it, a spiral at each end."""
+    strip, end = pics or round_bale_pics(at)
+    if along_d:
+        return dict(t='cyl', axis='d', c=[float(r), float(x)], r=[float(r), float(r)], a=[0.0, 360.0], y=[float(d), float(d + w)],
+                    col=[0xC89A40, 0xC89A40], ft=strip, ct=end)
+    return lying(x, x + w, d, r, r, ft=strip, ct=end, col=(0xC89A40, 0xC89A40))
+
+
+def barrel_pic(colour, h=40):
+    """A steel drum's side unrolled: its paint with two rolled hoops, a seam and a little wear, columns round the turn."""
+    n = 48; img = np.zeros((h, n, 4), np.uint8); img[..., 3] = 255
+    base = np.array(colour, float); rnd = np.random.default_rng(int(sum(colour)))
+    for y in range(h):
+        for xx in range(n):
+            c = base * (0.92 + 0.12 * rnd.random())
+            if y in (h // 3, h // 3 + 1, 2 * h // 3, 2 * h // 3 + 1): c = base * .72
+            if y < 2 or y >= h - 2: c = base * .6
+            if xx == 7: c = base * .8
+            if rnd.random() < .03: c = np.array((120, 84, 60), float)
+            img[y, xx, :3] = np.clip(c, 0, 255).astype(np.uint8)
+    return img
+
+
+def barrels(spec, shop, rng):
+    """Steel drums (the pack has no barrels): two standing, one lying on its side against them, lids of the paint's darker shade."""
+    at = Atlas(256); parts = []
+    for i, (col, x, d) in enumerate((((178, 52, 44), 22, 20), ((52, 96, 150), 56, 26))):
+        side = at.add(barrel_pic(col)); lid = at.add(np.full((16, 16, 4), list(shade(col, .7)) + [255], np.uint8))
+        parts.append(cylp(x, d, 15, 0, 42, ft=side, col=(rgb_int(shade(col, .7)), rgb_int(col))))
+        parts.append(cylp(x, d, 9, 42, 43, col=(rgb_int(shade(col, .55)), rgb_int(shade(col, .6)))))
+    col = (92, 120, 70); side = at.add(barrel_pic(col)); lid = at.add(np.full((16, 16, 4), list(shade(col, .7)) + [255], np.uint8))
+    parts.append(lying(84, 126, 30, 15, 15, ft=side, ct=lid, col=(rgb_int(shade(col, .7)), rgb_int(col))))
+    return finish('props', 140, 60, shop, rng, parts, (90, 90, 90), at, np.zeros((8, 8, 4), np.uint8), (0, 30))
+
+
+def round_bales(spec, shop, rng):
+    """Round bales left in a cut hay field as a baler drops them: lying every way, a few bale-lengths apart."""
+    at = Atlas(256); pics = round_bale_pics(at)
+    parts = [round_bale(at, 6, 28, pics=pics), round_bale(at, 92, 6, pics=pics, along_d=True), round_bale(at, 128, 70, pics=pics), round_bale(at, 40, 96, pics=pics, along_d=True)]
+    return finish('props', 180, 150, shop, rng, parts, (200, 160, 70), at, np.zeros((8, 8, 4), np.uint8), (0, 30))
+
+
 def hay(spec, shop, rng):
     at = Atlas(512)
     parts = [bale(at, 10, 0, 10), bale(at, 76, 0, 10), bale(at, 142, 0, 10), bale(at, 42, 28, 10), bale(at, 108, 28, 10), bale(at, 76, 56, 10)]
@@ -832,13 +907,35 @@ def tractor(spec, shop, rng):
     parts.append(mbox((32, 96), (26, 76), (54, 104), (roofc, blue, shade(blue, .8)), ft=at.add(cab_side), fx=32, st=at.add(cab_side), top=False))
     parts.append(mbox((28, 100), (76, 82), (50, 108), (shade(roofc, 1.1), roofc, shade(roofc, .8)), tt=at.add(np.ascontiguousarray(front[4:66, 30:100])), ft=at.add(tile(np.ascontiguousarray(front[8:14, 40:90]), 6, 72)), st=at.add(tile(np.ascontiguousarray(front[8:14, 40:90]), 6, 58))))
     for x in (34, 94): parts.append(mbox((x, x + 3), (26, 76), (56, 58), (INK, INK, INK)))
-    # wheels: three stacked blocks make a chamfered tyre; hubs the art's blue
-    def wheel(x0, x1, dc, r, hgt):
-        for (ar, y0, y1) in ((.45, 0, 2 * r), (.8, r * .3, 2 * r - r * .3), (1.0, r * .6, 2 * r - r * .6)):
-            parts.append(mbox((x0, x1), (y0, y1), (dc - r * ar, dc + r * ar), (tyre, tyre, shade(tyre, .9))))
-        side_x = x0 if x0 < 64 else x1
-        parts.append(mbox((x0 - 1 if x0 < 64 else x1, x0 if x0 < 64 else x1 + 1), (r * .7, r * 1.3), (dc - r * .3, dc + r * .3), (blue, blue, blue)))
-    wheel(12, 30, 78, 24, 48); wheel(98, 116, 78, 24, 48); wheel(20, 34, 14, 15, 30); wheel(94, 108, 14, 15, 30)
+    # wheels: real lying cylinders (axle across the tractor): the tread the art's own lugs (the tyres seen from the front,
+    # turned so the lugs run round the wheel), each end the art's wheel seen from the side (its lower half, the half the
+    # body does not hide, mirrored up: the tyre's ring, the rim and the hub's bolts), a hub boss standing out of it
+    def tread(crop, n):
+        t = np.ascontiguousarray(np.transpose(crop, (1, 0, 2))[::-1])
+        reps = max(1, int(round(n / t.shape[1])))
+        return np.ascontiguousarray(np.concatenate([t] * reps, axis=1))
+    def wheel_face(cx, cy, rx, ry):
+        lower = side[cy:cy + ry + 1, cx - rx:cx + rx + 1]
+        face = np.concatenate([lower[::-1][:-1], lower], axis=0).copy()
+        hh, ww = face.shape[:2]
+        yy, xx = np.mgrid[0:hh, 0:ww]
+        out = ((xx - ww / 2 + .5) / (ww / 2)) ** 2 + ((yy - hh / 2 + .5) / (hh / 2)) ** 2 > 1.0
+        face[out] = list(tyre) + [255]
+        face[face[..., 3] < 255] = list(tyre) + [255]
+        return face
+    rear_tread = at.add(tread(front[62:108, 16:30], 96)); front_tread = at.add(tread(front[135:165, 22:38], 60))
+    rear_face = at.add(wheel_face(128, 110, 23, 17)); front_face = at.add(wheel_face(36, 110, 19, 16))
+    hub = at.add(wheel_face(128, 110, 9, 7))
+    def wheel(x0, x1, dc, r, tr, face):
+        parts.append(lying(x0, x1, dc, r, r, ft=tr, ct=face, col=(rgb_int(tyre), rgb_int(tyre))))
+        out = x0 < 64
+        hx0, hx1 = (x0 - 3, x0) if out else (x1, x1 + 3)
+        parts.append(lying(hx0, hx1, dc, r, r * .38, ct=hub, col=(rgb_int(blue), rgb_int(shade(blue, .8)))))
+    wheel(10, 32, 76, 27, rear_tread, rear_face); wheel(96, 118, 76, 27, rear_tread, rear_face)
+    wheel(20, 34, 14, 16, front_tread, front_face); wheel(94, 108, 14, 16, front_tread, front_face)
+    # the axles under the body
+    parts.append(lying(30, 98, 76, 27, 4, col=(rgb_int(INK), rgb_int(INK))))
+    parts.append(lying(32, 96, 14, 16, 3, col=(rgb_int(INK), rgb_int(INK))))
     parts.append(mbox((44, 84), (8, 14), (-8, 0), (INK, INK, INK)))
     return finish('tractor', 128, 112, shop, rng, parts, blue, at, np.zeros((8, 8, 4), np.uint8), (40, 90))
 
@@ -881,11 +978,11 @@ def builder(key):
     return make
 
 
-KITS = {'barn': barn, 'house1': house1, 'house2': house2, 'shed': shed, 'silo1': silo, 'silo2': silo, 'fence': fence_run, 'corral': corral, 'troughs': troughs, 'hay': hay, 'crates': crates, 'bits': yard_bits, 'well': well, 'wellstone': well, 'stall': stall, 'tractor': tractor, 'field': field}
+KITS = {'barn': barn, 'house1': house1, 'house2': house2, 'shed': shed, 'silo1': silo, 'silo2': silo, 'fence': fence_run, 'corral': corral, 'troughs': troughs, 'hay': hay, 'crates': crates, 'bits': yard_bits, 'well': well, 'wellstone': well, 'stall': stall, 'tractor': tractor, 'field': field, 'roundbales': round_bales, 'barrels': barrels}
 
 
 def specs():
-    return [dict(id='fm_house1', kit='house1'), dict(id='fm_house2', kit='house2'), dict(id='fm_shed', kit='shed'), dict(id='fm_silo1', kit='silo1'), dict(id='fm_silo2', kit='silo2'), dict(id='fm_fence', kit='fence'), dict(id='fm_corral', kit='corral'), dict(id='fm_hay', kit='hay'), dict(id='fm_troughs', kit='troughs'), dict(id='fm_crates', kit='crates'), dict(id='fm_well', kit='well'), dict(id='fm_wellstone', kit='wellstone', usable=False), dict(id='fm_tractor', kit='tractor'), dict(id='fm_stall_blue', kit='stall', colour='Blue'), dict(id='fm_stall_pink', kit='stall', colour='Pink'), dict(id='fm_stall_green', kit='stall', colour='Green'), dict(id='fm_stall_yellow', kit='stall', colour='Yellow'), dict(id='fm_bits', kit='bits'), dict(id='fm_field', kit='field', rows=[('wheat', 'ripe'), ('wheat', 'growing'), ('corn', 'ripe'), ('tomato', 'budding'), ('carrot', 'young'), ('pumpkin', 'ripe'), ('cabbage', 'growing'), ('radish', 'sprout')]), dict(id='fm_field2', kit='field', rows=[('grape', 'ripe'), ('cotton', 'ripe'), ('pineapple', 'budding'), ('watermelon', 'ripe'), ('pepper', 'growing'), ('turnip', 'young'), ('cauliflower', 'ripe'), ('onion', 'ripe')]), dict(id='fm_barn_red', kit='barn', colour='red', depth=416), dict(id='fm_barn_grey', kit='barn', colour='grey', depth=384),
+    return [dict(id='fm_house1', kit='house1'), dict(id='fm_house2', kit='house2'), dict(id='fm_shed', kit='shed'), dict(id='fm_silo1', kit='silo1'), dict(id='fm_silo2', kit='silo2'), dict(id='fm_fence', kit='fence'), dict(id='fm_corral', kit='corral'), dict(id='fm_hay', kit='hay'), dict(id='fm_troughs', kit='troughs'), dict(id='fm_crates', kit='crates'), dict(id='fm_well', kit='well'), dict(id='fm_wellstone', kit='wellstone', usable=False), dict(id='fm_tractor', kit='tractor'), dict(id='fm_roundbales', kit='roundbales'), dict(id='fm_barrels', kit='barrels'), dict(id='fm_stall_blue', kit='stall', colour='Blue'), dict(id='fm_stall_pink', kit='stall', colour='Pink'), dict(id='fm_stall_green', kit='stall', colour='Green'), dict(id='fm_stall_yellow', kit='stall', colour='Yellow'), dict(id='fm_bits', kit='bits'), dict(id='fm_field', kit='field', rows=[('wheat', 'ripe'), ('wheat', 'growing'), ('corn', 'ripe'), ('tomato', 'budding'), ('carrot', 'young'), ('pumpkin', 'ripe'), ('cabbage', 'growing'), ('radish', 'sprout')]), dict(id='fm_field2', kit='field', rows=[('grape', 'ripe'), ('cotton', 'ripe'), ('pineapple', 'budding'), ('watermelon', 'ripe'), ('pepper', 'growing'), ('turnip', 'young'), ('cauliflower', 'ripe'), ('onion', 'ripe')]), dict(id='fm_barn_red', kit='barn', colour='red', depth=416), dict(id='fm_barn_grey', kit='barn', colour='grey', depth=384),
             dict(id='fm_barn_yellow', kit='barn', colour='yellow', depth=448), dict(id='fm_barn_teal', kit='barn', colour='teal', depth=352)]
 
 
@@ -900,6 +997,6 @@ def showcase(out):
     json.dump(dict(town='farm', year=2025, type='farm showcase', shops=shops,
                    streets=[dict(name='Barns', buildings=[x['id'] for x in all_specs if x['kit'] == 'barn']), dict(name='Houses, shed and silos', buildings=[x['id'] for x in all_specs if x['kit'].startswith(('house', 'shed', 'silo'))]),
                             dict(name='Fences, hay, troughs, crates, wells', buildings=[x['id'] for x in all_specs if x['kit'] in ('fence', 'corral', 'hay', 'troughs', 'crates', 'well', 'wellstone', 'bits')]),
-                            dict(name='Stalls, tractor and fields', buildings=[x['id'] for x in all_specs if x['kit'] in ('stall', 'tractor', 'field')])]),
+                            dict(name='Stalls, tractor and fields', buildings=[x['id'] for x in all_specs if x['kit'] in ('stall', 'tractor', 'field', 'roundbales', 'barrels')])]),
               open(out + '/street.json', 'w'), indent=1)
     return out + '/street.json', out + '/buildings'

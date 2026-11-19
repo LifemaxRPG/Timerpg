@@ -38,7 +38,9 @@ Elite for Galaxy: 8 fast Oryon cores, no little cores; Adreno 830 GPU; Hexagon N
 - **Open world with a player-controlled camera** (the owner's decision, 2026-11-19, replacing the side-scrolling street view as
   the default): the player walks anywhere (streets, yards, alleys) with collision, and turns/zooms the camera themselves; the
   camera follows the player's position but never turns on its own (the owner disliked the camera moving around). The old
-  street view stays only as an option for comparison.
+  street view stays only as an option for comparison. Exception (the owner's request, 2026-11-19): while riding the
+  bicycle the camera follows behind the rider by default; touching the camera gives full manual control, and after a
+  few seconds without camera input it eases back to following (a setting can turn it off).
 - **Build the world complete from every side**: nothing is built only for one view. Buildings have real backs and
   roofs, every lot has a front yard AND a backyard (fences, patios, sheds, gardens, play sets, pools for the rich
   homes, clotheslines, bins), blocks have alleys and back lanes, and the player's position is kept in world
@@ -56,6 +58,15 @@ Elite for Galaxy: 8 fast Oryon cores, no little cores; Adreno 830 GPU; Hexagon N
   existing pipeline, cutting textures, routine checks, follow-up fixes with a known cause) runs on Sonnet agents; the
   main session and hard work (diagnosis, architecture, judging renders, orchestration) stay on Opus. Check Sonnet's
   output closely and send anything off back for a fix.
+
+- **Usage efficiency** (the owner's decision, 2026-11-19, from the next usage reset; track results in docs/USAGE_LOG.md):
+  get more finished work per token. Opus only for diagnosis, design of new systems and judging hard visual problems;
+  everything else on Sonnet (building conversions, follow-up fixes with a known cause, merges, routine checks). Agents
+  render only a few key views and judge one downscaled contact sheet, not dozens of full-size images; the main session
+  views small previews. Sharp briefs with exact files; read only errors from build/test logs; targeted tests while
+  working, the full set and the APK once at the end. Avoid rework: verify the real cause and check side/back/above
+  views before calling work done. Don't run parallel jobs that edit the same files (sequence them instead of paying
+  for merge jobs). Batch the owner's feedback into one job per batch. Log tokens and finished items per window.
 
 ## The project
 

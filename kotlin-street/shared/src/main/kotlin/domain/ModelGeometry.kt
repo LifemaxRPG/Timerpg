@@ -91,6 +91,15 @@ class ModelPart(
      * cap) has its top's semi-axes at [arc] 8 and 9 (NaN: as wide at the top as at the foot).
      */
     val arc: FloatArray? = null,
+    /**
+     * A [CYL]'s axis: 0 upright (y, as it always was), 1 lying along x (a wheel's axle across the model, a barrel on its
+     * side), 2 lying along d. A lying one keeps its [arc] in its own upright frame (u, h, v): its centre and semi-axes are
+     * (d, y) for an x axis and (y, x) for a d axis, it runs along its axis from [arc] 10 to 11, and its two ends are
+     * drawn (wearing [cap] if given, the picture laid over the end's ellipse); [x0]..[d1] are its world box.
+     */
+    val axis: Int = 0,
+    /** A [CYL]'s end picture (x, y, w, h of the atlas): laid over its top (both ends of a lying one), else plain [top]. */
+    val cap: IntArray? = null,
 ) {
     /** A gable's or a hipped roof's apex x. */
     val apex: Float get() = if (apexX.isNaN()) (x0 + x1) / 2f else apexX
@@ -273,10 +282,19 @@ class ModelShape(
                     val ri = p.optJSONArray("ri")
                     val rt = p.optJSONArray("rt")
                     val cx = c.f(0); val cd = c.f(1); val ra = r.f(0); val rb = r.f(1)
-                    ModelPart(ModelPart.CYL, cx - ra, cx + ra, y.f(0), y.f(1), cd - rb, cd + rb, col.getInt(0), col.getInt(1), col.getInt(1),
+                    val axis = when (p.optString("axis", "y")) { "x" -> 1; "d" -> 2; else -> 0 }
+                    val arc = floatArrayOf(cx, cd, ra, rb, a.f(0), a.f(1), ri?.f(0) ?: Float.NaN, ri?.f(1) ?: Float.NaN,
+                        rt?.f(0) ?: Float.NaN, rt?.f(1) ?: Float.NaN, y.f(0), y.f(1))
+                    // the world box: upright (u, h, v) = (x, y, d); along x (u, h, v) = (d, x, y); along d (u, h, v) = (y, d, x)
+                    val ru = max(ra, if (arc[8].isNaN()) 0f else arc[8]); val rv = max(rb, if (arc[9].isNaN()) 0f else arc[9])
+                    val (bx, by, bd) = when (axis) {
+                        1 -> Triple(floatArrayOf(y.f(0), y.f(1)), floatArrayOf(cd - rv, cd + rv), floatArrayOf(cx - ru, cx + ru))
+                        2 -> Triple(floatArrayOf(cd - rv, cd + rv), floatArrayOf(cx - ru, cx + ru), floatArrayOf(y.f(0), y.f(1)))
+                        else -> Triple(floatArrayOf(cx - ra, cx + ra), floatArrayOf(y.f(0), y.f(1)), floatArrayOf(cd - rb, cd + rb))
+                    }
+                    ModelPart(ModelPart.CYL, bx[0], bx[1], by[0], by[1], bd[0], bd[1], col.getInt(0), col.getInt(1), col.getInt(1),
                         ft = ints(p.optJSONArray("ft")), card = p.optBoolean("card"), sideGlow = p.optBoolean("sg"),
-                        arc = floatArrayOf(cx, cd, ra, rb, a.f(0), a.f(1), ri?.f(0) ?: Float.NaN, ri?.f(1) ?: Float.NaN,
-                            rt?.f(0) ?: Float.NaN, rt?.f(1) ?: Float.NaN))
+                        arc = arc, axis = axis, cap = ints(p.optJSONArray("ct")))
                 }
                 "wall" -> {
                     val c = p.getJSONArray("c")
