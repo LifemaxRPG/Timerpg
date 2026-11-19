@@ -89,16 +89,7 @@ class TownFarms internal constructor(
         /** A hay field's bales (shown while bales lie: [FieldNow.bales]). */
         var bales: FarmFieldData? = null
         init {
-            place = shape?.let { sh ->
-                val k = K
-                var x0 = Float.MAX_VALUE; var x1 = -Float.MAX_VALUE
-                for (p in sh.parts) { x0 = min(x0, p.x0); x1 = max(x1, p.x1) }
-                val xmid = if (x0 <= x1) (x0 + x1) / 2f else sh.width / 2f
-                val nx = thing.fx; val nz = thing.fz
-                // the model's x runs to the right of one looking at its front: (n z, -n x)
-                val ax = nz; val az = -nx
-                ModelPlace(thing.x - ax * xmid * k, thing.z - az * xmid * k, ax, az, nx, nz, k)
-            }
+            place = shape?.let { sh -> FarmSolids.place(thing, sh).let { p -> ModelPlace(p[0], p[1], p[2], p[3], p[4], p[5], K) } }
         }
         val tall: Boolean get() = (shape?.parts?.maxOfOrNull { it.y1 } ?: 0f) * K > 60f
     }
@@ -112,6 +103,8 @@ class TownFarms internal constructor(
         var job: java.util.concurrent.Future<Built>? = null
         var fieldJob: java.util.concurrent.Future<List<Batch>>? = null
         var built = false
+        /** Its upload is queued ([uploads]). */
+        var queued = false
         var dirty = false
         var cx = 0f; var cz = 0f; var r = 0f
         /** What its fields showed when last built (by field). */
@@ -145,7 +138,7 @@ class TownFarms internal constructor(
 
     /** What was built (for reports): triangles of ground, soil, plants, models; draws last frame. */
     var triangles = 0; private set
-    override val pending: Boolean get() = !roadsDone || groups.any { !it.built || it.dirty || it.fieldJob != null }
+    override val pending: Boolean get() = !roadsDone || uploads.isNotEmpty() || groups.any { !it.built || it.dirty || it.fieldJob != null }
     override val report: String get() =
         "farms: ${groups.size} farms, ${groups.sumOf { it.fields.size }} fields farmed in $year (day $day), ${groups.count { it.built }} built, " +
             "${groups.sumOf { g -> g.models.count { it.mesh != null } }} models, ${data.roads.size} roads; " +
@@ -162,37 +155,18 @@ class TownFarms internal constructor(
 
     // ------------------------------------------------------------------ what a walker meets
 
-    /** Every model's parts standing on the ground below head height, as world boxes (six floats each). */
-    private fun solids(): FloatArray {
-        val out = ArrayList<Float>()
-        for (g in groups) for (m in g.models) {
-            if (m.bales != null) continue
-            if (m.summer) continue
-            val sh = m.shape ?: continue; val pl = m.place ?: continue
-            for (p in sh.parts) {
-                if (p.card || p.type == ModelPart.DECAL || p.type == ModelPart.RAIL || p.type == ModelPart.SLOPE) continue
-                if (p.type == ModelPart.GABLE || p.type == ModelPart.HIP) continue
-                if (p.y0 > 30f || p.y1 < 10f) continue
-                val xc = (p.x0 + p.x1) / 2f; val dc = (p.d0 + p.d1) / 2f
-                val wx = pl.ox + pl.ax * xc * pl.k - pl.nx * dc * pl.k; val wz = pl.oz + pl.az * xc * pl.k - pl.nz * dc * pl.k
-                val hx = abs(p.x1 - p.x0) / 2f * pl.k; val hd = abs(p.d1 - p.d0) / 2f * pl.k
-                if (hx < .5f || hd < .5f) continue
-                out += wx; out += wz; out += pl.ax; out += pl.az; out += hx; out += hd
-            }
-        }
-        return out.toFloatArray()
-    }
+    /** Every model's parts standing on the ground below head height, as world boxes ([FarmSolids.models]). */
+    private fun solids(): FloatArray = FarmSolids.models(data, shapes)
 
-    /** The farmhouses' and barns' front doors, walked out to where a walker stands clear. */
-    private fun doors(col: TownCollision): List<TownDoor> = groups.flatMap { g ->
-        g.models.filter { it.thing.door && it.place != null && it.shape != null }.map { m ->
-            val front = m.shape!!.parts.minOf { it.d0 }.coerceAtMost(0f)
-            val wx = m.thing.x - m.thing.fx * front * K; val wz = m.thing.z - m.thing.fz * front * K
-            TownDoors.standing("farm:${m.key}", "", PlacementKind.LANDMARK, wx, wz, m.thing.fx, m.thing.fz, col)
-        }
+    /** The farmhouses' and barns' front doors ([FarmSolids.doors]), walked out to where a walker stands clear. */
+    private fun doors(col: TownCollision): List<TownDoor> = FarmSolids.doors(data, shapes).map { (id, d) ->
+        TownDoors.standing(id, "", PlacementKind.LANDMARK, d[0], d[1], d[2], d[3], col)
     }
 
     // ------------------------------------------------------------------ building
+
+    /** Uploads waiting for the engine's thread (a farm's batches, then its models one at a time), done a few ms a frame. */
+    private val uploads = ArrayDeque<() -> Unit>()
 
     override fun step() {
         if (roadJob == null && !roadsDone) roadJob = kit.pool.submit(java.util.concurrent.Callable { roadBatches() })
@@ -202,44 +176,53 @@ class TownFarms internal constructor(
                 roads = l; roadJob = null; roadsDone = true; engine.flush()
             }
         }
-        // the nearest farms first: at most three jobs on the workers at a time, one farm uploaded a frame
+        // the nearest farms first: at most three jobs on the workers at a time
         val order = groups.sortedBy { hypot(it.cx - lastX, it.cz - lastZ) - it.r }
         var running = groups.count { it.job != null || it.fieldJob != null }
-        var uploaded = false
         for (g in order) {
             val j = g.job
-            if (j != null && j.isDone && !uploaded) { finish(g, j.get()); g.job = null; running--; uploaded = true; continue }
+            if (j != null && j.isDone) { queue(g, j.get()); g.job = null; running--; continue }
             val fj = g.fieldJob
-            if (fj != null && fj.isDone && !uploaded) { swapFields(g, fj.get()); g.fieldJob = null; running--; uploaded = true; continue }
+            if (fj != null && fj.isDone) { val bs = fj.get(); uploads.addLast { swapFields(g, bs) }; g.fieldJob = null; running--; continue }
             if (running >= 3) continue
-            if (!g.built && g.job == null) { g.job = kit.pool.submit(java.util.concurrent.Callable { buildFarm(g) }); running++ }
+            if (!g.built && g.job == null && !g.queued) { g.job = kit.pool.submit(java.util.concurrent.Callable { buildFarm(g) }); running++ }
             else if (g.built && g.dirty && g.fieldJob == null) {
                 g.dirty = false
                 val now = fieldKeys(g)
                 if (now != g.keys) { g.keys = now; g.fieldJob = kit.pool.submit(java.util.concurrent.Callable { fieldBatches(g) }); running++ }
             }
         }
+        // (a few milliseconds of uploads a frame, at least one)
+        val t0 = System.nanoTime()
+        var any = false
+        while (uploads.isNotEmpty() && (!any || System.nanoTime() - t0 < UPLOAD_NS)) { uploads.removeFirst()(); any = true }
+        if (any) engine.flush()
     }
 
     private fun layer() = PropLayer(engine, kit.scene, kit.lit, kit.proxy, sharedTextures = kit.textures, cull = true)
 
-    private fun finish(g: Group, b: Built) {
-        val st = layer(); val so = layer(); val pl = layer()
-        for (x in b.batches) (when (x.layer) { 0 -> st; 1 -> so; else -> pl }).upload(x.packed, x.casts, x.tiled)
-        g.stat = st; g.soil = so; g.plants = pl; g.keys = b.keys
+    /** Queues a farm's upload: its ground, soil and plants, then each model, then it counts as built. */
+    private fun queue(g: Group, b: Built) {
+        g.queued = true
+        uploads.addLast {
+            val st = layer(); val so = layer(); val pl = layer()
+            for (x in b.batches) (when (x.layer) { 0 -> st; 1 -> so; else -> pl }).upload(x.packed, x.casts, x.tiled)
+            g.stat = st; g.soil = so; g.plants = pl; g.keys = b.keys
+        }
         for ((m, r) in b.models) {
             if (r == null) continue
-            val mm = FilamentModels.finish(engine, kit.lit, kit.proxy, kit.textures, r)
-            val rm = engine.renderableManager
-            rm.getInstance(mm.entity).takeIf { it != 0 }?.let { rm.setCulling(it, true) }
-            kit.scene.addEntity(mm.entity); if (mm.proxy != 0) kit.scene.addEntity(mm.proxy)
-            m.mesh = mm
-            val bb = mm.bounds
-            m.cx = (bb[0] + bb[3]) / 2f; m.cy = (bb[1] + bb[4]) / 2f; m.cz = (bb[2] + bb[5]) / 2f
-            m.r = sqrt((bb[3] - bb[0]) * (bb[3] - bb[0]) + (bb[4] - bb[1]) * (bb[4] - bb[1]) + (bb[5] - bb[2]) * (bb[5] - bb[2])) / 2f
+            uploads.addLast {
+                val mm = try { FilamentModels.finish(engine, kit.lit, kit.proxy, kit.textures, r) } finally { kit.textures.drop(r.warmed) }
+                val rm = engine.renderableManager
+                rm.getInstance(mm.entity).takeIf { it != 0 }?.let { rm.setCulling(it, true) }
+                kit.scene.addEntity(mm.entity); if (mm.proxy != 0) kit.scene.addEntity(mm.proxy)
+                m.mesh = mm
+                val bb = mm.bounds
+                m.cx = (bb[0] + bb[3]) / 2f; m.cy = (bb[1] + bb[4]) / 2f; m.cz = (bb[2] + bb[5]) / 2f
+                m.r = sqrt((bb[3] - bb[0]) * (bb[3] - bb[0]) + (bb[4] - bb[1]) * (bb[4] - bb[1]) + (bb[5] - bb[2]) * (bb[5] - bb[2])) / 2f
+            }
         }
-        g.built = true
-        engine.flush()
+        uploads.addLast { g.built = true }
     }
 
     private fun swapFields(g: Group, bs: List<Batch>) {
@@ -273,14 +256,25 @@ class TownFarms internal constructor(
         return Built(out, ready, fieldKeys(g))
     }
 
+    /** Each farm model's art, read once and shared by every farm that stands one (one texture each, not one a farm). */
+    private val arts = HashMap<String, ModelArt?>()
+
+    private fun artOf(key: String): ModelArt? = synchronized(arts) {
+        arts.getOrPut(key) {
+            val sh = shapes[key] ?: return@getOrPut null
+            val atlas = art.image("buildings/${key}_atlas.png") ?: return@getOrPut null
+            // only the farmhouse keeps its own front lawn and fence (the rest stand on the farmyard), and only the farmhouse
+            // has windows lit at night (a glow mask is a texture as big as the atlas, one per model: the barns' were 4 MB each)
+            val house = key.startsWith("fm_house")
+            val lit = house
+            ModelArt(sh, atlas, if (lit) art.image("buildings/${key}_glow.png") else null,
+                if (house) art.image("buildings/${key}_lawn.png") else null, if (house) art.image("buildings/${key}_fence.png") else null, null)
+        }
+    }
+
     private fun prepareModel(m: Model): FilamentModels.Ready? {
-        val sh = m.shape ?: return null; val pl = m.place ?: return null
-        val key = m.thing.model
-        val atlas = art.image("buildings/${key}_atlas.png") ?: return null
-        // only the farmhouse keeps its own front lawn and fence; the rest stand on the farmyard
-        val house = key.startsWith("fm_house")
-        val a = ModelArt(sh, atlas, art.image("buildings/${key}_glow.png"),
-            if (house) art.image("buildings/${key}_lawn.png") else null, if (house) art.image("buildings/${key}_fence.png") else null, null)
+        val pl = m.place ?: return null
+        val a = artOf(m.thing.model) ?: return null
         return runCatching { FilamentModels.prepare(kit.textures, a, pl, m.key.hashCode(), linear = true) }.getOrNull()
     }
 
@@ -692,6 +686,8 @@ class TownFarms internal constructor(
         /** How far past a farm's edge its crops are drawn, and its things throw shadows. */
         const val PLANT_RANGE = 2600f
         const val SHADOW_RANGE = 1600f
+        /** The engine thread's uploads a frame (ns). */
+        const val UPLOAD_NS = 3_000_000L
 
         /** Adds the farms of [data] to [town] (nothing for a town without): built for [year] (the town's) on [day] of it. */
         fun attach(town: FilamentTown, data: TownFarmsData, art: FarmArt, collision: TownCollision?, year: Int = town.town.year, day: Int = 200): TownFarms? =

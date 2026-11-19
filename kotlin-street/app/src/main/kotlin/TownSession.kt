@@ -36,6 +36,9 @@ class TownData(
     val collision: com.lifemax.rpg.feature.habits.domain.TownCollision? = null,
     /** The town's store sites (graph.storeSites / stores), drawn by StoreKit in their slots; none for a town without. */
     val stores: List<com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite> = emptyList(),
+    /** The farms round the town (graph.farms) and the farm pack's pictures and models (assets/farm), drawn by TownFarms. */
+    val farms: com.lifemax.rpg.feature.habits.domain.TownFarmsData = com.lifemax.rpg.feature.habits.domain.TownFarmsData.NONE,
+    val farmArt: com.lifemax.rpg.feature.habits.presentation.scene3d.FarmArt? = null,
 )
 
 /**
@@ -185,8 +188,13 @@ object TownSession {
             com.timerpg.street.shot.Crumbs.add("town collision failed: ${t.javaClass.simpleName}: ${t.message}"); null
         }
         collision?.let { com.timerpg.street.shot.Crumbs.add("town collision: ${it.size} shapes, %.0f ms".format(java.util.Locale.US, (System.nanoTime() - c0) / 1e6f)) }
+        // the farms round the town: their pictures and models are the farm pack's (assets/farm)
+        val farms = com.lifemax.rpg.feature.habits.domain.TownFarmsData.parse(root)
+        fun farmText(n: String): String? = try { ctx.assets.open("farm/$n").bufferedReader().use { it.readText() } } catch (e: Exception) { null }
+        val farmArt = com.lifemax.rpg.feature.habits.presentation.scene3d.FarmArt({ p -> img("farm/$p") }, { n -> farmText(n) }, { p -> img("town/art/$p") })
+        if (!farms.isEmpty) com.timerpg.street.shot.Crumbs.add("town farms: ${farms.farms.size} farms, ${farms.fields.size} fields, ${farms.roads.size} roads")
         return TownData(seed, town, yards, art, building, names, root.optString("type"), dir,
             com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite.parse(root), collision,
-            com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root))
+            com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root), farms, farmArt)
     }
 }

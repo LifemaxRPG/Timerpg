@@ -775,7 +775,8 @@ class FilamentTown(
     fun buildNearest(x: Float, z: Float, budgetMs: Float): Int {
         cinemaDraw?.let { c -> c.start(pool); if (!c.done && c.step()) engine.flush() }
         for (st in storeDraws) { st.start(pool, lastHour, weekday); if (!st.done && st.step()) engine.flush() }
-        for (x in extras) x.step()
+        // (the extras' work waits for the ground: the first view comes first)
+        if (groundBuilt) for (x in extras) x.step()
         if (todo == 0 && chunksTodo == 0 && groundBuilt) return 0
         val t0 = System.nanoTime()
         var n = 0

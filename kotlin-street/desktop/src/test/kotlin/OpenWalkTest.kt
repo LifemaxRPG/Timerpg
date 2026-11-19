@@ -71,7 +71,7 @@ class OpenWalkTest {
 
         val spawn by lazy { OpenWalk(town, map, yards, doors).let { it.wx to it.wz } }
 
-        /** BFS over [free] from [from]: each reached cell's parent (-1 unreached; the start its own). */
+        /** BFS over [free] from [from] (to [stopAt], which may itself be the spawn cell a grid shift left within a walker of something): each reached cell's parent (-1 unreached; the start its own). */
         fun bfs(from: Int, stopAt: Int = -1): IntArray {
             val par = IntArray(cols * rows) { -1 }
             val q = IntArray(cols * rows)
@@ -81,7 +81,7 @@ class OpenWalkTest {
                 val c = q[h++]
                 if (c == stopAt) break
                 val i = c % cols; val j = c / cols
-                fun go(n: Int) { if (par[n] < 0 && free[n]) { par[n] = c; q[t++] = n } }
+                fun go(n: Int) { if (par[n] < 0 && (free[n] || n == stopAt)) { par[n] = c; q[t++] = n } }
                 if (i > 0) go(c - 1); if (i < cols - 1) go(c + 1); if (j > 0) go(c - cols); if (j < rows - 1) go(c + cols)
             }
             return par
@@ -113,7 +113,7 @@ class OpenWalkTest {
             assertTrue("no shapes for ${b.sprite}", (0 until map.size).any { map.owner(it) == b.sprite && map.kind(it) == SolidKind.BUILDING })
         }
         assertTrue(byKind[SolidKind.FENCE]!! > 300); assertTrue(byKind[SolidKind.HEDGE]!! > 40); assertTrue(byKind[SolidKind.WATER]!! > 50)
-        assertTrue(byKind[SolidKind.TREE]!! > 4000); assertTrue(byKind[SolidKind.PROP]!! > 500); assertEquals(12, byKind[SolidKind.PARAPET])
+        assertTrue(byKind[SolidKind.TREE]!! > 4000); assertTrue(byKind[SolidKind.PROP]!! > 500); assertEquals(16, byKind[SolidKind.PARAPET])
         // the spawn is clear; the water is solid, the bridges' decks are not
         assertTrue(!map.blocked(spawn.first, spawn.second, R))
         for (w in town.water) {
@@ -226,7 +226,8 @@ class OpenWalkTest {
     }
 
     private fun pathTo(fromX: Float, fromZ: Float, toCell: Int): IntArray? {
-        val start = cellOf(fromX, fromZ)
+        // (a walker can stand closer to a trunk than the grid's clearance: then from the nearest reached cell by it)
+        val start = cellOf(fromX, fromZ).let { c -> if (free[c]) c else nearestReached(fromX, fromZ, 24f).takeIf { it >= 0 } ?: c }
         val par = bfs(start, toCell)
         if (par[toCell] < 0) return null
         val p = ArrayList<Int>()
@@ -269,7 +270,9 @@ class OpenWalkTest {
             val p = com.lifemax.rpg.feature.habits.domain.TownPlace.of(row, b).world(0f, b.setback + c.deep - 60f)
             goals += "cinema car park" to (p.x to p.z)
         }
-        val trees = town.props.filter { it.kind == "tree" }
+        // (the town's own woods: not the farms' windbreaks out in the farmland, graph.farms)
+        val nx0 = town.nodes.minOf { it.x }; val nx1 = town.nodes.maxOf { it.x }; val nz0 = town.nodes.minOf { it.z }; val nz1 = town.nodes.maxOf { it.z }
+        val trees = town.props.filter { it.kind == "tree" && it.x in nx0..nx1 && it.z in nz0..nz1 }
         trees.getOrNull(trees.size / 2)?.let { goals += "forest" to (it.x + 20f to it.z + 20f) }
         goals += "spawn" to spawn
         val trail = ArrayList<Pair<Float, Float>>()
@@ -279,7 +282,7 @@ class OpenWalkTest {
         for ((i, g) in goals.withIndex()) {
             val cell = nearestReached(g.second.first, g.second.second)
             if (cell < 0) { println("goal ${g.first} not reachable: skipped"); continue }
-            val path = pathTo(w.wx, w.wz, cell) ?: error("no path to ${g.first}")
+            val path = pathTo(w.wx, w.wz, cell) ?: error("no path to ${g.first} from ${w.wx},${w.wz} (after ${done.lastOrNull()}))")
             val before = GameState.travel
             frames += follow(w, path, 30f + path.size * STEP / 60f, trail, i * 1.3f)
             walked += GameState.travel - before

@@ -209,6 +209,55 @@ object FarmSolids {
         return out
     }
 
+    /** Street units per art pixel of the farm models (the town's art scale: BuildingSpec.W / 224). */
+    const val K = 184f / 224f
+
+    /**
+     * Where a farm model stands: its (x 0, d 0) on the ground and its axes (the model's x to the right of one looking at its
+     * front, its front facing [FarmThing.fx], [FarmThing.fz]): ox, oz, ax, az, nx, nz. The front's middle (the parts' x
+     * extent's) is at the thing's point.
+     */
+    fun place(t: FarmThing, shape: ModelShape): FloatArray {
+        var x0 = Float.MAX_VALUE; var x1 = -Float.MAX_VALUE
+        for (p in shape.parts) { x0 = min(x0, p.x0); x1 = max(x1, p.x1) }
+        val xmid = if (x0 <= x1) (x0 + x1) / 2f else shape.width / 2f
+        val ax = t.fz; val az = -t.fx
+        return floatArrayOf(t.x - ax * xmid * K, t.z - az * xmid * K, ax, az, t.fx, t.fz)
+    }
+
+    /**
+     * Every farm model's parts standing on the ground below head height, as world boxes (six floats each, as
+     * [TownCollision.setExtra] takes): walls, posts, tanks, bales, the tractor; not roofs, cards or decals. The summer stands
+     * are left out (they are not always there).
+     */
+    fun models(data: TownFarmsData, shapes: Map<String, ModelShape>): FloatArray {
+        val out = ArrayList<Float>()
+        for (f in data.farms) for (t in f.things) {
+            if (t.summer) continue
+            val sh = shapes[t.model] ?: continue
+            val pl = place(t, sh)
+            for (p in sh.parts) {
+                if (p.card || p.type == ModelPart.DECAL || p.type == ModelPart.RAIL || p.type == ModelPart.SLOPE) continue
+                if (p.type == ModelPart.GABLE || p.type == ModelPart.HIP) continue
+                if (p.y0 > 30f || p.y1 < 10f) continue
+                val xc = (p.x0 + p.x1) / 2f; val dc = (p.d0 + p.d1) / 2f
+                val wx = pl[0] + pl[2] * xc * K - pl[4] * dc * K; val wz = pl[1] + pl[3] * xc * K - pl[5] * dc * K
+                val hx = kotlin.math.abs(p.x1 - p.x0) / 2f * K; val hd = kotlin.math.abs(p.d1 - p.d0) / 2f * K
+                if (hx < .5f || hd < .5f) continue
+                out += wx; out += wz; out += pl[2]; out += pl[3]; out += hx; out += hd
+            }
+        }
+        return out.toFloatArray()
+    }
+
+    /** The farmhouses' and barns' front doors: the wall's middle (in front of the model's frontmost part) and the way out. */
+    fun doors(data: TownFarmsData, shapes: Map<String, ModelShape>): List<Pair<String, FloatArray>> = data.farms.flatMap { f ->
+        f.things.withIndex().filter { (_, t) -> t.door && shapes[t.model] != null }.map { (i, t) ->
+            val front = shapes[t.model]!!.parts.minOf { it.d0 }.coerceAtMost(0f)
+            "farm:${f.id}#$i" to floatArrayOf(t.x - t.fx * front * K, t.z - t.fz * front * K, t.fx, t.fz)
+        }
+    }
+
     /** The gate's middle and the way out of the field through it (unit). */
     fun gate(f: FarmFieldData): FloatArray {
         val (x0, z0, x1, z1) = f.rect.toList()
