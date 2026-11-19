@@ -294,3 +294,57 @@ both hands); load time (decode textures in the background, build nearest-first).
   structure, lawn edges against the town grass, shop back lots (gravel, no gate), side windows' glass mask, the school's
   back seams, repeated shop art, the yard kit's minor issues, people for scale. Draws went up in the aerials (3052, was
   1735: chunks are per kind) while street views draw 834-1448 with fewer triangles (0.6-0.96M, was 0.65-1.7M).
+
+## Open world: walking and collision (Task A, as built on wf-open)
+
+The owner's decision (2026-11-19): the camera is the player's (one finger orbits, pinch zooms), it never turns on its own,
+and the player walks anywhere. The walk and what blocks it are engine-agnostic (shared/src/main):
+
+- `domain/TownCollision.kt`: the town's solid shapes, built once (`TownCollision.build(town, yards, models, cinema)` or
+  `fromStreetJson(streetJson, modelsJson)`): oriented boxes and circles in flat arrays under a 64-unit grid. What blocks:
+  box buildings and mobile homes as their slot's rigid box (TownWalk's footprint, the yards' `house`); modelled buildings
+  (villas, flats, landmarks) as their parts standing on the ground below head height (44 px) and above a step or porch deck
+  (14 px), placed exactly as BuildingMeshes/FilamentModels place them (a porch's posts, the fire station's front block);
+  the cinema (`CinemaSiteShape`, CinemaKit's plot numbers: the main block, the multiplex's atrium, canopy posts, drum and
+  stair tower, the site's walls or car park rails); yard fences (front, side, back, post and rail), hedges and low walls,
+  with gates and side gates as the gaps the export leaves; yard objects as their rectangles (sheds, garages, pools, play
+  sets, tables, raised beds...), trees by their trunks, bushes as small circles, carports and gazebos by their posts,
+  washing lines by their posts; the rows' lamps, benches and trees where TownGround stands them; the street props by
+  PropRules (one name sign a crossing); the forest's trees (trunks, shaken off the grid as drawn) and bushes; the plaza's
+  fountain, benches and planters; the river less the bridges, and the bridges' parapets; a wall 1200 past the town's
+  data. Walkable: streets, pavements, lawns, paths, drives, patios, decks, flower beds, sandpits, the plaza, lanes, grass.
+  Queries allocate nothing: `blocked(x, z, r)`, `clearance`, `nearest`, `resolve` (push out), `move(x, z, dx, dz, r, out)`
+  (half-radius sub-steps, push-out sliding, corner fallback per axis; a walker that starts clear never ends inside
+  anything), `nearestClear` (never spawn inside).
+- `domain/TownDoors.kt`: every building's front door (on its front wall at the yard's front path, else the front's middle,
+  the cinema's at its entrance), walked out of the collision to where a walker stands clear; `at(x, z, hx, hz)` is the door
+  within 44 of the player, on its outside and roughly faced (within ~70 degrees; any facing within 14); the people to talk
+  to stand where TownPlay stands them, and `nearestKeeper(x, z, keepers, range)` finds the nearest within range from any
+  direction.
+- `shim/OpenWalk.kt` (a `TownWalkView`): the player's world point and facing are the truth. Each frame the camera sets
+  `cameraYaw` (0 north, clockwise, as `TownCamera.yaw`) and the app calls `step(dt)` (the stick's `GameState.moveX` right,
+  `moveLane` down): the push turned from the camera's facing into the world, eased by `Locomotion` (MoveTuning's walk 72
+  and run 150, now the same in every direction), moved with `TownCollision.move` (radius 6), the velocity cut to the slide,
+  the facing turned towards the walk (0.06 s), the legs advanced by what was really walked (GameState gait, footfalls,
+  walking, running, travel; `GameState.facing` 0 and `dir` the side the camera sees, for the figure's view). Derived and
+  kept: `row`, `x`, `lane` (the nearest building line, a line the player stands behind counting 1.6x, 12 units of
+  hysteresis; GameState.x/lane follow), `door` ("Go inside"), `front` (the door's building), `yard` (the parcel stood in),
+  `streetName()`, `hoodName()`, `nearestKeeper(keepers)`, `fromKeeper(sprite)`, `liveRows()` (rows within 1400, kept
+  until the player moves 120), `camera` (looking along `cameraYaw` at the player), `transit` always null. `placeAt`,
+  `spawn`, `takeOver(streetWalk)` stand the player (on the nearest clear spot); the street view's TownWalk takes over with
+  its own `placeAt(wx, wz)`.
+- Tests (desktop OpenWalkTest, on the shipped gamma assets): 7803 shapes (177 building pieces, 460 fences, 54 hedges, 35
+  low walls, 1254 yard objects, 4625 trees, 1085 props, 105 water pieces, 8 parapets); every gate open and every fence
+  solid; a 6-unit flood fill from the spawn reaches 98.8% of the clear ground: every row's pavement, every bridge, every
+  door and person to talk to, the cinema's car park, and 67 of 92 back yards (every one with a side gate; the 25 shut are
+  the shops' fenced back lots b0-b26 and b49, b50, b80, which have no gate in the data); a scripted walker (the stick
+  turned through a camera swinging round all the while) walks to 11 back yards through their gates, a back lane, both
+  sides of all four bridges, the plaza, the cinema's car park, the forest and back to the spawn (~12 minutes of play,
+  ~100k units) and is never inside anything, never jumps; pushed at 45 degrees into a fence the walker slides along it
+  at ~94% of the push's along-the-fence speed (149 units in 1.5 s from standing), 6.0 from it; doors found from in front at three angles (277 of 277), not when facing away or from behind; the
+  people to talk to from 8 sides. Build server JVM (not the S25): build 160-410 ms, `move` 100-280 ns, `blocked` 17-45 ns,
+  a whole frame's `step` 1.1-4 us, allocating nothing. Pictures: desktop/build/open-walk/*.png (top-down map, reached
+  ground, the walker's trail).
+- Not yet: parked cars, dumpsters and bins on the cinema's site; the landmarks' own front fences (models.json `fence`);
+  the trees thinned out past the forest's edge (TownGround's feather); people and cars as moving obstacles; the shops'
+  back lots have no gate.
