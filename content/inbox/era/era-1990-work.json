@@ -1,0 +1,304 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1990,
+  "topic": "work",
+  "facts": [
+    {
+      "id": "1990-work-01",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A factory worker clocks in at a wall-mounted time clock before starting a shift.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-02",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A machinist checks metal parts against a paper drawing at a workbench.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-03",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A warehouse worker moves stacked cartons with a hand truck.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-04",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A small manufacturer may add a second shift when orders increase.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-05",
+      "year_from": 1993,
+      "year_to": 1999,
+      "text": "An auto mechanic uses a diagnostic scanner alongside ordinary hand tools.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-06",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A construction crew pours concrete early before the afternoon heat.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-07",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "An electrician checks a circuit before replacing a faulty outlet.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-08",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A plumber keeps fittings and repair tools in a work van.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-09",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A farmer checks fences and livestock before heading to other chores.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-10",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A farm worker drives a tractor between fields during planting season.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-11",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A school secretary answers calls and tracks student absences in the front office.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-12",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A teacher grades paper assignments at home after the school day.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-13",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A nurse records a patient's temperature and blood pressure on a paper chart.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-14",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A nursing assistant helps residents dress and reach the dining room.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-15",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A receptionist schedules appointments in a paper book or office computer.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-16",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "An office clerk enters invoices into a computer and files printed copies.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-17",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A bookkeeper reconciles receipts before preparing the monthly accounts.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-18",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A postal carrier sorts mail into delivery order before leaving the post office.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-19",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A sanitation crew rides its regular route collecting household refuse.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-20",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A restaurant cook prepares breakfast orders while a server calls out changes.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-21",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A grocery stocker unloads deliveries before customers crowd the aisles.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-22",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A teenager may work an evening shift at a local restaurant after school.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-23",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Women work as managers, technicians, teachers, and business owners throughout town.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-24",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Union members at some plants discuss contracts and seniority with their representatives.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-25",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A laid-off factory worker may seek retraining at a community college.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-work-26",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A worker may check classified job advertisements and submit a typed resume by mail.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "newspaper"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
