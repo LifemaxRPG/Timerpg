@@ -498,3 +498,7 @@ pipeline: `compose_facade(spec)` writes the usual models.json boxes (a body wear
 `pk_*` sprites through `build_model`. Details, the kit format and what the trial corrected: `PACK_EXTERIORS.md` ("Built"). Filament renders:
 `-Dmode=filament-models -Dassets=DIR -Dstreet=0-3` after `make_buildings.py --pack-showcase DIR` (street 3 is the scale street). Output for the
 showcase lives in `app/src/main/assets/pack/` (`tools/pack-export.sh`). Not on a town street yet.
+
+Red-brick corner blocks (Condo_4_38/39/40, Condo_6, Condo_3_46, Condo_8): same file, `compose_corner` and friends, showcase street 3 (street 4 is the scale street). The
+chamfered corner is a `prism` (roof top only, faces hidden) plus three `wall` parts wearing the art's chamfer columns let down to a level foot; see
+`PACK_EXTERIORS.md` ("Built ... item 4").

@@ -10,7 +10,7 @@ python3 - "$tmp" "$out" <<'P'
 import json, sys, glob, os, shutil
 tmp, out = sys.argv[1:]
 st = json.load(open(tmp + '/street.json'))
-st['shops'] = [s for s in st['shops'] if s['sprite'].startswith('pk_')]; st['streets'] = st['streets'][:3]
+st['shops'] = [s for s in st['shops'] if s['sprite'].startswith('pk_')]; st['streets'] = st['streets'][:4]
 json.dump(st, open(out + '/street.json', 'w'), indent=1)
 m = json.load(open(tmp + '/buildings/models.json')); json.dump({k: v for k, v in m.items() if k.startswith('pk_')}, open(out + '/buildings/models.json', 'w'), sort_keys=True)
 for f in glob.glob(tmp + '/buildings/pk_*.png'): shutil.copy(f, out + '/buildings/')

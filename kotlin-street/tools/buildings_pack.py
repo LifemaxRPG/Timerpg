@@ -110,6 +110,8 @@ def compose_facade(spec, shop=None, rng=None):
     if kit == 'condo12': return compose_columns(spec, shop)
     if kit == 'condo7': return compose_tower(spec, shop)
     if kit == 'office': return compose_office(spec, shop)
+    if kit.startswith('c4_'): return compose_corner(spec, shop)
+    if kit in ('b3_46', 'b8', 'b6'): return compose_block(spec, shop)
     W = int(spec['widthTiles'])
     seed = zlib.crc32(spec['id'].encode()) + int(spec.get('seed', 0))
     r = np.random.default_rng(seed)
@@ -147,7 +149,7 @@ def compose_facade(spec, shop=None, rng=None):
     return finish(spec, shop, r, front, PARAPET, COPING, roof, door, side, wall_c, ledges)
 
 
-def finish(spec, shop, r, front, P, T, roof, door, side, wall_c, ledges=(), extras=()):
+def finish(spec, shop, r, front, P, T, roof, door, side, wall_c, ledges=(), extras=(), lit=True):
     """The model of a box whose front picture is `front` (its first P rows the parapet's front face: the top floor's
     cornice), under a flat roof made of `roof`'s pictures, wearing `side` (the body's side, already without the parapet rows).
     `ledges` are rows of the front that stand 3 px out of the wall; `extras(at, Y, H, PX)` returns more parts (roof props...)."""
@@ -156,7 +158,7 @@ def finish(spec, shop, r, front, P, T, roof, door, side, wall_c, ledges=(), extr
     at = Atlas(512)
     parts, front_par = apt.flat_roof(at, None, 0, PX, Y, H, DEPTH, T, front_face, roof['back_face'],
                                      (roof['back_top'], roof['front_top'], (roof['left'], roof['right'])))
-    b_panes, b_glow = apt.glass_panes(body)
+    b_panes, b_glow = strict_panes(body) if lit else ([], np.zeros_like(body))
     body_r = at.add(body, b_glow)
     side_r = at.add(np.ascontiguousarray(side))
     parts.insert(0, mbox((2, PX - 2), (0, Y), (0, DEPTH), (roof['colour'], wall_c, shade(wall_c, .8)), ft=body_r, fx=0, tt=at.add(np.ascontiguousarray(roof['floor'][:, 2:PX - 2])), st=side_r, panes=b_panes))
@@ -276,13 +278,188 @@ def compose_office(spec, shop=None):
     rows = column_rows(blocks, [4, 5, 6, 7, 8, 9])
     rows[-96:] = rows[96:192]                                         # (the lobby's foot in the floors' wall, not its curtains' brown)
     win = g(f'Window_{st}_Middle_Modular') if st in (1, 2, 3, 4) else g(f'Building_{st}_Window_Modular')
-    wins = [(win, 192 * i + 40 + off, (.5,), apt.glass_panes(win)[0]) for i in range(n) for off in (0, 96)]
+    wins = [(win, 192 * i + 40 + off, (.5,), strict_panes(win)[0]) for i in range(n) for off in (0, 96)]
     side, _ = apt.side_windows(rows, DEPTH, wins, _rng(spec), tuple(int(v) for v in wall_c) + (255,))
     side[:, :8] = side[:, 8:16]; side[:, -8:] = side[:, -16:-8]
     side = side[P:]
     ledges = [(192 * i + 184, 192 * i + 192) for i in range(n)]
     return finish(spec, shop, _rng(spec), front, P, T, roof, (PX // 2 - 30, PX // 2 + 30), side, wall_c, ledges)
 
+
+# ------------------------------------------------------------------------------------------------ item 4: the red-brick corner blocks
+# Condo_4_38/39 (a four-storey block whose corner is a prism: a chamfer forward from the wing, the entrance bay across, a chamfer
+# back to the end), Condo_4_40 (the octagonal tower, only its front three faces drawn), and Condo_6, Condo_3_46, Condo_8 as one
+# or two boxes. The art draws the roof from above in its top rows (one row per pixel of depth, so those rows give the depth), the
+# front's parapet and cornice below them, then the elevation down to its foot. A chamfered face is drawn sheared (its foot falls
+# or rises one row per two columns, 30 rows over the corner: the plan's depth is that many pixels), so each column is taken
+# level by its own step (as the police station's tower) and the face stands as a `wall` between two plan points.
+CORNERS = {
+    # key: (art, wing x span, prism x span, faces (x0, x1, d0, d1), roof rows, elevation top row, wing foot, door, mirrored)
+    'c4_38': dict(art='Condo_4_38', wing=(0, 320), prism=(320, 510), faces=[(320, 384, 0, -30), (384, 446, -30, -30), (446, 510, -30, 0)],
+                  plan=[(320, 0), (384, -30), (446, -30), (510, 0)], roof=208, foot=543, door=(394, 436)),
+    'c4_39': dict(art='Condo_4_39', wing=(192, 512), prism=(2, 192), faces=[(2, 66, 0, -30), (66, 128, -30, -30), (128, 192, -30, 0)],
+                  plan=[(2, 0), (66, -30), (128, -30), (192, 0)], roof=208, foot=543, door=(76, 118)),
+}
+CLEAN = {'c4_38': [40, 56], 'c4_39': [200, 216]}                 # plain brick columns for the walls' rows
+
+
+def _foot(a, x):
+    return int(np.nonzero(a[:, x, 3] == 255)[0].max())
+
+
+def _level(a, x0, x1, top, E, base, clip=30, sign=1):
+    """The columns x0..x1 of a sheared face let down to a level foot: column x starts `step` rows lower (step = its foot's offset)."""
+    cols = []
+    for x in range(x0, x1):
+        s = int(min(max((_foot(a, x) - base) * sign, 0), clip))
+        cols.append(a[top + s * (1 if sign > 0 else -1):top + s * (1 if sign > 0 else -1) + E, x])
+    return np.ascontiguousarray(np.stack(cols, axis=1))
+
+
+def _wall_rows(img, cols):
+    return column_rows(img, cols)
+
+
+def _brick_side(img, cols, depth, wins, rng, wall_c):
+    side, glow = apt.side_windows(_wall_rows(img, cols), depth, wins, rng, tuple(int(v) for v in wall_c) + (255,))
+    side[:, :4] = side[:, 4:8]; side[:, -4:] = side[:, -8:-4]
+    return side, glow
+
+
+def compose_corner(spec, shop=None):
+    from buildings_civA import prism as mprism
+    from buildings_civB import mwall
+    cfg = CORNERS[spec['kit']] if spec['kit'] in CORNERS else None
+    if spec['kit'] == 'c4_40': return compose_octagon(spec, shop)
+    a = kits.piece('gb', cfg['art']); rng = _rng(spec)
+    R = cfg['roof']; foot = cfg['foot']; E = foot - R; W = 512; D = R
+    w0, w1 = cfg['wing']; p0, p1 = cfg['prism']
+    at = Atlas(512)
+    elev = np.ascontiguousarray(a[R:foot, w0:w1].copy())
+    wall_c = tuple(int(v) for v in elev[200, (CLEAN[spec['kit']][0] - w0)][:3])
+    roof_c = tuple(int(v) for v in np.median(a[40:160, p0 + 20:p0 + 90].reshape(-1, 4), axis=0)[:3])
+    # a window of the front for the sides: its picture, frame and awning (x 62..160 of the wing's elevation), one per storey
+    wx = 62 - w0 if spec['kit'] == 'c4_38' else 252 - w0
+    pic = elev[48:122, wx:wx + 98]
+    wins = [(pic, wy, (.3, .7), strict_panes(pic)[0]) for wy in (48, 138, 228)]
+    side, side_g = _brick_side(elev, [c - w0 for c in CLEAN[spec['kit']]], D, wins, rng, wall_c)
+    side_r = at.add(np.ascontiguousarray(side), side_g)
+    panes, glow = strict_panes(elev)
+    wing = mbox((w0 + (2 if w0 == 0 else 0), w1 - (0 if w0 == 0 else 2)) if False else (w0, w1), (0, E), (0, D), (roof_c, wall_c, shade(wall_c, .8)), ft=at.add(elev, glow), fx=w0,
+                tt=at.add(np.ascontiguousarray(a[0:R, w0:w1])), st=side_r, panes=panes)
+    pr_front = at.add(np.ascontiguousarray(elev[:, :64]))
+    prow = mbox((p0, p1), (0, E), (0, D), (roof_c, wall_c, shade(wall_c, .8)), ft=pr_front, fx=p0, tt=at.add(np.ascontiguousarray(a[0:R, p0:p1])), st=side_r)
+    wedge = mprism(cfg['plan'], (0, E), (roof_c, wall_c, wall_c), tt=at.add(np.ascontiguousarray(a[R:R + 30, p0:p1])), hide=(0, 1, 2, 3))
+    parts = [wing, prow, wedge]
+    for (x0, x1, d0, d1) in cfg['faces']:
+        f = _level(a, x0, x1, R, E, foot)
+        fp, fg = strict_panes(f)
+        w = mwall((x0, x1), (d0, d1), (0, E), wall_c, ft=at.add(f, fg))
+        if fg[..., 3].any(): w['sg'] = True
+        parts.append(w)
+    d0_, d1_ = cfg['door']
+    setback, style, lawn, fence, fence_snow = apt.lot(shop or dict(yard=dict(front=1, style='compact')), rng, W, D, 8, (d0_, d1_, 8), 'paving')
+    model = apt.model_of('apartment', W, setback, style, parts, roof_c, 'home', 'paving', fence, lamp=[(d0_ + d1_) / 2, 90, -33])
+    emis = np.zeros_like(elev); emis[:] = glow
+    return model, at, elev, side, emis, lawn, fence, fence_snow
+
+
+def compose_octagon(spec, shop=None):
+    """Condo_4_40: the octagonal tower: the front three faces from the art (the chamfers let down to a level foot), the other
+    five a brick wall with the front's windows, an octagon roof from above on top."""
+    from buildings_civA import prism as mprism
+    from buildings_civB import mwall
+    a = kits.piece('gb', 'Condo_4_40'); rng = _rng(spec)
+    R, base = 172, 507; E = base - R; D = 172
+    at = Atlas(512)
+    roof_c = tuple(int(v) for v in np.median(a[60:140, 70:120].reshape(-1, 4), axis=0)[:3])
+    wall_c = tuple(int(v) for v in a[300, 100][:3])
+    plan = [(64, 0), (128, 0), (190, 30), (190, 142), (128, 172), (64, 172), (2, 142), (2, 30)]
+    faces = []
+    mid = np.ascontiguousarray(a[R:base, 64:128])
+    left = _level(a, 2, 64, R, E, base, sign=-1)
+    right = _level(a, 128, 190, R, E, base, sign=-1)
+    # (the chamfers' source rows run up, not down: the far end of a chamfer is higher)
+    left = np.ascontiguousarray(np.stack([a[R - int(min(max(base - _foot(a, x), 0), 30)):R - int(min(max(base - _foot(a, x), 0), 30)) + E, x] for x in range(2, 64)], axis=1))
+    right = np.ascontiguousarray(np.stack([a[R - int(min(max(base - _foot(a, x), 0), 30)):R - int(min(max(base - _foot(a, x), 0), 30)) + E, x] for x in range(128, 190)], axis=1))
+    pic = right[40:110, 8:54]
+    wins = [(pic, wy, (.5,), strict_panes(pic)[0]) for wy in (60, 150, 240)]
+    sideA, sideG = _brick_side(mid, [2, 3, 4, 5], 112, wins, rng, wall_c)
+    sideB, sideBG = _brick_side(mid, [2, 3, 4, 5], 64, [], rng, wall_c)
+    parts = [mprism(plan, (0, E), (roof_c, wall_c, wall_c), tt=at.add(np.ascontiguousarray(a[0:R, 2:190])), hide=tuple(range(8)))]
+    pics = [mid, right, sideA, sideB, sideB, sideB, sideA, left]
+    for i in range(8):
+        (x0, d0), (x1, d1) = plan[i], plan[(i + 1) % 8]
+        fp, fg = strict_panes(pics[i])
+        w = mwall((x0, x1), (d0, d1), (0, E), wall_c, ft=at.add(np.ascontiguousarray(pics[i]), fg if i in (0, 1, 7) else (sideG if pics[i] is sideA else None)))
+        if (i in (0, 1, 7) and fg[..., 3].any()) or pics[i] is sideA: w['sg'] = True
+        parts.append(w)
+    setback, style, lawn, fence, fence_snow = apt.lot(shop or dict(yard=dict(front=1, style='compact')), rng, 192, D, 8, (72, 120, 8), 'paving')
+    model = apt.model_of('apartment', 192, setback, style, parts, roof_c, 'home', 'paving', fence, lamp=[96, 90, -3])
+    return model, at, mid, sideA, np.zeros_like(mid), lawn, fence, fence_snow
+
+
+def strict_panes(pic, least=330):
+    """The panes of a picture and where they glow, from clear blue glass only (the stone's lilac shades pass for glass by
+    the shops' rule and would light the whole facade): blue clearly over red and over green."""
+    a = pic.astype(int); r, g, b, al = (a[..., i] for i in range(4))
+    m = (al > 200) & (b > r + 30) & (b > g + 6) & ((r + g + b) / 3 > 120)
+    boxes = [(int(x0), int(y0), int(x1 - x0 + 1), int(y1 - y0 + 1), 1) for (x0, y0, x1, y1) in mb.components(mb.dilate(m, 1), 30)]
+    return mb.hand_panes(pic, boxes, least)
+
+
+def plain_roof(art, cop, face, floor_rows, PX, T, P, rng):
+    """A roof of plain pieces: the coping and the parapet's inner face in the art's colours (medians of the given
+    (rows, cols) boxes), a gravel floor in the median of its box, side copings."""
+    med = lambda box: tuple(int(v) for v in np.median(art[box[0]:box[1], box[2]:box[3]].reshape(-1, 4), axis=0)[:3])
+    c, f, g = med(cop), med(face), med(floor_rows)
+    full = lambda col, h, w: np.dstack([np.full((h, w, 3), col, np.uint8), np.full((h, w, 1), 255, np.uint8)])
+    floor = full(g, DEPTH, PX); floor[..., :3] = np.clip(floor[..., :3].astype(int) + rng.integers(-9, 10, (DEPTH, PX, 1)), 0, 255)
+    return dict(back_top=full(c, T, PX), back_face=full(f, P, PX), front_top=full(c, T, PX), floor=floor,
+                left=full(c, DEPTH - 2 * T, T), right=full(c, DEPTH - 2 * T, T), colour=g)
+
+
+def compose_block(spec, shop=None):
+    """Condo_3_46 (five storeys) and Condo_8 (the fire-escape tower): the elevation under a plain flat roof (their roofs are drawn
+    with props and a stepped parapet: the props are not built), Condo_6 as two boxes (the block and its one-storey annex with its flat roof)."""
+    k = spec['kit']; rng = _rng(spec)
+    if k == 'b6': return compose_b6(spec, shop)
+    if k == 'b3_46':
+        a = kits.piece('gb', 'Condo_3_46'); PX = 224; P, T = 12, 10
+        front = np.ascontiguousarray(a[178:570].copy())
+        roof = plain_roof(a, (22, 28, 40, 180), (32, 38, 40, 180), (44, 160, 4, 220), PX, T, P, rng)
+        wall_c = tuple(int(v) for v in a[330, 10][:3]); door = (92, 132); side = _side_of(front[P:])
+    else:
+        a = kits.piece('gb', 'Condo_8'); PX = 160; P, T = 12, 8
+        front = np.ascontiguousarray(a[164:502].copy())
+        roof = plain_roof(a, (31, 35, 20, 140), (37, 39, 20, 140), (70, 150, 40, 120), PX, T, P, rng)
+        wall_c = tuple(int(v) for v in a[300, 10][:3]); door = (50, 110)
+        side = apt.side_windows(column_rows(front[P:], [140, 141, 142, 143, 144]), DEPTH, [], rng, wall_c + (255,))[0]
+        side[:, :4] = side[:, 4:8]; side[:, -4:] = side[:, -8:-4]
+    return finish(spec, shop, rng, front, P, T, roof, door, side, wall_c, lit=(k != 'b8'))
+
+
+def compose_b6(spec, shop=None):
+    """Condo_6: the four-storey block (arched windows) and, in front of its right part, the one-storey annex whose flat roof (the
+    art's, from above, with its air-conditioning vents) stands level with the ground floor's top."""
+    a = kits.piece('gb', 'Condo_6'); rng = _rng(spec); at = Atlas(512)
+    R, G, GF = 236, 510, 394
+    E = G - R; Ha = G - GF
+    wall_c = tuple(int(v) for v in a[300, 12][:3]); roof_c = tuple(int(v) for v in np.median(a[100:200, 40:160].reshape(-1, 4), axis=0)[:3])
+    main = np.ascontiguousarray(a[R:G, 6:208].copy()); annex = np.ascontiguousarray(a[GF:G, 208:400].copy())
+    pm, gm = strict_panes(main); pa, ga = strict_panes(annex)
+    rows = column_rows(main, [188, 189, 190, 191])
+    side, side_g = apt.side_windows(rows, 206, [], rng, wall_c + (255,)); side[:, :4] = side[:, 4:8]; side[:, -4:] = side[:, -8:-4]
+    side_r = at.add(np.ascontiguousarray(side))
+    roof_a = at.add(np.ascontiguousarray(a[254:394, 208:400]))
+    parts = [
+        mbox((6, 208), (0, E), (0, 206), (roof_c, wall_c, shade(wall_c, .8)), ft=at.add(main, gm), fx=6, tt=at.add(np.ascontiguousarray(a[34:R, 6:208])), st=side_r, panes=pm),
+        mbox((208, 400), (0, Ha), (0, 140), (roof_c, wall_c, shade(wall_c, .8)), ft=at.add(annex, ga), fx=208, tt=roof_a, st=side_r, panes=pa),
+    ]
+    setback, style, lawn, fence, fence_snow = apt.lot(shop or dict(yard=dict(front=1, style='compact')), rng, 416, 206, 8, (90, 160, 8), 'paving')
+    model = apt.model_of('apartment', 416, setback, style, parts, roof_c, 'home', 'paving', fence, lamp=[125, 70, -3])
+    emis = np.zeros_like(main); emis[:] = gm
+    return model, at, main, side, emis, lawn, fence, fence_snow
 
 KEYS = ('pk_',)
 
@@ -305,6 +482,8 @@ def showcase_specs():
         S('pk_m07', 'brick', 5, 'shop', 6, 'teal', 4), S('pk_m08', 'blue', 4, 'condo', 3, 'gold', 9), S('pk_m09', 'grey', 14, 'shop', 2, 'stone', 6),
         dict(id='pk_c7a', kit='condo7', widthTiles=3, floors=3, seed=1), dict(id='pk_c7b', kit='condo7', widthTiles=3, floors=5, seed=4),
         dict(id='pk_o1a', kit='office', style=1, mid=1, blocks=2), dict(id='pk_o2a', kit='office', style=2, mid=2, blocks=3),
+        dict(id='pk_b38', kit='c4_38', widthTiles=16), dict(id='pk_b39', kit='c4_39', widthTiles=16), dict(id='pk_b40', kit='c4_40', widthTiles=6),
+        dict(id='pk_b346', kit='b3_46', widthTiles=7), dict(id='pk_b8', kit='b8', widthTiles=5), dict(id='pk_b6', kit='b6', widthTiles=13),
         dict(id='pk_c1a', kit='condo12', widthTiles=6, colour=1, height='tall', columns=[1, 3, 4, 5, 2]),
         dict(id='pk_c1b', kit='condo12', widthTiles=8, colour=2, height='short', columns=[6, 9, 8, 10, 7]),
     ]
@@ -326,6 +505,6 @@ def showcase(out):
         scale.append(sp)
     os.makedirs(out + '/buildings', exist_ok=True)
     json.dump(dict(town='pack', year=2025, type='pack showcase', shops=shops,
-                   streets=[dict(name='Facade kit', buildings=names[:5]), dict(name='Facade kit 2', buildings=names[5:9]), dict(name='Towers and terraces', buildings=names[9:]), dict(name='Scale against the game\'s own', buildings=scale)]),
+                   streets=[dict(name='Facade kit', buildings=names[:5]), dict(name='Facade kit 2', buildings=names[5:9]), dict(name='Towers and terraces', buildings=[n for n in names[9:] if not n.startswith(('pk_b', 'pk_k'))]), dict(name='Red-brick corners and blocks', buildings=[n for n in names if n.startswith(('pk_b', 'pk_k'))]), dict(name='Scale against the game\'s own', buildings=scale)]),
               open(out + '/street.json', 'w'), indent=1)
     return out + '/street.json', out + '/buildings'

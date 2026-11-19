@@ -476,6 +476,162 @@
    }
   },
   {
+   "id": "show:pk_b38",
+   "sprite": "pk_b38",
+   "home": false,
+   "name": "pk_b38",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_b38",
+     "w": 512,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_b38",
+    "kit": "c4_38",
+    "widthTiles": 16
+   }
+  },
+  {
+   "id": "show:pk_b39",
+   "sprite": "pk_b39",
+   "home": false,
+   "name": "pk_b39",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_b39",
+     "w": 512,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_b39",
+    "kit": "c4_39",
+    "widthTiles": 16
+   }
+  },
+  {
+   "id": "show:pk_b40",
+   "sprite": "pk_b40",
+   "home": false,
+   "name": "pk_b40",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_b40",
+     "w": 192,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_b40",
+    "kit": "c4_40",
+    "widthTiles": 6
+   }
+  },
+  {
+   "id": "show:pk_b346",
+   "sprite": "pk_b346",
+   "home": false,
+   "name": "pk_b346",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_b346",
+     "w": 224,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_b346",
+    "kit": "b3_46",
+    "widthTiles": 7
+   }
+  },
+  {
+   "id": "show:pk_b8",
+   "sprite": "pk_b8",
+   "home": false,
+   "name": "pk_b8",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_b8",
+     "w": 160,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_b8",
+    "kit": "b8",
+    "widthTiles": 5
+   }
+  },
+  {
+   "id": "show:pk_b6",
+   "sprite": "pk_b6",
+   "home": false,
+   "name": "pk_b6",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_b6",
+     "w": 416,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_b6",
+    "kit": "b6",
+    "widthTiles": 13
+   }
+  },
+  {
    "id": "show:pk_c1a",
    "sprite": "pk_c1a",
    "home": false,
@@ -575,6 +731,17 @@
     "pk_o2a",
     "pk_c1a",
     "pk_c1b"
+   ]
+  },
+  {
+   "name": "Red-brick corners and blocks",
+   "buildings": [
+    "pk_b38",
+    "pk_b39",
+    "pk_b40",
+    "pk_b346",
+    "pk_b8",
+    "pk_b6"
    ]
   }
  ]

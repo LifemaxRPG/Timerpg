@@ -392,6 +392,26 @@ What the trial showed, against the audit's guesses:
   per-floor window-light randomisation, the generator hook (`tools/town-buildings.ts` emitting `modular` specs; the spec format is
   `compose_facade`'s).
 
+## Built (2026-11-19): the red-brick corner blocks and the apartment variants, item 4 of the build order
+
+`compose_corner`, `compose_octagon`, `compose_block`, `compose_b6` in `tools/buildings_pack.py` (specs `kit: c4_38 | c4_39 | c4_40 | b3_46 | b8 | b6`,
+in the pack showcase street 3; `final/item4_*`).
+- **Condo_4_38/39**: a wing box (the elevation from the art's front parapet down to the foot, the art's roof from above as its top), a back box behind
+  the corner, and the corner as a prism (a wedge on the plan: chamfer forward from the wing, the entrance bay across, a chamfer back to the end wall) whose three
+  faces are `wall` parts. 39 is 38 mirrored in the pack and is built from its own art with the plan mirrored. The art draws a chamfer sheared (its foot
+  falls one row per two columns, 30 rows over the corner), so each column is let down by its own step (as the police tower), and the 30 rows are the
+  corner's depth in pixels (the roof's rows are one per pixel of depth: the roof's notch is the same 30 rows deep, which checked the scale). Plan: wing 208 deep, corner 30 forward.
+- **Condo_4_40**: an octagonal prism, the front three faces from the art (the chamfers' far ends are higher: columns taken up), the other five a brick wall
+  with the chamfer's window, the octagon roof from above as its top.
+- **Condo_3_46** (five storeys, same family as 3_44/45) and **Condo_8**: the elevation under a plain flat roof from the shared parapet code. Their roofs in the art carry
+  dishes, a AC unit and a stepped parapet: not built (the floor would show them flat); Condo_8's fire-escape balconies are still drawn flat on the front, and its
+  few panes are not lit (the steel passed for glass). **Condo_6**: two boxes, the four-storey block and the one-storey annex whose flat roof is the art's (vents
+  included); the stepped rooftop room with the door and the AC units are not built; its sides are plain grey.
+- Night light: the stone's lilac shades pass for glass by the shops' colour rule and lit whole facades, so the new kits find panes with a stricter blue test
+  (`strict_panes`).
+- Still to do: real coping and parapet boxes along the corner prism (the roof's coping is painted flat there), balconies and fire escapes as geometry
+  (Condo_8), roof props, a `wall` shear check at the corner's join with the wing under a low sun.
+
 ## Honest limits of this audit
 - Done by reading the file names and sizes of all 6 222 singles and looking at contact sheets of the buildings, the modular sets and every important theme;
   props themes (garden 570, camping 693, beach, military) were inspected by name and size, not sprite by sprite.
