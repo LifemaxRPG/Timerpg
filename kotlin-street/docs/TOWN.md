@@ -393,3 +393,31 @@ is the AI panel's "View: Open world / Street" (prefs `renderer/view`, open by de
   far version's slab fences are solid where a picket fence is see-through; bridges still look like a road over water from
   above; no LOD yet for buildings, chunks' props or the edge's trees beyond the range; the yards' far bake doubles the
   yards' worker time on the build server (1.7 s -> ~5 s with other builds running: measure on the S25).
+
+## The open world in the game loop (branch wf-open, integration)
+
+- `TownSession` builds the town's `TownCollision` on the load thread (crumb `town collision: N shapes, X ms`) and
+  `TownPlay.start(town, collision, yards)` makes both walks at the spawn: `TownPlay.open` (an `OpenWalk`) and
+  `TownPlay.street` (the `TownWalk` of the street view). `TownPlay.walk` (a `TownWalkView`) is the one played: the open
+  walk while `OrbitCamera.open` (the AI panel's "View: Open world", the default), else the street walk. A switch hands the
+  player over at the next `TownPlay.step`, where they stand and the way they face (crumb `view street` / `view open world`).
+  Without a collision map the street view is played.
+- The open world's frame (`TownPlay.stepOpen`): the walk steps against the collision with the stick relative to
+  `OpenWalk.cameraYaw`, which only `TownRun.orbit` sets from the player's orbit camera. No corners, turns or crossings
+  (`GameState.atCorner` stays false). `GameState.nearest` is the building on the derived row nearest the player, so the
+  dialogue's writing order (`DialogueEngine.setPlayerRow(row, nearest, liveRows)`) keeps working from the derived row and
+  `OpenWalk.liveRows()` (rows within 1400, nearest first). Breadcrumbs: row changes (with the camera's state) and the
+  area (into / out of a yard).
+- HUD and talking: the street name and neighbourhood from `OpenWalk.streetName()/hoodName()`; "Talk to" offers
+  `TownPlay.talkSprite()` (the nearest person within `TalkRange.distance` from any direction, kept until past
+  `TalkRange.leaveDistance` unless someone clearly nearer comes, else the door's building); "Go inside" the door the
+  player stands at, facing it (`OpenWalk.door`). The mic's listener and a voice conversation's end use
+  `TownPlay.nearestKeeper()` / `fromPlayer()`, which go by world distance in the open world. Speech bubbles stand over
+  heads projected through the camera last drawn (the orbit camera's), as before.
+- The player's figure faces `OpenWalk.hx/hz` with no forced sheet facing, so the camera shows their front, back or side.
+- The screenshot JSON's town block adds `walk` (open or street), `talkTo` and an `open` block (door, yard, speed,
+  blocked share, camera yaw, heading); the orbit camera's state was already in `orbit`.
+- `gradle :desktop:preview -Dmode=filament-open` (or `-Dshots=walk`) also plays a scripted 30 s walk through
+  `TownPlay.step` at 60 Hz: the stick pushed relative to the camera by an autopilot that steers round obstacles (a path
+  over the collision grid), the camera turned and zoomed only by scripted drags and pinches. walk_XXs.png every 5 s and
+  walk.txt (the path, the breadcrumbs, frames the camera turned without input, frames inside anything).

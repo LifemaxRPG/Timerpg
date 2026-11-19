@@ -7,6 +7,8 @@ import com.lifemax.rpg.feature.habits.domain.Row
 import com.lifemax.rpg.feature.habits.domain.StreetGait
 import com.lifemax.rpg.feature.habits.domain.StreetLife
 import com.lifemax.rpg.feature.habits.domain.Town
+import com.lifemax.rpg.feature.habits.domain.TownCollision
+import com.lifemax.rpg.feature.habits.domain.TownYards
 import com.lifemax.rpg.feature.habits.domain.TownPoint
 import com.lifemax.rpg.feature.habits.domain.TransitionKind
 import kotlin.math.abs
@@ -40,10 +42,22 @@ class TownFigure {
  * turns and crossings). Nothing here draws or touches a platform, so the JVM tests play it as the app does.
  */
 object TownPlay {
-    /** The walk, while the town is being played (null: the old crossroads, or the town still loading). */
-    @Volatile var walk: TownWalk? = null
+    /**
+     * The walk being played now, while the town is (null: the old crossroads, or the town still loading): [open] in the
+     * open world ([OrbitCamera.open], the default), else [street]. A switch of view hands the player over at the next
+     * [step], where they stand and the way they face.
+     */
+    @Volatile var walk: TownWalkView? = null
         private set
     val active: Boolean get() = walk != null
+    /** The street view's walk (rows, lanes, the turns at corners): the "View: Street" option. */
+    @Volatile var street: TownWalk? = null
+        private set
+    /** The open world's walk (anywhere, against the town's collision); null if the town has no collision map. */
+    @Volatile var open: OpenWalk? = null
+        private set
+    /** The open world is being played (the player's own camera, walking anywhere). */
+    val openWorld: Boolean get() = walk is OpenWalk
     val town: Town? get() = walk?.town
 
     /** Rare events for crash reports' breadcrumbs (never per frame): row changes, turns, crossings. Set by the app. */
@@ -83,26 +97,62 @@ object TownPlay {
     /** Each row's buildings' middles (where its passers stop to look), kept: the people are stood every frame. */
     private val centersOf = HashMap<String, List<Float>?>()
 
-    /** Starts playing [town]: the player stands at its spawn (the civic avenue). */
-    fun start(town: Town): TownWalk {
+    /**
+     * Starts playing [town]: the player stands at its spawn (the civic avenue). With [collision] (the town's solid shapes,
+     * built from the same [town]) and its [yards], the open world's walk is made too and played while [OrbitCamera.open];
+     * returns the street view's walk (both stand at the spawn).
+     */
+    fun start(town: Town, collision: TownCollision? = null, yards: TownYards? = null): TownWalk {
         CornerWalk.reset()
         GameState.moveX = 0f; GameState.moveLane = 0f
         GameState.street = 0
         GameState.facing = 0; GameState.dir = 1f; GameState.vx = 0f
         val w = TownWalk(town)
+        val o = collision?.let { OpenWalk(town, it, yards ?: TownYards(emptyList(), emptyList())) }
+        o?.takeOver(w)
         lastRow = w.row.id
         turning = false
         lastMark = Float.NaN
+        lastYard = null; talkLast = null
         centersOf.clear()
-        walk = w
-        event("town ${town.seed} ${town.year}: spawned on ${w.row.id} (${streetName() ?: "?"}) at x ${w.x.toInt()}, lane ${w.lane}")
+        street = w
+        open = o
+        walk = if (OrbitCamera.open && o != null) o else w
+        event("town ${town.seed} ${town.year}: spawned on ${w.row.id} (${streetName() ?: "?"}) at x ${w.x.toInt()}, lane ${w.lane}; " +
+            (if (walk === o) "open world" else "street view") + (if (o == null) " (no collision map)" else ""))
         return w
+    }
+
+    /** Stands the player at world ([x], [z]) facing ([dx], [dz]) in both walks (where they were last time; a preview's spot). */
+    fun placeAt(x: Float, z: Float, dx: Float, dz: Float) {
+        street?.placeAt(x, z, dx, dz)
+        open?.placeAt(x, z, dx, dz)
+        lastMark = Float.NaN
+    }
+
+    /**
+     * The walk the chosen view plays ([OrbitCamera.open]); on a switch the player is handed over to it where they stand,
+     * facing the way they faced (into the street view: onto the nearest pavement, as its walk places them).
+     */
+    private fun sync(): TownWalkView? {
+        val cur = walk ?: return null
+        val o = open
+        val want: TownWalkView = if (OrbitCamera.open && o != null) o else street ?: return cur
+        if (want === cur) return cur
+        if (want is OpenWalk) want.takeOver(cur) else (want as TownWalk).placeAt(cur.wx, cur.wz, cur.hx, cur.hz)
+        CornerWalk.reset()
+        GameState.facing = 0
+        walk = want
+        lastMark = Float.NaN
+        event((if (want is OpenWalk) "view open world" else "view street") + " at (${want.wx.toInt()}, ${want.wz.toInt()}) on ${want.row.id}; " + OrbitCamera.describe())
+        return want
     }
 
     /** Stops playing the town (back to the old crossroads). */
     fun stop() {
         if (walk == null) return
         walk = null
+        street = null; open = null
         CornerWalk.reset()
         GameState.street = 0
         figureCount = 0
@@ -119,8 +169,10 @@ object TownPlay {
      * a mouth a turn leads off). Returns a number that changes whenever the view must be drawn again.
      */
     fun step(dt: Float): Float {
-        val w = walk ?: return 0f
+        val v = sync() ?: return 0f
         if (frozen) { GameState.moveX = 0f; GameState.moveLane = 0f }
+        if (v is OpenWalk) return stepOpen(v, dt)
+        val w = v as TownWalk
         val wasTransit = w.transit
         val done = w.step(dt)
         val t = w.transit
@@ -151,16 +203,73 @@ object TownPlay {
         return mark
     }
 
+    private var lastYard: String? = null
+
+    /**
+     * The open world's frame: the walk steps in the world against the town's collision, the stick relative to the camera
+     * ([OpenWalk.cameraYaw], set by the renderer's orbit camera); no corners, turns or crossings. The HUD's state follows
+     * the derived street frame: [GameState.nearest] is the building on the derived row nearest the player (the dialogue's
+     * writing order goes by it), never at a corner. Breadcrumbs: the row and the yard (area) changes.
+     */
+    private fun stepOpen(w: OpenWalk, dt: Float): Float {
+        w.step(dt)
+        if (w.row.id != lastRow) {
+            lastRow = w.row.id
+            rowChanges++
+            event("row ${w.row.id}: ${streetName() ?: "?"}" + (hoodName()?.let { ", $it" } ?: "") + " at (${w.wx.toInt()}, ${w.wz.toInt()}); " + OrbitCamera.describe())
+        }
+        val y = w.yard?.sprite
+        if (y != lastYard) {
+            event(if (y != null) "area: yard of $y" + (hoodName()?.let { ", $it" } ?: "") else "area: ${lastYard?.let { "out of the yard of $it" } ?: "?"}, on ${streetName()}")
+            lastYard = y
+        }
+        GameState.nearest = nearestOnRow(w.row, w.x)
+        GameState.atCorner = false
+        val mark = w.wx * 3f + w.wz * 7f + w.hx * 13f + w.hz * 17f + rowChanges * 31f + (if (GameState.walking) GameState.gait * 5f else 0f)
+        GameState.inMotion = mark != lastMark || GameState.walking || renderBusy
+        lastMark = mark
+        return mark
+    }
+
+    /** The building of [r] whose front holds [x] along it, else the one whose middle is nearest; -1 for a row without any. */
+    private fun nearestOnRow(r: Row, x: Float): Int {
+        var best = -1; var bestD = Float.MAX_VALUE
+        for ((i, b) in r.buildings.withIndex()) {
+            val d = abs(b.mid - x)
+            if (d < bestD) { best = i; bestD = d }
+        }
+        return best
+    }
+
     // ------------------------------------------------------------------ the HUD
 
     /** The street the player is on (the row's road), or null when not playing the town. */
-    fun streetName(): String? { val w = walk ?: return null; return w.town.road(w.row.road).name }
+    fun streetName(): String? { val w = walk ?: return null; return (w as? OpenWalk)?.streetName() ?: w.town.road(w.row.road).name }
 
-    /** The neighbourhood here (the building in front's, else the nearest lot's). */
-    fun hoodName(): String? { val w = walk ?: return null; return w.town.neighbourhoodAt(w.row, w.x)?.name }
+    /** The neighbourhood here (the yard's, the building in front's, else the nearest lot's). */
+    fun hoodName(): String? { val w = walk ?: return null; return if (w is OpenWalk) w.hoodName() else w.town.neighbourhoodAt(w.row, w.x)?.name }
 
-    /** The building in front of the player (its sprite), none mid-transit. */
+    /** The building in front of the player (its sprite), none mid-transit; in the open world the door they stand at, facing it. */
     fun frontSprite(): String? { val w = walk ?: return null; if (w.transit != null) return null; return w.front?.sprite }
+
+    private var talkLast: String? = null
+
+    /**
+     * Whose people the "Talk to" buttons offer: in the street view the building in front; in the open world the person to
+     * talk to nearest the player within [TalkRange.distance] from any direction (kept until the player is past
+     * [TalkRange.leaveDistance], so it does not flicker between two), else the door the player stands at.
+     */
+    fun talkSprite(): String? {
+        val w = walk ?: return null
+        if (w !is OpenWalk) return frontSprite()
+        talkLast?.let { if (it in keepers && w.fromKeeper(it) <= TalkRange.leaveDistance) {
+            val n = w.nearestKeeper(keepers, TalkRange.distance)
+            // (someone else clearly nearer takes over)
+            if (n == null || n == it || w.fromKeeper(n) + 20f > w.fromKeeper(it)) return it
+        } }
+        talkLast = w.nearestKeeper(keepers, TalkRange.distance)
+        return talkLast ?: w.door?.sprite
+    }
 
     /** Index of [row] in the town's rows (the dialogue's queue orders by it); -1 if unknown. */
     fun rowIndex(row: Row?): Int = row?.let { r -> town?.rows?.indexOfFirst { it.id == r.id } } ?: -1
@@ -176,6 +285,7 @@ object TownPlay {
      */
     fun nearestKeeper(range: Float = TalkRange.distance): String? {
         val w = walk ?: return null
+        if (w is OpenWalk) return w.nearestKeeper(keepers, range)
         if (w.transit != null) return null
         var best: String? = null
         var bestD = Float.MAX_VALUE
@@ -190,6 +300,7 @@ object TownPlay {
     /** How far the player stands from the person at [sprite] (Float.MAX_VALUE off this row, or mid-transit). */
     fun fromPlayer(sprite: String): Float {
         val w = walk ?: return Float.MAX_VALUE
+        if (w is OpenWalk) return w.fromKeeper(sprite)
         if (w.transit != null) return Float.MAX_VALUE
         val b = w.row.buildings.firstOrNull { it.sprite == sprite } ?: return Float.MAX_VALUE
         return TalkRange.apart(w.x, w.lane, b.mid + TalkRange.KEEPER_DX, TalkRange.KEEPER_LANE)
@@ -264,11 +375,12 @@ object TownPlay {
         me.x = w.wx; me.z = w.wz
         val moving = GameState.walking || w.transit != null
         val a = w.row.alongAt(w.x.coerceIn(0f, w.row.length))
-        // on the pavement the player faces along the row by their direction; through a transit, the way they walk
-        if (w.transit != null) { me.dx = w.hx; me.dz = w.hz } else { me.dx = a.x * GameState.dir; me.dz = a.z * GameState.dir }
+        // on the pavement the player faces along the row by their direction; through a transit, the way they walk; in the
+        // open world the way they face (the camera then shows their front, back or side, as everyone's)
+        if (w.transit != null || w is OpenWalk) { me.dx = w.hx; me.dz = w.hz } else { me.dx = a.x * GameState.dir; me.dz = a.z * GameState.dir }
         me.sheet = -1
         me.still = !moving
-        me.facing = if (w.transit != null) 0 else GameState.facing
+        me.facing = if (w.transit != null || w is OpenWalk) 0 else GameState.facing
         me.frame = if (me.still) ((seconds * 5f).toInt()).mod(6) else ((GameState.gait * StreetGait.FRAMES).toInt().coerceIn(0, StreetGait.FRAMES - 1)) * 6 / StreetGait.FRAMES
         return figureCount
     }

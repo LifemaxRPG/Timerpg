@@ -389,6 +389,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     val townPlay = com.lifemax.rpg.feature.habits.presentation.scene.TownPlay
     // the town's state the HUD follows (copied each frame from the walk, as GameState is below)
     var townFront by remember { mutableStateOf<String?>(null) }
+    // (whose people "Talk to" offers: the building in front in the street view; in the open world the nearest person to talk to)
+    var townHere by remember { mutableStateOf<String?>(null) }
     var townStreet by remember { mutableStateOf<String?>(null) }
     var townHood by remember { mutableStateOf<String?>(null) }
     var townTransit by remember { mutableStateOf(false) }
@@ -469,6 +471,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             val w = townPlay.walk
             if (w != null) {
                 townFront = townPlay.frontSprite()
+                townHere = townPlay.talkSprite()
                 townTransit = w.transit != null
                 if (townRows != townPlay.rowChanges || townStreet == null) {
                     townRows = townPlay.rowChanges
@@ -489,7 +492,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     val ai by engine.status.collectAsState()
     var talk by remember { mutableStateOf<Talk?>(null) }
     var aiPanel by remember { mutableStateOf(false) }
-    val here = if (townMode) townFront else street.sprites.getOrNull(near)
+    val here = if (townMode) townHere else street.sprites.getOrNull(near)
     val atHere = remember(people, here) { people?.at(here).orEmpty() }
     // everyone the player can talk to on this street stands at their building (the first of each building's people)
     LaunchedEffect(people, streetNo, townMode) {
@@ -831,7 +834,13 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                     if (w != null) m.putAll(linkedMapOf("row" to w.row.id, "street" to townStreet, "neighbourhood" to townHood,
                         "x" to w.x, "lane" to w.lane, "wx" to w.wx, "wz" to w.wz, "heading" to w.heading, "front" to townFront,
                         "transit" to w.transit?.let { t -> "${t.kind} ${t.from.id}->${t.to.id} %.2f".format(java.util.Locale.US, t.progress) },
-                        "liveRows" to w.liveRows().map { it.id }, "people" to townPlay.figureCount))
+                        "liveRows" to w.liveRows().map { it.id }, "people" to townPlay.figureCount, "talkTo" to townHere,
+                        "walk" to if (w is com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk) "open" else "street"))
+                    (w as? com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk)?.let { o ->
+                        m["open"] = linkedMapOf("door" to o.door?.let { d -> "${d.sprite} (${d.kind}) at (%.0f, %.0f)".format(java.util.Locale.US, d.x, d.z) },
+                            "yard" to o.yard?.sprite, "speed" to o.speed, "blocked" to o.blockedShare, "cameraYaw" to o.cameraYaw,
+                            "hx" to o.hx, "hz" to o.hz)
+                    }
                 }
             },
             "street" to linkedMapOf("index" to streetNo, "name" to street.name, "nearestBuilding" to near,
@@ -904,7 +913,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         } else if (townMode) {
             // the town: at a corner, the street a turn leads into; else the building in front and who keeps it
             val label = if (turning) null else if (atCorner && townCorner != null) "▲  $townCorner"
-                else townFront?.let { sp -> townData?.names?.get(sp)?.let { (n, o) -> n + (o.takeIf { it.isNotBlank() }?.let { "  ·  $it" } ?: "") } }
+                else (townFront ?: townHere)?.let { sp -> townData?.names?.get(sp)?.let { (n, o) -> n + (o.takeIf { it.isNotBlank() }?.let { "  ·  $it" } ?: "") } }
             if (label != null) Text(label, 15.sp,
                 Modifier.align(Alignment.TopCenter).padding(top = 62.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 14.dp, vertical = 6.dp))
         } else if (atCorner && data.crossroads != null && !turning) {
@@ -936,7 +945,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         if ((open == null || open.byVoice) && !turning && doorTo == null) {
             // someone to talk to (inside: when standing near them); the way in and out. Under the right thumb, as a game
             // pad's buttons are, clear of the stick's zone on the left
-            val roomHere = here?.let { rooms[it] }
+            // (the town: the door the player stands at, facing it; in the open world from any side of the building)
+            val roomHere = (if (townMode) townFront else here)?.let { rooms[it] }
             Row(Modifier.align(Alignment.BottomEnd).padding(end = 24.dp, bottom = 56.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (inside == null || nearKeeper) for (npc in atHere) Chip("Talk to ${npc.first}", false) {
                     // a thumb on the stick stops walking (it would walk away and end the conversation) until it is moved again

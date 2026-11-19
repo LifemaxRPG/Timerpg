@@ -28,7 +28,11 @@ import org.jetbrains.skia.Image as SkiaImage
  * the cinema; by day and at night. The sky behind is laid by the camera's horizon with the sun or moon where the stage
  * draws it ([OrbitCamera.orbAt]), so the light and the orb can be checked against each other.
  *
- * The player stands where each view puts them (a stub of the open-world walk: a position and a heading, [TownWalk.placeAt]).
+ * The player is the game's open-world walk ([TownPlay.open], an [OpenWalk] against the town's collision), stood where each
+ * view puts them ([OpenWalk.placeAt]: on the nearest clear spot). Then a scripted walk of 30 s through the app's own game
+ * loop ([TownPlay.step], the stick relative to the camera, the camera turned and zoomed only by scripted drags and pinches)
+ * from the spawn along the street, through a side gate into a back yard and out again: walk_XXs.png every 5 s and the
+ * path in walk.txt (with a check that the camera never turned without a drag).
  * For each view open.txt gives the draws and triangles three ways: a free camera as before (no draw distance, every yard
  * near), with the draw distance only, and as drawn (draw distance and far yards). -Dshots=name,name renders only those.
  * Writes build/preview/filament-open/.
@@ -82,7 +86,15 @@ fun renderFilamentOpen(out: String) {
     }
     GameState.enabled = true; GameState.look = 1
     GameState.moveX = 0f; GameState.moveLane = 0f
-    val walk = TownPlay.start(town)
+    OrbitCamera.open = true
+    val collision = com.lifemax.rpg.feature.habits.domain.TownCollision.build(town, yards,
+        com.lifemax.rpg.feature.habits.domain.ModelShape.parseAll(File(bdir, "models.json").takeIf { it.exists() }?.readText()),
+        com.lifemax.rpg.feature.habits.domain.CinemaSiteShape.parse(root))
+    val events = ArrayList<String>()
+    TownPlay.onEvent = { events += it }
+    TownPlay.start(town, collision, yards)
+    val walk = TownPlay.open ?: error("no open walk")
+    check(TownPlay.walk === walk)
     val run = TownRun(ft)
     // (the town is built already: this marks the first view ready, so the people stand)
     while (!run.build(walk.wx, walk.wz, 8f)) Thread.sleep(1)
@@ -209,8 +221,174 @@ fun renderFilamentOpen(out: String) {
     }
     File(dir, "open.txt").writeText(report.toString())
     print(report)
+    if (want("walk")) scriptedWalk(dir, town, yards, walk, run, shooter, sheets, w, h, events)
     TownPlay.stop()
+    TownPlay.onEvent = null
     shooter.destroy()
     ft.destroy()
     engine.destroy()
+}
+
+/**
+ * 30 s of play through the game loop as the app runs it ([TownPlay.step] at 60 Hz, then [TownRun.draw]): an autopilot
+ * pushes the stick towards each waypoint relative to where the camera looks (the spawn's street, the front of the
+ * nearest house with a side gate, its gate, its back yard, back out and across the road), and the "player" turns the
+ * camera only by drags and pinches at set times. Every 5 s a render; walk.txt has the path each half second, the
+ * breadcrumbs, and whether the camera's yaw ever changed between drags.
+ */
+private fun scriptedWalk(
+    dir: File, town: Town, yards: TownYards, walk: com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk, run: TownRun, shooter: Shooter,
+    sheets: List<androidx.compose.ui.graphics.ImageBitmap>, w: Int, h: Int, events: MutableList<String>,
+) {
+    val log = StringBuilder()
+    events.clear()
+    walk.spawn()
+    val sp = town.row(town.spawn.row)
+    val a0 = sp.alongAt(town.spawn.x)
+    OrbitCamera.reset(walk.wx, walk.wz, OrbitCamera.headingOf(a0.x, a0.z))
+    // the nearest house with a side gate and a back yard
+    val y = yards.yards.filter { it.back != null && it.items.any { i -> i.kind == "sideGate" } }
+        .minByOrNull { val c = it.house; kotlin.math.hypot((c[0] + c[2]) / 2f - walk.wx, (c[1] + c[3]) / 2f - walk.wz) }!!
+    val r = town.row(y.row)
+    val b = r.buildings.first { it.sprite == y.sprite }
+    val gate = y.items.first { it.kind == "sideGate" }.rect
+    val back = y.back!!
+    val n = r.normalAt(b.mid)
+    fun mid(q: FloatArray) = ((q[0] + q[2]) / 2f) to ((q[1] + q[3]) / 2f)
+    val front = r.pointAt(b.mid, 6f)
+    val (gx, gz) = mid(gate)
+    // (just outside the gate on the front's side, then just inside it on the back's)
+    val goals = ArrayList<Pair<String, Pair<Float, Float>>>()
+    goals += "the pavement in front of ${y.sprite}" to (front.x to front.z)
+    goals += "outside its side gate" to ((gx - n.x * 30f) to (gz - n.z * 30f))
+    goals += "through the gate" to ((gx + n.x * 30f) to (gz + n.z * 30f))
+    goals += "its back yard" to mid(back)
+    goals += "back through the gate" to ((gx - n.x * 30f) to (gz - n.z * 30f))
+    val across = r.pointAt(b.mid + 120f, -6f)
+    goals += "across the road" to (across.x to across.z)
+    // (each on the clear spot nearest it: a yard's middle may hold a shed)
+    val clear = FloatArray(2)
+    for (i in goals.indices) { val (nm, q) = goals[i]; walk.collision.nearestClear(q.first, q.second, com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk.RADIUS + 2f, clear); goals[i] = nm to (clear[0] to clear[1]) }
+    log.appendLine("scripted walk: from the spawn (${walk.wx.toInt()}, ${walk.wz.toInt()}) on ${walk.row.id} to ${y.sprite}'s back yard by its side gate (${gx.toInt()}, ${gz.toInt()}) and across the road")
+    val dt = 1f / 60f
+    var t = 0f
+    var clock = 1000f
+    var g = 0
+    var lastYaw = OrbitCamera.yaw
+    var turnedAlone = 0
+    var maxStep = 0f
+    var inside = 0
+    // the player's own camera input: (start s, end s, drag px x, drag px y, pinch a frame)
+    class Input(val from: Float, val to: Float, val dx: Float, val dy: Float, val pinch: Float)
+    val inputs = listOf(
+        Input(3f, 3.6f, 22f, 0f, 1f),      // turn right a little
+        Input(9f, 9.5f, -30f, 0f, 1f),     // turn left
+        Input(14f, 14.6f, 0f, 9f, 1f),     // look further down
+        Input(18f, 18.5f, 0f, 0f, .985f),  // zoom in
+        Input(23f, 23.8f, 40f, -4f, 1f),   // round to the side
+    )
+    var shot = 0
+    var path: List<Pair<Float, Float>>? = null
+    var planned = 0f
+    var pi = 0
+    while (t <= 30.001f) {
+        val inp = inputs.firstOrNull { t >= it.from && t < it.to }
+        if (inp != null) { if (inp.dx != 0f || inp.dy != 0f) OrbitCamera.drag(inp.dx, inp.dy, w.toFloat(), h.toFloat()); if (inp.pinch != 1f) OrbitCamera.pinch(inp.pinch) }
+        // the stick: towards the goal, relative to the camera
+        val goal = goals.getOrNull(g)
+        if (goal != null) {
+            val dx = goal.second.first - walk.wx; val dz = goal.second.second - walk.wz
+            val d = kotlin.math.hypot(dx, dz)
+            if (d < 14f) { log.appendLine("  %5.1f s reached %s at (%.0f, %.0f)".format(t, goal.first, walk.wx, walk.wz)); g++; path = null }
+            else {
+                // (as a player steers: round what stands in the way, by a path over the collision's grid, replanned each second)
+                if (path == null || t - planned > 1f) { path = plan(walk.collision, walk.wx, walk.wz, goal.second.first, goal.second.second); planned = t; pi = 0 }
+                val pp = path!!
+                while (pi < pp.size - 1 && kotlin.math.hypot(pp[pi].first - walk.wx, pp[pi].second - walk.wz) < 10f) pi++
+                val (tx, tz) = if (pp.isEmpty()) goal.second else pp[pi]
+                val ex = tx - walk.wx; val ez = tz - walk.wz
+                val e = kotlin.math.hypot(ex, ez).coerceAtLeast(1e-3f)
+                val ux = ex / e; val uz = ez / e
+                val fx = OrbitCamera.fx; val fz = OrbitCamera.fz
+                GameState.moveX = ux * -fz + uz * fx
+                GameState.moveLane = -(ux * fx + uz * fz)
+            }
+        }
+        if (goals.getOrNull(g) == null) { GameState.moveX = 0f; GameState.moveLane = 0f }
+        val px = walk.wx; val pz = walk.wz
+        TownPlay.step(dt)
+        maxStep = maxOf(maxStep, kotlin.math.hypot(walk.wx - px, walk.wz - pz))
+        if (walk.collision.blocked(walk.wx, walk.wz, com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk.RADIUS - .5f)) inside++
+        val drawNow = t >= shot * 5f - 1e-4f
+        if (drawNow) {
+            val hour = 13f + t / 30f * 4f
+            run.build(walk.wx, walk.wz, 50f)
+            run.draw(walk, w.toFloat(), h.toFloat(), hour, clock, sheets)
+            val marks = ArrayList<Pair<androidx.compose.ui.geometry.Offset, Int>>()
+            TownPlay.playerHead()?.let { marks += it to 0x40E0FF }
+            walk.door?.let { d -> TownPlay.headOnScreen(d.x, d.z)?.let { marks += it to 0xFFB040 } }
+            TownPlay.talkSprite()?.let { s -> TownPlay.keeperHead(s)?.let { marks += it to 0x60FF60 } }
+            shooter.save(File(dir, "walk_%02ds.png".format(shot * 5)), w, h, hour, marks)
+            log.appendLine("  %5.1f s shot walk_%02ds: (%.0f, %.0f) on %s (%s, %s), yard %s, door %s, talk %s; %s".format(t, shot * 5, walk.wx, walk.wz,
+                walk.row.id, TownPlay.streetName(), TownPlay.hoodName(), walk.yard?.sprite ?: "-", walk.door?.sprite ?: "-", TownPlay.talkSprite() ?: "-", OrbitCamera.describe()))
+            shot++
+        } else run.orbit(walk, w.toFloat(), h.toFloat(), clock)
+        // (the camera's yaw moves only while a drag is easing in: any change well after the last input is the camera
+        // turning by itself)
+        val settled = inputs.none { t >= it.from && t < it.to + .6f }
+        if (settled && kotlin.math.abs(OrbitCamera.yaw - lastYaw) > 1e-3f) turnedAlone++
+        lastYaw = OrbitCamera.yaw
+        if (((t * 60f).toInt() % 30) == 0) log.appendLine("  %5.1f s (%.0f, %.0f) speed %.0f blocked %.2f row %s yard %s door %s; yaw %.1f pitch %.1f dist %.0f (pulled %.0f)".format(
+            t, walk.wx, walk.wz, walk.speed, walk.blockedShare, walk.row.id, walk.yard?.sprite ?: "-", walk.door?.sprite ?: "-", OrbitCamera.yaw, OrbitCamera.pitch, OrbitCamera.dist, OrbitCamera.pulled))
+        t += dt; clock += dt
+    }
+    GameState.moveX = 0f; GameState.moveLane = 0f
+    log.appendLine("reached ${g} of ${goals.size} goals; frames the camera turned with no input: $turnedAlone; frames inside something: $inside; largest step %.2f (a run frame is %.2f)".format(maxStep, 150f / 60f))
+    log.appendLine("breadcrumbs:")
+    for (e in events) log.appendLine("  $e")
+    File(dir, "walk.txt").writeText(log.toString())
+    print(log)
+}
+
+/**
+ * A walkable path from ([x0], [z0]) to ([x1], [z1]) over [c]'s grid of 6 units (a walker's radius clear), 8-connected, in a
+ * box round both padded by 400; the straight line if none is found. Every few cells, so the walker cuts the corners a grid makes.
+ */
+private fun plan(c: com.lifemax.rpg.feature.habits.domain.TownCollision, x0: Float, z0: Float, x1: Float, z1: Float): List<Pair<Float, Float>> {
+    val s = 6f; val pad = 400f
+    val ox = minOf(x0, x1) - pad; val oz = minOf(z0, z1) - pad
+    val nx = ((kotlin.math.abs(x1 - x0) + 2 * pad) / s).toInt() + 1
+    val nz = ((kotlin.math.abs(z1 - z0) + 2 * pad) / s).toInt() + 1
+    val r = com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk.RADIUS + .5f
+    fun cell(x: Float, z: Float) = ((z - oz) / s).toInt().coerceIn(0, nz - 1) * nx + ((x - ox) / s).toInt().coerceIn(0, nx - 1)
+    val start = cell(x0, z0); val end = cell(x1, z1)
+    val from = IntArray(nx * nz) { -1 }
+    val dist = FloatArray(nx * nz) { Float.MAX_VALUE }
+    val q = java.util.PriorityQueue<Pair<Float, Int>>(compareBy { it.first })
+    dist[start] = 0f; from[start] = start; q += 0f to start
+    val gx = ((x1 - ox) / s); val gz = ((z1 - oz) / s)
+    while (q.isNotEmpty()) {
+        val (_, k) = q.poll()
+        if (k == end) break
+        val cx = k % nx; val cz = k / nx
+        for (dz in -1..1) for (dx in -1..1) {
+            if (dx == 0 && dz == 0) continue
+            val ax = cx + dx; val az = cz + dz
+            if (ax !in 0 until nx || az !in 0 until nz) continue
+            val n = az * nx + ax
+            val nd = dist[k] + if (dx != 0 && dz != 0) 1.414f else 1f
+            if (nd >= dist[n]) continue
+            if (n != end && c.blocked(ox + (ax + .5f) * s, oz + (az + .5f) * s, r)) { dist[n] = -1f; continue }
+            dist[n] = nd; from[n] = k
+            q += (nd + kotlin.math.hypot(ax - gx, az - gz)) to n
+        }
+    }
+    if (from[end] < 0) return listOf(x1 to z1)
+    val out = ArrayList<Pair<Float, Float>>()
+    var k = end
+    var i = 0
+    while (k != start) { if (i++ % 3 == 0) out += (ox + (k % nx + .5f) * s) to (oz + (k / nx + .5f) * s); k = from[k] }
+    out.reverse()
+    out += x1 to z1
+    return out
 }
