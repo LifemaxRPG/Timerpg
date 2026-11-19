@@ -235,9 +235,9 @@ def build(shop, out):
     # the cinema has no LimeZu sprite: the engine builds it (its era's front, posters and marquee from street.json's
     # graph.cinema), so nothing is cut for it here
     if shop['parts'][0]['key'].startswith('landmark_cinema_'): return
-    if shop['parts'][0]['key'].startswith(('house_small_', 'house_medium_')): return build_house(shop, out)
+    if shop['parts'][0]['key'].startswith(('house_small_', 'house_medium_', 'house_big_')): return build_house(shop, out)
     if shop['parts'][0]['key'].startswith(('villa_', 'landmark_clocktower_', 'landmark_school_', 'house_terraced_')) or \
-            shop['parts'][0]['key'].startswith(('estate_', 'landmark_police_')) or apt_maker(shop['parts'][0]['key']): return build_model(shop, out)
+            shop['parts'][0]['key'].startswith(('estate_', 'landmark_police_', 'pk_')) or apt_maker(shop['parts'][0]['key']): return build_model(shop, out)
     if shop['parts'][0]['key'].startswith(('landmark_fire_', 'landmark_hospital_', 'landmark_post_')): return build_model(shop, out)
     parts = shop['parts']; ground = next(p for p in parts if not p['key'].startswith(('roof_', 'roofprop_', 'middle_')))
     mids = [p for p in parts if p['key'].startswith('middle_')]
@@ -415,6 +415,10 @@ HOUSE = {
     'small': dict(roof=(0, 160), wall=(2, 158), slope=(58, 100), ridge=(50, 58), back=(20, 50), depth=80,
                   flue=(74, 88, 21, 43), hitch=(158, 192, 114, 164), wheels=((6, 32), (122, 150)),
                   panes=((16, 120, 24, 24), (120, 120, 24, 24))),
+    # the third size (320x192 / 320x256): the medium's front with a fourth window and a wall air unit, the flue at the far end
+    'big': dict(roof=(0, 288), wall=(2, 286), slope=(54, 100), ridge=(44, 54), back=(12, 44), depth=88,
+                flue=(234, 248, 17, 39), hitch=(286, 320, 114, 164), wheels=((6, 32), (130, 158), (256, 282)),
+                panes=((16, 122, 14, 20), (128, 120, 24, 24), (164, 120, 24, 24), (228, 120, 24, 24))),
     'medium': dict(roof=(0, 224), wall=(2, 222), slope=(54, 100), ridge=(44, 54), back=(12, 44), depth=88,
                    flue=(74, 88, 17, 39), hitch=(222, 256, 114, 164), wheels=((6, 32), (130, 158), (192, 218)),
                    panes=((16, 122, 14, 20), (128, 120, 24, 24), (164, 120, 24, 24))),
@@ -1504,9 +1508,9 @@ def build_model(shop, out):
     """One of our villas or landmarks as the parts the engine builds it from (models.json) and the pictures they wear."""
     key = shop['parts'][0]['key']; n = shop['sprite']
     rng = np.random.default_rng(zlib.crc32(n.encode()))
-    import buildings_estA, buildings_estB, buildings_civA
+    import buildings_estA, buildings_estB, buildings_civA, buildings_pack
     from buildings_civB import police
-    make = apt_maker(key) or (buildings_estB.ESTATES[key] if key in buildings_estB.ESTATES else police if key.startswith('landmark_police_') else buildings_civA.builder(key) or (villa if key.startswith('villa_') else tower if key.startswith('landmark_clocktower_') else terraced if key.startswith('house_terraced_')
+    make = buildings_pack.builder(key) or apt_maker(key) or (buildings_estB.ESTATES[key] if key in buildings_estB.ESTATES else police if key.startswith('landmark_police_') else buildings_civA.builder(key) or (villa if key.startswith('villa_') else tower if key.startswith('landmark_clocktower_') else terraced if key.startswith('house_terraced_')
             else buildings_estA.estate_one_story if key == 'estate_one_story_house' else buildings_estA.estate_country if key == 'estate_country_house' else school))
     model, at, front, side, emis, lawn, fence, fence_snow = make(shop, rng)
     # which boxes' sides have windows that light at night (the engine lights no other: a railing's side has none)
@@ -1538,7 +1542,7 @@ def showcase(out):
     -Dassets=out -Dmode=houses (or -Dmode=models for streets 2 and 3)."""
     shops, row, colours = [], [], []
     names = {}
-    for tier in ('small', 'medium'):
+    for tier in ('small', 'medium', 'big'):
         for design in range(1, 9):
             for c in [''] + [f'_c{k}' for k in range(1, 10)]:
                 key = f'house_{tier}_{design}{c}'
@@ -1546,7 +1550,7 @@ def showcase(out):
                 shops.append(dict(id=f'show:{key}', sprite=sprite, home=True, name=key, kind='Home', owner='', colour=c[1:] or 'base',
                                   parts=[dict(key=key, w=im.width, h=im.height, y=0)], yard=dict(front=2, style=('compact', 'formal', 'natural', 'flower')[len(shops) % 4])))
     cycle = [''] + [f'_c{k}' for k in range(1, 10)]
-    for i, (tier, design) in enumerate([(t, d) for t in ('small', 'medium') for d in range(1, 9)]):
+    for i, (tier, design) in enumerate([(t, d) for t in ('small', 'medium', 'big') for d in range(1, 9)]):
         row.append(names[f'house_{tier}_{design}{cycle[(i * 3 + 1) % 10]}'])
     colours = [names[f'house_small_7{c}'] for c in cycle]
     # the villas (each built with a front-facing gable), and the landmarks with hipped roofs, which no street has yet
@@ -1596,7 +1600,7 @@ def build_all(shops, out, jobs):
     import multiprocessing
     # the modelled buildings (landmarks, estates, apartments: 0.2-0.8 s each) go first so none is left running alone at
     # the end; the results are put back in the shops' order before merging
-    heavy = lambda s: 0 if s['parts'][0]['key'].startswith(('house_small_', 'house_medium_')) or len(s['parts']) > 1 else -1
+    heavy = lambda s: 0 if s['parts'][0]['key'].startswith(('house_small_', 'house_medium_', 'house_big_')) or len(s['parts']) > 1 else -1
     order = sorted(range(len(shops)), key=lambda i: (heavy(shops[i]), i))
     done = [None] * len(shops)
     # fork: the workers start with this module (and the group modules) already imported
@@ -1615,6 +1619,8 @@ def main(argv):
     jobs = os.cpu_count() or 1
     if argv and argv[0].startswith('--jobs='): jobs = int(argv[0].split('=', 1)[1]); argv = argv[1:]
     if argv[0] == '--showcase': src, out = showcase(argv[1])
+    elif argv[0] == '--pack-showcase':
+        import buildings_pack; src, out = buildings_pack.showcase(argv[1])
     else: src, out = argv[0], argv[1]
     os.makedirs(out, exist_ok=True)
     shops = json.load(open(src))['shops']

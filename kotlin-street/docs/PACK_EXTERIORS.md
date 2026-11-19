@@ -355,6 +355,63 @@ selects the chamfer set. The tool output per unique spec is one atlas strip per 
 3. `compose_facade(spec)` in `make_buildings.py` (bake + models.json), then the generator hook.
 4. Office, Condo_7, Condo_1/2 follow with only a new kit entry each.
 
+## Built (2026-11-19): the modular facade kit, item 1 of the build order
+
+`tools/kits.py` (writes `tools/kits/kits.json` and 28 generated caps and fillers), `tools/buildings_pack.py` (`compose_facade(spec)`),
+hooked into `make_buildings.py` (`pk_*` sprite keys; `--pack-showcase DIR`), `tools/pack-export.sh` (writes
+`app/src/main/assets/pack/`). Not wired into the town generator. Preview: `python3 tools/make_buildings.py --pack-showcase DIR`, then
+`gradle :desktop:preview -Dmode=filament-models -Dassets=DIR -Dstreet=0-3`. The kit works from the 32 px art
+(`PACK_ART=.../ME_Theme_Sorter_32x32`, from `packs/join.sh`; the pack is never copied into the repo).
+
+What the trial showed, against the audit's guesses:
+- **Middle floors and condo grounds: as audited.** Motif m of palette p is the pair of slices (10p+2m+1, +2) (condo ground 8p+2m+1); every
+  motif is 2 tiles. Slices carry no edge, so every row is capped with 3 px pilasters cut from the full floor of the same kind
+  (`<palette>_<mid|condo|shop>_capl/capr.png`) and an odd width takes a 1-tile wall filler (`..._filler.png`). The brick courses are
+  not periodic, so the filler is two clean strips laid end to end, every other one mirrored: no seam shows.
+- **Condo doors and windows come from the full floors**, cut at tile edges (`door_glass`, `door_canopy`, `door_arch`, `door_wood`, `win2`,
+  `bigwin3`; the cut's pilaster replaced by the wall beside it); the condo slices have no door.
+- **Shop grounds: the audit was wrong.** The 36 `Ground_Floor_Shop_Modular` slices are single tiles (the left tile of a display window, a
+  door, each open or shuttered), not 2-tile motifs, and no middle tiles of a display exist. The kit takes shops from the 7-wide full
+  floors, cut into a 5-tile display (`dispK`) and a 2-tile door (`doorK`), so a shop ground is 7, 14, ... tiles, or a display alone (5), a
+  door alone (2..4), plus fillers. Shuttered variants (`cdispK`) are in the data, not yet picked by the generator.
+- **The U balcony motif is a flat decal on a bare wall** (it belongs next to a window in the full floor), so it has weight 0 in the
+  generator; it needs real geometry (`_balc`) before use.
+- **Roof corners: unverified guess was wrong.** Trial (`final/item1_roof_corner_trial.png`): `Roof_Modular_14/15` are the back-left/right
+  end blocks of a parapet, `17/16` the left/right rim stubs (each ends in its outline and does not repeat into a rim), there are no front
+  corners: the slices cannot frame a roof. The columns do carry the back cap and inner face, the floor and the front cap (rows 2-12,
+  12-26, 44-164, 166-180), so the tool takes those and builds the side rims as parapet boxes wearing a stub's coping
+  (`apt.flat_roof`). Three colours (teal, gold, stone); the 224-tall grey roof set is not used.
+- **Condo_7** (a 3-tile tower, N floors, window sprites laid over the middles, steps as boxes, the air unit a card), **Condo_1/2** (a row of 96/64/32 px
+  columns, tall 384 or short 320; the right end closed with the mirrored pilaster; the roof's party-wall rims show between columns,
+  as in a terrace) and **office styles 1 and 2** (ground Left_2 + k x Middle_2 + Right_2, n blocks of two floors, width 4+3k tiles; styles 3
+  and 4 lack a ground or a middle piece) are kit entries in the same tool. The office roof's inner face is 36 rows tall: the tool uses its lowest 14.
+- The side wall is each floor's wall rows with windows (`side_segment`; the ground floor's from a clean wall tile, since the shop display would colour it
+  dark), without corner boards (the back wears the side picture repeated, and boards showed as seams). Sill courses stand 3 px out.
+- Scale checked beside `condo_3_45`, `condo_5_1` and `villa_1` (`final/item1_scale_street_*.png`): a tile is 32 px in both.
+- Still to do: balconies as geometry, roof props (the 11 + 5 cards) and signs, shuttered shops, office styles 3 and 4, the diagonal corner pieces, a
+  per-floor window-light randomisation, the generator hook (`tools/town-buildings.ts` emitting `modular` specs; the spec format is
+  `compose_facade`'s).
+
+## Built (2026-11-19): the red-brick corner blocks and the apartment variants, item 4 of the build order
+
+`compose_corner`, `compose_octagon`, `compose_block`, `compose_b6` in `tools/buildings_pack.py` (specs `kit: c4_38 | c4_39 | c4_40 | b3_46 | b8 | b6`,
+in the pack showcase street 3; `final/item4_*`).
+- **Condo_4_38/39**: a wing box (the elevation from the art's front parapet down to the foot, the art's roof from above as its top), a back box behind
+  the corner, and the corner as a prism (a wedge on the plan: chamfer forward from the wing, the entrance bay across, a chamfer back to the end wall) whose three
+  faces are `wall` parts. 39 is 38 mirrored in the pack and is built from its own art with the plan mirrored. The art draws a chamfer sheared (its foot
+  falls one row per two columns, 30 rows over the corner), so each column is let down by its own step (as the police tower), and the 30 rows are the
+  corner's depth in pixels (the roof's rows are one per pixel of depth: the roof's notch is the same 30 rows deep, which checked the scale). Plan: wing 208 deep, corner 30 forward.
+- **Condo_4_40**: an octagonal prism, the front three faces from the art (the chamfers' far ends are higher: columns taken up), the other five a brick wall
+  with the chamfer's window, the octagon roof from above as its top.
+- **Condo_3_46** (five storeys, same family as 3_44/45) and **Condo_8**: the elevation under a plain flat roof from the shared parapet code. Their roofs in the art carry
+  dishes, a AC unit and a stepped parapet: not built (the floor would show them flat); Condo_8's fire-escape balconies are still drawn flat on the front, and its
+  few panes are not lit (the steel passed for glass). **Condo_6**: two boxes, the four-storey block and the one-storey annex whose flat roof is the art's (vents
+  included); the stepped rooftop room with the door and the AC units are not built; its sides are plain grey.
+- Night light: the stone's lilac shades pass for glass by the shops' colour rule and lit whole facades, so the new kits find panes with a stricter blue test
+  (`strict_panes`).
+- Still to do: real coping and parapet boxes along the corner prism (the roof's coping is painted flat there), balconies and fire escapes as geometry
+  (Condo_8), roof props, a `wall` shear check at the corner's join with the wing under a low sun.
+
 ## Honest limits of this audit
 - Done by reading the file names and sizes of all 6 222 singles and looking at contact sheets of the buildings, the modular sets and every important theme;
   props themes (garden 570, camping 693, beach, military) were inspected by name and size, not sprite by sprite.

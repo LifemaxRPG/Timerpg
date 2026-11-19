@@ -489,3 +489,16 @@ What is still wrong or missing:
   terraced houses show a few lit specks.
 - Small: the school's hip wedge is smeared, specks at clock-tower corners and the fire station's T-junction, a faint
   light hairline along the villas' back eave, porch lamps do not light, glass is either fully opaque or fully clear.
+
+## Pack buildings: the modular facade kit (2026-11-19, `tools/buildings_pack.py`)
+
+Buildings assembled from the Modern Exteriors modular kits (theme 5 facade slices, Condo_7, Condo_1/2, office towers) through the existing
+pipeline: `compose_facade(spec)` writes the usual models.json boxes (a body wearing the stacked floors, a flat roof inside a parapet from
+`buildings_apt.flat_roof`, sill courses as 3 px reliefs, steps and roof props as boxes and cards) and an atlas; `make_buildings.py` builds
+`pk_*` sprites through `build_model`. Details, the kit format and what the trial corrected: `PACK_EXTERIORS.md` ("Built"). Filament renders:
+`-Dmode=filament-models -Dassets=DIR -Dstreet=0-3` after `make_buildings.py --pack-showcase DIR` (street 3 is the scale street). Output for the
+showcase lives in `app/src/main/assets/pack/` (`tools/pack-export.sh`). Not on a town street yet.
+
+Red-brick corner blocks (Condo_4_38/39/40, Condo_6, Condo_3_46, Condo_8): same file, `compose_corner` and friends, showcase street 3 (street 4 is the scale street). The
+chamfered corner is a `prism` (roof top only, faces hidden) plus three `wall` parts wearing the art's chamfer columns let down to a level foot; see
+`PACK_EXTERIORS.md` ("Built ... item 4").

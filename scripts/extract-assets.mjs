@@ -28,6 +28,7 @@ const exteriors = {
   sidewalk: [25, 26, 27].map((n) => [`sidewalk_${n}`, `${ME}2_City_Terrains_Singles_32x32/ME_Singles_City_Terrains_32x32_Sidewalk_1_${n}.png`]),
   houseSmall: range(1, 8).map((n) => [`house_small_${n}`, `${ME}11_Camping_Singles_32x32/ME_Singles_Camping_32x32_Mobile_House_Small_${n}.png`]),
   houseMedium: range(1, 8).map((n) => [`house_medium_${n}`, `${ME}11_Camping_Singles_32x32/ME_Singles_Camping_32x32_Mobile_House_Medium_${n}.png`]),
+  houseBig: range(1, 8).map((n) => [`house_big_${n}`, `${ME}11_Camping_Singles_32x32/ME_Singles_Camping_32x32_Mobile_House_Big_${n}.png`]),
   villa: range(1, 5).map((n) => [`villa_${n}`, `${ME}7_Villas_Singles_32x32/ME_Singles_Villas_32x32_Villa_${n}.png`]),
   roof: range(1, 11).map((n) => [`roof_${n}`, `${FM}Roof_${n}.png`]),
 };
@@ -162,6 +163,7 @@ function recolor(buf, wi, ri) {
 /** [wall, roof] palette indices for each recolored variant; _c0 would be the original. */
 const COMBOS = {
   houseSmall: [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [0, 1], [0, 2], [0, 3], [2, 4]],
+  houseBig: [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [0, 1], [0, 2], [0, 3], [2, 4]],
   houseMedium: [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [0, 1], [0, 2], [0, 3], [2, 4]],
   houseTerraced: [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5]],
 };
