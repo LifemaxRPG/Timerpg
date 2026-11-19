@@ -226,7 +226,9 @@ class FilamentTown(
     private val art: TownArt,
     /** The building drawn as a sprite (bN), or null if its art is missing (it is then left out). */
     private val building: (String) -> SpriteBuilding?,
-    shadowMap: Int = 4096,
+    /** The sun's shadow map: each cascade's size (texels square) and how many cascades ([TownQuality]). */
+    val shadowMap: Int = TownQuality.shadowMap,
+    val shadowCascades: Int = TownQuality.cascades,
 ) {
     val scene: Scene = engine.createScene()
     val view: View = engine.createView()
@@ -352,6 +354,9 @@ class FilamentTown(
 
     val slots: List<Slot> = town.rows.flatMap { row -> row.buildings.map { Slot(row, it, TownPlace.of(row, it)) } }
 
+    /** What the town holds on the GPU (MB by kind) for a [w] x [h] view: [TownQuality.estimate]. */
+    fun gpuEstimate(w: Int, h: Int): GpuEstimate = TownQuality.estimate(textures.gpu, shadowMap, shadowCascades, w, h)
+
     /** The town's pictures: textures made, their texels, and how many asks were answered by one already made. */
     val textureStats: Triple<Int, Long, Int> get() = Triple(textures.madeCount, textures.texels, textures.shared)
 
@@ -381,8 +386,8 @@ class FilamentTown(
         camera.setExposure(1f)
         val shadow = LightManager.ShadowOptions().apply {
             mapSize = shadowMap
-            shadowCascades = 4
-            cascadeSplitPositions = floatArrayOf(.08f, .2f, .45f)
+            shadowCascades = this@FilamentTown.shadowCascades
+            cascadeSplitPositions = TownQuality.splits(this@FilamentTown.shadowCascades)
             stable = true
             lispsm = false
             constantBias = .05f
@@ -860,7 +865,8 @@ class FilamentTown(
             c.near?.update(look, dark, near3d, fade, shadows && near3d)
             if (on) {
                 nChunks++
-                for (l in listOfNotNull(c.base, if (near3d) c.near else c.cards)) { renderables += l.draws; draws += l.draws; tris += l.triangles }
+                val l = (if (near3d) c.near else null) ?: c.cards
+                renderables += c.base.draws + l.draws; draws += c.base.draws + l.draws; tris += c.base.triangles + l.triangles
             }
             if (near3d) nNear++
             if (shadows) casters += c.base.casters + (if (near3d) c.near!!.casters else c.cards.casters)

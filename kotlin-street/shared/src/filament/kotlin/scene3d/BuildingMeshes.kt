@@ -332,7 +332,7 @@ internal class BuildingMeshes(
 
     private fun pack(faces: List<Face>, windows: Windows?): Packed {
         val nv = faces.fold(0) { a, f -> a + f.p.size / 3 }
-        val vb = ByteBuffer.allocateDirect(nv * STRIDE).order(ByteOrder.nativeOrder())
+        val vb = ByteBuffer.allocateDirect(nv * TownVertex.STRIDE).order(ByteOrder.nativeOrder())
         val ni = faces.fold(0) { a, f -> a + if (f.p.size == 9) 3 else 6 }
         val ib = ByteBuffer.allocateDirect(ni * 2).order(ByteOrder.nativeOrder())
         val q = FloatArray(4)
@@ -353,8 +353,7 @@ internal class BuildingMeshes(
             val n = f.p.size / 3
             for (v in 0 until n) {
                 val x = f.p[v * 3]; val y = f.p[v * 3 + 1]; val z = f.p[v * 3 + 2]
-                vb.putFloat(x).putFloat(y).putFloat(z).putFloat(f.uv[v * 2]).putFloat(f.uv[v * 2 + 1])
-                vb.putFloat(q[0]).putFloat(q[1]).putFloat(q[2]).putFloat(q[3])
+                TownVertex.put(vb, x, y, z, f.uv[v * 2], f.uv[v * 2 + 1], q)
                 bmin[0] = min(bmin[0], x); bmin[1] = min(bmin[1], y); bmin[2] = min(bmin[2], z)
                 bmax[0] = max(bmax[0], x); bmax[1] = max(bmax[1], y); bmax[2] = max(bmax[2], z)
             }
@@ -373,14 +372,11 @@ internal class BuildingMeshes(
         val ranges = pk.ranges; val bmin = pk.bmin; val bmax = pk.bmax
         val tex = Array(faces.size) { faces[it].tex() }
         val masks = Array(faces.size) { faces[it].mask?.invoke() ?: textures.black }
-        val vertices = VertexBuffer.Builder().bufferCount(1).vertexCount(nv)
-            .attribute(VertexBuffer.VertexAttribute.POSITION, 0, VertexBuffer.AttributeType.FLOAT3, 0, STRIDE)
-            .attribute(VertexBuffer.VertexAttribute.UV0, 0, VertexBuffer.AttributeType.FLOAT2, 12, STRIDE)
-            .attribute(VertexBuffer.VertexAttribute.TANGENTS, 0, VertexBuffer.AttributeType.FLOAT4, 20, STRIDE)
-            .build(engine)
+        val vertices = TownVertex.buffer(engine, nv)
         vertices.setBufferAt(engine, 0, vb)
         val indices = IndexBuffer.Builder().indexCount(ni).bufferType(IndexBuffer.Builder.IndexType.USHORT).build(engine)
         indices.setBuffer(engine, ib)
+        textures.gpu.buffers(vb.limit(), ib.limit())
         val box = Box((bmin[0] + bmax[0]) / 2f, (bmin[1] + bmax[1]) / 2f, (bmin[2] + bmax[2]) / 2f,
             (bmax[0] - bmin[0]) / 2f + .1f, (bmax[1] - bmin[1]) / 2f + .1f, (bmax[2] - bmin[2]) / 2f + .1f)
         val mis = Array(faces.size) { j ->
@@ -567,7 +563,6 @@ internal class BuildingMeshes(
     }
 
     companion object {
-        private const val STRIDE = 36
         private const val NONE: Byte = 0
         private const val SEE: Byte = 1
         private const val CITY: Byte = 2

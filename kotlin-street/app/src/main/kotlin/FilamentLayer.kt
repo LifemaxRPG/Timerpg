@@ -156,7 +156,20 @@ object FilamentStats {
         }, "memory").apply { isDaemon = true; priority = Thread.MIN_PRIORITY }.start()
     }
 
-    @Synchronized fun add(cpuMs: Float, gpuMs: Float) { cpu[at] = cpuMs; gpu[at] = gpuMs; at = (at + 1) % cpu.size; if (n < cpu.size) n++ }
+    @Synchronized fun add(cpuMs: Float, gpuMs: Float) {
+        cpu[at] = cpuMs; gpu[at] = gpuMs; at = (at + 1) % cpu.size; if (n < cpu.size) n++
+        if (winCpu.size < 4096) { winCpu += cpuMs; if (gpuMs >= 0f) winGpu += gpuMs }
+    }
+
+    /** Filament's frames since the last call (the breadcrumbs' 10 s line): CPU and GPU p50, p95 and the longest. */
+    private val winCpu = ArrayList<Float>()
+    private val winGpu = ArrayList<Float>()
+    @Synchronized fun window(): String {
+        fun q(a: List<Float>): String { val s = a.sorted(); return if (s.isEmpty()) "n/a" else "%.1f/%.1f/%.1f".format(java.util.Locale.US, s[s.size / 2], s[(s.size * 95 / 100).coerceAtMost(s.size - 1)], s.last()) }
+        val line = "Filament ${winCpu.size} frames, CPU ${q(winCpu)} ms, GPU ${q(winGpu)} ms (p50/p95/max)"
+        winCpu.clear(); winGpu.clear()
+        return line
+    }
 
     @Synchronized fun summary(): String {
         if (n < 10) return "Filament: measuring…"
@@ -318,6 +331,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             if (ready) {
                 TownSession.viewReady(rn.firstViewMs); FilamentStats.measureMemory("town first view")
                 com.timerpg.street.shot.Crumbs.add("town first view: " + com.lifemax.rpg.feature.habits.presentation.scene3d.TownMemory.summary())
+                com.timerpg.street.shot.Crumbs.add("town first view, ${w}x$h: " + town!!.gpuEstimate(w, h).line())
             }
         }
         rn.draw(walk, w.toFloat(), h.toFloat(), f.hour, f.seconds, com.lifemax.rpg.feature.habits.presentation.scene.SpriteSheets.sheets)
@@ -334,7 +348,9 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
                 .format(java.util.Locale.US, ft.groundMs, ft.groundPrepareMs, ft.buildingsMs, ft.slowest.first, ft.slowest.second,
                     ft.batches.maxOfOrNull { it.second } ?: 0f, ft.prepareMs, ft.slowestPrepare.first, ft.slowestPrepare.second, n, texels / 1e6, shared)
             FilamentStats.townBuilt = built
+            TownSession.built = true
             com.timerpg.street.shot.Crumbs.add(built)
+            com.timerpg.street.shot.Crumbs.add("town built, ${w}x$h: " + ft.gpuEstimate(w, h).line())
             com.timerpg.street.shot.Crumbs.add("town built, memory: " + com.lifemax.rpg.feature.habits.presentation.scene3d.TownMemory.summary() + "; ground queue peak ${ft.queuedPeak shr 20} MB")
             FilamentStats.measureMemory("town built")
         }

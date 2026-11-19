@@ -101,6 +101,9 @@ class MemoryService(private val ctx: Context) {
         }
     }
 
+    /** Memory is short ([com.timerpg.street.llm.MemoryWatch]): the memory models go (loaded again when next needed). */
+    fun trimForMemory() { worker.execute { embedder.close(); judge.close() } }
+
     fun release() { main.removeCallbacks(idle); worker.execute { embedder.close(); judge.close() } }
 
     companion object {

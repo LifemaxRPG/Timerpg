@@ -1010,14 +1010,14 @@ internal object FilamentModels {
 
     // ------------------------------------------------------------------ into Filament
 
-    private const val STRIDE = 36
 
     private fun pack(g: Mesher, pl: ModelPlace, night: Night, linear: Boolean): Ready {
         val groups = g.groups.values.filter { it.ni > 0 }
         val nv = groups.sumOf { it.nv }
         val ni = groups.sumOf { it.ni }
-        val vb = ByteBuffer.allocateDirect(max(1, nv) * STRIDE).order(ByteOrder.nativeOrder())
-        val ib = ByteBuffer.allocateDirect(max(1, ni) * 4).order(ByteOrder.nativeOrder())
+        val vb = ByteBuffer.allocateDirect(max(1, nv) * TownVertex.STRIDE).order(ByteOrder.nativeOrder())
+        val short = TownVertex.short(nv)
+        val ib = ByteBuffer.allocateDirect(max(1, ni) * (if (short) 2 else 4)).order(ByteOrder.nativeOrder())
         val q = FloatArray(4)
         val k = pl.k
         val bounds = floatArrayOf(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE)
@@ -1050,8 +1050,7 @@ internal object FilamentModels {
                 tx /= tl; ty /= tl; tz /= tl
                 val bx = ny * tz - nz * ty; val by = nz * tx - nx * tz; val bz = nx * ty - ny * tx
                 MathUtils.packTangentFrame(tx, ty, tz, bx, by, bz, nx, ny, nz, q)
-                vb.putFloat(wx).putFloat(wy).putFloat(wz).putFloat(gp.v[o + 3]).putFloat(gp.v[o + 4])
-                vb.putFloat(q[0]).putFloat(q[1]).putFloat(q[2]).putFloat(q[3])
+                TownVertex.put(vb, wx, wy, wz, gp.v[o + 3], gp.v[o + 4], q)
                 bounds[0] = min(bounds[0], wx); bounds[1] = min(bounds[1], wy); bounds[2] = min(bounds[2], wz)
                 bounds[3] = max(bounds[3], wx); bounds[4] = max(bounds[4], wy); bounds[5] = max(bounds[5], wz)
                 if (!yard) {
@@ -1059,7 +1058,7 @@ internal object FilamentModels {
                     body[3] = max(body[3], wx); body[4] = max(body[4], wy); body[5] = max(body[5], wz)
                 }
             }
-            for (i in 0 until gp.ni) ib.putInt(base + gp.idx[i])
+            if (short) for (i in 0 until gp.ni) ib.putShort((base + gp.idx[i]).toShort()) else for (i in 0 until gp.ni) ib.putInt(base + gp.idx[i])
             ranges += intArrayOf(io, gp.ni)
             io += gp.ni; base += gp.nv
         }
@@ -1073,14 +1072,11 @@ internal object FilamentModels {
     fun finish(engine: Engine, visibleMat: Material, proxyMat: Material?, textures: StreetTextures, r: Ready): ModelMesh {
         val groups = r.groups; val nv = r.nv; val ni = r.ni; val vb = r.vb; val ib = r.ib; val ranges = r.ranges
         val bounds = r.bounds; val body = r.body; val night = r.night; val linear = r.linear
-        val vertices = VertexBuffer.Builder().bufferCount(1).vertexCount(max(1, nv))
-            .attribute(VertexBuffer.VertexAttribute.POSITION, 0, VertexBuffer.AttributeType.FLOAT3, 0, STRIDE)
-            .attribute(VertexBuffer.VertexAttribute.UV0, 0, VertexBuffer.AttributeType.FLOAT2, 12, STRIDE)
-            .attribute(VertexBuffer.VertexAttribute.TANGENTS, 0, VertexBuffer.AttributeType.FLOAT4, 20, STRIDE)
-            .build(engine)
+        val vertices = TownVertex.buffer(engine, max(1, nv))
         vertices.setBufferAt(engine, 0, vb)
-        val indices = IndexBuffer.Builder().indexCount(max(1, ni)).bufferType(IndexBuffer.Builder.IndexType.UINT).build(engine)
+        val indices = TownVertex.indices(engine, max(1, ni), TownVertex.short(nv))
         indices.setBuffer(engine, ib)
+        textures.gpu.buffers(vb.limit(), ib.limit())
         val bbox = Box((bounds[0] + bounds[3]) / 2f, (bounds[1] + bounds[4]) / 2f, (bounds[2] + bounds[5]) / 2f,
             (bounds[3] - bounds[0]) / 2f + .1f, (bounds[4] - bounds[1]) / 2f + .1f, (bounds[5] - bounds[2]) / 2f + .1f)
         fun lin(c: Float): Float = if (!linear) c else if (c <= .04045f) c / 12.92f else Math.pow(((c + .055f) / 1.055f).toDouble(), 2.4).toFloat()

@@ -99,6 +99,9 @@ class NpcVoiceService(private val ctx: Context) {
         workerExecute { bank.close() }
     }
 
+    /** Memory is short ([com.timerpg.street.llm.MemoryWatch]): the voice engines go unless one speaks (they load again for the next line). */
+    fun trimForMemory() { if (!speaking) workerExecute { bank.close() } }
+
     /** A voice is playing now (the player's mic does not listen to it). */
     var speaking by mutableStateOf(false)
         private set
