@@ -65,3 +65,16 @@ graph.cinema: {landmark:'landmark:cinema', name, era, decade, year, screens, mar
 The row's building entry is the usual `{sprite:'b98', kind:'landmark', x0, x1, setback, depth, ...}`; `shops[]` has
 `{id:'landmark:cinema', sprite:'b98', kind:'Landmark', parts:[{key:'landmark_cinema_<era>', w, h}]}` and make_buildings
 writes nothing for it.
+
+## The building in Filament (Kotlin)
+
+`shared/src/filament/kotlin/scene3d/CinemaKit.kt` builds the theater for a `CinemaInfo` (`CinemaInfo.fromGraph(graph)` reads
+the `cinema` block above and the landmark's footprint): four era fronts (palace, modern, twin, multiplex) over a plain
+auditorium box (brick or render, fire exits, a loading door, a ladder, projection bump, vents and plant on the roof), as
+low-poly boxes wearing code-painted pixel pictures at the buildings' texel, nearest-sampled. `CinemaPosters.kt` paints each
+film's 48x72 poster in its style (the town's `style`/`motif`/`palette`/`seed`), `CinemaLayer.kt` hands the parts to a
+`PropLayer` and lights them (warm lobby glass from nightfall, signs and poster cases from dusk, three phases of marquee bulbs
+chasing at 7 steps a second). Pictures per era: about 2.4-3.2 MiB of ARGB on the heap while building (big walls are small
+repeating tiles); drop the model after adding it. Preview: `gradle :desktop:preview -Dmode=filament-cinema` (each era from
+street, three-quarter, marquee, side, behind and above at day, dusk and night, chase frames, a poster sheet per decade;
+`-DcinemaBills=DIR` for the town's own bills), tests in `desktop/src/filamentTest/kotlin/CinemaKitTest.kt`.
