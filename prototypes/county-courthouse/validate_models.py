@@ -284,6 +284,7 @@ def validate_one_state(state_info):
         and len(floor_nodes) >= 14
         and len(room_door_nodes) >= 10
         and vis_tris <= 15000
+        and glow_area_m2 < 15.0
         and bad_uv_edges == 0
         and quad_viol == 0
         and world_min_y >= -1e-4

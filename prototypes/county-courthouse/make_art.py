@@ -508,50 +508,122 @@ def make_glass_atlas():
 
 def make_sign_plates():
     """
-    256x128 art px -> 512x256 texels: ALL carved stone plates, protest banner, bronze plaque,
-    patched brick scar, and courthouse flag. EVERY text string is strictly fit-checked!
+    256x128 art px -> 512x256 texels: ALL carved stone bands, datestone, small bronze plaque,
+    memorial 1861-1865 inscription, weathered bronze-green patina, protest banner, patched brick,
+    and courthouse flag. EVERY text string is strictly fit-checked!
     """
     c = ArtCanvas(256, 128, (148, 144, 136, 255))
     outline = (58, 58, 80, 255)
-    stone_lt = (196, 190, 176, 255)
-    stone_md = (176, 170, 156, 255)
-    stone_dk = (92, 88, 82, 255)
-    carved_ink = (54, 52, 62, 255)
+    stone_face = (160, 154, 142, 255)
+    stone_hi = (186, 180, 168, 255)
+    stone_md = (144, 140, 132, 255)
+    stone_dk = (114, 110, 104, 255)
+    carved_ink = (62, 60, 70, 255)
+
+    # Compact 3x5 numerals where '1' is 1 px wide for crisp tight carved stone dates
+    NARROW_DIGITS = {
+        "1": ["1", "1", "1", "1", "1"],
+        "4": ["101", "101", "111", "001", "001"],
+        "5": ["111", "100", "111", "001", "111"],
+        "6": ["111", "100", "111", "101", "111"],
+        "8": ["111", "101", "111", "101", "111"],
+        "9": ["111", "101", "111", "001", "111"],
+        "-": ["00", "00", "11", "00", "00"],
+        " ": ["0"],
+    }
+
+    def draw_carved_narrow(x0, y0, w, h, text, ink_col, hi_col):
+        glyphs = [NARROW_DIGITS[ch] for ch in text]
+        tot_w = sum(len(g[0]) for g in glyphs) + max(0, len(glyphs) - 1)
+        assert tot_w <= w and 5 <= h, f"Narrow text '{text}' ({tot_w}x5) exceeds {w}x{h}"
+        cx = x0 + (w - tot_w) // 2
+        cy = y0 + (h - 5) // 2
+        for g in glyphs:
+            gw = len(g[0])
+            for ry, row in enumerate(g):
+                for rx, ch in enumerate(row):
+                    if ch == "1":
+                        if cy + ry + 1 < y0 + h:
+                            c.put(cx + rx, cy + ry + 1, hi_col)
+                        c.put(cx + rx, cy + ry, ink_col)
+            cx += gw + 1
 
     regions = {}
 
-    # 1. main_frieze (96x20 at 0,0): Carved limestone entablature "HARLAN COUNTY / COURTHOUSE"
-    #    Line 1: "HARLAN COUNTY" = 13*6-1 = 77 px; Line 2: "COURTHOUSE" = 10*6-1 = 59 px -> fits 96x20 cleanly!
-    c.rect(0, 0, 96, 20, stone_lt)
-    for yy in range(1, 19):
-        for xx in range(1, 95):
-            if (xx * 13 + yy * 29) % 17 == 0:
+    # 1. main_frieze (96x20 at 0,0): Carved directly INTO the limestone porch entablature band
+    #    (NO raised sign-plate frame or dark outer box; matches stone_rusticated with chiseled bevels!)
+    c.rect(0, 0, 96, 20, stone_face)
+    for yy in range(20):
+        for xx in range(96):
+            if yy == 0:
+                c.put(xx, yy, stone_hi)
+            elif yy == 19:
+                c.put(xx, yy, stone_dk)
+            elif xx in (31, 63) and yy in (1, 18):
+                c.put(xx, yy, stone_dk)  # subtle ashlar block seam ticks
+            elif (xx * 13 + yy * 29) % 17 == 0:
                 c.put(xx, yy, stone_md)
-    c.border(0, 0, 96, 20, outline, 1)
-    c.border(1, 1, 94, 18, stone_dk, 1)
+            elif (xx * 19 + yy * 11) % 23 == 0:
+                c.put(xx, yy, stone_hi)
+    # Subtle lower highlight shadow offset by +1px Y so lettering reads as chiseled into stone
+    c.draw_text_in_box(0, 3, 96, 8, "HARLAN COUNTY", stone_hi, font="5x7", spacing=1, pad_x=4, pad_y=0)
     c.draw_text_in_box(0, 2, 96, 8, "HARLAN COUNTY", carved_ink, font="5x7", spacing=1, pad_x=4, pad_y=0)
+    c.draw_text_in_box(0, 12, 96, 8, "COURTHOUSE", stone_hi, font="5x7", spacing=1, pad_x=4, pad_y=0)
     c.draw_text_in_box(0, 11, 96, 8, "COURTHOUSE", carved_ink, font="5x7", spacing=1, pad_x=4, pad_y=0)
     regions["main_frieze"] = {"sheet": "sign_plates.png", "rect_art": [0, 0, 96, 20]}
 
-    # 2. datestone_1894 (32x12 at 100,0): Carved granite datestone "1894"
-    #    4 chars in 5x7 = 23 px wide x 7 px tall -> fits 32x12 cleanly!
-    c.rect(100, 0, 32, 12, stone_lt)
-    c.border(100, 0, 32, 12, outline, 1)
-    c.border(101, 1, 30, 10, stone_dk, 1)
-    c.draw_text_in_box(100, 0, 32, 12, "1894", carved_ink, font="5x7", spacing=1, pad_x=3, pad_y=2)
-    regions["datestone_1894"] = {"sheet": "sign_plates.png", "rect_art": [100, 0, 32, 12]}
+    # 2. datestone_1894 (15x7 at 100,0 -> 1.16 m x 0.54 m? Let's use 13x6 = 1.01 m x 0.466 m single stone in wall!)
+    #    Dressed granite single ashlar block flush with wall courses (NO sign frame!)
+    dx, dy, dw, dh = 100, 0, 13, 6
+    c.rect(dx, dy, dw, dh, (166, 160, 148, 255))
+    for xx in range(dx, dx + dw):
+        c.put(xx, dy, stone_hi)
+        c.put(xx, dy + dh - 1, stone_dk)
+    draw_carved_narrow(dx, dy, dw, dh, "1894", carved_ink, stone_hi)
+    regions["datestone_1894"] = {"sheet": "sign_plates.png", "rect_art": [dx, dy, dw, dh]}
 
-    # 3. plaque_restored_2004 (36x16 at 136,0): Bronze restoration plaque "RESTORED / 2004"
-    #    Line 1: "RESTORED" (8*4-1 = 31 px), Line 2: "2004" (4*4-1 = 15 px) -> fits 36x16 cleanly at 1:1 scale!
-    px, py, pw, ph = 136, 0, 36, 16
-    c.rect(px, py, pw, ph, (98, 72, 46, 255))
-    c.border(px, py, pw, ph, (46, 34, 24, 255), 1)
-    c.border(px + 1, py + 1, pw - 2, ph - 2, (186, 146, 86, 255), 1)
-    c.draw_text_in_box(px, py + 2, pw, 6, "RESTORED", (228, 194, 124, 255), font="3x5", spacing=1, pad_x=2, pad_y=0)
-    c.draw_text_in_box(px, py + 9, pw, 6, "2004", (228, 194, 124, 255), font="3x5", spacing=1, pad_x=2, pad_y=0)
-    regions["plaque_restored_2004"] = {"sheet": "sign_plates.png", "rect_art": [136, 0, 36, 16]}
+    # 3. plaque_restored_2004 (8x6 at 116,0 -> exact 0.62 m x 0.466 m small bronze plaque at eye height!)
+    px, py, pw, ph = 116, 0, 8, 6
+    c.rect(px, py, pw, ph, (88, 64, 42, 255))
+    c.border(px, py, pw, ph, (44, 32, 22, 255), 1)
+    # Fine gilded inner relief lines representing "RESTORED / 2004" at true 0.0388 m/texel scale
+    for xx in range(px + 1, px + pw - 1):
+        c.put(xx, py + 1, (168, 132, 76, 255))
+        c.put(xx, py + ph - 2, (168, 132, 76, 255))
+    for xx in (px + 2, px + 3, px + 5):
+        c.put(xx, py + 2, (226, 194, 122, 255))
+    for xx in (px + 2, px + 4, px + 5):
+        c.put(xx, py + 3, (226, 194, 122, 255))
+    regions["plaque_restored_2004"] = {"sheet": "sign_plates.png", "rect_art": [px, py, pw, ph]}
 
-    # 4. protest_banner_1988 (92x26 at 0,20): Hand-painted cloth banner "SAVE OUR / COURTHOUSE" on the tower!
+    # 4. memorial_1861_1865 (32x9 at 128,0 -> 2.48 m x 0.70 m plain granite inscription panel on memorial base)
+    #    "1861 - 1865" (28 px wide x 5 px tall) -> fits 32x9 with crisp recessed border, NO names!
+    mx, my, mw, mh = 128, 0, 32, 9
+    c.rect(mx, my, mw, mh, (168, 162, 152, 255))
+    c.border(mx, my, mw, mh, stone_dk, 1)
+    for xx in range(mx + 1, mx + mw - 1):
+        c.put(xx, my + mh - 1, stone_hi)
+    draw_carved_narrow(mx, my, mw, mh, "1861-1865", carved_ink, stone_hi)
+    regions["memorial_1861_1865"] = {"sheet": "sign_plates.png", "rect_art": [mx, my, mw, mh]}
+
+    # 5. bronze_soldier (24x24 at 164,0): Weathered verdigris bronze-green patina with pixel shading
+    #    for the standing 1.8 m Civil War soldier statue!
+    bx0, by0, bw0, bh0 = 164, 0, 24, 24
+    for yy in range(bh0):
+        for xx in range(bw0):
+            h = (xx * 17 + yy * 29) % 23
+            if yy % 12 == 0 or xx % 12 == 0:
+                col = (44, 62, 54, 255)       # deep cast-bronze crease shadow
+            elif yy % 12 == 1 or h in (0, 1, 2):
+                col = (114, 152, 126, 255)    # oxidized verdigris green highlight
+            elif h in (3, 4, 5, 6):
+                col = (64, 96, 80, 255)       # darker weathered bronze mid-shadow
+            else:
+                col = (84, 122, 100, 255)     # classic weathered bronze-green patina
+            c.put(bx0 + xx, by0 + yy, col)
+    regions["bronze_soldier"] = {"sheet": "sign_plates.png", "rect_art": [bx0, by0, bw0, bh0]}
+
+    # 6. protest_banner_1988 (92x26 at 0,20): Hand-painted cloth banner "SAVE OUR / COURTHOUSE" on the tower!
     #    Line 1: "SAVE OUR" = 8 chars in 5x7 = 47 px wide; Line 2: "COURTHOUSE" = 10 chars in 5x7 = 59 px wide!
     bx, by, bw, bh = 0, 20, 92, 26
     canvas_bg = (234, 226, 204, 255)
@@ -567,7 +639,7 @@ def make_sign_plates():
     c.draw_text_in_box(bx, by + 14, bw, 9, "COURTHOUSE", red_paint, font="5x7", spacing=1, pad_x=4, pad_y=1)
     regions["protest_banner_1988"] = {"sheet": "sign_plates.png", "rect_art": [0, 20, 92, 26]}
 
-    # 5. patched_brick_2008 (96x48 at 0,52): Slightly newer mismatched patched brick scar on -Z wall after annex removal!
+    # 7. patched_brick_2008 (96x48 at 0,52): Slightly newer mismatched patched brick scar on -Z wall after annex removal!
     for y in range(52, 100):
         ly = y - 52
         for x in range(0, 96):
@@ -580,7 +652,7 @@ def make_sign_plates():
             c.put(x, y, col)
     regions["patched_brick_2008"] = {"sheet": "sign_plates.png", "rect_art": [0, 52, 96, 48]}
 
-    # 6. flag_banner (36x22 at 100,20): Simple stylized civic striped flag (non-brand generic stars-and-stripes motif)
+    # 8. flag_banner (36x22 at 100,20): Simple stylized civic striped flag (non-brand generic stars-and-stripes motif)
     fx, fy, fw, fh = 100, 20, 36, 22
     for yy in range(fh):
         stripe_red = ((yy // 2) % 2 == 0)
@@ -602,64 +674,53 @@ def make_sign_plates():
 def make_clock_dials_and_lamps():
     """
     Produces:
-    1) clock_dial_lit.png + clock_dial_mask.png (44x44 art px -> 88x88 texels):
-       Crisp pixel clock face with Roman/tick hour markers; mask is PURE BLACK outside the glowing dial glass!
-    2) clock_dial_dark.png (44x44 art px): Weathered, grimy, UNLIT 1988 clock dial (zero emissive!).
+    1) clock_dial_lit.png + clock_dial_mask.png (24x24 art px -> 48x48 texels, radius 11 art px = 1.71 m dia):
+       Crisp pixel clock face with 12 hour markers; mask is PURE BLACK outside the glowing circular dial glass!
+    2) clock_dial_dark.png (24x24 art px): Weathered, grimy, UNLIT 1988 clock dial (zero emissive!).
     3) glow_lamps_base.png + glow_lamps_mask.png (32x32 art px -> 64x64 texels):
        Gas lantern amber glass (0,0,16,16), cobra-head cool sodium lens (16,0,16,16),
        restored warm LED acorn globe (0,16,16,16), tower floodlight lens (16,16,16,16).
        Mask is PURE BLACK everywhere except the glowing bulb cores!
     """
     outline = (44, 46, 58, 255)
-    stone_rim = (138, 134, 126, 255)
     black = (0, 0, 0, 255)
 
     for is_lit, base_name, mask_name in [
         (True, "clock_dial_lit.png", "clock_dial_mask.png"),
         (False, "clock_dial_dark.png", None),
     ]:
-        cb = ArtCanvas(44, 44, stone_rim)
-        cm = ArtCanvas(44, 44, black)
-        cx, cy = 21.5, 21.5
-        # Outer stone bezel & dark cast-iron ring
-        cb.border(0, 0, 44, 44, outline, 1)
-        cb.circle(cx, cy, 19.5, outline, filled=True)
-        cb.circle(cx, cy, 18.0, (246, 238, 208, 255) if is_lit else (142, 138, 128, 255), filled=True)
+        cb = ArtCanvas(24, 24, outline)
+        cm = ArtCanvas(24, 24, black)
+        cx, cy = 11.5, 11.5
+        cb.circle(cx, cy, 11.2, outline, filled=True)
+        cb.circle(cx, cy, 10.2, (246, 238, 208, 255) if is_lit else (142, 138, 128, 255), filled=True)
         if is_lit:
-            cm.circle(cx, cy, 18.0, (244, 224, 168, 255), filled=True)
-        # Inner subtle dial track ring
-        cb.circle(cx, cy, 12.5, (186, 178, 152, 255) if is_lit else (110, 108, 102, 255), filled=False)
-        # 12 crisp hour tick marks (bolder at 12, 3, 6, 9)
+            cm.circle(cx, cy, 10.2, (244, 224, 168, 255), filled=True)
+        cb.circle(cx, cy, 7.0, (186, 178, 152, 255) if is_lit else (112, 110, 104, 255), filled=False)
         for h in range(12):
             ang = math.radians(h * 30.0 - 90.0)
-            r_in = 12.5 if h % 3 == 0 else 14.0
-            r_out = 17.0
-            for step in range(8):
-                r = r_in + (r_out - r_in) * (step / 7.0)
+            r_in = 6.8 if h % 3 == 0 else 7.8
+            r_out = 9.6
+            for step in range(5):
+                r = r_in + (r_out - r_in) * (step / 4.0)
                 tx = int(round(cx + math.cos(ang) * r))
                 ty = int(round(cy + math.sin(ang) * r))
                 cb.put(tx, ty, outline)
                 if is_lit:
-                    cm.put(tx, ty, (38, 36, 44, 255))
-                if h % 3 == 0:
-                    cb.put(tx + 1, ty, outline)
-                    if is_lit:
-                        cm.put(tx + 1, ty, (38, 36, 44, 255))
-        # Center bronze boss pivot
-        cb.circle(cx, cy, 2.0, outline, filled=True)
+                    cm.put(tx, ty, (36, 34, 42, 255))
+        cb.circle(cx, cy, 1.4, outline, filled=True)
         if is_lit:
-            cm.circle(cx, cy, 2.0, black, filled=True)
+            cm.circle(cx, cy, 1.4, black, filled=True)
         else:
-            # Subtle water grime streaks on dark 1988 dial
-            for gx in (14, 24, 30):
-                for gy in range(8, 34):
+            for gx in (7, 13, 17):
+                for gy in range(4, 20):
                     if (gx + gy) % 3 == 0:
-                        cb.put(gx, gy, (112, 110, 104, 255))
+                        cb.put(gx, gy, (110, 108, 102, 255))
         cb.save_2x(TEX_DIR / base_name)
         if mask_name:
             cm.save_2x(TEX_DIR / mask_name)
 
-    # Lamps atlas (32x32 art px -> 4 strict 16x16 quadrants)
+    # Lamps atlas (32x32 art px -> 4 strict 16x16 quadrants; ONLY inner lamp core glows!)
     lb = ArtCanvas(32, 32, outline)
     lm = ArtCanvas(32, 32, black)
 

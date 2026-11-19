@@ -3,16 +3,18 @@
  * Software glTF 2.0 renderer (with full node transform + quaternion instancing support)
  * generating ONE high-resolution, readable review sheet: courthouse-review.png.
  *
- * Layout (2620 x 2920):
+ * Layout (2620 x 3380):
  *   Rows 1-4: 1894, 1962, 1988, 2008 x 4 views (Day 3/4, Night, Opposite -Z, Above)
- *   Row 5 (3 big 858x460 close-ups):
- *     1) Main steps & porch (2008 — HARLAN COUNTY COURTHOUSE, 1894, RESTORED 2004)
- *     2) Clock face & open belfry with bronze bell (2008 — 10:10 lit)
- *     3) Clock stopped at 4:17 + SAVE OUR COURTHOUSE banner (1988 — unlit dark dial)
+ *   Row 5 (4 street-height corner views, 640x420 each):
+ *     SW, SE, NE, NW street-height silhouette checks of the cross plan, gabled pavilions, dormers & tower base (2008)
  *   Row 6 (3 big 858x460 close-ups):
- *     4) Stair hall looking up through Floor 2 & 3 galleries to overhead skylight (1894)
- *     5) Double-height courtroom with oak bar rail & raised judge's bench (1894)
- *     6) Civil War soldier memorial & octagonal bandstand on the square (1894)
+ *     1) Main entrance & porch (2008 — open doorway, carved stone title, flush 1894 stone, small bronze plaque)
+ *     2) Clock face & open belfry with bronze bell (2008 — circular dial in stone bezel, 10:10 lit)
+ *     3) Clock stopped at 4:17 + SAVE OUR COURTHOUSE banner (1988 — unlit dark dial)
+ *   Row 7 (3 big 858x460 close-ups):
+ *     4) Stair hall looking up through Floor 2 & 3 open galleries to ONE clear skylight (1894)
+ *     5) Civil War soldier memorial on SE lawn (1894 — stepped base, stout pedestal "1861-1865", 1.8m bronze soldier)
+ *     6) Double-height courtroom with matching oak wainscot, bar rail & raised judge's bench (1894)
  *
  * NOTE: Software renders, not phone/Filament captures.
  */
@@ -180,6 +182,7 @@ function loadGlb(glbPath) {
         isBlend: mat.alphaMode === 'BLEND',
         doubleSided: !!mat.doubleSided,
         isGlass: mat.name.includes('glass'),
+        isInterior: mat.name === 'interior_wall' || mat.name === 'interior_floor',
       };
     })
   );
@@ -215,6 +218,7 @@ function loadGlb(glbPath) {
             isBlend: pr.isBlend,
             doubleSided: pr.doubleSided,
             isGlass: pr.isGlass,
+            isInterior: pr.isInterior,
           });
         }
       }
@@ -352,6 +356,13 @@ function renderPanel(tris, opts) {
       shade = 0.48 + 0.24 * hemi + 0.30 * ndl;
     } else {
       shade = 0.44 + 0.16 * hemi + 0.44 * ndl;
+      // Shadow ONLY interior vestibule/stair surfaces seen through open walk-in doorways from outside!
+      if (tr.isInterior) {
+        const my = (tr.p0[1] + tr.p1[1] + tr.p2[1]) / 3;
+        if (my > 0.8 && my < 14.4) {
+          shade *= (tr.n0[1] > 0.7 ? 0.48 : 0.28);
+        }
+      }
     }
 
     for (const [va, vb, vc] of clipped) {
@@ -554,12 +565,12 @@ const PAD = 12;
 const HEADER_H = 68;
 const ROW_TITLE_H = 28;
 const CW = PAD + 4 * (PW + PAD);
-const CH = HEADER_H + 4 * (ROW_TITLE_H + PH + PAD) + 2 * (ROW_TITLE_H + CU_H + PAD) + PAD;
+const CH = HEADER_H + 5 * (ROW_TITLE_H + PH + PAD) + 2 * (ROW_TITLE_H + CU_H + PAD) + PAD;
 const sheet = new Uint8Array(CW * CH * 4);
 fillRect(sheet, CW, CH, 0, 0, CW, CH, [20, 22, 28]);
 fillRect(sheet, CW, CH, PAD, PAD, CW - 2 * PAD, HEADER_H - PAD - 4, [32, 36, 46]);
-drawText(sheet, CW, CH, 24, 18, 'HARLAN COUNTY COURTHOUSE & SQUARE - FOUR ERAS + CLOSE-UPS (SOFTWARE RENDERS, NOT PHONE CAPTURES)', [244, 232, 196], 2);
-drawText(sheet, CW, CH, 24, 42, '29.8M CROSS PLAN / 38.0M TOWER / 79.5M SQUARE / 0.0388M/TEXEL | COL 1: DAY 3/4 | COL 2: NIGHT | COL 3: OPPOSITE (-Z) | COL 4: ABOVE', [176, 208, 236], 2);
+drawText(sheet, CW, CH, 24, 18, 'HARLAN COUNTY COURTHOUSE & SQUARE - FOUR ERAS + 4 CORNER SILHOUETTES + CLOSE-UPS (SOFTWARE RENDERS)', [244, 232, 196], 2);
+drawText(sheet, CW, CH, 24, 42, 'CROSS PLAN / 4 GABLED PAVILIONS / 38.0M TOWER / <15M2 GLOW | ROWS 1-4: DAY, NIGHT, -Z, ABOVE | ROW 5: 4 CORNERS | ROWS 6-7: CLOSE-UPS', [176, 208, 236], 2);
 
 const CZ_M = -512 * 0.0776; // -39.7312 m (square & building center)
 
@@ -621,15 +632,64 @@ for (let r = 0; r < STATES.length; r++) {
   console.log(`Rendered 4 overview views for ${st.year} (${st.file})`);
 }
 
+// ROW 5: 4 STREET-HEIGHT CORNER VIEWS (SW, SE, NE, NW) — judge cross plan, gabled pavilions, valleys, dormers & tower base!
+const CORNER_VIEWS = [
+  {
+    name: 'SW CORNER (STREET)',
+    eye: [-35.5, 2.8, CZ_M + 36.5],
+    target: [0.0, 14.5, CZ_M],
+    fovDeg: 52,
+    sunDir: [-0.45, 0.74, 0.48],
+    skyTop: [78, 124, 184],
+    skyBottom: [194, 218, 242],
+  },
+  {
+    name: 'SE CORNER (STREET)',
+    eye: [35.5, 2.8, CZ_M + 36.5],
+    target: [0.0, 14.5, CZ_M],
+    fovDeg: 52,
+    sunDir: [0.42, 0.74, 0.50],
+    skyTop: [78, 124, 184],
+    skyBottom: [194, 218, 242],
+  },
+  {
+    name: 'NE CORNER (STREET)',
+    eye: [35.5, 2.8, CZ_M - 36.5],
+    target: [0.0, 14.5, CZ_M],
+    fovDeg: 52,
+    sunDir: [0.45, 0.74, -0.48],
+    skyTop: [78, 124, 184],
+    skyBottom: [194, 218, 242],
+  },
+  {
+    name: 'NW CORNER (STREET)',
+    eye: [-35.5, 2.8, CZ_M - 36.5],
+    target: [0.0, 14.5, CZ_M],
+    fovDeg: 52,
+    sunDir: [-0.42, 0.74, -0.50],
+    skyTop: [78, 124, 184],
+    skyBottom: [194, 218, 242],
+  },
+];
+
+const cornerRowY = HEADER_H + 4 * (ROW_TITLE_H + PH + PAD);
+fillRect(sheet, CW, CH, PAD, cornerRowY, CW - 2 * PAD, ROW_TITLE_H - 2, [38, 44, 58]);
+drawText(sheet, CW, CH, PAD + 10, cornerRowY + 6, 'STREET-HEIGHT CORNER SILHOUETTES (2008): SW CORNER  |  SE CORNER  |  NE CORNER  |  NW CORNER', [182, 236, 206], 2);
+for (let c = 0; c < CORNER_VIEWS.length; c++) {
+  const panel = renderPanel(loadedScenes[2008], { ...CORNER_VIEWS[c], width: PW, height: PH });
+  blit(sheet, CW, CH, panel, PAD + c * (PW + PAD), cornerRowY + ROW_TITLE_H);
+}
+console.log('Rendered 4 street-height corner views (2008)');
+
 // 6 LARGE PERSON-HEIGHT & ARCHITECTURAL CLOSE-UPS (2 rows of 3 panels, 858x460 each!)
 const CLOSEUP_ROWS = [
   {
-    title: 'CLOSE-UPS (ROW 1): MAIN STEPS & PORCH LETTERING (2008)  |  CLOCK FACE & BELFRY BELL (2008)  |  STOPPED CLOCK 4:17 & BANNER (1988)',
+    title: 'CLOSE-UPS (ROW 1): MAIN ENTRANCE & OPEN DOORWAY (2008)  |  CIRCULAR CLOCK & BELFRY BELL (2008)  |  STOPPED CLOCK 4:17 & BANNER (1988)',
     panels: [
       {
         year: 2008,
-        eye: [0.0, 3.6, CZ_M + 26.8],
-        target: [0.0, 4.4, CZ_M + 15.0],
+        eye: [-2.8, 3.8, CZ_M + 27.6],
+        target: [0.0, 4.4, CZ_M + 14.8],
         fovDeg: 48,
         sunDir: [-0.30, 0.72, 0.62],
         skyTop: [78, 124, 184],
@@ -637,7 +697,7 @@ const CLOSEUP_ROWS = [
       },
       {
         year: 2008,
-        eye: [4.2, 26.6, CZ_M + 14.2],
+        eye: [3.8, 26.2, CZ_M + 13.6],
         target: [0.0, 27.6, CZ_M + 2.0],
         fovDeg: 44,
         sunDir: [-0.35, 0.72, 0.60],
@@ -656,18 +716,28 @@ const CLOSEUP_ROWS = [
     ],
   },
   {
-    title: 'CLOSE-UPS (ROW 2): STAIR HALL -> SKYLIGHT (1894)  |  DOUBLE-HEIGHT COURTROOM (1894)  |  BANDSTAND (L) & SOLDIER MEMORIAL (R)',
+    title: 'CLOSE-UPS (ROW 2): STAIR HALL -> ONE CLEAR SKYLIGHT (1894)  |  CIVIL WAR SOLDIER MEMORIAL (1894)  |  DOUBLE-HEIGHT COURTROOM (1894)',
     panels: [
       {
-        // Inside ground-floor rotunda looking north & UP past grand staircase & galleries to the luminous skylight!
+        // Inside ground-floor rotunda looking north & UP past clean staircase, mid-landing & open railings to ONE skylight!
         year: 1894,
-        eye: [0.0, 2.5, CZ_M + 3.6],
-        target: [0.0, 12.6, CZ_M - 1.2],
+        eye: [0.0, 2.5, CZ_M + 3.8],
+        target: [0.0, 11.4, CZ_M - 1.8],
         fovDeg: 74,
         interiorMode: true,
         sunDir: [0.18, 0.96, 0.22],
         skyTop: [216, 232, 248],
         skyBottom: [216, 232, 248],
+      },
+      {
+        // Dedicated close-up of Civil War Soldier Memorial on SE lawn: stepped base, stout pedestal "1861-1865", 1.8m bronze soldier!
+        year: 1894,
+        eye: [15.4, 3.0, -12.4],
+        target: [18.0, 3.2, -19.55],
+        fovDeg: 46,
+        sunDir: [-0.42, 0.78, 0.46],
+        skyTop: [78, 124, 184],
+        skyBottom: [194, 218, 242],
       },
       {
         // Inside Floor 2 double-height courtroom looking south across oak bar rail & raised judge's bench!
@@ -680,36 +750,13 @@ const CLOSEUP_ROWS = [
         skyTop: [196, 218, 240],
         skyBottom: [196, 218, 240],
       },
-      {
-        // Split side-by-side close-up: Octagonal Bandstand (left) & Civil War Soldier Memorial (right) at person height!
-        split: [
-          {
-            year: 1894,
-            eye: [-11.0, 2.8, -11.2],
-            target: [-18.6, 3.4, -19.6],
-            fovDeg: 48,
-            sunDir: [0.42, 0.78, 0.46],
-            skyTop: [78, 124, 184],
-            skyBottom: [194, 218, 242],
-          },
-          {
-            year: 1894,
-            eye: [11.8, 3.2, -11.6],
-            target: [18.0, 4.1, -19.6],
-            fovDeg: 48,
-            sunDir: [-0.42, 0.78, 0.46],
-            skyTop: [78, 124, 184],
-            skyBottom: [194, 218, 242],
-          },
-        ],
-      },
     ],
   },
 ];
 
 for (let cr = 0; cr < CLOSEUP_ROWS.length; cr++) {
   const row = CLOSEUP_ROWS[cr];
-  const rowY = HEADER_H + 4 * (ROW_TITLE_H + PH + PAD) + cr * (ROW_TITLE_H + CU_H + PAD);
+  const rowY = HEADER_H + 5 * (ROW_TITLE_H + PH + PAD) + cr * (ROW_TITLE_H + CU_H + PAD);
   fillRect(sheet, CW, CH, PAD, rowY, CW - 2 * PAD, ROW_TITLE_H - 2, [42, 46, 58]);
   drawText(sheet, CW, CH, PAD + 10, rowY + 6, row.title, [252, 226, 152], 2);
 
@@ -717,17 +764,8 @@ for (let cr = 0; cr < CLOSEUP_ROWS.length; cr++) {
     const cfg = row.panels[c];
     const px = PAD + c * (CU_W + PAD);
     const py = rowY + ROW_TITLE_H;
-    if (cfg.split) {
-      const gap = 6;
-      const hw = Math.floor((CU_W - gap) / 2);
-      const pL = renderPanel(loadedScenes[cfg.split[0].year], { ...cfg.split[0], width: hw, height: CU_H });
-      const pR = renderPanel(loadedScenes[cfg.split[1].year], { ...cfg.split[1], width: CU_W - hw - gap, height: CU_H });
-      blit(sheet, CW, CH, pL, px, py);
-      blit(sheet, CW, CH, pR, px + hw + gap, py);
-    } else {
-      const panel = renderPanel(loadedScenes[cfg.year], { ...cfg, width: CU_W, height: CU_H });
-      blit(sheet, CW, CH, panel, px, py);
-    }
+    const panel = renderPanel(loadedScenes[cfg.year], { ...cfg, width: CU_W, height: CU_H });
+    blit(sheet, CW, CH, panel, px, py);
   }
   console.log(`Rendered close-up row ${cr + 1}`);
 }

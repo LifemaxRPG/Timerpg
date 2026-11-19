@@ -206,17 +206,35 @@
         "rect_art": [
           100,
           0,
-          32,
-          12
+          13,
+          6
         ]
       },
       "plaque_restored_2004": {
         "sheet": "sign_plates.png",
         "rect_art": [
-          136,
+          116,
           0,
-          36,
-          16
+          8,
+          6
+        ]
+      },
+      "memorial_1861_1865": {
+        "sheet": "sign_plates.png",
+        "rect_art": [
+          128,
+          0,
+          32,
+          9
+        ]
+      },
+      "bronze_soldier": {
+        "sheet": "sign_plates.png",
+        "rect_art": [
+          164,
+          0,
+          24,
+          24
         ]
       },
       "protest_banner_1988": {

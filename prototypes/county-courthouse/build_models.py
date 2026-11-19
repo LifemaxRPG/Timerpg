@@ -453,6 +453,61 @@ class MeshBucket:
             # Outer rim (extrados)
             self.add_planar_quad_art(p_out0, b_out0, b_out1, p_out1, mat_name, region_name)
 
+    def add_clock_disc_and_bezel(self, cx, cy, cz, facing, r_dial, r_bezel, bezel_depth, dial_mat):
+        """12-sided circular glowing clock dial disc (exact 0.0388 m/texel UV) + stone bezel ring!"""
+        segs = 12
+        tw, th = self.mat_size[dial_mat]
+        art_w, art_h = tw / 2.0, th / 2.0
+        p = self._prim(dial_mat)
+        # Dial facing normal & tangent axes
+        if facing == "+z":
+            nrm = (0.0, 0.0, 1.0)
+            to_pt = lambda dx, dy, dz=0.0: (cx + dx, cy + dy, cz + dz)
+        elif facing == "-z":
+            nrm = (0.0, 0.0, -1.0)
+            to_pt = lambda dx, dy, dz=0.0: (cx - dx, cy + dy, cz - dz)
+        elif facing == "+x":
+            nrm = (1.0, 0.0, 0.0)
+            to_pt = lambda dx, dy, dz=0.0: (cx + dz, cy + dy, cz - dx)
+        else:  # "-x"
+            nrm = (-1.0, 0.0, 0.0)
+            to_pt = lambda dx, dy, dz=0.0: (cx - dz, cy + dy, cz + dx)
+
+        base = len(p["pos"])
+        c_pt = to_pt(0.0, 0.0, 0.6)
+        p["pos"].append((c_pt[0] * U, c_pt[1] * U, c_pt[2] * U))
+        p["norm"].append(nrm)
+        p["uv"].append((0.5, 0.5))
+        for i in range(segs):
+            ang = 2.0 * math.pi * i / segs
+            dx = math.cos(ang) * r_dial
+            dy = math.sin(ang) * r_dial
+            pt = to_pt(dx, dy, 0.6)
+            p["pos"].append((pt[0] * U, pt[1] * U, pt[2] * U))
+            p["norm"].append(nrm)
+            p["uv"].append((0.5 + dx / art_w, 0.5 - dy / art_h))
+        for i in range(segs):
+            j = (i + 1) % segs
+            p["idx"].extend([base, base + 1 + i, base + 1 + j])
+
+        # Sculpted circular rusticated stone bezel ring projecting around the circular dial (non-glowing!)
+        for i in range(segs):
+            a0 = 2.0 * math.pi * i / segs
+            a1 = 2.0 * math.pi * ((i + 1) % segs) / segs
+            c0, s0 = math.cos(a0), math.sin(a0)
+            c1, s1 = math.cos(a1), math.sin(a1)
+            f_in0 = to_pt(c0 * (r_dial - 0.3), s0 * (r_dial - 0.3), bezel_depth)
+            f_out0 = to_pt(c0 * r_bezel, s0 * r_bezel, bezel_depth)
+            f_out1 = to_pt(c1 * r_bezel, s1 * r_bezel, bezel_depth)
+            f_in1 = to_pt(c1 * (r_dial - 0.3), s1 * (r_dial - 0.3), bezel_depth)
+            b_in0 = to_pt(c0 * (r_dial - 0.3), s0 * (r_dial - 0.3), 0.0)
+            b_out0 = to_pt(c0 * r_bezel, s0 * r_bezel, 0.0)
+            b_out1 = to_pt(c1 * r_bezel, s1 * r_bezel, 0.0)
+            b_in1 = to_pt(c1 * (r_dial - 0.3), s1 * (r_dial - 0.3), 0.0)
+            self.add_planar_quad_art(f_in0, f_out0, f_out1, f_in1, "stone_rusticated")
+            self.add_planar_quad_art(b_in0, f_in0, f_in1, b_in1, "stone_rusticated")
+            self.add_planar_quad_art(f_out0, b_out0, b_out1, f_out1, "stone_rusticated")
+
     def add_hip_roof(self, x0, x1, z0, z1, y_eave, y_ridge, ridge_inset_x, ridge_inset_z, mat_name):
         """Steep 4-slope hipped roof over rectangle [x0,x1] x [z0,z1] with exact planar UVs."""
         rx0 = x0 + ridge_inset_x
@@ -520,45 +575,46 @@ class CollisionRecorder:
 def build_arched_window_mesh(name, mat_idx, mat_size, regions, glass_region="win_arched", paired=False):
     """
     Local space: centered at X=0, sill at Y=0, outer wall face at Z=0, facing +Z.
-    Real 8-segment semicircular stone voussoir arch + sill + jambs + recessed glazing!
+    Deep 0.33 m reveal (4.2 art px from outer stone surround +3.2 to recessed glass -1.0),
+    8-segment semicircular stone arch ring + projecting keystone + heavy stone sill!
     """
     b = MeshBucket(name, mat_idx, mat_size, regions)
     if not paired:
-        # Single arched window: opening 18 wide x 34 tall (arch spring at y=25, radius=9 -> top=34)
-        # Projecting stone sill
-        b.add_box(-12, -2, -2, 12, 1, 3.2, "stone_rusticated")
-        # Stone side jambs
-        b.add_box(-12, 1, -2, -9, 25, 2.2, "stone_rusticated")
-        b.add_box(9, 1, -2, 12, 25, 2.2, "stone_rusticated")
-        # Real 8-segment semicircular stone arch ring (r_in=9, r_out=12.5)
-        b.add_arch_ring_z(0, 25, -2.0, 2.4, 9.0, 12.5, 8, "stone_rusticated")
-        # Recessed window glass/infill pane (rectangular lower + arched fanlight upper!)
-        b.add_panel_z(-9, 1, 9, 25, -0.6, "+z", "glass_window", glass_region)
-        # Semicircular upper arch glazing fan (8 triangles matching arch geometry!)
-        # Mapped cleanly inside the top portion of the glass region
-        for i in range(8):
-            a0 = math.pi * i / 8
-            a1 = math.pi * (i + 1) / 8
-            p0 = (0, 25, -0.6)
-            p1 = (math.cos(a0) * 9.0, 25 + math.sin(a0) * 9.0, -0.6)
-            p2 = (math.cos(a1) * 9.0, 25 + math.sin(a1) * 9.0, -0.6)
+        # Deeply projecting stone sill (z = -1.2 .. +4.4)
+        b.add_box(-13, -2.5, -1.2, 13, 1.0, 4.4, "stone_rusticated", faces=["+z", "+y", "-y", "+x", "-x"])
+        # Heavy stone jamb surrounds (z = -1.2 .. +3.2 -> 0.34 m deep reveal to glass at -1.0!)
+        b.add_box(-13, 1.0, -1.2, -9.0, 25.0, 3.2, "stone_rusticated", faces=["+z", "+x", "-x", "-y"])
+        b.add_box(9.0, 1.0, -1.2, 13, 25.0, 3.2, "stone_rusticated", faces=["+z", "+x", "-x", "-y"])
+        # Real 6-segment deep stone arch ring (r_in=9, r_out=13.2, z = -1.2 .. +3.4)
+        b.add_arch_ring_z(0, 25.0, -1.2, 3.4, 9.0, 13.2, 6, "stone_rusticated")
+        # Proud projecting stone keystone at the crown of the arch (z = +0.5 .. +4.5!)
+        b.add_box(-2.5, 33.5, 0.5, 2.5, 39.5, 4.5, "stone_rusticated", faces=["+z", "+y", "-y", "+x", "-x"])
+        # Deeply recessed window glass/infill pane at z = -1.0
+        b.add_panel_z(-9.0, 1.0, 9.0, 25.0, -1.0, "+z", "glass_window", glass_region)
+        for i in range(6):
+            a0 = math.pi * i / 6
+            a1 = math.pi * (i + 1) / 6
+            p0 = (0, 25.0, -1.0)
+            p1 = (math.cos(a0) * 9.0, 25.0 + math.sin(a0) * 9.0, -1.0)
+            p2 = (math.cos(a1) * 9.0, 25.0 + math.sin(a1) * 9.0, -1.0)
             b.add_planar_tri_art(p0, p1, p2, "glass_window", glass_region)
     else:
-        # Paired 3rd-floor Romanesque arched windows: two 12-wide arches sharing a center colonnette!
-        b.add_box(-18, -2, -2, 18, 1, 3.2, "stone_rusticated")
-        b.add_box(-18, 1, -2, -15, 22, 2.2, "stone_rusticated")
-        b.add_box(-2, 1, -2, 2, 22, 2.4, "stone_rusticated")  # center stone colonnette
-        b.add_box(15, 1, -2, 18, 22, 2.2, "stone_rusticated")
+        # Paired 3rd-floor Romanesque arched windows with deep reveals, center colonnette & twin keystones!
+        b.add_box(-19, -2.5, -1.2, 19, 1.0, 4.4, "stone_rusticated", faces=["+z", "+y", "-y", "+x", "-x"])
+        b.add_box(-19, 1.0, -1.2, -15.0, 22.0, 3.2, "stone_rusticated", faces=["+z", "+x", "-x", "-y"])
+        b.add_box(-2.0, 1.0, -1.2, 2.0, 22.0, 3.6, "stone_rusticated", faces=["+z", "+x", "-x", "-y"])
+        b.add_box(15.0, 1.0, -1.2, 19, 22.0, 3.2, "stone_rusticated", faces=["+z", "+x", "-x", "-y"])
         for ox in (-8.5, 8.5):
-            b.add_arch_ring_z(ox, 22, -2.0, 2.4, 6.5, 9.5, 8, "stone_rusticated")
-            b.add_panel_z(ox - 6.5, 1, ox + 6.5, 22, -0.6, "+z", "glass_window", glass_region)
-            for i in range(8):
-                a0 = math.pi * i / 8
-                a1 = math.pi * (i + 1) / 8
+            b.add_arch_ring_z(ox, 22.0, -1.2, 3.4, 6.5, 10.0, 6, "stone_rusticated")
+            b.add_box(ox - 2.0, 28.0, 0.5, ox + 2.0, 33.2, 4.4, "stone_rusticated", faces=["+z", "+y", "-y", "+x", "-x"])
+            b.add_panel_z(ox - 6.5, 1.0, ox + 6.5, 22.0, -1.0, "+z", "glass_window", glass_region)
+            for i in range(6):
+                a0 = math.pi * i / 6
+                a1 = math.pi * (i + 1) / 6
                 b.add_planar_tri_art(
-                    (ox, 22, -0.6),
-                    (ox + math.cos(a0) * 6.5, 22 + math.sin(a0) * 6.5, -0.6),
-                    (ox + math.cos(a1) * 6.5, 22 + math.sin(a1) * 6.5, -0.6),
+                    (ox, 22.0, -1.0),
+                    (ox + math.cos(a0) * 6.5, 22.0 + math.sin(a0) * 6.5, -1.0),
+                    (ox + math.cos(a1) * 6.5, 22.0 + math.sin(a1) * 6.5, -1.0),
                     "glass_window",
                     glass_region,
                 )
@@ -568,48 +624,47 @@ def build_arched_window_mesh(name, mat_idx, mat_size, regions, glass_region="win
 def build_bench_mesh(mat_idx, mat_size, regions):
     """Park bench (22 art px = 1.71 m long), centered at X=0, Z=0, base at Y=0, facing +Z."""
     b = MeshBucket("bench_inst", mat_idx, mat_size, regions)
-    # Two cast-iron leg frames
     for lx in (-9, 7):
         b.add_box(lx, 0, -4, lx + 2, 7, 4, "detail_atlas", region_name="dark_iron")
         b.add_box(lx, 7, -4.5, lx + 2, 13, -3, "detail_atlas", region_name="dark_iron")
-    # Wood seat & backrest
     b.add_box(-11, 6.5, -3.5, 11, 8, 3.5, "interior_floor")
     b.add_box(-11, 9.5, -4.2, 11, 13.5, -2.8, "interior_floor")
     return b
 
 
 def build_lamp_mesh(style, mat_idx, mat_size, regions):
-    """Era-specific square lamp post (base at Y=0). ONLY the tiny lantern/lens uses glow_lamps!"""
+    """Era-specific lamp post (base at Y=0). ONLY the compact ~0.28 m lamp head uses glow_lamps!"""
     b = MeshBucket(f"lamp_{style}_inst", mat_idx, mat_size, regions)
     if style == "gas":
-        # 1894-1950 ornate cast-iron gas lamp post (height 44 art px = 3.41 m)
-        b.add_box(-3, 0, -3, 3, 6, 3, "detail_atlas", region_name="dark_iron")
-        b.add_box(-1.5, 6, -1.5, 1.5, 36, 1.5, "detail_atlas", region_name="dark_iron")
-        b.add_box(-3.5, 36, -3.5, 3.5, 37.5, 3.5, "detail_atlas", region_name="dark_iron")
-        b.add_box(-3, 37.5, -3, 3, 44, 3, "glow_lamps", faces=["+x", "-x", "+z", "-z"], region_name="lamp_gas")
-        b.add_cone(0, 44, 48, 0, 4.5, 4, "detail_atlas", region_name="dark_iron", cap_bot=True)
+        # 1894-1950 cast-iron gas lamp post (height 44 art px = 3.41 m, lantern head ~0.27 m!)
+        b.add_box(-2.8, 0, -2.8, 2.8, 6, 2.8, "detail_atlas", region_name="dark_iron")
+        b.add_box(-1.3, 6, -1.3, 1.3, 36.5, 1.3, "detail_atlas", region_name="dark_iron")
+        b.add_box(-2.4, 36.5, -2.4, 2.4, 38.0, 2.4, "detail_atlas", region_name="dark_iron")
+        # Glowing lantern glass ONLY: 3.4 x 3.8 x 3.4 art px (~0.26 x 0.29 m)
+        b.add_box(-1.7, 38.0, -1.7, 1.7, 41.8, 1.7, "glow_lamps", faces=["+x", "-x", "+z", "-z"], region_name="lamp_gas")
+        b.add_cone(0, 41.8, 45.5, 0, 3.2, 4, "detail_atlas", region_name="dark_iron", cap_bot=True)
     elif style == "cobra":
-        # 1951-1999 taller galvanized cobra-head electric street lamp (height 68 art px = 5.28 m)
+        # 1951-1999 galvanized cobra-head electric street lamp (height 68 art px = 5.28 m)
         b.add_box(-2.5, 0, -2.5, 2.5, 6, 2.5, "detail_atlas", region_name="dark_iron")
-        b.add_box(-1.5, 6, -1.5, 1.5, 66, 1.5, "detail_atlas", region_name="dark_iron")
-        # Cantilever arm extending +Z
-        b.add_box(-1.2, 64, 0, 1.2, 66.5, 16, "detail_atlas", region_name="dark_iron")
-        # Cobra hood + downward glowing lens (ny = -1 spawns Filament light!)
-        b.add_box(-3.5, 64, 14, 3.5, 67, 22, "detail_atlas", faces=["+y", "+x", "-x", "+z", "-z"], region_name="dark_iron")
-        b.add_panel_y(-3, 14.5, 3, 21.5, 63.9, "-y", "glow_lamps", "lamp_cobra")
+        b.add_box(-1.4, 6, -1.4, 1.4, 66, 1.4, "detail_atlas", region_name="dark_iron")
+        b.add_box(-1.1, 64, 0, 1.1, 66.2, 15, "detail_atlas", region_name="dark_iron")
+        b.add_box(-2.6, 64, 13.5, 2.6, 66.8, 20.5, "detail_atlas", faces=["+y", "+x", "-x", "+z", "-z"], region_name="dark_iron")
+        # Compact downward glowing lens (~0.28 x 0.31 m)
+        b.add_panel_y(-1.8, 15.0, 1.8, 19.0, 63.9, "-y", "glow_lamps", "lamp_cobra")
     else:
-        # 2000+ restored heritage warm LED acorn-globe post (height 48 art px = 3.72 m)
-        b.add_box(-3, 0, -3, 3, 8, 3, "detail_atlas", region_name="dark_iron")
-        b.add_box(-1.5, 8, -1.5, 1.5, 40, 1.5, "detail_atlas", region_name="dark_iron")
-        b.add_box(-3.2, 40, -3.2, 3.2, 47.5, 3.2, "glow_lamps", faces=["+x", "-x", "+z", "-z", "+y"], region_name="lamp_acorn")
-        b.add_box(-1.2, 47.5, -1.2, 1.2, 50, 1.2, "detail_atlas", region_name="dark_iron")
+        # 2000+ restored heritage warm LED acorn-globe post (height 46 art px = 3.57 m, globe ~0.27 m!)
+        b.add_box(-2.8, 0, -2.8, 2.8, 7, 2.8, "detail_atlas", region_name="dark_iron")
+        b.add_box(-1.3, 7, -1.3, 1.3, 39.5, 1.3, "detail_atlas", region_name="dark_iron")
+        b.add_box(-2.2, 39.5, -2.2, 2.2, 40.5, 2.2, "detail_atlas", region_name="dark_iron")
+        b.add_box(-1.7, 40.5, -1.7, 1.7, 44.3, 1.7, "glow_lamps", faces=["+x", "-x", "+z", "-z"], region_name="lamp_acorn")
+        b.add_box(-1.0, 44.3, -1.0, 1.0, 46.5, 1.0, "detail_atlas", region_name="dark_iron")
     return b
 
 
 def build_clock_hand_mesh(name, length_art, half_w_art, mat_idx, mat_size, regions):
     """Clock hand pointing straight UP (+Y = 12 o'clock) pivoted at (0, 0, 0)."""
     b = MeshBucket(name, mat_idx, mat_size, regions)
-    b.add_box(-half_w_art, -3.0, -0.5, half_w_art, length_art, 0.7, "detail_atlas", region_name="dark_iron")
+    b.add_box(-half_w_art, -1.6, -0.3, half_w_art, length_art, 0.5, "detail_atlas", region_name="dark_iron")
     return b
 
 
@@ -847,30 +902,25 @@ def build_near_state(spec):
         coll.add_box(466, 0, CZ + s0, 472, 11, CZ + s1, f"perimeter_granite_wall_east_{s0}", "square")
 
     # ==========================================================================
-    # 2. COURTHOUSE EXTERIOR SHELL (Cross plan 384 x 384 art px = 29.80 x 29.80 m)
-    #    Central block: dx, dz in [-128, 128]
-    #    4 projecting pavilions: width 128 ([-64, 64]), projecting out to +/-192
+    # 2. COURTHOUSE EXTERIOR SHELL (Crisp Cross Plan: 29.80 m x 29.80 m)
+    #    Central block: dx, dz in [-116, +116] (18.00 m x 18.00 m)
+    #    4 boldly projecting entrance pavilions: width 124 ([-62, +62]),
+    #    projecting 76 art px (5.90 m!) out to +/-192 on all four sides!
     # ==========================================================================
-    # Raised rusticated stone foundation plinth under entire cross footprint (y = 2..14)
-    structure.add_box(-128, Y_GROUND, CZ - 128, 128, Y_FL1, CZ + 128, "stone_rusticated")
-    structure.add_box(-64, Y_GROUND, CZ + 128, 64, Y_FL1, CZ + 192, "stone_rusticated")
-    structure.add_box(-64, Y_GROUND, CZ - 192, 64, Y_FL1, CZ - 128, "stone_rusticated")
-    structure.add_box(128, Y_GROUND, CZ - 64, 192, Y_FL1, CZ + 64, "stone_rusticated")
-    structure.add_box(-192, Y_GROUND, CZ - 64, -128, Y_FL1, CZ + 64, "stone_rusticated")
+    CB = 116.0  # Central block half-width (18.00 m)
+    PW = 62.0   # Projecting pavilion half-width (9.62 m)
 
-    # Helper to build a 3-storey Romanesque wall segment with:
-    # - Rusticated stone base (Y_FL1 .. Y_FL2)
-    # - Projecting limestone stringcourses at Floor 2 (70..74), Floor 3 (128..132), and cornice (184..190)
-    # - LimeZu pressed red brick upper storeys (Y_FL2 .. Y_EAVE)
-    # - Full-height collision box (y = 0 .. Y_EAVE)
+    # Raised rusticated stone foundation plinth under entire cross footprint (y = 2..14)
+    structure.add_box(-CB, Y_GROUND, CZ - CB, CB, Y_FL1, CZ + CB, "stone_rusticated")
+    structure.add_box(-PW, Y_GROUND, CZ + CB, PW, Y_FL1, CZ + 192, "stone_rusticated")
+    structure.add_box(-PW, Y_GROUND, CZ - 192, PW, Y_FL1, CZ - CB, "stone_rusticated")
+    structure.add_box(CB, Y_GROUND, CZ - PW, 192, Y_FL1, CZ + PW, "stone_rusticated")
+    structure.add_box(-192, Y_GROUND, CZ - PW, -CB, Y_FL1, CZ + PW, "stone_rusticated")
+
     def add_ext_wall(x0, z0, x1, z1, name, has_door_gap=None):
-        """
-        has_door_gap: None or ("z", gx0, gx1, door_top_y) or ("x", gz0, gz1, door_top_y)
-        """
         if has_door_gap is None:
             structure.add_box(x0, Y_FL1, z0, x1, Y_FL2, z1, "stone_rusticated")
             structure.add_box(x0, Y_FL2, z0, x1, Y_EAVE, z1, "brick_red")
-            # Interior face gets warm plaster + wainscot!
             coll.add_box(x0, 0, z0, x1, Y_EAVE, z1, name, "exterior")
         elif has_door_gap[0] == "z":
             _, gx0, gx1, gy_top = has_door_gap
@@ -890,127 +940,192 @@ def build_near_state(spec):
             coll.add_box(x0, 0, gz1, x1, Y_EAVE, z1, f"{name}_south", "exterior")
 
     T = 6.0  # Exterior masonry wall thickness (0.466 m)
-    DOOR_TOP = Y_FL1 + 36.0  # Tall arched double doorway (2.79 m tall, 28 art px = 2.17 m wide)
+    DOOR_TOP = Y_FL1 + 40.0  # Open walk-in entrance doorway (3.10 m tall, 32 art px = 2.48 m wide)
 
-    # 4 Pavilion End Walls (with wide open entrance doorways on ground floor!)
-    add_ext_wall(-64, CZ + 192 - T, 64, CZ + 192, "wall_pavilion_south", ("z", -14, 14, DOOR_TOP))
-    add_ext_wall(-64, CZ - 192, 64, CZ - 192 + T, "wall_pavilion_north", ("z", -14, 14, DOOR_TOP))
-    add_ext_wall(192 - T, CZ - 64, 192, CZ + 64, "wall_pavilion_east", ("x", CZ - 14, CZ + 14, DOOR_TOP))
-    add_ext_wall(-192, CZ - 64, -192 + T, CZ + 64, "wall_pavilion_west", ("x", CZ - 14, CZ + 14, DOOR_TOP))
+    # 4 Pavilion End Walls (with open walk-in entrance doorways — ZERO closed panels!)
+    add_ext_wall(-PW, CZ + 192 - T, PW, CZ + 192, "wall_pavilion_south", ("z", -16, 16, DOOR_TOP))
+    add_ext_wall(-PW, CZ - 192, PW, CZ - 192 + T, "wall_pavilion_north", ("z", -14, 14, DOOR_TOP))
+    add_ext_wall(192 - T, CZ - PW, 192, CZ + PW, "wall_pavilion_east", ("x", CZ - 14, CZ + 14, DOOR_TOP))
+    add_ext_wall(-192, CZ - PW, -192 + T, CZ + PW, "wall_pavilion_west", ("x", CZ - 14, CZ + 14, DOOR_TOP))
 
-    # 8 Pavilion Cheek Walls (flanking the 4 projecting wings)
-    add_ext_wall(-64, CZ + 128, -64 + T, CZ + 192 - T, "wall_pav_s_west")
-    add_ext_wall(64 - T, CZ + 128, 64, CZ + 192 - T, "wall_pav_s_east")
-    add_ext_wall(-64, CZ - 192 + T, -64 + T, CZ - 128, "wall_pav_n_west")
-    add_ext_wall(64 - T, CZ - 192 + T, 64, CZ - 128, "wall_pav_n_east")
-    add_ext_wall(128, CZ + 64 - T, 192 - T, CZ + 64, "wall_pav_e_south")
-    add_ext_wall(128, CZ - 64, 192 - T, CZ - 64 + T, "wall_pav_e_north")
-    add_ext_wall(-192 + T, CZ + 64 - T, -128, CZ + 64, "wall_pav_w_south")
-    add_ext_wall(-192 + T, CZ - 64, -128, CZ - 64 + T, "wall_pav_w_north")
+    # 8 Deep Pavilion Cheek Walls (projecting 5.90 m out from central block!)
+    add_ext_wall(-PW, CZ + CB, -PW + T, CZ + 192 - T, "wall_pav_s_west")
+    add_ext_wall(PW - T, CZ + CB, PW, CZ + 192 - T, "wall_pav_s_east")
+    add_ext_wall(-PW, CZ - 192 + T, -PW + T, CZ - CB, "wall_pav_n_west")
+    add_ext_wall(PW - T, CZ - 192 + T, PW, CZ - CB, "wall_pav_n_east")
+    add_ext_wall(CB, CZ + PW - T, 192 - T, CZ + PW, "wall_pav_e_south")
+    add_ext_wall(CB, CZ - PW, 192 - T, CZ - PW + T, "wall_pav_e_north")
+    add_ext_wall(-192 + T, CZ + PW - T, -CB, CZ + PW, "wall_pav_w_south")
+    add_ext_wall(-192 + T, CZ - PW, -CB, CZ - PW + T, "wall_pav_w_north")
 
-    # 8 Central Block Corner Walls (filling the 4 re-entrant corners between pavilions)
+    # 8 Central Block Re-Entrant Corner Walls (54 x 76 art px crisp recessed corners!)
     for sx in (-1, 1):
         for sz in (-1, 1):
-            x_a = sx * 64 if sx > 0 else -128
-            x_b = 128 if sx > 0 else -64
-            z_wall0 = CZ + (128 - T if sz > 0 else -128)
-            z_wall1 = CZ + (128 if sz > 0 else -128 + T)
+            x_a = PW if sx > 0 else -CB
+            x_b = CB if sx > 0 else -PW
+            z_wall0 = CZ + (CB - T if sz > 0 else -CB)
+            z_wall1 = CZ + (CB if sz > 0 else -CB + T)
             add_ext_wall(x_a, z_wall0, x_b, z_wall1, f"wall_corner_z_{sx}_{sz}")
 
-            z_a = CZ + (64 if sz > 0 else -128 + T)
-            z_b = CZ + (128 - T if sz > 0 else -64)
-            x_wall0 = (128 - T) if sx > 0 else -128
-            x_wall1 = 128 if sx > 0 else (-128 + T)
+            z_a = CZ + (PW if sz > 0 else -CB + T)
+            z_b = CZ + (CB - T if sz > 0 else -PW)
+            x_wall0 = (CB - T) if sx > 0 else -CB
+            x_wall1 = CB if sx > 0 else (-CB + T)
             add_ext_wall(x_wall0, z_a, x_wall1, z_b, f"wall_corner_x_{sx}_{sz}")
 
+    # Stone Corner Quoins on all 8 outer pavilion corners + 4 central corners (crisp Romanesque vertical emphasis!)
+    for sx in (-1, 1):
+        for sz in (-1, 1):
+            # Central block outer corner pilasters
+            cx0 = (CB - 5) if sx > 0 else (-CB - 1.2)
+            cx1 = (CB + 1.2) if sx > 0 else (-CB + 5)
+            cz0 = CZ + ((CB - 5) if sz > 0 else (-CB - 1.2))
+            cz1 = CZ + ((CB + 1.2) if sz > 0 else (-CB + 5))
+            structure.add_box(cx0, Y_FL2, cz0, cx1, Y_EAVE, cz1, "stone_rusticated")
+            # Pavilion outer end corners (South/North)
+            px0 = (PW - 5) if sx > 0 else (-PW - 1.2)
+            px1 = (PW + 1.2) if sx > 0 else (-PW + 5)
+            pz0 = CZ + ((192 - 5) if sz > 0 else (-192 - 1.2))
+            pz1 = CZ + ((192 + 1.2) if sz > 0 else (-192 + 5))
+            structure.add_box(px0, Y_FL2, pz0, px1, Y_EAVE, pz1, "stone_rusticated")
+            # Pavilion outer end corners (East/West)
+            ex0 = (192 - 5) if sx > 0 else (-192 - 1.2)
+            ex1 = (192 + 1.2) if sx > 0 else (-192 + 5)
+            ez0 = CZ + ((PW - 5) if sz > 0 else (-PW - 1.2))
+            ez1 = CZ + ((PW + 1.2) if sz > 0 else (-PW + 5))
+            structure.add_box(ex0, Y_FL2, ez0, ex1, Y_EAVE, ez1, "stone_rusticated")
+
     # Projecting Hollow Exterior-Only Stone Stringcourse Belt Bands at Floor 2, Floor 3, and Eave Cornice!
-    # (Strictly exterior perimeter strips so the 3-storey rotunda & double-height courtroom stay 100% open!)
-    for by0, by1, out in ((Y_FL2 - 2, Y_FL2 + 2, 2.0), (Y_FL3 - 2, Y_FL3 + 2, 2.0), (Y_EAVE - 4, Y_EAVE + 2, 4.0)):
-        # 4 Pavilion End Bands
-        structure.add_box(-64 - out, by0, CZ + 192, 64 + out, by1, CZ + 192 + out, "stone_rusticated", faces=["+z", "+y", "-y", "+x", "-x"])
-        structure.add_box(-64 - out, by0, CZ - 192 - out, 64 + out, by1, CZ - 192, "stone_rusticated", faces=["-z", "+y", "-y", "+x", "-x"])
-        structure.add_box(192, by0, CZ - 64 - out, 192 + out, by1, CZ + 64 + out, "stone_rusticated", faces=["+x", "+y", "-y", "+z", "-z"])
-        structure.add_box(-192 - out, by0, CZ - 64 - out, -192, by1, CZ + 64 + out, "stone_rusticated", faces=["-x", "+y", "-y", "+z", "-z"])
-        # 8 Pavilion Cheek Bands
-        structure.add_box(-64 - out, by0, CZ + 128, -64, by1, CZ + 192, "stone_rusticated", faces=["-x", "+y", "-y"])
-        structure.add_box(64, by0, CZ + 128, 64 + out, by1, CZ + 192, "stone_rusticated", faces=["+x", "+y", "-y"])
-        structure.add_box(-64 - out, by0, CZ - 192, -64, by1, CZ - 128, "stone_rusticated", faces=["-x", "+y", "-y"])
-        structure.add_box(64, by0, CZ - 192, 64 + out, by1, CZ - 128, "stone_rusticated", faces=["+x", "+y", "-y"])
-        structure.add_box(128, by0, CZ + 64, 192, by1, CZ + 64 + out, "stone_rusticated", faces=["+z", "+y", "-y"])
-        structure.add_box(128, by0, CZ - 64 - out, 192, by1, CZ - 64, "stone_rusticated", faces=["-z", "+y", "-y"])
-        structure.add_box(-192, by0, CZ + 64, -128, by1, CZ + 64 + out, "stone_rusticated", faces=["+z", "+y", "-y"])
-        structure.add_box(-192, by0, CZ - 64 - out, -128, by1, CZ - 64, "stone_rusticated", faces=["-z", "+y", "-y"])
-        # 8 Central Block Re-entrant Corner Bands
+    for by0, by1, out in ((Y_FL2 - 2, Y_FL2 + 2, 2.2), (Y_FL3 - 2, Y_FL3 + 2, 2.2), (Y_EAVE - 4, Y_EAVE + 2, 4.0)):
+        structure.add_box(-PW - out, by0, CZ + 192, PW + out, by1, CZ + 192 + out, "stone_rusticated", faces=["+z", "+y", "-y", "+x", "-x"])
+        structure.add_box(-PW - out, by0, CZ - 192 - out, PW + out, by1, CZ - 192, "stone_rusticated", faces=["-z", "+y", "-y", "+x", "-x"])
+        structure.add_box(192, by0, CZ - PW - out, 192 + out, by1, CZ + PW + out, "stone_rusticated", faces=["+x", "+y", "-y", "+z", "-z"])
+        structure.add_box(-192 - out, by0, CZ - PW - out, -192, by1, CZ + PW + out, "stone_rusticated", faces=["-x", "+y", "-y", "+z", "-z"])
+        structure.add_box(-PW - out, by0, CZ + CB, -PW, by1, CZ + 192, "stone_rusticated", faces=["-x", "+y", "-y"])
+        structure.add_box(PW, by0, CZ + CB, PW + out, by1, CZ + 192, "stone_rusticated", faces=["+x", "+y", "-y"])
+        structure.add_box(-PW - out, by0, CZ - 192, -PW, by1, CZ - CB, "stone_rusticated", faces=["-x", "+y", "-y"])
+        structure.add_box(PW, by0, CZ - 192, PW + out, by1, CZ - CB, "stone_rusticated", faces=["+x", "+y", "-y"])
+        structure.add_box(CB, by0, CZ + PW, 192, by1, CZ + PW + out, "stone_rusticated", faces=["+z", "+y", "-y"])
+        structure.add_box(CB, by0, CZ - PW - out, 192, by1, CZ - PW, "stone_rusticated", faces=["-z", "+y", "-y"])
+        structure.add_box(-192, by0, CZ + PW, -CB, by1, CZ + PW + out, "stone_rusticated", faces=["+z", "+y", "-y"])
+        structure.add_box(-192, by0, CZ - PW - out, -CB, by1, CZ - PW, "stone_rusticated", faces=["-z", "+y", "-y"])
         for sx in (-1, 1):
             for sz in (-1, 1):
-                xa, xb = (64, 128 + out) if sx > 0 else (-128 - out, -64)
-                za = CZ + (128 if sz > 0 else -128 - out)
-                zb = CZ + (128 + out if sz > 0 else -128)
-                zf = "+z" if sz > 0 else "-z"
-                structure.add_box(xa, by0, za, xb, by1, zb, "stone_rusticated", faces=[zf, "+y", "-y"])
-                za2 = CZ + (64 if sz > 0 else -128)
-                zb2 = CZ + (128 if sz > 0 else -64)
-                xa2 = 128 if sx > 0 else -128 - out
-                xb2 = 128 + out if sx > 0 else -128
-                xf = "+x" if sx > 0 else "-x"
-                structure.add_box(xa2, by0, za2, xb2, by1, zb2, "stone_rusticated", faces=[xf, "+y", "-y"])
+                xa, xb = (PW, CB + out) if sx > 0 else (-CB - out, -PW)
+                za = CZ + (CB if sz > 0 else -CB - out)
+                zb = CZ + (CB + out if sz > 0 else -CB)
+                structure.add_box(xa, by0, za, xb, by1, zb, "stone_rusticated", faces=["+z" if sz > 0 else "-z", "+y", "-y"])
+                za2 = CZ + (PW if sz > 0 else -CB)
+                zb2 = CZ + (CB if sz > 0 else -PW)
+                xa2 = CB if sx > 0 else -CB - out
+                xb2 = CB + out if sx > 0 else -CB
+                structure.add_box(xa2, by0, za2, xb2, by1, zb2, "stone_rusticated", faces=["+x" if sx > 0 else "-x", "+y", "-y"])
 
     # ==========================================================================
-    # 3. STEEP HIPPED SLATE ROOFS + 4 GABLED WING DORMERS
+    # 3. CRISP CROSS-PLAN ROOF ARCHITECTURE:
+    #    - Steep Central Hipped Slate Roof over [-120,+120] (eave 188 -> deck 246)
+    #    - 4 Bold Steep Gabled Pavilion Roofs meeting the central hip in clear 45° valleys!
+    #    - Brick Gable Pediments + Stone Raking Coping + Attic Louver Windows
+    #    - 8 Gabled Dormers on the Main Central Roof!
     # ==========================================================================
-    # Central square hip roof (eave 188 -> ridge 250)
-    structure.add_hip_roof(-132, 132, CZ - 132, CZ + 132, Y_EAVE, Y_RIDGE, 80, 80, "roof_slate")
-    # Four projecting wing steep hip roofs
-    structure.add_hip_roof(-68, 68, CZ + 112, CZ + 196, Y_EAVE, Y_RIDGE - 6, 48, 42, "roof_slate")  # South
-    structure.add_hip_roof(-68, 68, CZ - 196, CZ - 112, Y_EAVE, Y_RIDGE - 6, 48, 42, "roof_slate")  # North
-    structure.add_hip_roof(112, 196, CZ - 68, CZ + 68, Y_EAVE, Y_RIDGE - 6, 42, 48, "roof_slate")   # East
-    structure.add_hip_roof(-196, -112, CZ - 68, CZ + 68, Y_EAVE, Y_RIDGE - 6, 42, 48, "roof_slate") # West
+    # Central square steep hipped slate roof (eave 188 -> ridge deck 246 around tower base)
+    structure.add_hip_roof(-122, 122, CZ - 122, CZ + 122, Y_EAVE, 246, 68, 68, "roof_slate")
 
-    # 4 Gabled Dormers (one centered on each wing's steep outer hip slope!)
+    # Helper: Steep Gabled Pavilion Roof with brick pediment, stone raking coping, & gable window!
+    G_EAVE = PW + 4.0  # 66 art px overhang
+    G_PEAK = 244.0     # Crisp tall ridge meeting central hip cleanly in sharp valleys!
+
+    def add_pavilion_gable(side):
+        if side in ("+z", "-z"):
+            s = 1 if side == "+z" else -1
+            z_out = CZ + s * 196.0
+            z_wall = CZ + s * 192.0
+            z_in = CZ + s * 62.0  # runs cleanly into central roof forming sharp valleys!
+            za, zb = min(z_in, z_out), max(z_in, z_out)
+            # Two steep slate roof slopes
+            structure.add_planar_quad_art((-G_EAVE, Y_EAVE, zb), (-G_EAVE, Y_EAVE, za), (0, G_PEAK, za), (0, G_PEAK, zb), "roof_slate")
+            structure.add_planar_quad_art((G_EAVE, Y_EAVE, za), (G_EAVE, Y_EAVE, zb), (0, G_PEAK, zb), (0, G_PEAK, za), "roof_slate")
+            # Brick gable pediment triangle at outer wall
+            if s > 0:
+                structure.add_planar_tri_art((-PW, Y_EAVE, z_wall), (PW, Y_EAVE, z_wall), (0, G_PEAK - 2, z_wall), "brick_red")
+                # Stone raking coping strips along both gable verges
+                structure.add_planar_quad_art((-G_EAVE, Y_EAVE - 2, z_out), (-PW + 3, Y_EAVE - 2, z_out), (0, G_PEAK - 3, z_out), (0, G_PEAK + 2, z_out), "stone_rusticated")
+                structure.add_planar_quad_art((PW - 3, Y_EAVE - 2, z_out), (G_EAVE, Y_EAVE - 2, z_out), (0, G_PEAK + 2, z_out), (0, G_PEAK - 3, z_out), "stone_rusticated")
+            else:
+                structure.add_planar_tri_art((PW, Y_EAVE, z_wall), (-PW, Y_EAVE, z_wall), (0, G_PEAK - 2, z_wall), "brick_red")
+                structure.add_planar_quad_art((G_EAVE, Y_EAVE - 2, z_out), (PW - 3, Y_EAVE - 2, z_out), (0, G_PEAK - 3, z_out), (0, G_PEAK + 2, z_out), "stone_rusticated")
+                structure.add_planar_quad_art((-PW + 3, Y_EAVE - 2, z_out), (-G_EAVE, Y_EAVE - 2, z_out), (0, G_PEAK + 2, z_out), (0, G_PEAK - 3, z_out), "stone_rusticated")
+            # Arched stone attic oculus/window centered inside the brick gable pediment!
+            structure.add_box(-10, Y_EAVE + 10, z_wall + s * 0.2, 10, Y_EAVE + 28, z_wall + s * 2.4, "stone_rusticated")
+            structure.add_panel_z(-7, Y_EAVE + 12, 7, Y_EAVE + 26, z_wall + s * 2.6, side, "glass_window", "win_arched")
+        else:
+            s = 1 if side == "+x" else -1
+            x_out = s * 196.0
+            x_wall = s * 192.0
+            x_in = s * 62.0
+            xa, xb = min(x_in, x_out), max(x_in, x_out)
+            structure.add_planar_quad_art((xa, Y_EAVE, CZ - G_EAVE), (xb, Y_EAVE, CZ - G_EAVE), (xb, G_PEAK, CZ), (xa, G_PEAK, CZ), "roof_slate")
+            structure.add_planar_quad_art((xb, Y_EAVE, CZ + G_EAVE), (xa, Y_EAVE, CZ + G_EAVE), (xa, G_PEAK, CZ), (xb, G_PEAK, CZ), "roof_slate")
+            if s > 0:
+                structure.add_planar_tri_art((x_wall, Y_EAVE, CZ + PW), (x_wall, Y_EAVE, CZ - PW), (x_wall, G_PEAK - 2, CZ), "brick_red")
+                structure.add_planar_quad_art((x_out, Y_EAVE - 2, CZ + G_EAVE), (x_out, Y_EAVE - 2, CZ + PW - 3), (x_out, G_PEAK - 3, CZ), (x_out, G_PEAK + 2, CZ), "stone_rusticated")
+                structure.add_planar_quad_art((x_out, Y_EAVE - 2, CZ - PW + 3), (x_out, Y_EAVE - 2, CZ - G_EAVE), (x_out, G_PEAK + 2, CZ), (x_out, G_PEAK - 3, CZ), "stone_rusticated")
+            else:
+                structure.add_planar_tri_art((x_wall, Y_EAVE, CZ - PW), (x_wall, Y_EAVE, CZ + PW), (x_wall, G_PEAK - 2, CZ), "brick_red")
+                structure.add_planar_quad_art((x_out, Y_EAVE - 2, CZ - G_EAVE), (x_out, Y_EAVE - 2, CZ - PW + 3), (x_out, G_PEAK - 3, CZ), (x_out, G_PEAK + 2, CZ), "stone_rusticated")
+                structure.add_planar_quad_art((x_out, Y_EAVE - 2, CZ + PW - 3), (x_out, Y_EAVE - 2, CZ + G_EAVE), (x_out, G_PEAK + 2, CZ), (x_out, G_PEAK - 3, CZ), "stone_rusticated")
+            structure.add_box(x_wall + s * 0.2, Y_EAVE + 10, CZ - 10, x_wall + s * 2.4, Y_EAVE + 28, CZ + 10, "stone_rusticated")
+            structure.add_panel_x(CZ - 7, Y_EAVE + 12, CZ + 7, Y_EAVE + 26, x_wall + s * 2.6, side, "glass_window", "win_arched")
+
+    for g_side in ("+z", "-z", "+x", "-x"):
+        add_pavilion_gable(g_side)
+
+    # 8 Crisp Gabled Dormers on the Main Central Hip Roof (flanking the 4 pavilion gables on all 4 facades!)
     def add_dormer(cx, cz, facing):
-        y0, y1, y_pk = Y_EAVE + 10, Y_EAVE + 30, Y_EAVE + 42
+        y0, y1, y_pk = Y_EAVE + 6, Y_EAVE + 24, Y_EAVE + 35
         if facing in ("+z", "-z"):
             s = 1 if facing == "+z" else -1
-            z_face = cz + s * 16
-            z_back = cz - s * 10
+            z_face = cz + s * 12
+            z_back = cz - s * 12
             z0, z1 = min(z_face, z_back), max(z_face, z_back)
-            structure.add_box(cx - 12, y0, z0, cx + 12, y1, z1, "stone_rusticated")
-            structure.add_panel_z(cx - 7, y0 + 2, cx + 7, y1 - 2, z_face + s * 0.6, facing, "glass_window", "win_arched")
-            # Pitched slate dormer gable roof
-            structure.add_planar_quad_art((cx - 14, y1, z1), (cx - 14, y1, z0), (cx, y_pk, z0), (cx, y_pk, z1), "roof_slate")
-            structure.add_planar_quad_art((cx + 14, y1, z0), (cx + 14, y1, z1), (cx, y_pk, z1), (cx, y_pk, z0), "roof_slate")
+            structure.add_box(cx - 10, y0, z0, cx + 10, y1, z1, "stone_rusticated")
+            structure.add_panel_z(cx - 6, y0 + 2, cx + 6, y1 - 2, z_face + s * 0.6, facing, "glass_window", "win_arched")
+            structure.add_planar_quad_art((cx - 12, y1, z1), (cx - 12, y1, z0), (cx, y_pk, z0), (cx, y_pk, z1), "roof_slate")
+            structure.add_planar_quad_art((cx + 12, y1, z0), (cx + 12, y1, z1), (cx, y_pk, z1), (cx, y_pk, z0), "roof_slate")
             if facing == "+z":
-                structure.add_planar_tri_art((cx - 12, y1, z_face), (cx + 12, y1, z_face), (cx, y_pk, z_face), "stone_rusticated")
+                structure.add_planar_tri_art((cx - 10, y1, z_face), (cx + 10, y1, z_face), (cx, y_pk, z_face), "stone_rusticated")
             else:
-                structure.add_planar_tri_art((cx + 12, y1, z_face), (cx - 12, y1, z_face), (cx, y_pk, z_face), "stone_rusticated")
+                structure.add_planar_tri_art((cx + 10, y1, z_face), (cx - 10, y1, z_face), (cx, y_pk, z_face), "stone_rusticated")
         else:
             s = 1 if facing == "+x" else -1
-            x_face = cx + s * 16
-            x_back = cx - s * 10
+            x_face = cx + s * 12
+            x_back = cx - s * 12
             x0, x1 = min(x_face, x_back), max(x_face, x_back)
-            structure.add_box(x0, y0, cz - 12, x1, y1, cz + 12, "stone_rusticated")
-            structure.add_panel_x(cz - 7, y0 + 2, cz + 7, y1 - 2, x_face + s * 0.6, facing, "glass_window", "win_arched")
-            structure.add_planar_quad_art((x0, y1, cz - 14), (x1, y1, cz - 14), (x1, y_pk, cz), (x0, y_pk, cz), "roof_slate")
-            structure.add_planar_quad_art((x1, y1, cz + 14), (x0, y1, cz + 14), (x0, y_pk, cz), (x1, y_pk, cz), "roof_slate")
+            structure.add_box(x0, y0, cz - 10, x1, y1, cz + 10, "stone_rusticated")
+            structure.add_panel_x(cz - 6, y0 + 2, cz + 6, y1 - 2, x_face + s * 0.6, facing, "glass_window", "win_arched")
+            structure.add_planar_quad_art((x0, y1, cz - 12), (x1, y1, cz - 12), (x1, y_pk, cz), (x0, y_pk, cz), "roof_slate")
+            structure.add_planar_quad_art((x1, y1, cz + 12), (x0, y1, cz + 12), (x0, y_pk, cz), (x1, y_pk, cz), "roof_slate")
             if facing == "+x":
-                structure.add_planar_tri_art((x_face, y1, cz + 12), (x_face, y1, cz - 12), (x_face, y_pk, cz), "stone_rusticated")
+                structure.add_planar_tri_art((x_face, y1, cz + 10), (x_face, y1, cz - 10), (x_face, y_pk, cz), "stone_rusticated")
             else:
-                structure.add_planar_tri_art((x_face, y1, cz - 12), (x_face, y1, cz + 12), (x_face, y_pk, cz), "stone_rusticated")
+                structure.add_planar_tri_art((x_face, y1, cz - 10), (x_face, y1, cz + 10), (x_face, y_pk, cz), "stone_rusticated")
 
-    add_dormer(0, CZ + 168, "+z")
-    add_dormer(0, CZ - 168, "-z")
-    add_dormer(168, CZ, "+x")
-    add_dormer(-168, CZ, "-x")
+    for dx_d in (-89, 89):
+        add_dormer(dx_d, CZ + 96, "+z")
+        add_dormer(dx_d, CZ - 96, "-z")
+    for dz_d in (-89, 89):
+        add_dormer(96, CZ + dz_d, "+x")
+        add_dormer(-96, CZ + dz_d, "-x")
 
     # ==========================================================================
-    # 4. MAIN ENTRANCE (+Z): BROAD FLIGHT OF 6 STONE STEPS + ARCHED PORCH ON 2 COLUMNS
-    #    + CARVED FRIEZE "HARLAN COUNTY COURTHOUSE", "1894" DATESTONE, & 2008 PLAQUE
+    # 4. MAIN ENTRANCE (+Z): BROAD 6-STEP FLIGHT + ARCHED PORCH ON 2 COLUMNS
+    #    + OPEN WALK-IN DOORWAY + CARVED-IN-STONE FRIEZE + SINGLE-STONE 1894 + SMALL BRONZE PLAQUE
     # ==========================================================================
-    # Porch stone platform landing (x in [-62, 62], z in [CZ+192, CZ+232], y = 2..14)
-    structure.add_box(-62, Y_GROUND, CZ + 192, 62, Y_FL1, CZ + 232, "stone_rusticated")
-    coll.add_box(-62, 0, CZ + 192, 62, Y_FL1, CZ + 232, "main_porch_landing", "exterior")
+    # Porch stone platform landing (x in [-56, 56], z in [CZ+192, CZ+232], y = 2..14)
+    structure.add_box(-56, Y_GROUND, CZ + 192, 56, Y_FL1, CZ + 232, "stone_rusticated")
+    coll.add_box(-56, 0, CZ + 192, 56, Y_FL1, CZ + 232, "main_porch_landing", "exterior")
     # Flanking stone cheek walls beside main steps
-    for sx in (-62, 56):
+    for sx in (-56, 50):
         structure.add_box(sx, Y_GROUND, CZ + 232, sx + 6, Y_FL1 + 4, CZ + 268, "stone_rusticated")
         coll.add_box(sx, 0, CZ + 232, sx + 6, Y_FL1 + 4, CZ + 268, f"main_steps_cheek_{sx}", "exterior")
     # Broad flight of 6 REAL STONE STEPS (y = 2 -> 14, z = CZ+268 -> CZ+232) + stepped collision!
@@ -1019,40 +1134,42 @@ def build_near_state(spec):
         sy1 = sy0 + 2.0
         sz0 = CZ + 232 + (5 - st) * 6.0
         sz1 = sz0 + 6.0
-        structure.add_box(-56, Y_GROUND, sz0, 56, sy1, sz1, "stone_rusticated")
-        coll.add_box(-56, 0, sz0, 56, sy1, sz1, f"main_step_{st + 1}", "steps")
+        structure.add_box(-50, Y_GROUND, sz0, 50, sy1, sz1, "stone_rusticated")
+        coll.add_box(-50, 0, sz0, 50, sy1, sz1, f"main_step_{st + 1}", "steps")
 
-    # Two stout 10-sided Romanesque stone columns carrying the arched porch (widely spaced at +/-55 so doorway & plaques are 100% unobstructed!)
-    for cx_col in (-55, 55):
-        structure.add_box(cx_col - 6, Y_FL1, CZ + 220, cx_col + 6, Y_FL1 + 8, CZ + 232, "stone_rusticated")  # plinth
-        structure.add_cylinder(cx_col, Y_FL1 + 8, Y_FL1 + 46, CZ + 226, 4.6, 4.2, 10, "stone_rusticated")  # 10-sided shaft
-        structure.add_box(cx_col - 6.5, Y_FL1 + 46, CZ + 219.5, cx_col + 6.5, Y_FL1 + 52, CZ + 232.5, "stone_rusticated")  # capital
+    # Two stout 10-sided Romanesque stone columns carrying the arched porch (spaced at +/-46!)
+    for cx_col in (-46, 46):
+        structure.add_box(cx_col - 5.5, Y_FL1, CZ + 221, cx_col + 5.5, Y_FL1 + 8, CZ + 232, "stone_rusticated")
+        structure.add_cylinder(cx_col, Y_FL1 + 8, Y_FL1 + 46, CZ + 226.5, 4.3, 3.9, 10, "stone_rusticated")
+        structure.add_box(cx_col - 6.0, Y_FL1 + 46, CZ + 220.5, cx_col + 6.0, Y_FL1 + 52, CZ + 232.5, "stone_rusticated")
         coll.add_box(cx_col - 6, 0, CZ + 220, cx_col + 6, Y_FL2 + 12, CZ + 232, f"main_porch_column_{cx_col}", "exterior")
 
-    # Real 10-segment wide Romanesque stone porch arch spanning cleanly between the 2 columns!
-    structure.add_arch_ring_z(0, Y_FL1 + 32, CZ + 222, CZ + 231, 46.0, 52.0, 10, "stone_rusticated", ry_in=20.0, ry_out=26.0)
-    # Porch spandrel & entablature beam + flat stone porch deck roof (y = 66..74)
-    structure.add_box(-62, Y_FL1 + 52, CZ + 192, 62, Y_FL2 + 2, CZ + 233, "stone_rusticated")
-    # Side porch architrave beams (East & West flanks of main porch)
-    for sx in (-56, 56):
-        structure.add_box(sx - 3, Y_FL1 + 50, CZ + 192, sx + 3, Y_FL2 + 2, CZ + 232, "stone_rusticated")
+    # Real 10-segment Romanesque stone porch arch spanning between the 2 columns!
+    structure.add_arch_ring_z(0, Y_FL1 + 33, CZ + 222, CZ + 231, 36.0, 42.0, 10, "stone_rusticated", ry_in=19.0, ry_out=25.0)
+    # Continuous stone porch entablature band (y = 66..92) with CARVED-IN-STONE frieze flush on face!
+    structure.add_box(-56, Y_FL1 + 52, CZ + 192, 56, Y_FL2 + 20, CZ + 233, "stone_rusticated")
+    # Flush carved-into-stone frieze "HARLAN COUNTY / COURTHOUSE" (NO raised sign plate!)
+    structure.add_panel_z(-48, Y_FL2, 48, Y_FL2 + 20, CZ + 233.08, "+z", "sign_plates", "main_frieze")
+    # Molded stone cornice cap topping the porch entablature
+    structure.add_box(-58, Y_FL2 + 20, CZ + 192, 58, Y_FL2 + 23, CZ + 235, "stone_rusticated")
 
-    # Carved Limestone Frieze Entablature over main porch: "HARLAN COUNTY / COURTHOUSE" (96x20 at exact 1:1 art-pixel scale!)
-    structure.add_box(-52, Y_FL2, CZ + 224, 52, Y_FL2 + 22, CZ + 233, "stone_rusticated")
-    structure.add_panel_z(-48, Y_FL2 + 1, 48, Y_FL2 + 21, CZ + 233.25, "+z", "sign_plates", "main_frieze")
+    # Open doorway recessed stone jambs & lintel (ZERO closed panels or boxes filling door_main!)
+    structure.add_box(-18, Y_FL1, CZ + 191.2, -16, DOOR_TOP, CZ + 192.6, "stone_rusticated")
+    structure.add_box(16, Y_FL1, CZ + 191.2, 18, DOOR_TOP, CZ + 192.6, "stone_rusticated")
+    structure.add_box(-18, DOOR_TOP, CZ + 191.2, 18, DOOR_TOP + 3, CZ + 192.8, "stone_rusticated")
 
-    # Carved Granite Datestone "1894" (32x12 art px) cleanly unobstructed right of door_main!
-    structure.add_panel_z(16, Y_FL1 + 14, 48, Y_FL1 + 26, CZ + 192.4, "+z", "sign_plates", "datestone_1894")
+    # Single dressed-granite "1894" datestone block flush in the wall (~1.01 m x 0.466 m) right of door_main!
+    structure.add_panel_z(20, Y_FL1 + 16, 33, Y_FL1 + 22, CZ + 192.10, "+z", "sign_plates", "datestone_1894")
 
-    # 2008 Bronze Restoration Plaque "RESTORED / 2004" (36x16 art px) cleanly unobstructed left of door_main!
+    # 2008 Small Bronze Restoration Plaque "RESTORED 2004" (~0.62 m x 0.466 m) at eye height beside door_main!
     if spec["has_plaque"]:
-        structure.add_panel_z(-50, Y_FL1 + 12, -14, Y_FL1 + 28, CZ + 192.4, "+z", "sign_plates", "plaque_restored_2004")
+        structure.add_panel_z(-28, Y_FL1 + 16, -20, Y_FL1 + 22, CZ + 192.25, "+z", "sign_plates", "plaque_restored_2004")
 
-    # Side Entrances (-Z North, +X East, -X West): shorter 4-step stone stairs + recessed stone archways
+    # Side Entrances (-Z North, +X East, -X West): shorter 4-step stone stairs
     def add_side_steps(side):
         if side == "-z":
             if spec["has_annex"]:
-                return  # North side connects directly into the 1951-1999 concrete annex!
+                return
             structure.add_box(-30, Y_GROUND, CZ - 210, 30, Y_FL1, CZ - 192, "stone_rusticated")
             coll.add_box(-30, 0, CZ - 210, 30, Y_FL1, CZ - 192, "north_landing", "steps")
             for st in range(4):
@@ -1081,50 +1198,64 @@ def build_near_state(spec):
         add_side_steps(s)
 
     # ==========================================================================
-    # 5. CENTRAL CLOCK TOWER (rising to 38.02 m = 490 art px!)
-    #    - Square brick shaft with rusticated stone corner quoins (y = 224 .. 362)
-    #    - 4 recessed clock faces centered at y = 335 (26.00 m), separate glow_clock_* materials!
-    #    - Open belfry with 4 real stone arches (y = 362 .. 408) + cast-bronze bell node!
-    #    - Patinated copper-green pyramidal spire (y = 408 .. 472) + finial (472 .. 490)!
+    # 5. CENTRAL CLOCK TOWER ON VISIBLE SQUARE MASONRY BASE (rising to 38.02 m!)
+    #    - Proud Square Tower Base Drum (TW_BASE=54, y=216..282) visibly clearing the roof ridge!
+    #    - Recessed Brick Clock Shaft (TW=44, y=282..362) with stone corner quoins
+    #    - 4 Circular Backlit Clock Dials (r=11 art px = 1.71 m dia, 8.74 m² total!) in sculpted stone bezels
+    #    - Open 4-Arch Stone Belfry (y=362..408) + cast-bronze bell + Copper Spire + Finial (490)
     # ==========================================================================
-    TW = 46.0  # Half-width of tower shaft (92 x 92 art px = 7.14 m x 7.14 m)
-    structure.add_box(-TW, 224, CZ - TW, TW, Y_BELFRY_BOT, CZ + TW, "brick_red")
-    coll.add_box(-TW, Y_EAVE, CZ - TW, TW, Y_FINIAL_TOP, CZ + TW, "clock_tower_full_height", "exterior")
+    TW_BASE = 54.0  # Visible square stone-trimmed tower base (8.38 m x 8.38 m)
+    TW = 44.0       # Upper brick clock tower shaft (6.83 m x 6.83 m)
 
-    # Stone corner quoins & horizontal cornice rings on tower shaft
+    # Proud square tower base rising cleanly through and ABOVE the central roof ridge (y=246 -> 282)!
+    structure.add_box(-TW_BASE, 216, CZ - TW_BASE, TW_BASE, 252, CZ + TW_BASE, "stone_rusticated")
+    structure.add_box(-TW_BASE - 3, 250, CZ - TW_BASE - 3, TW_BASE + 3, 256, CZ + TW_BASE + 3, "stone_rusticated")
+    structure.add_box(-TW_BASE, 256, CZ - TW_BASE, TW_BASE, 280, CZ + TW_BASE, "brick_red")
+    # Stone corner pilasters on the square tower base
+    for sx in (-1, 1):
+        for sz in (-1, 1):
+            bx0 = (TW_BASE - 7) if sx > 0 else (-TW_BASE - 1.5)
+            bx1 = (TW_BASE + 1.5) if sx > 0 else (-TW_BASE + 7)
+            bz0 = CZ + ((TW_BASE - 7) if sz > 0 else (-TW_BASE - 1.5))
+            bz1 = CZ + ((TW_BASE + 1.5) if sz > 0 else (-TW_BASE + 7))
+            structure.add_box(bx0, 256, bz0, bx1, 280, bz1, "stone_rusticated")
+    # Heavy projecting limestone watertable cornice separating base from clock shaft (y = 278..284)
+    structure.add_box(-TW_BASE - 4, 278, CZ - TW_BASE - 4, TW_BASE + 4, 284, CZ + TW_BASE + 4, "stone_rusticated")
+
+    # Brick Clock Tower Shaft rising atop the square base (y = 284 .. 362)
+    structure.add_box(-TW, 284, CZ - TW, TW, Y_BELFRY_BOT, CZ + TW, "brick_red")
+    coll.add_box(-TW_BASE, Y_EAVE, CZ - TW_BASE, TW_BASE, Y_FINIAL_TOP, CZ + TW_BASE, "clock_tower_full_height", "exterior")
+
+    # Stone corner quoins & horizontal cornice rings on clock shaft
     for sx in (-1, 1):
         for sz in (-1, 1):
             qx0 = (TW - 6) if sx > 0 else (-TW - 1.5)
             qx1 = (TW + 1.5) if sx > 0 else (-TW + 6)
             qz0 = CZ + ((TW - 6) if sz > 0 else (-TW - 1.5))
             qz1 = CZ + ((TW + 1.5) if sz > 0 else (-TW + 6))
-            structure.add_box(qx0, 232, qz0, qx1, Y_BELFRY_BOT, qz1, "stone_rusticated")
-    for ty in (296, 358, 404):
+            structure.add_box(qx0, 284, qz0, qx1, Y_BELFRY_BOT, qz1, "stone_rusticated")
+    for ty in (306, 358, 404):
         structure.add_box(-TW - 4, ty, CZ - TW - 4, TW + 4, ty + 4, CZ + TW + 4, "stone_rusticated")
 
-    # Four Clock Faces centered at y = 335 (26.00 m), 44x44 art px (3.41 m x 3.41 m)
-    # Each face uses its own glow_clock_<dir> material!
-    cr = 22.0
-    structure.add_panel_z(-cr, Y_TOWER_CLK - cr, cr, Y_TOWER_CLK + cr, CZ + TW + 0.6, "+z", "glow_clock_south", fit_region=False)
-    structure.add_panel_z(-cr, Y_TOWER_CLK - cr, cr, Y_TOWER_CLK + cr, CZ - TW - 0.6, "-z", "glow_clock_north", fit_region=False)
-    structure.add_panel_x(CZ - cr, Y_TOWER_CLK - cr, CZ + cr, Y_TOWER_CLK + cr, TW + 0.6, "+x", "glow_clock_east", fit_region=False)
-    structure.add_panel_x(CZ - cr, Y_TOWER_CLK - cr, CZ + cr, Y_TOWER_CLK + cr, -TW - 0.6, "-x", "glow_clock_west", fit_region=False)
+    # Four Circular Clock Dials (radius 11 art px = 1.71 m dia, 8.74 m² combined glow!) + sculpted stone bezels!
+    # Centered at Y_TOWER_CLK = 335 (26.00 m), each using its own glow_clock_<dir> material!
+    structure.add_clock_disc_and_bezel(0.0, Y_TOWER_CLK, CZ + TW, "+z", 11.0, 15.0, 2.4, "glow_clock_south")
+    structure.add_clock_disc_and_bezel(0.0, Y_TOWER_CLK, CZ - TW, "-z", 11.0, 15.0, 2.4, "glow_clock_north")
+    structure.add_clock_disc_and_bezel(TW, Y_TOWER_CLK, CZ, "+x", 11.0, 15.0, 2.4, "glow_clock_east")
+    structure.add_clock_disc_and_bezel(-TW, Y_TOWER_CLK, CZ, "-x", 11.0, 15.0, 2.4, "glow_clock_west")
 
     # Open Belfry (y = 362 .. 404): 4 corner masonry piers + 4 real arched belfry openings!
-    BW = 40.0
+    BW = 38.0
     for sx in (-1, 1):
         for sz in (-1, 1):
-            px0 = (BW - 12) if sx > 0 else -BW
-            px1 = BW if sx > 0 else (-BW + 12)
-            pz0 = CZ + ((BW - 12) if sz > 0 else -BW)
-            pz1 = CZ + (BW if sz > 0 else (-BW + 12))
+            px0 = (BW - 11) if sx > 0 else -BW
+            px1 = BW if sx > 0 else (-BW + 11)
+            pz0 = CZ + ((BW - 11) if sz > 0 else -BW)
+            pz1 = CZ + (BW if sz > 0 else (-BW + 11))
             structure.add_box(px0, Y_BELFRY_BOT, pz0, px1, 404, pz1, "stone_rusticated")
-    # Belfry floor deck & low stone parapet sill
     structure.add_box(-BW, Y_BELFRY_BOT, CZ - BW, BW, Y_BELFRY_BOT + 4, CZ + BW, "stone_rusticated")
-    # 4 Real Arches spanning the open belfry sides (8 segments each!)
-    structure.add_arch_ring_z(0, 384, CZ + BW - 6, CZ + BW, 16.0, 20.0, 8, "stone_rusticated")
-    structure.add_arch_ring_z(0, 384, CZ - BW, CZ - BW + 6, 16.0, 20.0, 8, "stone_rusticated")
-    # East & West belfry arches (built in YZ plane along +/-BW)
+    structure.add_arch_ring_z(0, 384, CZ + BW - 6, CZ + BW, 15.0, 19.0, 8, "stone_rusticated")
+    structure.add_arch_ring_z(0, 384, CZ - BW, CZ - BW + 6, 15.0, 19.0, 8, "stone_rusticated")
     for sx_b in (-1, 1):
         xb0 = (BW - 6) if sx_b > 0 else -BW
         xb1 = BW if sx_b > 0 else (-BW + 6)
@@ -1133,17 +1264,16 @@ def build_near_state(spec):
             a1 = math.pi * (i + 1) / 8
             c0, s0 = math.cos(a0), math.sin(a0)
             c1, s1 = math.cos(a1), math.sin(a1)
-            # Outer face
             xf = xb1 if sx_b > 0 else xb0
             xb = xb0 if sx_b > 0 else xb1
-            p_in0 = (xf, 384 + s0 * 16.0, CZ + c0 * 16.0)
-            p_out0 = (xf, 384 + s0 * 20.0, CZ + c0 * 20.0)
-            p_out1 = (xf, 384 + s1 * 20.0, CZ + c1 * 20.0)
-            p_in1 = (xf, 384 + s1 * 16.0, CZ + c1 * 16.0)
-            b_in0 = (xb, 384 + s0 * 16.0, CZ + c0 * 16.0)
-            b_out0 = (xb, 384 + s0 * 20.0, CZ + c0 * 20.0)
-            b_out1 = (xb, 384 + s1 * 20.0, CZ + c1 * 20.0)
-            b_in1 = (xb, 384 + s1 * 16.0, CZ + c1 * 16.0)
+            p_in0 = (xf, 384 + s0 * 15.0, CZ + c0 * 15.0)
+            p_out0 = (xf, 384 + s0 * 19.0, CZ + c0 * 19.0)
+            p_out1 = (xf, 384 + s1 * 19.0, CZ + c1 * 19.0)
+            p_in1 = (xf, 384 + s1 * 15.0, CZ + c1 * 15.0)
+            b_in0 = (xb, 384 + s0 * 15.0, CZ + c0 * 15.0)
+            b_out0 = (xb, 384 + s0 * 19.0, CZ + c0 * 19.0)
+            b_out1 = (xb, 384 + s1 * 19.0, CZ + c1 * 19.0)
+            b_in1 = (xb, 384 + s1 * 15.0, CZ + c1 * 15.0)
             if sx_b > 0:
                 structure.add_planar_quad_art(p_out0, p_in0, p_in1, p_out1, "stone_rusticated")
                 structure.add_planar_quad_art(b_in0, b_out0, b_out1, b_in1, "stone_rusticated")
@@ -1153,25 +1283,24 @@ def build_near_state(spec):
                 structure.add_planar_quad_art(b_out0, b_in0, b_in1, b_out1, "stone_rusticated")
                 structure.add_planar_quad_art(b_in0, p_in0, p_in1, b_in1, "stone_rusticated")
 
-    # Copper-Green Pyramidal Spire (y = 408 .. 472) + Cast-Iron/Copper Finial (472 .. 490 = 38.02 m!)
-    spire_r = 44.0 * math.sqrt(2.0)
+    # Copper-Green Pyramidal Spire (y = 408 .. 472) + Cast-Iron Finial (472 .. 490 = 38.02 m!)
+    spire_r = 42.0 * math.sqrt(2.0)
     structure.add_cone(0, Y_BELFRY_TOP, Y_SPIRE_TOP, CZ, spire_r, 4, "copper_spire", cap_bot=True)
-    # Finial orb + needle spike
     structure.add_cylinder(0, Y_SPIRE_TOP - 2, Y_SPIRE_TOP + 4, CZ, 4.0, 4.0, 8, "detail_atlas", region_name="dark_iron")
     structure.add_cone(0, Y_SPIRE_TOP + 4, Y_FINIAL_TOP, CZ, 2.2, 4, "detail_atlas", region_name="dark_iron")
 
-    # 1988 Protest Banner "SAVE OUR COURTHOUSE" hung across the +Z tower face below the clock!
+    # 1988 Protest Banner "SAVE OUR / COURTHOUSE" hung across the square tower base below the clock!
     if spec["has_protest_banner"]:
-        structure.add_panel_z(-46, 264, 46, 290, CZ + TW + 1.2, "+z", "sign_plates", "protest_banner_1988")
+        structure.add_panel_z(-46, 254, 46, 280, CZ + TW_BASE + 1.2, "+z", "sign_plates", "protest_banner_1988")
 
-    # 2008 Warm Floodlight Heads at the 4 corners of the tower base (glow_ ONLY on tiny lamp heads!)
+    # 2008 Compact Warm Floodlight Heads on the 4 corners of the tower base ledge (glow_ ONLY on tiny ~0.2 m lenses!)
     if spec["has_floodlights"]:
         for sx in (-1, 1):
             for sz in (-1, 1):
-                fx = sx * (TW + 6)
-                fz = CZ + sz * (TW + 6)
-                structure.add_box(fx - 3, 240, fz - 3, fx + 3, 244, fz + 3, "detail_atlas", region_name="dark_iron")
-                structure.add_panel_y(fx - 2.5, fz - 2.5, fx + 2.5, fz + 2.5, 244.15, "+y", "glow_lamps", "lamp_flood")
+                fx = sx * (TW_BASE - 4)
+                fz = CZ + sz * (TW_BASE - 4)
+                structure.add_box(fx - 1.8, 284, fz - 1.8, fx + 1.8, 286.5, fz + 1.8, "detail_atlas", region_name="dark_iron")
+                structure.add_panel_y(fx - 1.3, fz - 1.3, fx + 1.3, fz + 1.3, 286.65, "+y", "glow_lamps", "lamp_flood")
 
     # 2008 Patched-Brick Scar on the -Z North Wing showing where the 1951-1999 concrete annex stood!
     if spec["has_brick_patch"]:
@@ -1199,16 +1328,16 @@ def build_near_state(spec):
     floor_buckets["floor_rotunda"] = fb_rot
 
     # 4 Cross Entry Corridors
-    make_floor_mesh("entry_south", -58, CZ + 52, 58, CZ + 186, Y_FL1 + 0.1, "interior_floor")
-    make_floor_mesh("entry_north", -58, CZ - 186, 58, CZ - 52, Y_FL1 + 0.1, "interior_floor")
-    make_floor_mesh("entry_east", 52, CZ - 58, 186, CZ + 58, Y_FL1 + 0.1, "interior_floor")
-    make_floor_mesh("entry_west", -186, CZ - 58, -52, CZ + 58, Y_FL1 + 0.1, "interior_floor")
+    make_floor_mesh("entry_south", -56, CZ + 52, 56, CZ + 186, Y_FL1 + 0.1, "interior_floor")
+    make_floor_mesh("entry_north", -56, CZ - 186, 56, CZ - 52, Y_FL1 + 0.1, "interior_floor")
+    make_floor_mesh("entry_east", 52, CZ - 56, 186, CZ + 56, Y_FL1 + 0.1, "interior_floor")
+    make_floor_mesh("entry_west", -186, CZ - 56, -52, CZ + 56, Y_FL1 + 0.1, "interior_floor")
 
     # 4 Ground-Floor Corner Offices (Clerk SW, Assessor SE, Treasurer NW, Recorder NE)
-    make_floor_mesh("office_clerk", -122, CZ + 58, -58, CZ + 122, Y_FL1 + 0.1, "interior_floor")
-    make_floor_mesh("office_assessor", 58, CZ + 58, 122, CZ + 122, Y_FL1 + 0.1, "interior_floor")
-    make_floor_mesh("office_treasurer", -122, CZ - 122, -58, CZ - 58, Y_FL1 + 0.1, "interior_floor")
-    make_floor_mesh("office_recorder", 58, CZ - 122, 122, CZ - 58, Y_FL1 + 0.1, "interior_floor")
+    make_floor_mesh("office_clerk", -110, CZ + 58, -58, CZ + 110, Y_FL1 + 0.1, "interior_floor")
+    make_floor_mesh("office_assessor", 58, CZ + 58, 110, CZ + 110, Y_FL1 + 0.1, "interior_floor")
+    make_floor_mesh("office_treasurer", -110, CZ - 110, -58, CZ - 58, Y_FL1 + 0.1, "interior_floor")
+    make_floor_mesh("office_recorder", 58, CZ - 110, 110, CZ - 58, Y_FL1 + 0.1, "interior_floor")
 
     # Ground-Floor Interior Partition Walls (separating offices from corridors, with open doorways!)
     def add_int_wall(x0, y0, z0, x1, y1, z1, name):
@@ -1220,68 +1349,87 @@ def build_near_state(spec):
         wx0 = -60 if sx < 0 else 58
         wx1 = -58 if sx < 0 else 60
         for sz, ns_lbl in ((1, "s"), (-1, "n")):
-            za = CZ + (58 if sz > 0 else -122)
-            zb = CZ + (122 if sz > 0 else -58)
-            mid = (za + zb) * 0.5
+            za = CZ + (58 if sz > 0 else -110)
+            zb = CZ + (110 if sz > 0 else -58)
+            mid = CZ + (90 if sz > 0 else -90)
             add_int_wall(wx0, Y_FL1, za, wx1, Y_FL2, mid - 9, f"int_wall_fl1_{ns_lbl}{side_lbl}_a")
             add_int_wall(wx0, Y_FL1, mid + 9, wx1, Y_FL2, zb, f"int_wall_fl1_{ns_lbl}{side_lbl}_b")
             structure.add_box(wx0, Y_FL1 + 30, mid - 9, wx1, Y_FL2, mid + 9, "interior_wall")
             # Perpendicular partition along Z = CZ +/- 58
             pza = CZ + (58 if sz > 0 else -60)
             pzb = CZ + (60 if sz > 0 else -58)
-            pxa = -122 if sx < 0 else 60
-            pxb = -60 if sx < 0 else 122
+            pxa = -110 if sx < 0 else 60
+            pxb = -60 if sx < 0 else 110
             add_int_wall(pxa, Y_FL1, pza, pxb, Y_FL2, pzb, f"int_wall_fl1_cross_{ns_lbl}{side_lbl}")
 
-    # Interior oak-wainscot & cream-plaster walls inside Double-Height Courtroom (Floors 2 & 3 in +Z South wing!)
-    # Lower 64 art px (Y_FL2..Y_FL2+64): oak wainscot + cream plaster; upper clerestory (Y_FL2+64..Y_EAVE-2): clean cream paneling!
-    structure.add_panel_z(-58, Y_FL2, 58, Y_FL2 + 64, CZ + 185.6, "-z", "interior_wall")
-    for sx_c in (-58, 0):
-        structure.add_panel_z(sx_c, Y_FL2 + 64, sx_c + 58, Y_EAVE - 2, CZ + 185.6, "-z", "detail_atlas", "bandstand_cream")
-    for z_a, z_b in ((CZ + 56, CZ + 120), (CZ + 120, CZ + 186)):
-        structure.add_panel_x(z_a, Y_FL2, z_b, Y_FL2 + 64, -57.6, "+x", "interior_wall")
-        structure.add_panel_x(z_a, Y_FL2, z_b, Y_FL2 + 64, 57.6, "-x", "interior_wall")
-    for z_a, z_b in ((CZ + 56, CZ + 100), (CZ + 100, CZ + 144), (CZ + 144, CZ + 186)):
-        structure.add_panel_x(z_a, Y_FL2 + 64, z_b, Y_EAVE - 2, -57.6, "+x", "detail_atlas", "bandstand_cream")
-        structure.add_panel_x(z_a, Y_FL2 + 64, z_b, Y_EAVE - 2, 57.6, "-x", "detail_atlas", "bandstand_cream")
-    # Interior sunlit courtroom windows on the South wall flanking & above the Judge's Bench
-    for wy_c in (Y_FL2 + 16, Y_FL3 + 12):
-        for wx_c in (-42, 0, 42):
-            if wy_c == Y_FL2 + 16 and wx_c == 0:
-                continue  # behind carved oak reredos backdrop
-            structure.add_panel_z(wx_c - 9, wy_c, wx_c + 9, wy_c + 28, CZ + 185.2, "-z", "glass_window", "win_arched")
-    # Overhead coffered ceiling of courtroom at Y_EAVE - 2
-    for z_a, z_b in ((CZ + 56, CZ + 100), (CZ + 100, CZ + 144), (CZ + 144, CZ + 186)):
-        for sx_c in (-58, 0):
-            structure.add_panel_y(sx_c, z_a, sx_c + 58, z_b, Y_EAVE - 2, "-y", "detail_atlas", "bandstand_cream")
+    # Unified Cream-Plaster & Oak-Wainscot Interior Wall Linings (matching courtroom across ALL 3 floors of stair hall!)
+    # Ground-floor entry vestibule side walls (N/S & E/W corridors finished in oak wainscot + cream plaster!)
+    for z_a, z_b in ((CZ + 110, CZ + 186), (CZ - 186, CZ - 110)):
+        structure.add_panel_x(z_a, Y_FL1, z_b, Y_FL2, -55.6, "+x", "interior_wall")
+        structure.add_panel_x(z_a, Y_FL1, z_b, Y_FL2, 55.6, "-x", "interior_wall")
+    for x_a, x_b in ((-186, -110), (110, 186)):
+        structure.add_panel_z(x_a, Y_FL1, x_b, Y_FL2, CZ + 55.6, "-z", "interior_wall")
+        structure.add_panel_z(x_a, Y_FL1, x_b, Y_FL2, CZ - 55.6, "+z", "interior_wall")
+    # Rotunda North backing wall behind grand stair mid-landing (clean plaster & wainscot on Ground Floor!)
+    structure.add_panel_z(-56, Y_FL1, -18, Y_FL2, CZ - 56.0, "+z", "interior_wall")
+    structure.add_panel_z(18, Y_FL1, 56, Y_FL2, CZ - 56.0, "+z", "interior_wall")
+    structure.add_panel_z(-18, Y_FL1 + 30, 18, Y_FL2, CZ - 56.0, "+z", "interior_wall")
+    # Clean plaster ceilings over the 4 Ground-Floor entry corridors (<=44 art px chunks)
+    for z_a, z_b in ((CZ + 56, CZ + 100), (CZ + 100, CZ + 144), (CZ + 144, CZ + 186), (CZ - 186, CZ - 144), (CZ - 144, CZ - 100), (CZ - 100, CZ - 56)):
+        for sx_c in (-56, 0):
+            structure.add_panel_y(sx_c, z_a, sx_c + 56, z_b, Y_FL2 - 2.0, "-y", "detail_atlas", "bandstand_cream")
 
-    # --- GRAND STAIRCASE (Real stepped geometry + landing + balustrades + stepped collision!) ---
-    # Flight 1 (Ground Floor Y_FL1=14 -> Mid-Landing y=43): centered X in [-16, 16], Z from CZ-6 to CZ-36 (10 steps!)
+    # Double-Height Courtroom Walls (Floors 2 & 3 in +Z South wing!)
+    structure.add_panel_z(-56, Y_FL2, 56, Y_FL2 + 64, CZ + 185.6, "-z", "interior_wall")
+    for sx_c in (-56, 0):
+        structure.add_panel_z(sx_c, Y_FL2 + 64, sx_c + 56, Y_EAVE - 2, CZ + 185.6, "-z", "detail_atlas", "bandstand_cream")
+    for z_a, z_b in ((CZ + 56, CZ + 120), (CZ + 120, CZ + 186)):
+        structure.add_panel_x(z_a, Y_FL2, z_b, Y_FL2 + 64, -55.6, "+x", "interior_wall")
+        structure.add_panel_x(z_a, Y_FL2, z_b, Y_FL2 + 64, 55.6, "-x", "interior_wall")
+    for z_a, z_b in ((CZ + 56, CZ + 100), (CZ + 100, CZ + 144), (CZ + 144, CZ + 186)):
+        structure.add_panel_x(z_a, Y_FL2 + 64, z_b, Y_EAVE - 2, -55.6, "+x", "detail_atlas", "bandstand_cream")
+        structure.add_panel_x(z_a, Y_FL2 + 64, z_b, Y_EAVE - 2, 55.6, "-x", "detail_atlas", "bandstand_cream")
+    for wy_c in (Y_FL2 + 16, Y_FL3 + 12):
+        for wx_c in (-40, 0, 40):
+            if wy_c == Y_FL2 + 16 and wx_c == 0:
+                continue
+            structure.add_panel_z(wx_c - 9, wy_c, wx_c + 9, wy_c + 28, CZ + 185.2, "-z", "glass_window", "win_arched")
+    for z_a, z_b in ((CZ + 56, CZ + 100), (CZ + 100, CZ + 144), (CZ + 144, CZ + 186)):
+        for sx_c in (-56, 0):
+            structure.add_panel_y(sx_c, z_a, sx_c + 56, z_b, Y_EAVE - 2, "-y", "detail_atlas", "bandstand_cream")
+
+    # --- CLEAN GRAND STAIRCASE (Step flight -> Mid-Landing -> Twin Return Flights -> Floor 2 Gallery!) ---
+    # Flight 1 (Ground Floor Y_FL1=14 -> Mid-Landing y=43): X in [-14, 14], Z from CZ-14 to CZ-42 (10 steps)
     for st in range(10):
         sy0 = Y_FL1 + st * 2.9
         sy1 = sy0 + 2.9
-        sz1 = CZ - 6.0 - st * 3.0
-        sz0 = sz1 - 3.0
-        structure.add_box(-16, sy0, sz0, 16, sy1, sz1, "interior_floor")
-        coll.add_box(-16, Y_FL1, sz0, 16, sy1, sz1, f"grand_stair_lower_step_{st + 1}", "interior_stairs")
-    # Mid-Landing (X in [-44, 44], Z in [CZ-50, CZ-36], y = 41..43)
-    structure.add_box(-44, 41, CZ - 50, 44, 43, CZ - 36, "interior_floor")
-    coll.add_box(-44, 40, CZ - 50, 44, 43, CZ - 36, "grand_stair_mid_landing", "interior_stairs")
-    # Twin Return Flights (Mid-Landing y=43 -> Floor 2 Gallery Y_FL2=72): West [-44,-22] & East [22,44], 10 steps returning +Z!
-    for sx_f, fl_name in ((-33, "west"), (33, "east")):
-        fx0, fx1 = sx_f - 11, sx_f + 11
+        sz1 = CZ - 14.0 - st * 2.8
+        sz0 = sz1 - 2.8
+        structure.add_box(-14, sy0, sz0, 14, sy1, sz1, "interior_floor")
+        coll.add_box(-14, Y_FL1, sz0, 14, sy1, sz1, f"grand_stair_lower_step_{st + 1}", "interior_stairs")
+    # Clean low sloped oak stringer rails on lower flight (NO obstructing vertical walls!)
+    for rx in (-15.2, 14.0):
+        structure.add_planar_quad_art((rx, Y_FL1 + 8, CZ - 14), (rx, Y_FL1 + 11, CZ - 14), (rx, 54, CZ - 42), (rx, 51, CZ - 42), "interior_floor")
+        structure.add_planar_quad_art((rx, 51, CZ - 42), (rx, 54, CZ - 42), (rx, Y_FL1 + 11, CZ - 14), (rx, Y_FL1 + 8, CZ - 14), "interior_floor")
+    # Mid-Landing (X in [-42, 42], Z in [CZ-55, CZ-42], y = 41..43)
+    structure.add_box(-42, 41, CZ - 55, 42, 43, CZ - 42, "interior_floor")
+    coll.add_box(-42, 40, CZ - 55, 42, 43, CZ - 42, "grand_stair_mid_landing", "interior_stairs")
+    # Twin Return Flights (Mid-Landing y=43 -> Floor 2 Gallery Y_FL2=72): West [-42,-22] & East [22,42]
+    for sx_f, fl_name in ((-32, "west"), (32, "east")):
+        fx0, fx1 = sx_f - 10, sx_f + 10
         for st in range(10):
             sy0 = 43.0 + st * 2.9
             sy1 = sy0 + 2.9
-            sz0 = CZ - 36.0 + st * 3.0
-            sz1 = sz0 + 3.0
+            sz0 = CZ - 42.0 + st * 2.8
+            sz1 = sz0 + 2.8
             structure.add_box(fx0, sy0, sz0, fx1, sy1, sz1, "interior_floor")
             coll.add_box(fx0, 40, sz0, fx1, sy1, sz1, f"grand_stair_upper_{fl_name}_step_{st + 1}", "interior_stairs")
-        # Return stair side rail
-        rail_x = -22 if sx_f < 0 else 20
-        structure.add_box(rail_x, 43, CZ - 36, rail_x + 2, Y_FL2 + 12, CZ - 6, "interior_floor")
+        # Clean low sloped handrail along inner edge of return flight (NO tall wall slab!)
+        rx = -21.8 if sx_f < 0 else 21.8
+        structure.add_planar_quad_art((rx, 51, CZ - 42), (rx, 54, CZ - 42), (rx, Y_FL2 + 12, CZ - 14), (rx, Y_FL2 + 9, CZ - 14), "interior_floor")
+        structure.add_planar_quad_art((rx, Y_FL2 + 9, CZ - 14), (rx, Y_FL2 + 12, CZ - 14), (rx, 54, CZ - 42), (rx, 51, CZ - 42), "interior_floor")
 
-    # Floor 2 -> Floor 3 Staircase in North Wing (X in [-46, -24], Z from CZ-60 to CZ-124, 16 steps!)
+    # Floor 2 -> Floor 3 Staircase tucked cleanly in North Wing (X in [-46, -24], Z from CZ-60 to CZ-124)
     for st in range(16):
         sy0 = Y_FL2 + st * 3.625
         sy1 = sy0 + 3.625
@@ -1290,141 +1438,194 @@ def build_near_state(spec):
         structure.add_box(-46, sy0, sz0, -24, sy1, sz1, "interior_floor")
         coll.add_box(-46, Y_FL2, sz0, -24, sy1, sz1, f"fl2_to_fl3_stair_step_{st + 1}", "interior_stairs")
 
-    # --- FLOOR 2 (y = Y_FL2 = 72) ---
-    # Wrap-around atrium gallery floor_gallery_2 (ring around open rotunda well dx,dz in [-44, 44]!)
+    # --- FLOOR 2 (y = Y_FL2 = 72) & FLOOR 3 (y = Y_FL3 = 130) OPEN-WELL GALLERIES ---
+    # Open central well: X in [-42, 42], Z in [CZ-42, CZ+42] — ZERO crossing beams or corner piers!
     fb_g2 = MeshBucket("floor_gallery_2", mat_idx, mat_size, regions)
-    fb_g2.add_panel_y(-64, CZ + 38, 64, CZ + 56, Y_FL2 + 0.1, "+y", "interior_floor")   # South gallery walk
-    fb_g2.add_panel_y(-64, CZ - 56, 64, CZ - 38, Y_FL2 + 0.1, "+y", "interior_floor")   # North gallery walk
-    fb_g2.add_panel_y(-64, CZ - 38, -44, CZ + 38, Y_FL2 + 0.1, "+y", "interior_floor")  # West gallery walk
-    fb_g2.add_panel_y(44, CZ - 38, 64, CZ + 38, Y_FL2 + 0.1, "+y", "interior_floor")    # East gallery walk
+    fb_g2.add_panel_y(-62, CZ + 40, 62, CZ + 56, Y_FL2 + 0.1, "+y", "interior_floor")
+    fb_g2.add_panel_y(-62, CZ - 56, 62, CZ - 40, Y_FL2 + 0.1, "+y", "interior_floor")
+    fb_g2.add_panel_y(-62, CZ - 40, -42, CZ + 40, Y_FL2 + 0.1, "+y", "interior_floor")
+    fb_g2.add_panel_y(42, CZ - 40, 62, CZ + 40, Y_FL2 + 0.1, "+y", "interior_floor")
+    # Clean cream-plaster underside ceilings beneath Floor 2 gallery walkways (zero see-through to brick!)
+    for sx_c in (-62, 0):
+        fb_g2.add_panel_y(sx_c, CZ + 40, sx_c + 62, CZ + 56, Y_FL2 - 3.0, "-y", "detail_atlas", "bandstand_cream")
+        fb_g2.add_panel_y(sx_c, CZ - 56, sx_c + 62, CZ - 40, Y_FL2 - 3.0, "-y", "detail_atlas", "bandstand_cream")
+    for sz_c in (-40, 0):
+        fb_g2.add_panel_y(-62, CZ + sz_c, -42, CZ + sz_c + 40, Y_FL2 - 3.0, "-y", "detail_atlas", "bandstand_cream")
+        fb_g2.add_panel_y(42, CZ + sz_c, 62, CZ + sz_c + 40, Y_FL2 - 3.0, "-y", "detail_atlas", "bandstand_cream")
     floor_buckets["floor_gallery_2"] = fb_g2
 
-    # Floor 2 Gallery Balustrade Railings (real geometry + collision!)
-    def add_gallery_rails(y_fl, floor_tag):
-        rh = 13.0  # ~1.01 m handrail height
-        # South rail
-        structure.add_box(-44, y_fl, CZ + 38, 44, y_fl + rh, CZ + 40, "interior_floor")
-        coll.add_box(-44, y_fl, CZ + 38, 44, y_fl + rh, CZ + 40, f"{floor_tag}_gallery_rail_south", "interior")
-        # West & East rails (leave open at stair arrival on Floor 2 north end)
-        z_start = CZ - 6 if floor_tag == "fl2" else CZ - 38
-        structure.add_box(-44, y_fl, z_start, -42, y_fl + rh, CZ + 38, "interior_floor")
-        coll.add_box(-44, y_fl, z_start, -42, y_fl + rh, CZ + 38, f"{floor_tag}_gallery_rail_west", "interior")
-        structure.add_box(42, y_fl, z_start, 44, y_fl + rh, CZ + 38, "interior_floor")
-        coll.add_box(42, y_fl, z_start, 44, y_fl + rh, CZ + 38, f"{floor_tag}_gallery_rail_east", "interior")
-        if floor_tag == "fl3":
-            structure.add_box(-44, y_fl, CZ - 40, 44, y_fl + rh, CZ - 38, "interior_floor")
-            coll.add_box(-44, y_fl, CZ - 40, 44, y_fl + rh, CZ - 38, "fl3_gallery_rail_north", "interior")
-        # 4 Tall Atrium Corner Piers rising from Ground Floor to Skylight!
-        if floor_tag == "fl2":
-            for sx in (-46, 42):
-                for sz in (CZ - 44, CZ + 38):
-                    structure.add_box(sx, Y_FL1, sz, sx + 4, Y_EAVE + 24, sz + 4, "interior_wall")
+    def add_clean_gallery_balustrade(y_fl, floor_tag):
+        """Crisp cream-plaster fascia + open oak handrail + neat balusters round the open well!"""
+        rh = 12.0  # ~0.93 m handrail height
+        # Plaster fascia edge trim under each gallery walkway (split <=42 art px to stay in 64x64 detail_atlas quadrant)
+        for seg in (-42, 0):
+            structure.add_box(seg, y_fl - 3, CZ + 40, seg + 42, y_fl, CZ + 42, "detail_atlas", region_name="bandstand_cream")
+            if floor_tag == "fl3":
+                structure.add_box(seg, y_fl - 3, CZ - 42, seg + 42, y_fl, CZ - 40, "detail_atlas", region_name="bandstand_cream")
+        for seg in (-40, 0):
+            structure.add_box(-44, y_fl - 3, CZ + seg, -42, y_fl, CZ + seg + 40, "detail_atlas", region_name="bandstand_cream")
+            structure.add_box(42, y_fl - 3, CZ + seg, 44, y_fl, CZ + seg + 40, "detail_atlas", region_name="bandstand_cream")
 
-    add_gallery_rails(Y_FL2, "fl2")
+        def add_rail_run(x0, z0, x1, z1, axis, r_name):
+            # Bottom shoe rail + crisp top oak handrail + evenly spaced vertical posts (open & airy!)
+            structure.add_box(x0, y_fl, z0, x1, y_fl + 2.0, z1, "interior_floor")
+            structure.add_box(x0, y_fl + rh - 2.0, z0, x1, y_fl + rh, z1, "interior_floor")
+            if axis == "x":
+                span = x1 - x0
+                n_p = max(2, int(span // 14))
+                for pi in range(n_p + 1):
+                    px = x0 + (span - 1.6) * (pi / n_p)
+                    structure.add_box(px, y_fl + 2.0, z0, px + 1.6, y_fl + rh - 2.0, z1, "interior_floor")
+            else:
+                span = z1 - z0
+                n_p = max(2, int(span // 14))
+                for pi in range(n_p + 1):
+                    pz = z0 + (span - 1.6) * (pi / n_p)
+                    structure.add_box(x0, y_fl + 2.0, pz, x1, y_fl + rh - 2.0, pz + 1.6, "interior_floor")
+            coll.add_box(x0, y_fl, z0, x1, y_fl + rh, z1, r_name, "interior")
+
+        # South gallery railing
+        add_rail_run(-42, CZ + 40, 42, CZ + 42, "x", f"{floor_tag}_gallery_rail_south")
+        # West & East railings (open at Floor 2 north stair arrival)
+        z_start = CZ - 14 if floor_tag == "fl2" else CZ - 40
+        add_rail_run(-44, z_start, -42, CZ + 40, "z", f"{floor_tag}_gallery_rail_west")
+        add_rail_run(42, z_start, 44, CZ + 40, "z", f"{floor_tag}_gallery_rail_east")
+        if floor_tag == "fl3":
+            add_rail_run(-42, CZ - 42, 42, CZ - 40, "x", "fl3_gallery_rail_north")
+
+    add_clean_gallery_balustrade(Y_FL2, "fl2")
 
     # DOUBLE-HEIGHT COURTROOM (Floor 2 & Floor 3 in +Z South Wing!)
-    make_floor_mesh("courtroom", -58, CZ + 56, 58, CZ + 186, Y_FL2 + 0.1, "interior_floor")
-    # Partition wall between gallery_2 and courtroom (with wide double doors at X in [-12, +12])
-    add_int_wall(-58, Y_FL2, CZ + 54, -12, Y_EAVE, CZ + 56, "courtroom_north_wall_west")
-    add_int_wall(12, Y_FL2, CZ + 54, 58, Y_EAVE, CZ + 56, "courtroom_north_wall_east")
+    make_floor_mesh("courtroom", -56, CZ + 56, 56, CZ + 186, Y_FL2 + 0.1, "interior_floor")
+    add_int_wall(-62, Y_FL2, CZ + 54, -12, Y_EAVE, CZ + 56, "courtroom_north_wall_west")
+    add_int_wall(12, Y_FL2, CZ + 54, 62, Y_EAVE, CZ + 56, "courtroom_north_wall_east")
     structure.add_box(-12, Y_FL2 + 34, CZ + 54, 12, Y_EAVE, CZ + 56, "interior_wall")
 
-    # Courtroom Architectural Fixtures ONLY (Judge's Bench + Bar Rail — rest placed by game!)
-    # 1. Oak Bar Rail separating public gallery from well (Z = CZ + 114, with central swing-gate opening [-8, 8])
-    structure.add_box(-56, Y_FL2, CZ + 113, -8, Y_FL2 + 13, CZ + 116, "interior_floor")
-    structure.add_box(8, Y_FL2, CZ + 113, 56, Y_FL2 + 13, CZ + 116, "interior_floor")
-    # Decorative corner newel posts on bar rail
-    for bx in (-56, -9, 7, 54):
+    # Courtroom Architectural Fixtures ONLY (Oak Bar Rail + Raised Judge's Bench)
+    structure.add_box(-54, Y_FL2, CZ + 113, -8, Y_FL2 + 13, CZ + 116, "interior_floor")
+    structure.add_box(8, Y_FL2, CZ + 113, 54, Y_FL2 + 13, CZ + 116, "interior_floor")
+    for bx in (-54, -9, 7, 52):
         structure.add_box(bx, Y_FL2, CZ + 112.5, bx + 2.5, Y_FL2 + 15, CZ + 116.5, "interior_floor")
-    coll.add_box(-56, Y_FL2, CZ + 113, -8, Y_FL2 + 13, CZ + 116, "courtroom_bar_rail_west", "interior")
-    coll.add_box(8, Y_FL2, CZ + 113, 56, Y_FL2 + 13, CZ + 116, "courtroom_bar_rail_east", "interior")
+    coll.add_box(-54, Y_FL2, CZ + 113, -8, Y_FL2 + 13, CZ + 116, "courtroom_bar_rail_west", "interior")
+    coll.add_box(8, Y_FL2, CZ + 113, 54, Y_FL2 + 13, CZ + 116, "courtroom_bar_rail_east", "interior")
 
-    # 2. Raised Judge's Bench (2-step wood dais + paneled high oak desk & carved reredos backdrop!)
-    # Step 1 & Step 2 dais (Z in [CZ+148, CZ+182], X in [-30, 30])
     structure.add_box(-30, Y_FL2, CZ + 148, 30, Y_FL2 + 3, CZ + 182, "interior_floor")
     structure.add_box(-26, Y_FL2 + 3, CZ + 152, 26, Y_FL2 + 6, CZ + 182, "interior_floor")
-    # Paneled Judge's Bench Desk (front & returns at y = 78..94)
     structure.add_box(-22, Y_FL2 + 6, CZ + 154, 22, Y_FL2 + 22, CZ + 159, "interior_floor")
     structure.add_box(-22, Y_FL2 + 6, CZ + 159, -18, Y_FL2 + 22, CZ + 174, "interior_floor")
     structure.add_box(18, Y_FL2 + 6, CZ + 159, 22, Y_FL2 + 22, CZ + 174, "interior_floor")
-    # Bench desk top cap & carved rear paneled wood backdrop against south wall
     structure.add_box(-23, Y_FL2 + 22, CZ + 153, 23, Y_FL2 + 24, CZ + 160, "interior_floor")
     structure.add_box(-24, Y_FL2 + 6, CZ + 180, 24, Y_FL2 + 44, CZ + 184, "interior_floor")
     coll.add_box(-30, Y_FL2, CZ + 148, 30, Y_FL2 + 24, CZ + 184, "courtroom_judges_bench", "interior")
 
     # Floor 2 Side Offices (Chambers W, Jury Room E, Law Library N)
-    make_floor_mesh("chambers", -186, CZ - 58, -64, CZ + 58, Y_FL2 + 0.1, "interior_floor")
-    make_floor_mesh("jury", 64, CZ - 58, 186, CZ + 58, Y_FL2 + 0.1, "interior_floor")
-    make_floor_mesh("law_library", -58, CZ - 186, 58, CZ - 56, Y_FL2 + 0.1, "interior_floor")
+    make_floor_mesh("chambers", -186, CZ - 56, -64, CZ + 56, Y_FL2 + 0.1, "interior_floor")
+    make_floor_mesh("jury", 64, CZ - 56, 186, CZ + 56, Y_FL2 + 0.1, "interior_floor")
+    make_floor_mesh("law_library", -56, CZ - 186, 56, CZ - 56, Y_FL2 + 0.1, "interior_floor")
 
-    # Floor 2 Interior Office Partition Walls (with doorway openings)
+    # Floor 2 Rotunda Perimeter Walls (unified oak wainscot + cream plaster enclosing gallery_2!)
     add_int_wall(-64, Y_FL2, CZ - 58, -62, Y_FL3, CZ - 9, "int_wall_fl2_chambers_n")
     add_int_wall(-64, Y_FL2, CZ + 9, -62, Y_FL3, CZ + 58, "int_wall_fl2_chambers_s")
+    structure.add_box(-64, Y_FL2 + 30, CZ - 9, -62, Y_FL3, CZ + 9, "interior_wall")
     add_int_wall(62, Y_FL2, CZ - 58, 64, Y_FL3, CZ - 9, "int_wall_fl2_jury_n")
     add_int_wall(62, Y_FL2, CZ + 9, 64, Y_FL3, CZ + 58, "int_wall_fl2_jury_s")
-    add_int_wall(-16, Y_FL2, CZ - 58, -9, Y_FL3, CZ - 56, "int_wall_fl2_lib_w")
-    add_int_wall(9, Y_FL2, CZ - 58, 58, Y_FL3, CZ - 56, "int_wall_fl2_lib_e")
+    structure.add_box(62, Y_FL2 + 30, CZ - 9, 64, Y_FL3, CZ + 9, "interior_wall")
+    add_int_wall(-62, Y_FL2, CZ - 58, -46, Y_FL3, CZ - 56, "int_wall_fl2_lib_farw")
+    add_int_wall(-22, Y_FL2, CZ - 58, -9, Y_FL3, CZ - 56, "int_wall_fl2_lib_w")
+    add_int_wall(9, Y_FL2, CZ - 58, 62, Y_FL3, CZ - 56, "int_wall_fl2_lib_e")
+    structure.add_box(-9, Y_FL2 + 30, CZ - 58, 9, Y_FL3, CZ - 56, "interior_wall")
 
     # --- FLOOR 3 (y = Y_FL3 = 130) ---
-    # Wrap-around atrium gallery floor_gallery_3 overlooking rotunda & rising to skylight!
     fb_g3 = MeshBucket("floor_gallery_3", mat_idx, mat_size, regions)
-    fb_g3.add_panel_y(-64, CZ + 38, 64, CZ + 54, Y_FL3 + 0.1, "+y", "interior_floor")
-    fb_g3.add_panel_y(-64, CZ - 56, 64, CZ - 38, Y_FL3 + 0.1, "+y", "interior_floor")
-    fb_g3.add_panel_y(-64, CZ - 38, -44, CZ + 38, Y_FL3 + 0.1, "+y", "interior_floor")
-    fb_g3.add_panel_y(44, CZ - 38, 64, CZ + 38, Y_FL3 + 0.1, "+y", "interior_floor")
+    fb_g3.add_panel_y(-62, CZ + 40, 62, CZ + 54, Y_FL3 + 0.1, "+y", "interior_floor")
+    fb_g3.add_panel_y(-62, CZ - 56, 62, CZ - 40, Y_FL3 + 0.1, "+y", "interior_floor")
+    fb_g3.add_panel_y(-62, CZ - 40, -42, CZ + 40, Y_FL3 + 0.1, "+y", "interior_floor")
+    fb_g3.add_panel_y(42, CZ - 40, 62, CZ + 40, Y_FL3 + 0.1, "+y", "interior_floor")
+    # Clean cream-plaster underside ceilings beneath Floor 3 gallery walkways!
+    for sx_c in (-62, 0):
+        fb_g3.add_panel_y(sx_c, CZ + 40, sx_c + 62, CZ + 54, Y_FL3 - 3.0, "-y", "detail_atlas", "bandstand_cream")
+        fb_g3.add_panel_y(sx_c, CZ - 56, sx_c + 62, CZ - 40, Y_FL3 - 3.0, "-y", "detail_atlas", "bandstand_cream")
+    for sz_c in (-40, 0):
+        fb_g3.add_panel_y(-62, CZ + sz_c, -42, CZ + sz_c + 40, Y_FL3 - 3.0, "-y", "detail_atlas", "bandstand_cream")
+        fb_g3.add_panel_y(42, CZ + sz_c, 62, CZ + sz_c + 40, Y_FL3 - 3.0, "-y", "detail_atlas", "bandstand_cream")
     floor_buckets["floor_gallery_3"] = fb_g3
-    add_gallery_rails(Y_FL3, "fl3")
+    add_clean_gallery_balustrade(Y_FL3, "fl3")
 
     # Floor 3 Offices (West Records, East Archives, North Commission; South is open double-height Courtroom!)
-    make_floor_mesh("records", -186, CZ - 58, -64, CZ + 58, Y_FL3 + 0.1, "interior_floor")
-    make_floor_mesh("archives", 64, CZ - 58, 186, CZ + 58, Y_FL3 + 0.1, "interior_floor")
-    make_floor_mesh("commission", -58, CZ - 186, 58, CZ - 56, Y_FL3 + 0.1, "interior_floor")
+    make_floor_mesh("records", -186, CZ - 56, -64, CZ + 56, Y_FL3 + 0.1, "interior_floor")
+    make_floor_mesh("archives", 64, CZ - 56, 186, CZ + 56, Y_FL3 + 0.1, "interior_floor")
+    make_floor_mesh("commission", -56, CZ - 186, 56, CZ - 56, Y_FL3 + 0.1, "interior_floor")
 
     add_int_wall(-64, Y_FL3, CZ - 58, -62, Y_EAVE, CZ - 9, "int_wall_fl3_records_n")
     add_int_wall(-64, Y_FL3, CZ + 9, -62, Y_EAVE, CZ + 58, "int_wall_fl3_records_s")
+    structure.add_box(-64, Y_FL3 + 30, CZ - 9, -62, Y_EAVE, CZ + 9, "interior_wall")
     add_int_wall(62, Y_FL3, CZ - 58, 64, Y_EAVE, CZ - 9, "int_wall_fl3_archives_n")
     add_int_wall(62, Y_FL3, CZ + 9, 64, Y_EAVE, CZ + 58, "int_wall_fl3_archives_s")
-    add_int_wall(-58, Y_FL3, CZ - 58, -9, Y_EAVE, CZ - 56, "int_wall_fl3_comm_w")
-    add_int_wall(9, Y_FL3, CZ - 58, 58, Y_EAVE, CZ - 56, "int_wall_fl3_comm_e")
+    structure.add_box(62, Y_FL3 + 30, CZ - 9, 64, Y_EAVE, CZ + 9, "interior_wall")
+    add_int_wall(-62, Y_FL3, CZ - 58, -9, Y_EAVE, CZ - 56, "int_wall_fl3_comm_w")
+    add_int_wall(9, Y_FL3, CZ - 58, 62, Y_EAVE, CZ - 56, "int_wall_fl3_comm_e")
+    structure.add_box(-9, Y_FL3 + 30, CZ - 58, 9, Y_EAVE, CZ - 56, "interior_wall")
 
-    # --- ROTUNDA SKYLIGHT WELL (rising cleanly above Floor 3 to glazed skylight at y = 212!) ---
-    # Coffered cream plaster drum walls framing the skylight shaft (split into 44x28 panels inside bandstand_cream quadrant!)
-    for seg in (-44, 0):
-        structure.add_panel_z(seg, Y_EAVE - 2, seg + 44, 214, CZ - 44, "+z", "detail_atlas", "bandstand_cream")
-        structure.add_panel_z(seg, Y_EAVE - 2, seg + 44, 214, CZ + 44, "-z", "detail_atlas", "bandstand_cream")
-        structure.add_panel_x(CZ + seg, Y_EAVE - 2, CZ + seg + 44, 214, -44, "+x", "detail_atlas", "bandstand_cream")
-        structure.add_panel_x(CZ + seg, Y_EAVE - 2, CZ + seg + 44, 214, 44, "-x", "detail_atlas", "bandstand_cream")
-    # Overhead luminous leaded skylight glazing (tiled cleanly in 4 44x44 panes at y = 212)
-    for sx in (-44, 0):
-        for sz in (-44, 0):
-            structure.add_panel_y(sx, CZ + sz, sx + 44, CZ + sz + 44, 212.0, "-y", "glass_window", "skylight_pane")
-    # Skylight timber mullion cross beams (split into 44-art-px halves to stay inside 64x64 quadrant)
-    for sx in (-44, 0):
-        structure.add_box(sx, 209, CZ - 2, sx + 44, 212, CZ + 2, "detail_atlas", region_name="bandstand_cream")
-    for sz in (-44, 0):
-        structure.add_box(-2, 209, CZ + sz, 2, 212, CZ + sz + 44, "detail_atlas", region_name="bandstand_cream")
+    # --- ONE CLEAR FRAMED OVERHEAD SKYLIGHT (ZERO beams crossing the open well!) ---
+    # Clean cream-plaster ceiling soffit border over the Floor 3 gallery ring (y = Y_EAVE - 2)
+    for sx_c in (-62, 0):
+        structure.add_panel_y(sx_c, CZ + 42, sx_c + 62, CZ + 56, Y_EAVE - 2, "-y", "detail_atlas", "bandstand_cream")
+        structure.add_panel_y(sx_c, CZ - 56, sx_c + 62, CZ - 42, Y_EAVE - 2, "-y", "detail_atlas", "bandstand_cream")
+    for sz_c in (-42, 0):
+        structure.add_panel_y(-62, CZ + sz_c, -42, CZ + sz_c + 42, Y_EAVE - 2, "-y", "detail_atlas", "bandstand_cream")
+        structure.add_panel_y(42, CZ + sz_c, 62, CZ + sz_c + 42, Y_EAVE - 2, "-y", "detail_atlas", "bandstand_cream")
+    # Clean short recessed plaster skylight curb (y = 186 .. 198, open [-42, +42])
+    for seg in (-42, 0):
+        structure.add_panel_z(seg, Y_EAVE - 2, seg + 42, 198, CZ - 42, "+z", "detail_atlas", "bandstand_cream")
+        structure.add_panel_z(seg, Y_EAVE - 2, seg + 42, 198, CZ + 42, "-z", "detail_atlas", "bandstand_cream")
+        structure.add_panel_x(CZ + seg, Y_EAVE - 2, CZ + seg + 42, 198, -42, "+x", "detail_atlas", "bandstand_cream")
+        structure.add_panel_x(CZ + seg, Y_EAVE - 2, CZ + seg + 42, 198, 42, "-x", "detail_atlas", "bandstand_cream")
+    # ONE clear overhead framed skylight grid (4 crisp 42x42 glass tiles at y = 198 — ZERO obstructing beams!)
+    for sx in (-42, 0):
+        for sz in (-42, 0):
+            structure.add_panel_y(sx, CZ + sz, sx + 42, CZ + sz + 42, 198.0, "-y", "glass_window", "skylight_pane")
 
     # ==========================================================================
     # 7. THE TOWN SQUARE LANDMARKS: MEMORIAL, BANDSTAND, FLAGPOLE & ERA EXTRAS
     # ==========================================================================
     # A. CIVIL WAR SOLDIER MEMORIAL (SE lawn quadrant, x = 232, z = CZ + 260 = -252)
+    #    Stepped granite base + short stout pedestal ("1861 - 1865", no names) + 1.8 m weathered bronze-green soldier!
     mx, mz = 232.0, CZ + 260.0
-    # 3-tier stepped granite base
+    # 3-tier stepped granite base (y = 2 .. 16)
     lot_memorial.add_box(mx - 22, Y_GROUND, mz - 22, mx + 22, 6, mz + 22, "stone_rusticated")
-    lot_memorial.add_box(mx - 16, 6, mz - 16, mx + 16, 11, mz + 16, "stone_rusticated")
-    lot_memorial.add_box(mx - 11, 11, mz - 11, mx + 11, 24, mz + 11, "stone_rusticated")
-    # 8-sided tapered granite column + capital
-    lot_memorial.add_cylinder(mx, 24, 68, mz, 7.5, 5.5, 8, "stone_rusticated", cap_top=True)
-    lot_memorial.add_box(mx - 8, 68, mz - 8, mx + 8, 72, mz + 8, "stone_rusticated")
-    # Pixel-art cast-bronze Civil War Soldier statue standing at parade rest on top (y = 72..98)!
-    lot_memorial.add_box(mx - 5, 72, mz - 5, mx + 5, 75, mz + 5, "detail_atlas", region_name="dark_iron")  # plinth
-    lot_memorial.add_box(mx - 3.5, 75, mz - 2, mx - 0.8, 84, mz + 2, "detail_atlas", region_name="dark_iron")  # left leg
-    lot_memorial.add_box(mx + 0.8, 75, mz - 2, mx + 3.5, 84, mz + 2, "detail_atlas", region_name="dark_iron")  # right leg
-    lot_memorial.add_box(mx - 4.5, 83, mz - 3, mx + 4.5, 92, mz + 3, "detail_atlas", region_name="dark_iron")  # greatcoat torso
-    lot_memorial.add_box(mx - 2.5, 92, mz - 2.5, mx + 2.5, 96.5, mz + 2.5, "detail_atlas", region_name="dark_iron")  # head
-    lot_memorial.add_box(mx - 3, 96.5, mz - 2.5, mx + 3, 98.5, mz + 3.8, "detail_atlas", region_name="dark_iron")    # kepi forage cap
-    lot_memorial.add_box(mx + 4.5, 75, mz - 0.8, mx + 6.0, 95, mz + 0.8, "detail_atlas", region_name="dark_iron")    # resting rifle
-    coll.add_box(mx - 22, 0, mz - 22, mx + 22, 98.5, mz + 22, "civil_war_memorial", "square")
+    lot_memorial.add_box(mx - 19, 6, mz - 19, mx + 19, 11, mz + 19, "stone_rusticated")
+    lot_memorial.add_box(mx - 17, 11, mz - 17, mx + 17, 16, mz + 17, "stone_rusticated")
+    # Short stout granite pedestal die (y = 16 .. 44, 32x32 art px = 2.48 m wide x 2.17 m tall) + cornice cap (44..49)
+    lot_memorial.add_box(mx - 16, 16, mz - 16, mx + 16, 44, mz + 16, "stone_rusticated")
+    lot_memorial.add_box(mx - 18, 44, mz - 18, mx + 18, 47.5, mz + 18, "stone_rusticated")
+    lot_memorial.add_box(mx - 13, 47.5, mz - 13, mx + 13, 49.5, mz + 13, "stone_rusticated")
+    # Plain carved granite inscription panel on front (+Z) of pedestal: "1861 - 1865" (NO names!)
+    lot_memorial.add_panel_z(mx - 16, 25, mx + 16, 34, mz + 16.25, "+z", "sign_plates", "memorial_1861_1865")
+    # Standing ~1.84 m Civil War Soldier Statue (23.7 art px tall, y = 49.5 .. 73.2) in weathered bronze-green!
+    lot_memorial.add_box(mx - 6.5, 49.5, mz - 5.5, mx + 6.5, 51.5, mz + 5.5, "sign_plates", region_name="bronze_soldier")    # bronze base plinth
+    # Boots & separated trouser legs (clear silhouette gap between legs!)
+    lot_memorial.add_box(mx - 3.0, 51.5, mz - 1.5, mx - 0.8, 53.5, mz + 2.4, "sign_plates", region_name="bronze_soldier")  # left boot
+    lot_memorial.add_box(mx + 0.8, 51.5, mz - 1.5, mx + 3.0, 53.5, mz + 2.4, "sign_plates", region_name="bronze_soldier")  # right boot
+    lot_memorial.add_box(mx - 2.7, 53.5, mz - 1.4, mx - 0.8, 58.8, mz + 1.4, "sign_plates", region_name="bronze_soldier")  # left leg
+    lot_memorial.add_box(mx + 0.8, 53.5, mz - 1.4, mx + 2.7, 58.8, mz + 1.4, "sign_plates", region_name="bronze_soldier")  # right leg
+    # Flared Civil War greatcoat skirt & belted waist + shoulder cape
+    lot_memorial.add_box(mx - 3.9, 58.5, mz - 2.3, mx + 3.9, 62.6, mz + 2.3, "sign_plates", region_name="bronze_soldier")  # greatcoat tails
+    lot_memorial.add_box(mx - 3.2, 62.6, mz - 2.0, mx + 3.2, 64.0, mz + 2.2, "detail_atlas", region_name="dark_iron")      # dark bronze belt
+    lot_memorial.add_box(mx - 3.7, 64.0, mz - 2.2, mx + 3.7, 68.8, mz + 2.2, "sign_plates", region_name="bronze_soldier")  # chest & uniform coat
+    lot_memorial.add_box(mx - 4.3, 66.8, mz - 2.4, mx + 4.3, 68.8, mz + 2.4, "sign_plates", region_name="bronze_soldier")  # broad greatcoat cape shoulders
+    # Arms (left arm resting at side; right arm holding tall musket at parade rest)
+    lot_memorial.add_box(mx - 5.1, 61.5, mz - 1.2, mx - 3.7, 67.6, mz + 1.4, "sign_plates", region_name="bronze_soldier")  # left arm
+    lot_memorial.add_box(mx + 3.7, 63.0, mz - 1.0, mx + 5.1, 67.6, mz + 2.4, "sign_plates", region_name="bronze_soldier")  # right arm reaching to rifle
+    # Neck, sculpted head & distinct Civil War kepi cap with forward-projecting visor brim
+    lot_memorial.add_box(mx - 1.1, 68.8, mz - 1.1, mx + 1.1, 69.8, mz + 1.1, "sign_plates", region_name="bronze_soldier")  # neck
+    lot_memorial.add_box(mx - 1.8, 69.8, mz - 1.8, mx + 1.8, 72.3, mz + 1.9, "sign_plates", region_name="bronze_soldier")  # head
+    lot_memorial.add_box(mx - 2.1, 72.3, mz - 2.0, mx + 2.1, 73.7, mz + 2.0, "sign_plates", region_name="bronze_soldier")  # kepi crown
+    lot_memorial.add_box(mx - 2.1, 72.1, mz + 1.6, mx + 2.1, 72.8, mz + 3.5, "detail_atlas", region_name="dark_iron")      # kepi forward visor brim
+    # Tall Springfield musket & bayonet standing cleanly beside right leg (butt y=51.5 -> muzzle y=71.5 -> bayonet y=75.0)
+    lot_memorial.add_box(mx + 4.3, 51.5, mz + 1.5, mx + 5.5, 58.0, mz + 3.0, "sign_plates", region_name="bronze_soldier")  # rifle stock/butt
+    lot_memorial.add_box(mx + 4.5, 58.0, mz + 1.8, mx + 5.3, 71.5, mz + 2.6, "detail_atlas", region_name="dark_iron")      # musket barrel
+    lot_memorial.add_box(mx + 4.7, 71.5, mz + 2.0, mx + 5.1, 75.2, mz + 2.4, "detail_atlas", region_name="dark_iron")      # bayonet tip
+    coll.add_box(mx - 22, 0, mz - 22, mx + 22, 75.2, mz + 22, "civil_war_memorial", "square")
 
     # B. OCTAGONAL BANDSTAND (SW lawn quadrant, x = -240, z = CZ + 260 = -252)
     bx, bz = -240.0, CZ + 260.0
@@ -1555,8 +1756,8 @@ def build_near_state(spec):
     win_boarded_mesh = build_arched_window_mesh("arched_window_boarded", mat_idx, mat_size, regions, "win_boarded", paired=False)
     bench_mesh = build_bench_mesh(mat_idx, mat_size, regions)
     lamp_mesh = build_lamp_mesh(spec["lamp_style"], mat_idx, mat_size, regions)
-    hand_hour_mesh = build_clock_hand_mesh("clock_hour_mesh", 11.5, 1.3, mat_idx, mat_size, regions)
-    hand_min_mesh = build_clock_hand_mesh("clock_minute_mesh", 16.5, 0.9, mat_idx, mat_size, regions)
+    hand_hour_mesh = build_clock_hand_mesh("clock_hour_mesh", 6.2, 0.85, mat_idx, mat_size, regions)
+    hand_min_mesh = build_clock_hand_mesh("clock_minute_mesh", 9.0, 0.60, mat_idx, mat_size, regions)
     bell_mesh = build_bell_mesh(mat_idx, mat_size, regions)
 
     meshes_list = []
@@ -1615,7 +1816,7 @@ def build_near_state(spec):
     struct_idx = add_node("structure", mesh=idx_structure)
     nodes[root_idx]["children"].append(struct_idx)
 
-    # Instanced Arched Windows across all 4 facades & 3 storeys!
+    # Instanced Arched Windows across all 4 facades & 3 storeys (centered on crisp cross-plan bays!)
     win_children = []
     q_south = [0.0, 0.0, 0.0, 1.0]
     q_north = quat_axis_angle(0, 1, 0, math.pi)
@@ -1625,33 +1826,32 @@ def build_near_state(spec):
     win_placements = []
     # Ground floor (y = Y_FL1 + 14 = 28), Floor 2 (y = Y_FL2 + 14 = 86), Floor 3 paired (y = Y_FL3 + 14 = 144)
     for fl_idx, wy in enumerate((Y_FL1 + 14, Y_FL2 + 14, Y_FL3 + 14)):
-        # South (+Z) pavilion & corners
-        for wx in (-96, 96):
-            win_placements.append((wx, wy, CZ + 128, q_south, fl_idx, "south_corner"))
+        # South (+Z) pavilion & central block corners
+        for wx in (-89, 89):
+            win_placements.append((wx, wy, CZ + CB, q_south, fl_idx, "south_corner"))
         if fl_idx >= 1:
-            # Floors 2 & 3 South pavilion windows (Ground floor porch wall holds door_main, datestone 1894, & 2008 plaque!)
-            for wx in (-42, 42):
+            for wx in (-40, 40):
                 win_placements.append((wx, wy, CZ + 192, q_south, fl_idx, "south_pav"))
             win_placements.append((0, wy, CZ + 192, q_south, fl_idx, "south_center"))
         # North (-Z) pavilion & corners (skip ground/fl2 north pavilion behind annex in 1962/1988)
-        for wx in (-96, 96):
-            win_placements.append((wx, wy, CZ - 128, q_north, fl_idx, "north_corner"))
+        for wx in (-89, 89):
+            win_placements.append((wx, wy, CZ - CB, q_north, fl_idx, "north_corner"))
         if not (spec["has_annex"] and fl_idx < 2):
-            for wx in (-42, 42):
+            for wx in (-40, 40):
                 win_placements.append((wx, wy, CZ - 192, q_north, fl_idx, "north_pav"))
             if fl_idx >= 1:
                 win_placements.append((0, wy, CZ - 192, q_north, fl_idx, "north_center"))
         # East (+X) pavilion & corners
-        for wz in (CZ - 96, CZ + 96):
-            win_placements.append((128, wy, wz, q_east, fl_idx, "east_corner"))
-        for wz in (CZ - 42, CZ + 42):
+        for wz in (CZ - 89, CZ + 89):
+            win_placements.append((CB, wy, wz, q_east, fl_idx, "east_corner"))
+        for wz in (CZ - 40, CZ + 40):
             win_placements.append((192, wy, wz, q_east, fl_idx, "east_pav"))
         if fl_idx >= 1:
             win_placements.append((192, wy, CZ, q_east, fl_idx, "east_center"))
         # West (-X) pavilion & corners
-        for wz in (CZ - 96, CZ + 96):
-            win_placements.append((-128, wy, wz, q_west, fl_idx, "west_corner"))
-        for wz in (CZ - 42, CZ + 42):
+        for wz in (CZ - 89, CZ + 89):
+            win_placements.append((-CB, wy, wz, q_west, fl_idx, "west_corner"))
+        for wz in (CZ - 40, CZ + 40):
             win_placements.append((-192, wy, wz, q_west, fl_idx, "west_pav"))
         if fl_idx >= 1:
             win_placements.append((-192, wy, CZ, q_west, fl_idx, "west_center"))
@@ -1886,34 +2086,50 @@ def build_far_lod():
     far.add_panel_y(-32, -1024, 32, 0, Y_GROUND + 0.3, "+y", "ground_pavement")
     far.add_panel_y(-512, CZ - 32, 512, CZ + 32, Y_GROUND + 0.3, "+y", "ground_pavement")
 
-    # Cross-shaped courthouse massing: rusticated stone base (Y_GROUND..Y_FL2) + red brick upper (Y_FL2..Y_EAVE)
+    # Cross-shaped courthouse massing (CB=116 central block + PW=62 projecting wings!)
+    CB, PW = 116.0, 62.0
     for y0, y1, mat in ((Y_GROUND, Y_FL2, "stone_rusticated"), (Y_FL2, Y_EAVE, "brick_red")):
-        far.add_box(-128, y0, CZ - 128, 128, y1, CZ + 128, mat, faces=["+x", "-x", "+z", "-z"])
-        far.add_box(-64, y0, CZ - 192, 64, y1, CZ + 192, mat, faces=["+x", "-x", "+z", "-z"])
-        far.add_box(-192, y0, CZ - 64, 192, y1, CZ + 64, mat, faces=["+x", "-x", "+z", "-z"])
+        far.add_box(-CB, y0, CZ - CB, CB, y1, CZ + CB, mat, faces=["+x", "-x", "+z", "-z"])
+        far.add_box(-PW, y0, CZ - 192, PW, y1, CZ + 192, mat, faces=["+x", "-x", "+z", "-z"])
+        far.add_box(-192, y0, CZ - PW, 192, y1, CZ + PW, mat, faces=["+x", "-x", "+z", "-z"])
 
-    # Steep hipped slate roofs over central block & 4 wings
-    far.add_hip_roof(-132, 132, CZ - 132, CZ + 132, Y_EAVE, Y_RIDGE, 80, 80, "roof_slate")
-    far.add_hip_roof(-68, 68, CZ + 112, CZ + 196, Y_EAVE, Y_RIDGE - 6, 48, 42, "roof_slate")
-    far.add_hip_roof(-68, 68, CZ - 196, CZ - 112, Y_EAVE, Y_RIDGE - 6, 48, 42, "roof_slate")
-    far.add_hip_roof(112, 196, CZ - 68, CZ + 68, Y_EAVE, Y_RIDGE - 6, 42, 48, "roof_slate")
-    far.add_hip_roof(-196, -112, CZ - 68, CZ + 68, Y_EAVE, Y_RIDGE - 6, 42, 48, "roof_slate")
+    # Central steep hipped roof + 4 projecting gabled pavilion roofs meeting in crisp valleys!
+    far.add_hip_roof(-122, 122, CZ - 122, CZ + 122, Y_EAVE, 246, 68, 68, "roof_slate")
+    GE, GP = PW + 4.0, 244.0
+    for s in (1, -1):
+        za, zb = min(CZ + s * 62.0, CZ + s * 196.0), max(CZ + s * 62.0, CZ + s * 196.0)
+        zw = CZ + s * 192.0
+        far.add_planar_quad_art((-GE, Y_EAVE, zb), (-GE, Y_EAVE, za), (0, GP, za), (0, GP, zb), "roof_slate")
+        far.add_planar_quad_art((GE, Y_EAVE, za), (GE, Y_EAVE, zb), (0, GP, zb), (0, GP, za), "roof_slate")
+        if s > 0:
+            far.add_planar_tri_art((-PW, Y_EAVE, zw), (PW, Y_EAVE, zw), (0, GP - 2, zw), "brick_red")
+        else:
+            far.add_planar_tri_art((PW, Y_EAVE, zw), (-PW, Y_EAVE, zw), (0, GP - 2, zw), "brick_red")
+        xa, xb = min(s * 62.0, s * 196.0), max(s * 62.0, s * 196.0)
+        xw = s * 192.0
+        far.add_planar_quad_art((xa, Y_EAVE, CZ - GE), (xb, Y_EAVE, CZ - GE), (xb, GP, CZ), (xa, GP, CZ), "roof_slate")
+        far.add_planar_quad_art((xb, Y_EAVE, CZ + GE), (xa, Y_EAVE, CZ + GE), (xa, GP, CZ), (xb, GP, CZ), "roof_slate")
+        if s > 0:
+            far.add_planar_tri_art((xw, Y_EAVE, CZ + PW), (xw, Y_EAVE, CZ - PW), (xw, GP - 2, CZ), "brick_red")
+        else:
+            far.add_planar_tri_art((xw, Y_EAVE, CZ - PW), (xw, Y_EAVE, CZ + PW), (xw, GP - 2, CZ), "brick_red")
 
-    # Central clock tower shaft + belfry + 4 lit clock faces + copper-green spire + finial
-    TW = 46.0
-    far.add_box(-TW, 224, CZ - TW, TW, Y_BELFRY_BOT, CZ + TW, "brick_red", faces=["+x", "-x", "+z", "-z"])
-    far.add_box(-40, Y_BELFRY_BOT, CZ - 40, 40, Y_BELFRY_TOP, CZ + 40, "stone_rusticated", faces=["+x", "-x", "+z", "-z"])
-    cr = 22.0
+    # Visible square tower base + clock shaft + belfry + 4 lit clock faces + copper spire + finial
+    TW_BASE, TW = 54.0, 44.0
+    far.add_box(-TW_BASE, 238, CZ - TW_BASE, TW_BASE, 282, CZ + TW_BASE, "brick_red", faces=["+x", "-x", "+z", "-z", "+y"])
+    far.add_box(-TW, 282, CZ - TW, TW, Y_BELFRY_BOT, CZ + TW, "brick_red", faces=["+x", "-x", "+z", "-z"])
+    far.add_box(-38, Y_BELFRY_BOT, CZ - 38, 38, Y_BELFRY_TOP, CZ + 38, "stone_rusticated", faces=["+x", "-x", "+z", "-z"])
+    cr = 12.0
     far.add_panel_z(-cr, Y_TOWER_CLK - cr, cr, Y_TOWER_CLK + cr, CZ + TW + 0.8, "+z", "glow_clock_south")
     far.add_panel_z(-cr, Y_TOWER_CLK - cr, cr, Y_TOWER_CLK + cr, CZ - TW - 0.8, "-z", "glow_clock_north")
     far.add_panel_x(CZ - cr, Y_TOWER_CLK - cr, CZ + cr, Y_TOWER_CLK + cr, TW + 0.8, "+x", "glow_clock_east")
     far.add_panel_x(CZ - cr, Y_TOWER_CLK - cr, CZ + cr, Y_TOWER_CLK + cr, -TW - 0.8, "-x", "glow_clock_west")
-    far.add_cone(0, Y_BELFRY_TOP, Y_SPIRE_TOP, CZ, 44.0 * math.sqrt(2.0), 4, "copper_spire", cap_bot=False)
+    far.add_cone(0, Y_BELFRY_TOP, Y_SPIRE_TOP, CZ, 42.0 * math.sqrt(2.0), 4, "copper_spire", cap_bot=False)
     far.add_cone(0, Y_SPIRE_TOP, Y_FINIAL_TOP, CZ, 2.2, 4, "detail_atlas", region_name="dark_iron", cap_bot=False)
 
-    # Tiny distant silhouette hints of bandstand roof & memorial obelisk
+    # Tiny distant silhouette hints of bandstand roof & memorial pedestal
     far.add_cone(-240, 20, 84, CZ + 260, 44.0, 6, "roof_slate", cap_bot=False)
-    far.add_cone(232, Y_GROUND, 96, CZ + 260, 12.0, 4, "stone_rusticated", cap_bot=False)
+    far.add_box(216, Y_GROUND, CZ + 244, 248, 52, CZ + 276, "stone_rusticated", faces=["+x", "-x", "+z", "-z", "+y"])
 
     nodes = [
         {"name": "harlan_county_courthouse_far", "children": [1]},

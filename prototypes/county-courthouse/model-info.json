@@ -15,7 +15,7 @@
   ],
   "far_lod": {
     "file": "courthouse-far.glb",
-    "visible_triangles": 130,
+    "visible_triangles": 142,
     "height_peak_m": 38.024
   },
   "states": [
@@ -31,15 +31,15 @@
       "clock_active": true,
       "clock_time": "10:10",
       "materials": 16,
-      "visible_triangles": 13384,
-      "collision_triangles": 2028,
+      "visible_triangles": 13848,
+      "collision_triangles": 2040,
       "triangles_per_part": {
-        "structure": 3474,
-        "arched_windows_instanced": 7660,
-        "interior_floors": 68,
+        "structure": 4984,
+        "arched_windows_instanced": 6448,
+        "interior_floors": 100,
         "clock_hands_and_bell": 190,
         "lot_ground": 132,
-        "memorial": 156,
+        "memorial": 290,
         "bandstand": 288,
         "flagpole": 72,
         "lot_extras": 144,
@@ -202,7 +202,7 @@
           "position_m": [
             0.0,
             25.996,
-            -36.0452
+            -36.2004
           ],
           "time": "10:10"
         },
@@ -210,7 +210,7 @@
           "position_m": [
             0.0,
             25.996,
-            -36.0052
+            -36.1604
           ],
           "time": "10:10"
         },
@@ -218,7 +218,7 @@
           "position_m": [
             0.0,
             25.996,
-            -43.4172
+            -43.262
           ],
           "time": "10:10"
         },
@@ -226,13 +226,13 @@
           "position_m": [
             0.0,
             25.996,
-            -43.4572
+            -43.302
           ],
           "time": "10:10"
         },
         "clock_hour_east": {
           "position_m": [
-            3.686,
+            3.5308,
             25.996,
             -39.7312
           ],
@@ -240,7 +240,7 @@
         },
         "clock_minute_east": {
           "position_m": [
-            3.726,
+            3.5708,
             25.996,
             -39.7312
           ],
@@ -248,7 +248,7 @@
         },
         "clock_hour_west": {
           "position_m": [
-            -3.686,
+            -3.5308,
             25.996,
             -39.7312
           ],
@@ -256,7 +256,7 @@
         },
         "clock_minute_west": {
           "position_m": [
-            -3.726,
+            -3.5708,
             25.996,
             -39.7312
           ],
@@ -402,7 +402,7 @@
         }
       ],
       "collision": {
-        "count": 169,
+        "count": 170,
         "boxes_blender_z_up": [
           {
             "source": "perimeter_granite_wall_south_-416",
@@ -533,7 +533,7 @@
               7.2944
             ],
             "size": [
-              3.88,
+              3.5696,
               0.4656,
               14.5888
             ],
@@ -548,7 +548,7 @@
               7.2944
             ],
             "size": [
-              3.88,
+              3.5696,
               0.4656,
               14.5888
             ],
@@ -558,12 +558,12 @@
             "source": "wall_pavilion_north_left",
             "category": "exterior",
             "center": [
-              -3.0264,
+              -2.9488,
               54.3976,
               7.2944
             ],
             "size": [
-              3.88,
+              3.7248,
               0.4656,
               14.5888
             ],
@@ -573,12 +573,12 @@
             "source": "wall_pavilion_north_right",
             "category": "exterior",
             "center": [
-              3.0264,
+              2.9488,
               54.3976,
               7.2944
             ],
             "size": [
-              3.88,
+              3.7248,
               0.4656,
               14.5888
             ],
@@ -589,12 +589,12 @@
             "category": "exterior",
             "center": [
               14.6664,
-              42.7576,
+              42.68,
               7.2944
             ],
             "size": [
               0.4656,
-              3.88,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -604,12 +604,12 @@
             "category": "exterior",
             "center": [
               14.6664,
-              36.7048,
+              36.7824,
               7.2944
             ],
             "size": [
               0.4656,
-              3.88,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -619,12 +619,12 @@
             "category": "exterior",
             "center": [
               -14.6664,
-              42.7576,
+              42.68,
               7.2944
             ],
             "size": [
               0.4656,
-              3.88,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -634,12 +634,12 @@
             "category": "exterior",
             "center": [
               -14.6664,
-              36.7048,
+              36.7824,
               7.2944
             ],
             "size": [
               0.4656,
-              3.88,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -648,13 +648,13 @@
             "source": "wall_pav_s_west",
             "category": "exterior",
             "center": [
-              -4.7336,
-              27.548,
+              -4.5784,
+              28.0136,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              5.432,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -663,13 +663,13 @@
             "source": "wall_pav_s_east",
             "category": "exterior",
             "center": [
-              4.7336,
-              27.548,
+              4.5784,
+              28.0136,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              5.432,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -678,13 +678,13 @@
             "source": "wall_pav_n_west",
             "category": "exterior",
             "center": [
-              -4.7336,
-              51.9144,
+              -4.5784,
+              51.4488,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              5.432,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -693,13 +693,13 @@
             "source": "wall_pav_n_east",
             "category": "exterior",
             "center": [
-              4.7336,
-              51.9144,
+              4.5784,
+              51.4488,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              5.432,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -708,12 +708,12 @@
             "source": "wall_pav_e_south",
             "category": "exterior",
             "center": [
-              12.1832,
-              34.9976,
+              11.7176,
+              35.1528,
               7.2944
             ],
             "size": [
-              4.5008,
+              5.432,
               0.4656,
               14.5888
             ],
@@ -723,12 +723,12 @@
             "source": "wall_pav_e_north",
             "category": "exterior",
             "center": [
-              12.1832,
-              44.4648,
+              11.7176,
+              44.3096,
               7.2944
             ],
             "size": [
-              4.5008,
+              5.432,
               0.4656,
               14.5888
             ],
@@ -738,12 +738,12 @@
             "source": "wall_pav_w_south",
             "category": "exterior",
             "center": [
-              -12.1832,
-              34.9976,
+              -11.7176,
+              35.1528,
               7.2944
             ],
             "size": [
-              4.5008,
+              5.432,
               0.4656,
               14.5888
             ],
@@ -753,12 +753,12 @@
             "source": "wall_pav_w_north",
             "category": "exterior",
             "center": [
-              -12.1832,
-              44.4648,
+              -11.7176,
+              44.3096,
               7.2944
             ],
             "size": [
-              4.5008,
+              5.432,
               0.4656,
               14.5888
             ],
@@ -768,12 +768,12 @@
             "source": "wall_corner_z_-1_-1",
             "category": "exterior",
             "center": [
-              -7.4496,
-              49.4312,
+              -6.9064,
+              48.5,
               7.2944
             ],
             "size": [
-              4.9664,
+              4.1904,
               0.4656,
               14.5888
             ],
@@ -783,13 +783,13 @@
             "source": "wall_corner_x_-1_-1",
             "category": "exterior",
             "center": [
-              -9.7,
-              46.948,
+              -8.7688,
+              46.4048,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -798,12 +798,12 @@
             "source": "wall_corner_z_-1_1",
             "category": "exterior",
             "center": [
-              -7.4496,
-              30.0312,
+              -6.9064,
+              30.9624,
               7.2944
             ],
             "size": [
-              4.9664,
+              4.1904,
               0.4656,
               14.5888
             ],
@@ -813,13 +813,13 @@
             "source": "wall_corner_x_-1_1",
             "category": "exterior",
             "center": [
-              -9.7,
-              32.5144,
+              -8.7688,
+              33.0576,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -828,12 +828,12 @@
             "source": "wall_corner_z_1_-1",
             "category": "exterior",
             "center": [
-              7.4496,
-              49.4312,
+              6.9064,
+              48.5,
               7.2944
             ],
             "size": [
-              4.9664,
+              4.1904,
               0.4656,
               14.5888
             ],
@@ -843,13 +843,13 @@
             "source": "wall_corner_x_1_-1",
             "category": "exterior",
             "center": [
-              9.7,
-              46.948,
+              8.7688,
+              46.4048,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -858,12 +858,12 @@
             "source": "wall_corner_z_1_1",
             "category": "exterior",
             "center": [
-              7.4496,
-              30.0312,
+              6.9064,
+              30.9624,
               7.2944
             ],
             "size": [
-              4.9664,
+              4.1904,
               0.4656,
               14.5888
             ],
@@ -873,13 +873,13 @@
             "source": "wall_corner_x_1_1",
             "category": "exterior",
             "center": [
-              9.7,
-              32.5144,
+              8.7688,
+              33.0576,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -893,17 +893,17 @@
               0.5432
             ],
             "size": [
-              9.6224,
+              8.6912,
               3.104,
               1.0864
             ],
             "height_top_m": 1.0864
           },
           {
-            "source": "main_steps_cheek_-62",
+            "source": "main_steps_cheek_-56",
             "category": "exterior",
             "center": [
-              -4.5784,
+              -4.1128,
               20.3312,
               0.6984
             ],
@@ -915,10 +915,10 @@
             "height_top_m": 1.3968
           },
           {
-            "source": "main_steps_cheek_56",
+            "source": "main_steps_cheek_50",
             "category": "exterior",
             "center": [
-              4.5784,
+              4.1128,
               20.3312,
               0.6984
             ],
@@ -938,7 +938,7 @@
               0.1552
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.3104
             ],
@@ -953,7 +953,7 @@
               0.2328
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.4656
             ],
@@ -968,7 +968,7 @@
               0.3104
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.6208
             ],
@@ -983,7 +983,7 @@
               0.388
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.776
             ],
@@ -998,7 +998,7 @@
               0.4656
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.9312
             ],
@@ -1013,17 +1013,17 @@
               0.5432
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               1.0864
             ],
             "height_top_m": 1.0864
           },
           {
-            "source": "main_porch_column_-55",
+            "source": "main_porch_column_-46",
             "category": "exterior",
             "center": [
-              -4.268,
+              -3.5696,
               22.1936,
               3.2592
             ],
@@ -1035,10 +1035,10 @@
             "height_top_m": 6.5184
           },
           {
-            "source": "main_porch_column_55",
+            "source": "main_porch_column_46",
             "category": "exterior",
             "center": [
-              4.268,
+              3.5696,
               22.1936,
               3.2592
             ],
@@ -1283,8 +1283,8 @@
               26.3064
             ],
             "size": [
-              7.1392,
-              7.1392,
+              8.3808,
+              8.3808,
               23.4352
             ],
             "height_top_m": 38.024
@@ -1309,12 +1309,12 @@
             "category": "interior",
             "center": [
               -4.5784,
-              31.1564,
+              31.622,
               3.3368
             ],
             "size": [
               0.1552,
-              1.7848,
+              0.8536,
               4.5008
             ],
             "height_top_m": 5.5872
@@ -1323,12 +1323,12 @@
             "source": "int_wall_fl1_cross_sw",
             "category": "interior",
             "center": [
-              -7.0616,
+              -6.596,
               35.1528,
               3.3368
             ],
             "size": [
-              4.8112,
+              3.88,
               0.1552,
               4.5008
             ],
@@ -1339,12 +1339,12 @@
             "category": "interior",
             "center": [
               -4.5784,
-              48.306,
+              47.8404,
               3.3368
             ],
             "size": [
               0.1552,
-              1.7848,
+              0.8536,
               4.5008
             ],
             "height_top_m": 5.5872
@@ -1368,12 +1368,12 @@
             "source": "int_wall_fl1_cross_nw",
             "category": "interior",
             "center": [
-              -7.0616,
+              -6.596,
               44.3096,
               3.3368
             ],
             "size": [
-              4.8112,
+              3.88,
               0.1552,
               4.5008
             ],
@@ -1399,12 +1399,12 @@
             "category": "interior",
             "center": [
               4.5784,
-              31.1564,
+              31.622,
               3.3368
             ],
             "size": [
               0.1552,
-              1.7848,
+              0.8536,
               4.5008
             ],
             "height_top_m": 5.5872
@@ -1413,12 +1413,12 @@
             "source": "int_wall_fl1_cross_se",
             "category": "interior",
             "center": [
-              7.0616,
+              6.596,
               35.1528,
               3.3368
             ],
             "size": [
-              4.8112,
+              3.88,
               0.1552,
               4.5008
             ],
@@ -1429,12 +1429,12 @@
             "category": "interior",
             "center": [
               4.5784,
-              48.306,
+              47.8404,
               3.3368
             ],
             "size": [
               0.1552,
-              1.7848,
+              0.8536,
               4.5008
             ],
             "height_top_m": 5.5872
@@ -1458,12 +1458,12 @@
             "source": "int_wall_fl1_cross_ne",
             "category": "interior",
             "center": [
-              7.0616,
+              6.596,
               44.3096,
               3.3368
             ],
             "size": [
-              4.8112,
+              3.88,
               0.1552,
               4.5008
             ],
@@ -1474,12 +1474,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              40.3132,
+              40.9262,
               1.1989
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               0.225
             ],
             "height_top_m": 1.3114
@@ -1489,12 +1489,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              40.546,
+              41.1435,
               1.3114
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               0.4501
             ],
             "height_top_m": 1.5365
@@ -1504,12 +1504,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              40.7788,
+              41.3608,
               1.424
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               0.6751
             ],
             "height_top_m": 1.7615
@@ -1519,12 +1519,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.0116,
+              41.5781,
               1.5365
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               0.9002
             ],
             "height_top_m": 1.9866
@@ -1534,12 +1534,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.2444,
+              41.7954,
               1.649
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               1.1252
             ],
             "height_top_m": 2.2116
@@ -1549,12 +1549,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.4772,
+              42.0126,
               1.7615
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               1.3502
             ],
             "height_top_m": 2.4366
@@ -1564,12 +1564,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.71,
+              42.2299,
               1.874
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               1.5753
             ],
             "height_top_m": 2.6617
@@ -1579,12 +1579,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.9428,
+              42.4472,
               1.9866
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               1.8003
             ],
             "height_top_m": 2.8867
@@ -1594,12 +1594,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              42.1756,
+              42.6645,
               2.0991
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               2.0254
             ],
             "height_top_m": 3.1118
@@ -1609,12 +1609,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              42.4084,
+              42.8818,
               2.2116
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               2.2504
             ],
             "height_top_m": 3.3368
@@ -1624,12 +1624,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              43.068,
+              43.4948,
               3.2204
             ],
             "size": [
-              6.8288,
-              1.0864,
+              6.5184,
+              1.0088,
               0.2328
             ],
             "height_top_m": 3.3368
@@ -1638,13 +1638,13 @@
             "source": "grand_stair_upper_west_step_1",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              42.4084,
+              -2.4832,
+              42.8818,
               3.3329
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.4578
             ],
             "height_top_m": 3.5618
@@ -1653,13 +1653,13 @@
             "source": "grand_stair_upper_west_step_2",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              42.1756,
+              -2.4832,
+              42.6645,
               3.4454
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.6829
             ],
             "height_top_m": 3.7869
@@ -1668,13 +1668,13 @@
             "source": "grand_stair_upper_west_step_3",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.9428,
+              -2.4832,
+              42.4472,
               3.558
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.9079
             ],
             "height_top_m": 4.0119
@@ -1683,13 +1683,13 @@
             "source": "grand_stair_upper_west_step_4",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.71,
+              -2.4832,
+              42.2299,
               3.6705
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.133
             ],
             "height_top_m": 4.237
@@ -1698,13 +1698,13 @@
             "source": "grand_stair_upper_west_step_5",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.4772,
+              -2.4832,
+              42.0126,
               3.783
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.358
             ],
             "height_top_m": 4.462
@@ -1713,13 +1713,13 @@
             "source": "grand_stair_upper_west_step_6",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.2444,
+              -2.4832,
+              41.7954,
               3.8955
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.583
             ],
             "height_top_m": 4.687
@@ -1728,13 +1728,13 @@
             "source": "grand_stair_upper_west_step_7",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.0116,
+              -2.4832,
+              41.5781,
               4.008
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.8081
             ],
             "height_top_m": 4.9121
@@ -1743,13 +1743,13 @@
             "source": "grand_stair_upper_west_step_8",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              40.7788,
+              -2.4832,
+              41.3608,
               4.1206
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.0331
             ],
             "height_top_m": 5.1371
@@ -1758,13 +1758,13 @@
             "source": "grand_stair_upper_west_step_9",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              40.546,
+              -2.4832,
+              41.1435,
               4.2331
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.2582
             ],
             "height_top_m": 5.3622
@@ -1773,13 +1773,13 @@
             "source": "grand_stair_upper_west_step_10",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              40.3132,
+              -2.4832,
+              40.9262,
               4.3456
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.4832
             ],
             "height_top_m": 5.5872
@@ -1788,13 +1788,13 @@
             "source": "grand_stair_upper_east_step_1",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              42.4084,
+              2.4832,
+              42.8818,
               3.3329
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.4578
             ],
             "height_top_m": 3.5618
@@ -1803,13 +1803,13 @@
             "source": "grand_stair_upper_east_step_2",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              42.1756,
+              2.4832,
+              42.6645,
               3.4454
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.6829
             ],
             "height_top_m": 3.7869
@@ -1818,13 +1818,13 @@
             "source": "grand_stair_upper_east_step_3",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.9428,
+              2.4832,
+              42.4472,
               3.558
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.9079
             ],
             "height_top_m": 4.0119
@@ -1833,13 +1833,13 @@
             "source": "grand_stair_upper_east_step_4",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.71,
+              2.4832,
+              42.2299,
               3.6705
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.133
             ],
             "height_top_m": 4.237
@@ -1848,13 +1848,13 @@
             "source": "grand_stair_upper_east_step_5",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.4772,
+              2.4832,
+              42.0126,
               3.783
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.358
             ],
             "height_top_m": 4.462
@@ -1863,13 +1863,13 @@
             "source": "grand_stair_upper_east_step_6",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.2444,
+              2.4832,
+              41.7954,
               3.8955
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.583
             ],
             "height_top_m": 4.687
@@ -1878,13 +1878,13 @@
             "source": "grand_stair_upper_east_step_7",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.0116,
+              2.4832,
+              41.5781,
               4.008
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.8081
             ],
             "height_top_m": 4.9121
@@ -1893,13 +1893,13 @@
             "source": "grand_stair_upper_east_step_8",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              40.7788,
+              2.4832,
+              41.3608,
               4.1206
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.0331
             ],
             "height_top_m": 5.1371
@@ -1908,13 +1908,13 @@
             "source": "grand_stair_upper_east_step_9",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              40.546,
+              2.4832,
+              41.1435,
               4.2331
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.2582
             ],
             "height_top_m": 5.3622
@@ -1923,13 +1923,13 @@
             "source": "grand_stair_upper_east_step_10",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              40.3132,
+              2.4832,
+              40.9262,
               4.3456
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.4832
             ],
             "height_top_m": 5.5872
@@ -2179,56 +2179,56 @@
             "category": "interior",
             "center": [
               0.0,
-              36.7048,
-              6.0916
+              36.5496,
+              6.0528
             ],
             "size": [
-              6.8288,
+              6.5184,
               0.1552,
-              1.0088
+              0.9312
             ],
-            "height_top_m": 6.596
+            "height_top_m": 6.5184
           },
           {
             "source": "fl2_gallery_rail_west",
             "category": "interior",
             "center": [
               -3.3368,
-              38.4896,
-              6.0916
+              38.7224,
+              6.0528
             ],
             "size": [
               0.1552,
-              3.4144,
-              1.0088
+              4.1904,
+              0.9312
             ],
-            "height_top_m": 6.596
+            "height_top_m": 6.5184
           },
           {
             "source": "fl2_gallery_rail_east",
             "category": "interior",
             "center": [
               3.3368,
-              38.4896,
-              6.0916
+              38.7224,
+              6.0528
             ],
             "size": [
               0.1552,
-              3.4144,
-              1.0088
+              4.1904,
+              0.9312
             ],
-            "height_top_m": 6.596
+            "height_top_m": 6.5184
           },
           {
             "source": "courtroom_north_wall_west",
             "category": "interior",
             "center": [
-              -2.716,
+              -2.8712,
               35.4632,
               10.088
             ],
             "size": [
-              3.5696,
+              3.88,
               0.1552,
               9.0016
             ],
@@ -2238,12 +2238,12 @@
             "source": "courtroom_north_wall_east",
             "category": "interior",
             "center": [
-              2.716,
+              2.8712,
               35.4632,
               10.088
             ],
             "size": [
-              3.5696,
+              3.88,
               0.1552,
               9.0016
             ],
@@ -2253,12 +2253,12 @@
             "source": "courtroom_bar_rail_west",
             "category": "interior",
             "center": [
-              -2.4832,
+              -2.4056,
               30.846,
               6.0916
             ],
             "size": [
-              3.7248,
+              3.5696,
               0.2328,
               1.0088
             ],
@@ -2268,12 +2268,12 @@
             "source": "courtroom_bar_rail_east",
             "category": "interior",
             "center": [
-              2.4832,
+              2.4056,
               30.846,
               6.0916
             ],
             "size": [
-              3.7248,
+              3.5696,
               0.2328,
               1.0088
             ],
@@ -2355,15 +2355,30 @@
             "height_top_m": 10.088
           },
           {
-            "source": "int_wall_fl2_lib_w",
+            "source": "int_wall_fl2_lib_farw",
             "category": "interior",
             "center": [
-              -0.97,
+              -4.1904,
               44.1544,
               7.8376
             ],
             "size": [
-              0.5432,
+              1.2416,
+              0.1552,
+              4.5008
+            ],
+            "height_top_m": 10.088
+          },
+          {
+            "source": "int_wall_fl2_lib_w",
+            "category": "interior",
+            "center": [
+              -1.2028,
+              44.1544,
+              7.8376
+            ],
+            "size": [
+              1.0088,
               0.1552,
               4.5008
             ],
@@ -2373,12 +2388,12 @@
             "source": "int_wall_fl2_lib_e",
             "category": "interior",
             "center": [
-              2.5996,
+              2.7548,
               44.1544,
               7.8376
             ],
             "size": [
-              3.8024,
+              4.1128,
               0.1552,
               4.5008
             ],
@@ -2389,15 +2404,15 @@
             "category": "interior",
             "center": [
               0.0,
-              36.7048,
-              10.5924
+              36.5496,
+              10.5536
             ],
             "size": [
-              6.8288,
+              6.5184,
               0.1552,
-              1.0088
+              0.9312
             ],
-            "height_top_m": 11.0968
+            "height_top_m": 11.0192
           },
           {
             "source": "fl3_gallery_rail_west",
@@ -2405,14 +2420,14 @@
             "center": [
               -3.3368,
               39.7312,
-              10.5924
+              10.5536
             ],
             "size": [
               0.1552,
-              5.8976,
-              1.0088
+              6.208,
+              0.9312
             ],
-            "height_top_m": 11.0968
+            "height_top_m": 11.0192
           },
           {
             "source": "fl3_gallery_rail_east",
@@ -2420,29 +2435,29 @@
             "center": [
               3.3368,
               39.7312,
-              10.5924
+              10.5536
             ],
             "size": [
               0.1552,
-              5.8976,
-              1.0088
+              6.208,
+              0.9312
             ],
-            "height_top_m": 11.0968
+            "height_top_m": 11.0192
           },
           {
             "source": "fl3_gallery_rail_north",
             "category": "interior",
             "center": [
               0.0,
-              42.7576,
-              10.5924
+              42.9128,
+              10.5536
             ],
             "size": [
-              6.8288,
+              6.5184,
               0.1552,
-              1.0088
+              0.9312
             ],
-            "height_top_m": 11.0968
+            "height_top_m": 11.0192
           },
           {
             "source": "int_wall_fl3_records_n",
@@ -2508,12 +2523,12 @@
             "source": "int_wall_fl3_comm_w",
             "category": "interior",
             "center": [
-              -2.5996,
+              -2.7548,
               44.1544,
               12.3384
             ],
             "size": [
-              3.8024,
+              4.1128,
               0.1552,
               4.5008
             ],
@@ -2523,12 +2538,12 @@
             "source": "int_wall_fl3_comm_e",
             "category": "interior",
             "center": [
-              2.5996,
+              2.7548,
               44.1544,
               12.3384
             ],
             "size": [
-              3.8024,
+              4.1128,
               0.1552,
               4.5008
             ],
@@ -2540,14 +2555,14 @@
             "center": [
               18.0032,
               19.5552,
-              3.8218
+              2.9178
             ],
             "size": [
               3.4144,
               3.4144,
-              7.6436
+              5.8355
             ],
-            "height_top_m": 7.6436
+            "height_top_m": 5.8355
           },
           {
             "source": "octagonal_bandstand",
@@ -2954,15 +2969,15 @@
       "clock_active": true,
       "clock_time": "10:10",
       "materials": 16,
-      "visible_triangles": 12488,
-      "collision_triangles": 1932,
+      "visible_triangles": 13042,
+      "collision_triangles": 1944,
       "triangles_per_part": {
-        "structure": 3414,
-        "arched_windows_instanced": 7110,
-        "interior_floors": 68,
+        "structure": 4924,
+        "arched_windows_instanced": 5988,
+        "interior_floors": 100,
         "clock_hands_and_bell": 190,
         "lot_ground": 132,
-        "memorial": 156,
+        "memorial": 290,
         "bandstand": 24,
         "flagpole": 72,
         "lot_extras": 170,
@@ -3125,7 +3140,7 @@
           "position_m": [
             0.0,
             25.996,
-            -36.0452
+            -36.2004
           ],
           "time": "10:10"
         },
@@ -3133,7 +3148,7 @@
           "position_m": [
             0.0,
             25.996,
-            -36.0052
+            -36.1604
           ],
           "time": "10:10"
         },
@@ -3141,7 +3156,7 @@
           "position_m": [
             0.0,
             25.996,
-            -43.4172
+            -43.262
           ],
           "time": "10:10"
         },
@@ -3149,13 +3164,13 @@
           "position_m": [
             0.0,
             25.996,
-            -43.4572
+            -43.302
           ],
           "time": "10:10"
         },
         "clock_hour_east": {
           "position_m": [
-            3.686,
+            3.5308,
             25.996,
             -39.7312
           ],
@@ -3163,7 +3178,7 @@
         },
         "clock_minute_east": {
           "position_m": [
-            3.726,
+            3.5708,
             25.996,
             -39.7312
           ],
@@ -3171,7 +3186,7 @@
         },
         "clock_hour_west": {
           "position_m": [
-            -3.686,
+            -3.5308,
             25.996,
             -39.7312
           ],
@@ -3179,7 +3194,7 @@
         },
         "clock_minute_west": {
           "position_m": [
-            -3.726,
+            -3.5708,
             25.996,
             -39.7312
           ],
@@ -3325,7 +3340,7 @@
         }
       ],
       "collision": {
-        "count": 161,
+        "count": 162,
         "boxes_blender_z_up": [
           {
             "source": "perimeter_granite_wall_south_-416",
@@ -3456,7 +3471,7 @@
               7.2944
             ],
             "size": [
-              3.88,
+              3.5696,
               0.4656,
               14.5888
             ],
@@ -3471,7 +3486,7 @@
               7.2944
             ],
             "size": [
-              3.88,
+              3.5696,
               0.4656,
               14.5888
             ],
@@ -3481,12 +3496,12 @@
             "source": "wall_pavilion_north_left",
             "category": "exterior",
             "center": [
-              -3.0264,
+              -2.9488,
               54.3976,
               7.2944
             ],
             "size": [
-              3.88,
+              3.7248,
               0.4656,
               14.5888
             ],
@@ -3496,12 +3511,12 @@
             "source": "wall_pavilion_north_right",
             "category": "exterior",
             "center": [
-              3.0264,
+              2.9488,
               54.3976,
               7.2944
             ],
             "size": [
-              3.88,
+              3.7248,
               0.4656,
               14.5888
             ],
@@ -3512,12 +3527,12 @@
             "category": "exterior",
             "center": [
               14.6664,
-              42.7576,
+              42.68,
               7.2944
             ],
             "size": [
               0.4656,
-              3.88,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -3527,12 +3542,12 @@
             "category": "exterior",
             "center": [
               14.6664,
-              36.7048,
+              36.7824,
               7.2944
             ],
             "size": [
               0.4656,
-              3.88,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -3542,12 +3557,12 @@
             "category": "exterior",
             "center": [
               -14.6664,
-              42.7576,
+              42.68,
               7.2944
             ],
             "size": [
               0.4656,
-              3.88,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -3557,12 +3572,12 @@
             "category": "exterior",
             "center": [
               -14.6664,
-              36.7048,
+              36.7824,
               7.2944
             ],
             "size": [
               0.4656,
-              3.88,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -3571,13 +3586,13 @@
             "source": "wall_pav_s_west",
             "category": "exterior",
             "center": [
-              -4.7336,
-              27.548,
+              -4.5784,
+              28.0136,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              5.432,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -3586,13 +3601,13 @@
             "source": "wall_pav_s_east",
             "category": "exterior",
             "center": [
-              4.7336,
-              27.548,
+              4.5784,
+              28.0136,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              5.432,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -3601,13 +3616,13 @@
             "source": "wall_pav_n_west",
             "category": "exterior",
             "center": [
-              -4.7336,
-              51.9144,
+              -4.5784,
+              51.4488,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              5.432,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -3616,13 +3631,13 @@
             "source": "wall_pav_n_east",
             "category": "exterior",
             "center": [
-              4.7336,
-              51.9144,
+              4.5784,
+              51.4488,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              5.432,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -3631,12 +3646,12 @@
             "source": "wall_pav_e_south",
             "category": "exterior",
             "center": [
-              12.1832,
-              34.9976,
+              11.7176,
+              35.1528,
               7.2944
             ],
             "size": [
-              4.5008,
+              5.432,
               0.4656,
               14.5888
             ],
@@ -3646,12 +3661,12 @@
             "source": "wall_pav_e_north",
             "category": "exterior",
             "center": [
-              12.1832,
-              44.4648,
+              11.7176,
+              44.3096,
               7.2944
             ],
             "size": [
-              4.5008,
+              5.432,
               0.4656,
               14.5888
             ],
@@ -3661,12 +3676,12 @@
             "source": "wall_pav_w_south",
             "category": "exterior",
             "center": [
-              -12.1832,
-              34.9976,
+              -11.7176,
+              35.1528,
               7.2944
             ],
             "size": [
-              4.5008,
+              5.432,
               0.4656,
               14.5888
             ],
@@ -3676,12 +3691,12 @@
             "source": "wall_pav_w_north",
             "category": "exterior",
             "center": [
-              -12.1832,
-              44.4648,
+              -11.7176,
+              44.3096,
               7.2944
             ],
             "size": [
-              4.5008,
+              5.432,
               0.4656,
               14.5888
             ],
@@ -3691,12 +3706,12 @@
             "source": "wall_corner_z_-1_-1",
             "category": "exterior",
             "center": [
-              -7.4496,
-              49.4312,
+              -6.9064,
+              48.5,
               7.2944
             ],
             "size": [
-              4.9664,
+              4.1904,
               0.4656,
               14.5888
             ],
@@ -3706,13 +3721,13 @@
             "source": "wall_corner_x_-1_-1",
             "category": "exterior",
             "center": [
-              -9.7,
-              46.948,
+              -8.7688,
+              46.4048,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -3721,12 +3736,12 @@
             "source": "wall_corner_z_-1_1",
             "category": "exterior",
             "center": [
-              -7.4496,
-              30.0312,
+              -6.9064,
+              30.9624,
               7.2944
             ],
             "size": [
-              4.9664,
+              4.1904,
               0.4656,
               14.5888
             ],
@@ -3736,13 +3751,13 @@
             "source": "wall_corner_x_-1_1",
             "category": "exterior",
             "center": [
-              -9.7,
-              32.5144,
+              -8.7688,
+              33.0576,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -3751,12 +3766,12 @@
             "source": "wall_corner_z_1_-1",
             "category": "exterior",
             "center": [
-              7.4496,
-              49.4312,
+              6.9064,
+              48.5,
               7.2944
             ],
             "size": [
-              4.9664,
+              4.1904,
               0.4656,
               14.5888
             ],
@@ -3766,13 +3781,13 @@
             "source": "wall_corner_x_1_-1",
             "category": "exterior",
             "center": [
-              9.7,
-              46.948,
+              8.7688,
+              46.4048,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -3781,12 +3796,12 @@
             "source": "wall_corner_z_1_1",
             "category": "exterior",
             "center": [
-              7.4496,
-              30.0312,
+              6.9064,
+              30.9624,
               7.2944
             ],
             "size": [
-              4.9664,
+              4.1904,
               0.4656,
               14.5888
             ],
@@ -3796,13 +3811,13 @@
             "source": "wall_corner_x_1_1",
             "category": "exterior",
             "center": [
-              9.7,
-              32.5144,
+              8.7688,
+              33.0576,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -3816,17 +3831,17 @@
               0.5432
             ],
             "size": [
-              9.6224,
+              8.6912,
               3.104,
               1.0864
             ],
             "height_top_m": 1.0864
           },
           {
-            "source": "main_steps_cheek_-62",
+            "source": "main_steps_cheek_-56",
             "category": "exterior",
             "center": [
-              -4.5784,
+              -4.1128,
               20.3312,
               0.6984
             ],
@@ -3838,10 +3853,10 @@
             "height_top_m": 1.3968
           },
           {
-            "source": "main_steps_cheek_56",
+            "source": "main_steps_cheek_50",
             "category": "exterior",
             "center": [
-              4.5784,
+              4.1128,
               20.3312,
               0.6984
             ],
@@ -3861,7 +3876,7 @@
               0.1552
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.3104
             ],
@@ -3876,7 +3891,7 @@
               0.2328
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.4656
             ],
@@ -3891,7 +3906,7 @@
               0.3104
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.6208
             ],
@@ -3906,7 +3921,7 @@
               0.388
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.776
             ],
@@ -3921,7 +3936,7 @@
               0.4656
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.9312
             ],
@@ -3936,17 +3951,17 @@
               0.5432
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               1.0864
             ],
             "height_top_m": 1.0864
           },
           {
-            "source": "main_porch_column_-55",
+            "source": "main_porch_column_-46",
             "category": "exterior",
             "center": [
-              -4.268,
+              -3.5696,
               22.1936,
               3.2592
             ],
@@ -3958,10 +3973,10 @@
             "height_top_m": 6.5184
           },
           {
-            "source": "main_porch_column_55",
+            "source": "main_porch_column_46",
             "category": "exterior",
             "center": [
-              4.268,
+              3.5696,
               22.1936,
               3.2592
             ],
@@ -4131,8 +4146,8 @@
               26.3064
             ],
             "size": [
-              7.1392,
-              7.1392,
+              8.3808,
+              8.3808,
               23.4352
             ],
             "height_top_m": 38.024
@@ -4157,12 +4172,12 @@
             "category": "interior",
             "center": [
               -4.5784,
-              31.1564,
+              31.622,
               3.3368
             ],
             "size": [
               0.1552,
-              1.7848,
+              0.8536,
               4.5008
             ],
             "height_top_m": 5.5872
@@ -4171,12 +4186,12 @@
             "source": "int_wall_fl1_cross_sw",
             "category": "interior",
             "center": [
-              -7.0616,
+              -6.596,
               35.1528,
               3.3368
             ],
             "size": [
-              4.8112,
+              3.88,
               0.1552,
               4.5008
             ],
@@ -4187,12 +4202,12 @@
             "category": "interior",
             "center": [
               -4.5784,
-              48.306,
+              47.8404,
               3.3368
             ],
             "size": [
               0.1552,
-              1.7848,
+              0.8536,
               4.5008
             ],
             "height_top_m": 5.5872
@@ -4216,12 +4231,12 @@
             "source": "int_wall_fl1_cross_nw",
             "category": "interior",
             "center": [
-              -7.0616,
+              -6.596,
               44.3096,
               3.3368
             ],
             "size": [
-              4.8112,
+              3.88,
               0.1552,
               4.5008
             ],
@@ -4247,12 +4262,12 @@
             "category": "interior",
             "center": [
               4.5784,
-              31.1564,
+              31.622,
               3.3368
             ],
             "size": [
               0.1552,
-              1.7848,
+              0.8536,
               4.5008
             ],
             "height_top_m": 5.5872
@@ -4261,12 +4276,12 @@
             "source": "int_wall_fl1_cross_se",
             "category": "interior",
             "center": [
-              7.0616,
+              6.596,
               35.1528,
               3.3368
             ],
             "size": [
-              4.8112,
+              3.88,
               0.1552,
               4.5008
             ],
@@ -4277,12 +4292,12 @@
             "category": "interior",
             "center": [
               4.5784,
-              48.306,
+              47.8404,
               3.3368
             ],
             "size": [
               0.1552,
-              1.7848,
+              0.8536,
               4.5008
             ],
             "height_top_m": 5.5872
@@ -4306,12 +4321,12 @@
             "source": "int_wall_fl1_cross_ne",
             "category": "interior",
             "center": [
-              7.0616,
+              6.596,
               44.3096,
               3.3368
             ],
             "size": [
-              4.8112,
+              3.88,
               0.1552,
               4.5008
             ],
@@ -4322,12 +4337,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              40.3132,
+              40.9262,
               1.1989
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               0.225
             ],
             "height_top_m": 1.3114
@@ -4337,12 +4352,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              40.546,
+              41.1435,
               1.3114
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               0.4501
             ],
             "height_top_m": 1.5365
@@ -4352,12 +4367,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              40.7788,
+              41.3608,
               1.424
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               0.6751
             ],
             "height_top_m": 1.7615
@@ -4367,12 +4382,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.0116,
+              41.5781,
               1.5365
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               0.9002
             ],
             "height_top_m": 1.9866
@@ -4382,12 +4397,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.2444,
+              41.7954,
               1.649
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               1.1252
             ],
             "height_top_m": 2.2116
@@ -4397,12 +4412,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.4772,
+              42.0126,
               1.7615
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               1.3502
             ],
             "height_top_m": 2.4366
@@ -4412,12 +4427,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.71,
+              42.2299,
               1.874
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               1.5753
             ],
             "height_top_m": 2.6617
@@ -4427,12 +4442,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.9428,
+              42.4472,
               1.9866
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               1.8003
             ],
             "height_top_m": 2.8867
@@ -4442,12 +4457,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              42.1756,
+              42.6645,
               2.0991
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               2.0254
             ],
             "height_top_m": 3.1118
@@ -4457,12 +4472,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              42.4084,
+              42.8818,
               2.2116
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               2.2504
             ],
             "height_top_m": 3.3368
@@ -4472,12 +4487,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              43.068,
+              43.4948,
               3.2204
             ],
             "size": [
-              6.8288,
-              1.0864,
+              6.5184,
+              1.0088,
               0.2328
             ],
             "height_top_m": 3.3368
@@ -4486,13 +4501,13 @@
             "source": "grand_stair_upper_west_step_1",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              42.4084,
+              -2.4832,
+              42.8818,
               3.3329
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.4578
             ],
             "height_top_m": 3.5618
@@ -4501,13 +4516,13 @@
             "source": "grand_stair_upper_west_step_2",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              42.1756,
+              -2.4832,
+              42.6645,
               3.4454
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.6829
             ],
             "height_top_m": 3.7869
@@ -4516,13 +4531,13 @@
             "source": "grand_stair_upper_west_step_3",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.9428,
+              -2.4832,
+              42.4472,
               3.558
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.9079
             ],
             "height_top_m": 4.0119
@@ -4531,13 +4546,13 @@
             "source": "grand_stair_upper_west_step_4",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.71,
+              -2.4832,
+              42.2299,
               3.6705
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.133
             ],
             "height_top_m": 4.237
@@ -4546,13 +4561,13 @@
             "source": "grand_stair_upper_west_step_5",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.4772,
+              -2.4832,
+              42.0126,
               3.783
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.358
             ],
             "height_top_m": 4.462
@@ -4561,13 +4576,13 @@
             "source": "grand_stair_upper_west_step_6",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.2444,
+              -2.4832,
+              41.7954,
               3.8955
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.583
             ],
             "height_top_m": 4.687
@@ -4576,13 +4591,13 @@
             "source": "grand_stair_upper_west_step_7",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.0116,
+              -2.4832,
+              41.5781,
               4.008
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.8081
             ],
             "height_top_m": 4.9121
@@ -4591,13 +4606,13 @@
             "source": "grand_stair_upper_west_step_8",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              40.7788,
+              -2.4832,
+              41.3608,
               4.1206
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.0331
             ],
             "height_top_m": 5.1371
@@ -4606,13 +4621,13 @@
             "source": "grand_stair_upper_west_step_9",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              40.546,
+              -2.4832,
+              41.1435,
               4.2331
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.2582
             ],
             "height_top_m": 5.3622
@@ -4621,13 +4636,13 @@
             "source": "grand_stair_upper_west_step_10",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              40.3132,
+              -2.4832,
+              40.9262,
               4.3456
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.4832
             ],
             "height_top_m": 5.5872
@@ -4636,13 +4651,13 @@
             "source": "grand_stair_upper_east_step_1",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              42.4084,
+              2.4832,
+              42.8818,
               3.3329
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.4578
             ],
             "height_top_m": 3.5618
@@ -4651,13 +4666,13 @@
             "source": "grand_stair_upper_east_step_2",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              42.1756,
+              2.4832,
+              42.6645,
               3.4454
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.6829
             ],
             "height_top_m": 3.7869
@@ -4666,13 +4681,13 @@
             "source": "grand_stair_upper_east_step_3",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.9428,
+              2.4832,
+              42.4472,
               3.558
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.9079
             ],
             "height_top_m": 4.0119
@@ -4681,13 +4696,13 @@
             "source": "grand_stair_upper_east_step_4",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.71,
+              2.4832,
+              42.2299,
               3.6705
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.133
             ],
             "height_top_m": 4.237
@@ -4696,13 +4711,13 @@
             "source": "grand_stair_upper_east_step_5",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.4772,
+              2.4832,
+              42.0126,
               3.783
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.358
             ],
             "height_top_m": 4.462
@@ -4711,13 +4726,13 @@
             "source": "grand_stair_upper_east_step_6",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.2444,
+              2.4832,
+              41.7954,
               3.8955
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.583
             ],
             "height_top_m": 4.687
@@ -4726,13 +4741,13 @@
             "source": "grand_stair_upper_east_step_7",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.0116,
+              2.4832,
+              41.5781,
               4.008
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.8081
             ],
             "height_top_m": 4.9121
@@ -4741,13 +4756,13 @@
             "source": "grand_stair_upper_east_step_8",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              40.7788,
+              2.4832,
+              41.3608,
               4.1206
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.0331
             ],
             "height_top_m": 5.1371
@@ -4756,13 +4771,13 @@
             "source": "grand_stair_upper_east_step_9",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              40.546,
+              2.4832,
+              41.1435,
               4.2331
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.2582
             ],
             "height_top_m": 5.3622
@@ -4771,13 +4786,13 @@
             "source": "grand_stair_upper_east_step_10",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              40.3132,
+              2.4832,
+              40.9262,
               4.3456
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.4832
             ],
             "height_top_m": 5.5872
@@ -5027,56 +5042,56 @@
             "category": "interior",
             "center": [
               0.0,
-              36.7048,
-              6.0916
+              36.5496,
+              6.0528
             ],
             "size": [
-              6.8288,
+              6.5184,
               0.1552,
-              1.0088
+              0.9312
             ],
-            "height_top_m": 6.596
+            "height_top_m": 6.5184
           },
           {
             "source": "fl2_gallery_rail_west",
             "category": "interior",
             "center": [
               -3.3368,
-              38.4896,
-              6.0916
+              38.7224,
+              6.0528
             ],
             "size": [
               0.1552,
-              3.4144,
-              1.0088
+              4.1904,
+              0.9312
             ],
-            "height_top_m": 6.596
+            "height_top_m": 6.5184
           },
           {
             "source": "fl2_gallery_rail_east",
             "category": "interior",
             "center": [
               3.3368,
-              38.4896,
-              6.0916
+              38.7224,
+              6.0528
             ],
             "size": [
               0.1552,
-              3.4144,
-              1.0088
+              4.1904,
+              0.9312
             ],
-            "height_top_m": 6.596
+            "height_top_m": 6.5184
           },
           {
             "source": "courtroom_north_wall_west",
             "category": "interior",
             "center": [
-              -2.716,
+              -2.8712,
               35.4632,
               10.088
             ],
             "size": [
-              3.5696,
+              3.88,
               0.1552,
               9.0016
             ],
@@ -5086,12 +5101,12 @@
             "source": "courtroom_north_wall_east",
             "category": "interior",
             "center": [
-              2.716,
+              2.8712,
               35.4632,
               10.088
             ],
             "size": [
-              3.5696,
+              3.88,
               0.1552,
               9.0016
             ],
@@ -5101,12 +5116,12 @@
             "source": "courtroom_bar_rail_west",
             "category": "interior",
             "center": [
-              -2.4832,
+              -2.4056,
               30.846,
               6.0916
             ],
             "size": [
-              3.7248,
+              3.5696,
               0.2328,
               1.0088
             ],
@@ -5116,12 +5131,12 @@
             "source": "courtroom_bar_rail_east",
             "category": "interior",
             "center": [
-              2.4832,
+              2.4056,
               30.846,
               6.0916
             ],
             "size": [
-              3.7248,
+              3.5696,
               0.2328,
               1.0088
             ],
@@ -5203,15 +5218,30 @@
             "height_top_m": 10.088
           },
           {
-            "source": "int_wall_fl2_lib_w",
+            "source": "int_wall_fl2_lib_farw",
             "category": "interior",
             "center": [
-              -0.97,
+              -4.1904,
               44.1544,
               7.8376
             ],
             "size": [
-              0.5432,
+              1.2416,
+              0.1552,
+              4.5008
+            ],
+            "height_top_m": 10.088
+          },
+          {
+            "source": "int_wall_fl2_lib_w",
+            "category": "interior",
+            "center": [
+              -1.2028,
+              44.1544,
+              7.8376
+            ],
+            "size": [
+              1.0088,
               0.1552,
               4.5008
             ],
@@ -5221,12 +5251,12 @@
             "source": "int_wall_fl2_lib_e",
             "category": "interior",
             "center": [
-              2.5996,
+              2.7548,
               44.1544,
               7.8376
             ],
             "size": [
-              3.8024,
+              4.1128,
               0.1552,
               4.5008
             ],
@@ -5237,15 +5267,15 @@
             "category": "interior",
             "center": [
               0.0,
-              36.7048,
-              10.5924
+              36.5496,
+              10.5536
             ],
             "size": [
-              6.8288,
+              6.5184,
               0.1552,
-              1.0088
+              0.9312
             ],
-            "height_top_m": 11.0968
+            "height_top_m": 11.0192
           },
           {
             "source": "fl3_gallery_rail_west",
@@ -5253,14 +5283,14 @@
             "center": [
               -3.3368,
               39.7312,
-              10.5924
+              10.5536
             ],
             "size": [
               0.1552,
-              5.8976,
-              1.0088
+              6.208,
+              0.9312
             ],
-            "height_top_m": 11.0968
+            "height_top_m": 11.0192
           },
           {
             "source": "fl3_gallery_rail_east",
@@ -5268,29 +5298,29 @@
             "center": [
               3.3368,
               39.7312,
-              10.5924
+              10.5536
             ],
             "size": [
               0.1552,
-              5.8976,
-              1.0088
+              6.208,
+              0.9312
             ],
-            "height_top_m": 11.0968
+            "height_top_m": 11.0192
           },
           {
             "source": "fl3_gallery_rail_north",
             "category": "interior",
             "center": [
               0.0,
-              42.7576,
-              10.5924
+              42.9128,
+              10.5536
             ],
             "size": [
-              6.8288,
+              6.5184,
               0.1552,
-              1.0088
+              0.9312
             ],
-            "height_top_m": 11.0968
+            "height_top_m": 11.0192
           },
           {
             "source": "int_wall_fl3_records_n",
@@ -5356,12 +5386,12 @@
             "source": "int_wall_fl3_comm_w",
             "category": "interior",
             "center": [
-              -2.5996,
+              -2.7548,
               44.1544,
               12.3384
             ],
             "size": [
-              3.8024,
+              4.1128,
               0.1552,
               4.5008
             ],
@@ -5371,12 +5401,12 @@
             "source": "int_wall_fl3_comm_e",
             "category": "interior",
             "center": [
-              2.5996,
+              2.7548,
               44.1544,
               12.3384
             ],
             "size": [
-              3.8024,
+              4.1128,
               0.1552,
               4.5008
             ],
@@ -5388,14 +5418,14 @@
             "center": [
               18.0032,
               19.5552,
-              3.8218
+              2.9178
             ],
             "size": [
               3.4144,
               3.4144,
-              7.6436
+              5.8355
             ],
-            "height_top_m": 7.6436
+            "height_top_m": 5.8355
           },
           {
             "source": "bandstand_concrete_pad",
@@ -5757,15 +5787,15 @@
       "clock_active": false,
       "clock_time": "04:17",
       "materials": 16,
-      "visible_triangles": 12490,
-      "collision_triangles": 1932,
+      "visible_triangles": 13044,
+      "collision_triangles": 1944,
       "triangles_per_part": {
-        "structure": 3416,
-        "arched_windows_instanced": 7110,
-        "interior_floors": 68,
+        "structure": 4926,
+        "arched_windows_instanced": 5988,
+        "interior_floors": 100,
         "clock_hands_and_bell": 190,
         "lot_ground": 132,
-        "memorial": 156,
+        "memorial": 290,
         "bandstand": 24,
         "flagpole": 72,
         "lot_extras": 170,
@@ -5928,7 +5958,7 @@
           "position_m": [
             0.0,
             25.996,
-            -36.0452
+            -36.2004
           ],
           "time": "04:17"
         },
@@ -5936,7 +5966,7 @@
           "position_m": [
             0.0,
             25.996,
-            -36.0052
+            -36.1604
           ],
           "time": "04:17"
         },
@@ -5944,7 +5974,7 @@
           "position_m": [
             0.0,
             25.996,
-            -43.4172
+            -43.262
           ],
           "time": "04:17"
         },
@@ -5952,13 +5982,13 @@
           "position_m": [
             0.0,
             25.996,
-            -43.4572
+            -43.302
           ],
           "time": "04:17"
         },
         "clock_hour_east": {
           "position_m": [
-            3.686,
+            3.5308,
             25.996,
             -39.7312
           ],
@@ -5966,7 +5996,7 @@
         },
         "clock_minute_east": {
           "position_m": [
-            3.726,
+            3.5708,
             25.996,
             -39.7312
           ],
@@ -5974,7 +6004,7 @@
         },
         "clock_hour_west": {
           "position_m": [
-            -3.686,
+            -3.5308,
             25.996,
             -39.7312
           ],
@@ -5982,7 +6012,7 @@
         },
         "clock_minute_west": {
           "position_m": [
-            -3.726,
+            -3.5708,
             25.996,
             -39.7312
           ],
@@ -6128,7 +6158,7 @@
         }
       ],
       "collision": {
-        "count": 161,
+        "count": 162,
         "boxes_blender_z_up": [
           {
             "source": "perimeter_granite_wall_south_-416",
@@ -6259,7 +6289,7 @@
               7.2944
             ],
             "size": [
-              3.88,
+              3.5696,
               0.4656,
               14.5888
             ],
@@ -6274,7 +6304,7 @@
               7.2944
             ],
             "size": [
-              3.88,
+              3.5696,
               0.4656,
               14.5888
             ],
@@ -6284,12 +6314,12 @@
             "source": "wall_pavilion_north_left",
             "category": "exterior",
             "center": [
-              -3.0264,
+              -2.9488,
               54.3976,
               7.2944
             ],
             "size": [
-              3.88,
+              3.7248,
               0.4656,
               14.5888
             ],
@@ -6299,12 +6329,12 @@
             "source": "wall_pavilion_north_right",
             "category": "exterior",
             "center": [
-              3.0264,
+              2.9488,
               54.3976,
               7.2944
             ],
             "size": [
-              3.88,
+              3.7248,
               0.4656,
               14.5888
             ],
@@ -6315,12 +6345,12 @@
             "category": "exterior",
             "center": [
               14.6664,
-              42.7576,
+              42.68,
               7.2944
             ],
             "size": [
               0.4656,
-              3.88,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -6330,12 +6360,12 @@
             "category": "exterior",
             "center": [
               14.6664,
-              36.7048,
+              36.7824,
               7.2944
             ],
             "size": [
               0.4656,
-              3.88,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -6345,12 +6375,12 @@
             "category": "exterior",
             "center": [
               -14.6664,
-              42.7576,
+              42.68,
               7.2944
             ],
             "size": [
               0.4656,
-              3.88,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -6360,12 +6390,12 @@
             "category": "exterior",
             "center": [
               -14.6664,
-              36.7048,
+              36.7824,
               7.2944
             ],
             "size": [
               0.4656,
-              3.88,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -6374,13 +6404,13 @@
             "source": "wall_pav_s_west",
             "category": "exterior",
             "center": [
-              -4.7336,
-              27.548,
+              -4.5784,
+              28.0136,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              5.432,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -6389,13 +6419,13 @@
             "source": "wall_pav_s_east",
             "category": "exterior",
             "center": [
-              4.7336,
-              27.548,
+              4.5784,
+              28.0136,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              5.432,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -6404,13 +6434,13 @@
             "source": "wall_pav_n_west",
             "category": "exterior",
             "center": [
-              -4.7336,
-              51.9144,
+              -4.5784,
+              51.4488,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              5.432,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -6419,13 +6449,13 @@
             "source": "wall_pav_n_east",
             "category": "exterior",
             "center": [
-              4.7336,
-              51.9144,
+              4.5784,
+              51.4488,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              5.432,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -6434,12 +6464,12 @@
             "source": "wall_pav_e_south",
             "category": "exterior",
             "center": [
-              12.1832,
-              34.9976,
+              11.7176,
+              35.1528,
               7.2944
             ],
             "size": [
-              4.5008,
+              5.432,
               0.4656,
               14.5888
             ],
@@ -6449,12 +6479,12 @@
             "source": "wall_pav_e_north",
             "category": "exterior",
             "center": [
-              12.1832,
-              44.4648,
+              11.7176,
+              44.3096,
               7.2944
             ],
             "size": [
-              4.5008,
+              5.432,
               0.4656,
               14.5888
             ],
@@ -6464,12 +6494,12 @@
             "source": "wall_pav_w_south",
             "category": "exterior",
             "center": [
-              -12.1832,
-              34.9976,
+              -11.7176,
+              35.1528,
               7.2944
             ],
             "size": [
-              4.5008,
+              5.432,
               0.4656,
               14.5888
             ],
@@ -6479,12 +6509,12 @@
             "source": "wall_pav_w_north",
             "category": "exterior",
             "center": [
-              -12.1832,
-              44.4648,
+              -11.7176,
+              44.3096,
               7.2944
             ],
             "size": [
-              4.5008,
+              5.432,
               0.4656,
               14.5888
             ],
@@ -6494,12 +6524,12 @@
             "source": "wall_corner_z_-1_-1",
             "category": "exterior",
             "center": [
-              -7.4496,
-              49.4312,
+              -6.9064,
+              48.5,
               7.2944
             ],
             "size": [
-              4.9664,
+              4.1904,
               0.4656,
               14.5888
             ],
@@ -6509,13 +6539,13 @@
             "source": "wall_corner_x_-1_-1",
             "category": "exterior",
             "center": [
-              -9.7,
-              46.948,
+              -8.7688,
+              46.4048,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -6524,12 +6554,12 @@
             "source": "wall_corner_z_-1_1",
             "category": "exterior",
             "center": [
-              -7.4496,
-              30.0312,
+              -6.9064,
+              30.9624,
               7.2944
             ],
             "size": [
-              4.9664,
+              4.1904,
               0.4656,
               14.5888
             ],
@@ -6539,13 +6569,13 @@
             "source": "wall_corner_x_-1_1",
             "category": "exterior",
             "center": [
-              -9.7,
-              32.5144,
+              -8.7688,
+              33.0576,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -6554,12 +6584,12 @@
             "source": "wall_corner_z_1_-1",
             "category": "exterior",
             "center": [
-              7.4496,
-              49.4312,
+              6.9064,
+              48.5,
               7.2944
             ],
             "size": [
-              4.9664,
+              4.1904,
               0.4656,
               14.5888
             ],
@@ -6569,13 +6599,13 @@
             "source": "wall_corner_x_1_-1",
             "category": "exterior",
             "center": [
-              9.7,
-              46.948,
+              8.7688,
+              46.4048,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -6584,12 +6614,12 @@
             "source": "wall_corner_z_1_1",
             "category": "exterior",
             "center": [
-              7.4496,
-              30.0312,
+              6.9064,
+              30.9624,
               7.2944
             ],
             "size": [
-              4.9664,
+              4.1904,
               0.4656,
               14.5888
             ],
@@ -6599,13 +6629,13 @@
             "source": "wall_corner_x_1_1",
             "category": "exterior",
             "center": [
-              9.7,
-              32.5144,
+              8.7688,
+              33.0576,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -6619,17 +6649,17 @@
               0.5432
             ],
             "size": [
-              9.6224,
+              8.6912,
               3.104,
               1.0864
             ],
             "height_top_m": 1.0864
           },
           {
-            "source": "main_steps_cheek_-62",
+            "source": "main_steps_cheek_-56",
             "category": "exterior",
             "center": [
-              -4.5784,
+              -4.1128,
               20.3312,
               0.6984
             ],
@@ -6641,10 +6671,10 @@
             "height_top_m": 1.3968
           },
           {
-            "source": "main_steps_cheek_56",
+            "source": "main_steps_cheek_50",
             "category": "exterior",
             "center": [
-              4.5784,
+              4.1128,
               20.3312,
               0.6984
             ],
@@ -6664,7 +6694,7 @@
               0.1552
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.3104
             ],
@@ -6679,7 +6709,7 @@
               0.2328
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.4656
             ],
@@ -6694,7 +6724,7 @@
               0.3104
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.6208
             ],
@@ -6709,7 +6739,7 @@
               0.388
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.776
             ],
@@ -6724,7 +6754,7 @@
               0.4656
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.9312
             ],
@@ -6739,17 +6769,17 @@
               0.5432
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               1.0864
             ],
             "height_top_m": 1.0864
           },
           {
-            "source": "main_porch_column_-55",
+            "source": "main_porch_column_-46",
             "category": "exterior",
             "center": [
-              -4.268,
+              -3.5696,
               22.1936,
               3.2592
             ],
@@ -6761,10 +6791,10 @@
             "height_top_m": 6.5184
           },
           {
-            "source": "main_porch_column_55",
+            "source": "main_porch_column_46",
             "category": "exterior",
             "center": [
-              4.268,
+              3.5696,
               22.1936,
               3.2592
             ],
@@ -6934,8 +6964,8 @@
               26.3064
             ],
             "size": [
-              7.1392,
-              7.1392,
+              8.3808,
+              8.3808,
               23.4352
             ],
             "height_top_m": 38.024
@@ -6960,12 +6990,12 @@
             "category": "interior",
             "center": [
               -4.5784,
-              31.1564,
+              31.622,
               3.3368
             ],
             "size": [
               0.1552,
-              1.7848,
+              0.8536,
               4.5008
             ],
             "height_top_m": 5.5872
@@ -6974,12 +7004,12 @@
             "source": "int_wall_fl1_cross_sw",
             "category": "interior",
             "center": [
-              -7.0616,
+              -6.596,
               35.1528,
               3.3368
             ],
             "size": [
-              4.8112,
+              3.88,
               0.1552,
               4.5008
             ],
@@ -6990,12 +7020,12 @@
             "category": "interior",
             "center": [
               -4.5784,
-              48.306,
+              47.8404,
               3.3368
             ],
             "size": [
               0.1552,
-              1.7848,
+              0.8536,
               4.5008
             ],
             "height_top_m": 5.5872
@@ -7019,12 +7049,12 @@
             "source": "int_wall_fl1_cross_nw",
             "category": "interior",
             "center": [
-              -7.0616,
+              -6.596,
               44.3096,
               3.3368
             ],
             "size": [
-              4.8112,
+              3.88,
               0.1552,
               4.5008
             ],
@@ -7050,12 +7080,12 @@
             "category": "interior",
             "center": [
               4.5784,
-              31.1564,
+              31.622,
               3.3368
             ],
             "size": [
               0.1552,
-              1.7848,
+              0.8536,
               4.5008
             ],
             "height_top_m": 5.5872
@@ -7064,12 +7094,12 @@
             "source": "int_wall_fl1_cross_se",
             "category": "interior",
             "center": [
-              7.0616,
+              6.596,
               35.1528,
               3.3368
             ],
             "size": [
-              4.8112,
+              3.88,
               0.1552,
               4.5008
             ],
@@ -7080,12 +7110,12 @@
             "category": "interior",
             "center": [
               4.5784,
-              48.306,
+              47.8404,
               3.3368
             ],
             "size": [
               0.1552,
-              1.7848,
+              0.8536,
               4.5008
             ],
             "height_top_m": 5.5872
@@ -7109,12 +7139,12 @@
             "source": "int_wall_fl1_cross_ne",
             "category": "interior",
             "center": [
-              7.0616,
+              6.596,
               44.3096,
               3.3368
             ],
             "size": [
-              4.8112,
+              3.88,
               0.1552,
               4.5008
             ],
@@ -7125,12 +7155,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              40.3132,
+              40.9262,
               1.1989
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               0.225
             ],
             "height_top_m": 1.3114
@@ -7140,12 +7170,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              40.546,
+              41.1435,
               1.3114
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               0.4501
             ],
             "height_top_m": 1.5365
@@ -7155,12 +7185,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              40.7788,
+              41.3608,
               1.424
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               0.6751
             ],
             "height_top_m": 1.7615
@@ -7170,12 +7200,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.0116,
+              41.5781,
               1.5365
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               0.9002
             ],
             "height_top_m": 1.9866
@@ -7185,12 +7215,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.2444,
+              41.7954,
               1.649
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               1.1252
             ],
             "height_top_m": 2.2116
@@ -7200,12 +7230,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.4772,
+              42.0126,
               1.7615
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               1.3502
             ],
             "height_top_m": 2.4366
@@ -7215,12 +7245,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.71,
+              42.2299,
               1.874
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               1.5753
             ],
             "height_top_m": 2.6617
@@ -7230,12 +7260,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.9428,
+              42.4472,
               1.9866
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               1.8003
             ],
             "height_top_m": 2.8867
@@ -7245,12 +7275,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              42.1756,
+              42.6645,
               2.0991
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               2.0254
             ],
             "height_top_m": 3.1118
@@ -7260,12 +7290,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              42.4084,
+              42.8818,
               2.2116
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               2.2504
             ],
             "height_top_m": 3.3368
@@ -7275,12 +7305,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              43.068,
+              43.4948,
               3.2204
             ],
             "size": [
-              6.8288,
-              1.0864,
+              6.5184,
+              1.0088,
               0.2328
             ],
             "height_top_m": 3.3368
@@ -7289,13 +7319,13 @@
             "source": "grand_stair_upper_west_step_1",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              42.4084,
+              -2.4832,
+              42.8818,
               3.3329
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.4578
             ],
             "height_top_m": 3.5618
@@ -7304,13 +7334,13 @@
             "source": "grand_stair_upper_west_step_2",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              42.1756,
+              -2.4832,
+              42.6645,
               3.4454
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.6829
             ],
             "height_top_m": 3.7869
@@ -7319,13 +7349,13 @@
             "source": "grand_stair_upper_west_step_3",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.9428,
+              -2.4832,
+              42.4472,
               3.558
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.9079
             ],
             "height_top_m": 4.0119
@@ -7334,13 +7364,13 @@
             "source": "grand_stair_upper_west_step_4",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.71,
+              -2.4832,
+              42.2299,
               3.6705
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.133
             ],
             "height_top_m": 4.237
@@ -7349,13 +7379,13 @@
             "source": "grand_stair_upper_west_step_5",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.4772,
+              -2.4832,
+              42.0126,
               3.783
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.358
             ],
             "height_top_m": 4.462
@@ -7364,13 +7394,13 @@
             "source": "grand_stair_upper_west_step_6",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.2444,
+              -2.4832,
+              41.7954,
               3.8955
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.583
             ],
             "height_top_m": 4.687
@@ -7379,13 +7409,13 @@
             "source": "grand_stair_upper_west_step_7",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.0116,
+              -2.4832,
+              41.5781,
               4.008
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.8081
             ],
             "height_top_m": 4.9121
@@ -7394,13 +7424,13 @@
             "source": "grand_stair_upper_west_step_8",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              40.7788,
+              -2.4832,
+              41.3608,
               4.1206
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.0331
             ],
             "height_top_m": 5.1371
@@ -7409,13 +7439,13 @@
             "source": "grand_stair_upper_west_step_9",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              40.546,
+              -2.4832,
+              41.1435,
               4.2331
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.2582
             ],
             "height_top_m": 5.3622
@@ -7424,13 +7454,13 @@
             "source": "grand_stair_upper_west_step_10",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              40.3132,
+              -2.4832,
+              40.9262,
               4.3456
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.4832
             ],
             "height_top_m": 5.5872
@@ -7439,13 +7469,13 @@
             "source": "grand_stair_upper_east_step_1",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              42.4084,
+              2.4832,
+              42.8818,
               3.3329
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.4578
             ],
             "height_top_m": 3.5618
@@ -7454,13 +7484,13 @@
             "source": "grand_stair_upper_east_step_2",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              42.1756,
+              2.4832,
+              42.6645,
               3.4454
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.6829
             ],
             "height_top_m": 3.7869
@@ -7469,13 +7499,13 @@
             "source": "grand_stair_upper_east_step_3",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.9428,
+              2.4832,
+              42.4472,
               3.558
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.9079
             ],
             "height_top_m": 4.0119
@@ -7484,13 +7514,13 @@
             "source": "grand_stair_upper_east_step_4",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.71,
+              2.4832,
+              42.2299,
               3.6705
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.133
             ],
             "height_top_m": 4.237
@@ -7499,13 +7529,13 @@
             "source": "grand_stair_upper_east_step_5",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.4772,
+              2.4832,
+              42.0126,
               3.783
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.358
             ],
             "height_top_m": 4.462
@@ -7514,13 +7544,13 @@
             "source": "grand_stair_upper_east_step_6",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.2444,
+              2.4832,
+              41.7954,
               3.8955
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.583
             ],
             "height_top_m": 4.687
@@ -7529,13 +7559,13 @@
             "source": "grand_stair_upper_east_step_7",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.0116,
+              2.4832,
+              41.5781,
               4.008
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.8081
             ],
             "height_top_m": 4.9121
@@ -7544,13 +7574,13 @@
             "source": "grand_stair_upper_east_step_8",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              40.7788,
+              2.4832,
+              41.3608,
               4.1206
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.0331
             ],
             "height_top_m": 5.1371
@@ -7559,13 +7589,13 @@
             "source": "grand_stair_upper_east_step_9",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              40.546,
+              2.4832,
+              41.1435,
               4.2331
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.2582
             ],
             "height_top_m": 5.3622
@@ -7574,13 +7604,13 @@
             "source": "grand_stair_upper_east_step_10",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              40.3132,
+              2.4832,
+              40.9262,
               4.3456
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.4832
             ],
             "height_top_m": 5.5872
@@ -7830,56 +7860,56 @@
             "category": "interior",
             "center": [
               0.0,
-              36.7048,
-              6.0916
+              36.5496,
+              6.0528
             ],
             "size": [
-              6.8288,
+              6.5184,
               0.1552,
-              1.0088
+              0.9312
             ],
-            "height_top_m": 6.596
+            "height_top_m": 6.5184
           },
           {
             "source": "fl2_gallery_rail_west",
             "category": "interior",
             "center": [
               -3.3368,
-              38.4896,
-              6.0916
+              38.7224,
+              6.0528
             ],
             "size": [
               0.1552,
-              3.4144,
-              1.0088
+              4.1904,
+              0.9312
             ],
-            "height_top_m": 6.596
+            "height_top_m": 6.5184
           },
           {
             "source": "fl2_gallery_rail_east",
             "category": "interior",
             "center": [
               3.3368,
-              38.4896,
-              6.0916
+              38.7224,
+              6.0528
             ],
             "size": [
               0.1552,
-              3.4144,
-              1.0088
+              4.1904,
+              0.9312
             ],
-            "height_top_m": 6.596
+            "height_top_m": 6.5184
           },
           {
             "source": "courtroom_north_wall_west",
             "category": "interior",
             "center": [
-              -2.716,
+              -2.8712,
               35.4632,
               10.088
             ],
             "size": [
-              3.5696,
+              3.88,
               0.1552,
               9.0016
             ],
@@ -7889,12 +7919,12 @@
             "source": "courtroom_north_wall_east",
             "category": "interior",
             "center": [
-              2.716,
+              2.8712,
               35.4632,
               10.088
             ],
             "size": [
-              3.5696,
+              3.88,
               0.1552,
               9.0016
             ],
@@ -7904,12 +7934,12 @@
             "source": "courtroom_bar_rail_west",
             "category": "interior",
             "center": [
-              -2.4832,
+              -2.4056,
               30.846,
               6.0916
             ],
             "size": [
-              3.7248,
+              3.5696,
               0.2328,
               1.0088
             ],
@@ -7919,12 +7949,12 @@
             "source": "courtroom_bar_rail_east",
             "category": "interior",
             "center": [
-              2.4832,
+              2.4056,
               30.846,
               6.0916
             ],
             "size": [
-              3.7248,
+              3.5696,
               0.2328,
               1.0088
             ],
@@ -8006,15 +8036,30 @@
             "height_top_m": 10.088
           },
           {
-            "source": "int_wall_fl2_lib_w",
+            "source": "int_wall_fl2_lib_farw",
             "category": "interior",
             "center": [
-              -0.97,
+              -4.1904,
               44.1544,
               7.8376
             ],
             "size": [
-              0.5432,
+              1.2416,
+              0.1552,
+              4.5008
+            ],
+            "height_top_m": 10.088
+          },
+          {
+            "source": "int_wall_fl2_lib_w",
+            "category": "interior",
+            "center": [
+              -1.2028,
+              44.1544,
+              7.8376
+            ],
+            "size": [
+              1.0088,
               0.1552,
               4.5008
             ],
@@ -8024,12 +8069,12 @@
             "source": "int_wall_fl2_lib_e",
             "category": "interior",
             "center": [
-              2.5996,
+              2.7548,
               44.1544,
               7.8376
             ],
             "size": [
-              3.8024,
+              4.1128,
               0.1552,
               4.5008
             ],
@@ -8040,15 +8085,15 @@
             "category": "interior",
             "center": [
               0.0,
-              36.7048,
-              10.5924
+              36.5496,
+              10.5536
             ],
             "size": [
-              6.8288,
+              6.5184,
               0.1552,
-              1.0088
+              0.9312
             ],
-            "height_top_m": 11.0968
+            "height_top_m": 11.0192
           },
           {
             "source": "fl3_gallery_rail_west",
@@ -8056,14 +8101,14 @@
             "center": [
               -3.3368,
               39.7312,
-              10.5924
+              10.5536
             ],
             "size": [
               0.1552,
-              5.8976,
-              1.0088
+              6.208,
+              0.9312
             ],
-            "height_top_m": 11.0968
+            "height_top_m": 11.0192
           },
           {
             "source": "fl3_gallery_rail_east",
@@ -8071,29 +8116,29 @@
             "center": [
               3.3368,
               39.7312,
-              10.5924
+              10.5536
             ],
             "size": [
               0.1552,
-              5.8976,
-              1.0088
+              6.208,
+              0.9312
             ],
-            "height_top_m": 11.0968
+            "height_top_m": 11.0192
           },
           {
             "source": "fl3_gallery_rail_north",
             "category": "interior",
             "center": [
               0.0,
-              42.7576,
-              10.5924
+              42.9128,
+              10.5536
             ],
             "size": [
-              6.8288,
+              6.5184,
               0.1552,
-              1.0088
+              0.9312
             ],
-            "height_top_m": 11.0968
+            "height_top_m": 11.0192
           },
           {
             "source": "int_wall_fl3_records_n",
@@ -8159,12 +8204,12 @@
             "source": "int_wall_fl3_comm_w",
             "category": "interior",
             "center": [
-              -2.5996,
+              -2.7548,
               44.1544,
               12.3384
             ],
             "size": [
-              3.8024,
+              4.1128,
               0.1552,
               4.5008
             ],
@@ -8174,12 +8219,12 @@
             "source": "int_wall_fl3_comm_e",
             "category": "interior",
             "center": [
-              2.5996,
+              2.7548,
               44.1544,
               12.3384
             ],
             "size": [
-              3.8024,
+              4.1128,
               0.1552,
               4.5008
             ],
@@ -8191,14 +8236,14 @@
             "center": [
               18.0032,
               19.5552,
-              3.8218
+              2.9178
             ],
             "size": [
               3.4144,
               3.4144,
-              7.6436
+              5.8355
             ],
-            "height_top_m": 7.6436
+            "height_top_m": 5.8355
           },
           {
             "source": "bandstand_concrete_pad",
@@ -8560,20 +8605,20 @@
       "clock_active": true,
       "clock_time": "10:10",
       "materials": 16,
-      "visible_triangles": 13296,
-      "collision_triangles": 2028,
+      "visible_triangles": 13880,
+      "collision_triangles": 2040,
       "triangles_per_part": {
-        "structure": 3534,
-        "arched_windows_instanced": 7660,
-        "interior_floors": 68,
+        "structure": 5044,
+        "arched_windows_instanced": 6448,
+        "interior_floors": 100,
         "clock_hands_and_bell": 190,
         "lot_ground": 132,
-        "memorial": 156,
+        "memorial": 290,
         "bandstand": 288,
         "flagpole": 72,
         "lot_extras": 68,
         "benches_instanced": 576,
-        "lamps_instanced": 552
+        "lamps_instanced": 672
       },
       "footprint_building_m": [
         29.7984,
@@ -8731,7 +8776,7 @@
           "position_m": [
             0.0,
             25.996,
-            -36.0452
+            -36.2004
           ],
           "time": "10:10"
         },
@@ -8739,7 +8784,7 @@
           "position_m": [
             0.0,
             25.996,
-            -36.0052
+            -36.1604
           ],
           "time": "10:10"
         },
@@ -8747,7 +8792,7 @@
           "position_m": [
             0.0,
             25.996,
-            -43.4172
+            -43.262
           ],
           "time": "10:10"
         },
@@ -8755,13 +8800,13 @@
           "position_m": [
             0.0,
             25.996,
-            -43.4572
+            -43.302
           ],
           "time": "10:10"
         },
         "clock_hour_east": {
           "position_m": [
-            3.686,
+            3.5308,
             25.996,
             -39.7312
           ],
@@ -8769,7 +8814,7 @@
         },
         "clock_minute_east": {
           "position_m": [
-            3.726,
+            3.5708,
             25.996,
             -39.7312
           ],
@@ -8777,7 +8822,7 @@
         },
         "clock_hour_west": {
           "position_m": [
-            -3.686,
+            -3.5308,
             25.996,
             -39.7312
           ],
@@ -8785,7 +8830,7 @@
         },
         "clock_minute_west": {
           "position_m": [
-            -3.726,
+            -3.5708,
             25.996,
             -39.7312
           ],
@@ -8931,7 +8976,7 @@
         }
       ],
       "collision": {
-        "count": 169,
+        "count": 170,
         "boxes_blender_z_up": [
           {
             "source": "perimeter_granite_wall_south_-416",
@@ -9062,7 +9107,7 @@
               7.2944
             ],
             "size": [
-              3.88,
+              3.5696,
               0.4656,
               14.5888
             ],
@@ -9077,7 +9122,7 @@
               7.2944
             ],
             "size": [
-              3.88,
+              3.5696,
               0.4656,
               14.5888
             ],
@@ -9087,12 +9132,12 @@
             "source": "wall_pavilion_north_left",
             "category": "exterior",
             "center": [
-              -3.0264,
+              -2.9488,
               54.3976,
               7.2944
             ],
             "size": [
-              3.88,
+              3.7248,
               0.4656,
               14.5888
             ],
@@ -9102,12 +9147,12 @@
             "source": "wall_pavilion_north_right",
             "category": "exterior",
             "center": [
-              3.0264,
+              2.9488,
               54.3976,
               7.2944
             ],
             "size": [
-              3.88,
+              3.7248,
               0.4656,
               14.5888
             ],
@@ -9118,12 +9163,12 @@
             "category": "exterior",
             "center": [
               14.6664,
-              42.7576,
+              42.68,
               7.2944
             ],
             "size": [
               0.4656,
-              3.88,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -9133,12 +9178,12 @@
             "category": "exterior",
             "center": [
               14.6664,
-              36.7048,
+              36.7824,
               7.2944
             ],
             "size": [
               0.4656,
-              3.88,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -9148,12 +9193,12 @@
             "category": "exterior",
             "center": [
               -14.6664,
-              42.7576,
+              42.68,
               7.2944
             ],
             "size": [
               0.4656,
-              3.88,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -9163,12 +9208,12 @@
             "category": "exterior",
             "center": [
               -14.6664,
-              36.7048,
+              36.7824,
               7.2944
             ],
             "size": [
               0.4656,
-              3.88,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -9177,13 +9222,13 @@
             "source": "wall_pav_s_west",
             "category": "exterior",
             "center": [
-              -4.7336,
-              27.548,
+              -4.5784,
+              28.0136,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              5.432,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -9192,13 +9237,13 @@
             "source": "wall_pav_s_east",
             "category": "exterior",
             "center": [
-              4.7336,
-              27.548,
+              4.5784,
+              28.0136,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              5.432,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -9207,13 +9252,13 @@
             "source": "wall_pav_n_west",
             "category": "exterior",
             "center": [
-              -4.7336,
-              51.9144,
+              -4.5784,
+              51.4488,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              5.432,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -9222,13 +9267,13 @@
             "source": "wall_pav_n_east",
             "category": "exterior",
             "center": [
-              4.7336,
-              51.9144,
+              4.5784,
+              51.4488,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              5.432,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -9237,12 +9282,12 @@
             "source": "wall_pav_e_south",
             "category": "exterior",
             "center": [
-              12.1832,
-              34.9976,
+              11.7176,
+              35.1528,
               7.2944
             ],
             "size": [
-              4.5008,
+              5.432,
               0.4656,
               14.5888
             ],
@@ -9252,12 +9297,12 @@
             "source": "wall_pav_e_north",
             "category": "exterior",
             "center": [
-              12.1832,
-              44.4648,
+              11.7176,
+              44.3096,
               7.2944
             ],
             "size": [
-              4.5008,
+              5.432,
               0.4656,
               14.5888
             ],
@@ -9267,12 +9312,12 @@
             "source": "wall_pav_w_south",
             "category": "exterior",
             "center": [
-              -12.1832,
-              34.9976,
+              -11.7176,
+              35.1528,
               7.2944
             ],
             "size": [
-              4.5008,
+              5.432,
               0.4656,
               14.5888
             ],
@@ -9282,12 +9327,12 @@
             "source": "wall_pav_w_north",
             "category": "exterior",
             "center": [
-              -12.1832,
-              44.4648,
+              -11.7176,
+              44.3096,
               7.2944
             ],
             "size": [
-              4.5008,
+              5.432,
               0.4656,
               14.5888
             ],
@@ -9297,12 +9342,12 @@
             "source": "wall_corner_z_-1_-1",
             "category": "exterior",
             "center": [
-              -7.4496,
-              49.4312,
+              -6.9064,
+              48.5,
               7.2944
             ],
             "size": [
-              4.9664,
+              4.1904,
               0.4656,
               14.5888
             ],
@@ -9312,13 +9357,13 @@
             "source": "wall_corner_x_-1_-1",
             "category": "exterior",
             "center": [
-              -9.7,
-              46.948,
+              -8.7688,
+              46.4048,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -9327,12 +9372,12 @@
             "source": "wall_corner_z_-1_1",
             "category": "exterior",
             "center": [
-              -7.4496,
-              30.0312,
+              -6.9064,
+              30.9624,
               7.2944
             ],
             "size": [
-              4.9664,
+              4.1904,
               0.4656,
               14.5888
             ],
@@ -9342,13 +9387,13 @@
             "source": "wall_corner_x_-1_1",
             "category": "exterior",
             "center": [
-              -9.7,
-              32.5144,
+              -8.7688,
+              33.0576,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -9357,12 +9402,12 @@
             "source": "wall_corner_z_1_-1",
             "category": "exterior",
             "center": [
-              7.4496,
-              49.4312,
+              6.9064,
+              48.5,
               7.2944
             ],
             "size": [
-              4.9664,
+              4.1904,
               0.4656,
               14.5888
             ],
@@ -9372,13 +9417,13 @@
             "source": "wall_corner_x_1_-1",
             "category": "exterior",
             "center": [
-              9.7,
-              46.948,
+              8.7688,
+              46.4048,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -9387,12 +9432,12 @@
             "source": "wall_corner_z_1_1",
             "category": "exterior",
             "center": [
-              7.4496,
-              30.0312,
+              6.9064,
+              30.9624,
               7.2944
             ],
             "size": [
-              4.9664,
+              4.1904,
               0.4656,
               14.5888
             ],
@@ -9402,13 +9447,13 @@
             "source": "wall_corner_x_1_1",
             "category": "exterior",
             "center": [
-              9.7,
-              32.5144,
+              8.7688,
+              33.0576,
               7.2944
             ],
             "size": [
               0.4656,
-              4.5008,
+              3.7248,
               14.5888
             ],
             "height_top_m": 14.5888
@@ -9422,17 +9467,17 @@
               0.5432
             ],
             "size": [
-              9.6224,
+              8.6912,
               3.104,
               1.0864
             ],
             "height_top_m": 1.0864
           },
           {
-            "source": "main_steps_cheek_-62",
+            "source": "main_steps_cheek_-56",
             "category": "exterior",
             "center": [
-              -4.5784,
+              -4.1128,
               20.3312,
               0.6984
             ],
@@ -9444,10 +9489,10 @@
             "height_top_m": 1.3968
           },
           {
-            "source": "main_steps_cheek_56",
+            "source": "main_steps_cheek_50",
             "category": "exterior",
             "center": [
-              4.5784,
+              4.1128,
               20.3312,
               0.6984
             ],
@@ -9467,7 +9512,7 @@
               0.1552
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.3104
             ],
@@ -9482,7 +9527,7 @@
               0.2328
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.4656
             ],
@@ -9497,7 +9542,7 @@
               0.3104
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.6208
             ],
@@ -9512,7 +9557,7 @@
               0.388
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.776
             ],
@@ -9527,7 +9572,7 @@
               0.4656
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               0.9312
             ],
@@ -9542,17 +9587,17 @@
               0.5432
             ],
             "size": [
-              8.6912,
+              7.76,
               0.4656,
               1.0864
             ],
             "height_top_m": 1.0864
           },
           {
-            "source": "main_porch_column_-55",
+            "source": "main_porch_column_-46",
             "category": "exterior",
             "center": [
-              -4.268,
+              -3.5696,
               22.1936,
               3.2592
             ],
@@ -9564,10 +9609,10 @@
             "height_top_m": 6.5184
           },
           {
-            "source": "main_porch_column_55",
+            "source": "main_porch_column_46",
             "category": "exterior",
             "center": [
-              4.268,
+              3.5696,
               22.1936,
               3.2592
             ],
@@ -9812,8 +9857,8 @@
               26.3064
             ],
             "size": [
-              7.1392,
-              7.1392,
+              8.3808,
+              8.3808,
               23.4352
             ],
             "height_top_m": 38.024
@@ -9838,12 +9883,12 @@
             "category": "interior",
             "center": [
               -4.5784,
-              31.1564,
+              31.622,
               3.3368
             ],
             "size": [
               0.1552,
-              1.7848,
+              0.8536,
               4.5008
             ],
             "height_top_m": 5.5872
@@ -9852,12 +9897,12 @@
             "source": "int_wall_fl1_cross_sw",
             "category": "interior",
             "center": [
-              -7.0616,
+              -6.596,
               35.1528,
               3.3368
             ],
             "size": [
-              4.8112,
+              3.88,
               0.1552,
               4.5008
             ],
@@ -9868,12 +9913,12 @@
             "category": "interior",
             "center": [
               -4.5784,
-              48.306,
+              47.8404,
               3.3368
             ],
             "size": [
               0.1552,
-              1.7848,
+              0.8536,
               4.5008
             ],
             "height_top_m": 5.5872
@@ -9897,12 +9942,12 @@
             "source": "int_wall_fl1_cross_nw",
             "category": "interior",
             "center": [
-              -7.0616,
+              -6.596,
               44.3096,
               3.3368
             ],
             "size": [
-              4.8112,
+              3.88,
               0.1552,
               4.5008
             ],
@@ -9928,12 +9973,12 @@
             "category": "interior",
             "center": [
               4.5784,
-              31.1564,
+              31.622,
               3.3368
             ],
             "size": [
               0.1552,
-              1.7848,
+              0.8536,
               4.5008
             ],
             "height_top_m": 5.5872
@@ -9942,12 +9987,12 @@
             "source": "int_wall_fl1_cross_se",
             "category": "interior",
             "center": [
-              7.0616,
+              6.596,
               35.1528,
               3.3368
             ],
             "size": [
-              4.8112,
+              3.88,
               0.1552,
               4.5008
             ],
@@ -9958,12 +10003,12 @@
             "category": "interior",
             "center": [
               4.5784,
-              48.306,
+              47.8404,
               3.3368
             ],
             "size": [
               0.1552,
-              1.7848,
+              0.8536,
               4.5008
             ],
             "height_top_m": 5.5872
@@ -9987,12 +10032,12 @@
             "source": "int_wall_fl1_cross_ne",
             "category": "interior",
             "center": [
-              7.0616,
+              6.596,
               44.3096,
               3.3368
             ],
             "size": [
-              4.8112,
+              3.88,
               0.1552,
               4.5008
             ],
@@ -10003,12 +10048,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              40.3132,
+              40.9262,
               1.1989
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               0.225
             ],
             "height_top_m": 1.3114
@@ -10018,12 +10063,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              40.546,
+              41.1435,
               1.3114
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               0.4501
             ],
             "height_top_m": 1.5365
@@ -10033,12 +10078,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              40.7788,
+              41.3608,
               1.424
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               0.6751
             ],
             "height_top_m": 1.7615
@@ -10048,12 +10093,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.0116,
+              41.5781,
               1.5365
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               0.9002
             ],
             "height_top_m": 1.9866
@@ -10063,12 +10108,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.2444,
+              41.7954,
               1.649
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               1.1252
             ],
             "height_top_m": 2.2116
@@ -10078,12 +10123,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.4772,
+              42.0126,
               1.7615
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               1.3502
             ],
             "height_top_m": 2.4366
@@ -10093,12 +10138,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.71,
+              42.2299,
               1.874
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               1.5753
             ],
             "height_top_m": 2.6617
@@ -10108,12 +10153,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              41.9428,
+              42.4472,
               1.9866
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               1.8003
             ],
             "height_top_m": 2.8867
@@ -10123,12 +10168,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              42.1756,
+              42.6645,
               2.0991
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               2.0254
             ],
             "height_top_m": 3.1118
@@ -10138,12 +10183,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              42.4084,
+              42.8818,
               2.2116
             ],
             "size": [
-              2.4832,
-              0.2328,
+              2.1728,
+              0.2173,
               2.2504
             ],
             "height_top_m": 3.3368
@@ -10153,12 +10198,12 @@
             "category": "interior_stairs",
             "center": [
               0.0,
-              43.068,
+              43.4948,
               3.2204
             ],
             "size": [
-              6.8288,
-              1.0864,
+              6.5184,
+              1.0088,
               0.2328
             ],
             "height_top_m": 3.3368
@@ -10167,13 +10212,13 @@
             "source": "grand_stair_upper_west_step_1",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              42.4084,
+              -2.4832,
+              42.8818,
               3.3329
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.4578
             ],
             "height_top_m": 3.5618
@@ -10182,13 +10227,13 @@
             "source": "grand_stair_upper_west_step_2",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              42.1756,
+              -2.4832,
+              42.6645,
               3.4454
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.6829
             ],
             "height_top_m": 3.7869
@@ -10197,13 +10242,13 @@
             "source": "grand_stair_upper_west_step_3",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.9428,
+              -2.4832,
+              42.4472,
               3.558
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.9079
             ],
             "height_top_m": 4.0119
@@ -10212,13 +10257,13 @@
             "source": "grand_stair_upper_west_step_4",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.71,
+              -2.4832,
+              42.2299,
               3.6705
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.133
             ],
             "height_top_m": 4.237
@@ -10227,13 +10272,13 @@
             "source": "grand_stair_upper_west_step_5",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.4772,
+              -2.4832,
+              42.0126,
               3.783
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.358
             ],
             "height_top_m": 4.462
@@ -10242,13 +10287,13 @@
             "source": "grand_stair_upper_west_step_6",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.2444,
+              -2.4832,
+              41.7954,
               3.8955
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.583
             ],
             "height_top_m": 4.687
@@ -10257,13 +10302,13 @@
             "source": "grand_stair_upper_west_step_7",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              41.0116,
+              -2.4832,
+              41.5781,
               4.008
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.8081
             ],
             "height_top_m": 4.9121
@@ -10272,13 +10317,13 @@
             "source": "grand_stair_upper_west_step_8",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              40.7788,
+              -2.4832,
+              41.3608,
               4.1206
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.0331
             ],
             "height_top_m": 5.1371
@@ -10287,13 +10332,13 @@
             "source": "grand_stair_upper_west_step_9",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              40.546,
+              -2.4832,
+              41.1435,
               4.2331
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.2582
             ],
             "height_top_m": 5.3622
@@ -10302,13 +10347,13 @@
             "source": "grand_stair_upper_west_step_10",
             "category": "interior_stairs",
             "center": [
-              -2.5608,
-              40.3132,
+              -2.4832,
+              40.9262,
               4.3456
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.4832
             ],
             "height_top_m": 5.5872
@@ -10317,13 +10362,13 @@
             "source": "grand_stair_upper_east_step_1",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              42.4084,
+              2.4832,
+              42.8818,
               3.3329
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.4578
             ],
             "height_top_m": 3.5618
@@ -10332,13 +10377,13 @@
             "source": "grand_stair_upper_east_step_2",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              42.1756,
+              2.4832,
+              42.6645,
               3.4454
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.6829
             ],
             "height_top_m": 3.7869
@@ -10347,13 +10392,13 @@
             "source": "grand_stair_upper_east_step_3",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.9428,
+              2.4832,
+              42.4472,
               3.558
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               0.9079
             ],
             "height_top_m": 4.0119
@@ -10362,13 +10407,13 @@
             "source": "grand_stair_upper_east_step_4",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.71,
+              2.4832,
+              42.2299,
               3.6705
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.133
             ],
             "height_top_m": 4.237
@@ -10377,13 +10422,13 @@
             "source": "grand_stair_upper_east_step_5",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.4772,
+              2.4832,
+              42.0126,
               3.783
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.358
             ],
             "height_top_m": 4.462
@@ -10392,13 +10437,13 @@
             "source": "grand_stair_upper_east_step_6",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.2444,
+              2.4832,
+              41.7954,
               3.8955
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.583
             ],
             "height_top_m": 4.687
@@ -10407,13 +10452,13 @@
             "source": "grand_stair_upper_east_step_7",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              41.0116,
+              2.4832,
+              41.5781,
               4.008
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               1.8081
             ],
             "height_top_m": 4.9121
@@ -10422,13 +10467,13 @@
             "source": "grand_stair_upper_east_step_8",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              40.7788,
+              2.4832,
+              41.3608,
               4.1206
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.0331
             ],
             "height_top_m": 5.1371
@@ -10437,13 +10482,13 @@
             "source": "grand_stair_upper_east_step_9",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              40.546,
+              2.4832,
+              41.1435,
               4.2331
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.2582
             ],
             "height_top_m": 5.3622
@@ -10452,13 +10497,13 @@
             "source": "grand_stair_upper_east_step_10",
             "category": "interior_stairs",
             "center": [
-              2.5608,
-              40.3132,
+              2.4832,
+              40.9262,
               4.3456
             ],
             "size": [
-              1.7072,
-              0.2328,
+              1.552,
+              0.2173,
               2.4832
             ],
             "height_top_m": 5.5872
@@ -10708,56 +10753,56 @@
             "category": "interior",
             "center": [
               0.0,
-              36.7048,
-              6.0916
+              36.5496,
+              6.0528
             ],
             "size": [
-              6.8288,
+              6.5184,
               0.1552,
-              1.0088
+              0.9312
             ],
-            "height_top_m": 6.596
+            "height_top_m": 6.5184
           },
           {
             "source": "fl2_gallery_rail_west",
             "category": "interior",
             "center": [
               -3.3368,
-              38.4896,
-              6.0916
+              38.7224,
+              6.0528
             ],
             "size": [
               0.1552,
-              3.4144,
-              1.0088
+              4.1904,
+              0.9312
             ],
-            "height_top_m": 6.596
+            "height_top_m": 6.5184
           },
           {
             "source": "fl2_gallery_rail_east",
             "category": "interior",
             "center": [
               3.3368,
-              38.4896,
-              6.0916
+              38.7224,
+              6.0528
             ],
             "size": [
               0.1552,
-              3.4144,
-              1.0088
+              4.1904,
+              0.9312
             ],
-            "height_top_m": 6.596
+            "height_top_m": 6.5184
           },
           {
             "source": "courtroom_north_wall_west",
             "category": "interior",
             "center": [
-              -2.716,
+              -2.8712,
               35.4632,
               10.088
             ],
             "size": [
-              3.5696,
+              3.88,
               0.1552,
               9.0016
             ],
@@ -10767,12 +10812,12 @@
             "source": "courtroom_north_wall_east",
             "category": "interior",
             "center": [
-              2.716,
+              2.8712,
               35.4632,
               10.088
             ],
             "size": [
-              3.5696,
+              3.88,
               0.1552,
               9.0016
             ],
@@ -10782,12 +10827,12 @@
             "source": "courtroom_bar_rail_west",
             "category": "interior",
             "center": [
-              -2.4832,
+              -2.4056,
               30.846,
               6.0916
             ],
             "size": [
-              3.7248,
+              3.5696,
               0.2328,
               1.0088
             ],
@@ -10797,12 +10842,12 @@
             "source": "courtroom_bar_rail_east",
             "category": "interior",
             "center": [
-              2.4832,
+              2.4056,
               30.846,
               6.0916
             ],
             "size": [
-              3.7248,
+              3.5696,
               0.2328,
               1.0088
             ],
@@ -10884,15 +10929,30 @@
             "height_top_m": 10.088
           },
           {
-            "source": "int_wall_fl2_lib_w",
+            "source": "int_wall_fl2_lib_farw",
             "category": "interior",
             "center": [
-              -0.97,
+              -4.1904,
               44.1544,
               7.8376
             ],
             "size": [
-              0.5432,
+              1.2416,
+              0.1552,
+              4.5008
+            ],
+            "height_top_m": 10.088
+          },
+          {
+            "source": "int_wall_fl2_lib_w",
+            "category": "interior",
+            "center": [
+              -1.2028,
+              44.1544,
+              7.8376
+            ],
+            "size": [
+              1.0088,
               0.1552,
               4.5008
             ],
@@ -10902,12 +10962,12 @@
             "source": "int_wall_fl2_lib_e",
             "category": "interior",
             "center": [
-              2.5996,
+              2.7548,
               44.1544,
               7.8376
             ],
             "size": [
-              3.8024,
+              4.1128,
               0.1552,
               4.5008
             ],
@@ -10918,15 +10978,15 @@
             "category": "interior",
             "center": [
               0.0,
-              36.7048,
-              10.5924
+              36.5496,
+              10.5536
             ],
             "size": [
-              6.8288,
+              6.5184,
               0.1552,
-              1.0088
+              0.9312
             ],
-            "height_top_m": 11.0968
+            "height_top_m": 11.0192
           },
           {
             "source": "fl3_gallery_rail_west",
@@ -10934,14 +10994,14 @@
             "center": [
               -3.3368,
               39.7312,
-              10.5924
+              10.5536
             ],
             "size": [
               0.1552,
-              5.8976,
-              1.0088
+              6.208,
+              0.9312
             ],
-            "height_top_m": 11.0968
+            "height_top_m": 11.0192
           },
           {
             "source": "fl3_gallery_rail_east",
@@ -10949,29 +11009,29 @@
             "center": [
               3.3368,
               39.7312,
-              10.5924
+              10.5536
             ],
             "size": [
               0.1552,
-              5.8976,
-              1.0088
+              6.208,
+              0.9312
             ],
-            "height_top_m": 11.0968
+            "height_top_m": 11.0192
           },
           {
             "source": "fl3_gallery_rail_north",
             "category": "interior",
             "center": [
               0.0,
-              42.7576,
-              10.5924
+              42.9128,
+              10.5536
             ],
             "size": [
-              6.8288,
+              6.5184,
               0.1552,
-              1.0088
+              0.9312
             ],
-            "height_top_m": 11.0968
+            "height_top_m": 11.0192
           },
           {
             "source": "int_wall_fl3_records_n",
@@ -11037,12 +11097,12 @@
             "source": "int_wall_fl3_comm_w",
             "category": "interior",
             "center": [
-              -2.5996,
+              -2.7548,
               44.1544,
               12.3384
             ],
             "size": [
-              3.8024,
+              4.1128,
               0.1552,
               4.5008
             ],
@@ -11052,12 +11112,12 @@
             "source": "int_wall_fl3_comm_e",
             "category": "interior",
             "center": [
-              2.5996,
+              2.7548,
               44.1544,
               12.3384
             ],
             "size": [
-              3.8024,
+              4.1128,
               0.1552,
               4.5008
             ],
@@ -11069,14 +11129,14 @@
             "center": [
               18.0032,
               19.5552,
-              3.8218
+              2.9178
             ],
             "size": [
               3.4144,
               3.4144,
-              7.6436
+              5.8355
             ],
-            "height_top_m": 7.6436
+            "height_top_m": 5.8355
           },
           {
             "source": "octagonal_bandstand",
