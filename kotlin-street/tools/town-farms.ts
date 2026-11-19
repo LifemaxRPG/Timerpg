@@ -15,6 +15,10 @@
 import { runTimeline, worldAt } from '../../src/sim';
 import { cropIn, fieldLives, planFarms, roadRect, RING, type Developed, type FarmField } from '../../src/town/farms';
 import { layoutTown } from '../../src/town/layout';
+import { townRail } from '../../src/town/rail';
+import { railSite } from '../../src/world/rail';
+import { yardRectsOf } from './export-rail';
+import { WORLD } from './town-config';
 import type { Rect } from '../../src/town/plan';
 import { SCALE, type TownGraph } from './town-graph';
 
@@ -68,8 +72,8 @@ export function withFarms(g: TownGraph, json: TownGraph['json'] = g.json): TownG
   // a field the export year's yards reach into (a parcel widened between groups) is not farmed that year either
   const parcels: R4[] = [...(graph.yards ?? []).map((y) => y.parcel), ...(graph.lanes ?? []).map((l) => l.rect)];
   const hitR = (a: R4, b: R4): boolean => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
-  const fieldJson = (f: FarmField): FarmsJson['fields'][number] | null => {
-    const life = lives.get(f.id);
+  const fieldJson = (f: FarmField, base = f.id): FarmsJson['fields'][number] | null => {
+    const life = lives.get(base);
     if (!life) return null;
     const rect = wr(f);
     // (a field a yard reaches into in the export year is someone's garden by then: sold that year at the latest)
@@ -82,7 +86,28 @@ export function withFarms(g: TownGraph, json: TownGraph['json'] = g.json): TownG
       ...(sold !== undefined ? { sold } : {}), ...(becomes ? { becomes } : {}),
     };
   };
-  const fields = fp.fields.map(fieldJson).filter((f): f is NonNullable<typeof f> => !!f);
+  // the railroad (the app's town: tools/export-rail.ts, the same track as rail.json) splits the fields it runs through: the
+  // pieces either side, each fenced with its own gate (the field's own where it is on the piece, else facing the yard)
+  const rail = g.seed === WORLD.home ? townRail(WORLD, railSite(WORLD, 0, 0), plan, yardRectsOf(graph as Parameters<typeof yardRectsOf>[0])) : null;
+  const cuts = new Map((rail?.fieldCuts ?? []).map((c) => [c.field, c.pieces]));
+  const yardOf = new Map(fp.farms.map((f) => [f.id, f.rect]));
+  const pieceOf = (f: FarmField, q: Rect, i: number): FarmField => {
+    const onEdge = (f.gate.side === 'N' && f.gate.y === q.y) || (f.gate.side === 'S' && f.gate.y === q.y + q.h) || (f.gate.side === 'W' && f.gate.x === q.x) || (f.gate.side === 'E' && f.gate.x === q.x + q.w);
+    const along = f.gate.side === 'N' || f.gate.side === 'S' ? f.gate.x > q.x + 2 && f.gate.x < q.x + q.w - 2 : f.gate.y > q.y + 2 && f.gate.y < q.y + q.h - 2;
+    let gate = f.gate;
+    if (!(onEdge && along)) {
+      const y = yardOf.get(f.farm) ?? f;
+      const ddx = y.x + y.w / 2 - (q.x + q.w / 2), ddy = y.y + y.h / 2 - (q.y + q.h / 2);
+      const side = Math.abs(ddx) / q.w > Math.abs(ddy) / q.h ? (ddx > 0 ? 'E' : 'W') : ddy > 0 ? 'S' : 'N';
+      gate = { side, x: side === 'E' ? q.x + q.w : side === 'W' ? q.x : q.x + q.w / 2, y: side === 'S' ? q.y + q.h : side === 'N' ? q.y : q.y + q.h / 2 };
+    }
+    return { ...f, ...q, id: `${f.id}~${i}`, rowsX: f.rowsX, gate };
+  };
+  const fields = fp.fields.flatMap((f) => {
+    const pieces = cuts.get(f.id);
+    if (!pieces) return [fieldJson(f)];
+    return pieces.map((q, i) => fieldJson(pieceOf(f, q, i), f.id));
+  }).filter((f): f is NonNullable<typeof f> => !!f);
   const roads = now.roads.map((r) => ({
     id: r.id, kind: r.kind, pts: [wp(r.inner ?? r.a), wp(r.b)], width: COUNTRY_ROAD.asphalt, verge: COUNTRY_ROAD.verge,
   }));
@@ -105,6 +130,8 @@ export function withFarms(g: TownGraph, json: TownGraph['json'] = g.json): TownG
   // props: none in a field farmed this year, a yard, a lane, on a country road or in the river past the map; the windbreaks join
   const clear: R4[] = [
     ...fields.filter((f) => f.from <= year && (f.sold === undefined || f.sold > year)).map((f) => f.rect),
+    // (the ground between a split field's pieces and the track stays open: the forest was cleared for the whole field)
+    ...fp.fields.filter((f) => { const l = lives.get(f.id); return cuts.has(f.id) && !!l && l.from <= year && (l.sold === undefined || l.sold > year); }).map(wr),
     ...farms.map((f) => f.rect),
     ...now.roads.map((r) => wr(roadRect({ a: r.inner ?? r.a, b: r.b }, 2 + 2 * COUNTRY_ROAD.verge / SCALE + 1))),
     ...fp.water.map(wr),

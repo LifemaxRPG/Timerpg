@@ -752,6 +752,9 @@ and built over (a field farmed in 1955 is houses by 2025).
   landmarks, roads and the river, no forest left in fields or yards or on roads, windbreaks, bridges, lives); desktop
   `FarmWalkTest` (fences solid, all 50 gates walked through into their fields, buildings solid, doors clear, roads and
   lanes walkable, the calendar); OpenWalkTest re-pinned (16 parapets).
+- The railroad (RAIL.md "Through the farmland", merged after): the track runs out through the farmland, round the farmsteads,
+  over the country roads square (they are its roads out of town: the main street's old road out is gone), and splits the
+  few fields it must cross; the export ships the pieces (`<id>~<n>`, each fenced with a gate): gamma 58 fields (8 cut).
 - Not yet: the town's trees have no seasons, so a snowy field sits among summer trees; farm people (the families are
   flagged rural households, nobody walks there); animals; barn and farmhouse interiors (doors have no rooms); fields are
   axis-aligned rectangles (no contour ploughing); the farmyard's dirt has hard edges; the vegetable cards are busy up

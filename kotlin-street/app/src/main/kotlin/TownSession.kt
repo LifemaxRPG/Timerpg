@@ -39,6 +39,8 @@ class TownData(
     /** The farms round the town (graph.farms) and the farm pack's pictures and models (assets/farm), drawn by TownFarms. */
     val farms: com.lifemax.rpg.feature.habits.domain.TownFarmsData = com.lifemax.rpg.feature.habits.domain.TownFarmsData.NONE,
     val farmArt: com.lifemax.rpg.feature.habits.presentation.scene3d.FarmArt? = null,
+    /** The railroad round the town (rail.json: docs/RAIL.md), or null for a town without one. */
+    val rail: com.lifemax.rpg.feature.habits.domain.RailNet? = null,
 )
 
 /**
@@ -177,6 +179,10 @@ object TownSession {
         } catch (e: Exception) { null }
         val art = TownArt { path -> img("town/art/$path") }
         val building: (String) -> SpriteBuilding? = { sp -> SpriteBuildingLoad.load(sp, mids[sp] ?: 0, windows, houses, models) { img("$dir/buildings/$it.png") } }
+        // the railroad (its track's bed kept clear of the forest before the collision and the ground are made)
+        val rail = try { ctx.assets.open("$dir/rail.json").bufferedReader().use { it.readText() }.let { com.lifemax.rpg.feature.habits.domain.RailNet.parse(it) } } catch (e: Exception) { null }
+        rail?.let { r -> town.keepClear = com.lifemax.rpg.feature.habits.domain.RailScene(r, town.year)::onBed
+            com.timerpg.street.shot.Crumbs.add("rail: ${r.links.size} links, ${r.towns.size} towns, station ${r.status("0,0", town.year)}") }
         // the open world's solid shapes (built here, on the load's thread: a few hundred ms on a computer)
         val c0 = System.nanoTime()
         val collision = try {
@@ -195,6 +201,6 @@ object TownSession {
         if (!farms.isEmpty) com.timerpg.street.shot.Crumbs.add("town farms: ${farms.farms.size} farms, ${farms.fields.size} fields, ${farms.roads.size} roads")
         return TownData(seed, town, yards, art, building, names, root.optString("type"), dir,
             com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite.parse(root), collision,
-            com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root), farms, farmArt)
+            com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root), farms, farmArt, rail)
     }
 }

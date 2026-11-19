@@ -97,7 +97,8 @@ fun renderFilamentTown(out: String) {
         val farmDir = File("../app/src/main/assets/farm")
         val farmArt = com.lifemax.rpg.feature.habits.presentation.scene3d.FarmArt({ p -> open(File(farmDir, p)) }, { p -> File(farmDir, p).takeIf { it.exists() }?.readText() }, { p -> open(File(assets, p)) })
         coldStart(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, report, dir, 2340, 1080, cinema, storeSites,
-            com.lifemax.rpg.feature.habits.domain.TownFarmsData.parse(root), farmArt)
+            com.lifemax.rpg.feature.habits.domain.TownFarmsData.parse(root), farmArt,
+            File(townDir, "rail.json").takeIf { it.exists() }?.let { com.lifemax.rpg.feature.habits.domain.RailNet.parse(it.readText()) })
     }
     // (the memory check: the cold start alone)
     if (System.getProperty("coldOnly") != null) { File(dir, "town.txt").writeText(report.toString()); return }
@@ -508,9 +509,12 @@ private fun coldStart(
     stores: List<com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite> = emptyList(),
     farms: com.lifemax.rpg.feature.habits.domain.TownFarmsData = com.lifemax.rpg.feature.habits.domain.TownFarmsData.NONE,
     farmArt: com.lifemax.rpg.feature.habits.presentation.scene3d.FarmArt? = null,
+    rail: com.lifemax.rpg.feature.habits.domain.RailNet? = null,
 ) {
     val t0 = System.nanoTime()
-    val ft = FilamentTown(engine, mats, town, yards, art, building, cinema = cinema, stores = stores)
+    // (the railroad, as the app adds it: its bed kept clear of the forest before the ground is made)
+    rail?.let { r -> town.keepClear = com.lifemax.rpg.feature.habits.domain.RailScene(r, town.year)::onBed }
+    val ft = FilamentTown(engine, mats, town, yards, art, building, cinema = cinema, stores = stores, rail = rail)
     // (the farms round the town, as the app adds them)
     val farmDraw = farmArt?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownFarms.attach(ft, farms, it, null) }
     GameState.enabled = true; GameState.look = 1

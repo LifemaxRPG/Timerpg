@@ -362,6 +362,15 @@ fun main(args: Array<String>) {
             kotlin.system.exitProcess(1)
         }
     }
+    if (mode == "filament-rail") {
+        // the railroad: track, crossing, depot and trains of each era in the town, the ride, the network (FilamentRailPreview.kt)
+        val k = runCatching { Class.forName("FilamentRailPreviewKt") }.getOrNull()
+            ?: error("Filament is not built in: run tools/build-filament.sh (or pass -Pfilament.dist=DIR)")
+        try { k.getMethod("renderFilamentRail", String::class.java).invoke(null, out); kotlin.system.exitProcess(0) } catch (t: Throwable) {
+            (if (t is java.lang.reflect.InvocationTargetException) t.targetException else t).printStackTrace()
+            kotlin.system.exitProcess(1)
+        }
+    }
     if (mode == "filament-landmarks") {
         // the hand-made landmark models (.glb) built for the town (FilamentLandmarksPreview.kt; Filament's desktop build needed)
         val k = runCatching { Class.forName("FilamentLandmarksPreviewKt") }.getOrNull() ?: error("Filament is not built in: run tools/build-filament.sh")
