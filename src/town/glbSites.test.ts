@@ -96,6 +96,38 @@ describe('hand-made landmark models in the towns', () => {
     if (mu && glbTenures('mu').some((t) => t.kind === 'landmark_glb_pulse_nightclub')) expect(mu.tenures.map((t) => t.kind)).toContain('landmark_glb_pulse_nightclub');
   }, 60000);
 
+  it('keep the works and The Foundry on one plot, in order', () => {
+    let seen = 0;
+    for (const seed of [...SEEDS, 'theta', 'kappa', 'beta']) {
+      const ts = glbTenures(seed);
+      const works = ts.find((t) => t.kind === 'landmark_glb_foundry_factory');
+      const club = ts.find((t) => t.kind === 'landmark_glb_foundry_nightclub');
+      // no Foundry without its works
+      if (club) expect(works, seed).toBeDefined();
+      if (!works) continue;
+      // opens 1900-45, shuts 1970-2005, stands dark at least five years, then the club 2010-29 (or it stays shut)
+      expect(works.opened).toBeGreaterThanOrEqual(1900); expect(works.opened).toBeLessThanOrEqual(1945);
+      expect(works.closed!).toBeGreaterThanOrEqual(1970); expect(works.closed!).toBeLessThanOrEqual(2005);
+      expect(works.variant).toBeGreaterThanOrEqual(0);
+      if (club) {
+        seen++;
+        expect(club.opened - works.closed!).toBeGreaterThanOrEqual(5);
+        expect(club.opened).toBeGreaterThanOrEqual(2010);
+        expect(works.gone).toBe(club.opened);
+        if (SEEDS.includes(seed)) {
+          const site = town(seed).sites.find((s) => s.tenures.includes(works) || s.tenures.some((t) => t.kind === works.kind));
+          expect(site?.tenures.map((t) => t.kind), seed).toEqual(['landmark_glb_foundry_factory', 'landmark_glb_foundry_nightclub']);
+          for (let y = works.opened; y <= 2025; y++) {
+            const st = glbStandingOn(site!, y)!;
+            expect(st.tenure.kind, `${seed} ${y}`).toBe(y < club.opened ? 'landmark_glb_foundry_factory' : 'landmark_glb_foundry_nightclub');
+            if (y >= works.closed! && y < club.opened) expect(st.state).toBe('closed');
+          }
+        }
+      } else expect(works.gone).toBeUndefined();
+    }
+    expect(seen).toBeGreaterThan(0);
+  }, 60000);
+
   it('put the hand-made depot on its track in a town of 3,000 and more', () => {
     // (gamma's own, laid round the 3D town's yards, is checked on the shipped rail.json: tools/town-glb.test.ts)
     expect(SEEDS.filter((seed) => town(seed).rail.depot?.premier).length).toBeGreaterThanOrEqual(2);

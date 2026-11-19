@@ -20,12 +20,13 @@ export type GlbLandmarkKind =
   | 'landmark_glb_roadside_motel'
   | 'landmark_glb_premier_railroad_depot'
   | 'landmark_glb_coin_laundromat'
-  | 'landmark_glb_foundry_nightclub';
+  | 'landmark_glb_foundry_nightclub'
+  | 'landmark_glb_foundry_factory';
 
 export interface GlbLandmarkSpec {
   name: string;
   /** The business it houses. */
-  role: 'gas_station' | 'diner' | 'bowling' | 'newspaper' | 'feed_mill' | 'nightclub' | 'drive_in' | 'water_tower' | 'motel' | 'railroad_depot' | 'laundromat';
+  role: 'gas_station' | 'diner' | 'bowling' | 'newspaper' | 'feed_mill' | 'nightclub' | 'drive_in' | 'water_tower' | 'motel' | 'railroad_depot' | 'laundromat' | 'factory';
   /** The design's years: built from..to (it may stand long after, as the simulation decides), and its sample year. */
   era: { from: number; to: number; built: number };
   /** The lot, metres: width along the street, depth back from it; the building's walls. */
@@ -63,6 +64,9 @@ export const GLB_LANDMARKS: Record<GlbLandmarkKind, GlbLandmarkSpec> = {
   landmark_glb_coin_laundromat: { name: 'Suds & Spin Coin Laundry', role: 'laundromat', era: { from: 1960, to: 1975, built: 1964 }, lot: [18.62, 21.11], building: [9.93, 11.17] },
   // a 2010s-20s club in an old sawtooth-roofed factory, with a courtyard behind a street gantry
   landmark_glb_foundry_nightclub: { name: 'The Foundry', role: 'nightclub', era: { from: 2010, to: 2029, built: 2018 }, lot: [28.56, 29.8], building: [19.87, 18.0] },
+  // the works The Foundry was made from, in its working years: a tin sawtooth roof, a tall brick chimney, the gate gantry;
+  // its name painted on the brick in four variants (glbSites.ts FACTORY_NAMES; opens 1900-45, on the club's plot)
+  landmark_glb_foundry_factory: { name: 'Hargrove Iron Works', role: 'factory', era: { from: 1900, to: 1945, built: 1938 }, lot: [28.56, 29.8], building: [19.87, 18.0] },
 };
 export const GLB_LANDMARK_KINDS = Object.keys(GLB_LANDMARKS) as GlbLandmarkKind[];
 

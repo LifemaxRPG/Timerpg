@@ -49,7 +49,12 @@ data class LandmarkSpec(
     val hidden: Set<String> = emptySet(),
     /** What its see-through glass shows of the room: "shelves" (a shop's goods) or "hall" (a lit wall, a counter, lamps). */
     val room: String = "shelves",
+    /** The model's painted variants (the same model, another name on it: the works'), files as [file]; empty: [file] only. */
+    val variants: List<String> = emptyList(),
 ) {
+    /** The file of variant [v] (the town's pick: street.json's glbLandmarks `variant`). */
+    fun fileOf(v: Int): String = if (variants.isEmpty()) file else variants[Math.floorMod(v, variants.size)]
+
     /** The lot in street units. */
     val width: Float get() = lotW * LandmarkKit.UNITS_PER_METRE
     val depth: Float get() = lotD * LandmarkKit.UNITS_PER_METRE
@@ -71,7 +76,8 @@ data class LandmarkSpec(
                 val hid = o.optJSONArray("hidden")?.let { h -> (0 until h.length()).map { h.getString(it) }.toSet() } ?: emptySet()
                 LandmarkSpec(o.getString("kind"), o.getString("name"), o.getString("file"), o.optString("info").ifBlank { null }, o.getString("role"),
                     era.getInt("from"), era.getInt("to"), era.optInt("built", era.getInt("from")), lw, ld, bw, bd, o.optString("lot", "lot"), sw,
-                    o.optJSONObject("price")?.let { PriceBoard.parse(it) }, hid, o.optString("room", "shelves"))
+                    o.optJSONObject("price")?.let { PriceBoard.parse(it) }, hid, o.optString("room", "shelves"),
+                    o.optJSONArray("variants")?.let { v -> (0 until v.length()).map { v.getString(it) } } ?: emptyList())
             }
         }
     }

@@ -1,0 +1,191 @@
+{
+  "front_left": {
+    "sheet": "glass_factory.png",
+    "rect_art": [
+      0,
+      0,
+      72,
+      32
+    ]
+  },
+  "front_right": {
+    "sheet": "glass_factory.png",
+    "rect_art": [
+      74,
+      0,
+      72,
+      32
+    ]
+  },
+  "entry": {
+    "sheet": "glass_factory.png",
+    "rect_art": [
+      148,
+      0,
+      32,
+      36
+    ]
+  },
+  "transom": {
+    "sheet": "glass_factory.png",
+    "rect_art": [
+      182,
+      0,
+      32,
+      12
+    ]
+  },
+  "clerestory": {
+    "sheet": "glass_factory.png",
+    "rect_art": [
+      0,
+      36,
+      128,
+      16
+    ]
+  },
+  "side_win": {
+    "sheet": "glass_factory.png",
+    "rect_art": [
+      130,
+      36,
+      48,
+      32
+    ]
+  },
+  "slag_shield": {
+    "sheet": "glass_factory.png",
+    "rect_art": [
+      180,
+      36,
+      48,
+      16
+    ]
+  },
+  "mezz_rail": {
+    "sheet": "glass_factory.png",
+    "rect_art": [
+      0,
+      72,
+      64,
+      14
+    ]
+  },
+  "shop_win": {
+    "sheet": "glass_factory.png",
+    "rect_art": [
+      66,
+      72,
+      48,
+      24
+    ]
+  },
+  "ghost_left": {
+    "sheet": "factory_glow.png",
+    "rect_art": [
+      0,
+      0,
+      72,
+      10
+    ]
+  },
+  "ghost_right": {
+    "sheet": "factory_glow.png",
+    "rect_art": [
+      0,
+      20,
+      72,
+      10
+    ]
+  },
+  "gate_board": {
+    "sheet": "factory_glow.png",
+    "rect_art": [
+      114,
+      0,
+      64,
+      12
+    ]
+  },
+  "stencil": {
+    "sheet": "factory_glow.png",
+    "rect_art": [
+      180,
+      0,
+      48,
+      10
+    ]
+  },
+  "lamp": {
+    "sheet": "factory_glow.png",
+    "rect_art": [
+      232,
+      0,
+      16,
+      4
+    ]
+  },
+  "casting_pit": {
+    "sheet": "factory_glow.png",
+    "rect_art": [
+      0,
+      56,
+      96,
+      64
+    ]
+  },
+  "furnace_wall": {
+    "sheet": "factory_glow.png",
+    "rect_art": [
+      100,
+      56,
+      128,
+      40
+    ]
+  },
+  "tool_wall": {
+    "sheet": "factory_glow.png",
+    "rect_art": [
+      100,
+      100,
+      96,
+      24
+    ]
+  },
+  "iron_plate": {
+    "sheet": "utility_factory.png",
+    "rect_art": [
+      0,
+      0,
+      64,
+      64
+    ]
+  },
+  "coal_slag": {
+    "sheet": "utility_factory.png",
+    "rect_art": [
+      64,
+      0,
+      64,
+      64
+    ]
+  },
+  "crate_wood": {
+    "sheet": "utility_factory.png",
+    "rect_art": [
+      0,
+      64,
+      64,
+      64
+    ]
+  },
+  "hazard_yellow": {
+    "sheet": "utility_factory.png",
+    "rect_art": [
+      64,
+      64,
+      64,
+      64
+    ]
+  }
+}

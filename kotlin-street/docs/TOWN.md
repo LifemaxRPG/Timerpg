@@ -857,3 +857,7 @@ Desktop renders and JVM tests only, NOT yet run on the S25. Details: docs/LANDMA
   code-built depot left out then), with collision, doors, night lights (dark when shut), the cutaway and the open-world
   camera's cut; drawn whole to 12,000 units past their reach instead of a far box. The open preview draws the railroad and
   has `glb_*` shots.
+
+- (branch wf-foundry) The Foundry is now one building through time: a works (four painted company names, a tall chimney,
+  hardly any signs) opens 1900-45, shuts 1970-2005 and stands dark, then becomes the club 2010-29 on the same plot; gamma:
+  Pelham Foundry & Machine Co. 1909-1980, The Foundry 2022 (LANDMARKS_GLB.md "The works before The Foundry").

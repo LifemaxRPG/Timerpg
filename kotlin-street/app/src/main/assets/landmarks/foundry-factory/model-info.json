@@ -1,0 +1,562 @@
+{
+  "name": "The Foundry Ironworks",
+  "kind": "landmark_glb_foundry_factory",
+  "role": "factory",
+  "room": "hall",
+  "era": {
+    "from": 1924,
+    "to": 2015,
+    "built": 1938
+  },
+  "glb": "foundry-factory.glb",
+  "texel_size_m": 0.0388,
+  "art_pixel_m": 0.0776,
+  "footprint_m": {
+    "lot_width": 28.5568,
+    "lot_depth": 29.7984,
+    "building_width": 19.8656,
+    "building_depth": 18.0032,
+    "max_height": 15.9856
+  },
+  "triangles": {
+    "visible": 2612,
+    "collision": 324,
+    "by_node": {
+      "structure": 1760,
+      "lot": 56,
+      "yard_gantry": 142,
+      "foundry_yard": 360,
+      "service_yard": 294,
+      "collision": 324
+    }
+  },
+  "doors": {
+    "door_main": {
+      "translation_gltf": [
+        0.0,
+        0.0,
+        0.1552
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    },
+    "door_back": {
+      "translation_gltf": [
+        4.0352,
+        0.0,
+        -18.1584
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ]
+    },
+    "door_side": {
+      "translation_gltf": [
+        -10.088,
+        0.0,
+        -7.76
+      ],
+      "outward": [
+        -1,
+        0,
+        0
+      ]
+    }
+  },
+  "materials": [
+    {
+      "name": "wall_brick",
+      "file": "brick_red.png",
+      "size": [
+        60,
+        48
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    },
+    {
+      "name": "wall_stone",
+      "file": "wall_slate_dark.png",
+      "size": [
+        32,
+        32
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    },
+    {
+      "name": "wall_block",
+      "file": "block_courses.png",
+      "size": [
+        48,
+        48
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    },
+    {
+      "name": "roof_corrugated",
+      "file": "roof_tin_brown.png",
+      "size": [
+        32,
+        32
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    },
+    {
+      "name": "wood_timber",
+      "file": "plank_horizontal.png",
+      "size": [
+        32,
+        32
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    },
+    {
+      "name": "ground_yard",
+      "file": "asphalt_brown.png",
+      "size": [
+        32,
+        32
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    },
+    {
+      "name": "ground_concrete",
+      "file": "pavement.png",
+      "size": [
+        32,
+        32
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    },
+    {
+      "name": "wall_iron",
+      "file": "riveted_iron.png",
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    },
+    {
+      "name": "wall_trim",
+      "file": "concrete_aged.png",
+      "size": [
+        128,
+        128
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    },
+    {
+      "name": "glass_factory",
+      "file": "glass_factory.png",
+      "size": [
+        512,
+        256
+      ],
+      "alpha": "BLEND",
+      "emissive": false
+    },
+    {
+      "name": "glow_furnace",
+      "file": "factory_glow.png",
+      "size": [
+        512,
+        256
+      ],
+      "alpha": "OPAQUE",
+      "emissive": true
+    },
+    {
+      "name": "detail_utility",
+      "file": "utility_factory.png",
+      "size": [
+        256,
+        256
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    },
+    {
+      "name": "detail_hall",
+      "file": "factory_glow.png",
+      "size": [
+        512,
+        256
+      ],
+      "alpha": "OPAQUE",
+      "emissive": false
+    }
+  ],
+  "collision": {
+    "coordinate_note": "Blender Z-up convention (x, y_blender=-z_gltf, z_blender=y_gltf)",
+    "boxes_blender_z_up": [
+      {
+        "source": "brick_smokestack_tower",
+        "center": [
+          -9.2344,
+          0.9312,
+          7.9928
+        ],
+        "size": [
+          2.4832,
+          2.6384,
+          15.6752
+        ]
+      },
+      {
+        "source": "front_wall_west",
+        "center": [
+          -4.656,
+          0.1552,
+          2.2504
+        ],
+        "size": [
+          6.8288,
+          0.3104,
+          4.1904
+        ]
+      },
+      {
+        "source": "front_wall_east",
+        "center": [
+          5.5872,
+          0.1552,
+          2.2504
+        ],
+        "size": [
+          8.6912,
+          0.3104,
+          4.1904
+        ]
+      },
+      {
+        "source": "door_main_gate",
+        "center": [
+          0.0,
+          0.0776,
+          1.552
+        ],
+        "size": [
+          2.4832,
+          0.1552,
+          2.7936
+        ],
+        "gate_node": "door_main"
+      },
+      {
+        "source": "west_wall_front",
+        "center": [
+          -9.7776,
+          4.5008,
+          2.2504
+        ],
+        "size": [
+          0.3104,
+          4.656,
+          4.1904
+        ]
+      },
+      {
+        "source": "door_side_gate",
+        "center": [
+          -9.7776,
+          7.76,
+          1.3968
+        ],
+        "size": [
+          0.3104,
+          1.8624,
+          2.4832
+        ],
+        "gate_node": "door_side"
+      },
+      {
+        "source": "west_wall_rear",
+        "center": [
+          -9.7776,
+          13.3472,
+          2.2504
+        ],
+        "size": [
+          0.3104,
+          9.312,
+          4.1904
+        ]
+      },
+      {
+        "source": "east_wall",
+        "center": [
+          9.7776,
+          9.1568,
+          2.2504
+        ],
+        "size": [
+          0.3104,
+          17.6928,
+          4.1904
+        ]
+      },
+      {
+        "source": "rear_wall_west",
+        "center": [
+          -3.2592,
+          17.848,
+          2.2504
+        ],
+        "size": [
+          12.7264,
+          0.3104,
+          4.1904
+        ]
+      },
+      {
+        "source": "door_back_gate",
+        "center": [
+          4.0352,
+          17.848,
+          1.3968
+        ],
+        "size": [
+          1.8624,
+          0.3104,
+          2.4832
+        ],
+        "gate_node": "door_back"
+      },
+      {
+        "source": "rear_wall_east",
+        "center": [
+          7.2944,
+          17.848,
+          2.2504
+        ],
+        "size": [
+          4.656,
+          0.3104,
+          4.1904
+        ]
+      },
+      {
+        "source": "gantry_pier_west",
+        "center": [
+          -4.3456,
+          -4.1904,
+          2.0176
+        ],
+        "size": [
+          1.2416,
+          0.9312,
+          3.7248
+        ]
+      },
+      {
+        "source": "gantry_pier_east",
+        "center": [
+          4.3456,
+          -4.1904,
+          2.0176
+        ],
+        "size": [
+          1.2416,
+          0.9312,
+          3.7248
+        ]
+      },
+      {
+        "source": "yard_wall_west",
+        "center": [
+          -9.7,
+          -2.328,
+          1.0088
+        ],
+        "size": [
+          0.4656,
+          4.0352,
+          1.7072
+        ]
+      },
+      {
+        "source": "yard_wall_front_west",
+        "center": [
+          -7.4496,
+          -4.1128,
+          1.0088
+        ],
+        "size": [
+          4.9664,
+          0.4656,
+          1.7072
+        ]
+      },
+      {
+        "source": "yard_wall_east",
+        "center": [
+          9.7,
+          -2.1728,
+          1.0088
+        ],
+        "size": [
+          0.4656,
+          4.3456,
+          1.7072
+        ]
+      },
+      {
+        "source": "yard_wall_front_east",
+        "center": [
+          7.4496,
+          -4.1128,
+          1.0088
+        ],
+        "size": [
+          4.9664,
+          0.4656,
+          1.7072
+        ]
+      },
+      {
+        "source": "weigh_booth_counter",
+        "center": [
+          8.5748,
+          -2.0952,
+          0.6984
+        ],
+        "size": [
+          1.6296,
+          2.4832,
+          1.0864
+        ]
+      },
+      {
+        "source": "west_yard_crate_stacks",
+        "center": [
+          -6.7512,
+          -2.1728,
+          1.0864
+        ],
+        "size": [
+          3.88,
+          2.1728,
+          1.552
+        ]
+      },
+      {
+        "source": "rear_loading_dock",
+        "center": [
+          -4.8112,
+          19.3224,
+          0.4656
+        ],
+        "size": [
+          7.76,
+          2.6384,
+          0.6208
+        ]
+      },
+      {
+        "source": "rear_exhaust_stacks",
+        "center": [
+          7.76,
+          18.5464,
+          2.2116
+        ],
+        "size": [
+          2.7936,
+          1.0864,
+          4.1128
+        ]
+      },
+      {
+        "source": "east_coal_bunker",
+        "center": [
+          11.9504,
+          14.6664,
+          0.8148
+        ],
+        "size": [
+          3.104,
+          4.8112,
+          1.3192
+        ]
+      },
+      {
+        "source": "center_molten_crucible_pit",
+        "center": [
+          0.0,
+          8.0704,
+          0.8924
+        ],
+        "size": [
+          3.7248,
+          1.8624,
+          1.4744
+        ]
+      },
+      {
+        "source": "east_machinist_bench",
+        "center": [
+          8.2256,
+          8.0704,
+          0.7372
+        ],
+        "size": [
+          2.7936,
+          8.3808,
+          1.164
+        ]
+      },
+      {
+        "source": "rear_quench_tank_west",
+        "center": [
+          -7.5272,
+          16.9168,
+          0.776
+        ],
+        "size": [
+          2.9488,
+          1.552,
+          1.2416
+        ]
+      },
+      {
+        "source": "rear_quench_tank_east",
+        "center": [
+          7.5272,
+          16.9168,
+          0.776
+        ],
+        "size": [
+          2.9488,
+          1.552,
+          1.2416
+        ]
+      },
+      {
+        "source": "west_casting_benches",
+        "center": [
+          -8.6136,
+          6.9064,
+          0.8536
+        ],
+        "size": [
+          2.0176,
+          7.2944,
+          1.3968
+        ]
+      }
+    ]
+  }
+}

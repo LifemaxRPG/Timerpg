@@ -76,7 +76,13 @@ fun renderFilamentOpen(out: String) {
     val lmDir = File("../app/src/main/assets/landmarks")
     val landmarkAssets = com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkAssets(
         com.lifemax.rpg.feature.habits.presentation.scene3d.LandmarkSpec.catalogue(File(lmDir, "landmarks.json").readText()),
-        { p -> File(lmDir, p).takeIf { it.exists() }?.readBytes() }, com.lifemax.rpg.feature.habits.domain.GlbLandmarks.parse(root))
+        // (-DglbFile=PATH reads every model's .glb from PATH instead: an older export to compare)
+        { p -> System.getProperty("glbFile")?.takeIf { p.contains("foundry-factory") }?.let { File(it).readBytes() } ?: File(lmDir, p).takeIf { it.exists() }?.readBytes() },
+        com.lifemax.rpg.feature.habits.domain.GlbLandmarks.parse(root).map { p ->
+            // (-DglbAs=SPRITE:KIND:STATE:VARIANT stands another model, in another state, in a slot: a year the export is not)
+            val o = System.getProperty("glbAs")?.split(":")?.takeIf { it.size == 4 && it[0] == p.sprite }
+            if (o == null) p else com.lifemax.rpg.feature.habits.domain.GlbPlaced(p.sprite, p.row, o[1], p.name, o[2], emptySet(), p.opened, o[3].toInt())
+        })
     val collision = com.lifemax.rpg.feature.habits.domain.TownCollision.build(town, yards,
         com.lifemax.rpg.feature.habits.domain.ModelShape.parseAll(File(bdir, "models.json").takeIf { it.exists() }?.readText()),
         com.lifemax.rpg.feature.habits.domain.CinemaSiteShape.parse(root), com.lifemax.rpg.feature.habits.domain.StoreLots.parse(root).map { it.sprite }.toSet())
@@ -300,7 +306,7 @@ fun renderFilamentOpen(out: String) {
         val zf = lot[3]; val zb = lot[1]; val xm = (lot[0] + lot[2]) / 2f
         fun at(x: Float, z: Float) = floatArrayOf(ox + xx * x + zx * z, oz + xz * x + zz * z)
         val fwd = heading(-zx, -zz); val back = heading(zx, zz)
-        val n = "glb_$kind"
+        val n = "glb_$kind${System.getProperty("glbTag") ?: ""}"
         val pf = at(xm, zf + 90f); val pb = at(xm, zb - 90f)
         view("${n}_front_13h", pf[0], pf[1], xx, xz, fwd, 6f, 420f + (lot[2] - lot[0]) * .6f, 13f, "$kind, from the street at a person's height")
         view("${n}_quarter_13h", pf[0], pf[1], xx, xz, fwd - 35f, 24f, 700f + (lot[2] - lot[0]) * .6f, 13f, "$kind, three-quarter")
