@@ -40,10 +40,10 @@ class TownDoors(val town: Town, yards: TownYards, private val collision: TownCol
         val out = ArrayList<TownDoor>()
         // (a store's doors are its entrances as built: [TownCollision.extraDoors], added once its model is up)
         val stores = collision?.stores ?: emptySet()
-        for (row in town.rows) for (b in row.buildings) if (b.sprite !in stores) out += door(row, b, yards, collision, cinema, radius)
+        for (row in town.rows) for (b in row.buildings) if (b.sprite !in stores && b.kind != PlacementKind.EXTRA) out += door(row, b, yards, collision, cinema, radius)
         doors = out
         bySprite = out.associateBy { it.sprite }
-        val all = town.rows.flatMap { r -> r.buildings.map { r to it } }
+        val all = town.rows.flatMap { r -> r.buildings.filter { it.kind != PlacementKind.EXTRA }.map { r to it } }
         keeperSprites = Array(all.size) { all[it].second.sprite }
         keeperX = FloatArray(all.size); keeperZ = FloatArray(all.size)
         for ((i, rb) in all.withIndex()) { val p = keeperSpot(rb.first, rb.second); keeperX[i] = p.x; keeperZ[i] = p.z }

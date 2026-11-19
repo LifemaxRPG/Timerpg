@@ -27,6 +27,8 @@ const KIT: Record<string, string> = { red: 'brick', blue: 'blue', gray: 'grey' }
 const PLAIN = /^classic_(bank|law_office|doctor_s_office)_/;
 /** How far behind the building line a downtown tower's front stands (street units): the shops, then a service alley. */
 export const TOWER_SETBACK = 230;
+/** How far a post-war stand-alone shop stands back from the building line (street units): its front car park. */
+export const FRONT_LOT = 210;
 /** A tower's (and its parking's) depth in art pixels. */
 export const TOWER_DEPTH = 320;
 /** Street units per art pixel (as town-graph's PX). */
@@ -53,7 +55,8 @@ export function packOf(e: PackEntry, lot: Lot, plan: TownPlan, seed: string): { 
     const block = streetBlock(plan, lot.slot);
     if (!block) return undefined;
     const corner = block.cornerBlock && PLAIN.test(e.parts[0]?.key ?? '');
-    const foot: Foot = corner ? { setback: 8, depth: 172, width: 192 } : { setback: 8, depth: 120, width: 224 };
+    // (a post-war stand-alone shop stands behind its own car park: extraBuildings lays the car park before it)
+    const foot: Foot = corner ? { setback: 8, depth: 172, width: 192 } : { setback: block.standalone ? FRONT_LOT / PX : 8, depth: 120, width: 224 };
     return { foot, apply: () => {
       const key = e.parts[0]?.key ?? '';
       e.spec = corner && PLAIN.test(key) ? { id, kit: 'c4_40', widthTiles: 6, seed: block.built }
@@ -128,7 +131,19 @@ export function extraBuildings(b: Buildings, plan: TownPlan, layout: TownLayout,
   for (const d of downtownStanding(plan, year)) {
     const s = sites.get(d.site)!;
     if (!s.slots.every((sl) => shopSlots.has(sl))) continue;
+    // (not behind plots with no shop on them this year: a tower or car park in the woods)
+    if (!s.slots.some((sl) => layout.lots.some((l) => l.slot === sl))) continue;
     add(towerOf(d, s.rect, seed), towerSpec(d, seed), 400);
+  }
+  // the post-war stand-alone shops' front car parks (from the building line to a few units short of the shop's front)
+  for (const l of layout.lots) {
+    if (l.kind !== 'shop') continue;
+    const block = streetBlock(plan, l.slot);
+    if (!block?.standalone) continue;
+    const id = `lot:${l.slot}`;
+    add({ id, name: 'Parking', kind: 'parking', rect: { x: l.x, y: l.y, w: l.w, h: l.h }, foot: { setback: 0, depth: Math.floor((FRONT_LOT - 14) / PX), width: 224 },
+      built: block.built, storeys: 0 },
+    { id: `pk_${seed}_${id.replace(/[^a-z0-9]+/gi, '_')}`, kit: 'parking', widthTiles: 7, depth: Math.floor((FRONT_LOT - 14) / PX), seed: block.built }, 4);
   }
   const hall = townHall(plan);
   // (the hall is wider than the plaza at the art's scale: only where nothing stands within two tiles of the plaza's sides)

@@ -507,3 +507,59 @@ is the AI panel's "View: Open world / Street" (prefs `renderer/view`, open by de
   old near trees, the detail only round the camera); a detailed tree is
   500-1160 triangles (the old 3D tree about 330), its simple level 80-170 (desktop TreeKitTest prints each yard look).
   townMemoryCheck held 184 MB of 256.
+
+## The downtown through the decades, and the pack's buildings in the town (branch wf-downtown, 2026-11-19)
+
+Desktop renders and JVM tests only, NOT yet run on the S25.
+
+- **Generator** (`src/town/downtown.ts`, pure functions of the seed and plan; tests in `downtown.test.ts`): every shop plot
+  carries a Main Street block built 1885-1935 with 1-3 storeys over the shop (taller nearer the centre); a block at a corner
+  may be the red-brick corner block. Two neighbouring shop plots' back lots make a tower site (`downtownSites`). From the
+  town's natural population (`population.ts`): urban renewal clears back lots for surface parking 1962-1978 (towns with 120
+  people by 1975); a mid-rise (7-11 storey office, or a hotel) each time the town passes 175, 190, 205, 220 people from 1958;
+  a glass tower (13-19 storeys, office styles 4/2) each time it passes 235, 255, 275, 295 from 1982, which may replace an early
+  mid-rise (demolished, a year of parking between). `downtownHistory` has every building with built / demolished years;
+  `downtownStanding(plan, year)` what stands. Tower sites are only in the core (mean rank under 72 tiles from the centre);
+  when the core has no free site a glass tower takes the oldest mid-rise's. The export leaves out a tower or car park
+  whose two plots have no shop that year. The town hall (Victorian, with its clock tower, built 1880-1910, 75% of towns)
+  stands at the plaza's back facing the main street, the chapel (Grace Chapel, built 1870-1915) on the nearest free woodland
+  by a street within 80 tiles of the centre (about two towns in five).
+- gamma: Main Street blocks and parking until 1994, then a hotel (1994, 9 storeys), a second hotel (2006), two offices (2012,
+  2019; 11 storeys): tier `midrise`. quartz (321 people by 2025): four mid-rises 1977-1993, glass towers 1998, 2006, 2014, 2020
+  (13-19 storeys; two of the mid-rises pulled down for towers in 2012 and 2018). orbit (peak 113) stays Main Street blocks.
+- **Export** (`tools/town-downtown.ts`, called by `town-graph.ts`): the shops become facade-kit blocks (`compose_facade`
+  with `ground.picture`: the business's own storefront as the ground floor, its sign a card over the floor above; the kit's
+  palette from the district's shop colour), a corner bank / law office / doctor's office the octagonal corner block; 40% of
+  medium mobile homes the big mobile home of the same design and colour; apartment lots' condo stand-ins (and half of the
+  others) the pack's condo terraces, Condo_3_46, Condo_8 or a facade-kit condo block; half the schools the Victorian old
+  school (V5). The towers, hotels, car parks, town hall and chapel are row buildings of kind `extra` (nobody in them: no
+  door, no props, not a front; `flat: true` for car parks, walked over), named after every lot and landmark, listed in
+  `graph.extras` (storeys, built, demolished). A tower stands 230 units behind the building line (the shops, then a 44-unit
+  service alley: the shops' lots of that run end there); its depth 320 px. An extra that would overlap anything is left out.
+- **Far boxes** (`scene3d/TownFar.kt`): every building past the haze's start (+300) is drawn as a cheap box (its footprint,
+  as tall as its front picture, wearing its own front and side shrunk 4x with lit windows at night, a flat roof colour),
+  merged per 900-unit cell (one draw a cell, ~10 triangles a building), switched with 120 units of hysteresis and a 0.4 s
+  screen-door crossover, drawn to 24000 units (the camera's far plane follows; shadows keep their own reach). The open
+  world's haze takes the stage sky's horizon colour (its glow) and is thicker (0.00062: ~60% at the view's range); the trees'
+  cards are drawn 3400 units past the range so the edge woods dissolve into it. Cut-out alpha comes from a mip two levels
+  sharper (far crowns no longer vanish under the mask's half). `-DtownFar=0` in the open preview compares without.
+- Measured (desktop, software GL, not the S25): far boxes for gamma 2025: 49 cells, ~1100 triangles in all. Draws and
+  triangles as drawn, before (no far boxes, the old haze) / after (far boxes, cards into the haze): build 0.1.367's horizon
+  spot (015705, GPU p50 22 ms on the S25 there) 548 / 723 draws, 141k / 158k triangles; its woods spot (020102) 176 / 320,
+  112k / 131k; the skyline from across town 585 / 717, 149k / 158k; the widest view 818 / 961, 202k / 212k. Most of the
+  added draws are the trees' cards past the range (one batch a chunk); the far boxes are one draw a cell.
+  townMemoryCheck: held peak 197-201 MB of the 256 budget over runs (was 195).
+- **Frontage by block face** (the owner's rule: never a pavement building beside one set back behind a car park): a run of
+  touching shop plots (`runOf`) is one block face; its frontage is decided for the whole face by its plots' mean rank
+  (`stripFace`): the old core (under 72) is a street wall at the pavement, 2-4 storey blocks shoulder to shoulder, its lots
+  behind reached by the service alley, towers and renewal car parks behind; a face past it is a post-war strip: each shop
+  (1-2 storeys, built 1950-1985) stands 210 units back behind its own car park (painted stalls, a kerb with a gap for the way
+  in, flat: walked over; the shop's lot and yard begin behind it). Transitions fall between runs (at side streets or gaps).
+  gamma 2025 has one strip face (two shops, west Main Street); quartz two.
+- Left (the owner's parking request, not done yet): on-street parking (angled bays on Main Street, parallel on side
+  streets, meters from the 1940s), parked cars on the downtown's and the strips' car parks by the hour (StoreCars could be
+  reused), car-park lighting and planting, side or rear lots for offices and apartments beyond the towers' alleys.
+- Left: the downtown is built for the export's year only (no time travel in the app, unlike the stores); towers have no
+  interiors or people; car parks have no cars; the glass towers are the pack's office styles 2/4 (no curtain-wall art); the
+  far boxes are boxes (pitched roofs read flat far off); the stores and cinema still fade at the range; quartz has a
+  pre-existing shop overlap (b2/b3 on 3R).

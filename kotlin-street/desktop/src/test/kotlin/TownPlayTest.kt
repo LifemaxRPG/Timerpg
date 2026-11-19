@@ -69,7 +69,7 @@ class TownPlayTest {
         assertEquals(seed, town.seed)
         assertTrue("yards shipped", TownYards.parse(json).yards.isNotEmpty())
         val sprites = town.rows.flatMap { r -> r.buildings.map { it.sprite } }.toSet()
-        assertEquals(113, sprites.size)
+        assertEquals(114, sprites.size)
         // the movie theater (graph.cinema) stands as one of them, drawn by code (CinemaKit): no art files, a bill to show
         val cinema = root.getJSONObject("graph").getJSONObject("cinema")
         val cinemaSprite = root.getJSONObject("graph").getJSONArray("landmarks").let { a -> (0 until a.length()).map { a.getJSONObject(it) } }

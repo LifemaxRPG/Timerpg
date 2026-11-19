@@ -29,6 +29,8 @@ const MIDRISE_STEP = 15;
 const HIGHRISE_STEP = 20;
 const MAX_MIDRISE = 4;
 const MAX_HIGHRISE = 4;
+/** Tower sites only in the core: plots whose mean rank (tiles from the centre, src/town/plan.ts) is below this. */
+export const CORE_RANK = 72;
 
 export type DowntownTier = 'main' | 'midrise' | 'highrise';
 
@@ -52,6 +54,11 @@ export interface StreetBlock {
   corner: boolean;
   /** At a corner, a red-brick corner block (the pack's octagonal one) instead of the plain front. */
   cornerBlock: boolean;
+  /**
+   * On a block face out past the old core (its plots' mean rank CORE_RANK and more: [stripFace]): a post-war stand-alone shop (built 1950-1985), one or two storeys,
+   * set back behind its own car park with a way in from the street, not a block at the pavement.
+   */
+  standalone: boolean;
 }
 
 /** The shop plots of the plan, by plot id. */
@@ -64,6 +71,24 @@ function atCorner(plan: TownPlan, c: Rect): boolean {
     && (Math.abs(r.x + r.w - c.x) <= 2 || Math.abs(r.x - (c.x + c.w)) <= 2));
 }
 
+/**
+ * The run of shop plots [c] is in: those on its side of the street touching it end to end (the same row, plot after plot),
+ * a block face. Its frontage is one kind all along: a street wall at the pavement or a strip of shops behind their lots.
+ */
+export function runOf(plan: TownPlan, c: Candidate): Candidate[] {
+  const shops = shopSlots(plan).filter((q) => q.y === c.y && q.h === c.h);
+  const run = [c];
+  for (let x = c.x; ;) { const q = shops.find((s) => s.x + s.w === x); if (!q) break; run.unshift(q); x = q.x; }
+  for (let x = c.x + c.w; ;) { const q = shops.find((s) => s.x === x); if (!q) break; run.push(q); x = q.x + q.w; }
+  return run;
+}
+
+/** Whether the block face of [c] lies out past the old core (its plots' mean rank): a post-war strip. */
+export function stripFace(plan: TownPlan, c: Candidate): boolean {
+  const run = runOf(plan, c);
+  return run.reduce((s, q) => s + q.rank, 0) / run.length >= CORE_RANK;
+}
+
 /** The main street block on shop plot [slot] (its whole life: it stands from [StreetBlock.built] on). */
 export function streetBlock(plan: TownPlan, slot: string): StreetBlock | undefined {
   const c = plan.candidates.find((q) => q.id === slot && q.kind === 'shop');
@@ -73,7 +98,10 @@ export function streetBlock(plan: TownPlan, slot: string): StreetBlock | undefin
   const built = Math.min(1935, 1885 + Math.floor(c.rank / 3) + Math.floor(R('built') * 12));
   const middles = Math.max(1, Math.min(3, 1 + Math.floor(R('middles') * 2) + (c.rank < 45 ? 1 : 0)));
   const corner = atCorner(plan, c);
-  return { slot, built, middles, corner, cornerBlock: corner && R('corner') < 0.55 };
+  if (stripFace(plan, c)) {
+    return { slot, built: 1950 + Math.floor(R('postwar') * 36), middles: R('middles') < 0.7 ? 0 : 1, corner, cornerBlock: false, standalone: true };
+  }
+  return { slot, built, middles, corner, cornerBlock: corner && R('corner') < 0.55, standalone: false };
 }
 
 // ------------------------------------------------------------------------------------------------ the tower sites
@@ -152,7 +180,7 @@ export function downtownHistory(plan: TownPlan): DowntownBuilding[] {
   const take = (s: DowntownSite): void => { usedSlot.add(s.slots[0]); usedSlot.add(s.slots[1]); };
   // the best free site: nearest the centre, a little shuffled
   const pick = (salt: string, from: DowntownSite[] = sites): DowntownSite | undefined =>
-    from.filter(free).map((s) => ({ s, k: s.rank + R('pick', salt, s.id) * 18 })).sort((a, b) => a.k - b.k)[0]?.s;
+    from.filter((s) => free(s) && s.rank < CORE_RANK && !stripFace(plan, shopSlots(plan).find((q) => q.id === s.slots[0])!)).map((s) => ({ s, k: s.rank + R('pick', salt, s.id) * 18 })).sort((a, b) => a.k - b.k)[0]?.s;
 
   // the mid-rises: one each time the town passes another step of people
   const mids: DowntownBuilding[] = [];
@@ -180,10 +208,14 @@ export function downtownHistory(plan: TownPlan): DowntownBuilding[] {
     if (y === undefined) break;
     const built = y + 2 + Math.floor(R('high', j, 'lag') * 3);
     if (built > POPULATION_BY) break;
-    const old = mids.find((m) => m.demolished === undefined && m.built < 1975 && m.kind === 'office');
+    // (the oldest mid-rise standing goes for it if the core has no free site left, an early office 40% of the time anyway)
+    const standing = mids.filter((m) => m.demolished === undefined && m.built < built - 6).sort((a, b) => a.built - b.built);
+    const early = standing.find((m) => m.built < 1975 && m.kind === 'office');
     let site: string | undefined;
-    if (old && R('high', j, 'replace') < 0.4) { old.demolished = built - 2; site = old.site; }
-    else { const s = pick(`high${j}`); if (s) { take(s); site = s.id; } }
+    const free1 = pick(`high${j}`);
+    const old = early && R('high', j, 'replace') < 0.4 ? early : !free1 ? standing[0] : undefined;
+    if (old) { old.demolished = built - 2; site = old.site; }
+    else if (free1) { take(free1); site = free1.id; }
     if (!site) break;
     const blocks = 6 + Math.min(3, j + Math.floor(R('high', j, 'h') * 2));
     out.push({

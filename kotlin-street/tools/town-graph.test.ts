@@ -46,7 +46,10 @@ describe('town graph', () => {
       const front = r.buildings.filter((b) => b.kind !== 'extra');
       for (let i = 1; i < front.length; i++) expect(front[i]!.x0).toBeGreaterThanOrEqual(front[i - 1]!.x1 - 1e-3);
       for (const x of r.buildings.filter((b) => b.kind === 'extra')) for (const b of front) {
-        if (b.x1 > x.x0 && b.x0 < x.x1) expect(x.setback, `${x.sprite} behind ${b.sprite}`).toBeGreaterThanOrEqual(b.setback + b.depth + 40);
+        if (!(b.x1 > x.x0 && b.x0 < x.x1)) continue;
+        // (a strip shop's own car park in front of it, a tower or car park behind the shops of a street wall)
+        if (x.setback < 1) expect(x.setback + x.depth, `${x.sprite} before ${b.sprite}`).toBeLessThanOrEqual(b.setback);
+        else expect(x.setback, `${x.sprite} behind ${b.sprite}`).toBeGreaterThanOrEqual(b.setback + b.depth + 40);
       }
       if (r.ends.start.mouth && r.buildings.length) expect(r.buildings[0]!.x0).toBeGreaterThanOrEqual(89 - 1e-3);
       if (r.ends.end.mouth && r.buildings.length) expect(r.buildings[r.buildings.length - 1]!.x1).toBeLessThanOrEqual(r.length - 89 + 1e-3);

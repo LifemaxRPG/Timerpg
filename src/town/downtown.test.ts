@@ -3,7 +3,7 @@ import { planTown } from './plan';
 import { firstYearReaching, populationIn } from './population';
 import {
   CHAPEL_PLOT, chapel, downtownHistory, downtownSites, downtownStanding, downtownTier, HIGHRISE_FROM, HIGHRISE_POPULATION,
-  MIDRISE_FROM, MIDRISE_POPULATION, streetBlock, townHall,
+  MIDRISE_FROM, MIDRISE_POPULATION, runOf, streetBlock, townHall,
 } from './downtown';
 import { hitsWater } from './water';
 
@@ -91,11 +91,14 @@ describe('downtown', () => {
     }
   });
 
-  it('gives every shop plot a 2-4 storey Main Street block built 1885-1935', () => {
+  it('gives every core shop plot a 2-4 storey Main Street block built 1885-1935, and the rest post-war stand-alone shops', () => {
     for (const seed of SEEDS) {
       const plan = planTown(seed);
       for (const c of plan.candidates.filter((q) => q.kind === 'shop')) {
         const b = streetBlock(plan, c.id)!;
+        // (one frontage all along a block face: a street wall or a strip)
+        for (const q of runOf(plan, c)) expect(streetBlock(plan, q.id)!.standalone, `${c.id} / ${q.id}`).toBe(b.standalone);
+        if (b.standalone) { expect(b.built).toBeGreaterThanOrEqual(1950); expect(b.middles).toBeLessThanOrEqual(1); continue; }
         expect(b.built).toBeGreaterThanOrEqual(1885);
         expect(b.built).toBeLessThanOrEqual(1935);
         expect(b.middles).toBeGreaterThanOrEqual(1);

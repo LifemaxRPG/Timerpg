@@ -536,13 +536,18 @@ export function townGraph(seed: string, year: number): TownGraph {
       out.push({ sprite: it.sprite, x0: r3(it.x0), x1: r3(it.x1), setback: r3(setback), depth: r3(depth), group: it.group, neighbourhood: it.neighbourhood, kind: it.kind, lot: it.lotId,
         ...(it.tier === 'parking' ? { flat: true } : {}) });
       // (a building with nobody in it stands behind others' plots' fronts, or in the plaza: its own box, not from the plot's front)
-      footprints.push({ sprite: it.sprite, row: row.id, rect: boxOf(row, it.x0, it.x1, it.kind === 'extra' ? setback : plotFront, setback + depth) });
+      // (and a shop standing back behind its own car park: the car park is in front of it)
+      const standsBack = it.kind === 'extra' || (it.kind === 'shop' && setback > 100);
+      footprints.push({ sprite: it.sprite, row: row.id, rect: boxOf(row, it.x0, it.x1, standsBack ? setback : plotFront, setback + depth) });
       // (a lot whose back a building with nobody in it takes, a tower or a car park behind the main street, ends short of it:
       // the service alley between)
       let lotBack = plotBack;
       // (every shop of a run with one behind it ends there, so the alley runs the run's whole back, out at its ends)
       if (it.kind === 'shop') for (const x of row.items) if (x.kind === 'extra' && x.group === it.group && x.foot.setback * PX > 100) lotBack = Math.min(lotBack, Math.max(setback + depth + 8, x.e * SCALE + x.foot.setback * PX - ALLEY));
-      if (it.kind !== 'landmark' && it.kind !== 'extra') lotsJson.push({ id: it.lotId, sprite: it.sprite, row: row.id, rect: boxOf(row, it.lx0, it.lx1, plotFront, lotBack), kind: it.tier, neighbourhood: it.neighbourhood, yard: it.yard });
+      // (a lot with its car park in front begins behind it)
+      let lotFront = plotFront;
+      if (it.kind === 'shop') for (const x of row.items) if (x.kind === 'extra' && x.tier === 'parking' && x.foot.setback === 0 && x.x1 > it.x0 && x.x0 < it.x1) lotFront = Math.max(lotFront, x.e * SCALE + x.foot.depth * PX + 2);
+      if (it.kind !== 'landmark' && it.kind !== 'extra') lotsJson.push({ id: it.lotId, sprite: it.sprite, row: row.id, rect: boxOf(row, it.lx0, it.lx1, lotFront, lotBack), kind: it.tier, neighbourhood: it.neighbourhood, yard: it.yard });
     }
     const pts = frontW(row);
     const f0 = frameAt(pts, cumW.get(row)!, 0);

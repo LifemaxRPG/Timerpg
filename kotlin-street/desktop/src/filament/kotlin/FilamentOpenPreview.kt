@@ -207,7 +207,7 @@ fun renderFilamentOpen(out: String) {
     root.optJSONObject("graph")?.optJSONArray("extras")?.let { xs ->
         val seen = HashSet<String>()
         for (i in 0 until xs.length()) {
-            val o = xs.getJSONObject(i); val kind = o.getString("kind")
+            val o = xs.getJSONObject(i); val kind = if (o.getString("id").contains(":lot:")) "stripshop" else o.getString("kind")
             if (!seen.add(kind)) continue
             val s = ft.slots.firstOrNull { it.b.sprite == o.getString("sprite") } ?: continue
             val r = s.row; val x = s.b.mid.coerceIn(40f, r.length - 40f)
