@@ -1,0 +1,218 @@
+{
+  "main": {
+    "texture": "signs.png",
+    "rect_art": [
+      0,
+      0,
+      96,
+      14
+    ]
+  },
+  "service": {
+    "texture": "signs.png",
+    "rect_art": [
+      100,
+      0,
+      56,
+      12
+    ]
+  },
+  "full_service": {
+    "texture": "signs.png",
+    "rect_art": [
+      0,
+      18,
+      72,
+      10
+    ]
+  },
+  "gas": {
+    "texture": "signs.png",
+    "rect_art": [
+      184,
+      0,
+      24,
+      12
+    ]
+  },
+  "air": {
+    "texture": "signs.png",
+    "rect_art": [
+      80,
+      18,
+      36,
+      12
+    ]
+  },
+  "water": {
+    "texture": "signs.png",
+    "rect_art": [
+      120,
+      18,
+      36,
+      12
+    ]
+  },
+  "bay1": {
+    "texture": "signs.png",
+    "rect_art": [
+      164,
+      18,
+      8,
+      10
+    ]
+  },
+  "bay2": {
+    "texture": "signs.png",
+    "rect_art": [
+      174,
+      18,
+      8,
+      10
+    ]
+  },
+  "lamp": {
+    "texture": "signs.png",
+    "rect_art": [
+      0,
+      34,
+      16,
+      4
+    ]
+  },
+  "globe": {
+    "texture": "signs.png",
+    "rect_art": [
+      20,
+      34,
+      16,
+      16
+    ]
+  },
+  "metal": {
+    "texture": "utility.png",
+    "rect_art": [
+      0,
+      0,
+      32,
+      32
+    ]
+  },
+  "rubber": {
+    "texture": "utility.png",
+    "rect_art": [
+      32,
+      0,
+      32,
+      32
+    ]
+  },
+  "wood": {
+    "texture": "utility.png",
+    "rect_art": [
+      64,
+      0,
+      32,
+      32
+    ]
+  },
+  "pump_dial": {
+    "texture": "utility.png",
+    "rect_art": [
+      0,
+      36,
+      10,
+      10
+    ]
+  },
+  "door_back": {
+    "texture": "utility.png",
+    "rect_art": [
+      16,
+      36,
+      16,
+      32
+    ]
+  },
+  "oil_cabinet": {
+    "texture": "utility.png",
+    "rect_art": [
+      36,
+      36,
+      24,
+      24
+    ]
+  },
+  "grille": {
+    "texture": "utility.png",
+    "rect_art": [
+      64,
+      36,
+      24,
+      12
+    ]
+  },
+  "price_labels": {
+    "texture": "utility.png",
+    "rect_art": [
+      88,
+      40,
+      32,
+      36
+    ]
+  },
+  "office_left": {
+    "texture": "glass.png",
+    "rect_art": [
+      0,
+      0,
+      14,
+      26
+    ]
+  },
+  "office_right": {
+    "texture": "glass.png",
+    "rect_art": [
+      16,
+      0,
+      16,
+      26
+    ]
+  },
+  "office_side": {
+    "texture": "glass.png",
+    "rect_art": [
+      34,
+      0,
+      32,
+      26
+    ]
+  },
+  "entry": {
+    "texture": "glass.png",
+    "rect_art": [
+      68,
+      0,
+      16,
+      32
+    ]
+  },
+  "garage_door": {
+    "texture": "utility.png",
+    "rect_art": [
+      0,
+      78,
+      52,
+      44
+    ]
+  },
+  "prices": {
+    "texture": "prices.png",
+    "rect_art": [
+      0,
+      0,
+      16,
+      20
+    ]
+  }
+}

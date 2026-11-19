@@ -1,0 +1,143 @@
+{
+  "licence": "LimeZu: Timerpg game use only; credits required.",
+  "swatches": [
+    {
+      "id": "brick_red_terrace",
+      "family": "brick",
+      "pack": "exteriors",
+      "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/1_Terrains_and_Fences_32x32.png",
+      "rect": [
+        23,
+        806,
+        62,
+        48
+      ],
+      "tile": "seamless",
+      "repeat": [
+        31,
+        48
+      ],
+      "palette": [
+        "#a14f44",
+        "#b99e86",
+        "#943c3f",
+        "#b18a74",
+        "#a7604a",
+        "#9b766a"
+      ],
+      "tags": [
+        "red",
+        "brick",
+        "running-bond",
+        "1950s"
+      ],
+      "seam": [
+        0.0,
+        0.21
+      ],
+      "note": "warm red courses, tan mortar, dark outline; light from top"
+    },
+    {
+      "id": "asphalt_plain",
+      "family": "asphalt",
+      "pack": "exteriors",
+      "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/2_City_Terrains_32x32.png",
+      "rect": [
+        8,
+        136,
+        144,
+        112
+      ],
+      "tile": "seamless",
+      "repeat": [
+        144,
+        112
+      ],
+      "palette": [
+        "#534f52",
+        "#595555",
+        "#565254",
+        "#4f4a4f",
+        "#605755",
+        "#4a4549"
+      ],
+      "tags": [
+        "asphalt",
+        "dark",
+        "grey"
+      ],
+      "seam": [
+        1.81,
+        1.66
+      ]
+    },
+    {
+      "id": "sidewalk_cream",
+      "family": "pavement",
+      "pack": "exteriors",
+      "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/2_City_Terrains_32x32.png",
+      "rect": [
+        332,
+        40,
+        32,
+        32
+      ],
+      "tile": "seamless",
+      "repeat": [
+        32,
+        32
+      ],
+      "palette": [
+        "#dad4cb",
+        "#d5cec6",
+        "#9a958f",
+        "#c8c2b8",
+        "#84807d",
+        "#b4aea8"
+      ],
+      "tags": [
+        "sidewalk",
+        "paving",
+        "slabs",
+        "cream"
+      ],
+      "seam": [
+        0.12,
+        0.01
+      ]
+    },
+    {
+      "id": "roofflat_grey_condo",
+      "family": "roof-flat",
+      "pack": "exteriors",
+      "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/4_Generic_Buildings_32x32.png",
+      "rect": [
+        182,
+        1000,
+        32,
+        32
+      ],
+      "tile": "seamless",
+      "repeat": [
+        32,
+        32
+      ],
+      "palette": [
+        "#8a7a77",
+        "#7c6e6f",
+        "#716467",
+        "#6c5d62"
+      ],
+      "tags": [
+        "flat",
+        "roof",
+        "tar",
+        "grey-brown"
+      ],
+      "seam": [
+        0.42,
+        0.56
+      ]
+    }
+  ]
+}
