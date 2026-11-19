@@ -1,0 +1,62 @@
+{
+  "primary": {
+    "file": "coin-laundromat.glb",
+    "visible_triangles": 1898,
+    "materials": [
+      "detail_steel",
+      "detail_enamel",
+      "ground_paving",
+      "detail_coral",
+      "detail_panels",
+      "glass_storefront",
+      "sign_name",
+      "glow_fluorescent",
+      "ground_terrazzo",
+      "roof_membrane",
+      "wall_stucco"
+    ],
+    "collision_boxes": 16,
+    "prop_triangles": {
+      "outside_bench": 48,
+      "rear_bin": 24,
+      "roadside_sign": 388
+    },
+    "uv_scale_max_edge_error_m": 6.710981077517886e-07,
+    "bytes": 179472
+  },
+  "optional_kit": {
+    "file": "laundry-fixtures.glb",
+    "visible_triangles": 1214,
+    "materials": [
+      "detail_enamel",
+      "detail_panels",
+      "detail_steel",
+      "detail_drum"
+    ],
+    "collision_boxes": 11,
+    "prop_triangles": {
+      "washer_01": 120,
+      "washer_02": 120,
+      "washer_03": 120,
+      "washer_04": 120,
+      "washer_05": 120,
+      "washer_06": 120,
+      "dryer_01": 120,
+      "dryer_02": 120,
+      "dryer_03": 120,
+      "dryer_04": 120,
+      "change_unit": 14
+    },
+    "uv_scale_max_edge_error_m": 2.3888423944518067e-07,
+    "bytes": 122080
+  },
+  "combined_visible_triangles": 3112,
+  "combined_materials": 12,
+  "separation": "Primary GLB is a clean shell: no machine meshes. Optional kit contains six washers, four dryers and one coin cabinet.",
+  "fixtures": "All eleven static kit fixtures stay below 500 triangles and have full-height matching colliders. No operating or billing behavior.",
+  "anchors": "Slot floor heights, outward directions and kit mappings verified.",
+  "art": "All embedded PNGs use exact 2 x 2 texel art pixels, nearest/repeat sampling and physical UV density.",
+  "glazing": "Actual alpha panes exported; game importer transparency integration remains pending.",
+  "architecture": "Butterfly roof/gable normals, clear doorways, paving and four non-overlapping parking templates verified.",
+  "renders": "Blender desktop previews, not Filament/S25 captures. Views 01\u201306 include optional kit; 07 is the primary shell alone."
+}

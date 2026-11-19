@@ -1,0 +1,653 @@
+{
+  "name": "Suds & Spin Coin Laundry",
+  "era": {
+    "design_years": [
+      1958,
+      1975
+    ],
+    "fits": [
+      1960,
+      2030
+    ],
+    "notes": "Original mid-century laundromat design. Simulation decides actual opening, business history and operating state."
+  },
+  "units": "metres",
+  "axes": "glTF Y up, front public entrance +Z",
+  "origin": "Ground at the middle of the front masonry edge",
+  "building_m": [
+    9.9328,
+    11.1744
+  ],
+  "structure_bounds_blender_art": [
+    -116,
+    -26,
+    74,
+    153
+  ],
+  "lot_m": [
+    18.624000000000002,
+    21.1072
+  ],
+  "lot_bounds_blender_art": [
+    -136,
+    -96,
+    104,
+    176
+  ],
+  "heights_m": {
+    "roof": 5.5096,
+    "service_flue": 6.1304,
+    "pylon_crown": 9.4284
+  },
+  "triangles_visible": 1898,
+  "materials": [
+    "detail_coral",
+    "detail_enamel",
+    "detail_panels",
+    "detail_steel",
+    "glass_storefront",
+    "glow_fluorescent",
+    "ground_paving",
+    "ground_terrazzo",
+    "roof_membrane",
+    "sign_name",
+    "wall_stucco"
+  ],
+  "pixel_grid": {
+    "metres_per_texel": 0.0388,
+    "texels_per_art_pixel": 2
+  },
+  "doors": [
+    {
+      "node": "door_main",
+      "position": [
+        1.940000057220459,
+        0.15520000457763672,
+        0.2444400042295456
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "floor_m": 0.1552,
+      "panel": "panel_door_main",
+      "external": true
+    },
+    {
+      "node": "door_back",
+      "position": [
+        3.414400100708008,
+        0.15520000457763672,
+        -11.414959907531738
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ],
+      "floor_m": 0.1552,
+      "panel": "panel_door_back",
+      "external": true
+    },
+    {
+      "node": "door_service_inside",
+      "position": [
+        3.7248001098632812,
+        0.15520000457763672,
+        -8.450639724731445
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "floor_m": 0.1552,
+      "panel": "panel_door_service_inside",
+      "external": false
+    }
+  ],
+  "door_panels": [
+    "panel_door_main",
+    "panel_door_back",
+    "panel_door_service_inside"
+  ],
+  "rooms": [
+    {
+      "id": "public_laundry",
+      "floor_m": 0.1552,
+      "bounds_blender_art": [
+        -64,
+        0,
+        64,
+        112
+      ],
+      "notes": "Clean shell, fixed folding ledge and utility rails; no machine meshes in this file."
+    },
+    {
+      "id": "service",
+      "floor_m": 0.1552,
+      "bounds_blender_art": [
+        -64,
+        112,
+        64,
+        144
+      ],
+      "ceiling_m": 3.2592
+    }
+  ],
+  "clean_shell": true,
+  "optional_fixtures": {
+    "file": "laundry-fixtures.glb",
+    "info": "fixtures-info.json",
+    "machine_count": 11,
+    "machine_nodes": [
+      "washer_01",
+      "washer_02",
+      "washer_03",
+      "washer_04",
+      "washer_05",
+      "washer_06",
+      "dryer_01",
+      "dryer_02",
+      "dryer_03",
+      "dryer_04",
+      "change_unit"
+    ],
+    "preview": "Default Blender review shows the separate optional kit; 07-clean-shell shows the primary building alone.",
+    "binding": "Use either this kit or engine-provided furniture at the slots. No machine/business simulation is implemented."
+  },
+  "machine_slots": [
+    {
+      "node": "slot_washer_01",
+      "kind": "washer",
+      "position": [
+        -3.2592,
+        0.1552,
+        -7.6048
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "fixture_node": "washer_01"
+    },
+    {
+      "node": "slot_washer_02",
+      "kind": "washer",
+      "position": [
+        -2.1728,
+        0.1552,
+        -7.6048
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "fixture_node": "washer_02"
+    },
+    {
+      "node": "slot_washer_03",
+      "kind": "washer",
+      "position": [
+        -1.0864,
+        0.1552,
+        -7.6048
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "fixture_node": "washer_03"
+    },
+    {
+      "node": "slot_washer_04",
+      "kind": "washer",
+      "position": [
+        0.0,
+        0.1552,
+        -7.6048
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "fixture_node": "washer_04"
+    },
+    {
+      "node": "slot_washer_05",
+      "kind": "washer",
+      "position": [
+        1.0864,
+        0.1552,
+        -7.6048
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "fixture_node": "washer_05"
+    },
+    {
+      "node": "slot_washer_06",
+      "kind": "washer",
+      "position": [
+        2.1728,
+        0.1552,
+        -7.6048
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "fixture_node": "washer_06"
+    },
+    {
+      "node": "slot_dryer_01",
+      "kind": "dryer",
+      "position": [
+        -3.7248,
+        0.1552,
+        -1.8624
+      ],
+      "outward": [
+        1,
+        0,
+        0
+      ],
+      "fixture_node": "dryer_01"
+    },
+    {
+      "node": "slot_dryer_02",
+      "kind": "dryer",
+      "position": [
+        -3.7248,
+        0.1552,
+        -3.4144
+      ],
+      "outward": [
+        1,
+        0,
+        0
+      ],
+      "fixture_node": "dryer_02"
+    },
+    {
+      "node": "slot_dryer_03",
+      "kind": "dryer",
+      "position": [
+        -3.7248,
+        0.1552,
+        -4.9664
+      ],
+      "outward": [
+        1,
+        0,
+        0
+      ],
+      "fixture_node": "dryer_03"
+    },
+    {
+      "node": "slot_dryer_04",
+      "kind": "dryer",
+      "position": [
+        -3.7248,
+        0.1552,
+        -6.5184
+      ],
+      "outward": [
+        1,
+        0,
+        0
+      ],
+      "fixture_node": "dryer_04"
+    },
+    {
+      "node": "slot_change_unit",
+      "kind": "change_cabinet",
+      "position": [
+        -3.8024,
+        0.1552,
+        -0.388
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "fixture_node": "change_unit"
+    }
+  ],
+  "sign_name": {
+    "node": "sign_name",
+    "material": "sign_name",
+    "texture": "textures/signs.png",
+    "rect_art": [
+      0,
+      0,
+      112,
+      18
+    ],
+    "text": "SUDS & SPIN / COIN LAUNDRY",
+    "binding": "Static fictional preview name. Runtime naming must edit this region only and preserve pylon regions."
+  },
+  "parking": {
+    "bays": [
+      {
+        "id": 1,
+        "bounds_blender_art": [
+          -56,
+          -88,
+          -24,
+          -24
+        ]
+      },
+      {
+        "id": 2,
+        "bounds_blender_art": [
+          -24,
+          -88,
+          8,
+          -24
+        ]
+      },
+      {
+        "id": 3,
+        "bounds_blender_art": [
+          8,
+          -88,
+          40,
+          -24
+        ]
+      },
+      {
+        "id": 4,
+        "bounds_blender_art": [
+          40,
+          -88,
+          72,
+          -24
+        ]
+      }
+    ],
+    "spaces": 4,
+    "notes": "Templates only; no vehicles baked in. Traffic and placement require game integration."
+  },
+  "glazing": {
+    "material": "glass_storefront",
+    "alpha": true,
+    "runtime": "Real alpha panes in GLB and Blender. The current landmark importer may need a transparent glass material; do not assume its opaque role shader will show the kit."
+  },
+  "collision": {
+    "node": "collision",
+    "render": false,
+    "use_the_walls": true,
+    "boxes_blender_z_up": [
+      {
+        "source": "Closed door_main",
+        "center": [
+          1.94,
+          -0.08924,
+          1.3192
+        ],
+        "size": [
+          1.3968,
+          0.1552,
+          2.6384
+        ],
+        "group": "structure",
+        "attachment": "panel_door_main",
+        "gate_node": "panel_door_main"
+      },
+      {
+        "source": "Closed door_back",
+        "center": [
+          3.4144,
+          11.25976,
+          1.2416
+        ],
+        "size": [
+          1.0864,
+          0.1552,
+          2.4832
+        ],
+        "group": "structure",
+        "attachment": "panel_door_back",
+        "gate_node": "panel_door_back"
+      },
+      {
+        "source": "Closed door_service_inside",
+        "center": [
+          3.7248,
+          8.60584,
+          1.2416
+        ],
+        "size": [
+          1.0864,
+          0.1552,
+          2.4832
+        ],
+        "group": "structure",
+        "attachment": "panel_door_service_inside",
+        "gate_node": "panel_door_service_inside"
+      },
+      {
+        "source": "Rear rain pipe",
+        "center": [
+          0.0,
+          11.329600000000001,
+          2.3668
+        ],
+        "size": [
+          0.09312,
+          0.09312,
+          4.7336
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Canopy post",
+        "center": [
+          -4.8112,
+          -1.2416,
+          1.746
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          3.492
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Canopy post",
+        "center": [
+          4.8112,
+          -1.2416,
+          1.746
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          3.492
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Fixed folding ledge",
+        "center": [
+          4.4232000000000005,
+          5.1216,
+          0.5820000000000001
+        ],
+        "size": [
+          1.1640000000000001,
+          3.104,
+          1.1640000000000001
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Dryer vent hood",
+        "center": [
+          -5.1216,
+          1.8624,
+          1.0088
+        ],
+        "size": [
+          0.3104,
+          0.9312,
+          2.0176
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Dryer vent hood",
+        "center": [
+          -5.1216,
+          3.4144,
+          1.0088
+        ],
+        "size": [
+          0.3104,
+          0.9312,
+          2.0176
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Dryer vent hood",
+        "center": [
+          -5.1216,
+          4.9664,
+          1.0088
+        ],
+        "size": [
+          0.3104,
+          0.9312,
+          2.0176
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Dryer vent hood",
+        "center": [
+          -5.1216,
+          6.5184,
+          1.0088
+        ],
+        "size": [
+          0.3104,
+          0.9312,
+          2.0176
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Service enclosure and flue",
+        "center": [
+          -2.1728,
+          11.4848,
+          3.0652
+        ],
+        "size": [
+          1.552,
+          0.6208,
+          6.1304
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Pylon support",
+        "center": [
+          -8.3808,
+          -0.4656,
+          3.8412
+        ],
+        "size": [
+          0.6208,
+          0.6208,
+          7.6824
+        ],
+        "group": "structure",
+        "attachment": "roadside_sign"
+      },
+      {
+        "source": "Pylon support",
+        "center": [
+          -6.208,
+          -0.4656,
+          3.8412
+        ],
+        "size": [
+          0.6208,
+          0.6208,
+          7.6824
+        ],
+        "group": "structure",
+        "attachment": "roadside_sign"
+      },
+      {
+        "source": "Outside bench",
+        "center": [
+          -2.0176,
+          -0.8536,
+          0.6402
+        ],
+        "size": [
+          2.3280000000000003,
+          0.6984,
+          1.2804
+        ],
+        "group": "lot",
+        "attachment": "outside_bench"
+      },
+      {
+        "source": "Rear bin",
+        "center": [
+          -4.5008,
+          12.1056,
+          0.5044
+        ],
+        "size": [
+          0.6984,
+          0.6984,
+          1.0088
+        ],
+        "group": "lot",
+        "attachment": "rear_bin"
+      }
+    ],
+    "strategy": "Use architectural walls/floors/closed panels; companion boxes cover canopy posts, fixed ledge, utility fittings, pylon supports and yard props. Optional machines have their own kit collider.",
+    "runtime": "Hide collision. Keep door panels and matching gate_node boxes synchronized. Furniture/kit loading must also load matching fixture boxes."
+  },
+  "lot_node": "lot",
+  "runtime_handoff": [
+    "No business, residents, laundry loads, machine prices or utility operations are spawned.",
+    "Transparent storefront shader, door behavior and furniture/machine bindings require game integration.",
+    "The primary GLB is a clean architectural shell; preview kit is delivered separately and is optional.",
+    "Blender previews are not Filament/S25 captures."
+  ],
+  "swatches_used": [
+    "wall_stucco_red",
+    "roof_membrane_grey",
+    "pavement"
+  ],
+  "licence": "Shared LimeZu swatches: Timerpg game use only; original credit required. Original geometry and supplemental pixel art.",
+  "renders": "Blender desktop previews, not Filament/S25 captures; images 01\u201306 include the separate optional machine kit."
+}

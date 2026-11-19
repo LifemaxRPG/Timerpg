@@ -1,0 +1,90 @@
+{
+  "service_door": {
+    "rect_art": [
+      0,
+      0,
+      14,
+      30
+    ]
+  },
+  "washer_face": {
+    "rect_art": [
+      20,
+      0,
+      12,
+      14
+    ]
+  },
+  "dryer_face": {
+    "rect_art": [
+      40,
+      0,
+      16,
+      24
+    ]
+  },
+  "change_face": {
+    "rect_art": [
+      64,
+      0,
+      12,
+      24
+    ]
+  },
+  "louver": {
+    "rect_art": [
+      88,
+      0,
+      12,
+      20
+    ]
+  },
+  "store_window": {
+    "rect_art": [
+      0,
+      0,
+      60,
+      28
+    ]
+  },
+  "side_window": {
+    "rect_art": [
+      64,
+      0,
+      20,
+      18
+    ]
+  },
+  "front_door": {
+    "rect_art": [
+      88,
+      0,
+      18,
+      32
+    ]
+  },
+  "narrow_window": {
+    "rect_art": [
+      112,
+      0,
+      20,
+      28
+    ]
+  },
+  "nameplate": {
+    "rect_art": [
+      0,
+      0,
+      112,
+      18
+    ]
+  },
+  "pylon": {
+    "rect_art": [
+      0,
+      24,
+      40,
+      36
+    ]
+  }
+}
