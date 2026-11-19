@@ -1,0 +1,51 @@
+{
+  "kind": "low-memory",
+  "time": "2026-11-18T20:03:08.438-0500",
+  "epochMs": 1795050188438,
+  "app": {
+    "versionName": "0.1.306 (f3adfc8)",
+    "versionCode": 306,
+    "git": "f3adfc8",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "reason": 3,
+  "reasonName": "low-memory",
+  "description": "",
+  "status": 0,
+  "importance": 400,
+  "pssKb": 0,
+  "rssKb": 390192,
+  "pid": 8629,
+  "processName": "com.timerpg.street",
+  "filamentStartDied": true,
+  "breadcrumbsFrom": "the run that ended in this exit",
+  "stack": null,
+  "state": {
+    "lastSaved": {"renderer":"Filament","camera":"medium","rendererError":null,"town":"eta · Commuter suburb · 2025","walkableTown":{"seed":"gamma","loading":false,"ready":false,"progress":0.5,"error":null,"loadMs":514.2645,"firstViewMs":0,"built":null,"memory":null,"row":"8L","street":"Civic Avenue","neighbourhood":"Woodside","x":378.25,"lane":6.9999623,"wx":6021.92,"wz":4338.75,"heading":0,"front":null,"transit":null,"liveRows":["8L","7R","3L","8R","23L","19R"],"people":0},"street":{"index":0,"name":"Main Street","nearestBuilding":-1,"building":null,"owner":null,"atCorner":false,"edge":0},"player":{"x":378.25,"lane":6.9999623,"street":0,"dir":1,"walking":false,"running":false,"viewMiddle":284.625},"turn":{"active":false,"forward":true,"p":0,"yaw":0,"ease":0,"blocked":false},"inRoom":false,"room":null,"doorFade":false,"time":{"hour":17.6,"clock":"17:36","season":"summer","weather":"Clear"},"frames":{"compose":"Frames: 33.3 ms (30 fps) · p95 183.0 ms · 30.8% late · display 60 Hz","filament":"Filament: CPU 8.0 ms (p95 56.9) · GPU 6.2 ms (p95 13.1) · start 27 ms, street 413 ms"},"ai":{"state":"LOADING","detail":"Loading the model (5417 MB)…","runsOn":"CPU","modelMb":5417,"gpuNote":null,"lane":"dialogue","linesWritten":57,"builtIn":0,"queued":0,"paused":"town-load","working":null,"pregenOff":null,"prefillTokPerSec":0,"genTokPerSec":0,"firstTokenMs":0,"loadInfo":null},"conversation":null,"voices":{"enabled":false,"speaking":false,"only":2,"timing":null},"mic":{"always":false,"granted":false,"listening":false,"state":"IDLE"},"panels":{"aiPanel":false,"crashShown":true,"tuningNpu":false}}
+  },
+  "breadcrumbs": [
+    "20:02:51.483 start: build 0.1.302 (edfb770)",
+    "20:02:51.581 renderer: Filament",
+    "20:02:51.611 resume",
+    "20:02:52.440 Filament start",
+    "20:02:56.056 town load start: gamma",
+    "20:02:56.060 mic off",
+    "20:02:56.061 street view",
+    "20:02:56.061 street 0: Main Street",
+    "20:02:56.061 dialogue model: LOADING",
+    "20:02:56.061 voices off",
+    "20:02:56.061 no conversation",
+    "20:02:56.061 AI panel closed",
+    "20:02:56.082 dialogue model: LOADING",
+    "20:02:56.571 town gamma 2025: spawned on 8L (Civic Avenue) at x 378, lane 7.0",
+    "20:02:56.576 town: back where the player stood, row 8L at x 378, lane 6.9999623",
+    "20:02:56.577 town load end: gamma, 96 rows, 98 buildings, 514 ms",
+    "20:02:56.621 town scene: building gamma; Java heap limit 512 MB, 33 MB used",
+    "20:03:04.117 trim memory 20",
+    "20:03:04.397 pause",
+    "20:03:04.451 resume"
+  ],
+  "logcat": null
+}
