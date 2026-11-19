@@ -1,0 +1,155 @@
+{
+  "kind": "screenshot",
+  "time": "2026-11-18T20:42:32.544-0500",
+  "epochMs": 1795052552544,
+  "note": "not enough memory to load model",
+  "app": {
+    "versionName": "0.1.306 (f3adfc8)",
+    "versionCode": 306,
+    "git": "f3adfc8",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "image": {
+    "file": "204232-not-enough-memory-to-load-model.png",
+    "format": "png",
+    "scale": 1,
+    "width": 2340,
+    "height": 1080,
+    "bytes": 2240104,
+    "captured": "PixelCopy of the window"
+  },
+  "screen": {
+    "widthPx": 2244,
+    "heightPx": 1038,
+    "density": 2.8125,
+    "densityDpi": 450
+  },
+  "device": {
+    "ramFreeMb": 3822,
+    "ramTotalMb": 11113,
+    "lowMemory": false,
+    "gamePssMb": 1382,
+    "thermalStatus": 1,
+    "thermalHeadroom10s": 0.8925902
+  },
+  "game": {
+    "renderer": "Filament",
+    "camera": "medium",
+    "rendererError": "The town crashed while it was being built last time: on the crossroads (Filament) instead",
+    "town": "eta · Commuter suburb · 2025",
+    "walkableTown": {
+      "seed": "gamma",
+      "loading": false,
+      "ready": true,
+      "progress": 1,
+      "error": null,
+      "loadMs": 264.11115,
+      "firstViewMs": 13732.858,
+      "built": "town built: ground 13732 ms (workers 13720), buildings 182 ms here (slowest b55 3.1 ms, largest batch 7.0 ms), 10812 ms on workers (slowest b12 1013 ms); textures 653, 68.5M texels, 2214 shared",
+      "memory": {
+        "when": "town built",
+        "graphicsMb": 965,
+        "nativeMb": 97,
+        "javaMb": 109,
+        "codeMb": 36,
+        "totalPssMb": 1241
+      },
+      "row": "3R",
+      "street": "Main Street",
+      "neighbourhood": "Old Town",
+      "x": 1866.1045,
+      "lane": 14,
+      "wx": 4452.8955,
+      "wz": 4554.66,
+      "heading": 3.1415927,
+      "front": "b3",
+      "transit": null,
+      "liveRows": [
+        "3R",
+        "6R",
+        "7R",
+        "3L",
+        "0R",
+        "4L"
+      ],
+      "people": 36
+    },
+    "street": {
+      "index": 0,
+      "name": "Main Street",
+      "nearestBuilding": 4,
+      "building": "Keller's Gym",
+      "owner": "June Keller",
+      "atCorner": false,
+      "edge": 0
+    },
+    "player": {
+      "x": 1866.1045,
+      "lane": 14,
+      "street": 0,
+      "dir": 1,
+      "walking": false,
+      "running": false,
+      "viewMiddle": 284.625
+    },
+    "turn": {
+      "active": false,
+      "forward": true,
+      "p": 1,
+      "yaw": 1.5707964,
+      "ease": 1,
+      "blocked": false
+    },
+    "inRoom": false,
+    "room": null,
+    "doorFade": false,
+    "time": {
+      "hour": 17.6,
+      "clock": "17:36",
+      "season": "summer",
+      "weather": "Clear"
+    },
+    "frames": {
+      "compose": "Frames: 16.6 ms (60 fps) · p95 16.7 ms · 2.1% late · display 60 Hz",
+      "filament": "Filament: CPU 7.5 ms (p95 13.5) · GPU 20.6 ms (p95 33.1) · start 11 ms, street 360 ms"
+    },
+    "ai": {
+      "state": "WAITING",
+      "detail": "Not enough free memory to load the model (4067 MB free, about 6617 MB needed with room for the game). Waiting for memory to free up (try 6 of 8).",
+      "runsOn": "CPU",
+      "modelMb": 5417,
+      "gpuNote": null,
+      "lane": null,
+      "linesWritten": 57,
+      "builtIn": 0,
+      "queued": 577,
+      "paused": "",
+      "working": null,
+      "pregenOff": null,
+      "prefillTokPerSec": 0,
+      "genTokPerSec": 0,
+      "firstTokenMs": 0,
+      "loadInfo": null
+    },
+    "conversation": null,
+    "voices": {
+      "enabled": false,
+      "speaking": false,
+      "only": 2,
+      "timing": null
+    },
+    "mic": {
+      "always": false,
+      "granted": false,
+      "listening": false,
+      "state": "IDLE"
+    },
+    "panels": {
+      "aiPanel": true,
+      "crashShown": false,
+      "tuningNpu": false
+    }
+  }
+}
