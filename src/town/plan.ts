@@ -6,6 +6,8 @@ import { Grid } from './grid';
 import { SIZES, type LotKind, type Rect, type Road } from './kinds';
 import { placeLandmarks, type LandmarkPlot } from './landmarks';
 import { hasCinema } from './cinema';
+import { isStoreSite, storeNeeds } from './stores';
+import { EDGE_CANVAS, placeDowntownStores, placeEdgeStores } from './storeSites';
 import { planNetwork } from './network';
 import { planWater, shiftWater, waterKind, waterNear, type WaterBody } from './water';
 
@@ -74,10 +76,16 @@ interface Built {
   ok: boolean;
   /** The cinema has its site (or the town is too small for one). */
   cinema: boolean;
+  /** Every store the town needs has its site (src/town/stores.ts storeNeeds). */
+  stores: boolean;
 }
 
 function build(seed: string, extra: number): Built | null {
-  const net = planNetwork(seed, extra, waterKind(seed) === 'river');
+  const needs = storeNeeds(seed);
+  const net0 = planNetwork(seed, extra, waterKind(seed) === 'river');
+  // a town with stores at its edge plans on a bigger canvas (east and south), for them beyond the main street's end
+  const pad = needs.superstore !== undefined ? EDGE_CANVAS.superstore : needs.supermarket !== undefined ? EDGE_CANVAS.supermarket : undefined;
+  const net = !pad ? net0 : { ...net0, width: net0.width + pad.right, height: net0.height + pad.bottom, roads: [...net0.roads] };
   const { width: W, height: H, roads } = net;
   const water = planWater(seed, { width: W, height: H, marginL: 8, marginR: 8, top: 8, vroads: [], roads });
   const grid = new Grid(W, H);
@@ -106,15 +114,39 @@ function build(seed: string, extra: number): Built | null {
     plots: [], keep: [], civicStrip: false, blocked: (b) => !grid.free(b, 2),
   });
   for (const l of lm.landmarks) grid.mark(l, 1);
+  // the general store and the market, downtown (src/town/storeSites.ts), inside the streets' extent
+  const ext = {
+    x0: Math.min(...roads.map((r) => r.x)), y0: Math.min(...roads.map((r) => r.y), plaza.y),
+    x1: Math.max(...roads.map((r) => r.x + r.w)), y1: Math.max(...roads.map((r) => r.y + r.h), plaza.y + plaza.h),
+  };
+  const downtown = placeDowntownStores(seed, { grid, roads, plaza, ext });
 
-  const lots = placeFrontage({ seed, grid, roads, center: net.center, radius: net.radius });
+  let lots = placeFrontage({ seed, grid, roads, center: net.center, radius: net.radius });
+  // the supermarket and the superstore beyond the east end of the main street, which runs on out of town past them
+  const edge = placeEdgeStores(seed, { width: W, height: H, roads, taken: [...lm.landmarks, ...downtown, plaza], lots, water: water?.raw });
+  if (edge.road) {
+    const main = edge.road;
+    roads[edge.index] = main;
+    // a side street the road out of town crosses is cut in two at the junction (as the network cuts them)
+    for (const i of [...edge.split].sort((a, b) => b - a)) {
+      const r = roads[i]!;
+      const pieces = [{ ...r, h: main.y - r.y }, { ...r, y: main.y + main.h, h: r.y + r.h - main.y - main.h }].filter((q) => q.h >= 2);
+      roads.splice(i, 1, ...pieces);
+    }
+  }
+  if (edge.dropped.length) lots = lots.filter((l) => !edge.dropped.includes(l.id));
+  const stores = [...downtown, ...edge.plots];
+  const has = (id: string): boolean => stores.some((l) => l.id === id);
+  const storesOk = has('generalstore') && (needs.market === undefined || has('market'))
+    && (needs.supermarket === undefined || has('supermarket')) && (needs.superstore === undefined || has('superstore'));
   const n = (k: LotKind): number => lots.filter((l) => l.kind === k).length;
-  // The sim never needs more than ~20 shops and ~100 households (apartments house about 4 each).
+  // The sim needs up to ~24 shops and ~105 households (apartments house about 4 each), with the stores' sites taken
+  // (a few of the main street's plots, and a few where the road out of town runs).
   const homeRoom = n('small') + n('medium') + n('house') + 4 * n('apartment');
-  const ok = n('shop') >= 20 && n('villa') >= 2 && homeRoom >= 100 && lm.landmarks.filter((l) => l.id !== 'cinema').length >= 3;
+  const ok = n('shop') >= 24 && n('villa') >= 2 && homeRoom >= 106 && lm.landmarks.filter((l) => l.id !== 'cinema' && !isStoreSite(l.id)).length >= 3;
   // a town big enough for a cinema grows its streets until the cinema has a site too (src/town/cinema.ts)
   const cinema = !hasCinema(seed) || lm.landmarks.some((l) => l.id === 'cinema');
-  return { net, water, plaza, landmarks: lm.landmarks, lots, ok, cinema };
+  return { net, water, plaza, landmarks: [...lm.landmarks, ...stores], lots, ok, cinema, stores: storesOk };
 }
 
 /** Store a plan computed elsewhere (a worker), so planTown(seed) returns it instantly. */
@@ -129,14 +161,17 @@ export function planTown(seed: string): TownPlan {
 
   // Grow the town (longer streets, more of them) until everything fits.
   let built: Built | null = null;
-  let fits: Built | null = null; // the smallest that fits everything but the cinema
+  // the smallest that fits everything, else the smallest that fits the town and its stores, else the town and its cinema,
+  // else the town alone
+  let fits: Built | null = null;
+  const score = (b: Built): number => (b.stores ? 2 : 0) + (b.cinema ? 1 : 0);
   for (let extra = 0; extra <= 8; extra++) {
     const b = build(seed, extra);
     if (b) built = b;
-    if (b?.ok && !fits) fits = b;
-    if (b?.ok && b.cinema) break;
+    if (b?.ok && (!fits || score(b) > score(fits))) fits = b;
+    if (b?.ok && b.cinema && b.stores) break;
   }
-  if (fits && !(built?.ok && built.cinema)) built = fits;
+  if (fits && !(built?.ok && built.cinema && built.stores)) built = fits;
   if (!built) throw new Error(`no town plan fits for seed ${seed}`);
   const { net, plaza } = built;
 
