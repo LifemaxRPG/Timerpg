@@ -183,7 +183,7 @@ fun renderStores(out: String) {
 }
 
 /** Fields round the plot (the town is not here): pale grass behind the road and across it. */
-private fun field(stage: StoreStage, x0: Float, x1: Float, far: Float) {
+internal fun field(stage: StoreStage, x0: Float, x1: Float, far: Float) {
     val tile = PixImg(32, 32).also { im ->
         val rnd = Paint.Rnd(8)
         for (y in 0 until 32) for (x in 0 until 32) { val t = rnd.next(); im[x, y] = if (t < .2f) Paint.c(0x3E6E3A) else if (t < .3f) Paint.c(0x5E8E4A) else Paint.c(0x4A7E42) }
@@ -200,12 +200,12 @@ private fun field(stage: StoreStage, x0: Float, x1: Float, far: Float) {
 }
 
 /** The props preview's stage (a sun and sky light as the street's, one camera, a swap chain to read back), for the store. */
-private class StoreStage(val engine: Engine, lit: Material, proxy: Material, val w: Int, val h: Int) {
+internal class StoreStage(val engine: Engine, lit: Material, proxy: Material, val w: Int, val h: Int, anisotropy: Float = 16f) {
     val scene = engine.createScene()
     val view = engine.createView()
     val camera: Camera = engine.createCamera(EntityManager.get().create())
     val sun = EntityManager.get().create()
-    val props = PropLayer(engine, scene, lit, proxy)
+    val props = PropLayer(engine, scene, lit, proxy, anisotropy = anisotropy)
     val swap = engine.createSwapChain(w, h, SwapChainFlags.CONFIG_READABLE or SwapChainFlags.CONFIG_TRANSPARENT)
     val renderer = engine.createRenderer().also { it.clearOptions = Renderer.ClearOptions().apply { clear = true; setClearColor(0.0, 0.0, 0.0, 0.0) } }
     val grading: ColorGrading = ColorGrading.Builder().toneMapper(LinearToneMapper()).build(engine)

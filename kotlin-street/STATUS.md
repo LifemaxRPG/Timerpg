@@ -15,6 +15,16 @@
 
 ## The walkable town in the app (T10; desktop renders and JVM tests only, NOT yet run on the S25)
 
+- The downtown grows with the town (docs/TOWN.md "The downtown through the decades"): Main Street blocks of the pack's
+  facade kit over each shop's own storefront, 1960s-70s car parks behind them, mid-rise offices and hotels and later glass
+  towers as the population passes 175 and 235, the town hall in the plaza, the chapel, big mobile homes, condo terraces;
+  every building far off as a cheap box merged per cell out to 24000 units, into a haze of the sky's horizon colour
+  (desktop renders and JVM tests only).
+- Hand-made landmark models (glTF .glb, docs/LANDMARKS_GLB.md): the modern gas station, the 1950s Main Street service
+  station, the Junction Diner (re-skinned to our swatches and art grid) and Starling Lanes load through our own reader
+  into the town's lit material, with role lighting, collision, doors and the year's gas prices on the price panels;
+  previewed (`-Dmode=filament-landmarks`), not yet placed in towns. Desktop renders and JVM tests only.
+
 - The town has its stores (docs/STORES.md, "In the town"): gamma's general store (now an antiques shop), the old market
   (Cornerstone Chapel), the shut Prairie Larder and the Broadmeadow superstore on its 159 x 206 m lot, built in their
   slots, solid in the open world's walk (read off their geometry, parked cars included, rebuilt on the hour) with "Go
@@ -31,6 +41,13 @@
   ground on workers, uploads and buildings nearest the player in a 14 ms budget a frame behind a loading screen (progress
   bar) until every building within 1800 units is in, then 4 ms a frame; drawn through `TownFrame.street` (CameraRig's
   eye preset from the AI panel). The stage's sky stays under it.
+- 0.1.367 feedback (wf-feedback2, desktop renders only, docs/TOWN.md and docs/STORES.md): townspeople wear 120 sheets
+  baked from the pack's Character Generator by sex, age and era (`TownFolk`, tools/make_townsfolk.py); the pavements
+  follow the hour, the street's kind and the weather (`TownCrowd`); a see-through cone in the lit material shows the
+  player through woods and walls (`SeeThrough`); the market reused as a church looks like a storefront church (repaint,
+  crosses, steeple, monument sign); the supermarket's mansard ends in hips, its sign backs are sheet metal, its long
+  walls have pilasters, downspouts, vents and a dumpster pad; the yards' atlases are no wider than they need (81.1M ->
+  73.7M texels).
 - People: `TownPlay.people` stands the street life (StreetLife's passers, seeded per row) and the people to talk to at
   their doors on the rows `liveRows()` keeps, plus the player; `TownPeople` (scene3d) draws them as lit cards of our
   character sheets with shadow twins, cut with the near side. "Talk to <name>" and "Go inside" work at the building in
@@ -83,6 +100,12 @@
   rebuilds it.
 
 ## Added since (all verified by headless renders only)
+- **A bicycle in the open world** (branch wf-bike; desktop renders and JVM tests only, NOT yet ridden on the S25): the HUD's
+  bike button right of the stick (tap on/off, long press: the bell); momentum, coasting, braking, a turning radius that
+  grows with the speed, cruise 290 / sprint 400 units/s (walk 72, run 150), slower on grass, sliding along walls; a 3D bike
+  of the town's era (1950s cruiser, 1970s ten-speed, 1980s BMX, modern hybrid) with turning wheels, cranks and bar, leaning
+  into turns, the player seated on it; tyre and freewheel sounds made live; the camera 30% further back. docs/TOWN.md
+  "Open world: the bicycle".
 - Pixel-perfect scaling (zoom snapped to whole pixels; `StageTuning.pixelPerfect`), props/characters at 1x/1.5x pixel scale.
 - Shop name and owner shown at the bottom while standing at a shop. Collisions: walk round lamps/trees/benches at the kerb (radii are guesses).
 - The corner turn is now the crossroads and the walk round it (see "The crossroads and the walk round the corner" below).

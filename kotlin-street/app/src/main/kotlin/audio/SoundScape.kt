@@ -32,6 +32,12 @@ class SoundScape(private val ctx: Context) {
     private val sfx = HashMap<String, Pcm?>()
 
     private val synth = Synth()
+    /** The bicycle's tyres and freewheel (set by the game each frame while riding). */
+    val bike = BikeSound()
+    private val bellPcm by lazy { BikeSound.bell() }
+
+    /** The bicycle's bell. */
+    fun bell() { if (enabled) shots.add(Shot(bellPcm, .5f, .1f)) }
     private var rnd = java.util.Random(7)
     @Volatile private var scatter: Map<String, Float> = emptyMap()
 
@@ -149,6 +155,8 @@ class SoundScape(private val ctx: Context) {
                     }
                     if (fadingGain < .001f) fading = null
                 }
+                // the bicycle, under the one-shots
+                bike.render(buf, frames, 1f)
                 // one-shots
                 while (true) { playing += shots.poll() ?: break }
                 val it = playing.iterator()

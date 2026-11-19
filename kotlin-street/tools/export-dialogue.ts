@@ -137,6 +137,8 @@ if (whole) {
     if (!/^b\d+$/.test(sprite)) continue;
     // landmarks (school, fire station, ...) stand on rows too, under names after every lot's: nobody lives there (yet)
     if (typeof at.lot === 'string' && at.lot.startsWith('landmark:')) continue;
+    // nor in the buildings the pack adds with nobody in them (the downtown's towers and car parks, the town hall, the chapel)
+    if (typeof at.lot === 'string' && at.lot.startsWith('extra:')) continue;
     const lot = whole.lotOf.get(sprite);
     if (!lot) { warn(`street.json v2 row building ${sprite} is not in the town's building list`); bad++; }
     else if (typeof at.lot === 'string' && at.lot !== lot.slot) { warn(`street.json v2 ${sprite} is lot ${at.lot}, here ${lot.slot}: the graph names buildings differently (tools/town-whole.ts)`); bad++; }

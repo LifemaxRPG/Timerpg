@@ -4,6 +4,7 @@ import com.lifemax.rpg.feature.habits.domain.Crossroads
 import com.lifemax.rpg.feature.habits.domain.Furniture
 import com.lifemax.rpg.feature.habits.domain.JunctionFrame
 import com.lifemax.rpg.feature.habits.domain.Placement
+import com.lifemax.rpg.feature.habits.domain.PlacementKind
 import com.lifemax.rpg.feature.habits.domain.Row
 import com.lifemax.rpg.feature.habits.domain.RowEnd
 import com.lifemax.rpg.feature.habits.domain.Town
@@ -118,7 +119,7 @@ class TownWalk(override val town: Town) : TownWalkView {
         private set
     override var rowChanges = 0
         private set
-    override val front: Placement? get() = row.buildings.firstOrNull { x >= it.x0 && x <= it.x1 }
+    override val front: Placement? get() = row.buildings.firstOrNull { it.kind != PlacementKind.EXTRA && x >= it.x0 && x <= it.x1 }
 
     /** Crossing the road anywhere along a row (true), or only at the zebras by its ends ([ZEBRA] from either node). */
     var midBlock = true

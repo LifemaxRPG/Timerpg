@@ -59,7 +59,7 @@ internal class PropLayer(
      * The pictures' anisotropic filtering (16 by default). The desktop's software GL (llvmpipe) lets it blur a magnified
      * picture despite the nearest magnification; a close-up preview passes 1 to see the texels as the phone draws them.
      */
-    anisotropy: Float = 16f,
+    private val anisotropy: Float = 16f,
 ) {
     private val ownTextures = sharedTextures == null
     private val textures = sharedTextures ?: StreetTextures(engine, srgb)
@@ -177,7 +177,7 @@ internal class PropLayer(
     }
 
     private fun finish(vertices: VertexBuffer, indices: IndexBuffer, box: Box, tex: Texture, mask: Texture, glows: Boolean, casts: Boolean, tiled: Boolean): MaterialInstance {
-        val sampler = if (tiled) TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.REPEAT).also { it.anisotropy = 8f } else crisp
+        val sampler = if (tiled) TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.REPEAT).also { it.anisotropy = min(8f, anisotropy) } else crisp
         val mi = visible.createInstance().also { m ->
             m.setParameter("albedo", tex, sampler); m.setParameter("mask", mask, nearest)
             m.setParameter("uvRect", 0f, 0f, 1f, 1f); m.setParameter("tint", 1f, 1f, 1f, 1f)
@@ -206,6 +206,9 @@ internal class PropLayer(
      * the props are drawn at all (not through the classic's leaned looks, which they do not follow), [fade] how far they
      * are faded out (1: whole; the screen-door cut of the street view), [shadows] whether their shadow twins cast.
      */
+    /** Whether the open world's see-through cone ([SeeThrough]) cuts this layer (not the ground's). */
+    var seeThrough = true
+
     fun update(look: FloatArray, dark: Float, shown: Boolean = true, fade: Float = 1f, shadows: Boolean = shown, castFade: Float = 1f) {
         val rm = engine.renderableManager
         val on = smooth((dark - .3f) / .4f)
@@ -220,6 +223,7 @@ internal class PropLayer(
             if (b.proxy != 0) { val pi = rm.getInstance(b.proxy); if (pi != 0) rm.setLayerMask(pi, 0xff, if (shadows && (castFade >= .5f || !b.casts)) 1 else 0) }
             if (!drawn) continue
             b.mi.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
+            if (seeThrough) SeeThrough.apply(b.mi)
             if (b.glows) b.mi.setParameter("glow", GLOW, GLOW, GLOW, on)
             if (f < 1f || faded) b.mi.setParameter("fade", f)
         }

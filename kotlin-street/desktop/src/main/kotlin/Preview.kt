@@ -200,6 +200,12 @@ fun loadSheets(dir: String) {
         val f = File(dir, "char_0$n.png")
         if (f.exists()) SkiaImage.makeFromEncoded(f.readBytes()).toComposeImageBitmap() else null
     }
+    // the townspeople's own baked sheets (tools/make_townsfolk.py), unless -Dfolk=0
+    // (the app's own folder when [dir] is the web game's)
+    val folkDir = listOf(File(dir, "folk"), File("../app/src/main/assets/characters/folk")).firstOrNull { File(it, "folk.json").exists() }
+    if (folkDir != null && System.getProperty("folk") != "0") com.lifemax.rpg.feature.habits.presentation.scene.TownFolk.load(File(folkDir, "folk.json").readText()) { f ->
+        File(folkDir, f).takeIf { it.exists() }?.let { SkiaImage.makeFromEncoded(it.readBytes()).toComposeImageBitmap() }
+    }
 }
 
 /** Our lamp, trees and bench (from the game's asset folder). */
@@ -355,6 +361,11 @@ fun main(args: Array<String>) {
             (if (t is java.lang.reflect.InvocationTargetException) t.targetException else t).printStackTrace()
             kotlin.system.exitProcess(1)
         }
+    }
+    if (mode == "filament-landmarks") {
+        // the hand-made landmark models (.glb) built for the town (FilamentLandmarksPreview.kt; Filament's desktop build needed)
+        val k = runCatching { Class.forName("FilamentLandmarksPreviewKt") }.getOrNull() ?: error("Filament is not built in: run tools/build-filament.sh")
+        k.getMethod("renderLandmarks", String::class.java).invoke(null, out); return
     }
     if (mode == "filament-stores") {
         // the general stores and the supermarkets of each era (FilamentStoresPreview.kt; Filament's desktop build needed)

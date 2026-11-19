@@ -1,5 +1,6 @@
 import androidx.compose.ui.graphics.Color
 import kotlin.math.abs
+import kotlin.math.hypot
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import com.google.android.filament.Engine
@@ -72,6 +73,7 @@ fun renderFilamentOpen(out: String) {
         com.lifemax.rpg.feature.habits.domain.ModelShape.parseAll(File(bdir, "models.json").takeIf { it.exists() }?.readText()),
         com.lifemax.rpg.feature.habits.domain.CinemaSiteShape.parse(root), com.lifemax.rpg.feature.habits.domain.StoreLots.parse(root).map { it.sprite }.toSet())
     val storeSites = com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root)
+    com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown.farLod = System.getProperty("townFar") != "0"
     val ft = FilamentTown(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, cinema = cinema,
         stores = storeSites, collision = collision)
     ft.nightBudgetNs = Long.MAX_VALUE
@@ -80,7 +82,9 @@ fun renderFilamentOpen(out: String) {
     ft.startGround()
     while (!ft.uploadGround(8f)) Thread.sleep(1)
     while (ft.pending > 0) { if (ft.buildNearest(0f, 0f, 8f) == 0) Thread.sleep(1) }
+    report.appendLine(ft.farReport)
     report.appendLine("(software GL on the build server, not the S25: draws and triangles are what is sent, the times are not the phone's)")
+    ft.textureStats.let { (n, t, sh) -> report.appendLine("textures after the build: %d, %.1fM texels, %d shared; biggest: %s".format(n, t / 1e6, sh, ft.biggestTextures(10))) }
 
     // the people to talk to (as the app picks them) and the player
     val dialogue = File("../app/src/main/assets/town/${town.seed}/dialogue.json")
@@ -88,6 +92,13 @@ fun renderFilamentOpen(out: String) {
         val a = org.json.JSONObject(dialogue.readText()).getJSONArray("npcs")
         val m = LinkedHashMap<String, Int>()
         for (i in 0 until a.length()) { val o = a.getJSONObject(i); m.putIfAbsent(o.getString("building"), o.getString("id").hashCode() and 0x7fffffff) }
+        m
+    }
+    // (their sex and age, as the app hands them: the first person of each building)
+    TownPlay.keeperTraits = if (!dialogue.exists()) emptyMap() else run {
+        val a = org.json.JSONObject(dialogue.readText()).getJSONArray("npcs")
+        val m = LinkedHashMap<String, Int>()
+        for (i in 0 until a.length()) { val o = a.getJSONObject(i); m.putIfAbsent(o.getString("building"), o.optInt("age").coerceAtLeast(0) * 2 + (if (o.optString("sex") == "F") 1 else 0)) }
         m
     }
     GameState.enabled = true; GameState.look = 1
@@ -170,6 +181,48 @@ fun renderFilamentOpen(out: String) {
         view("main_close_13h", p.x, p.z, a.x, a.z, along + 180f, 10f, 150f, 13f, "Main Street, zoomed in, facing the player")
         view("main_through_13h", p.x, p.z, a.x, a.z, fronts + 180f, 20f, 600f, 13f, "Main Street, the camera behind the block (the block cut away)")
         view("main_dusk_west", p.x, p.z, a.x, a.z, 270f, 16f, 500f, 19.3f, "Main Street, looking west at dusk")
+    }
+    // --- downtown: the tallest building with nobody in it (a tower behind the main street, else the town hall), from the
+    // pavement in front of its block, at the camera's usual height, zoomed out, at night, and from across town (its far box
+    // on the skyline); -Dshots=downtown renders only these
+    // (-Dspot=x,z: the building nearest that point instead, so a town's years can be shot from the same place)
+    val spot = System.getProperty("spot")?.split(",")?.mapNotNull { it.trim().toFloatOrNull() }?.takeIf { it.size == 2 }
+    (if (spot != null) ft.slots.filter { it.isBuilt && town.road(it.row.road).name == "Main Street" }.minByOrNull { hypot(it.cx - spot[0], it.cz - spot[1]) }
+     else ft.slots.filter { it.b.kind == com.lifemax.rpg.feature.habits.domain.PlacementKind.EXTRA && it.isBuilt }.maxByOrNull { it.cy })?.let { s ->
+        val r = s.row
+        val x = s.b.mid.coerceIn(40f, r.length - 40f)
+        val p = r.pointAt(x, 7f); val a = r.alongAt(x); val n = r.normalAt(x)
+        val inn = heading(n.x, n.z)
+        report.appendLine("downtown: ${s.b.sprite} on ${r.id} (${town.road(r.road).name}), its middle ${"%.0f".format(s.cy)} up; ${ft.farReport}")
+        view("downtown_street_13h", p.x, p.z, a.x, a.z, inn - 20f, 4f, OrbitCamera.DIST_MIN, 13f, "downtown, from the pavement")
+        view("downtown_camera_13h", p.x, p.z, a.x, a.z, inn - 30f, 20f, 520f, 13f, "downtown, the camera's usual height")
+        view("downtown_along_13h", p.x, p.z, a.x, a.z, heading(a.x, a.z), 14f, 600f, 13f, "downtown, along the main street")
+        view("downtown_high_13h", p.x, p.z, a.x, a.z, inn + 30f, 50f, OrbitCamera.DIST_MAX, 13f, "downtown, zoomed out")
+        view("downtown_dusk", p.x, p.z, a.x, a.z, inn - 30f, 16f, 600f, 19.3f, "downtown at dusk")
+        view("downtown_night", p.x, p.z, a.x, a.z, inn - 30f, 16f, 600f, night, "downtown at night")
+        // across town: the player 3500 units out on the far side, looking back at the centre
+        val c = collision
+        val cx = s.cx; val cz = s.cz
+        val ox = (cx + (if (cx > (c.minX + c.maxX) / 2f) -3500f else 3500f)).coerceIn(c.minX + 400f, c.maxX - 400f)
+        val oz = cz + 1200f
+        val back = heading(cx - ox, cz - oz)
+        view("downtown_skyline_13h", ox, oz, (cx - ox), (cz - oz), back, 6f, 300f, 13f, "the downtown from across town (far boxes)")
+        view("downtown_skyline_dusk", ox, oz, (cx - ox), (cz - oz), back, 6f, 300f, 19.3f, "the downtown from across town at dusk")
+        view("downtown_skyline_night", ox, oz, (cx - ox), (cz - oz), back, 6f, 300f, night, "the downtown from across town at night")
+        view("downtown_wide_13h", ox, oz, (cx - ox), (cz - oz), back, 24f, OrbitCamera.DIST_MAX, 13f, "a wide view over the town, towards downtown")
+    }
+    // --- the pack's other buildings with nobody in them: the first of each kind (the town hall, the chapel, a car park)
+    root.optJSONObject("graph")?.optJSONArray("extras")?.let { xs ->
+        val seen = HashSet<String>()
+        for (i in 0 until xs.length()) {
+            val o = xs.getJSONObject(i); val kind = if (o.getString("id").contains(":lot:")) "stripshop" else o.getString("kind")
+            if (!seen.add(kind)) continue
+            val s = ft.slots.firstOrNull { it.b.sprite == o.getString("sprite") } ?: continue
+            val r = s.row; val x = s.b.mid.coerceIn(40f, r.length - 40f)
+            val p = r.pointAt(x, 7f); val a = r.alongAt(x); val n = r.normalAt(x)
+            view("extra_${kind}_13h", p.x, p.z, a.x, a.z, heading(n.x, n.z) - 25f, 22f, 560f, 13f, "the ${o.getString("name")} (${s.b.sprite})")
+            view("extra_${kind}_night", p.x, p.z, a.x, a.z, heading(n.x, n.z) + 20f, 16f, 520f, night, "the ${o.getString("name")} at night")
+        }
     }
     // --- the civic avenue (the spawn): along it, and at the school across it
     run {
@@ -313,6 +366,91 @@ fun renderFilamentOpen(out: String) {
     view("fb_yard_a", 2576f, 3674f, 0f, -1f, 124.1f, 22.43f, 420f, 17.6f, "005359: outside a back hedge, the yard behind the player")
     view("fb_yard_b", 2576f, 3674f, 0f, -1f, 98.5f, 20.1f, 420f, 17.6f, "005414: the same spot, the camera turned 25 degrees")
     view("fb_yard_c", 2576f, 3674f, 0f, -1f, 150f, 22f, 420f, 17.6f, "the same spot, the camera turned the other way")
+    // --- the bicycle (docs/TOWN.md "Open world: the bicycle"): each era's bike from several sides, leaning into a turn,
+    // at night with its lamp, then a ride through the game loop (TownPlay.step at 60 Hz) rendered each second
+    run {
+        if (only == null || only.none { it.startsWith("bike") }) return@run
+        val r = town.rows.filter { town.road(it.road).name == "Main Street" }.maxByOrNull { it.buildings.size }!!
+        val x = mid(r)
+        // (in the road's near lane, clear of the pavement's passers and furniture)
+        val p = r.pointAt(x + 60f, 34f); val a = r.alongAt(x)
+        val along = heading(a.x, a.z)
+        fun bikeView(name: String, style: com.lifemax.rpg.feature.habits.presentation.scene.BikeStyle, yaw: Float, pitch: Float, dist: Float, hour: Float,
+                     lean: Float = 0f, steer: Float = 0f, crank: Float = .6f, speed: Float = 0f) {
+            if (!want(name)) return
+            if (walk.riding) walk.dismount()
+            walk.placeAt(p.x, p.z, a.x, a.z)
+            check(walk.mount()) { "no room for the bike at $name" }
+            val b = walk.bike
+            b.style = style; b.lean = lean; b.steer = steer; b.crank = crank; b.wheel = crank * 2.4f; b.speed = speed; b.pedalling = speed > 0f
+            OrbitCamera.set(yaw, pitch, dist); OrbitCamera.follow(walk.wx, walk.wz)
+            val pose0 = run.orbit(walk, w.toFloat(), h.toFloat(), clock)
+            ft.prepare(pose0)
+            run.draw(walk, w.toFloat(), h.toFloat(), hour, clock, sheets)
+            shooter.save(File(dir, "$name.png"), w, h, hour, emptyList(), skyRow = skyRow(hour, h), skyImg = stageSky(hour, w, h))
+            report.appendLine("%-26s the %s on Main Street; %s".format(name, style.label, OrbitCamera.describe()))
+            println("  $name")
+            clock += 1f
+        }
+        for (st in com.lifemax.rpg.feature.habits.presentation.scene.BikeStyle.values()) {
+            val n = st.name.lowercase()
+            bikeView("bike_${n}_side", st, along + 90f, 8f, 140f, 13f)
+            bikeView("bike_${n}_quarter", st, along + 40f, 14f, 140f, 13f)
+            bikeView("bike_${n}_behind", st, along, 12f, 150f, 13f)
+            bikeView("bike_${n}_front", st, along + 180f, 10f, 140f, 13f)
+            bikeView("bike_${n}_above", st, along + 120f, 50f, 160f, 13f)
+        }
+        val st0 = walk.bike.style
+        bikeView("bike_lean_behind", st0, along, 12f, 190f, 13f, lean = .45f, steer = -.25f, speed = 250f)
+        bikeView("bike_lean_quarter", st0, along + 30f, 14f, 170f, 13f, lean = -.4f, steer = .2f, speed = 250f)
+        bikeView("bike_night", st0, along + 60f, 14f, 200f, night)
+        bikeView("bike_street", st0, along + 25f, 20f, 480f, 17.6f)
+        if (want("bike_ride")) {
+            if (walk.riding) walk.dismount()
+            walk.placeAt(p.x, p.z, a.x, a.z)
+            OrbitCamera.set(along, 13f, 190f); OrbitCamera.follow(walk.wx, walk.wz)
+            run.orbit(walk, w.toFloat(), h.toFloat(), clock)
+            TownPlay.toggleBike()
+            val dt = 1f / 60f
+            var t = 0f
+            for (frame in 1..(60 * 8)) {
+                // a full push up the street (the sprint after 0.8 s), a gentle bend out towards the middle of the road, then let go: it coasts
+                val tt = frame * dt
+                GameState.moveX = if (tt in 2.5f..3.3f) .4f else 0f
+                GameState.moveLane = if (tt < 4.5f) -1f else 0f
+                TownPlay.step(dt)
+                clock += dt
+                run.orbit(walk, w.toFloat(), h.toFloat(), clock)
+                if (frame % 60 == 0) {
+                    val pose0 = run.orbit(walk, w.toFloat(), h.toFloat(), clock)
+                    ft.prepare(pose0)
+                    run.draw(walk, w.toFloat(), h.toFloat(), 13f, clock, sheets)
+                    val name = "bike_ride_%02ds".format(frame / 60)
+                    shooter.save(File(dir, "$name.png"), w, h, 13f, emptyList(), skyRow = skyRow(13f, h), skyImg = stageSky(13f, w, h))
+                    report.appendLine("%-26s %.0f units/s, lean %.0f deg, sprint %s, at (%.0f, %.0f)".format(name, walk.bike.speed, Math.toDegrees(walk.bike.lean.toDouble()), walk.bike.sprinting, walk.wx, walk.wz))
+                    println("  $name")
+                }
+                t += dt
+            }
+            GameState.moveX = 0f; GameState.moveLane = 0f
+            TownPlay.dismount("preview")
+        }
+        if (walk.riding) walk.dismount()
+    }
+    // --- the owner's screenshots of build 0.1.367 (the S25, 2026-11-19, 17:36 in summer): the same spots and cameras
+    view("fb2_crowd", 5038.5f, 2519.9f, -1f, .008f, 89.54f, 11.23f, 420f, 17.6f, "015754: King Street, a quiet street of houses at 5:36 pm")
+    view("fb2_crowd_main", 5038.5f, 2519.9f, -1f, .008f, 89.54f, 30f, 900f, 17.6f, "015754's spot from high up")
+    view("fb2_chapel", 11557f, 5279f, .9155f, .4023f, -18.99f, 10f, 420f, 17.6f, "015958: Cornerstone Chapel (the 1960s market reused)")
+    view("fb2_chapel_close", 11557f, 5279f, .9155f, .4023f, -18.99f, 14f, 200f, 17.6f, "015958's chapel, zoomed in")
+    view("fb2_store_side", 14255f, 6145.8f, -.3415f, .9399f, -62.78f, 10f, 420f, 17.6f, "020039: the shut supermarket from the side")
+    view("fb2_store_back", 14087.6f, 5816.6f, -.7994f, .6007f, -119.62f, 10f, 420f, 17.6f, "020054: the supermarket's back and side")
+    view("fb2_store_high", 14087.6f, 5816.6f, -.7994f, .6007f, -119.62f, 35f, 700f, 13f, "020054's spot from above, noon")
+    view("fb2_woods", 18926.5f, 5174.3f, .564f, .8258f, -20.7f, 15.14f, 420f, 17.6f, "020240: in the woods (the player must show)")
+    view("fb2_woods_low", 18926.5f, 5174.3f, .564f, .8258f, 60f, 10f, 300f, 17.6f, "020240's woods, another way, low")
+    // build 0.1.367 (the S25, 2026-11-19, 17:36 summer): the horizon's thin bright line and streaks (GPU p50 22 ms there),
+    // and the forest's trees cut in half far off
+    view("fb_horizon", 3219.6f, 4148.5f, 0f, -1f, 23.38f, 11.85f, 420f, 17.6f, "015705: Church Street, the horizon")
+    view("fb_trees_half", 14316.6f, 5916.4f, 0f, 1f, 153.57f, 10f, 420f, 17.6f, "020102: by the woods, trees far off")
     File(dir, "open.txt").writeText(report.toString())
     print(report)
     if (want("walk")) scriptedWalk(dir, town, yards, walk, run, shooter, sheets, w, h, events)
