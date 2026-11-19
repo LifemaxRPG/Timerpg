@@ -158,13 +158,15 @@ object ShotUploader {
      * Sends [bmp] (taken at [takenAt]) with the [note] and [game] state: the image, then the JSON beside it. [how]: how
      * the window was captured. (The bitmap is left to the garbage collector: the sheet may still be drawing it.)
      */
-    fun sendShot(ctx: Context, bmp: Bitmap, note: String?, takenAt: Long, how: String, game: Map<String, Any?>?) {
+    fun sendShot(ctx: Context, bmp: Bitmap, note: String?, takenAt: Long, how: String, game: Map<String, Any?>?, marks: List<ShotMark> = emptyList()) {
         val app = ctx.applicationContext
         val token = ShotSettings.token(app)
         if (token == null) { toast(app, "No token: add one in the AI panel"); return }
         toast(app, "Sending to Claude…")
         worker.execute {
-            val enc = try { encode(bmp) } catch (t: Throwable) { null }
+            // with arrows drawn: the marked picture is the one sent as <name>.png, the unmarked one beside it as <name>-raw.png
+            val enc = try { encode(if (marks.isEmpty()) bmp else ShotArt.render(bmp, marks)) } catch (t: Throwable) { null }
+            val raw = if (marks.isEmpty()) null else try { encode(bmp) } catch (t: Throwable) { null }
             if (enc == null) { toast(app, "Could not encode the screenshot"); return@execute }
             val tz = TimeZone.getDefault()
             val sections = linkedMapOf<String, Any?>(
@@ -172,12 +174,13 @@ object ShotUploader {
                 "device" to DeviceFacts.device(app),
                 "game" to game,
             )
-            val job = Job(enc, note, takenAt, tz, how, sections)
+            val job = Job(enc, note, takenAt, tz, how, sections, raw, marks, bmp.width, bmp.height)
             upload(app, job, retried = false)
         }
     }
 
-    private class Job(val enc: Encoded, val note: String?, val at: Long, val tz: TimeZone, val how: String, val sections: Map<String, Any?>)
+    private class Job(val enc: Encoded, val note: String?, val at: Long, val tz: TimeZone, val how: String, val sections: Map<String, Any?>,
+                      val raw: Encoded? = null, val marks: List<ShotMark> = emptyList(), val srcW: Int = 0, val srcH: Int = 0)
 
     private fun upload(app: Context, job: Job, retried: Boolean) {
         val token = ShotSettings.token(app) ?: run { toast(app, "No token: add one in the AI panel"); return }
@@ -188,11 +191,19 @@ object ShotUploader {
         }
         if (r.code == -1) { waitForNetwork(app, job, retried); return }
         if (!ok(r.code)) { toast(app, "Not sent: " + ShotRequests.explain(r.code, r.body)); return }
+        var rawName: String? = null
+        if (job.raw != null) {
+            val rawPath = ShotMarks.rawPath(path).substringBeforeLast('.') + "." + job.raw.ext
+            val (rr, rp) = put(token, ShotRequests.SHOT_BRANCH, rawPath, job.raw.bytes, "Unmarked screenshot for ${path.substringAfterLast('/')}")
+            if (ok(rr.code)) rawName = rp.substringAfterLast('/') else toast(app, "Unmarked picture not sent: " + ShotRequests.explain(rr.code, rr.body))
+        }
         val image = linkedMapOf<String, Any?>(
             "file" to path.substringAfterLast('/'), "format" to job.enc.format, "scale" to job.enc.scale,
             "width" to job.enc.width, "height" to job.enc.height, "bytes" to job.enc.bytes.size, "captured" to job.how,
         )
-        val json = ShotRequests.shotPayload(job.at, job.tz, job.note, DeviceFacts.app(), image, job.sections)
+        val sections = LinkedHashMap(job.sections)
+        ShotMarks.section(job.marks, job.srcW, job.srcH, path.substringAfterLast('/'), rawName ?: "(not sent)")?.let { sections["annotations"] = it }
+        val json = ShotRequests.shotPayload(job.at, job.tz, job.note, DeviceFacts.app(), image, sections)
         val (j, _) = put(token, ShotRequests.SHOT_BRANCH, ShotRequests.siblingJson(path), json.toByteArray(Charsets.UTF_8), "Game state for ${path.substringAfterLast('/')}")
         toast(app, if (ok(j.code)) "Sent to Claude" else "Image sent, its game state not: " + ShotRequests.explain(j.code, j.body))
     }

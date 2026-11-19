@@ -770,7 +770,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     // so a left thumb landing higher on the very edge and pushing right to walk is a back swipe: it must not end the game
     // ---- "send screenshot to Claude": the camera button hides, the window is captured, then the sheet asks for a note
     var shooting by remember { mutableStateOf(false) }
-    var shot by remember { mutableStateOf<PendingShot?>(null) }
+    var shot by remember { mutableStateOf<com.timerpg.street.shot.PendingShot?>(null) }
     LaunchedEffect(shooting) {
         if (!shooting) return@LaunchedEffect
         // a few frames, so the button is gone from what is on the screen
@@ -781,7 +781,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         val at = System.currentTimeMillis()
         com.timerpg.street.shot.ShotUploader.capture(act) { bmp, how ->
             shooting = false
-            if (bmp != null) shot = PendingShot(bmp, at, how, game)
+            if (bmp != null) shot = com.timerpg.street.shot.PendingShot(bmp, at, how, game)
             else android.widget.Toast.makeText(ctx, "Screenshot failed: $how", android.widget.Toast.LENGTH_LONG).show()
         }
     }
@@ -844,7 +844,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     }
     // listening while the game is in front, the mic is on in the settings and conversation is possible (not turning the
     // corner, not going through a door, not in a room with nobody in it)
-    val canListen = micAlways && micGranted && Foreground.resumed && !turning && doorTo == null && lastCrash == null && !tuning &&
+    // (and not while the screenshot sheet is open: its mic button dictates a note there)
+    val canListen = micAlways && micGranted && shot == null && Foreground.resumed && !turning && doorTo == null && lastCrash == null && !tuning &&
         (inside == null || atHere.isNotEmpty())
     LaunchedEffect(canListen) {
         com.timerpg.street.shot.Crumbs.add(if (canListen) "mic listening" else "mic off")
@@ -1107,8 +1108,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 contentAlignment = Alignment.Center,
             ) { Text("📷", 16.sp) }
         }
-        shot?.let { s -> ShotSheet(s, Modifier.align(Alignment.Center), onSend = { note ->
-            com.timerpg.street.shot.ShotUploader.sendShot(ctx, s.bmp, note, s.at, s.how, s.game); shot = null
+        shot?.let { s -> com.timerpg.street.shot.ShotSheet(s, ears, onSend = { note, marks ->
+            com.timerpg.street.shot.ShotUploader.sendShot(ctx, s.bmp, note, s.at, s.how, s.game, marks); shot = null
         }, onCancel = { shot = null }) }
         // the top left, one column so nothing overlaps (drawn last, so the AI panel is on top): where the player is (kept
         // clear of the time bar in the middle: narrower, on two lines), then the dialogue AI's state at a glance (tap for
@@ -1896,9 +1897,6 @@ private fun Slider(value: Float, onChange: (Float) -> Unit, from: Float, to: Flo
     }
 }
 
-/** A screenshot just taken, waiting for its note: the picture, when, how it was captured, and the game state then. */
-private class PendingShot(val bmp: Bitmap, val at: Long, val how: String, val game: Map<String, Any?>?)
-
 /** A text field in the HUD's style; [secret] masks it (the token). While it has the focus the game's keys type into it. */
 @Composable
 private fun Field(value: String, onChange: (String) -> Unit, hint: String, modifier: Modifier = Modifier, secret: Boolean = false) {
@@ -1914,26 +1912,6 @@ private fun Field(value: String, onChange: (String) -> Unit, hint: String, modif
             else androidx.compose.foundation.text.KeyboardOptions.Default,
         decorationBox = { inner -> Box { if (value.isEmpty()) Text(hint, 13.sp, color = DIM.copy(alpha = .6f)); inner() } },
     )
-}
-
-/** The sheet after a screenshot: the picture small, a note, Send or Cancel. */
-@Composable
-private fun ShotSheet(s: PendingShot, modifier: Modifier, onSend: (String) -> Unit, onCancel: () -> Unit) {
-    var note by remember { mutableStateOf("") }
-    val img = remember(s) { s.bmp.asImageBitmap() }
-    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { com.timerpg.street.shot.ShotSettings.typing = false } }
-    Column(
-        modifier.widthIn(max = 460.dp).background(PANEL, RoundedCornerShape(14.dp)).opaque().padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text("Send this screenshot to Claude", 15.sp)
-        androidx.compose.foundation.Image(img, null, Modifier.height(110.dp))
-        Field(note, { note = it.take(300) }, "A note (optional): what to look at", Modifier.fillMaxWidth())
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Chip("Send", true) { onSend(note) }
-            Chip("Cancel", false, onClick = onCancel)
-        }
-    }
 }
 
 /** The AI panel's "Screenshots to Claude" row: the camera button, the GitHub token, crash reports (long-press the title: test crashes). */
