@@ -1,0 +1,163 @@
+{
+  "licence": "LimeZu shared swatches are Timerpg-only; retain original credit. All geometry and supplemental art original.",
+  "swatches": [
+    {
+      "id": "brick_red",
+      "atlas_rect": [
+        115,
+        113,
+        60,
+        48
+      ],
+      "source": {
+        "id": "brick_red",
+        "family": "wall",
+        "pack": "exteriors",
+        "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/1_Terrains_and_Fences_32x32.png",
+        "rect": [
+          23,
+          806,
+          62,
+          48
+        ],
+        "tile": "seamless",
+        "repeat": [
+          31,
+          48
+        ],
+        "palette": [
+          "#a14f44",
+          "#b99e86",
+          "#943c3f",
+          "#b18a74",
+          "#a7604a",
+          "#9b766a"
+        ],
+        "tags": [
+          "brick",
+          "art"
+        ],
+        "seam": [
+          0.0,
+          0.21
+        ],
+        "note": "warm red courses, tan mortar, dark outline; light from top"
+      },
+      "tint": null
+    },
+    {
+      "id": "wall_stucco_red",
+      "atlas_rect": [
+        99,
+        33,
+        32,
+        32
+      ],
+      "source": {
+        "id": "wall_stucco_red",
+        "family": "wall",
+        "pack": "exteriors",
+        "file": "4_Generic_Building_Singles_32x32/ME_Singles_Generic_Building_32x32_Condo_4_38.png",
+        "rect": [
+          162,
+          270,
+          32,
+          32
+        ],
+        "tags": [
+          "stipple",
+          "brick"
+        ],
+        "wrap": "xy"
+      },
+      "tint": "sage cream"
+    },
+    {
+      "id": "roof_membrane_grey",
+      "atlas_rect": [
+        99,
+        0,
+        32,
+        32
+      ],
+      "source": {
+        "id": "roof_membrane_grey",
+        "family": "roof",
+        "pack": "exteriors",
+        "file": "24_Additional_Houses_32x32.png",
+        "rect": [
+          300,
+          5380,
+          32,
+          32
+        ],
+        "tags": [
+          "flat",
+          "membrane"
+        ],
+        "wrap": "xy"
+      },
+      "tint": null
+    },
+    {
+      "id": "pavement",
+      "atlas_rect": [
+        171,
+        66,
+        32,
+        32
+      ],
+      "source": {
+        "id": "pavement",
+        "family": "ground",
+        "pack": "exteriors",
+        "pick": {
+          "glob": "2_City_Terrains_Singles_32x32/*Sidewalk_1_*.png",
+          "opaque": true,
+          "lum": [
+            150,
+            255
+          ]
+        },
+        "tags": [
+          "sidewalk",
+          "concrete"
+        ],
+        "wrap": "xy"
+      },
+      "tint": null
+    },
+    {
+      "id": "asphalt_worn",
+      "atlas_rect": [
+        0,
+        113,
+        32,
+        32
+      ],
+      "source": {
+        "id": "asphalt_worn",
+        "family": "ground",
+        "pack": "paint",
+        "paint": "asphalt_worn",
+        "rect": [
+          0,
+          0,
+          32,
+          32
+        ],
+        "seam": "none",
+        "tags": [
+          "carpark",
+          "painted"
+        ],
+        "wrap": "xy",
+        "size": [
+          32,
+          32
+        ]
+      },
+      "tint": null
+    }
+  ]
+}
