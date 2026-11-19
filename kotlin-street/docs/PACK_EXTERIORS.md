@@ -14,10 +14,7 @@ commit; the contact sheets below live outside git (scratch dir, regenerate from 
 
 `scripts/extract-assets.mjs` names every source file we use (from the **32x32** twin of each theme sheet), so the used
 set is exact. The 48x48 sorter has the same file names and layout as the 32x32 one (6 202 vs 6 201 singles in the zip;
-the pack also ships 16x16). Our whole pipeline (models.json pixel units, `house_rise`, atlas rects) is 32 px; **the 48 px
-art is 1.5x the texel density with identical layout**, so moving the town to 48 px later is a constant change in the
-tools, not a redo. Decision for the owner: keep cutting from 32 px now, or switch all new work to 48 px (CLAUDE.md says
-size is no concern: recommend **48 px for all new cuts**, and re-cut the old ones when convenient).
+the pack also ships 16x16). Our whole pipeline (models.json pixel units, `house_rise`, atlas rects) is 32 px. **Checked: the 48 px art is an exact nearest-neighbour 1.5x upscale of the 32 px art** (Villa_1: 0 of 269 568 pixels differ), so it adds no detail, only memory. Keep cutting from 32 px; the 48 px names and layout are the same, so either sorter can be read.
 
 Used so far: **277 of 6 222** theme singles (4.5%), plus the 72 `classic_*` fronts derived from theme-5 shop fronts.
 
