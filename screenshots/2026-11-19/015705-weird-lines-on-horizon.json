@@ -1,0 +1,194 @@
+{
+  "kind": "screenshot",
+  "time": "2026-11-19T01:57:05.457-0500",
+  "epochMs": 1795071425457,
+  "note": "weird lines on horizon",
+  "app": {
+    "versionName": "0.1.367 (a818642)",
+    "versionCode": 367,
+    "git": "a818642",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "image": {
+    "file": "015705-weird-lines-on-horizon.png",
+    "format": "png",
+    "scale": 1,
+    "width": 2340,
+    "height": 1080,
+    "bytes": 1984149,
+    "captured": "PixelCopy of the window"
+  },
+  "screen": {
+    "widthPx": 2244,
+    "heightPx": 1038,
+    "density": 2.8125,
+    "densityDpi": 450
+  },
+  "device": {
+    "ramFreeMb": 2763,
+    "ramTotalMb": 11113,
+    "lowMemory": false,
+    "gamePssMb": 2765,
+    "thermalStatus": 2,
+    "thermalHeadroom10s": 0.9077826
+  },
+  "game": {
+    "renderer": "Filament",
+    "camera": "medium",
+    "view": "open",
+    "orbit": {
+      "yaw": 23.380064,
+      "pitch": 11.845699,
+      "dist": 420,
+      "pulled": 420,
+      "goalYaw": 23.380064,
+      "goalPitch": 11.845699,
+      "goalDist": 420,
+      "tx": 3219.564,
+      "tz": 4148.538,
+      "line": "camera open yaw 23.4 pitch 11.8 dist 420 (pulled to 420) at (3220, 4149)"
+    },
+    "rendererError": null,
+    "town": "eta · Commuter suburb · 2025",
+    "walkableTown": {
+      "seed": "gamma",
+      "loading": false,
+      "ready": true,
+      "progress": 1,
+      "error": null,
+      "loadMs": 573.827,
+      "firstViewMs": 41848.477,
+      "built": "town built: ground 41848 ms (workers 41839), buildings 665 ms here (slowest b26 9.8 ms, largest batch 16.1 ms), 13063 ms on workers (slowest b0 1484 ms); textures 947, 82.1M texels, 4056 shared",
+      "memory": {
+        "when": "town built",
+        "graphicsMb": 1031,
+        "nativeMb": 92,
+        "javaMb": 80,
+        "codeMb": 31,
+        "totalPssMb": 1303
+      },
+      "row": "6R",
+      "street": "Church Street",
+      "neighbourhood": "Oak Heights",
+      "x": 1656.5381,
+      "lane": -7.555323,
+      "wx": 3219.564,
+      "wz": 4148.538,
+      "heading": -0.25552875,
+      "front": null,
+      "transit": null,
+      "liveRows": [
+        "6R",
+        "6L",
+        "4L",
+        "0L",
+        "5L",
+        "5R",
+        "4R",
+        "0R",
+        "3R",
+        "8L",
+        "1L",
+        "2R",
+        "3L",
+        "7L",
+        "8R",
+        "2L",
+        "1R",
+        "7R",
+        "36L"
+      ],
+      "people": 49,
+      "talkTo": null,
+      "walk": "open",
+      "open": {
+        "door": null,
+        "yard": null,
+        "speed": 0,
+        "blocked": 0,
+        "cameraYaw": 0.4080591,
+        "hx": -0.25275704,
+        "hz": -0.96752983
+      }
+    },
+    "street": {
+      "index": 0,
+      "name": "Main Street",
+      "nearestBuilding": 0,
+      "building": "Keller's Gym",
+      "owner": "June Keller",
+      "atCorner": false,
+      "edge": 0
+    },
+    "player": {
+      "x": 1656.5381,
+      "lane": -7.555323,
+      "street": 0,
+      "dir": -1,
+      "walking": false,
+      "running": false,
+      "viewMiddle": 284.625
+    },
+    "turn": {
+      "active": false,
+      "forward": true,
+      "p": 0,
+      "yaw": 0,
+      "ease": 0,
+      "blocked": false
+    },
+    "inRoom": false,
+    "room": null,
+    "doorFade": false,
+    "time": {
+      "hour": 17.6,
+      "clock": "17:36",
+      "season": "summer",
+      "weather": "Clear"
+    },
+    "frames": {
+      "compose": "Frames: 16.6 ms (60 fps) · p95 16.7 ms · 1.0% late · display 60 Hz",
+      "filament": "Filament: CPU 12.0 ms (p95 16.9) · GPU 22.4 ms (p95 30.8) · start 12 ms, street 1211 ms"
+    },
+    "ai": {
+      "state": "READY",
+      "detail": "Ready: the light model answers in play. Lines ahead of time are written by the main model (overnight, or when it fits).",
+      "runsOn": "CPU",
+      "modelMb": 2463,
+      "role": "live",
+      "forceBank": false,
+      "gpuNote": "Not enough free memory for the GPU copy of the light model right now (3175 MB free, 3513 MB needed), so it runs on the CPU from the file (it moves to the GPU once there is room: checked every 30 s).",
+      "lane": null,
+      "linesWritten": 21,
+      "builtIn": 0,
+      "queued": 600,
+      "paused": "light model loaded",
+      "working": null,
+      "pregenOff": null,
+      "prefillTokPerSec": 0,
+      "genTokPerSec": 0,
+      "firstTokenMs": 0,
+      "loadInfo": null
+    },
+    "conversation": null,
+    "voices": {
+      "enabled": false,
+      "speaking": false,
+      "only": 2,
+      "timing": null
+    },
+    "mic": {
+      "always": true,
+      "granted": false,
+      "listening": false,
+      "state": "IDLE"
+    },
+    "panels": {
+      "aiPanel": false,
+      "crashShown": false,
+      "tuningNpu": false
+    }
+  }
+}
