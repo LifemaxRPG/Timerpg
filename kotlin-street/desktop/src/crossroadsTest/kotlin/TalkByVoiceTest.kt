@@ -25,11 +25,11 @@ class TalkByVoiceTest {
     /** When each utterance was handed over (seconds into the stream). */
     private val endedAt = ArrayList<Float>()
 
-    private fun cut(pcm: FloatArray, chunk: Int = 800): List<FloatArray> {
+    private fun cut(pcm: FloatArray, chunk: Int = 800, hangoverMs: Int = 700): List<FloatArray> {
         val got = ArrayList<FloatArray>()
         endedAt.clear()
         var i = 0
-        val s = SpeechSegmenter(rate) { got += it; endedAt += i.toFloat() / rate }
+        val s = SpeechSegmenter(rate, hangoverMs = hangoverMs) { got += it; endedAt += i.toFloat() / rate }
         // fed as the microphone hands it over: in pieces
         while (i < pcm.size) { val n = minOf(chunk, pcm.size - i); s.feed(pcm.copyOfRange(i, i + n)); i += n }
         return got
@@ -49,6 +49,18 @@ class TalkByVoiceTest {
 
     @Test fun aShortPauseDoesNotSplitIt() {
         assertEquals(1, cut(audio(6f, .002f, .1f, 1f to 1f, 2.3f to 1f)).size)
+    }
+
+    @Test fun theGamesShorterTailEndsSoonerAndKeepsShortPauses() {
+        // the app's tail (500 ms): the utterance is handed over within ~0.6 s of the end of speech (about 0.2 s sooner than with 700)
+        assertEquals(1, cut(audio(5f, .002f, .1f, 1f to 1.2f), hangoverMs = 500).size)
+        val end = 2.2f
+        val short = endedAt[0]
+        assertTrue("ended at $short", short - end < .65f)
+        cut(audio(5f, .002f, .1f, 1f to 1.2f))
+        assertTrue("500 ms: $short, 700 ms: ${endedAt[0]}", endedAt[0] - short > .15f)
+        // a 300 ms breath between words is still one utterance
+        assertEquals(1, cut(audio(6f, .002f, .1f, 1f to 1f, 2.3f to 1f), hangoverMs = 500).size)
     }
 
     @Test fun twoSentencesApartAreTwo() {

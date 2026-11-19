@@ -1,4 +1,5 @@
 #include "asr_core.h"
+#include "llm_core.h"
 
 #include "llama.h"
 #include "mtmd.h"
@@ -46,20 +47,33 @@ bool Asr::load(const std::string & model, const std::string & mmproj, int thread
     error_.clear();
     cancel_.store(false);
     if (threads <= 0) threads = 4;
+    reset_load_mem();
     llama_model_params mp = llama_model_default_params();
     mp.n_gpu_layers = 0;
     mp.use_extra_bufts = false;   // weights stay mapped from the file (reclaimable), not copied and repacked
+    mp.load_mode = LLAMA_LOAD_MODE_MMAP;
     model_ = llama_model_load_from_file(model.c_str(), mp);
     if (!model_) { error_ = "could not load the speech model"; return false; }
     llama_context_params cp = llama_context_default_params();
-    cp.n_ctx = 2048;              // a 30 s clip is ~390 audio tokens; questions are far shorter
-    cp.n_batch = 1024;
-    cp.n_ubatch = 1024;
+    // a 20 s clip (the longest the game records) is ~260 audio tokens, with the names and the words written ~400
+    cp.n_ctx = 1024;
+    cp.n_batch = 512;
+    cp.n_ubatch = 512;
     cp.n_seq_max = 1;
+    // only the last position's logits are ever read (the prompt is read whole, then one token at a time): without this
+    // the output buffer is sized for a whole batch of logits over the 152k vocabulary (~300 MB at 512)
+    cp.n_outputs_max = 1;
+    cp.n_outputs_max_per_seq = 1;
     cp.n_threads = threads;
     cp.n_threads_batch = threads;
     cp.no_perf = true;
-    ctx_ = llama_init_from_model(model_, cp);
+    // the cache in 8 bits (half the memory; it needs flash attention), else 16 where that cannot be had
+    llama_context_params q = cp;
+    q.type_k = GGML_TYPE_Q8_0;
+    q.type_v = GGML_TYPE_Q8_0;
+    q.flash_attn_type = LLAMA_FLASH_ATTN_TYPE_ENABLED;
+    ctx_ = llama_init_from_model(model_, q);
+    if (!ctx_) ctx_ = llama_init_from_model(model_, cp);
     if (!ctx_) { error_ = "could not create the speech model's context (not enough memory?)"; unload(); return false; }
     mtmd_context_params mcp = mtmd_context_params_default();
     mcp.use_gpu = false;
@@ -70,6 +84,7 @@ bool Asr::load(const std::string & model, const std::string & mmproj, int thread
     if (!mctx_) { error_ = "could not load the speech model's audio encoder"; unload(); return false; }
     if (!mtmd_support_audio(mctx_)) { error_ = "that encoder does not take audio"; unload(); return false; }
     rate_ = mtmd_get_audio_sample_rate(mctx_);
+    last_load_mem(mem_);
     return true;
 }
 

@@ -10,6 +10,7 @@
 #include <cerrno>
 #include <chrono>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <mutex>
 #include <thread>
@@ -73,6 +74,21 @@ LogSink g_sink = nullptr;
 std::vector<std::string> g_errors;  // error lines since clear_log_errors(), to explain a failed load
 std::string g_splits;                // llama.cpp's "graph splits" line of the last context: how often a token's work
                                      // crosses between devices (more splits: more of it fell back to the CPU)
+double g_mem[5] = {0, 0, 0, 0, 0};   // the last load's buffers as llama.cpp logged them (MiB), see last_load_mem
+
+/** A "<buffer> buffer size = N MiB" line of llama.cpp's load, added up by kind. */
+void count_buffer(const char * text) {
+    const char * at = std::strstr(text, "buffer size = ");
+    if (!at) return;
+    const double mb = std::atof(at + std::strlen("buffer size = "));
+    int k;
+    if (std::strstr(text, "model buffer")) k = std::strstr(text, "_Mapped") ? 0 : 1;
+    else if (std::strstr(text, "KV buffer") || std::strstr(text, "rotation buffer")) k = 2;
+    else if (std::strstr(text, "RS buffer")) k = 3;
+    else k = 4;
+    std::lock_guard<std::mutex> lock(g_log_mu);
+    g_mem[k] += mb;
+}
 
 void default_sink(int level, const char * text) {
     if (level >= GGML_LOG_LEVEL_WARN) fputs(text, stderr);
@@ -83,6 +99,7 @@ void log_cb(ggml_log_level level, const char * text, void *) {
     int lv = level == GGML_LOG_LEVEL_CONT ? last : (int) level;
     last = lv;
     if (!text) return;
+    count_buffer(text);
     if (std::strstr(text, "graph splits")) {
         std::string line(text);
         while (!line.empty() && (line.back() == '\n' || line.back() == ' ')) line.pop_back();
@@ -104,6 +121,7 @@ void log_msg(int level, const std::string & msg) { (g_sink ? g_sink : default_si
 void clear_log_errors() {
     std::lock_guard<std::mutex> lock(g_log_mu);
     g_errors.clear();
+    for (double & m : g_mem) m = 0;
 }
 
 std::string load_info() {
@@ -132,6 +150,16 @@ int default_threads() {
 }  // namespace
 
 std::string last_load_info() { return load_info(); }
+
+void reset_load_mem() {
+    std::lock_guard<std::mutex> lock(g_log_mu);
+    for (double & m : g_mem) m = 0;
+}
+
+void last_load_mem(double out[5]) {
+    std::lock_guard<std::mutex> lock(g_log_mu);
+    for (int i = 0; i < 5; i++) out[i] = g_mem[i];
+}
 
 // ---------------------------------------------------------------------------------------------------- text helpers
 
@@ -502,7 +530,24 @@ bool Engine::load(const std::string & path, int threads, int n_ctx) {
         cp.no_perf = true;
         cp.abort_callback = &Engine::abort_cb;
         cp.abort_callback_data = this;
-        ctx_ = llama_init_from_model(model_, cp);
+        kv_q8_used_ = false;
+        if (kv_q8_) {
+            // the cache in 8 bits: half the memory of 16 (a quantized V cache needs flash attention)
+            llama_context_params q = cp;
+            q.type_k = GGML_TYPE_Q8_0;
+            q.type_v = GGML_TYPE_Q8_0;
+            q.flash_attn_type = LLAMA_FLASH_ATTN_TYPE_ENABLED;
+            ctx_ = llama_init_from_model(model_, q);
+            if (ctx_) {
+                kv_q8_used_ = true;
+            } else {
+                log_msg(GGML_LOG_LEVEL_WARN, "an 8-bit cache could not be set up here; using the 16-bit one");
+                std::lock_guard<std::mutex> lock(g_log_mu);
+                for (int i = 2; i < 5; i++) g_mem[i] = 0;   // (the failed context's buffers were freed)
+                g_errors.clear();
+            }
+        }
+        if (!ctx_) ctx_ = llama_init_from_model(model_, cp);
         if (!ctx_) {
             error_ = "could not create the model context (not enough memory?)" + log_errors();
             unload();

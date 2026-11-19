@@ -36,7 +36,10 @@ object ModelDownloads {
         add(Item(QWEN, ModelFiles.NAME, 5_680_522_464L))
         // live replies in play, on the NPU beside the town (the main model's NPU copy does not fit there)
         add(Item(LIVE, ModelFiles.LIVE, ModelFiles.LIVE_BYTES))
-        // hearing the player: Qwen3-ASR 1.7B and its audio encoder
+        // hearing the player with the game's own speech model: the small one (the default, a third of the memory) and the
+        // large one (the AI panel's quality choice), each with its audio encoder
+        add(Item("https://huggingface.co/ggml-org/Qwen3-ASR-0.6B-GGUF/resolve/main/Qwen3-ASR-0.6B-Q8_0.gguf", com.timerpg.street.voice.PlayerVoice.ASR_SMALL_MODEL, 804_749_248L))
+        add(Item("https://huggingface.co/ggml-org/Qwen3-ASR-0.6B-GGUF/resolve/main/mmproj-Qwen3-ASR-0.6B-Q8_0.gguf", com.timerpg.street.voice.PlayerVoice.ASR_SMALL_MMPROJ, 214_392_480L))
         add(Item(ASR + "Qwen3-ASR-1.7B-Q8_0.gguf", com.timerpg.street.voice.PlayerVoice.ASR_MODEL, 2_165_034_944L))
         add(Item(ASR + "mmproj-Qwen3-ASR-1.7B-Q8_0.gguf", com.timerpg.street.voice.PlayerVoice.ASR_MMPROJ, 355_709_344L))
         // the people's memories: Qwen3-Embedding

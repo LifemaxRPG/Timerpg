@@ -353,6 +353,7 @@ int main(int argc, char ** argv) {
     }
     std::string model = argv[1], prompts_file, dialogue_file, json_out;
     int mtp = 0;
+    bool kv_q8 = false, mem_only = false;
     std::vector<std::string> cpu_libs = llm::cpu_variant_libs(), who;
     // The app's settings (DialogueEngine: CONTEXT_TOKENS, MAX_TOKENS, TEMPERATURE).
     int threads = 0, n_ctx = 1024, max_tokens = 56;
@@ -376,6 +377,8 @@ int main(int argc, char ** argv) {
         else if (a == "--cpu-lib") cpu_libs.push_back(next());
         else if (a == "--verbose") verbose = true;
         else if (a == "--mtp") mtp = std::atoi(next().c_str());
+        else if (a == "--kv-q8") kv_q8 = true;
+        else if (a == "--mem-only") mem_only = true;
         else {
             std::fprintf(stderr, "unknown option %s\n", a.c_str());
             return 2;
@@ -407,13 +410,20 @@ int main(int argc, char ** argv) {
     llm::Engine e;
     e.sampling().seed = seed;
     e.arm();
-    e.set_device(mtp << 8);
+    e.set_device((mtp << 8) | (kv_q8 ? 32 : 0));
     if (!e.load(model, threads, n_ctx)) {
         std::printf("  load failed: %s\n", e.error().c_str());
         return 1;
     }
     std::printf("  loaded in %lld ms, %d threads, context %d; RSS %ld MB\n", (long long) e.stats().load_ms,
                 e.stats().threads, n_ctx, rss_kb("VmRSS:") / 1024);
+    {
+        double m[5];
+        llm::last_load_mem(m);
+        std::printf("  memory (MiB): weights mapped %.0f, copied %.0f; KV %.1f (%s); recurrent state %.1f; compute %.1f\n",
+                    m[0], m[1], m[2], e.kv_q8() ? "q8_0" : "f16", m[3], m[4]);
+    }
+    if (mem_only) return 0;
 
     std::printf("\n== NPC replies (%zu prompts, max %d tokens, temperature %.2f)\n", prompts.size(), max_tokens, temperature);
     int fact_ok = 0, tokens_ok = 0;

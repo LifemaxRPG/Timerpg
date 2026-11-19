@@ -15,8 +15,10 @@ class ModelRolesTest {
     private fun mb(n: Long) = n shl 20
 
     private fun pick(freeMb: Long, foreground: Boolean = true, built: Boolean = true, bankBytes: Long = bank, liveBytes: Long = live,
-                     accelerated: Boolean = true, forceBank: Boolean = false, low: Boolean = false, writing: Boolean = false) =
-        ModelRoles.pick(ModelRoles.Input(foreground, built, mb(freeMb), low, bankBytes, liveBytes, accelerated, forceBank, writing))
+                     accelerated: Boolean = true, forceBank: Boolean = false, low: Boolean = false, writing: Boolean = false,
+                     liveWorkMb: Long = 300) =
+        ModelRoles.pick(ModelRoles.Input(foreground, built, mb(freeMb), low, bankBytes, liveBytes, accelerated, forceBank, writing,
+            liveWorkBytes = mb(liveWorkMb)))
 
     @Test fun theNeedsAsThePhoneSawThem() {
         // the main model's NPU copy: 6617 MB with the margin (the figure the phone reported); the light one's ~3.7 GB
@@ -65,8 +67,26 @@ class ModelRolesTest {
         assertEquals(Load(ModelRole.BANK, copied = true), pick(7000, forceBank = true))
     }
 
+    @Test fun inPlayWithoutTheLightModelTheMainOneLoadsOnlyWhereItsCopyFits() {
+        // (the main model on the CPU from its file writes a line in tens of seconds: the panel asks for the light model)
+        val n = pick(4067, liveBytes = 0)
+        assertTrue(n is ModelRoles.NeedLive && n.needBytes shr 20 == 6617L)
+        assertTrue(pick(7000, liveBytes = 0, accelerated = false) is ModelRoles.NeedLive)
+        assertEquals(Load(ModelRole.BANK, copied = true), pick(7000, liveBytes = 0))
+        // the panel's comparison switch still puts it in play, on the CPU if it must
+        assertEquals(Load(ModelRole.BANK, copied = false), pick(4067, liveBytes = 0, forceBank = true))
+    }
+
+    @Test fun theMeasuredWorkingMemoryDecidesTheCopy() {
+        // the phone (build 321): 3621 MB free, the light copy 42 MB short with the flat 300 MB guess
+        assertEquals(Load(ModelRole.LIVE, copied = false), pick(3621))
+        // with the cache and buffers the load measured (an 8-bit cache, a smaller context) it fits on the NPU
+        assertEquals(Load(ModelRole.LIVE, copied = true), pick(3621, liveWorkMb = 150))
+        assertEquals(3513L, ModelRoles.needBytes(live, true, mb(150)) shr 20)
+    }
+
     @Test fun withOneModelOnThePhoneThatOneLoads() {
-        assertEquals(Load(ModelRole.BANK, copied = false), pick(4067, liveBytes = 0))
+        assertEquals(Load(ModelRole.BANK, copied = false), pick(4067, liveBytes = 0, foreground = false))
         assertEquals(Load(ModelRole.LIVE, copied = true), pick(4067, bankBytes = 0, foreground = false))
         assertEquals(ModelRoles.NoModel, pick(8000, bankBytes = 0, liveBytes = 0))
     }
