@@ -542,6 +542,336 @@ def shed(spec, shop, rng):
     parts.append(mbox((X0, X1), (0, hs[-1]), (D + .5, D + .5), (wall_c, wall_c, wall_c), ft=at.add(bw), fx=X0, card=True))
     return finish('shed', 256, D, shop, rng, parts, roof_c, at, front, (44, 112))
 
+
+# ------------------------------------------------------------------------------------------------ the silos
+# Silos_2 (160 x 448; Silos_1 is the same silo 64 to the right with a lean-to shed against its left side): a stave tower of red
+# boards with three steel bands (centre x 75.5, radius 63.5, the foot on row 437), an ellipsoidal silver dome over it
+# (rows 4..108), a ladder up its front and a pipe up its right side. Built as real cylinders: the body's boards unrolled
+# round it (the front's columns by sin of the angle: the art's own pixels, the ladder painted out), the dome eight tapering
+# rings each wearing its rows of the art, the ladder a card cut to its rails and rungs, the pipe a thin cylinder.
+def cylp(cx, cd, r, y0, y1, ft=None, rt=None, col=(-1, 0x808080), a=(0, 360), card=False):
+    p = dict(t='cyl', c=[float(cx), float(cd)], r=[float(r), float(r)], a=[float(a[0]), float(a[1])], y=[float(y0), float(y1)], col=[col[0], col[1]])
+    if ft is not None: p['ft'] = ft
+    if rt is not None: p['rt'] = [float(rt), float(rt)]
+    if card: p['card'] = True
+    return p
+
+
+def unroll(art, rows, cx, half, n):
+    """The art's front unrolled onto a cylinder: for each of n columns round the full turn, the art column cx + half(row) sin(angle)."""
+    r0, r1 = rows
+    out = np.zeros((r1 - r0, n, 4), np.uint8)
+    for j in range(n):
+        sn = np.sin(np.radians((j + .5) * 360.0 / n))
+        for k, r in enumerate(range(r0, r1)):
+            h = half(r) if callable(half) else half
+            out[k, j] = art[r, int(round(cx + h * sn - (.5 if sn < 0 else 0)))] if True else 0
+    out[..., 3] = 255
+    return out
+
+
+def silo(spec, shop, rng):
+    two = spec['kit'] == 'silo2'
+    art = fart('Silos_2' if two else 'Silos_1'); F = 437
+    off = 0 if two else 64
+    at = Atlas(1024)
+    cx0 = 75.5 + off; R = 63.5; cd = 64.0
+    # the ladder, painted out of the body (the boards beside it carried across)
+    lad = (60 + off, 96 + off)
+    ladder_pic = np.ascontiguousarray(art[108:F, lad[0]:lad[1]]).copy()
+    art2 = art.copy(); art2[108:F + 1, lad[0]:lad[1]] = art2[108:F + 1, lad[0] - 36:lad[1] - 36]
+    pipe_cols = (140 + off, 154 + off)
+    parts = []
+    if not two:
+        parts += silo_shed(at, art, F)
+    # the body
+    N = 128
+    body_rows = (108, 429)
+    body = unroll(art2, body_rows, int(cx0), R - 3, N)
+    H = body_rows[1] - body_rows[0]
+    wall_c = med(body)
+    parts.append(cylp(cx0, cd, R, 4, 4 + H, ft=at.add(body), col=(-1, rgb_int(wall_c))))
+    parts.append(cylp(cx0, cd, R + 1.5, 0, 6, col=(rgb_int((120, 118, 140)), rgb_int((120, 118, 140)))))
+    # the dome: rings of the art's rows, silhouette half-width by row
+    left = {}
+    for r in range(4, 110):
+        xs = np.nonzero(art2[r, :int(cx0) + 4, 3])[0]
+        left[r] = cx0 - xs.min() if len(xs) else 1
+    half = lambda r: max(2, left[min(max(int(r), 4), 109)] - 2)
+    dome_rows = (4, 108)
+    dome = unroll(art2, dome_rows, int(cx0), half, N)
+    top_y = 4 + H
+    Hd = dome_rows[1] - dome_rows[0]
+    k = 8
+    prof = lambda t: R * (1 - (t / Hd) ** 2) ** .5        # radius at height t over the dome's foot
+    silver = med(art, (30, 60, 100, 130))
+    for i in range(k):
+        t0, t1 = Hd * i / k, Hd * (i + 1) / k
+        # (the dome's rows run from its top (row 4) down: the ring at heights t0..t1 wears rows Hd - t1 .. Hd - t0)
+        ra, rb = int(round(Hd - t1)), int(round(Hd - t0))
+        piece = at.add(np.ascontiguousarray(dome[ra:rb]))
+        parts.append(cylp(cx0, cd, max(prof(t0), 1.5), top_y + t0, top_y + t1, ft=piece, rt=max(prof(t1), .5), col=(rgb_int(silver), rgb_int(silver))))
+    # the hatch's knob on top
+    parts.append(cylp(cx0, cd, 6, top_y + Hd - 1, top_y + Hd + 5, col=(rgb_int(shade(silver, .8)), rgb_int(shade(silver, .8)))))
+    # the ladder: a card cut to its rails and rungs, standing off the wall
+    rgb = ladder_pic[..., :3].astype(int)
+    wallish = (rgb[..., 0] > rgb[..., 2] + 25)
+    ladder_pic[wallish] = 0
+    ladder_pic = cut(ladder_pic, ~wallish)
+    parts.append(mbox((lad[0], lad[1]), (3, 3 + ladder_pic.shape[0]), (cd - R - 2.5, cd - R - 2.5), (TRIM, TRIM, TRIM), ft=at.add(ladder_pic), fx=lad[0], card=True))
+    # (the cage's standoffs: three small brackets)
+    for yy in (40, 160, 280):
+        parts.append(mbox((cx0 - 13, cx0 + 13), (yy, yy + 3), (cd - R - 3, cd - R + 3), (TRIM, TRIM, shade(TRIM, .8))))
+    # the pipe up the right side, a thin cylinder wearing its art
+    pipe = unroll(art2, (82, 429), int((pipe_cols[0] + pipe_cols[1]) / 2), 6.5, 24)
+    pr_x = cx0 + R + 5
+    parts.append(cylp(pr_x, cd, 6.5, 4, 4 + (429 - 82), ft=at.add(pipe), col=(-1, rgb_int(TRIM))))
+    parts.append(mbox((cx0 + R - 2, pr_x), (4 + 429 - 90, 4 + 429 - 82 + 4), (cd - 3, cd + 3), (TRIM, TRIM, shade(TRIM, .8))))
+    W = 160 if two else 224
+    return finish('silo', W, 128, shop, rng, parts, silver, at, np.ascontiguousarray(art[:, :]), (int(cx0) - 20, int(cx0) + 20))
+
+
+def silo_shed(at, art, F):
+    """Silos_1's lean-to: a red-board front with a door, a monopitch roof of corrugated metal rising to the silo's side."""
+    x0, x1, D = 4, 76, 86
+    EV = F - 372
+    front = np.ascontiguousarray(art[372:F, x0:x1])
+    red = med(art, (380, 392, 8, 26)); roofc = med(art, (300, 340, 10, 70))
+    cor = tile(np.ascontiguousarray(art[296:350, 10:70]), D + 4, 60)
+    wside = siding(EV, 80, red, shade(red, .8), None, period=14, seed=11)
+    box = mbox((x0, x1), (0, EV), (0, D), (roofc, red, shade(red, .8)), ft=at.add(front), fx=x0, st=at.add(wside), top=False)
+    q = [(0, D + 4), (60, D + 4), (60, 0), (0, 0)]
+    roof = mb.mgable((x0 - 2, x1), (EV, EV + 34), (0, D), at.add(cor), [v for p_ in q for v in p_], None, (0,) * 8, (WHITE, TRIM), roofc, lip=TRIM, ax=x1)
+    wall = mbox((x0, x1), (0, EV + 34), (D + .5, D + .5), (red, red, red), ft=at.add(siding(EV + 34, x1 - x0, red, shade(red, .8), None, period=14, seed=12)), fx=x0, card=True)
+    return [box, roof, wall]
+
+
+# ------------------------------------------------------------------------------------------------ props
+# Small things as real geometry in the yard-fence style: fences are log posts (cylinders wearing the art's post, unrolled)
+# and rails (boxes in the art's three wood tones), gates the art's board gate as a box; bales, troughs, crates and the
+# tractor are boxes wearing the art; wells are cylinders; market stalls a sloped striped awning on posts over a counter.
+FENCE = '/Single_Files_32x32/Fences_32x32'
+WOOD_LT, WOOD, WOOD_DK, WOOD_TOP = (218, 164, 99), (199, 140, 89), (168, 95, 70), (224, 184, 112)
+
+
+def fence_art(name):
+    return fart(name, FARM + FENCE)
+
+
+def rail_pic(h=5, w=8):
+    img = np.zeros((h, w, 4), np.uint8); img[..., 3] = 255
+    for y, c in enumerate((WOOD_LT, WOOD, WOOD, WOOD_DK, INK)[:h]): img[y, :, :3] = c
+    return img
+
+
+def post_parts(at, x, d, hgt=27, r=7):
+    art = fence_art('Wooden_Fence_Type_3_Brown_Single')
+    pic = unroll(art, (2, 29), 15, 7, 24)
+    return cylp(x, d, r, 0, hgt, ft=at.add(pic), col=(rgb_int(WOOD_TOP), rgb_int(WOOD)))
+
+
+def fence_line(at, a, b, gate=None, alongx=True):
+    """Posts every <= 48 and two rails between (x, d) points a and b; `gate` = (start, end) along the line left open for a gate."""
+    parts = []
+    L = abs(b[0] - a[0]) + abs(b[1] - a[1])
+    n = max(1, int(np.ceil(L / 48)))
+    rp = at.add(rail_pic())
+    pts = [(a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n) for i in range(n + 1)]
+    for (x, d) in pts: parts.append(post_parts(at, x, d))
+    for i in range(n):
+        (x0, d0), (x1, d1) = pts[i], pts[i + 1]
+        for (y0, y1) in ((8, 13), (17, 22)):
+            if alongx: parts.append(mbox((min(x0, x1) + 5, max(x0, x1) - 5), (y0, y1), (d0 - 1.5, d0 + 1.5), (WOOD_LT, WOOD, WOOD_DK), ft=rp, st=rp, tt=None))
+            else: parts.append(mbox((x0 - 1.5, x0 + 1.5), (y0, y1), (min(d0, d1) + 5, max(d0, d1) - 5), (WOOD_LT, WOOD, WOOD_DK), ft=rp, st=rp))
+    return parts
+
+
+def gate_parts(at, x0, x1, d, closed=True):
+    g = fence_art('Wooden_Fence_Type_3_Brown_Gate_1')
+    crop = np.ascontiguousarray(g[6:32, :])
+    gp = at.add(crop)
+    n = int(round((x1 - x0) / 32))
+    out = []
+    for i in range(n):
+        out.append(mbox((x0 + i * 32, x0 + i * 32 + 32), (1, 1 + crop.shape[0]), (d - 2, d + 2), (WOOD_LT, WOOD, WOOD_DK), ft=gp, fx=x0 + i * 32, st=at.add(crop[:, :4])))
+    return out
+
+
+def fence_run(spec, shop, rng):
+    at = Atlas(512); L = spec.get('length', 192)
+    parts = fence_line(at, (8, 8), (L // 2 - 32 + 8, 8)) + fence_line(at, (L // 2 + 32 + 8, 8), (L + 8, 8))
+    parts += [post_parts(at, L // 2 - 32 + 8, 8), post_parts(at, L // 2 + 32 + 8, 8)] + gate_parts(at, L // 2 - 32 + 8, L // 2 + 32 + 8, 8)
+    return finish('fence', L + 16, 16, shop, rng, parts, WOOD, at, np.zeros((8, 8, 4), np.uint8), (L // 2 - 32, L // 2 + 32))
+
+
+def corral(spec, shop, rng):
+    at = Atlas(512); W, Dp = spec.get('w', 224), spec.get('d', 160)
+    gx0 = W // 2 - 32 + 8
+    parts = fence_line(at, (8, 8), (gx0, 8)) + fence_line(at, (gx0 + 64, 8), (W + 8, 8)) + fence_line(at, (8, Dp + 8), (W + 8, Dp + 8))
+    parts += fence_line(at, (8, 8), (8, Dp + 8), alongx=False) + fence_line(at, (W + 8, 8), (W + 8, Dp + 8), alongx=False)
+    parts += gate_parts(at, gx0, gx0 + 64, 8)
+    # a trough and a hay manger inside
+    tr = trough_parts(at, 40, 60)
+    return finish('fence', W + 16, Dp + 16, shop, rng, parts + tr, WOOD, at, np.zeros((8, 8, 4), np.uint8), (gx0, gx0 + 64))
+
+
+def trough_parts(at, x, d, metal=False):
+    art = fart('Drinking_Trough_Metal_Horizontal_Full' if metal else 'Drinking_Trough_Horizontal_Full')
+    top = np.ascontiguousarray(art[2:30, 2:62])
+    rim = med(art, (24, 28, 6, 58))
+    fr = np.ascontiguousarray(art[22:30, 4:60])
+    return [mbox((x, x + 56), (0, 16), (d, d + 24), (rim, rim, shade(rim, .8)), ft=at.add(fr), fx=x, st=at.add(np.ascontiguousarray(fr[:, :6])), tt=at.add(top))]
+
+
+def troughs(spec, shop, rng):
+    at = Atlas(512)
+    parts = trough_parts(at, 10, 10) + trough_parts(at, 90, 10, True)
+    vert = fart('Drinking_Trough_Vertical_Full')
+    rim = med(vert, (4, 8, 4, 28))
+    parts.append(mbox((170, 194), (0, 16), (10, 58), (rim, rim, shade(rim, .8)), tt=at.add(np.ascontiguousarray(vert[2:62, 2:30])), ft=at.add(np.ascontiguousarray(vert[52:62, 2:30])), st=at.add(np.ascontiguousarray(vert[52:62, 2:30]))))
+    return finish('props', 224, 90, shop, rng, parts, WOOD, at, np.zeros((8, 8, 4), np.uint8), (0, 30))
+
+
+def bale(at, x, y, d, big=True):
+    art = fart('Raw_Bale_Big' if big else 'Raw_Bale_Small')
+    w = art.shape[1]; h = 28
+    crop = np.ascontiguousarray(art[2:30, :])
+    c = med(art, (8, 24, 6, w - 6))
+    return mbox((x, x + w), (y, y + h), (d, d + 30), (shade(c, 1.1), c, shade(c, .8)), ft=at.add(crop), fx=x, st=at.add(np.ascontiguousarray(art[4:28, w - 8:w - 2].repeat(5, 1))), tt=at.add(np.ascontiguousarray(art[10:20, 8:w - 8].repeat(3, 0))))
+
+
+def hay(spec, shop, rng):
+    at = Atlas(512)
+    parts = [bale(at, 10, 0, 10), bale(at, 76, 0, 10), bale(at, 142, 0, 10), bale(at, 42, 28, 10), bale(at, 108, 28, 10), bale(at, 76, 56, 10)]
+    parts.append(bale(at, 10, 0, 50, False)); parts.append(bale(at, 52, 0, 50, False))
+    pile = fart('Hay_Dry_Pile'); sack = fart('Sack_Jute_Load_1')
+    parts.append(mbox((100, 164), (0, pile.shape[0]), (60, 60), (WOOD, WOOD, WOOD), ft=at.add(pile), fx=100, card=True))
+    parts.append(mbox((172, 236), (0, sack.shape[0]), (56, 56), (WOOD, WOOD, WOOD), ft=at.add(sack), fx=172, card=True))
+    return finish('props', 240, 80, shop, rng, parts, WOOD, at, np.zeros((8, 8, 4), np.uint8), (0, 30))
+
+
+def crates(spec, shop, rng):
+    at = Atlas(512)
+    art = fart('Crate_Brown_Empty'); art2 = fart('Crate_Dark_Brown_Empty')
+    parts = []
+    def crate(a, x, y, d):
+        crop = np.ascontiguousarray(a[10:60, 2:62]); c = med(a, (24, 44, 8, 56)); inner = shade(c, .55)
+        parts.append(mbox((x, x + 60), (y, y + 44), (d, d + 44), (inner, c, shade(c, .8)), ft=at.add(crop[4:48]), fx=x, st=at.add(np.ascontiguousarray(crop[4:48, 4:20].repeat(3, 1))),
+                          tt=at.add(np.ascontiguousarray(np.full((8, 8, 4), 255, np.uint8) * 0 + np.array(list(inner) + [255], np.uint8)))))
+    crate(art, 8, 0, 8); crate(art2, 76, 0, 8); crate(art, 40, 44, 12)
+    for i, (x, nm) in enumerate(((150, 'Milk_Can_1'), (170, 'Milk_Can_2'), (190, 'Milk_Can_3'))):
+        m = fart(nm); parts.append(mbox((x, x + 32), (0, 32), (14, 14), (WOOD, WOOD, WOOD), ft=at.add(m), fx=x, card=True))
+    lg = fart('Trunk_Big_1'); parts.append(mbox((150, 214), (0, 32), (44, 44), (WOOD, WOOD, WOOD), ft=at.add(lg), fx=150, card=True))
+    return finish('props', 224, 70, shop, rng, parts, WOOD, at, np.zeros((8, 8, 4), np.uint8), (0, 30))
+
+
+def yard_bits(spec, shop, rng):
+    at = Atlas(1024); parts = []; x = 4
+    for nm in ('Scarecrow', 'Doghouse', 'Henhouse', 'Chicken_Coop', 'Sprinkler', 'Cheese_Machine_Full'):
+        a = fart(nm); ys, xs = np.nonzero(a[..., 3]); a = np.ascontiguousarray(a[ys.min():ys.max() + 1, xs.min():xs.max() + 1])
+        parts.append(mbox((x, x + a.shape[1]), (0, a.shape[0]), (20, 20), (WOOD, WOOD, WOOD), ft=at.add(a), fx=x, card=True)); x += a.shape[1] + 12
+    return finish('props', x, 40, shop, rng, parts, WOOD, at, np.zeros((8, 8, 4), np.uint8), (0, 30))
+
+
+def well(spec, shop, rng):
+    at = Atlas(512); usable = spec.get('usable', True)
+    art = fart('Well_Stone')
+    pic = unroll(art, (42, 56), 31, 25, 48)
+    stone = med(art, (40, 56, 12, 52))
+    cx, cd = 60, 50
+    parts = [cylp(cx, cd, 28, 0, 22, ft=at.add(pic), col=(rgb_int(shade(stone, 1.1)), rgb_int(stone))), cylp(cx, cd, 17, 0, 15, col=(rgb_int((58, 140, 160)), rgb_int(shade(stone, .6))))]
+    parts[0]['ri'] = [18.0, 18.0]
+    if usable:
+        wood = (160, 100, 70)
+        for x in (cx - 30, cx + 26): parts.append(mbox((x, x + 5), (22, 70), (cd - 2.5, cd + 2.5), (shade(wood, 1.1), wood, shade(wood, .7))))
+        q = [(0, 52), (48, 52), (48, 0), (0, 0)]
+        L = siding(56, 40, (190, 126, 82), (150, 92, 66), None, period=8, speck=[(205, 140, 90), (175, 110, 74)], seed=21); lq = [(0, 56), (40, 56), (40, 0), (0, 0)]; rq = [(40, 56), (0, 56), (0, 0), (40, 0)]
+        flat = lambda qq: [v for p_ in qq for v in p_]
+        parts.append(mb.mgable((cx - 40, cx + 40), (70, 92), (cd - 28, cd + 28), at.add(L), flat(lq), at.add(np.ascontiguousarray(L[:, ::-1])), flat(rq), (WHITE, TRIM), (190, 126, 82), lip=(150, 92, 66)))
+        parts.append(mbox((cx - 8, cx + 8), (52, 56), (cd - 2, cd + 2), (WOOD_TOP, WOOD, WOOD_DK)))
+        parts.append(mbox((cx - 4, cx + 4), (38, 50), (cd - 4, cd + 4), (shade(wood, 1.2), wood, shade(wood, .8))))
+        parts.append(mbox((cx + 30, cx + 52), (46, 49), (cd - 1.5, cd + 1.5), (WOOD_TOP, WOOD, WOOD_DK)))
+    return finish('props', 120, 100, shop, rng, parts, (120, 110, 100), at, np.zeros((8, 8, 4), np.uint8), (0, 30))
+
+
+def stall(spec, shop, rng):
+    at = Atlas(1024); col = spec.get('colour', 'Blue')
+    big = fart('Market_Stand_%s_Big' % col); base = fart('Market_Stand_Yellow_Big')
+    W = 160; parts = []
+    wood = med(base, (100, 124, 20, 140)); post = med(base, (70, 120, 8, 12))
+    for (x, d) in ((6, 6), (148, 6), (6, 70), (148, 70)):
+        parts.append(mbox((x, x + 6), (0, 92), (d, d + 6), (shade(post, 1.1), post, shade(post, .7))))
+    counter_front = np.ascontiguousarray(base[100:126, 16:144]); counter_top = np.ascontiguousarray(base[82:98, 16:144])
+    parts.append(mbox((12, 148), (0, 30), (8, 38), (wood, wood, shade(wood, .8)), ft=at.add(counter_front), fx=12, st=at.add(np.ascontiguousarray(counter_front[:, :6])), tt=at.add(counter_top)))
+    # goods: crates of fruit on the counter
+    for i, c in enumerate(((190, 40, 40), (230, 170, 40), (80, 160, 60))):
+        parts.append(mbox((22 + i * 44, 22 + i * 44 + 32), (30, 40), (12, 30), (c, shade(wood, 1.1), wood)))
+    stripe = np.ascontiguousarray(big[20:21, :]); tt = tile(stripe, 72, 160)
+    val = np.ascontiguousarray(big[14:62, :])
+    parts.append(dict(t='slope', x=[0, 160], y=[110, 128], d=[-6, 72], c=[rgb_int(wood), rgb_int(wood), rgb_int(shade(wood, .8))], th=46.0, tt=at.add(tt), ft=at.add(val)))
+    parts.append(mbox((4, 156), (0, 96), (74.5, 74.5), (wood, wood, wood), ft=at.add(tile(np.ascontiguousarray(base[100:126, 40:100]), 96, 152, True)), fx=4, card=True))
+    return finish('stall', 160, 80, shop, rng, parts, wood, at, np.zeros((8, 8, 4), np.uint8), (30, 130))
+
+
+def tractor(spec, shop, rng):
+    at = Atlas(1024)
+    side = fart('Tractor_Left_Side'); front = fart('Tractor_Front_Side'); back = fart('Tractor_Back_Side')
+    blue = med(side, (50, 70, 20, 60)); roofc = med(front, (20, 60, 40, 90)); tyre = (44, 44, 58)
+    parts = []
+    # chassis, then the hood (the grille crop on its front, the art's vent side)
+    parts.append(mbox((34, 94), (14, 26), (0, 100), (blue, shade(blue, .85), shade(blue, .7))))
+    hf = np.zeros((34, 56, 4), np.uint8); hf[..., 3] = 255; hf[..., :3] = blue
+    for k in range(5): hf[10 + k * 4:12 + k * 4, 14:42, :3] = shade(blue, .45)
+    hf[:2, :, :3] = shade(blue, 1.2); hf[-2:, :, :3] = shade(blue, .7)
+    hood_front = hf; hood_side = hf.copy(); hood_side[10:30, 14:42, :3] = blue; hood_side[14:16, 8:40, :3] = shade(blue, .5)
+    parts.append(mbox((36, 92), (24, 24 + 34), (0, 52), (shade(blue, 1.15), blue, shade(blue, .8)), ft=at.add(hood_front), fx=36, st=at.add(hood_side), tt=at.add(np.ascontiguousarray(front[100:150, 40:90]))))
+    # cab: glazed sides from the art, the grey roof from above
+    cab_side = np.zeros((50, 56, 4), np.uint8); cab_side[..., 3] = 255; cab_side[..., :3] = blue
+    cab_side[8:38, 8:48, :3] = (60, 90, 100); cab_side[8:38, 26:28, :3] = shade(blue, .7); cab_side[8:10, 8:48, :3] = shade(blue, .6)
+    cg = np.zeros_like(cab_side)
+    parts.append(mbox((32, 96), (26, 76), (54, 104), (roofc, blue, shade(blue, .8)), ft=at.add(cab_side), fx=32, st=at.add(cab_side), top=False))
+    parts.append(mbox((28, 100), (76, 82), (50, 108), (shade(roofc, 1.1), roofc, shade(roofc, .8)), tt=at.add(np.ascontiguousarray(front[4:66, 30:100])), ft=at.add(tile(np.ascontiguousarray(front[8:14, 40:90]), 6, 72)), st=at.add(tile(np.ascontiguousarray(front[8:14, 40:90]), 6, 58))))
+    for x in (34, 94): parts.append(mbox((x, x + 3), (26, 76), (56, 58), (INK, INK, INK)))
+    # wheels: three stacked blocks make a chamfered tyre; hubs the art's blue
+    def wheel(x0, x1, dc, r, hgt):
+        for (ar, y0, y1) in ((.45, 0, 2 * r), (.8, r * .3, 2 * r - r * .3), (1.0, r * .6, 2 * r - r * .6)):
+            parts.append(mbox((x0, x1), (y0, y1), (dc - r * ar, dc + r * ar), (tyre, tyre, shade(tyre, .9))))
+        side_x = x0 if x0 < 64 else x1
+        parts.append(mbox((x0 - 1 if x0 < 64 else x1, x0 if x0 < 64 else x1 + 1), (r * .7, r * 1.3), (dc - r * .3, dc + r * .3), (blue, blue, blue)))
+    wheel(12, 30, 78, 24, 48); wheel(98, 116, 78, 24, 48); wheel(20, 34, 14, 15, 30); wheel(94, 108, 14, 15, 30)
+    parts.append(mbox((44, 84), (8, 14), (-8, 0), (INK, INK, INK)))
+    return finish('tractor', 128, 112, shop, rng, parts, blue, at, np.zeros((8, 8, 4), np.uint8), (40, 90))
+
+
+# ------------------------------------------------------------------------------------------------ a sample field
+def field(spec, shop, rng):
+    """Rows of crop cards (the atlas of make_farm_crops.py: crops.json) over tilled soil laid as a ground decal: what a field
+    laid by the town generator will be, in a sample of several crops at different stages."""
+    import json
+    here = os.path.dirname(os.path.abspath(__file__)) + '/../app/src/main/assets/farm'
+    data = json.load(open(here + '/crops.json')); atlas = np.array(Image.open(here + '/' + data['atlas']).convert('RGBA'))
+    at = Atlas(1024); parts = []
+    W, Dp = 288, 224
+    s0 = data['soils']['tilled']; s1 = data['soils']['furrows']
+    tile_a = atlas[s0['y']:s0['y'] + 32, s0['x']:s0['x'] + 32]
+    ground = tile(np.ascontiguousarray(tile_a), Dp, W)
+    parts.append(dict(t='decal', x=[0.0, float(W)], y=[0.0, 0.0], d=[0.0, float(Dp)], p=at.add(ground)))
+    rows = spec['rows']
+    pitch = Dp / len(rows)
+    for i, (crop, stage) in enumerate(rows):
+        info = data['crops'][crop]; v = info['variants'][0]; fw = info['frameW']; fh = v['h']
+        frame = dict((st['name'], st['frames']) for st in info['stages'])[stage][0]
+        pic = np.ascontiguousarray(atlas[v['y']:v['y'] + fh, frame * fw:(frame + 1) * fw])
+        r = at.add(pic)
+        d = 10 + i * pitch
+        # a low mound under the row (the soil heaped along it)
+        parts.append(mbox((6, W - 6), (0, 3), (d - 4, d + 4), ((120, 84, 56), (104, 70, 46), (84, 56, 38))))
+        n = int((W - 20) // (fw * 0.9))
+        for k in range(n):
+            x = 10 + k * (W - 20 - fw) / max(1, n - 1)
+            parts.append(mbox((x, x + fw), (2, 2 + fh), (d, d), ((0, 0, 0), (0, 0, 0), (0, 0, 0)), ft=r, fx=x, card=True))
+    return finish('field', W, Dp, shop, rng, parts, (104, 70, 46), at, np.zeros((8, 8, 4), np.uint8), (0, 30))
+
 # ------------------------------------------------------------------------------------------------ builder and showcase
 def builder(key):
     if not key.startswith('fm_'): return None
@@ -551,11 +881,11 @@ def builder(key):
     return make
 
 
-KITS = {'barn': barn, 'house1': house1, 'house2': house2, 'shed': shed}
+KITS = {'barn': barn, 'house1': house1, 'house2': house2, 'shed': shed, 'silo1': silo, 'silo2': silo, 'fence': fence_run, 'corral': corral, 'troughs': troughs, 'hay': hay, 'crates': crates, 'bits': yard_bits, 'well': well, 'wellstone': well, 'stall': stall, 'tractor': tractor, 'field': field}
 
 
 def specs():
-    return [dict(id='fm_house1', kit='house1'), dict(id='fm_house2', kit='house2'), dict(id='fm_shed', kit='shed'), dict(id='fm_barn_red', kit='barn', colour='red', depth=416), dict(id='fm_barn_grey', kit='barn', colour='grey', depth=384),
+    return [dict(id='fm_house1', kit='house1'), dict(id='fm_house2', kit='house2'), dict(id='fm_shed', kit='shed'), dict(id='fm_silo1', kit='silo1'), dict(id='fm_silo2', kit='silo2'), dict(id='fm_fence', kit='fence'), dict(id='fm_corral', kit='corral'), dict(id='fm_hay', kit='hay'), dict(id='fm_troughs', kit='troughs'), dict(id='fm_crates', kit='crates'), dict(id='fm_well', kit='well'), dict(id='fm_wellstone', kit='wellstone', usable=False), dict(id='fm_tractor', kit='tractor'), dict(id='fm_stall_blue', kit='stall', colour='Blue'), dict(id='fm_stall_pink', kit='stall', colour='Pink'), dict(id='fm_stall_green', kit='stall', colour='Green'), dict(id='fm_stall_yellow', kit='stall', colour='Yellow'), dict(id='fm_bits', kit='bits'), dict(id='fm_field', kit='field', rows=[('wheat', 'ripe'), ('wheat', 'growing'), ('corn', 'ripe'), ('tomato', 'budding'), ('carrot', 'young'), ('pumpkin', 'ripe'), ('cabbage', 'growing'), ('radish', 'sprout')]), dict(id='fm_field2', kit='field', rows=[('grape', 'ripe'), ('cotton', 'ripe'), ('pineapple', 'budding'), ('watermelon', 'ripe'), ('pepper', 'growing'), ('turnip', 'young'), ('cauliflower', 'ripe'), ('onion', 'ripe')]), dict(id='fm_barn_red', kit='barn', colour='red', depth=416), dict(id='fm_barn_grey', kit='barn', colour='grey', depth=384),
             dict(id='fm_barn_yellow', kit='barn', colour='yellow', depth=448), dict(id='fm_barn_teal', kit='barn', colour='teal', depth=352)]
 
 
@@ -568,6 +898,8 @@ def showcase(out):
                           parts=[dict(key=sp['id'], w=sp.get('widthTiles', 15) * 32, h=200, y=0)], yard=dict(front=1, style='natural'), spec=sp))
     os.makedirs(out + '/buildings', exist_ok=True)
     json.dump(dict(town='farm', year=2025, type='farm showcase', shops=shops,
-                   streets=[dict(name='Barns', buildings=[s['id'] for s in all_specs if s['kit'] == 'barn']), dict(name='Houses and sheds', buildings=[s['id'] for s in all_specs if s['kit'].startswith(('house', 'shed'))])]),
+                   streets=[dict(name='Barns', buildings=[x['id'] for x in all_specs if x['kit'] == 'barn']), dict(name='Houses, shed and silos', buildings=[x['id'] for x in all_specs if x['kit'].startswith(('house', 'shed', 'silo'))]),
+                            dict(name='Fences, hay, troughs, crates, wells', buildings=[x['id'] for x in all_specs if x['kit'] in ('fence', 'corral', 'hay', 'troughs', 'crates', 'well', 'wellstone', 'bits')]),
+                            dict(name='Stalls, tractor and fields', buildings=[x['id'] for x in all_specs if x['kit'] in ('stall', 'tractor', 'field')])]),
               open(out + '/street.json', 'w'), indent=1)
     return out + '/street.json', out + '/buildings'

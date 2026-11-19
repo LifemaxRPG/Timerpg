@@ -1,0 +1,734 @@
+{
+ "town": "farm",
+ "year": 2025,
+ "type": "farm showcase",
+ "shops": [
+  {
+   "id": "show:fm_house1",
+   "sprite": "fm_house1",
+   "home": false,
+   "name": "fm_house1",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_house1",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_house1",
+    "kit": "house1"
+   }
+  },
+  {
+   "id": "show:fm_house2",
+   "sprite": "fm_house2",
+   "home": false,
+   "name": "fm_house2",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_house2",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_house2",
+    "kit": "house2"
+   }
+  },
+  {
+   "id": "show:fm_shed",
+   "sprite": "fm_shed",
+   "home": false,
+   "name": "fm_shed",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_shed",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_shed",
+    "kit": "shed"
+   }
+  },
+  {
+   "id": "show:fm_silo1",
+   "sprite": "fm_silo1",
+   "home": false,
+   "name": "fm_silo1",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_silo1",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_silo1",
+    "kit": "silo1"
+   }
+  },
+  {
+   "id": "show:fm_silo2",
+   "sprite": "fm_silo2",
+   "home": false,
+   "name": "fm_silo2",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_silo2",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_silo2",
+    "kit": "silo2"
+   }
+  },
+  {
+   "id": "show:fm_fence",
+   "sprite": "fm_fence",
+   "home": false,
+   "name": "fm_fence",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_fence",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_fence",
+    "kit": "fence"
+   }
+  },
+  {
+   "id": "show:fm_corral",
+   "sprite": "fm_corral",
+   "home": false,
+   "name": "fm_corral",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_corral",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_corral",
+    "kit": "corral"
+   }
+  },
+  {
+   "id": "show:fm_hay",
+   "sprite": "fm_hay",
+   "home": false,
+   "name": "fm_hay",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_hay",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_hay",
+    "kit": "hay"
+   }
+  },
+  {
+   "id": "show:fm_troughs",
+   "sprite": "fm_troughs",
+   "home": false,
+   "name": "fm_troughs",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_troughs",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_troughs",
+    "kit": "troughs"
+   }
+  },
+  {
+   "id": "show:fm_crates",
+   "sprite": "fm_crates",
+   "home": false,
+   "name": "fm_crates",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_crates",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_crates",
+    "kit": "crates"
+   }
+  },
+  {
+   "id": "show:fm_well",
+   "sprite": "fm_well",
+   "home": false,
+   "name": "fm_well",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_well",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_well",
+    "kit": "well"
+   }
+  },
+  {
+   "id": "show:fm_wellstone",
+   "sprite": "fm_wellstone",
+   "home": false,
+   "name": "fm_wellstone",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_wellstone",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_wellstone",
+    "kit": "wellstone",
+    "usable": false
+   }
+  },
+  {
+   "id": "show:fm_tractor",
+   "sprite": "fm_tractor",
+   "home": false,
+   "name": "fm_tractor",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_tractor",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_tractor",
+    "kit": "tractor"
+   }
+  },
+  {
+   "id": "show:fm_stall_blue",
+   "sprite": "fm_stall_blue",
+   "home": false,
+   "name": "fm_stall_blue",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_stall_blue",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_stall_blue",
+    "kit": "stall",
+    "colour": "Blue"
+   }
+  },
+  {
+   "id": "show:fm_stall_pink",
+   "sprite": "fm_stall_pink",
+   "home": false,
+   "name": "fm_stall_pink",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_stall_pink",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_stall_pink",
+    "kit": "stall",
+    "colour": "Pink"
+   }
+  },
+  {
+   "id": "show:fm_stall_green",
+   "sprite": "fm_stall_green",
+   "home": false,
+   "name": "fm_stall_green",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_stall_green",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_stall_green",
+    "kit": "stall",
+    "colour": "Green"
+   }
+  },
+  {
+   "id": "show:fm_stall_yellow",
+   "sprite": "fm_stall_yellow",
+   "home": false,
+   "name": "fm_stall_yellow",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_stall_yellow",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_stall_yellow",
+    "kit": "stall",
+    "colour": "Yellow"
+   }
+  },
+  {
+   "id": "show:fm_bits",
+   "sprite": "fm_bits",
+   "home": false,
+   "name": "fm_bits",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_bits",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_bits",
+    "kit": "bits"
+   }
+  },
+  {
+   "id": "show:fm_field",
+   "sprite": "fm_field",
+   "home": false,
+   "name": "fm_field",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_field",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_field",
+    "kit": "field",
+    "rows": [
+     [
+      "wheat",
+      "ripe"
+     ],
+     [
+      "wheat",
+      "growing"
+     ],
+     [
+      "corn",
+      "ripe"
+     ],
+     [
+      "tomato",
+      "budding"
+     ],
+     [
+      "carrot",
+      "young"
+     ],
+     [
+      "pumpkin",
+      "ripe"
+     ],
+     [
+      "cabbage",
+      "growing"
+     ],
+     [
+      "radish",
+      "sprout"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "show:fm_field2",
+   "sprite": "fm_field2",
+   "home": false,
+   "name": "fm_field2",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_field2",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_field2",
+    "kit": "field",
+    "rows": [
+     [
+      "grape",
+      "ripe"
+     ],
+     [
+      "cotton",
+      "ripe"
+     ],
+     [
+      "pineapple",
+      "budding"
+     ],
+     [
+      "watermelon",
+      "ripe"
+     ],
+     [
+      "pepper",
+      "growing"
+     ],
+     [
+      "turnip",
+      "young"
+     ],
+     [
+      "cauliflower",
+      "ripe"
+     ],
+     [
+      "onion",
+      "ripe"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "show:fm_barn_red",
+   "sprite": "fm_barn_red",
+   "home": false,
+   "name": "fm_barn_red",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_barn_red",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_barn_red",
+    "kit": "barn",
+    "colour": "red",
+    "depth": 416
+   }
+  },
+  {
+   "id": "show:fm_barn_grey",
+   "sprite": "fm_barn_grey",
+   "home": false,
+   "name": "fm_barn_grey",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_barn_grey",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_barn_grey",
+    "kit": "barn",
+    "colour": "grey",
+    "depth": 384
+   }
+  },
+  {
+   "id": "show:fm_barn_yellow",
+   "sprite": "fm_barn_yellow",
+   "home": false,
+   "name": "fm_barn_yellow",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_barn_yellow",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_barn_yellow",
+    "kit": "barn",
+    "colour": "yellow",
+    "depth": 448
+   }
+  },
+  {
+   "id": "show:fm_barn_teal",
+   "sprite": "fm_barn_teal",
+   "home": false,
+   "name": "fm_barn_teal",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_barn_teal",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_barn_teal",
+    "kit": "barn",
+    "colour": "teal",
+    "depth": 352
+   }
+  }
+ ],
+ "streets": [
+  {
+   "name": "Barns",
+   "buildings": [
+    "fm_barn_red",
+    "fm_barn_grey",
+    "fm_barn_yellow",
+    "fm_barn_teal"
+   ]
+  },
+  {
+   "name": "Houses, shed and silos",
+   "buildings": [
+    "fm_house1",
+    "fm_house2",
+    "fm_shed",
+    "fm_silo1",
+    "fm_silo2"
+   ]
+  },
+  {
+   "name": "Fences, hay, troughs, crates, wells",
+   "buildings": [
+    "fm_fence",
+    "fm_corral",
+    "fm_hay",
+    "fm_troughs",
+    "fm_crates",
+    "fm_well",
+    "fm_wellstone",
+    "fm_bits"
+   ]
+  },
+  {
+   "name": "Stalls, tractor and fields",
+   "buildings": [
+    "fm_tractor",
+    "fm_stall_blue",
+    "fm_stall_pink",
+    "fm_stall_green",
+    "fm_stall_yellow",
+    "fm_field",
+    "fm_field2"
+   ]
+  }
+ ]
+}

@@ -515,3 +515,41 @@ Rebuilt the same day after the owner found the chapel flat: the chapel cut into 
 shingles from above on a real 256-deep gable, stepped copings, corner buttresses with pinnacles, lancet bays between side buttresses, a
 chancel at the back), the haunted mansion's brick sides, left lantern tower and railings, V3's porch and the windmill's frame
 (`PACK_EXTERIORS.md`, "Rebuilt").
+
+## Farm: barns, farmhouses, shed, silos, props, crops (2026-11-19, `tools/buildings_farm.py`, `tools/make_farm_crops.py`)
+
+LimeZu's Modern Farm (32 px art; `packs/Modern_Farm_v1.3.zip`, unzipped outside the repo, `FARM_ART` points at its `32x32`) through the same pipeline
+(`fm_*` keys: `models.json` + one atlas each). Build with `make_buildings.py --farm-showcase DIR`, judge with
+`gradle :desktop:preview -Dmode=filament-models -Dassets=DIR -Dstreet=0-3` (0 barns, 1 houses/shed/silos, 2 fences, hay, troughs, crates, wells, 3 stalls,
+tractor, sample fields); `tools/farm-export.sh` writes `app/src/main/assets/farm/` (models, street.json, `crops_atlas.png`, `crops.json`).
+Not wired into the town generator. Same rule as the chapel: the art is 3/4 top-down, so each picture is cut into parts.
+- **Barns** (`fm_barn_red/grey/yellow/teal`, 480 wide, 352-448 deep): the art's front (`Front_Hayloft_*`) is a true elevation of a 7-tile hayloft bay between two
+  low aisles with the roof drawn behind from above. Built as that: a nave box under a gable (eaves overhanging to x 112/368, apex row 3) over two
+  lean-to aisles (monopitch gables rising to the nave wall). The art's roof strip (`Roof_Hayloft_Middle_Modular`) is laid on each slope along the
+  depth (columns across, 64 rows repeated); the front gable is the gable's `face` (the art's rake and boards, the roof painted off); the big doors are
+  recessed 14 (piers and header boxes, the art's white jambs, the doors at the back of the recess, a threshold slab); the hayloft windows, the four aisle
+  windows and the lintel beam are boxes standing 4-5 out of the wall (their art cut out and the wall painted over behind); a hoist beam out of the gable;
+  the side walls are the art's own boards (a clean stretch of the front tiled, mirrored both ways, the fascia and plinth cut from it) with a window per
+  bay; the back is its own elevation (boards up the gable, the doors, a loft window); a weathercock on the ridge. Windows glow at night (the farm's
+  dark-teal panes). No gambrel: the art's barns are a nave and aisles, not a gambrel.
+- **Farmhouses** (`fm_house1`, `fm_house2`): house 1 a front gable (clay tiles from above on both slopes, timber ridge board, boards in the gable) with a
+  lean-to wing (a monopitch gable, its front the art's elevation under the rake), a porch I added over the door (posts, a sloped roof, three steps),
+  a brick chimney; house 2 a steep gable with the art's bay window under its red awning (a sloped slab) and a hip-topped right wing (`hip_roof`)
+  with a door canopy and stoop. Sides and backs plank siding in the front's colour, windows lit at night. The art's roofs are low pitch; house 1 rises 30.
+- **Metal shed** (`fm_shed`, Barn_Small): cream boards in the orange frame under a barrel roof built as an arch of three straight strips each side
+  (monopitch gables along the front wall's own arch), the art's riveted panels on them by column, a ridge cap, a roll-up door and louvred window proud.
+- **Silos** (`fm_silo1` with its lean-to shed, `fm_silo2`): real cylinders. The body's boards unrolled round it (the front's columns by sin of the angle;
+  the ladder painted out), the dome eight tapering rings (new optional `rt` on `cyl`: the top's semi-axes, so a part can be a cone or a frustum; engine
+  `FilamentModels.cyl`, `ModelGeometry`), the ladder a card cut to its rails and rungs with standoffs, the pipe a thin cylinder.
+- **Props** (`fm_fence`, `fm_corral`, `fm_hay`, `fm_troughs`, `fm_crates`, `fm_well`, `fm_wellstone`, `fm_stall_*`, `fm_tractor`, `fm_bits`): fences are
+  log-post cylinders (the art's post unrolled) with two rails and the art's board gate; hay bales boxes wearing the art with the hay pile and sacks as
+  cards; troughs boxes with the art's water from above; crates, milk cans and logs; wells a hollow stone cylinder, water, and for the usable one posts,
+  a gable roof and crank; four market stalls (blue, pink, green, yellow) with a sloped striped awning (stripes from the art, scalloped valance as the
+  slab's front), counter, fruit crates; a parked tractor (hood, cab with glass, grey roof from the art, wheels as stacked blocks: the engine has no
+  horizontal cylinder); `fm_bits` cards (scarecrow, doghouse, henhouse, chicken coop, sprinkler, cheese machine). The pack has no windmill and no barrels.
+- **Crops** (`make_farm_crops.py` -> `crops_atlas.png`, `crops.json`): all 19 crops (grapes and turnips two variants) with their seven growth frames (sprout,
+  young, growing x2 sway, budding, ripe x2 sway: `stages` in the json), each cropped to its tallest frame with feet on the bottom row, plus five 32x32
+  soil tiles (tilled, dark tilled, furrows, dirt, sand); `sow`/`harvest` seasons are ours. `fm_field`/`fm_field2` lay rows of upright cards over a tilled
+  ground decal as the sample fields.
+- Honest limits: the tractor is boxy; the barns' board texture repeats (mirrored tiles); the well's stone strip is soft; the soil decal is flat colour; the
+  silo dome rings are 8 flat bands; interior pieces (barn insides, stable) were not built; nothing is on a town street.
