@@ -1,0 +1,323 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2000,
+  "topic": "fashion",
+  "facts": [
+    {
+      "id": "2000-fashion-01",
+      "year_from": 2001,
+      "year_to": 2008,
+      "text": "Low-rise jeans sit below the waist on many teenage shoppers.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-02",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Bootcut jeans flare gently over sneakers or heeled boots.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-03",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Teenagers wear fitted graphic T-shirts with casual jeans.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-04",
+      "year_from": 2002,
+      "year_to": 2007,
+      "text": "Velour tracksuits serve as casual outfits for some young women.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-05",
+      "year_from": 2000,
+      "year_to": 2006,
+      "text": "Cargo pants have roomy pockets along the thighs.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-06",
+      "year_from": 2003,
+      "year_to": 2009,
+      "text": "Layered tank tops show contrasting colors at the neckline.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-07",
+      "year_from": 2006,
+      "year_to": 2009,
+      "text": "Young women pair denim miniskirts with leggings later in the decade.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-08",
+      "year_from": 2000,
+      "year_to": 2006,
+      "text": "Teenage boys wear loose jeans that bunch around their shoes.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-09",
+      "year_from": 2004,
+      "year_to": 2008,
+      "text": "Some young men wear polo shirts with popped collars.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-10",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Hooded sweatshirts are everyday outer layers for students.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-11",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Athletic sneakers are common footwear for children at school.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-12",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Children carry colorful backpacks that match their favorite outfits.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-13",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Girls wear patterned tights beneath skirts in cooler weather.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-14",
+      "year_from": 2000,
+      "year_to": 2005,
+      "text": "Some girls clip small plastic barrettes into their hair.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-15",
+      "year_from": 2003,
+      "year_to": 2009,
+      "text": "Straightened hair becomes a popular look among teenage girls.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-16",
+      "year_from": 2000,
+      "year_to": 2005,
+      "text": "Chunky highlighted streaks appear in some teenage hairstyles.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-17",
+      "year_from": 2005,
+      "year_to": 2009,
+      "text": "Side-swept bangs frame the faces of many young adults.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-18",
+      "year_from": 2000,
+      "year_to": 2006,
+      "text": "Some teenage boys style their hair into short spikes with gel.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-19",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Men wear untucked button-down shirts for casual evenings.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-20",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Office workers often choose collared shirts and pressed trousers.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-21",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Women wear fitted cardigans over blouses at work.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-22",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Some workplaces allow jeans on designated casual Fridays.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-23",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Older residents favor comfortable slacks and practical walking shoes.",
+      "ages": "elders",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-24",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Adults wear fleece jackets for errands during chilly weather.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-25",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Flip-flops appear with casual summer outfits in warm weather.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-fashion-26",
+      "year_from": 2005,
+      "year_to": 2009,
+      "text": "Large sunglasses and oversized handbags become fashionable accessories later in the decade.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
