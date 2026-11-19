@@ -1,0 +1,323 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1950,
+  "topic": "fashion",
+  "facts": [
+    {
+      "id": "1950-fashion-01",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Women wear full skirts with fitted waists for church visits and family gatherings.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-02",
+      "year_from": 1952,
+      "year_to": 1959,
+      "text": "Some women choose straight pencil skirts for office work and dressier outings.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-03",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Girls wear cotton dresses with gathered skirts to school and parties.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-04",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Teenage girls often pair full skirts with blouses or fitted sweaters.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-05",
+      "year_from": 1953,
+      "year_to": 1959,
+      "text": "Petticoats give some party skirts a wide, rounded shape.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-06",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Teenage boys wear cuffed trousers and button-front shirts to school.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-07",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Young men sometimes wear narrow neckties with sport coats for dances.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-08",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Men wear dark suits and ties for weddings and Sunday services.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-09",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A fedora or brimmed felt hat completes some men's dress outfits.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-10",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Older men may keep a flat cap for errands and outdoor chores.",
+      "ages": "elders",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-11",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Women wear small hats with gloves when dressing for formal visits.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-12",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A cardigan sweater is a practical extra layer for cool school mornings.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-13",
+      "year_from": 1950,
+      "year_to": 1956,
+      "text": "Boys wear short trousers in some families before graduating to long pants.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-14",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Children wear sturdy leather shoes that can be polished for school.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-15",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Girls may wear ankle socks with saddle-style shoes for everyday outings.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-16",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Teenagers wear denim jeans for casual recreation, although some schools prohibit them.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-17",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A young man may roll up the sleeves of a casual cotton shirt.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-18",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Women wear tailored shirtwaist dresses for shopping and daytime errands.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-19",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Many women arrange their hair in short curled sets or soft waves.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-20",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Teenage girls sometimes tie their hair into ponytails with ribbons.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-21",
+      "year_from": 1954,
+      "year_to": 1959,
+      "text": "Some young men comb their hair into a high, swept-back style.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-22",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Barbers trim men's hair neatly around the ears and neckline.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-23",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Women often wear stockings with dress shoes for formal occasions.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-24",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Children change from play clothes into cleaner outfits before visiting relatives.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-25",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Workers wear denim overalls or durable work trousers for dirty outdoor tasks.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-fashion-26",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A woman may wear a matching jacket and skirt when attending a formal meeting.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
