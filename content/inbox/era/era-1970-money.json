@@ -1,0 +1,370 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1970,
+  "topic": "money",
+  "facts": [
+    {
+      "id": "1970-money-01",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Families compare grocery totals carefully as food prices rise during the decade.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-02",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A shopper carries cash for small purchases and receives coins as change.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-03",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A household often pays monthly bills by mailing a paper check.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-04",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Workers deposit their paychecks at a bank on payday.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-05",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Some employers still hand workers cash in pay envelopes.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-06",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A family keeps receipts in a drawer to track household spending.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-07",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Shoppers compare weekly supermarket advertisements for lower prices.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-08",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A child saves coins from an allowance for a small treat.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-09",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Teenagers earn spending money by mowing lawns or babysitting.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-10",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A diner customer commonly leaves a cash tip on the table.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-11",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A household may buy a refrigerator through monthly installment payments.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-12",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Department stores offer charge accounts to approved customers.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-13",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Bank credit cards are accepted at some stores but not every small business.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-14",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A gas station attendant may accept cash after filling the tank.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-15",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Some families set aside money each week for rent or mortgage payments.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-16",
+      "year_from": 1973,
+      "year_to": 1979,
+      "text": "Higher gasoline prices put pressure on household driving budgets.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-17",
+      "year_from": 1974,
+      "year_to": 1979,
+      "text": "People notice prices rising faster during the later years of the decade.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-18",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Savings accounts pay interest, and depositors keep paper passbooks at some banks.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-19",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A worker checks deductions on a printed pay stub.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-20",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A shop clerk counts change back to the customer at the counter.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-21",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A customer may use a layaway plan to reserve merchandise while making payments.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-22",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A family budgets for school clothes before the autumn term begins.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-23",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Some households clip discount coupons from newspapers before shopping.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-24",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A bank teller handles deposits and withdrawals during posted banking hours.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-25",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Neighbors may lend each other small sums until the next payday.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-money-26",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A restaurant bill is usually settled at the register or with a server.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [
+    {
+      "item": "one gallon of regular gasoline",
+      "usd": 0.36,
+      "year": 1970,
+      "confidence": "high"
+    },
+    {
+      "item": "one gallon of milk",
+      "usd": 1.32,
+      "year": 1975,
+      "confidence": "medium"
+    },
+    {
+      "item": "one loaf of white bread",
+      "usd": 0.36,
+      "year": 1975,
+      "confidence": "medium"
+    },
+    {
+      "item": "one dozen eggs",
+      "usd": 0.77,
+      "year": 1975,
+      "confidence": "medium"
+    },
+    {
+      "item": "one pound of ground beef",
+      "usd": 0.77,
+      "year": 1975,
+      "confidence": "medium"
+    },
+    {
+      "item": "one pound of bacon",
+      "usd": 1.55,
+      "year": 1975,
+      "confidence": "medium"
+    },
+    {
+      "item": "one pound of coffee",
+      "usd": 1.5,
+      "year": 1975,
+      "confidence": "medium"
+    },
+    {
+      "item": "one pound of bananas",
+      "usd": 0.2,
+      "year": 1975,
+      "confidence": "medium"
+    },
+    {
+      "item": "one pound of butter",
+      "usd": 1.05,
+      "year": 1975,
+      "confidence": "medium"
+    },
+    {
+      "item": "one first-class postage stamp",
+      "usd": 0.13,
+      "year": 1976,
+      "confidence": "high"
+    },
+    {
+      "item": "one gallon of gasoline",
+      "usd": 0.86,
+      "year": 1979,
+      "confidence": "medium"
+    },
+    {
+      "item": "federal hourly minimum wage",
+      "usd": 2.9,
+      "year": 1979,
+      "confidence": "high"
+    }
+  ],
+  "phrases": []
+}
