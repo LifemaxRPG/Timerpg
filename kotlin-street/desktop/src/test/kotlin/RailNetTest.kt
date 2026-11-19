@@ -127,7 +127,14 @@ class RailNetTest {
             if (route.legs?.firstOrNull()?.mode != "train") continue
             val ride = RailRide(net, route)
             val p = ride.path.pts
-            for (i in 1 until p.size / 2) assertTrue("$dest $year: a jump at $i", kotlin.math.hypot(p[i * 2] - p[i * 2 - 2], p[i * 2 + 1] - p[i * 2 - 1]) < 2000f)
+            // no gap between its pieces (a straight in a town's plan can be long) and never doubling back
+            for (i in 1 until p.size / 2) assertTrue("$dest $year: a jump at $i", kotlin.math.hypot(p[i * 2] - p[i * 2 - 2], p[i * 2 + 1] - p[i * 2 - 1]) < 12000f)
+            // (a change of trains may go back the way it came: only one train's ride must run on)
+            if (route.changes == 0) for (i in 2 until p.size / 2) {
+                val ax = p[i * 2 - 2] - p[i * 2 - 4]; val az = p[i * 2 - 1] - p[i * 2 - 3]; val bx = p[i * 2] - p[i * 2 - 2]; val bz = p[i * 2 + 1] - p[i * 2 - 1]
+                val cos = (ax * bx + az * bz) / (kotlin.math.hypot(ax, az) * kotlin.math.hypot(bx, bz)).coerceAtLeast(1e-6f)
+                assertTrue("$dest $year: doubles back at $i ($cos)", cos > -0.5f)
+            }
             // from the home depot to the last stop, which is the destination's station
             val d = net.rail.depot!!
             assertTrue(kotlin.math.hypot(p[0] - d.x, p[1] - d.z) < 1f)

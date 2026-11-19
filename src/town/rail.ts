@@ -264,6 +264,30 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
     for (const s of all) { if (picked.length >= 10) break; if (picked.every((q) => Math.hypot(q.rect.x - s.rect.x, q.rect.y - s.rect.y) > 12)) picked.push(s); }
     return picked;
   };
+  /** A depot site beside [pts] where a stretch runs near a street's way (within 12 degrees of east-west or north-south), nearest the plaza. */
+  const depotAlong = (pts: Pt[]): TownRail['depot'] => {
+    let best: { d: number; v: NonNullable<TownRail['depot']> } | null = null;
+    for (let i = 0; i + 1 < pts.length; i++) {
+      const a = pts[i]!, b = pts[i + 1]!, L = Math.hypot(b.x - a.x, b.y - a.y);
+      if (L < DEPOT.len + 2) continue;
+      const dx = (b.x - a.x) / L, dy = (b.y - a.y) / L;
+      const horiz = Math.abs(dx) >= Math.abs(dy);
+      if (Math.abs(horiz ? dy : dx) > 0.2) continue;
+      for (let t = DEPOT.len / 2 + 1; t <= L - DEPOT.len / 2 - 1; t += 2) {
+        const at = { x: a.x + dx * t, y: a.y + dy * t };
+        for (const side of [1, -1] as const) {
+          const nx = dy * side, ny = -dx * side;
+          const c = { x: at.x + nx * (DEPOT.off + DEPOT.deep / 2), y: at.y + ny * (DEPOT.off + DEPOT.deep / 2) };
+          const rw = horiz ? DEPOT.len : DEPOT.deep, rh = horiz ? DEPOT.deep : DEPOT.len;
+          const rect = { x: Math.round(c.x - rw / 2), y: Math.round(c.y - rh / 2), w: rw, h: rh };
+          if (!freeRect(rect) || !nearRoad(rect, 10)) continue;
+          const d = Math.hypot(c.x - cx0, c.y - cy0);
+          if (!best || d < best.d) best = { d, v: { rect, at, dx, dy, side, built: builtYear } };
+        }
+      }
+    }
+    return best?.v ?? null;
+  };
   const len = (p: Pt[]): number => p.reduce((t, q, i) => (i ? t + Math.hypot(q.x - p[i - 1]!.x, q.y - p[i - 1]!.y) : 0), 0);
 
   // ---- through lines first (the main lines, east-west then north-south), then the lines that end here
@@ -278,12 +302,24 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
     let p: Pt[] | null = null;
     if (!out.depot && direct) {
       for (const st of strips()) {
-        // (the stretch run the way the line goes: its first end the nearer the way in)
-        const flip = Math.hypot(st.s0.x - a.x, st.s0.y - a.y) > Math.hypot(st.s1.x - a.x, st.s1.y - a.y);
-        const s0 = flip ? st.s1 : st.s0, s1 = flip ? st.s0 : st.s1;
-        const c0 = search(a, cellGoal(s0), s0); if (!c0) continue;
-        const c1 = search(s1, cellGoal(b), b); if (!c1) continue;
-        const leg0 = tighten([a, ...c0.slice(1, -1), s0]), leg1 = tighten([s1, ...c1.slice(1, -1), b]);
+        // (the stretch is run the way that needs no doubling back: each leg meets it along its own way, and of the two
+        // ways that do, the shorter)
+        let best: { leg0: Pt[]; leg1: Pt[]; c0: Pt[]; c1: Pt[]; s0: Pt; s1: Pt; L: number } | null = null;
+        for (const flip of [false, true]) {
+          const s0 = flip ? st.s1 : st.s0, s1 = flip ? st.s0 : st.s1;
+          const c0 = search(a, cellGoal(s0), s0); if (!c0) continue;
+          const c1 = search(s1, cellGoal(b), b); if (!c1) continue;
+          const leg0 = tighten([a, ...c0.slice(1, -1), s0]), leg1 = tighten([s1, ...c1.slice(1, -1), b]);
+          const sx = s1.x - s0.x, sy = s1.y - s0.y, sl = Math.hypot(sx, sy);
+          const q = leg0[leg0.length - 2]!, r = leg1[1]!;
+          const inDot = ((s0.x - q.x) * sx + (s0.y - q.y) * sy) / (Math.hypot(s0.x - q.x, s0.y - q.y) * sl || 1);
+          const outDot = ((r.x - s1.x) * sx + (r.y - s1.y) * sy) / (Math.hypot(r.x - s1.x, r.y - s1.y) * sl || 1);
+          if (inDot < -0.05 || outDot < -0.05) continue;
+          const L = len(leg0) + len(leg1);
+          if (!best || L < best.L) best = { leg0, leg1, c0, c1, s0, s1, L };
+        }
+        if (!best) continue;
+        const { leg0, leg1, c0, c1, s0, s1 } = best;
         const whole = [...leg0, ...leg1];
         if (len(whole) > len(direct) * 1.7 + 80) continue;
         mark(c0); mark(c1);
@@ -294,11 +330,15 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
         const side: 1 | -1 = rc.x * dy - rc.y * dx > 0 ? 1 : -1;
         out.depot = { rect: st.rect, at: mid, dx, dy, side, built: builtYear };
         // (the stretch itself is kept straight through the rounding: corners are rounded on either side of it)
-        p = [...round(leg0.slice(0, -1).concat([s0])).slice(0, -1), s0, mid, s1, ...round([s1, ...leg1.slice(1)]).slice(1)];
+        p = [...round(leg0).slice(0, -1), s0, mid, s1, ...round(leg1).slice(1)];
         break;
       }
     }
-    if (!p && direct) { p = round(lay(a, cellGoal(b), b, b)!); }
+    if (!p && direct) {
+      p = round(lay(a, cellGoal(b), b, b)!);
+      // no stretch near the plaza to run through: the depot beside the line as laid, on a straight piece of it
+      if (!out.depot) out.depot = depotAlong(p);
+    }
     if (p) paths.push({ pts: p, links: [l0, l1] }); else out.conflicts.push(`no way through for ${l0.id} and ${l1.id}`);
   }
 

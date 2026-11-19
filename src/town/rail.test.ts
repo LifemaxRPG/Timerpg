@@ -39,6 +39,18 @@ describe('the railroad in town', () => {
     }
   });
 
+  it('never doubles back: a through line runs on through the depot', () => {
+    for (const b of built) {
+      // the town's tracks of each line, joined in order (in from one portal, out the other)
+      for (const t of b.rail.tracks) for (let i = 2; i < t.pts.length; i++) {
+        const a = t.pts[i - 2]!, c = t.pts[i - 1]!, d = t.pts[i]!;
+        const ux = c.x - a.x, uy = c.y - a.y, vx = d.x - c.x, vy = d.y - c.y;
+        const cos = (ux * vx + uy * vy) / (Math.hypot(ux, uy) * Math.hypot(vx, vy) || 1);
+        expect(cos, `${b.site.name} ${t.link} at ${i}`).toBeGreaterThan(-0.2);
+      }
+    }
+  });
+
   it('keeps the track off every lot, landmark and the plaza', () => {
     for (const b of built) for (const t of b.rail.tracks) for (let i = 0; i + 1 < t.pts.length; i++) {
       const a = t.pts[i]!, c = t.pts[i + 1]!, L = Math.hypot(c.x - a.x, c.y - a.y);
