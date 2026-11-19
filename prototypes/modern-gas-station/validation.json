@@ -1,6 +1,7 @@
 {
-  "glb_bytes": 246056,
-  "visible_triangles": 2512,
+  "revision": 2,
+  "glb_bytes": 295336,
+  "visible_triangles": 2964,
   "materials": 12,
   "embedded_textures": 12,
   "art_pixel_grid": "all texture pixels are exact 2x2 blocks",
@@ -14,5 +15,7 @@
   "doors": "ground-level named nodes verified",
   "collision": "separate collision-only mesh verified",
   "lot": "optional lot hierarchy verified",
+  "dynamic_prices": "dedicated sign_price node/material, two faces, independent full-UV 48x84 texture; year changes verified without changing static sign; long-price glyphs and negative-price rejection checked",
+  "amenities": "ice chest, propane cage and two island waste/squeegee groups verified",
   "renderer": "Blender previews; no Filament or phone benchmark"
 }

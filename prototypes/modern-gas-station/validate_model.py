@@ -1,5 +1,5 @@
 """Check the handoff contract against the actual GLB, not just its metadata."""
-import io,json,struct,math
+import io,json,struct,math,tempfile,hashlib
 from pathlib import Path
 import numpy as np
 from PIL import Image
@@ -23,6 +23,19 @@ def accessor(index):
     return np.array([struct.unpack_from('<'+ch*width,binary,start+i*stride) for i in range(a['count'])])
 names={n['name']:n for n in g['nodes']};assert all(n in names for n in ('lot','door_main','door_back','collision'))
 assert names['collision']['extras']['collision_only'] is True
+assert 'sign_price' in names and names['sign_price']['extras']['dynamic_texture'] is True
+price_primitives=g['meshes'][names['sign_price']['mesh']]['primitives']
+price_index=next(i for i,m in enumerate(g['materials']) if m['name']=='sign_price')
+assert all(p['material']==price_index for p in price_primitives)
+assert sum(len(accessor(p['indices']))//3 for p in price_primitives)==4
+for p in price_primitives:
+    uv=accessor(p['attributes']['TEXCOORD_0']);assert np.allclose(uv.min(axis=0),[0,0]) and np.allclose(uv.max(axis=0),[1,1])
+price_mat=g['materials'][price_index]
+price_texture=price_mat['pbrMetallicRoughness']['baseColorTexture']['index']
+assert g['textures'][price_mat['emissiveTexture']['index']]['source']==g['textures'][price_texture]['source']
+assert images[g['textures'][price_texture]['source']]==(48,84)
+assert all(n in names for n in ('ice_chest','propane_cage','island_waste_01','island_waste_02'))
+assert len(info['collision']['boxes_blender_z_up'])<=48
 for door in info['doors']:
     assert np.allclose(names[door['node']].get('translation',[0,0,0]),door['position'])
     assert abs(door['position'][1])<1e-7
@@ -54,5 +67,25 @@ assert len(pump_counts)==4
 assert triangles==info['triangles_visible'] and triangles<=12000
 assert all(n<500 for n in pump_counts.values()),pump_counts
 assert max_error<.001,('UV scale mismatch, metres',max_error)
-result={'glb_bytes':len(raw),'visible_triangles':triangles,'materials':len(g['materials']),'embedded_textures':len(images),'art_pixel_grid':'all texture pixels are exact 2x2 blocks','uv_scale_max_edge_error_m':max_error,'pump_triangles':pump_counts,'doors':'ground-level named nodes verified','collision':'separate collision-only mesh verified','lot':'optional lot hierarchy verified','renderer':'Blender previews; no Filament or phone benchmark'}
+from price_art import write_prices
+static=R/'textures/signs.png';before=hashlib.sha256(static.read_bytes()).hexdigest()
+with tempfile.TemporaryDirectory() as directory:
+    a=Path(directory)/'2010.png';b=Path(directory)/'2025.png';wide=Path(directory)/'wide.png'
+    write_prices(a,2010,'2.75','2.95','3.05');write_prices(b,2025,'3.49','3.79','3.69');write_prices(wide,2025,'10.49','99.99','999.99')
+    assert a.read_bytes()!=b.read_bytes()
+    assert not np.array_equal(np.array(Image.open(a)),np.array(Image.open(b)))
+    for top in (0,28,56):
+        assert not np.array_equal(np.array(Image.open(a))[top:top+14],np.array(Image.open(b))[top:top+14])
+    for p in (a,b,wide):
+        im=Image.open(p);assert im.size==(48,84);pixels=np.array(im)
+        assert np.array_equal(pixels,pixels[::2,::2].repeat(2,0).repeat(2,1))
+    assert Image.open(a).info['simulation_year']=='2010'
+    try:write_prices(wide,2025,'-1','3','4')
+    except ValueError:pass
+    else:raise AssertionError('Negative price accepted')
+assert hashlib.sha256(static.read_bytes()).hexdigest()==before
+# The static pylon panel has labels only: the entire overlaid digit area is blank.
+static_pixels=np.array(Image.open(static).convert('RGBA'))
+assert np.all(static_pixels[36:120,408:456]==[75,82,104,255])
+result={'revision':2,'glb_bytes':len(raw),'visible_triangles':triangles,'materials':len(g['materials']),'embedded_textures':len(images),'art_pixel_grid':'all texture pixels are exact 2x2 blocks','uv_scale_max_edge_error_m':max_error,'pump_triangles':pump_counts,'doors':'ground-level named nodes verified','collision':'separate collision-only mesh verified','lot':'optional lot hierarchy verified','dynamic_prices':'dedicated sign_price node/material, two faces, independent full-UV 48x84 texture; year changes verified without changing static sign; long-price glyphs and negative-price rejection checked','amenities':'ice chest, propane cage and two island waste/squeegee groups verified','renderer':'Blender previews; no Filament or phone benchmark'}
 (R/'validation.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2))

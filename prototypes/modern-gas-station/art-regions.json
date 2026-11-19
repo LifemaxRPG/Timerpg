@@ -1,4 +1,22 @@
 {
+  "edge_front": {
+    "texture": "signs.png",
+    "rect_art": [
+      0,
+      110,
+      244,
+      2
+    ]
+  },
+  "edge_side": {
+    "texture": "signs.png",
+    "rect_art": [
+      248,
+      0,
+      2,
+      154
+    ]
+  },
   "brand": {
     "texture": "signs.png",
     "rect_art": [
@@ -96,6 +114,42 @@
       90,
       8,
       10
+    ]
+  },
+  "ice_chest": {
+    "texture": "utility.png",
+    "rect_art": [
+      0,
+      92,
+      32,
+      24
+    ]
+  },
+  "propane_cage": {
+    "texture": "utility.png",
+    "rect_art": [
+      34,
+      92,
+      32,
+      24
+    ]
+  },
+  "pump_bin": {
+    "texture": "utility.png",
+    "rect_art": [
+      70,
+      92,
+      10,
+      16
+    ]
+  },
+  "bucket_water": {
+    "texture": "utility.png",
+    "rect_art": [
+      84,
+      92,
+      8,
+      8
     ]
   },
   "paint_strip": {
@@ -224,6 +278,15 @@
       36
     ]
   },
+  "front_glass_hot": {
+    "texture": "glass.png",
+    "rect_art": [
+      0,
+      40,
+      90,
+      36
+    ]
+  },
   "side_glass": {
     "texture": "glass.png",
     "rect_art": [
@@ -237,9 +300,18 @@
     "texture": "glass.png",
     "rect_art": [
       0,
-      40,
+      80,
       32,
       32
+    ]
+  },
+  "price_digits": {
+    "texture": "prices.png",
+    "rect_art": [
+      0,
+      0,
+      24,
+      42
     ]
   }
 }

@@ -2,39 +2,6 @@
   "note": "Guide atlas was absent in this checkout. Same catalogue swatches recovered from the committed split source packs. Game use only; LimeZu credit required. Working textures normalized to 2x2 texel blocks without changing their physical dimensions.",
   "swatches": [
     {
-      "id": "fl_0_00",
-      "family": "floor",
-      "pack": "interiors",
-      "file": "1_Interiors/32x32/Room_Bulder_subfiles_32x32/Room_Builder_Floors_32x32.png",
-      "rect": [
-        0,
-        64,
-        32,
-        32
-      ],
-      "tile": "seamless",
-      "repeat": [
-        32,
-        32
-      ],
-      "palette": [
-        "#d7d6e2",
-        "#c0beca",
-        "#c4c4ce",
-        "#7f8292",
-        "#a5a5b6",
-        "#c2c0d2"
-      ],
-      "tags": [
-        "interior",
-        "floor"
-      ],
-      "seam": [
-        1.56,
-        1.55
-      ]
-    },
-    {
       "id": "concrete_office_light",
       "family": "concrete",
       "pack": "exteriors",
@@ -178,37 +145,40 @@
       ]
     },
     {
-      "id": "roofflat_grey_condo",
-      "family": "roof-flat",
+      "id": "brick_red_terrace",
+      "family": "brick",
       "pack": "exteriors",
-      "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/4_Generic_Buildings_32x32.png",
+      "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/1_Terrains_and_Fences_32x32.png",
       "rect": [
-        182,
-        1000,
-        32,
-        32
+        23,
+        806,
+        62,
+        48
       ],
       "tile": "seamless",
       "repeat": [
-        32,
-        32
+        31,
+        48
       ],
       "palette": [
-        "#8a7a77",
-        "#7c6e6f",
-        "#716467",
-        "#6c5d62"
+        "#a14f44",
+        "#b99e86",
+        "#943c3f",
+        "#b18a74",
+        "#a7604a",
+        "#9b766a"
       ],
       "tags": [
-        "flat",
-        "roof",
-        "tar",
-        "grey-brown"
+        "red",
+        "brick",
+        "running-bond",
+        "1950s"
       ],
       "seam": [
-        0.42,
-        0.56
-      ]
+        0.0,
+        0.21
+      ],
+      "note": "warm red courses, tan mortar, dark outline; light from top"
     }
   ]
 }

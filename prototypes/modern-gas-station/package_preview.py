@@ -1,22 +1,17 @@
-"""Package the real model and its five checked desktop renders for local review."""
+"""Package the real model and its six checked desktop renders for local review."""
 from pathlib import Path
 from PIL import Image,ImageDraw,ImageFont
 import json,zipfile
 R=Path(__file__).resolve().parent
-SHOTS=[('01-day-front-clean.png','Daylight'),('02-blue-hour-clean.png','Blue hour'),('03-back-clean.png','Rear service yard'),('04-above-clean.png','Roof and lot'),('05-person-height-clean.png','Player height: 1.7 m')]
+SHOTS=[('01-day-front-clean.png','Daylight'),('02-blue-hour-clean.png','Blue hour'),('03-back-clean.png','Rear service yard'),('04-above-clean.png','Roof and lot'),('05-person-height-clean.png','Player height: 1.7 m'),('06-island-equipment-clean.png','Trash + windshield-wash station')]
 font='/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
 title=ImageFont.truetype(font,34);label=ImageFont.truetype(font,20);small=ImageFont.truetype(font,17)
 sheet=Image.new('RGB',(1304,1654),'#292c3b');d=ImageDraw.Draw(sheet)
-d.text((24,20),'CROSSFIELD',font=title,fill='#eee9df');d.text((25,67),'FUEL + MARKET  /  Original modern gas station',font=small,fill='#c9c1b6')
+d.text((24,20),'CROSSFIELD',font=title,fill='#eee9df');d.text((25,67),'FUEL + MARKET  /  Second pass: canopy, storefront and forecourt',font=small,fill='#c9c1b6')
 for i,(name,caption) in enumerate(SHOTS):
     x,y=24+(i%2)*640,112+(i//2)*500
     im=Image.open(R/'renders'/name).convert('RGB');assert im.size==(1280,960)
     sheet.paste(im.resize((616,462),Image.Resampling.LANCZOS),(x,y));d.text((x,y+468),caption,font=label,fill='#eee9df')
-x,y=664,1112;d.rectangle((x,y,x+615,y+461),fill='#343747')
-d.text((x+30,y+30),'Made for Timerpg',font=title,fill='#eee9df')
-for j,line in enumerate(['2005–2029 roadside design','Four pumps + convenience store','Finished sides, roof and rear yard','Game material swatches + original signs','Exact pixel scale from Claude’s guide','Clean interior shell for game furniture']):
-    d.text((x+30,y+102+j*42),line,font=small,fill='#c9c1b6')
-for i,color in enumerate(['#3a3a50','#7d7f99','#a14f44','#c97751','#dad4cb','#479757']):d.rectangle((x+30+i*85,y+385,x+105+i*85,y+414),fill=color)
 d.text((24,1623),'Actual Blender desktop renders. Prototype review; Filament integration and S25 testing remain.',font=small,fill='#c9c1b6')
 sheet.save(R/'crossfield-review.jpg',quality=95)
 cards=''.join(f'<figure><a href="renders/{name}"><img src="renders/{name}" alt="Crossfield: {caption}"></a><figcaption>{caption}</figcaption></figure>' for name,caption in SHOTS)

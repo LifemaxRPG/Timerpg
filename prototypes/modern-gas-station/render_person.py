@@ -9,6 +9,7 @@ bg=scene.world.node_tree.nodes.get('Background');bg.inputs[0].default_value=(.12
 for light in bpy.data.lights:
     if light.type=='SUN':light.energy=.38;light.color=(.48,.62,1)
     elif light.type=='AREA':light.energy/= .12
-bpy.data.materials['glow_station_signs_and_lamps'].node_tree.nodes.get('Principled BSDF').inputs['Emission Strength'].default_value=1
+for name in ('glow_station_signs_and_lamps','sign_price'):
+    bpy.data.materials[name].node_tree.nodes.get('Principled BSDF').inputs['Emission Strength'].default_value=1
 scene.render.filepath=str(R/'renders/05-person-height.png')
 bpy.ops.render.render(write_still=True)
