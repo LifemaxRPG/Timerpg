@@ -225,6 +225,29 @@
           18.0
         ]
       }
+    },
+    {
+      "kind": "landmark_glb_foundry_factory",
+      "name": "The Foundry Ironworks",
+      "role": "factory",
+      "room": "hall",
+      "file": "foundry-factory/foundry-factory.glb",
+      "info": "foundry-factory/model-info.json",
+      "era": {
+        "from": 1924,
+        "to": 2015,
+        "built": 1938
+      },
+      "footprint": {
+        "lot": [
+          28.56,
+          29.8
+        ],
+        "building": [
+          19.87,
+          18.0
+        ]
+      }
     }
   ]
 }

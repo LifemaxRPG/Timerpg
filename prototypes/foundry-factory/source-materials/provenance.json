@@ -1,0 +1,248 @@
+{
+  "source_atlas": "kotlin-street/tools/swatches/atlas/atlas.png",
+  "atlas_size": [
+    256,
+    161
+  ],
+  "swatches": [
+    {
+      "id": "brick_red",
+      "size": [
+        60,
+        48
+      ],
+      "atlas_rect": [
+        115,
+        113,
+        60,
+        48
+      ],
+      "role": "Original 1938 industrial red-brick foundry walls, smokestack tower, and yard perimeter walls",
+      "entry": {
+        "id": "brick_red",
+        "family": "wall",
+        "pack": "exteriors",
+        "file": "Modern_Exteriors_32x32/ME_Theme_Sorter_32x32/1_Terrains_and_Fences_32x32.png",
+        "rect": [
+          23,
+          806,
+          62,
+          48
+        ],
+        "tile": "seamless",
+        "repeat": [
+          31,
+          48
+        ],
+        "palette": [
+          "#a14f44",
+          "#b99e86",
+          "#943c3f",
+          "#b18a74",
+          "#a7604a",
+          "#9b766a"
+        ],
+        "tags": [
+          "brick",
+          "art"
+        ],
+        "seam": [
+          0.0,
+          0.21
+        ],
+        "note": "warm red courses, tan mortar, dark outline; light from top"
+      }
+    },
+    {
+      "id": "wall_slate_dark",
+      "size": [
+        32,
+        32
+      ],
+      "atlas_rect": [
+        165,
+        33,
+        32,
+        32
+      ],
+      "role": "Soot-darkened cut-stone factory plinths, smokestack collars, and heavy gantry piers",
+      "entry": {
+        "id": "wall_slate_dark",
+        "family": "wall",
+        "pack": "exteriors",
+        "file": "24_Additional_Houses_32x32.png",
+        "rect": [
+          134,
+          5330,
+          32,
+          32
+        ],
+        "tags": [
+          "stone"
+        ],
+        "wrap": "xy"
+      }
+    },
+    {
+      "id": "block_courses",
+      "size": [
+        48,
+        48
+      ],
+      "atlas_rect": [
+        66,
+        113,
+        48,
+        48
+      ],
+      "role": "Industrial cinderblock rear furnace-bay elevation and loading bay wall",
+      "entry": {
+        "id": "block_courses",
+        "family": "wall",
+        "pack": "paint",
+        "paint": "brickbig",
+        "rect": [
+          0,
+          0,
+          48,
+          48
+        ],
+        "seam": "none",
+        "tags": [
+          "block",
+          "tone",
+          "painted"
+        ],
+        "wrap": "xy",
+        "size": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "id": "roof_tin_brown",
+      "size": [
+        32,
+        32
+      ],
+      "atlas_rect": [
+        0,
+        33,
+        32,
+        32
+      ],
+      "role": "Weathered rusted corrugated-iron pitched sawtooth factory roof slopes",
+      "entry": {
+        "id": "roof_tin_brown",
+        "family": "roof",
+        "pack": "exteriors",
+        "file": "7_Villas_32x32.png",
+        "rect": [
+          360,
+          90,
+          32,
+          32
+        ],
+        "tags": [
+          "pitched",
+          "metal"
+        ],
+        "wrap": "xy"
+      }
+    },
+    {
+      "id": "plank_horizontal",
+      "size": [
+        32,
+        32
+      ],
+      "atlas_rect": [
+        0,
+        66,
+        32,
+        32
+      ],
+      "role": "Heavy oiled timber foreman's catwalk mezzanine, pallets, and machinist workbenches",
+      "entry": {
+        "id": "plank_horizontal",
+        "family": "wood",
+        "pack": "exteriors",
+        "file": "11_Camping_32x32.png",
+        "rect": [
+          132,
+          486,
+          32,
+          32
+        ],
+        "tags": [
+          "plank",
+          "deck"
+        ],
+        "wrap": "xy"
+      }
+    },
+    {
+      "id": "asphalt_brown",
+      "size": [
+        32,
+        32
+      ],
+      "atlas_rect": [
+        138,
+        66,
+        32,
+        32
+      ],
+      "role": "Oil-stained industrial side truck lane and rear coal/scrap freight yard",
+      "entry": {
+        "id": "asphalt_brown",
+        "family": "ground",
+        "pack": "exteriors",
+        "file": "2_City_Terrains_Singles_32x32/ME_Singles_City_Terrains_32x32_Asphalt_1_Variation_26.png",
+        "rect": [
+          0,
+          0,
+          32,
+          32
+        ],
+        "tags": [
+          "road"
+        ],
+        "wrap": "xy"
+      }
+    },
+    {
+      "id": "pavement",
+      "size": [
+        32,
+        32
+      ],
+      "atlas_rect": [
+        171,
+        66,
+        32,
+        32
+      ],
+      "role": "Worn poured-concrete receiving yard, loading dock deck, and factory floor",
+      "entry": {
+        "id": "pavement",
+        "family": "ground",
+        "pack": "exteriors",
+        "pick": {
+          "glob": "2_City_Terrains_Singles_32x32/*Sidewalk_1_*.png",
+          "opaque": true,
+          "lum": [
+            150,
+            255
+          ]
+        },
+        "tags": [
+          "sidewalk",
+          "concrete"
+        ],
+        "wrap": "xy"
+      }
+    }
+  ]
+}

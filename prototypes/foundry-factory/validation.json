@@ -1,0 +1,249 @@
+{
+  "model": "foundry-factory.glb",
+  "all_passed": true,
+  "checks": {
+    "material_count": {
+      "count": 12,
+      "limit": 12,
+      "passed": true
+    },
+    "nearest_repeat_samplers": {
+      "passed": true,
+      "samplers": [
+        {
+          "magFilter": 9728,
+          "minFilter": 9984,
+          "wrapS": 10497,
+          "wrapT": 10497
+        }
+      ]
+    },
+    "textures_2x2_grid": {
+      "passed": true,
+      "textures": {
+        "asphalt_brown.png": {
+          "size": [
+            32,
+            32
+          ],
+          "2x2_blocks": true,
+          "note": "ok"
+        },
+        "block_courses.png": {
+          "size": [
+            48,
+            48
+          ],
+          "2x2_blocks": true,
+          "note": "ok"
+        },
+        "brick_red.png": {
+          "size": [
+            60,
+            48
+          ],
+          "2x2_blocks": true,
+          "note": "ok"
+        },
+        "concrete_aged.png": {
+          "size": [
+            128,
+            128
+          ],
+          "2x2_blocks": true,
+          "note": "ok"
+        },
+        "factory_glow.png": {
+          "size": [
+            512,
+            256
+          ],
+          "2x2_blocks": true,
+          "note": "ok"
+        },
+        "glass_factory.png": {
+          "size": [
+            512,
+            256
+          ],
+          "2x2_blocks": true,
+          "note": "ok"
+        },
+        "pavement.png": {
+          "size": [
+            32,
+            32
+          ],
+          "2x2_blocks": true,
+          "note": "ok"
+        },
+        "plank_horizontal.png": {
+          "size": [
+            32,
+            32
+          ],
+          "2x2_blocks": true,
+          "note": "ok"
+        },
+        "riveted_iron.png": {
+          "size": [
+            128,
+            128
+          ],
+          "2x2_blocks": true,
+          "note": "ok"
+        },
+        "roof_tin_brown.png": {
+          "size": [
+            32,
+            32
+          ],
+          "2x2_blocks": true,
+          "note": "ok"
+        },
+        "utility_factory.png": {
+          "size": [
+            256,
+            256
+          ],
+          "2x2_blocks": true,
+          "note": "ok"
+        },
+        "wall_slate_dark.png": {
+          "size": [
+            32,
+            32
+          ],
+          "2x2_blocks": true,
+          "note": "ok"
+        }
+      }
+    },
+    "required_nodes": {
+      "present": [
+        "foundry_factory",
+        "structure",
+        "lot",
+        "collision",
+        "door_main",
+        "door_back",
+        "door_side",
+        "yard_gantry",
+        "foundry_yard",
+        "service_yard"
+      ],
+      "missing": [],
+      "passed": true
+    },
+    "doors": {
+      "passed": true,
+      "details": {
+        "door_main": {
+          "translation": [
+            0.0,
+            0.0,
+            0.1552
+          ],
+          "world_outward": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "empty_leaf": true,
+          "passed": true
+        },
+        "door_back": {
+          "translation": [
+            4.0352,
+            0.0,
+            -18.1584
+          ],
+          "world_outward": [
+            0.0,
+            0.0,
+            -1.0
+          ],
+          "empty_leaf": true,
+          "passed": true
+        },
+        "door_side": {
+          "translation": [
+            -10.088,
+            0.0,
+            -7.76
+          ],
+          "world_outward": [
+            -1.0,
+            -0.0,
+            -0.0
+          ],
+          "empty_leaf": true,
+          "passed": true
+        }
+      }
+    },
+    "triangle_budgets": {
+      "visible_triangles": 2590,
+      "visible_limit": 12000,
+      "collision_triangles": 324,
+      "prop_groups": {
+        "yard_gantry": {
+          "triangles": 144,
+          "limit": 500,
+          "passed": true
+        },
+        "foundry_yard": {
+          "triangles": 364,
+          "limit": 500,
+          "passed": true
+        },
+        "service_yard": {
+          "triangles": 290,
+          "limit": 500,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    "uv_scale_accuracy": {
+      "texel_size_m": 0.0388,
+      "total_edges_checked": 7770,
+      "edges_over_1mm_error": 0,
+      "max_error_m": 1.6e-06,
+      "utility_quadrant_violations": 0,
+      "passed": true
+    },
+    "bounds_and_height": {
+      "min_m": [
+        -14.2784,
+        0.0,
+        -23.5904
+      ],
+      "max_m": [
+        14.2784,
+        11.4848,
+        6.208
+      ],
+      "height_m": 11.4848,
+      "height_limit_m": 12.0,
+      "ground_y_min_m": 0.0,
+      "passed": true
+    },
+    "door_main_walkability_probe": {
+      "probes_gltf_xz_m": [
+        [
+          "door_main_front",
+          0.0,
+          0.7212
+        ],
+        [
+          "gantry_center_driveway",
+          0.0,
+          4.1904
+        ]
+      ],
+      "blocked_by": [],
+      "passed": true
+    }
+  }
+}
