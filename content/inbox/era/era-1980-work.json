@@ -1,0 +1,297 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1980,
+  "topic": "work",
+  "facts": [
+    {
+      "id": "1980-work-01",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A factory worker punches a time clock before starting the morning shift.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-02",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A machine operator wears ear protection on a noisy production floor.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-03",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A plant supervisor posts weekly shift assignments on a bulletin board.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-04",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Some factory employees worry about layoffs when orders slow.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-05",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A union steward discusses contract concerns with workers during a break.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-06",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "An auto repair mechanic diagnoses engine trouble using hand tools and test equipment.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-07",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A carpenter measures lumber at a construction site before cutting it.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-08",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A plumber carries a toolbox into a house for a service call.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-09",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "An electrician checks wiring before restoring power to a repaired circuit.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-10",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A farmhand helps load harvested crops onto a truck.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-11",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A dairy farmer begins milking chores before sunrise.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-12",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A school secretary handles attendance records and calls from parents.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-13",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A teacher grades papers at home after the school day ends.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-14",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A nurse changes shifts after giving the incoming staff a patient report.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-15",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A postal carrier sorts letters before walking or driving a delivery route.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-16",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A bank teller balances a cash drawer before leaving for the day.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-17",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A bookkeeper reconciles invoices and receipts at the end of the month.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-18",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A receptionist transfers incoming calls through an office telephone system.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-19",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A small business owner handles payroll after closing the shop.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-20",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A restaurant cook prepares ingredients before the lunch rush.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-21",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A waitress carries several plates between the kitchen and dining room.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-22",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A teenager works an evening shift bagging groceries after school.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-23",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A newspaper employee sets advertisements into page layouts before printing.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-24",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "More women work in offices, hospitals, schools, and other paid jobs.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-25",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "An office manager schedules staff vacations around busy business periods.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-work-26",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A delivery driver checks a paper route sheet before leaving the warehouse.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
