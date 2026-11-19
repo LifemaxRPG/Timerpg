@@ -1,0 +1,416 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2020,
+  "topic": "shops",
+  "facts": [
+    {
+      "id": "2020-shops-01",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A Main Street florist arranges bouquets for birthdays and anniversaries.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-02",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A bakery worker places fresh pastries in a glass display case each morning.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-03",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A hardware clerk helps a customer choose the right screws for a repair.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-04",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A thrift store sorts donated clothing onto racks by size.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-05",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A bookstore sets up a table of locally recommended reading.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-06",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A grocery worker restocks refrigerated cases before the evening rush.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-07",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A small shop posts its business hours on the front door.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-08",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A customer asks whether a store can order an item that is out of stock.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-09",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A clerk checks the stockroom when a shelf is empty.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-10",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A shopper examines the expiration date on a packaged food item.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-11",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A supermarket offers both staffed checkout lanes and self-service registers.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-12",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A shopper brings a damaged purchase and receipt to the returns counter.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-13",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A local tailor measures a customer for alterations in a fitting room.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-14",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A garden center displays seedlings outside when spring weather arrives.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-15",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A pet supply store stocks food, collars, and litter near its front aisles.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-16",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A craft shop sells yarn, sewing needles, and supplies for school projects.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-17",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A shopkeeper puts a handwritten sale sign beside a basket of discounted goods.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-18",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A farmer sells seasonal produce at a weekend outdoor market.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-19",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A repair shop gives a customer an estimated pickup date for a broken appliance.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-20",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A pharmacy keeps some medicines behind the counter for staff assistance.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-21",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A shop owner counts the register drawer at closing time.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-22",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A grocery store marks down produce that needs to sell soon.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-23",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A customer compares package sizes before choosing a household cleaner.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-24",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A shoe store employee brings another size from the back room.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-25",
+      "year_from": 2020,
+      "year_to": 2021,
+      "text": "Some stores limit the number of customers inside during public health restrictions.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-26",
+      "year_from": 2020,
+      "year_to": 2021,
+      "text": "Some stores place floor markings near checkout lines to encourage extra spacing.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-27",
+      "year_from": 2021,
+      "year_to": 2026,
+      "text": "A local gift shop wraps purchases for customers buying holiday presents.",
+      "ages": "all",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-shops-28",
+      "year_from": 2022,
+      "year_to": 2026,
+      "text": "Some independent shops adjust shelf prices when wholesale deliveries become more expensive.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [
+    {
+      "item": "a loaf of sandwich bread",
+      "usd": 2.5,
+      "year": 2020,
+      "confidence": "medium"
+    },
+    {
+      "item": "a gallon of milk",
+      "usd": 3.5,
+      "year": 2020,
+      "confidence": "medium"
+    },
+    {
+      "item": "a dozen eggs",
+      "usd": 1.5,
+      "year": 2020,
+      "confidence": "medium"
+    },
+    {
+      "item": "a pound of bananas",
+      "usd": 0.6,
+      "year": 2020,
+      "confidence": "medium"
+    },
+    {
+      "item": "a pound of apples",
+      "usd": 1.5,
+      "year": 2020,
+      "confidence": "medium"
+    },
+    {
+      "item": "a bag of potato chips",
+      "usd": 3.5,
+      "year": 2020,
+      "confidence": "medium"
+    },
+    {
+      "item": "a bottle of dish soap",
+      "usd": 3,
+      "year": 2020,
+      "confidence": "medium"
+    },
+    {
+      "item": "a roll of paper towels",
+      "usd": 2,
+      "year": 2020,
+      "confidence": "medium"
+    },
+    {
+      "item": "a greeting card",
+      "usd": 3.5,
+      "year": 2020,
+      "confidence": "medium"
+    },
+    {
+      "item": "a small potted herb",
+      "usd": 4,
+      "year": 2020,
+      "confidence": "medium"
+    },
+    {
+      "item": "a notebook",
+      "usd": 2,
+      "year": 2020,
+      "confidence": "medium"
+    },
+    {
+      "item": "a pair of basic socks",
+      "usd": 5,
+      "year": 2020,
+      "confidence": "medium"
+    }
+  ],
+  "phrases": []
+}
