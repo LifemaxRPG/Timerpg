@@ -54,7 +54,8 @@ internal object StoreGrounds {
     fun build(b: StoreB, info: StoreInfo, site: Site) {
         when (info.kind) {
             StoreKind.GENERAL -> general(b, info, site)
-            StoreKind.MARKET -> lotSite(b, info, site, roadSign = ::marketTower, lampH = 110f, walk = 58f)
+            // (a market become a church has taken its tower down for a low sign of its own)
+            StoreKind.MARKET -> lotSite(b, info, site, roadSign = if (info.state == StoreState.REUSED && info.reuse == StoreReuse.CHURCH) ::monumentSign else ::marketTower, lampH = 110f, walk = 58f)
             StoreKind.SUPERMARKET -> lotSite(b, info, site, roadSign = ::poleSign, lampH = 150f, walk = 74f)
             StoreKind.SUPERSTORE -> lotSite(b, info, site, roadSign = ::pylon, lampH = 190f, walk = 150f)
         }
@@ -303,7 +304,16 @@ internal object StoreGrounds {
             dumpster(b, m, s.x1 - 60f, s.zb - 30f, Paint.BINGREEN)
             for (k in 0 until 4) crates(b, m, s.x0 + (s.x1 - s.x0) * .5f + k * 22f, s.zb - 16f, r)
         } else {
-            dumpster(b, m, s.x1 - 80f, s.zb - 30f, Paint.BLUE)
+            // the dumpster pad: a concrete slab in a three-sided block enclosure, two dumpsters and a recycling bin
+            val dx = s.x1 - 110f; val dz = s.zb - 46f
+            b.box(m, dx - 90f, 0f, dz - 40f, dx + 90f, 3f, dz + 42f, Paint.CONCRETE, 51)
+            val cmu = Ramp(c(0x4A4A50), c(0x8A8A90), c(0x9E9EA4), c(0xB0B0B4), c(0xC4C4C8))
+            b.box(m, dx - 90f, 0f, dz - 40f, dx - 84f, 44f, dz + 40f, cmu, 52)
+            b.box(m, dx + 84f, 0f, dz - 40f, dx + 90f, 44f, dz + 40f, cmu, 52)
+            b.box(m, dx - 90f, 0f, dz + 34f, dx + 90f, 44f, dz + 40f, cmu, 52)
+            dumpster(b, m, dx - 40f, dz + 10f, Paint.BLUE)
+            dumpster(b, m, dx + 40f, dz + 10f, Paint.BINGREEN)
+            for (k in listOf(-1f, 1f)) m.upright(dx + k * 96f, dz - 46f, 0f, 36f, 3f, 3f, 8, null, swatch = b.swatch(Paint.YELLOW.b))
             compactor(b, m, s.x0 + (s.x1 - s.x0) * .2f, s.zb, big)
             for (k in 0 until (if (big) 10 else 4)) pallet(b, m, s.x0 + (s.x1 - s.x0) * .3f + k * 50f, s.zb - 30f - (k % 2) * 4f, r, k)
             if (!closed && !reused) {
@@ -685,6 +695,42 @@ internal object StoreGrounds {
             CinemaKit.face(sm, star, x, H + 8f, z - .2f, 40f, 40f, Side.BACK)
         }
         if (!closed) b.lights += CinemaLight(x, H - 60f, min(-2f, z + 30f), 1f, .9f, .8f, 6000f, 120f)
+    }
+
+    /**
+     * A church's low monument sign at the road (where a store's tower stood): a brick plinth and piers, a cream face with
+     * a gilt cross and the name, a changeable-letter board under it, lit softly at night.
+     */
+    private fun monumentSign(b: StoreB, info: StoreInfo, x: Float, z: Float) {
+        val m = b.det("sign")
+        val w = 110f; val h = 46f
+        val brick = StoreKit.brick(Ramp(c(0x3A1E1A), c(0x7A3A2A), c(0x9A4A34), c(0xB4603E), c(0xC87A52)), c(0xB8A088), info.seed)
+        val bt = b.tile(brick)
+        bt.box(x - w / 2f - 12f, 0f, z - 10f, x + w / 2f + 12f, 14f, z + 10f, setOf(Side.FRONT, Side.BACK, Side.LEFT, Side.RIGHT, Side.TOP))
+        for (sx in listOf(-1f, 1f)) bt.box(x + sx * (w / 2f + 5f) - 7f, 14f, z - 8f, x + sx * (w / 2f + 5f) + 7f, 14f + h + 8f, z + 8f, setOf(Side.FRONT, Side.BACK, Side.LEFT, Side.RIGHT, Side.TOP))
+        b.box(m, x - w / 2f - 14f, 14f + h + 8f, z - 10f, x + w / 2f + 14f, 14f + h + 13f, z + 10f, Paint.CONCRETE, 4)
+        b.box(m, x - w / 2f, 14f, z - 5f, x + w / 2f, 14f + h, z + 5f, Paint.WHITE, 5)
+        val sm = b.sign("road")
+        val lines = listOf("SUNDAY 10 AM", "ALL WELCOME")
+        b.texts += info.signName; b.texts += lines
+        val face = b.pic("monument${info.signName}") { PixImg(tx(w), tx(h)).also { im ->
+            im.fill(c(0xF2EAD6)); im.border(c(0x6A3E2A))
+            val top = im.h * 9 / 20
+            val u = max(1, im.h / 30)
+            // the cross and the name over the board
+            val cx = 10 + 3 * u
+            im.rect(cx - u, 3, cx + u, top - 3, c(0xC89A38)); im.rect(cx - 3 * u, 3 + (top - 6) / 4, cx + 3 * u, 3 + (top - 6) / 4 + 2 * u - 1, c(0xC89A38))
+            StoreSigns.letters(im, info.signName, cx + 6 * u, 4, im.w - 6, top - 3, null, null, 3) { _, _ -> c(0x5A2620) }
+            val lb = PixImg(im.w - 12, im.h - top - 6).also { StoreSigns.letterBoard(it, lines, true) }
+            for (yy in 0 until lb.h) for (xx in 0 until lb.w) { im[6 + xx, top + 2 + yy] = lb[xx, yy]; im.mask[(top + 2 + yy) * im.w + 6 + xx] = lb.mask[yy * lb.w + xx] }
+            im.glow(1, 1, im.w - 2, top - 2, 90)
+        } }
+        CinemaKit.face(sm, face, x, 14f + h / 2f, z + 5.1f, w, h, Side.FRONT)
+        CinemaKit.face(sm, face, x, 14f + h / 2f, z - 5.1f, w, h, Side.BACK)
+        // shrubs at its foot
+        val shrub = b.pic("monShrub") { Paint.strip(24, 12, Paint.LEAF, 2, ends = false) }
+        for (sx in listOf(-1f, 1f)) m.upright(x + sx * (w / 2f + 26f), z, 0f, 16f, 11f, 6f, 8, shrub, cap = b.pic("monShrubCap") { Paint.cap(12f, Paint.LEAF) })
+        b.lights += CinemaLight(x, 6f, min(-2f, z + 30f), 1f, .92f, .8f, 1500f, 60f)
     }
 
     /** The seventies-eighties supermarket's pole sign: a steel pole, a backlit box with the name, a reader board under it. */

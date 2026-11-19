@@ -73,10 +73,10 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
      * the street's clock) wearing [sheets]. Then render [FilamentTown.view].
      */
     fun draw(walk: TownWalkView, w: Float, h: Float, hour: Float, seconds: Float, sheets: List<ImageBitmap>): TownPose {
-        val p = if (OrbitCamera.open) orbit(walk, w, h, seconds) else TownFrame.street(walk, w, h)
+        val p = if (OrbitCamera.open) orbit(walk, w, h, seconds) else TownFrame.street(walk, w, h).also { SeeThrough.off() }
         town.frame(p, hour, seconds.toDouble())
         // (no people behind the loading screen: their sheets are still being read, and nobody sees them)
-        val n = if (TownPlay.walk === walk && firstViewMs >= 0f) TownPlay.people(seconds) else 0
+        val n = if (TownPlay.walk === walk && firstViewMs >= 0f) TownPlay.people(seconds, hour = hour) else 0
         peopleDrawn = town.people(TownPlay.figures, n, sheets)
         TownPlay.projector = projector
         pose = p
@@ -121,6 +121,8 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
         c.pulled = if (dt == 0f || !c.pullIn) fit else c.pulled + (fit - c.pulled) * (1f - kotlin.math.exp(-dt / tau))
         if (c.pulled > dist) c.pulled = dist
         val p = if (abs(c.pulled - dist) < .5f) want else TownFrame.orbit(walk.wx, OrbitCamera.EYE, walk.wz, c.yaw, c.pitch, c.pulled, w, h, OrbitCamera.FOV_Y)
+        // (whatever is left between the eye and the player, merged trees too, is cut in a cone by the material)
+        SeeThrough.aim(walk.wx, walk.wz, p.ex, p.ey, p.ez)
         c.lensPx = p.fl
         // (the horizon: where a level line from the eye falls; above the screen's top when looking well down)
         c.horizonY = p.cy - p.fl * (-p.fy) / hypot(p.fx, p.fz).coerceAtLeast(1e-4f)

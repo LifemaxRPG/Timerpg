@@ -15,6 +15,7 @@ import com.google.android.filament.VertexBuffer
 import com.lifemax.rpg.feature.habits.presentation.scene.BikeState
 import com.lifemax.rpg.feature.habits.presentation.scene.SpriteArt
 import com.lifemax.rpg.feature.habits.presentation.scene.TownFigure
+import com.lifemax.rpg.feature.habits.presentation.scene.TownFolk
 import com.lifemax.rpg.feature.habits.presentation.scene.TownPlay
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -123,7 +124,9 @@ internal class TownPeople(
             show(c.e, on); show(c.proxy, on && fd > .5f)
             if (!on) continue
             drawn++
-            val sheet = sheets[TownPlay.sheetOf(f, sheets.size)]
+            // (the townspeople wear their own baked sheets, by their seed, sex and age; the player their chosen one)
+            val folk = TownFolk.sheets
+            val sheet = if (!f.me && f.folk in folk.indices) folk[f.folk] else sheets[TownPlay.sheetOf(f, sheets.size)]
             val bk = f.bike
             if (bk != null) {
                 riding = true
@@ -137,7 +140,8 @@ internal class TownPeople(
                 TownPlay.view(f, pose.groundX, pose.groundZ, pose.rx, pose.rz).also { f.facing = facing }
             } else TownPlay.view(f, pose.groundX, pose.groundZ, pose.rx, pose.rz)
             val sx = (view * 6 + f.frame) * 32f
-            val sy = (if (f.still) 1 else 2) * 64f
+            // (a baked sheet holds only the idle and walk rows; ours have the pack's preview row above them)
+            val sy = (if (f.still) 1 else 2) * 64f - (if (sheet.height <= 128) 64f else 0f)
             // (textures are stored bottom row first, so a row band counts from the bottom)
             var u0 = sx / sheet.width; var du = 32f / sheet.width; val dv = 64f / sheet.height; val v0 = 1f - sy / sheet.height - dv
             if (flip < 0f) { u0 += du; du = -du }

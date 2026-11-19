@@ -922,6 +922,9 @@ private fun StageCanvas(
         painter.perspectiveK = Perspective.k(f.zoom)
         painter.lamps = street.furniture
         painter.weather = weather
+        // (the open town's passers: rain, snow and fog keep most indoors, a grey day some)
+        TownPlay.outdoors = ((1f - .75f * weather.rain) * (1f - .35f * weather.mist) * (1f - .15f * weather.cloudiness) *
+            (1f - .2f * season.snow) * (1f - .4f * season.snowfall)).coerceIn(.1f, 1f)
         backdrop.cloudiness = weather.cloudiness
         backdrop.mist = weather.mist
         backdrop.street = f.ground

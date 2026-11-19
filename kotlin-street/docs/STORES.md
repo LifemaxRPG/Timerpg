@@ -373,3 +373,24 @@ Generator rule (`src/town/stores.ts`; `StoreSiteInfo.at` mirrors it, the gamma f
   190` within `MALL_YEARS = 16` of the supermarket opening (the supermarket itself opens at 160, so a bigger-town test at
   opening time would never pass);
 - the superstore is always ours (a pack look is refused for it).
+
+## Reused stores and the stores' backs (branch wf-feedback2, the owner's screenshots of 0.1.367)
+
+- A market become a church (Cornerstone Chapel in gamma from 1985) reads as a small storefront church, still plainly a
+  converted store: the turquoise enamel band repainted cream with a brown trim, the name in modest painted letters with
+  a gilt cross before it, the canopy's fascia cream and brown, a white cross standing on the canopy over the doors, a
+  small white steeple on the roof (clapboard base, open belfry with its bell, a four-sided spire, a cross); the plate
+  glass painted over with coloured panes in two bays of three; the 280-tall FOOD tower replaced by a low brick monument
+  sign (`StoreGrounds.monumentSign`: piers, a cream face with a cross and the name, the changeable-letter board, shrubs,
+  lit softly). Other reuses keep their store's look and say what they are on the old signs (thrift, gym, flea, outlet,
+  hall), as converted shops do; the general store's antiques and church looks were already their own.
+- The supermarket's mansard: its corner returns end in hips sloping back to the wall at the slope's pitch (no open
+  end), flashing along the hips, the eave and a soffit carried round under the returns. Its sign cabinets stand just off
+  the slope on braces, their tops, sides and backs grey sheet metal with seams (no black box over the roof from behind).
+- Long plain walls dressed (`StoreMarkets.dressWall`, the supermarket's and the market's back and sides): pilasters in a
+  darker brick every 110-120, a concrete base course and a cap band, downspouts from scupper heads with splash blocks at
+  every other pilaster, louvred vents high in some bays, kept clear of doors, docks and ladders; a second back door, a
+  gas meter and an electric service on the supermarket's side. Behind the supermarket and the superstore a dumpster
+  pad: a slab in a three-sided block enclosure, two dumpsters, yellow bollards.
+- Left: the pack variants' church (`pack:market_m_6`) still wears its pack storefront (striped awnings); the superstore
+  already had pilasters and bands; walls are still one brick (tinted) and not cut from more swatches.

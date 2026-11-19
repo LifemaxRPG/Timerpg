@@ -1,0 +1,733 @@
+{
+"source": "LimeZu Modern Interiors, Character Generator (limezu.itch.io)",
+"frame": [
+32,
+64
+],
+"rows": [
+"idle",
+"walk"
+],
+"people": [
+{
+"file": "folk_000.png",
+"sex": "F",
+"age": "adult",
+"modern": true
+},
+{
+"file": "folk_001.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_002.png",
+"sex": "F",
+"age": "adult",
+"modern": true
+},
+{
+"file": "folk_003.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_004.png",
+"sex": "F",
+"age": "adult",
+"modern": true
+},
+{
+"file": "folk_005.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_006.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_007.png",
+"sex": "M",
+"age": "adult",
+"modern": true
+},
+{
+"file": "folk_008.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_009.png",
+"sex": "M",
+"age": "adult",
+"modern": true
+},
+{
+"file": "folk_010.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_011.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_012.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_013.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_014.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_015.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_016.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_017.png",
+"sex": "M",
+"age": "adult",
+"modern": true
+},
+{
+"file": "folk_018.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_019.png",
+"sex": "M",
+"age": "adult",
+"modern": true
+},
+{
+"file": "folk_020.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_021.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_022.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_023.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_024.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_025.png",
+"sex": "M",
+"age": "adult",
+"modern": true
+},
+{
+"file": "folk_026.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_027.png",
+"sex": "M",
+"age": "adult",
+"modern": true
+},
+{
+"file": "folk_028.png",
+"sex": "F",
+"age": "adult",
+"modern": true
+},
+{
+"file": "folk_029.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_030.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_031.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_032.png",
+"sex": "F",
+"age": "adult",
+"modern": true
+},
+{
+"file": "folk_033.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_034.png",
+"sex": "F",
+"age": "adult",
+"modern": true
+},
+{
+"file": "folk_035.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_036.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_037.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_038.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_039.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_040.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_041.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_042.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_043.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_044.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_045.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_046.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_047.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_048.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_049.png",
+"sex": "M",
+"age": "adult",
+"modern": true
+},
+{
+"file": "folk_050.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_051.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_052.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_053.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_054.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_055.png",
+"sex": "M",
+"age": "adult",
+"modern": true
+},
+{
+"file": "folk_056.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_057.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_058.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_059.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_060.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_061.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_062.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_063.png",
+"sex": "M",
+"age": "adult",
+"modern": true
+},
+{
+"file": "folk_064.png",
+"sex": "F",
+"age": "adult",
+"modern": true
+},
+{
+"file": "folk_065.png",
+"sex": "M",
+"age": "adult",
+"modern": true
+},
+{
+"file": "folk_066.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_067.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_068.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_069.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_070.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_071.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_072.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_073.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_074.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_075.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_076.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_077.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_078.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_079.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_080.png",
+"sex": "F",
+"age": "adult",
+"modern": true
+},
+{
+"file": "folk_081.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_082.png",
+"sex": "F",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_083.png",
+"sex": "M",
+"age": "adult",
+"modern": false
+},
+{
+"file": "folk_084.png",
+"sex": "F",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_085.png",
+"sex": "M",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_086.png",
+"sex": "F",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_087.png",
+"sex": "M",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_088.png",
+"sex": "F",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_089.png",
+"sex": "M",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_090.png",
+"sex": "F",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_091.png",
+"sex": "M",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_092.png",
+"sex": "F",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_093.png",
+"sex": "M",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_094.png",
+"sex": "F",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_095.png",
+"sex": "M",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_096.png",
+"sex": "F",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_097.png",
+"sex": "M",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_098.png",
+"sex": "F",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_099.png",
+"sex": "M",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_100.png",
+"sex": "F",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_101.png",
+"sex": "M",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_102.png",
+"sex": "F",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_103.png",
+"sex": "M",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_104.png",
+"sex": "F",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_105.png",
+"sex": "M",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_106.png",
+"sex": "F",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_107.png",
+"sex": "M",
+"age": "elder",
+"modern": false
+},
+{
+"file": "folk_108.png",
+"sex": "F",
+"age": "kid",
+"modern": false
+},
+{
+"file": "folk_109.png",
+"sex": "M",
+"age": "kid",
+"modern": false
+},
+{
+"file": "folk_110.png",
+"sex": "F",
+"age": "kid",
+"modern": false
+},
+{
+"file": "folk_111.png",
+"sex": "M",
+"age": "kid",
+"modern": false
+},
+{
+"file": "folk_112.png",
+"sex": "F",
+"age": "kid",
+"modern": false
+},
+{
+"file": "folk_113.png",
+"sex": "M",
+"age": "kid",
+"modern": false
+},
+{
+"file": "folk_114.png",
+"sex": "F",
+"age": "kid",
+"modern": false
+},
+{
+"file": "folk_115.png",
+"sex": "M",
+"age": "kid",
+"modern": false
+},
+{
+"file": "folk_116.png",
+"sex": "F",
+"age": "kid",
+"modern": false
+},
+{
+"file": "folk_117.png",
+"sex": "M",
+"age": "kid",
+"modern": false
+},
+{
+"file": "folk_118.png",
+"sex": "F",
+"age": "kid",
+"modern": false
+},
+{
+"file": "folk_119.png",
+"sex": "M",
+"age": "kid",
+"modern": false
+}
+]
+}
