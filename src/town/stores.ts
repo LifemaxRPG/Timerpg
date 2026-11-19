@@ -44,8 +44,32 @@ export const isStoreSite = (id: string): id is StoreSite => (STORE_SITES as read
 
 /** The building standing on a site: the general store, the 1950s-60s market, the 1970s-80s supermarket, the big box. */
 export type StoreVariant = 'general' | 'market' | 'supermarket' | 'superstore';
-/** The general store's build: a wooden false-front or a brick front. */
-export type StoreStyle = 'frontier' | 'brick' | 'modern';
+/**
+ * The building's look: the general store's wooden false-front or brick front, 'modern' for the code-built markets, or
+ * 'pack:<id>', one of the LimeZu pack's own store buildings (kotlin-street PackStores: store_s_1..12 the small STORE
+ * fronts, hardware, market_m_1..12 and market_b_1..6 the MARKET fronts, mall) used as a variant of ours.
+ */
+export type StoreStyle = 'frontier' | 'brick' | 'modern' | `pack:${string}`;
+
+/**
+ * The pack's store fronts by what stands on a site and when (kotlin-street/docs/STORES.md): small STORE fronts and the
+ * hardware store re-fit a general store when it changes hands (1952-1985: mid-century on), MARKET fronts (a medium or a
+ * big one, three colours) stand for the downtown market of the 1950s-80s, and the mall for the supermarket of 1970-1989
+ * in the growing towns only (MALL_POPULATION within MALL_YEARS).
+ */
+export const PACK_STORES = [...Array.from({ length: 12 }, (_, i) => `pack:store_s_${i + 1}`)] as const;
+export const PACK_HARDWARE = 'pack:hardware';
+export const PACK_MARKETS_MEDIUM = Array.from({ length: 12 }, (_, i) => `pack:market_m_${i + 1}`);
+export const PACK_MARKETS_BIG = Array.from({ length: 6 }, (_, i) => `pack:market_b_${i + 1}`);
+export const PACK_MALL = 'pack:mall';
+/**
+ * The edge supermarket (opens at SUPERMARKET_POPULATION, 1970-1989) is a mall only in a town that goes on growing: it
+ * reaches this many people within MALL_YEARS of the supermarket opening (a mall was built for the growth to come).
+ */
+export const MALL_POPULATION = 190;
+export const MALL_YEARS = 16;
+/** Every pack look the generator can emit (the Kotlin builder knows each: src/town/stores.test.ts reads its list). */
+export const PACK_LOOKS: readonly string[] = [...PACK_STORES, PACK_HARDWARE, ...PACK_MARKETS_MEDIUM, ...PACK_MARKETS_BIG, PACK_MALL];
 export type StoreStatus = 'open' | 'closed' | 'reused';
 export type StoreReuse = 'antiques' | 'church' | 'cafe' | 'museum' | 'feed' | 'thrift' | 'gym' | 'flea' | 'outlet' | 'community';
 
@@ -180,6 +204,8 @@ export interface StoreEvent {
   trade?: StoreTrade;
   /** A superstore opened as the smaller 1990s discount store (expanded later into the supercenter, or never). */
   discount?: boolean;
+  /** A general store's new storefront from this sale (a pack look, see PACK_LOOKS). */
+  look?: StoreStyle;
 }
 export interface StoreHistory {
   site: StoreSite;
@@ -222,7 +248,10 @@ export function storeHistories(seed: string, placed: ReadonlySet<StoreSite>): St
     if (R(seed, 'general-sold') < 0.45) {
       const sold = 1952 + Math.floor(R(seed, 'general-sold-year') * 34);
       const name = generalStoreName(seed, 1);
-      if ((closed === undefined || sold < closed) && name !== ev[0]!.name) ev.push({ year: sold, event: 'renamed', name });
+      // (more than half the time the new owner re-fits the front: a pack STORE front, now and then a hardware store)
+      const look: StoreStyle | undefined = R(seed, 'general-refit') < 0.55
+        ? (sold >= 1958 && R(seed, 'general-hardware') < 0.18 ? PACK_HARDWARE : pickOf(PACK_STORES, R(seed, 'general-refit-look'))) as StoreStyle : undefined;
+      if ((closed === undefined || sold < closed) && name !== ev[0]!.name) ev.push({ year: sold, event: 'renamed', name, ...(look ? { look } : {}) });
     }
     // one still trading in the 1990s with no superstore near turns to what keeps it going: a deli counter, bait and
     // tackle, or a country store for the tourists
@@ -243,14 +272,19 @@ export function storeHistories(seed: string, placed: ReadonlySet<StoreSite>): St
     const ev: StoreEvent[] = [{ year: needs.market, event: 'opened', name: supermarketName(seed, false), variant: 'market' }];
     if (SM !== undefined) after('market', ev, SM, 'moved', 0.2, 4);
     else if (S !== undefined) after('market', ev, S + 1 + Math.floor(R(seed, 'market-close') * 3), 'superstore', 0.2, 6);
-    out.push({ site: 'market', style: 'modern', events: ev });
+    // (about half the markets wear one of the pack's own MARKET fronts: a medium one, or a big two-storey one)
+    const style: StoreStyle = R(seed, 'market-pack') < 0.5 ? pickOf(R(seed, 'market-big') < 0.35 ? PACK_MARKETS_BIG : PACK_MARKETS_MEDIUM, R(seed, 'market-pack-look')) as StoreStyle : 'modern';
+    out.push({ site: 'market', style, events: ev });
   }
   // the supermarket at the edge of town: the market moved out (renamed), or the town's first; closed after the superstore
   if (SM !== undefined) {
     const moved = placed.has('market') && needs.market !== undefined;
     const ev: StoreEvent[] = [{ year: SM, event: moved ? 'moved' : 'opened', name: supermarketName(seed, true), variant: 'supermarket' }];
     if (S !== undefined) after('supermarket', ev, S + 1 + Math.floor(R(seed, 'supermarket-close') * 3), 'superstore', 0.18, 6);
-    out.push({ site: 'supermarket', style: 'modern', events: ev });
+    // the mall of the 1970s-80s: only in a town that goes on growing (MALL_POPULATION within MALL_YEARS)
+    const grown = firstYearReaching(seed, MALL_POPULATION);
+    const mall = SM >= 1970 && SM < 1990 && grown !== undefined && grown <= SM + MALL_YEARS && R(seed, 'mall') < 0.5;
+    out.push({ site: 'supermarket', style: mall ? PACK_MALL as StoreStyle : 'modern', events: ev });
   }
 
   // the superstore: before 2005 the smaller discount store, most of them extended into the supercenter some years on
@@ -308,7 +342,9 @@ export function storeState(seed: string, h: StoreHistory, year: number): StoreSt
   if (!past.length) return undefined;
   let variant: StoreVariant = 'general', name = '', sign = '', status: StoreStatus = 'open';
   let reuse: StoreReuse | undefined, closed: number | undefined, why: StoreEvent['why'], trade: StoreTrade | undefined, discount = false;
+  let style: StoreStyle = h.style;
   for (const e of past) {
+    if (e.look) style = e.look;
     if (e.variant) variant = e.variant;
     if (e.trade) trade = e.trade;
     if (e.event === 'opened') discount = !!e.discount;
@@ -318,7 +354,7 @@ export function storeState(seed: string, h: StoreHistory, year: number): StoreSt
     if (e.event === 'reused') { status = 'reused'; reuse = e.reuse; sign = e.name; }
   }
   return {
-    site: h.site, year, status, variant, style: h.style, name, sign, ...(reuse ? { reuse } : {}), opened: h.events[0]!.year,
+    site: h.site, year, status, variant, style, name, sign, ...(reuse ? { reuse } : {}), opened: h.events[0]!.year,
     ...(closed !== undefined ? { closed } : {}), ...(why ? { why } : {}), ...(trade ? { trade } : {}), ...(discount ? { discount } : {}),
     ...(h.events[0]!.event === 'moved' ? { movedFrom: 'market' as const } : {}),
     features: storeFeatures(seed, variant, status, year, reuse, { trade, discount }), history: past,

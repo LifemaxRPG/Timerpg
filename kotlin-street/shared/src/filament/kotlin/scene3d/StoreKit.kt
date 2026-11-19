@@ -150,6 +150,8 @@ internal class StoreB {
     val flat = HashSet<PixImg>()
     /** A shut store: nothing glows and no lamp is lit (masks dropped, lights off), but its security lights ([secLights], "sign:sec"). */
     var dark = false
+    /** The flat roofs' covering for this store ([StoreKit.roofFor]; set by each builder). */
+    var roof: PixImg = StoreKit.ROOF
     /** The lights left on at a shut store (a wall-pack or two, one lot lamp), and the car park's bays ([StoreCars]). */
     val secLights = ArrayList<CinemaLight>()
     val bays = ArrayList<StoreBay>()
@@ -237,7 +239,9 @@ object StoreKit {
     fun buildWithSite(info: StoreInfo, cars: Boolean = true): StoreModel {
         val b = StoreB()
         b.dark = info.state == StoreState.CLOSED
-        val site = when (info.kind) {
+        b.roof = roofFor(info.kind, info.year, info.seed, b.dark)
+        val pack = info.style.removePrefix("pack:").takeIf { PackStores.isPack(info.style) && info.kind != StoreKind.SUPERSTORE }
+        val site = if (pack != null) PackStores.build(b, info, pack) else when (info.kind) {
             StoreKind.GENERAL -> general(b, info)
             StoreKind.MARKET -> StoreMarkets.market(b, info)
             StoreKind.SUPERMARKET -> StoreMarkets.supermarket(b, info)
@@ -247,6 +251,49 @@ object StoreKit {
         if (cars) StoreCars.place(b, b.det("cars"), info, b.bays)
         val model = b.model(info.kind, info.lot, info.deep)
         return StoreModel(model, floatArrayOf(site.x0, site.zf, site.x1, site.zb), b.names.toList(), b.bays.toList(), b.texts.toList())
+    }
+
+    /** The pack's own store buildings the builder has (`style` = "pack:<id>"; src/town/stores.ts PACK_LOOKS lists the same). */
+    val packLooks: List<String> get() = PackStores.ids()
+
+    /** Problems with the swatch library (empty when fine): odd sizes, or cut swatches that are not whole 2 x 2 art pixels (for the tests). */
+    fun swatchProblems(): List<String> {
+        val out = ArrayList<String>()
+        for (id in Swatches.ids) {
+            val (w, h) = Swatches.size(id)
+            if (w % 2 != 0 || h % 2 != 0) out += "$id is ${w}x$h"
+            val im = Swatches.get(id)
+            if (id != "asphalt_worn" && id != "ballast") for (y in 0 until h step 2) for (x in 0 until w step 2)
+                if (!(im[x, y] == im[x + 1, y] && im[x, y] == im[x, y + 1] && im[x, y] == im[x + 1, y + 1])) { out += "$id has a split art pixel at $x,$y"; break }
+        }
+        return out
+    }
+
+    /** What is wrong with the pack store [id]'s picture (null when fine). */
+    fun packProblem(id: String): String? {
+        val s = PackStores.sprite(id); val p = PackStores.picture(id)
+        if (p.w != s.w || p.h != s.h) return "$id size"
+        if (p.px.count { it ushr 24 == 255 } <= p.w * p.h / 3) return "$id is mostly empty"
+        if (!(s.top in 0 until s.roofEnd && s.roofEnd < s.bottom && s.bottom <= s.h)) return "$id rows"
+        return null
+    }
+
+    /**
+     * The building alone (no grounds, no cars, no lamps' pools): for judging its pictures beside another's in the preview
+     * ([StoreModel.block] is its plan). Only the pack's buildings and the general store, market and supermarket builders.
+     */
+    fun buildBare(info: StoreInfo): StoreModel {
+        val b = StoreB()
+        b.dark = info.state == StoreState.CLOSED
+        b.roof = roofFor(info.kind, info.year, info.seed, b.dark)
+        val pack = info.style.removePrefix("pack:").takeIf { PackStores.isPack(info.style) && info.kind != StoreKind.SUPERSTORE }
+        val site = if (pack != null) PackStores.build(b, info, pack) else when (info.kind) {
+            StoreKind.GENERAL -> general(b, info)
+            StoreKind.MARKET -> StoreMarkets.market(b, info)
+            StoreKind.SUPERMARKET -> StoreMarkets.supermarket(b, info)
+            StoreKind.SUPERSTORE -> StoreMarkets.superstore(b, info)
+        }
+        return StoreModel(b.model(info.kind, info.lot, info.deep), floatArrayOf(site.x0, site.zf, site.x1, site.zb), b.names.toList(), emptyList(), b.texts.toList())
     }
 
     /** A superstore's storefront as words (its entrances and what they say, its emblem, the line under its name, the towers' tops). */
@@ -274,62 +321,45 @@ object StoreKit {
     // ------------------------------------------------------------------ shared pictures
 
     /** Painted clapboard: boards five texels apart, each lit along its top and shadowed under its lap. */
-    internal fun clapboard(r: Ramp, seed: Int, peel: Float = 0f): PixImg = PixImg(48, 40).also { im ->
+    internal fun clapboard(r: Ramp, seed: Int, peel: Float = 0f): PixImg = PixImg(48, 36).also { im ->
+        // drawn on the art's own pixel grid (an art pixel is 2 x 2 texels): boards three art pixels apart, each lit along its top and shadowed under its lap
         val rnd = Paint.Rnd(seed)
-        for (y in 0 until 40) for (x in 0 until 48) im[x, y] = when (y % 5) { 0 -> r.l; 4 -> r.d; else -> r.b }
-        repeat(30) { val x = rnd.int(48); val y = rnd.int(40); if (y % 5 in 1..3) im[x, y] = if (rnd.next() < .5f) r.l else r.d }
+        fun px(x: Int, y: Int, col: Int) { im.rect(x * 2, y * 2, x * 2 + 1, y * 2 + 1, col) }
+        for (y in 0 until 18) for (x in 0 until 24) px(x, y, when (y % 3) { 0 -> r.l; 2 -> r.d; else -> r.b })
+        repeat(14) { val x = rnd.int(24); val y = rnd.int(18); if (y % 3 == 1) px(x, y, if (rnd.next() < .5f) r.l else r.d) }
         // butt joints, staggered
-        for (row in 0 until 8) { val x = (row * 17 + seed * 5) % 48; for (y in row * 5 + 1 until row * 5 + 4) im[x, y] = r.d }
-        if (peel > 0f) repeat((48 * 40 * peel / 6).toInt()) {
-            val x = rnd.int(46); val y = rnd.int(38)
+        for (row in 0 until 6) { val x = (row * 9 + seed * 5) % 24; px(x, row * 3 + 1, r.d) }
+        if (peel > 0f) repeat((24 * 18 * peel / 5).toInt()) {
+            val x = rnd.int(22); val y = rnd.int(17)
             val grey = if (rnd.next() < .5f) c(0x8A8274) else c(0x6E685C)
-            im[x, y] = grey; im[x + 1, y] = grey; if (rnd.next() < .5f) im[x + 2, y] = grey
+            px(x, y, grey); px(x + 1, y, grey)
         }
     }
 
     /** Rough boards (a false front's back, a lean-to): vertical planks, unpainted grey-brown, battens. */
-    internal val BOARDS: PixImg = PixImg(32, 32).also { im ->
-        val rnd = Paint.Rnd(41)
-        val tones = intArrayOf(c(0x7A6A58), c(0x84745E), c(0x6E604E))
-        for (k in 0 until 4) { val t = tones[rnd.int(3)]; for (y in 0 until 32) for (x in k * 8 until k * 8 + 8) im[x, y] = if (rnd.next() < .06f) Pix.mix(t, c(0x000000), .2f) else t }
-        for (k in 0 until 4) { im.vline(k * 8, 0, 31, c(0x4E4438)); im.vline(k * 8 + 1, 0, 31, c(0x9A8A72)) }
-    }
+    internal val BOARDS: PixImg by lazy { Swatches.tinted("plank_vertical", Ramp(c(0x3A3226), c(0x6E604E), c(0x7A6A58), c(0x9A8A72), c(0xB0A088))) }
 
-    /** Corrugated tin roofing: ribs every four texels, a rust streak or two. */
-    internal fun tin(seed: Int, rust: Boolean): PixImg = PixImg(32, 32).also { im ->
-        val rnd = Paint.Rnd(seed)
-        val b = if (rust) c(0x8A6A5A) else c(0x9AA0AC); val l = if (rust) c(0xA8846A) else c(0xC0C6D0); val d = if (rust) c(0x6A4A3E) else c(0x707684)
-        for (y in 0 until 32) for (x in 0 until 32) im[x, y] = when (y % 4) { 0 -> l; 3 -> d; else -> b }
-        repeat(if (rust) 60 else 14) { val x = rnd.int(32); val y = rnd.int(32); im[x, y] = c(0x9A5A34) }
-        for (x in 0 until 32) if (x % 16 == 0) im.vline(x, 0, 31, d)
-    }
+    /** Corrugated tin roofing: the art's standing-seam ribs in grey steel (or rust), by seed. */
+    internal fun tin(seed: Int, rust: Boolean): PixImg =
+        Swatches.tinted(if (seed % 2 == 0) "roof_tin_blue" else "roof_tin_red",
+            if (rust) Ramp(c(0x4A3228), c(0x6A4A3E), c(0x8A6A5A), c(0xA8846A), c(0xB8946E)) else Ramp(c(0x4A5060), c(0x707684), c(0x9AA0AC), c(0xC0C6D0), c(0xDDE2EA)))
 
-    /** Asphalt shingles: courses of tabs in a dark weathered tone. */
-    internal fun shingles(r: Ramp, seed: Int): PixImg = PixImg(32, 30).also { im ->
-        val rnd = Paint.Rnd(seed)
-        for (row in 0 until 6) {
-            val off = if (row % 2 == 0) 0 else 4
-            for (y in row * 5 until row * 5 + 5) for (x in 0 until 32) im[x, y] = if (y == row * 5 + 4) r.o else if (rnd.next() < .15f) r.l else if (rnd.next() < .1f) r.d else r.b
-            for (k in 0 until 4) im.vline((k * 8 + off) % 32, row * 5, row * 5 + 3, r.d)
-        }
-    }
+    /** Asphalt shingles: the art's dithered slate tiles in a dark weathered tone. */
+    internal fun shingles(r: Ramp, seed: Int): PixImg = Swatches.tinted("roof_slate", r)
 
-    /** Split-face block: coursed rough blocks with a deep joint. */
-    internal fun blockTile(r: Ramp, seed: Int): PixImg = PixImg(48, 40).also { im ->
-        val rnd = Paint.Rnd(seed)
-        for (row in 0 until 4) {
-            val off = if (row % 2 == 0) 0 else 12
-            for (y in row * 10 until row * 10 + 10) for (x in 0 until 48) im[x, y] = if (y == row * 10 + 9) r.o else { val t = rnd.next(); if (t < .2f) r.d else if (t < .4f) r.l else r.b }
-            for (k in 0 until 2) im.vline((k * 24 + off) % 48, row * 10, row * 10 + 8, r.o)
-        }
-    }
+    /** Split-face block: coursed blocks at the art's size (22 x 11 and a joint), tinted. */
+    internal fun blockTile(r: Ramp, seed: Int): PixImg = Swatches.tinted("block_courses", r)
+
+    /** The art's own red running-bond brick (1_Terrains), as drawn for red brick and re-toned by its tones into [r] otherwise. */
+    internal fun brick(r: Ramp, mortar: Int, @Suppress("UNUSED_PARAMETER") seed: Int = 0): PixImg = if (r === RED_BRICK) Swatches.get("brick_red") else Swatches.tinted("brick_red", r)
 
     /** Smooth panels (EIFS, porcelain enamel, metal): faint joints [jw] x [jh] texels apart. */
     internal fun panelTile(r: Ramp, seed: Int, jw: Int = 48, jh: Int = 48, specks: Int = 40): PixImg = PixImg(jw, jh).also { im ->
         im.fill(r.b)
         val rnd = Paint.Rnd(seed)
-        repeat(specks) { im[rnd.int(jw), rnd.int(jh)] = if (rnd.next() < .5f) r.l else r.d }
-        im.hline(0, jw - 1, jh - 1, r.d); im.vline(jw - 1, 0, jh - 1, r.d); im.hline(0, jw - 1, 0, r.l)
+        // (specks and joints in whole art pixels: 2 x 2 texels)
+        repeat(specks / 3) { val x = rnd.int(jw / 2) * 2; val y = rnd.int(jh / 2) * 2; im.rect(x, y, x + 1, y + 1, if (rnd.next() < .5f) r.l else r.d) }
+        im.rect(0, jh - 2, jw - 1, jh - 1, r.d); im.rect(jw - 2, 0, jw - 1, jh - 1, r.d); im.rect(0, 0, jw - 1, 1, r.l)
     }
 
     /** Cedar shakes (a 1970s mansard): long split shakes in staggered courses, browns. */
@@ -348,6 +378,14 @@ object StoreKit {
     }
 
     internal val ROOF get() = CinemaKit.ROOF
+
+    /** The flat roof's covering by era: tar and ballast to the sixties, the art's membrane panels (tan, ochre, grey) after. */
+    internal fun roofFor(kind: StoreKind, year: Int, seed: Int, closed: Boolean = false): PixImg = when {
+        kind == StoreKind.GENERAL -> Swatches.get("roof_tar_brown")
+        year < 1965 -> Swatches.get("ballast")
+        kind == StoreKind.SUPERSTORE -> Swatches.get(if (seed % 3 == 0) "roof_membrane_tan" else "roof_membrane_grey")
+        else -> Swatches.get(if (seed % 2 == 0) "roof_membrane_tan" else "roof_membrane_ochre")
+    }
 
     /** A picture [img] laid across [x0]..[x1] x [y0]..[y1] at [z] facing +z, in strips no wider than an atlas's 480 texels. */
     internal fun front(m: MeshBuilder, img: PixImg, x0: Float, x1: Float, y0: Float, y1: Float, z: Float, back: Boolean = false) {
@@ -436,7 +474,7 @@ object StoreKit {
         val brick = when (info.style) { "brick" -> true; "frontier" -> false; else -> seed % 3 == 2 }
         val paint = listOf(WHITEWASH, BARN, SAGE, MUSTARD)[seed % 4]
         val trim = if (paint == WHITEWASH || paint == MUSTARD) TRIM_G else TRIM_W
-        val wallTile = if (brick) CinemaKit.brickTile(RED_BRICK, c(0xB8A088), seed) else clapboard(paint, seed, if (closed) .16f else if (info.year - info.opened > 60 && reuse == null) .12f else 0f)
+        val wallTile = if (brick) brick(RED_BRICK, c(0xB8A088), seed) else clapboard(paint, seed, if (closed) .16f else if (info.year - info.opened > 60 && reuse == null) .12f else 0f)
         // the main block: a little narrower than the plot, a gravel drive down one side
         val W = (L - 130f).coerceIn(170f, 270f)
         val cx = -L / 2f + 32f + W / 2f
@@ -486,7 +524,7 @@ object StoreKit {
             det.upright(px, pz, RH + 26f, RH + 30f, 5f, 2f, 8, Paint.strip(Paint.stripSize(5f, 4f).first, 4, Paint.IRON, 4), cap = Paint.cap(2f, Paint.IRON))
         } else {
             // a brick store's flat roof behind its parapet, falling to the back, a corbelled coping, a scupper and downpipe
-            b.tile(ROOF).box(x0 + 2f, 0f, zb + 2f, x1 - 2f, EH - .5f, zf - 2f, setOf(Side.TOP))
+            b.tile(b.roof).box(x0 + 2f, 0f, zb + 2f, x1 - 2f, EH - .5f, zf - 2f, setOf(Side.TOP))
             t.box(x0, EH - 1f, zb, x1, EH + 10f, zf, setOf(Side.LEFT, Side.RIGHT, Side.BACK))
             rim(det, x0, zb, x1, zf, EH + 10f, EH + 13f, 1f, Paint.CONCRETE)
             b.tile(wallTile).box(x0 + 3f, EH - 1f, zb + 3f, x1 - 3f, EH + 10f, zf - 3f, setOf(Side.LEFT, Side.RIGHT, Side.BACK, Side.FRONT))

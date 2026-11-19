@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { isAlive, runTimeline, worldAt } from '../sim';
 import { brief, storeFacts, validate } from '../llm/factsheet';
@@ -9,7 +10,7 @@ import { firstYearReaching, populationIn } from './population';
 import {
   EXPAND_FROM, generalStoreName, STORE_FEATURES, STORE_NAMES, isStoreSite, MARKET_POPULATION, reuseOf, STORE_SITES, storeHistories, storeLayout, storeNeeds,
   storeState, STORE_SIZES, SUPERMARKET_POPULATION, supermarketName, superstoreName, SUPERSTORE_FROM, SUPERSTORE_POPULATION,
-  townStoreHistories, ALONG_M, DEEP_M, type StoreSite,
+  townStoreHistories, ALONG_M, DEEP_M, PACK_HARDWARE, PACK_LOOKS, PACK_MALL, MALL_POPULATION, MALL_YEARS, type StoreSite,
 } from './stores';
 
 const SEEDS = ['alpha', 'gamma', 'eta', 'orbit', 'quartz', 'delta', 'maple', 'nova', 'zebra', 'water3', 'water9', 'water14', 'water29', 'water32'];
@@ -289,5 +290,56 @@ describe('stores: what the townspeople know', () => {
     // in 1955 there is only the general store
     const g = historiesOf('gamma').find((h) => h.site === 'generalstore')!.events[0]!.name;
     expect(ctxAt(1955).map(storeFacts).every((f) => f[0]!.includes(g))).toBe(true);
+  });
+});
+
+describe('stores: the pack\'s own buildings as variants', () => {
+  const ALL = [...SEEDS, ...Array.from({ length: 40 }, (_, i) => `water${i}`)];
+  const all = ALL.flatMap((seed) => historiesOf(seed).map((h) => ({ seed, h })));
+
+  it('only uses looks the Kotlin builder has, and each where it makes era sense', () => {
+    let general = 0, hardware = 0, market = 0, mall = 0;
+    for (const { seed, h } of all) {
+      if (h.site === 'generalstore') {
+        // the original building is never a pack front (general stores are built 1885-1935); a sale from 1952 may re-fit it
+        expect(h.style === 'frontier' || h.style === 'brick', `${seed} general`).toBe(true);
+        for (const e of h.events) if (e.look) {
+          expect(PACK_LOOKS, `${seed} ${e.look}`).toContain(e.look);
+          expect(e.event).toBe('renamed'); expect(e.year).toBeGreaterThanOrEqual(1952); expect(e.year).toBeLessThanOrEqual(1985);
+          if (e.look === PACK_HARDWARE) { hardware++; expect(e.year).toBeGreaterThanOrEqual(1958); } else { expect(e.look.startsWith('pack:store_s_')).toBe(true); general++; }
+        }
+      } else if (h.site === 'market') {
+        if (h.style !== 'modern') { market++; expect(PACK_LOOKS).toContain(h.style); expect(h.style.startsWith('pack:market_')).toBe(true); }
+      } else if (h.site === 'supermarket') {
+        if (h.style !== 'modern') {
+          mall++;
+          const year = h.events[0]!.year;
+          expect(h.style).toBe(PACK_MALL); expect(year).toBeGreaterThanOrEqual(1970); expect(year).toBeLessThan(1990);
+          expect(firstYearReaching(seed, MALL_POPULATION), seed).toBeLessThanOrEqual(year + MALL_YEARS);
+        }
+      } else expect(h.style).toBe('modern');
+    }
+    // (counts over the 54 known seeds: each variety does turn up, none takes over)
+    expect(general).toBeGreaterThan(3); expect(hardware).toBeGreaterThan(0); expect(market).toBeGreaterThan(8); expect(mall).toBeGreaterThan(2);
+    expect(market).toBeLessThan(all.filter((x) => x.h.site === 'market').length);
+  });
+
+  it('names exactly the pictures the Kotlin builder packs (PackStoreData.kt)', () => {
+    const kt = readFileSync(new URL('../../kotlin-street/shared/src/filament/kotlin/scene3d/PackStoreData.kt', import.meta.url), 'utf8');
+    const ids = [...kt.matchAll(/Sprite\("([a-z_0-9]+)"/g)].map((m) => `pack:${m[1]}`);
+    expect([...ids].sort()).toEqual([...PACK_LOOKS].sort());
+  });
+
+  it('shows the re-fit from the year of the sale, in the year\'s state', () => {
+    let seen = 0;
+    for (const { seed, h } of all) {
+      const e = h.events.find((x) => x.look);
+      if (!e) continue;
+      seen++;
+      expect(storeState(seed, h, e.year - 1)?.style).toBe(h.style);
+      expect(storeState(seed, h, e.year)?.style).toBe(e.look);
+      expect(storeState(seed, h, 2040)?.style).toBe(e.look);
+    }
+    expect(seen).toBeGreaterThan(3);
   });
 });

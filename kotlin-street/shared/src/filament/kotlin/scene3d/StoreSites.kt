@@ -27,6 +27,8 @@ data class StoreEvent(
     val why: String = "",
     val trade: String = "",
     val discount: Boolean = false,
+    /** A new storefront from this event (a pack look: "pack:store_s_3"). */
+    val look: String = "",
 )
 
 /** A store site for every year: its [events] from street.json v2 `graph.storeSites[]`, the town's [people] by year. */
@@ -62,13 +64,14 @@ data class StoreSiteInfo(
 
     /** What the site is in [year], as the generator says (null before its store opens). */
     class State(val kind: String, val state: String, val name: String, val sign: String, val features: List<String>, val reuse: String,
-                val closed: Int, val trade: String, val discount: Boolean)
+                val closed: Int, val trade: String, val discount: Boolean, val style: String = "")
 
     fun stateAt(year: Int): State? {
         val past = events.filter { it.year <= year }
         if (past.isEmpty()) return null
-        var variant = "general"; var name = ""; var sign = ""; var status = "open"; var reuse = ""; var closed = 0; var trade = ""; var discount = false
+        var variant = "general"; var name = ""; var sign = ""; var status = "open"; var reuse = ""; var closed = 0; var trade = ""; var discount = false; var style = this.style
         for (e in past) {
+            if (e.look.isNotEmpty()) style = e.look
             if (e.variant.isNotEmpty()) variant = e.variant
             if (e.trade.isNotEmpty()) trade = e.trade
             if (e.event == "opened") discount = e.discount
@@ -79,7 +82,7 @@ data class StoreSiteInfo(
         }
         val kind = StoreKind.parse(variant) ?: StoreKind.GENERAL
         val st = when (status) { "closed" -> StoreState.CLOSED; "reused" -> StoreState.REUSED; else -> StoreState.OPEN }
-        return State(variant, status, name, sign, featuresOf(kind, st, year, StoreReuse.parse(reuse), trade.ifEmpty { null }, discount, dog), reuse, closed, trade, discount)
+        return State(variant, status, name, sign, featuresOf(kind, st, year, StoreReuse.parse(reuse), trade.ifEmpty { null }, discount, dog), reuse, closed, trade, discount, style)
     }
 
     /** The store for the builder in [year] at [hour] of [weekday] (null before it opens: build [StoreSitePlaceholder]). */
@@ -88,7 +91,7 @@ data class StoreSiteInfo(
         val kind = StoreKind.parse(s.kind) ?: return null
         val st = when (s.state) { "closed" -> StoreState.CLOSED; "reused" -> StoreState.REUSED; else -> StoreState.OPEN }
         return StoreInfo(kind, s.name, year, st, StoreReuse.parse(s.reuse), if (st == StoreState.REUSED) s.sign else "", opens, s.closed,
-            width, depth, town, seed, style, s.features.toSet(), hour, weekday, peopleIn(year))
+            width, depth, town, seed, s.style, s.features.toSet(), hour, weekday, peopleIn(year))
     }
 
     companion object {
@@ -139,7 +142,7 @@ data class StoreSiteInfo(
             val events = (0 until (ev?.length() ?: 0)).map { k ->
                 val e = ev!!.getJSONObject(k)
                 StoreEvent(e.optInt("year"), e.optString("event"), e.optString("name"), e.optString("variant"), e.optString("reuse"), e.optString("why"),
-                    e.optString("trade"), e.optBoolean("discount"))
+                    e.optString("trade"), e.optBoolean("discount"), e.optString("look"))
             }
             val fp = o.optJSONObject("footprint")
             val r = o.optJSONArray("rect")

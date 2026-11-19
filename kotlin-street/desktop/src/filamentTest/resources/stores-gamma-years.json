@@ -357,6 +357,7 @@
     "state": "open",
     "name": "Haskell's General Store",
     "sign": "Haskell's General Store",
+    "style": "frontier",
     "features": [
      "porch",
      "bench",
@@ -377,6 +378,7 @@
     "state": "open",
     "name": "Haskell's General Store",
     "sign": "Haskell's General Store",
+    "style": "frontier",
     "features": [
      "porch",
      "bench",
@@ -398,6 +400,7 @@
     "state": "closed",
     "name": "Haskell's General Store",
     "sign": "Haskell's General Store",
+    "style": "frontier",
     "features": [
      "porch",
      "bench",
@@ -415,6 +418,7 @@
     "state": "reused",
     "name": "Haskell's General Store",
     "sign": "Mapleridge Antiques & Collectibles",
+    "style": "frontier",
     "features": [
      "porch",
      "bench",
@@ -435,6 +439,7 @@
     "state": "open",
     "name": "Whitlock's Super Market",
     "sign": "Whitlock's Super Market",
+    "style": "modern",
     "features": [
      "plateGlass",
      "litSign",
@@ -451,6 +456,7 @@
     "state": "closed",
     "name": "Whitlock's Super Market",
     "sign": "Whitlock's Super Market",
+    "style": "modern",
     "features": [
      "plateGlass",
      "litSign",
@@ -468,6 +474,7 @@
     "state": "reused",
     "name": "Whitlock's Super Market",
     "sign": "Cornerstone Chapel",
+    "style": "modern",
     "features": [
      "plateGlass",
      "litSign",
@@ -488,6 +495,7 @@
     "state": "open",
     "name": "Prairie Larder",
     "sign": "Prairie Larder",
+    "style": "modern",
     "features": [
      "longGlassFront",
      "flatRoof",
@@ -504,6 +512,7 @@
     "state": "closed",
     "name": "Prairie Larder",
     "sign": "Prairie Larder",
+    "style": "modern",
     "features": [
      "longGlassFront",
      "flatRoof",
@@ -526,6 +535,7 @@
     "state": "open",
     "name": "Broadmeadow",
     "sign": "Broadmeadow",
+    "style": "modern",
     "features": [
      "flatRoof",
      "pylonSign",
@@ -544,6 +554,7 @@
     "state": "open",
     "name": "Broadmeadow",
     "sign": "Broadmeadow",
+    "style": "modern",
     "features": [
      "flatRoof",
      "pylonSign",

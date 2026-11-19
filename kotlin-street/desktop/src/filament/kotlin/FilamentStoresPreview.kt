@@ -87,6 +87,19 @@ fun renderStores(out: String) {
         "superstore_2008" to StoreInfo.sample(StoreKind.SUPERSTORE, 2008, seed = 26),
         "superstore_2016" to StoreInfo.sample(StoreKind.SUPERSTORE, 2016, seed = 4).copy(features = f(StoreKind.SUPERSTORE, 2016)),
         "superstore_2022" to StoreInfo.sample(StoreKind.SUPERSTORE, 2022, seed = 41).copy(features = f(StoreKind.SUPERSTORE, 2022)),
+        "pack_store_1962" to StoreInfo.sample(StoreKind.GENERAL, 1962, seed = 5).copy(style = "pack:store_s_3"),
+        "pack_store_green_1958" to StoreInfo.sample(StoreKind.GENERAL, 1958, seed = 6).copy(style = "pack:store_s_1"),
+        "pack_store_tan_1971" to StoreInfo.sample(StoreKind.GENERAL, 1971, seed = 7).copy(style = "pack:store_s_9"),
+        "pack_hardware_1965" to StoreInfo.sample(StoreKind.GENERAL, 1965, seed = 8).copy(style = "pack:hardware"),
+        "pack_market_ochre_1958" to StoreInfo.sample(StoreKind.MARKET, 1958, seed = 3).copy(style = "pack:market_m_5"),
+        "pack_market_green_1964" to StoreInfo.sample(StoreKind.MARKET, 1964, seed = 4).copy(style = "pack:market_m_2"),
+        "pack_market_tan_1976" to StoreInfo.sample(StoreKind.MARKET, 1976, seed = 5).copy(style = "pack:market_m_10"),
+        "pack_market_big_1962" to StoreInfo.sample(StoreKind.MARKET, 1962, seed = 6).copy(style = "pack:market_b_3"),
+        "pack_market_big_tan_1970" to StoreInfo.sample(StoreKind.MARKET, 1970, seed = 6).copy(style = "pack:market_b_6"),
+        "pack_market_closed_1985" to StoreInfo.sample(StoreKind.MARKET, 1985, seed = 3, state = StoreState.CLOSED).copy(closed = 1981, style = "pack:market_m_1"),
+        "pack_market_church_1995" to StoreInfo.sample(StoreKind.MARKET, 1995, seed = 4, state = StoreState.REUSED, reuse = StoreReuse.CHURCH).copy(style = "pack:market_m_6"),
+        "pack_mall_1978" to StoreInfo.sample(StoreKind.SUPERMARKET, 1978, seed = 3).copy(style = "pack:mall"),
+        "pack_mall_closed_2015" to StoreInfo.sample(StoreKind.SUPERMARKET, 2015, seed = 3, state = StoreState.CLOSED).copy(closed = 2008, style = "pack:mall"),
         "superstore_closed_2038" to StoreInfo.sample(StoreKind.SUPERSTORE, 2038, seed = 4, state = StoreState.CLOSED).copy(closed = 2030),
     ).let { samples ->
         // -DstoresFrom=street.json: the town's own stores (graph.stores[], as the generator exported them) instead
@@ -132,11 +145,23 @@ fun renderStores(out: String) {
         val layer = CinemaLayer(stage.props)
         val at = floatArrayOf(0f, 0f, 1f, 0f, 0f, -1f, 0f)
         layer.add(m, at)
+        // -Dref=pack:market_m_5 (a pack look, see PackStores): that building stood beside the store, front on the same line, for the same camera
+        var refDx = 0f
+        System.getProperty("ref")?.takeIf { info0 != null }?.let { rid ->
+            val ri = info.copy(style = rid, state = StoreState.OPEN, reuse = null, features = emptySet())
+            val rb = StoreKit.buildBare(ri)
+            val rw = rb.block[2] - rb.block[0]
+            val bw0 = built.block[2] - built.block[0]
+            // its front wall on the store's front wall (z), its middle left of the store's by half both widths and a gap
+            val rx = (built.block[0] + built.block[2]) / 2f - bw0 / 2f - rw / 2f - 120f - (rb.block[0] + rb.block[2]) / 2f
+            layer.add(rb.model, floatArrayOf(rx, rb.block[1] - built.block[1], 1f, 0f, 0f, -1f, 0f))
+            refDx = rx + (rb.block[0] + rb.block[2]) / 2f - (built.block[0] + built.block[2]) / 2f
+        }
         val lamps = CinemaLights(engine, stage.scene).also { it.add(m.lights, at) }
         stage.after = { dark -> layer.update(dark, 0.0); lamps.update(dark) }
         // the main block in the world: model z -> world -z
         val bx0 = built.block[0]; val bx1 = built.block[2]; val fz = -built.block[1]; val bz = -built.block[3]
-        val bcx = (bx0 + bx1) / 2f; val bw = bx1 - bx0
+        val bcx = (bx0 + bx1) / 2f + refDx / 2f; val bw = (bx1 - bx0) + abs(refDx)
         val top = m.height
         val s = (maxOf(bw, bz - fz) / 400f).coerceAtLeast(1f)
         val shots = listOf(

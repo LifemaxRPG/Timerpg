@@ -122,7 +122,7 @@ internal object StoreMarkets {
         CinemaKit.ledge(m, x0 - 1f, h + t, zb - 1f, x1 + 1f, h + t + 2.5f, zb + 2.5f, r)
         CinemaKit.ledge(m, x0 - 1f, h + t, zb + 2.5f, x0 + 2.5f, h + t + 2.5f, zf - 2.5f, r)
         CinemaKit.ledge(m, x1 - 2.5f, h + t, zb + 2.5f, x1 + 1f, h + t + 2.5f, zf - 2.5f, r)
-        b.tile(StoreKit.ROOF).box(x0 + 2f, 0f, zb + 2f, x1 - 2f, h - .4f, zf - 2f, setOf(Side.TOP))
+        b.tile(b.roof).box(x0 + 2f, 0f, zb + 2f, x1 - 2f, h - .4f, zf - 2f, setOf(Side.TOP))
     }
 
     /** A roof ladder up a back wall at ([x], [z]) to [top]. */
@@ -159,7 +159,7 @@ internal object StoreMarkets {
         val Db = (D + zf - 120f).coerceIn(400f, 640f)
         val zb = zf - Db
         val H = 120f; val PH = 172f
-        val brick = CinemaKit.brickTile(BUFF_BRICK_M, c(0xE8DCC8), seed)
+        val brick = StoreKit.brick(BUFF_BRICK_M, c(0xE8DCC8), seed)
         val wall = b.tile(brick)
         val det = b.det()
         wall.box(x0, 0f, zb, x1, H, zf, setOf(Side.LEFT, Side.RIGHT, Side.BACK))
@@ -219,7 +219,7 @@ internal object StoreMarkets {
         val cz1 = zf + 48f
         val fascia = b.pic("mfascia$sixties") { PixImg(16, tx(9f)).also { im -> im.fill(ALU.l); im.hline(0, 15, 0, ALU.h); im.rect(0, im.h / 2 - 1, 15, im.h / 2, if (sixties) TURQ.b else SIGN_RED); im.hline(0, 15, im.h - 1, ALU.o) } }
         b.tile(fascia).box(x0 - 4f, 92f, zf, x1 + 4f, 101f, cz1, setOf(Side.FRONT, Side.LEFT, Side.RIGHT))
-        b.tile(StoreKit.ROOF).box(x0 - 4f, 92f, zf, x1 + 4f, 101f, cz1, setOf(Side.TOP))
+        b.tile(b.roof).box(x0 - 4f, 92f, zf, x1 + 4f, 101f, cz1, setOf(Side.TOP))
         val soffit = b.pic("msoff$closed") { PixImg(tx(64f), tx(48f)).also { im -> im.fill(c(0xE8E4D8)); for (y in 6 until im.h - 3 step 14) for (x in 6 until im.w - 3 step 16) { im.rect(x, y, x + 2, y + 1, c(0xFFFCF0)); if (!closed) im.glow(x, y, x + 2, y + 1, 255) }; im.border(c(0xB8B4A8)) } }
         var sx = x0 - 4f
         while (sx < x1 + 3f) { val e = min(sx + 64f, x1 + 4f); b.lit("soffit").quad(v(sx, 92f, cz1), v(e, 92f, cz1), v(e, 92f, zf), v(sx, 92f, zf), soffit, 0f, 0f, soffit.w * (e - sx) / 64f, soffit.h.toFloat()); sx += 64f }
@@ -258,7 +258,7 @@ internal object StoreMarkets {
         val Db = (D + zf - 200f).coerceIn(600f, 900f)
         val zb = zf - Db
         val H = 140f
-        val brick = CinemaKit.brickTile(TAN_M, c(0xC8B49A), seed)
+        val brick = StoreKit.brick(TAN_M, c(0xC8B49A), seed)
         val det = b.det()
         b.tile(brick).box(x0, 0f, zb, x1, H, zf, setOf(Side.LEFT, Side.RIGHT, Side.BACK, Side.FRONT))
         parapet(b, brick, x0, x1, zb, zf, H, 10f, Paint.CONCRETE)
@@ -274,7 +274,7 @@ internal object StoreMarkets {
         fascT.quad(v(x1 + inn, my1, zf - wrap), v(x1 + inn, my1, zf - wrap), v(x1 + out, my0, zf - wrap), v(x1 + inn, my0, zf - wrap))
         fascT.quad(v(x0 - inn, my1, zf - wrap), v(x0 - inn, my1, zf - wrap), v(x0 - inn, my0, zf - wrap), v(x0 - out, my0, zf - wrap))
         // its flat top (a cap over the slope) and the walk's soffit under it
-        b.tile(StoreKit.ROOF).box(x0 - inn, my1 - 1f, zf - wrap, x1 + inn, my1 + 1f, zf + inn, setOf(Side.TOP))
+        b.tile(b.roof).box(x0 - inn, my1 - 1f, zf - wrap, x1 + inn, my1 + 1f, zf + inn, setOf(Side.TOP))
         CinemaKit.ledge(det, x0 - out - 2f, my0 - 4f, zf + out - 2f, x1 + out + 2f, my0 + 1f, zf + out + 2f, Paint.CONCRETE, bottom = true)
         CinemaKit.ledge(det, x0 - inn - 2f, my1, zf + inn - 2f, x1 + inn + 2f, my1 + 3f, zf + inn + 2f, Paint.BLACK)
         val soffit = b.pic("ssoff$closed") { PixImg(tx(80f), tx(out)).also { im -> im.fill(c(0xC8BCA8)); for (y in 0 until im.h step 6) im.hline(0, im.w - 1, y, c(0xB0A490)); for (x in 8 until im.w - 4 step 24) for (y in 8 until im.h - 4 step 24) { im.rect(x, y, x + 3, y + 3, c(0xFFF6E0)); if (!closed) im.glow(x, y, x + 3, y + 3, 255) } } }
@@ -468,7 +468,7 @@ internal object StoreMarkets {
             towerWall.box(a, 120f, zf - 4f, e, TH, zf + TD, setOf(Side.FRONT, Side.LEFT, Side.RIGHT, Side.TOP))
             b.tile(block).box(a, 0f, zf - 4f, a + 40f, 120f, zf + TD, setOf(Side.FRONT, Side.LEFT, Side.RIGHT))
             b.tile(block).box(e - 40f, 0f, zf - 4f, e, 120f, zf + TD, setOf(Side.FRONT, Side.LEFT, Side.RIGHT))
-            b.tile(StoreKit.ROOF).box(a + 2f, 0f, zf - 2f, e - 2f, TH - .3f, zf + TD - 2f, setOf(Side.TOP))
+            b.tile(b.roof).box(a + 2f, 0f, zf - 2f, e - 2f, TH - .3f, zf + TD - 2f, setOf(Side.TOP))
             CinemaKit.ledge(det, a - 4f, TH, zf - 6f, e + 4f, TH + 6f, zf + TD + 4f, brand.accent, bottom = true)
             CinemaKit.ledge(det, a - 2f, 116f, zf + TD - 1f, e + 2f, 124f, zf + TD + 3f, BLOCK, bottom = true)
             // a gabled tower top (a farmhouse front) for some chains, its ends closed
@@ -508,7 +508,7 @@ internal object StoreMarkets {
         val ncx = if (towers.size == 1) (if (towers[0].first < cx) cx + W * .14f else cx - W * .14f) else cx
         b.tile(eifs).box(ncx - nW / 2f - 30f, H, zf - 4f, ncx + nW / 2f + 30f, 280f, zf + 2f, setOf(Side.FRONT, Side.LEFT, Side.RIGHT, Side.BACK))
         CinemaKit.ledge(det, ncx - nW / 2f - 34f, 280f, zf - 6f, ncx + nW / 2f + 34f, 286f, zf + 4f, brand.accent, bottom = true)
-        b.tile(StoreKit.ROOF).box(ncx - nW / 2f - 28f, 0f, zf - 4f, ncx + nW / 2f + 28f, 279.8f, zf + 2f, setOf(Side.TOP))
+        b.tile(b.roof).box(ncx - nW / 2f - 28f, 0f, zf - 4f, ncx + nW / 2f + 28f, 279.8f, zf + 2f, setOf(Side.TOP))
         val nameText = info.signName.uppercase()
         val longShut = closed && info.yearsClosed >= 2
         if (!closed) {

@@ -1,6 +1,6 @@
 // The stores' year-by-year fixture for the Kotlin side (desktop/src/filamentTest/resources/stores-gamma-years.json):
 // gamma's reserved store sites as street.json v2 exports them (`storeSites`, `storePeople`) and, for 1900-2040, what
-// the generator says each site is (src/town/stores.ts storeState: kind, state, name, sign, features), listed only in
+// the generator says each site is (src/town/stores.ts storeState: kind, state, name, sign, style, features), listed only in
 // the years it changes. StoreSiteInfo.at(year) in kotlin-street must give the same (StoreKitTest), and
 // src/town/stores.test.ts checks the file is current. Run: npx tsx kotlin-street/tools/stores-fixture.ts [--check]
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -13,14 +13,14 @@ export const FIXTURE = new URL('../desktop/src/filamentTest/resources/stores-gam
 export function storesFixture(seed = 'gamma'): string {
   const plan = planTown(seed);
   const block = storeSitesBlock(seed, plan.landmarks, (l) => [l.x, l.y, l.x + l.w, l.y + l.h]);
-  const years: Record<string, { year: number; kind?: string; state?: string; name?: string; sign?: string; features?: string[] }[]> = {};
+  const years: Record<string, { year: number; kind?: string; state?: string; name?: string; sign?: string; style?: string; features?: string[] }[]> = {};
   for (const h of townStoreHistories(seed, plan.landmarks.map((l) => l.id))) {
     if (!isStoreSite(h.site)) continue;
     const rows: (typeof years)[string] = [];
     let last = '';
     for (let y = 1900; y <= 2040; y++) {
       const s = storeState(seed, h, y);
-      const row = s ? { year: y, kind: s.variant, state: s.status, name: s.name, sign: s.sign, features: s.features } : { year: y };
+      const row = s ? { year: y, kind: s.variant, state: s.status, name: s.name, sign: s.sign, style: s.style, features: s.features } : { year: y };
       const key = JSON.stringify({ ...row, year: 0 });
       if (key !== last) rows.push(row);
       last = key;
