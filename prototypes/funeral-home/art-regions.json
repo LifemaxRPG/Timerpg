@@ -1,0 +1,122 @@
+{
+  "home_window": {
+    "rect_art": [
+      0,
+      0,
+      24,
+      30
+    ]
+  },
+  "side_window": {
+    "rect_art": [
+      28,
+      0,
+      20,
+      28
+    ]
+  },
+  "small_window": {
+    "rect_art": [
+      52,
+      0,
+      12,
+      28
+    ]
+  },
+  "high_window": {
+    "rect_art": [
+      68,
+      0,
+      20,
+      12
+    ]
+  },
+  "chapel_window": {
+    "rect_art": [
+      92,
+      0,
+      20,
+      32
+    ]
+  },
+  "chapel_front": {
+    "rect_art": [
+      116,
+      0,
+      28,
+      28
+    ]
+  },
+  "attic": {
+    "rect_art": [
+      148,
+      0,
+      24,
+      16
+    ]
+  },
+  "front_leaf": {
+    "rect_art": [
+      0,
+      40,
+      12,
+      34
+    ]
+  },
+  "side_door": {
+    "rect_art": [
+      16,
+      40,
+      18,
+      32
+    ]
+  },
+  "staff_door": {
+    "rect_art": [
+      38,
+      40,
+      16,
+      32
+    ]
+  },
+  "chapel_leaf": {
+    "rect_art": [
+      58,
+      40,
+      12,
+      32
+    ]
+  },
+  "garage_leaf": {
+    "rect_art": [
+      74,
+      40,
+      24,
+      38
+    ]
+  },
+  "louver": {
+    "rect_art": [
+      102,
+      40,
+      24,
+      16
+    ]
+  },
+  "garage_window": {
+    "rect_art": [
+      130,
+      40,
+      20,
+      18
+    ]
+  },
+  "nameplate": {
+    "rect_art": [
+      0,
+      0,
+      48,
+      24
+    ]
+  }
+}
