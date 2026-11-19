@@ -667,3 +667,92 @@ Desktop renders and JVM tests only, NOT yet run on the S25.
   interiors or people; car parks have no cars; the glass towers are the pack's office styles 2/4 (no curtain-wall art); the
   far boxes are boxes (pitched roofs read flat far off); the stores and cinema still fade at the range; quartz has a
   pre-existing shop overlap (b2/b3 on 3R).
+## Farms round the town (branch wf-farms2)
+
+The owner wants farms in the world, with crops. A town is ringed by farmland; as it grows, the fields nearest it are sold
+and built over (a field farmed in 1955 is houses by 2025).
+
+- Generator (`src/town/farms.ts`, tests `farms.test.ts`; one call from `layoutTown`: `layout.farms`). Pure of the seed's
+  plan (`rand(seed, 'farm', ...)`), in the plan's tiles. The farmland is the map and `RING` (100) tiles round it.
+  - Country roads: out from the streets' outermost ends that point out (the main street's two ends, the furthest street
+    north and south; a line out must cross no street, plot, landmark or water), straight to the farmland's edge, and a
+    section road round the town (`PERIM` 36 tiles past the map) linking them. In a year when the street a road continues is
+    not built yet, the road runs on in along its line to the first street that is (`farmsIn`: `inner`). The river runs on
+    past the map (its edge runs, straight out); the country roads cross it on bridges.
+  - Farmsteads: along every country road, each side, every 46-72 tiles, a yard of 30 x 26 tiles facing the road, kept 4
+    tiles from anything the plan will ever build (streets, every plot, landmarks, plaza) and from water: the farmhouse
+    (one of the two) near the road with its own front lawn and fence, the barn (one of four colours) back across the yard,
+    one or two silos beside it, the machine shed facing the yard, a corral, the tractor, hay, troughs, a well, crates,
+    barrels, a windbreak of trees along the back and the house's side, a gravel lane from the road, the farmyard's beaten
+    dirt; mirrored by a coin. A farm is a family (`household`: surname, members, `rural: true`, founded before 1950): the
+    people model does not house anyone outside the town yet, so it is flagged for later. A produce farm (55%) has a
+    roadside stand (a market stall) by its lane in June to September.
+  - Fields: up to five round each farmstead (beside it along the road, behind it, behind those; 26-44 x 22-36 tiles, shrunk
+    to fit), each fenced with its gate toward the yard: grain (corn and wheat in rotation, `['corn','wheat']` or
+    `['corn','corn','wheat']`), hay, or a truck farm's vegetables (four in rotation from crops.json's Midwest crops);
+    `cropIn(field, year)`. And fields over the town's outer plots: blocks of free ground (no street, landmark, plaza or water
+    in them) that take in future plots, farmed by the nearest farm until the town builds there: a field is farmed in a year
+    only while nothing built that year overlaps it (`fieldClear`: built streets, plots, open landmarks), and `fieldLives`
+    gives each field's life (sold the year it is first built over, and as what).
+  - gamma: 28 farms (all working in 2025), 57 fields with a life from 1950 (55 farmed in 1955, 50 in 2025: 7 built over, as
+    houses from 1964 on, one into a yard), 4 roads out and the section road (8 pieces), 2 new bridges.
+- Export (`tools/town-farms.ts`, `withFarms` after `withYards` in `export-town.ts`; test `town-farms.test.ts`): `graph.farms`
+  in world units: `roads` (centre lines, asphalt 96 wide, verges 22), `farms` (yard, farmyard ground, front, family,
+  household, lane, things: model, front's middle, facing, door, summer), `fields` (rect, use, rows' direction, gate,
+  rotation, phase, the year's crop, `from`, `sold`, `becomes`: houses, shops, street, store, landmark, yards), `standMonths`,
+  `extent`. A field the export year's yards reach into is sold that year (`yards`). `graph.water` gains the river past the
+  map, `graph.bridges` the country roads' bridges; `graph.props` loses the forest standing in farmed fields, farmyards,
+  lanes, on roads and in the river, and gains the windbreaks, so TownGround's feather and the world's woods (and the
+  collision's wall, 1200 past the outermost data) now stand past the farmland: the world grew from about 19,000 x 10,000
+  to 28,000 x 19,000 units. Shipped: assets/town/gamma/street.json (only farms, props, water and bridges changed; the
+  buildings, dialogue and interiors are the same).
+- Engine (`domain/TownFarmsData.kt`: parse, `CropBook` (crops.json), `FieldNow` (a field on a day), `FarmSolids` (fences with
+  open gates, the models' solid parts, their places and doors); `scene3d/TownFarms.kt`, `FarmPics.kt`):
+  - FilamentTown's hook is `TownExtra` (scene3d/TownExtra.kt): `addExtra { kit -> ... }`, stepped in `buildNearest` once
+    the ground is in, framed after the stores, given the open-world camera's cone in `occlude` and cut in `fadeBetween`,
+    destroyed with the town. `TownFarms.attach(town, data, FarmArt, collision, year, day)`; the app (TownSession,
+    FilamentLayer) attaches it with today's day of the year (Season.override's in tests).
+  - Roads: asphalt (the town's tile, white edge lines, a dashed yellow centre) on gravel verges; lanes of gravel; the
+    farmyard's dirt.
+  - Farmsteads: the farm models (assets/farm, FilamentModels) where the export stands them, each culled by its sphere; the
+    farmhouse keeps its lawn and fence and is the only one with a night-glow mask; the tall ones (barn, silos, house, shed)
+    are cut away in the open-world camera's way like buildings. Their parts standing below head height are solid
+    (`setExtra("farms:buildings")`), the farmhouse's and barn's doors are `setExtraDoors("farms")` (no rooms yet, so no
+    "Go inside"). The stand only shows in its months.
+  - Fields by the day (`FieldNow`): winter (bare frozen ground, or corn's stubble), ploughed in spring, growing (sprout,
+    young, growing, budding), ripe, stubble after the harvest (corn's cut stalks through the winter, wheat's brush until
+    the autumn ploughing), next year's winter wheat sprouting in October and lying young under the snow; hay a meadow
+    (tufts), mown in late June and mid August with round bales lying (`fm_roundbales`), brown in winter. Drawn as: tilled soil
+    as real low ridges along the rows (5 high for corn, 1.5 for drilled wheat, 6 for beds; their slopes in the pack's soil
+    tile, so the furrows shade by the sun), a level soil under them; the crop as crossed cards of its frame on the crests (a
+    plant every 12-38 units by crop; corn 26 apart, wheat 15), small and sparse when sprouting or under snow; a canopy band
+    along each row at two thirds of the plants' height in the crop's own colours with gaps (from above and past the cards'
+    range a field reads as its crop, green or gold); snow (Season's) on soil and meadows; a post-and-rail fence round each,
+    its five-bar gate standing open into the field. A farm's fields are one soil batch, one canopy batch and one batch of
+    cards per picture, rebuilt on a worker when the day changes what they show (`day`).
+  - Built a farm a job on the town's workers (at most three at once, nearest first, after the ground), uploaded at most 3 ms
+    a frame (a farm's batches, then each model). Plants drawn within 2600 of a farm's edge, shadows within 1600.
+- Preview: `gradle :desktop:preview -Dmode=filament-farms` (`-Dtown=DIR` for another export, e.g. 1955, `-DfarmTag=1955`,
+  `-Dshots=`) writes build/preview/filament-farms/: farmstead_{front,left,right,back,close,dusk,above}, field_{spring,
+  early_summer,summer,autumn,late_autumn,winter,summer_low}, fields_{summer,autumn,winter}_above, hay_{bales,meadow},
+  stand_summer, edge_{road,high,above}, farmland_all, town_inner_fields, sold_field_{above,wide}, and farms.txt.
+- Measured on the build server, software GL (estimates, not the S25): the farms are 28 farms, 50 fields, 372 models;
+  triangles: ground 33k, soil and canopy 15k, crop cards 375k, models 467k (all of them, before culling). Open-world views
+  at a farm: 240-320 draws, 104k-127k triangles; at a field's gate 94-128 draws, 103k-186k triangles; the whole farmland from
+  high up (a free camera, nothing culled by range) 10.9k draws, 1.5M triangles. townMemoryCheck (cold start, phone heap),
+  after the merge with wf-downtown, the build server loaded (load average 15 on 4 cores): held 213 MB at the peak (202
+  without the farms) of 256; GPU estimate textures 594 MB (512 without); first view 11.6 s (10.0 s without: the bigger
+  world's ground and woods; the farms themselves wait for the ground). Before the merge, an idle server: 200 MB (186),
+  textures 521 MB (439), first view 5.0 s (4.0 s). The farms' first uploads (each model's atlas the first time) still
+  cost frames of 50-130 ms on software GL while walking after the first view: measure on the S25.
+- Tests: vitest `src/town/farms.test.ts` (determinism, farms outside everything the town will build, fields clear of
+  streets, landmarks, water, roads, yards and each other, gates on the edge, crops, fields by year: never under anything
+  built, fewer in 2025 than 1955, a field farmed in 1955 houses by 2025, a road run in along an unbuilt street),
+  `kotlin-street/tools/town-farms.test.ts` (the export: shipped, deterministic, fields clear of lots, footprints, yards,
+  landmarks, roads and the river, no forest left in fields or yards or on roads, windbreaks, bridges, lives); desktop
+  `FarmWalkTest` (fences solid, all 50 gates walked through into their fields, buildings solid, doors clear, roads and
+  lanes walkable, the calendar); OpenWalkTest re-pinned (16 parapets).
+- Not yet: the town's trees have no seasons, so a snowy field sits among summer trees; farm people (the families are
+  flagged rural households, nobody walks there); animals; barn and farmhouse interiors (doors have no rooms); fields are
+  axis-aligned rectangles (no contour ploughing); the farmyard's dirt has hard edges; the vegetable cards are busy up
+  close; far farms draw every model while in range (no model LOD yet).

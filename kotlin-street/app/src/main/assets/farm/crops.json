@@ -52,7 +52,13 @@
       6
      ]
     }
-   ]
+   ],
+   "midwest": true,
+   "calendar": {
+    "sow": 105,
+    "ripe": 182,
+    "harvest": 206
+   }
   },
   "carrot": {
    "frames": 7,
@@ -99,7 +105,13 @@
       6
      ]
     }
-   ]
+   ],
+   "midwest": true,
+   "calendar": {
+    "sow": 110,
+    "ripe": 196,
+    "harvest": 222
+   }
   },
   "cauliflower": {
    "frames": 7,
@@ -146,7 +158,13 @@
       6
      ]
     }
-   ]
+   ],
+   "midwest": true,
+   "calendar": {
+    "sow": 105,
+    "ripe": 182,
+    "harvest": 201
+   }
   },
   "coffee": {
    "frames": 7,
@@ -193,13 +211,14 @@
       6
      ]
     }
-   ]
+   ],
+   "midwest": false
   },
   "corn": {
    "frames": 7,
    "frameW": 32,
    "sow": "spring",
-   "harvest": "summer",
+   "harvest": "autumn",
    "variants": [
     {
      "name": "yellow",
@@ -240,7 +259,13 @@
       6
      ]
     }
-   ]
+   ],
+   "midwest": true,
+   "calendar": {
+    "sow": 121,
+    "ripe": 244,
+    "harvest": 288
+   }
   },
   "cotton": {
    "frames": 7,
@@ -287,7 +312,8 @@
       6
      ]
     }
-   ]
+   ],
+   "midwest": false
   },
   "grape": {
    "frames": 7,
@@ -339,7 +365,14 @@
       6
      ]
     }
-   ]
+   ],
+   "midwest": true,
+   "calendar": {
+    "sow": 115,
+    "ripe": 244,
+    "harvest": 273,
+    "perennial": true
+   }
   },
   "onion": {
    "frames": 7,
@@ -386,7 +419,13 @@
       6
      ]
     }
-   ]
+   ],
+   "midwest": true,
+   "calendar": {
+    "sow": 100,
+    "ripe": 213,
+    "harvest": 237
+   }
   },
   "pepper": {
    "frames": 7,
@@ -433,7 +472,13 @@
       6
      ]
     }
-   ]
+   ],
+   "midwest": true,
+   "calendar": {
+    "sow": 140,
+    "ripe": 213,
+    "harvest": 263
+   }
   },
   "pineapple": {
    "frames": 7,
@@ -480,7 +525,8 @@
       6
      ]
     }
-   ]
+   ],
+   "midwest": false
   },
   "prickly_pear": {
    "frames": 7,
@@ -527,7 +573,8 @@
       6
      ]
     }
-   ]
+   ],
+   "midwest": false
   },
   "pumpkin": {
    "frames": 7,
@@ -574,7 +621,13 @@
       6
      ]
     }
-   ]
+   ],
+   "midwest": true,
+   "calendar": {
+    "sow": 152,
+    "ripe": 253,
+    "harvest": 293
+   }
   },
   "radish": {
    "frames": 7,
@@ -621,7 +674,13 @@
       6
      ]
     }
-   ]
+   ],
+   "midwest": true,
+   "calendar": {
+    "sow": 100,
+    "ripe": 130,
+    "harvest": 145
+   }
   },
   "strawberry": {
    "frames": 7,
@@ -668,7 +727,14 @@
       6
      ]
     }
-   ]
+   ],
+   "midwest": true,
+   "calendar": {
+    "sow": 91,
+    "ripe": 152,
+    "harvest": 181,
+    "perennial": true
+   }
   },
   "tomato": {
    "frames": 7,
@@ -715,7 +781,13 @@
       6
      ]
     }
-   ]
+   ],
+   "midwest": true,
+   "calendar": {
+    "sow": 140,
+    "ripe": 206,
+    "harvest": 268
+   }
   },
   "turnip": {
    "frames": 7,
@@ -767,7 +839,13 @@
       6
      ]
     }
-   ]
+   ],
+   "midwest": true,
+   "calendar": {
+    "sow": 213,
+    "ripe": 274,
+    "harvest": 303
+   }
   },
   "watermelon": {
    "frames": 7,
@@ -814,7 +892,13 @@
       6
      ]
     }
-   ]
+   ],
+   "midwest": true,
+   "calendar": {
+    "sow": 145,
+    "ripe": 213,
+    "harvest": 244
+   }
   },
   "wheat": {
    "frames": 7,
@@ -861,7 +945,13 @@
       6
      ]
     }
-   ]
+   ],
+   "midwest": true,
+   "calendar": {
+    "sow": 274,
+    "ripe": 176,
+    "harvest": 191
+   }
   },
   "zucchini": {
    "frames": 7,
@@ -908,7 +998,13 @@
       6
      ]
     }
-   ]
+   ],
+   "midwest": true,
+   "calendar": {
+    "sow": 140,
+    "ripe": 186,
+    "harvest": 253
+   }
   }
  },
  "soils": {

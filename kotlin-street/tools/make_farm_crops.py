@@ -13,7 +13,7 @@ FARM = os.environ.get('FARM_ART') or '/tmp/claude-0/-home-user-Timerpg/f2eefd9e-
 CROPS = {
     'cabbage': ('Cabbage', 32, ['green'], 'spring', 'summer'), 'carrot': ('Carrot', 32, ['orange'], 'spring', 'summer'),
     'cauliflower': ('Cauliflower', 32, ['white'], 'spring', 'summer'), 'coffee': ('Coffee', 64, ['red'], 'spring', 'autumn'),
-    'corn': ('Corn', 64, ['yellow'], 'spring', 'summer'), 'cotton': ('Cotton', 32, ['white'], 'spring', 'autumn'),
+    'corn': ('Corn', 64, ['yellow'], 'spring', 'autumn'), 'cotton': ('Cotton', 32, ['white'], 'spring', 'autumn'),
     'grape': ('Grape', 64, ['purple', 'red'], 'spring', 'autumn'), 'onion': ('Onion', 64, ['white'], 'spring', 'summer'),
     'pepper': ('Pepper', 32, ['red'], 'spring', 'summer'), 'pineapple': ('Pineapple', 64, ['gold'], 'spring', 'summer'),
     'prickly_pear': ('Prickly_Pear', 96, ['pink'], 'spring', 'summer'), 'pumpkin': ('Pumpkin', 64, ['orange'], 'summer', 'autumn'),
@@ -22,6 +22,18 @@ CROPS = {
     'watermelon': ('Watermelon', 64, ['green'], 'spring', 'summer'), 'wheat': ('Wheat', 32, ['golden'], 'autumn', 'summer'),
     'zucchini': ('Zuchini', 64, ['green'], 'spring', 'summer'),
 }
+# A US Midwest calendar (ours; central Illinois / Iowa): day of the year the crop is sown or set out, the day it is first ripe,
+# and the day the last of it is in; spring and summer seasons above follow it. Winter wheat is sown in October, sprouts and
+# lies dormant under the snow, and is cut in July; strawberries and grapes are perennial (`sow` is when they leaf out).
+# `midwest` false: grown in our fields only as a curiosity (the generator never plants it).
+CALENDAR = {
+    'corn': (121, 244, 288), 'wheat': (274, 176, 191), 'pumpkin': (152, 253, 293), 'cabbage': (105, 182, 206),
+    'carrot': (110, 196, 222), 'cauliflower': (105, 182, 201), 'onion': (100, 213, 237), 'pepper': (140, 213, 263),
+    'tomato': (140, 206, 268), 'radish': (100, 130, 145), 'strawberry': (91, 152, 181), 'watermelon': (145, 213, 244),
+    'zucchini': (140, 186, 253), 'turnip': (213, 274, 303), 'grape': (115, 244, 273),
+}
+PERENNIAL = {'strawberry', 'grape'}
+
 STAGES = [('sprout', [0]), ('young', [1]), ('growing', [2, 3]), ('budding', [4]), ('ripe', [5, 6])]
 # 32x32 soil tiles (1_Terrains_32x32.png, x, y), checked by eye on 3x3 tilings (tools/materials.json has the same picks)
 SOILS = {'tilled': (12, 300, 'furrowed tilled soil, brown'), 'tilled_dark': (44, 396, 'wet or dark tilled soil'),
@@ -36,6 +48,9 @@ def main(out):
         im = np.array(Image.open(f'{FARM}/Crops_Growth_32x32/{sheet}_Growth_Stages_32x32.png').convert('RGBA'))
         fw = 16 if key == 'strawberry' else 32
         info = dict(frames=7, frameW=fw, sow=sow, harvest=harvest, variants=[], stages=[dict(name=n, frames=f) for n, f in STAGES])
+        cal = CALENDAR.get(key)
+        info['midwest'] = cal is not None
+        if cal: info['calendar'] = dict(sow=cal[0], ripe=cal[1], harvest=cal[2], **({'perennial': True} if key in PERENNIAL else {}))
         for vi, vname in enumerate(variants):
             band = im[vi * rh:(vi + 1) * rh]
             top = min(int(np.nonzero(band[:, f * fw:(f + 1) * fw, 3] > 0)[0].min()) if (band[:, f * fw:(f + 1) * fw, 3] > 0).any() else rh for f in range(7))
