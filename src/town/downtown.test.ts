@@ -124,6 +124,7 @@ describe('downtown', () => {
       expect(plan.roads.some((r) => hit({ x: c.rect.x - 2, y: c.rect.y - 2, w: c.rect.w + 4, h: c.rect.h + 4 }, r))).toBe(true);
     }
     expect(halls).toBeGreaterThan(8);
-    expect(chapels).toBeGreaterThan(8);
+    // (a chapel needs a free stretch of woodland by a street within reach of the centre: about two towns in five have one)
+    expect(chapels).toBeGreaterThan(5);
   });
 });

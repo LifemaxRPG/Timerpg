@@ -281,7 +281,10 @@ export function chapel(plan: TownPlan): CivicBuilding | undefined {
       }
       if (!clear || hitsWater(plan.water, t, 2)) continue;
       // no other road may cross its plot's pavement band either (a corner)
-      if (plan.roads.some((q) => q !== r && q.x < t.x + t.w + 2 && t.x - 2 < q.x + q.w && q.y < t.y + t.h + 2 && t.y - 2 < q.y + q.h)) continue;
+      // (beside a north-south street, no east-west one within two tiles of its top or foot either: the export fronts a plot
+      // on the road below or above it first)
+      const py = (q: typeof r): number => (!r.horizontal && q.horizontal ? 3 : 2);
+      if (plan.roads.some((q) => q !== r && q.x < t.x + t.w + 2 && t.x - 2 < q.x + q.w && q.y < t.y + t.h + py(q) && t.y - py(q) < q.y + q.h)) continue;
       const d = Math.hypot(t.x + t.w / 2 - plan.center.x, t.y + t.h / 2 - plan.center.y);
       if (d > CHAPEL_REACH) continue;
       const score = d + (r.main ? 0 : 6) + R('jit', t.x, t.y) * 3;

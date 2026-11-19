@@ -1,5 +1,6 @@
 import androidx.compose.ui.graphics.Color
 import kotlin.math.abs
+import kotlin.math.hypot
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import com.google.android.filament.Engine
@@ -176,7 +177,10 @@ fun renderFilamentOpen(out: String) {
     // --- downtown: the tallest building with nobody in it (a tower behind the main street, else the town hall), from the
     // pavement in front of its block, at the camera's usual height, zoomed out, at night, and from across town (its far box
     // on the skyline); -Dshots=downtown renders only these
-    ft.slots.filter { it.b.kind == com.lifemax.rpg.feature.habits.domain.PlacementKind.EXTRA && it.isBuilt }.maxByOrNull { it.cy }?.let { s ->
+    // (-Dspot=x,z: the building nearest that point instead, so a town's years can be shot from the same place)
+    val spot = System.getProperty("spot")?.split(",")?.mapNotNull { it.trim().toFloatOrNull() }?.takeIf { it.size == 2 }
+    (if (spot != null) ft.slots.filter { it.isBuilt && town.road(it.row.road).name == "Main Street" }.minByOrNull { hypot(it.cx - spot[0], it.cz - spot[1]) }
+     else ft.slots.filter { it.b.kind == com.lifemax.rpg.feature.habits.domain.PlacementKind.EXTRA && it.isBuilt }.maxByOrNull { it.cy })?.let { s ->
         val r = s.row
         val x = s.b.mid.coerceIn(40f, r.length - 40f)
         val p = r.pointAt(x, 7f); val a = r.alongAt(x); val n = r.normalAt(x)

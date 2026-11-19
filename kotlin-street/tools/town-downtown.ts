@@ -79,8 +79,8 @@ export function packOf(e: PackEntry, lot: Lot, plan: TownPlan, seed: string): { 
     let spec: Record<string, unknown>; let w = 224;
     if (r < 0.35) {
       const tall = R('tall') < 0.5;
-      spec = { id, kit: 'condo12', widthTiles: 10, colour: R('colour') < 0.5 ? 1 : 2, height: tall ? 'tall' : 'short', columns: tall ? [1, 3, 4, 5, 2] : [6, 9, 8, 10, 7] };
-      w = 320;
+      // (seven tiles, the plot's width: a wider block would stand into its neighbours' along the row)
+      spec = { id, kit: 'condo12', widthTiles: 7, colour: R('colour') < 0.5 ? 1 : 2, height: tall ? 'tall' : 'short', columns: tall ? [1, 4, 2] : [6, 9, 7] };
     } else if (r < 0.55) spec = { id, kit: 'b3_46', widthTiles: 7 };
     else if (r < 0.68) { spec = { id, kit: 'b8', widthTiles: 5 }; w = 160; }
     else spec = { id, kit, widthTiles: 7, ground: { kind: 'condo' }, floors: 2 + Math.floor(R('floors') * 2), roof: { style: 'flat' }, seed: Math.floor(R('seed') * 1000) };
@@ -131,7 +131,10 @@ export function extraBuildings(b: Buildings, plan: TownPlan, layout: TownLayout,
     add(towerOf(d, s.rect, seed), towerSpec(d, seed), 400);
   }
   const hall = townHall(plan);
-  if (hall && hall.built <= year) {
+  // (the hall is wider than the plaza at the art's scale: only where nothing stands within two tiles of the plaza's sides)
+  const pz = plan.plaza;
+  const crowded = [...plan.candidates, ...plan.landmarks].some((q) => q.x < pz.x + pz.w + 2 && pz.x - 2 < q.x + q.w && q.y < pz.y + pz.h && pz.y < q.y + q.h);
+  if (hall && hall.built <= year && !crowded) {
     // at the back of the plaza: its front ~1 tile behind the fountain's ring, its back a tile short of the plaza's
     const deep = hall.rect.h * 44.5;                               // world units (position scale)
     const setback = (deep - 300 * PX - 40) / PX;

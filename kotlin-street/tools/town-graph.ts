@@ -552,6 +552,20 @@ export function townGraph(seed: string, year: number): TownGraph {
       buildings: out, furniture: [], ends: ends.get(row)!,
     });
   }
+  // a building with nobody in it that stands into another's footprint (the town hall wider than its plaza where a store
+  // stands close by) is left out: the town is whole without it
+  {
+    const ov = (a: number[], b: number[]): boolean => a[0]! < b[2]! - 0.01 && b[0]! < a[2]! - 0.01 && a[1]! < b[3]! - 0.01 && b[1]! < a[3]! - 0.01;
+    const isExtra = new Set(extras.map((x) => x.sprite));
+    const drop = new Set(footprints.filter((f) => isExtra.has(f.sprite) && footprints.some((o) => o !== f && ov(f.rect, o.rect))).map((f) => f.sprite));
+    if (drop.size) {
+      for (let i = footprints.length - 1; i >= 0; i--) if (drop.has(footprints[i]!.sprite)) footprints.splice(i, 1);
+      for (const r of rowJson.values()) r.buildings = r.buildings.filter((b) => !drop.has(b.sprite));
+      for (let i = extras.length - 1; i >= 0; i--) if (drop.has(extras[i]!.sprite)) extras.splice(i, 1);
+      const es = buildings.entries as { sprite: string }[];
+      for (let i = es.length - 1; i >= 0; i--) if (drop.has(es[i]!.sprite)) es.splice(i, 1);
+    }
+  }
   // the yard-to-back plots, and each building's own footprint, must not overlap one another or any road
   const hit = (a: number[], b: number[], pad = 0.01): boolean => a[0]! < b[2]! - pad && b[0]! < a[2]! - pad && a[1]! < b[3]! - pad && b[1]! < a[3]! - pad;
   for (let i = 0; i < footprints.length; i++) for (let j = i + 1; j < footprints.length; j++) {
