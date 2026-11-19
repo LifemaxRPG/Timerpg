@@ -1,0 +1,14 @@
+{
+  "visible_triangles": 2954,
+  "materials": 12,
+  "glb_bytes": 271912,
+  "prop_triangles": {
+    "giant_pin": 416,
+    "service_yard": 84
+  },
+  "collision_boxes": 28,
+  "art_grid": "All embedded textures are exact 2x2 texel blocks",
+  "uv_scale_max_edge_error_m": 1.6129918662954879e-06,
+  "doors": "All three ground-level outward-facing nodes and gated panels verified",
+  "renderer": "Blender desktop previews, not Filament or S25 captures"
+}
