@@ -54,8 +54,8 @@ object CrashReport {
         val sb = StringBuilder()
         val f = file(ctx)
         if (f.isFile) { sb.append(f.readText().take(6000)).append('\n'); f.delete() }
-        // the NPU tuner restarts the game on purpose: that exit is not a crash
-        val ours = NpuTune.takeRestarting(ctx)
+        // the NPU tuner restarts the game on purpose, and Writer mode closes it to free its memory: those exits are not crashes
+        val ours = NpuTune.takeRestarting(ctx) or com.timerpg.street.night.NightWriter.takeClosedGame(ctx)
         if (Build.VERSION.SDK_INT >= 30) runCatching {
             val am = ctx.getSystemService(ActivityManager::class.java)
             val last = am.getHistoricalProcessExitReasons(ctx.packageName, 0, 1).firstOrNull()

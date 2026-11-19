@@ -57,9 +57,18 @@ class ModelRolesTest {
 
     @Test fun theOvernightWriterAlwaysWritesWithTheMainModel() {
         assertEquals(Load(ModelRole.BANK, copied = true), pick(7000, writing = true))
-        // even with the game in front (and its town up or not): the bank is the main model's
-        assertEquals(Load(ModelRole.BANK, copied = false), pick(4067, writing = true, foreground = true))
         assertEquals(Load(ModelRole.BANK, copied = true), pick(7000, writing = true, built = false))
+    }
+
+    @Test fun writingTheBankNeverFallsBackToTheCpuWhileThereIsADevice() {
+        // the main model's copy does not fit: the light model's copy on the NPU, not the main one from its file on the CPU
+        assertEquals(Load(ModelRole.LIVE, copied = true), pick(4067, writing = true, foreground = true))
+        // neither copy fits: wait (and say so), nothing on the CPU
+        assertTrue(pick(3000, writing = true) is ModelRoles.Wait)
+        // no light model on the phone: wait for room for the main one's copy
+        assertTrue(pick(4067, writing = true, liveBytes = 0) is ModelRoles.Wait)
+        // no accelerator (or the CPU chosen): the CPU from the file, as before
+        assertEquals(Load(ModelRole.BANK, copied = false), pick(4067, writing = true, accelerated = false))
     }
 
     @Test fun thePanelsSwitchPutsTheMainModelInPlay() {

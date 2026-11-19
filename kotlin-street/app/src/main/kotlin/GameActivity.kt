@@ -1769,6 +1769,8 @@ private fun NightPanel(s: AiStatus, engine: DialogueEngine) {
     Spacer(Modifier.height(2.dp))
     Text("Overnight writer", 14.sp)
     Chip("Write dialogue while charging: " + if (on) "on" else "off", on) { on = !on; nw.setEnabled(ctx, on) }
+    // Writer mode: its own screen in its own process; the game closes so the main model gets its memory
+    (ctx as? android.app.Activity)?.let { act -> Chip("Writer mode: close the game and write the bank now", false) { com.timerpg.street.night.WriterActivity.open(act) } }
     val b = s.bank
     Text("Bank: ${b.ready} of ${b.prompts} lines ready (${b.templates} built-in, ${b.missing} to write) · ${b.variants} lines with variants, " +
         "${b.variantsDone} prompts complete · stale ${b.stale} · years ${if (b.years.isEmpty()) "none yet" else b.years.joinToString()}", 12.sp, color = DIM)
