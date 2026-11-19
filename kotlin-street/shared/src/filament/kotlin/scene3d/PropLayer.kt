@@ -55,10 +55,15 @@ internal class PropLayer(
     sharedTextures: StreetTextures? = null,
     /** Whether Filament may cull each batch by its box (true only where Filament's camera is the camera drawn through). */
     private val cull: Boolean = false,
+    /**
+     * The pictures' anisotropic filtering (16 by default). The desktop's software GL (llvmpipe) lets it blur a magnified
+     * picture despite the nearest magnification; a close-up preview passes 1 to see the texels as the phone draws them.
+     */
+    anisotropy: Float = 16f,
 ) {
     private val ownTextures = sharedTextures == null
     private val textures = sharedTextures ?: StreetTextures(engine, srgb)
-    private val crisp = TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.CLAMP_TO_EDGE).also { it.anisotropy = 16f }
+    private val crisp = TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.CLAMP_TO_EDGE).also { it.anisotropy = anisotropy }
     private val nearest = TextureSampler(TextureSampler.MinFilter.NEAREST, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.CLAMP_TO_EDGE)
 
     /** Whether the last frame drew them faded (the next whole one sets the fade back). */

@@ -324,6 +324,11 @@ fun main(args: Array<String>) {
         k.getMethod("renderFilamentModels", String::class.java).invoke(null, out)
         return
     }
+    if (mode == "room") {
+        // the 3D interiors trial: a diner from the Modern Interiors pack (FilamentRoomPreview.kt; Filament's desktop build needed)
+        val k = runCatching { Class.forName("FilamentRoomPreviewKt") }.getOrNull() ?: error("Filament is not built in: run tools/build-filament.sh")
+        k.getMethod("renderRoom", String::class.java).invoke(null, out); return
+    }
     if (mode == "filament-cinema") {
         // the movie theater's eras and the posters of each decade (FilamentCinemaPreview.kt; Filament's desktop build needed)
         val k = runCatching { Class.forName("FilamentCinemaPreviewKt") }.getOrNull() ?: error("Filament is not built in: run tools/build-filament.sh")
