@@ -235,6 +235,8 @@ object PropRules {
                 blocked += floatArrayOf(kx - 6f, kx + 6f, 0f, 12f)
             }
             for (x in st.furniture) blocked += floatArrayOf(x - FURNITURE_HALF, x + FURNITURE_HALF, -1f, Crossroads.PAVE + Crossroads.KERB)
+            // a cinema's whole front is kept clear (its doors, ticket booth, poster cases and the queue under the marquee)
+            for (f in st.fronts) if (f.landmark == "cinema") blocked += floatArrayOf(f.x0 + 30f, f.x1 - 30f, -1f, Crossroads.PAVE + Crossroads.KERB)
             val hoodAt = { x: Float -> st.fronts.minByOrNull { f -> if (x in f.x0..f.x1) 0f else minOf(abs(f.x0 - x), abs(f.x1 - x)) }?.neighbourhood ?: "" }
 
             // 1. the corners: the name sign, the stop or the crossing sign at the crossing road's kerb, a hydrant just past
@@ -296,7 +298,11 @@ object PropRules {
                         }
                         if (lk == "fire") put(PropKind.CALL_BOX, 0, f.door + 40f)
                         if (lk == "hospital" || lk == "hotel") put(PropKind.BENCH, 0, f.door + 70f)
-                        if (rand(k, id, "litter") < .6f) put(PropKind.LITTER_BIN, 1, f.door - 40f, prefer = -1)
+                        if (lk == "cinema") {
+                            // bins at its two ends, by the corners of the front
+                            put(PropKind.LITTER_BIN, 1, f.x0 + 20f, prefer = -1, tries = 2)
+                            put(PropKind.LITTER_BIN, 1, f.x1 - 20f, tries = 2)
+                        } else if (rand(k, id, "litter") < .6f) put(PropKind.LITTER_BIN, 1, f.door - 40f, prefer = -1)
                     }
                     PlacementKind.HOME -> {
                         // the mailbox at the kerb beside the path to the door; the bins further from the path

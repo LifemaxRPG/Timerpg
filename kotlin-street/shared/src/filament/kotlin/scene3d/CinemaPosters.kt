@@ -37,6 +37,11 @@ data class CinemaFilm(
     val colours: List<Int> = emptyList(),
     /** The made-up lead (for the billing; not drawn legibly at this size). */
     val star: String = "",
+    /**
+     * Which of its motif's compositions the poster takes when set (0, 1, 2...: films of one motif on one bill take
+     * consecutive ones, so no two of a bill share a picture); -1: by its own seed.
+     */
+    val look: Int = -1,
 )
 
 /** The bigger pixel font (5 x 7) for marquees, signs and poster titles. */
@@ -124,6 +129,9 @@ internal object Pix {
     }
 
     /** A vertical gradient from [top] to [bottom] in [bands] flat bands, a checker of the two at each band's edge. */
+    /** How light [c] is, 0..1. */
+    fun lum(c: Int) = (((c shr 16) and 255) * .3f + ((c shr 8) and 255) * .59f + (c and 255) * .11f) / 255f
+
     fun bands(im: PixImg, x0: Int, y0: Int, x1: Int, y1: Int, top: Int, bottom: Int, bands: Int) {
         val h = max(1, y1 - y0)
         for (y in y0..y1) {
@@ -250,11 +258,11 @@ object CinemaPosters {
     private val MOTIF_GENRE = mapOf(
         "creature" to "monster", "rider" to "western", "dancers" to "musical", "rocket" to "scifi", "silhouette" to "noir",
         "colossus" to "epic", "agent" to "spy", "surfer" to "surfer", "castle" to "castle", "flames" to "disaster", "car" to "chase",
-        "gun" to "action", "planet" to "scifi", "eye" to "thriller", "fighter" to "action", "hero" to "hero", "grid" to "grid",
-        "knife" to "horror", "teens" to "comedy", "sword" to "scifi", "duo" to "action", "face" to "thriller", "animal" to "family",
-        "explosion" to "blockbuster", "couple" to "romance", "money" to "thriller", "army" to "hero", "cartoon" to "family",
-        "static" to "horror", "vault" to "thriller", "wave" to "disaster", "group" to "comedy", "shadow" to "horror",
-        "astronaut" to "scifi", "symbol" to "symbol", "portal" to "portal", "portrait" to "portrait", "microphone" to "microphone",
+        "gun" to "cop", "planet" to "scifi", "eye" to "thriller", "fighter" to "kungfu", "hero" to "hero", "grid" to "grid",
+        "knife" to "slasher", "teens" to "teen", "sword" to "fantasy", "duo" to "buddy", "face" to "thriller", "animal" to "family",
+        "explosion" to "blockbuster", "couple" to "romance", "money" to "heist", "army" to "army", "cartoon" to "family",
+        "static" to "found", "vault" to "vault", "wave" to "wave", "group" to "comedy", "shadow" to "horror",
+        "astronaut" to "astronaut", "symbol" to "symbol", "portal" to "portal", "portrait" to "portrait", "microphone" to "microphone",
     )
 
     internal fun paint(film: CinemaFilm): PixImg {
@@ -281,8 +289,9 @@ object CinemaPosters {
     internal fun wrap(s: String, n: Int): List<String> {
         val out = ArrayList<String>()
         var line = ""
-        for (w in s.uppercase().split(" ").filter { it.isNotEmpty() }) {
-            val word = if (w.length > n) w.take(n) else w
+        // (a word longer than a line breaks with a hyphen rather than losing its end)
+        val words = s.uppercase().split(" ").filter { it.isNotEmpty() }.flatMap { w -> if (w.length <= n) listOf(w) else w.chunked((w.length + (w.length + n - 2) / (n - 1) - 1) / ((w.length + n - 2) / (n - 1))).let { ch -> ch.mapIndexed { i, p -> if (i < ch.size - 1) "$p-" else p } } }
+        for (word in words) {
             line = if (line.isEmpty()) word else if (line.length + 1 + word.length <= n) "$line $word" else { out += line; word }
         }
         if (line.isNotEmpty()) out += line
@@ -410,7 +419,17 @@ object CinemaPosters {
     private fun fifties(im: PixImg, f: CinemaFilm, r: Paint.Rnd) {
         im.fill(PAPER)
         val red = c(0xD8342C); val yellow = c(0xF6C83A)
-        when (f.genre) {
+        // other compositions for the same motifs (seeded), so a bill does not repeat a picture
+        val monsterTitle = { title(im, f.title, 57, H - 3, col(f, 3, INK), null, small0 = col(f, 3, INK)) { if (it < 4) Pix.mix(col(f, 2, red), c(0xFFFFFF), .45f) else col(f, 2, red) } }
+        val other = when {
+            (f.genre == "monster" || f.genre == "horror") && CinemaPosterArt.alt(f, 3) == 1 -> { CinemaPosterArt.spider(im, f, r, col(f, 0, c(0x2A3A6A)).let { if (lum(it) > .5f) Pix.mix(it, c(0x101030), .6f) else it }, col(f, 1, c(0x2A2A2A)).let { if (lum(it) > .6f) c(0x2A2A2A) else it }); monsterTitle(); true }
+            (f.genre == "monster" || f.genre == "horror") && CinemaPosterArt.alt(f, 3) == 2 -> { CinemaPosterArt.sea(im, f, r, c(0x3A4A7A), col(f, 1, c(0x3C7A3A)).let { if (lum(it) > .6f) c(0x3C7A3A) else it }); monsterTitle(); true }
+            f.genre == "western" && CinemaPosterArt.alt(f, 2) == 1 -> { CinemaPosterArt.duel(im, f, r); title(im, f.title, 55, H - 3, INK, c(0x7A2A1A), small0 = INK) { if (it < 3) yellow else c(0xF08A2A) }; true }
+            (f.genre == "musical" || f.genre == "comedy") && CinemaPosterArt.alt(f, 2) == 1 -> { CinemaPosterArt.chorus(im, f, r); title(im, f.title, 55, H - 3, col(f, 3, INK), null, small0 = col(f, 3, INK)) { if (it < 4) col(f, 2, red) else Pix.mix(col(f, 2, red), c(0x000000), .25f) }; true }
+            (f.genre == "noir" || f.genre == "drama") && CinemaPosterArt.alt(f, 2) == 1 -> { CinemaPosterArt.lampPost(im, f, r); title(im, f.title, 55, H - 3, INK, null, small0 = INK) { red }; true }
+            else -> false
+        }
+        if (!other) when (f.genre) {
             "scifi" -> {
                 // the saucer over the town, its beam on a running crowd; or a finned rocket climbing on its flame
                 Pix.bands(im, 2, 2, W - 3, 52, col(f, 0, c(0x101838)).let { if (lum(it) > .4f) Pix.mix(it, c(0x101030), .7f) else it }, c(0x3A2A6A), 5)
@@ -508,8 +527,14 @@ object CinemaPosters {
 
     /** 1960s: flat bold colour: the epic's sand and gold, the spy's black and target rings. */
     private fun sixties(im: PixImg, f: CinemaFilm, r: Paint.Rnd) {
+        val epicTitle = { title(im, f.title, 49, H - 10, c(0x5A2A0A), null, small0 = c(0xF6C86A)) { if (it < 3) c(0xFFF2B0) else c(0xE8A82A) }; billing(im, c(0x8A7A6A), f.rating, r) }
+        when {
+            f.genre == "western" -> { CinemaPosterArt.western60(im, f, r); title(im, f.title, 49, H - 10, c(0x000000), null, small0 = c(0xF6C86A)) { if (it < 3) c(0xFFE8A0) else c(0xE8682A) }; billing(im, c(0x7A5A4A), f.rating, r); return }
+            f.genre == "epic" && CinemaPosterArt.alt(f, 2) == 1 -> { CinemaPosterArt.colossus(im, f, r); epicTitle(); return }
+            f.genre == "spy" && CinemaPosterArt.alt(f, 2) == 1 -> { CinemaPosterArt.spyStairs(im, f, r); title(im, f.title, 51, H - 10, c(0x101018), null, small0 = c(0xF0E8E0)) { col(f, 2, c(0xF6C83A)) }; billing(im, c(0x6A6A7A), f.rating, r); return }
+        }
         when (f.genre) {
-            "epic", "western", "drama" -> {
+            "epic", "drama" -> {
                 Pix.bands(im, 0, 0, W - 1, 46, c(0xF6C86A), c(0xC8682A), 5)
                 Pix.disc(im, 34f, 18f, 7f, c(0xFFF2B0))
                 // a temple's columns and a pyramid, an army of dots across the dunes
@@ -565,8 +590,13 @@ object CinemaPosters {
 
     /** 1970s: disasters and car chases, with the cast's photo blocks along the foot. */
     private fun seventies(im: PixImg, f: CinemaFilm, r: Paint.Rnd) {
-        when (f.genre) {
-            "chase", "action", "comedy" -> {
+        val other = when {
+            f.genre == "kungfu" -> { CinemaPosterArt.kungfu(im, f, r); title(im, f.title, 48, H - 10, c(0x000000), null, small0 = c(0xF6D85A)) { if (it < 3) c(0xFFF0C0) else c(0xF6C83A) }; true }
+            f.genre == "chase" && CinemaPosterArt.alt(f, 2) == 1 -> { CinemaPosterArt.rig(im, f, r); title(im, f.title, 53, H - 10, INK, null, small0 = c(0xF6D88A)) { c(0xF6C83A) }; true }
+            else -> false
+        }
+        if (!other) when (if (f.genre == "cop") "action" else f.genre) {
+            "chase", "comedy" -> {
                 Pix.bands(im, 0, 0, W - 1, 26, c(0xF6D88A), c(0xE8A84A), 3)
                 // a road to the horizon, a car leaping with its dust and speed lines
                 im.rect(0, 26, W - 1, 52, c(0xC89A5A)); for (k in 0 until 40) im[r.int(W), 27 + r.int(25)] = c(0xA87A4A)
@@ -668,6 +698,22 @@ object CinemaPosters {
     /** 1980s: neon grids to a striped sun, chrome titles; starships and explosions. */
     private fun eighties(im: PixImg, f: CinemaFilm, r: Paint.Rnd) {
         val chrome = intArrayOf(c(0xFFFFFF), c(0xC8E8FF), c(0x8AB8E8), c(0x5A6A9A), c(0x2A2A5A), c(0xE8A8F0), c(0xFFFFFF))
+        when {
+            f.genre == "slasher" -> CinemaPosterArt.slasher(im, f, r)
+            f.genre == "teen" || f.genre == "comedy" -> CinemaPosterArt.teens(im, f, r)
+            f.genre == "fantasy" -> CinemaPosterArt.fantasy(im, f, r)
+            f.genre == "buddy" -> CinemaPosterArt.buddies(im, f, r)
+            (f.genre == "action" || f.genre == "hero") && CinemaPosterArt.alt(f, 2) == 1 -> CinemaPosterArt.jungle(im, f, r)
+            else -> eightiesMain(im, f, r)
+        }
+        im.rect(0, 50, W - 1, H - 1, c(0x0A0A14))
+        title(im, f.title, 51, H - 10, c(0x14143A), null, small0 = c(0xC8E8FF)) { chrome[it.coerceIn(0, chrome.size - 1)] }
+        // the neon edge
+        for (x in 0 until W) { im[x, 0] = col(f, 1, c(0xE83AC8)); im[x, H - 1] = col(f, 2, c(0x3AE8FF)) }
+        billing(im, c(0x6A5A8A), f.rating, r)
+    }
+
+    private fun eightiesMain(im: PixImg, f: CinemaFilm, r: Paint.Rnd) {
         when (f.genre) {
             "horror" -> {
                 // a blood moon over bare trees, a clawed hand out of the earth
@@ -709,18 +755,36 @@ object CinemaPosters {
                 im.rect(0, 31, W - 1, 50, c(0x14061E))
                 for (k in -8..8) Pix.line(im, 24 + k * 2, 31, 24 + k * 9, 50, col(f, 1, c(0xE83AC8)))
                 for (y in listOf(31, 33, 36, 40, 45, 50)) im.hline(0, W - 1, y, col(f, 1, c(0xE83AC8)))
-                Pix.figure(im, 24f, 49f, 18f, c(0x0A0A14), pose = 0)
+                when (CinemaPosterArt.alt(f, 3, 40)) {
+                    0 -> Pix.figure(im, 24f, 49f, 18f, c(0x0A0A14), pose = 0)
+                    1 -> { // a low sports car racing down the grid, its tail lights
+                        im.rect(10, 40, 38, 46, c(0x0A0A14)); im.rect(15, 36, 32, 40, c(0x0A0A14)); im.rect(17, 37, 30, 39, col(f, 2, c(0x3AE8FF)))
+                        im.rect(11, 42, 14, 43, c(0xFF3A3A)); im.rect(34, 42, 37, 43, c(0xFF3A3A)); im.rect(12, 46, 16, 48, c(0x000000)); im.rect(32, 46, 36, 48, c(0x000000))
+                    }
+                    else -> { // wireframe peaks either side of the sun, a lone tower between
+                        for (s in listOf(-1, 1)) { Pix.line(im, 24 + s * 24, 31, 24 + s * 14, 16, col(f, 1, c(0xE83AC8))); Pix.line(im, 24 + s * 14, 16, 24 + s * 6, 31, col(f, 1, c(0xE83AC8))); Pix.line(im, 24 + s * 14, 16, 24 + s * 14, 31, col(f, 1, c(0xE83AC8))) }
+                        im.rect(23, 14, 25, 31, c(0x0A0A14)); im[24, 13] = c(0xFF3A3A)
+                    }
+                }
             }
         }
-        im.rect(0, 50, W - 1, H - 1, c(0x0A0A14))
-        title(im, f.title, 51, H - 10, c(0x14143A), null, small0 = c(0xC8E8FF)) { chrome[it.coerceIn(0, chrome.size - 1)] }
-        // the neon edge
-        for (x in 0 until W) { im[x, 0] = col(f, 1, c(0xE83AC8)); im[x, H - 1] = col(f, 2, c(0x3AE8FF)) }
-        billing(im, c(0x6A5A8A), f.rating, r)
     }
 
     /** 1990s: a thriller's face half in shadow; a family picture's bright sky and a cheerful critter. */
     private fun nineties(im: PixImg, f: CinemaFilm, r: Paint.Rnd) {
+        if (f.genre == "romance") {
+            CinemaPosterArt.romcom(im, f, r)
+            title(im, f.title, 49, H - 10, c(0xF8F6F0), null, small0 = c(0x5A5A6A)) { col(f, 2, c(0xE85A8A)).let { if (lum(it) > .85f) c(0xE85A8A) else it } }
+            billing(im, c(0xA8A8B0), f.rating, r)
+            return
+        }
+        if (f.genre == "heist") {
+            CinemaPosterArt.heist(im, f, r)
+            im.rect(0, 47, W - 1, H - 1, c(0x101410))
+            title(im, f.title, 49, H - 10, c(0x000000), null, scaleMax = 1, small0 = c(0xC8E8C8)) { c(0x8AE88A) }
+            billing(im, c(0x3A5A3A), f.rating, r)
+            return
+        }
         if (f.genre == "family" || f.genre == "comedy") {
             Pix.bands(im, 0, 0, W - 1, 46, c(0x3A8AE8), c(0x8AD8F6), 4)
             for ((k, col) in listOf(0xE83A3A, 0xF6A83A, 0xF6E83A, 0x3AC85A, 0x3A6AE8).withIndex()) Pix.ring(im, 24f, 46f, 30f - k * 2f, 2f, c(col.toLong()))
@@ -735,7 +799,7 @@ object CinemaPosters {
             Pix.bands(im, 0, 0, W - 1, 30, col(f, 0, c(0x1A2A4A)), Pix.mix(col(f, 0, c(0x1A2A4A)), col(f, 2, c(0xE8A020)), .5f), 4)
             if (f.genre == "action" || f.genre == "disaster" || f.genre == "blockbuster" || f.genre == "scifi") { Pix.disc(im, 24f, 30f, 12f, Pix.mix(col(f, 2, c(0xE8A020)), c(0xC82A1A), .4f)); Pix.disc(im, 24f, 30f, 7f, col(f, 2, c(0xE8A020))) }
             else Pix.disc(im, 36f, 10f, 5f, Pix.mix(col(f, 2, c(0xE8A020)), c(0xFFFFFF), .4f))
-            faces(im, 3, 24, 46, f.seed, r, Pix.mix(col(f, 0, c(0x1A2A4A)), c(0x000000), .3f))
+            faces(im, 2 + CinemaPosterArt.alt(f, 3), 24, 46, f.seed, r, Pix.mix(col(f, 0, c(0x1A2A4A)), c(0x000000), .3f))
             im.rect(0, 47, W - 1, H - 1, c(0x101010))
             title(im, f.title, 49, H - 10, c(0x000000), null, scaleMax = 1, small0 = col(f, 3, c(0xFFFFFF))) { col(f, 3, c(0xFFFFFF)) }
             billing(im, c(0x5A5A5A), f.rating, r)
@@ -770,7 +834,7 @@ object CinemaPosters {
             billing(im, c(0xA8A8A8), f.rating, r, rows = 1)
             return
         }
-        if (f.genre == "horror") {
+        if (f.genre == "horror" || f.genre == "found") {
             // found footage: night-vision green static, a figure at the end of a corridor
             for (y in 0 until H) for (x in 0 until W) im[x, y] = if (r.next() < .2f) c(0x2A5A2A) else if (r.next() < .1f) c(0x5A8A5A) else c(0x0A1A0A)
             Pix.tri(im, 24f, 20f, 4f, 50f, 44f, 50f, c(0x143014)); Pix.figure(im, 24f, 34f, 10f, c(0x000000))
@@ -779,7 +843,10 @@ object CinemaPosters {
             billing(im, c(0x3A5A3A), f.rating, r, rows = 1)
             return
         }
-        if (f.genre == "family") {
+        if (f.genre == "army" || f.genre == "epic") CinemaPosterArt.army(im, f, r)
+        else if (f.genre == "vault" || f.genre == "heist") CinemaPosterArt.vault(im, f, r)
+        else if (f.genre == "wave") CinemaPosterArt.wave(im, f, r)
+        else if (f.genre == "family") {
             // the bright family bill: a sky of balloons, a cartoon house
             Pix.bands(im, 0, 0, W - 1, 50, c(0x5AB8F6), c(0xC8F0FF), 3)
             for (k in 0 until 7) { val x = 6f + r.int(36); val y = 6f + r.int(22); Pix.ellipse(im, x, y, 3f, 4f, c(listOf(0xE83A3A, 0xF6C83A, 0x3AC85A, 0xE85AB8)[k % 4].toLong())); im.vline(x.toInt(), (y + 4).toInt(), (y + 10).toInt(), c(0x5A5A6A)) }
@@ -823,6 +890,18 @@ object CinemaPosters {
             return
         }
         val top = col(f, 0, c(pal[0].toLong())); val bot = if (f.colours.isEmpty()) c(pal[1].toLong()) else Pix.mix(top, col(f, 2, top), .6f); val flare = col(f, 1, c(pal[2].toLong()))
+        val other = when (f.genre) {
+            "astronaut", "scifi" -> { CinemaPosterArt.astronaut(im, f, r); true }
+            "noir", "dystopia" -> { CinemaPosterArt.dystopia(im, f, r, top, bot, flare); true }
+            "cop", "action" -> { CinemaPosterArt.rainWalk(im, f, r, top, bot, flare); true }
+            else -> false
+        }
+        if (other) {
+            im.rect(0, 56, W - 1, H - 1, c(0x08080C))
+            title(im, f.title, 57, H - 10, c(0x08080C), null, scaleMax = 1, small0 = c(0xE8E8F0)) { c(0xE8E8F0) }
+            billing(im, c(0x3A3A4A), f.rating, r, rows = 1)
+            return
+        }
         Pix.bands(im, 0, 0, W - 1, 56, top, bot, 5)
         Pix.skyline(im, 0, W - 1, 44, 18, Pix.mix(top, bot, .5f), r, lit = Pix.mix(flare, top, .4f))
         val lone = (f.seed and 0x7fffffff) % 3 == 1
@@ -859,21 +938,17 @@ object CinemaPosters {
         val pal = pick(listOf(intArrayOf(0xE8C8B8.toInt(), 0x3A2A3A.toInt(), 0xD85A3A.toInt()), intArrayOf(0xB8D8C8.toInt(), 0x1A3A3A.toInt(), 0xF6E8D0.toInt()), intArrayOf(0x2A2A3A.toInt(), 0xE8E0D0.toInt(), 0xE8A83A.toInt()), intArrayOf(0xF6E8A8.toInt(), 0x2A2A2A.toInt(), 0x3A6AE8.toInt())), f)
         val bg = col(f, 0, c(pal[0].toLong())); val ink = col(f, 1, c(pal[1].toLong())); val acc = col(f, 2, c(pal[2].toLong()))
         im.fill(bg)
-        val variant = when (f.genre) { "symbol" -> 0; "portrait", "thriller", "drama" -> 1; "portal", "horror" -> 2; "microphone" -> 4; "hero", "action" -> 5; else -> (f.seed and 0x7fffffff) % 4 }
+        val variant = when (f.genre) { "symbol", "horror" -> 0; "portrait", "thriller", "drama", "romance" -> 1; "portal" -> 2; "microphone" -> 4; "hero", "action" -> 5; "family" -> 6; else -> (f.seed and 0x7fffffff) % 4 }
         when (variant) {
-            4 -> { // a microphone on its stand
-                Pix.disc(im, 24f, 16f, 5f, ink); Pix.disc(im, 24f, 16f, 3.5f, acc); for (y in 12..20 step 2) im.hline(21, 27, y, ink)
-                im.rect(23, 21, 24, 44, ink); im.rect(17, 44, 30, 45, ink)
+            0 -> CinemaPosterArt.symbol(im, f, ink, acc, bg)
+            1 -> CinemaPosterArt.portrait(im, f, ink, acc, bg)
+            2 -> CinemaPosterArt.portal(im, f, ink, acc, bg)
+            4 -> CinemaPosterArt.biopic(im, f, ink, acc, bg)
+            5 -> CinemaPosterArt.hero20(im, f, ink, acc, bg)
+            6 -> { // a cartoon critter on a flat field, a sun
+                Pix.disc(im, 36f, 12f, 6f, acc); im.rect(4, 44, W - 5, 46, ink)
+                critter(im, 24f, 44f, Pix.mix(acc, c(0xFFFFFF), .3f))
             }
-            5 -> { // a lone figure in a slab of light
-                Pix.tri(im, 24f, 0f, 10f, 46f, 38f, 46f, Pix.mix(bg, acc, .35f)); Pix.figure(im, 24f, 46f, 16f, ink); im.hline(4, W - 5, 46, ink)
-            }
-            0 -> { Pix.disc(im, 24f, 26f, 9f, acc); im.hline(4, W - 5, 36, ink); Pix.figure(im, 14f, 36f, 6f, ink) }
-            1 -> { // a duotone face
-                for (y in 6..50) for (x in 6..41) { val dx = (x - 24f) / 15f; val dy = (y - 28f) / 20f; if (dx * dx + dy * dy < 1f) im[x, y] = if ((x + y) % 2 == 0 && x > 26) ink else Pix.mix(acc, ink, ((x - 6) / 36f) * .7f) }
-                im.rect(14, 24, 20, 25, ink); im.rect(28, 24, 34, 25, bg)
-            }
-            2 -> { im.rect(20, 8, 27, 46, acc); im.rect(22, 10, 25, 44, bg); Pix.figure(im, 24f, 46f, 7f, ink) }
             else -> { for (k in 0 until 7) im.hline(8, W - 9, 12 + k * 5, if (k == 3) acc else Pix.mix(bg, ink, .2f)); Pix.disc(im, 24f, 27f, 3f, ink) }
         }
         // the title spaced wide, small, at the foot
@@ -909,17 +984,17 @@ object CinemaBill {
         "western" to (listOf("SADDLE OF", "GUNSMOKE OVER", "THE LAST RIDE TO", "RIDERS OF", "SHOWDOWN AT") to listOf("COPPER CREEK", "MESA ROJA", "DRY GULCH", "LONE PINE", "BITTER WELLS", "DEADMAN FLATS")),
         "musical" to (listOf("DANCING ON", "A SONG FOR", "STEPPING OUT IN", "MOONLIGHT ON", "SPRINGTIME IN") to listOf("MAPLE LANE", "PARIS SPRING", "THE BANDSTAND", "BLUEBELL PIER", "CORAL BAY")),
         "romance" to (listOf("AN AFFAIR IN", "LETTERS FROM", "SUMMER IN", "THE GIRL FROM", "A KISS IN") to listOf("CAPRIOLA", "SEASIDE", "VENICE BAY", "LAKE MERRIN", "JUNE HARBOR")),
-        "drama" to (listOf("THE WINTER OF", "HOUSE OF", "THE HOURS OF", "A LETTER TO", "THE LONG ROAD TO") to listOf("ASHFORD", "MARGO", "ORCHARD HILL", "THE VIGIL", "GRAYMOOR")),
+        "drama" to (listOf("THE WINTER OF", "HOUSE OF", "THE HOURS OF", "A LETTER TO", "THE LONG ROAD TO") to listOf("ASHFORD", "MARGO", "ORCHARD HILL", "THE VIGIL AT KESTON", "GRAYMOOR")),
         "epic" to (listOf("THE FALL OF", "KING OF", "SWORD OF", "THE SANDS OF", "EMPRESS OF") to listOf("KARTHOS", "ARAMOR", "TEN TOWERS", "VALERIA", "THE DELTA")),
         "spy" to (listOf("AGENT", "OPERATION", "CODE NAME", "DEADLINE FOR", "THE MAN FROM") to listOf("NIGHTJAR", "SILVERFOX", "KESTREL", "BRASSWOOD", "CIPHER NINE")),
         "comedy" to (emptyList<String>() to listOf("WHO STOLE THE TUBA", "MY UNCLE PIBBS", "BEACH WEEK MAYHEM", "THAT CRAZY TROPHY", "HOLIDAY WITH GUS", "OOPS ALL WEDDINGS")),
         "disaster" to (listOf("INFERNO AT", "THE BURNING", "FLOOD OF", "THE LAST VOYAGE OF", "TREMOR AT") to listOf("SKYTOWER", "THE ARCTURUS", "BAY CITY", "PIER 40", "GLASS SUMMIT")),
         "chase" to (emptyList<String>() to listOf("HIGHWAY BANDITS", "FREEWAY HAULERS", "DUSTBOWL PURSUIT", "RED LIGHT RUNNERS", "THE COPPERHEAD RUN", "SMOKEY RIDGE GETAWAY")),
-        "horror" to (listOf("DON'T OPEN", "WHISPERS IN", "IT CAME FROM", "THE THING IN", "NIGHT AT") to listOf("THE CELLAR", "THE ATTIC", "ROOM 9", "THE FOG BANK", "BLACK LAKE", "HOLLOW PINES")),
-        "action" to (emptyList<String>() to listOf("IRON TEMPEST", "STEEL VENDETTA", "RAZOR PROTOCOL", "BLACKOUT RUN", "THUNDERHEAD", "LAST SHOT AT ZERO")),
-        "thriller" to (emptyList<String>() to listOf("THE GRAYMOOR WITNESS", "COLD TRACE", "SILENT ALIBI", "THE NINTH DOOR", "BLIND CORNER", "PALE MOTIVE")),
+        "horror" to (listOf("DON'T OPEN", "WHISPERS IN", "IT CAME FROM", "THE THING IN", "NIGHT AT") to listOf("THE CELLAR STAIRS", "THE ATTIC AT WHITBY LANE", "ROOM 9", "THE FOG BANK", "BLACK LAKE", "HOLLOW PINES")),
+        "action" to (emptyList<String>() to listOf("IRON TEMPEST", "STEEL VENDETTA", "RAZOR PROTOCOL", "BLACKOUT RUN", "THUNDERWAKE RUN", "LAST SHOT AT ZERO")),
+        "thriller" to (emptyList<String>() to listOf("THE GRAYMOOR WITNESS", "COLD TRACE", "SILENT ALIBI", "THE GLASS JUROR", "BLIND CORNER", "PALE MOTIVE")),
         "family" to (listOf("A PUP NAMED", "MY FRIEND", "THE AMAZING", "GOOD BOY", "LITTLE") to listOf("WAFFLES", "GIZMO", "PICKLES", "BARNABY", "NOODLE", "BISCUIT")),
-        "blockbuster" to (emptyList<String>() to listOf("SKYFIRE UPRISING", "DARK MERIDIAN", "PLANETFALL", "TITANFORGE", "BREACH OF DAWN", "ZERO HORIZON")),
+        "blockbuster" to (emptyList<String>() to listOf("SKYFIRE UPRISING", "DARK MERIDIAN", "PLANETFALL ZERO", "TITANFORGE", "BREACH OF DAWN", "ZERO HORIZON")),
         "hero" to (emptyList<String>() to listOf("GUARDIANS OF VOLTA", "THE MIGHTY PRISM", "LEGION OF THE STORM", "CAPTAIN AURORA", "KEEPERS OF SEVEN SUNS", "VOLTA RISING", "THE PRISM SQUAD")),
     )
     private val taglines = listOf("SEE IT NOW", "YOU WON'T BELIEVE IT", "THE PICTURE OF THE YEAR", "NO ONE IS SAFE", "ONE LAST CHANCE",
@@ -950,6 +1025,7 @@ object CinemaBill {
             val f = film(decade, seed * 1009 + year * 13 + k++)
             if (films.none { it.title == f.title }) films += f
         }
-        return CinemaInfo(name, year, films.take(now), films.drop(now).take(soon))
+        val (a, b) = CinemaInfo.distinctTaglines(films.take(now), films.drop(now).take(soon))
+        return CinemaInfo(name, year, a, b)
     }
 }

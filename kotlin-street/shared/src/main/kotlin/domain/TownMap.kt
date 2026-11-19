@@ -363,7 +363,7 @@ class Town(
                 roads = g.getJSONArray("roads").objects().map {
                     Road(it.getInt("id"), it.getString("name"), it.optBoolean("main"), it.getInt("a"), it.getInt("b"), points(it.getJSONArray("pts")), it.f("width"))
                 },
-                rows = g.getJSONArray("rows").objects().map { row(it) },
+                rows = g.getJSONArray("rows").objects().map { row(it, cinemaSprites(g)) },
                 landmarks = g.optJSONArray("landmarks")?.objects()?.map {
                     Landmark(it.getString("id"), it.getString("kind"), it.optString("name"), it.getString("sprite"), it.optString("art"), it.getString("row"), it.getJSONArray("rect").floats())
                 } ?: emptyList(),
@@ -378,7 +378,24 @@ class Town(
             )
         }
 
-        private fun row(r: JSONObject): Row {
+        /** The sprites of the rows' buildings that are cinemas (the landmark of kind cinema). */
+        private fun cinemaSprites(g: JSONObject): Set<String> =
+            g.optJSONArray("landmarks")?.objects()?.filter { it.optString("kind") == "cinema" }?.map { it.optString("sprite") }?.toSet() ?: emptySet()
+
+        /**
+         * [list] kept off a cinema's entrance: the lamps and benches standing along a cinema's front are moved to its two
+         * ends (a lamp each end, if none stands there), so nothing stands before its doors, ticket booth or poster cases.
+         */
+        private fun clearOfCinemas(list: List<RowFurniture>, buildings: List<Triple<String, Float, Float>>, cinemas: Set<String>): List<RowFurniture> {
+            val fronts = buildings.filter { it.first in cinemas }.map { it.second to it.third }
+            if (fronts.isEmpty()) return list
+            val out = list.filter { fu -> fronts.none { b -> fu.x > b.first + 24f && fu.x < b.second - 24f } }.toMutableList()
+            for (b in fronts) for (x in listOf(b.first + 12f, b.second - 12f))
+                if (out.none { it.kind == FurnitureKind.LAMP && kotlin.math.abs(it.x - x) < 60f }) out += RowFurniture(FurnitureKind.LAMP, x, 0f)
+            return out.sortedBy { it.x }
+        }
+
+        private fun row(r: JSONObject, cinemas: Set<String> = emptySet()): Row {
             val ends = r.getJSONObject("ends")
             return Row(
                 id = r.getString("id"),
@@ -402,9 +419,9 @@ class Town(
                         b.optString("neighbourhood"), PlacementKind.valueOf(b.getString("kind").uppercase()), b.optString("lot"),
                     )
                 },
-                furniture = r.optJSONArray("furniture")?.objects()?.map {
+                furniture = clearOfCinemas(r.optJSONArray("furniture")?.objects()?.map {
                     RowFurniture(FurnitureKind.valueOf(it.getString("kind").uppercase()), it.f("x"), it.optDouble("look", 0.0).toFloat())
-                } ?: emptyList(),
+                } ?: emptyList(), r.getJSONArray("buildings").objects().map { b -> Triple(b.getString("sprite"), b.f("x0"), b.f("x1")) }, cinemas),
                 start = end(ends.getJSONObject("start")),
                 end = end(ends.getJSONObject("end")),
             )

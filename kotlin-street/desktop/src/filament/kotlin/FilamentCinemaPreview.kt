@@ -23,6 +23,7 @@ import com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaFilm
 import com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaInfo
 import com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaKit
 import com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaLayer
+import com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaLights
 import com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaModel
 import com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaPosters
 import com.lifemax.rpg.feature.habits.presentation.scene3d.Paint
@@ -101,7 +102,7 @@ fun renderCinema(out: String) {
         val lit = mat("street_lit")
         val proxy = mat("shadow_proxy")
         for ((era, year, name) in eras) {
-            val info = bills.firstOrNull { it.year == year && name.isEmpty() } ?: CinemaKit.sample(year, name, seed = year)
+            val info = (bills.firstOrNull { it.year == year && name.isEmpty() } ?: CinemaKit.sample(year, name, seed = year)).let { if (it.width > 0f) it else it.copy(width = CinemaKit.LOT, depth = CinemaKit.DEEP) }
             val rt = Runtime.getRuntime()
             System.gc()
             val before = rt.totalMemory() - rt.freeMemory()
@@ -120,25 +121,28 @@ fun renderCinema(out: String) {
             yard(stage, -1200f, 1200f)
             val cinema = CinemaLayer(stage.props)
             val setback = 8f
-            cinema.add(m, floatArrayOf(0f, setback, 1f, 0f, 0f, -1f, 0f))
+            val at = floatArrayOf(0f, setback, 1f, 0f, 0f, -1f, 0f)
+            cinema.add(m, at)
+            val lamps = CinemaLights(engine, stage.scene).also { it.add(m.lights, at) }
             model = null
             var seconds = 0.0
-            stage.after = { dark -> cinema.update(dark, seconds) }
+            stage.after = { dark -> cinema.update(dark, seconds); lamps.update(dark) }
             val fz = setback
             val wide = max(1f, m.footprint[2] - m.footprint[0]) / 520f
             val shots = listOf(
-                Triple("street", floatArrayOf(0f, 80f, -420f), floatArrayOf(0f, 80f, 0f)) to 64f,
-                Triple("quarter", floatArrayOf(-470f * wide, 190f, -430f * wide), floatArrayOf(0f, 95f, fz + 120f)) to 50f,
-                Triple("marquee", floatArrayOf(-90f, 52f, -170f), floatArrayOf(0f, 100f, fz)) to 55f,
-                Triple("side", floatArrayOf(-700f, 110f, fz + 150f), floatArrayOf(0f, 80f, fz + 190f)) to 50f,
-                Triple("behind", floatArrayOf(430f * wide, 320f * wide, fz + m.depth + 650f * wide), floatArrayOf(0f, 60f, fz + m.depth * .6f)) to 50f,
-                Triple("above", floatArrayOf(-560f * wide, 860f * wide, -360f * wide), floatArrayOf(0f, 0f, fz + m.depth / 2f)) to 50f,
+                Triple("street", floatArrayOf(0f, 110f, -760f), floatArrayOf(0f, 170f, 0f)) to 60f,
+                Triple("quarter", floatArrayOf(-560f * wide, 250f, -560f * wide), floatArrayOf(0f, 150f, fz + 140f)) to 52f,
+                Triple("marquee", floatArrayOf(-120f, 58f, -240f), floatArrayOf(0f, 110f, fz)) to 55f,
+                Triple("side", floatArrayOf(-900f, 170f, fz + 260f), floatArrayOf(0f, 120f, fz + 330f)) to 54f,
+                Triple("behind", floatArrayOf(520f * wide, 480f, fz + m.depth + 560f), floatArrayOf(0f, 90f, fz + m.depth * .55f)) to 54f,
+                Triple("above", floatArrayOf(-700f * wide, 1150f, -520f), floatArrayOf(0f, 0f, fz + m.depth / 2f)) to 52f,
             )
             for (hour in hours) {
                 val tag = "%.1f".format(hour).replace(".0", "").replace(".", "_")
                 for ((s, fov) in shots) stage.shoot(File(dir, "${era}_${s.first}_$tag.png"), hour, s.second, s.third, fov)
             }
-            for (k in 0..2) { seconds = k / CinemaLayer.CHASE_RATE + .01; stage.shoot(File(dir, "${era}_chase_$k.png"), 22.5f, floatArrayOf(-60f, 70f, -150f), floatArrayOf(0f, 100f, fz), 50f) }
+            for (k in 0..2) { seconds = k * CinemaLayer.PAGE_SECONDS + .3; stage.shoot(File(dir, "${era}_chase_$k.png"), 22.5f, floatArrayOf(-100f, 80f, -300f), floatArrayOf(0f, 120f, fz), 55f) }
+            lamps.destroy()
             stage.destroy()
         }
         engine.destroyMaterial(lit); engine.destroyMaterial(proxy)
@@ -272,7 +276,14 @@ private class CinemaStage(val engine: Engine, lit: Material, proxy: Material, va
         m[3] = -(m[0] * eye[0] + m[1] * eye[1] + m[2] * eye[2]); m[7] = -(m[4] * eye[0] + m[5] * eye[1] + m[6] * eye[2]); m[11] = -(f[0] * eye[0] + f[1] * eye[1] + f[2] * eye[2])
         LookMatrix.pinhole(m, w.toFloat(), h.toFloat(), 2f, look)
         val near = 4.0; val k = near / fl
-        camera.setProjection(Camera.Projection.PERSPECTIVE, -cx * k, (w - cx) * k, -(h - cy) * k, cy * k, near, near + 3000.0)
+        // (the street's look is mirrored from Filament's right-handed camera: the camera's projection is mirrored too, so
+        // Filament's light grid, which follows its camera, puts the theater's lights where the picture shows them)
+        val far = near + 3000.0
+        val l = -cx * k; val rr = (w - cx) * k; val bb = -(h - cy) * k; val tt = cy * k
+        val proj = DoubleArray(16)
+        proj[0] = -2 * near / (rr - l); proj[5] = 2 * near / (tt - bb); proj[8] = -(rr + l) / (rr - l); proj[9] = (tt + bb) / (tt - bb)
+        proj[10] = -(far + near) / (far - near); proj[11] = -1.0; proj[14] = -2 * far * near / (far - near)
+        camera.setCustomProjection(proj, near, far)
         camera.lookAt(eye[0].toDouble(), eye[1].toDouble(), eye[2].toDouble(), at[0].toDouble(), at[1].toDouble(), at[2].toDouble(), 0.0, 1.0, 0.0)
         props.update(look, skyColors(hour).dark)
         after(skyColors(hour).dark)

@@ -328,7 +328,7 @@ const GENRES: Record<Decade, Record<string, GenreSpec>> = {
   },
   2020: {
     horror: {
-      titles: ['Them in the Orchard', 'Mother of Thorns', 'The Hollowing', 'Saltmarsh Sunday', 'Underneath the Lake House', 'The Antler Wife', 'Grandmother\'s Teeth', 'The Tenant in the Wall', 'The {last} Rite', 'What Waits in {place}', 'The Visitors Upstairs'],
+      titles: ['Them in the Orchard', 'Mother of Thorns', 'The Hollowing of Wren Hill', 'Saltmarsh Sunday', 'Underneath the Lake House', 'The Antler Wife', 'Grandmother\'s Teeth', 'The Tenant in the Wall', 'The {last} Rite', 'What Waits in {place}', 'The Visitors Upstairs'],
       taglines: ['Grief has a shape.', 'The family is the house. The house is hungry.', 'It was never just a dream.'],
       motif: 'symbol', ratings: ['R'], weight: 3, sequels: true,
     },
@@ -371,6 +371,37 @@ const PALETTES: Record<Decade, readonly [string, string, string, string][]> = {
   2010: [['#0a2830', '#ff9a3a', '#2ad0c8', '#f0f8f8'], ['#081820', '#3ac0d0', '#f07a2a', '#ffffff'], ['#101018', '#e8e8f0', '#e8b030', '#ffffff'], ['#1c2a38', '#f0c890', '#38a8c0', '#f8f8f8']],
   2020: [['#e8dcc8', '#2a2a28', '#c8402a', '#1a1a18'], ['#1a3a34', '#e8d8b0', '#e87a5a', '#f8f0e0'], ['#f0c8c0', '#3a2a5a', '#f8f0e8', '#2a2040'], ['#101010', '#d8c070', '#f0f0f0', '#d8c070']],
 };
+
+/** Spare taglines per decade, for when a year's bill would print the same line twice. */
+export const SPARE_TAGLINES: Record<Decade, readonly string[]> = {
+  1950: ['The picture everyone is talking about!', 'Bigger! Bolder! Better than ever!', 'You have never seen anything like it!', 'Bring the whole gang!', 'The thrill of a lifetime!'],
+  1960: ['The motion picture event of the year!', 'An adventure for the ages!', 'Filmed on location!', 'You will not believe your eyes!', 'Now in wide-screen splendour!'],
+  1970: ['This time, it is personal.', 'The movie they said could not be made.', 'Hold on to your seats.', 'You will laugh. You will cry. You will hold your breath.', 'Nothing will ever be the same.'],
+  1980: ['Get ready.', 'The adventure of a lifetime.', 'This summer, it is on.', 'Prepare yourself.', 'The future starts now.'],
+  1990: ['Some secrets never stay buried.', 'Hold on tight.', 'Everyone is talking.', 'The ride of the summer.', 'Expect the unexpected.'],
+  2000: ['This summer, everything changes.', 'The legend continues.', 'Believe the hype.', 'Nothing is what it seems.', 'Go big.'],
+  2010: ['Rise.', 'The end is only the beginning.', 'Every story has another side.', 'No one is coming.', 'The wait is over.'],
+  2020: ['Only in cinemas.', 'See it on the big screen.', 'Some doors should stay closed.', 'Home is where it starts.', 'Nothing lasts forever.'],
+};
+
+/** Lines for any decade, when a big bill runs through its decade's spares. */
+const ANY_TAGLINES = ['A story you will never forget.', 'The one to see this year.', 'Nothing prepared them for this.', 'Bring a friend.',
+  'It all comes down to tonight.', 'Every family has a secret.', 'Sometimes the smallest step is the biggest.', 'One last time.',
+  'Believe it.', 'The adventure begins here.', 'It is not over yet.', 'Some journeys change everything.'];
+
+/** [films] with no tagline printed twice on one bill: a repeat takes a spare line of its decade (seeded by [key]). */
+export function distinctTaglines<T extends { tagline: string; year: number; title: string }>(films: readonly T[], ...key: (string | number)[]): T[] {
+  const seen = new Set<string>();
+  return films.map((f) => {
+    if (!seen.has(f.tagline)) { seen.add(f.tagline); return f; }
+    const r = rngFor(SEED, 'tagline', f.year, f.title, ...key);
+    let spare = SPARE_TAGLINES[decadeOf(f.year)].filter((t) => !seen.has(t));
+    if (!spare.length) spare = ANY_TAGLINES.filter((t) => !seen.has(t));
+    const tagline = spare.length ? pick(r, spare) : f.tagline;
+    seen.add(tagline);
+    return { ...f, tagline };
+  });
+}
 
 const SUBTITLES = ['Reckoning', 'The Return', 'Second Wind', 'Resurrection', 'Legacy', 'Aftermath', 'The Final Chapter', 'Revelations', 'Bloodlines', 'Uprising'];
 const NUMERALS = ['', '', 'II', 'III', 'IV', '5', '6', '7'];

@@ -98,6 +98,25 @@ describe('films', () => {
     }
   });
 
+  it('never makes a bare "The <word>" title (too near real one-word titles); short titles stay off a list of real ones', () => {
+    const SHORT_REAL = ['The Attic', 'The Vigil', 'The Ninth Gate', 'The Hollow', 'The Others', 'The Ring', 'The Grudge', 'The Nun', 'The Visit',
+      'The Host', 'The Descent', 'The Fog', 'The Thing', 'The Birds', 'The Shining', 'The Omen', 'The Island', 'The Village', 'The Wave',
+      'Thunderhead', 'Planetfall', 'Everywhere', 'Gravity', 'Signs', 'Us', 'Them', 'Split', 'Glass', 'Heat', 'Speed', 'Twister', 'Contact'];
+    const shortReal = new Set(SHORT_REAL.map(norm));
+    for (const f of ALL()) {
+      expect(/^the \S+$/i.test(baseOf(f.title)), f.title).toBe(false);
+      expect(shortReal.has(norm(baseOf(f.title))), f.title).toBe(false);
+    }
+  });
+
+  it('never prints the same tagline twice on a cinema\'s bill', () => {
+    for (const seed of ['gamma', 'alpha']) for (let y = 1950; y <= 2030; y += 3) {
+      const p = cinemaProgram(seed, y);
+      const tags = [...p.nowShowing, ...p.comingSoon].map((f) => f.tagline);
+      expect(new Set(tags).size, `${seed} ${y}`).toBe(tags.length);
+    }
+  });
+
   it('covers every decade in its own poster style, with 8+ posters a year, and rates films only from 1968', () => {
     for (const d of DECADES) {
       const films = Array.from({ length: 10 }, (_, i) => releases(d + i)).flat();

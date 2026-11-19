@@ -1,7 +1,7 @@
 import { rand, rngFor } from '../sim/rng';
 import { naturalPopulation } from '../sim/simulate';
 import { townName } from '../world/names';
-import { decadeOf, releases, type Film } from './films';
+import { decadeOf, distinctTaglines, releases, type Film } from './films';
 
 // THE CINEMA. Only a town that grows big enough has one (its natural history reaches CINEMA_POPULATION living people by
 // the game's present), and then it has stood on or just off the main street since before the game begins. It is one
@@ -89,9 +89,12 @@ export interface CinemaProgram {
 
 /** The cinema of [seed] in [year]: its name, front, and what plays (the same each time you visit that year). */
 export function cinemaProgram(seed: string, year: number): CinemaProgram {
-  const now = shuffled(releases(year), seed, year, 'now').slice(0, showingCount(seed, year));
+  const picked = shuffled(releases(year), seed, year, 'now').slice(0, showingCount(seed, year));
   const later = shuffled(releases(year + 1), seed, year, 'soon');
-  const comingSoon = later.slice(0, Math.max(4, 8 - now.length));
+  // (no tagline twice on one bill: next year's pictures may share a line with this year's)
+  const bill = distinctTaglines([...picked, ...later.slice(0, Math.max(4, 8 - picked.length))], seed, year);
+  const now = bill.slice(0, picked.length);
+  const comingSoon = bill.slice(picked.length);
   const era = cinemaEra(year);
   const marquee = [era === 'multiplex' ? 'NOW PLAYING' : 'NOW SHOWING', ...now.map((f) => f.title.toUpperCase())];
   if (era === 'palace' || (era === 'modern' && now.length === 1)) marquee.push(`STARRING ${now[0]!.star.toUpperCase()}`);

@@ -79,6 +79,26 @@ repeating tiles); drop the model after adding it. Preview: `gradle :desktop:prev
 street, three-quarter, marquee, side, behind and above at day, dusk and night, chase frames, a poster sheet per decade;
 `-DcinemaBills=DIR` for the town's own bills), tests in `desktop/src/filamentTest/kotlin/CinemaKitTest.kt`.
 
+Scale and site (review fixes, 2026-11-19). A figure is 36 units (1.7 m, about 21 units a metre), so the theater is built to
+real size: the palace's front 280 tall (13 m) under a 300-tall hall with a fly tower to 360 and the blade sign to 444; the
+modern front 220 over a 290 hall; the twin 150 over 240/214 halls with a 300 pylon; the multiplex a 200 front and a 220
+atrium over stepped stadium halls of 330 and 270, with exit stair towers. Exit doors 22 x 46, the loading door 64 x 70.
+`CinemaKit.build` lays the building on its plot (`Plot`: the narrow eras centred with an alley either side, the twin to
+one side of its car park, the multiplex beside a lane to its car park behind) and `CinemaGrounds.kt` fills the rest of
+the plot: a paved forecourt, alleys (setts or slabs) with bins, crates, wall lamps and a smokers' bench, a service yard
+with dumpsters behind brick walls or chain link and a gate, car parks with painted bays, tall lamps (sodium for the twin,
+LED after) and seeded parked cars. The model carries real lights (`CinemaLight`: the marquee's soffit spots on the
+pavement, sign washes, the car parks' and alleys' lamps), made by `CinemaLights` (CinemaLayer.kt) and turned up from dusk.
+The twin's neon steps (its runs in the chase phases) and the multiplex's LED board pages through its six lines
+(`PAGE0..2`, a line every 1.6 s). Posters glow at about half strength so pale ones keep their lettering at night. Each
+decade's painter has a composition per motif (`CinemaPosterArt.kt`: a rider, a duel, a spider, a sea beast, a chorus line,
+a colossus, a kung fu kick, a big rig, a slasher's lake, teens, a sword on a crag, buddy cops, a romcom, a heist, an army,
+a vault door, a tidal wave, an astronaut's visor, a walled city, and six symbols, four doors, three portraits for the
+2020s); films of one motif on a bill take its compositions in turn (`CinemaFilm.look`), and no tagline prints twice on a
+bill (`CinemaInfo.distinctTaglines`; `distinctTaglines` in src/town/films.ts). No title is a bare "The <word>". Pictures
+per era: about 5.3-6.7 MiB with the site (the town builds at a 512 MB preview heap). Street lamps and benches are kept off a
+cinema's front (TownMap moves them to its ends) and PropRules keeps the whole front clear.
+
 ## In the town (Integrate)
 
 - `CinemaSite.parse(street.json)` (scene3d/TownCinema.kt) reads the cinema landmark's sprite and `graph.cinema`; the app's

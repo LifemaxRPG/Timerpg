@@ -40,7 +40,8 @@ internal class TownCinema(
 ) {
     private val layer = PropLayer(engine, scene, lit, proxy, sharedTextures = textures, cull = true)
     private val glow = CinemaLayer(layer)
-    private var job: java.util.concurrent.Future<Pair<List<CinemaLayer.Packed>, FloatArray>>? = null
+    private val lamps = CinemaLights(engine, scene)
+    private var job: java.util.concurrent.Future<Triple<List<CinemaLayer.Packed>, FloatArray, List<CinemaLight>>>? = null
     /** It is up (uploaded), or it failed (the town goes on without it). */
     var done = false; private set
     /** A sphere round it in the world, its height's middle, once built (a guess before). */
@@ -62,7 +63,7 @@ internal class TownCinema(
         val a = at
         job = pool.submit(java.util.concurrent.Callable {
             val m = CinemaKit.build(site.info, seed)
-            CinemaLayer.pack(m, a) to floatArrayOf(m.footprint[0], m.footprint[1], m.footprint[2], m.footprint[3], m.height)
+            Triple(CinemaLayer.pack(m, a), floatArrayOf(m.footprint[0], m.footprint[1], m.footprint[2], m.footprint[3], m.height), m.lights)
         })
     }
 
@@ -71,12 +72,13 @@ internal class TownCinema(
         if (done) return true
         val f = job ?: return false
         if (!f.isDone) return false
-        val (parts, fp) = try { f.get() } catch (e: java.util.concurrent.ExecutionException) {
+        val (parts, fp, ls) = try { f.get() } catch (e: java.util.concurrent.ExecutionException) {
             val c = e.cause ?: e
             if (c is VirtualMachineError) throw BuildFailure("building the cinema on a worker", c)
             done = true; job = null; return true
         }
         glow.upload(parts)
+        lamps.add(ls, at)
         job = null
         // its sphere from what was built (the footprint in the model's frame: x along, z out; the height)
         val mx = (fp[0] + fp[2]) / 2f; val mz = (fp[1] + fp[3]) / 2f
@@ -98,11 +100,12 @@ internal class TownCinema(
         val near = fade > .5f && (on || pose.sees(cx, cy, cz, r + 300f))
         layer.update(look, dark, on, fade, near)
         if (on) glow.update(dark, seconds)
+        lamps.update(dark, on && near)
         shown = on
         if (on) { out[0] = layer.draws; out[1] = layer.triangles }
         if (near) out[2] = layer.casters
         return out
     }
 
-    fun destroy() { job?.cancel(true); layer.destroy() }
+    fun destroy() { job?.cancel(true); layer.destroy(); lamps.destroy() }
 }

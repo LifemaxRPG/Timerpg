@@ -46,6 +46,11 @@ internal class CinemaLayer(private val props: PropLayer) {
                 val k = l.role.ordinal - CinemaPart.Role.CHASE0.ordinal
                 l.mi.setParameter("glow", 1.9f, 1.7f, 1.3f, dusk * if (k == step) 1f else .2f)
             }
+            CinemaPart.Role.PAGE0, CinemaPart.Role.PAGE1, CinemaPart.Role.PAGE2 -> {
+                val k = l.role.ordinal - CinemaPart.Role.PAGE0.ordinal
+                val page = (floor(seconds / PAGE_SECONDS).toLong() % 3).toInt()
+                l.mi.setParameter("glow", PropLayer.GLOW, PropLayer.GLOW, PropLayer.GLOW, dusk * if (k == page) 1f else .22f)
+            }
             CinemaPart.Role.BODY -> {}
         }
     }
@@ -59,5 +64,44 @@ internal class CinemaLayer(private val props: PropLayer) {
 
         /** Chase steps a second. */
         const val CHASE_RATE = 7.0
+        /** Seconds each page of a digital board stays lit. */
+        const val PAGE_SECONDS = 1.6
+    }
+}
+
+/**
+ * The theater's real lights ([CinemaModel.lights]: the marquee's soffit on the pavement, sign washes, the car park's
+ * lamps), made in [scene] at the model's place and turned up from dusk; [destroy] removes them.
+ */
+internal class CinemaLights(private val engine: com.google.android.filament.Engine, private val scene: com.google.android.filament.Scene) {
+    private class L(val entity: Int, val lumens: Float)
+    private val lights = ArrayList<L>()
+    val count: Int get() = lights.size
+
+    /** Adds [list] (the model's frame) standing at [at] (world x, z, along x, z, out x, z, turn: as [PropLayer.addMesh]). */
+    fun add(list: List<CinemaLight>, at: FloatArray) {
+        for (c in list) {
+            val wx = at[0] + at[2] * c.x + at[4] * c.z; val wz = at[1] + at[3] * c.x + at[5] * c.z
+            val e = com.google.android.filament.EntityManager.get().create()
+            val type = if (c.down) com.google.android.filament.LightManager.Type.SPOT else com.google.android.filament.LightManager.Type.POINT
+            val bld = com.google.android.filament.LightManager.Builder(type).color(c.r, c.g, c.b).intensity(0f).falloff(c.reach).castShadows(false).position(wx, c.y, wz)
+            if (c.down) bld.direction(0f, -1f, 0f).spotLightCone(c.cone * .5f, c.cone)
+            bld.build(engine, e)
+            scene.addEntity(e)
+            lights += L(e, c.lumens)
+        }
+    }
+
+    /** [dark]: 0 day, 1 night; [shown]: the theater is drawn (its lights off when it is not). */
+    fun update(dark: Float, shown: Boolean = true) {
+        val t = ((dark - .25f) / .45f).coerceIn(0f, 1f); val on = t * t * (3f - 2f * t)
+        val lm = engine.lightManager
+        for (l in lights) lm.getInstance(l.entity).takeIf { it != 0 }?.let { lm.setIntensity(it, if (shown) l.lumens * on else 0f) }
+    }
+
+    fun destroy() {
+        val em = com.google.android.filament.EntityManager.get()
+        for (l in lights) { scene.remove(l.entity); engine.destroyEntity(l.entity); em.destroy(l.entity) }
+        lights.clear()
     }
 }

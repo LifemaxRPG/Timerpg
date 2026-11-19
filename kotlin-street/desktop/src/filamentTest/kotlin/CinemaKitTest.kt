@@ -40,15 +40,15 @@ class CinemaKitTest {
             }
             assertTrue("$era floats: lowest $lowest", abs(lowest) < .2f)
             // the lot it needs: no more than a block's sides and steps beyond its main block
-            assertTrue("$era footprint ${fp.toList()} for ${m.width}", fp[2] - fp[0] <= m.width + 60f && fp[3] - fp[1] <= m.depth + 80f)
+            assertTrue("$era footprint ${fp.toList()} for ${m.width}", fp[2] - fp[0] <= m.width + 60f && fp[3] - fp[1] <= m.depth + 110f)
             // real scale: a big building (wider than a shop's 184, deeper than the school's 228), with a marquee over the pavement
             assertTrue("$era ${m.width} wide", m.width >= 280f)
             assertTrue("$era ${m.depth} deep", m.depth >= 380f)
             assertTrue("$era reaches ${fp[3]} over the pavement", fp[3] >= 30f)
             // three chasing bulb phases, each a run of bulbs
             assertEquals("$era chase phases", 3, m.parts.count { it.role.name.startsWith("CHASE") })
-            // kept small for the phone's heap: a few MiB of pictures at most
-            assertTrue("$era pictures ${m.bytes / 1024} KiB", m.bytes < 5L * 1024 * 1024)
+            // kept small for the phone's heap: a few MiB of pictures at most (the building and its whole site)
+            assertTrue("$era pictures ${m.bytes / 1024} KiB", m.bytes < 8L * 1024 * 1024)
             println("$era: ${m.parts.size} parts, ${m.triangles} triangles, ${m.texels} texels = ${m.bytes / 1024} KiB")
         }
     }
