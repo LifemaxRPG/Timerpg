@@ -20,6 +20,10 @@ object ModelFiles {
     /** The same model with its multi-token prediction (MTP) head, for speculative decoding (unsloth's MTP build). */
     const val MTP = "qwen3.5-9b-mtp.gguf"
     const val MTP_BYTES = 5_868_826_976L
+    /** The light model for live replies in play, on the NPU beside the town (see [ModelRoles]); Q4_0, the format
+     *  llama.cpp's Hexagon code was first built around. */
+    const val LIVE = "qwen3.5-4b-q4_0.gguf"
+    const val LIVE_BYTES = 2_583_221_408L
     /** What [problem] says when there is no model file. */
     const val MISSING = "missing"
     private const val MIN_BYTES = 16L shl 20
@@ -28,6 +32,7 @@ object ModelFiles {
 
     fun dir(ctx: Context): File = File(ctx.filesDir, "models")
     fun file(ctx: Context): File = File(dir(ctx), NAME)
+    fun live(ctx: Context): File = File(dir(ctx), LIVE)
     private fun part(ctx: Context): File = File(dir(ctx), "$NAME.part")
 
     /** A copy left half-done when the app was killed. */

@@ -7,8 +7,9 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 /**
- * Everything the game's AI needs, fetched once from Hugging Face into the app's own storage: the dialogue model (Qwen3.5-9B, the strongest Qwen that fits a phone)
- * both voice engines (Kokoro-82M and Supertonic-3) and the speech recognizer (Qwen3-ASR), about 8.9 GB. Downloads resume where they stopped, every file's
+ * Everything the game's AI needs, fetched once from Hugging Face into the app's own storage: the main dialogue model (the
+ * strongest that fits a phone; it writes the bank of lines), the light one for live replies in play ([ModelRoles]),
+ * both voice engines, the speech recognizer, the memory models: about 14.7 GB. Downloads resume where they stopped, every file's
  * size is checked, and nothing is used until it is complete. Blocking IO: run it off the main thread.
  */
 object ModelDownloads {
@@ -18,6 +19,7 @@ object ModelDownloads {
     private const val EMBED_URL = "https://huggingface.co/Qwen/Qwen3-Embedding-0.6B-GGUF/resolve/main/Qwen3-Embedding-0.6B-Q8_0.gguf"
     private const val EMBED_BYTES = 639_150_592L
     private const val QWEN = "https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-Q4_K_M.gguf"
+    private const val LIVE = "https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/resolve/main/Qwen3.5-4B-Q4_0.gguf"
 
     /** One file: where it comes from, where it goes (under filesDir/models), and its size in bytes. */
     class Item(val url: String, val path: String, val bytes: Long)
@@ -32,6 +34,8 @@ object ModelDownloads {
 
     val ITEMS: List<Item> = buildList {
         add(Item(QWEN, ModelFiles.NAME, 5_680_522_464L))
+        // live replies in play, on the NPU beside the town (the main model's NPU copy does not fit there)
+        add(Item(LIVE, ModelFiles.LIVE, ModelFiles.LIVE_BYTES))
         // hearing the player: Qwen3-ASR 1.7B and its audio encoder
         add(Item(ASR + "Qwen3-ASR-1.7B-Q8_0.gguf", com.timerpg.street.voice.PlayerVoice.ASR_MODEL, 2_165_034_944L))
         add(Item(ASR + "mmproj-Qwen3-ASR-1.7B-Q8_0.gguf", com.timerpg.street.voice.PlayerVoice.ASR_MMPROJ, 355_709_344L))
