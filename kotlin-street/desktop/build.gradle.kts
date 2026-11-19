@@ -84,6 +84,8 @@ tasks.register<JavaExec>("preview") {
     for (k in listOf("yards")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     // the movie theater's preview (-Dmode=filament-cinema): which eras, or posters
     for (k in listOf("cinema", "cinemaBills")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
+    // the stores' preview (-Dmode=filament-stores): which variants or kinds
+    System.getProperty("stores")?.let { jvmArgs("-Dstores=$it") }
     // the whole town's preview (-Dmode=filament-town): which town folder, where the pack's pictures are, the yards'
     // builder (kit, or placeholder: flat colours)
     for (k in listOf("town", "assetsRoot", "townYards", "memtrace", "heapBudget", "memlive", "coldOnly")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }

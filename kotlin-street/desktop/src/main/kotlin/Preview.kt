@@ -329,6 +329,11 @@ fun main(args: Array<String>) {
         val k = runCatching { Class.forName("FilamentCinemaPreviewKt") }.getOrNull() ?: error("Filament is not built in: run tools/build-filament.sh")
         k.getMethod("renderCinema", String::class.java).invoke(null, out); return
     }
+    if (mode == "filament-stores") {
+        // the general stores and the supermarkets of each era (FilamentStoresPreview.kt; Filament's desktop build needed)
+        val k = runCatching { Class.forName("FilamentStoresPreviewKt") }.getOrNull() ?: error("Filament is not built in: run tools/build-filament.sh")
+        k.getMethod("renderStores", String::class.java).invoke(null, out); return
+    }
     if (mode == "filament-town") {
         // the whole town (build-town/gamma) in Filament: aerials, the civic centre, street views (FilamentTownPreview.kt)
         val k = runCatching { Class.forName("FilamentTownPreviewKt") }.getOrNull()
