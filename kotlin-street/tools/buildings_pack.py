@@ -91,13 +91,58 @@ def auto_ground(kit, kind, W, rng):
             row.insert(0, f'disp{int(rng.integers(0, 5))}'); left -= 5
         row += ['wall'] * left
         return row
-    doors = [m for m in motifs if motifs[m].get('door')]
-    plain = [m for m in motifs if not motifs[m].get('door') and motifs[m]['tiles'] == 2]
-    row = [doors[int(rng.integers(0, len(doors)))]]; left = W - motifs[row[0]]['tiles']
-    while left >= 2:
-        row.insert(int(rng.integers(0, len(row) + 1)), plain[int(rng.integers(0, len(plain)))]); left -= 2
-    row += ['wall'] * left
-    return row
+    return auto_condo(kit, W, rng)
+
+
+CONDO_GAP = 6          # the least plain wall between two features of a condo ground (and at its ends), pixels
+
+
+def auto_condo(kit, W, rng):
+    """A condo ground's features for W tiles: a door and, on either side in turn, the windows of the same style (kits.py
+    CONDO_ELEMENTS: each full condo floor is a style), as many as fit with plain wall between them. A 7-tile ground is the
+    pack's own full floor half the time ('full1', 'full3', 'full4')."""
+    ms = KJ[kit]['ground']['condo']['motifs']
+    # (not the second: its ATM belongs to a bank's front, not a home's or a hotel's)
+    if W == 7 and rng.random() < 0.5: return [f'full{(1, 3, 4)[int(rng.integers(0, 3))]}']
+    inner = W * 32 - 6
+    doors = [d for d in ms if ms[d]['door'] and ms[d]['px'] + 2 * CONDO_GAP <= inner] or [min((d for d in ms if ms[d]['door']), key=lambda d: ms[d]['px'])]
+    door = doors[int(rng.integers(0, len(doors)))]
+    wins = [m for m in ms if not ms[m]['door'] and ms[m]['weight'] > 0 and ms[m]['family'] == ms[door]['family']]
+    left, right, used = [], [], ms[door]['px']
+    first_right = rng.random() < 0.5
+    while wins:
+        pick = wins[int(rng.integers(0, len(wins)))]
+        n = len(left) + len(right) + 1
+        if used + ms[pick]['px'] + CONDO_GAP * (n + 2) > inner: break
+        to_right = (len(right) < len(left)) or (len(right) == len(left) and first_right)
+        (right if to_right else left).append(pick); used += ms[pick]['px']
+    return left[::-1] + [door] + right
+
+
+def compose_condo(kit, ids, W):
+    """A condo ground of W tiles: the plain condo wall with the features [ids] laid on it whole, spaced evenly, the ends capped
+    (or a pack full floor, ['fullK']). Returns the picture and the door's x span."""
+    p = PALS.index(kit)
+    if len(ids) == 1 and ids[0].startswith('full'):
+        assert W == 7, f'a full condo floor is 7 tiles, not {W}'
+        k = int(ids[0][4:]); row = kits.piece('fm', f'Ground_Floor_Condo_{4 * p + k}').copy()
+        door = next((kits.CONDO_ELEMENTS[d][1:3] for d in kits.CONDO_DOORS if kits.CONDO_ELEMENTS[d][0] == k), None)
+        return np.ascontiguousarray(row), door
+    ms = KJ[kit]['ground']['condo']['motifs']
+    PX = W * 32
+    fill = _tile(f'{kit}_condo_filler')
+    row = np.ascontiguousarray(np.concatenate([fill if i % 2 == 0 else fill[:, ::-1] for i in range(W)], axis=1))
+    pics = [kits.motif_cut(ms[i]) for i in ids]
+    inner = PX - 6; used = sum(a.shape[1] for a in pics)
+    assert used <= inner, f'condo ground {ids} ({used} px) does not fit {W} tiles'
+    gaps = len(pics) + 1; spare = inner - used
+    x = 3 + spare // gaps + (spare % gaps) // 2; door = None
+    for i, a in zip(ids, pics):
+        row[:, x:x + a.shape[1]] = a
+        if ms[i].get('door') and door is None: door = (x, x + a.shape[1])
+        x += a.shape[1] + spare // gaps
+    row[:, :3] = _tile(f'{kit}_condo_capl'); row[:, -3:] = _tile(f'{kit}_condo_capr')
+    return row, door
 
 
 def roof_pieces(kit, colour, W):
@@ -147,10 +192,10 @@ def _compose(spec, shop, rng):
     floors = spec.get('floors', 2)
     if isinstance(floors, int): floors = [auto_floor(kit, W, r) for _ in range(floors)]
     floors = [f if isinstance(f, list) else auto_floor(kit, W, r, f.get('pattern', '').split(',') if f.get('pattern') else None) for f in floors]
-    assert row_tiles(kit, gk, g_ids) == W, f'{spec["id"]}: ground row is {row_tiles(kit, gk, g_ids)} tiles, not {W}'
+    if gk != 'condo': assert row_tiles(kit, gk, g_ids) == W, f'{spec["id"]}: ground row is {row_tiles(kit, gk, g_ids)} tiles, not {W}'
     for f in floors: assert row_tiles(kit, 'mid', f) == W, f'{spec["id"]}: a floor row is {row_tiles(kit, "mid", f)} tiles, not {W}'
     PX = W * 32
-    ground, door = compose_row(kit, gk, g_ids)
+    ground, door = compose_condo(kit, g_ids, W) if gk == 'condo' and not pic_key else compose_row(kit, gk, g_ids)
     sign = None
     if pic_key:
         # the business's own storefront (the game's sprite, as the shops wear it): its bottom 96 rows the ground floor, any

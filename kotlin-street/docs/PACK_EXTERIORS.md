@@ -364,12 +364,17 @@ hooked into `make_buildings.py` (`pk_*` sprite keys; `--pack-showcase DIR`), `to
 (`PACK_ART=.../ME_Theme_Sorter_32x32`, from `packs/join.sh`; the pack is never copied into the repo).
 
 What the trial showed, against the audit's guesses:
-- **Middle floors and condo grounds: as audited.** Motif m of palette p is the pair of slices (10p+2m+1, +2) (condo ground 8p+2m+1); every
-  motif is 2 tiles. Slices carry no edge, so every row is capped with 3 px pilasters cut from the full floor of the same kind
+- **Middle floors: as audited.** Motif m of palette p is the pair of slices (10p+2m+1, +2); every motif is 2 tiles.
+  **Condo grounds: not as audited** (found 2026-11-19 from the owner's screenshot of a jumbled front): the 24
+  `Ground_Floor_Condo_Modular` slices are the cut-off ends of the NEXT piece in a row (in the theme sheet slice 2k+1 sits just
+  left and 2k+2 just right of full floor k: half a window grid, half an ATM, the left foot of an arch), not motifs. The kit
+  cuts the condo ground's features whole from the four full floors per palette at their own pixel spans (`kits.CONDO_ELEMENTS`:
+  window grid and glass door, canopy door and sill window, long window and arched door, framed window and wooden door; the
+  ATM only on request) and `compose_condo` lays a door with the windows of its style on the plain condo wall, evenly spaced;
+  a 7-tile ground is the pack's own full floor half the time. Slices carry no edge, so every row is capped with 3 px pilasters cut from the full floor of the same kind
   (`<palette>_<mid|condo|shop>_capl/capr.png`) and an odd width takes a 1-tile wall filler (`..._filler.png`). The brick courses are
   not periodic, so the filler is two clean strips laid end to end, every other one mirrored: no seam shows.
-- **Condo doors and windows come from the full floors**, cut at tile edges (`door_glass`, `door_canopy`, `door_arch`, `door_wood`, `win2`,
-  `bigwin3`; the cut's pilaster replaced by the wall beside it); the condo slices have no door.
+- **Condo doors and windows come from the full floors** (see above; the earlier cuts at tile edges halved windows).
 - **Shop grounds: the audit was wrong.** The 36 `Ground_Floor_Shop_Modular` slices are single tiles (the left tile of a display window, a
   door, each open or shuttered), not 2-tile motifs, and no middle tiles of a display exist. The kit takes shops from the 7-wide full
   floors, cut into a 5-tile display (`dispK`) and a 2-tile door (`doorK`), so a shop ground is 7, 14, ... tiles, or a display alone (5), a
