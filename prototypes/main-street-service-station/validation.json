@@ -1,0 +1,16 @@
+{
+  "visible_triangles": 2372,
+  "materials": 12,
+  "glb_bytes": 247568,
+  "pump_triangles": {
+    "pump_01": 212,
+    "pump_02": 212
+  },
+  "art_grid": "All embedded textures are exact 2x2 texel blocks",
+  "uv_scale_max_edge_error_m": 1.089477539295558e-06,
+  "doors": "All four ground-level outward-facing nodes verified",
+  "garage": "Open bay 1; closed bay 2 has separate state node and gated collision",
+  "yearly_prices": "Independent full-UV sign_price and two-year writer checked",
+  "history": "Relocation/reuse metadata requires simulation facts; no automatic removal by year",
+  "renderer": "Blender desktop previews, not Filament or S25 captures"
+}
