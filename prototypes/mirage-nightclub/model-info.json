@@ -1,0 +1,870 @@
+{
+  "name": "Club Mirage",
+  "slug": "mirage-nightclub",
+  "era": "1980s",
+  "Category": "landmark_entertainment",
+  "role": "nightclub",
+  "units": "metres",
+  "up_axis": "Y",
+  "front_axis": "+Z",
+  "origin": "Ground level (y = 0) at horizontal center of the front nightclub facade edge (z = 0)",
+  "pixel_grid": {
+    "art_pixel_m": 0.0776,
+    "art_pixel_texels": 2,
+    "texel_m": 0.0388
+  },
+  "footprint_m": {
+    "building_width": 18.624,
+    "building_depth": 17.3824,
+    "lot_width": 27.3152,
+    "lot_depth": 29.7984,
+    "max_height": 11.3296
+  },
+  "triangles": {
+    "visible": 2960,
+    "collision": 516,
+    "total": 3476,
+    "budget_visible_max": 12000
+  },
+  "optional_prop_groups": {
+    "lot": 1146,
+    "marquee_pylon": 232,
+    "service_yard": 140,
+    "vip_rope_line": 156,
+    "door_panel_main": 26,
+    "door_panel_back": 12,
+    "door_panel_side": 12
+  },
+  "doors": {
+    "door_main": {
+      "position": [
+        0.0,
+        0.0,
+        0.1552
+      ],
+      "facing": "+Z",
+      "panel_node": "door_panel_main"
+    },
+    "door_back": {
+      "position": [
+        -5.5872,
+        0.0,
+        -17.5376
+      ],
+      "facing": "-Z",
+      "panel_node": "door_panel_back"
+    },
+    "door_side": {
+      "position": [
+        9.4672,
+        0.0,
+        -8.6912
+      ],
+      "facing": "+X",
+      "panel_node": "door_panel_side"
+    }
+  },
+  "materials": [
+    {
+      "name": "wall_midnight",
+      "texture": "textures/midnight.png",
+      "size": [
+        128,
+        128
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "1980s fluted midnight-indigo Art-Deco stucco panels with cyan speed-rib bands"
+    },
+    {
+      "name": "wall_slate",
+      "texture": "textures/wall_slate_dark.png",
+      "size": [
+        32,
+        32
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "Dark slate stone masonry base plinth, corner piers, and perimeter privacy walls (LimeZu wall_slate_dark)"
+    },
+    {
+      "name": "wall_block",
+      "texture": "textures/block_courses.png",
+      "size": [
+        48,
+        48
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "Acoustic concrete-block rear stage shell and rooftop penthouse walls (LimeZu block_courses)"
+    },
+    {
+      "name": "wall_brick",
+      "texture": "textures/brick_red.png",
+      "size": [
+        60,
+        48
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "Rear loading dock apron masonry and service enclosure walls (LimeZu brick_red)"
+    },
+    {
+      "name": "trim_neon",
+      "texture": "textures/neon_trim.png",
+      "size": [
+        128,
+        128
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "1980s electric magenta and cyan enameled Art-Deco ziggurat portal, canopy fascia, and pylon fins"
+    },
+    {
+      "name": "roof_membrane",
+      "texture": "textures/roof_membrane_grey.png",
+      "size": [
+        32,
+        32
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "Commercial grey membrane flat roof decking over main hall and canopy (LimeZu roof_membrane_grey)"
+    },
+    {
+      "name": "roof_ballast",
+      "texture": "textures/ballast.png",
+      "size": [
+        32,
+        32
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "Aggregate gravel roof ballast on upper skylight penthouse deck (LimeZu ballast)"
+    },
+    {
+      "name": "ground_asphalt",
+      "texture": "textures/asphalt_worn.png",
+      "size": [
+        32,
+        32
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "Nightclub parking lot and VIP drop-off drive lane asphalt (LimeZu asphalt_worn)"
+    },
+    {
+      "name": "ground_paving",
+      "texture": "textures/pavement.png",
+      "size": [
+        32,
+        32
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "Concrete front boulevard sidewalk, VIP plaza, loading dock deck, and interior floor slab (LimeZu pavement)"
+    },
+    {
+      "name": "glass_club",
+      "texture": "textures/glass.png",
+      "size": [
+        512,
+        256
+      ],
+      "alphaMode": "BLEND",
+      "emissive": false,
+      "role": "Semi-transparent 1980s illuminated glass-block bay windows, corner light columns, and VIP entry doors"
+    },
+    {
+      "name": "glow_signage",
+      "texture": "textures/signs.png",
+      "size": [
+        512,
+        256
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": true,
+      "role": "Self-lit neon marquee signage, reader board, soffit/truss downlights, light-up disco dance floor, and synthwave stage backdrop"
+    },
+    {
+      "name": "detail_utility",
+      "texture": "textures/utility.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaMode": "OPAQUE",
+      "emissive": false,
+      "role": "Four-quadrant utility atlas: chrome/steel truss & bar counter, matte black speaker stacks, hot-magenta upholstery, electric-cyan paneling"
+    }
+  ],
+  "collision": {
+    "node": "collision",
+    "boxes_count": 43,
+    "boxes_blender_z_up": [
+      {
+        "center": [
+          -13.5024,
+          21.8832,
+          1.0476
+        ],
+        "size": [
+          0.2716,
+          4.6172,
+          1.94
+        ],
+        "group": "lot",
+        "source": "wall_west_-312",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          13.5024,
+          21.8832,
+          1.0476
+        ],
+        "size": [
+          0.2716,
+          4.6172,
+          1.94
+        ],
+        "group": "lot",
+        "source": "wall_east_-312",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -13.5024,
+          16.9168,
+          1.0476
+        ],
+        "size": [
+          0.2716,
+          4.6172,
+          1.94
+        ],
+        "group": "lot",
+        "source": "wall_west_-248",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          13.5024,
+          16.9168,
+          1.0476
+        ],
+        "size": [
+          0.2716,
+          4.6172,
+          1.94
+        ],
+        "group": "lot",
+        "source": "wall_east_-248",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -13.5024,
+          11.9504,
+          1.0476
+        ],
+        "size": [
+          0.2716,
+          4.6172,
+          1.94
+        ],
+        "group": "lot",
+        "source": "wall_west_-184",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          13.5024,
+          11.9504,
+          1.0476
+        ],
+        "size": [
+          0.2716,
+          4.6172,
+          1.94
+        ],
+        "group": "lot",
+        "source": "wall_east_-184",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -13.5024,
+          6.984,
+          1.0476
+        ],
+        "size": [
+          0.2716,
+          4.6172,
+          1.94
+        ],
+        "group": "lot",
+        "source": "wall_west_-120",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          13.5024,
+          6.984,
+          1.0476
+        ],
+        "size": [
+          0.2716,
+          4.6172,
+          1.94
+        ],
+        "group": "lot",
+        "source": "wall_east_-120",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -13.5024,
+          2.0176,
+          1.0476
+        ],
+        "size": [
+          0.2716,
+          4.6172,
+          1.94
+        ],
+        "group": "lot",
+        "source": "wall_west_-56",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          13.5024,
+          2.0176,
+          1.0476
+        ],
+        "size": [
+          0.2716,
+          4.6172,
+          1.94
+        ],
+        "group": "lot",
+        "source": "wall_east_-56",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -13.5024,
+          -0.9312,
+          1.0476
+        ],
+        "size": [
+          0.2716,
+          0.582,
+          1.94
+        ],
+        "group": "lot",
+        "source": "wall_west_8",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          13.5024,
+          -0.9312,
+          1.0476
+        ],
+        "size": [
+          0.2716,
+          0.582,
+          1.94
+        ],
+        "group": "lot",
+        "source": "wall_east_8",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -10.088,
+          24.6768,
+          1.0476
+        ],
+        "size": [
+          6.4796,
+          0.2716,
+          1.94
+        ],
+        "group": "lot",
+        "source": "wall_north_nw",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          10.088,
+          24.6768,
+          1.0476
+        ],
+        "size": [
+          6.4796,
+          0.2716,
+          1.94
+        ],
+        "group": "lot",
+        "source": "wall_north_ne",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -8.4584,
+          1.0088,
+          0.6208
+        ],
+        "size": [
+          1.9788,
+          2.2892,
+          0.9312
+        ],
+        "group": "structure",
+        "source": "corner_tower_-1",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          8.4584,
+          1.0088,
+          0.6208
+        ],
+        "size": [
+          1.9788,
+          2.2892,
+          0.9312
+        ],
+        "group": "structure",
+        "source": "corner_tower_1",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -4.3456,
+          0.1552,
+          0.5432
+        ],
+        "size": [
+          6.1692,
+          0.2716,
+          0.776
+        ],
+        "group": "structure",
+        "source": "front_wall_west",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          4.3456,
+          0.1552,
+          0.5432
+        ],
+        "size": [
+          6.1692,
+          0.2716,
+          0.776
+        ],
+        "group": "structure",
+        "source": "front_wall_east",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -1.164,
+          0.1552,
+          1.2416
+        ],
+        "size": [
+          0.1164,
+          0.1164,
+          2.1728
+        ],
+        "group": "structure",
+        "source": "door_panel_main_gate",
+        "attachment": "door_panel_main",
+        "gate_node": "door_panel_main"
+      },
+      {
+        "center": [
+          -6.8288,
+          -1.3968,
+          0.388
+        ],
+        "size": [
+          0.4268,
+          0.4268,
+          0.4656
+        ],
+        "group": "structure",
+        "source": "canopy_pier_-88",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          6.8288,
+          -1.3968,
+          0.388
+        ],
+        "size": [
+          0.4268,
+          0.4268,
+          0.4656
+        ],
+        "group": "structure",
+        "source": "canopy_pier_88",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -9.1568,
+          9.7776,
+          0.5432
+        ],
+        "size": [
+          0.2716,
+          15.1708,
+          0.776
+        ],
+        "group": "structure",
+        "source": "west_wall",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          9.1568,
+          13.3472,
+          0.5432
+        ],
+        "size": [
+          0.2716,
+          8.0316,
+          0.776
+        ],
+        "group": "structure",
+        "source": "east_wall_north",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          9.1568,
+          5.1216,
+          0.5432
+        ],
+        "size": [
+          0.2716,
+          5.8588,
+          0.776
+        ],
+        "group": "structure",
+        "source": "east_wall_south",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          9.1568,
+          8.6912,
+          1.3968
+        ],
+        "size": [
+          0.1164,
+          1.2028,
+          2.4832
+        ],
+        "group": "structure",
+        "source": "door_panel_side_gate",
+        "attachment": "door_panel_side",
+        "gate_node": "door_panel_side"
+      },
+      {
+        "center": [
+          -7.76,
+          17.2272,
+          2.0952
+        ],
+        "size": [
+          3.0652,
+          0.2716,
+          3.88
+        ],
+        "group": "structure",
+        "source": "rear_wall_west",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          2.1728,
+          17.2272,
+          2.0952
+        ],
+        "size": [
+          14.2396,
+          0.2716,
+          3.88
+        ],
+        "group": "structure",
+        "source": "rear_wall_east",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -5.5872,
+          17.2272,
+          1.3968
+        ],
+        "size": [
+          1.2028,
+          0.1164,
+          2.4832
+        ],
+        "group": "structure",
+        "source": "door_panel_back_gate",
+        "attachment": "door_panel_back",
+        "gate_node": "door_panel_back"
+      },
+      {
+        "center": [
+          0.0,
+          18.1584,
+          0.3492
+        ],
+        "size": [
+          6.79,
+          1.5132,
+          0.5432
+        ],
+        "group": "structure",
+        "source": "loading_dock_base",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          0.0,
+          14.9768,
+          0.388
+        ],
+        "size": [
+          11.7564,
+          3.8412,
+          0.4656
+        ],
+        "group": "structure",
+        "source": "dj_stage_platform",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -6.3632,
+          7.76,
+          0.6208
+        ],
+        "size": [
+          0.8924,
+          8.0316,
+          0.9312
+        ],
+        "group": "structure",
+        "source": "cocktail_bar_counter",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -7.8376,
+          11.4072,
+          0.6208
+        ],
+        "size": [
+          1.9788,
+          0.7372,
+          0.9312
+        ],
+        "group": "structure",
+        "source": "cocktail_bar_north_return",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -7.8376,
+          4.1128,
+          0.6208
+        ],
+        "size": [
+          1.9788,
+          0.7372,
+          0.9312
+        ],
+        "group": "structure",
+        "source": "cocktail_bar_south_return",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          7.6824,
+          6.3632,
+          0.6208
+        ],
+        "size": [
+          2.2892,
+          1.5132,
+          0.9312
+        ],
+        "group": "structure",
+        "source": "vip_banquette_-92",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          7.6824,
+          4.0352,
+          0.6208
+        ],
+        "size": [
+          2.2892,
+          1.5132,
+          0.9312
+        ],
+        "group": "structure",
+        "source": "vip_banquette_-62",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          10.2432,
+          -2.6384,
+          0.5044
+        ],
+        "size": [
+          3.0652,
+          1.8236,
+          0.8536
+        ],
+        "group": "lot",
+        "source": "marquee_pylon_base",
+        "attachment": "marquee_pylon"
+      },
+      {
+        "center": [
+          12.5712,
+          13.968,
+          1.0864
+        ],
+        "size": [
+          0.2716,
+          4.9276,
+          1.8624
+        ],
+        "group": "lot",
+        "source": "service_yard_east_wall",
+        "attachment": "service_yard"
+      },
+      {
+        "center": [
+          10.864,
+          16.296,
+          1.0864
+        ],
+        "size": [
+          3.0652,
+          0.2716,
+          1.8624
+        ],
+        "group": "lot",
+        "source": "service_yard_north_wall",
+        "attachment": "service_yard"
+      },
+      {
+        "center": [
+          11.5624,
+          11.64,
+          1.0864
+        ],
+        "size": [
+          1.6684,
+          0.2716,
+          1.8624
+        ],
+        "group": "lot",
+        "source": "service_yard_south_wall",
+        "attachment": "service_yard"
+      },
+      {
+        "center": [
+          10.088,
+          14.744,
+          0.8536
+        ],
+        "size": [
+          1.2028,
+          1.2028,
+          1.3968
+        ],
+        "group": "lot",
+        "source": "hvac_chiller_-198",
+        "attachment": "service_yard"
+      },
+      {
+        "center": [
+          10.088,
+          13.0368,
+          0.8536
+        ],
+        "size": [
+          1.2028,
+          1.2028,
+          1.3968
+        ],
+        "group": "lot",
+        "source": "hvac_chiller_-176",
+        "attachment": "service_yard"
+      },
+      {
+        "center": [
+          11.7176,
+          14.9768,
+          0.6984
+        ],
+        "size": [
+          1.0476,
+          1.358,
+          1.0864
+        ],
+        "group": "lot",
+        "source": "club_dumpster",
+        "attachment": "service_yard"
+      },
+      {
+        "center": [
+          1.7848,
+          -1.0864,
+          0.6984
+        ],
+        "size": [
+          0.4268,
+          0.582,
+          1.0864
+        ],
+        "group": "lot",
+        "source": "vip_bouncer_podium",
+        "attachment": "vip_rope_line"
+      }
+    ]
+  },
+  "open_questions_and_risks": [
+    "Door panels (door_panel_main, door_panel_back, door_panel_side) are visible and collidable by default; hide the panel node and drop its gated collision box when an interaction opens a doorway.",
+    "The illuminated 1980s checkerboard dance floor (glow_signage dance_floor) sits at y = 0.24 m (3.1 art pixels) in the center of the hall; loose tables and chairs remain driven by the game furniture system.",
+    "Optional prop groups (marquee_pylon, service_yard, vip_rope_line) can be hidden independently along with their tagged collision boxes."
+  ],
+  "swatches_used": [
+    "wall_slate_dark",
+    "block_courses",
+    "brick_red",
+    "roof_membrane_grey",
+    "ballast",
+    "asphalt_worn",
+    "pavement"
+  ],
+  "licence": "LimeZu swatches: Timerpg game use only, credit required. Original mesh and supplemental pixel artwork."
+}

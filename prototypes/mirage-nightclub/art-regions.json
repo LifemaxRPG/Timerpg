@@ -1,0 +1,178 @@
+{
+  "metal": {
+    "rect_art": [
+      0,
+      0,
+      64,
+      64
+    ]
+  },
+  "rubber": {
+    "rect_art": [
+      64,
+      0,
+      64,
+      64
+    ]
+  },
+  "magenta": {
+    "rect_art": [
+      0,
+      64,
+      64,
+      64
+    ]
+  },
+  "cyan": {
+    "rect_art": [
+      64,
+      64,
+      64,
+      64
+    ]
+  },
+  "front_left": {
+    "rect_art": [
+      0,
+      0,
+      72,
+      32
+    ]
+  },
+  "front_right": {
+    "rect_art": [
+      74,
+      0,
+      72,
+      32
+    ]
+  },
+  "entry": {
+    "rect_art": [
+      148,
+      0,
+      32,
+      36
+    ]
+  },
+  "transom": {
+    "rect_art": [
+      182,
+      0,
+      32,
+      12
+    ]
+  },
+  "tower_col": {
+    "rect_art": [
+      216,
+      0,
+      16,
+      64
+    ]
+  },
+  "side_win": {
+    "rect_art": [
+      0,
+      36,
+      48,
+      32
+    ]
+  },
+  "vip_win": {
+    "rect_art": [
+      50,
+      36,
+      48,
+      24
+    ]
+  },
+  "dj_glass": {
+    "rect_art": [
+      100,
+      36,
+      72,
+      16
+    ]
+  },
+  "title": {
+    "rect_art": [
+      0,
+      0,
+      112,
+      16
+    ]
+  },
+  "pylon_top": {
+    "rect_art": [
+      114,
+      0,
+      72,
+      16
+    ]
+  },
+  "lounge_sign": {
+    "rect_art": [
+      188,
+      0,
+      64,
+      12
+    ]
+  },
+  "reader": {
+    "rect_art": [
+      0,
+      18,
+      72,
+      24
+    ]
+  },
+  "vip_sign": {
+    "rect_art": [
+      74,
+      18,
+      48,
+      12
+    ]
+  },
+  "lamp": {
+    "rect_art": [
+      124,
+      18,
+      16,
+      4
+    ]
+  },
+  "sunburst": {
+    "rect_art": [
+      142,
+      18,
+      24,
+      24
+    ]
+  },
+  "dance_floor": {
+    "rect_art": [
+      0,
+      44,
+      96,
+      64
+    ]
+  },
+  "stage_backdrop": {
+    "rect_art": [
+      98,
+      44,
+      128,
+      40
+    ]
+  },
+  "back_bar": {
+    "rect_art": [
+      98,
+      86,
+      96,
+      24
+    ]
+  }
+}
