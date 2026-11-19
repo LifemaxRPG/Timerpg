@@ -4,6 +4,7 @@ import { rand } from '../sim/rng';
 import { planTown } from '../town/plan';
 import { cinemaProgram } from '../town/cinema';
 import { GENRE_WORDS } from '../town/films';
+import { REUSE_WORDS, storeState, townStoreHistories, type StoreState } from '../town/stores';
 
 // THE FACT SHEET. A language model only gives words to what the simulation already decided: it is
 // handed a short sheet of facts about the person and what the player just did, and told to answer in
@@ -52,6 +53,60 @@ export function cinemaFacts(c: TalkCtx): string[] {
     out.push(`You saw "${f.title}" there and thought it was ${liked < 0.45 ? 'wonderful' : liked < 0.8 ? 'all right' : 'a waste of a ticket'}.`);
   }
   return out;
+}
+
+/**
+ * The town's stores in the talk's year (src/town/stores.ts): where this person buys their groceries, and the latest
+ * change they would talk about (the superstore opening, the supermarket moving out of town, the old general store
+ * closing and what it is now). Two sentences at most.
+ */
+export function storeFacts(c: TalkCtx): string[] {
+  const w = c.w, p = c.person;
+  const plan = planTown(w.seed);
+  const st = new Map<string, StoreState>();
+  for (const h of townStoreHistories(w.seed, plan.landmarks.map((l) => l.id))) {
+    const s = storeState(w.seed, h, w.year);
+    if (s) st.set(s.site, s);
+  }
+  const open = [...st.values()].filter((s) => s.status === 'open');
+  if (!open.length) return [];
+  const age = w.year - p.birthYear;
+  const where = (s: StoreState): string => s.site === 'generalstore' ? `${s.name} on Main Street`
+    : s.site === 'market' ? `${s.name} downtown` : `${s.name} out on the main road at the edge of town`;
+  // the newest store most people use; the general store keeps the old and the loyal while it stands
+  const r = rand(w.seed, w.year, 'store-shop', p.id);
+  const general = open.find((s) => s.site === 'generalstore');
+  const newest = open[open.length - 1]!;
+  const mine = general && (open.length === 1 || r < (age >= 60 ? 0.55 : 0.2)) ? general : newest;
+  const out = [age < 14 ? `Your family buys groceries at ${where(mine)}.` : `You buy your groceries at ${where(mine)}.`];
+  // the latest change in the town's shopping, if recent, else (for some who remember) the old general store's end
+  const events = [...st.values()].flatMap((s) => s.history.map((e) => ({ s, e }))).filter(({ e }) => e.year >= 1950).sort((a, b) => b.e.year - a.e.year);
+  const superstore = st.get('superstore');
+  const line = ({ s, e }: { s: StoreState; e: StoreState['history'][number] }): string | undefined => {
+    if (e.event === 'opened' && s.site === 'superstore') return `${e.name}, a huge superstore, opened at the edge of town in ${e.year}.`;
+    if (e.event === 'opened' && s.site === 'market') return `${e.name}, the town's first supermarket, opened downtown in ${e.year}.`;
+    if (e.event === 'opened' && s.site === 'supermarket') return `${e.name}, the town's first supermarket, opened at the edge of town in ${e.year}.`;
+    if (e.event === 'moved') return `${st.get('market')?.name ?? 'The market'} moved out of downtown in ${e.year} into a big new store at the edge of town, ${e.name}.`;
+    if (e.event === 'renamed') return `The general store changed hands in ${e.year} and is now ${e.name}.`;
+    if (e.event === 'closed' && e.why === 'superstore') return `${e.name} closed in ${e.year}${superstore ? ` after ${superstore.name} opened` : ''}.`;
+    if (e.event === 'reused') return `The old ${s.name} building is ${REUSE_WORDS[e.reuse!]} now, ${e.name}.`;
+    return undefined;
+  };
+  // one of the last few years' changes (each person picks up a different piece of news)
+  const fresh = events.filter(({ e }) => w.year - e.year <= 4).map(line).filter((x): x is string => !!x);
+  const recent = fresh.length ? fresh[Math.floor(rand(w.seed, w.year, 'store-news', p.id) * fresh.length)] : undefined;
+  if (recent) out.push(recent);
+  else {
+    const old = st.get('generalstore');
+    if (old && old.closed !== undefined && age - (w.year - old.closed) >= 12 && rand(w.seed, w.year, 'store-memory', p.id) < 0.5) {
+      out.push(`You miss ${old.name}, which closed in ${old.closed}.`);
+    }
+  }
+  if (superstore && superstore.status === 'open' && w.year - superstore.opened <= 6 && out.length < 2) {
+    const v = rand(w.seed, 'store-opinion', p.id);
+    out.push(v < 0.4 ? `You like ${superstore.name}'s low prices.` : v < 0.75 ? `You blame ${superstore.name} for the old stores closing.` : `You think ${superstore.name} is too big for a town like this.`);
+  }
+  return out.slice(0, 2);
 }
 
 /** Intents the model may voice. "town" is left to templates: a 0.6B model only produces filler about it. */
@@ -104,6 +159,7 @@ export function brief(c: TalkCtx, intent: string, template: string, facts: strin
     ...(c.wanted ? ['The player is wanted for a crime. You are afraid of them.'] : []),
     ...relevant,
     ...(intent === 'chat' || intent === 'news' || intent === 'town' ? cinemaFacts(c) : []),
+    ...(intent === 'news' || intent === 'town' ? storeFacts(c) : []),
     ...facts,
   ].join('\n');
   // The rules come first and never change, so the model's prompt cache can reuse them every time.

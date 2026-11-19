@@ -1,5 +1,5 @@
 import { rand, rngFor } from '../sim/rng';
-import { naturalPopulation } from '../sim/simulate';
+import { naturalHistory } from './population';
 import { townName } from '../world/names';
 import { decadeOf, distinctTaglines, releases, type Film } from './films';
 
@@ -21,13 +21,8 @@ export const CINEMA_ERAS: readonly CinemaEra[] = ['palace', 'modern', 'twin', 'm
 export const cinemaEra = (year: number): CinemaEra =>
   year < 1960 ? 'palace' : year < 1980 ? 'modern' : year < 2000 ? 'twin' : 'multiplex';
 
-const peaks = new Map<string, number>();
-/** The town's largest living population, 1950 to CINEMA_BY, in its natural history (no time travel). */
-export function peakPopulation(seed: string): number {
-  let p = peaks.get(seed);
-  if (p === undefined) { p = Math.max(...naturalPopulation(seed, CINEMA_BY)); peaks.set(seed, p); }
-  return p;
-}
+/** The town's largest living population, 1950 to CINEMA_BY, in its natural history (no time travel; src/town/population.ts). */
+export const peakPopulation = (seed: string): number => Math.max(...naturalHistory(seed).slice(0, CINEMA_BY - 1950 + 1));
 
 /** Is this a town big enough for a cinema? */
 export const hasCinema = (seed: string): boolean => peakPopulation(seed) >= CINEMA_POPULATION;

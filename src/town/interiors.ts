@@ -213,6 +213,21 @@ export function planInterior(w: World, e: Entrance, zoneId?: string): RoomPlan {
         put('counter',112,464);put('counter',176,464);put('iceDisplay',240,464,true,true);put('iceDisplay',272,464,true,true);
         put('sofa',W-128,560);put('sofa',W-224,560);put('plant',64,H-48);put('plant',W-64,H-48);
         break;
+      case 'generalstore': case 'market': case 'supermarket': case 'superstore':
+        // the stores (src/town/stores.ts): the stockroom behind, aisles of shelves, the checkout counters by the door
+        horizontal(272,W-144,112);
+        area('Stockroom',32,96,W-64,176);area(template==='generalstore'?'Shop floor':'Aisles & checkouts',32,288,W-64,H-312);
+        {
+          // the bigger the store, the more aisles, coolers and checkouts
+          const size={generalstore:1,market:2,supermarket:3,superstore:4}[template as 'market']!;
+          for(const x of [112,208,304])put('parcels',x,208,true,true);
+          for(let i=0;i<size;i++)put('fridge',W-96-i*64,208);
+          for(let i=0;i<size+1;i++)put('cabinet',112+i*64,368);
+          for(let i=0;i<Math.max(1,size-1);i++)put('counter',112+i*64,496);
+          if(template==='generalstore')put('stove',W-128,432);else put('iceDisplay',W-128,400,true,true);
+          put('plant',64,H-48);
+        }
+        break;
       default: throw new Error(`No interior template for ${template}`);
     }
   }
