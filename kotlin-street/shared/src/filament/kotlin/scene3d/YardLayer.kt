@@ -73,19 +73,31 @@ object YardKitBuilder : YardBuilder {
         fun item(i: com.lifemax.rpg.feature.habits.domain.TownYardItem) =
             YardItem(i.kind, i.rect[0], i.rect[1], i.rect[2], i.rect[3], i.faceX, i.faceZ, i.variant, i.layer, i.on, i.zone)
         val at = listOf(floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 0f))
-        // a lot at a time (culled with the view, cut with its house), then each lane's and verge's items
-        val work = ArrayList<Pair<List<YardItem>, YardPatch>>()
+        // a lot at a time (culled with the view, cut with its house), then each lane's and verge's items. A lot's tall
+        // things (sheds, trees, play sets, back hedges: FilamentTown.tallHeight) are each a patch of their own beside it,
+        // so the open world's camera cuts away only the one truly in the way; the lot's far version keeps them all
+        class Work(val near: List<YardItem>, val far: List<YardItem>?, val patch: YardPatch)
+        val work = ArrayList<Work>()
+        fun add(id: String, items: List<com.lifemax.rpg.feature.habits.domain.TownYardItem>, p: YardPatch) {
+            val tall = items.indices.filter { FilamentTown.tallHeight(items[it].kind, items[it].zone) > 0f }.toSet()
+            work += Work(items.filterIndexed { k, _ -> k !in tall }.map(::item), items.map(::item), p)
+            for (k in tall) {
+                val r = items[k].rect
+                work += Work(listOf(item(items[k])), null, YardPatch(YardPatch.tallId(id, k), (r[0] + r[2]) / 2f, (r[1] + r[3]) / 2f,
+                    kotlin.math.hypot(r[2] - r[0], r[3] - r[1]) / 2f + 40f, p.sprite, follows = id))
+            }
+        }
         for (y in yards.yards) {
             if (y.items.isEmpty()) continue
             val p = y.parcel
             var x0 = p[0]; var z0 = p[1]; var x1 = p[2]; var z1 = p[3]
             for (i in y.items) { x0 = minOf(x0, i.rect[0]); z0 = minOf(z0, i.rect[1]); x1 = maxOf(x1, i.rect[2]); z1 = maxOf(z1, i.rect[3]) }
-            work += y.items.map(::item) to YardPatch(y.lot, (x0 + x1) / 2f, (z0 + z1) / 2f, kotlin.math.hypot(x1 - x0, z1 - z0) / 2f, y.sprite)
+            add(y.lot, y.items, YardPatch(y.lot, (x0 + x1) / 2f, (z0 + z1) / 2f, kotlin.math.hypot(x1 - x0, z1 - z0) / 2f, y.sprite))
         }
         for (l in yards.lanes) {
             if (l.items.isEmpty()) continue
             val r = l.rect
-            work += l.items.map(::item) to YardPatch(l.id, (r[0] + r[2]) / 2f, (r[1] + r[3]) / 2f, kotlin.math.hypot(r[2] - r[0], r[3] - r[1]) / 2f)
+            add(l.id, l.items, YardPatch(l.id, (r[0] + r[2]) / 2f, (r[1] + r[3]) / 2f, kotlin.math.hypot(r[2] - r[0], r[3] - r[1]) / 2f))
         }
         // baked a few lots at a time on the common pool (the kit's caches are shared under locks), handed to the sink in
         // order, so only those few lots' meshes are held at once (each lot's atlases and vertices: up to some 5 MB); the
@@ -95,11 +107,11 @@ object YardKitBuilder : YardBuilder {
         for (from in work.indices step step) {
             val group = work.subList(from, minOf(work.size, from + step))
             // (each lot twice: as near by, and its far version for the open world's distance, [YardKit.bake] far)
-            val baked: MutableList<Pair<List<YardBatch>, List<YardBatch>>?> = group.parallelStream().map { (items, _) ->
-                YardKit.bake(items, perKind = false) to (if (far) YardKit.bake(items, perKind = false, far = true) else emptyList())
+            val baked: MutableList<Pair<List<YardBatch>, List<YardBatch>>?> = group.parallelStream().map { w ->
+                YardKit.bake(w.near, perKind = false) to (if (far && w.far != null) YardKit.bake(w.far, perKind = false, far = true) else emptyList())
             }.collect(java.util.stream.Collectors.toList())
             for (k in baked.indices) {
-                val patch = group[k].second
+                val patch = group[k].patch
                 val (near, farOnes) = baked[k]!!
                 for ((p, list) in listOf(patch to near, patch.farTwin() to farOnes)) for (b in list) {
                     val mi = sink.mesh("yard:${p.id}:${b.group}", b.mesh, at, b.casts, b.tiled, p, water = b.water)

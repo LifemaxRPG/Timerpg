@@ -348,7 +348,7 @@ internal class Shooter(val engine: Engine, val town: FilamentTown) {
      * over the whole height; [orb]: a sun or moon disc behind the town (x, y, radius, 0xRRGGBB), where the stage draws it.
      */
     fun save(file: File, w: Int, h: Int, hour: Float, marks: List<Pair<androidx.compose.ui.geometry.Offset, Int>> = emptyList(),
-             skyRow: ((Int) -> Color)? = null, orb: FloatArray? = null) {
+             skyRow: ((Int) -> Color)? = null, orb: FloatArray? = null, skyImg: java.awt.image.BufferedImage? = null) {
         if (swap == null || sw != w || sh != h) {
             swap?.let { engine.destroySwapChain(it) }
             swap = engine.createSwapChain(w, h, SwapChainFlags.CONFIG_READABLE or SwapChainFlags.CONFIG_TRANSPARENT)
@@ -376,6 +376,7 @@ internal class Shooter(val engine: Engine, val town: FilamentTown) {
             val sr0 = (sc.red * 255).toInt(); val sg0 = (sc.green * 255).toInt(); val sb0 = (sc.blue * 255).toInt()
             for (x in 0 until w) {
                 var sr = sr0; var sg = sg0; var sb = sb0
+                if (skyImg != null && x < skyImg.width && y < skyImg.height) { val c = skyImg.getRGB(x, y); sr = (c shr 16) and 255; sg = (c shr 8) and 255; sb = c and 255 }
                 if (orb != null) {
                     val dx = x - orb[0]; val dy = y - orb[1]
                     if (dx * dx + dy * dy < orb[2] * orb[2]) { val c = orb[3].toInt(); sr = (c shr 16) and 255; sg = (c shr 8) and 255; sb = c and 255 }

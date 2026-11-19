@@ -462,6 +462,32 @@ is the AI panel's "View: Open world / Street" (prefs `renderer/view`, open by de
 - "Talk to" no longer falls back to a door whose person stands further than a conversation lasts (90).
 - Preview: walk renders have the stage's sky; check views `chk_*` (gates, people from four sides, the widest views, low
   and close in a back yard, the world's edges) and `backyards_low_13h`, `cinema_quarter_13h`.
-- Left: cutting a lot's tall things cuts all of that lot's fences and sheds together (per-object batches would cost
-  draws); shop backs are still bare brick and gravel; the river's banks are still stepped; no fling and no game-pad
+- Left: (cutting a lot's tall things together: fixed on wf-feedback, each tall thing is cut alone); shop backs are still bare brick and gravel; the river's banks are still stepped; no fling and no game-pad
   camera stick; nothing of this measured on the S25.
+
+## Open world: the owner's screenshots of 0.1.338 (branch wf-feedback)
+
+- No painted city in free roam: the stage's `Backdrop.city` is off in the open world (HabitsStage: `!openSky`), so the far
+  skyline's rows, the middle distance and its car are not drawn there; the sky, clouds, stars, sun or moon, weather and
+  the horizon's glow (taller there, 150 dp) stay. The horizon is the town's own: the world's woods in the haze (real far
+  LODs of other towns would go here later). The street view is unchanged. Preview: `-Dsky=stage` lays the stage's own
+  sky under the open world's renders (FilamentOpenPreview `stageSky`).
+- The cutaway cuts only what is in the way: every yard's tall thing (shed, garage, greenhouse, carport, gazebo, play set,
+  swing, back hedge, tree) is a yard patch of its own (`YardPatch.tallId(lot, index)`, `follows` its lot: drawn while the
+  lot is near, left to the lot's far version past it); `occlude` cuts that thing alone, never its lot's fences or other
+  things. A cone line that starts inside a thing counts only for the chest's and head's lines and only under a crown or
+  roof (trees, carports, gazebos): a hedge or shed beside or behind the player is no longer cut (the 005359 bug: the side
+  lines started inside the back hedge and the whole back yard went). Cost (build server): +30-65 draws in yard views.
+- Trees (`TreeKit`, `TreeCells`): oak, maple, linden, copper beech, birch, fruit (fruit or blossom), poplar, spruce
+  (star-shaped drooping tiers) and pine, each grown from a seed (lumpy lobes, limbs and twigs into the crown, a flared
+  trunk with roots), and round, tall and topiary bushes, in the pack's pixel pictures (one shared 512 atlas: any number
+  merge into one draw). Two levels: full detail within `TownFrame.LOD_DETAIL` (800) of the eye, a simple one to
+  `LOD_NEAR` (1100), the cards beyond. The forest's, the edge's, the rows' trees and the bushes stand in cells of 420
+  (`TreeCells`, per chunk: one merged mesh per cell and level; the detail packed on a worker as a cell comes within
+  reach, two cells uploaded a frame, let go 700 past it). Forest sprites map to species (round: maples, lindens, birches,
+  oaks; tall: spruces, pines, poplars; big: oaks). The yards' trees and fruit trees are the kit's, full detail near and
+  the simple level in the far yards. No seasons in Filament yet (summer colours).
+  Build server, software GL (not the S25): 005324's woods 170 draws, 215k triangles (were 183 and 295k with the old
+  trees: the simple level is lighter than the old near trees, the detail only round the camera); a detailed tree is
+  500-1160 triangles (the old 3D tree about 330), its simple level 80-170 (desktop TreeKitTest prints each yard look).
+  townMemoryCheck held 184 MB of 256.

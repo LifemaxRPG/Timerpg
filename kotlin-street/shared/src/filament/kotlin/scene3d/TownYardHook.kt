@@ -31,12 +31,26 @@ class YardPatch(
      * small things left out; [YardKit.bake] far). The street view never draws it.
      */
     val far: Boolean = false,
+    /**
+     * The lot whose near or far version this patch goes with (a lot's tall thing, [tallId]: drawn while its lot is drawn
+     * near, left out while the lot's far version stands in, which has it); null: its own.
+     */
+    val follows: String? = null,
 ) {
     /** The patch whose far version this is (its own id when it is no far version). */
     val nearId: String get() = if (far) id.removeSuffix(FAR) else id
     fun farTwin(): YardPatch = YardPatch(id + FAR, x, z, r, sprite, far = true)
 
-    companion object { const val FAR = "#far" }
+    companion object {
+        const val FAR = "#far"
+
+        /**
+         * The patch of lot [lot]'s tall thing, its item [index] (a shed, a tree, a play set, a back hedge: what can stand
+         * between the open world's camera and the player). Each is a patch of its own, so the camera's cut takes away only
+         * the things truly in the way, not the whole lot ([FilamentTown.occlude]).
+         */
+        fun tallId(lot: String, index: Int): String = "$lot#t$index"
+    }
 }
 
 /** What a [YardBuilder] adds its work to: meshes in world coordinates (or placed at several spots), and street props. */

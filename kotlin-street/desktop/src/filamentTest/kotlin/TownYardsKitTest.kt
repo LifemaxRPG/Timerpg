@@ -13,7 +13,7 @@ import kotlin.math.hypot
 
 /**
  * The yard kit in the Filament town ([YardKitBuilder] through the town's yard hook): every lot and lane is baked as its
- * own patch, in a few draws, and every vertex lies inside the patch's circle (the town culls and cuts by that circle, so
+ * own patch (and each of a lot's tall things a patch of its own that follows its lot), in a few draws, and every vertex lies inside the patch's circle (the town culls and cuts by that circle, so
  * nothing may stick out of it and pop), and each lot's patch goes with its own building.
  */
 class TownYardsKitTest {
@@ -42,9 +42,22 @@ class TownYardsKitTest {
         val far = byPatch.filterValues { it.first().patch!!.far }
         val lots = yards.yards.count { it.items.isNotEmpty() }
         val lanes = yards.lanes.count { it.items.isNotEmpty() }
-        assertTrue("${near.size} patches for $lots lots and $lanes lanes", near.size == lots + lanes)
+        // (a lot's tall things are patches of their own beside it, each following its lot: the open world's camera cuts
+        // only the one in its way)
+        val own = near.filterValues { it.first().patch!!.follows == null }
+        val tallOnes = near.filterValues { it.first().patch!!.follows != null }
+        // (a lane whose only things are tall ones, a verge's trees, has no patch of its own left)
+        val lowLanes = yards.lanes.count { l -> l.items.any { com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown.tallHeight(it.kind, it.zone) <= 0f } }
+        assertTrue("${own.size} patches for $lots lots and $lanes lanes ($lowLanes with low things)", own.size == lots + lowLanes)
+        val ids = yards.yards.map { it.lot }.toSet() + yards.lanes.map { it.id }
+        assertTrue("every tall thing follows a lot or lane", tallOnes.values.all { it.first().patch!!.follows in ids })
+        val tall = yards.yards.sumOf { y -> y.items.count { com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown.tallHeight(it.kind, it.zone) > 0f } } +
+            yards.lanes.sumOf { l -> l.items.count { com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown.tallHeight(it.kind, it.zone) > 0f } }
+        assertTrue("${tallOnes.size} tall things' patches for $tall tall things", tallOnes.size == tall)
+        println("yards: ${own.size} lots and lanes, ${tallOnes.size} tall things of their own")
         if (YardKitBuilder.far) {
-            assertTrue("every far version has its near patch", far.keys.all { it.removeSuffix(YardPatch.FAR) in near })
+            // (a lane of tall things only has its far version, standing in for its tall things' patches past the line)
+            assertTrue("every far version is a lot's or lane's", far.keys.all { it.removeSuffix(YardPatch.FAR) in ids })
             val nearTris = near.values.sumOf { l -> l.sumOf { it.triangles } }; val farTris = far.values.sumOf { l -> l.sumOf { it.triangles } }
             assertTrue("the far yards ($farTris triangles) are lighter than the near ($nearTris)", farTris * 2 < nearTris)
             println("yards' triangles: near $nearTris, far $farTris")

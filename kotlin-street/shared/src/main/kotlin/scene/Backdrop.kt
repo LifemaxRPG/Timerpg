@@ -229,6 +229,9 @@ internal class Backdrop(private val seed: Int, day: String = "") {
 
     // ---- brushes that follow the horizon, the orb and the density
     private var glowBrush: Brush? = null
+    private var brushCity = true
+    /** How tall the horizon's glow is (dp): taller in the open world, where it is the air over the town's own far edge. */
+    private val glowDp: Float get() = if (city) 60f else 150f
     private var haloBrush: Brush? = null
     private var haloWide: Brush? = null
     private val rowBrush = arrayOfNulls<Brush>(3)
@@ -345,15 +348,16 @@ internal class Backdrop(private val seed: Int, day: String = "") {
                 if (shows < .99f) drawIntoCanvas { it.restore() }
             }
         }
-        for (r in rows.indices) row(r, sky, horizon, shift * drift[r] - yaw / d, seconds)
+        if (city) for (r in rows.indices) row(r, sky, horizon, shift * drift[r] - yaw / d, seconds)
         if (tone >= .7f && Ambient.birds(seconds, seed, pass))
             birds(pass, sky, w, top, horizon, ceiling, seconds)
         // the glow over the horizon: the city's light at night, haze by day
-        drawRect(glowBrush!!, Offset(0f, horizon - 60f * d), Size(w, 60f * d))
+        drawRect(glowBrush!!, Offset(0f, horizon - glowDp * d), Size(w, glowDp * d))
         drawRect(sky.ground[0], Offset(0f, horizon), Size(w, size.height - horizon))
         drawLine(sky.line, Offset(0f, horizon), Offset(w, horizon), d)
         weather(sky, w, horizon, orb, shift, seconds)
         // the city between the street and the far skyline, the passing car on its boulevard
+        if (!city) return
         val pave = if (street > horizon) street else horizon + MidCitySprites.BAND * d
         midCity.yaw = yaw
         with(midCity) {
@@ -376,6 +380,13 @@ internal class Backdrop(private val seed: Int, day: String = "") {
      * stage passes the sun or the moon already turned. 0 on the main street's own view.
      */
     var yaw = 0f
+
+    /**
+     * Whether the painted city stands under the sky: the far skyline's rows, the middle distance and its passing car.
+     * Off in the open world, where the horizon is the town's own (the world's edge of woods in the haze): only the sky,
+     * its clouds, stars, sun or moon, the horizon's glow and the weather's veil are painted there.
+     */
+    var city = true
 
     /**
      * The y of the street's pavement line (px), and the season, set by the stage: the middle
@@ -483,13 +494,15 @@ internal class Backdrop(private val seed: Int, day: String = "") {
                 brushH == horizon &&
                 brushOrb == orb &&
                 brushD == density &&
+                brushCity == city &&
                 glowBrush != null
         )
             return
+        brushCity = city
         glowBrush =
             Brush.verticalGradient(
                 listOf(Color.Transparent, sky.glow),
-                startY = horizon - 60f * density,
+                startY = horizon - glowDp * density,
                 endY = horizon,
             )
         // the sun's corona is wide and warm, the moon's halo small and pale

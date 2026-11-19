@@ -227,6 +227,8 @@ object TownFrame {
     const val RANGE_FADE = 500f
     /** Closer than this (street units from the eye to a chunk's edge) the greenery is in full 3D, further as cards. */
     const val LOD_NEAR = 1100f
+    /** Closer than this (street units from the eye to a tree cell's edge) the trees and bushes are in full detail ([TreeCells]). */
+    const val LOD_DETAIL = 800f
     /** The street view cuts away what stands nearer than this short of the building line it looks at (past the road's middle). */
     const val CUT_BACK = 110f
     /** Over how many street units a cut building fades. */
@@ -349,12 +351,21 @@ class FilamentTown(
             if (n != null) PropLayer.Packing.pack(mesh, at)?.let { n.upload(it, casts) } else nearSrc += Triple(mesh, at, casts)
         }
 
+        /** Its trees and bushes in 3D, in cells at two levels of detail ([TreeCells]; null: none). */
+        var trees: TreeCells? = null
+        fun addTrees(list: List<Pair<TreeKit.Spec, FloatArray>>) {
+            hasNear = true
+            val t = trees ?: TreeCells(engine, scene, lit, proxyMat, textures, pool).also { trees = it }
+            for ((s, a) in list) t.add(s, a)
+        }
+
         /** Starts packing its 3D trees on a worker (nothing if made, under way, or none). */
         fun startNear() {
-            if (near != null || packing != null || nearSrc.isEmpty()) return
+            if (near != null || packing != null || (nearSrc.isEmpty() && trees == null)) return
             val src = nearSrc.toList()
             packedCount = src.size
-            packing = pool.submit(java.util.concurrent.Callable { src.mapNotNull { (m, at, casts) -> PropLayer.Packing.pack(m, at)?.let { it to casts } } })
+            val t = trees
+            packing = pool.submit(java.util.concurrent.Callable { t?.pack(); src.mapNotNull { (m, at, casts) -> PropLayer.Packing.pack(m, at)?.let { it to casts } } })
         }
         var x0 = Float.MAX_VALUE; var z0 = Float.MAX_VALUE; var x1 = -Float.MAX_VALUE; var z1 = -Float.MAX_VALUE
         var pad = 0f; var top = 0f
@@ -377,9 +388,10 @@ class FilamentTown(
             for ((p, casts) in got) l.upload(p, casts)
             for (i in from until nearSrc.size) { val (m, at, casts) = nearSrc[i]; PropLayer.Packing.pack(m, at)?.let { l.upload(it, casts) } }
             nearSrc.clear(); nearSrc.trimToSize(); packing = null
+            trees?.build()
             near = l
         }
-        fun destroy() { base.destroy(); cards.destroy(); near?.destroy() }
+        fun destroy() { base.destroy(); cards.destroy(); near?.destroy(); trees?.destroy() }
     }
     private val chunks = LinkedHashMap<String, Chunk>()
 
@@ -496,6 +508,8 @@ class FilamentTown(
         val extent: FloatArray? = null,
         /** With a chunk's cards: the same trees in 3D for near by, at [nearAt] (packed later: [Chunk.startNear]). */
         val near: PropMesh? = null, val nearAt: List<FloatArray>? = null,
+        /** With a chunk's cards: the trees and bushes they stand for near by ([TreeCells]), each with its place. */
+        val trees: List<Pair<TreeKit.Spec, FloatArray>>? = null,
     )
 
     private val jobs = java.util.concurrent.ConcurrentLinkedQueue<Job>()
@@ -565,12 +579,15 @@ class FilamentTown(
             val share = java.util.IdentityHashMap<IntArray, StreetTextures.Prepared>()
             val an = p.anchors
             if (an == null) { PropLayer.Packing.pack(p.mesh, p.at, share)?.let { offer(Job(it, p.casts, p.tiled)) }; continue }
-            val by = LinkedHashMap<String, Pair<ChunkSpec, MutableList<FloatArray>>>()
-            for ((i, a) in p.at.withIndex()) { val sp = specOf(an[i], a[0], a[1]); by.getOrPut(sp.key) { sp to ArrayList() }.second += a }
-            for ((sp, at) in by.values) {
+            val by = LinkedHashMap<String, Pair<ChunkSpec, MutableList<Int>>>()
+            for ((i, a) in p.at.withIndex()) { val sp = specOf(an[i], a[0], a[1]); by.getOrPut(sp.key) { sp to ArrayList() }.second += i }
+            for ((sp, ids) in by.values) {
+                val at = ids.map { p.at[it] }
                 val ext = extent(at, p.near ?: p.mesh)
                 // (the 3D trees go with their cards, to be packed only as the chunk comes near: Chunk.startNear)
-                PropLayer.Packing.pack(p.mesh, at, share)?.let { offer(Job(it, p.casts, p.tiled, sp, part = if (p.near != null) 1 else 0, extent = ext, near = p.near, nearAt = at)) }
+                val trees = p.trees?.let { t -> ids.map { t[it] to p.at[it] } }
+                val cards = p.near != null || trees != null
+                PropLayer.Packing.pack(p.mesh, at, share)?.let { offer(Job(it, p.casts, p.tiled, sp, part = if (cards) 1 else 0, extent = ext, near = p.near, nearAt = at, trees = trees)) }
             }
         }
         // (the street props' meshes repeat along every row: one packed picture each for them all; small pictures)
@@ -662,6 +679,7 @@ class FilamentTown(
                 else -> c.cards.upload(j.packed, j.casts, j.tiled)
             }
             if (j.near != null && j.nearAt != null) c.addNear(j.near, j.nearAt, j.casts)
+            j.trees?.let { c.addTrees(it) }
             return
         }
         val layer = when {
@@ -701,6 +719,7 @@ class FilamentTown(
      */
     fun prepare(pose: TownPose) {
         for (c in chunks.values) if (c.hasNear && c.near == null && pose.distance(c.cx, 20f, c.cz) - c.r < TownFrame.LOD_NEAR && pose.sees(c.cx, 20f, c.cz, c.r)) c.buildNear()
+        for (c in chunks.values) if (c.near != null) c.trees?.prepare(pose)
     }
 
     /**
@@ -924,7 +943,9 @@ class FilamentTown(
         // world, past [TownPose.lodFar] each lot's far version is drawn in its place
         for (pt in patches.values) {
             val p = pt.p
-            if (p.far || pose.lodFar < Float.MAX_VALUE) {
+            // (a lot's tall thing goes with its lot: drawn while the lot is near, left to the lot's far version past it)
+            if (p.follows != null) { if (p.follows in farLots) { pt.layer.update(look, dark, false, 0f, false); continue } }
+            else if (p.far || pose.lodFar < Float.MAX_VALUE) {
                 // (a lot switches to its far version past the line and back only well inside it: no flicker at the line)
                 val d = pose.distance(p.x, 15f, p.z)
                 val wasFar = pt.nearKey in farLots
@@ -940,12 +961,14 @@ class FilamentTown(
             // (the open world: a lot whose shed, garage, tree or tall hedge is in the camera's way has its tall things cut
             // away, eased; its lawn and paths stay, and the shadows too)
             pt.occFade = if (pose.open && pt.nearKey in occludedLots) max(OCCLUDED, pt.occFade - occStep) else min(1f, pt.occFade + occStep)
-            pt.layer.update(look, dark, on, fade, near, castFade = pt.occFade)
+            // (a tall thing's own patch is cut whole, its flat parts too)
+            pt.layer.update(look, dark, on, if (p.follows != null) min(fade, pt.occFade) else fade, near, castFade = pt.occFade)
             if (on) { renderables += pt.layer.draws; draws += pt.layer.draws; tris += pt.layer.triangles }
             if (near) casters += pt.layer.casters
         }
         // the furniture, props and greenery a chunk at a time: culled, cut with their row, cards far and 3D near
         var nChunks = 0; var nNear = 0
+        TreeCells.newFrame()
         for (c in chunks.values) {
             val cut = if (pose.cut <= 0f) 1f else if (c.byRow) fadeOf(pose, c.refX, c.refZ) else fadeOf(pose, c.cx, c.cz)
             val fade = min(cut, pose.rangeFade(c.cx, c.top / 2f, c.cz, c.r))
@@ -956,11 +979,14 @@ class FilamentTown(
             c.base.update(look, dark, on, fade, shadows)
             c.cards.update(look, dark, on && !near3d, fade, shadows && !near3d)
             c.near?.update(look, dark, near3d, fade, shadows && near3d)
+            val tc = c.trees
+            tc?.update(pose, look, dark, near3d, fade, shadows && near3d)
             if (on) {
                 nChunks++
                 val l = (if (near3d) c.near else null) ?: c.cards
                 renderables += c.base.draws + l.draws; draws += c.base.draws + l.draws; tris += c.base.triangles + l.triangles
             }
+            if (tc != null) { renderables += tc.draws; draws += tc.draws; tris += tc.triangles; casters += tc.casters }
             if (near3d) nNear++
             if (shadows) casters += c.base.casters + (if (near3d) c.near!!.casters else c.cards.casters)
         }
@@ -1080,9 +1106,12 @@ class FilamentTown(
             for (k in 0 until 5) {
                 o[0] = st[k * 3]; o[1] = st[k * 3 + 1]; o[2] = st[k * 3 + 2]
                 d[0] = ex - o[0]; d[1] = ey - o[1]; d[2] = ez - o[2]
-                // (a player standing under it, a tree's crown or a carport's roof, is hidden by it too)
+                // (a line that starts inside it: a player standing under a tree's crown or a carport's roof is hidden by
+                // it, so the chest's and the head's lines count; the feet's and the sides' do not, or a hedge or a shed
+                // beside or behind the player would be cut)
                 val t0 = slab(o, d, lo, hi)
-                if (t0 <= 1f) { tallHit[li] = true; break }
+                if (t0 < 0f) { if ((k == 0 || k == 2) && tallRoof[i - 1]) { tallHit[li] = true; break } }
+                else if (t0 <= 1f) { tallHit[li] = true; break }
             }
         }
         return first.coerceIn(0f, 1f)
@@ -1113,30 +1142,31 @@ class FilamentTown(
     private val scratchO = FloatArray(3); private val scratchD = FloatArray(3)
 
     /**
-     * The yards' things tall enough to hide the player (world boxes: x0, z0, x1, z1, height, five floats each) and whose
-     * lot or lane each is ([tallLot]: an index into [tallKeys], the yard patch's id). [occlude] cuts a lot's tall things
-     * (its batches that throw shadows: fences, sheds, trees; its lawn and paths stay) when one of them is in the way.
+     * The yards' things tall enough to hide the player (world boxes: x0, z0, x1, z1, height, five floats each), the yard
+     * patch each is ([tallLot]: an index into [tallKeys]; every tall thing is a patch of its own, [YardPatch.tallId]) and
+     * whether it has a roof or a crown over head height ([tallRoof]). [occlude] cuts a tall thing when it is in the way;
+     * the rest of its lot (its fences, its lawn, its other sheds and trees) stays.
      */
     private val tallKeys: Array<String>
     private val tallLot: IntArray
     private val tallBoxes: FloatArray
+    private val tallRoof: BooleanArray
     private val tallHit: BooleanArray
     init {
-        val keys = ArrayList<String>(); val lots = ArrayList<Int>(); val boxes = ArrayList<Float>()
-        fun add(key: String, items: List<com.lifemax.rpg.feature.habits.domain.TownYardItem>) {
-            var k = -1
-            for (it in items) {
+        val keys = ArrayList<String>(); val lots = ArrayList<Int>(); val boxes = ArrayList<Float>(); val roofs = ArrayList<Boolean>()
+        fun add(lot: String, items: List<com.lifemax.rpg.feature.habits.domain.TownYardItem>) {
+            for ((k, it) in items.withIndex()) {
                 val h = tallHeight(it.kind, it.zone)
                 if (h <= 0f) continue
-                if (k < 0) { k = keys.size; keys += key }
                 val r = it.rect
                 boxes += r[0]; boxes += r[1]; boxes += r[2]; boxes += r[3]; boxes += h
-                lots += k
+                lots += keys.size; keys += YardPatch.tallId(lot, k)
+                roofs += it.kind in ROOFED
             }
         }
         for (y in yards.yards) add(y.lot, y.items)
         for (l in yards.lanes) add(l.id, l.items)
-        tallKeys = keys.toTypedArray(); tallLot = lots.toIntArray(); tallBoxes = boxes.toFloatArray(); tallHit = BooleanArray(keys.size)
+        tallKeys = keys.toTypedArray(); tallLot = lots.toIntArray(); tallBoxes = boxes.toFloatArray(); tallRoof = roofs.toBooleanArray(); tallHit = BooleanArray(keys.size)
     }
 
     /** Where the line of the last [occlude] enters a building the camera would stand in (a share of the way; 1: none). */
@@ -1312,6 +1342,8 @@ class FilamentTown(
         const val CONE_SIDE = 12f
         const val EYE_CLEAR = 60f
 
+        /** The tall things a player can stand under (a crown, a roof on posts): hidden by them from inside too. */
+        private val ROOFED = setOf("tree", "fruitTree", "carport", "gazebo")
         /** How tall a yard's thing is that can hide the player from the open world's camera (street units; 0: too low to). */
         fun tallHeight(kind: String, zone: String): Float = when (kind) {
             "garage" -> 42f

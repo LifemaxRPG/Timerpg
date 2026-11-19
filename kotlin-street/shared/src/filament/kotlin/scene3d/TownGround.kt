@@ -38,6 +38,11 @@ internal class GroundPiece(
     val anchors: List<Anchor>? = null,
     /** The same thing in full 3D for close by (a tree), standing in the same places; [mesh] is then the far one. */
     val near: PropMesh? = null,
+    /**
+     * Or, for trees and bushes: what each of [at] grows into near by ([TreeKit]: its species, shape and size; the same
+     * length), drawn in the town's tree cells ([TreeCells]) at two levels of detail; [mesh] is then the far card.
+     */
+    val trees: List<TreeKit.Spec>? = null,
 )
 
 /** What a placed thing belongs to: the row (its pavement, at [x] along it), or nothing but its place (the town's edge). */
@@ -607,16 +612,11 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         out
     }
 
-    /** The yard kit's 3D tree (one of its round broadleaves, or a conifer) about as big as [img] at [scale]. */
-    private fun tree3d(img: PixImg, scale: Float, v: Int): PropMesh? {
+    /** How tall a sprite stands at [scale] (street units), its empty rows at the foot left out. */
+    private fun spriteHeight(img: PixImg, scale: Float): Float {
         var empty = 0
         while (empty < img.h - 1 && (0 until img.w).none { (img.px[(img.h - 1 - empty) * img.w + it] ushr 24) > 0 }) empty++
-        val h = (img.h - empty) * TEXEL * scale
-        val variant = TREE_VARIANTS[v.mod(TREE_VARIANTS.size)]
-        // the kit's broadleaf stands about 2.6 times its half width tall, a conifer 3.6, a poplar 3.9
-        val s = h / (when (variant) { 5, 6 -> 3.6f; 8 -> 3.9f; else -> 2.6f })
-        val w = 2f * (s + .3f)
-        return YardKit.model("tree", variant, w, w).mesh
+        return (img.h - empty) * TEXEL * scale
     }
 
     /** A flat card on the ground (flowers seen from above), [scale] times its pixels. */
@@ -645,6 +645,7 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
     private fun greenery(): List<GroundPiece> {
         val groups = LinkedHashMap<Plant, MutableList<FloatArray>>()
         val anchors = HashMap<Plant, MutableList<Anchor>>()
+        val looks = HashMap<Plant, MutableList<Float>>()
         val keys = HashMap<String, Plant>()
         fun plant(path: String, scale: Float, flat: Boolean) = keys.getOrPut("$path@$scale@$flat") { Plant(path, scale, flat) }
         fun put(kind: String, x: Float, z: Float, look: Float, edge: Boolean) {
@@ -661,6 +662,7 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
             val pl = plant(v, scale, kind == "flowers")
             groups.getOrPut(pl) { ArrayList() } += floatArrayOf(x + jx, z + jz, cos(turn), sin(turn), -sin(turn), cos(turn), 0f)
             anchors.getOrPut(pl) { ArrayList() } += Anchor(null, 0f)
+            looks.getOrPut(pl) { ArrayList() } += look
         }
         // (a flower bush is the pack's planter box: the props' planter in 3D, not a card)
         val planters = ArrayList<Pair<Int, FloatArray>>()
@@ -679,10 +681,15 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         val out = ArrayList<GroundPiece>()
         for ((pl, at) in groups) {
             val img = sprite(pl.path) ?: continue
-            val isTree = pl.path.startsWith("tree/")
-            val near = if (isTree) tree3d(img, pl.scale, variants("tree").indexOf(pl.path)) else null
+            // (trees and bushes grow into the tree kit's 3D near by: TreeCells)
+            val h = spriteHeight(img, pl.scale)
+            val specs = when {
+                pl.path.startsWith("tree/") -> variants("tree").indexOf(pl.path).let { vi -> looks[pl]!!.map { TreeKit.forSprite(vi, it, h) } }
+                pl.path.startsWith("bush/") -> variants("bush").indexOf(pl.path).let { vi -> looks[pl]!!.map { TreeKit.forBush(vi, it, h) } }
+                else -> null
+            }
             out += GroundPiece("green:${pl.path}@${pl.scale}", if (pl.flat) groundCard(img, pl.scale) else crossCard(img, pl.scale), at, casts = !pl.flat,
-                anchors = anchors[pl], near = near)
+                anchors = anchors[pl], trees = specs)
         }
         for ((v, at) in planters.groupBy({ it.first }, { it.second })) out += GroundPiece("planters$v", PropKit.mesh(PropKind.PLANTER, v, seed = v * 5 + 2), at, casts = true)
         // the plaza's benches and its fountain
@@ -765,6 +772,7 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         val lampAnchors = ArrayList<Anchor>(); val benchAnchors = ArrayList<Anchor>()
         val trees = HashMap<String, MutableList<FloatArray>>()
         val treeAnchors = HashMap<String, MutableList<Anchor>>()
+        val treeSpecs = HashMap<String, MutableList<Float>>()
         val seen = HashSet<Long>()
         for (row in town.rows) for (f in row.furniture) {
             // (a row's ends are the crossing roads' middles: what stands there moves back onto the corner's pavement)
@@ -788,6 +796,7 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
                     val v = vs[((f.look * 997f).toInt()).mod(vs.size)]
                     trees.getOrPut(v) { ArrayList() } += floatArrayOf(p.x, p.z, rx, rz, ox, oz, 0f)
                     treeAnchors.getOrPut(v) { ArrayList() } += Anchor(row, x)
+                    treeSpecs.getOrPut(v) { ArrayList() } += f.look
                 }
             }
         }
@@ -795,7 +804,9 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         if (lamps.isNotEmpty()) out += GroundPiece("lamps", lamp(), lamps, casts = true, anchors = lampAnchors)
         if (benches.isNotEmpty()) out += GroundPiece("benches", PropKit.mesh(PropKind.BENCH), benches, casts = true, anchors = benchAnchors)
         for ((v, at) in trees) sprite(v)?.let {
-            out += GroundPiece("street-trees:$v", crossCard(it, 1f), at, casts = true, anchors = treeAnchors[v], near = tree3d(it, 1f, variants("tree").indexOf(v)))
+            val h = spriteHeight(it, 1f); val vi = variants("tree").indexOf(v)
+            out += GroundPiece("street-trees:$v", crossCard(it, 1f), at, casts = true, anchors = treeAnchors[v],
+                trees = treeSpecs[v]!!.map { look -> TreeKit.forSprite(vi, look, h) })
         }
         return out
     }
@@ -872,8 +883,6 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         const val BELT_DENSITY = .6f
         /** Street name signs nearer each other than this are one corner's (or one crossing's): one is kept. */
         const val SIGN_APART = 260f
-        /** The kit's tree each of [variants]' sprites becomes close by: the round ones broadleaves, the tall ones poplars. */
-        private val TREE_VARIANTS = intArrayOf(0, 1, 1, 3, 8, 8, 0, 3)
         /** Where a lamp's lantern hangs: out from its post and up (the lamp's mesh). */
         const val LANTERN_OUT = 9f
         const val LANTERN_Y = 53f

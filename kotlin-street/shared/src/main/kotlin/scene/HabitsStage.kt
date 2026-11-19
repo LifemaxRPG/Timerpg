@@ -1031,6 +1031,8 @@ private fun StageCanvas(
         )
         backdrop.backlit = backlight.amount
         backdrop.yaw = yawPx
+        // the open world's horizon is the town's own (its woods in the haze): no painted city under the sky
+        backdrop.city = !openSky
         with(backdrop) {
             backdrop(
                 p.hour,

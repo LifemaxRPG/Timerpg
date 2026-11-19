@@ -726,6 +726,18 @@ object YardKit {
      * already a handful of quads), the rest as near.
      */
     internal fun farModel(kind: String, variant: Int, w: Float, d: Float, zone: String = "back"): YardModel {
+        if (kind == "tree" || kind == "fruitTree") {
+            // (far off, the tree kit's simple level of the same tree)
+            val rw = (w * 2f).roundToInt() / 2f; val rd = (d * 2f).roundToInt() / 2f
+            val key = "far/$kind/$variant/$rw/$rd"
+            synchronized(cache) { cache[key]?.let { return it } }
+            val m = MeshBuilder()
+            TreeKit.build(m, TreeKit.forYard(kind, variant, min(rw, rd) / 2f - .3f), detail = false)
+            m.fitSince(0, rw / 2f - .2f, rd / 2f - .2f)
+            val ym = YardModel(m.build().also { mm -> for (i in 0 until mm.vertexCount) if (mm.pos[i * 3 + 1] < 0f) mm.pos[i * 3 + 1] = 0f; if (mm.bounds[1] < 0f) mm.bounds[1] = 0f }, emptyList(), emptyList())
+            synchronized(cache) { if (cache.put(key, ym) == null) cache.bytes += sizeOf(ym) }
+            return ym
+        }
         val near = model(kind, variant, w, d, zone)
         if (kind in GROUND || kind in SURFACES && kind != "deck") return YardModel(null, near.flats, emptyList())
         val slab = kind in FAR_SLABS || (kind == "backFence" && variant % 3 == 1)
@@ -1433,66 +1445,20 @@ object YardKit {
         }
     }
 
+    /** A yard's tree: the tree kit's ([TreeKit]: oak, maple, linden, copper beech, birch, poplar, spruce or pine by [v]), in full detail. */
     private fun tree(o: Out, w: Float, d: Float, v: Int) {
-        val m = o.m; o.any = true
-        val s = min(w, d) / 2f - .3f
-        when (v) {
-            5, 6 -> {
-                // a conifer: three tiers of needles on a short trunk
-                val r = if (v == 5) YP.PINE else YP.LEAF_BLUE
-                trunk(m, 10f, 1.8f)
-                val hTot = s * 3.4f
-                val tiers = 3
-                for (k in 0 until tiers) {
-                    val y0 = 6f + k * hTot * .26f; val rr = s * (1f - k * .24f)
-                    m.prism(v3(0f, y0, 0f), v3(0f, 1f, 0f), v3(0f, 0f, 1f), rr, .4f, hTot * .42f, 9, YardPics.needles(r, if (k == tiers - 1) 1 else 0, 181 + k))
-                    m.upright(0f, 0f, y0 - .01f, y0, rr, rr, 9, null, YardPics.swatch(r.o), cap = YardPics.disc(r.d, rr))
-                }
-            }
-            7 -> {
-                // a birch: white trunk, light airy lobes
-                trunk(m, s * 1.6f, 1.5f, birch = true)
-                val pics = crownPics(YP.LEAF_YELLOW, 191)
-                m.ball(0f, s * 1.9f, 0f, s * .62f, s * .8f, s * .62f, 8, 5, pics, 1)
-                m.ball(-s * .35f, s * 1.5f, s * .2f, s * .45f, s * .5f, s * .45f, 7, 4, pics, 2)
-                m.ball(s * .38f, s * 1.6f, -s * .15f, s * .45f, s * .55f, s * .45f, 7, 4, pics, 3)
-            }
-            8 -> {
-                // a poplar: tall and narrow
-                trunk(m, s * .6f, 1.6f)
-                m.ball(0f, s * 2.1f, 0f, s * .5f, s * 1.75f, s * .5f, 8, 7, crownPics(YP.LEAF_DARK, 201), 4)
-            }
-            else -> {
-                // the round broadleaf (LimeZu's tree): a big crown and lobes over a stout trunk
-                val r = when (v) { 0, 3 -> Paint.LEAF; 1 -> YP.LEAF_DARK; 2 -> YP.GRASS_LUSH; 4 -> YP.LEAF_YELLOW; else -> YP.LEAF_COPPER }
-                val pics = crownPics(r, 211 + v * 5)
-                val th = s * 1.05f
-                trunk(m, th + s * .4f, 2.4f)
-                // two branches into the crown
-                m.beam(v3(0f, th * .7f, 0f), v3(-s * .4f, th + s * .3f, s * .1f), 1.6f, YardPics.swatch(Paint.BARK.b))
-                m.beam(v3(0f, th * .75f, 0f), v3(s * .38f, th + s * .35f, -s * .1f), 1.5f, YardPics.swatch(Paint.BARK.d))
-                val cy = th + s * .7f
-                m.ball(0f, cy, 0f, s * .78f, s * .62f, s * .78f, 10, 6, pics, v)
-                m.ball(-s * .45f, cy - s * .12f, s * .25f, s * .5f, s * .45f, s * .5f, 8, 5, pics, v + 3)
-                m.ball(s * .48f, cy - s * .08f, -s * .2f, s * .48f, s * .45f, s * .48f, 8, 5, pics, v + 5)
-                m.ball(s * .1f, cy + s * .42f, s * .1f, s * .48f, s * .4f, s * .48f, 8, 5, pics, v + 7)
-            }
-        }
+        o.any = true
+        val mk = o.m.mark
+        TreeKit.build(o.m, TreeKit.forYard("tree", v, min(w, d) / 2f - .3f), detail = true)
+        o.m.fitSince(mk, w / 2f - .2f, d / 2f - .2f)
     }
 
+    /** A fruit tree (the tree kit's: its fruit or blossom by [v]), in full detail. */
     private fun fruitTree(o: Out, w: Float, d: Float, v: Int) {
-        val m = o.m; o.any = true
-        val s = min(w, d) / 2f - .3f
-        val fruit = YP.FRUIT[v % YP.FRUIT.size]
-        // a blossoming one (pink and white) every few
-        val dots = if (v >= 7) YP.BLOOMS[4] else fruit
-        val pics = crownPics(Paint.LEAF, 231 + v, dots, .045f)
-        val th = s * .75f
-        trunk(m, th + 4f, 1.8f, lean = s * .1f)
-        m.ball(s * .1f, th + s * .55f, 0f, s * .9f, s * .55f, s * .9f, 10, 5, pics, v)
-        m.ball(-s * .3f, th + s * .85f, s * .2f, s * .5f, s * .35f, s * .5f, 8, 4, pics, v + 2)
-        // a couple of windfalls under it
-        if (v < 7) for (k in 0..2) { val a = k * 2.2f + v; m.sbox(cos(a) * s * .5f - .7f, 0f, sin(a) * s * .5f - .7f, cos(a) * s * .5f + .7f, 1.4f, sin(a) * s * .5f + .7f, fruit[0]) }
+        o.any = true
+        val mk = o.m.mark
+        TreeKit.build(o.m, TreeKit.forYard("fruitTree", v, min(w, d) / 2f - .3f), detail = true)
+        o.m.fitSince(mk, w / 2f - .2f, d / 2f - .2f)
     }
 
     private fun flowerBed(o: Out, w: Float, d: Float, v: Int) {

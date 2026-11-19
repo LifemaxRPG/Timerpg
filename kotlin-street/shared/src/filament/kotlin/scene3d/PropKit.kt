@@ -122,6 +122,23 @@ internal class MeshBuilder {
         }
     }
 
+    /**
+     * Squeezes every face added since [mark] into |x| <= [hw], |z| <= [hd] about the origin (scaling x and z only as far as
+     * needed; normals turned to match): a tree's crown kept inside its yard item's rect.
+     */
+    fun fitSince(mark: Int, hw: Float, hd: Float) {
+        var mx = 0f; var mz = 0f
+        for (k in mark until polys.size) { val p = polys[k].p; for (i in 0 until p.size step 3) { mx = max(mx, abs(p[i])); mz = max(mz, abs(p[i + 2])) } }
+        val sx = if (mx > hw) hw / mx else 1f; val sz = if (mz > hd) hd / mz else 1f
+        if (sx == 1f && sz == 1f) return
+        for (k in mark until polys.size) {
+            val q = polys[k]
+            for (i in 0 until q.p.size step 3) { q.p[i] *= sx; q.p[i + 2] *= sz }
+            val n = nrm(floatArrayOf(q.n[0] / sx, q.n[1], q.n[2] / sz)); n.copyInto(q.n)
+            val t = nrm(floatArrayOf(q.t[0] * sx, q.t[1], q.t[2] * sz)); t.copyInto(q.t)
+        }
+    }
+
     /** A flat polygon (convex, its corners in order) wearing [img] at texel coords [uv] (pairs), normal [n], tangent [t]. */
     fun poly(p: FloatArray, uv: FloatArray, img: PixImg, n: FloatArray, t: FloatArray) { polys += Poly(p, uv, img, nrm(n), nrm(t)) }
 
@@ -310,6 +327,58 @@ internal class MeshBuilder {
             vi += n
         }
         return PropMesh(pos, uv, nr, tn, idx, width, height, tex, mask, floatArrayOf(bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2]))
+    }
+
+    /**
+     * A fixed atlas of pictures ([width] x [height], [tex]; each picture's texel (0, 0) at [at]), shared by many meshes so
+     * they can be merged without packing their pictures again ([TreeKit]).
+     */
+    class FixedAtlas(val width: Int, val height: Int, val tex: IntArray, val at: Map<PixImg, IntArray>) {
+        companion object {
+            /** [imgs] packed on shelves (each with a texel of its own edge round it), 512 wide. */
+            fun pack(imgs: List<PixImg>): FixedAtlas {
+                val width = 512
+                val at = LinkedHashMap<PixImg, IntArray>()
+                var x = 0; var y = 0; var shelf = 0
+                for (im in imgs.sortedByDescending { it.h }) {
+                    if (x + im.w + 2 > width) { x = 0; y += shelf; shelf = 0 }
+                    at[im] = intArrayOf(x + 1, y + 1)
+                    x += im.w + 2; shelf = max(shelf, im.h + 2)
+                }
+                var height = 16
+                while (height < y + shelf) height *= 2
+                val tex = IntArray(width * height)
+                for ((im, a) in at) for (yy in -1..im.h) for (xx in -1..im.w) {
+                    tex[(a[1] + yy) * width + a[0] + xx] = im.px[yy.coerceIn(0, im.h - 1) * im.w + xx.coerceIn(0, im.w - 1)]
+                }
+                return FixedAtlas(width, height, tex, at)
+            }
+        }
+    }
+
+    /** The mesh wearing [atlas] (every picture used must be in it; its pictures do not glow). */
+    fun build(atlas: FixedAtlas): PropMesh {
+        val nv = polys.sumOf { it.p.size / 3 }
+        val ni = polys.sumOf { (it.p.size / 3 - 2) * 3 }
+        val pos = FloatArray(nv * 3); val uv = FloatArray(nv * 2); val nr = FloatArray(nv * 3); val tn = FloatArray(nv * 3)
+        val idx = IntArray(ni)
+        var vi = 0; var ii = 0
+        val bmin = floatArrayOf(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE); val bmax = floatArrayOf(-Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE)
+        for (p in polys) {
+            val at = atlas.at[p.img] ?: error("a picture not in the shared atlas (${p.img.w}x${p.img.h})")
+            val n = p.p.size / 3
+            for (k in 0 until n) {
+                for (c in 0..2) {
+                    pos[(vi + k) * 3 + c] = p.p[k * 3 + c]; nr[(vi + k) * 3 + c] = p.n[c]; tn[(vi + k) * 3 + c] = p.t[c]
+                    bmin[c] = min(bmin[c], p.p[k * 3 + c]); bmax[c] = max(bmax[c], p.p[k * 3 + c])
+                }
+                uv[(vi + k) * 2] = (at[0] + p.uv[k * 2]) / atlas.width
+                uv[(vi + k) * 2 + 1] = (at[1] + p.uv[k * 2 + 1]) / atlas.height
+            }
+            for (k in 1 until n - 1) { idx[ii++] = vi; idx[ii++] = vi + k; idx[ii++] = vi + k + 1 }
+            vi += n
+        }
+        return PropMesh(pos, uv, nr, tn, idx, atlas.width, atlas.height, atlas.tex, null, floatArrayOf(bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2]))
     }
 
     companion object {
