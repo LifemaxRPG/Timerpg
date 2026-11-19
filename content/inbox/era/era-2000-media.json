@@ -1,0 +1,349 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2000,
+  "topic": "media",
+  "facts": [
+    {
+      "id": "2000-media-01",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Families consult printed television schedules to plan evening viewing.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-02",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Cable television offers dozens of channels, including dedicated news and children's programming.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-03",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Some households receive television broadcasts through a rooftop antenna.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-04",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A family gathers for a favorite weekly program at its scheduled broadcast time.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-05",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Local television stations report weather warnings and school closings.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-06",
+      "year_from": 2000,
+      "year_to": 2006,
+      "text": "A viewer records a program on videotape to watch after work.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-07",
+      "year_from": 2003,
+      "year_to": 2009,
+      "text": "Digital video recorders let some viewers save programs without inserting tapes.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-08",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A teenager listens to a portable radio while doing chores outdoors.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-09",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Drivers hear traffic reports and weather forecasts on the car radio.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-10",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Listeners call local radio stations to request music or enter contests.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-11",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Morning radio hosts discuss local happenings between songs and advertisements.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-12",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "The town newspaper carries obituaries, school sports, advertisements, and meeting notices.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-13",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A household receives a thick Sunday newspaper filled with advertising inserts.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-14",
+      "year_from": 2003,
+      "year_to": 2009,
+      "text": "Some readers follow national news on newspaper websites instead of waiting for print.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-15",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A resident reads community announcements posted on a library bulletin board.",
+      "ages": "elders",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-16",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A movie theater posts showtimes outside and sells tickets at the counter.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-17",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A teenager checks movie listings in the newspaper before meeting friends.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-18",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Video rental shops display rows of films sorted by genre.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-19",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Customers return rented films by a deadline to avoid late fees.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-20",
+      "year_from": 2004,
+      "year_to": 2009,
+      "text": "Some households receive rented movie discs through the mail.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-21",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Music shops sell compact discs in plastic cases with printed cover inserts.",
+      "ages": "teens",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-22",
+      "year_from": 2001,
+      "year_to": 2009,
+      "text": "Teenagers make mixed music discs to share with friends.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-23",
+      "year_from": 2000,
+      "year_to": 2004,
+      "text": "Portable cassette players remain useful for older recordings early in the decade.",
+      "ages": "elders",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-24",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A caller leaves a message on a household answering machine when nobody picks up.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-25",
+      "year_from": 2000,
+      "year_to": 2006,
+      "text": "A long-distance caller may use a prepaid telephone card to control costs.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-26",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Public payphones remain available at some stores and bus stops.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-media-27",
+      "year_from": 2006,
+      "year_to": 2009,
+      "text": "Later in the decade, some residents watch short videos on websites.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "streaming subscriptions replacing scheduled television in most households",
+      "first_common": 2018,
+      "say_instead": "cable television or scheduled broadcasts"
+    },
+    {
+      "thing": "watching films primarily through phone apps",
+      "first_common": 2020,
+      "say_instead": "a theater, television, or rented disc"
+    },
+    {
+      "thing": "short-video feeds on nearly everyone's phone",
+      "first_common": 2022,
+      "say_instead": "a television program or a computer website"
+    },
+    {
+      "thing": "music streaming as the usual portable listening method",
+      "first_common": 2017,
+      "say_instead": "a compact disc or stored music files"
+    },
+    {
+      "thing": "a podcast app on most residents' phones",
+      "first_common": 2020,
+      "say_instead": "a radio program or downloaded audio file"
+    },
+    {
+      "thing": "video calls on smartphones as ordinary family communication",
+      "first_common": 2020,
+      "say_instead": "a telephone call or computer video chat"
+    },
+    {
+      "thing": "local news delivered mainly through social media feeds",
+      "first_common": 2020,
+      "say_instead": "a local newspaper or television newscast"
+    },
+    {
+      "thing": "televisions routinely controlled by voice commands",
+      "first_common": 2023,
+      "say_instead": "a remote control"
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
