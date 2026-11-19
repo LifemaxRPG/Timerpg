@@ -48,6 +48,12 @@
   crosses, steeple, monument sign); the supermarket's mansard ends in hips, its sign backs are sheet metal, its long
   walls have pilasters, downspouts, vents and a dumpster pad; the yards' atlases are no wider than they need (81.1M ->
   73.7M texels).
+- Smoother frames (wf-smooth, desktop renders and the desktop frame bench only, docs/TOWN.md "Smoother frames"): a
+  frame-spike profiler in the breadcrumbs (`frame spikes 10 s`), AI lines held between words while moving, the see-through
+  cone only when the player is hidden, the cutaway only for what hides chest and head (the cinema too), a ground haze that
+  starts further out, far boxes and tree cards crossing over by complementary screen doors, no horizon line, crops' cards
+  near only, towers lit a share of windows by the hour, the clock's midnight, an automatic resolution (AI panel), the bike's
+  camera following the rider (AI panel).
 - People: `TownPlay.people` stands the street life (StreetLife's passers, seeded per row) and the people to talk to at
   their doors on the rows `liveRows()` keeps, plus the player; `TownPeople` (scene3d) draws them as lit cards of our
   character sheets with shadow twins, cut with the near side. "Talk to <name>" and "Go inside" work at the building in

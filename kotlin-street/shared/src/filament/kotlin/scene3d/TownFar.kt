@@ -164,6 +164,8 @@ internal class TownFar(
         const val SLACK = 200f
         /** How long a cell's crossing over takes. */
         const val SWITCH_SECONDS = .3f
+        /** The share of a far box's windows lit at night. */
+        const val FAR_LIT = .3f
         /** The far pictures are the building's shrunk this many times. */
         const val SHRINK = 4
 
@@ -202,7 +204,9 @@ internal class TownFar(
                 }
                 // (a block with no solid texel takes its neighbours' wall: the far box has no holes)
                 out.px[oy * ow + ox] = if (n == 0) 0 else (0xFF shl 24) or ((r / n) shl 16) or ((g / n) shl 8) or (b / n)
-                if (lit * 3 >= SHRINK * SHRINK) out.glowAt(ox, oy)
+                // (a far box's windows are a fixed picture, not by the hour: a third of them lit, as an evening's tower
+                // is, not every one: 0.1.402's glowing white towers at midnight)
+                if (lit * 3 >= SHRINK * SHRINK && com.lifemax.rpg.feature.habits.domain.Ambient.hash(w * 31 + h, ox * 131 + oy, 917) < FAR_LIT) out.glowAt(ox, oy)
             }
             // fill the holes from the texel above (else below), so the box is solid all over
             for (x in 0 until ow) {

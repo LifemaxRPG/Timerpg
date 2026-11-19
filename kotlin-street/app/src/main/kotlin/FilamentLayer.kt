@@ -83,6 +83,18 @@ object StreetRenderer {
         setView(ctx, p.getString("view", OPEN) ?: OPEN)
         setGrab(ctx, p.getBoolean("grabWorld", false))
         setBikeFollow(ctx, p.getBoolean("bikeFollow", true))
+        setResolution(ctx, p.getFloat("resolution", com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.RES_AUTO))
+    }
+
+    /** The open world's drawing resolution (the AI panel's "Resolution"): see TownQuality.resolution. */
+    var resolution by mutableStateOf(com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.RES_AUTO)
+        private set
+
+    fun setResolution(ctx: Context, r: Float) {
+        if (r != resolution) com.timerpg.street.shot.Crumbs.add("resolution: " + if (r == 0f) "auto" else "%.2f".format(java.util.Locale.US, r))
+        resolution = r
+        com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.resolution = r
+        prefs(ctx).edit().putFloat("resolution", r).apply()
     }
 
     /** The open world's camera on the bike (the AI panel's "On the bike"): true (the default) swings round behind the rider. */
@@ -272,8 +284,14 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             engine = e
             renderer = e.createRenderer().also { r ->
                 r.clearOptions = Renderer.ClearOptions().apply { clear = true; setClearColor(0.0, 0.0, 0.0, 0.0) }
-                // the display's fastest refresh (the S25's 120 Hz), as the classic asks for
+                // the display's fastest refresh (the S25's 120 Hz), as the classic asks for; the automatic resolution
+                // (TownQuality.resolution) aims at a steady 60 a second: with frames 16.7 ms apart the GPU's budget
                 r.frameRateOptions = Renderer.FrameRateOptions().apply { interval = 1 }
+                runCatching {
+                    @Suppress("DEPRECATION") val hz = (ctx.getSystemService(Context.WINDOW_SERVICE) as android.view.WindowManager).defaultDisplay.refreshRate
+                    r.displayInfo = Renderer.DisplayInfo().apply { refreshRate = hz }
+                    if (hz > 90f) r.frameRateOptions = Renderer.FrameRateOptions().apply { interval = 2 }
+                }
             }
             if (!townMode) street = FilamentStreet(e, mats)
             FilamentStats.loadMs = (System.nanoTime() - t0) / 1e6f
@@ -378,10 +396,15 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             // the farms round the town, their fields as they are today
             farms = data.farmArt?.let { fa -> com.lifemax.rpg.feature.habits.presentation.scene3d.TownFarms.attach(ft, data.farms, fa, data.collision, day = farmDay()) }
             town = ft
+            com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.applyResolution(ft.view)
+            appliedResolution = com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.resolution
             rn = com.lifemax.rpg.feature.habits.presentation.scene3d.TownRun(ft, com.lifemax.rpg.feature.habits.presentation.scene.SpriteSheets.sheets)
             run = rn
             FilamentStats.loadMs = (System.nanoTime() - t0) / 1e6f
         }
+        // (the AI panel's resolution changed)
+        val q = com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.resolution
+        if (q != appliedResolution) { appliedResolution = q; town?.view?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownQuality.applyResolution(it) } }
         val ready = rn.build(walk.wx, walk.wz, if (TownSession.ready) TownSession.BUDGET_MS else TownSession.LOADING_BUDGET_MS)
         if (!TownSession.ready) {
             TownSession.progress = rn.progress(walk.wx, walk.wz)
@@ -415,6 +438,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
         }
         return ft.view
     }
+    private var appliedResolution = -1f
     /** The town's build is marked under way ([StreetRenderer.townBuilding]) by this host. */
     private var buildMarked = false
 

@@ -30,6 +30,9 @@ internal fun benchWalk(dir: File, walk: com.lifemax.rpg.feature.habits.presentat
     val fwNs = fw?.getField("ns")?.get(null) as LongArray?
     val fwNames = (fw?.getMethod("getNAMES")?.invoke(fwObj) as Array<*>?)?.map { it.toString() }
     val fwReset = fw?.getMethod("reset")
+    val fwUp = fw?.getField("uploads")?.get(null) as IntArray?
+    val fwUpNames = (fw?.getMethod("getUP_NAMES")?.invoke(fwObj) as Array<*>?)?.map { it.toString() }
+    val worst = ArrayList<Pair<Float, String>>()
     val rw = 780; val rh = 360
     val secs = System.getProperty("benchSecs")?.toFloatOrNull() ?: 40f
     val route = listOf(8619f to 4963f, 8900f to 5200f, 9291f to 5065f, 9800f to 4900f, 10538f to 4790f, 11500f to 5300f, 12564f to 5807f)
@@ -91,7 +94,13 @@ internal fun benchWalk(dir: File, walk: com.lifemax.rpg.feature.habits.presentat
         step[f] = (t1 - t0) / 1e6f; build[f] = (t2 - t1) / 1e6f; draw[f] = (t3 - t2) / 1e6f; render[f] = rms; gl[f] = gms
         total[f] = step[f] + build[f] + draw[f]
         aStep[f] = a1 - a0; aBuild[f] = a2 - a1; aDraw[f] = a3 - a2; aAll[f] = a3 - a0
-        if (fwNs != null) { for (k in parts.indices) parts[k][f] = fwNs[k] / 1e6f; fwReset!!.invoke(fwObj) }
+        if (fwNs != null) {
+            for (k in parts.indices) parts[k][f] = fwNs[k] / 1e6f
+            if (total[f] > 8f) worst += total[f] to ("%5.1f s %5.1f ms: ".format(f * dt, total[f]) + parts.indices.filter { parts[it][f] > .5f }.joinToString { "%s %.1f".format(fwNames!![it], parts[it][f]) } +
+                (fwUp?.let { u -> u.indices.filter { u[it] > 0 }.joinToString(prefix = "; up ") { "${u[it]} ${fwUpNames!![it]}" } } ?: "") +
+                "; alloc %.0f KB".format(aAll[f] / 1024.0))
+            fwReset!!.invoke(fwObj)
+        }
         clock += dt
         if (f % 60 == 0) log.appendLine("  %5.1f s at (%.0f, %.0f) %s, speed %.0f; draws %d, triangles %d".format(t, walk.wx, walk.wz, if (walk.riding) "riding" else "walking", walk.speed, ft.stats.draws, ft.stats.triangles))
     }
@@ -116,6 +125,7 @@ internal fun benchWalk(dir: File, walk: com.lifemax.rpg.feature.habits.presentat
     out.appendLine("  build  " + qa(aBuild))
     out.appendLine("  draw   " + qa(aDraw))
     out.appendLine("software GL per frame at ${rw}x$rh (fill-rate stand-in, not the phone): " + q(gl.filter { it >= 0f }.toFloatArray()))
+    if (worst.isNotEmpty()) { out.appendLine("the worst frames (our own work over 8 ms):"); for (w in worst.sortedByDescending { it.first }.take(25)) out.appendLine("  " + w.second) }
     out.append(log)
     File(dir, "bench.txt").writeText(out.toString())
     print(out)

@@ -539,6 +539,14 @@ internal class BuildingMeshes(
             (0 until n).sortedBy { Ambient.hash(seed, it, 301) }.take(on).toSet()
         }
         private var lit = -1L
+        /**
+         * Each glowing pixel's window (its 4-connected patch of the emissive picture; -1 none) and how many: a tall front
+         * ([TALL_WINDOWS] or more, the towers and hotels) lights a share of them by the hour ([towerShare]) instead of
+         * every one all night (0.1.402: "high rises look weird at night", flat orange boxes).
+         */
+        private val egComp: IntArray
+        private val nComp: Int
+        private val compLit: BooleanArray
         val albedo: () -> Texture
         val mask: () -> Texture
         /** The back wall's picture (a mobile home's: [plainBack]; otherwise the front's). */
@@ -560,6 +568,27 @@ internal class BuildingMeshes(
                 if (e == 0 && g == 0) continue
                 egAt[k] = i; egE[k] = e.toByte(); egG[k] = g.toByte(); k++
             }
+            // the glowing pixels' patches (one a window, or a band of them), numbered by a flood fill
+            val comp = IntArray(w * h) { -1 }
+            val isE = BooleanArray(w * h)
+            for (j in 0 until n) if (egE[j].toInt() != 0) isE[egAt[j]] = true
+            var nc = 0
+            val stack = IntArray(w * h)
+            for (i0 in 0 until w * h) {
+                if (!isE[i0] || comp[i0] >= 0) continue
+                var sp = 0; stack[sp++] = i0; comp[i0] = nc
+                while (sp > 0) {
+                    val i = stack[--sp]; val x = i % w; val y = i / w
+                    if (x > 0 && isE[i - 1] && comp[i - 1] < 0) { comp[i - 1] = nc; stack[sp++] = i - 1 }
+                    if (x < w - 1 && isE[i + 1] && comp[i + 1] < 0) { comp[i + 1] = nc; stack[sp++] = i + 1 }
+                    if (y > 0 && isE[i - w] && comp[i - w] < 0) { comp[i - w] = nc; stack[sp++] = i - w }
+                    if (y < h - 1 && isE[i + w] && comp[i + w] < 0) { comp[i + w] = nc; stack[sp++] = i + w }
+                }
+                nc++
+            }
+            nComp = nc
+            egComp = IntArray(n) { comp[egAt[it]] }
+            compLit = BooleanArray(nc) { true }
             for (r in rects) {
                 for (y in r[1].toInt() until (r[1] + r[3]).toInt().coerceAtMost(h)) for (x in r[0].toInt() until (r[0] + r[2]).toInt().coerceAtMost(w)) {
                     if (x < 0 || y < 0) continue
@@ -630,6 +659,17 @@ internal class BuildingMeshes(
                 val room = if (j < nw) StageTuning.interiors && j in rooms else true
                 if (room && Dusk.lightsOn(seed * 31 + j, hour) > .5f) bits = bits or (1L shl j)
             }
+            // a tall front's windows: a share lit by the hour, each window by its own draw, so the set changes a few at a time
+            if (nComp >= TALL_WINDOWS) {
+                val share = towerShare(hour, seed)
+                var key = 1469598103934665603L
+                for (c in 0 until nComp) {
+                    val on = Ambient.hash(seed, c, 911) < share
+                    compLit[c] = on
+                    if (on) key = (key xor c.toLong()) * 1099511628211L
+                }
+                bits = bits xor key
+            }
             if (bits == lit) return
             lit = bits
             // the mask as Filament takes it (RGBA, bottom row first): opaque, the emissive's red (and blue) and the
@@ -638,8 +678,10 @@ internal class BuildingMeshes(
             for (i in 0 until w * h) buf.put(StreetTextures.offset(i, w, h) + 3, 255.toByte())
             for (k in egAt.indices) {
                 val o = StreetTextures.offset(egAt[k], w, h)
-                buf.put(o, egE[k]).put(o + 1, egG[k])
-                if (egE[k].toInt() != 0) buf.put(o + 2, 255.toByte())
+                val ec = egComp[k]
+                val e = if (ec >= 0 && !compLit[ec]) 0.toByte() else egE[k]
+                buf.put(o, e).put(o + 1, egG[k])
+                if (e.toInt() != 0) buf.put(o + 2, 255.toByte())
             }
             for ((j, r) in rects.withIndex()) {
                 val on = j < 63 && (bits shr j) and 1L == 1L
@@ -664,6 +706,27 @@ internal class BuildingMeshes(
     }
 
     companion object {
+        /** A front with this many glowing windows (patches) or more lights a share of them by the hour: a tower, a hotel. */
+        const val TALL_WINDOWS = 24
+
+        /**
+         * The share of a tall building's windows lit at [hour] (each building [seed] a little more or less): offices and
+         * hotels at dusk about half, fewer through the evening, a few cleaners' and night owls' at night.
+         */
+        fun towerShare(hour: Float, seed: Int): Float {
+            val h = ((hour % 24f) + 24f) % 24f
+            val base = when {
+                h < 5f -> .08f
+                h < 7f -> .08f + (h - 5f) / 2f * .17f
+                h < 17f -> .25f
+                h < 19f -> .25f + (h - 17f) / 2f * .3f
+                h < 21f -> .55f - (h - 19f) / 2f * .2f
+                h < 23.5f -> .35f - (h - 21f) / 2.5f * .22f
+                else -> .13f - (h - 23.5f) / .5f * .05f
+            }
+            return (base * (.7f + .6f * Ambient.hash(seed, 7, 913))).coerceIn(0f, 1f)
+        }
+
         private const val NONE: Byte = 0
         private const val SEE: Byte = 1
         private const val CITY: Byte = 2

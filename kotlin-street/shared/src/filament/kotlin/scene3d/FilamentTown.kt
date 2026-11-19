@@ -215,7 +215,7 @@ object TownFrame {
     const val OPEN_HAZE = 1600f
     /**
      * The open world's haze's thickness on the ground (per street unit, as seen along the ground from the camera's height):
-     * about 50% at the view's range (58% before), 95% where the trees' cards end ([FilamentTown.GREEN_PAST_RANGE] past it),
+     * about 50% at the view's range (58% before), about 90% where the trees' cards end ([FilamentTown.GREEN_PAST_RANGE] past it),
      * so what is left out past the range fades in thick haze and the woods dissolve into the sky's horizon colour. It
      * thins with height ([OPEN_HAZE_FALLOFF]): tall things (towers, the far boxes' tops, crowns) stand clearer of it.
      */
@@ -364,6 +364,9 @@ class FilamentTown(
         private var packedCount = 0
         /** It has 3D trees (made or waiting). */
         var hasNear = false
+        /** Its 3D greenery is wanted (with [TownFrame.LOD_SLACK] of hysteresis), and how far the crossover from its cards has come (0 cards, 1 3D). */
+        var is3d = false
+        var t3 = 0f
         /** Its 3D trees are packed (by [startNear]) and wait for [buildNear]. */
         val nearReady: Boolean get() = packing?.isDone == true
 
@@ -740,6 +743,7 @@ class FilamentTown(
                 scene.addEntity(e)
             }
             groundBuilt = true
+            buildSkirt()
             groundMs = (System.nanoTime() - groundStarted) / 1e6f
         }
         return groundBuilt
@@ -1050,6 +1054,7 @@ class FilamentTown(
             nightCount = 0
         }
         lap = lap(FrameWork.NIGHT, lap)
+        if (skirtUp) skirt.update(look, dark, pose.open && pose.range < Float.MAX_VALUE && debugHide and HIDE_GROUND == 0, 1f, false)
         for (layer in flatLayers) {
             layer.update(look, dark, debugHide and (if (layer === ground) HIDE_GROUND else HIDE_YARDS) == 0)
             renderables += layer.draws; draws += layer.draws
@@ -1094,26 +1099,37 @@ class FilamentTown(
             val fade = min(cut, pose.rangeFade(c.cx, c.top / 2f, c.cz, c.r))
             val on = fade > .02f && pose.sees(c.cx, c.top / 2f, c.cz, c.r) && debugHide and HIDE_GREEN == 0
             val shadows = fade > .5f && (on || pose.sees(c.cx, c.top / 2f, c.cz, c.r + 150f))
-            val close = on && c.hasNear && pose.distance(c.cx, c.top / 2f, c.cz) - c.r < TownFrame.LOD_NEAR
-            val near3d = close && c.near != null
+            // (the cards and the 3D greenery cross over in [GREEN_SWITCH_SECONDS] by the screen door and its inverse, so a
+            // tree line passing the line no longer swaps all at once: 0.1.402's "trees changing at distance"; and with
+            // [TownFrame.LOD_SLACK] either side of the line, so it does not flick to and fro as the camera moves)
+            val dNear = pose.distance(c.cx, c.top / 2f, c.cz) - c.r
+            c.is3d = on && c.hasNear && c.near != null &&
+                (if (c.is3d) dNear < TownFrame.LOD_NEAR + TownFrame.LOD_SLACK else dNear < TownFrame.LOD_NEAR - TownFrame.LOD_SLACK)
+            // (a still picture, or a frame after a long pause: at once)
+            c.t3 = if (dt <= 0f || dt >= .25f) (if (c.is3d) 1f else 0f) else if (c.is3d) min(1f, c.t3 + dt / GREEN_SWITCH_SECONDS) else max(0f, c.t3 - dt / GREEN_SWITCH_SECONDS)
+            val near3d = on && c.near != null && c.t3 > 0f
+            val fade3 = min(fade, c.t3)
             c.base.update(look, dark, on, fade, shadows)
             // (with the far boxes up, the trees' cards are drawn on past the view's range, into the haze: the woods at the
             // world's edge dissolve into it instead of standing as a screen door against the sky)
             val cardFade = if (farOn) min(cut, farFade(pose, c.cx, c.top / 2f, c.cz, c.r)) else fade
             val cardsOn = cardFade > .02f && pose.sees(c.cx, c.top / 2f, c.cz, c.r) && debugHide and HIDE_GREEN == 0
-            c.cards.update(look, dark, cardsOn && !near3d, cardFade, shadows && !near3d)
-            c.near?.update(look, dark, near3d, fade, shadows && near3d)
+            val crossing = c.t3 > 0f && c.t3 < 1f
+            // (mid-crossover the cards keep exactly the pixels the 3D trees drop)
+            c.cards.inverseFade = crossing
+            c.cards.update(look, dark, cardsOn && c.t3 < 1f, if (crossing) 1f - c.t3 else cardFade, shadows && c.t3 < .5f)
+            c.near?.update(look, dark, near3d, fade3, shadows && near3d && c.t3 >= .5f)
             val tc = c.trees
-            tc?.update(pose, look, dark, near3d, fade, shadows && near3d)
+            tc?.update(pose, look, dark, near3d, fade3, shadows && near3d && c.t3 >= .5f)
             if (on) {
                 nChunks++
                 renderables += c.base.draws; draws += c.base.draws; tris += c.base.triangles
                 if (near3d) c.near?.let { renderables += it.draws; draws += it.draws; tris += it.triangles }
             }
-            if (cardsOn && !near3d) { renderables += c.cards.draws; draws += c.cards.draws; tris += c.cards.triangles }
+            if (cardsOn && c.t3 < 1f) { renderables += c.cards.draws; draws += c.cards.draws; tris += c.cards.triangles }
             if (tc != null) { renderables += tc.draws; draws += tc.draws; tris += tc.triangles; casters += tc.casters }
             if (near3d) nNear++
-            if (shadows) casters += c.base.casters + (if (near3d) c.near!!.casters else c.cards.casters)
+            if (shadows) casters += c.base.casters + (if (near3d && c.t3 >= .5f) c.near!!.casters else c.cards.casters)
         }
         lap = lap(FrameWork.GREEN, lap)
         cinemaDraw?.let { cd -> cd.occFade = if (pose.open && cd.occluded) max(OCCLUDED, cd.occFade - occStep) else min(1f, cd.occFade + occStep) }
@@ -1142,6 +1158,34 @@ class FilamentTown(
      * fronts round them: real point lights, warm, reaching [LAMP_REACH]; by day they are off. Returns how many are on.
      */
     private val flatLayers by lazy { arrayOf(ground, yardLayer) }
+
+    /**
+     * The land past the world's edge: a plain grass-coloured apron round the town's ground out to the far boxes' reach, a
+     * little below it, so the far ground runs on into the haze to the horizon instead of ending short of it, where the
+     * sky's bright horizon band showed through as a line (0.1.385 to 0.1.402: "still line on the horizon"). One draw, no
+     * shadow; its far side is all haze.
+     */
+    private val skirt = PropLayer(engine, scene, lit, null, sharedTextures = textures, cull = false).also { it.seeThrough = false }
+    private var skirtUp = false
+
+    private fun buildSkirt() {
+        val c = collision ?: return
+        if (skirtUp) return
+        val x0 = c.minX; val z0 = c.minZ; val x1 = c.maxX; val z1 = c.maxZ
+        val o = TownFar.REACH + 6000f; val y = -SKIRT_DROP
+        val img = PixImg(2, 2).also { it.fill(SKIRT_GRASS) }
+        val mb = MeshBuilder()
+        fun q(ax: Float, az: Float, bx: Float, bz: Float, cx: Float, cz: Float, dx: Float, dz: Float) =
+            mb.quad(floatArrayOf(ax, y, az), floatArrayOf(bx, y, bz), floatArrayOf(cx, y, cz), floatArrayOf(dx, y, dz), img)
+        // (four bands round the world's rectangle: north and south whole, east and west between them)
+        q(x0 - o, z0 - o, x1 + o, z0 - o, x1 + o, z0, x0 - o, z0)
+        q(x0 - o, z1, x1 + o, z1, x1 + o, z1 + o, x0 - o, z1 + o)
+        q(x0 - o, z0, x0, z0, x0, z1, x0 - o, z1)
+        q(x1, z0, x1 + o, z0, x1 + o, z1, x1, z1)
+        val packed = PropLayer.Packing.pack(mb.build(), listOf(floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 0f))) ?: return
+        skirt.upload(packed, casts = false)
+        skirtUp = true
+    }
     private val tickCopy = ArrayList<(Double) -> Unit>()
     /** Adds the time since [t0] to [part] of [FrameWork]; the time now. */
     private fun lap(part: Int, t0: Long): Long { val n = System.nanoTime(); FrameWork.add(part, n - t0); return n }
@@ -1564,6 +1608,7 @@ class FilamentTown(
         val em = EntityManager.get()
         crowd.destroy()
         cinemaDraw?.destroy()
+        skirt.destroy()
         for (st in storeDraws) st.destroy()
         for (x in extras) x.destroy()
         for (s in slots) {
@@ -1601,10 +1646,15 @@ class FilamentTown(
         const val OCCLUDED = 0f
         /** The buildings switch to their far boxes this far past where the haze starts (street units from the eye to the cell). */
         const val FAR_PAST_HAZE = 200f
+        /** The apron past the world's edge: how far below the ground it lies, and its colour (the grass's mean). */
+        const val SKIRT_DROP = .6f
+        const val SKIRT_GRASS = 0xFF468E52.toInt()
         /** [debugHide]'s parts. */
         const val HIDE_FAR = 1; const val HIDE_BUILDINGS = 2; const val HIDE_YARDS = 4; const val HIDE_GREEN = 8; const val HIDE_GROUND = 16
         /** With the far boxes up, the trees' cards are drawn this far past the view's range (street units), into thick haze. */
-        const val GREEN_PAST_RANGE = 3400f
+        const val GREEN_PAST_RANGE = 2000f
+        /** How long a chunk's greenery takes to cross over between its cards and its 3D trees (s). */
+        const val GREEN_SWITCH_SECONDS = .35f
         /** Whether towns made from now on draw their far boxes ([TownFar]); a preview turns it off to compare (-DtownFar=0). */
         @JvmStatic var farLod = true
         const val OCCLUDE_SECONDS = .2f

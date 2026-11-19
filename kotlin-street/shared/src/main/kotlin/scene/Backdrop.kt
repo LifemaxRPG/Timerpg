@@ -353,8 +353,16 @@ internal class Backdrop(private val seed: Int, day: String = "") {
             birds(pass, sky, w, top, horizon, ceiling, seconds)
         // the glow over the horizon: the city's light at night, haze by day
         drawRect(glowBrush!!, Offset(0f, horizon - glowDp * d), Size(w, glowDp * d))
-        drawRect(sky.ground[0], Offset(0f, horizon), Size(w, size.height - horizon))
-        drawLine(sky.line, Offset(0f, horizon), Offset(w, horizon), d)
+        if (city) {
+            drawRect(sky.ground[0], Offset(0f, horizon), Size(w, size.height - horizon))
+            drawLine(sky.line, Offset(0f, horizon), Offset(w, horizon), d)
+        } else {
+            // the open world (Filament draws the land over this): below the horizon the town's haze colour, the glow over
+            // the sky's lowest band (FilamentTown's haze), and no horizon line: the few pixels between the far end of the
+            // drawn land and the true horizon showed that line and the stage's ground as a stripe ("still line on the horizon")
+            val low = sky.sky.lastOrNull() ?: sky.ground[0]
+            drawRect(lerp(low, sky.glow.copy(alpha = 1f), sky.glow.alpha), Offset(0f, horizon), Size(w, size.height - horizon))
+        }
         weather(sky, w, horizon, orb, shift, seconds)
         // the city between the street and the far skyline, the passing car on its boulevard
         if (!city) return

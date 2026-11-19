@@ -590,10 +590,15 @@ class TownFarms internal constructor(
             val fade = pose.rangeFade(g.cx, 40f, g.cz, g.r)
             val on = fade > .02f && pose.sees(g.cx, 40f, g.cz, g.r)
             val near = on && pose.distance(g.cx, 40f, g.cz) - g.r < SHADOW_RANGE
-            val plantsOn = on && pose.distance(g.cx, 20f, g.cz) - g.r < PLANT_RANGE
+            // (the crops' cards near by only, faded out over [PLANT_FADE]: past it the field's canopy picture stands for them;
+            // drawn to 2600 they were thousands of cut-out cards a few pixels each, the GPU's worst overdraw in 0.1.402)
+            val plantD = pose.distance(g.cx, 20f, g.cz) - g.r
+            val plantFade = min(fade, ((PLANT_RANGE - plantD) / PLANT_FADE).coerceIn(0f, 1f))
+            val plantsOn = on && plantFade > .02f
             g.stat?.let { it.update(f.look, f.dark, on, fade, near); if (on) { out[0] += it.draws; out[1] += it.triangles }; if (near) out[2] += it.casters }
             g.soil?.let { it.update(f.look, f.dark, on, fade, false); if (on) { out[0] += it.draws; out[1] += it.triangles } }
-            g.plants?.let { it.update(f.look, f.dark, plantsOn, fade, near && plantsOn); if (plantsOn) { out[0] += it.draws; out[1] += it.triangles }; if (near && plantsOn) out[2] += it.casters }
+            val plantShadows = plantsOn && plantD < PLANT_SHADOWS
+            g.plants?.let { it.update(f.look, f.dark, plantsOn, plantFade, plantShadows); if (plantsOn) { out[0] += it.draws; out[1] += it.triangles }; if (plantShadows) out[2] += it.casters }
             for (m in g.models) {
                 val mm = m.mesh ?: continue
                 m.occFade = if (pose.open && m.occluded) max(0f, m.occFade - f.occStep) else min(1f, m.occFade + f.occStep)
@@ -695,7 +700,11 @@ class TownFarms internal constructor(
         const val ROAD_LEN = 64f * TEXEL
         const val POST = 92f
         /** How far past a farm's edge its crops are drawn, and its things throw shadows. */
-        const val PLANT_RANGE = 2600f
+        const val PLANT_RANGE = 1100f
+        /** Over how many street units the crops' cards fade out short of [PLANT_RANGE] (screen door). */
+        const val PLANT_FADE = 250f
+        /** The crops throw shadows only this near (street units past the farm's edge): small, many, in four cascades. */
+        const val PLANT_SHADOWS = 500f
         const val SHADOW_RANGE = 1600f
         /** The engine thread's uploads a frame (ns). */
         const val UPLOAD_NS = 3_000_000L

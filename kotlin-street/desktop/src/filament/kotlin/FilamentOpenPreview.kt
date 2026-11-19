@@ -77,6 +77,14 @@ fun renderFilamentOpen(out: String) {
     val ft = FilamentTown(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, cinema = cinema,
         stores = storeSites, collision = collision)
     ft.nightBudgetNs = Long.MAX_VALUE
+    // the farms round the town, as the app attaches them (-Dfarms=0 leaves them out)
+    if (System.getProperty("farms") != "0") {
+        val farmDir = File("../app/src/main/assets/farm")
+        val farmData = com.lifemax.rpg.feature.habits.domain.TownFarmsData.parse(root)
+        if (!farmData.isEmpty) com.lifemax.rpg.feature.habits.presentation.scene3d.TownFarms.attach(ft, farmData,
+            com.lifemax.rpg.feature.habits.presentation.scene3d.FarmArt({ p -> open(File(farmDir, p)) }, { p -> File(farmDir, p).takeIf { it.exists() }?.readText() }, { p -> open(File(assets, p)) }),
+            collision, day = 200)
+    }
     // (a still picture shows everyone in its one frame)
     ft.sheetsOnWorker = false
     // (and the see-through cone open or shut at once in it)
@@ -468,6 +476,12 @@ fun renderFilamentOpen(out: String) {
     // camera stands back: 546 for a 420 zoom), the cone cutting the tower beside the player (-Dshots=fb4)
     view("fb4_061255", 3471.5f, 2636.4f, 0.0571f, 0.9984f, -120.90f, 27.41f, 546f, 17.6f, "061255: King Street, the tower beside the player fading")
     view("fb4_061348", 3553.0f, 2648.5f, 0.9953f, -0.0965f, -168.12f, 10.77f, 546f, 17.6f, "061348: King Street, the tower and the green house")
+    // build 0.1.402 (the S25, GPU p50 28-41 ms in ordinary views; farms and downtowns in): -Dshots=fb5
+    view("fb5_075343", 7491.5f, 6740.2f, 0.9860f, -0.1670f, 80.47f, 13.34f, 437f, 9.12f, "075343: Spring Lane, the line on the horizon")
+    view("fb5_075402", 7491.5f, 6740.2f, 0.9860f, -0.1670f, -50.63f, 10.86f, 720f, 0.0f, "075402: Spring Lane at midnight, the high rises")
+    view("fb5_075443", 8565.3f, 6579.6f, 0.1582f, 0.9874f, 17.83f, 10.31f, 720f, 0.0f, "075443: Spring Lane, the trees at the town's edge")
+    view("fb5_075528", 9078.7f, 6759.1f, -0.9001f, 0.4358f, 69.44f, 11.60f, 720f, 0.0f, "075528: Spring Lane, buildings cut too easily")
+    view("fb5_074956", 1407.5f, 3857.5f, 0.5477f, -0.8367f, -98.07f, 14.15f, 568f, 19.17f, "074956: Larch Road at dusk")
     view("fb3_054141", 8615.3f, 4968.6f, -0.9973f, -0.0729f, -84.08f, 12.09f, 420f, 17.6f, "054141: Main Street")
     File(dir, "open.txt").writeText(report.toString())
     print(report)

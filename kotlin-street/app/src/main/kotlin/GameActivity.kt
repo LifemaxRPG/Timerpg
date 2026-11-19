@@ -1086,7 +1086,9 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             val h = hour.toInt() % 24; val m = ((hour - hour.toInt()) * 60).toInt()
             Text("%d:%02d %s".format(((h + 11) % 12) + 1, m, if (h < 12) "AM" else "PM"))
             Spacer(Modifier.width(10.dp))
-            Slider(hour, { hour = it }, 0f, 24f, Modifier.width(240.dp))
+            // (to 23:59: the slider's end at 24 reached the sky and the light as an hour past the day's end, a sunset at
+            // midnight, while the clock read 12:00 PM)
+            Slider(hour, { hour = it.coerceAtMost(LAST_MINUTE) }, 0f, LAST_MINUTE, Modifier.width(240.dp))
         }
         // the season and the weather
         Column(Modifier.align(Alignment.TopEnd).padding(10.dp), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -1595,6 +1597,12 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             Chip("Camera follows", StreetRenderer.bikeFollow) { StreetRenderer.setBikeFollow(ctx, true) }
             Chip("Camera stays", !StreetRenderer.bikeFollow) { StreetRenderer.setBikeFollow(ctx, false) }
         }
+        // (the town's drawing resolution: auto lowers it a little only while the GPU cannot keep up)
+        if (StreetRenderer.filament) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("Resolution", 12.sp)
+            for ((r, label) in listOf(0f to "Auto", 1f to "Full", .85f to "85%", .75f to "75%"))
+                Chip(label, StreetRenderer.resolution == r) { StreetRenderer.setResolution(ctx, r) }
+        }
         // (the street view's camera heights)
         if (StreetRenderer.filament && StreetRenderer.view == StreetRenderer.STREET) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Camera", 12.sp)
@@ -1812,6 +1820,8 @@ private val LEFT_KEYS = setOf(android.view.KeyEvent.KEYCODE_DPAD_LEFT, android.v
 private const val TOWN_BUILD_HOLD = "town-build"
 /** How long the player must stand before lines are written ahead again (ns). */
 private const val STILL_NS = 1_500_000_000L
+/** The time slider's end: 23:59. */
+private const val LAST_MINUTE = 23f + 59f / 60f
 
 private val RIGHT_KEYS = setOf(android.view.KeyEvent.KEYCODE_DPAD_RIGHT, android.view.KeyEvent.KEYCODE_D)
 private val UP_KEYS = setOf(android.view.KeyEvent.KEYCODE_DPAD_UP, android.view.KeyEvent.KEYCODE_W)

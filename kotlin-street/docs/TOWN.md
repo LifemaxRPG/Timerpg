@@ -756,3 +756,76 @@ and built over (a field farmed in 1955 is houses by 2025).
   flagged rural households, nobody walks there); animals; barn and farmhouse interiors (doors have no rooms); fields are
   axis-aligned rectangles (no contour ploughing); the farmyard's dirt has hard edges; the vegetable cards are busy up
   close; far farms draw every model while in range (no model LOD yet).
+
+## Smoother frames and the owner's screenshots of 0.1.385-0.1.402 (branch wf-smooth)
+
+Desktop renders, JVM tests and the desktop frame bench only; NOT yet run on the S25 (the S25's numbers below are the
+owner's screenshots of builds without these changes).
+
+- **What the S25 showed**: 0.1.385 at 60 Hz, Filament CPU p50 9-13 ms (p95 15-18), GPU p50 14-17 ms (p95 21-25), thermal 2,
+  the light model on 6 CPU cores; 0.1.389 by a King Street tower GPU p50 46-48 ms; 0.1.402 (farms, downtowns) GPU p50
+  28-41 ms (p95 32-52) in ordinary views at 120 Hz. The GPU, not the CPU, is what misses frames; a TextureView shows its
+  last frame again when the GPU is late, so the main thread's frame counter (0-2% late) never saw most of the stutter.
+- **Frame-spike profiler** (app `FrameSpikes`, shared `FrameWork`): every frame of the town whose interval passes 20 ms
+  while frames come at the display's rate is kept with what ran in it: the game's own parts (step, build, cutaway, far
+  boxes, buildings, night light, yards, greenery and its uploads, stores and farms, people, cards, Filament's own CPU),
+  the uploads (tree cells, far cells, buildings, people's sheets, ground jobs, bytes), the GPU's time of the frames Filament
+  last reported (each GPU frame over 16.7 ms is counted even when the main thread was on time), ART's GC counts and time
+  since the last frame, the HUD's recompositions, and which AI model ran (`AiLane.current`). Every 10 s a crumb
+  `frame spikes 10 s: spikes N of M frames (moving K) by <cause counts>; GPU over 16.7 ms in a of b frames (worst);
+  gc n (ms); worst: <the three worst frames in full>`; the screenshot JSON's `frames.spikes` carries the last one.
+- **The AI off the frames' cores**: a line written ahead of time now holds between two words while the player walks,
+  rides or turns the camera (its threads sleep; it goes on from the same word once they stand 1.5 s). A line someone waits
+  for, or the overnight writer, is never held. The breadcrumbs' 10 s line says how many lines were held and for how long.
+- **Uploads spread**: one tree cell's detail and one far cell uploaded a frame (two cells made the greenery's worst frames
+  8-28 ms on the build server; a far cell's upload was a 20 ms frame); a townsperson's sheet seen for the first time is
+  read and packed on a worker (they show a frame or two later, far off) instead of in the frame. Fewer objects a frame
+  (no boxed renderable instances, no list copies, no Pair per person).
+- **The see-through cone only when hidden** (054003 "everything we walk by fades out", 061255 "the building starting to
+  fade because I'm next to it"): `FilamentTown.occlude` says whether the player is really hidden (a building, store, the
+  cinema, a farm building, a yard's tall thing across both the chest's and the head's lines, or a tree crown, a box a
+  fifth of its height either side of the trunk from half way up, across either), and only then the cone opens, eased
+  over 0.3 s from nothing (an iris), radius 40 (was 55). Measured shading cost of the cone always on (as before), software
+  GL: +4 to +25% of the frame in the views measured.
+- **The cutaway cuts less** (075528 "buildings disappear too easily"): a building, store, cinema, farm building or yard's tall
+  thing is cut only when both the chest's and the head's lines pass through it (one that covers only the feet, a side,
+  or one of the two stays), or when the eye stands within 60 of it.
+- **The camera inside a building** (054054, Wharf Road): it stood inside the Avalon 8 multiplex, which the cinema's kit
+  draws, not a slot's building, so the cutaway never knew it; the cinema is in the cutaway now (eye inside or near: cut
+  whole; in the way: cut, its shadow kept). The downtown extras are slots and were already in it.
+- **Haze** (054115 "texture glitching", 053921 pale ghost towers): the open world's haze starts 1600 past the player (was
+  1200) and is a ground haze: Filament's height falloff 1/140, its density at the ground set so a line from the eye down
+  to the far ground meets the same 0.00074 per unit on average at any camera height (about 50% at the range, was 58%),
+  so towers' upper floors, crowns and the far skyline keep their colours. Its colour is the sky's glow over its lowest
+  band at the glow's own alpha (at night a faint warm grey, not the orange itself).
+- **Far boxes cross over cleanly**: the boxes' screen door is the inverse of their buildings' (`PropLayer.inverseFade`,
+  street_lit.mat's negative `fade`): every pixel shows one or the other, never both (they z-fought: the "glitching") nor
+  neither (the ghosts); 200 units of slack either side of the line, 0.3 s.
+- **Trees at the distance** (075443 "trees changing at distance"): a chunk's cards and its 3D greenery cross over the same
+  way over 0.35 s, with 80 units of slack either side of the 3D line, instead of swapping all at once; the trees' cards
+  past the range reach 2000 further (was 3400, into thick haze anyway).
+- **The line on the horizon** (075343): the stage's sky drew a 1 dp line and its own ground colour at the horizon, which
+  showed in the few pixels between the far end of the drawn land and the true horizon. In the open world the stage now
+  fills below the horizon with the haze's colour and draws no line; and the land goes on past the world's edge as a
+  grass-coloured apron 0.6 below the ground out to the far boxes' reach (one draw, no shadow).
+- **Farms on the GPU**: the crops' cards are drawn to 1100 past a farm's edge (was 2600; past it the field's canopy picture
+  stands for them), fading out over the last 250; they throw shadows only within 500.
+- **High rises at night** (075402): a front with 24 or more glowing windows (towers, hotels; models and sprite fronts) lights
+  each window on its own draw against a share by the hour (`BuildingMeshes.towerShare`: about 55% at seven in the evening,
+  35% at nine, 13% before midnight, 8% in the small hours, a building a little more or less); a model's whole lit side is
+  split into its windows first.
+- **The clock**: the time slider ends at 23:59 (at 24 the clock read 12:00 PM).
+- **Resolution** (AI panel "Resolution": Auto, the default; Full; 85%; 75%): Auto lets Filament lower the drawing
+  resolution (to 72% at most, FSR's edge-aware upscale) only while the GPU misses its 60 Hz budget, so a heavy view loses a
+  little sharpness instead of frames; on a 120 Hz display Filament's frame interval is 2 (paced to 60). Untested on the
+  S25: check that Auto does not soften views the GPU can draw, and set Full if it does.
+- **The bike's camera** (the owner's one exception to the camera rule): riding, the camera swings round behind the rider
+  with a lag (about 0.9 s), at most 75 degrees a second, not below 30 units a second (no spin when stopped), paused 3 s
+  after any drag, pinch or recentre and eased back in over 1.2 s; AI panel "On the bike: Camera follows / Camera stays".
+  On foot nothing turns it (BikeRideTest.theCameraFollowsTheBikeOnlyOnTheBike).
+- **Desktop**: `-Dmode=filament-open -Dshots=fb3,fb4,fb5` the screenshots' spots (the farms attached as in the app;
+  `-Dfarms=0` without), `-Dgpucost=name,...` a view's software-GL time with one thing changed at a time (the cone, haze,
+  shadows, post, far boxes, buildings, yards, greenery, ground; llvmpipe, noisy: read the shares loosely),
+  `-Dshots=bench [-DbenchSecs=20]` the frame bench (a 20 s walk then ride through downtown, Wharf Road and east Main
+  Street through the game loop: CPU by part, allocations, the worst frames with their parts and uploads; bench.txt),
+  `-Ddebugeye=1` what stands by the eye in each view.

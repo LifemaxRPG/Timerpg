@@ -927,6 +927,8 @@ internal object FilamentModels {
         private val glassAt: IntArray
         private var lit = BooleanArray(0)
         private var done = false
+        /** Many windows (a tower, a hotel): a share of them lit by the hour ([BuildingMeshes.towerShare]), each window by its own draw. */
+        private var tall = false
         /** The mask (made on the engine's thread the first time it is asked for: [Night] itself is made on a worker). */
         val mask: Texture? by lazy(LazyThreadSafetyMode.NONE) { if (!glows) null else textures.make(StreetTextures.blank(w, h, linear = true)) }
 
@@ -947,6 +949,7 @@ internal object FilamentModels {
                     }
                 }
                 fun light(s: Int, k: Int = kind): Int { seeds += s; kinds += k; return seeds.size - 1 }
+                val wholeLights = HashSet<Int>()
                 for (i in parts.indices) {
                     val pt = parts[i]
                     val si = seed + i * 7
@@ -957,7 +960,7 @@ internal object FilamentModels {
                         ModelPart.CYL, ModelPart.WALL -> if (pt.sideGlow) pt.ft else null
                         else -> null
                     }
-                    if (whole != null) region(whole, 0, 0, whole[2], whole[3], light(si * 17 + 5), false)
+                    if (whole != null) region(whole, 0, 0, whole[2], whole[3], light(si * 17 + 5).also { wholeLights += it }, false)
                 }
                 for (i in parts.indices) {
                     val pt = parts[i]
@@ -972,6 +975,31 @@ internal object FilamentModels {
                         region(r, pn[0].toInt(), pn[1].toInt(), kotlin.math.ceil(pn[2]).toInt(), kotlin.math.ceil(pn[3]).toInt(), light(pseed * 31 + j), square)
                     }
                 }
+                // a whole side's glow is its windows: each window (4-connected patch of glow) a light of its own, so a tower's
+                // wall is not lit or dark all at once (0.1.402: "high rises look weird at night", flat orange boxes)
+                if (wholeLights.isNotEmpty()) {
+                    // (in place: a window's pixels take its new light, which no whole side has; the stack only as big as
+                    // the pixels to split, not the atlas: models are made on several workers at once)
+                    val isWhole = BooleanArray(seeds.size).also { a -> for (l in wholeLights) a[l] = true }
+                    fun whole(o: Int) = o >= 0 && o < isWhole.size && isWhole[o]
+                    var m = 0
+                    for (i in 0 until w * h) if (whole(owner[i])) m++
+                    val stack = IntArray(m.coerceAtLeast(1))
+                    for (i0 in 0 until w * h) {
+                        val from = owner[i0]
+                        if (!whole(from)) continue
+                        val l = light(seeds[from] * 131 + i0)
+                        var sp = 0; stack[sp++] = i0; owner[i0] = l
+                        while (sp > 0) {
+                            val i = stack[--sp]; val x = i % w; val y = i / w
+                            if (x > 0 && owner[i - 1] == from) { owner[i - 1] = l; stack[sp++] = i - 1 }
+                            if (x < w - 1 && owner[i + 1] == from) { owner[i + 1] = l; stack[sp++] = i + 1 }
+                            if (y > 0 && owner[i - w] == from) { owner[i - w] = l; stack[sp++] = i - w }
+                            if (y < h - 1 && owner[i + w] == from) { owner[i + w] = l; stack[sp++] = i + w }
+                        }
+                    }
+                }
+                tall = seeds.size >= BuildingMeshes.TALL_WINDOWS
                 val signs = light(seed * 13 + 3, Dusk.LAMP)
                 fun lin(ch: Int): Int = if (!linear) ch else (Math.pow(((ch / 255.0) + .055) / 1.055, 2.4) * 255.0).toInt().coerceIn(0, 255)
                 // the glow picture's brightness, stretched so its brightest is full
@@ -1013,7 +1041,12 @@ internal object FilamentModels {
             if (!glows) return
             val m = mask ?: return
             var changed = false
-            val now = BooleanArray(seeds.size) { Dusk.lightsOn(seeds[it], hour, kinds[it]) > .5f }
+            val share = if (tall) BuildingMeshes.towerShare(hour, seed) else 0f
+            val last = seeds.size - 1
+            val now = BooleanArray(seeds.size) {
+                if (tall && it != last) com.lifemax.rpg.feature.habits.domain.Ambient.hash(seeds[it], 3, 911) < share
+                else Dusk.lightsOn(seeds[it], hour, kinds[it]) > .5f
+            }
             for (i in now.indices) if (now[i] != lit[i]) { changed = true; break }
             if (!changed && done) return
             lit = now
