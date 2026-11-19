@@ -1,0 +1,370 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1980,
+  "topic": "shops",
+  "facts": [
+    {
+      "id": "1980-shops-01",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A grocery clerk rings up produce by entering its price at the register.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-02",
+      "year_from": 1982,
+      "year_to": 1989,
+      "text": "A supermarket cashier slides packaged goods across a barcode scanner where the store has installed one.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-03",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A shopper chooses fruit from open bins and places it in a thin plastic produce bag.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-04",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A neighborhood butcher wraps selected cuts in paper behind a refrigerated counter.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-05",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A bakery displays iced cakes and fresh rolls in glass-fronted cases.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-06",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A hardware store clerk helps customers find screws and plumbing fittings in labeled drawers.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-07",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A customer compares weekly specials printed in the supermarket's newspaper circular.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-08",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A discount store displays seasonal merchandise in long aisles beneath fluorescent lights.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-09",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A department store offers clothing and housewares on separate sales floors.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-10",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A clothing store keeps fitting rooms near the racks of dresses and trousers.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-11",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A shoe salesperson measures a child's feet before bringing out boxes to try.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-12",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A drugstore counter sells toiletries, greeting cards, and over-the-counter remedies.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-13",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A pharmacy customer waits while a pharmacist fills a paper prescription.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-14",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A florist arranges bouquets in buckets near the shop entrance.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-15",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A shopkeeper changes the handwritten sale sign in the front window.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-16",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A store employee attaches a paper price tag to a garment with a plastic fastener.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-17",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A shopper brings an item to the service desk to ask about a return.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-18",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A cashier counts change into a customer's hand after a cash purchase.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-19",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A store posts its opening hours on the glass entrance door.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-20",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A small shop closes earlier than the large shopping center across town.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-21",
+      "year_from": 1983,
+      "year_to": 1989,
+      "text": "A mall food court gives shoppers a place to rest between stores.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-22",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A family browses toy displays before the Christmas shopping rush.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-23",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A local appliance dealer offers delivery and installation for a new refrigerator.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-24",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A furniture store displays sofas and dining tables in arranged room settings.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-25",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A customer asks whether the store can order a size missing from the shelf.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-shops-26",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A merchant keeps extra stock in a back room and brings it out when shelves empty.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [
+    {
+      "item": "dozen eggs",
+      "usd": 0.84,
+      "year": 1980,
+      "confidence": "medium"
+    },
+    {
+      "item": "gallon of whole milk",
+      "usd": 2.16,
+      "year": 1980,
+      "confidence": "medium"
+    },
+    {
+      "item": "loaf of white bread",
+      "usd": 0.5,
+      "year": 1980,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of ground beef",
+      "usd": 1.82,
+      "year": 1980,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of coffee",
+      "usd": 3.14,
+      "year": 1980,
+      "confidence": "medium"
+    },
+    {
+      "item": "first-class postage stamp",
+      "usd": 0.2,
+      "year": 1982,
+      "confidence": "medium"
+    },
+    {
+      "item": "first-class postage stamp",
+      "usd": 0.22,
+      "year": 1985,
+      "confidence": "medium"
+    },
+    {
+      "item": "first-class postage stamp",
+      "usd": 0.25,
+      "year": 1988,
+      "confidence": "medium"
+    },
+    {
+      "item": "gallon of regular gasoline",
+      "usd": 1.19,
+      "year": 1980,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of butter",
+      "usd": 1.88,
+      "year": 1980,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of bananas",
+      "usd": 0.33,
+      "year": 1980,
+      "confidence": "medium"
+    },
+    {
+      "item": "dozen oranges",
+      "usd": 1.79,
+      "year": 1980,
+      "confidence": "medium"
+    }
+  ],
+  "phrases": []
+}
