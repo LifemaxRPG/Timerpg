@@ -306,6 +306,7 @@ object PropRules {
                             put(PropKind.LITTER_BIN, 1, f.x1 - 20f, tries = 2)
                         } else if (rand(k, id, "litter") < .6f) put(PropKind.LITTER_BIN, 1, f.door - 40f, prefer = -1)
                     }
+                    PlacementKind.EXTRA -> {}
                     PlacementKind.HOME -> {
                         // the mailbox at the kerb beside the path to the door; the bins further from the path
                         val side = if (rand(k, id, "mailbox-side") < .5f) -1 else 1
@@ -398,7 +399,7 @@ object PropRules {
             corners += PropCorner(x, dir, crossRoad?.name, stop, ped, sign)
             gaps += if (e == RowEnd.START) (-1e9f to x - CORNER) else (x + CORNER to 1e9f)
         }
-        val fronts = row.buildings.map { b ->
+        val fronts = row.buildings.filter { it.kind != PlacementKind.EXTRA }.map { b ->
             PropFront(b.x0, b.x1, b.kind, b.neighbourhood, town.landmarks.firstOrNull { it.sprite == b.sprite }?.kind, b.sprite)
         }
         return PropStreet(

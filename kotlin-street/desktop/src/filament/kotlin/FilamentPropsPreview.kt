@@ -232,8 +232,8 @@ private class Stage(val engine: Engine, lit: Material, proxy: Material, val w: I
 
     /** A building of a row as a plain box: its front [setback] behind the building line, its door marked. */
     fun building(x0: Float, x1: Float, setback: Float, depth: Float, kind: PlacementKind, landmark: String?) {
-        val hgt = when (kind) { PlacementKind.SHOP -> 70f; PlacementKind.HOME -> 46f; PlacementKind.LANDMARK -> 96f }
-        val ramp = when (kind) { PlacementKind.SHOP -> Paint.TERRACOTTA; PlacementKind.HOME -> Paint.BEIGE; PlacementKind.LANDMARK -> Paint.CONCRETE }
+        val hgt = when (kind) { PlacementKind.SHOP -> 70f; PlacementKind.HOME -> 46f; PlacementKind.LANDMARK, PlacementKind.EXTRA -> 96f }
+        val ramp = when (kind) { PlacementKind.SHOP -> Paint.TERRACOTTA; PlacementKind.HOME -> Paint.BEIGE; PlacementKind.LANDMARK, PlacementKind.EXTRA -> Paint.CONCRETE }
         val m = MeshBuilder()
         val wd = x1 - x0
         m.box(-wd / 2f, 0f, -depth, wd / 2f, hgt, 0f) { s, w, h ->

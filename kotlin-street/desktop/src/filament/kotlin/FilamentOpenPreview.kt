@@ -1,5 +1,6 @@
 import androidx.compose.ui.graphics.Color
 import kotlin.math.abs
+import kotlin.math.hypot
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import com.google.android.filament.Engine
@@ -72,6 +73,7 @@ fun renderFilamentOpen(out: String) {
         com.lifemax.rpg.feature.habits.domain.ModelShape.parseAll(File(bdir, "models.json").takeIf { it.exists() }?.readText()),
         com.lifemax.rpg.feature.habits.domain.CinemaSiteShape.parse(root), com.lifemax.rpg.feature.habits.domain.StoreLots.parse(root).map { it.sprite }.toSet())
     val storeSites = com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root)
+    com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown.farLod = System.getProperty("townFar") != "0"
     val ft = FilamentTown(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, cinema = cinema,
         stores = storeSites, collision = collision)
     ft.nightBudgetNs = Long.MAX_VALUE
@@ -80,6 +82,7 @@ fun renderFilamentOpen(out: String) {
     ft.startGround()
     while (!ft.uploadGround(8f)) Thread.sleep(1)
     while (ft.pending > 0) { if (ft.buildNearest(0f, 0f, 8f) == 0) Thread.sleep(1) }
+    report.appendLine(ft.farReport)
     report.appendLine("(software GL on the build server, not the S25: draws and triangles are what is sent, the times are not the phone's)")
     ft.textureStats.let { (n, t, sh) -> report.appendLine("textures after the build: %d, %.1fM texels, %d shared; biggest: %s".format(n, t / 1e6, sh, ft.biggestTextures(10))) }
 
@@ -178,6 +181,48 @@ fun renderFilamentOpen(out: String) {
         view("main_close_13h", p.x, p.z, a.x, a.z, along + 180f, 10f, 150f, 13f, "Main Street, zoomed in, facing the player")
         view("main_through_13h", p.x, p.z, a.x, a.z, fronts + 180f, 20f, 600f, 13f, "Main Street, the camera behind the block (the block cut away)")
         view("main_dusk_west", p.x, p.z, a.x, a.z, 270f, 16f, 500f, 19.3f, "Main Street, looking west at dusk")
+    }
+    // --- downtown: the tallest building with nobody in it (a tower behind the main street, else the town hall), from the
+    // pavement in front of its block, at the camera's usual height, zoomed out, at night, and from across town (its far box
+    // on the skyline); -Dshots=downtown renders only these
+    // (-Dspot=x,z: the building nearest that point instead, so a town's years can be shot from the same place)
+    val spot = System.getProperty("spot")?.split(",")?.mapNotNull { it.trim().toFloatOrNull() }?.takeIf { it.size == 2 }
+    (if (spot != null) ft.slots.filter { it.isBuilt && town.road(it.row.road).name == "Main Street" }.minByOrNull { hypot(it.cx - spot[0], it.cz - spot[1]) }
+     else ft.slots.filter { it.b.kind == com.lifemax.rpg.feature.habits.domain.PlacementKind.EXTRA && it.isBuilt }.maxByOrNull { it.cy })?.let { s ->
+        val r = s.row
+        val x = s.b.mid.coerceIn(40f, r.length - 40f)
+        val p = r.pointAt(x, 7f); val a = r.alongAt(x); val n = r.normalAt(x)
+        val inn = heading(n.x, n.z)
+        report.appendLine("downtown: ${s.b.sprite} on ${r.id} (${town.road(r.road).name}), its middle ${"%.0f".format(s.cy)} up; ${ft.farReport}")
+        view("downtown_street_13h", p.x, p.z, a.x, a.z, inn - 20f, 4f, OrbitCamera.DIST_MIN, 13f, "downtown, from the pavement")
+        view("downtown_camera_13h", p.x, p.z, a.x, a.z, inn - 30f, 20f, 520f, 13f, "downtown, the camera's usual height")
+        view("downtown_along_13h", p.x, p.z, a.x, a.z, heading(a.x, a.z), 14f, 600f, 13f, "downtown, along the main street")
+        view("downtown_high_13h", p.x, p.z, a.x, a.z, inn + 30f, 50f, OrbitCamera.DIST_MAX, 13f, "downtown, zoomed out")
+        view("downtown_dusk", p.x, p.z, a.x, a.z, inn - 30f, 16f, 600f, 19.3f, "downtown at dusk")
+        view("downtown_night", p.x, p.z, a.x, a.z, inn - 30f, 16f, 600f, night, "downtown at night")
+        // across town: the player 3500 units out on the far side, looking back at the centre
+        val c = collision
+        val cx = s.cx; val cz = s.cz
+        val ox = (cx + (if (cx > (c.minX + c.maxX) / 2f) -3500f else 3500f)).coerceIn(c.minX + 400f, c.maxX - 400f)
+        val oz = cz + 1200f
+        val back = heading(cx - ox, cz - oz)
+        view("downtown_skyline_13h", ox, oz, (cx - ox), (cz - oz), back, 6f, 300f, 13f, "the downtown from across town (far boxes)")
+        view("downtown_skyline_dusk", ox, oz, (cx - ox), (cz - oz), back, 6f, 300f, 19.3f, "the downtown from across town at dusk")
+        view("downtown_skyline_night", ox, oz, (cx - ox), (cz - oz), back, 6f, 300f, night, "the downtown from across town at night")
+        view("downtown_wide_13h", ox, oz, (cx - ox), (cz - oz), back, 24f, OrbitCamera.DIST_MAX, 13f, "a wide view over the town, towards downtown")
+    }
+    // --- the pack's other buildings with nobody in them: the first of each kind (the town hall, the chapel, a car park)
+    root.optJSONObject("graph")?.optJSONArray("extras")?.let { xs ->
+        val seen = HashSet<String>()
+        for (i in 0 until xs.length()) {
+            val o = xs.getJSONObject(i); val kind = if (o.getString("id").contains(":lot:")) "stripshop" else o.getString("kind")
+            if (!seen.add(kind)) continue
+            val s = ft.slots.firstOrNull { it.b.sprite == o.getString("sprite") } ?: continue
+            val r = s.row; val x = s.b.mid.coerceIn(40f, r.length - 40f)
+            val p = r.pointAt(x, 7f); val a = r.alongAt(x); val n = r.normalAt(x)
+            view("extra_${kind}_13h", p.x, p.z, a.x, a.z, heading(n.x, n.z) - 25f, 22f, 560f, 13f, "the ${o.getString("name")} (${s.b.sprite})")
+            view("extra_${kind}_night", p.x, p.z, a.x, a.z, heading(n.x, n.z) + 20f, 16f, 520f, night, "the ${o.getString("name")} at night")
+        }
     }
     // --- the civic avenue (the spawn): along it, and at the school across it
     run {
@@ -402,6 +447,10 @@ fun renderFilamentOpen(out: String) {
     view("fb2_store_high", 14087.6f, 5816.6f, -.7994f, .6007f, -119.62f, 35f, 700f, 13f, "020054's spot from above, noon")
     view("fb2_woods", 18926.5f, 5174.3f, .564f, .8258f, -20.7f, 15.14f, 420f, 17.6f, "020240: in the woods (the player must show)")
     view("fb2_woods_low", 18926.5f, 5174.3f, .564f, .8258f, 60f, 10f, 300f, 17.6f, "020240's woods, another way, low")
+    // build 0.1.367 (the S25, 2026-11-19, 17:36 summer): the horizon's thin bright line and streaks (GPU p50 22 ms there),
+    // and the forest's trees cut in half far off
+    view("fb_horizon", 3219.6f, 4148.5f, 0f, -1f, 23.38f, 11.85f, 420f, 17.6f, "015705: Church Street, the horizon")
+    view("fb_trees_half", 14316.6f, 5916.4f, 0f, 1f, 153.57f, 10f, 420f, 17.6f, "020102: by the woods, trees far off")
     File(dir, "open.txt").writeText(report.toString())
     print(report)
     if (want("walk")) scriptedWalk(dir, town, yards, walk, run, shooter, sheets, w, h, events)

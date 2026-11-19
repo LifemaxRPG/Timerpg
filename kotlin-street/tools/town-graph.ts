@@ -39,6 +39,7 @@ import { storeLandmark, storesBlock, storeSitesBlock, type StoreFootprint, type 
 import { neighborhoodOf } from '../../src/town/neighborhoods';
 import { hash, makeBuildings, townLots, type Buildings } from './town-buildings';
 import { townStreets } from './town-streets';
+import { extraBuildings, oldSchool, packEntries, packOf, type ExtraBuilding, type PackEntry } from './town-downtown';
 
 /** Street units per tile at the art's size (BuildingSpec.W 184 per 224 px; 32 px a tile). */
 export const UNIT_PER_TILE = 32 * 184 / 224;
@@ -56,6 +57,8 @@ export const SCALE = K * UNIT_PER_TILE;
 const TOL = 3;
 /** Buildings along a row closer than this (tiles, art extents) move as one rigid group. */
 const GROUP_GAP = 1;
+/** The service alley between the shops' yards and a tower or car park behind them (street units). */
+const ALLEY = 44;
 /** The lane the player spawns in (CornerWalk.ARRIVE_LANE: the front band of the pavement). */
 const SPAWN_LANE = 7;
 
@@ -93,7 +96,7 @@ export function footprintPx(key: string, artW: number, front = 2, artH = 0): Foo
   const lm = key.match(/^landmark_([a-z]+)_\d+$/);
   if (lm) { const [s, d] = LANDMARK_FOOT[lm[1]!] ?? [32, 200]; return { setback: s, depth: d, width: artW }; }
   if (/^house_small_/.test(key)) return { setback: front * 32, depth: 80, width: Math.max(artW, 224) };
-  if (/^house_medium_/.test(key)) return { setback: front * 32, depth: 88, width: Math.max(artW, 224) };
+  if (/^house_(medium|big)_/.test(key)) return { setback: front * 32, depth: 88, width: Math.max(artW, 224) };
   if (/^villa_\d+$/.test(key)) return { setback: front * 32 + 32, depth: 171, width: Math.max(artW, 256) };
   if (/^house_terraced_/.test(key)) return { setback: front * 32 + 16, depth: 256, width: Math.max(artW, 332) };
   const e = ESTATE_FOOT[key]; if (e) return { setback: e[0], depth: e[1], width: Math.max(artW, e[2]) };
@@ -107,7 +110,10 @@ export interface NodeJson { id: number; x: number; z: number; kind: 'cross' | 't
 export interface RoadJson { id: number; name: string; main: boolean; a: number; b: number; pts: P[]; width: number }
 export interface BuildingJson {
   sprite: string; x0: number; x1: number; setback: number; depth: number; group: number; neighbourhood: string;
-  kind: 'shop' | 'home' | 'landmark'; lot: string;
+  /** extra: a building with nobody in it (the downtown's towers and parking, the town hall, the chapel: town-downtown.ts). */
+  kind: 'shop' | 'home' | 'landmark' | 'extra'; lot: string;
+  /** Flat (parking): walked over, not into. */
+  flat?: boolean;
 }
 export interface EndJson { straight?: string; turnIn?: string; cross?: string; mouth: boolean }
 export interface RowJson {
@@ -126,6 +132,11 @@ export interface TownMapJson {
   neighbourhoods: { id: string; name: string; palette: string; yard: string; shopColour: string }[];
   nodes: NodeJson[]; roads: RoadJson[]; rows: RowJson[];
   landmarks: { id: string; kind: string; name: string; sprite: string; art: string; row: string; rect: [number, number, number, number]; era?: string; footprint?: CinemaFootprint | StoreFootprint; store?: { site: string; kind: string; state: string } }[];
+  /**
+   * The buildings with nobody in them standing this year (town-downtown.ts): the downtown's towers, hotels and parking,
+   * the town hall, the chapel; storeys and height (street units) for the far skyline, the years each stands.
+   */
+  extras?: { id: string; sprite: string; kind: string; name: string; row: string; storeys: number; built: number; demolished?: number }[];
   /** The town's cinema in the export's year (town-cinema.ts), when it has one. */
   cinema?: CinemaJson;
   /** The town's stores standing in the export's year (town-stores.ts): the general store, market, supermarket, superstore. */
@@ -173,7 +184,7 @@ interface Row {
 }
 /** A building on a row, in tile terms first (s along the building line), then placed. */
 interface Item {
-  sprite: string; kind: 'shop' | 'home' | 'landmark'; lotId: string; neighbourhood: string; yard: string; tier: string;
+  sprite: string; kind: 'shop' | 'home' | 'landmark' | 'extra'; lotId: string; neighbourhood: string; yard: string; tier: string;
   rect: { x: number; y: number; w: number; h: number };
   /** Along the building line (tiles): the art's extent and the plot's. */
   s0: number; s1: number; l0: number; l1: number;
@@ -352,6 +363,12 @@ export function townGraph(seed: string, year: number): TownGraph {
   };
   const landmarkSprite = new Map<LandmarkPlot, string>();
   for (const l of layout.landmarks) landmarkSprite.set(l, buildings.landmark(l, neighborhoodOf(plan, nbOfPoint(l.x + l.w / 2, l.y + l.h / 2) as Lot['neighborhood']).yard));
+  // the pack's buildings: the downtown's towers and parking, the town hall, the chapel (named after every lot and landmark)
+  const extras: ExtraBuilding[] = extraBuildings(buildings, plan, layout, year, seed);
+  oldSchool(buildings, [...landmarkSprite].find(([l]) => l.id === 'school')?.[1], seed);
+  /** What the pack makes of each lot's building (its footprint known now; the entries rewritten after `vary`). */
+  const packFoot = new Map<string, ReturnType<typeof packOf>>();
+  for (const [sprite, l] of buildings.lotOf) packFoot.set(sprite, packOf((buildings.entries as PackEntry[]).find((e) => e.sprite === sprite)!, l, plan, seed));
   const entryOf = new Map((buildings.entries as { sprite: string; parts: { key: string; w: number; h: number }[]; yard?: { front: number } }[]).map((e) => [e.sprite, e]));
 
   /** The road a plot fronts: the one below it first (the art faces south), then above, then beside; main roads first. */
@@ -406,7 +423,7 @@ export function townGraph(seed: string, year: number): TownGraph {
     const pl = place(r, f);
     const e = entryOf.get(sprite)!;
     const artW = Math.max(...e.parts.map((p) => p.w));
-    const foot = footprintPx(e.parts[0]!.key, artW, e.yard?.front ?? 2, e.parts[0]!.h);
+    const foot = packFoot.get(sprite)?.foot ?? (e as { foot?: FootPx }).foot ?? footprintPx(e.parts[0]!.key, artW, e.yard?.front ?? 2, e.parts[0]!.h);
     const wT = foot.width / 32;
     pl.row.items.push({
       sprite, kind, lotId, neighbourhood: nb, yard: neighborhoodOf(plan, nb as Lot['neighborhood']).yard, tier, rect: r,
@@ -416,6 +433,7 @@ export function townGraph(seed: string, year: number): TownGraph {
   };
   for (const l of lots) addItem(l, buildings.entry(l), l.kind === 'shop' ? 'shop' : 'home', l.slot, l.neighborhood, l.tier);
   for (const l of layout.landmarks) addItem(l, landmarkSprite.get(l)!, 'landmark', `landmark:${l.id}`, nbOfPoint(l.x + l.w / 2, l.y + l.h / 2), l.id);
+  for (const x of extras) addItem(x.rect, x.sprite, 'extra', `extra:${x.id}`, nbOfPoint(x.rect.x + x.rect.w / 2, x.rect.y + x.rect.h / 2), x.kind);
 
   // ---------------------------------------------------------------------------------------------- row ends
   /** The row of chain [c] that leaves node [n] heading [d] (it starts there), or that arrives at [n] heading [d] (ends there). */
@@ -515,9 +533,21 @@ export function townGraph(seed: string, year: number): TownGraph {
         conflicts.push(`${it.sprite} (${it.lotId}, ${row.id}): footprint ${r3(setback + depth - plotFront)} deep in a plot ${r3(plotBack - plotFront)} deep; setback ${r3(setback)} -> ${r3(nudged)}`);
         setback = nudged;
       }
-      out.push({ sprite: it.sprite, x0: r3(it.x0), x1: r3(it.x1), setback: r3(setback), depth: r3(depth), group: it.group, neighbourhood: it.neighbourhood, kind: it.kind, lot: it.lotId });
-      footprints.push({ sprite: it.sprite, row: row.id, rect: boxOf(row, it.x0, it.x1, plotFront, setback + depth) });
-      if (it.kind !== 'landmark') lotsJson.push({ id: it.lotId, sprite: it.sprite, row: row.id, rect: boxOf(row, it.lx0, it.lx1, plotFront, plotBack), kind: it.tier, neighbourhood: it.neighbourhood, yard: it.yard });
+      out.push({ sprite: it.sprite, x0: r3(it.x0), x1: r3(it.x1), setback: r3(setback), depth: r3(depth), group: it.group, neighbourhood: it.neighbourhood, kind: it.kind, lot: it.lotId,
+        ...(it.tier === 'parking' ? { flat: true } : {}) });
+      // (a building with nobody in it stands behind others' plots' fronts, or in the plaza: its own box, not from the plot's front)
+      // (and a shop standing back behind its own car park: the car park is in front of it)
+      const standsBack = it.kind === 'extra' || (it.kind === 'shop' && setback > 100);
+      footprints.push({ sprite: it.sprite, row: row.id, rect: boxOf(row, it.x0, it.x1, standsBack ? setback : plotFront, setback + depth) });
+      // (a lot whose back a building with nobody in it takes, a tower or a car park behind the main street, ends short of it:
+      // the service alley between)
+      let lotBack = plotBack;
+      // (every shop of a run with one behind it ends there, so the alley runs the run's whole back, out at its ends)
+      if (it.kind === 'shop') for (const x of row.items) if (x.kind === 'extra' && x.group === it.group && x.foot.setback * PX > 100) lotBack = Math.min(lotBack, Math.max(setback + depth + 8, x.e * SCALE + x.foot.setback * PX - ALLEY));
+      // (a lot with its car park in front begins behind it)
+      let lotFront = plotFront;
+      if (it.kind === 'shop') for (const x of row.items) if (x.kind === 'extra' && x.tier === 'parking' && x.foot.setback === 0 && x.x1 > it.x0 && x.x0 < it.x1) lotFront = Math.max(lotFront, x.e * SCALE + x.foot.depth * PX + 2);
+      if (it.kind !== 'landmark' && it.kind !== 'extra') lotsJson.push({ id: it.lotId, sprite: it.sprite, row: row.id, rect: boxOf(row, it.lx0, it.lx1, lotFront, lotBack), kind: it.tier, neighbourhood: it.neighbourhood, yard: it.yard });
     }
     const pts = frontW(row);
     const f0 = frameAt(pts, cumW.get(row)!, 0);
@@ -526,6 +556,20 @@ export function townGraph(seed: string, year: number): TownGraph {
       origin: [r3(f0.p[0]), r3(f0.p[1])], along: f0.along, normal: f0.normal, length: r3(row.length * SCALE), pts,
       buildings: out, furniture: [], ends: ends.get(row)!,
     });
+  }
+  // a building with nobody in it that stands into another's footprint (the town hall wider than its plaza where a store
+  // stands close by) is left out: the town is whole without it
+  {
+    const ov = (a: number[], b: number[]): boolean => a[0]! < b[2]! - 0.01 && b[0]! < a[2]! - 0.01 && a[1]! < b[3]! - 0.01 && b[1]! < a[3]! - 0.01;
+    const isExtra = new Set(extras.map((x) => x.sprite));
+    const drop = new Set(footprints.filter((f) => isExtra.has(f.sprite) && footprints.some((o) => o !== f && ov(f.rect, o.rect))).map((f) => f.sprite));
+    if (drop.size) {
+      for (let i = footprints.length - 1; i >= 0; i--) if (drop.has(footprints[i]!.sprite)) footprints.splice(i, 1);
+      for (const r of rowJson.values()) r.buildings = r.buildings.filter((b) => !drop.has(b.sprite));
+      for (let i = extras.length - 1; i >= 0; i--) if (drop.has(extras[i]!.sprite)) extras.splice(i, 1);
+      const es = buildings.entries as { sprite: string }[];
+      for (let i = es.length - 1; i >= 0; i--) if (drop.has(es[i]!.sprite)) es.splice(i, 1);
+    }
   }
   // the yard-to-back plots, and each building's own footprint, must not overlap one another or any road
   const hit = (a: number[], b: number[], pad = 0.01): boolean => a[0]! < b[2]! - pad && b[0]! < a[2]! - pad && a[1]! < b[3]! - pad && b[1]! < a[3]! - pad;
@@ -573,6 +617,7 @@ export function townGraph(seed: string, year: number): TownGraph {
   const props: TownMapJson['props'] = [];
   let dropped = 0;
   const plots = [...lots, ...layout.landmarks];
+  const hallRects = footprints.filter((f) => extras.some((x) => x.plaza && x.sprite === f.sprite)).map((f) => f.rect);
   for (const p of [...plan.props, ...layout.props]) {
     const q = tileOf(p);
     const wp = w3(q);
@@ -593,7 +638,11 @@ export function townGraph(seed: string, year: number): TownGraph {
       if (best) rowJson.get(best.row)!.furniture.push({ kind: p.kind, x: r3(best.s * SCALE), look: r3(p.look) });
       continue;
     }
-    if (inRect(q, pz)) { plazaProps.push({ kind: p.kind, x: wp[0], z: wp[1], look: r3(p.look) }); continue; }
+    if (inRect(q, pz)) {
+      // (not under the town hall at the plaza's back)
+      if (!hallRects.some((f) => wp[0] > f[0] - 20 && wp[0] < f[2] + 20 && wp[1] > f[1] - 20 && wp[1] < f[3] + 20)) plazaProps.push({ kind: p.kind, x: wp[0], z: wp[1], look: r3(p.look) });
+      continue;
+    }
     // yards belong to their buildings (the 3D models carry their own); anything standing in a footprint is dropped too
     if (plots.some((l) => inRect(q, l, -0.01)) || footprints.some((f) => wp[0] > f.rect[0] && wp[0] < f.rect[2] && wp[1] > f.rect[1] && wp[1] < f.rect[3])) { dropped++; continue; }
     props.push({ kind: p.kind, x: wp[0], z: wp[1], look: r3(p.look) });
@@ -633,6 +682,7 @@ export function townGraph(seed: string, year: number): TownGraph {
   // dress: no front repeats along a row (after the v1 streets', as v1 does it)
   const v1Spawn = townStreets(seed, year, { world: { w, layout }, junctionX: civicNode.x - 1, buildings });
   for (const row of rows) buildings.vary(row.items.map((i) => i.sprite));
+  packEntries(buildings, plan, seed);
   const rowIdOfSprite = new Map<string, string>();
   for (const r of rowJson.values()) for (const b of r.buildings) rowIdOfSprite.set(b.sprite, r.id);
   const kept = new Set(nodes.filter((n) => kindOf(n) !== 'through'));
@@ -652,6 +702,8 @@ export function townGraph(seed: string, year: number): TownGraph {
     ...cinemaBlock(seed, year, layout),
     ...storesBlock(seed, year, layout),
     ...storeSitesBlock(seed, plan.landmarks, rectW),
+    extras: extras.filter((x) => rowIdOfSprite.has(x.sprite)).map((x) => ({ id: `extra:${x.id}`, sprite: x.sprite, kind: x.kind, name: x.name, row: rowIdOfSprite.get(x.sprite)!,
+      storeys: x.storeys, built: x.built, ...(x.demolished !== undefined ? { demolished: x.demolished } : {}) })),
     plaza: { rect: rectW(pz), props: plazaProps },
     water,
     bridges: (plan.water?.bridges ?? []).map((b) => ({ rect: rectW(b), horizontal: b.horizontal })),

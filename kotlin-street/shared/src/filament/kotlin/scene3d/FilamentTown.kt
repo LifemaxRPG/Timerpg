@@ -198,7 +198,7 @@ object TownFrame {
         val near = (dist * .04f).coerceIn(4f, 16f)
         val hazeFrom = dist + OPEN_HAZE
         val range = dist + OPEN_REACH
-        return TownPose(ex, ey, ez, fx, fy, fz, fl, w / 2f, h / 2f, w, h, near, range + 20f, hazeFrom, HAZE,
+        return TownPose(ex, ey, ez, fx, fy, fz, fl, w / 2f, h / 2f, w, h, near, range + 20f, hazeFrom, OPEN_HAZE_DENSITY,
             range = range, open = true, lodFar = if (lod) hazeFrom + LOD_YARDS else Float.MAX_VALUE, shadowFar = dist + OPEN_SHADOWS)
     }
 
@@ -209,6 +209,12 @@ object TownFrame {
     const val OPEN_REACH = 2600f
     /** Where the open world's haze starts past the player. */
     const val OPEN_HAZE = 1200f
+    /**
+     * The open world's haze's thickness (per street unit): about 60% at the view's range, 95% where the trees' cards end
+     * ([FilamentTown.GREEN_PAST_RANGE] past it), so what is left out past the range fades in thick haze and the woods and far
+     * boxes dissolve into the sky's horizon colour.
+     */
+    const val OPEN_HAZE_DENSITY = .00062f
     /** How far past the player the open world's shadows reach (street units): the cascades over this depth, so the one at the player stays fine. */
     const val OPEN_SHADOWS = 1400f
     /** The yards are drawn in their far version from this far past where the haze starts (street units), so the switch is in the haze. */
@@ -429,6 +435,8 @@ class FilamentTown(
         var occFade = 1f
         /** Where the open world camera's line enters it (a share of the way from the player; MAX_VALUE: not in the way). */
         var occT = Float.MAX_VALUE
+        /** The far cell its cheap box goes in ([TownFar]); null: none (drawn by code, or no art). */
+        internal var farCell: TownFar.Cell? = null
 
         init {
             val c = place.world(0f, b.setback + b.depth / 2f)
@@ -483,7 +491,12 @@ class FilamentTown(
     /** How long the ground took (ms), the buildings so far (ms), and how many are left to build. */
     var groundMs = 0f; private set
     var buildingsMs = 0f; private set
-    val pending: Int get() = slots.count { it.built == null && !it.missing } + (if (cinemaDraw?.done == false) 1 else 0) + storeDraws.count { !it.done }
+    val pending: Int get() = slots.count { it.built == null && !it.missing } + (if (cinemaDraw?.done == false) 1 else 0) + storeDraws.count { !it.done } +
+        (if (farCounted && !far.allReady) 1 else 0)
+    /** The far cells have been counted (each building's cell, at the first [buildNearest]). */
+    private var farCounted = false
+    /** The far boxes: cells, cells up, their triangles (for reports). */
+    val farReport: String get() = "far: ${far.readyCount} of ${far.cellCount} cells up, ${far.triangles} triangles"
     var stats = TownStats(slots.size, 0, 0, 0, 0, 0, 0); private set
     /** Each batch [buildNearest] made: how many it built and how long it took (ms). */
     val batches = ArrayList<Pair<Int, Float>>()
@@ -588,6 +601,11 @@ class FilamentTown(
     var groundUploadMs = 0f; private set
     /** The longest single upload step [uploadGround] took (ms). */
     var groundUploadWorst = 0f; private set
+    /** The buildings far off: a cheap box each, merged by cells ([TownFar]), out to the far end of the world. */
+    private val far by lazy { TownFar(engine, scene, lit, textures, pool) }
+    /** Each building's far pictures, made on the worker that made it ready. */
+    private val farPics = java.util.concurrent.ConcurrentHashMap<Slot, TownFar.Pics>()
+    private val farOut = IntArray(2)
 
     /**
      * Starts making the ground, river, bridges, greenery, furniture, street props and yards on worker threads (meshes
@@ -767,6 +785,8 @@ class FilamentTown(
      * town always comes in), the rest only while the budget lasts. Call each frame until [pending] is 0.
      */
     fun buildNearest(x: Float, z: Float, budgetMs: Float): Int {
+        if (!farCounted) { farCounted = true; if (farLod) for (s in slots) if (!s.missing && s.built == null) s.farCell = far.expect(s.cx, s.cz) }
+        if (far.upload()) engine.flush()
         cinemaDraw?.let { c -> c.start(pool); if (!c.done && c.step()) engine.flush() }
         for (st in storeDraws) { st.start(pool, lastHour, weekday); if (!st.done && st.step()) engine.flush() }
         if (todo == 0 && chunksTodo == 0 && groundBuilt) return 0
@@ -786,7 +806,9 @@ class FilamentTown(
                 val sprite = s.b.sprite; val setback = s.b.setback
                 readyOf[s] = pool.submit(java.util.concurrent.Callable {
                     val r0 = System.nanoTime()
-                    val r = building(sprite)?.let { meshes.prepare(it, setback, yarded, sprite.hashCode()) }
+                    val sb = building(sprite)
+                    val r = sb?.let { meshes.prepare(it, setback, yarded, sprite.hashCode()) }
+                    if (sb != null && r != null) TownFar.pics(sb)?.let { farPics[s] = it }
                     val ms = (System.nanoTime() - r0) / 1e6f
                     synchronized(this) { prepareMs += ms; if (ms > slowestPrepare.second) slowestPrepare = sprite to ms }
                     r
@@ -879,11 +901,11 @@ class FilamentTown(
     }
 
     private fun buildOne(s: Slot, r: BuildingMeshes.Ready?) {
-        if (r == null) { s.missing = true; return }
+        if (r == null) { s.missing = true; s.farCell?.let { far.skip(it) }; farPics.remove(s); return }
         // (the yard kit draws a lot's ground and fences: the house's and the model's own were left off there when made
         // ready, not the landmarks', whose grounds the yards do not cover yet)
         val built = meshes.finish(r)
-        if (built == null) { s.missing = true; return }
+        if (built == null) { s.missing = true; s.farCell?.let { far.skip(it) }; farPics.remove(s); return }
         val tm = engine.transformManager
         s.place.matrix(xf)
         for (e in listOf(built.entity, built.proxy)) {
@@ -899,6 +921,21 @@ class FilamentTown(
         val c = s.place.world(lx, lz)
         s.cx = c.x; s.cz = c.z; s.cy = (bb[1] + bb[4]) / 2f
         s.r = sqrt((bb[3] - bb[0]) * (bb[3] - bb[0]) + (bb[4] - bb[1]) * (bb[4] - bb[1]) + (bb[5] - bb[2]) * (bb[5] - bb[2])) / 2f
+        // its far box: the model's own width, from its front wall back, as tall as it (a pitched house to below its ridge)
+        s.farCell?.let { cell ->
+            val pics = farPics.remove(s)
+            val zf = max(bb[2], s.b.setback); val zb = max(bb[5], zf + 4f)
+            // (no wider nor taller than its front picture: the model's bounds take in its lawn, fences, flagpoles and aerials)
+            val kk = com.lifemax.rpg.feature.habits.domain.BuildingSpec.W / 224f
+            val pw = pics?.let { it.front.w * TownFar.SHRINK * kk } ?: (bb[3] - bb[0])
+            val ph = pics?.let { it.front.h * TownFar.SHRINK * kk } ?: bb[4]
+            val mx = (bb[0] + bb[3]) / 2f; val hw = min((bb[3] - bb[0]) / 2f, pw / 2f)
+            // (seen from the street the art runs along local -x: its left is the larger x)
+            val c = FloatArray(8)
+            fun put(i: Int, lx: Float, lz: Float) { val w = s.place.world(lx, lz); c[i * 2] = w.x; c[i * 2 + 1] = w.z }
+            put(0, mx + hw, zf); put(1, mx - hw, zf); put(2, mx - hw, zb); put(3, mx + hw, zb)
+            far.add(cell, c, min(bb[4], ph), pics)
+        }
     }
 
     // ------------------------------------------------------------------ each frame
@@ -935,13 +972,21 @@ class FilamentTown(
         val dt = if (lastFrameSeconds.isNaN()) 1f else (seconds - lastFrameSeconds).toFloat().coerceIn(0f, .25f)
         lastFrameSeconds = seconds
         val occStep = if (dt <= 0f) 0f else dt / OCCLUDE_SECONDS
+        // the buildings far off: past the detail line (in the haze) a cell's cheap boxes stand in for its buildings
+        far.upload()
+        val detail = if (pose.range == Float.MAX_VALUE) Float.MAX_VALUE else pose.hazeFrom + FAR_PAST_HAZE
+        // (a frame with no clock, as a still preview's, takes the whole switch at once)
+        far.frame(pose, look, dark, detail, if (dt <= 0f) 1f else dt / TownFar.SWITCH_SECONDS, farOut)
+        renderables += farOut[0]; draws += farOut[0]; tris += farOut[1]
         for (s in slots) {
             val b = s.built ?: continue
             // the street view: what stands between the camera and the street in view fades out
             // (the open world: a building between the camera and the player fades to a screen door, eased in and out)
             // (the open world: a building in the way of the player or by the eye is cut away, eased out and back)
             s.occFade = if (pose.open && s.occluded) max(OCCLUDED, s.occFade - occStep) else min(1f, s.occFade + occStep)
-            val kept = min(if (pose.cut > 0f) fadeOf(pose, s.cx, s.cz) else 1f, pose.rangeFade(s.cx, s.cy, s.cz, s.r))
+            // (a building whose far box is up is not faded out at the draw distance: it crosses over to the box instead)
+            val farFade = far.nearFade(s.farCell)
+            val kept = min(if (pose.cut > 0f) fadeOf(pose, s.cx, s.cz) else 1f, if (far.covers(s.farCell)) farFade else pose.rangeFade(s.cx, s.cy, s.cz, s.r))
             val fade = min(kept, s.occFade)
             val on = fade > .02f && pose.sees(s.cx, s.cy, s.cz, s.r)
             s.shown = on
@@ -1010,6 +1055,7 @@ class FilamentTown(
         }
         // the furniture, props and greenery a chunk at a time: culled, cut with their row, cards far and 3D near
         var nChunks = 0; var nNear = 0
+        val farOn = far.readyCount > 0 && pose.range < Float.MAX_VALUE
         TreeCells.newFrame()
         for (c in chunks.values) {
             val cut = if (pose.cut <= 0f) 1f else if (c.byRow) fadeOf(pose, c.refX, c.refZ) else fadeOf(pose, c.cx, c.cz)
@@ -1019,15 +1065,20 @@ class FilamentTown(
             val close = on && c.hasNear && pose.distance(c.cx, c.top / 2f, c.cz) - c.r < TownFrame.LOD_NEAR
             val near3d = close && c.near != null
             c.base.update(look, dark, on, fade, shadows)
-            c.cards.update(look, dark, on && !near3d, fade, shadows && !near3d)
+            // (with the far boxes up, the trees' cards are drawn on past the view's range, into the haze: the woods at the
+            // world's edge dissolve into it instead of standing as a screen door against the sky)
+            val cardFade = if (farOn) min(cut, farFade(pose, c.cx, c.top / 2f, c.cz, c.r)) else fade
+            val cardsOn = cardFade > .02f && pose.sees(c.cx, c.top / 2f, c.cz, c.r)
+            c.cards.update(look, dark, cardsOn && !near3d, cardFade, shadows && !near3d)
             c.near?.update(look, dark, near3d, fade, shadows && near3d)
             val tc = c.trees
             tc?.update(pose, look, dark, near3d, fade, shadows && near3d)
             if (on) {
                 nChunks++
-                val l = (if (near3d) c.near else null) ?: c.cards
-                renderables += c.base.draws + l.draws; draws += c.base.draws + l.draws; tris += c.base.triangles + l.triangles
+                renderables += c.base.draws; draws += c.base.draws; tris += c.base.triangles
+                if (near3d) c.near?.let { renderables += it.draws; draws += it.draws; tris += it.triangles }
             }
+            if (cardsOn && !near3d) { renderables += c.cards.draws; draws += c.cards.draws; tris += c.cards.triangles }
             if (tc != null) { renderables += tc.draws; draws += tc.draws; tris += tc.triangles; casters += tc.casters }
             if (near3d) nNear++
             if (shadows) casters += c.base.casters + (if (near3d) c.near!!.casters else c.cards.casters)
@@ -1251,9 +1302,17 @@ class FilamentTown(
     private fun fadeOf(pose: TownPose, x: Float, z: Float): Float =
         smooth((pose.groundX * (x - pose.ex) + pose.groundZ * (z - pose.ez) - pose.cut + TownFrame.CUT_FADE) / TownFrame.CUT_FADE)
 
+    /** As [TownPose.rangeFade], to [GREEN_PAST_RANGE] past the view's range: the trees' cards with the far boxes up. */
+    private fun farFade(pose: TownPose, x: Float, y: Float, z: Float, r: Float): Float {
+        val t = ((pose.range + GREEN_PAST_RANGE - (pose.distance(x, y, z) - r * .5f)) / TownFrame.RANGE_FADE).coerceIn(0f, 1f)
+        return t * t * (3f - 2f * t)
+    }
+
     private fun aim(p: TownPose) {
         val k = (p.near / p.fl).toDouble()
-        camera.setProjection(Camera.Projection.PERSPECTIVE, -p.cx * k, (p.w - p.cx) * k, -(p.h - p.cy) * k, p.cy * k, p.near.toDouble(), p.far.toDouble())
+        // (the far boxes are drawn to the far end of the world: the far plane reaches them once any are up)
+        val farPlane = if (p.range < Float.MAX_VALUE && far.readyCount > 0) max(p.far, TownFar.REACH) else p.far
+        camera.setProjection(Camera.Projection.PERSPECTIVE, -p.cx * k, (p.w - p.cx) * k, -(p.h - p.cy) * k, p.cy * k, p.near.toDouble(), farPlane.toDouble())
         camera.lookAt(p.ex.toDouble(), p.ey.toDouble(), p.ez.toDouble(), (p.ex + p.fx).toDouble(), (p.ey + p.fy).toDouble(), (p.ez + p.fz).toDouble(),
             p.ux.toDouble(), p.uy.toDouble(), p.uz.toDouble())
     }
@@ -1286,9 +1345,11 @@ class FilamentTown(
         lm.setIntensity(li, SUN * key.strength * Math.PI.toFloat())
         lm.setShadowCaster(li, key.cool < .5f && key.strength > .05f)
         // (the open world's shadows reach a fixed way past the player: their cascades are not stretched over a wide view)
-        if (abs(p.shadowFar - shadowFarSet) > 10f || (p.shadowFar == 0f && shadowFarSet != 0f)) {
-            shadowFarSet = p.shadowFar
-            shadowOptions.shadowFar = p.shadowFar
+        // (0: as far as the view's own reach, not the far boxes' far plane)
+        val shadowFar = if (p.shadowFar > 0f) p.shadowFar else p.far
+        if (abs(shadowFar - shadowFarSet) > 10f) {
+            shadowFarSet = shadowFar
+            shadowOptions.shadowFar = shadowFar
             lm.setShadowOptions(li, shadowOptions)
         }
         val tone = sky.sky.lastOrNull() ?: Color.White
@@ -1317,7 +1378,10 @@ class FilamentTown(
     }
 
     private fun haze(p: TownPose, sky: com.lifemax.rpg.feature.habits.presentation.scene.SkyColors) {
-        val tone = sky.sky.lastOrNull() ?: return
+        // (the open world's sky, as the stage lays it, ends at the horizon in its glow (Backdrop's dome and glow band): the
+        // haze takes that colour, so the far ground, woods and far boxes meet the sky with no line; the street view's sky
+        // ends in its lowest band)
+        val tone = (if (p.open) sky.glow else sky.sky.lastOrNull()) ?: return
         fog.enabled = true
         fog.distance = p.hazeFrom
         fog.density = p.haze * (1f - .4f * sky.dark)
@@ -1378,6 +1442,7 @@ class FilamentTown(
             engine.destroyVertexBuffer(b.vb); engine.destroyIndexBuffer(b.ib)
             s.built = null
         }
+        far.destroy()
         pool.shutdownNow()
         ground.destroy(); yardLayer.destroy(); ticks.clear()
         for (c in chunks.values) c.destroy()
@@ -1402,6 +1467,12 @@ class FilamentTown(
          * seconds out and back.
          */
         const val OCCLUDED = 0f
+        /** The buildings switch to their far boxes this far past where the haze starts (street units from the eye to the cell). */
+        const val FAR_PAST_HAZE = 300f
+        /** With the far boxes up, the trees' cards are drawn this far past the view's range (street units), into thick haze. */
+        const val GREEN_PAST_RANGE = 3400f
+        /** Whether towns made from now on draw their far boxes ([TownFar]); a preview turns it off to compare (-DtownFar=0). */
+        @JvmStatic var farLod = true
         const val OCCLUDE_SECONDS = .2f
         /** The camera's cone round the player (street units either side of the chest), and how near the eye something is cut away. */
         const val CONE_SIDE = 12f
