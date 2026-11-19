@@ -239,7 +239,7 @@ def build(shop, out):
     if shop['parts'][0]['key'].startswith('landmark_store_'): return
     if shop['parts'][0]['key'].startswith(('house_small_', 'house_medium_', 'house_big_')): return build_house(shop, out)
     if shop['parts'][0]['key'].startswith(('villa_', 'landmark_clocktower_', 'landmark_school_', 'house_terraced_')) or \
-            shop['parts'][0]['key'].startswith(('estate_', 'landmark_police_', 'pk_')) or apt_maker(shop['parts'][0]['key']): return build_model(shop, out)
+            shop['parts'][0]['key'].startswith(('estate_', 'landmark_police_', 'pk_', 'fm_')) or apt_maker(shop['parts'][0]['key']): return build_model(shop, out)
     if shop['parts'][0]['key'].startswith(('landmark_fire_', 'landmark_hospital_', 'landmark_post_')): return build_model(shop, out)
     parts = shop['parts']; ground = next(p for p in parts if not p['key'].startswith(('roof_', 'roofprop_', 'middle_')))
     mids = [p for p in parts if p['key'].startswith('middle_')]
@@ -1510,9 +1510,9 @@ def build_model(shop, out):
     """One of our villas or landmarks as the parts the engine builds it from (models.json) and the pictures they wear."""
     key = shop['parts'][0]['key']; n = shop['sprite']
     rng = np.random.default_rng(zlib.crc32(n.encode()))
-    import buildings_estA, buildings_estB, buildings_civA, buildings_pack
+    import buildings_estA, buildings_estB, buildings_civA, buildings_pack, buildings_farm
     from buildings_civB import police
-    make = buildings_pack.builder(key) or apt_maker(key) or (buildings_estB.ESTATES[key] if key in buildings_estB.ESTATES else police if key.startswith('landmark_police_') else buildings_civA.builder(key) or (villa if key.startswith('villa_') else tower if key.startswith('landmark_clocktower_') else terraced if key.startswith('house_terraced_')
+    make = buildings_farm.builder(key) or buildings_pack.builder(key) or apt_maker(key) or (buildings_estB.ESTATES[key] if key in buildings_estB.ESTATES else police if key.startswith('landmark_police_') else buildings_civA.builder(key) or (villa if key.startswith('villa_') else tower if key.startswith('landmark_clocktower_') else terraced if key.startswith('house_terraced_')
             else buildings_estA.estate_one_story if key == 'estate_one_story_house' else buildings_estA.estate_country if key == 'estate_country_house' else school))
     model, at, front, side, emis, lawn, fence, fence_snow = make(shop, rng)
     # which boxes' sides have windows that light at night (the engine lights no other: a railing's side has none)
@@ -1623,6 +1623,8 @@ def main(argv):
     if argv[0] == '--showcase': src, out = showcase(argv[1])
     elif argv[0] == '--pack-showcase':
         import buildings_pack; src, out = buildings_pack.showcase(argv[1])
+    elif argv[0] == '--farm-showcase':
+        import buildings_farm; src, out = buildings_farm.showcase(argv[1])
     else: src, out = argv[0], argv[1]
     os.makedirs(out, exist_ok=True)
     shops = json.load(open(src))['shops']

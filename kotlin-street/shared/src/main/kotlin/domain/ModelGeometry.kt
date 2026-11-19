@@ -87,7 +87,8 @@ class ModelPart(
      * A rounded wall ([CYL]): a segment of an upright elliptic cylinder, its centre (x, d), its semi-axes across and in
      * depth, the angles it runs from and to (degrees: 0 faces the street, 90 the right, 180 the back), and a ring's
      * inner semi-axes (NaN if it is solid). Its strip ([ft]) has its columns evenly along the angle, its rows from the
-     * top down. [x0]..[x1] and [d0]..[d1] are its whole ellipse's extent.
+     * top down. [x0]..[x1] and [d0]..[d1] are its whole ellipse's extent. A tapering one (a cone or a dome's ring, a silo's
+     * cap) has its top's semi-axes at [arc] 8 and 9 (NaN: as wide at the top as at the foot).
      */
     val arc: FloatArray? = null,
 ) {
@@ -270,10 +271,12 @@ class ModelShape(
                 "cyl" -> {
                     val c = p.getJSONArray("c"); val r = p.getJSONArray("r"); val a = p.getJSONArray("a"); val col = p.getJSONArray("col")
                     val ri = p.optJSONArray("ri")
+                    val rt = p.optJSONArray("rt")
                     val cx = c.f(0); val cd = c.f(1); val ra = r.f(0); val rb = r.f(1)
                     ModelPart(ModelPart.CYL, cx - ra, cx + ra, y.f(0), y.f(1), cd - rb, cd + rb, col.getInt(0), col.getInt(1), col.getInt(1),
                         ft = ints(p.optJSONArray("ft")), card = p.optBoolean("card"), sideGlow = p.optBoolean("sg"),
-                        arc = floatArrayOf(cx, cd, ra, rb, a.f(0), a.f(1), ri?.f(0) ?: Float.NaN, ri?.f(1) ?: Float.NaN))
+                        arc = floatArrayOf(cx, cd, ra, rb, a.f(0), a.f(1), ri?.f(0) ?: Float.NaN, ri?.f(1) ?: Float.NaN,
+                            rt?.f(0) ?: Float.NaN, rt?.f(1) ?: Float.NaN))
                 }
                 "wall" -> {
                     val c = p.getJSONArray("c")

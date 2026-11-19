@@ -1,0 +1,951 @@
+{
+ "format": 1,
+ "note": "Modern Farm (LimeZu) crops: frames run left to right from x 0 at each variant's y, frameW wide, h tall, feet on the bottom row; stages name the frames; soils are 32x32 tiles below",
+ "atlas": "crops_atlas.png",
+ "atlasSize": [
+  224,
+  884
+ ],
+ "crops": {
+  "cabbage": {
+   "frames": 7,
+   "frameW": 32,
+   "sow": "spring",
+   "harvest": "summer",
+   "variants": [
+    {
+     "name": "green",
+     "h": 24,
+     "y": 0
+    }
+   ],
+   "stages": [
+    {
+     "name": "sprout",
+     "frames": [
+      0
+     ]
+    },
+    {
+     "name": "young",
+     "frames": [
+      1
+     ]
+    },
+    {
+     "name": "growing",
+     "frames": [
+      2,
+      3
+     ]
+    },
+    {
+     "name": "budding",
+     "frames": [
+      4
+     ]
+    },
+    {
+     "name": "ripe",
+     "frames": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  "carrot": {
+   "frames": 7,
+   "frameW": 32,
+   "sow": "spring",
+   "harvest": "summer",
+   "variants": [
+    {
+     "name": "orange",
+     "h": 32,
+     "y": 24
+    }
+   ],
+   "stages": [
+    {
+     "name": "sprout",
+     "frames": [
+      0
+     ]
+    },
+    {
+     "name": "young",
+     "frames": [
+      1
+     ]
+    },
+    {
+     "name": "growing",
+     "frames": [
+      2,
+      3
+     ]
+    },
+    {
+     "name": "budding",
+     "frames": [
+      4
+     ]
+    },
+    {
+     "name": "ripe",
+     "frames": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  "cauliflower": {
+   "frames": 7,
+   "frameW": 32,
+   "sow": "spring",
+   "harvest": "summer",
+   "variants": [
+    {
+     "name": "white",
+     "h": 30,
+     "y": 56
+    }
+   ],
+   "stages": [
+    {
+     "name": "sprout",
+     "frames": [
+      0
+     ]
+    },
+    {
+     "name": "young",
+     "frames": [
+      1
+     ]
+    },
+    {
+     "name": "growing",
+     "frames": [
+      2,
+      3
+     ]
+    },
+    {
+     "name": "budding",
+     "frames": [
+      4
+     ]
+    },
+    {
+     "name": "ripe",
+     "frames": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  "coffee": {
+   "frames": 7,
+   "frameW": 32,
+   "sow": "spring",
+   "harvest": "autumn",
+   "variants": [
+    {
+     "name": "red",
+     "h": 40,
+     "y": 86
+    }
+   ],
+   "stages": [
+    {
+     "name": "sprout",
+     "frames": [
+      0
+     ]
+    },
+    {
+     "name": "young",
+     "frames": [
+      1
+     ]
+    },
+    {
+     "name": "growing",
+     "frames": [
+      2,
+      3
+     ]
+    },
+    {
+     "name": "budding",
+     "frames": [
+      4
+     ]
+    },
+    {
+     "name": "ripe",
+     "frames": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  "corn": {
+   "frames": 7,
+   "frameW": 32,
+   "sow": "spring",
+   "harvest": "summer",
+   "variants": [
+    {
+     "name": "yellow",
+     "h": 50,
+     "y": 126
+    }
+   ],
+   "stages": [
+    {
+     "name": "sprout",
+     "frames": [
+      0
+     ]
+    },
+    {
+     "name": "young",
+     "frames": [
+      1
+     ]
+    },
+    {
+     "name": "growing",
+     "frames": [
+      2,
+      3
+     ]
+    },
+    {
+     "name": "budding",
+     "frames": [
+      4
+     ]
+    },
+    {
+     "name": "ripe",
+     "frames": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  "cotton": {
+   "frames": 7,
+   "frameW": 32,
+   "sow": "spring",
+   "harvest": "autumn",
+   "variants": [
+    {
+     "name": "white",
+     "h": 30,
+     "y": 176
+    }
+   ],
+   "stages": [
+    {
+     "name": "sprout",
+     "frames": [
+      0
+     ]
+    },
+    {
+     "name": "young",
+     "frames": [
+      1
+     ]
+    },
+    {
+     "name": "growing",
+     "frames": [
+      2,
+      3
+     ]
+    },
+    {
+     "name": "budding",
+     "frames": [
+      4
+     ]
+    },
+    {
+     "name": "ripe",
+     "frames": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  "grape": {
+   "frames": 7,
+   "frameW": 32,
+   "sow": "spring",
+   "harvest": "autumn",
+   "variants": [
+    {
+     "name": "purple",
+     "h": 60,
+     "y": 206
+    },
+    {
+     "name": "red",
+     "h": 60,
+     "y": 266
+    }
+   ],
+   "stages": [
+    {
+     "name": "sprout",
+     "frames": [
+      0
+     ]
+    },
+    {
+     "name": "young",
+     "frames": [
+      1
+     ]
+    },
+    {
+     "name": "growing",
+     "frames": [
+      2,
+      3
+     ]
+    },
+    {
+     "name": "budding",
+     "frames": [
+      4
+     ]
+    },
+    {
+     "name": "ripe",
+     "frames": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  "onion": {
+   "frames": 7,
+   "frameW": 32,
+   "sow": "spring",
+   "harvest": "summer",
+   "variants": [
+    {
+     "name": "white",
+     "h": 34,
+     "y": 326
+    }
+   ],
+   "stages": [
+    {
+     "name": "sprout",
+     "frames": [
+      0
+     ]
+    },
+    {
+     "name": "young",
+     "frames": [
+      1
+     ]
+    },
+    {
+     "name": "growing",
+     "frames": [
+      2,
+      3
+     ]
+    },
+    {
+     "name": "budding",
+     "frames": [
+      4
+     ]
+    },
+    {
+     "name": "ripe",
+     "frames": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  "pepper": {
+   "frames": 7,
+   "frameW": 32,
+   "sow": "spring",
+   "harvest": "summer",
+   "variants": [
+    {
+     "name": "red",
+     "h": 30,
+     "y": 360
+    }
+   ],
+   "stages": [
+    {
+     "name": "sprout",
+     "frames": [
+      0
+     ]
+    },
+    {
+     "name": "young",
+     "frames": [
+      1
+     ]
+    },
+    {
+     "name": "growing",
+     "frames": [
+      2,
+      3
+     ]
+    },
+    {
+     "name": "budding",
+     "frames": [
+      4
+     ]
+    },
+    {
+     "name": "ripe",
+     "frames": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  "pineapple": {
+   "frames": 7,
+   "frameW": 32,
+   "sow": "spring",
+   "harvest": "summer",
+   "variants": [
+    {
+     "name": "gold",
+     "h": 58,
+     "y": 390
+    }
+   ],
+   "stages": [
+    {
+     "name": "sprout",
+     "frames": [
+      0
+     ]
+    },
+    {
+     "name": "young",
+     "frames": [
+      1
+     ]
+    },
+    {
+     "name": "growing",
+     "frames": [
+      2,
+      3
+     ]
+    },
+    {
+     "name": "budding",
+     "frames": [
+      4
+     ]
+    },
+    {
+     "name": "ripe",
+     "frames": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  "prickly_pear": {
+   "frames": 7,
+   "frameW": 32,
+   "sow": "spring",
+   "harvest": "summer",
+   "variants": [
+    {
+     "name": "pink",
+     "h": 70,
+     "y": 448
+    }
+   ],
+   "stages": [
+    {
+     "name": "sprout",
+     "frames": [
+      0
+     ]
+    },
+    {
+     "name": "young",
+     "frames": [
+      1
+     ]
+    },
+    {
+     "name": "growing",
+     "frames": [
+      2,
+      3
+     ]
+    },
+    {
+     "name": "budding",
+     "frames": [
+      4
+     ]
+    },
+    {
+     "name": "ripe",
+     "frames": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  "pumpkin": {
+   "frames": 7,
+   "frameW": 32,
+   "sow": "summer",
+   "harvest": "autumn",
+   "variants": [
+    {
+     "name": "orange",
+     "h": 44,
+     "y": 518
+    }
+   ],
+   "stages": [
+    {
+     "name": "sprout",
+     "frames": [
+      0
+     ]
+    },
+    {
+     "name": "young",
+     "frames": [
+      1
+     ]
+    },
+    {
+     "name": "growing",
+     "frames": [
+      2,
+      3
+     ]
+    },
+    {
+     "name": "budding",
+     "frames": [
+      4
+     ]
+    },
+    {
+     "name": "ripe",
+     "frames": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  "radish": {
+   "frames": 7,
+   "frameW": 32,
+   "sow": "spring",
+   "harvest": "spring",
+   "variants": [
+    {
+     "name": "red",
+     "h": 28,
+     "y": 562
+    }
+   ],
+   "stages": [
+    {
+     "name": "sprout",
+     "frames": [
+      0
+     ]
+    },
+    {
+     "name": "young",
+     "frames": [
+      1
+     ]
+    },
+    {
+     "name": "growing",
+     "frames": [
+      2,
+      3
+     ]
+    },
+    {
+     "name": "budding",
+     "frames": [
+      4
+     ]
+    },
+    {
+     "name": "ripe",
+     "frames": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  "strawberry": {
+   "frames": 7,
+   "frameW": 16,
+   "sow": "spring",
+   "harvest": "summer",
+   "variants": [
+    {
+     "name": "red",
+     "h": 16,
+     "y": 590
+    }
+   ],
+   "stages": [
+    {
+     "name": "sprout",
+     "frames": [
+      0
+     ]
+    },
+    {
+     "name": "young",
+     "frames": [
+      1
+     ]
+    },
+    {
+     "name": "growing",
+     "frames": [
+      2,
+      3
+     ]
+    },
+    {
+     "name": "budding",
+     "frames": [
+      4
+     ]
+    },
+    {
+     "name": "ripe",
+     "frames": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  "tomato": {
+   "frames": 7,
+   "frameW": 32,
+   "sow": "spring",
+   "harvest": "summer",
+   "variants": [
+    {
+     "name": "red",
+     "h": 50,
+     "y": 606
+    }
+   ],
+   "stages": [
+    {
+     "name": "sprout",
+     "frames": [
+      0
+     ]
+    },
+    {
+     "name": "young",
+     "frames": [
+      1
+     ]
+    },
+    {
+     "name": "growing",
+     "frames": [
+      2,
+      3
+     ]
+    },
+    {
+     "name": "budding",
+     "frames": [
+      4
+     ]
+    },
+    {
+     "name": "ripe",
+     "frames": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  "turnip": {
+   "frames": 7,
+   "frameW": 32,
+   "sow": "summer",
+   "harvest": "autumn",
+   "variants": [
+    {
+     "name": "leaf",
+     "h": 30,
+     "y": 656
+    },
+    {
+     "name": "bulb",
+     "h": 32,
+     "y": 686
+    }
+   ],
+   "stages": [
+    {
+     "name": "sprout",
+     "frames": [
+      0
+     ]
+    },
+    {
+     "name": "young",
+     "frames": [
+      1
+     ]
+    },
+    {
+     "name": "growing",
+     "frames": [
+      2,
+      3
+     ]
+    },
+    {
+     "name": "budding",
+     "frames": [
+      4
+     ]
+    },
+    {
+     "name": "ripe",
+     "frames": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  "watermelon": {
+   "frames": 7,
+   "frameW": 32,
+   "sow": "spring",
+   "harvest": "summer",
+   "variants": [
+    {
+     "name": "green",
+     "h": 42,
+     "y": 718
+    }
+   ],
+   "stages": [
+    {
+     "name": "sprout",
+     "frames": [
+      0
+     ]
+    },
+    {
+     "name": "young",
+     "frames": [
+      1
+     ]
+    },
+    {
+     "name": "growing",
+     "frames": [
+      2,
+      3
+     ]
+    },
+    {
+     "name": "budding",
+     "frames": [
+      4
+     ]
+    },
+    {
+     "name": "ripe",
+     "frames": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  "wheat": {
+   "frames": 7,
+   "frameW": 32,
+   "sow": "autumn",
+   "harvest": "summer",
+   "variants": [
+    {
+     "name": "golden",
+     "h": 32,
+     "y": 760
+    }
+   ],
+   "stages": [
+    {
+     "name": "sprout",
+     "frames": [
+      0
+     ]
+    },
+    {
+     "name": "young",
+     "frames": [
+      1
+     ]
+    },
+    {
+     "name": "growing",
+     "frames": [
+      2,
+      3
+     ]
+    },
+    {
+     "name": "budding",
+     "frames": [
+      4
+     ]
+    },
+    {
+     "name": "ripe",
+     "frames": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  "zucchini": {
+   "frames": 7,
+   "frameW": 32,
+   "sow": "spring",
+   "harvest": "summer",
+   "variants": [
+    {
+     "name": "green",
+     "h": 60,
+     "y": 792
+    }
+   ],
+   "stages": [
+    {
+     "name": "sprout",
+     "frames": [
+      0
+     ]
+    },
+    {
+     "name": "young",
+     "frames": [
+      1
+     ]
+    },
+    {
+     "name": "growing",
+     "frames": [
+      2,
+      3
+     ]
+    },
+    {
+     "name": "budding",
+     "frames": [
+      4
+     ]
+    },
+    {
+     "name": "ripe",
+     "frames": [
+      5,
+      6
+     ]
+    }
+   ]
+  }
+ },
+ "soils": {
+  "tilled": {
+   "x": 0,
+   "y": 852,
+   "w": 32,
+   "h": 32,
+   "note": "furrowed tilled soil, brown"
+  },
+  "tilled_dark": {
+   "x": 32,
+   "y": 852,
+   "w": 32,
+   "h": 32,
+   "note": "wet or dark tilled soil"
+  },
+  "furrows": {
+   "x": 64,
+   "y": 852,
+   "w": 32,
+   "h": 32,
+   "note": "ploughed field: furrow lines"
+  },
+  "dirt": {
+   "x": 96,
+   "y": 852,
+   "w": 32,
+   "h": 32,
+   "note": "plain tan dirt"
+  },
+  "sand": {
+   "x": 128,
+   "y": 852,
+   "w": 32,
+   "h": 32,
+   "note": "dune sand"
+  }
+ }
+}
