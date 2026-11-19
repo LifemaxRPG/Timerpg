@@ -1,0 +1,388 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2010,
+  "topic": "money",
+  "facts": [
+    {
+      "id": "2010-money-01",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A grocery shopper compares shelf prices with the unit prices printed beneath them.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-02",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A cashier asks whether the customer wants cash back with a debit purchase.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-03",
+      "year_from": 2010,
+      "year_to": 2016,
+      "text": "Some customers still write personal checks at the grocery register.",
+      "ages": "elders",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-04",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A shopper clips paper coupons from the weekly circular to lower the grocery bill.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-05",
+      "year_from": 2014,
+      "year_to": 2019,
+      "text": "A customer loads digital grocery coupons onto a store loyalty account.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-06",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Many workers receive wages by direct deposit instead of collecting paper paychecks.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-07",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A worker checks a pay stub online to see taxes and insurance deductions.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-08",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A part-time employee compares weekly hours before planning rent and groceries.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-09",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A household sets aside money each month for the electric bill and phone service.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-10",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some families keep an emergency fund for car repairs or unexpected medical bills.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-11",
+      "year_from": 2012,
+      "year_to": 2019,
+      "text": "A bank customer checks a balance through a mobile banking application.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-12",
+      "year_from": 2014,
+      "year_to": 2019,
+      "text": "A customer deposits a check by photographing both sides with a banking application.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-13",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A person watches for overdraft fees when a checking account balance runs low.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-14",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A diner adds a tip to the receipt before signing a card payment.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-15",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A restaurant table divides the bill and calculates each person's share of the tip.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-16",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A shopper chooses between a credit card and a debit card at checkout.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-17",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A household pays several monthly bills through automatic withdrawals.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-18",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A customer reviews a credit card statement for interest charges and late fees.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-19",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A student compares tuition bills with the amount borrowed for school.",
+      "ages": "teens",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-20",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A driver notices gasoline prices changing from one week to the next.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-21",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some shoppers use a prepaid card when they do not have a regular bank account.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-22",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A renter saves for a security deposit as well as the first month's rent.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-23",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A shopper checks online reviews and prices before buying a costly appliance.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-24",
+      "year_from": 2016,
+      "year_to": 2019,
+      "text": "Friends can reimburse one another through a phone payment application.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-25",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A customer notices that a card purchase stays pending before appearing on the account statement.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-money-26",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A family discusses whether to repair an aging car or take on another monthly payment.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [
+    {
+      "item": "a first-class letter stamp",
+      "usd": 0.44,
+      "year": 2010,
+      "confidence": "medium"
+    },
+    {
+      "item": "federal hourly minimum wage",
+      "usd": 7.25,
+      "year": 2010,
+      "confidence": "medium"
+    },
+    {
+      "item": "a gallon of regular gasoline",
+      "usd": 2.78,
+      "year": 2010,
+      "confidence": "medium"
+    },
+    {
+      "item": "a dozen large eggs",
+      "usd": 1.47,
+      "year": 2010,
+      "confidence": "medium"
+    },
+    {
+      "item": "a gallon of whole milk",
+      "usd": 3.26,
+      "year": 2010,
+      "confidence": "medium"
+    },
+    {
+      "item": "a pound of bananas",
+      "usd": 0.57,
+      "year": 2015,
+      "confidence": "medium"
+    },
+    {
+      "item": "a pound of ground beef",
+      "usd": 4.19,
+      "year": 2015,
+      "confidence": "medium"
+    },
+    {
+      "item": "a gallon of regular gasoline",
+      "usd": 2.43,
+      "year": 2015,
+      "confidence": "medium"
+    },
+    {
+      "item": "a first-class letter stamp",
+      "usd": 0.49,
+      "year": 2015,
+      "confidence": "medium"
+    },
+    {
+      "item": "a gallon of whole milk",
+      "usd": 3.42,
+      "year": 2015,
+      "confidence": "medium"
+    },
+    {
+      "item": "a dozen large eggs",
+      "usd": 1.54,
+      "year": 2019,
+      "confidence": "medium"
+    },
+    {
+      "item": "a gallon of regular gasoline",
+      "usd": 2.6,
+      "year": 2019,
+      "confidence": "medium"
+    }
+  ],
+  "phrases": []
+}
