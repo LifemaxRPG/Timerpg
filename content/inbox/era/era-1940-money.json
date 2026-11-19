@@ -1,0 +1,384 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1940,
+  "topic": "money",
+  "facts": [
+    {
+      "id": "1940-money-01",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Families set aside coins for bread, milk, and other daily groceries.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-02",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A shopkeeper counts change in dollars, quarters, dimes, nickels, and pennies.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-03",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Cash is the usual way to pay for small purchases at the counter.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-04",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Customers sometimes pay with a personal check for larger purchases.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-05",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A grocer may keep a charge account for a trusted local family.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-06",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A customer settles a store account when wages or farm income arrive.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-07",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Workers commonly receive wages in cash or by paper paycheck.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-08",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A household keeps a written budget for rent, food, fuel, and clothing.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-09",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Rent is commonly due once each month.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-10",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Families save spare change in a jar or small bank.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-11",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Children may earn a few cents for errands or odd jobs.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-12",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A child can spend a nickel on a small treat.",
+      "ages": "kids",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-13",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A movie ticket costs considerably less than a dollar in many towns.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-14",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A diner customer leaves a few coins as a tip for table service.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-15",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Customers generally do not tip a grocery cashier.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "guard"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-16",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A barber may receive a small cash tip after a haircut.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-17",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A family compares prices in newspaper grocery advertisements before shopping.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "newspaper"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-18",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Shoppers sometimes use printed coupons to save a few cents.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-19",
+      "year_from": 1942,
+      "year_to": 1945,
+      "text": "During wartime, ration coupons are needed alongside money for certain goods.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "guard"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-20",
+      "year_from": 1942,
+      "year_to": 1945,
+      "text": "A ration coupon does not replace the cash price of the item.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "guard"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-21",
+      "year_from": 1942,
+      "year_to": 1945,
+      "text": "Some workers buy war savings stamps with small amounts of spare money.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-22",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Families may purchase government savings bonds as a long-term investment.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-23",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A bank teller records deposits and withdrawals in a savings passbook.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-24",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A farmer's income may arrive after crops or livestock are sold.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-25",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Households may repair worn shoes rather than pay for a new pair.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1940-money-26",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A customer can arrange installment payments for an expensive household purchase.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "medium"
+    }
+  ],
+  "not_yet": [],
+  "prices": [
+    {
+      "item": "loaf of bread",
+      "usd": 0.09,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "quart of milk",
+      "usd": 0.14,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "dozen eggs",
+      "usd": 0.33,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of butter",
+      "usd": 0.36,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of coffee",
+      "usd": 0.21,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of sugar",
+      "usd": 0.05,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "gallon of gasoline",
+      "usd": 0.18,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "first-class letter postage",
+      "usd": 0.03,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "movie admission",
+      "usd": 0.25,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "daily newspaper",
+      "usd": 0.03,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "men's haircut",
+      "usd": 0.5,
+      "year": 1940,
+      "confidence": "medium"
+    },
+    {
+      "item": "hourly federal minimum wage",
+      "usd": 0.3,
+      "year": 1940,
+      "confidence": "medium"
+    }
+  ],
+  "phrases": []
+}
