@@ -1,0 +1,947 @@
+{
+  "name": "Union Depot",
+  "kind": "Premier railroad passenger depot prototype",
+  "era": {
+    "architectural_period": [
+      1900,
+      1935
+    ],
+    "usable_game_years": [
+      1950,
+      2030
+    ],
+    "opening": "Chosen by simulation history, not baked into this asset"
+  },
+  "units": "metres",
+  "axes": "glTF Y up, entrance +Z; platform behind station on -Z",
+  "origin": "Ground level at middle of the front building edge",
+  "entrance_floor_m": 0.6208,
+  "building_m": [
+    34.7648,
+    12.416
+  ],
+  "lot_m": {
+    "width": 52.1472,
+    "depth": 23.590400000000002,
+    "front_forecourt_depth": 7.4496,
+    "rear_platform_edge_from_origin": 16.1408
+  },
+  "heights_m": {
+    "main_ridge": 8.3808,
+    "tower_finial": 15.52
+  },
+  "triangles_visible": 3875,
+  "materials": [
+    "detail_utility",
+    "floor_terrazzo",
+    "glass_depot",
+    "glow_depot",
+    "ground_asphalt",
+    "ground_paving",
+    "roof_slate",
+    "sign_station_name",
+    "trim_teal",
+    "trim_timber",
+    "wall_brick",
+    "wall_stone"
+  ],
+  "doors": [
+    {
+      "node": "door_baggage_street",
+      "position": [
+        -13.657600402832031,
+        0.6208000183105469,
+        -1.086400032043457
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "node": "door_staff_street",
+      "position": [
+        16.14080047607422,
+        0.6208000183105469,
+        -1.086400032043457
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "node": "door_baggage_platform",
+      "position": [
+        -13.657600402832031,
+        0.6208000183105469,
+        -11.32960033416748
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "node": "door_platform_west",
+      "position": [
+        -4.966400146484375,
+        0.6208000183105469,
+        -11.32960033416748
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "node": "door_platform_east",
+      "position": [
+        4.966400146484375,
+        0.6208000183105469,
+        -11.32960033416748
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "node": "door_staff_platform",
+      "position": [
+        16.14080047607422,
+        0.6208000183105469,
+        -11.32960033416748
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "node": "door_main",
+      "position": [
+        0.0,
+        0.6208000183105469,
+        0.15907999873161316
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "node": "door_baggage_internal",
+      "position": [
+        -7.294400215148926,
+        0.6208000183105469,
+        -7.4496002197265625
+      ],
+      "outward": [
+        1,
+        0,
+        0
+      ]
+    }
+  ],
+  "door_panels": [
+    "panel_door_baggage_street",
+    "panel_door_staff_street",
+    "panel_door_baggage_platform",
+    "panel_door_platform_west",
+    "panel_door_platform_east",
+    "panel_door_staff_platform",
+    "panel_door_main",
+    "panel_door_baggage_internal"
+  ],
+  "collision": {
+    "node": "collision",
+    "render": false,
+    "boxes_blender_z_up": [
+      {
+        "source": "Closed door",
+        "center": [
+          -13.6576,
+          1.2416,
+          2.0176
+        ],
+        "size": [
+          3.7248,
+          0.1552,
+          4.0352
+        ],
+        "group": "structure",
+        "attachment": "panel_door_baggage_street",
+        "gate_node": "panel_door_baggage_street"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          16.1408,
+          1.2416,
+          1.7072
+        ],
+        "size": [
+          1.2416,
+          0.1552,
+          3.4144
+        ],
+        "group": "structure",
+        "attachment": "panel_door_staff_street",
+        "gate_node": "panel_door_staff_street"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          -13.6576,
+          11.1744,
+          2.0176
+        ],
+        "size": [
+          3.7248,
+          0.1552,
+          4.0352
+        ],
+        "group": "structure",
+        "attachment": "panel_door_baggage_platform",
+        "gate_node": "panel_door_baggage_platform"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          -4.9664,
+          11.1744,
+          1.8624
+        ],
+        "size": [
+          1.8624,
+          0.1552,
+          3.7248
+        ],
+        "group": "structure",
+        "attachment": "panel_door_platform_west",
+        "gate_node": "panel_door_platform_west"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          4.9664,
+          11.1744,
+          1.8624
+        ],
+        "size": [
+          1.8624,
+          0.1552,
+          3.7248
+        ],
+        "group": "structure",
+        "attachment": "panel_door_platform_east",
+        "gate_node": "panel_door_platform_east"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          16.1408,
+          11.1744,
+          1.7072
+        ],
+        "size": [
+          1.2416,
+          0.1552,
+          3.4144
+        ],
+        "group": "structure",
+        "attachment": "panel_door_staff_platform",
+        "gate_node": "panel_door_staff_platform"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          0.0,
+          -0.00388,
+          1.8624
+        ],
+        "size": [
+          2.4832,
+          0.1552,
+          3.7248
+        ],
+        "group": "structure",
+        "attachment": "panel_door_main",
+        "gate_node": "panel_door_main"
+      },
+      {
+        "source": "Closed door",
+        "center": [
+          -7.4496,
+          7.4496,
+          1.7072
+        ],
+        "size": [
+          0.1552,
+          1.2416,
+          3.4144
+        ],
+        "group": "structure",
+        "attachment": "panel_door_baggage_internal",
+        "gate_node": "panel_door_baggage_internal"
+      },
+      {
+        "source": "Wall and glazing",
+        "center": [
+          -16.4512,
+          1.2416,
+          2.7936
+        ],
+        "size": [
+          1.8624,
+          0.1552,
+          5.5872
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Wall and glazing",
+        "center": [
+          -7.139200000000001,
+          1.2416,
+          2.7936
+        ],
+        "size": [
+          9.312000000000001,
+          0.1552,
+          5.5872
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Wall and glazing",
+        "center": [
+          9.0016,
+          1.2416,
+          2.7936
+        ],
+        "size": [
+          13.0368,
+          0.1552,
+          5.5872
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Wall and glazing",
+        "center": [
+          17.072,
+          1.2416,
+          2.7936
+        ],
+        "size": [
+          0.6208,
+          0.1552,
+          5.5872
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Wall and glazing",
+        "center": [
+          -16.4512,
+          11.1744,
+          2.7936
+        ],
+        "size": [
+          1.8624,
+          0.1552,
+          5.5872
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Wall and glazing",
+        "center": [
+          -8.846400000000001,
+          11.1744,
+          2.7936
+        ],
+        "size": [
+          5.897600000000001,
+          0.1552,
+          5.5872
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Wall and glazing",
+        "center": [
+          -2.9488000000000003,
+          11.1744,
+          2.7936
+        ],
+        "size": [
+          2.1728,
+          0.1552,
+          5.5872
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Wall and glazing",
+        "center": [
+          2.9488000000000003,
+          11.1744,
+          2.7936
+        ],
+        "size": [
+          2.1728,
+          0.1552,
+          5.5872
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Wall and glazing",
+        "center": [
+          10.7088,
+          11.1744,
+          2.7936
+        ],
+        "size": [
+          9.6224,
+          0.1552,
+          5.5872
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Wall and glazing",
+        "center": [
+          17.072,
+          11.1744,
+          2.7936
+        ],
+        "size": [
+          0.6208,
+          0.1552,
+          5.5872
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "End wall",
+        "center": [
+          -17.3824,
+          6.208,
+          2.7936
+        ],
+        "size": [
+          0.1552,
+          9.9328,
+          5.5872
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "End wall",
+        "center": [
+          17.3824,
+          6.208,
+          2.7936
+        ],
+        "size": [
+          0.1552,
+          9.9328,
+          5.5872
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Tower side",
+        "center": [
+          -2.4056,
+          2.4832,
+          6.0528
+        ],
+        "size": [
+          0.1552,
+          4.9664,
+          12.1056
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Tower side",
+        "center": [
+          2.4056,
+          2.4832,
+          6.0528
+        ],
+        "size": [
+          0.1552,
+          4.9664,
+          12.1056
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Tower front pier",
+        "center": [
+          -2.0176,
+          0.0776,
+          4.656000000000001
+        ],
+        "size": [
+          0.9312,
+          0.1552,
+          9.312000000000001
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Tower front pier",
+        "center": [
+          2.0176,
+          0.0776,
+          4.656000000000001
+        ],
+        "size": [
+          0.9312,
+          0.1552,
+          9.312000000000001
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Ticket office partition",
+        "center": [
+          7.4496,
+          6.208,
+          2.716
+        ],
+        "size": [
+          0.1552,
+          9.9328,
+          5.432
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Baggage partition",
+        "center": [
+          -7.4496,
+          4.0352,
+          2.716
+        ],
+        "size": [
+          0.1552,
+          5.5872,
+          5.432
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Baggage partition rear",
+        "center": [
+          -7.4496,
+          9.6224,
+          2.716
+        ],
+        "size": [
+          0.1552,
+          3.104,
+          5.432
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Ticket counter",
+        "center": [
+          6.984,
+          5.5872,
+          0.8924000000000001
+        ],
+        "size": [
+          0.9312,
+          4.1904,
+          1.7848000000000002
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Operator bay side",
+        "center": [
+          -1.8624,
+          11.795200000000001,
+          2.4832
+        ],
+        "size": [
+          0.1552,
+          1.2416,
+          4.9664
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Operator bay side",
+        "center": [
+          1.8624,
+          11.795200000000001,
+          2.4832
+        ],
+        "size": [
+          0.1552,
+          1.2416,
+          4.9664
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Operator bay glazing",
+        "center": [
+          0.0,
+          12.3384,
+          2.4832
+        ],
+        "size": [
+          3.7248,
+          0.1552,
+          4.9664
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Platform column",
+        "center": [
+          -19.8656,
+          14.5888,
+          2.2116000000000002
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          4.4232000000000005
+        ],
+        "group": "platform",
+        "attachment": "rail_platform"
+      },
+      {
+        "source": "Platform column",
+        "center": [
+          -14.8992,
+          14.5888,
+          2.2116000000000002
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          4.4232000000000005
+        ],
+        "group": "platform",
+        "attachment": "rail_platform"
+      },
+      {
+        "source": "Platform column",
+        "center": [
+          -9.9328,
+          14.5888,
+          2.2116000000000002
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          4.4232000000000005
+        ],
+        "group": "platform",
+        "attachment": "rail_platform"
+      },
+      {
+        "source": "Platform column",
+        "center": [
+          -4.9664,
+          14.5888,
+          2.2116000000000002
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          4.4232000000000005
+        ],
+        "group": "platform",
+        "attachment": "rail_platform"
+      },
+      {
+        "source": "Platform column",
+        "center": [
+          4.9664,
+          14.5888,
+          2.2116000000000002
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          4.4232000000000005
+        ],
+        "group": "platform",
+        "attachment": "rail_platform"
+      },
+      {
+        "source": "Platform column",
+        "center": [
+          9.9328,
+          14.5888,
+          2.2116000000000002
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          4.4232000000000005
+        ],
+        "group": "platform",
+        "attachment": "rail_platform"
+      },
+      {
+        "source": "Platform column",
+        "center": [
+          14.8992,
+          14.5888,
+          2.2116000000000002
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          4.4232000000000005
+        ],
+        "group": "platform",
+        "attachment": "rail_platform"
+      },
+      {
+        "source": "Platform column",
+        "center": [
+          19.8656,
+          14.5888,
+          2.2116000000000002
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          4.4232000000000005
+        ],
+        "group": "platform",
+        "attachment": "rail_platform"
+      },
+      {
+        "source": "Platform bench",
+        "center": [
+          -9.9328,
+          13.424800000000001,
+          0.8924000000000001
+        ],
+        "size": [
+          2.4832,
+          0.776,
+          1.7848000000000002
+        ],
+        "group": "lot",
+        "attachment": "platform_bench_01"
+      },
+      {
+        "source": "Platform bench",
+        "center": [
+          9.9328,
+          13.424800000000001,
+          0.8924000000000001
+        ],
+        "size": [
+          2.4832,
+          0.776,
+          1.7848000000000002
+        ],
+        "group": "lot",
+        "attachment": "platform_bench_02"
+      },
+      {
+        "source": "Baggage cart",
+        "center": [
+          -16.97112,
+          13.192,
+          0.8924000000000001
+        ],
+        "size": [
+          2.6849600000000002,
+          1.0864,
+          1.7848000000000002
+        ],
+        "group": "lot",
+        "attachment": "baggage_cart"
+      },
+      {
+        "source": "Forecourt bin",
+        "center": [
+          -5.5872,
+          -3.2592,
+          0.5044
+        ],
+        "size": [
+          0.6984,
+          0.6984,
+          1.0088
+        ],
+        "group": "lot",
+        "attachment": "forecourt_bin_01"
+      },
+      {
+        "source": "Forecourt bin",
+        "center": [
+          5.5872,
+          -3.2592,
+          0.5044
+        ],
+        "size": [
+          0.6984,
+          0.6984,
+          1.0088
+        ],
+        "group": "lot",
+        "attachment": "forecourt_bin_02"
+      },
+      {
+        "source": "Ramp guard rail",
+        "center": [
+          -6.208,
+          -1.2416,
+          0.8148
+        ],
+        "size": [
+          7.4496,
+          0.1164,
+          1.6296
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Ramp guard rail",
+        "center": [
+          -6.208,
+          0.0,
+          0.8148
+        ],
+        "size": [
+          7.4496,
+          0.1164,
+          1.6296
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      }
+    ],
+    "precision": "Walk-blocking boxes only; overhead headers/ceilings are omitted. Use architectural floor and ramp meshes for height/contact integration."
+  },
+  "lot_node": "lot",
+  "platform_node": "rail_platform",
+  "platform_interface": {
+    "status": "Railroad system still in progress; no finalized game gauge, train clearance or station API was available.",
+    "deck_height_m": 0.6208,
+    "deck_width_m": 4.9664,
+    "length_m": 52.1472,
+    "anchors": [
+      "platform_surface",
+      "platform_west_end",
+      "platform_east_end",
+      "boarding_west",
+      "boarding_east"
+    ],
+    "orientation": "Track runs along local X; platform faces local -Z.",
+    "height_parameter": "Rebuild with F; main floor, thresholds and platform remain level. Ramp run is 12*F.",
+    "preview_track": "Presentation only, not exported; 1.435 m reference gauge does not assert the game uses it."
+  },
+  "clock": {
+    "preview_time": "10:10",
+    "hands": [
+      "clock_front_hour",
+      "clock_front_minute",
+      "clock_back_hour",
+      "clock_back_minute",
+      "clock_west_hour",
+      "clock_west_minute",
+      "clock_east_hour",
+      "clock_east_minute"
+    ],
+    "pivots": "Clock-face centres. Current geometry bakes preview angles; apply -(target_clockwise-preview_angle_clockwise_degrees) about outward_axis_gltf. Runtime animation is not implemented; the existing loader merges materials."
+  },
+  "station_name": {
+    "nodes": [
+      "sign_station_name_front",
+      "sign_station_name_platform_west",
+      "sign_station_name_platform_east"
+    ],
+    "material": "sign_station_name",
+    "texture": "textures/station-name.png",
+    "rect_art": [
+      0,
+      0,
+      64,
+      12
+    ],
+    "default": "UNION DEPOT",
+    "binding": "Generic editable station name; no generated town name or service assumed."
+  },
+  "interior": "Waiting hall, baggage room, ticket office, fixed counter and three-sided operator bay. Clean shell; game supplies loose interior furniture.",
+  "access": {
+    "front_steps": 4,
+    "ramp_gradient": "1:12",
+    "ramp_width_m": 1.2416,
+    "note": "Architectural dimensions only; game navigation and railway boarding remain unimplemented."
+  },
+  "runtime_handoff": [
+    "No train, route, timetable, boarding or signal behavior is implemented.",
+    "Timetable rows deliberately blank; populate only from actual railway service data.",
+    "Hide collision node from rendering. Drop matching attachment/group boxes with hidden geometry.",
+    "Door panels and their gate_node boxes open/close together; current loader may keep them closed.",
+    "Dropping rail_platform must also hide platform_bench_* and baggage_cart props under lot.",
+    "Clock materials and name sign follow material-role lighting; no lighting baked."
+  ],
+  "swatches_used": [
+    "brick_red",
+    "block_courses",
+    "roof_slate",
+    "plank_vertical",
+    "pavement",
+    "asphalt_worn"
+  ],
+  "pixel_grid": {
+    "metres_per_texel": 0.0388,
+    "texels_per_art_pixel": 2
+  },
+  "licence": "Shared LimeZu materials: Timerpg game use only; credit required. Original geometry and supplemental art.",
+  "renders": "Blender desktop previews, not Filament or S25 captures."
+}

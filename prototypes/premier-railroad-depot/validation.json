@@ -1,0 +1,20 @@
+{
+  "visible_triangles": 3875,
+  "materials": 12,
+  "collision_boxes": 46,
+  "doors": 8,
+  "clock_hands": 8,
+  "prop_triangles": {
+    "baggage_cart": 152,
+    "forecourt_bin_01": 24,
+    "forecourt_bin_02": 24,
+    "platform_bench_01": 48,
+    "platform_bench_02": 48
+  },
+  "glb_bytes": 374468,
+  "art_grid": "Every embedded image is exact 2x2 texel art pixels",
+  "uv_scale_max_edge_error_m": 1.5381067228759093e-06,
+  "ground": "Broad paving and asphalt top surfaces are at/above zero",
+  "rail_interface": "Station/platform anchors verified; railway contract pending; reference track absent from GLB",
+  "renderer": "Blender desktop previews, not Filament/S25 captures"
+}

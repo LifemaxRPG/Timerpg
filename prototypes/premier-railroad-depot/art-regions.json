@@ -1,0 +1,178 @@
+{
+  "metal": {
+    "rect_art": [
+      0,
+      0,
+      64,
+      64
+    ]
+  },
+  "rubber": {
+    "rect_art": [
+      64,
+      0,
+      64,
+      64
+    ]
+  },
+  "brass": {
+    "rect_art": [
+      0,
+      64,
+      64,
+      64
+    ]
+  },
+  "foliage": {
+    "rect_art": [
+      64,
+      64,
+      64,
+      64
+    ]
+  },
+  "window32": {
+    "rect_art": [
+      0,
+      0,
+      32,
+      32
+    ]
+  },
+  "window40": {
+    "rect_art": [
+      34,
+      0,
+      32,
+      40
+    ]
+  },
+  "main_door": {
+    "rect_art": [
+      68,
+      0,
+      32,
+      40
+    ]
+  },
+  "platform_door": {
+    "rect_art": [
+      102,
+      0,
+      24,
+      40
+    ]
+  },
+  "staff_door": {
+    "rect_art": [
+      128,
+      0,
+      16,
+      36
+    ]
+  },
+  "ticket_window": {
+    "rect_art": [
+      146,
+      0,
+      48,
+      24
+    ]
+  },
+  "bay_side": {
+    "rect_art": [
+      196,
+      0,
+      16,
+      28
+    ]
+  },
+  "bay_front": {
+    "rect_art": [
+      214,
+      0,
+      40,
+      28
+    ]
+  },
+  "arch": {
+    "rect_art": [
+      0,
+      44,
+      40,
+      16
+    ]
+  },
+  "window24": {
+    "rect_art": [
+      42,
+      44,
+      32,
+      24
+    ]
+  },
+  "freight_door": {
+    "rect_art": [
+      128,
+      0,
+      48,
+      44
+    ]
+  },
+  "tickets": {
+    "rect_art": [
+      0,
+      0,
+      48,
+      12
+    ]
+  },
+  "baggage": {
+    "rect_art": [
+      50,
+      0,
+      48,
+      12
+    ]
+  },
+  "platform": {
+    "rect_art": [
+      0,
+      14,
+      64,
+      12
+    ]
+  },
+  "lamp": {
+    "rect_art": [
+      0,
+      28,
+      16,
+      4
+    ]
+  },
+  "clock": {
+    "rect_art": [
+      68,
+      14,
+      32,
+      32
+    ]
+  },
+  "timetable": {
+    "rect_art": [
+      0,
+      48,
+      32,
+      24
+    ]
+  },
+  "station_name": {
+    "rect_art": [
+      0,
+      0,
+      64,
+      12
+    ]
+  }
+}
