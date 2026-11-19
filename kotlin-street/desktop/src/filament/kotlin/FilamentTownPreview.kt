@@ -80,7 +80,8 @@ fun renderFilamentTown(out: String) {
     Filament.init()
     val engine = Engine.Builder().backend(Engine.Backend.OPENGL).config(com.lifemax.rpg.feature.habits.presentation.scene3d.TownEngine.config()).build()
     val mats = File("../app/src/main/assets/filament")
-    val ft = FilamentTown(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building)
+    val cinema = com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite.parse(root)
+    val ft = FilamentTown(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, cinema = cinema)
     if (System.getProperty("townYards") == "placeholder") ft.yardBuilder = PlaceholderYards
     // (each shot is one frame: every building's windows lit for its hour in it, not a few a frame as the game does)
     ft.nightBudgetNs = Long.MAX_VALUE
@@ -92,7 +93,7 @@ fun renderFilamentTown(out: String) {
     // walking while the rest comes in): -Dshots=cold alone renders only this
     val onlyShots = System.getProperty("shots")?.split(",")?.map { it.trim() }?.toSet()
     if (onlyShots == null || "cold" in onlyShots || onlyShots.any { it.startsWith("cold") })
-        coldStart(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, report, dir, 2340, 1080)
+        coldStart(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, report, dir, 2340, 1080, cinema)
     // (the memory check: the cold start alone)
     if (System.getProperty("coldOnly") != null) { File(dir, "town.txt").writeText(report.toString()); return }
 
@@ -201,6 +202,25 @@ fun renderFilamentTown(out: String) {
         val p = r.pointAt(x, 0f)
         val yaw = Math.toDegrees(kotlin.math.atan2((-n.x).toDouble(), n.z.toDouble())).toFloat()
         shoot("behind_${name}", aerial(p.x + n.x * 120f, p.z + n.z * 120f, yaw, 24f, 900f, 50f), 13f)
+    }
+    // the cinema (docs/CINEMA.md): its street view by day, dusk and night, three-quarter, behind and a low aerial
+    cinema?.let { c -> ft.slots.firstOrNull { it.b.sprite == c.sprite } }?.let { s ->
+        val r = s.row
+        stand(r, s.b.mid.coerceIn(40f, r.length - 40f))
+        report.appendLine("cinema: ${cinema.info.name} (${cinema.info.era}, ${cinema.info.year}) as ${s.b.sprite} on row ${r.id} (${town.road(r.road).name}) at x %.0f".format(s.b.mid))
+        val pose = TownFrame.street(walk, sw.toFloat(), shh.toFloat())
+        shoot("cinema_street_13h", pose, 13f)
+        shoot("cinema_street_dusk", pose, dusk)
+        shoot("cinema_street_night", pose, night)
+        val f = s.place.world(0f, s.b.setback + 120f)
+        val yaw = Math.toDegrees(kotlin.math.atan2(s.place.nx.toDouble(), (-s.place.nz).toDouble())).toFloat()
+        for ((h, hn) in listOf(13f to "13h", dusk to "dusk", night to "night")) {
+            shoot("cinema_quarter_$hn", aerial(f.x, f.z, yaw - 42f, 12f, 950f, 50f), h)
+            shoot("cinema_aerial_$hn", aerial(f.x, f.z, yaw - 30f, 42f, 1900f, 50f), h)
+        }
+        val back = s.place.world(0f, s.b.setback + s.b.depth * .6f)
+        shoot("cinema_behind_13h", aerial(back.x, back.z, yaw + 180f + 30f, 26f, 1500f, 50f), 13f)
+        shoot("cinema_behind_night", aerial(back.x, back.z, yaw + 180f + 30f, 26f, 1500f, 50f), night)
     }
     // halfway round a corner: from the spawn's row into the side street at its end (or start)
     run {
@@ -417,10 +437,10 @@ private fun playTown(
  */
 private fun coldStart(
     engine: Engine, mats: (String) -> ByteArray, town: Town, yards: TownYards, art: TownArt, building: (String) -> SpriteBuilding?,
-    report: StringBuilder, dir: File, sw: Int, shh: Int,
+    report: StringBuilder, dir: File, sw: Int, shh: Int, cinema: com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite? = null,
 ) {
     val t0 = System.nanoTime()
-    val ft = FilamentTown(engine, mats, town, yards, art, building)
+    val ft = FilamentTown(engine, mats, town, yards, art, building, cinema = cinema)
     GameState.enabled = true; GameState.look = 1
     GameState.moveX = 0f; GameState.moveLane = 0f
     val walk = TownPlay.start(town)

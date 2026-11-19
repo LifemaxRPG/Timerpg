@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { runTimeline, worldAt } from '../sim';
 import { layoutTown } from './layout';
-import { landmarkFootprint, LANDMARK_SPECS } from './landmarks';
+import { CINEMA_SIZES, landmarkArtKey, landmarkFootprint, LANDMARK_SPECS } from './landmarks';
+import { hasCinema } from './cinema';
 import { planTown, type Rect } from './plan';
 
 const overlap = (a: Rect, b: Rect): boolean =>
@@ -16,10 +17,11 @@ describe('civic landmarks (plan)', () => {
   it('gives every town at least three landmarks, with sane sizes and opening years', () => {
     for (const seed of SEEDS) {
       const ls = planTown(seed).landmarks;
-      expect(ls.length, seed).toBeGreaterThanOrEqual(3);
+      expect(ls.filter((l) => l.id !== 'cinema').length, seed).toBeGreaterThanOrEqual(3);
       for (const l of ls) {
         const s = LANDMARK_SPECS[l.id];
-        expect([l.w, l.h]).toEqual([s.w, s.h]);
+        if (l.id === 'cinema') expect(CINEMA_SIZES).toContainEqual([l.w, l.h]);
+        else expect([l.w, l.h]).toEqual([s.w, s.h]);
         expect(l.openYear).toBeGreaterThanOrEqual(s.open[0]);
         expect(l.openYear).toBeLessThanOrEqual(s.open[1]);
       }
@@ -68,6 +70,27 @@ describe('civic landmarks (plan)', () => {
       expect(f.y + f.h).toBe(l.y + l.h);
       expect(f.y).toBeGreaterThanOrEqual(l.y);
     }
+  });
+});
+
+describe('the cinema (plan)', () => {
+  it('stands only in towns that grow big enough, on gamma\'s main street, and never in eta', () => {
+    const g = planTown('gamma').landmarks.find((l) => l.id === 'cinema');
+    expect(g).toBeDefined();
+    expect([g!.w, g!.h]).toEqual([24, 36]);
+    // its front (the bottom edge) on the main street
+    const main = planTown('gamma').roads.filter((r) => r.main && r.horizontal);
+    expect(main.some((r) => r.y === g!.y + g!.h + 1 && r.x <= g!.x && g!.x + g!.w <= r.x + r.w)).toBe(true);
+    expect(planTown('eta').landmarks.some((l) => l.id === 'cinema')).toBe(false);
+    for (const seed of SEEDS) if (!hasCinema(seed)) expect(planTown(seed).landmarks.some((l) => l.id === 'cinema'), seed).toBe(false);
+  });
+
+  it('wears its era\'s front in the layout', () => {
+    const t = runTimeline({ seed: 'gamma', endYear: 2025 });
+    const era = (y: number) => layoutTown(worldAt(t, y)).landmarks.find((l) => l.id === 'cinema')!;
+    expect([1955, 1965, 1985, 2010].map((y) => landmarkArtKey(era(y))))
+      .toEqual(['landmark_cinema_palace', 'landmark_cinema_modern', 'landmark_cinema_twin', 'landmark_cinema_multiplex']);
+    expect(era(1955).name).toMatch(/^The /);
   });
 });
 

@@ -319,7 +319,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             com.timerpg.street.shot.Crumbs.add("town scene: building ${data.town.seed}; Java heap limit ${rt.maxMemory() shr 20} MB, ${(rt.totalMemory() - rt.freeMemory()) shr 20} MB used")
             StreetRenderer.townBuilding(ctx, true)
             buildMarked = true
-            val ft = com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown(e, mats, data.town, data.yards, data.art, data.building)
+            val ft = com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown(e, mats, data.town, data.yards, data.art, data.building, cinema = data.cinema)
             town = ft
             rn = com.lifemax.rpg.feature.habits.presentation.scene3d.TownRun(ft, com.lifemax.rpg.feature.habits.presentation.scene.SpriteSheets.sheets)
             run = rn

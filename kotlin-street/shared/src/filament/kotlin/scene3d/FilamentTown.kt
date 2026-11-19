@@ -229,6 +229,8 @@ class FilamentTown(
     /** The sun's shadow map: each cascade's size (texels square) and how many cascades ([TownQuality]). */
     val shadowMap: Int = TownQuality.shadowMap,
     val shadowCascades: Int = TownQuality.cascades,
+    /** The town's movie theater (street.json's graph.cinema), drawn by [CinemaKit] in its building's place; null: none. */
+    cinema: CinemaSite? = null,
 ) {
     val scene: Scene = engine.createScene()
     val view: View = engine.createView()
@@ -357,13 +359,18 @@ class FilamentTown(
     /** What the town holds on the GPU (MB by kind) for a [w] x [h] view: [TownQuality.estimate]. */
     fun gpuEstimate(w: Int, h: Int): GpuEstimate = TownQuality.estimate(textures.gpu, shadowMap, shadowCascades, w, h)
 
+    /** The cinema, built by code in its slot's place (the slot itself has no art: it is left to it). */
+    private val cinemaDraw: TownCinema? = cinema?.let { c -> slots.firstOrNull { it.b.sprite == c.sprite }?.let { s ->
+        s.missing = true; TownCinema(engine, scene, lit, proxyMat, textures, c, s.place, s.b.setback, town.seed.hashCode()) } }
+    private val cinemaOut = IntArray(3)
+
     /** The town's pictures: textures made, their texels, and how many asks were answered by one already made. */
     val textureStats: Triple<Int, Long, Int> get() = Triple(textures.madeCount, textures.texels, textures.shared)
 
     /** How long the ground took (ms), the buildings so far (ms), and how many are left to build. */
     var groundMs = 0f; private set
     var buildingsMs = 0f; private set
-    val pending: Int get() = slots.count { it.built == null && !it.missing }
+    val pending: Int get() = slots.count { it.built == null && !it.missing } + (if (cinemaDraw?.done == false) 1 else 0)
     var stats = TownStats(slots.size, 0, 0, 0, 0, 0, 0); private set
     /** Each batch [buildNearest] made: how many it built and how long it took (ms). */
     val batches = ArrayList<Pair<Int, Float>>()
@@ -640,6 +647,7 @@ class FilamentTown(
      * town always comes in), the rest only while the budget lasts. Call each frame until [pending] is 0.
      */
     fun buildNearest(x: Float, z: Float, budgetMs: Float): Int {
+        cinemaDraw?.let { c -> c.start(pool); if (!c.done && c.step()) engine.flush() }
         if (todo == 0 && chunksTodo == 0 && groundBuilt) return 0
         val t0 = System.nanoTime()
         var n = 0
@@ -871,6 +879,8 @@ class FilamentTown(
             if (near3d) nNear++
             if (shadows) casters += c.base.casters + (if (near3d) c.near!!.casters else c.cards.casters)
         }
+        cinemaDraw?.frame(pose, look, dark, seconds, { x, z -> if (pose.cut > 0f) fadeOf(pose, x, z) else 1f }, cinemaOut)?.let { o ->
+            if (o[0] > 0) { visible++; renderables += o[0]; draws += o[0]; tris += o[1] }; casters += o[2] }
         val lampsLit = lamps(pose, dark)
         for (t in synchronized(ticks) { ticks.toList() }) t(seconds)
         stats = TownStats(slots.size, slots.count { it.built != null }, visible, renderables, draws, tris, casters, nChunks, nNear, lampsLit)
@@ -1017,6 +1027,7 @@ class FilamentTown(
         synchronized(queueLock) { queueLock.notifyAll() }
         val em = EntityManager.get()
         crowd.destroy()
+        cinemaDraw?.destroy()
         for (s in slots) {
             val b = s.built ?: continue
             for (e in listOf(b.entity, b.proxy)) if (e != 0) { scene.remove(e); engine.destroyEntity(e); em.destroy(e) }

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { runTimeline, worldAt, isAlive } from '../sim';
 import { narrate, type TalkCtx } from '../game/dialogue';
-import { brief, toPrompt, validate } from './factsheet';
+import { brief, cinemaFacts, toPrompt, validate } from './factsheet';
+import { cinemaProgram } from '../town/cinema';
 
 const w = worldAt(runTimeline({ seed: 'alpha', endYear: 1990 }), 1990);
 const person = Object.values(w.people).find((p) => isAlive(p) && p.spouse)!;
@@ -48,5 +49,21 @@ describe('LLM fact sheet', () => {
     const s = brief(ctx, 'rumors', 'x', ['Secret: Ann Lee is in debt.'], ['Ann']);
     expect(validate('Between us, Ann is broke.', s)).toBe('Between us, Ann is broke.');
     expect(validate('I heard nothing.', s)).toBeNull();
+  });
+  it('knows what is on at the cinema (alpha has one), and some people saw it', () => {
+    const on = cinemaProgram('alpha', 1990).nowShowing;
+    const chat = brief(ctx, 'chat', 'x');
+    expect(chat.system).toContain(`"${on[0]!.title}"`);
+    expect(brief(ctx, 'family', 'x').system).not.toContain(on[0]!.title);
+    // the titles are in the facts, so a reply that names one passes the made-up-name check
+    expect(validate(`Have you seen ${on[0]!.title}?`, chat)).toBeTruthy();
+    const people = Object.values(w.people).filter((p) => isAlive(p) && w.year - p.birthYear >= 8);
+    const saw = people.filter((p) => cinemaFacts({ ...ctx, person: p }).length === 2).length;
+    expect(saw / people.length).toBeGreaterThan(0.25);
+    expect(saw / people.length).toBeLessThan(0.55);
+    // a town too small for a cinema has none to talk about
+    const eta = worldAt(runTimeline({ seed: 'eta', endYear: 1990 }), 1990);
+    const etaPerson = Object.values(eta.people).find(isAlive)!;
+    expect(cinemaFacts({ ...ctx, w: eta, person: etaPerson })).toEqual([]);
   });
 });

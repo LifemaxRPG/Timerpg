@@ -313,6 +313,25 @@ export function runTimeline(opts: RunOptions): Timeline {
   return { seed: opts.seed, startYear, endYear: opts.endYear, snapshots, chronicle };
 }
 
+/**
+ * The living population each year of the town's natural history (no interventions), from startYear to endYear. The
+ * housing never feeds back into the people (advanceSettlement only places them), so this runs without a town plan and
+ * the plan can ask it (src/town/cinema.ts: only towns that grow big enough get a cinema).
+ */
+export function naturalPopulation(seed: string, endYear: number, startYear = 1950): number[] {
+  const world = generateWorld(seed, startYear);
+  const log: SimEvent[] = [];
+  holdElection({ w: world, y: startYear, log });
+  const alive = (): number => Object.values(world.people).filter(isAlive).length;
+  const out = [alive()];
+  for (let y = startYear + 1; y <= endYear; y++) {
+    world.year = y;
+    step({ w: world, y, log }, []);
+    out.push(alive());
+  }
+  return out;
+}
+
 export const worldAt = (t: Timeline, year: number): World => {
   const w = t.snapshots[year - t.startYear];
   if (!w) throw new Error(`year ${year} outside timeline ${t.startYear}-${t.endYear}`);

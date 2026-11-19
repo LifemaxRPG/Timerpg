@@ -11,7 +11,7 @@
 // modular condo apartments) are still stood in by a modular condo front in the district's colour, until the engine can
 // build them too. Every home is named after the household that really lives there.
 import type { LandmarkPlot, Lot, TownLayout } from '../../src/town/layout';
-import { LANDMARK_SPECS, landmarkArtKey } from '../../src/town/landmarks';
+import { landmarkArtKey } from '../../src/town/landmarks';
 import { fullName, type World } from '../../src/sim/types';
 import { shopFacade } from '../../src/town/facade';
 import { stack, type Colour } from '../../src/town/buildings';
@@ -212,9 +212,8 @@ export function makeBuildings(w: World, layout: TownLayout, year: number): Build
     if (had) return had;
     const sprite = `b${n++}`;
     landmarks.set(l.id, sprite);
-    const spec = LANDMARK_SPECS[l.id];
     entries.push({ id: `landmark:${l.id}`, sprite, home: false, name: l.name, kind: 'Landmark', owner: '', colour: 'base',
-      parts: [{ key: landmarkArtKey(l), w: spec.w * 32, h: spec.h * 32, y: 0 }], yard: { front: 2, style: yard } });
+      parts: [{ key: landmarkArtKey(l), w: l.w * 32, h: l.h * 32, y: 0 }], yard: { front: 2, style: yard } });
     return sprite;
   }
   return { entry, vary, landmark, entries, lotOf };

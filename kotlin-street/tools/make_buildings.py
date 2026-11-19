@@ -127,6 +127,9 @@ def relief_mask(im, spec):
     return m
 
 def build(shop, out):
+    # the cinema has no LimeZu sprite: the engine builds it (its era's front, posters and marquee from street.json's
+    # graph.cinema), so nothing is cut for it here
+    if shop['parts'][0]['key'].startswith('landmark_cinema_'): return
     if shop['parts'][0]['key'].startswith(('house_small_', 'house_medium_')): return build_house(shop, out)
     if shop['parts'][0]['key'].startswith(('villa_', 'landmark_clocktower_', 'landmark_school_', 'house_terraced_')) or \
             shop['parts'][0]['key'].startswith(('estate_', 'landmark_police_')) or apt_maker(shop['parts'][0]['key']): return build_model(shop, out)

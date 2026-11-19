@@ -204,6 +204,15 @@ export function planInterior(w: World, e: Entrance, zoneId?: string): RoomPlan {
         for(const x of [112,224,W-112])put('clock',x,208);
         put('counter',128,400);put('cabinet',W-112,400);put('table',W/2,320);put('plant',64,H-48);
         break;
+      case 'cinema':
+        // the auditorium behind (rows of seats either side of the aisle, the screen on the back wall), the lobby in front
+        horizontal(352,W/2-48,96);
+        area('Auditorium',32,96,W-64,256,'interior_floorWood');
+        area('Lobby & concessions',32,368,W-64,H-392);
+        for(const y of [224,320])for(let x=80;x<=W-80;x+=48)if(Math.abs(x-W/2)>64)put('chair',x,y);
+        put('counter',112,464);put('counter',176,464);put('iceDisplay',240,464,true,true);put('iceDisplay',272,464,true,true);
+        put('sofa',W-128,560);put('sofa',W-224,560);put('plant',64,H-48);put('plant',W-64,H-48);
+        break;
       default: throw new Error(`No interior template for ${template}`);
     }
   }

@@ -5,6 +5,7 @@ import { greenery } from './greenery';
 import { Grid } from './grid';
 import { SIZES, type LotKind, type Rect, type Road } from './kinds';
 import { placeLandmarks, type LandmarkPlot } from './landmarks';
+import { hasCinema } from './cinema';
 import { planNetwork } from './network';
 import { planWater, shiftWater, waterKind, waterNear, type WaterBody } from './water';
 
@@ -71,6 +72,8 @@ interface Built {
   landmarks: LandmarkPlot[];
   lots: ReturnType<typeof placeFrontage>;
   ok: boolean;
+  /** The cinema has its site (or the town is too small for one). */
+  cinema: boolean;
 }
 
 function build(seed: string, extra: number): Built | null {
@@ -108,8 +111,10 @@ function build(seed: string, extra: number): Built | null {
   const n = (k: LotKind): number => lots.filter((l) => l.kind === k).length;
   // The sim never needs more than ~20 shops and ~100 households (apartments house about 4 each).
   const homeRoom = n('small') + n('medium') + n('house') + 4 * n('apartment');
-  const ok = n('shop') >= 20 && n('villa') >= 2 && homeRoom >= 100 && lm.landmarks.length >= 3;
-  return { net, water, plaza, landmarks: lm.landmarks, lots, ok };
+  const ok = n('shop') >= 20 && n('villa') >= 2 && homeRoom >= 100 && lm.landmarks.filter((l) => l.id !== 'cinema').length >= 3;
+  // a town big enough for a cinema grows its streets until the cinema has a site too (src/town/cinema.ts)
+  const cinema = !hasCinema(seed) || lm.landmarks.some((l) => l.id === 'cinema');
+  return { net, water, plaza, landmarks: lm.landmarks, lots, ok, cinema };
 }
 
 /** Store a plan computed elsewhere (a worker), so planTown(seed) returns it instantly. */
@@ -124,11 +129,14 @@ export function planTown(seed: string): TownPlan {
 
   // Grow the town (longer streets, more of them) until everything fits.
   let built: Built | null = null;
+  let fits: Built | null = null; // the smallest that fits everything but the cinema
   for (let extra = 0; extra <= 8; extra++) {
     const b = build(seed, extra);
     if (b) built = b;
-    if (b?.ok) break;
+    if (b?.ok && !fits) fits = b;
+    if (b?.ok && b.cinema) break;
   }
+  if (fits && !(built?.ok && built.cinema)) built = fits;
   if (!built) throw new Error(`no town plan fits for seed ${seed}`);
   const { net, plaza } = built;
 
