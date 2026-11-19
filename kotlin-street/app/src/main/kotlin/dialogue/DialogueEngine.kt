@@ -587,7 +587,15 @@ class DialogueEngine private constructor(private val app: Context) {
             val dev = deviceWanted.let { if (it >= 0) it else if (nl.accelerators and 2 != 0) com.timerpg.street.llm.NativeLlm.NPU else com.timerpg.street.llm.NativeLlm.CPU }
             dev != com.timerpg.street.llm.NativeLlm.CPU || fastCpuWanted
         } ?: false
-        memoryProblem(f.length(), copied)?.let { why ->
+        // the NPU/GPU (or repacked CPU) copy does not fit, but the CPU reading the mapped file does: run there now rather
+        // than wait (the phone's owner saw "4067 MB free, 6617 needed" on the NPU while the mapped CPU load needed ~3.6 GB)
+        var cpuFallback = false
+        if (copied && memoryProblem(f.length(), true) != null && memoryProblem(f.length(), false) == null) {
+            cpuFallback = true
+            gpuNote = "Not enough free memory for the ${if (deviceWanted == com.timerpg.street.llm.NativeLlm.GPU) "GPU" else "NPU"} copy of the model right now, so it runs on the CPU from the file (it moves back when there is room, next load)."
+            com.timerpg.street.shot.Crumbs.add("dialogue model: CPU from the file (copy would not fit, ${com.timerpg.street.llm.Ram.freeMb(app)} MB free)")
+        }
+        (if (cpuFallback) null else memoryProblem(f.length(), copied))?.let { why ->
             // not now: again in a while (the town's last uploads, another app's memory being let go), then give up
             if (++memoryWaits <= MEMORY_TRIES) {
                 com.timerpg.street.shot.Crumbs.add("dialogue model: load put off ($memoryWaits of $MEMORY_TRIES): $why")
@@ -603,8 +611,10 @@ class DialogueEngine private constructor(private val app: Context) {
         loadingNow = true
         var thrown: String? = null
         val native = b as? com.timerpg.street.llm.NativeLlm
-        native?.device = deviceWanted.let { if (it >= 0) it else if ((native?.accelerators ?: 0) and 2 != 0) com.timerpg.street.llm.NativeLlm.NPU else com.timerpg.street.llm.NativeLlm.CPU }
-        native?.fastCpu = fastCpuWanted
+        native?.device = if (cpuFallback) com.timerpg.street.llm.NativeLlm.CPU
+            else deviceWanted.let { if (it >= 0) it else if ((native?.accelerators ?: 0) and 2 != 0) com.timerpg.street.llm.NativeLlm.NPU else com.timerpg.street.llm.NativeLlm.CPU }
+        // (repacked CPU kernels copy the weights too: not when falling back for memory)
+        native?.fastCpu = fastCpuWanted && !cpuFallback
         val mtpSet = app.getSharedPreferences("npu", Context.MODE_PRIVATE).contains("mtp")
         native?.mtp = if (useMtp && (mtpSet || native?.device == com.timerpg.street.llm.NativeLlm.NPU)) mtpWanted else 0
         // loading holds the AI lane: speech, memory and the voices do not load beside it (their memory added to a load's
