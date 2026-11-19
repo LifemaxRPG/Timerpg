@@ -1,0 +1,338 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1990,
+  "topic": "media",
+  "facts": [
+    {
+      "id": "1990-media-01",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Families check the printed television listings to see when favorite programs air.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-02",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Many households receive local television stations through a rooftop antenna.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-03",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A family with cable television can watch channels devoted to sports, weather, or children's programs.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-04",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Viewers watch scheduled evening news broadcasts for national and local headlines.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-05",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A local radio station announces school closings during winter storms.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-06",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Drivers tune their car radios for traffic reports and familiar songs.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-07",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Teenagers request songs by calling a radio station during an evening show.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-08",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A family may record a television program onto a blank videotape to watch later.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-09",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Video rental stores display shelves of tapes sorted by genre.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-10",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Customers return rented videotapes through an overnight drop slot.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-11",
+      "year_from": 1998,
+      "year_to": 1999,
+      "text": "Some video rental stores begin stocking digital movie discs near the end of the decade.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-12",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Music shops sell compact discs in plastic cases with printed booklets.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-13",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Cassette tapes remain common in cars and portable music players.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-14",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Shoppers browse racks of music magazines for interviews and album reviews.",
+      "ages": "teens",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-15",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A newspaper carrier delivers folded morning papers to homes along a neighborhood route.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-16",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "The local newspaper prints classified advertisements for used cars and job openings.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-17",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Residents check newspaper pages for movie showtimes and community events.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-18",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A small-town weekly paper publishes school sports scores and community announcements.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-19",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Readers clip recipes and sale advertisements from the Sunday newspaper.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-20",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Families send holiday greetings on printed cards through the mail.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-21",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Friends exchange handwritten letters when long-distance telephone calls seem expensive.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-22",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A household screens incoming calls by listening to its answering machine.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-23",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A caller consults the printed telephone directory to find a local business number.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-24",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Teenagers may wait until evening to make a long-distance call at a cheaper rate.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-25",
+      "year_from": 1993,
+      "year_to": 1999,
+      "text": "Some readers browse news and discussion boards through a dial-up online service.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-media-26",
+      "year_from": 1997,
+      "year_to": 1999,
+      "text": "By the late decade, some local newspapers publish articles on websites alongside their printed editions.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "streaming television subscriptions",
+      "first_common": 2010,
+      "say_instead": "watch scheduled broadcasts or rent a videotape"
+    },
+    {
+      "thing": "video-sharing websites",
+      "first_common": 2006,
+      "say_instead": "watch a recorded tape or a television broadcast"
+    },
+    {
+      "thing": "smartphone news applications",
+      "first_common": 2010,
+      "say_instead": "read a newspaper or watch the evening news"
+    },
+    {
+      "thing": "digital music streaming subscriptions",
+      "first_common": 2012,
+      "say_instead": "listen to radio or buy a compact disc"
+    },
+    {
+      "thing": "podcast listening applications",
+      "first_common": 2005,
+      "say_instead": "listen to a radio talk show"
+    },
+    {
+      "thing": "high-definition television as the household norm",
+      "first_common": 2010,
+      "say_instead": "watch a standard-definition picture-tube television"
+    },
+    {
+      "thing": "online video rental streaming",
+      "first_common": 2008,
+      "say_instead": "visit the video rental store"
+    },
+    {
+      "thing": "social media news feeds",
+      "first_common": 2008,
+      "say_instead": "read the paper or call a friend"
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
