@@ -83,6 +83,56 @@ internal object StoreMarkets {
         }
     }
 
+    /**
+     * A long plain wall dressed so it does not read as one brick plane: pilasters every [pitch] in a darker brick, a
+     * concrete base course and a cap band under the coping, downspouts from scuppers at every other pilaster, louvred
+     * vents high up in some bays. The wall runs along x (at z = [at], [n] FRONT or BACK) or along z (at x = [at], [n]
+     * LEFT or RIGHT) from [a] to [b0]; nothing goes within 40 of the points in [keep] (doors, docks, ladders).
+     */
+    fun dressWall(b: StoreB, n: Side, at: Float, a: Float, b0: Float, h: Float, seed: Int, keep: List<Float> = emptyList(), pitch: Float = 120f) {
+        val m = b.det("wall")
+        val out = when (n) { Side.BACK, Side.LEFT -> -1f; else -> 1f }
+        val alongX = n == Side.BACK || n == Side.FRONT
+        // a box spanning [u0]..[u1] along the wall, [y0]..[y1] up, [d0]..[d1] out from it
+        fun box(mm: MeshBuilder, u0: Float, u1: Float, y0: Float, y1: Float, d0: Float, d1: Float, r: Ramp, sd: Int) {
+            val o0 = at + out * d0; val o1 = at + out * d1
+            if (alongX) b.box(mm, u0, y0, min(o0, o1), u1, y1, max(o0, o1), r, sd) else b.box(mm, min(o0, o1), y0, u0, max(o0, o1), y1, u1, r, sd)
+        }
+        val pierBrick = b.tile(StoreKit.brick(PIER_BRICK, c(0xB8A088), seed))
+        val base = Paint.CONCRETE
+        // the base course and the cap band, the whole length
+        box(m, a, b0, 0f, 9f, 0f, 1.5f, base, seed + 31)
+        box(m, a, b0, h - 16f, h - 12f, 0f, 2f, base, seed + 32)
+        val vent = b.pic("louvre") { PixImg(tx(20f), tx(14f)).also { im -> im.fill(Paint.STEEL.b); for (y in 1 until im.h - 1 step 2) im.hline(1, im.w - 2, y, Paint.STEEL.d); im.border(Paint.OUT) } }
+        val pipe = Ramp(c(0x3A2E26), c(0x6A5848), c(0x7E6A58), c(0x927C68), c(0xA8927C))
+        val len = b0 - a
+        val k0 = max(1, (len / pitch).toInt())
+        for (k in 1 until k0) {
+            val u = a + len * k / k0
+            if (keep.any { abs(it - u) < 40f }) continue
+            // the pilaster (as tall as the wall, standing 4 out)
+            val o0 = at + out * 0f; val o1 = at + out * 4f
+            if (alongX) pierBrick.box(u - 9f, 0f, min(o0, o1), u + 9f, h - 16f, max(o0, o1), setOf(Side.LEFT, Side.RIGHT, if (out > 0f) Side.FRONT else Side.BACK))
+            else pierBrick.box(min(o0, o1), 0f, u - 9f, max(o0, o1), h - 16f, u + 9f, setOf(Side.FRONT, Side.BACK, if (out > 0f) Side.RIGHT else Side.LEFT))
+            if ((k + seed) % 2 == 0) {
+                // a downspout from its scupper's collector head, a splash block at its foot
+                val du = u + 16f
+                box(m, du - 5f, du + 5f, h - 26f, h - 14f, 0f, 7f, pipe, seed + 33)
+                box(m, du - 2f, du + 2f, 4f, h - 26f, 2f, 6f, pipe, seed + 34)
+                box(m, du - 5f, du + 5f, 0f, 2f, 2f, 16f, base, seed + 35)
+            } else if ((k + seed) % 3 == 0) {
+                // a louvred vent high in the bay
+                val vu = u + pitch * .5f * (len / k0 / pitch)
+                if (keep.none { abs(it - vu) < 40f }) {
+                    val vy = h - 40f
+                    if (alongX) CinemaKit.face(m, vent, vu, vy, at + out * .4f, 20f, 14f, n) else CinemaKit.face(m, vent, at + out * .4f, vy, vu, 20f, 14f, n)
+                }
+            }
+        }
+    }
+
+    private val PIER_BRICK = Ramp(c(0x3A2018), c(0x74442E), c(0x8A5238), c(0x9E6244), c(0xB27656))
+
     /** Rooftop units in a grid over [x0]..[x1] x [zb]..[zf] at roof height [h]; skylights between if [sky]. */
     fun roofPlant(b: StoreB, x0: Float, x1: Float, zb: Float, zf: Float, h: Float, seed: Int, pitchX: Float, pitchZ: Float, sky: Boolean) {
         val m = b.det("roof")
@@ -164,20 +214,31 @@ internal object StoreMarkets {
         val det = b.det()
         wall.box(x0, 0f, zb, x1, H, zf, setOf(Side.LEFT, Side.RIGHT, Side.BACK))
         parapet(b, brick, x0, x1, zb, zf - 7f, H, 8f, Paint.CONCRETE, front = false)
+        // a store become a church: repainted plain (cream, a brown trim), a cross on its sign, over its door and on its
+        // roof's small steeple; the glass painted over with a few coloured panes; a low monument sign at the road
+        val church = reused && info.reuse == StoreReuse.CHURCH
         // the front's raised sign band over the canopy, in enamel panels (cream, a turquoise band in the sixties)
-        val band = if (sixties) TURQ else CREAM_ENAMEL
+        val band = if (sixties && !church) TURQ else CREAM_ENAMEL
         val bw = tx(W); val bh = tx(PH - 100f)
         val B = PixImg(bw, bh)
         StoreKit.fillFrom(B, StoreKit.panelTile(band, seed, 40, 40, 20))
-        B.rect(0, bh - 8, bw - 1, bh - 4, if (sixties) CREAM_ENAMEL.b else TURQ.b); B.hline(0, bw - 1, bh - 8, Pix.mix(B[0, bh - 9], c(0xFFFFFF), .3f))
-        B.rect(0, 0, bw - 1, 3, ALU.l); B.hline(0, bw - 1, 3, ALU.d)
+        B.rect(0, bh - 8, bw - 1, bh - 4, if (church) CHURCH_TRIM else if (sixties) CREAM_ENAMEL.b else TURQ.b); B.hline(0, bw - 1, bh - 8, Pix.mix(B[0, bh - 9], c(0xFFFFFF), .3f))
+        B.rect(0, 0, bw - 1, 3, if (church) CHURCH_TRIM else ALU.l); B.hline(0, bw - 1, 3, if (church) Pix.mix(CHURCH_TRIM, c(0), .3f) else ALU.d)
         val name = info.signName
         b.texts += name
         val longShut = closed && info.yearsClosed >= 2
         // a store shut for years has had its letters taken down: their ghost on the enamel, a row of bolt holes
-        val lettersCol = if (longShut) Pix.mix(band.b, c(0x3A3A30), .18f) else if (closed) Pix.mix(SIGN_RED, band.b, .55f) else SIGN_RED
-        StoreSigns.letters(B, name, 10, 6, bw - 11, bh - 11, if (closed) null else c(0xFFFFFF), if (closed) null else band.o, 6) { r, h -> if (longShut) (if (r == h / 2) c(0x2A2A26) else lettersCol) else if (r < h / 4) Pix.mix(lettersCol, c(0xFFFFFF), .3f) else lettersCol }
-        if (!closed) for (i in B.px.indices) if (B.px[i] == SIGN_RED || B.px[i] == c(0xFFFFFF) || B.px[i] == Pix.mix(SIGN_RED, c(0xFFFFFF), .3f)) { B.glow(0, 0, 0, 0, 0); B.mask[i] = (255 shl 24) or (255 shl 16) or 255 }
+        val red = if (church) CHURCH_LETTERS else SIGN_RED
+        val lettersCol = if (longShut) Pix.mix(band.b, c(0x3A3A30), .18f) else if (closed) Pix.mix(SIGN_RED, band.b, .55f) else red
+        // (a church's name in modest painted letters, a third smaller, a gilt cross before it)
+        val lx0 = if (church) tx(W * .2f) else 10
+        val ly0 = if (church) 6 + bh / 6 else 6; val ly1 = if (church) bh - 11 - bh / 6 else bh - 11
+        if (church) {
+            val cxp = lx0 - 14; val u = max(1, bh / 24)
+            B.rect(cxp - u, ly0 - 2, cxp + u, ly1 + 2, GILT); B.rect(cxp - 4 * u, ly0 + (ly1 - ly0) / 4 - u, cxp + 4 * u, ly0 + (ly1 - ly0) / 4 + u, GILT)
+        }
+        StoreSigns.letters(B, name, lx0, ly0, bw - 11, ly1, if (closed || church) null else c(0xFFFFFF), if (closed || church) null else band.o, 6) { r, h -> if (longShut) (if (r == h / 2) c(0x2A2A26) else lettersCol) else if (r < h / 4 && !church) Pix.mix(lettersCol, c(0xFFFFFF), .3f) else lettersCol }
+        if (!closed) for (i in B.px.indices) if (B.px[i] == red || B.px[i] == GILT || (!church && (B.px[i] == c(0xFFFFFF) || B.px[i] == Pix.mix(SIGN_RED, c(0xFFFFFF), .3f)))) { B.glow(0, 0, 0, 0, 0); B.mask[i] = (255 shl 24) or (255 shl 16) or 255 }
         StoreKit.front(if (closed) det else b.sign("band"), B, x0, x1, 100f, PH, zf)
         b.tile(brick).box(x0, H - 1f, zf - 6f, x1, PH, zf - .02f, setOf(Side.LEFT, Side.RIGHT, Side.BACK))
         CinemaKit.ledge(det, x0 - 1.5f, PH, zf - 7f, x1 + 1.5f, PH + 3f, zf + 1.5f, ALU)
@@ -218,7 +279,7 @@ internal object StoreMarkets {
         if (closed && info.has("forLease")) forLease(b, 0f, 128f, zf + 1f, min(260f, W * .45f), seed, info.yearsClosed)
         // the canopy: a flat slab out over the walk on slim steel columns, its soffit of downlights, its aluminium fascia
         val cz1 = zf + 48f
-        val fascia = b.pic("mfascia$sixties") { PixImg(16, tx(9f)).also { im -> im.fill(ALU.l); im.hline(0, 15, 0, ALU.h); im.rect(0, im.h / 2 - 1, 15, im.h / 2, if (sixties) TURQ.b else SIGN_RED); im.hline(0, 15, im.h - 1, ALU.o) } }
+        val fascia = b.pic("mfascia$sixties$church") { PixImg(16, tx(9f)).also { im -> im.fill(if (church) CREAM_ENAMEL.l else ALU.l); im.hline(0, 15, 0, if (church) CREAM_ENAMEL.h else ALU.h); im.rect(0, im.h / 2 - 1, 15, im.h / 2, if (church) CHURCH_TRIM else if (sixties) TURQ.b else SIGN_RED); im.hline(0, 15, im.h - 1, if (church) CREAM_ENAMEL.o else ALU.o) } }
         b.tile(fascia).box(x0 - 4f, 92f, zf, x1 + 4f, 101f, cz1, setOf(Side.FRONT, Side.LEFT, Side.RIGHT))
         b.tile(b.roof).box(x0 - 4f, 92f, zf, x1 + 4f, 101f, cz1, setOf(Side.TOP))
         val soffit = b.pic("msoff$closed") { PixImg(tx(64f), tx(48f)).also { im -> im.fill(c(0xE8E4D8)); for (y in 6 until im.h - 3 step 14) for (x in 6 until im.w - 3 step 16) { im.rect(x, y, x + 2, y + 1, c(0xFFFCF0)); if (!closed) im.glow(x, y, x + 2, y + 1, 255) }; im.border(c(0xB8B4A8)) } }
@@ -227,6 +288,13 @@ internal object StoreMarkets {
         var colX = x0 + 30f
         while (colX < x1 - 20f) { det.upright(colX, cz1 - 5f, 4f, 92f, 1.8f, 1.8f, 8, null, swatch = b.swatch(ALU.l)); colX += (W - 60f) / 4f }
         if (!closed) for (k in 0 until 3) b.lights += CinemaLight(x0 + W * (k + .5f) / 3f, 88f, zf + 26f, .95f, .95f, 1f, 30000f, 150f, down = true, cone = 1.4f)
+        if (church) {
+            val dx = gx0 + bays / 2 * bayW
+            // a white cross standing on the canopy over the doors
+            b.box(det, dx - 2.5f, 101f, cz1 - 9f, dx + 2.5f, 146f, cz1 - 4f, Paint.WHITE, 11)
+            b.box(det, dx - 13f, 126f, cz1 - 9f, dx + 13f, 131f, cz1 - 4f, Paint.WHITE, 11)
+            steeple(b, det, dx, zf - 60f, H, seed)
+        }
         // the walk under it
         b.box(det, x0 - 6f, 0f, zf, x1 + 6f, 4f, cz1 + 10f, Paint.CONCRETE, 7)
         // the back: a dock with its roller door, steps, a back door, a wall lamp; a ladder to the roof
@@ -238,9 +306,36 @@ internal object StoreMarkets {
         ladder(b, x0 + W * .86f, zb - .4f, H + 8f)
         // the sides: a side door, two wall lamps
         backDoor(b, x1 + .3f, zf - Db * .7f, Side.RIGHT)
+        dressWall(b, Side.BACK, zb, x0, x1, H, seed, keep = listOf(x0 + W * .22f, x0 + W * .34f, x0 + W * .1f, x0 + W * .46f, x0 + W * .66f, x0 + W * .86f), pitch = 110f)
+        dressWall(b, Side.RIGHT, x1, zb, zf - 8f, H, seed + 1, keep = listOf(zf - Db * .7f), pitch = 110f)
+        dressWall(b, Side.LEFT, x0, zb, zf - 8f, H, seed + 2, pitch = 110f)
         roofPlant(b, x0 + 40f, x1 - 40f, zb + 40f, zf - 60f, H, seed, 170f, 200f, sky = true)
         return Site(x0, x1, zf, zb - 46f, listOf(floatArrayOf(x0 - 6f, zf, x1 + 6f, cz1 + 10f)))
     }
+
+    /**
+     * A small white steeple put up on a store become a church, its foot at ([x], [z]) on the roof at [y]: a clapboard
+     * base, an open belfry on four posts, a four-sided spire and a cross.
+     */
+    private fun steeple(b: StoreB, m: MeshBuilder, x: Float, z: Float, y: Float, seed: Int) {
+        val r = 22f
+        b.box(m, x - r, y - 2f, z - r, x + r, y + 54f, z + r, StoreKit.WHITEWASH, seed + 21)
+        b.box(m, x - r - 2f, y + 54f, z - r - 2f, x + r + 2f, y + 58f, z + r + 2f, CHURCH_TRIM_RAMP, seed + 22)
+        val post = b.swatch(StoreKit.WHITEWASH.l)
+        for (sx in listOf(-1f, 1f)) for (sz in listOf(-1f, 1f)) m.upright(x + sx * (r - 4f), z + sz * (r - 4f), y + 58f, y + 88f, 2.4f, 2.4f, 6, null, swatch = post)
+        // a bell in the belfry's shade
+        m.upright(x, z, y + 68f, y + 80f, 6f, 3f, 8, null, swatch = b.swatch(c(0x8A6A3A)))
+        b.box(m, x - r - 3f, y + 88f, z - r - 3f, x + r + 3f, y + 92f, z + r + 3f, CHURCH_TRIM_RAMP, seed + 23)
+        m.upright(x, z, y + 92f, y + 150f, r * 1.25f, 0.5f, 4, null, swatch = b.swatch(c(0x5A4A44)))
+        b.box(m, x - 1.8f, y + 146f, z - 1.8f, x + 1.8f, y + 178f, z + 1.8f, Paint.WHITE, seed + 24)
+        b.box(m, x - 9f, y + 164f, z - 1.8f, x + 9f, y + 168f, z + 1.8f, Paint.WHITE, seed + 24)
+    }
+
+    /** A church's brown trim and its painted letters, a gilt cross. */
+    private val CHURCH_TRIM = c(0x6A3E2A)
+    private val CHURCH_TRIM_RAMP = Ramp(c(0x2A1A14), c(0x4E2E20), c(0x6A3E2A), c(0x845238), c(0xA06A4A))
+    private val CHURCH_LETTERS = c(0x5A2620)
+    private val GILT = c(0xD8B048)
 
     private val BUFF_BRICK_M = Ramp(c(0x5A4A36), c(0xB89A70), c(0xD0B48A), c(0xE0C8A0), c(0xEED8B8))
 
@@ -271,9 +366,21 @@ internal object StoreMarkets {
         shake.quad(v(x0 - out, my1, zf + inn), v(x1 + out, my1, zf + inn), v(x1 + out, my0, zf + out), v(x0 - out, my0, zf + out))
         shake.quad(v(x1 + inn, my1, zf + inn), v(x1 + inn, my1, zf - wrap), v(x1 + out, my0, zf - wrap), v(x1 + out, my0, zf + out))
         shake.quad(v(x0 - inn, my1, zf - wrap), v(x0 - inn, my1, zf + inn), v(x0 - out, my0, zf + out), v(x0 - out, my0, zf - wrap))
-        val fascT = b.tile(brick)
-        fascT.quad(v(x1 + inn, my1, zf - wrap), v(x1 + inn, my1, zf - wrap), v(x1 + out, my0, zf - wrap), v(x1 + inn, my0, zf - wrap))
-        fascT.quad(v(x0 - inn, my1, zf - wrap), v(x0 - inn, my1, zf - wrap), v(x0 - inn, my0, zf - wrap), v(x0 - out, my0, zf - wrap))
+        // the returns end in hips: each slope turns the corner back to the wall at the same pitch (no open end), a
+        // flashing along the hip, the eave's ledge carried round under it
+        val hip = out - inn
+        shake.quad(v(x1 + inn, my1, zf - wrap), v(x1 + inn, my1, zf - wrap), v(x1 + inn, my0, zf - wrap - hip), v(x1 + out, my0, zf - wrap))
+        shake.quad(v(x0 - inn, my1, zf - wrap), v(x0 - inn, my1, zf - wrap), v(x0 - out, my0, zf - wrap), v(x0 - inn, my0, zf - wrap - hip))
+        for (sx in listOf(-1f, 1f)) {
+            val ex = if (sx > 0f) x1 else x0
+            det.beam(v(ex + sx * inn, my1 + .5f, zf - wrap), v(ex + sx * out, my0 + .5f, zf - wrap), 2f, b.swatch(Paint.BLACK.b))
+            det.beam(v(ex + sx * inn, my1 + .5f, zf - wrap), v(ex + sx * inn, my0 + .5f, zf - wrap - hip), 2f, b.swatch(Paint.BLACK.b))
+            det.beam(v(ex + sx * inn, my1 + .5f, zf + inn), v(ex + sx * out, my0 + .5f, zf + out), 2f, b.swatch(Paint.BLACK.b))
+            // the eave along the return's foot and round the hip to the wall
+            CinemaKit.ledge(det, min(ex + sx * (out + 2f), ex + sx * (out - 3f)), my0 - 4f, zf - wrap, max(ex + sx * (out + 2f), ex + sx * (out - 3f)), my0 + 1f, zf + out, Paint.CONCRETE, bottom = true)
+            // the walk's soffit under the return, closing it from below
+            b.tile(b.roof).box(min(ex, ex + sx * out), my0 - 5f, zf - wrap, max(ex, ex + sx * out), my0 - 4f, zf, setOf(Side.BOTTOM))
+        }
         // its flat top (a cap over the slope) and the walk's soffit under it
         b.tile(b.roof).box(x0 - inn, my1 - 1f, zf - wrap, x1 + inn, my1 + 1f, zf + inn, setOf(Side.TOP))
         CinemaKit.ledge(det, x0 - out - 2f, my0 - 4f, zf + out - 2f, x1 + out + 2f, my0 + 1f, zf + out + 2f, Paint.CONCRETE, bottom = true)
@@ -297,7 +404,11 @@ internal object StoreMarkets {
             if (!closed) CinemaKit.glowAll(im, 230)
         }
         val signM = if (closed) det else b.sign("box")
-        b.box(det, cx - sw / 2f - 3f, (my0 + my1) / 2f - sh / 2f - 3f, sz - 34f, cx + sw / 2f + 3f, (my0 + my1) / 2f + sh / 2f + 3f, sz, ALU, 3, bottom = true)
+        // (the cabinet stands just off the slope, its back and top grey sheet metal on braces down to the shakes: no
+        // black box over the roof from behind)
+        val cy0 = (my0 + my1) / 2f - sh / 2f - 3f; val cy1 = (my0 + my1) / 2f + sh / 2f + 3f
+        signBox(b, det, cx - sw / 2f - 3f, cy0, sz - 12f, cx + sw / 2f + 3f, cy1, sz, ALU)
+        signBraces(b, det, cx - sw / 2f, cx + sw / 2f, cy0, cy1, sz - 12f, zf + inn, zf + out, my0, my1)
         CinemaKit.face(signM, face, cx, (my0 + my1) / 2f, sz + .1f, sw, sh, Side.FRONT)
         b.texts += info.signName
         // the two boards either side of the name, fitted between it and the mansard's ends
@@ -308,7 +419,8 @@ internal object StoreMarkets {
                 else if (k < 0f) "BAKERY  DELI" else if (eighties) "FOOD & DRUG" else "MEAT  PRODUCE"
             b.texts += word
             val sub = b.pic("sub$word$closed$subW") { PixImg(tx(subW), tx(24f)).also { im -> im.fill(c(0x3A2A1E)); im.border(c(0x1A120C)); StoreSigns.letters(im, word, 3, 3, im.w - 4, im.h - 4, null, null, 3) { _, _ -> if (closed) c(0x8A7A6A) else c(0xF6E8C0) }; if (!closed) CinemaKit.glowAll(im, 220, c(0x3A2A1E)) } }
-            b.box(det, cx + k * kx - subW / 2f - 2f, (my0 + my1) / 2f - 14f, sz - 30f, cx + k * kx + subW / 2f + 2f, (my0 + my1) / 2f + 14f, sz - 1f, Paint.BLACK, 3, bottom = true)
+            signBox(b, det, cx + k * kx - subW / 2f - 2f, (my0 + my1) / 2f - 14f, sz - 10f, cx + k * kx + subW / 2f + 2f, (my0 + my1) / 2f + 14f, sz - 1f, SIGN_DARK)
+            signBraces(b, det, cx + k * kx - subW / 2f, cx + k * kx + subW / 2f, (my0 + my1) / 2f - 14f, (my0 + my1) / 2f + 14f, sz - 10f, zf + inn, zf + out, my0, my1)
             CinemaKit.face(signM, sub, cx + k * kx, (my0 + my1) / 2f, sz - .9f, subW, 24f, Side.FRONT)
         }
         // the storefront under the walk: glass bays between the middle piers (aisles behind, specials on the glass),
@@ -360,9 +472,38 @@ internal object StoreMarkets {
         wallPack(b, x0 + W * .55f, 74f, zb, Side.BACK, sodium = true)
         backDoor(b, x1 + .3f, zf - Db * .75f, Side.RIGHT); backDoor(b, x0 - .3f, zf - Db * .6f, Side.LEFT)
         for (z in listOf(zf - Db * .3f, zf - Db * .8f)) { wallPack(b, x1 + .5f, 120f, z, Side.RIGHT, true) }
+        // the long walls dressed: pilasters, downspouts, vents, base and cap courses (kept clear of the doors and docks)
+        dressWall(b, Side.BACK, zb, x0, x1, H, seed, keep = listOf(x0 + W * .08f, x0 + W * .19f, x0 + W * .29f, x0 + W * .4f, x0 + W * .55f, x0 + W * .7f))
+        dressWall(b, Side.RIGHT, x1, zb, zf - wrap - hip, H, seed + 1, keep = listOf(zf - Db * .75f, zf - Db * .3f, zf - Db * .8f))
+        dressWall(b, Side.LEFT, x0, zb, zf - wrap - hip, H, seed + 2, keep = listOf(zf - Db * .6f))
+        // a second exit and a man door by the docks, a gas meter and a electric service on the side
+        backDoor(b, x0 + W * .86f, zb - .3f, Side.BACK)
+        b.box(det, x0 - 10f, 20f, zf - Db * .45f - 14f, x0, 70f, zf - Db * .45f + 14f, Paint.GREY, 41)
+        b.box(det, x0 - 6f, 0f, zf - Db * .45f + 24f, x0, 30f, zf - Db * .45f + 36f, Paint.YELLOW, 42)
         roofPlant(b, x0 + 60f, x1 - 60f, zb + 60f, zf - 80f, H, seed, 210f, 220f, sky = eighties)
         return Site(x0 - out, x1 + out, zf, zb - 4f, listOf(floatArrayOf(x0 - out - 6f, zf, x1 + out + 6f, zf + out + 14f)))
     }
+
+    /** A sign cabinet: its face's frame in [r], its top, sides and back grey sheet metal with seams. */
+    private fun signBox(b: StoreB, m: MeshBuilder, x0: Float, y0: Float, z0: Float, x1: Float, y1: Float, z1: Float, r: Ramp) {
+        val sheet = b.pic("signSheet") { Paint.panel(tx(48f), tx(24f), SHEET, 6, wear = .6f).also { im -> for (x in 0 until im.w step 8) im.vline(x, 0, im.h - 1, SHEET.d); for (x in 4 until im.w step 8) im.vline(x, 0, im.h - 1, SHEET.l) } }
+        m.box(x0, y0, z0, x1, y1, z1) { s, w, h -> when (s) { Side.FRONT -> b.panel(w, h, r, 3); else -> sheet } }
+    }
+
+    /** The braces holding a sign cabinet ([x0]..[x1], [y0]..[y1], its back at [zBack]) off a mansard's slope ([zIn] at [yTop] to [zOut] at [yLow]). */
+    private fun signBraces(b: StoreB, m: MeshBuilder, x0: Float, x1: Float, y0: Float, y1: Float, zBack: Float, zIn: Float, zOut: Float, yLow: Float, yTop: Float) {
+        val sw = b.swatch(SHEET.d)
+        fun slopeZ(y: Float) = zOut + (zIn - zOut) * ((y - yLow) / (yTop - yLow)).coerceIn(0f, 1f)
+        val n = max(2, ((x1 - x0) / 120f).toInt() + 1)
+        for (k in 0 until n) {
+            val x = x0 + 12f + (x1 - x0 - 24f) * k / (n - 1)
+            for (y in listOf(y0 + 6f, y1 - 6f)) m.beam(v(x, y, zBack), v(x, y, slopeZ(y) + 1f), 1.6f, sw)
+            m.beam(v(x, y1 - 6f, zBack), v(x, y0 + 6f, slopeZ(y0 + 6f) + 1f), 1.2f, sw)
+        }
+    }
+
+    private val SHEET = Ramp(c(0x3A3E48), c(0x7A808C), c(0x8E94A0), c(0xA2A8B2), c(0xB8BEC6))
+    private val SIGN_DARK = Ramp(c(0x1A120C), c(0x2A1E14), c(0x3A2A1E), c(0x4A3828), c(0x5A4634))
 
     private val TAN_M = Ramp(c(0x4A3424), c(0x9A7454), c(0xB08866), c(0xC49C7A), c(0xD8B494))
 

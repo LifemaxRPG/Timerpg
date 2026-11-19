@@ -31,6 +31,13 @@
   ground on workers, uploads and buildings nearest the player in a 14 ms budget a frame behind a loading screen (progress
   bar) until every building within 1800 units is in, then 4 ms a frame; drawn through `TownFrame.street` (CameraRig's
   eye preset from the AI panel). The stage's sky stays under it.
+- 0.1.367 feedback (wf-feedback2, desktop renders only, docs/TOWN.md and docs/STORES.md): townspeople wear 120 sheets
+  baked from the pack's Character Generator by sex, age and era (`TownFolk`, tools/make_townsfolk.py); the pavements
+  follow the hour, the street's kind and the weather (`TownCrowd`); a see-through cone in the lit material shows the
+  player through woods and walls (`SeeThrough`); the market reused as a church looks like a storefront church (repaint,
+  crosses, steeple, monument sign); the supermarket's mansard ends in hips, its sign backs are sheet metal, its long
+  walls have pilasters, downspouts, vents and a dumpster pad; the yards' atlases are no wider than they need (81.1M ->
+  73.7M texels).
 - People: `TownPlay.people` stands the street life (StreetLife's passers, seeded per row) and the people to talk to at
   their doors on the rows `liveRows()` keeps, plus the player; `TownPeople` (scene3d) draws them as lit cards of our
   character sheets with shadow twins, cut with the near side. "Talk to <name>" and "Go inside" work at the building in

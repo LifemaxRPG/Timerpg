@@ -507,3 +507,42 @@ is the AI panel's "View: Open world / Street" (prefs `renderer/view`, open by de
   old near trees, the detail only round the camera); a detailed tree is
   500-1160 triangles (the old 3D tree about 330), its simple level 80-170 (desktop TreeKitTest prints each yard look).
   townMemoryCheck held 184 MB of 256.
+
+## Open world: the owner's screenshots of 0.1.367 (branch wf-feedback2)
+
+Desktop renders (`gradle :desktop:preview -Dmode=filament-open -Dshots=fb2_`: the five screenshots' spots and cameras,
+the player placed where the JSON had them, 17:36 in summer), not S25 captures.
+
+- Townsfolk (015754, "clones"): the townspeople wear their own sheets, baked from the Interiors pack's Character
+  Generator by `tools/make_townsfolk.py` (python3 -I tools/make_townsfolk.py <Character_Generator dir>
+  app/src/main/assets/characters/folk 120; the raw pack stays out of the repo): body and skin tone (5 natural ones),
+  eyes, outfit and its colour, hairstyle and colour (grey for elders), beards and moustaches, glasses, beanies and caps,
+  laid into 768 x 128 sheets of the two rows the town draws (idle, walk), 120 of them (84 adults, 24 elders, 12 kids;
+  half women; 18 in clothes too modern for a town before 1990), with folk.json giving each one's sex, age band and
+  `modern`. `TownFolk.pick(seed, female, age, year)` picks a person's sheet: the people to talk to by their own sex
+  and age (`TownPlay.keeperTraits`, set by the app from dialogue.json beside `keepers`), passers by their seed (about
+  half women, an elder when their walk is an old person's, kids only out of school hours). The player keeps their own
+  sheet. Left out: pink/blue/grey skins, anime hair, cat ears, swimwear, masks, the ninja suit, novelty hats.
+- How busy the pavements are (also 015754): `TownCrowd.share(hour, shops, homes, others, outdoors)` thins each live
+  row's StreetLife stream by its people's day (src/town/schedule.ts: at work, at school or at home most of the day; out
+  on the commute both ways, the school run, errands, evening strolls), by what the row is (shops or houses) and by
+  `TownPlay.outdoors` (the stage sets it from the weather: rain keeps 75% in, mist 35%, an overcast sky 15%, snow some).
+  Who is out is fixed per walker (its slot's hash against the share), so nobody pops mid-walk. King Street at 17:36:
+  13 people drawn round the player (was 27), Main Street keeps most of its stream until the shops shut.
+- See-through (020240, "can't see the character in the woods"): `SeeThrough` + street_lit.mat's `seeA`/`seeB`. In the
+  open world the lit material discards what lies in a cone from the eye to the player's middle (radius 55 at the player,
+  shrinking to the eye), stopping 8 short of them, its edge a 4x4 ordered dither in whole art pixels; never the ground
+  (its layer is left out and nothing under 1.5 up is cut) and never the people (their cards have no cone). It works on
+  merged meshes (TreeCells, yards, stores, buildings) where the box cutaway (`occlude`) cannot take one tree out, and
+  complements it. Cost: two float4 uniforms set with each drawn instance's `look`, and a few ALU per fragment where the
+  cone is on (no texture reads). `-Dsee=0` in the preview turns it off to compare.
+- GPU memory (the AI chip on CPU, PSS 2.5-2.7 GB): the screenshots' breadcrumbs had the town at 1303 MB total PSS when
+  built (graphics 1031 MB, 947 textures, 82.1M texels); the rest of the game's PSS is the light model, which, kept off
+  the GPU for want of room, runs from its 2.46 GB file and is counted in PSS as its pages are read. What grew in the
+  town: the yards' merged atlases were at least 1024 wide however little they held, and each yard's tall thing became a
+  patch of its own (wf-feedback): 136 sheets of 1024 x 256, 69 of 1024 x 128, 50 of 1024 x 64. `YardKit.merge` now
+  makes each sheet as narrow as its pictures allow, widened until about square: 81.1M -> 73.7M texels on the build
+  server (about 40 MB of GPU memory with mipmaps), the yards' pixels the same. The biggest left are the lots' own
+  atlases (115 of 512 x 512: pictures repeated lot by lot; one global yard atlas would share them). The breadcrumbs now
+  list the biggest texture sizes when the town is built (`FilamentTown.biggestTextures`). The townsfolk's sheets are
+  uploaded only once drawn: at most 120 x 0.5 MB.

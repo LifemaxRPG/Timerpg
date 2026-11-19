@@ -417,7 +417,7 @@ internal object StoreSigns {
     }
 
     /**
-     * A store's plate glass become a church's front: painted over in opaque panels (most of it), and in one bay of three a
+     * A store's plate glass become a church's front: painted over in opaque panels (most of it), and in two bays of three a
      * tall narrow pane of coloured glass lit from inside.
      */
     fun churchFront(im: PixImg, x0: Int, y0: Int, x1: Int, y1: Int, seed: Int) {
@@ -425,7 +425,8 @@ internal object StoreSigns {
         im.rect(x0, y0, x1, y1, panel)
         var x = x0 + 6; while (x < x1) { im.vline(x, y0, y1, seam); x += 12 }
         im.hline(x0, x1, y0 + (y1 - y0) * 2 / 3, seam)
-        if (Math.floorMod(seed, 3) == 0) {
+        // (two bays in three have a pane of coloured glass)
+        if (Math.floorMod(seed, 3) != 1) {
             val cx = (x0 + x1) / 2; val hw = max(2, (x1 - x0) / 10)
             val top = y0 + max(2, (y1 - y0) / 10); val bot = y1 - max(2, (y1 - y0) / 10)
             val panes = intArrayOf(c(0xC83A3A), c(0x3A6AC8), c(0xE8C04A), c(0x3A9A5A), c(0x8A4AB8))
