@@ -1,0 +1,390 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1990,
+  "topic": "money",
+  "facts": [
+    {
+      "id": "1990-money-01",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Many shoppers pay for groceries with cash or a personal check.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-02",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A cashier may ask to see identification before accepting a personal check.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-03",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Shoppers sometimes write a check while other customers wait in line.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-04",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A household balances its checkbook against a monthly bank statement.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-05",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Workers often receive paper paychecks and deposit them at a bank.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-06",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Some employers offer direct deposit instead of handing out a paper paycheck.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-07",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A bank customer withdraws cash from a machine using a plastic bank card.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-08",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A bank teller may cash a paycheck for a customer with an account.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-09",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A shop may accept a major credit card but still prefer cash for small purchases.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-10",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A customer signs a paper credit card receipt at the register.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-11",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Some stores offer layaway so customers can pay toward an item before taking it home.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-12",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A shopper looks through newspaper coupons before buying groceries.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-13",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A grocery clerk subtracts the value of paper coupons at checkout.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-14",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A family compares weekly supermarket advertisements to stretch its food budget.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-15",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A teenager saves allowance money for a game or a new pair of shoes.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-16",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A child may carry a few coins to buy a small treat after school.",
+      "ages": "kids",
+      "use": [
+        "dialogue",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-17",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Restaurant customers commonly leave a cash tip on the table after a meal.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-18",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A diner checks the bill before deciding how much to tip the server.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-19",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A worker compares hourly wages when choosing between local jobs.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-20",
+      "year_from": 1990,
+      "year_to": 1995,
+      "text": "A part-time worker may earn the federal minimum wage of about four dollars an hour in the early decade.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-21",
+      "year_from": 1997,
+      "year_to": 1999,
+      "text": "The federal minimum wage rises to about five dollars an hour late in the decade.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-22",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A household may pay its electric bill by mailing a check with the payment stub.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-23",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Families often keep cash set aside for groceries, gasoline, and unexpected expenses.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-24",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A parent may use a savings account to put money aside for school expenses.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-25",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A customer can pay for a purchase with a money order when a personal check is unsuitable.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-money-26",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A shopper checks the shelf price against the total shown on the cash register.",
+      "ages": "adults",
+      "use": [
+        "shop",
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [
+    {
+      "item": "gallon of regular gasoline",
+      "usd": 1.15,
+      "year": 1995,
+      "confidence": "high"
+    },
+    {
+      "item": "first-class letter stamp",
+      "usd": 0.32,
+      "year": 1995,
+      "confidence": "high"
+    },
+    {
+      "item": "federal minimum hourly wage",
+      "usd": 4.25,
+      "year": 1995,
+      "confidence": "high"
+    },
+    {
+      "item": "federal minimum hourly wage after 1997 increase",
+      "usd": 5.15,
+      "year": 1998,
+      "confidence": "high"
+    },
+    {
+      "item": "gallon of whole milk",
+      "usd": 2.5,
+      "year": 1995,
+      "confidence": "medium"
+    },
+    {
+      "item": "loaf of bread",
+      "usd": 1.15,
+      "year": 1995,
+      "confidence": "medium"
+    },
+    {
+      "item": "dozen eggs",
+      "usd": 0.95,
+      "year": 1995,
+      "confidence": "medium"
+    },
+    {
+      "item": "daily local newspaper",
+      "usd": 0.5,
+      "year": 1995,
+      "confidence": "medium"
+    },
+    {
+      "item": "cup of diner coffee",
+      "usd": 0.85,
+      "year": 1995,
+      "confidence": "medium"
+    },
+    {
+      "item": "single movie admission",
+      "usd": 4.35,
+      "year": 1995,
+      "confidence": "medium"
+    },
+    {
+      "item": "small candy bar",
+      "usd": 0.5,
+      "year": 1995,
+      "confidence": "medium"
+    },
+    {
+      "item": "basic men's haircut",
+      "usd": 9,
+      "year": 1995,
+      "confidence": "medium"
+    }
+  ],
+  "phrases": []
+}
