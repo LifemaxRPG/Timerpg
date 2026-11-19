@@ -1,5 +1,6 @@
 import { rand } from '../sim/rng';
 import { archetypeOf } from '../sim/archetype';
+import { townFounded } from '../world/names';
 import { GLB_LANDMARKS, glbLandmarkTiles, type GlbLandmarkKind } from './glbLandmarks';
 import { POPULATION_BY, POPULATION_FROM, populationIn } from './population';
 import { chapel, stripFace, townHall } from './downtown';
@@ -53,6 +54,7 @@ const LOT_TYPE: Record<GlbLandmarkKind, GlbLotType> = {
   landmark_glb_mirage_nightclub: 'corner',
   landmark_glb_pulse_nightclub: 'corner',
   landmark_glb_foundry_nightclub: 'edge',
+  landmark_glb_foundry_factory: 'edge',
   landmark_glb_water_tower: 'civic',
   landmark_glb_feed_mill: 'edge',
   landmark_glb_modern_gas_station: 'highway',
@@ -76,9 +78,14 @@ export interface GlbTenure {
   closed?: number;
   /** Reused from [reuse.from] as [reuse.as] ([hide]: the model's nodes not drawn then, the pumps of a repair garage). */
   reuse?: { from: number; as: string; hide?: string[] };
-  /** Pulled down: from this year the plot is empty again. */
+  /** Pulled down (or, for the works, turned into the club that follows it on its plot): from this year it is gone. */
   gone?: number;
+  /** Which of the model's painted variants (the works' name: [FACTORY_NAMES]). */
+  variant?: number;
 }
+
+/** The works' names, in the order of the model's painted variants (tools/landmarks/foundry-factory/make_art.py VARIANTS). */
+export const FACTORY_NAMES = ['Hargrove Iron Works', 'Whitcomb Foundry & Machine Co.', 'Ostrander Iron Works', 'Pelham Foundry & Machine Co.'];
 
 export interface GlbSite {
   id: string;
@@ -218,16 +225,29 @@ export function glbTenures(seed: string): GlbTenure[] {
     mirage = { kind: 'landmark_glb_mirage_nightclub', name: GLB_LANDMARKS.landmark_glb_mirage_nightclub.name, opened, closed, gone: closed + yr(3, 10, 'gone', 'mirage') };
     out.push(mirage);
   }
+  // the town's iron works (a town with industry likelier): opens in its early industrial years (1900-45, a few years
+  // after the town's founding), shut when the small-town foundries closed (1970-2005), standing dark after; when the town
+  // reaches the club's size in 2010-29, at least five years after it shut, it becomes The Foundry on the same plot
   const industry = type === 'mill' || type === 'mining' ? 0.75 : type === 'harbor' ? 0.5 : 0.25;
-  const foundry = R('which', 'club') < industry;
-  const later = foundry ? big(2010, 2029) : big(2020, 2029);
+  let works: GlbTenure | undefined;
+  if (R('which', 'club') < industry) {
+    const opened = Math.max(yr(1900, 1945, 'open', 'works'), Math.min(1945, townFounded(seed) + 5));
+    const variant = Math.floor(R('name', 'works') * FACTORY_NAMES.length);
+    works = { kind: 'landmark_glb_foundry_factory', name: FACTORY_NAMES[variant]!, opened, closed: Math.max(opened + 20, yr(1970, 2005, 'closed', 'works')), variant };
+    out.push(works);
+  }
+  const later = works ? big(Math.max(2010, works.closed! + 5), 2029) : big(2020, 2029);
   if (later.length) {
-    const kind: GlbLandmarkKind = foundry ? 'landmark_glb_foundry_nightclub' : 'landmark_glb_pulse_nightclub';
+    const kind: GlbLandmarkKind = works ? 'landmark_glb_foundry_nightclub' : 'landmark_glb_pulse_nightclub';
     const opened = later[Math.floor(R('open', 'club2') * later.length)]!;
     // (a Mirage still standing is pulled down the year before)
     if (mirage && mirage.gone! >= opened) mirage.gone = opened - 1;
     if (mirage && mirage.closed! >= opened - 1) mirage.closed = opened - 2;
-    if (!mirage || mirage.closed! > mirage.opened) out.push({ kind, name: GLB_LANDMARKS[kind].name, opened });
+    if (!mirage || mirage.closed! > mirage.opened) {
+      out.push({ kind, name: GLB_LANDMARKS[kind].name, opened });
+      // (the works become the club: the works' model stands until the club opens)
+      if (works) works.gone = opened;
+    }
   }
   return out.sort((a, b) => a.opened - b.opened || (a.kind < b.kind ? -1 : 1));
 }
@@ -295,10 +315,18 @@ export function glbSites(plan: TownPlan, input: GlbInput): GlbSite[] {
     const [along, deep] = glbLandmarkTiles(t.kind);
     // first a plot an earlier model has left (a Pulse on the Mirage's, a gas station on the drive-in's cleared lot); the
     // Mirage's plot is kept for the Pulse that follows it
+    // The Foundry on its works' plot (held since the works opened)
+    if (t.kind === 'landmark_glb_foundry_nightclub') {
+      const w = sites.find((q) => q.tenures.some((x) => x.kind === 'landmark_glb_foundry_factory'));
+      // (no works plot found: no club either, as the club is that building)
+      w?.tenures.push(t);
+      return;
+    }
     const pulse = t.kind === 'landmark_glb_pulse_nightclub';
     for (const s of [...sites].sort((p, q) => (pulse ? clubFirst(q) - clubFirst(p) : 0))) {
       const last = s.tenures[s.tenures.length - 1]!;
       if (!pulse && last.kind === 'landmark_glb_mirage_nightclub' && pulseLater) continue;
+      if (last.kind === 'landmark_glb_foundry_factory') continue;
       if (last.gone === undefined || last.gone > t.opened) continue;
       const vert = s.face === 'E' || s.face === 'W';
       const sa = vert ? s.rect.h : s.rect.w, sd = vert ? s.rect.w : s.rect.h;

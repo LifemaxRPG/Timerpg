@@ -8,7 +8,9 @@ package com.lifemax.rpg.feature.habits.domain
  */
 
 /** A model standing in row slot [sprite] of [row]: [kind] (landmark_glb_*), its business's [name] and [state] (open, closed, reused), nodes to [hide]. */
-class GlbPlaced(val sprite: String, val row: String, val kind: String, val name: String, val state: String, val hide: Set<String>, val opened: Int)
+class GlbPlaced(val sprite: String, val row: String, val kind: String, val name: String, val state: String, val hide: Set<String>, val opened: Int,
+    /** Which painted variant of the model (the works' name). */
+    val variant: Int = 0)
 
 object GlbLandmarks {
     /** The models standing in a street.json root (none in a v1 file or a town without them). */
@@ -18,7 +20,7 @@ object GlbLandmarks {
             val o = a.getJSONObject(i)
             val h = o.optJSONArray("hide")
             GlbPlaced(o.getString("sprite"), o.optString("row"), o.getString("kind"), o.optString("name"), o.optString("state", "open"),
-                h?.let { (0 until it.length()).map { k -> it.getString(k) }.toSet() } ?: emptySet(), o.optInt("opened"))
+                h?.let { (0 until it.length()).map { k -> it.getString(k) }.toSet() } ?: emptySet(), o.optInt("opened"), o.optInt("variant"))
         }
     }
 

@@ -80,11 +80,32 @@ class LandmarkGlbTest {
 
     @Test fun theNewLandmarksAreInTheCatalogue() {
         for (k in listOf("gazette_office", "feed_mill", "mirage_nightclub", "pulse_nightclub", "starlight_drive_in", "water_tower", "roadside_motel", "premier_railroad_depot",
-            "coin_laundromat", "foundry_nightclub"))
+            "coin_laundromat", "foundry_nightclub", "foundry_factory"))
             assertTrue("$k listed", specs.any { it.kind == "landmark_glb_$k" })
         // a swatch re-skin replaces the picture at the same texel size
         val club = specs.first { it.kind.endsWith("mirage_nightclub") }
         assertEquals("ballast", club.swatches["roof_membrane"])
+    }
+
+    @Test fun theIronworksGlowsOnlyOutside() {
+        // (the casting pit, hearth wall, tool wall and truss lamps inside are a plain picture: the stack's furnace louvres,
+        // the signs and the yard lamps glow)
+        val lm = build(specs.first { it.kind.endsWith("foundry_factory") })
+        val i = lm.names.indexOf("detail_hall")
+        assertTrue("the hall's glow pictures are built", i >= 0)
+        assertTrue("and do not glow", lm.model.parts[i].role != CinemaPart.Role.SIGN && lm.model.parts[i].mesh.mask == null)
+        assertTrue("the furnace glows", lm.model.parts[lm.names.indexOf("glow_furnace")].mesh.mask != null)
+    }
+
+    @Test fun theIronworksHasItsNamesAndItsChimney() {
+        val s = specs.first { it.kind.endsWith("foundry_factory") }
+        // four painted names, each file there and building to the same model
+        assertEquals(4, s.variants.size)
+        val tris = s.variants.map { f -> LandmarkKit.build(GlbFile.read(File(root, f).readBytes()), s, 1950, 7, info = s.info?.let { File(root, it).readText() }).model.triangles }
+        assertTrue("same geometry", tris.distinct().size == 1)
+        // its chimney stands over the club's square tower (what it was cut down to)
+        val works = build(s).model.height / U; val club = build(specs.first { it.kind.endsWith("foundry_nightclub") }).model.height / U
+        assertTrue("chimney $works m over the club's $club m", works > 15f && works > club + 3f)
     }
 
     @Test fun theFoundryGlowsOnlyOutside() {

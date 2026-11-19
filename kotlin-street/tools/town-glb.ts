@@ -39,6 +39,8 @@ export function townGlb(seed: string): { sites: GlbSite[]; rail: TownRail } {
 export interface GlbJson {
   id: string; landmark: string; kind: string; name: string; state: GlbState; hide?: string[];
   opened: number; closed?: number; gone?: number; reuse?: { from: number; as: string };
+  /** The model's painted variant (the works' name). */
+  variant?: number;
   /** The plot in tiles (along the street, back from it) and its world rect (x0, z0, x1, z1). */
   tiles: [number, number]; rect: [number, number, number, number];
   /** The row slot it stands in (sprite bN) and the row. */

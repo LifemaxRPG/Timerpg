@@ -558,7 +558,7 @@ class FilamentTown(
         val s = slots.firstOrNull { it.b.sprite == p.sprite } ?: return@mapNotNull null
         s.missing = true
         val c = s.place.world(0f, s.b.setback + s.b.depth / 2f)
-        TownLandmark(engine, scene, lit, proxyMat, textures, spec, { a.file(spec.file) ?: ByteArray(0) }, { spec.info?.let { a.file(it)?.decodeToString() } },
+        TownLandmark(engine, scene, lit, proxyMat, textures, spec, { a.file(spec.fileOf(p.variant)) ?: ByteArray(0) }, { spec.info?.let { a.file(it)?.decodeToString() } },
             p.sprite, s.row.id, TownLandmark.rowFrame(s.place, s.b.setback), floatArrayOf(c.x, c.z, hypot(s.b.width, s.b.depth) / 2f + 60f),
             town.year, town.seed.hashCode(), collision, closed = p.state == "closed", hide = p.hide)
     } } ?: emptyList()

@@ -53,6 +53,37 @@ The branches were not merged: the files were copied with `git show`.
   12); `ground_asphalt` re-skinned to `asphalt` as the Mirage's. Checked and left: grounds at 0 or above, collision walls to
   the eaves (4.35 m, the sawtooth roof above), the tower box full height (11.3 m), doors main / back / side.
 
+## The works before The Foundry (2026-11-19, branch wf-foundry)
+
+`foundry-factory/` (source `tools/landmarks/foundry-factory/`: `./build_all.sh` paints the four name variants and writes
+`foundry-factory-<name>.glb` and model-info.json to the assets): Gemini's working-factory version of The Foundry, the
+same 28.56 x 29.80 m lot, shell and door nodes. Imported with the clubs' touch-ups, and the owner's notes (2026-11-19):
+- **Its own name**, not "The Foundry" (the club's name came with the conversion): an ordinary period company name painted
+  on the brick over the front windows as a faded ghost sign (a dark painted field worn through to the brick, cream
+  letters, a few pixels flaked), one of four variants the town picks from its seed: Hargrove Iron Works, Whitcomb Foundry &
+  Machine Co., Ostrander Iron Works, Pelham Foundry & Machine Co. (made-up surnames; `make_art.py` VARIANTS, glbSites.ts
+  FACTORY_NAMES in the same order; the catalogue's `variants` lists the files, street.json's glbLandmarks `variant` picks).
+- **Far less signage**: gone are the stack's vertical FOUNDRY board, the gantry's THE FOUNDRY header, the PLANT NO 4
+  lintel plate, the IRONWORKS and SHIPPING yard plates and the lettering in the windows (CASTING, SMELTER, FOUNDRY). Left:
+  the painted name, one plain unlit WORKS GATE board on the gate gantry, SHIPPING stencilled on the brick over the dock
+  door. Nothing glows but the lamps (the entrance, the two gate lamps, the weigh booth, the back door, a new one over the
+  dock) and, at night, the furnace-warm windows (the windows' own night light); the hall's casting pit, hearth wall,
+  tool wall and truss lamps are `detail_hall` (the same picture, not emissive).
+- **A smokestack**: the club's square tower with its louvred light box is replaced by a tall brick chimney narrowing to
+  the top (stepped a pixel a side every 20 art pixels, 30 x 32 at its foot, 14 x 16 at the head), a stone collar, an iron
+  band, a corbelled cap at 15.8 m (the club's tower is 11.5 m: what it was cut down to). Its collision box is full height.
+- Kept: the tin sawtooth roof, the gate gantry, the yard's shelter, crates and weigh booth, the dock; grounds at 0 or
+  above; collision walls to the eaves. 13 materials (one over the guide's 12, as the club). The README's dates are not used:
+  the simulation gives them (below).
+
+In the town (src/town/glbSites.ts): a town draws the works with the old club chance (mill and mining towns 75%, harbour
+50%, others 25%). The works open 1900-45 from the seed (never before five years after the town's founding; its street
+must be there by 1950, the plan's first year, or be the main street), and the plot is chosen and held from then. They
+shut 1970-2005 (at least 20 years on) and stand dark; when the town has 8,000 in a year of 2010-29 at least five years
+after they shut, The Foundry opens on the same plot (the works' model stands until that year: `gone` = the club's
+opening). A town that never reaches 8,000 keeps its works shut. No Foundry without its works (a Pulse otherwise). gamma:
+Pelham Foundry & Machine Co., 1909-1980, dark 1980-2022, The Foundry 2022, on the west edge (Larch Road side, row 18R).
+
 ## The loader (shared/src/filament/kotlin/scene3d/)
 
 - `GlbFile.kt`: a small reader for the subset these files use (nodes with TRS or matrix, triangle meshes with float

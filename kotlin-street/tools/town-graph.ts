@@ -725,7 +725,7 @@ export function townGraph(seed: string, year: number): TownGraph {
     ...(glbNow.length ? { glbLandmarks: glbNow.filter((g) => rowIdOfSprite.has(g.sprite)).map((g): GlbJson => ({
       id: g.site.id, landmark: `landmark:${g.site.id}`, kind: g.tenure.kind, name: g.name, state: g.state, ...(g.hide.length ? { hide: g.hide } : {}),
       opened: g.tenure.opened, ...(g.tenure.closed !== undefined ? { closed: g.tenure.closed } : {}), ...(g.tenure.gone !== undefined ? { gone: g.tenure.gone } : {}),
-      ...(g.tenure.reuse ? { reuse: { from: g.tenure.reuse.from, as: g.tenure.reuse.as } } : {}),
+      ...(g.tenure.reuse ? { reuse: { from: g.tenure.reuse.from, as: g.tenure.reuse.as } } : {}), ...(g.tenure.variant !== undefined ? { variant: g.tenure.variant } : {}),
       tiles: g.tiles, rect: rectW(g.site.rect), sprite: g.sprite, row: rowIdOfSprite.get(g.sprite)!, history: g.site.tenures,
     })) } : {}),
     extras: extras.filter((x) => rowIdOfSprite.has(x.sprite)).map((x) => ({ id: `extra:${x.id}`, sprite: x.sprite, kind: x.kind, name: x.name, row: rowIdOfSprite.get(x.sprite)!,

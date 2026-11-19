@@ -148,6 +148,17 @@
       "swatches": {"ground_asphalt": "asphalt"},
       "era": {"from": 2010, "to": 2029, "built": 2018},
       "footprint": {"lot": [28.56, 29.8], "building": [19.87, 18.0]}
+    },
+    {
+      "kind": "landmark_glb_foundry_factory",
+      "name": "Hargrove Iron Works",
+      "role": "factory",
+      "room": "hall",
+      "file": "foundry-factory/foundry-factory-hargrove.glb",
+      "variants": ["foundry-factory/foundry-factory-hargrove.glb", "foundry-factory/foundry-factory-whitcomb.glb", "foundry-factory/foundry-factory-ostrander.glb", "foundry-factory/foundry-factory-pelham.glb"],
+      "info": "foundry-factory/model-info.json",
+      "era": {"from": 1900, "to": 1945, "built": 1938},
+      "footprint": {"lot": [28.56, 29.8], "building": [19.87, 18.0]}
     }
   ]
 }
