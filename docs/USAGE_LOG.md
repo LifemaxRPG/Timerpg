@@ -38,3 +38,27 @@ tokens spent, so we can see whether the leaner way of working (CLAUDE.md, "Usage
 ## Next windows
 
 Add a section per window with the same table and numbers, and compare.
+
+## 2026-11-19, window from 14:30 UTC (first window on the leaner rules)
+
+All four jobs were started in the morning window and resumed after the reset, so their totals below cover both
+windows; the share spent after 14:30 is not reported separately.
+
+| Job | Model | Tokens (whole job) |
+|---|---|---|
+| Smoothness: spike profiler, upload spreading, see-through, cutaway, haze/far/tree fades, night towers, bike camera | Opus | 639k |
+| Building fixes: condo ground floors, apartment heights, house and trailer colours | Opus | 346k |
+| Writer mode and the zero-lines bug | Opus | 323k |
+| Rail + farms merge (one road set, track round fields) | Opus | 296k |
+| Main session (merges, one regenerated file, small preview sheets only) | Opus | not reported |
+
+- Agent total: about **1.6M tokens**, all Opus (these jobs were started before the Sonnet rule).
+- Finished items merged: writer mode, zero-lines bug, condo ground floors, towers on residential streets, house colours,
+  trailer colours, rail/farm roads and fields, stutter profiler and upload spreading, see-through only when hidden,
+  camera out of the cinema, less eager cutaway, haze/far-box/tree fades, horizon line, night towers, clock at
+  midnight, bike camera follow, BikeRideTest: **about 17 items**, one APK (0.1.423) at the end.
+- Rough rate: **~95k agent tokens per finished item** (baseline ~370k), with the caveat above.
+- Rework: none known yet (the phone has not tested this window's work). The rail+farms merge job itself was rework
+  from the morning's parallel jobs on the same code.
+- Lean rules followed: one APK, small downscaled sheets, merges done in the main session, no parallel jobs on the same
+  files. Not yet followed: Sonnet for routine work (all four jobs predated the rule).
