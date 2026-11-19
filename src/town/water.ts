@@ -148,6 +148,48 @@ function waterRoll(seed: string): number {
   return r;
 }
 
+/** A body of water from its raw footprint: smoothed for the shore tiles, bridges where streets cross, the mask off the streets. */
+function finishWater(kind: 'river' | 'lake', raw: Uint8Array, W: number, H: number, roads: readonly Road[]): WaterBody {
+  smooth(raw, W, H);
+  const bridges = findBridges(raw, W, H, roads);
+  const mask = raw.slice();
+  for (const r of roads) {
+    const c = corridor(r);
+    for (let y = Math.max(0, c.y); y < Math.min(H, c.y + c.h); y++) for (let x = Math.max(0, c.x); x < Math.min(W, c.x + c.w); x++) mask[y * W + x] = 0;
+  }
+  return { kind, width: W, height: H, mask, raw, bridges };
+}
+
+/**
+ * The planned town's river (src/town/plat.ts): down its course's channel rects, meandering inside its column (a park on
+ * both banks), across a block's back where it jogs. Streets crossing it become bridges (the plan lets only a few cross).
+ */
+export function riverWater(seed: string, channel: readonly Rect[], column: readonly Rect[], W: number, H: number, roads: readonly Road[]): WaterBody {
+  const R = (...k: (string | number)[]): number => rand(seed, 'water', 'plan', ...k);
+  const raw = new Uint8Array(W * H);
+  const ph = [R('p1') * 6.28, R('p2') * 6.28, R('p3') * 6.28];
+  const f1 = 6.28 / (50 + R('f1') * 30), f2 = 6.28 / (21 + R('f2') * 12), f3 = 6.28 / (27 + R('f3') * 20);
+  const set = (x: number, y: number): void => { if (x >= 0 && y >= 0 && x < W && y < H) raw[y * W + x] = 1; };
+  channel.forEach((c, i) => {
+    const vertical = c.h >= c.w;
+    const col = column.find((q) => q.x <= c.x && q.x + q.w >= c.x + c.w) ?? column[0];
+    // (room to meander: the column less its streets, pavements and a park strip on each bank)
+    const room = vertical && col ? Math.max(0, (col.w - 4) / 2 - 10) : 1.5;
+    const mid = vertical ? c.x + c.w / 2 : c.y + c.h / 2;
+    const lo = vertical ? Math.max(0, c.y) : Math.max(0, c.x), hi = vertical ? Math.min(H, c.y + c.h) : Math.min(W, c.x + c.w);
+    let prev = mid;
+    for (let t = lo; t < hi; t++) {
+      let m = mid + room * (0.65 * Math.sin(t * f1 + ph[0]! + i) + 0.35 * Math.sin(t * f2 + ph[1]!));
+      m = Math.max(prev - 1, Math.min(prev + 1, m));
+      prev = m;
+      const wd = 7 + 2.5 * (0.5 + 0.5 * Math.sin(t * f3 + ph[2]!));
+      const a = Math.round(m - wd / 2), b = Math.round(m + wd / 2);
+      for (let k = a; k <= b; k++) vertical ? set(k, t) : set(t, k);
+    }
+  });
+  return finishWater('river', raw, W, H, roads);
+}
+
 export function planWater(seed: string, g: WaterGeometry): WaterBody | null {
   const R = (...k: (string | number)[]): number => rand(seed, 'water', ...k);
   const { width: W, height: H } = g;

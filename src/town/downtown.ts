@@ -85,8 +85,16 @@ export function runOf(plan: TownPlan, c: Candidate): Candidate[] {
 
 /** Whether the block face of [c] lies out past the old core (its plots' mean rank): a post-war strip. */
 export function stripFace(plan: TownPlan, c: Candidate): boolean {
+  // the planned town: by district (a core face is always a street wall, a strip face always car parks in front)
+  if (c.district) return c.district !== 'core';
   const run = runOf(plan, c);
   return run.reduce((s, q) => s + q.rank, 0) / run.length >= CORE_RANK;
+}
+
+/** The year the street block on shop plot [slot] is built: a core block 1885-1935 (the centre first), a strip's stand-alone shop 1950-85. */
+export function streetBlockBuilt(seed: string, slot: string, rank: number, strip: boolean): number {
+  const R = (...k: (string | number)[]): number => rand(seed, 'downtown', 'block', slot, ...k);
+  return strip ? 1950 + Math.floor(R('postwar') * 36) : Math.min(1935, 1885 + Math.floor(rank / 3) + Math.floor(R('built') * 12));
 }
 
 /** The main street block on shop plot [slot] (its whole life: it stands from [StreetBlock.built] on). */
@@ -95,11 +103,11 @@ export function streetBlock(plan: TownPlan, slot: string): StreetBlock | undefin
   if (!c) return undefined;
   const R = (...k: (string | number)[]): number => rand(plan.seed, 'downtown', 'block', slot, ...k);
   // the centre was built first and tallest: rank ~15 by the plaza, ~100 at the main street's ends
-  const built = Math.min(1935, 1885 + Math.floor(c.rank / 3) + Math.floor(R('built') * 12));
+  const built = streetBlockBuilt(plan.seed, slot, c.rank, false);
   const middles = Math.max(1, Math.min(3, 1 + Math.floor(R('middles') * 2) + (c.rank < 45 ? 1 : 0)));
   const corner = atCorner(plan, c);
   if (stripFace(plan, c)) {
-    return { slot, built: 1950 + Math.floor(R('postwar') * 36), middles: R('middles') < 0.7 ? 0 : 1, corner, cornerBlock: false, standalone: true };
+    return { slot, built: streetBlockBuilt(plan.seed, slot, c.rank, true), middles: R('middles') < 0.7 ? 0 : 1, corner, cornerBlock: false, standalone: true };
   }
   return { slot, built, middles, corner, cornerBlock: corner && R('corner') < 0.55, standalone: false };
 }

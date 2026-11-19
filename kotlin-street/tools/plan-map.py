@@ -11,14 +11,14 @@ from PIL import Image, ImageDraw, ImageFont
 
 ZONE = {'core': '#ecc8bc', 'square': '#ddd3ee', 'civic': '#e4dcf2', 'old': '#f4e7c6', 'worker': '#ecdcc8',
         'rail': '#d9d9d9', 'strip': '#f8d9b0', 'postwar': '#dcecc8', 'late': '#cde7dc', 'heights': '#c5dfc0',
-        'park': '#c2e0ae', 'river': '#d7e8ee'}
+        'park': '#c2e0ae', 'river': '#d7e8ee', 'westmain': '#f0dcb4', 'edge': '#e8e0d0'}
 LOT = {'shop': '#b04a34', 'small': None, 'medium': None, 'house': None, 'villa': '#3f7b49', 'estate': '#2f6439',
        'apartment': '#86679c', 'mobile': '#a99a86', 'model': '#1d4fa8', 'store': '#c2185b', 'civic': '#6b4fa6',
        'civicbig': '#4a2d88', 'church': '#6b4fa6', 'parking': '#a7a7a7', 'tower': '#5b4136', 'warehouse': '#7a7a7a',
        'industry': '#505050', 'stripmall': '#e0783a', 'stripshop': '#eaa05c', 'park': '#97c97a', 'cemetery': '#a9c49a',
        'square': '#d8cfb2'}
 HOME = {'old': '#c9963e', 'worker': '#a8865f', 'postwar': '#78ad55', 'late': '#4a9a82', 'heights': '#3f7b49',
-        'core': '#c9963e', 'strip': '#86679c', 'civic': '#c9963e'}
+        'core': '#c9963e', 'strip': '#86679c', 'civic': '#c9963e', 'westmain': '#b5803a', 'square': '#c9963e'}
 ROAD = {'main': ('#3b3b3b', 2.6), 'highway': ('#3b3b3b', 2.6), 'street': ('#8a8a8a', 2.0), 'lane': ('#c4bba8', 1.0),
         'country': ('#a58c66', 2.0)}
 

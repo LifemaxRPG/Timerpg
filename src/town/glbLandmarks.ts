@@ -26,12 +26,17 @@ export type GlbLandmarkKind =
   | 'landmark_glb_reel_time_video_1984'
   | 'landmark_glb_reel_time_video_1996'
   | 'landmark_glb_reel_time_video_2011'
-  | 'landmark_glb_reel_time_video_2020';
+  | 'landmark_glb_reel_time_video_2020'
+  | 'landmark_glb_county_courthouse_1894'
+  | 'landmark_glb_county_courthouse_1962'
+  | 'landmark_glb_county_courthouse_1988'
+  | 'landmark_glb_county_courthouse_2008'
+  | 'landmark_glb_radio_station';
 
 export interface GlbLandmarkSpec {
   name: string;
   /** The business it houses. */
-  role: 'gas_station' | 'diner' | 'bowling' | 'newspaper' | 'feed_mill' | 'nightclub' | 'drive_in' | 'water_tower' | 'motel' | 'railroad_depot' | 'laundromat' | 'factory' | 'funeral_home' | 'video_store' | 'phone_repair';
+  role: 'gas_station' | 'diner' | 'bowling' | 'newspaper' | 'feed_mill' | 'nightclub' | 'drive_in' | 'water_tower' | 'motel' | 'railroad_depot' | 'laundromat' | 'factory' | 'funeral_home' | 'video_store' | 'phone_repair' | 'courthouse' | 'radio_station';
   /** The design's years: built from..to (it may stand long after, as the simulation decides), and its sample year. */
   era: { from: number; to: number; built: number };
   /** The lot, metres: width along the street, depth back from it; the building's walls. */
@@ -84,6 +89,16 @@ export const GLB_LANDMARKS: Record<GlbLandmarkKind, GlbLandmarkSpec> = {
   landmark_glb_reel_time_video_1984: { name: 'Reel Time Video', role: 'video_store', era: { from: 1972, to: 1982, built: 1981 }, lot: [36.01, 28.56], building: [32.28, 11.17] },
   landmark_glb_reel_time_video_1996: { name: 'Reel Time Video', role: 'video_store', era: { from: 1990, to: 1997, built: 1996 }, lot: [36.01, 28.56], building: [32.28, 11.17] },
   landmark_glb_reel_time_video_2011: { name: 'Reel Time Video', role: 'video_store', era: { from: 2008, to: 2013, built: 2011 }, lot: [36.01, 28.56], building: [32.28, 11.17] },
+  // the county seat's courthouse on its square (a Romanesque Revival courthouse of 1894 with a clock tower, its lawn, the
+  // soldiers' memorial and the bandstand): four states on ONE shell, lot and origin, the whole 80 m civic block of a county
+  // seat (glbSites.ts COURTHOUSE_STATES; era = the years each state stands from). Its plot is the block, not glbLandmarkTiles.
+  landmark_glb_county_courthouse_1894: { name: 'County Courthouse', role: 'courthouse', era: { from: 1894, to: 1950, built: 1894 }, lot: [79.46, 79.46], building: [29.8, 29.8] },
+  landmark_glb_county_courthouse_1962: { name: 'County Courthouse', role: 'courthouse', era: { from: 1951, to: 1975, built: 1962 }, lot: [79.46, 79.46], building: [29.8, 29.8] },
+  landmark_glb_county_courthouse_1988: { name: 'County Courthouse', role: 'courthouse', era: { from: 1976, to: 1999, built: 1988 }, lot: [79.46, 79.46], building: [29.8, 29.8] },
+  landmark_glb_county_courthouse_2008: { name: 'County Courthouse', role: 'courthouse', era: { from: 2000, to: 2040, built: 2008 }, lot: [79.46, 79.46], building: [29.8, 29.8] },
+  // a 1950s-60s brick broadcast house with a glazed entrance bay, a RADIO blade sign and a lattice mast in a fenced yard
+  // beside it; its call letters painted per town (glbSites.ts RADIO_NAMES)
+  landmark_glb_radio_station: { name: 'Valley Radio', role: 'radio_station', era: { from: 1946, to: 1960, built: 1955 }, lot: [21.73, 17.69], building: [16.1, 15.13] },
   landmark_glb_reel_time_video_2020: { name: 'Cell Fix', role: 'phone_repair', era: { from: 2009, to: 2015, built: 2013 }, lot: [36.01, 28.56], building: [32.28, 11.17] },
 };
 export const GLB_LANDMARK_KINDS = Object.keys(GLB_LANDMARKS) as GlbLandmarkKind[];
