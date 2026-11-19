@@ -70,11 +70,23 @@ def auto_ground(kit, kind, W, rng):
     """A ground row: shops are a 5-tile display then a 2-tile door (then fillers or more displays); condos a seeded door among slice motifs."""
     motifs = KJ[kit]['ground'][kind]['motifs']
     if kind == 'shop':
-        k = int(rng.integers(0, 5))
-        if W < 7: return ([f'disp{k}'] + ['wall'] * (W - 5)) if W >= 5 else ([f'door{k}'] + ['wall'] * (W - 2))
-        row = [f'disp{k}', f'door{k}']; left = W - 7
+        # every 7-tile slot is one of the signature pairs (a 5-tile display and a 2-tile door) or a whole front of another kind (bakery,
+        # butchery, gym, music store: kits.py), never the same slot twice in a building while others remain; one slot in twelve is shut
+        # (shutters down) for a dead shop
+        kinds = sorted({m['kind7'] for m in motifs.values() if m.get('kind7')})
+        pool = [('pair', i) for i in range(5)] + [('kind', k) for k in kinds] * 2
+        def slot():
+            c = pool.pop(int(rng.integers(0, len(pool)))) if pool else ('pair', int(rng.integers(0, 5)))
+            if c[0] == 'pair': return [f'disp{c[1]}', f'door{c[1]}']
+            opts = [m for m in motifs if motifs[m].get('kind7') == c[1] and not motifs[m].get('closed')]
+            shut = [m for m in motifs if motifs[m].get('kind7') == c[1] and motifs[m].get('closed')]
+            return [shut[int(rng.integers(0, len(shut)))] if (shut and rng.random() < .08) else opts[int(rng.integers(0, len(opts)))]]
+        if W < 7:
+            k = int(rng.integers(0, 5))
+            return ([f'disp{k}'] + ['wall'] * (W - 5)) if W >= 5 else ([f'door{k}'] + ['wall'] * (W - 2))
+        row = slot(); left = W - 7
         while left >= 7:
-            k = int(rng.integers(0, 5)); row += [f'disp{k}', f'door{k}']; left -= 7
+            row += slot(); left -= 7
         while left >= 5:
             row.insert(0, f'disp{int(rng.integers(0, 5))}'); left -= 5
         row += ['wall'] * left
@@ -112,6 +124,9 @@ def compose_facade(spec, shop=None, rng=None):
     if kit == 'office': return compose_office(spec, shop)
     if kit.startswith('c4_'): return compose_corner(spec, shop)
     if kit in ('b3_46', 'b8', 'b6'): return compose_block(spec, shop)
+    if kit in CIVIC_KITS:
+        import buildings_civic
+        return buildings_civic.compose_civic(spec, shop)
     W = int(spec['widthTiles'])
     seed = zlib.crc32(spec['id'].encode()) + int(spec.get('seed', 0))
     r = np.random.default_rng(seed)
@@ -149,6 +164,36 @@ def compose_facade(spec, shop=None, rng=None):
     return finish(spec, shop, r, front, PARAPET, COPING, roof, door, side, wall_c, ledges)
 
 
+# Roof props from theme 5's Roof_Props (cut: its pixels' own top and front): each a small box standing on the roof floor, its top the sprite's
+# top rows seen from above (one per pixel of depth), its front the rest. (name: (file, top rows, front rows, columns))
+ROOF_PROPS = {
+    'stair': ('Roof_Props_1', (17, 70), (73, 118), (33, 159)),     # a stair housing: teal roof with two vents and a fan, a brick front with its door
+    'ac1': ('Roof_Props_6', (5, 28), (30, 62), (1, 60)),           # an air-conditioning unit
+    'ac2': ('Roof_Props_7', (1, 38), (40, 62), (1, 62)),
+    'boiler': ('Roof_Props_8', (26, 48), (50, 92), (7, 55)),       # a grey plant cabinet
+}
+
+
+def roof_prop_parts(at, Y, r, PX, depth_in=DEPTH, count=None):
+    """Two or three props on a flat roof (floor at height Y, `PX` wide): picked and placed from `r`, left to right with gaps, back half of
+    the roof so the parapet's front hides little of them. Returns the parts."""
+    names = list(ROOF_PROPS); n = int(r.integers(1, 4)) if count is None else count
+    picks = [names[int(i)] for i in r.permutation(len(names))[:n]]
+    parts = []; x = COPING + 8 + int(r.integers(0, 16))
+    for nm in picks:
+        f, (t0, t1), (f0, f1), (c0, c1) = ROOF_PROPS[nm]
+        art = kits.piece('fm', f); w = c1 - c0
+        if x + w > PX - COPING - 6: continue
+        top = np.ascontiguousarray(art[t0:t1, c0:c1]); front = np.ascontiguousarray(art[f0:f1, c0:c1])
+        front = front.copy(); front[..., 3] = 255; top = top.copy(); top[..., 3] = 255
+        d0 = 28 + int(r.integers(0, max(1, depth_in - 2 * COPING - (t1 - t0) - 40)))
+        fc = tuple(int(v) for v in np.median(front.reshape(-1, 4), axis=0)[:3]); tc = tuple(int(v) for v in np.median(top.reshape(-1, 4), axis=0)[:3])
+        side = np.ascontiguousarray(np.repeat(front[:, w // 2:w // 2 + 1], t1 - t0, axis=1))
+        parts.append(mbox((x, x + w), (Y, Y + (f1 - f0)), (d0, d0 + (t1 - t0)), (tc, fc, shade(fc, .8)), ft=at.add(front), fx=x, tt=at.add(top), st=at.add(side)))
+        x += w + 14 + int(r.integers(0, 40))
+    return parts
+
+
 def finish(spec, shop, r, front, P, T, roof, door, side, wall_c, ledges=(), extras=(), lit=True):
     """The model of a box whose front picture is `front` (its first P rows the parapet's front face: the top floor's
     cornice), under a flat roof made of `roof`'s pictures, wearing `side` (the body's side, already without the parapet rows).
@@ -167,6 +212,7 @@ def finish(spec, shop, r, front, P, T, roof, door, side, wall_c, ledges=(), extr
     for (r0, r1) in ledges:
         parts.append(apt.relief(at, el, 0, PX, r0, r1, -3))
     for ex in extras: parts += ex(at, Y, H, PX)
+    if spec.get('props', True): parts += roof_prop_parts(at, Y, np.random.default_rng(zlib.crc32(spec['id'].encode()) + 99), PX)
     parts.append(front_par)
     d0, d1 = (door[0] + 6, door[1] - 6) if door else (PX // 2 - 8, PX // 2 + 8)
     shop_d = shop or dict(yard=dict(front=1, style='compact'))
@@ -254,6 +300,24 @@ def compose_tower(spec, shop=None):
     return finish(spec, shop, _rng(spec), front, P, T, roof, (30, 66), side, wall_c, (), (extras,))
 
 
+def office_middles(st, g):
+    """The office style's upper-floor middle (192 tall, 96 wide) and its lobby middle (96 tall). Styles 1 and 2 have both; style 3 has no
+    lobby middle (its lobby is the barred shutter of its Left_2/Right_2: a run of that shutter, its door-less shopfront, built from the
+    Left_2's own columns) and style 4 no 192 middle (two floors, each the cornice band of its Left over its 96 wide Window_4_Middle_Modular)."""
+    nm = lambda n: f'Building_{st}_{n}'
+    try: up = g(nm('Middle_Modular'))
+    except SystemExit: up = None
+    try: lob = g(nm('Middle_Modular_2'))
+    except SystemExit: lob = None
+    if lob is None:
+        l2 = g(nm('Left_2')); lob = np.ascontiguousarray(np.tile(l2[:, 8:56], (1, 2, 1)))
+    if up is None:
+        left = g(nm('Left')); band = np.ascontiguousarray(np.tile(left[:32, 4:60], (1, 2, 1))[:, :96])
+        floor = np.concatenate([band, g(f'Window_{st}_Middle_Modular')], axis=0)
+        up = np.ascontiguousarray(np.concatenate([floor, floor], axis=0))
+    return up, lob
+
+
 def compose_office(spec, shop=None):
     """An office tower (theme 16 styles 1 and 2): a ground row (Left_2 + k x Middle_2 + Right_2, 96 tall: the lobby with its
     curtains) under n blocks of two floors (Left + k x Middle + Right, 192 tall), width 4 + 3k tiles; the Roof_Left/Middle/Right
@@ -261,8 +325,9 @@ def compose_office(spec, shop=None):
     st = int(spec.get('style', 1)); k = int(spec.get('mid', 1)); n = int(spec.get('blocks', 2))
     g = lambda nm: kits.piece('of', nm)
     def row(parts): return np.ascontiguousarray(np.concatenate(parts, axis=1))
-    upper = row([g(f'Building_{st}_Left')] + [g(f'Building_{st}_Middle_Modular')] * k + [g(f'Building_{st}_Right')])
-    lobby = row([g(f'Building_{st}_Left_2')] + [g(f'Building_{st}_Middle_Modular_2')] * k + [g(f'Building_{st}_Right_2')])
+    mid_up, mid_lobby = office_middles(st, g)
+    upper = row([g(f'Building_{st}_Left')] + [mid_up] * k + [g(f'Building_{st}_Right')])
+    lobby = row([g(f'Building_{st}_Left_2')] + [mid_lobby] * k + [g(f'Building_{st}_Right_2')])
     front = np.ascontiguousarray(np.concatenate([upper] * n + [lobby], axis=0)); PX = front.shape[1]
     P, T = 14, 10
     rl, rm, rr = g('Roof_Left'), g('Roof_Middle_Modular'), g('Roof_Right')
@@ -419,6 +484,34 @@ def plain_roof(art, cop, face, floor_rows, PX, T, P, rng):
                 left=full(c, DEPTH - 2 * T, T), right=full(c, DEPTH - 2 * T, T), colour=g)
 
 
+# Condo_8's three balconies (art rows: platform seen from above, then its railing; x span): painted out of the front with the wall's own
+# row colours and built as geometry, a slab standing out 16 px with a railing round its three open sides.
+C8_BALCONIES = [(44, 136, 242, 258, 260, 284), (20, 124, 318, 334, 337, 362), (40, 138, 400, 416, 418, 442)]
+C8_TOP = 164                                       # the first row of Condo_8's elevation in the art (the roof's rows are above)
+C8_FOOT = 502
+
+
+def condo8_balconies(a, front, rng):
+    front = front.copy(); mask = np.zeros(front.shape[:2], bool)
+    for (x0, x1, s0, s1, r0, r1) in C8_BALCONIES:
+        mask[s0 - 3 - C8_TOP:r1 + 4 - C8_TOP, x0 - 4:x1 + 4] = True
+    front = mb.fill_rows(front, mask)
+    def parts(at, Y, H, PX):
+        out = []
+        for (x0, x1, s0, s1, r0, r1) in C8_BALCONIES:
+            top = np.ascontiguousarray(a[s0:s1, x0:x1]).copy(); top[..., 3] = 255
+            tc = tuple(int(v) for v in np.median(top.reshape(-1, 4), axis=0)[:3])
+            edge = tuple(int(v) for v in a[r1 - 2, (x0 + x1) // 2][:3]); bar = tuple(int(v) for v in np.median(a[r0 + 4:r0 + 12, x0 + 4:x1 - 4].reshape(-1, 4), axis=0)[:3])
+            yf = C8_FOOT - r1 + 6; dp = s1 - s0
+            out.append(mbox((x0, x1), (yf - 6, yf), (-dp, 0), (tc, edge, shade(edge, .8)), tt=at.add(top)))
+            h = r1 - r0 - 6
+            out.append(mb.mrail((x0, yf, -dp), (x1, yf, -dp), h, bar, posts=5, w=2))
+            out.append(mb.mrail((x0, yf, -dp), (x0, yf, 0), h, bar, posts=8, w=2))
+            out.append(mb.mrail((x1, yf, -dp), (x1, yf, 0), h, bar, posts=8, w=2))
+        return out
+    return front, parts
+
+
 def compose_block(spec, shop=None):
     """Condo_3_46 (five storeys) and Condo_8 (the fire-escape tower): the elevation under a plain flat roof (their roofs are drawn
     with props and a stepped parapet: the props are not built), Condo_6 as two boxes (the block and its one-storey annex with its flat roof)."""
@@ -434,9 +527,10 @@ def compose_block(spec, shop=None):
         front = np.ascontiguousarray(a[164:502].copy())
         roof = plain_roof(a, (31, 35, 20, 140), (37, 39, 20, 140), (70, 150, 40, 120), PX, T, P, rng)
         wall_c = tuple(int(v) for v in a[300, 10][:3]); door = (50, 110)
+        front, balc_parts = condo8_balconies(a, front, rng)
         side = apt.side_windows(column_rows(front[P:], [140, 141, 142, 143, 144]), DEPTH, [], rng, wall_c + (255,))[0]
         side[:, :4] = side[:, 4:8]; side[:, -4:] = side[:, -8:-4]
-    return finish(spec, shop, rng, front, P, T, roof, door, side, wall_c, lit=(k != 'b8'))
+    return finish(spec, shop, rng, front, P, T, roof, door, side, wall_c, lit=True, extras=[balc_parts] if k == 'b8' else ())
 
 
 def compose_b6(spec, shop=None):
@@ -461,6 +555,7 @@ def compose_b6(spec, shop=None):
     emis = np.zeros_like(main); emis[:] = gm
     return model, at, main, side, emis, lawn, fence, fence_snow
 
+CIVIC_KITS = ('v4', 'v5', 'v6', 'v1', 'v2', 'v3', 'v7', 'haunted', 'windmill', 'chapel', 'chapel_gate')
 KEYS = ('pk_',)
 
 
@@ -482,6 +577,7 @@ def showcase_specs():
         S('pk_m07', 'brick', 5, 'shop', 6, 'teal', 4), S('pk_m08', 'blue', 4, 'condo', 3, 'gold', 9), S('pk_m09', 'grey', 14, 'shop', 2, 'stone', 6),
         dict(id='pk_c7a', kit='condo7', widthTiles=3, floors=3, seed=1), dict(id='pk_c7b', kit='condo7', widthTiles=3, floors=5, seed=4),
         dict(id='pk_o1a', kit='office', style=1, mid=1, blocks=2), dict(id='pk_o2a', kit='office', style=2, mid=2, blocks=3),
+        dict(id='pk_o3a', kit='office', style=3, mid=2, blocks=2), dict(id='pk_o4a', kit='office', style=4, mid=1, blocks=3),
         dict(id='pk_b38', kit='c4_38', widthTiles=16), dict(id='pk_b39', kit='c4_39', widthTiles=16), dict(id='pk_b40', kit='c4_40', widthTiles=6),
         dict(id='pk_b346', kit='b3_46', widthTiles=7), dict(id='pk_b8', kit='b8', widthTiles=5), dict(id='pk_b6', kit='b6', widthTiles=13),
         dict(id='pk_c1a', kit='condo12', widthTiles=6, colour=1, height='tall', columns=[1, 3, 4, 5, 2]),
@@ -489,10 +585,16 @@ def showcase_specs():
     ]
 
 
+def civic_specs():
+    """The Victorian civic buildings, the other Additional Houses and the chapel (streets 5 and 6 of the pack showcase)."""
+    return [dict(id='pk_' + k, kit=k, widthTiles=24) for k in CIVIC_KITS]
+
+
 def showcase(out):
     """street.json + buildings/ for the pack's buildings: street 0 the facade kit's shops and condos, 1 the other kits."""
     shops, names = [], []
-    for sp in showcase_specs():
+    cspecs = civic_specs(); nbase = len(showcase_specs())
+    for sp in showcase_specs() + cspecs:
         shops.append(dict(id=f'show:{sp["id"]}', sprite=sp['id'], home=False, name=sp['id'], kind='Shop', owner='', colour='base',
                           parts=[dict(key=sp['id'], w=sp.get('widthTiles', 3) * 32, h=200, y=0)], yard=dict(front=1, style='compact'), spec=sp))
         names.append(sp['id'])
@@ -505,6 +607,7 @@ def showcase(out):
         scale.append(sp)
     os.makedirs(out + '/buildings', exist_ok=True)
     json.dump(dict(town='pack', year=2025, type='pack showcase', shops=shops,
-                   streets=[dict(name='Facade kit', buildings=names[:5]), dict(name='Facade kit 2', buildings=names[5:9]), dict(name='Towers and terraces', buildings=[n for n in names[9:] if not n.startswith(('pk_b', 'pk_k'))]), dict(name='Red-brick corners and blocks', buildings=[n for n in names if n.startswith(('pk_b', 'pk_k'))]), dict(name='Scale against the game\'s own', buildings=scale)]),
+                   streets=[dict(name='Facade kit', buildings=names[:5]), dict(name='Facade kit 2', buildings=names[5:9]), dict(name='Towers and terraces', buildings=[n for n in names[9:nbase] if not n.startswith(('pk_b', 'pk_k'))]), dict(name='Red-brick corners and blocks', buildings=[n for n in names[:nbase] if n.startswith(('pk_b', 'pk_k'))]), dict(name='Scale against the game\'s own', buildings=scale),
+                            dict(name='Victorian civic', buildings=names[nbase:nbase + 3]), dict(name='Victorian wings and landmarks', buildings=names[nbase + 3:nbase + 7]), dict(name='Other Additional Houses and chapel', buildings=names[nbase + 7:])]),
               open(out + '/street.json', 'w'), indent=1)
     return out + '/street.json', out + '/buildings'

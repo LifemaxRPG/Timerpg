@@ -411,6 +411,268 @@
        ],
        "door": true,
        "closed": true
+      },
+      "bakery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_1",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "bakery"
+      },
+      "bakery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_3",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "bakery"
+      },
+      "cbakery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_2",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "bakery"
+      },
+      "cbakery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_4",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "bakery"
+      },
+      "butchery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_1",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "butchery"
+      },
+      "butchery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_3",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "butchery"
+      },
+      "cbutchery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_2",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "butchery"
+      },
+      "cbutchery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_4",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "butchery"
+      },
+      "gym0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_1",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "gym"
+      },
+      "gym1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_3",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "gym"
+      },
+      "cgym0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_2",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "gym"
+      },
+      "cgym1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_4",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "gym"
+      },
+      "music0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_1",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      },
+      "music1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_2",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      },
+      "music2": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_7",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      },
+      "music3": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_8",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
       }
      },
      "full": [
@@ -1107,6 +1369,268 @@
        ],
        "door": true,
        "closed": true
+      },
+      "bakery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_5",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "bakery"
+      },
+      "bakery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_7",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "bakery"
+      },
+      "cbakery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_6",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "bakery"
+      },
+      "cbakery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_8",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "bakery"
+      },
+      "butchery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_5",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "butchery"
+      },
+      "butchery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_7",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "butchery"
+      },
+      "cbutchery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_6",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "butchery"
+      },
+      "cbutchery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_8",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "butchery"
+      },
+      "gym0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_5",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "gym"
+      },
+      "gym1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_7",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "gym"
+      },
+      "cgym0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_6",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "gym"
+      },
+      "cgym1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_8",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "gym"
+      },
+      "music0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_3",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      },
+      "music1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_4",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      },
+      "music2": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_9",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      },
+      "music3": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_10",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
       }
      },
      "full": [
@@ -1803,6 +2327,268 @@
        ],
        "door": true,
        "closed": true
+      },
+      "bakery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_9",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "bakery"
+      },
+      "bakery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_11",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "bakery"
+      },
+      "cbakery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_10",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "bakery"
+      },
+      "cbakery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Bakery_12",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "bakery"
+      },
+      "butchery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_9",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "butchery"
+      },
+      "butchery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_11",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "butchery"
+      },
+      "cbutchery0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_10",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "butchery"
+      },
+      "cbutchery1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Butchery_12",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "butchery"
+      },
+      "gym0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_9",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "gym"
+      },
+      "gym1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_11",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "gym"
+      },
+      "cgym0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_10",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "gym"
+      },
+      "cgym1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Gym_12",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "closed": true,
+       "kind7": "gym"
+      },
+      "music0": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_5",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      },
+      "music1": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_6",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      },
+      "music2": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_11",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
+      },
+      "music3": {
+       "tiles": 7,
+       "parts": [
+        [
+         "fm",
+         "Ground_Floor_Music_Store_12",
+         0,
+         224,
+         false,
+         false,
+         96
+        ]
+       ],
+       "door": true,
+       "kind7": "music"
       }
      },
      "full": [

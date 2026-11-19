@@ -38,9 +38,11 @@ def piece(theme, name):
     return _cache[key]
 
 
-def cut(theme, name, x0, x1, fixl=False, fixr=False):
-    """Columns x0..x1 of a picture, the pilaster at either end (3 px) replaced by the wall beside it when asked."""
+def cut(theme, name, x0, x1, fixl=False, fixr=False, bottom=None):
+    """Columns x0..x1 of a picture (its last `bottom` rows only, if given: a shop front's sign hangs above the 96 rows of its display),
+    the pilaster at either end (3 px) replaced by the wall beside it when asked."""
     a = piece(theme, name)[:, x0:x1].copy()
+    if bottom: a = a[-bottom:].copy()
     if fixl: a[:, 0:3] = a[:, 3:6]
     if fixr: a[:, -3:] = a[:, -6:-3]
     return a
@@ -95,6 +97,15 @@ def kit5(p):
         n = 12 * p + k
         shop[f'cdisp{i}'] = dict(tiles=5, parts=[['fm', f'Ground_Floor_Shop_{n}', 0, 160, True, False]], closed=True)
         shop[f'cdoor{i}'] = dict(tiles=2, parts=[['fm', f'Ground_Floor_Shop_{n}', 160, 224, False, True]], door=True, closed=True)
+    # whole 7-tile shop fronts of other kinds (the bottom 96 rows of the bakery, butchery, gym and music store pieces: the display, door and the
+    # sign's lower part; open ones and shutters-down ones), so a wide shop is not the same five signature fronts over and over
+    for kind, opens, closes in (('bakery', (4 * p + 1, 4 * p + 3), (4 * p + 2, 4 * p + 4)), ('butchery', (4 * p + 1, 4 * p + 3), (4 * p + 2, 4 * p + 4)),
+                                ('gym', (4 * p + 1, 4 * p + 3), (4 * p + 2, 4 * p + 4)), ('music', (2 * p + 1, 2 * p + 2, 2 * p + 7, 2 * p + 8), ())):
+        base = {'bakery': 'Bakery', 'butchery': 'Butchery', 'gym': 'Gym', 'music': 'Music_Store'}[kind]
+        for j, n in enumerate(opens):
+            shop[f'{kind}{j}'] = dict(tiles=7, parts=[['fm', f'Ground_Floor_{base}_{n}', 0, 224, False, False, 96]], door=True, kind7=kind)
+        for j, n in enumerate(closes):
+            shop[f'c{kind}{j}'] = dict(tiles=7, parts=[['fm', f'Ground_Floor_{base}_{n}', 0, 224, False, False, 96]], door=True, closed=True, kind7=kind)
     return dict(
         family='fm', palette=pal, tile=TILE,
         edge=dict(w_px=3, mid=[f'Middle_Floor_{6 * p + 1}'], condo=[f'Ground_Floor_Condo_{4 * p + 1}'], shop=[f'Ground_Floor_Shop_{12 * p + 1}']),

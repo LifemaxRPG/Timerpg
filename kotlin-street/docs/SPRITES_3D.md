@@ -502,3 +502,11 @@ showcase lives in `app/src/main/assets/pack/` (`tools/pack-export.sh`). Not on a
 Red-brick corner blocks (Condo_4_38/39/40, Condo_6, Condo_3_46, Condo_8): same file, `compose_corner` and friends, showcase street 3 (street 4 is the scale street). The
 chamfered corner is a `prism` (roof top only, faces hidden) plus three `wall` parts wearing the art's chamfer columns let down to a level foot; see
 `PACK_EXTERIORS.md` ("Built ... item 4").
+
+## Victorian civic buildings, chapel and more pack buildings (2026-11-19, `tools/buildings_civic.py`)
+
+Built through the same pipeline (`models.json` + atlas, Filament renders `-Dmode=filament-models -Dassets=DIR -Dstreet=5-7` after
+`make_buildings.py --pack-showcase DIR`): the Victorian town hall, old school, mansard block, big mansion, wings and towers, a haunted mansion, a
+windmill and the Grace Chapel with a belfry and spire. Recipes: a hipped roof helper (`hip_roof`: slate face every other row, sides tiled anew, the art's
+flat top or ridge), the clock tower as a square box under a hip to a flat top, a front-gabled wing as the villas' gable (slopes on quads, 300 deep) with the tower
+at its back, a point-topped hip for turrets and spires. Details and limits: `PACK_EXTERIORS.md`. Not on a town street.

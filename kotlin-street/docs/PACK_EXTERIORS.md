@@ -418,3 +418,61 @@ in the pack showcase street 3; `final/item4_*`).
 - Mapping of which roof slice is which corner, the exact meaning of each shop motif, and the pack cars' era are **unverified**.
 - No S25 measurement is involved: triangle and texture costs of any of this on the phone are estimates until built.
 - The Haunted House is a Halloween/abandoned-house asset; the Gun Store front is optional.
+
+## Built (2026-11-19): the Victorian civic buildings, the haunted mansion, the windmill and the chapel (items 5 and 7)
+
+`tools/buildings_civic.py` (reached from `buildings_pack.compose_facade`, kits `v1..v7`, `haunted`, `windmill`, `chapel`, `chapel_gate`;
+pack showcase streets 5 to 7; `final/A_*`, `final/B_*`). Measurements are the 32 px art's own pixels. The art draws everything
+oblique (a thing `d` back stands `d` rows higher, k = 1), which gives every depth.
+- **V6** (mansard block, `pk_v6`): the brick elevation (the roof's rows taken off) under a hipped roof (`hip_roof`: the slate near
+  slope every other row as the front face, side faces tiled anew with the face's own tiles, the art's flat roof inside its coping as
+  the flat top). Plain windows and sill courses on the sides from the front's own windows.
+- **V5 old school / depot** (`pk_v5`): V6's recipe for the long wing (ridge flat, 100 px runs) plus the **clock tower**: a 176 px square
+  box wearing its front on every side (round window and tall arched window) under a hipped roof whose flat top is the art's skylight
+  frame (the same numbers as the Condo/clock-tower recipe: run 64, top 48 square). **V4 town hall** (`pk_v4`) is V5 192 rows lower in the
+  art with a mansard flat roof on the wing; the chimney the art draws on the slope is painted out of the slate and rebuilt as a brick stack
+  and cap. The art's V4 left half of the flat roof is shaded by the tower's roof: the flat top is cut clear of it.
+- **V1 big mansion / boarding house** (`pk_v1`), **V2 / V3** (`pk_v2`, `pk_v3`): the **front-gabled wing** (box wearing the art's front with
+  the gable's triangle cut above the rake, two slopes from above on quads as the villas', 300 deep) with the tower standing at its back end
+  (d 300: the ridge's far end in the art is 300 rows up, and the tower's eave is 314 high); V1 adds the long mansard wing set back 26 and the
+  tall pier at the far end; V3 adds the side entrance as a crude stair box (stair art on a box: placeholder). V7 is the tower alone
+  (`pk_v7`, the same elevation as V5's: it is what V2/V3/V1 use for their towers).
+- **Haunted mansion** (`pk_haunted`, rare landmark): the ground storey with its bay gables and portal, the central block under a steep plank
+  gable (slopes from the art), the octagonal turret set back 90 under a conical hipped roof. Sides are tiled brick patches. Not built: the left
+  lantern tower and the terrace railings.
+- **Windmill** (`pk_windmill`): lattice cards front and back, posts, the wheel card on top.
+- **Grace Chapel, both** (`pk_chapel`, `pk_chapel_gate`): the art's facade (stone portal, stepped rake, plank gable) as the front of a 300 deep
+  nave under a steep slate roof (V5's tiles; the art draws no roof), a belfry (stone) and a pyramid spire on the ridge, the art's cross on its
+  top. The spire is our addition: the sprite has pinnacles but no steeple. Nave sides are stone-block tiles without windows.
+- Not in the pack, so not built: "tall chalet houses" and a "barn-style garage" do not exist under those names in 24_Additional_Houses (the
+  Country_House is built already; the Post_Apocalyptic_House 1/2 are long corrugated-roof cabins with a stone annex: **not built**).
+- Checked: scale beside the existing Victorian-era tower (tile 32 px) and the shop street by eye; `ModelGeometryTest`, `HouseGeometryTest`,
+  `crossroadsTest` pass.
+
+### Graveyard props (cut and listed; props, placed by a later job)
+All from `19_Graveyard_Singles_32x32` (the 32 px art): Gate x4 sizes (Big 128x160, Medium 128x128, Small 96x128, High 96x160, each with a red-orb
+variant, 8), Cross (black, brown, grey x4 each, 64x64 / 64x96, 12), Marble tombstones (brown, grey x4 each), Long tombstone x2, Wood_Cross x3,
+Wood_Grave x18 (32x64 / 32x96), Stone x9, Dirt_Ditch x9 (64x96 / 96x96: open graves with coffins red/silver/yellow, skull variants), Squared_* x16
+(open graves, coffin, skeleton, bones; 64x96), Coffin x6, Grave_Cage 128x160, Candle_Holder x2 (32x96), Wall_Candle x3, Candles, Big/Medium/Small tree
+(128x128, 64x96, 64x64) and dead Tree_Trunk, Crow x4 views, flowers x~20 (32x32 and 64x64 groups), pebbles, tufts, clover, sprouts, mushrooms,
+shovels, pumpkins x~30 (a Halloween event). Needs: **cards** per prop (upright, nearest-filtered, as the trees), the graves and ditches as
+**ground decals**, the gates as thin boxes with a card, the chapel's lot (a cemetery behind the nave, gates in front); placement rules and era (the
+Halloween set only in October) are for the props job.
+
+## Built (2026-11-19): round 1 leftovers (office 3 and 4, Condo_8's balconies, roof props, shop variety)
+
+`tools/buildings_pack.py`, `tools/kits.py`; showcase streets 0 to 3; `final/C_*`.
+- **Office styles 3 and 4**: the missing piece is built from neighbours (`office_middles`). Style 3 has no lobby middle: a run of its own
+  Left_2 shutter columns (a shuttered shopfront lobby). Style 4 has no 192 middle: two floors, each the cornice band of its Left over its
+  `Window_4_Middle_Modular`. Both in the showcase (`pk_o3a`, `pk_o4a`). Their night light fills whole ribbon windows (a lit band), as style 2.
+- **Condo_8**: the three balconies are painted out of the front (the wall's own row colours) and built as a slab 16 deep with a railing on its
+  three open sides (`mrail`); its windows now light at night (`strict_panes`). The fire-escape ladders are still flat on the wall; the wall
+  behind the painted-out balconies shows faint horizontal streaks (the row fill).
+- **Roof props**: every flat-roofed pack building now carries 1-3 small boxes picked from the stair housing (Roof_Props_1), two air-conditioning
+  units (6, 7) and a plant cabinet (8): each box's top the sprite's top rows from above, its front the rest (`ROOF_PROPS`, `roof_prop_parts`; set
+  `props: false` in a spec to leave a roof bare). Not done: water tanks (no sprite in theme 5: the City-props Water_Tower is the item-4 prop job),
+  the pipes and the Roof_Props_2-5 vents (small cards: add with the props job).
+- **Shop variety**: `kits.py` adds whole 7-tile fronts of other kinds to every palette (bakery, butchery, gym: 2 open and 2 shutters-down each;
+  music store: 4 open), cut from the bottom 96 rows of the pack's `Ground_Floor_<kind>_n` pieces (the sign above them is left off, the lower
+  sign band stays); `auto_ground` picks a slot from the five signature pairs and these kinds without repeating a slot in a building, one slot in
+  twelve shut. Signature pairs are still two of every five choices.

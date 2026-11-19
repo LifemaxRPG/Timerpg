@@ -476,6 +476,62 @@
    }
   },
   {
+   "id": "show:pk_o3a",
+   "sprite": "pk_o3a",
+   "home": false,
+   "name": "pk_o3a",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_o3a",
+     "w": 96,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_o3a",
+    "kit": "office",
+    "style": 3,
+    "mid": 2,
+    "blocks": 2
+   }
+  },
+  {
+   "id": "show:pk_o4a",
+   "sprite": "pk_o4a",
+   "home": false,
+   "name": "pk_o4a",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_o4a",
+     "w": 96,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_o4a",
+    "kit": "office",
+    "style": 4,
+    "mid": 1,
+    "blocks": 3
+   }
+  },
+  {
    "id": "show:pk_b38",
    "sprite": "pk_b38",
    "home": false,
@@ -700,6 +756,292 @@
      7
     ]
    }
+  },
+  {
+   "id": "show:pk_v4",
+   "sprite": "pk_v4",
+   "home": false,
+   "name": "pk_v4",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_v4",
+     "w": 768,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_v4",
+    "kit": "v4",
+    "widthTiles": 24
+   }
+  },
+  {
+   "id": "show:pk_v5",
+   "sprite": "pk_v5",
+   "home": false,
+   "name": "pk_v5",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_v5",
+     "w": 768,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_v5",
+    "kit": "v5",
+    "widthTiles": 24
+   }
+  },
+  {
+   "id": "show:pk_v6",
+   "sprite": "pk_v6",
+   "home": false,
+   "name": "pk_v6",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_v6",
+     "w": 768,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_v6",
+    "kit": "v6",
+    "widthTiles": 24
+   }
+  },
+  {
+   "id": "show:pk_v1",
+   "sprite": "pk_v1",
+   "home": false,
+   "name": "pk_v1",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_v1",
+     "w": 768,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_v1",
+    "kit": "v1",
+    "widthTiles": 24
+   }
+  },
+  {
+   "id": "show:pk_v2",
+   "sprite": "pk_v2",
+   "home": false,
+   "name": "pk_v2",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_v2",
+     "w": 768,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_v2",
+    "kit": "v2",
+    "widthTiles": 24
+   }
+  },
+  {
+   "id": "show:pk_v3",
+   "sprite": "pk_v3",
+   "home": false,
+   "name": "pk_v3",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_v3",
+     "w": 768,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_v3",
+    "kit": "v3",
+    "widthTiles": 24
+   }
+  },
+  {
+   "id": "show:pk_v7",
+   "sprite": "pk_v7",
+   "home": false,
+   "name": "pk_v7",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_v7",
+     "w": 768,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_v7",
+    "kit": "v7",
+    "widthTiles": 24
+   }
+  },
+  {
+   "id": "show:pk_haunted",
+   "sprite": "pk_haunted",
+   "home": false,
+   "name": "pk_haunted",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_haunted",
+     "w": 768,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_haunted",
+    "kit": "haunted",
+    "widthTiles": 24
+   }
+  },
+  {
+   "id": "show:pk_windmill",
+   "sprite": "pk_windmill",
+   "home": false,
+   "name": "pk_windmill",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_windmill",
+     "w": 768,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_windmill",
+    "kit": "windmill",
+    "widthTiles": 24
+   }
+  },
+  {
+   "id": "show:pk_chapel",
+   "sprite": "pk_chapel",
+   "home": false,
+   "name": "pk_chapel",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_chapel",
+     "w": 768,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_chapel",
+    "kit": "chapel",
+    "widthTiles": 24
+   }
+  },
+  {
+   "id": "show:pk_chapel_gate",
+   "sprite": "pk_chapel_gate",
+   "home": false,
+   "name": "pk_chapel_gate",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "pk_chapel_gate",
+     "w": 768,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "compact"
+   },
+   "spec": {
+    "id": "pk_chapel_gate",
+    "kit": "chapel_gate",
+    "widthTiles": 24
+   }
   }
  ],
  "streets": [
@@ -729,6 +1071,8 @@
     "pk_c7b",
     "pk_o1a",
     "pk_o2a",
+    "pk_o3a",
+    "pk_o4a",
     "pk_c1a",
     "pk_c1b"
    ]
@@ -742,6 +1086,32 @@
     "pk_b346",
     "pk_b8",
     "pk_b6"
+   ]
+  },
+  {
+   "name": "Victorian civic",
+   "buildings": [
+    "pk_v4",
+    "pk_v5",
+    "pk_v6"
+   ]
+  },
+  {
+   "name": "Victorian wings and landmarks",
+   "buildings": [
+    "pk_v1",
+    "pk_v2",
+    "pk_v3",
+    "pk_v7"
+   ]
+  },
+  {
+   "name": "Other Additional Houses and chapel",
+   "buildings": [
+    "pk_haunted",
+    "pk_windmill",
+    "pk_chapel",
+    "pk_chapel_gate"
    ]
   }
  ]
