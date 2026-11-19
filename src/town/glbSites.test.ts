@@ -222,12 +222,9 @@ describe('hand-made landmark models in the towns', () => {
     expect(town('gamma').sites.some((s) => s.tenures.some((t) => t.kind === VIDEO_STATES[0]))).toBe(true);
   }, 120000);
 
-  it('do not let the strip centre cost another model its plot (gamma gets the feed mill back)', () => {
-    const gone = (seed: string): string[] => glbUnplaced(seed, town(seed).sites).filter((k) => !VIDEO_STATES.includes(k));
-    // gamma: the motel and the bowling alley are what its east strip cannot hold with the strip centre; the feed mill is placed
-    expect(gone('gamma')).toEqual(['landmark_glb_roadside_motel', 'landmark_glb_starling_lanes']);
-    expect(town('gamma').sites.some((s) => s.tenures.some((t) => t.kind === 'landmark_glb_feed_mill'))).toBe(true);
-    for (const seed of ['mu', 'quartz', 'orbit']) expect(gone(seed).length, seed).toBeLessThanOrEqual(3);
+  it('place every model the town earns: the plan reserves its plot (gamma has its feed mill, motel and lanes)', () => {
+    for (const seed of SEEDS) expect(glbUnplaced(seed, town(seed).sites), seed).toEqual([]);
+    for (const k of ['landmark_glb_feed_mill', 'landmark_glb_roadside_motel', 'landmark_glb_starling_lanes']) expect(town('gamma').sites.some((s) => s.tenures.some((t) => t.kind === k)), k).toBe(true);
   }, 120000);
 
   it('put the hand-made depot on its track in a town of 3,000 and more', () => {
@@ -258,11 +255,12 @@ describe('hand-made landmark models in the towns', () => {
 
   it('place every model in some town and year', () => {
     const seen = new Set<string>();
-    for (const seed of SEEDS) for (const s of town(seed).sites) for (const t of s.tenures) seen.add(t.kind);
+    // (rho is a county seat: the courthouse's states)
+    for (const seed of [...SEEDS, 'rho']) for (const s of town(seed).sites) for (const t of s.tenures) seen.add(t.kind);
     for (const seed of SEEDS) if (town(seed).rail.depot?.premier) seen.add('landmark_glb_premier_railroad_depot');
     expect(GLB_LANDMARK_KINDS.filter((k) => !seen.has(k))).toEqual([]);
     // and gamma, the app's town, finds a plot for nearly all it earns
-    expect(glbUnplaced('gamma', town('gamma').sites).length).toBeLessThanOrEqual(2);
+    expect(glbUnplaced('gamma', town('gamma').sites)).toEqual([]);
     // 1955 and 1985 show something standing
     for (const y of [1955, 1985]) expect(SEEDS.some((seed) => town(seed).sites.some((s) => glbStandingOn(s, y)))).toBe(true);
   }, 60000);

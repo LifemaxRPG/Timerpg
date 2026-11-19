@@ -175,7 +175,9 @@ export function planFarms(plan: TownPlan): FarmPlan {
 
   // what the town will ever have: plots, streets, landmarks, plaza (the map's water is checked on its mask)
   const town: Box[] = [...plan.roads, ...plan.candidates, ...plan.landmarks, plan.plaza];
-  const fixed: Box[] = [...plan.roads, ...plan.landmarks, plan.plaza];
+  // (the planned town: a field may lie over its later districts' streets and plots, farmed until they are built: farmsIn
+  // sells it the year anything on it is; Main Street, the square and the rail band are never farmed)
+  const fixed: Box[] = plan.v2 ? [...plan.roads.filter((r) => r.main), plan.plaza, ...(plan.v2.railBand ? [plan.v2.railBand.rect] : [])] : [...plan.roads, ...plan.landmarks, plan.plaza];
   const wet = (b: Box, pad: number): boolean =>
     hitsWater(plan.water, { x: Math.floor(b.x), y: Math.floor(b.y), w: Math.ceil(b.w), h: Math.ceil(b.h) }, pad) || water.some((w) => hit(b, w, pad));
   const inside = (b: Box): boolean => b.x >= extent.x + 2 && b.y >= extent.y + 2 && b.x + b.w <= extent.x + extent.w - 2 && b.y + b.h <= extent.y + extent.h - 2;
@@ -224,7 +226,9 @@ export function planFarms(plan: TownPlan): FarmPlan {
   const farms: Farmstead[] = [];
   const fields: FarmField[] = [];
   const taken: Box[] = roads.map((r) => roadRect(r, ROAD_W + 4));
-  const freeYard = (b: Box): boolean => inside(b) && !town.some((t) => hit(b, t, 4)) && !taken.some((t) => hit(b, t, 1)) && !wet(b, 4);
+  // (a farmstead keeps 10 tiles off the farmland's outer edge, where the railroads come in from the world)
+  const insideYard = (b: Box): boolean => b.x >= extent.x + 10 && b.y >= extent.y + 10 && b.x + b.w <= extent.x + extent.w - 10 && b.y + b.h <= extent.y + extent.h - 10;
+  const freeYard = (b: Box): boolean => insideYard(b) && !town.some((t) => hit(b, t, 4)) && !taken.some((t) => hit(b, t, 1)) && !wet(b, 4);
   const freeField = (b: Box): boolean => inside(b) && !fixed.some((t) => hit(b, t, 2)) && !taken.some((t) => hit(b, t, 2)) && !wet(b, 3);
 
   for (const road of roads) {

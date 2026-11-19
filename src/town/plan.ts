@@ -187,7 +187,7 @@ export function primePlan(seed: string, plan: TownPlan): void {
 
 /** The planned town (TOWN_PLAN.md) or the old grown one (network.ts, frontage.ts): kept behind this switch until the
  * plan is accepted. */
-let PLAN_V2 = false;
+let PLAN_V2 = true;
 export function setPlanVersion(v: 1 | 2): void { if ((v === 2) !== PLAN_V2) { PLAN_V2 = v === 2; cache.clear(); } }
 export const planVersion = (): 1 | 2 => (PLAN_V2 ? 2 : 1);
 
@@ -341,11 +341,12 @@ function planTownV2(seed: string): TownPlan {
   // ---- water: the river down its course (meandering inside its column), or a lake beyond the town's edge
   let water: WaterBody | null = null;
   if (plat.river) water = riverWater(seed, plat.river.channel.map(mv), plat.river.column.map(mv), width, height, roads);
-  else if (waterKind(seed) === 'lake') water = planWater(seed, { width, height, marginL: 8, marginR: 8, top: 8, vroads: [], roads });
+  else if (waterKind(seed) === 'lake') water = planWater(seed, { width, height, marginL: 8, marginR: 8, top: 8, vroads: [], roads, avoid: [...dist.lots.map(mv), ...reserved] });
 
   // ---- the lots: plan order, and the year each is built as the town grows into the plan
   const lots = dist.lots.map(mv).filter((l) => !water || !hitsWaterRect(water, l, 1));
-  const cap = (k: LotKind): number => (k === 'apartment' ? 4 : k === 'shop' ? 0 : 1);
+  // (a home is a building: an apartment block counts as one, as a house does)
+  const cap = (k: LotKind): number => (k === 'shop' ? 0 : 1);
   const homes = lots.filter((l) => l.kind !== 'shop');
   const total = homes.reduce((n, l) => n + cap(l.kind), 0);
   let peak = 0;

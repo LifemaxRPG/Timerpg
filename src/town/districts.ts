@@ -154,8 +154,8 @@ function fill(p: Plat): Districts {
     const pz = onFace(civic, mf, 16, 13, Math.round((civic.w - 16) / 2));
     reserved.push({ ...pz, id: 'civic:plaza', district: 'square', face: mf, chain: [{ use: 'plaza', from: 0 }] });
     plaza = pz;
-    if (civicKinds.includes('post')) reserve('landmark:post', lm('post'), [civic], () => [mf], [spec('post')], 'near', { pad: 0, keep: (r) => !hit(r, pz, 0) && Math.abs(r.x + r.w - pz.x) <= 2 });
-    if (civicKinds.includes('clocktower')) reserve('landmark:clocktower', lm('clocktower'), [civic], () => [mf], [spec('clocktower')], 'near', { pad: 0, keep: (r) => !hit(r, pz, 0) && Math.abs(r.x - pz.x - pz.w) <= 2 });
+    if (civicKinds.includes('post')) reserve('landmark:post', lm('post'), [civic], () => [mf], [spec('post')], 'near', { pad: 0, keep: (r) => pz.x - (r.x + r.w) >= 2 && pz.x - (r.x + r.w) <= 4 });
+    if (civicKinds.includes('clocktower')) reserve('landmark:clocktower', lm('clocktower'), [civic], () => [mf], [spec('clocktower')], 'near', { pad: 0, keep: (r) => r.x - (pz.x + pz.w) >= 2 && r.x - (pz.x + pz.w) <= 4 });
   }
   const civic2 = at(0, -2);
   const behind = [civic2, at(1, -2), at(-1, -2)].filter((b): b is Block => !!b && b.district !== 'river');
@@ -295,7 +295,7 @@ function fill(p: Plat): Districts {
   }
 
   // ---------------------------------------------------------------------------------------------- the lots
-  const occupied = (r: Rect): boolean => reserved.some((q) => hit(r, q, 1)) || lots.some((l) => hit(r, l, 1)) || wet(r) || onTrack(r);
+  const occupied = (r: Rect): boolean => reserved.some((q) => hit(r, q, 1)) || lots.some((l) => hit(r, l, 0)) || wet(r) || onTrack(r);
   const S = (k: LotKind): [number, number] => [SIZES[k].w, SIZES[k].h];
   /** Lays lots of [kinds] (picked by the seed) along face [f] of [b], [gap] tiles apart. */
   const face = (b: Block, f: Face, kinds: LotKind[], gap: (k: LotKind, i: number) => number, rotate = false): void => {

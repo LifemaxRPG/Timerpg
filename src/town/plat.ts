@@ -338,7 +338,7 @@ export function platTown(seed: string): Plat {
     railBand = { rect: { x: X[0]! - 40, y: yT + 2, w: X[cols.length]! - X[0]! + 80, h: yB - yT - 4 }, horizontal: true, track: yT + 26, depot: { x: X[depotCol]!, y: yT + 2 }, townSide: -1 };
   } else if (railcol >= 0) {
     const xL = X[railcol]!, xR = X[railcol + 1]!;
-    railBand = { rect: { x: xL + 2, y: Y[0]! - 40, w: xR - xL - 4, h: Y[rows.length]! - Y[0]! + 80 }, horizontal: false, track: xL + 18, depot: { x: xR - 2, y: Y[mainRow]! - 2 }, townSide: 1 };
+    railBand = { rect: { x: xL + 2, y: Y[0]! - 40, w: xR - xL - 4, h: Y[rows.length]! - Y[0]! + 80 }, horizontal: false, track: xL + 18, depot: { x: xR - 2, y: Y[mainRow]! - 20 }, townSide: 1 };
   }
 
   // ---------------------------------------------------------------------------------------------- the river's course

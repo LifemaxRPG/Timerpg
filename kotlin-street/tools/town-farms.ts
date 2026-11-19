@@ -62,7 +62,7 @@ export function withFarms(g: TownGraph, json: TownGraph['json'] = g.json): TownG
     let d = devOf.get(y);
     if (!d) {
       const L = layoutTown(worldAt(tl, y));
-      const lots = [...L.lots, ...L.vacantLots];
+      const lots = [...L.lots, ...L.vacantLots, ...L.fillers];
       // (the hand-made landmark models standing that year, and the railroad's hand-made depot, are built ground too)
       const glbRects = [...glbStanding(glb.sites, y).map((q) => q.site.rect), ...(glb.rail.depot?.premier ? [glb.rail.depot.premier] : [])];
       const glbPlots = glbRects.map((r) => ({ ...r, id: 'glb' })) as unknown as typeof L.landmarks;

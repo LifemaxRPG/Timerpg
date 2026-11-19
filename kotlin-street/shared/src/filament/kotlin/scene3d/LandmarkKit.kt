@@ -51,6 +51,8 @@ data class LandmarkSpec(
     val room: String = "shelves",
     /** The model's painted variants (the same model, another name on it: the works'), files as [file]; empty: [file] only. */
     val variants: List<String> = emptyList(),
+    /** Its distant silhouette (a few hundred triangles, the same origin and pictures), drawn past [TownLandmark.LOD]; null: none. */
+    val far: String? = null,
 ) {
     /** The file of variant [v] (the town's pick: street.json's glbLandmarks `variant`). */
     fun fileOf(v: Int): String = if (variants.isEmpty()) file else variants[Math.floorMod(v, variants.size)]
@@ -77,7 +79,8 @@ data class LandmarkSpec(
                 LandmarkSpec(o.getString("kind"), o.getString("name"), o.getString("file"), o.optString("info").ifBlank { null }, o.getString("role"),
                     era.getInt("from"), era.getInt("to"), era.optInt("built", era.getInt("from")), lw, ld, bw, bd, o.optString("lot", "lot"), sw,
                     o.optJSONObject("price")?.let { PriceBoard.parse(it) }, hid, o.optString("room", "shelves"),
-                    o.optJSONArray("variants")?.let { v -> (0 until v.length()).map { v.getString(it) } } ?: emptyList())
+                    o.optJSONArray("variants")?.let { v -> (0 until v.length()).map { v.getString(it) } } ?: emptyList(),
+                    o.optString("far").ifBlank { null })
             }
         }
     }
@@ -216,8 +219,51 @@ object LandmarkKit {
      * [hide] more nodes not drawn (and their collision boxes dropped), [info] the model-info.json text (tags the
      * collision boxes) or null.
      */
-    fun build(glb: GlbFile, spec: LandmarkSpec, year: Int, seed: Int = 0, keepLot: Boolean = true, hide: Set<String> = emptySet(), info: String? = null): LandmarkModel {
+    /**
+     * A clock's hands (nodes `clock_hour*`, `clock_minute*`: one pair a face, pivoted at the dial's middle, model-info.json
+     * `clock_hands`) turned from the time the model draws ([info]'s `clock_time`) to [hours] (the game's, 0-24), if the
+     * clock runs (`clock_active`); null: as modelled. Each face's hands turn about its outward axis, clockwise seen from outside.
+     */
+    class ClockHands(private val dHour: Double, private val dMinute: Double) {
+        fun turn(n: GlbFile.Node, wp: FloatArray, U: Float) {
+            val minute = n.name.startsWith("clock_minute"); if (!minute && !n.name.startsWith("clock_hour")) return
+            val face = n.name.substringAfter(if (minute) "clock_minute" else "clock_hour").trimStart('_')
+            // the face's outward axis: the front (+z), north (-z), east (+x), west (-x)
+            val (ax, az) = when (face) { "north" -> 0f to -1f; "east" -> 1f to 0f; "west" -> -1f to 0f; else -> 0f to 1f }
+            val px = n.world[12] * U; val py = n.world[13] * U; val pz = n.world[14] * U
+            // clockwise seen from outside: a turn of -angle about the outward axis
+            val a = -(if (minute) dMinute else dHour)
+            val c = kotlin.math.cos(a).toFloat(); val s = kotlin.math.sin(a).toFloat()
+            for (v in 0 until wp.size / 3) {
+                val x = wp[v * 3] - px; val y = wp[v * 3 + 1] - py; val z = wp[v * 3 + 2] - pz
+                if (az != 0f) {
+                    // about z (sign by the face): x, y turn
+                    val k = az
+                    wp[v * 3] = px + c * x - s * k * y; wp[v * 3 + 1] = py + s * k * x + c * y
+                } else {
+                    // about x: y, z turn
+                    val k = ax
+                    wp[v * 3 + 1] = py + c * y - s * k * z; wp[v * 3 + 2] = pz + s * k * y + c * z
+                }
+            }
+        }
+    }
+
+    fun clockHands(info: String?, hours: Float?): ClockHands? {
+        if (info == null || hours == null) return null
+        val o = runCatching { org.json.JSONObject(info) }.getOrNull() ?: return null
+        if (!o.optBoolean("clock_active", false)) return null
+        val t = o.optString("clock_time").split(":").mapNotNull { it.toIntOrNull() }
+        if (t.size != 2) return null
+        val from = t[0] % 12 + t[1] / 60.0
+        val to = (hours % 12f).toDouble()
+        val twoPi = 2 * Math.PI
+        return ClockHands((to - from) / 12 * twoPi, ((to * 60) % 60 - t[1]) / 60 * twoPi)
+    }
+
+    fun build(glb: GlbFile, spec: LandmarkSpec, year: Int, seed: Int = 0, keepLot: Boolean = true, hide: Set<String> = emptySet(), info: String? = null, clockHours: Float? = null): LandmarkModel {
         val U = UNITS_PER_METRE
+        val hands = clockHands(info, clockHours)
         val hidden = spec.hidden + hide
         val lotNode = glb.node(spec.lot)
         fun skipped(n: GlbFile.Node): Boolean {
@@ -243,6 +289,8 @@ object LandmarkKit {
                 val nv = p.pos.size / 3
                 val wp = FloatArray(nv * 3)
                 for (v in 0 until nv) { GlbFile.point(n.world, p.pos[v * 3], p.pos[v * 3 + 1], p.pos[v * 3 + 2], wp, v * 3); for (c in 0..2) wp[v * 3 + c] *= U }
+                // a clock's hands turned to the game's time (a working clock: the model draws them at its own time)
+                hands?.turn(n, wp, U)
                 if (col) { colTris += FloatArray(p.idx.size * 3) { k -> wp[p.idx[k / 3] * 3 + k % 3] }; continue }
                 val a = acc.getOrPut(p.material) { Acc() }
                 val base = a.pos.size / 3
@@ -609,7 +657,12 @@ object LandmarkKit {
     }
 
     /** A collision box's tags from model-info.json: its centre in the model (metres, glTF axes), group, attachment. */
-    class BoxTag(val x: Float, val y: Float, val z: Float, val group: String, val attachment: String, val sx: Float = 0f, val sy: Float = 0f, val sz: Float = 0f)
+    class BoxTag(val x: Float, val y: Float, val z: Float, val group: String, val attachment: String, val sx: Float = 0f, val sy: Float = 0f, val sz: Float = 0f, val source: String = "") {
+        /** A flight of steps, a landing, a porch or a ramp a walker goes up (no higher than [WALK_UP] m): ground, not a wall. */
+        val walkOn: Boolean get() = y + sy / 2f <= WALK_UP && Regex("step|stair|landing|porch|ramp").containsMatchIn(source)
+    }
+    /** The highest platform (metres) the town's flat walk takes as ground: a courthouse's porch at the top of its steps. */
+    const val WALK_UP = 1.3f
 
     /** The door nodes model-info.json marks as internal (`doors[].external` false). */
     fun innerDoors(info: String): Set<String> {
@@ -626,7 +679,7 @@ object LandmarkKit {
             val sz = b.optJSONArray("size")
             // (sizes likewise: Blender's (x, y, z) is glTF's (x, z, y))
             BoxTag(ce.getDouble(0).toFloat(), ce.getDouble(2).toFloat(), -ce.getDouble(1).toFloat(), b.optString("group"), b.optString("attachment"),
-                sz?.optDouble(0)?.toFloat() ?: 0f, sz?.optDouble(2)?.toFloat() ?: 0f, sz?.optDouble(1)?.toFloat() ?: 0f)
+                sz?.optDouble(0)?.toFloat() ?: 0f, sz?.optDouble(2)?.toFloat() ?: 0f, sz?.optDouble(1)?.toFloat() ?: 0f, b.optString("source"))
         }
     }
 
@@ -642,7 +695,7 @@ object LandmarkKit {
         if (tags.isNotEmpty() && tags.all { it.sx > 0f && it.sy > 0f && it.sz > 0f }) {
             val out = ArrayList<Float>()
             for (t in tags) {
-                if (!keepLot && t.group == "lot" || t.attachment in hidden) continue
+                if (!keepLot && t.group == "lot" || t.attachment in hidden || t.walkOn) continue
                 if ((t.y - t.sy / 2f) * U > HEAD || (t.y + t.sy / 2f) * U < STEP) continue
                 out += (t.x - t.sx / 2f) * U; out += (t.z - t.sz / 2f) * U; out += (t.x + t.sx / 2f) * U; out += (t.z + t.sz / 2f) * U
             }

@@ -34,11 +34,17 @@ internal class TownLandmark(
     private val year: Int, private val seed: Int, private val collision: TownCollision?,
     val closed: Boolean = false, private val hide: Set<String> = emptySet(),
     private val kind: PlacementKind = PlacementKind.LANDMARK,
+    /** Its distant silhouette's file ([LandmarkSpec.far]), drawn instead of it past [LOD]; null: none. */
+    private val farBytes: (() -> ByteArray?)? = null,
+    /** The game's time of day (hours) a working clock's hands are set to when it is built; null: as modelled. */
+    private val clockHours: () -> Float? = { null },
 ) {
     private val layer = PropLayer(engine, scene, lit, proxy, sharedTextures = textures, cull = true)
     private val glow = CinemaLayer(layer)
+    private val farLayer = farBytes?.let { PropLayer(engine, scene, lit, proxy, sharedTextures = textures, cull = true) }
+    private val farGlow = farLayer?.let { CinemaLayer(it) }
     private val lamps = CinemaLights(engine, scene)
-    private class Built(val front: Float, val parts: List<CinemaLayer.Packed>, val at: FloatArray, val box: FloatArray, val body: FloatArray, val lights: List<CinemaLight>, val solids: FloatArray, val doors: List<LandmarkDoor>, val triangles: Int)
+    private class Built(val far: List<CinemaLayer.Packed>?, val front: Float, val parts: List<CinemaLayer.Packed>, val at: FloatArray, val box: FloatArray, val body: FloatArray, val lights: List<CinemaLight>, val solids: FloatArray, val doors: List<LandmarkDoor>, val triangles: Int)
     private var job: java.util.concurrent.Future<Built>? = null
     private var at: FloatArray = frameOf(0f, 0f)
     var done = false; private set
@@ -60,7 +66,7 @@ internal class TownLandmark(
     fun start(pool: java.util.concurrent.ExecutorService) {
         if (job != null || done) return
         job = pool.submit(java.util.concurrent.Callable {
-            val lm = LandmarkKit.build(GlbFile.read(bytes()), spec, year, seed, hide = hide, info = info())
+            val lm = LandmarkKit.build(GlbFile.read(bytes()), spec, year, seed, hide = hide, info = info(), clockHours = clockHours())
             val m = lm.model
             val a = frameOf((m.footprint[0] + m.footprint[2]) / 2f, lm.front)
             // the building: its walls, roofs and glass (not the lot's ground, the signs on poles or the props)
@@ -70,7 +76,9 @@ internal class TownLandmark(
                 b[0] = min(b[0], q[0]); b[1] = min(b[1], q[2]); b[2] = max(b[2], q[3]); b[3] = max(b[3], q[5]); b[4] = max(b[4], q[4])
             }
             val fp = floatArrayOf(m.footprint[0], m.footprint[1], m.footprint[2], m.footprint[3], m.height)
-            Built(lm.front, CinemaLayer.pack(m, a), a, fp, if (b[0] < b[2]) b else fp, m.lights, StoreSolids.world(lm.solids, a), lm.doors, m.triangles)
+            // (the distant silhouette in the same frame: it shares the model's origin)
+            val far = farBytes?.invoke()?.takeIf { it.isNotEmpty() }?.let { fb -> CinemaLayer.pack(LandmarkKit.build(GlbFile.read(fb), spec, year, seed, hide = hide).model, a) }
+            Built(far, lm.front, CinemaLayer.pack(m, a), a, fp, if (b[0] < b[2]) b else fp, m.lights, StoreSolids.world(lm.solids, a), lm.doors, m.triangles)
         })
     }
 
@@ -85,6 +93,7 @@ internal class TownLandmark(
         }
         at = b.at
         glow.upload(b.parts)
+        b.far?.let { farGlow?.upload(it) }
         lamps.add(b.lights, at)
         job = null
         val fp = b.box
@@ -146,22 +155,28 @@ internal class TownLandmark(
         if (!done) return out
         val kept = min(cut(cx, cz), if (pose.distance(cx, cy, cz) - r < FAR) 1f else 0f)
         val fade = min(kept, occFade)
-        val on = fade > .02f && pose.sees(cx, cy, cz, r)
+        val seen = fade > .02f && pose.sees(cx, cy, cz, r)
+        // (past LOD its distant silhouette stands in for it, where it has one)
+        val far = farLayer != null && pose.distance(cx, cy, cz) - r > LOD
+        val on = seen && !far
         // (cut away for the camera, it keeps its shadow, as a building does; shadows only within the view's range)
-        val near = kept > .5f && pose.rangeFade(cx, cy, cz, r) > .5f && (on || pose.sees(cx, cy, cz, r + 300f))
+        val near = kept > .5f && pose.rangeFade(cx, cy, cz, r) > .5f && (on || pose.sees(cx, cy, cz, r + 300f)) && !far
         layer.update(look, dark, on, fade, near, castFade = 1f)
+        farLayer?.update(look, dark, seen && far, fade, false, castFade = 1f)
+        if (seen && far) farGlow?.update(if (closed) 0f else dark, seconds)
         // (a shut business is dark: no signs, no lit windows, no lamps)
         val lit = if (closed) 0f else dark
         if (on) glow.update(lit, seconds)
         lamps.update(lit, on && near)
         shown = on
         if (on) { out[0] = layer.draws; out[1] = layer.triangles }
+        if (seen && far) { out[0] = farLayer!!.draws; out[1] = farLayer.triangles }
         if (near) out[2] = layer.casters
         return out
     }
 
     fun destroy() {
-        job?.cancel(true); layer.destroy(); lamps.destroy()
+        job?.cancel(true); layer.destroy(); farLayer?.destroy(); lamps.destroy()
         collision?.setExtra(KEY + sprite, null); collision?.setExtraDoors(KEY + sprite, null)
     }
 
@@ -169,6 +184,8 @@ internal class TownLandmark(
         const val KEY = "landmark:"
         /** How far a landmark model stays drawn (street units past its reach): a water tower is seen from across town. */
         const val FAR = 12000f
+        /** Past this (street units beyond its reach) a model with a distant silhouette ([LandmarkSpec.far]) draws that instead. */
+        const val LOD = 3000f
 
         /** A row slot's frame: the lot's front edge on the building line [setback] back, its middle on the slot's. */
         fun rowFrame(place: TownPlace, setback: Float): (Float, Float) -> FloatArray = { xMid, front ->

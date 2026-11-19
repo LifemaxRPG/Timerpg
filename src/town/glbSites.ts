@@ -2,6 +2,7 @@ import { rand } from '../sim/rng';
 import { archetypeOf } from '../sim/archetype';
 import { townFounded } from '../world/names';
 import { isCountySeat } from './plat';
+import { roadOnFace } from './districts';
 import { GLB_LANDMARKS, glbLandmarkTiles, type GlbLandmarkKind } from './glbLandmarks';
 import { POPULATION_BY, POPULATION_FROM, populationIn } from './population';
 import { chapel, stripFace, townHall } from './downtown';
@@ -329,7 +330,7 @@ export function glbTenures(seed: string): GlbTenure[] {
 /** Towns of this many inhabitants (at the peak) may have the radio station. */
 export const RADIO_PEOPLE = 2500;
 /** The radio station's painted names, in the order of the model's variants (tools/landmarks/radio-station/make_variants.py). */
-export const RADIO_NAMES = ['Valley Radio', 'Prairie 1340 AM', 'Riverbend Radio', 'Hometown 1230 AM', 'Cedar Valley Radio', 'Crossroads 1450 AM'];
+export const RADIO_NAMES = ['Valley Radio', 'Prairie 1340 AM', 'Riverbend Radio', 'Hometown Radio', 'Cedar 1400 AM', 'Crossroads 1450'];
 /** The courthouse's four states on its one plot, in date order (shell, lot, origin and doors shared). */
 export const COURTHOUSE_STATES: readonly GlbLandmarkKind[] = [
   'landmark_glb_county_courthouse_1894', 'landmark_glb_county_courthouse_1962', 'landmark_glb_county_courthouse_1988', 'landmark_glb_county_courthouse_2008',
@@ -339,6 +340,8 @@ export const COURTHOUSE_STATES: readonly GlbLandmarkKind[] = [
 
 /** Every site the town's models stand on over the years (deterministic in the seed's plan and [input]). */
 export function glbSites(plan: TownPlan, input: GlbInput): GlbSite[] {
+  // the planned town: the ledger's plots (src/town/districts.ts), each with the tenures of its chain
+  if (plan.v2) return plannedSites(plan);
   const seed = plan.seed;
   const used = new Set(input.lots.map((l) => l.slot));
   const usedC = plan.candidates.filter((c) => used.has(c.id));
@@ -512,6 +515,24 @@ export function glbSites(plan: TownPlan, input: GlbInput): GlbSite[] {
     if (best) sites.push(...best.sites);
   }
   return sites;
+}
+
+/** Which reserved plot of the plan a model's tenure stands on (one plot for a chain: the clubs, the works and The Foundry, the
+ * strip centre's and the courthouse's states). */
+export const glbPlotOf = (kind: GlbLandmarkKind): string => `glb:${kind.slice('landmark_glb_'.length).replace(/_\d{4}$/, '').replace(/^(mirage|pulse)_nightclub$/, 'club').replace(/^foundry_(factory|nightclub)$/, 'foundry')}`;
+
+function plannedSites(plan: TownPlan): GlbSite[] {
+  const tenures = glbTenures(plan.seed);
+  const out: GlbSite[] = [];
+  for (const q of plan.v2!.reserved) {
+    if (!q.id.startsWith('glb:')) continue;
+    const ts = tenures.filter((t) => glbPlotOf(t.kind) === q.id);
+    if (!ts.length) continue;
+    const road = roadOnFace(plan.roads, q, q.face);
+    if (road < 0) continue;
+    out.push({ id: q.id, rect: { x: q.x, y: q.y, w: q.w, h: q.h }, road, face: q.face, lotType: LOT_TYPE[ts[0]!.kind], tenures: ts });
+  }
+  return out;
 }
 
 /** The kinds of the tenures [glbTenures] gives that found no plot in [sites] (for reports and tests). */

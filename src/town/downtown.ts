@@ -279,6 +279,8 @@ export interface CivicBuilding {
 /** The old town hall at the back of the plaza (most towns), built 1880-1910. */
 export function townHall(plan: TownPlan): CivicBuilding | undefined {
   const R = (...k: (string | number)[]): number => rand(plan.seed, 'downtown', 'townhall', ...k);
+  // (a county seat's stands on its own plot facing the square: it always has one)
+  if (plan.v2?.townHall) return { kind: 'townhall', name: 'Town Hall', built: 1880 + Math.floor(R('built') * 31), rect: { ...plan.v2.townHall } };
   if (R('has') >= 0.75) return undefined;
   return { kind: 'townhall', name: 'Town Hall', built: 1880 + Math.floor(R('built') * 31), rect: { ...plan.plaza } };
 }
@@ -293,6 +295,10 @@ export const CHAPEL_REACH = 80;
  * plaza or water is, a tile clear of them, its front a tile from the road (as every plot's). Undefined if none is free.
  */
 export function chapel(plan: TownPlan): CivicBuilding | undefined {
+  if (plan.v2) {
+    const q = plan.v2.reserved.find((r) => r.id === 'civic:chapel');
+    return q && { kind: 'chapel', name: 'Grace Chapel', built: 1870 + Math.floor(rand(plan.seed, 'downtown', 'chapel', 'built') * 46), rect: { x: q.x, y: q.y, w: q.w, h: q.h } };
+  }
   const grid = new Grid(plan.width, plan.height);
   for (const r of plan.roads) grid.mark(r, 1);
   for (const c of plan.candidates) grid.mark(c, 1);

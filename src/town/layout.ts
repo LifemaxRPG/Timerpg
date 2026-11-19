@@ -39,6 +39,9 @@ export interface Lot {
   /** Household heads living here (several in an apartment building). */
   heads: Id[];
   residents: Id[];
+  /** One of the town's other homes or shops (the planned town built out: TOWN_PLAN.md "Households and filler homes"): it
+   * stands, lit and lived in, but has no simulated family or business yet (families can be added later). */
+  filler?: true;
 }
 
 export interface TownLayout {
@@ -48,6 +51,8 @@ export interface TownLayout {
   roads: Road[];
   lots: Lot[];
   vacantLots: Lot[];
+  /** The planned town's other homes and shops standing this year (no simulated family or business: [Lot.filler]). */
+  fillers: Lot[];
   /** Civic landmarks that have opened by this year (world.year >= openYear). */
   landmarks: LandmarkPlot[];
   /** Year-dependent decoration (yards, trees on empty plots). Static props live in the plan. */
@@ -129,8 +134,9 @@ export function draftLots(w: World, plan: TownPlan): Lot[] {
     room += c.kind === 'apartment' ? 3 : 1;
     if (room >= heads.length * 1.5) { frontier = c.rank; break; }
   }
+  // (the planned town: a strict pick takes only lots built by this year, as the town grows into its plan)
   const slotsFor = (kind: LotKind, strict = false): Candidate[] =>
-    slotsOf(kind).filter((c) => !used.has(c.id) && (!strict || (kind !== 'small' && kind !== 'medium') || c.rank <= frontier));
+    slotsOf(kind).filter((c) => !used.has(c.id) && (!strict || (c.from !== undefined ? c.from <= w.year : (kind !== 'small' && kind !== 'medium') || c.rank <= frontier)));
   const estateHeads = tierHeads((h) => wealthOf(h) >= median * 5 && wealthOf(h) > 0, slotsOf('estate').length);
   const villaHeads = tierHeads((h) => wealthOf(h) >= median * 2.5 && wealthOf(h) > 0, slotsOf('villa').length);
   const houseHeads = tierHeads((h) => wealthOf(h) >= median * 1.4 && wealthOf(h) > 0);
@@ -189,7 +195,8 @@ export function draftLots(w: World, plan: TownPlan): Lot[] {
   placeHouses(aptHeads, 'apartment');
   placeHouses(smallHeads, 'small');
 
-  const shopSlots = slotsOf('shop');
+  // (the planned town's core first: the shops whose street block stands this year)
+  const shopSlots = [...slotsOf('shop').filter((c) => (c.from ?? 0) <= w.year), ...slotsOf('shop').filter((c) => (c.from ?? 0) > w.year)];
   const open = Object.values(w.businesses).filter((b) => b.closedYear === undefined);
   const placedShops = assign(w.seed, open.map((b) => b.id), shopSlots, 'shop');
   for (const b of open) {
@@ -211,7 +218,8 @@ export function layoutTown(w: World): TownLayout {
   const properties = w.settlement?.properties ?? draftLots(w, plan);
   const lots = properties.filter((l) => l.vacantSince === undefined);
   const vacantLots = properties.filter((l) => l.vacantSince !== undefined);
-  const used = new Set(properties.map((l) => l.slot));
+  const fillers = fillerLots(w, plan, properties);
+  const used = new Set([...properties, ...fillers].map((l) => l.slot));
 
   // ---------- year-dependent decoration ----------
   const props: Prop[] = [];
@@ -262,7 +270,7 @@ export function layoutTown(w: World): TownLayout {
 
   // Yards: every standing house keeps a picket fence along the front (with a gate gap), hedges down
   // both sides and along the back, and a dirt path from the door to the gate.
-  for (const lot of properties) {
+  for (const lot of [...properties, ...fillers]) {
     if (lot.kind !== 'house' || lot.front === 0) continue;
     const style = neighborhoodOf(plan, lot.neighborhood).yard;
     const bottom = lot.y + lot.h; // plot bottom edge, in tiles
@@ -313,7 +321,7 @@ export function layoutTown(w: World): TownLayout {
   // The town grows outward: a street is built once something on it is in use (a home, a shop, or an
   // open landmark), plus whatever streets link it back to the main street. The rest are woodland.
   const roads = plan.roads;
-  const builtRoads = developedRoads(plan, properties, w.year, w.settlement?.roads);
+  const builtRoads = developedRoads(plan, [...properties, ...fillers], w.year, w.settlement?.roads);
   const wanted = new Set(builtRoads.map((r) => roads.indexOf(r)));
   // Streets not built yet: woodland grows right across them.
   roads.forEach((r, i) => {
@@ -334,9 +342,37 @@ export function layoutTown(w: World): TownLayout {
     }
   });
 
-  const farms = farmsIn(plan, w.year, { roads: builtRoads, lots: properties, landmarks });
-  return { width: plan.width, height: plan.height, roads: builtRoads, lots, vacantLots, landmarks, props, plan, farms };
+  const farms = farmsIn(plan, w.year, { roads: builtRoads, lots: [...properties, ...fillers], landmarks });
+  return { width: plan.width, height: plan.height, roads: builtRoads, lots, vacantLots, fillers, landmarks, props, plan, farms };
 }
+
+/**
+ * The planned town's other homes and shops in [w.year]: every lot built out by then (Candidate.from) that no simulated
+ * household or business has, as a house of its plot's kind (its art from its look, the year and its neighbourhood) or a
+ * shop front of an ordinary kind, with nobody in it ([Lot.filler]). None in the old plan.
+ */
+export function fillerLots(w: World, plan: TownPlan, properties: readonly Lot[]): Lot[] {
+  const taken = new Set(properties.map((l) => l.slot));
+  const out: Lot[] = [];
+  for (const c of plan.candidates) {
+    if (c.from === undefined || c.from > w.year || taken.has(c.id)) continue;
+    const look = rand(w.seed, 'filler', c.id);
+    const nb = neighborhoodOf(plan, c.neighborhood);
+    if (c.kind === 'shop') {
+      const kind = FILLER_SHOPS[Math.floor(rand(w.seed, 'filler-kind', c.id) * FILLER_SHOPS.length)]!;
+      out.push({ x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, neighborhood: c.neighborhood, kind: 'shop', tier: 'shop', refId: '', label: kind, look, front: 0,
+        art: shopFacade(kind, look, w.year, nb.shopColour), builtYear: c.from, heads: [], residents: [], filler: true });
+      continue;
+    }
+    const tier = c.kind as ResidentialKind;
+    out.push({ x: c.x, y: c.y, w: c.w, h: c.h, slot: c.id, neighborhood: c.neighborhood, kind: 'house', tier, refId: '', label: tier === 'apartment' ? 'Apartments' : 'House',
+      look, front: FRONT[tier], art: houseArt(tier, look, w.year, nb.palette), builtYear: c.from, heads: [], residents: [], filler: true });
+  }
+  return out;
+}
+
+/** The kinds a filler shop front wears (ordinary main street trades with art of their own: src/town/facade.ts). */
+const FILLER_SHOPS = ['Bakery', 'Clothing Store', 'Music Store', 'Dress Shop', 'Butcher', 'Toy Store', 'Ice Cream Parlor'];
 
 /** Infrastructure survives vacancy and population decline. */
 export function developedRoads(plan: TownPlan, lots: Lot[], year: number, previous: number[] = []): Road[] {

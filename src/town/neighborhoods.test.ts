@@ -10,16 +10,17 @@ import { hitsWater } from './water';
 const seeds = ['alpha', 'demo', 'zebra', 'quartz', 'maple', 'orbit', 'delta', 'nova'];
 
 describe('seeded neighborhoods', () => {
-  it('assigns every plot a valid district without changing its geometry or order', () => {
+  it('assigns every plot the neighbourhood of its district (the planned town: src/town/plat.ts)', () => {
+    const HOOD: Record<string, string> = { core: 'old-town', square: 'old-town', civic: 'old-town', old: 'old-town', westmain: 'old-town', worker: 'the-flats',
+      strip: 'gardens', postwar: 'gardens', heights: 'heights', late: 'woodside', edge: 'woodside', river: 'waterfront' };
     for (const seed of seeds) {
       const plan = planTown(seed);
-      const sites = plan.candidates.map(({ neighborhood: _, ...site }) => site);
-      const zoned = zoneNeighborhoods(seed, sites, plan.center, plan.water);
-      expect(zoned.candidates).toEqual(plan.candidates);
-      expect(zoned.neighborhoods).toEqual(plan.neighborhoods);
-      expect(new Set(zoned.candidates.map((c) => c.neighborhood)).size).toBeGreaterThanOrEqual(3);
-      for (const c of zoned.candidates) expect(plan.neighborhoods.some((n) => n.id === c.neighborhood)).toBe(true);
-      expect(zoned.candidates.map(({ neighborhood: _, ...site }) => site)).toEqual(sites);
+      for (const c of plan.candidates) expect(c.neighborhood, `${seed} ${c.id}`).toBe(HOOD[c.district!]);
+      expect(new Set(plan.candidates.map((c) => c.neighborhood)).size).toBeGreaterThanOrEqual(3);
+      for (const c of plan.candidates) expect(plan.neighborhoods.some((n) => n.id === c.neighborhood)).toBe(true);
+      // (the neighbourhoods' names and styles are zoneNeighborhoods' for the seed)
+      const zoned = zoneNeighborhoods(seed, plan.candidates, plan.center, plan.water).neighborhoods;
+      for (const n of plan.neighborhoods) { const z = zoned.find((q) => q.id === n.id); if (z) expect({ ...n, center: z.center }).toEqual(z); }
     }
   });
 
@@ -31,8 +32,8 @@ describe('seeded neighborhoods', () => {
           expect(p.water).not.toBeNull();
           expect(hitsWater(p.water, c, 16)).toBe(true);
         }
-        if (c.kind === 'villa' || c.kind === 'estate') expect(c.neighborhood).toBe('heights');
-        if (c.kind === 'shop') expect(c.neighborhood).toBe('old-town');
+        if ((c.kind === 'villa' || c.kind === 'estate') && c.district === 'heights') expect(c.neighborhood).toBe('heights');
+        if (c.kind === 'shop' && c.district === 'core') expect(c.neighborhood).toBe('old-town');
       }
       if (!p.water) expect(p.neighborhoods.some((n) => n.id === 'waterfront')).toBe(false);
     }

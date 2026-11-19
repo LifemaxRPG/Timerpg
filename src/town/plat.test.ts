@@ -6,6 +6,7 @@ import { chooseLandmarks } from './landmarks';
 import { storeNeeds } from './stores';
 import { populationIn, POPULATION_BY, POPULATION_FROM } from './population';
 import type { Rect } from './kinds';
+import { runTimeline } from '../sim';
 
 // The planned town (kotlin-street/docs/TOWN_PLAN.md): src/town/plat.ts and src/town/districts.ts through plan.ts.
 const SEEDS = ['gamma', 'pi', 'orbit', 'tau', 'beta', 'rho'];
@@ -136,4 +137,19 @@ describe('the planned town', () => {
       expect(bridges.filter((b) => !(b.y <= main.y && b.y + b.h >= main.y + main.h)).length, s).toBeGreaterThanOrEqual(1);
     }
   });
+
+  it('changes who lives where, never who exists: people, businesses and events as under the old plan', () => {
+    for (const seed of ['gamma', 'pi', 'orbit', 'tau', 'beta', 'rho', 'alpha', 'eta']) {
+      const run = (v: 1 | 2) => {
+        setPlanVersion(v);
+        const t = runTimeline({ seed, endYear: 1985 });
+        const w = t.snapshots[t.snapshots.length - 1]!;
+        return JSON.stringify({ people: Object.keys(w.people).sort(), alive: Object.values(w.people).filter((p) => p.deathYear === undefined).length,
+          businesses: Object.values(w.businesses).map((b) => `${b.id}:${b.name}:${b.closedYear ?? ''}`).sort(), events: t.chronicle.map((e) => JSON.stringify(e)) });
+      };
+      const a = run(1), b = run(2);
+      expect(b === a, seed).toBe(true);
+    }
+    setPlanVersion(2);
+  }, 300000);
 });

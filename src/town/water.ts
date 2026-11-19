@@ -36,6 +36,8 @@ export interface WaterGeometry {
   vroads: number[];
   /** ALL streets, east-west and north-south. */
   roads: Road[];
+  /** More ground a lake keeps clear of (the planned town's lots and reserved plots). */
+  avoid?: readonly Rect[];
 }
 
 export const isWater = (w: WaterBody | null | undefined, tx: number, ty: number): boolean =>
@@ -246,7 +248,7 @@ export function planWater(seed: string, g: WaterGeometry): WaterBody | null {
   for (const r of g.roads) { bx0 = Math.min(bx0, r.x); by0 = Math.min(by0, r.y); bx1 = Math.max(bx1, r.x + r.w); by1 = Math.max(by1, r.y + r.h); }
   const ccx = (bx0 + bx1) / 2, ccy = (by0 + by1) / 2;
   const clearOfRoads = (cx: number, cy: number, rx: number, ry: number): boolean =>
-    !g.roads.some((r) => r.x - 4 < cx + rx * 1.4 && r.x + r.w + 4 > cx - rx * 1.4 && r.y - 4 < cy + ry * 1.4 && r.y + r.h + 4 > cy - ry * 1.4);
+    ![...g.roads, ...(g.avoid ?? [])].some((r) => r.x - 4 < cx + rx * 1.4 && r.x + r.w + 4 > cx - rx * 1.4 && r.y - 4 < cy + ry * 1.4 && r.y + r.h + 4 > cy - ry * 1.4);
   for (let attempt = 0; attempt < 60; attempt++) {
     const rx = 9 + R('rx', attempt) * 5;
     const ry = rx * (0.65 + R('ry', attempt) * 0.3);

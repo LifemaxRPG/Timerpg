@@ -7,6 +7,9 @@ import { planTown } from '../../src/town/plan';
 import { archetypeOf } from '../../src/sim/archetype';
 import { townName } from '../../src/world/names';
 import { townPeople, peakPeople } from '../../src/town/glbSites';
+import { townRail } from '../../src/town/rail';
+import { railSite } from '../../src/world/rail';
+import { worldOf } from './town-glb';
 
 const seed = process.argv[2] ?? 'gamma';
 const year = Number(process.argv[3] ?? 2025);
@@ -17,6 +20,9 @@ const plan = planTown(seed);
 const sh = plan.v2?.shift ?? { dx: 0, dy: 0 };
 const mv = (r: { x: number; y: number; w: number; h: number }) => ({ x: r.x + sh.dx, y: r.y + sh.dy, w: r.w, h: r.h });
 const label = (id: string): string => id.replace(/^(glb|landmark|civic):/, '').replace(/_/g, ' ');
+const w = worldOf(seed);
+const rail = townRail(w, railSite(w, 0, 0), plan);
+for (const c of rail.conflicts) console.error(`rail: ${c}`);
 const cand = new Map(plan.candidates.map((c) => [c.id, c]));
 const out = {
   title: `${townName(seed)} (${seed}), ${year}`,
@@ -42,7 +48,7 @@ const out = {
     return rs;
   })() : [],
   fields: [], farms: [],
-  rail: (plan as unknown as { railLines?: [number, number][][] }).railLines ? { tracks: (plan as unknown as { railLines: [number, number][][] }).railLines, from: 0 } : plat.railBand ? { track: plat.railBand.horizontal ? [[0, plat.railBand.track + sh.dy], [plan.width, plat.railBand.track + sh.dy]] : [[plat.railBand.track + sh.dx, 0], [plat.railBand.track + sh.dx, plan.height]], from: 0 } : null,
+  rail: { tracks: rail.tracks.map((t) => t.pts.map((q) => [q.x, q.y])), from: 0 },
   labels: [],
 };
 process.stdout.write(JSON.stringify(out));

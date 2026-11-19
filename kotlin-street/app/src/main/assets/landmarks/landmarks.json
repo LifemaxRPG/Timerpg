@@ -210,6 +210,61 @@
       "info": "reel-time-video/model-info-2020.json",
       "era": {"from": 2009, "to": 2015, "built": 2013},
       "footprint": {"lot": [36.01, 28.56], "building": [32.28, 11.17]}
+    },
+    {
+      "kind": "landmark_glb_county_courthouse_1894",
+      "name": "County Courthouse",
+      "role": "courthouse",
+      "room": "hall",
+      "file": "county-courthouse/courthouse-1894.glb",
+      "far": "county-courthouse/courthouse-far.glb",
+      "info": "county-courthouse/model-info-1894.json",
+      "era": {"from": 1894, "to": 1950, "built": 1894},
+      "footprint": {"lot": [79.46, 79.46], "building": [29.8, 29.8]}
+    },
+    {
+      "kind": "landmark_glb_county_courthouse_1962",
+      "name": "County Courthouse",
+      "role": "courthouse",
+      "room": "hall",
+      "file": "county-courthouse/courthouse-1962.glb",
+      "far": "county-courthouse/courthouse-far.glb",
+      "info": "county-courthouse/model-info-1962.json",
+      "era": {"from": 1951, "to": 1975, "built": 1962},
+      "footprint": {"lot": [79.46, 79.46], "building": [29.8, 29.8]}
+    },
+    {
+      "kind": "landmark_glb_county_courthouse_1988",
+      "name": "County Courthouse",
+      "role": "courthouse",
+      "room": "hall",
+      "file": "county-courthouse/courthouse-1988.glb",
+      "far": "county-courthouse/courthouse-far.glb",
+      "info": "county-courthouse/model-info-1988.json",
+      "era": {"from": 1976, "to": 1999, "built": 1988},
+      "footprint": {"lot": [79.46, 79.46], "building": [29.8, 29.8]}
+    },
+    {
+      "kind": "landmark_glb_county_courthouse_2008",
+      "name": "County Courthouse",
+      "role": "courthouse",
+      "room": "hall",
+      "file": "county-courthouse/courthouse-2008.glb",
+      "far": "county-courthouse/courthouse-far.glb",
+      "info": "county-courthouse/model-info-2008.json",
+      "era": {"from": 2000, "to": 2040, "built": 2008},
+      "footprint": {"lot": [79.46, 79.46], "building": [29.8, 29.8]}
+    },
+    {
+      "kind": "landmark_glb_radio_station",
+      "name": "Valley Radio",
+      "role": "radio_station",
+      "room": "hall",
+      "file": "radio-station/radio-station-valley-radio.glb",
+      "variants": ["radio-station/radio-station-valley-radio.glb", "radio-station/radio-station-prairie-1340-am.glb", "radio-station/radio-station-riverbend-radio.glb", "radio-station/radio-station-hometown-radio.glb", "radio-station/radio-station-cedar-1400-am.glb", "radio-station/radio-station-crossroads-1450.glb"],
+      "info": "radio-station/model-info.json",
+      "era": {"from": 1946, "to": 1960, "built": 1955},
+      "footprint": {"lot": [21.73, 17.69], "building": [16.1, 15.13]}
     }
   ]
 }

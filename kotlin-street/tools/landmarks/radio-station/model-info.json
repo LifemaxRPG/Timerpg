@@ -1,0 +1,619 @@
+{
+  "name": "Valley Radio",
+  "era": {
+    "design_years": [
+      1950,
+      1965
+    ],
+    "fits": [
+      1950,
+      2030
+    ],
+    "notes": "Original mid-century local broadcast house. Fictional static name; simulation determines actual business and broadcast history."
+  },
+  "units": "metres",
+  "axes": "glTF Y up, public entrance +Z",
+  "origin": "Ground at middle of main brick front edge; glazed bay projects toward +Z",
+  "building_m": [
+    16.10200023651123,
+    15.132000207901001
+  ],
+  "built_bounds_blender_m": {
+    "min": [
+      -6.1691999435424805,
+      -3.065200090408325,
+      0.0
+    ],
+    "max": [
+      9.93280029296875,
+      12.066800117492676,
+      19.555200576782227
+    ]
+  },
+  "lot_bounds_blender_art": [
+    -144,
+    -60,
+    136,
+    168
+  ],
+  "heights_m": {
+    "main_parapet": 4.9664,
+    "blade": 8.6136,
+    "mast": 19.5552
+  },
+  "triangles_visible": 4544,
+  "materials": [
+    "detail_panels",
+    "detail_steel",
+    "detail_trim",
+    "glass_radio",
+    "glow_lamps",
+    "ground_asphalt",
+    "ground_floor",
+    "ground_paving",
+    "roof_membrane",
+    "sign_name",
+    "wall_brick",
+    "wall_interior"
+  ],
+  "pixel_grid": {
+    "metres_per_texel": 0.0388,
+    "texels_per_art_pixel": 2
+  },
+  "doors": [
+    {
+      "node": "door_studio_exit",
+      "position": [
+        6.142039775848389,
+        0.15520000457763672,
+        -8.225600242614746
+      ],
+      "outward": [
+        1,
+        0,
+        0
+      ],
+      "floor_m": 0.1552,
+      "panel": "panel_door_studio_exit",
+      "external": true
+    },
+    {
+      "node": "door_service",
+      "position": [
+        -2.9488000869750977,
+        0.15520000457763672,
+        -10.177240371704102
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ],
+      "floor_m": 0.1552,
+      "panel": "panel_door_service",
+      "external": true
+    },
+    {
+      "node": "door_control",
+      "position": [
+        -2.9488000869750977,
+        0.15520000457763672,
+        -3.1699600219726562
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "floor_m": 0.1552,
+      "panel": "panel_door_control",
+      "external": false
+    },
+    {
+      "node": "door_studio",
+      "position": [
+        2.9488000869750977,
+        0.15520000457763672,
+        -3.1699600219726562
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "floor_m": 0.1552,
+      "panel": "panel_door_studio",
+      "external": false
+    },
+    {
+      "node": "door_booth",
+      "position": [
+        -0.2444400042295456,
+        0.15520000457763672,
+        -4.656000137329102
+      ],
+      "outward": [
+        -1,
+        0,
+        0
+      ],
+      "floor_m": 0.1552,
+      "panel": "panel_door_booth",
+      "external": false
+    },
+    {
+      "node": "door_main",
+      "position": [
+        0.0,
+        0.15520000457763672,
+        2.106839895248413
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "floor_m": 0.1552,
+      "panel": "panel_door_main",
+      "external": true
+    }
+  ],
+  "door_panels": [
+    "panel_door_studio_exit",
+    "panel_door_service",
+    "panel_door_control",
+    "panel_door_studio",
+    "panel_door_booth",
+    "panel_door_main"
+  ],
+  "rooms": [
+    {
+      "id": "public_lobby",
+      "floor_m": 0.1552,
+      "ceiling_m": 3.88,
+      "bounds_blender_art": [
+        -76,
+        0,
+        76,
+        44
+      ],
+      "notes": "Open circulation shell, with a lower projecting angular entrance bay."
+    },
+    {
+      "id": "control_room",
+      "floor_m": 0.1552,
+      "ceiling_m": 3.88,
+      "bounds_blender_art": [
+        -76,
+        44,
+        0,
+        128
+      ],
+      "notes": "Clean shell with fixed observation ledge and actual double glazing into studio. No console, chairs or loose gear."
+    },
+    {
+      "id": "studio",
+      "floor_m": 0.1552,
+      "ceiling_m": 3.88,
+      "bounds_blender_art": [
+        0,
+        44,
+        76,
+        128
+      ],
+      "notes": "Unfurnished recording/broadcast shell. Fixed decorative acoustic wall lining; no loose microphone/console or measured acoustic performance."
+    }
+  ],
+  "sign_name": {
+    "node": "sign_name",
+    "material": "sign_name",
+    "texture": "textures/signs.png",
+    "rect_art": [
+      0,
+      0,
+      94,
+      18
+    ],
+    "text": "VALLEY RADIO",
+    "binding": "Static fictional label; edit nameplate region only. Other atlas regions contain RADIO blade, microphone emblem and static ON AIR plate."
+  },
+  "collision": {
+    "node": "collision",
+    "render": false,
+    "use_the_walls": true,
+    "boxes_blender_z_up": [
+      {
+        "source": "Closed door_studio_exit",
+        "center": [
+          5.986840000000001,
+          8.2256,
+          1.3192
+        ],
+        "size": [
+          0.1552,
+          1.2416,
+          2.6384
+        ],
+        "group": "structure",
+        "attachment": "panel_door_studio_exit",
+        "gate_node": "panel_door_studio_exit"
+      },
+      {
+        "source": "Closed door_service",
+        "center": [
+          -2.9488000000000003,
+          10.02204,
+          1.3192
+        ],
+        "size": [
+          1.2416,
+          0.1552,
+          2.6384
+        ],
+        "group": "structure",
+        "attachment": "panel_door_service",
+        "gate_node": "panel_door_service"
+      },
+      {
+        "source": "Closed door_control",
+        "center": [
+          -2.9488000000000003,
+          3.3251600000000003,
+          1.3192
+        ],
+        "size": [
+          1.2416,
+          0.1552,
+          2.6384
+        ],
+        "group": "structure",
+        "attachment": "panel_door_control",
+        "gate_node": "panel_door_control"
+      },
+      {
+        "source": "Closed door_studio",
+        "center": [
+          2.9488000000000003,
+          3.3251600000000003,
+          1.3192
+        ],
+        "size": [
+          1.2416,
+          0.1552,
+          2.6384
+        ],
+        "group": "structure",
+        "attachment": "panel_door_studio",
+        "gate_node": "panel_door_studio"
+      },
+      {
+        "source": "Closed door_booth",
+        "center": [
+          -0.08924,
+          4.656000000000001,
+          1.3192
+        ],
+        "size": [
+          0.1552,
+          1.2416,
+          2.6384
+        ],
+        "group": "structure",
+        "attachment": "panel_door_booth",
+        "gate_node": "panel_door_booth"
+      },
+      {
+        "source": "Fixed control ledge",
+        "center": [
+          -0.388,
+          7.139200000000001,
+          0.6596
+        ],
+        "size": [
+          0.6208,
+          2.7936,
+          1.3192
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Closed door_main",
+        "center": [
+          0.0,
+          -1.95164,
+          1.3192
+        ],
+        "size": [
+          1.2416,
+          0.1552,
+          2.6384
+        ],
+        "group": "structure",
+        "attachment": "panel_door_main",
+        "gate_node": "panel_door_main"
+      },
+      {
+        "source": "Canopy post",
+        "center": [
+          -1.94,
+          -2.716,
+          1.552
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.104
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Canopy post",
+        "center": [
+          1.94,
+          -2.716,
+          1.552
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.104
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Downpipe",
+        "center": [
+          -6.091600000000001,
+          9.7776,
+          2.4056
+        ],
+        "size": [
+          0.0776,
+          0.0776,
+          4.8112
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Downpipe",
+        "center": [
+          6.091600000000001,
+          9.7776,
+          2.4056
+        ],
+        "size": [
+          0.0776,
+          0.0776,
+          4.8112
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Service awning post",
+        "center": [
+          -4.9664,
+          11.64,
+          1.4744000000000002
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          2.9488000000000003
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Service awning post",
+        "center": [
+          -1.0864,
+          11.64,
+          1.4744000000000002
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          2.9488000000000003
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Mast compound blocker",
+        "center": [
+          8.6912,
+          8.0704,
+          9.8164
+        ],
+        "size": [
+          2.4832,
+          2.4832,
+          19.6328
+        ],
+        "group": "structure",
+        "attachment": "antenna_mast"
+      },
+      {
+        "source": "Cable riser",
+        "center": [
+          7.76,
+          8.0704,
+          1.746
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.492
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Wheel stop",
+        "center": [
+          -10.7088,
+          1.552,
+          0.1164
+        ],
+        "size": [
+          0.2328,
+          1.8624,
+          0.2328
+        ],
+        "group": "lot",
+        "attachment": "parking_stop"
+      },
+      {
+        "source": "Wheel stop",
+        "center": [
+          -10.7088,
+          4.656000000000001,
+          0.1164
+        ],
+        "size": [
+          0.2328,
+          1.8624,
+          0.2328
+        ],
+        "group": "lot",
+        "attachment": "parking_stop.001"
+      },
+      {
+        "source": "Wheel stop",
+        "center": [
+          -10.7088,
+          7.76,
+          0.1164
+        ],
+        "size": [
+          0.2328,
+          1.8624,
+          0.2328
+        ],
+        "group": "lot",
+        "attachment": "parking_stop.002"
+      },
+      {
+        "source": "Mast yard fence",
+        "center": [
+          8.6912,
+          6.6736,
+          0.8148
+        ],
+        "size": [
+          2.9488000000000003,
+          0.1552,
+          1.6296
+        ],
+        "group": "lot",
+        "attachment": "mast_fence"
+      },
+      {
+        "source": "Mast yard fence",
+        "center": [
+          10.088000000000001,
+          8.0704,
+          0.8148
+        ],
+        "size": [
+          0.1552,
+          2.9488000000000003,
+          1.6296
+        ],
+        "group": "lot",
+        "attachment": "mast_fence"
+      },
+      {
+        "source": "Mast yard fence",
+        "center": [
+          8.6912,
+          9.4672,
+          0.8148
+        ],
+        "size": [
+          2.9488000000000003,
+          0.1552,
+          1.6296
+        ],
+        "group": "lot",
+        "attachment": "mast_fence"
+      },
+      {
+        "source": "Mast yard fence",
+        "center": [
+          7.2944,
+          8.0704,
+          0.8148
+        ],
+        "size": [
+          0.1552,
+          2.9488000000000003,
+          1.6296
+        ],
+        "group": "lot",
+        "attachment": "mast_fence"
+      },
+      {
+        "source": "Bins",
+        "center": [
+          -4.656000000000001,
+          11.0192,
+          0.5820000000000001
+        ],
+        "size": [
+          1.3968,
+          0.6984,
+          1.1640000000000001
+        ],
+        "group": "lot",
+        "attachment": "service_bins"
+      },
+      {
+        "source": "Bench",
+        "center": [
+          -4.3456,
+          -0.9312,
+          0.6208
+        ],
+        "size": [
+          2.1728,
+          0.776,
+          1.2416
+        ],
+        "group": "lot",
+        "attachment": "public_bench"
+      }
+    ],
+    "strategy": "Actual walls/floors plus full-height boxes for posts, closed doors, fixed ledge, yard fixtures and mast compound.",
+    "runtime": "Hide collision mesh. Gate boxes follow closed panels; lot colliders follow lot visibility. Mast footprint is conservatively blocked, not climbable."
+  },
+  "lot_node": "lot",
+  "antenna": {
+    "node": "antenna_mast",
+    "type": "freestanding self-supporting lattice mast",
+    "height_m": 19.5552,
+    "reference_only": true,
+    "notes": "Static visual geometry. No RF coverage, licensing, transmission, climbing or electrical safety functionality is implemented."
+  },
+  "runtime_handoff": [
+    "No residents, station ownership, schedules, dialogue, broadcasts or historical facts are generated.",
+    "ON AIR is static artwork; a runtime must bind or hide it rather than infer active broadcasting.",
+    "Transparent glass, emissive masks, doors, navigation and lighting need game integration.",
+    "Ladder, antenna and conduit are visual architecture only. No simulated signal or climb behavior.",
+    "Blender lighting, cameras and surrounding presentation terrain are excluded from the GLB."
+  ],
+  "swatches_used": [
+    "brick_red",
+    "wall_stucco_red",
+    "roof_membrane_grey",
+    "pavement",
+    "asphalt_worn"
+  ],
+  "licence": "LimeZu shared swatches: Timerpg-only use; retain original credit. Supplemental artwork and all geometry original.",
+  "renders": "Blender desktop previews, not Filament/S25 captures."
+}

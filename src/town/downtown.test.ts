@@ -113,7 +113,7 @@ describe('downtown', () => {
     for (const seed of [...SEEDS, ...Array.from({ length: 12 }, (_, i) => `water${i}`)]) {
       const plan = planTown(seed);
       const h = townHall(plan);
-      if (h) { halls++; expect(h.rect).toEqual(plan.plaza); expect(h.built).toBeGreaterThanOrEqual(1880); expect(h.built).toBeLessThanOrEqual(1910); }
+      if (h) { halls++; expect(h.rect).toEqual(plan.v2?.townHall ?? plan.plaza); expect(h.built).toBeGreaterThanOrEqual(1880); expect(h.built).toBeLessThanOrEqual(1910); }
       const c = chapel(plan);
       if (!c) continue;
       chapels++;

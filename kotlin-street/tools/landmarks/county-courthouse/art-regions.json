@@ -1,0 +1,307 @@
+{
+  "shared_swatches": {
+    "brick_red": {
+      "file": "swatch_brick_red.png",
+      "art_size": [
+        60,
+        48
+      ],
+      "tex_size": [
+        120,
+        96
+      ]
+    },
+    "roof_slate": {
+      "file": "swatch_roof_slate.png",
+      "art_size": [
+        32,
+        32
+      ],
+      "tex_size": [
+        64,
+        64
+      ]
+    },
+    "pavement": {
+      "file": "swatch_pavement.png",
+      "art_size": [
+        32,
+        32
+      ],
+      "tex_size": [
+        64,
+        64
+      ]
+    },
+    "plank_horizontal": {
+      "file": "swatch_plank_horizontal.png",
+      "art_size": [
+        32,
+        32
+      ],
+      "tex_size": [
+        64,
+        64
+      ]
+    },
+    "roof_membrane_green": {
+      "file": "swatch_copper_base.png",
+      "art_size": [
+        32,
+        32
+      ],
+      "tex_size": [
+        64,
+        64
+      ]
+    },
+    "block_courses": {
+      "file": "swatch_block_courses.png",
+      "art_size": [
+        48,
+        48
+      ],
+      "tex_size": [
+        96,
+        96
+      ]
+    }
+  },
+  "regions": {
+    "detail_clean": {
+      "dark_iron": {
+        "sheet": "detail_atlas.png",
+        "rect_art": [
+          0,
+          0,
+          64,
+          64
+        ]
+      },
+      "concrete_annex": {
+        "sheet": "detail_atlas.png",
+        "rect_art": [
+          64,
+          0,
+          64,
+          64
+        ]
+      },
+      "rotunda_marble": {
+        "sheet": "detail_atlas.png",
+        "rect_art": [
+          0,
+          64,
+          64,
+          64
+        ]
+      },
+      "bandstand_cream": {
+        "sheet": "detail_atlas.png",
+        "rect_art": [
+          64,
+          64,
+          64,
+          64
+        ]
+      }
+    },
+    "detail_1988": {
+      "dark_iron": {
+        "sheet": "detail_atlas_1988.png",
+        "rect_art": [
+          0,
+          0,
+          64,
+          64
+        ]
+      },
+      "concrete_annex": {
+        "sheet": "detail_atlas_1988.png",
+        "rect_art": [
+          64,
+          0,
+          64,
+          64
+        ]
+      },
+      "rotunda_marble": {
+        "sheet": "detail_atlas_1988.png",
+        "rect_art": [
+          0,
+          64,
+          64,
+          64
+        ]
+      },
+      "bandstand_cream": {
+        "sheet": "detail_atlas_1988.png",
+        "rect_art": [
+          64,
+          64,
+          64,
+          64
+        ]
+      }
+    },
+    "glass": {
+      "win_arched": {
+        "sheet": "glass_atlas.png",
+        "rect_art": [
+          0,
+          0,
+          32,
+          48
+        ]
+      },
+      "win_bricked": {
+        "sheet": "glass_atlas.png",
+        "rect_art": [
+          32,
+          0,
+          32,
+          48
+        ]
+      },
+      "win_boarded": {
+        "sheet": "glass_atlas.png",
+        "rect_art": [
+          64,
+          0,
+          32,
+          48
+        ]
+      },
+      "win_annex": {
+        "sheet": "glass_atlas.png",
+        "rect_art": [
+          96,
+          0,
+          32,
+          48
+        ]
+      },
+      "skylight_pane": {
+        "sheet": "glass_atlas.png",
+        "rect_art": [
+          0,
+          64,
+          64,
+          64
+        ]
+      }
+    },
+    "signs": {
+      "main_frieze": {
+        "sheet": "sign_plates.png",
+        "rect_art": [
+          0,
+          0,
+          96,
+          20
+        ]
+      },
+      "datestone_1894": {
+        "sheet": "sign_plates.png",
+        "rect_art": [
+          100,
+          0,
+          13,
+          6
+        ]
+      },
+      "plaque_restored_2004": {
+        "sheet": "sign_plates.png",
+        "rect_art": [
+          116,
+          0,
+          8,
+          6
+        ]
+      },
+      "memorial_1861_1865": {
+        "sheet": "sign_plates.png",
+        "rect_art": [
+          128,
+          0,
+          32,
+          9
+        ]
+      },
+      "bronze_soldier": {
+        "sheet": "sign_plates.png",
+        "rect_art": [
+          164,
+          0,
+          24,
+          24
+        ]
+      },
+      "protest_banner_1988": {
+        "sheet": "sign_plates.png",
+        "rect_art": [
+          0,
+          20,
+          92,
+          26
+        ]
+      },
+      "patched_brick_2008": {
+        "sheet": "sign_plates.png",
+        "rect_art": [
+          0,
+          52,
+          96,
+          48
+        ]
+      },
+      "flag_banner": {
+        "sheet": "sign_plates.png",
+        "rect_art": [
+          100,
+          20,
+          36,
+          22
+        ]
+      }
+    },
+    "lamps": {
+      "lamp_gas": {
+        "sheet": "glow_lamps_base.png",
+        "rect_art": [
+          0,
+          0,
+          16,
+          16
+        ]
+      },
+      "lamp_cobra": {
+        "sheet": "glow_lamps_base.png",
+        "rect_art": [
+          16,
+          0,
+          16,
+          16
+        ]
+      },
+      "lamp_acorn": {
+        "sheet": "glow_lamps_base.png",
+        "rect_art": [
+          0,
+          16,
+          16,
+          16
+        ]
+      },
+      "lamp_flood": {
+        "sheet": "glow_lamps_base.png",
+        "rect_art": [
+          16,
+          16,
+          16,
+          16
+        ]
+      }
+    }
+  }
+}
