@@ -1,0 +1,297 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2000,
+  "topic": "home",
+  "facts": [
+    {
+      "id": "2000-home-01",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Families pin school calendars and appointment reminders to the refrigerator door.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-02",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A parent packs sandwiches and fruit into lunch bags before the school day.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-03",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Children leave muddy shoes by the door after playing outside.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-04",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A household sorts dark and light clothes before starting a load of laundry.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-05",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Families fold clean towels and stack them in a hallway linen closet.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-06",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A teenager takes out the trash before the collection truck arrives.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-07",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Parents remind children to finish homework before going outside.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-08",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A family keeps spare batteries and a flashlight in a kitchen drawer.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-09",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A household changes bedsheets on the weekend and hangs fresh pillowcases to dry.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-10",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Some families use a slow cooker to prepare supper while adults are away.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-11",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A parent heats a frozen dinner on a busy weekday evening.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-12",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Family members take turns washing dishes and wiping the kitchen table.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-13",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A child sets forks and plates around the dining table before supper.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-14",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A household stores leftover soup in plastic containers in the refrigerator.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-15",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Families keep emergency telephone numbers written on paper near the kitchen.",
+      "ages": "all",
+      "use": [
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-16",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A parent checks the pantry before making a handwritten grocery list.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-17",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Children spread board games across the living room floor on rainy afternoons.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-18",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A family opens windows for fresh air when the weather is mild.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-19",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Some households use ceiling fans to circulate air through bedrooms.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-20",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A parent sorts mail at the kitchen counter after returning home.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-21",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A family hangs coats on hooks beside the entryway during cold weather.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-22",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Households put recycling bins beside the trash where local collection is available.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-23",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A family stores holiday decorations in labeled boxes in the attic or garage.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-24",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A homeowner mows the lawn and trims hedges on a Saturday morning.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-25",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Children help water flowerbeds or pull weeds in the yard.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-home-26",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A family keeps a basket of mismatched socks beside the laundry area.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
