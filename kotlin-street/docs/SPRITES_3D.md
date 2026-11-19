@@ -122,6 +122,36 @@ one shape and are each cut from their own art.
 - Still to do: the stair houses' sides and the parapets' inner faces are plain courses; nothing of it in the corner turn
   (no landmark is there yet).
 
+### The boxes' built parts: stone end walls, rake boards, balconies, ledges, steps, sign boards (2026-11-19)
+
+The owner's phone (build 0.1.321) showed the law office's balcony as the old flat picture, and the bakery's and law
+office's stone posts as two square pillars sticking up at the front corners. In the Filament town and crossroads a shop's
+or a flat's box now builds what the art paints flat but stands out (`domain/HouseShell.kt` `BoxShell`, worn in
+`scene3d/BuildingMeshes.kt` and `FilamentStreet.kt`; the classic's looks keep the old pictures):
+
+- **Stone end walls** (roof_8/9/11, `PITCHED` posts 32): each end of the box a wall as thick as the art's post, following
+  the roof's slope the whole depth 6 px over the tiles, its coping (the art's capstone, rows 8..72, `bN_wcap.png`)
+  overhanging 2 px, and a square pier at the front and the back rising 8 px over the coping, wearing the art's pier (its
+  lighter band at its head, rows 152..224, `bN_pier.png`). The wall's faces carry on the gable picture. Gamma: b0, b13,
+  b20 (roof_8), b21 (roof_9).
+- **Rake boards** (roof_2/4/6): the roof's edge as a board along both slopes of each gable, 2 px past it, 3 px over the
+  tiles, 4 px deep, in the roof's edge colour (`_pitch`'s rake), so the gable reads finished from the side and above.
+- **Balconies** (middle_2 brick, middle_8 blue, middle_14 grey: one drawing in three colours): the flat U is taken off the
+  front, the wall behind filled with the storey's own wall (pixels a whole number of brick courses away, only the
+  wall's own colours), the double window opened into a glass door to the floor; the engines build the slab (its edge the
+  art's slab rows, its floor the art's tiles from above), a stone parapet on its three open sides (the art's cap and
+  outline colours, coursed), two brackets under it (`_balc`, `bN_balp/bals/balf.png`). Gamma: b2 (Novak's Law Office on
+  Main Street), b57, b58.
+- **Ledges**: every middle floor's sill course (rows 118..128) and the top floor's cornice under the roof (rows 0..8) stand
+  3 px out of the wall, wearing their own rows of the front; not where a storefront's sign hangs over them (`_ledge`).
+- **Door steps**: the classic law and doctor's offices' two steps (rows 76..96 of the storefront) as boxes 5 and 10 px out.
+- **Sign boards** above the roofline: the board has a thickness (its outline colour in layers behind it) and a grey back,
+  so from behind it is not the art mirrored.
+- Checks: `gradle :desktop:preview -Dmode=filament-town -Dshots=shop_ -Dshops=b2,b0` renders each box from the front, both
+  three-quarters, both ends, behind, above and low.
+- Still to do: the signs' lower halves (painted on the front) and the storefront cornices of the one-storey shops are
+  still flat; the ledges stop at the box's corners (the side pictures carry their bands flat).
+
 ## Easy: already boxes (the current pipeline, `tools/make_buildings.py`)
 
 | Sprites | Count | Why easy |

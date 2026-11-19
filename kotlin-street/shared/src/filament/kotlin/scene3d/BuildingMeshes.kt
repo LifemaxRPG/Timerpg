@@ -19,6 +19,9 @@ import com.lifemax.rpg.feature.habits.domain.Ambient
 import com.lifemax.rpg.feature.habits.domain.BuildingSpec as B
 import com.lifemax.rpg.feature.habits.domain.Crossroads.Companion.DEPTH
 import com.lifemax.rpg.feature.habits.domain.Dusk
+import com.lifemax.rpg.feature.habits.domain.BoxPart
+import com.lifemax.rpg.feature.habits.domain.BoxPoly
+import com.lifemax.rpg.feature.habits.domain.BoxShell
 import com.lifemax.rpg.feature.habits.domain.HouseShell
 import com.lifemax.rpg.feature.habits.domain.ShellPart
 import com.lifemax.rpg.feature.habits.domain.ShellQuad
@@ -71,6 +74,10 @@ internal class BuildingMeshes(
     private val crisp = TextureSampler(TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.CLAMP_TO_EDGE)
         .also { it.anisotropy = 16f }
     private val nearest = TextureSampler(TextureSampler.MinFilter.NEAREST, TextureSampler.MagFilter.NEAREST, TextureSampler.WrapMode.CLAMP_TO_EDGE)
+
+    /** A sign's thickness behind its face: how many layers (the last its back), and how far apart (sprite pixels). */
+    private val SIGN_LAYERS = 4
+    private val SIGN_STEP = .75f
 
     /** The local frame's axes: the art's x runs along local -x, the front faces local -z. */
     private val ax = -1f
@@ -160,7 +167,18 @@ internal class BuildingMeshes(
             val h = sg.height * kk
             out += face(ox - ax * hw, hf + h, oz - az * hw, ax * B.W / sg.width, 0f, az * B.W / sg.width, 0f, -kk, 0f,
                 sg.width.toFloat(), sg.height.toFloat(), pic(sg), null, nx, 0f, nz)
+            // the board has a thickness: its edge (the art's outline colour) a few layers deep behind it, its back the
+            // frame's grey (from behind, not the art mirrored)
+            val (edge, back) = signBody(sg)
+            for (k in 1..SIGN_LAYERS) {
+                val d = k * SIGN_STEP * kk
+                out += face(ox - ax * hw - nx * d, hf + h, oz - az * hw - nz * d, ax * B.W / sg.width, 0f, az * B.W / sg.width, 0f, -kk, 0f,
+                    sg.width.toFloat(), sg.height.toFloat(), if (k == SIGN_LAYERS) back else edge, null, if (k == SIGN_LAYERS) -nx else nx, 0f, if (k == SIGN_LAYERS) -nz else nz)
+            }
         }
+        // the stone ledges across the front, standing out of the wall (BoxShell)
+        if (sb.ledges.isNotEmpty()) for (q in BoxShell.ledges(sb.ledges, sb.front.width.toFloat(), sb.front.height.toFloat()))
+            out += polyFace(q, ox - ax * hw, oz - az * hw, win.albedo)
         val side = sb.side
         val sw = side.width.toFloat(); val sh = side.height.toFloat()
         // the back wall: the side's picture carried on at its own scale across the whole width ([backOf])
@@ -178,26 +196,68 @@ internal class BuildingMeshes(
             out += face(rx, hf + rise, rz, ax * B.W / pw, 0f, az * B.W / pw, nx * DEPTH / 2f / rows, -rise / rows, nz * DEPTH / 2f / rows, pw, rows, pic(pitch), null, nx * sy, cy, nz * sy)
             out += face(rx, hf + rise, rz, ax * B.W / pw, 0f, az * B.W / pw, -nx * DEPTH / 2f / rows, -rise / rows, -nz * DEPTH / 2f / rows, pw, rows, pic(pitch), null, -nx * sy, cy, -nz * sy)
             val gp = sb.gablePic
-            // (with stone end walls the pitch's art is clear over the posts: the gables stand inside them, not past them)
-            val inset = if (sb.postL != null && sb.postR != null) (sb.pitchInfo?.getOrNull(2) ?: 0f) * kk else 0f
-            if (gp != null) for (end in 0..1) {
-                val e = if (end == 0) -(hw - inset) else hw - inset
-                val bx0 = ox + ax * e; val bz0 = oz + az * e
-                out += Face(
-                    floatArrayOf(bx0, hf, bz0, bx0 - nx * DEPTH, hf, bz0 - nz * DEPTH, bx0 - nx * DEPTH / 2f, hf + rise, bz0 - nz * DEPTH / 2f),
-                    floatArrayOf(0f, 1f, 1f, 1f, .5f, 0f), pic(gp), null,
-                    if (end == 0) -ax else ax, 0f, if (end == 0) -az else az, -nx, 0f, -nz,
-                )
-            }
-            val pl = sb.postL; val pr = sb.postR; val posts = (sb.pitchInfo?.getOrNull(2) ?: 0f) * kk
-            if (pl != null && pr != null && posts > 0f) {
-                val ph = pl.height * kk
-                out += face(ox - ax * hw + nx * .3f, hf - 3f * kk + ph, oz - az * hw + nz * .3f, ax * posts / pl.width, 0f, az * posts / pl.width, 0f, -kk, 0f, pl.width.toFloat(), pl.height.toFloat(), pic(pl), null, nx, 0f, nz)
-                out += face(ox + ax * (hw - posts) + nx * .3f, hf - 3f * kk + ph, oz + az * (hw - posts) + nz * .3f, ax * posts / pr.width, 0f, az * posts / pr.width, 0f, -kk, 0f, pr.width.toFloat(), pr.height.toFloat(), pic(pr), null, nx, 0f, nz)
+            val posts = sb.pitchInfo?.getOrNull(2) ?: 0f
+            val walls = posts > 0f && sb.parts["wcap"] != null && sb.parts["pier"] != null
+            val fx = ox - ax * hw; val fz = oz - az * hw
+            if (walls) {
+                // the stone end walls as real walls following the slope, capped, with a pier at each end (BoxShell)
+                val cap = pic(sb.parts.getValue("wcap")); val pier = pic(sb.parts.getValue("pier"))
+                val gable = gp?.let { pic(it) } ?: pic(sb.side)
+                for (q in BoxShell.endWalls(sb.front.width.toFloat(), sb.front.height.toFloat(), DEPTH / kk, rise / kk, posts)) {
+                    val tex = when (q.part) {
+                        BoxPart.GABLE -> gable
+                        BoxPart.CAP_TOP, BoxPart.CAP_EDGE, BoxPart.PIER_TOP -> cap
+                        else -> pier
+                    }
+                    out += polyFace(q, fx, fz, tex)
+                }
+            } else {
+                // (old art with posts but no end walls' pictures: the posts as cards on the front, the gables inside them)
+                val inset = if (sb.postL != null && sb.postR != null) posts * kk else 0f
+                if (gp != null) for (end in 0..1) {
+                    val e = if (end == 0) -(hw - inset) else hw - inset
+                    val bx0 = ox + ax * e; val bz0 = oz + az * e
+                    out += Face(
+                        floatArrayOf(bx0, hf, bz0, bx0 - nx * DEPTH, hf, bz0 - nz * DEPTH, bx0 - nx * DEPTH / 2f, hf + rise, bz0 - nz * DEPTH / 2f),
+                        floatArrayOf(0f, 1f, 1f, 1f, .5f, 0f), pic(gp), null,
+                        if (end == 0) -ax else ax, 0f, if (end == 0) -az else az, -nx, 0f, -nz,
+                    )
+                }
+                val pl = sb.postL; val pr = sb.postR; val pk = posts * kk
+                if (pl != null && pr != null && pk > 0f) {
+                    val ph = pl.height * kk
+                    out += face(ox - ax * hw + nx * .3f, hf - 3f * kk + ph, oz - az * hw + nz * .3f, ax * pk / pl.width, 0f, az * pk / pl.width, 0f, -kk, 0f, pl.width.toFloat(), pl.height.toFloat(), pic(pl), null, nx, 0f, nz)
+                    out += face(ox + ax * (hw - pk) + nx * .3f, hf - 3f * kk + ph, oz + az * (hw - pk) + nz * .3f, ax * pk / pr.width, 0f, az * pk / pr.width, 0f, -kk, 0f, pr.width.toFloat(), pr.height.toFloat(), pic(pr), null, nx, 0f, nz)
+                }
+                if (pk <= 0f) {
+                    // the rake boards along both gables: the roof's edge standing out past them (BoxShell)
+                    val rc = sb.pitchInfo?.getOrNull(0)?.toInt() ?: 0x6A4A40
+                    val top = colour(rc); val edge = colour(BoxShell.shade(rc, .8f)); val under = colour(BoxShell.shade(rc, .55f))
+                    for (q in BoxShell.verges(sb.front.width.toFloat(), sb.front.height.toFloat(), DEPTH / kk, rise / kk))
+                        out += polyFace(q, fx, fz, when (q.part) { BoxPart.RAKE_TOP -> top; BoxPart.RAKE_UNDER -> under; else -> edge })
+                }
             }
         } else sb.roof?.let { roof ->
             out += face(ox - ax * hw - nx * DEPTH, hf, oz - az * hw - nz * DEPTH, ax * B.W / roof.width, 0f, az * B.W / roof.width,
                 nx * DEPTH / roof.height, 0f, nz * DEPTH / roof.height, roof.width.toFloat(), roof.height.toFloat(), pic(roof), null, 0f, 1f, 0f)
+        }
+        // the balconies the art paints flat on a middle floor, built: slab, floor, parapet, brackets (BoxShell)
+        if (sb.balconies.isNotEmpty()) {
+            val par = sb.parts["balp"]; val slab = sb.parts["bals"]; val floor = sb.parts["balf"]
+            if (par != null && slab != null && floor != null) {
+                val pPar = pic(par); val pSlab = pic(slab); val pFloor = pic(floor)
+                for (b in sb.balconies) {
+                    val cap = colour(b[7].toInt()); val under = colour(b[8].toInt()); val bracket = colour(b[9].toInt())
+                    for (q in BoxShell.balcony(b, sb.front.height.toFloat())) out += polyFace(q, ox - ax * hw, oz - az * hw, when (q.part) {
+                        BoxPart.BAL_PARAPET -> pPar
+                        BoxPart.BAL_SLAB -> pSlab
+                        BoxPart.BAL_FLOOR -> pFloor
+                        BoxPart.BAL_CAP -> cap
+                        BoxPart.BAL_UNDER -> under
+                        else -> bracket
+                    })
+                }
+            }
         }
         sb.prop?.let { bill ->
             if (sb.sign == null) {
@@ -213,6 +273,14 @@ internal class BuildingMeshes(
             }
         }
         return win
+    }
+
+    /** A sign's edge layers (its outline in the art's dark outline colour) and its back (in the frame's grey). */
+    private fun signBody(sign: ImageBitmap): Pair<() -> Texture, () -> Texture> {
+        val px = StreetTextures.argb(sign)
+        fun fill(rgb: Int) = IntArray(px.size) { i -> if ((px[i] ushr 24) > 0) (px[i] and 0xFF000000.toInt()) or rgb else 0 }
+        return pic(StreetTextures.prepare(fill(0x3A3A50), sign.width, sign.height, mips = true)) to
+            pic(StreetTextures.prepare(fill(0x5C6070), sign.width, sign.height, mips = true))
     }
 
     /** A billboard picture's empty rows under its legs, and its back: the same outline in the frame's grey. */
@@ -336,6 +404,25 @@ internal class BuildingMeshes(
         val nxw = ax * q.n[0] - nx * q.n[2]; val nzw = az * q.n[0] - nz * q.n[2]
         return Face(p, floatArrayOf(u0, v0, u1, v0, u1, v1, u0, v1), tex, mask, nxw, q.n[1], nzw, tx / tl, ty / tl, tz / tl)
     }
+
+    /** A [BoxPoly] (sprite pixels in the box's frame) as a face, the front wall's left end at ([fx], [fz]). */
+    private fun polyFace(q: BoxPoly, fx: Float, fz: Float, tex: () -> Texture): Face {
+        fun wx(x: Float, d: Float) = (ax * x - nx * d) * kk
+        fun wz(x: Float, d: Float) = (az * x - nz * d) * kk
+        val n = q.p.size / 3
+        val p = FloatArray(n * 3)
+        for (c in 0 until n) {
+            val x = q.p[c * 3]; val y = q.p[c * 3 + 1]; val d = q.p[c * 3 + 2]
+            p[c * 3] = fx + wx(x, d); p[c * 3 + 1] = y * kk; p[c * 3 + 2] = fz + wz(x, d)
+        }
+        val tx = p[3] - p[0]; val ty = p[4] - p[1]; val tz = p[5] - p[2]
+        val tl = sqrt(tx * tx + ty * ty + tz * tz).coerceAtLeast(1e-6f)
+        val nxw = ax * q.n[0] - nx * q.n[2]; val nzw = az * q.n[0] - nz * q.n[2]
+        return Face(p, q.uv.copyOf(n * 2), tex, null, nxw, q.n[1], nzw, tx / tl, ty / tl, tz / tl)
+    }
+
+    /** A one-pixel picture of [rgb] (0xRRGGBB). */
+    private fun colour(rgb: Int): () -> Texture = pic(StreetTextures.prepare(intArrayOf(0xFF000000.toInt() or (rgb and 0xFFFFFF)), 1, 1, mips = true))
 
     /** A box's or a mobile home's faces packed off the engine's thread ([pack]), waiting for [upload]. */
     class Packed internal constructor(

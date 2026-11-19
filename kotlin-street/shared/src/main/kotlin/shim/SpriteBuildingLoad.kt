@@ -61,6 +61,9 @@ object SpriteBuildingLoad {
             img("${sprite}_lit"), img("${sprite}_shade"),
             pitch = img("${sprite}_pitch"), pitchInfo = windows[sprite + "_pitch"]?.firstOrNull()?.takeIf { it.size >= 3 },
             postL = img("${sprite}_postl"), postR = img("${sprite}_postr"), gablePic = img("${sprite}_gablep"),
+            balconies = windows[sprite + "_balc"].orEmpty().filter { it.size >= 16 },
+            ledges = windows[sprite + "_ledge"].orEmpty().filter { it.size >= 5 },
+            parts = listOf("balp", "bals", "balf", "wcap", "pier").mapNotNull { k -> img("${sprite}_$k")?.let { k to it } }.toMap(),
         )
     }
 

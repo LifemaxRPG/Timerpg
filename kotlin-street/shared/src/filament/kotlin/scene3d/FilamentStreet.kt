@@ -28,6 +28,9 @@ import com.google.android.filament.Viewport
 import com.lifemax.rpg.feature.habits.domain.BuildingSpec as B
 import com.lifemax.rpg.feature.habits.domain.Crossroads
 import com.lifemax.rpg.feature.habits.domain.Crossroads.Companion.DEPTH
+import com.lifemax.rpg.feature.habits.domain.BoxPart
+import com.lifemax.rpg.feature.habits.domain.BoxPoly
+import com.lifemax.rpg.feature.habits.domain.BoxShell
 import com.lifemax.rpg.feature.habits.domain.HouseShell
 import com.lifemax.rpg.feature.habits.domain.ShellPart
 import com.lifemax.rpg.feature.habits.domain.Crossroads.Companion.KERB
@@ -431,6 +434,47 @@ class FilamentStreet(
             val h = sg.height * kk
             out += face(ox - ax * hw, hf + h, oz - az * hw, ax * B.W / sg.width, 0f, az * B.W / sg.width, 0f, -kk, 0f,
                 sg.width.toFloat(), sg.height.toFloat(), textures.of(sg), null, nx, 0f, nz)
+            // the board's thickness: its edge layers in the art's outline colour, its back in the frame's grey
+            if (!CameraRig.classic) {
+                val px = StreetTextures.argb(sg)
+                fun fill(rgb: Int) = IntArray(px.size) { j -> if ((px[j] ushr 24) > 0) (px[j] and 0xFF000000.toInt()) or rgb else 0 }
+                val edge = textures.make(fill(0x3A3A50), sg.width, sg.height, mips = true)
+                val back = textures.make(fill(0x5C6070), sg.width, sg.height, mips = true)
+                for (k in 1..4) {
+                    val d = k * .75f * kk; val last = k == 4
+                    out += face(ox - ax * hw - nx * d, hf + h, oz - az * hw - nz * d, ax * B.W / sg.width, 0f, az * B.W / sg.width, 0f, -kk, 0f,
+                        sg.width.toFloat(), sg.height.toFloat(), if (last) back else edge, null, if (last) -nx else nx, 0f, if (last) -nz else nz)
+                }
+            }
+        }
+        val fx0 = ox - ax * hw; val fz0 = oz - az * hw
+        fun poly(q: BoxPoly, tex: Texture): Face {
+            val n = q.p.size / 3
+            val p = FloatArray(n * 3)
+            for (c in 0 until n) {
+                val x = q.p[c * 3]; val y = q.p[c * 3 + 1]; val d = q.p[c * 3 + 2]
+                p[c * 3] = fx0 + (ax * x - nx * d) * kk; p[c * 3 + 1] = y * kk; p[c * 3 + 2] = fz0 + (az * x - nz * d) * kk
+            }
+            val tx = p[3] - p[0]; val ty = p[4] - p[1]; val tz = p[5] - p[2]
+            val tl = sqrt(tx * tx + ty * ty + tz * tz).coerceAtLeast(1e-6f)
+            return Face(p, q.uv.copyOf(n * 2), tex, null, ax * q.n[0] - nx * q.n[2], q.n[1], az * q.n[0] - nz * q.n[2], tx / tl, ty / tl, tz / tl)
+        }
+        fun colour(rgb: Int) = textures.make(intArrayOf(0xFF000000.toInt() or (rgb and 0xFFFFFF)), 1, 1, mips = true)
+        // what the art draws flat but stands out, built (BoxShell): the stone ledges, the balconies (not in the classic's looks)
+        if (!CameraRig.classic) {
+            if (sb.ledges.isNotEmpty()) for (q in BoxShell.ledges(sb.ledges, sb.front.width.toFloat(), sb.front.height.toFloat())) out += poly(q, win.albedo)
+            val par = sb.parts["balp"]; val slab = sb.parts["bals"]; val floor = sb.parts["balf"]
+            if (par != null && slab != null && floor != null) for (b in sb.balconies) {
+                val cap = colour(b[7].toInt()); val under = colour(b[8].toInt()); val bracket = colour(b[9].toInt())
+                for (q in BoxShell.balcony(b, sb.front.height.toFloat())) out += poly(q, when (q.part) {
+                    BoxPart.BAL_PARAPET -> textures.of(par)
+                    BoxPart.BAL_SLAB -> textures.of(slab)
+                    BoxPart.BAL_FLOOR -> textures.of(floor)
+                    BoxPart.BAL_CAP -> cap
+                    BoxPart.BAL_UNDER -> under
+                    else -> bracket
+                })
+            }
         }
         val side = sb.side
         val sw = side.width.toFloat(); val sh = side.height.toFloat()
@@ -450,23 +494,43 @@ class FilamentStreet(
             out += face(rx, hf + rise, rz, ax * B.W / pw, 0f, az * B.W / pw, -nx * DEPTH / 2f / rows, -rise / rows, -nz * DEPTH / 2f / rows, pw, rows, textures.of(pitch), null, -nx * sy, cy, -nz * sy)
             // the gable ends: the side wall's top storey carried up into the triangle
             val gp = sb.gablePic
-            // (with stone end walls the pitch's art is clear over the posts: the gables stand inside them, not past them)
-            val inset = if (sb.postL != null && sb.postR != null) (sb.pitchInfo?.getOrNull(2) ?: 0f) * kk else 0f
-            if (gp != null) for (end in 0..1) {
-                val e = if (end == 0) -(hw - inset) else hw - inset
-                val bx0 = ox + ax * e; val bz0 = oz + az * e
-                out += Face(
-                    floatArrayOf(bx0, hf, bz0, bx0 - nx * DEPTH, hf, bz0 - nz * DEPTH, bx0 - nx * DEPTH / 2f, hf + rise, bz0 - nz * DEPTH / 2f),
-                    floatArrayOf(0f, 1f, 1f, 1f, .5f, 0f), textures.of(gp), null,
-                    if (end == 0) -ax else ax, 0f, if (end == 0) -az else az, -nx, 0f, -nz,
-                )
-            }
-            // the stone end walls' columns, as the street shows them on the front
-            val pl = sb.postL; val pr = sb.postR; val posts = (sb.pitchInfo?.getOrNull(2) ?: 0f) * kk
-            if (pl != null && pr != null && posts > 0f) {
-                val ph = pl.height * kk
-                out += face(ox - ax * hw + nx * .3f, hf - 3f * kk + ph, oz - az * hw + nz * .3f, ax * posts / pl.width, 0f, az * posts / pl.width, 0f, -kk, 0f, pl.width.toFloat(), pl.height.toFloat(), textures.of(pl), null, nx, 0f, nz)
-                out += face(ox + ax * (hw - posts) + nx * .3f, hf - 3f * kk + ph, oz + az * (hw - posts) + nz * .3f, ax * posts / pr.width, 0f, az * posts / pr.width, 0f, -kk, 0f, pr.width.toFloat(), pr.height.toFloat(), textures.of(pr), null, nx, 0f, nz)
+            val posts = sb.pitchInfo?.getOrNull(2) ?: 0f
+            val wcap = sb.parts["wcap"]; val pierPic = sb.parts["pier"]
+            if (posts > 0f && wcap != null && pierPic != null && !CameraRig.classic) {
+                // the stone end walls as real walls following the slope, capped, with a pier at each end (BoxShell)
+                val gable = textures.of(gp ?: sb.side)
+                for (q in BoxShell.endWalls(sb.front.width.toFloat(), sb.front.height.toFloat(), DEPTH / kk, rise / kk, posts))
+                    out += poly(q, when (q.part) {
+                        BoxPart.GABLE -> gable
+                        BoxPart.CAP_TOP, BoxPart.CAP_EDGE, BoxPart.PIER_TOP -> textures.of(wcap)
+                        else -> textures.of(pierPic)
+                    })
+            } else {
+                // (with stone end walls the pitch's art is clear over the posts: the gables stand inside them, not past them)
+                val inset = if (sb.postL != null && sb.postR != null) posts * kk else 0f
+                if (gp != null) for (end in 0..1) {
+                    val e = if (end == 0) -(hw - inset) else hw - inset
+                    val bx0 = ox + ax * e; val bz0 = oz + az * e
+                    out += Face(
+                        floatArrayOf(bx0, hf, bz0, bx0 - nx * DEPTH, hf, bz0 - nz * DEPTH, bx0 - nx * DEPTH / 2f, hf + rise, bz0 - nz * DEPTH / 2f),
+                        floatArrayOf(0f, 1f, 1f, 1f, .5f, 0f), textures.of(gp), null,
+                        if (end == 0) -ax else ax, 0f, if (end == 0) -az else az, -nx, 0f, -nz,
+                    )
+                }
+                // the stone end walls' columns, as the street shows them on the front (the classic's looks)
+                val pl = sb.postL; val pr = sb.postR; val pk = posts * kk
+                if (pl != null && pr != null && pk > 0f) {
+                    val ph = pl.height * kk
+                    out += face(ox - ax * hw + nx * .3f, hf - 3f * kk + ph, oz - az * hw + nz * .3f, ax * pk / pl.width, 0f, az * pk / pl.width, 0f, -kk, 0f, pl.width.toFloat(), pl.height.toFloat(), textures.of(pl), null, nx, 0f, nz)
+                    out += face(ox + ax * (hw - pk) + nx * .3f, hf - 3f * kk + ph, oz + az * (hw - pk) + nz * .3f, ax * pk / pr.width, 0f, az * pk / pr.width, 0f, -kk, 0f, pr.width.toFloat(), pr.height.toFloat(), textures.of(pr), null, nx, 0f, nz)
+                }
+                if (pk <= 0f && !CameraRig.classic) {
+                    // the rake boards along both gables (BoxShell)
+                    val rc = sb.pitchInfo?.getOrNull(0)?.toInt() ?: 0x6A4A40
+                    val top = colour(rc); val edge = colour(BoxShell.shade(rc, .8f)); val under = colour(BoxShell.shade(rc, .55f))
+                    for (q in BoxShell.verges(sb.front.width.toFloat(), sb.front.height.toFloat(), DEPTH / kk, rise / kk))
+                        out += poly(q, when (q.part) { BoxPart.RAKE_TOP -> top; BoxPart.RAKE_UNDER -> under; else -> edge })
+                }
             }
         } else sb.roof?.let { roof ->
             out += face(ox - ax * hw - nx * DEPTH, hf, oz - az * hw - nz * DEPTH, ax * B.W / roof.width, 0f, az * B.W / roof.width,

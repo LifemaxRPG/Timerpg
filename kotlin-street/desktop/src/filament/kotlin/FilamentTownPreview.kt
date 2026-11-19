@@ -288,6 +288,27 @@ fun renderFilamentTown(out: String) {
             shoot("house_${sp}_above", aerial(tx, tz, front + 30f, 55f, 380f, 45f), 13f)
         }
     }
+    // --- shops and flats close up (-Dshops=b2,b0): the box itself (not the lot's middle, which for a shop is across the
+    // back lane), the eye lifted to its upper floors and roof: front, both three-quarters, both ends, the back, above, low
+    System.getProperty("shops")?.let { list ->
+        for (sp in list.split(",").map { it.trim() }) {
+            val r = town.rows.firstOrNull { row -> row.buildings.any { it.sprite == sp } } ?: continue
+            val b = r.buildings.first { it.sprite == sp }
+            val n = r.normalAt(b.mid)
+            val c = r.pointAt(b.mid, 0f)
+            val dd = 60f * 184f / 224f
+            val tx = c.x + n.x * (b.setback + dd); val tz = c.z + n.z * (b.setback + dd)
+            val front = Math.toDegrees(kotlin.math.atan2(n.x.toDouble(), (-n.z).toDouble())).toFloat()
+            fun view(dy: Float, pitch: Float, dist: Float, lift: Float): TownPose {
+                val p = TownFrame.aerial(tx, tz, front + dy, pitch, dist, 45f, aw.toFloat(), ah.toFloat())
+                return TownPose(p.ex, p.ey + lift, p.ez, p.fx, p.fy, p.fz, p.fl, p.cx, p.cy, p.w, p.h, p.near, p.far, p.hazeFrom, p.haze)
+            }
+            for ((v, dy) in listOf("front" to 0f, "q1" to 40f, "q2" to -40f, "end1" to 80f, "end2" to -80f, "back" to 180f, "bq" to 145f))
+                shoot("shop_${sp}_$v", view(dy, 16f, 380f, 110f), 13f)
+            shoot("shop_${sp}_above", view(30f, 55f, 460f, 0f), 13f)
+            shoot("shop_${sp}_low", view(28f, 2f, 300f, 70f), 13f)
+        }
+    }
     // --- the landmarks' grounds: each landmark from low above its front (the paved path and apron)
     for (sp in listOf("b92", "b96", "b97")) {
         val r = town.rows.firstOrNull { row -> row.buildings.any { it.sprite == sp } } ?: continue
