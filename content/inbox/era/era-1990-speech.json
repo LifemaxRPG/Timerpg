@@ -1,0 +1,442 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1990,
+  "topic": "speech",
+  "facts": [
+    {
+      "id": "1990-speech-01",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Teenagers greet close friends with hey or what's up rather than a formal good morning.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-02",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A student usually calls a teacher Mr., Mrs., or Miss followed by a surname.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-03",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Adults often address an unfamiliar customer as sir or ma'am when speaking politely.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-04",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A child asks a friend's parent for permission before using a first name.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-05",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "At the diner, regular customers may greet the server by first name.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-06",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A cashier often ends a sale with have a nice day.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-07",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Teenagers use cool to approve of music, clothes, or plans.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-08",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A teenager calls something lame when it seems disappointing or uncool.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-09",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Kids use awesome for a particularly exciting game or surprise.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-10",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Teens say whatever to dismiss an argument, sometimes irritating their parents.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-11",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A student says no duh when an obvious answer gets repeated.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-12",
+      "year_from": 1993,
+      "year_to": 1999,
+      "text": "Friends say my bad when admitting a small mistake.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1990-speech-13",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A teenager says chill out when a friend gets worked up.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-14",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A classmate says psych after a playful trick or false promise.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1990-speech-15",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Young people use totally to give an emphatic yes.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-16",
+      "year_from": 1995,
+      "year_to": 1999,
+      "text": "Teenagers say as if to reject an unlikely suggestion.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-17",
+      "year_from": 1996,
+      "year_to": 1999,
+      "text": "A teenager says talk to the hand when refusing to listen, often drawing a scolding.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-18",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Friends use later as a quick goodbye after school.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-19",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A teen calls an embarrassing situation awkward rather than making a formal complaint.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-20",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Adults commonly say give me a call when arranging to talk again.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-21",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A parent says watch your language when a child swears at the dinner table.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-22",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "In church or at a formal gathering, children are expected to speak respectfully to elders.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-23",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A shop clerk asks can I help you when someone walks up to the counter.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-24",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A child often says please and thank you when asking a neighbor for a favor.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-25",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Friends use no problem to reassure someone after a small inconvenience.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-speech-26",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A teenager calls an impressive outfit or new bicycle sweet.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": [
+    {
+      "phrase": "what's up",
+      "meaning": "informal greeting",
+      "ages": "teens",
+      "from": 1990,
+      "to": 1999,
+      "tone": "casual"
+    },
+    {
+      "phrase": "cool",
+      "meaning": "good or impressive",
+      "ages": "teens",
+      "from": 1990,
+      "to": 1999,
+      "tone": "casual"
+    },
+    {
+      "phrase": "awesome",
+      "meaning": "very good or exciting",
+      "ages": "kids",
+      "from": 1990,
+      "to": 1999,
+      "tone": "casual"
+    },
+    {
+      "phrase": "lame",
+      "meaning": "disappointing or uncool",
+      "ages": "teens",
+      "from": 1990,
+      "to": 1999,
+      "tone": "casual"
+    },
+    {
+      "phrase": "whatever",
+      "meaning": "dismissive response",
+      "ages": "teens",
+      "from": 1990,
+      "to": 1999,
+      "tone": "rude"
+    },
+    {
+      "phrase": "no duh",
+      "meaning": "that is obvious",
+      "ages": "teens",
+      "from": 1990,
+      "to": 1999,
+      "tone": "rude"
+    },
+    {
+      "phrase": "my bad",
+      "meaning": "my mistake",
+      "ages": "teens",
+      "from": 1993,
+      "to": 1999,
+      "tone": "casual"
+    },
+    {
+      "phrase": "chill out",
+      "meaning": "calm down",
+      "ages": "teens",
+      "from": 1990,
+      "to": 1999,
+      "tone": "casual"
+    },
+    {
+      "phrase": "psych",
+      "meaning": "just kidding or fooled you",
+      "ages": "teens",
+      "from": 1990,
+      "to": 1999,
+      "tone": "casual"
+    },
+    {
+      "phrase": "totally",
+      "meaning": "strong agreement",
+      "ages": "teens",
+      "from": 1990,
+      "to": 1999,
+      "tone": "casual"
+    },
+    {
+      "phrase": "as if",
+      "meaning": "that is unlikely or ridiculous",
+      "ages": "teens",
+      "from": 1995,
+      "to": 1999,
+      "tone": "casual"
+    },
+    {
+      "phrase": "talk to the hand",
+      "meaning": "stop talking to me",
+      "ages": "teens",
+      "from": 1996,
+      "to": 1999,
+      "tone": "rude"
+    },
+    {
+      "phrase": "later",
+      "meaning": "goodbye for now",
+      "ages": "teens",
+      "from": 1990,
+      "to": 1999,
+      "tone": "casual"
+    },
+    {
+      "phrase": "sweet",
+      "meaning": "excellent or desirable",
+      "ages": "teens",
+      "from": 1990,
+      "to": 1999,
+      "tone": "casual"
+    },
+    {
+      "phrase": "no problem",
+      "meaning": "you are welcome or it is fine",
+      "ages": "all",
+      "from": 1990,
+      "to": 1999,
+      "tone": "casual"
+    },
+    {
+      "phrase": "have a nice day",
+      "meaning": "polite farewell",
+      "ages": "adults",
+      "from": 1990,
+      "to": 1999,
+      "tone": "polite"
+    },
+    {
+      "phrase": "give me a call",
+      "meaning": "telephone me later",
+      "ages": "adults",
+      "from": 1990,
+      "to": 1999,
+      "tone": "casual"
+    },
+    {
+      "phrase": "yes ma'am",
+      "meaning": "respectful agreement",
+      "ages": "kids",
+      "from": 1990,
+      "to": 1999,
+      "tone": "polite"
+    }
+  ]
+}
