@@ -1,0 +1,373 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2020,
+  "topic": "transport",
+  "facts": [
+    {
+      "id": "2020-transport-01",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Many drivers use phone navigation to follow a route through unfamiliar towns.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-02",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Families still keep a spare tire or repair kit for roadside emergencies.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-03",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A school bus stops along residential streets to collect children each weekday morning.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-04",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Parents wait in a line of cars outside the school at dismissal time.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-05",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Some teenagers practice for a driving test with a parent in the passenger seat.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-06",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A driver checks tire pressure before a long highway trip.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-07",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Many gas stations offer pumps where customers pay with a card.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-08",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Some motorists stop at a convenience store attached to a fuel station.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-09",
+      "year_from": 2021,
+      "year_to": 2029,
+      "text": "Electric cars are increasingly visible on town streets and highways.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-10",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "An electric car owner may plan a longer journey around available charging stations.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-11",
+      "year_from": 2021,
+      "year_to": 2029,
+      "text": "Public charging stations appear at some shopping centers and parking lots.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-12",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Drivers of older vehicles still visit garages for oil changes and routine repairs.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-13",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A family may choose a used vehicle because a new one costs too much.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-14",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Children ride bicycles along neighborhood streets and shared paths.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-15",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Some cyclists wear reflective clothing when riding after dark.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-16",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A town may mark bicycle lanes along busier streets.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-17",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Pedestrians use marked crosswalks near schools and shopping streets.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-18",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A commuter may share a ride with a coworker to save on fuel.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-19",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Residents in small towns often need a car for errands beyond the town center.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-20",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Some intercity bus routes connect smaller communities with regional cities.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-21",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Passenger trains serve certain towns, but many communities have no nearby station.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-22",
+      "year_from": 2020,
+      "year_to": 2020,
+      "text": "During 2020, some families cancel road trips because of travel restrictions and health concerns.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-23",
+      "year_from": 2020,
+      "year_to": 2020,
+      "text": "During 2020, many commuters drive less while working from home.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-24",
+      "year_from": 2021,
+      "year_to": 2021,
+      "text": "During 2021, some car buyers encounter limited dealer inventory.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-25",
+      "year_from": 2022,
+      "year_to": 2022,
+      "text": "During 2022, high gasoline prices prompt drivers to combine errands into fewer trips.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-26",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Some newer cars warn drivers when they drift out of a marked lane.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-27",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A driver may use a dashboard camera to record a journey.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-transport-28",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A family packs snacks and water before setting out on a long road trip.",
+      "ages": "all",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "fully driverless taxis available in every small town",
+      "first_common": null,
+      "say_instead": "A resident drives or arranges a ride with a human driver."
+    },
+    {
+      "thing": "personal flying cars used for ordinary commuting",
+      "first_common": null,
+      "say_instead": "Commuters travel by road in conventional vehicles."
+    },
+    {
+      "thing": "self-driving school buses without an adult operator",
+      "first_common": null,
+      "say_instead": "A licensed driver operates the school bus."
+    },
+    {
+      "thing": "electric aircraft replacing ordinary regional passenger flights",
+      "first_common": null,
+      "say_instead": "Regional passengers use conventional aircraft or ground transportation."
+    },
+    {
+      "thing": "a nationwide network of high-speed passenger trains serving most small towns",
+      "first_common": null,
+      "say_instead": "Many residents drive or take an intercity bus to reach a rail station."
+    },
+    {
+      "thing": "instant vehicle teleportation for everyday errands",
+      "first_common": null,
+      "say_instead": "A resident walks, cycles, or drives to the store."
+    },
+    {
+      "thing": "robot delivery vehicles serving every rural household",
+      "first_common": null,
+      "say_instead": "A delivery driver brings parcels by road."
+    },
+    {
+      "thing": "electric charging at every rural gas station",
+      "first_common": null,
+      "say_instead": "An electric car driver checks where charging is available."
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
