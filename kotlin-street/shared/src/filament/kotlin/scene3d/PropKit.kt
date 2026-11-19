@@ -123,6 +123,20 @@ internal class MeshBuilder {
     }
 
     /**
+     * Moves every face added since [mark] by the affine map [f] (a point's x, y, z changed in place): a sign board turned
+     * about its middle. Normals and tangents follow (as f(d) - f(0)).
+     */
+    fun transformSince(mark: Int, f: (FloatArray) -> Unit) {
+        val o = floatArrayOf(0f, 0f, 0f); f(o)
+        fun dir(d: FloatArray) { val t = floatArrayOf(d[0], d[1], d[2]); f(t); d[0] = t[0] - o[0]; d[1] = t[1] - o[1]; d[2] = t[2] - o[2] }
+        for (k in mark until polys.size) {
+            val q = polys[k]
+            dir(q.n); dir(q.t)
+            for (i in 0 until q.p.size step 3) { val t = floatArrayOf(q.p[i], q.p[i + 1], q.p[i + 2]); f(t); q.p[i] = t[0]; q.p[i + 1] = t[1]; q.p[i + 2] = t[2] }
+        }
+    }
+
+    /**
      * Squeezes every face added since [mark] into |x| <= [hw], |z| <= [hd] about the origin (scaling x and z only as far as
      * needed; normals turned to match): a tree's crown kept inside its yard item's rect.
      */

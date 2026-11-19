@@ -230,6 +230,19 @@ internal class PropLayer(
         if (shown) faded = fade < 1f || castFade < 1f
     }
 
+    /**
+     * Stands every batch where [m] (a column-major 4x4, model to world) puts it: a layer packed in its own frame at the
+     * origin and moved as one each frame (a train's car, a crossing gate's arm). Its box goes with it for culling.
+     */
+    fun setTransform(m: FloatArray) {
+        val tm = engine.transformManager
+        for (b in batches) for (e in intArrayOf(b.entity, b.proxy)) {
+            if (e == 0) continue
+            if (!tm.hasComponent(e)) tm.create(e)
+            tm.setTransform(tm.getInstance(e), m)
+        }
+    }
+
     fun destroy() {
         val em = EntityManager.get()
         for (b in batches) {

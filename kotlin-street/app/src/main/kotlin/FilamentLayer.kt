@@ -354,7 +354,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             StreetRenderer.townBuilding(ctx, true)
             buildMarked = true
             val ft = com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown(e, mats, data.town, data.yards, data.art, data.building, cinema = data.cinema,
-                stores = data.stores, collision = data.collision)
+                stores = data.stores, collision = data.collision, rail = data.rail)
             // the farms round the town, their fields as they are today
             farms = data.farmArt?.let { fa -> com.lifemax.rpg.feature.habits.presentation.scene3d.TownFarms.attach(ft, data.farms, fa, data.collision, day = farmDay()) }
             town = ft
@@ -372,6 +372,8 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             }
         }
         farms?.day = farmDay()
+        // (a ride on the train asked for, under way or ending: RailTrip)
+        RailTrip.frame(town!!)
         rn.draw(walk, w.toFloat(), h.toFloat(), f.hour, f.seconds, com.lifemax.rpg.feature.habits.presentation.scene.SpriteSheets.sheets)
         val ft = town!!
         FilamentStats.buildMs = ft.buildingsMs + ft.groundUploadMs

@@ -667,7 +667,9 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         // (a flower bush is the pack's planter box: the props' planter in 3D, not a card)
         val planters = ArrayList<Pair<Int, FloatArray>>()
         val edgeProps = java.util.Collections.newSetFromMap(java.util.IdentityHashMap<Any, Boolean>()).also { it.addAll(town.props) }
+        val clear = town.keepClear
         for (p in town.props + town.plazaProps) {
+            if (clear != null && p in edgeProps && clear(p.x, p.z)) continue
             if (p.kind == "flowerBush") {
                 val turn = if (((p.look * 7919f).toInt() and 1) == 0) 0f else PI.toFloat() / 2f
                 planters += ((p.look * 997f).toInt().mod(PropKind.PLANTER.variants)) to floatArrayOf(p.x, p.z, 1f, 0f, 0f, 1f, turn)
@@ -677,7 +679,7 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
             put(p.kind, p.x, p.z, p.look, edge = p in edgeProps)
         }
         // the forest's outer edge: the map's forest stops in a straight line; trees thin out past it into the fields instead
-        for ((x, z, look) in feather()) put("tree", x, z, look, edge = true)
+        for ((x, z, look) in feather()) if (clear == null || !clear(x, z)) put("tree", x, z, look, edge = true)
         val out = ArrayList<GroundPiece>()
         for ((pl, at) in groups) {
             val img = sprite(pl.path) ?: continue
