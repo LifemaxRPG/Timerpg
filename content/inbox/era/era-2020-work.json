@@ -1,0 +1,297 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2020,
+  "topic": "work",
+  "facts": [
+    {
+      "id": "2020-work-01",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A hospital nurse checks patient charts before handing a shift over to the next nurse.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-02",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A nursing assistant helps residents at a care home with daily routines.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-03",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A warehouse picker scans labels while collecting items for shipment.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-04",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A mechanic uses a diagnostic scanner to investigate a warning light on a customer's car.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-05",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "An electrician checks a breaker panel before repairing a faulty circuit.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-06",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A plumber schedules several service calls across nearby neighborhoods.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-07",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A farmworker harvests vegetables early in the morning before the afternoon heat.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-08",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A school custodian cleans classrooms after students leave for the day.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-09",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A teacher prepares lesson materials and grades assignments outside classroom hours.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-10",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A restaurant cook prepares ingredients before the lunch rush begins.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-11",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A grocery cashier stands through much of a scheduled shift.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-12",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A delivery worker carries parcels from a van to front porches.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-13",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A construction crew wears hard hats while working near moving equipment.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-14",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A receptionist answers calls and checks visitors in at a medical office.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-15",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A hairdresser books appointments and cleans tools between customers.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-16",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A town clerk processes permit applications and answers residents' questions.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-17",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A landscaping crew mows lawns and trims hedges during warm months.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-18",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A home health aide travels between clients who need help with daily tasks.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-19",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A small business owner handles bookkeeping after closing the shop.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-20",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A factory machine operator checks finished parts for visible defects.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-21",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "An apprentice learns a trade while working alongside an experienced craftsperson.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-22",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A union representative discusses workplace safety concerns with employees.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-23",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Women work across local trades, healthcare, public offices, and business management.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-24",
+      "year_from": 2020,
+      "year_to": 2020,
+      "text": "Some restaurant workers lose scheduled shifts when dining rooms temporarily close.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-25",
+      "year_from": 2020,
+      "year_to": 2021,
+      "text": "Some workers wear face coverings and follow distancing rules at their workplaces.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-work-26",
+      "year_from": 2021,
+      "year_to": 2023,
+      "text": "Some employers struggle to fill advertised positions as hiring demand changes.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
