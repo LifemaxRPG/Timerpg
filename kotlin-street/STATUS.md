@@ -651,6 +651,23 @@ ShotSettings: the switch and the token; Reports: crash reports and breadcrumbs),
 - Not tested without the phone: PixelCopy with the Filament TextureView, the keystore, the real GitHub calls (branch
   creation, a fine-grained token's 403/404), the offline retry, the exit records and tombstones, logcat from the app.
 
+## The owner's screenshots of 0.1.338 (wf-feedback; desktop renders and JVM tests only, NOT yet run on the S25)
+
+- Free roam has no painted 2D city under the sky any more (the street view keeps it); the horizon is the town's own woods
+  in the haze. The camera's cutaway cuts only the tall thing truly in the way, never a whole back yard. Trees and bushes
+  are 3D species near by (TreeKit: two levels of detail in cells, cards far). Details: docs/TOWN.md "the owner's
+  screenshots of 0.1.338".
+- HUD: the top left is one column (street and neighbourhood, then the town on a smaller line, kept clear of the time bar;
+  then the AI chip with "Behind me" beside it; then the mic), so nothing overlaps at 2340x1080. Always listening on but
+  the microphone not allowed: the mic chip and the AI panel say so and ask on a tap (the grant is looked at again when
+  the game comes back to the front).
+- The light model on the CPU for want of memory: the note names the NPU (the device the light model is wanted on; the
+  phone's accelerators are remembered, since before the first load the library can report none), and every 30 s (not
+  while a line is written, the player talks or speaks, a turn or the town's load) the free memory is checked against the
+  NPU copy's need; held for 60 s, the model is loaded again on the NPU (breadcrumbs: room seen, moving). The measured
+  working memory (KV, state, compute) is kept per role, device and model file across sessions, so the next session's need
+  is the measured one, not the flat 300 MB guess (the CPU's measure stands in for the NPU's until that is known).
+
 ## Known rough edges / not done
 - Untested on a real device (touch, speed, memory, the turn's draw cost). Android-only code: image helper, asset loading,
   the stick's back-gesture exclusion, keyboard and game pad input, the refresh-rate request.

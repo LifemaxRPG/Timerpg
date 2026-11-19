@@ -632,6 +632,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         if (wantAlways && granted) setMicAlways(true)
         wantAlways = false
     }
+    // (granted in the system's settings meanwhile: seen when the game comes back to the front)
+    LaunchedEffect(Foreground.resumed) { if (Foreground.resumed) micGranted = ears.hasPermission() }
     val onMicAlways: (Boolean) -> Unit = { on ->
         if (!on) setMicAlways(false)
         else if (ears.hasPermission()) { micGranted = true; setMicAlways(true) }
@@ -918,8 +920,6 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         if (townMode) androidx.compose.runtime.key("town") { FilamentLayer(Modifier.fillMaxSize(), town = true) }
         else if (room == null && StreetRenderer.filament) androidx.compose.runtime.key("crossroads") { FilamentLayer(Modifier.fillMaxSize()) }
         if (room != null) com.lifemax.rpg.feature.habits.presentation.scene.InteriorStage(room, walker, hour, keeperSheet, Modifier.fillMaxSize())
-        Text(if (townMode && townData != null) listOfNotNull(townStreet, townHood, townData.town.let { "${it.seed} · ${townData.kind}" }).joinToString(" · ")
-            else "${street.name} · ${data.town}", 14.sp, Modifier.align(Alignment.TopStart).padding(14.dp).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
         if (door > 0f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = door)))
         // walking: one floating stick under the left thumb (it comes to where the thumb lands); under every button and
         // panel, which get their taps first. Still while a door fades or a panel covers the street; live through the walk
@@ -930,10 +930,6 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         val orbiting by rememberUpdatedState(townMode && StreetRenderer.view == StreetRenderer.OPEN && inside == null && stickOpen && talk == null)
         MoveStick(enabled = stickOpen, Modifier.fillMaxSize().orbitGestures({ orbiting }, { townPlay.walk?.let { Math.toDegrees(it.heading.toDouble()).toFloat() } }),
             compact = townMode && StreetRenderer.view == StreetRenderer.OPEN && inside == null)
-        // (under the street's name at the top left: out of the way of the right thumb's drags and of the stick's corner)
-        if (orbiting) Chip("Behind me", false, Modifier.align(Alignment.TopStart).padding(top = 52.dp, start = 14.dp)) {
-            townPlay.walk?.let { com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera.recentre(Math.toDegrees(it.heading.toDouble()).toFloat()) }
-        }
         // the stick's corner is not the system's back gesture (Android allows 200 dp of an edge: the bottom of it, where a
         // left thumb rests; a thumb landing higher on the very edge still swipes back, which the back handler above keeps
         // from leaving the game)
@@ -1064,11 +1060,25 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         shot?.let { s -> ShotSheet(s, Modifier.align(Alignment.Center), onSend = { note ->
             com.timerpg.street.shot.ShotUploader.sendShot(ctx, s.bmp, note, s.at, s.how, s.game); shot = null
         }, onCancel = { shot = null }) }
-        // the dialogue AI, under the street name (drawn last, so its panel is on top): its state at a glance; tap for the
-        // model file and the speed numbers
-        Column(Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = 50.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Chip(aiChipLabel(ai), aiPanel) { aiPanel = !aiPanel }
-            if (micAlways) MicLamp(ears, canListen)
+        // the top left, one column so nothing overlaps (drawn last, so the AI panel is on top): where the player is (kept
+        // clear of the time bar in the middle: narrower, on two lines), then the dialogue AI's state at a glance (tap for
+        // the model file and the speed numbers) and, in the open world, "Behind me" (out of the way of the right thumb's
+        // drags and of the stick's corner), the always-listening mic under them
+        val leftMax = (androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp / 2 - 196).coerceIn(150, 460).dp
+        Column(Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(Modifier.widthIn(max = leftMax).background(Color(0x99101420), RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) {
+                if (townMode && townData != null) {
+                    Text(listOfNotNull(townStreet, townHood).joinToString(" · ").ifEmpty { townData.town.seed }, 14.sp, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                    Text("${townData.town.seed} · ${townData.kind}", 11.sp, color = DIM, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                } else Text("${street.name} · ${data.town}", 14.sp, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Chip(aiChipLabel(ai), aiPanel) { aiPanel = !aiPanel }
+                if (orbiting) Chip("Behind me", false) {
+                    townPlay.walk?.let { com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera.recentre(Math.toDegrees(it.heading.toDouble()).toFloat()) }
+                }
+            }
+            if (micAlways) MicLamp(ears, canListen, granted = micGranted) { askMic.launch(android.Manifest.permission.RECORD_AUDIO) }
             updater.available?.let { r -> if (!aiPanel) Chip("⬆ Update: ${r.versionName}", false) { aiPanel = true } }
             if (aiPanel) AiPanel(ai, engine, voices, updater, micAlways, onMicAlways, ears, onPick = {
                 try { pickModel.launch(arrayOf("*/*")) } catch (e: Exception) { /* no document picker on this device */ }
@@ -1270,7 +1280,12 @@ private object Foreground {
 
 /** The always-listening mic at a glance: listening, hearing the player (with the meter), writing it down, paused. */
 @Composable
-private fun MicLamp(ears: com.timerpg.street.voice.PlayerVoice, live: Boolean) {
+private fun MicLamp(ears: com.timerpg.street.voice.PlayerVoice, live: Boolean, granted: Boolean = true, onAllow: () -> Unit = {}) {
+    if (!granted) {
+        // always listening is on, but the game may not use the microphone: say so, and ask again on a tap
+        Chip("🎤 needs the microphone: tap to allow", false) { onAllow() }
+        return
+    }
     val label = when {
         !live -> "🎤 paused"
         ears.writing > 0 -> "🎤 …"
@@ -1593,7 +1608,11 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             // off (the default) loads no voice and makes none ahead: switched off, they are let go at once
             Chip(if (voices.enabled) "Voices: on" else "Voices: off", voices.enabled) { voices.switchTo(!voices.enabled) }
             // always listening: say something near someone and they answer (hold to talk in a conversation otherwise)
-            Chip(if (micAlways) "Mic: always listening" else "Mic: hold to talk", micAlways) { onMicAlways(!micAlways) }
+            // (on, but the microphone not allowed: a tap asks for it rather than turning listening off)
+            val micBlocked = micAlways && !ears.hasPermission()
+            Chip(if (micBlocked) "Mic: always listening, not allowed: tap to allow" else if (micAlways) "Mic: always listening" else "Mic: hold to talk", micAlways) {
+                onMicAlways(if (micBlocked) true else !micAlways)
+            }
         }
         // who writes down what the player says: the phone's own on-device recognizer (words shown while you talk; ours
         // is then not loaded) or the game's speech model (small or large); the words never leave the phone either way
@@ -1792,10 +1811,12 @@ private fun Chip(label: String, on: Boolean, modifier: Modifier = Modifier, onCl
 private fun Modifier.opaque(): Modifier = pointerInput(Unit) { awaitPointerEventScope { while (true) awaitPointerEvent() } }
 
 @Composable
-private fun Text(s: String, fontSize: androidx.compose.ui.unit.TextUnit = 15.sp, modifier: Modifier = Modifier, color: Color = Color.White) =
+private fun Text(s: String, fontSize: androidx.compose.ui.unit.TextUnit = 15.sp, modifier: Modifier = Modifier, color: Color = Color.White,
+                 maxLines: Int = Int.MAX_VALUE, overflow: androidx.compose.ui.text.style.TextOverflow = androidx.compose.ui.text.style.TextOverflow.Clip) =
     androidx.compose.foundation.text.BasicText(
         s, modifier,
         style = androidx.compose.ui.text.TextStyle(color = color, fontSize = fontSize, fontWeight = FontWeight.SemiBold),
+        overflow = overflow, maxLines = maxLines,
     )
 
 @Composable

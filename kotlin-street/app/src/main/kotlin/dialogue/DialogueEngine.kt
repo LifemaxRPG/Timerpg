@@ -502,11 +502,24 @@ class DialogueEngine private constructor(private val app: Context) {
         command { closeBackend(); loadModel() }
     }
 
-    private fun workKey(role: ModelRole) = "work_${role.name.lowercase()}_${if (kvQ8Wanted) "q8" else "f16"}_${contextFor(role)}"
+    /**
+     * Where [role]'s measured working memory (its attention cache, state and compute buffers) is kept: by its cache setting
+     * and context, and with [dev], by the device it ran on and the model file (its size), so each device's own measure is
+     * used once known; without, the last load's on any device.
+     */
+    private fun workKey(role: ModelRole, dev: Int? = null) = "work_${role.name.lowercase()}_${if (kvQ8Wanted) "q8" else "f16"}_${contextFor(role)}" +
+        (dev?.let { "_d${it}_m${modelSize(role)}" } ?: "")
 
-    /** [role]'s own memory beside its weights as its last load measured (this cache setting and context), else the guess. */
-    private fun workWanted(role: ModelRole): Long =
-        app.getSharedPreferences("ai", Context.MODE_PRIVATE).getLong(workKey(role), ModelRoles.WORK_BYTES).takeIf { it > 0 } ?: ModelRoles.WORK_BYTES
+    private fun modelSize(role: ModelRole): Long = if (role == ModelRole.LIVE) ModelFiles.LIVE_BYTES else ModelFiles.file(app).length()
+
+    /**
+     * [role]'s own memory beside its weights as measured on [dev] for this model (kept across sessions), else as measured
+     * on any device (the CPU's measure of the same cache and context is close to the NPU's), else the flat guess.
+     */
+    private fun workWanted(role: ModelRole, dev: Int? = deviceFor(role, backend as? com.timerpg.street.llm.NativeLlm)): Long {
+        val p = app.getSharedPreferences("ai", Context.MODE_PRIVATE)
+        return listOfNotNull(dev?.let { p.getLong(workKey(role, it), 0L) }, p.getLong(workKey(role), 0L)).firstOrNull { it > 0 } ?: ModelRoles.WORK_BYTES
+    }
 
     /** The context each model gets: the light one's live replies fit in [LIVE_CONTEXT_TOKENS] (fact sheet, memories and reply). */
     private fun contextFor(role: ModelRole) = if (role == ModelRole.LIVE) LIVE_CONTEXT_TOKENS else CONTEXT_TOKENS
@@ -528,7 +541,12 @@ class DialogueEngine private constructor(private val app: Context) {
      * measured; the phone's owner had the GPU set from an earlier test); a CPU choice is kept.
      */
     private fun deviceFor(role: ModelRole, native: com.timerpg.street.llm.NativeLlm?): Int {
-        val npu = (native?.accelerators ?: 0) and 2 != 0
+        // (the accelerators as the native library reports them, else as it last did on this phone: before the first load
+        // it can report none, and the light model's copy was then wanted on the GPU of the old device setting)
+        val prefs = app.getSharedPreferences("ai", Context.MODE_PRIVATE)
+        val acc = native?.accelerators ?: 0
+        if (acc != 0 && prefs.getInt("accelerators", 0) != acc) prefs.edit().putInt("accelerators", acc).apply()
+        val npu = ((if (acc != 0) acc else prefs.getInt("accelerators", 0)) and 2 != 0) || _status.value.hasNpu
         val w = deviceWanted
         val d = if (w >= 0) w else if (npu) com.timerpg.street.llm.NativeLlm.NPU else com.timerpg.street.llm.NativeLlm.CPU
         return if (role == ModelRole.LIVE && d == com.timerpg.street.llm.NativeLlm.GPU && npu) com.timerpg.street.llm.NativeLlm.NPU else d
@@ -545,6 +563,43 @@ class DialogueEngine private constructor(private val app: Context) {
      *  8.8 tok/s and a 2.4 s line, against 4.1 tok/s on the CPU and 4.2 on the GPU, measured on the phone). */
     private val deviceWanted: Int get() = app.getSharedPreferences("ai", Context.MODE_PRIVATE).getInt("device", -1)
     @Volatile private var gpuNote: String? = null
+
+    /** The model running on the CPU only because its device's copy did not fit ([loadModel]); null: none. */
+    @Volatile private var fallbackRole: ModelRole? = null
+    @Volatile private var fallbackDevice = 0
+    /** Since when free memory has stood above the device copy's need (elapsed ms; 0: not now). */
+    private var roomSince = 0L
+
+    /**
+     * Every [DEVICE_RETRY_MS] while a model runs on the CPU for want of memory: not while a line is being written or the
+     * player talks (or speaks, or the camera turns a corner), it checks the free memory against what the copy on its
+     * device needs, and once that has held for [DEVICE_ROOM_MS] it loads the model again there (a breadcrumb either way).
+     */
+    private val deviceRetry: Runnable = Runnable {
+        val role = fallbackRole
+        if (closed || role == null || backend?.loaded != true) return@Runnable
+        val busy = lock.withLock { running != null || demand != null || pauses.any { it == "talking" || it == "listening" || it == "turn" || it == "town-load" } } || loadingNow
+        val dev = listOf("CPU", "GPU", "NPU").getOrElse(fallbackDevice) { "?" }
+        if (busy) roomSince = 0L
+        else {
+            val free = memoryNow().first
+            val need = copyNeed(role, ModelFiles.file(app))
+            val now = android.os.SystemClock.elapsedRealtime()
+            if (free >= need) {
+                if (roomSince == 0L) {
+                    roomSince = now
+                    com.timerpg.street.shot.Crumbs.add("dialogue model: room for the $dev copy now (${free shr 20} MB free, ${need shr 20} MB needed); moving it if that holds")
+                } else if (now - roomSince >= DEVICE_ROOM_MS) {
+                    com.timerpg.street.shot.Crumbs.add("dialogue model: moving the ${role.name.lowercase()} model from the CPU to the $dev (${free shr 20} MB free, ${need shr 20} MB needed)")
+                    fallbackRole = null
+                    roomSince = 0L
+                    command { closeBackend(); loadModel() }
+                    return@Runnable
+                }
+            } else roomSince = 0L
+        }
+        main.postDelayed(deviceRetry, DEVICE_RETRY_MS)
+    }
 
     /** Loads the model again (after an error, or after it was unloaded). */
     fun reload() = command { memoryUnloads = 0; memoryWaits = 0; loadModel() }
@@ -582,6 +637,7 @@ class DialogueEngine private constructor(private val app: Context) {
         copyCancel = true
         main.removeCallbacks(liftMemoryPause)
         main.removeCallbacks(retryLoad)
+        main.removeCallbacks(deviceRetry)
         lock.withLock {
             running?.let { cancelLocked(it) } ?: cancelBackendLocked()
             wake.signal()
@@ -1049,7 +1105,8 @@ class DialogueEngine private constructor(private val app: Context) {
         if (cpuFallback) {
             val devName = listOf("CPU", "GPU", "NPU").getOrElse(wantDev) { "?" }
             gpuNote = "Not enough free memory for the $devName copy of the ${if (role == ModelRole.LIVE) "light" else "main"} model right now " +
-                "(${memoryNow().first shr 20} MB free, ${copyNeed(role, bankFile) shr 20} MB needed), so it runs on the CPU from the file (it moves back when there is room, next load)."
+                "(${memoryNow().first shr 20} MB free, ${copyNeed(role, bankFile) shr 20} MB needed), so it runs on the CPU from the file " +
+                "(it moves to the $devName once there is room: checked every ${DEVICE_RETRY_MS / 1000} s)."
             com.timerpg.street.shot.Crumbs.add("dialogue model: the ${role.name.lowercase()} model on the CPU from its file: its $devName copy needs " +
                 "${copyNeed(role, bankFile) shr 20} MB, ${memoryNow().first shr 20} MB free (${com.timerpg.street.llm.ModelRoom.residents().joinToString { "${it.first} ${it.second} MB" }.ifEmpty { "no other model" }} resident; device setting ${deviceWanted})")
         }
@@ -1119,6 +1176,17 @@ class DialogueEngine private constructor(private val app: Context) {
             app.getSharedPreferences("ai", Context.MODE_PRIVATE).edit().putLong(workKey(role), native.workBytes).apply()
             loadedWork = native.workBytes
         } else loadedWork = 0
+        if (native != null && native.workBytes > 0)
+            app.getSharedPreferences("ai", Context.MODE_PRIVATE).edit().putLong(workKey(role, native.runsOn), native.workBytes).apply()
+        // on the CPU only for want of memory: look again every so often and move it to its device once there is room
+        fallbackRole = if (cpuFallback && native?.runsOn == com.timerpg.street.llm.NativeLlm.CPU) role else null
+        fallbackDevice = wantDev
+        roomSince = 0L
+        main.removeCallbacks(deviceRetry)
+        if (fallbackRole != null) {
+            main.postDelayed(deviceRetry, DEVICE_RETRY_MS)
+            com.timerpg.street.shot.Crumbs.add("dialogue model: on the CPU for want of memory; looking for room on the ${listOf("CPU", "GPU", "NPU").getOrElse(wantDev) { "?" }} every ${DEVICE_RETRY_MS / 1000} s")
+        }
         if (m != null) com.timerpg.street.shot.Crumbs.add("dialogue model: ${role.name.lowercase()} on ${listOf("CPU", "GPU", "NPU").getOrElse(native.runsOn) { "?" }} " +
             "in ${b.stats.loadMs} ms with ${com.timerpg.street.llm.Ram.freeMb(app)} MB free after: weights %.0f MB mapped + %.0f copied, KV %.0f (%s), state %.0f, compute %.0f; context ${contextFor(role)}"
                 .format(java.util.Locale.US, m[0], m[1], m[2], if (native.kvQ8Used) "8-bit" else "16-bit", m[3], m[4]))
@@ -1566,6 +1634,9 @@ class DialogueEngine private constructor(private val app: Context) {
         /** Retries of a load put off for want of memory, how far apart, and the memory unloads before it waits for Load. */
         const val MEMORY_TRIES = 8
         const val MEMORY_RETRY_MS = 15_000L
+        /** How often a model on the CPU for want of memory looks for room on its device, and how long the room must hold. */
+        const val DEVICE_RETRY_MS = 30_000L
+        const val DEVICE_ROOM_MS = 60_000L
         const val MEMORY_UNLOADS = 2
         /** After a memory unload, how long memory must have been fine before the model comes back by itself. */
         const val RELOAD_AFTER_MS = 120_000L
