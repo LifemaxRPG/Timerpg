@@ -1,0 +1,218 @@
+{
+  "kind": "screenshot",
+  "time": "2026-11-19T06:13:48.079-0500",
+  "epochMs": 1795086828079,
+  "note": "The textures on this building are jumbled up and also the green building next to it I don't really like the look of I think we need to work on that it looks just weird and like not realistic cuz everything is green it needs to be like multi-colored",
+  "app": {
+    "versionName": "0.1.389 (2467b5f)",
+    "versionCode": 389,
+    "git": "2467b5f",
+    "device": "samsung SM-S938U",
+    "android": "17",
+    "sdk": 37
+  },
+  "image": {
+    "file": "061348-the-textures-on-this-building-ar.png",
+    "format": "png",
+    "scale": 1,
+    "width": 2340,
+    "height": 1080,
+    "bytes": 1520496,
+    "captured": "PixelCopy of the window"
+  },
+  "screen": {
+    "widthPx": 2244,
+    "heightPx": 1038,
+    "density": 2.8125,
+    "densityDpi": 450
+  },
+  "device": {
+    "ramFreeMb": 2777,
+    "ramTotalMb": 11113,
+    "lowMemory": false,
+    "gamePssMb": 2709,
+    "thermalStatus": 2,
+    "thermalHeadroom10s": 0.9263044
+  },
+  "game": {
+    "renderer": "Filament",
+    "camera": "medium",
+    "view": "open",
+    "orbit": {
+      "yaw": -168.11526,
+      "pitch": 10.769044,
+      "dist": 420,
+      "pulled": 546,
+      "goalYaw": -168.11526,
+      "goalPitch": 10.769044,
+      "goalDist": 420,
+      "tx": 3552.9866,
+      "tz": 2648.4983,
+      "line": "camera open yaw -168.1 pitch 10.8 dist 420 (pulled to 546) at (3553, 2648)"
+    },
+    "rendererError": null,
+    "town": "eta · Commuter suburb · 2025",
+    "walkableTown": {
+      "seed": "gamma",
+      "loading": false,
+      "ready": true,
+      "progress": 1,
+      "error": null,
+      "loadMs": 1220.2445,
+      "firstViewMs": 39303.438,
+      "built": "town built: ground 39302 ms (workers 39282), buildings 1030 ms here (slowest b99 7.3 ms, largest batch 15.8 ms), 37638 ms on workers (slowest b98 4350 ms); textures 989, 107.8M texels, 3916 shared",
+      "memory": {
+        "when": "town built",
+        "graphicsMb": 1137,
+        "nativeMb": 137,
+        "javaMb": 94,
+        "codeMb": 30,
+        "totalPssMb": 1447
+      },
+      "row": "21R",
+      "street": "King Street",
+      "neighbourhood": "Oak Heights",
+      "x": 674.5134,
+      "lane": -32.766163,
+      "wx": 3552.9866,
+      "wz": 2648.4983,
+      "heading": 1.4741117,
+      "front": null,
+      "transit": null,
+      "liveRows": [
+        "21R",
+        "21L",
+        "6R",
+        "22R",
+        "20R",
+        "20L",
+        "6L",
+        "22L",
+        "8L",
+        "24L",
+        "23R",
+        "23L",
+        "8R",
+        "24R",
+        "29R",
+        "3R",
+        "30L",
+        "17R",
+        "17L",
+        "30R",
+        "29L",
+        "3L"
+      ],
+      "people": 25,
+      "talkTo": null,
+      "walk": "open",
+      "open": {
+        "door": null,
+        "yard": "b56",
+        "speed": 0,
+        "blocked": 0,
+        "cameraYaw": -2.934165,
+        "hx": 0.9953297,
+        "hz": -0.09653403
+      }
+    },
+    "street": {
+      "index": 0,
+      "name": "Main Street",
+      "nearestBuilding": 1,
+      "building": "Radcliffe's Bank",
+      "owner": "Louise Radcliffe",
+      "atCorner": false,
+      "edge": 0
+    },
+    "player": {
+      "x": 674.5134,
+      "lane": -32.766163,
+      "street": 0,
+      "dir": -1,
+      "walking": false,
+      "running": false,
+      "viewMiddle": 284.625
+    },
+    "turn": {
+      "active": false,
+      "forward": true,
+      "p": 0,
+      "yaw": 0,
+      "ease": 0,
+      "blocked": false
+    },
+    "inRoom": false,
+    "room": null,
+    "doorFade": false,
+    "time": {
+      "hour": 17.6,
+      "clock": "17:36",
+      "season": "summer",
+      "weather": "Clear"
+    },
+    "frames": {
+      "compose": "Frames: 16.6 ms (60 fps) · p95 58.3 ms · 36.9% late · display 120 Hz",
+      "filament": "Filament: CPU 12.3 ms (p95 19.9) · GPU 46.5 ms (p95 57.5) · start 30 ms, street 1700 ms"
+    },
+    "ai": {
+      "state": "READY",
+      "detail": "Ready: the light model answers in play. Lines ahead of time are written by the main model (overnight, or when it fits).",
+      "runsOn": "CPU",
+      "modelMb": 2463,
+      "role": "live",
+      "forceBank": false,
+      "gpuNote": "Not enough free memory for the NPU copy of the light model right now (3046 MB free, 3513 MB needed), so it runs on the CPU from the file (it moves to the NPU once there is room: checked every 30 s).",
+      "lane": null,
+      "linesWritten": 21,
+      "builtIn": 0,
+      "queued": 600,
+      "paused": "light model loaded",
+      "working": null,
+      "pregenOff": null,
+      "prefillTokPerSec": 0,
+      "genTokPerSec": 0,
+      "firstTokenMs": 0,
+      "loadInfo": null
+    },
+    "conversation": null,
+    "voices": {
+      "enabled": false,
+      "speaking": false,
+      "only": 2,
+      "timing": null
+    },
+    "mic": {
+      "always": true,
+      "granted": true,
+      "listening": true,
+      "state": "IDLE"
+    },
+    "panels": {
+      "aiPanel": false,
+      "crashShown": false,
+      "tuningNpu": false
+    }
+  },
+  "annotations": {
+    "note": "Drawn by the player on the screenshot; coordinates are pixels of the original image (2340 x 1080), origin top left. An arrow points at its \"to\" end.",
+    "imageWidth": 2340,
+    "imageHeight": 1080,
+    "markedImage": "061348-the-textures-on-this-building-ar.png",
+    "rawImage": "061348-the-textures-on-this-building-ar-raw.png",
+    "marks": [
+      {
+        "type": "arrow",
+        "color": "red",
+        "from": {
+          "x": 1449,
+          "y": 946
+        },
+        "to": {
+          "x": 1329,
+          "y": 568
+        }
+      }
+    ]
+  }
+}
