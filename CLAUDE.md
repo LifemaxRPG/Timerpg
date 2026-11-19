@@ -52,6 +52,11 @@ Elite for Galaxy: 8 fast Oryon cores, no little cores; Adreno 830 GPU; Hexagon N
   and shadowed like the buildings), not faked from the 2D picture.
 - NPC voices: **Kokoro-82M and Supertonic**, both on device (ONNX Runtime), voices blended per NPC from their seed and traits.
 
+- **Models for agents** (the owner's decision, 2026-11-19): repetitive bulk work (converting pack sprites to 3D with the
+  existing pipeline, cutting textures, routine checks, follow-up fixes with a known cause) runs on Sonnet agents; the
+  main session and hard work (diagnosis, architecture, judging renders, orchestration) stay on Opus. Check Sonnet's
+  output closely and send anything off back for a fix.
+
 ## The project
 
 - `src/` - the TypeScript game: the deterministic simulation (`rand(seed, ...keys)`), towns, people, schedules, dialogue
