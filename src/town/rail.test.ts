@@ -172,4 +172,30 @@ describe('the railroad in town', () => {
     // (the farms' country roads are the roads out: the section road round the town is crossed too)
     expect(g.crossings.filter((c) => c.road >= built[0]!.plan.roads.length).length).toBeGreaterThanOrEqual(2);
   });
+
+  it('keeps to the planned town\'s rail band: never through its blocks, the depot by the foot of Depot Street', () => {
+    for (const b of built) {
+      const v2 = b.plan.v2!;
+      const band = v2.railBand!;
+      let inBlocks = 0, total = 0;
+      for (const t of b.rail.tracks) for (let i = 0; i + 1 < t.pts.length; i++) {
+        const p = t.pts[i]!, q = t.pts[i + 1]!, L = Math.hypot(q.x - p.x, q.y - p.y);
+        for (let s = 0; s < L; s += 1) {
+          const x = p.x + ((q.x - p.x) * s) / L, y = p.y + ((q.y - p.y) * s) / L;
+          total++;
+          if (v2.blocks.some((k) => k.district !== 'rail' && k.district !== 'river' && x > k.x + 1 && x < k.x + k.w - 1 && y > k.y + 1 && y < k.y + k.h - 1)) inBlocks++;
+        }
+      }
+      expect(inBlocks, `${b.site.name} through the town's blocks`).toBe(0);
+      const d = b.rail.depot!;
+      // (a town the world gives a through line across its band, not along it, has its depot on that line: the second band is to come)
+      if (linksAt(b.w, b.cx, b.cy).filter((l) => l.dir === (band.horizontal ? 'ew' : 'ns')).length < 2 && linksAt(b.w, b.cx, b.cy).filter((l) => l.dir !== (band.horizontal ? 'ew' : 'ns')).length >= 2) continue;
+      // on the band's track line, beside it on the town's side
+      expect(Math.abs((band.horizontal ? d.at.y : d.at.x) - band.track), b.site.name).toBeLessThanOrEqual(2);
+      const c = { x: d.rect.x + d.rect.w / 2, y: d.rect.y + d.rect.h / 2 };
+      expect(Math.sign((band.horizontal ? c.y : c.x) - band.track), b.site.name).toBe(band.townSide);
+      // (a parallel band: within a block of Depot Street's foot; a T-plan's line may meet its band from either end)
+      if (band.horizontal) expect(Math.abs(d.at.x - band.depot.x), b.site.name).toBeLessThanOrEqual(60);
+    }
+  });
 });

@@ -138,6 +138,21 @@ describe('the planned town', () => {
     }
   });
 
+  it('stands a mill town\'s works on the river where it meets the rail side', () => {
+    let n = 0;
+    for (const s of ['pi', 'rho', ...SEEDS]) {
+      const p = plan(s);
+      const w = p.v2!.reserved.find((q) => q.id === 'glb:foundry');
+      if (!w || !['mill', 'mining'].includes(platTown(s).type) || p.water?.kind !== 'river') continue;
+      n++;
+      expect(w.district).toBe('rail');
+      let near = Infinity;
+      for (let y = w.y; y < w.y + w.h; y++) for (let x = 0; x < p.width; x++) if (p.water.raw[y * p.width + x]) near = Math.min(near, Math.abs(x - (x < w.x ? w.x : w.x + w.w)));
+      expect(near, s).toBeLessThanOrEqual(40);
+    }
+    expect(n).toBeGreaterThan(0);
+  });
+
   it('changes who lives where, never who exists: people, businesses and events as under the old plan', () => {
     for (const seed of ['gamma', 'pi', 'orbit', 'tau', 'beta', 'rho', 'alpha', 'eta']) {
       const run = (v: 1 | 2) => {
