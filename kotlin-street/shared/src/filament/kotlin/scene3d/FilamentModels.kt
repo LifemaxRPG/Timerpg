@@ -765,6 +765,12 @@ internal object FilamentModels {
             // a tapering wall (a cone, a dome's ring): its top's semi-axes
             val taper = arc.size > 9 && !arc[8].isNaN()
             val ta = if (taper) arc[8] else ra; val tb = if (taper) arc[9] else rb
+            // built in its own upright frame (u across, h along its axis, v in depth), then turned onto its axis: upright
+            // (x, y, d) = (u, h, v); lying along x (x, y, d) = (h, v, u); along d (x, y, d) = (v, u, h) (both turns, no mirror)
+            val axis = cy.axis
+            val h0 = if (axis == 0 || arc.size < 12) cy.y0 else arc[10]
+            val h1 = if (axis == 0 || arc.size < 12) cy.y1 else arc[11]
+            fun w(u: Float, h: Float, v: Float): FloatArray = when (axis) { 1 -> p(h, v, u); 2 -> p(v, u, h); else -> p(u, h, v) }
             fun at(j: Int, a: Float, b: Float): FloatArray {
                 val t = Math.toRadians((a0 + (a1 - a0) * j / n).toDouble())
                 return floatArrayOf(cx + a * sin(t).toFloat(), cd - b * cos(t).toFloat())
@@ -773,7 +779,7 @@ internal object FilamentModels {
             fun strip(a: Float, b: Float, aT: Float, bT: Float, inward: Boolean, key: Key, rect: IntArray?) {
                 val gp = group(key)
                 val base = gp.nv
-                val rise = cy.y1 - cy.y0
+                val rise = h1 - h0
                 val lean = ((a - aT) + (b - bT)) / 2f
                 for (j in 0..n) {
                     val q = at(j, a, b); val qT = at(j, aT, bT)
@@ -791,8 +797,10 @@ internal object FilamentModels {
                     val u = if (rect != null) (rect[0] + rect[2] * j.toFloat() / n) / aw else 0f
                     val v0 = if (rect != null) rect[1] / ah else 0f
                     val v1 = if (rect != null) (rect[1] + rect[3]) / ah else 0f
-                    gp.vert(qT[0] + nx * eps, cy.y1, qT[1] + nd * eps, u, v0, nx, ny, nd, tx, 0f, td)
-                    gp.vert(q[0] + nx * eps, cy.y0, q[1] + nd * eps, u, v1, nx, ny, nd, tx, 0f, td)
+                    val nn = w(nx, ny, nd); val tt = w(tx, 0f, td)
+                    val top = w(qT[0] + nx * eps, h1, qT[1] + nd * eps); val foot = w(q[0] + nx * eps, h0, q[1] + nd * eps)
+                    gp.vert(top[0], top[1], top[2], u, v0, nn[0], nn[1], nn[2], tt[0], tt[1], tt[2])
+                    gp.vert(foot[0], foot[1], foot[2], u, v1, nn[0], nn[1], nn[2], tt[0], tt[1], tt[2])
                 }
                 for (j in 0 until n) {
                     val a2 = base + j * 2
@@ -803,14 +811,32 @@ internal object FilamentModels {
             if (cy.card) return
             val ring = !arc[6].isNaN()
             if (ring) strip(arc[6], arc[7], arc[6], arc[7], true, Key.Plain(cy.front and 0xFFFFFF), null)
-            if (cy.top < 0) return
-            val top = Key.Plain(cy.top and 0xFFFFFF)
-            for (j in 0 until n) {
-                val o0 = at(j, ta, tb); val o1 = at(j + 1, ta, tb)
-                if (ring) {
-                    val i0 = at(j, arc[6], arc[7]); val i1 = at(j + 1, arc[6], arc[7])
-                    poly(top, arrayOf(p(o0[0], cy.y1, o0[1]), p(o1[0], cy.y1, o1[1]), p(i1[0], cy.y1, i1[1]), p(i0[0], cy.y1, i0[1])), FloatArray(8), UP)
-                } else poly(top, arrayOf(p(o0[0], cy.y1, o0[1]), p(o1[0], cy.y1, o1[1]), p(cx, cy.y1, cd)), FloatArray(6), UP)
+            val cap = cy.cap
+            if (cy.top < 0 && cap == null) return
+            val ends = if (axis == 0) listOf(h1 to 1f) else listOf(h1 to 1f, h0 to -1f)
+            for ((h, sgn) in ends) {
+                val hint = w(0f, sgn, 0f)
+                val (ea, eb) = if (sgn > 0f) ta to tb else ra to rb
+                // the end's picture over the ellipse's box (u left to right, v top row at -v... the art seen end on)
+                fun uv(q: FloatArray, out: FloatArray, i: Int) {
+                    if (cap == null) return
+                    val fu = ((q[0] - (cx - ea)) / (2f * ea)).coerceIn(0f, 1f); val fv = ((q[1] - (cd - eb)) / (2f * eb)).coerceIn(0f, 1f)
+                    // lying, the end seen from outside: its v runs up the picture (bottom row at angle 0, the ground)
+                    val su = if (sgn < 0f) 1f - fu else fu
+                    out[i * 2] = (cap[0] + su * cap[2]) / aw; out[i * 2 + 1] = (cap[1] + (if (axis == 0) fv else 1f - fv) * cap[3]) / ah
+                }
+                val key = if (cap != null) Key.Atlas else Key.Plain(cy.top and 0xFFFFFF)
+                for (j in 0 until n) {
+                    val o0 = at(j, ea, eb); val o1 = at(j + 1, ea, eb)
+                    if (ring) {
+                        val i0 = at(j, arc[6], arc[7]); val i1 = at(j + 1, arc[6], arc[7])
+                        val uvs = FloatArray(8); uv(o0, uvs, 0); uv(o1, uvs, 1); uv(i1, uvs, 2); uv(i0, uvs, 3)
+                        poly(key, arrayOf(w(o0[0], h, o0[1]), w(o1[0], h, o1[1]), w(i1[0], h, i1[1]), w(i0[0], h, i0[1])), uvs, hint)
+                    } else {
+                        val uvs = FloatArray(6); uv(o0, uvs, 0); uv(o1, uvs, 1); uv(floatArrayOf(cx, cd), uvs, 2)
+                        poly(key, arrayOf(w(o0[0], h, o0[1]), w(o1[0], h, o1[1]), w(cx, h, cd)), uvs, hint)
+                    }
+                }
             }
         }
 

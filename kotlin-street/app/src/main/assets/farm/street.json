@@ -330,6 +330,56 @@
    }
   },
   {
+   "id": "show:fm_roundbales",
+   "sprite": "fm_roundbales",
+   "home": false,
+   "name": "fm_roundbales",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_roundbales",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_roundbales",
+    "kit": "roundbales"
+   }
+  },
+  {
+   "id": "show:fm_barrels",
+   "sprite": "fm_barrels",
+   "home": false,
+   "name": "fm_barrels",
+   "kind": "Shop",
+   "owner": "",
+   "colour": "base",
+   "parts": [
+    {
+     "key": "fm_barrels",
+     "w": 480,
+     "h": 200,
+     "y": 0
+    }
+   ],
+   "yard": {
+    "front": 1,
+    "style": "natural"
+   },
+   "spec": {
+    "id": "fm_barrels",
+    "kit": "barrels"
+   }
+  },
+  {
    "id": "show:fm_stall_blue",
    "sprite": "fm_stall_blue",
    "home": false,
@@ -722,6 +772,8 @@
    "name": "Stalls, tractor and fields",
    "buildings": [
     "fm_tractor",
+    "fm_roundbales",
+    "fm_barrels",
     "fm_stall_blue",
     "fm_stall_pink",
     "fm_stall_green",

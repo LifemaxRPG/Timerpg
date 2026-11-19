@@ -362,7 +362,7 @@ class TownCollision private constructor(
                 for (part in solid) {
                     val a = -(left + part.x0 * kk); val c = -(left + part.x1 * kk)
                     val z0 = p.setback + part.d0 * kk; val z1 = p.setback + part.d1 * kk
-                    if (part.type == ModelPart.CYL && part.arc != null) {
+                    if (part.type == ModelPart.CYL && part.arc != null && part.axis == 0) {
                         val arc = part.arc
                         val cx = -(left + arc[0] * kk); val cz = p.setback + arc[1] * kk
                         val w = place.world(cx, cz)
