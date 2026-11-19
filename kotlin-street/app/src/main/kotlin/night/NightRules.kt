@@ -43,7 +43,7 @@ sealed class NightStep {
 class NightRules(
     val burstMs: Long = 8 * 60_000L,
     val restMs: Long = 2 * 60_000L,
-    val minBattery: Int = 30,
+    val minBattery: Int = 15,
 ) {
     private var hot = false
     private var cooling = false
