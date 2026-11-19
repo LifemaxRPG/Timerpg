@@ -348,7 +348,7 @@ class TownCollision private constructor(
             for (row in town.rows) for (p in row.buildings) {
                 val place = TownPlace.of(row, p)
                 if (cinema != null && p.sprite == cinema.sprite) { cinema.addTo(b, place, p); continue }
-                if (p.sprite in stores) continue
+                if (p.sprite in stores || p.flat) continue
                 val m = models[p.sprite]
                 val solid = m?.parts?.filter { standsOnGround(it) }.orEmpty()
                 if (m == null || solid.isEmpty()) {

@@ -72,6 +72,7 @@ fun renderFilamentOpen(out: String) {
         com.lifemax.rpg.feature.habits.domain.ModelShape.parseAll(File(bdir, "models.json").takeIf { it.exists() }?.readText()),
         com.lifemax.rpg.feature.habits.domain.CinemaSiteShape.parse(root), com.lifemax.rpg.feature.habits.domain.StoreLots.parse(root).map { it.sprite }.toSet())
     val storeSites = com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root)
+    com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown.farLod = System.getProperty("townFar") != "0"
     val ft = FilamentTown(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, cinema = cinema,
         stores = storeSites, collision = collision)
     ft.nightBudgetNs = Long.MAX_VALUE
@@ -80,6 +81,7 @@ fun renderFilamentOpen(out: String) {
     ft.startGround()
     while (!ft.uploadGround(8f)) Thread.sleep(1)
     while (ft.pending > 0) { if (ft.buildNearest(0f, 0f, 8f) == 0) Thread.sleep(1) }
+    report.appendLine(ft.farReport)
     report.appendLine("(software GL on the build server, not the S25: draws and triangles are what is sent, the times are not the phone's)")
 
     // the people to talk to (as the app picks them) and the player
@@ -170,6 +172,45 @@ fun renderFilamentOpen(out: String) {
         view("main_close_13h", p.x, p.z, a.x, a.z, along + 180f, 10f, 150f, 13f, "Main Street, zoomed in, facing the player")
         view("main_through_13h", p.x, p.z, a.x, a.z, fronts + 180f, 20f, 600f, 13f, "Main Street, the camera behind the block (the block cut away)")
         view("main_dusk_west", p.x, p.z, a.x, a.z, 270f, 16f, 500f, 19.3f, "Main Street, looking west at dusk")
+    }
+    // --- downtown: the tallest building with nobody in it (a tower behind the main street, else the town hall), from the
+    // pavement in front of its block, at the camera's usual height, zoomed out, at night, and from across town (its far box
+    // on the skyline); -Dshots=downtown renders only these
+    ft.slots.filter { it.b.kind == com.lifemax.rpg.feature.habits.domain.PlacementKind.EXTRA && it.isBuilt }.maxByOrNull { it.cy }?.let { s ->
+        val r = s.row
+        val x = s.b.mid.coerceIn(40f, r.length - 40f)
+        val p = r.pointAt(x, 7f); val a = r.alongAt(x); val n = r.normalAt(x)
+        val inn = heading(n.x, n.z)
+        report.appendLine("downtown: ${s.b.sprite} on ${r.id} (${town.road(r.road).name}), its middle ${"%.0f".format(s.cy)} up; ${ft.farReport}")
+        view("downtown_street_13h", p.x, p.z, a.x, a.z, inn - 20f, 4f, OrbitCamera.DIST_MIN, 13f, "downtown, from the pavement")
+        view("downtown_camera_13h", p.x, p.z, a.x, a.z, inn - 30f, 20f, 520f, 13f, "downtown, the camera's usual height")
+        view("downtown_along_13h", p.x, p.z, a.x, a.z, heading(a.x, a.z), 14f, 600f, 13f, "downtown, along the main street")
+        view("downtown_high_13h", p.x, p.z, a.x, a.z, inn + 30f, 50f, OrbitCamera.DIST_MAX, 13f, "downtown, zoomed out")
+        view("downtown_dusk", p.x, p.z, a.x, a.z, inn - 30f, 16f, 600f, 19.3f, "downtown at dusk")
+        view("downtown_night", p.x, p.z, a.x, a.z, inn - 30f, 16f, 600f, night, "downtown at night")
+        // across town: the player 3500 units out on the far side, looking back at the centre
+        val c = collision
+        val cx = s.cx; val cz = s.cz
+        val ox = (cx + (if (cx > (c.minX + c.maxX) / 2f) -3500f else 3500f)).coerceIn(c.minX + 400f, c.maxX - 400f)
+        val oz = cz + 1200f
+        val back = heading(cx - ox, cz - oz)
+        view("downtown_skyline_13h", ox, oz, (cx - ox), (cz - oz), back, 6f, 300f, 13f, "the downtown from across town (far boxes)")
+        view("downtown_skyline_dusk", ox, oz, (cx - ox), (cz - oz), back, 6f, 300f, 19.3f, "the downtown from across town at dusk")
+        view("downtown_skyline_night", ox, oz, (cx - ox), (cz - oz), back, 6f, 300f, night, "the downtown from across town at night")
+        view("downtown_wide_13h", ox, oz, (cx - ox), (cz - oz), back, 24f, OrbitCamera.DIST_MAX, 13f, "a wide view over the town, towards downtown")
+    }
+    // --- the pack's other buildings with nobody in them: the first of each kind (the town hall, the chapel, a car park)
+    root.optJSONObject("graph")?.optJSONArray("extras")?.let { xs ->
+        val seen = HashSet<String>()
+        for (i in 0 until xs.length()) {
+            val o = xs.getJSONObject(i); val kind = o.getString("kind")
+            if (!seen.add(kind)) continue
+            val s = ft.slots.firstOrNull { it.b.sprite == o.getString("sprite") } ?: continue
+            val r = s.row; val x = s.b.mid.coerceIn(40f, r.length - 40f)
+            val p = r.pointAt(x, 7f); val a = r.alongAt(x); val n = r.normalAt(x)
+            view("extra_${kind}_13h", p.x, p.z, a.x, a.z, heading(n.x, n.z) - 25f, 22f, 560f, 13f, "the ${o.getString("name")} (${s.b.sprite})")
+            view("extra_${kind}_night", p.x, p.z, a.x, a.z, heading(n.x, n.z) + 20f, 16f, 520f, night, "the ${o.getString("name")} at night")
+        }
     }
     // --- the civic avenue (the spawn): along it, and at the school across it
     run {

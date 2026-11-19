@@ -33,6 +33,11 @@ export interface Buildings {
    * export (street.json v2) names landmarks; v1 never calls this.
    */
   landmark(l: LandmarkPlot, yard: string): string;
+  /**
+   * Names a building the whole-town export adds with nobody in it (the downtown's towers and parking, the town hall, the
+   * chapel: tools/town-downtown.ts), the next bN after every lot and landmark, and records its entry as given.
+   */
+  extra(e: Record<string, unknown>): string;
   /** Every named building's street.json entry, in naming order (street.json `shops`). */
   entries: object[];
   /** Which lot each sprite name stands for. */
@@ -216,5 +221,10 @@ export function makeBuildings(w: World, layout: TownLayout, year: number): Build
       parts: [{ key: landmarkArtKey(l), w: l.w * 32, h: l.h * 32, y: 0 }], yard: { front: 2, style: yard } });
     return sprite;
   }
-  return { entry, vary, landmark, entries, lotOf };
+  function extra(e: Record<string, unknown>): string {
+    const sprite = `b${n++}`;
+    entries.push({ ...e, sprite, home: false, owner: '', colour: 'base' });
+    return sprite;
+  }
+  return { entry, vary, landmark, extra, entries, lotOf };
 }

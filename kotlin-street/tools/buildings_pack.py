@@ -117,8 +117,18 @@ def roof_pieces(kit, colour, W):
 
 
 def compose_facade(spec, shop=None, rng=None):
-    """One modular building from its spec: the model (models.json entry), its atlas, front and side pictures, and the lot."""
+    """One modular building from its spec: the model (models.json entry), its atlas, front and side pictures, and the lot.
+    `depth` (sprite pixels, default DEPTH) makes a deeper box: the downtown's towers and hotels."""
+    global DEPTH
+    old = DEPTH
+    DEPTH = int(spec.get('depth') or DEPTH)
+    try: return _compose(spec, shop, rng)
+    finally: DEPTH = old
+
+
+def _compose(spec, shop, rng):
     kit = spec['kit']
+    if kit == 'parking': return compose_parking(spec, shop)
     if kit == 'condo12': return compose_columns(spec, shop)
     if kit == 'condo7': return compose_tower(spec, shop)
     if kit == 'office': return compose_office(spec, shop)
@@ -131,7 +141,9 @@ def compose_facade(spec, shop=None, rng=None):
     seed = zlib.crc32(spec['id'].encode()) + int(spec.get('seed', 0))
     r = np.random.default_rng(seed)
     gk = spec.get('ground', {}).get('kind', 'condo')
-    g_ids = spec.get('ground', {}).get('bays') or auto_ground(kit, gk, W, r)
+    pic_key = spec.get('ground', {}).get('picture')
+    if pic_key: gk = 'shop'
+    g_ids = ['wall'] * W if pic_key else (spec.get('ground', {}).get('bays') or auto_ground(kit, gk, W, r))
     floors = spec.get('floors', 2)
     if isinstance(floors, int): floors = [auto_floor(kit, W, r) for _ in range(floors)]
     floors = [f if isinstance(f, list) else auto_floor(kit, W, r, f.get('pattern', '').split(',') if f.get('pattern') else None) for f in floors]
@@ -139,6 +151,14 @@ def compose_facade(spec, shop=None, rng=None):
     for f in floors: assert row_tiles(kit, 'mid', f) == W, f'{spec["id"]}: a floor row is {row_tiles(kit, "mid", f)} tiles, not {W}'
     PX = W * 32
     ground, door = compose_row(kit, gk, g_ids)
+    sign = None
+    if pic_key:
+        # the business's own storefront (the game's sprite, as the shops wear it): its bottom 96 rows the ground floor, any
+        # sign over them a card standing proud of the floor above (as the box shops hang it)
+        g = np.array(mb.load(pic_key))
+        assert g.shape[1] == PX, f'{spec["id"]}: storefront {pic_key} is {g.shape[1]} px wide, not {PX}'
+        ground = np.ascontiguousarray(g[-96:].copy()); door = (PX // 2 - 20, PX // 2 + 20)
+        if g.shape[0] > 96 and (g[:-96, :, 3] > 200).any(): sign = np.ascontiguousarray(g[:-96].copy())
     mids = [compose_row(kit, 'mid', f)[0] for f in floors]
     # top to bottom: the top floor first, the ground last
     rows = mids[::-1] + [ground]
@@ -161,7 +181,16 @@ def compose_facade(spec, shop=None, rng=None):
     roof = roof_pieces(kit, (spec.get('roof') or {}).get('colour') or DEFAULT_ROOF[kit], W)
     wall_c = tuple(int(v) for v in np.median(_tile(f'{kit}_mid_filler')[20:100].reshape(-1, 4), axis=0)[:3])
     ledges = [(k * 128 + 118, k * 128 + 128) for k in range(len(mids))]   # the sill course at the foot of each middle floor
-    return finish(spec, shop, r, front, PARAPET, COPING, roof, door, side, wall_c, ledges)
+    extras = ()
+    if sign is not None:
+        def hang(at, Y, H, PX, sign=sign):
+            ys = np.nonzero((sign[..., 3] > 200).any(1))[0]; xs = np.nonzero((sign[..., 3] > 200).any(0))[0]
+            pic = np.ascontiguousarray(sign[ys.min():ys.max() + 1, xs.min():xs.max() + 1])
+            c = tuple(int(v) for v in np.median(pic[pic[..., 3] > 200][:, :3], axis=0))
+            y0 = 96; y1 = 96 + (sign.shape[0] - ys.min())
+            return [mbox((int(xs.min()), int(xs.max()) + 1), (y0, y1), (-4, -4), (c, c, c), ft=at.add(pic), fx=int(xs.min()), card=True)]
+        extras = (hang,)
+    return finish(spec, shop, r, front, PARAPET, COPING, roof, door, side, wall_c, ledges, extras)
 
 
 # Roof props from theme 5's Roof_Props (cut: its pixels' own top and front): each a small box standing on the roof floor, its top the sprite's
@@ -554,6 +583,36 @@ def compose_b6(spec, shop=None):
     model = apt.model_of('apartment', 416, setback, style, parts, roof_c, 'home', 'paving', fence, lamp=[125, 70, -3])
     emis = np.zeros_like(main); emis[:] = gm
     return model, at, main, side, emis, lawn, fence, fence_snow
+
+def compose_parking(spec, shop=None):
+    """Surface parking (a cleared downtown back lot): asphalt from the game's own tile with painted stalls across its width,
+    a low kerb round it, a gap in the kerb at the front for the way in. `widthTiles` wide, DEPTH deep, 2 px high."""
+    W = int(spec['widthTiles']) * 32; D = DEPTH; rng = _rng(spec); at = Atlas(512)
+    tile = np.array(mb.load('asphalt_25'))[:32, :32]
+    top = np.ascontiguousarray(np.tile(tile, (D // 32 + 1, W // 32 + 1, 1))[:D, :W])
+    # a little wear: patched and oil-stained cells
+    for _ in range(W * D // 2500):
+        y, x = int(rng.integers(0, D - 12)), int(rng.integers(0, W - 12)); top[y:y + 10, x:x + 12, :3] = (top[y:y + 10, x:x + 12, :3] * .86).astype(np.uint8)
+    paint = np.array([226, 222, 200, 255], np.uint8)
+    # two rows of stalls facing an aisle down the middle: lines every 28 px (a stall), 2 px wide, 30% of the depth long
+    L = int(D * .3)
+    for x in range(10, W - 10, 28):
+        top[6:6 + L, x:x + 2] = paint; top[D - 6 - L:D - 6, x:x + 2] = paint
+    top[6 + L:6 + L + 2, 10:W - 10] = paint; top[D - 8 - L:D - 6 - L, 10:W - 10] = paint
+    a_c = tuple(int(v) for v in np.median(top[..., :3].reshape(-1, 3), axis=0))
+    kerb_c = (150, 148, 140)
+    parts = [mbox((0, W), (0, 1), (0, D), (a_c, shade(a_c, .9), shade(a_c, .8)), tt=at.add(top))]
+    gap0, gap1 = W // 2 - 40, W // 2 + 40
+    for (x0, x1) in ((0, gap0), (gap1, W)):
+        parts.append(mbox((x0, x1), (0, 4), (0, 4), (kerb_c, shade(kerb_c, .9), shade(kerb_c, .8))))
+    parts.append(mbox((0, W), (0, 4), (D - 4, D), (kerb_c, shade(kerb_c, .9), shade(kerb_c, .8))))
+    for x0 in (0, W - 4): parts.append(mbox((x0, x0 + 4), (0, 4), (4, D - 4), (kerb_c, shade(kerb_c, .9), shade(kerb_c, .8))))
+    front = np.zeros((4, W, 4), np.uint8); front[..., :3] = kerb_c; front[..., 3] = 255
+    side = np.zeros((4, D, 4), np.uint8); side[..., :3] = kerb_c; side[..., 3] = 255
+    model = apt.model_of('apartment', W, 0, 'compact', parts, a_c, 'home', 'paving', None)
+    lawn = np.zeros((1, W, 4), np.uint8)
+    return model, at, front, side, np.zeros_like(front), lawn, None, None
+
 
 CIVIC_KITS = ('v4', 'v5', 'v6', 'v1', 'v2', 'v3', 'v7', 'haunted', 'windmill', 'chapel', 'chapel_gate')
 KEYS = ('pk_',)

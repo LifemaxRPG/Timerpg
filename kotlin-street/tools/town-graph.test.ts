@@ -19,7 +19,7 @@ describe('town graph', () => {
   it('puts every lot and landmark on exactly one row', () => {
     const where = new Map<string, string[]>();
     for (const r of g.graph.rows) for (const b of r.buildings) where.set(b.lot, [...(where.get(b.lot) ?? []), r.id]);
-    const want = [...townLots(g.layout).map((l) => l.slot), ...g.layout.landmarks.map((l) => `landmark:${l.id}`)];
+    const want = [...townLots(g.layout).map((l) => l.slot), ...g.layout.landmarks.map((l) => `landmark:${l.id}`), ...(g.graph.extras ?? []).map((x) => x.id)];
     for (const id of want) expect(where.get(id), id).toHaveLength(1);
     expect(where.size).toBe(want.length);
     expect(g.graph.lots.map((l) => l.id).sort()).toEqual(townLots(g.layout).map((l) => l.slot).sort());
@@ -42,7 +42,12 @@ describe('town graph', () => {
     }
     // buildings keep their art size: a row's buildings never overlap along it, and stand in its length past a mouth
     for (const r of g.graph.rows) {
-      for (let i = 1; i < r.buildings.length; i++) expect(r.buildings[i]!.x0).toBeGreaterThanOrEqual(r.buildings[i - 1]!.x1 - 1e-3);
+      // (the buildings with nobody in them stand behind the others, a tower behind the shops: apart in depth, not along)
+      const front = r.buildings.filter((b) => b.kind !== 'extra');
+      for (let i = 1; i < front.length; i++) expect(front[i]!.x0).toBeGreaterThanOrEqual(front[i - 1]!.x1 - 1e-3);
+      for (const x of r.buildings.filter((b) => b.kind === 'extra')) for (const b of front) {
+        if (b.x1 > x.x0 && b.x0 < x.x1) expect(x.setback, `${x.sprite} behind ${b.sprite}`).toBeGreaterThanOrEqual(b.setback + b.depth + 40);
+      }
       if (r.ends.start.mouth && r.buildings.length) expect(r.buildings[0]!.x0).toBeGreaterThanOrEqual(89 - 1e-3);
       if (r.ends.end.mouth && r.buildings.length) expect(r.buildings[r.buildings.length - 1]!.x1).toBeLessThanOrEqual(r.length - 89 + 1e-3);
     }
