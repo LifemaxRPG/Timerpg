@@ -1,0 +1,338 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1960,
+  "topic": "transport",
+  "facts": [
+    {
+      "id": "1960-transport-01",
+      "year_from": 1950,
+      "year_to": 1969,
+      "text": "Many families travel between nearby towns in their own automobiles.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-02",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Service station attendants pump gasoline and often check the oil.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-03",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Drivers unfold paper road maps to plan unfamiliar trips.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-04",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Children ride in the back seat without the restraints expected in later decades.",
+      "ages": "kids",
+      "use": [
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-05",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Seat belts are available in more new cars as the decade advances.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-06",
+      "year_from": 1968,
+      "year_to": 1969,
+      "text": "New passenger cars include front seat belts as standard safety equipment.",
+      "ages": "adults",
+      "use": [
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-07",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Many schoolchildren walk or ride bicycles to nearby schools.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-08",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Yellow school buses carry pupils along rural routes.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-09",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Parents arrange rides with neighbors for children attending activities across town.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-10",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Local bus routes connect some towns with larger nearby cities.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-11",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Travelers buy intercity bus tickets at a depot or ticket counter.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-12",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Passenger trains still serve some towns although service is declining.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-13",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A train timetable helps passengers choose departure and arrival times.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-14",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Railroad crossings use signs and sometimes flashing lights or gates.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-15",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "New interstate highways make some long car journeys faster.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-16",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Older two-lane highways still carry traffic through town centers.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-17",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Roadside diners and motels welcome motorists passing through.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-18",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Families pack food and drinks for long car trips.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-19",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Drivers pay tolls with coins or bills at staffed booths.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-20",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Parking meters collect coins along busy downtown streets.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-21",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Teenagers practice driving with a parent before seeking a license.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-22",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Local mechanics repair cars in garages equipped with hydraulic lifts.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-23",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Drivers bring punctured tires to a service station for repair.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-24",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Many bicycles have coaster brakes operated by pedaling backward.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-25",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Families sometimes share one car and coordinate trips around work schedules.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-transport-26",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Some drivers choose automatic transmissions while others shift gears manually.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [
+    {
+      "thing": "satellite navigation in family cars",
+      "first_common": 2005,
+      "say_instead": "Use a folded road map and roadside signs."
+    },
+    {
+      "thing": "smartphone driving directions",
+      "first_common": 2012,
+      "say_instead": "Ask for directions or consult a paper map."
+    },
+    {
+      "thing": "electric cars in ordinary small-town traffic",
+      "first_common": 2020,
+      "say_instead": "Drive a gasoline-powered car."
+    },
+    {
+      "thing": "automatic electronic toll collection",
+      "first_common": 2000,
+      "say_instead": "Pay at a toll booth with cash."
+    },
+    {
+      "thing": "airbags in ordinary family cars",
+      "first_common": 1995,
+      "say_instead": "Use available seat belts."
+    },
+    {
+      "thing": "rearview backup cameras in ordinary cars",
+      "first_common": 2015,
+      "say_instead": "Look behind the car before reversing."
+    },
+    {
+      "thing": "ride-hailing smartphone apps",
+      "first_common": 2015,
+      "say_instead": "Call a local taxi dispatcher."
+    },
+    {
+      "thing": "child safety seats required in ordinary family cars",
+      "first_common": 1985,
+      "say_instead": "Acknowledge that modern child restraint rules are not yet widespread."
+    }
+  ],
+  "prices": [],
+  "phrases": []
+}
