@@ -1,0 +1,426 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2000,
+  "topic": "speech",
+  "facts": [
+    {
+      "id": "2000-speech-01",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Teenagers use short greetings like hey when meeting friends after school.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-02",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Adults often greet neighbors with a question about how their day is going.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-03",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Children are encouraged to say please when asking adults for something.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-04",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A student may address a teacher as mister or miss followed by a surname.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-05",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A shop clerk may ask customers whether they need help finding anything.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-06",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Friends say no problem to reassure someone after a small favor.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-07",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Teenagers describe something impressive as awesome in casual conversation.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-08",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A teenager may call an unpleasant situation lame.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-09",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Friends sometimes say whatever when dismissing an argument.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-10",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "An adult may end a telephone call by promising to talk later.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-11",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A parent reminds children to speak respectfully to visiting relatives.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-12",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Teenagers use cool to express approval of plans or clothes.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-13",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A student says my bad when admitting a small mistake.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-14",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Young people use seriously to express disbelief at surprising news.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-15",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A customer may thank a cashier and wish them a good day.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-16",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A neighbor might ask whether a family needs anything from the store.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-17",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Friends use hang out when planning to spend time together.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-18",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A teenager may say that something sucks when disappointed.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-19",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Adults often say excuse me before interrupting a conversation.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-20",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Students may greet classmates with what's up between lessons.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-21",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A child might ask whether a friend can come over after school.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-22",
+      "year_from": 2003,
+      "year_to": 2009,
+      "text": "Teenagers say that's random when a remark seems unrelated to the conversation.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-23",
+      "year_from": 2006,
+      "year_to": 2009,
+      "text": "Some teenagers use epic to praise an especially exciting experience.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-24",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Friends say just kidding after a harmless joke.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-25",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A worker may tell a caller to hold on while checking a detail.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-speech-26",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Teenagers may describe an awkward moment as embarrassing rather than using newer internet slang.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": [
+    {
+      "phrase": "What's up?",
+      "meaning": "casual greeting",
+      "ages": "teens",
+      "from": 2000,
+      "to": 2009,
+      "tone": "casual"
+    },
+    {
+      "phrase": "My bad",
+      "meaning": "admission of a minor mistake",
+      "ages": "teens",
+      "from": 2000,
+      "to": 2009,
+      "tone": "casual"
+    },
+    {
+      "phrase": "No problem",
+      "meaning": "friendly reassurance",
+      "ages": "all",
+      "from": 2000,
+      "to": 2009,
+      "tone": "polite"
+    },
+    {
+      "phrase": "That's awesome",
+      "meaning": "strong approval",
+      "ages": "teens",
+      "from": 2000,
+      "to": 2009,
+      "tone": "casual"
+    },
+    {
+      "phrase": "Whatever",
+      "meaning": "dismissal or indifference",
+      "ages": "teens",
+      "from": 2000,
+      "to": 2009,
+      "tone": "rude"
+    },
+    {
+      "phrase": "Hang out",
+      "meaning": "spend informal time together",
+      "ages": "teens",
+      "from": 2000,
+      "to": 2009,
+      "tone": "casual"
+    },
+    {
+      "phrase": "Just kidding",
+      "meaning": "clarifies a joke",
+      "ages": "all",
+      "from": 2000,
+      "to": 2009,
+      "tone": "casual"
+    },
+    {
+      "phrase": "That's lame",
+      "meaning": "expresses disappointment",
+      "ages": "teens",
+      "from": 2000,
+      "to": 2009,
+      "tone": "casual"
+    },
+    {
+      "phrase": "Seriously?",
+      "meaning": "expresses surprise or doubt",
+      "ages": "teens",
+      "from": 2000,
+      "to": 2009,
+      "tone": "casual"
+    },
+    {
+      "phrase": "Excuse me",
+      "meaning": "polite interruption",
+      "ages": "all",
+      "from": 2000,
+      "to": 2009,
+      "tone": "polite"
+    },
+    {
+      "phrase": "Have a good one",
+      "meaning": "friendly farewell",
+      "ages": "adults",
+      "from": 2000,
+      "to": 2009,
+      "tone": "casual"
+    },
+    {
+      "phrase": "Talk to you later",
+      "meaning": "casual farewell",
+      "ages": "all",
+      "from": 2000,
+      "to": 2009,
+      "tone": "casual"
+    },
+    {
+      "phrase": "That's random",
+      "meaning": "reacts to an unexpected remark",
+      "ages": "teens",
+      "from": 2003,
+      "to": 2009,
+      "tone": "casual"
+    },
+    {
+      "phrase": "That's epic",
+      "meaning": "enthusiastic praise",
+      "ages": "teens",
+      "from": 2006,
+      "to": 2009,
+      "tone": "casual"
+    },
+    {
+      "phrase": "Come on over",
+      "meaning": "invitation to visit",
+      "ages": "all",
+      "from": 2000,
+      "to": 2009,
+      "tone": "casual"
+    },
+    {
+      "phrase": "Hold on a second",
+      "meaning": "request to wait briefly",
+      "ages": "all",
+      "from": 2000,
+      "to": 2009,
+      "tone": "casual"
+    }
+  ]
+}
