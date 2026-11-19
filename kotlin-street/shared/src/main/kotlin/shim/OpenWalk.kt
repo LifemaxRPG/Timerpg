@@ -180,6 +180,7 @@ class OpenWalk(
         derive(force = false)
         door = doors.at(wx, wz, hx, hz)
         yard = yardAt(wx, wz)
+        GameState.surface = surfaceAt(wx, wz, yard)
         if (walked > 0f) aim()
     }
 
@@ -270,6 +271,21 @@ class OpenWalk(
         yard?.let { y -> if (inside(y.parcel, px, pz)) return y }
         for (y in yards.yards) if (inside(y.parcel, px, pz)) return y
         return null
+    }
+
+    /** What is underfoot at ([px], [pz]) in [y] (null: the street, pavement or plaza): the topmost walkable layer there. */
+    fun surfaceAt(px: Float, pz: Float, y: TownYard?): Int {
+        if (y == null) return Surface.HARD
+        var best = Surface.GRASS
+        for (it in y.items) {
+            if (!inside(it.rect, px, pz)) continue
+            when (it.kind) {
+                "deck", "porch", "boardwalk", "dock" -> return Surface.WOOD
+                "frontPath", "driveway", "patio", "parkingPad", "kerbCut", "path", "terrace" -> best = Surface.HARD
+                "gravel" -> if (best == Surface.GRASS) best = Surface.GRAVEL
+            }
+        }
+        return best
     }
 
     private fun inside(r: FloatArray, px: Float, pz: Float) = px >= r[0] && px <= r[2] && pz >= r[1] && pz <= r[3]

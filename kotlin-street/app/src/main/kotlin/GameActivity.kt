@@ -545,12 +545,13 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
                 val fresh = GameState.footfalls - feet
                 feet = GameState.footfalls
                 if (fresh > 0) {
-                    foot = (foot + 1) % 4
-                    val wet = (w?.wet ?: 0f) > .3f
+                    foot = (foot + 1) % 5
+                    // recorded steps by what is underfoot (the street, a lawn, a deck, a room's floor, snow in winter)
+                    val set = com.lifemax.rpg.feature.habits.presentation.scene.Surface.sound(GameState.surface, GameState.indoors, GameState.carpet, season == 3)
                     // one foot a little softer than the other, as real steps are: the ear hears a stride (two steps) as one
                     // beat, not a patter of equal ones
                     val accent = if (foot % 2 == 0) 1f else .7f
-                    sound.play(if (wet) "step_wet_${foot + 1}" else "step_${foot + 1}", (if (GameState.running) .6f else .5f) * accent, if (foot % 2 == 0) -.15f else .15f)
+                    sound.play("step_${set}_${foot + 1}", (if (GameState.running) .75f else .6f) * accent, if (foot % 2 == 0) -.12f else .12f)
                 }
             }
         }
@@ -680,6 +681,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         door = 0f; doorTo = null
     }
     // walking out through the door leaves
+    // the room's floor for the footsteps (some rooms carpeted, by the room)
+    LaunchedEffect(inside) { GameState.indoors = inside != null; GameState.carpet = inside != null && (inside.hashCode() and 1) == 1 }
     LaunchedEffect(inside) {
         val room = inside ?: return@LaunchedEffect
         while (inside === room) {

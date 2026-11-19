@@ -92,6 +92,11 @@ object GameState {
     val gait get() = motion.gait
     /** Feet put down so far, on the street and in the rooms: one footstep sound each. */
     var footfalls = 0
+    /** What the player stands on, for the footsteps: [Surface] (set by the open-world walk each step; hard elsewhere). */
+    var surface = Surface.HARD
+    /** In a room (its floor is wood, or [carpet]), for the footsteps. */
+    var indoors = false
+    var carpet = false
     /** Running (a full push), for the footsteps and the stick. */
     var running = false
     /** How far the figure leans into its walk (degrees, forward positive) ... */
