@@ -1,0 +1,16 @@
+{
+  "visible_triangles": 9210,
+  "materials": 9,
+  "legs": 4,
+  "tank_facets": 16,
+  "sign": "Exact isolated sign_name node/material; blank 64 x 20 art-pixel region on three physical-scale facets",
+  "ladder": "Fixed rear ladder, cage, attached stand-offs, tank and roof access; visual only",
+  "collision": "One full-height box enclosing the visibly closed fenced compound; all visible obstructions inside",
+  "doors": "None: uninhabitable utility tower, maintenance anchor only",
+  "pixel_grid": "All embedded PNGs are exact 2 x 2 art-pixel blocks",
+  "uv_scale_max_edge_error_m": 2.0353485759017076e-06,
+  "catwalk": "Upward-facing top surface verified",
+  "ground": "All exported geometry at or above grade",
+  "glb_bytes": 642492,
+  "renders": "Blender desktop previews, not Filament or S25 captures."
+}
