@@ -289,7 +289,7 @@ class OpenWalk(
 
     companion object {
         /** The player's feet on the ground: a circle this wide (street units; the figure is 36 tall, its shoulders ~14 across). */
-        const val RADIUS = 6f
+        const val RADIUS = 5f
         /** How quickly the player turns to face where they walk (s). */
         const val TURN_TIME = .06f
         /** A building line the player stands behind (in its lots) counts this much further for "which street am I on". */

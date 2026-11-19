@@ -268,7 +268,8 @@ object TownPlay {
             if (n == null || n == it || w.fromKeeper(n) + 20f > w.fromKeeper(it)) return it
         } }
         talkLast = w.nearestKeeper(keepers, TalkRange.distance)
-        return talkLast ?: w.door?.sprite
+        // (else the door the player stands at, unless its person stands further off than a conversation lasts)
+        return talkLast ?: w.door?.sprite?.takeIf { it !in keepers || w.fromKeeper(it) <= TalkRange.leaveDistance }
     }
 
     /** Index of [row] in the town's rows (the dialogue's queue orders by it); -1 if unknown. */

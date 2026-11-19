@@ -81,6 +81,17 @@ object StreetRenderer {
         setCamera(ctx, p.getString("camera", "medium")!!)
         town = p.getString("town", TownSession.DEFAULT) ?: TownSession.DEFAULT
         setView(ctx, p.getString("view", OPEN) ?: OPEN)
+        setGrab(ctx, p.getBoolean("grabWorld", false))
+    }
+
+    /** The open world's drag (the AI panel's "Drag"): false turns the camera the way the finger goes, true moves the world with it. */
+    var grabWorld by mutableStateOf(false)
+        private set
+
+    fun setGrab(ctx: Context, on: Boolean) {
+        grabWorld = on
+        com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera.grabWorld = on
+        prefs(ctx).edit().putBoolean("grabWorld", on).apply()
     }
 
     /**

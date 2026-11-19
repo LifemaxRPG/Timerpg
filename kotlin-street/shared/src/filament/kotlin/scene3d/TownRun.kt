@@ -87,35 +87,35 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
 
     /**
      * The open world's camera this frame: [OrbitCamera] eased by the clock's step (only the player's own input), following
-     * the walk's player, as [TownFrame.orbit]; the buildings between it and the player fade ([FilamentTown.occlude]), and
-     * where it would stand inside one it is pulled in to the wall (at once, easing back out when clear). The stage's sky under it is told
-     * the lens and the horizon ([OrbitCamera.lensPx], [OrbitCamera.horizonY]).
+     * the walk's player, as [TownFrame.orbit]. It never moves by itself: whatever stands between it and the player (a
+     * building, a yard's shed or tree) or right by the eye is cut away ([FilamentTown.occlude], [FilamentTown.fadeBetween]).
+     * Only with [OrbitCamera.pullIn] on, and only when the eye itself would stand inside a building, does it come in to
+     * that building's wall, eased in and out. The stage's sky under it is told the lens and the horizon
+     * ([OrbitCamera.lensPx], [OrbitCamera.horizonY]).
      */
     fun orbit(walk: TownWalkView, w: Float, h: Float, seconds: Float): TownPose {
         val dt = if (lastSeconds.isNaN()) 0f else (seconds - lastSeconds).coerceIn(0f, .1f)
         lastSeconds = seconds
         val c = OrbitCamera
         // (a new scene far from where the camera last was: a new game, a spawn, a jump: behind the player, at the start's
-        // distance and pitch; coming back out of a room it is where it was)
-        if (dt == 0f && hypot(c.tx - walk.wx, c.tz - walk.wz) > RESET_FAR) c.reset(walk.wx, walk.wz, Math.toDegrees(walk.heading.toDouble()).toFloat())
+        // distance and pitch; coming back out of a room it is where it was; back from the street view: behind the player)
+        val heading = Math.toDegrees(walk.heading.toDouble()).toFloat()
+        if (dt == 0f && hypot(c.tx - walk.wx, c.tz - walk.wz) > RESET_FAR) c.reset(walk.wx, walk.wz, heading)
+        else if (c.behindNext) c.behind(walk.wx, walk.wz, heading)
+        c.behindNext = false
         c.step(dt)
         c.follow(walk.wx, walk.wz)
         // (the open walk's stick pushes relative to where the camera looks; the walk never turns the camera)
         (walk as? com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk)?.cameraYaw = c.yawRad
         val want = TownFrame.orbit(walk.wx, OrbitCamera.EYE, walk.wz, c.yaw, c.pitch, c.dist, w, h, OrbitCamera.FOV_Y)
-        // a building in the way: the camera comes in in front of it if that leaves it a fair way off; if not (the player
-        // right by it, looking over it from above) it stays, and what stands between fades, unless the camera itself
-        // would stand inside a building: then it comes in to that one's wall
-        val first = town.occlude(walk.wx, OrbitCamera.EYE, walk.wz, want.ex, want.ey, want.ez)
-        val keep = kotlin.math.max(c.dist * PULL_KEEP, min(PULL_KEEP_MIN, c.dist))
-        val fit = when {
-            first >= 1f -> c.dist
-            first * c.dist - PULL_MARGIN >= keep -> first * c.dist - PULL_MARGIN
-            town.eyeInside < 1f -> (town.eyeInside * c.dist - PULL_MARGIN).coerceIn(min(PULL_MIN, c.dist), c.dist)
-            else -> c.dist
-        }
+        town.occlude(walk.wx, OrbitCamera.EYE, walk.wz, want.ex, want.ey, want.ez)
+        val fit = if (c.pullIn && town.eyeInside < 1f) (town.eyeInside * c.dist - PULL_MARGIN).coerceIn(min(PULL_MIN, c.dist), c.dist) else c.dist
         town.fadeBetween(fit / c.dist)
-        c.pulled = if (fit < c.pulled || dt == 0f) fit else c.pulled + (fit - c.pulled) * (1f - kotlin.math.exp(-dt / PULL_OUT))
+        // (eased both ways: in quickly, out slowly; never a jump)
+        val tau = if (fit < c.pulled) PULL_IN else PULL_OUT
+        // (no pull: the camera stands where the player put it, their own zoom unlagged)
+        c.pulled = if (dt == 0f || !c.pullIn) fit else c.pulled + (fit - c.pulled) * (1f - kotlin.math.exp(-dt / tau))
+        if (c.pulled > c.dist) c.pulled = c.dist
         val p = if (abs(c.pulled - c.dist) < .5f) want else TownFrame.orbit(walk.wx, OrbitCamera.EYE, walk.wz, c.yaw, c.pitch, c.pulled, w, h, OrbitCamera.FOV_Y)
         c.lensPx = p.fl
         // (the horizon: where a level line from the eye falls; above the screen's top when looking well down)
@@ -129,11 +129,9 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
         const val PULL_MIN = 60f
         /** The orbit camera starts afresh behind the player when a scene starts this far from where it last followed. */
         const val RESET_FAR = 300f
-        /** Coming in in front of a building must leave it at least this share of its distance (and [PULL_KEEP_MIN]) off. */
-        const val PULL_KEEP = .4f
-        const val PULL_KEEP_MIN = 130f
-        /** Seconds it takes to ease back out once nothing is in the way. */
-        const val PULL_OUT = .35f
+        /** Seconds it takes to ease in to a wall ([OrbitCamera.pullIn]) and back out once clear. */
+        const val PULL_IN = .15f
+        const val PULL_OUT = .5f
 
         /** The first view waits for the buildings this near the player (street units): the street in view and the next blocks. */
         const val READY_RADIUS = 1800f

@@ -64,7 +64,7 @@ internal class PropLayer(
     /** Whether the last frame drew them faded (the next whole one sets the fade back). */
     private var faded = false
 
-    private class Batch(val entity: Int, val proxy: Int, val mi: MaterialInstance, val pmi: MaterialInstance?, val glows: Boolean, val vb: VertexBuffer, val ib: IndexBuffer)
+    private class Batch(val entity: Int, val proxy: Int, val mi: MaterialInstance, val pmi: MaterialInstance?, val glows: Boolean, val vb: VertexBuffer, val ib: IndexBuffer, val casts: Boolean)
     private val batches = ArrayList<Batch>()
 
     /** How many props were placed, and drawn in how many batches. */
@@ -192,7 +192,7 @@ internal class PropLayer(
                 .geometry(0, RenderableManager.PrimitiveType.TRIANGLES, vertices, indices).material(0, pmi).build(engine, pe)
             scene.addEntity(pe)
         }
-        batches += Batch(e, pe, mi, pmi, glows, vertices, indices)
+        batches += Batch(e, pe, mi, pmi, glows, vertices, indices, casts)
         return mi
     }
 
@@ -201,20 +201,24 @@ internal class PropLayer(
      * the props are drawn at all (not through the classic's leaned looks, which they do not follow), [fade] how far they
      * are faded out (1: whole; the screen-door cut of the street view), [shadows] whether their shadow twins cast.
      */
-    fun update(look: FloatArray, dark: Float, shown: Boolean = true, fade: Float = 1f, shadows: Boolean = shown) {
+    fun update(look: FloatArray, dark: Float, shown: Boolean = true, fade: Float = 1f, shadows: Boolean = shown, castFade: Float = 1f) {
         val rm = engine.renderableManager
         val on = smooth((dark - .3f) / .4f)
         // (no boxing: thousands of batches a frame, and an instance boxed for takeIf was a garbage object each)
         for (b in batches) {
+            // ([castFade]: the batches of things that throw shadows, the tall ones, cut away on their own)
+            val f = if (b.casts && castFade < 1f) min(fade, castFade) else fade
+            val drawn = shown && f > .02f
             val bi = rm.getInstance(b.entity)
-            if (bi != 0) rm.setLayerMask(bi, 0xff, if (shown) 1 else 0)
-            if (b.proxy != 0) { val pi = rm.getInstance(b.proxy); if (pi != 0) rm.setLayerMask(pi, 0xff, if (shadows) 1 else 0) }
-            if (!shown) continue
+            if (bi != 0) rm.setLayerMask(bi, 0xff, if (drawn) 1 else 0)
+            // (a cut thing's shadow goes with it: a shed's shadow on an empty lawn reads wrong)
+            if (b.proxy != 0) { val pi = rm.getInstance(b.proxy); if (pi != 0) rm.setLayerMask(pi, 0xff, if (shadows && (castFade >= .5f || !b.casts)) 1 else 0) }
+            if (!drawn) continue
             b.mi.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
             if (b.glows) b.mi.setParameter("glow", GLOW, GLOW, GLOW, on)
-            if (fade < 1f || faded) b.mi.setParameter("fade", fade)
+            if (f < 1f || faded) b.mi.setParameter("fade", f)
         }
-        if (shown) faded = fade < 1f
+        if (shown) faded = fade < 1f || castFade < 1f
     }
 
     fun destroy() {

@@ -53,6 +53,8 @@ class OpenWalkTest {
         }
         val doors: TownDoors by lazy { TownDoors(town, yards, map, cinema) }
         const val R = OpenWalk.RADIUS
+        /** A back yard counts as reached when this share of its free ground is. */
+        const val BACK_REACHED = .8f
 
         /** The walkable grid (cells of [STEP]) reached from the spawn, 4-connected. */
         const val STEP = 6f
@@ -141,22 +143,20 @@ class OpenWalkTest {
         for (b in town.bridges) assertTrue("bridge", reached((b.rect[0] + b.rect[2]) / 2f, (b.rect[1] + b.rect[3]) / 2f))
         for (d in doors.doors) assertTrue("door of ${d.sprite} at ${d.x},${d.z}", reachedNear(d.x, d.z, 8f))
         for (i in doors.keeperSprites.indices) assertTrue("keeper ${doors.keeperSprites[i]}", reachedNear(doors.keeperX[i], doors.keeperZ[i], 10f))
-        // the back yards: through a side gate, or round the house where no fence closes the side
+        // the back yards: through a side gate, a back gate, or round the house where no fence closes the side; most of
+        // each one's free ground reached (not just a cell near its middle)
         var backs = 0; var reachedBacks = 0; val shut = ArrayList<String>()
         for (y in yards.yards) {
             val b = y.back ?: continue
             backs++
-            val gate = y.items.any { it.kind == "sideGate" }
-            val ok = reachedNear((b[0] + b[2]) / 2f, (b[1] + b[3]) / 2f, 60f) || run {
-                var hit = false
-                var x = b[0] + 8f
-                while (x < b[2] && !hit) { var z = b[1] + 8f; while (z < b[3] && !hit) { if (reached(x, z)) hit = true; z += 12f }; x += 12f }
-                hit
-            }
-            if (ok) reachedBacks++ else shut += "${y.sprite}${if (gate) " (has a side gate!)" else ""}"
-            if (gate) assertTrue("back yard of ${y.sprite} behind its side gate", ok)
+            var fr = 0; var rc = 0
+            var x = b[0] + 3f
+            while (x < b[2]) { var z = b[1] + 3f; while (z < b[3]) { val c = cellOf(x, z); if (free[c]) { fr++; if (reach[c] >= 0) rc++ }; z += STEP }; x += STEP }
+            val ok = fr == 0 || rc >= fr * BACK_REACHED
+            if (ok) reachedBacks++ else shut += "${y.sprite} ($rc of $fr)"
         }
         println("back yards reached $reachedBacks of $backs; shut: $shut")
+        assertTrue("back yards mostly shut: $shut", shut.isEmpty())
         // the cinema's car park, behind it
         cinema?.let { c ->
             val (row, b) = town.placement(c.sprite)!!
@@ -168,7 +168,7 @@ class OpenWalkTest {
     }
 
     /** Walks [w] along [path] (cell indices) with the stick, the camera turning slowly all the while; returns the frames. */
-    private fun follow(w: OpenWalk, path: IntArray, maxSeconds: Float, trail: MutableList<Pair<Float, Float>>, yaw0: Float): Int {
+    fun follow(w: OpenWalk, path: IntArray, maxSeconds: Float, trail: MutableList<Pair<Float, Float>>, yaw0: Float): Int {
         val dt = 1f / 60f
         var k = 0
         var frames = 0
@@ -179,9 +179,17 @@ class OpenWalkTest {
             if (hypot(w.wx - goalX, w.wz - goalZ) < 10f) break
             // the nearest point of the path ahead, then aim a few cells past it
             var best = k; var bd = Float.MAX_VALUE
-            for (i in k until minOf(path.size, k + 40)) { val d = hypot(cx(path[i] % cols) - w.wx, cz(path[i] / cols) - w.wz); if (d < bd) { bd = d; best = i } }
+            // (only points in plain sight: a cell of the path just across a thin fence is not where the walker is)
+            for (i in k until minOf(path.size, k + 40)) {
+                val px = cx(path[i] % cols); val pz = cz(path[i] / cols)
+                val d = hypot(px - w.wx, pz - w.wz)
+                if (d < bd && (i == k || inSight(w.wx, w.wz, px, pz))) { bd = d; best = i }
+            }
             k = best
-            val tgt = path[minOf(path.size - 1, k + 4)]
+            // (aimed a few cells on, but never across something: the farthest of them in plain sight)
+            var ahead = minOf(path.size - 1, k + 4)
+            while (ahead > k + 1 && !inSight(w.wx, w.wz, cx(path[ahead] % cols), cz(path[ahead] / cols))) ahead--
+            val tgt = path[ahead]
             val tx = cx(tgt % cols) - w.wx; val tz = cz(tgt / cols) - w.wz
             val tl = hypot(tx, tz).coerceAtLeast(1e-3f)
             // the camera swings round on its own clock: the push is turned into its frame
@@ -204,6 +212,14 @@ class OpenWalkTest {
         }
         assertTrue("did not arrive at $goalX,$goalZ from ${w.wx},${w.wz} in $maxSeconds s (stuck ${stuck}s)", hypot(w.wx - goalX, w.wz - goalZ) < 10f)
         return frames
+    }
+
+    /** Nothing solid on the straight line from ([ax], [az]) to ([bx], [bz]) (looked at every 2 units). */
+    private fun inSight(ax: Float, az: Float, bx: Float, bz: Float): Boolean {
+        val l = hypot(bx - ax, bz - az)
+        val n = (l / 2f).toInt() + 1
+        for (i in 0..n) { val t = i.toFloat() / n; if (map.blocked(ax + (bx - ax) * t, az + (bz - az) * t, .5f)) return false }
+        return true
     }
 
     private fun pathTo(fromX: Float, fromZ: Float, toCell: Int): IntArray? {

@@ -421,3 +421,47 @@ is the AI panel's "View: Open world / Street" (prefs `renderer/view`, open by de
   `TownPlay.step` at 60 Hz: the stick pushed relative to the camera by an autopilot that steers round obstacles (a path
   over the collision grid), the camera turned and zoomed only by scripted drags and pinches. walk_XXs.png every 5 s and
   walk.txt (the path, the breadcrumbs, frames the camera turned without input, frames inside anything).
+
+## Open world: review fixes (branch wf-open, after the review at 6236343)
+
+- The camera never moves by itself, zoom included: no pull-in for buildings in the way (the old pull snapped in and eased
+  out as buildings crossed the line while walking). Whatever stands between it and the player is cut away instead:
+  `FilamentTown.occlude` casts a cone of five lines (the player's chest, feet, head and 12 either side to the eye) against
+  every building's box and the yards' tall things (sheds, garages, greenhouses, carports, gazebos, play sets, swings,
+  back hedges, trees: `TownFrame`'s `tallHeight`, kept as world boxes per lot); anything within 60 of the eye is cut too
+  (no wall or sign filling the screen at the near plane). Cut means faded to nothing over 0.2 s by the clock (not a
+  screen door at 30%, and the same at 60 and 120 Hz); a cut building keeps its shadow. A lot whose tall thing is in the
+  way has its batches that throw shadows (fences, sheds, trees) cut with their shadows, its lawn and paths kept
+  (`PropLayer.update(castFade)`).
+  A player standing under a tree's crown or a carport counts as hidden by it. `OrbitCamera.pullIn` (off) keeps the old
+  idea as an option: only when the eye itself would stand inside a building, eased in (0.15 s) and out (0.5 s).
+  `occlude` allocates nothing.
+- Draw distance by the player, not the zoom: the open world draws 2600 past the player (`OPEN_REACH`; the camera's far
+  plane just past it, things fading out over the last 500, so nothing is cut off hard), the haze from 1200 past the
+  player, the sun's shadows only 1400 past the player (Filament's `shadowFar`, set as the zoom changes), so the cascade at
+  the player stays fine at every zoom. The yards' far versions start 600 past the haze's start with 80 of hysteresis.
+  The zoom's far limit is 900 (was 1400) until wide views are measured on the S25.
+  Build server, software GL (estimates, not S25 numbers): the widest views now 680-850 draws, 126k-220k triangles,
+  260-335 shadow casters (were up to 2118 draws, 363k triangles, 812 casters at 1400); street-level views 230-850 draws.
+- Gates are drawn open (each leaf swung 90 degrees into the yard on its hinge post: `MeshBuilder.turnSince`), their posts
+  solid where the gap leaves a walker room (`TownCollision.gate`); the leaves lie back along the gap's edges and are not
+  solid (a solid leaf made wedges a walker got caught in). The walker's radius is 5 (was 6).
+- Every back yard can be walked into: the export (tools/town-yards.ts) puts a gate in the middle of the back fence of
+  every lot with no side way in (the 22 shops' service yards, houses filling their lot's width): 26 back gates. The test
+  now asks for 80% of each back yard's free ground reached: 92 of 92. The scripted walker aims only at path points in
+  plain sight (it cut corners across thin fences).
+- The world's end is a belt of woods all round (TownGround's feather: dense from 820 to 1400 past the forest's edge;
+  the walk stops at 1200), not an invisible wall in open grass.
+- The sky: the yaw wraps at 180 degrees (camera and goal together) and the sky slides a whole number of its patterns per
+  full turn (`OrbitCamera.skyPx`: a multiple of three screen widths), so there is no jump.
+- Input: in the open world the stick takes only the lower-left corner (a third of the width, at most 300 dp, the lower
+  half), leaving the rest to the camera; "Behind me" sits under the street's name at the top left (not where the right
+  thumb drags); the AI panel's "Drag: Turns the camera / Moves the world" sets which way a drag turns
+  (`OrbitCamera.grabWorld`, prefs `renderer/grabWorld`). Back from the street view, the camera starts behind the player
+  (`OrbitCamera.behindNext`).
+- "Talk to" no longer falls back to a door whose person stands further than a conversation lasts (90).
+- Preview: walk renders have the stage's sky; check views `chk_*` (gates, people from four sides, the widest views, low
+  and close in a back yard, the world's edges) and `backyards_low_13h`, `cinema_quarter_13h`.
+- Left: cutting a lot's tall things cuts all of that lot's fences and sheds together (per-object batches would cost
+  draws); shop backs are still bare brick and gravel; the river's banks are still stepped; no fling and no game-pad
+  camera stick; nothing of this measured on the S25.

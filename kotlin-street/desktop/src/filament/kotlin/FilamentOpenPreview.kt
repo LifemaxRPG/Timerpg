@@ -126,26 +126,20 @@ fun renderFilamentOpen(out: String) {
         // the same camera three ways: free as before (no draw distance, every yard near), the draw distance alone, as drawn
         val pose0 = run.orbit(walk, w.toFloat(), h.toFloat(), clock)
         fun variant(range: Boolean, lod: Boolean) = TownPose(pose0.ex, pose0.ey, pose0.ez, pose0.fx, pose0.fy, pose0.fz, pose0.fl, pose0.cx, pose0.cy, pose0.w, pose0.h,
-            pose0.near, pose0.far, pose0.hazeFrom, pose0.haze, range = if (range) pose0.range else Float.MAX_VALUE, open = true, lodFar = if (lod) pose0.lodFar else Float.MAX_VALUE)
+            pose0.near, pose0.far, pose0.hazeFrom, pose0.haze, range = if (range) pose0.range else Float.MAX_VALUE, open = true, lodFar = if (lod) pose0.lodFar else Float.MAX_VALUE,
+            shadowFar = pose0.shadowFar)
         ft.prepare(variant(false, false)); ft.frame(variant(false, false), hour); val free = stats()
         ft.frame(variant(true, false), hour); val ranged = stats()
         ft.prepare(pose0)
         val pose = run.draw(walk, w.toFloat(), h.toFloat(), hour, clock, sheets)
         val drawn = stats()
         // the sky as the stage lays it under the town: its gradient down to the horizon, the orb where the light comes from
-        val sky = skyColors(hour).sky
-        val hy = OrbitCamera.horizonY
-        val span = h * .9f
         val orbXY = FloatArray(2)
         val key = com.lifemax.rpg.feature.habits.domain.SceneLight.key(hour)
         val orb = if (OrbitCamera.orbAt(hour, w.toFloat(), h.toFloat(), orbXY)) floatArrayOf(orbXY[0], orbXY[1], h * .035f, (if (key.cool > .5f) 0xE6EAF6 else 0xFFF0B8).toFloat()) else null
         val marks = ArrayList<Pair<androidx.compose.ui.geometry.Offset, Int>>()
         TownPlay.playerHead()?.let { marks += it to 0x40E0FF }
-        shooter.save(File(dir, "$name.png"), w, h, hour, marks, skyRow = { y ->
-            val t = ((y - (hy - span)) / span).coerceIn(0f, 1f) * (sky.size - 1)
-            val i = t.toInt().coerceIn(0, maxOf(0, sky.size - 2))
-            if (sky.size < 2) sky.firstOrNull() ?: Color.Gray else lerp(sky[i], sky[i + 1], (t - i).coerceIn(0f, 1f))
-        }, orb = orb)
+        shooter.save(File(dir, "$name.png"), w, h, hour, marks, skyRow = skyRow(hour, h), orb = orb)
         report.appendLine("%-26s %s; player (%.0f, %.0f) on %s (%s); %s".format(name, where, walk.wx, walk.wz, walk.row.id, TownPlay.streetName(), OrbitCamera.describe()))
         report.appendLine("%-26s free as before: %s | draw distance: %s | as drawn (+ far yards past %.0f): %s; people %d; %.0f ms; orb %s".format(
             "", free, ranged, pose.lodFar, drawn, run.peopleDrawn, (System.nanoTime() - t0) / 1e6, orb?.let { "(%.0f, %.0f)".format(it[0], it[1]) } ?: "behind"))
@@ -167,9 +161,9 @@ fun renderFilamentOpen(out: String) {
         view("main_behind_night", p.x, p.z, a.x, a.z, along, 18f, 420f, night, "Main Street, behind the player")
         view("main_fronts_13h", p.x, p.z, a.x, a.z, fronts, 14f, 380f, 13f, "Main Street, square at the fronts")
         view("main_quarter_13h", p.x, p.z, a.x, a.z, along + 40f, 32f, 700f, 13f, "Main Street, three-quarter from above")
-        view("main_high_13h", p.x, p.z, a.x, a.z, along + 135f, 58f, 1400f, 13f, "Main Street, zoomed out, looking down")
+        view("main_high_13h", p.x, p.z, a.x, a.z, along + 135f, 58f, OrbitCamera.DIST_MAX, 13f, "Main Street, zoomed out (as far as it goes), looking down")
         view("main_close_13h", p.x, p.z, a.x, a.z, along + 180f, 10f, 150f, 13f, "Main Street, zoomed in, facing the player")
-        view("main_through_13h", p.x, p.z, a.x, a.z, fronts + 180f, 20f, 600f, 13f, "Main Street, the camera behind the block (pulled in)")
+        view("main_through_13h", p.x, p.z, a.x, a.z, fronts + 180f, 20f, 600f, 13f, "Main Street, the camera behind the block (the block cut away)")
         view("main_dusk_west", p.x, p.z, a.x, a.z, 270f, 16f, 500f, 19.3f, "Main Street, looking west at dusk")
     }
     // --- the civic avenue (the spawn): along it, and at the school across it
@@ -209,6 +203,7 @@ fun renderFilamentOpen(out: String) {
         val x = s.b.mid.coerceIn(40f, r.length - 40f)
         val p = r.pointAt(x, 7f); val a = r.alongAt(x); val n = r.normalAt(x)
         view("cinema_front_13h", p.x, p.z, a.x, a.z, heading(n.x, n.z), 12f, 520f, 13f, "in front of the cinema")
+        view("cinema_quarter_13h", p.x, p.z, a.x, a.z, heading(n.x, n.z) - 40f, 20f, 700f, 13f, "the cinema, three-quarter")
         view("cinema_quarter_dusk", p.x, p.z, a.x, a.z, heading(n.x, n.z) - 40f, 20f, 700f, 19.3f, "the cinema, three-quarter at dusk")
         view("cinema_night", p.x, p.z, a.x, a.z, heading(n.x, n.z) + 25f, 16f, 600f, night, "the cinema at night")
     }
@@ -218,6 +213,43 @@ fun renderFilamentOpen(out: String) {
         val x = mid(r)
         val p = r.pointAt(x, 7f); val a = r.alongAt(x)
         view("woodside_behind_13h", p.x, p.z, a.x, a.z, heading(a.x, a.z) - 20f, 26f, 560f, 13f, "a Woodside street, behind the player")
+    }
+    // --- the checks: views where the camera met trouble before (gates, a camera behind a fence or in a block, people from
+    // four sides, the widest views, the world's edge), and a back yard street from a low camera
+    run {
+        for (sp in listOf("b8", "b69", "b51", "b80")) { val y = yards.of(sp) ?: continue
+            val g = y.items.firstOrNull { it.kind == "sideGate" } ?: y.items.firstOrNull { it.kind == "gate" } ?: continue
+            val gx = (g.rect[0] + g.rect[2]) / 2f; val gz = (g.rect[1] + g.rect[3]) / 2f
+            view("chk_gate_$sp", gx, gz, g.faceX, g.faceZ, heading(-g.faceX, -g.faceZ) + 35f, 22f, 200f, 13f, "in the gate of $sp")
+            view("chk_gate_${sp}_b", gx, gz, g.faceX, g.faceZ, heading(g.faceX, g.faceZ) + 35f, 22f, 200f, 13f, "in the gate of $sp, from the other side")
+        }
+        val r = town.rows.filter { town.road(it.road).name == "Main Street" }.maxByOrNull { it.buildings.size }!!
+        val x = mid(r)
+        val p = r.pointAt(x, 7f); val a = r.alongAt(x); val n = r.normalAt(x)
+        val along = heading(a.x, a.z); val fronts = heading(n.x, n.z)
+        for (k in 0 until 4) view("chk_people_%d".format(k * 90), p.x, p.z, a.x, a.z, along + k * 90f, 16f, 220f, 13f, "people from four sides, close")
+        for (k in 0 until 4) view("chk_wide_main_%d".format(k * 90), p.x, p.z, a.x, a.z, along + k * 90f + 45f, 30f, OrbitCamera.DIST_MAX, 13f, "Main Street, widest")
+        view("chk_shopbacks", p.x, p.z, a.x, a.z, fronts, 22f, 700f, 13f, "Main Street, from behind the shops")
+        val y = yards.of("b69") ?: yards.yards.first { it.neighbourhood == "heights" && it.back != null }
+        val back = y.back ?: y.parcel
+        val px = (back[0] + back[2]) / 2f; val pz = (back[1] + back[3]) / 2f
+        view("chk_heights_close_fence", px, pz, 0f, -1f, 0f, 10f, 140f, 13f, "low and close in a back yard")
+        view("chk_heights_close_fence2", px, pz, 0f, -1f, 180f, 10f, 140f, 13f, "low and close in a back yard, the other way")
+        for (k in 0 until 4) view("chk_wide_heights_%d".format(k * 90), px, pz, 0f, -1f, k * 90f + 45f, 30f, OrbitCamera.DIST_MAX, 13f, "the Heights, widest")
+        // a back yard street from a low camera: along the backs of a row of Heights houses
+        val hr = town.row(y.row); val hb = hr.buildings.first { it.sprite == y.sprite }; val ha = hr.alongAt(hb.mid)
+        // (stood in the open, away from the yard's trees and sheds: under one the camera would cut the yard's tall things away)
+        var bx = px; var bz = pz; var bd = -1f
+        var sx = back[0] + 12f
+        while (sx < back[2] - 12f) { var sz = back[1] + 12f; while (sz < back[3] - 12f) {
+            val d = y.items.filter { com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown.tallHeight(it.kind, it.zone) > 0f }
+                .minOfOrNull { val r = it.rect; kotlin.math.hypot(maxOf(r[0] - sx, 0f, sx - r[2]), maxOf(r[1] - sz, 0f, sz - r[3])) } ?: 999f
+            if (d > bd && !collision.blocked(sx, sz, 8f)) { bd = d; bx = sx; bz = sz }
+            sz += 8f }; sx += 8f }
+        view("backyards_low_13h", bx, bz, ha.x, ha.z, heading(ha.x, ha.z), 11f, 320f, 13f, "along the back yards, a low camera")
+        val c = collision
+        view("chk_world_edge", c.minX + 300f, (c.minZ + c.maxZ) / 2f, -1f, 0f, 270f, 20f, 700f, 13f, "the world's west edge")
+        view("chk_world_edge_n", (c.minX + c.maxX) / 2f, c.minZ + 300f, 0f, -1f, 0f, 20f, 700f, 13f, "the world's north edge")
     }
     File(dir, "open.txt").writeText(report.toString())
     print(report)
@@ -284,7 +316,7 @@ private fun scriptedWalk(
         Input(3f, 3.6f, 22f, 0f, 1f),      // turn right a little
         Input(9f, 9.5f, -30f, 0f, 1f),     // turn left
         Input(14f, 14.6f, 0f, 9f, 1f),     // look further down
-        Input(18f, 18.5f, 0f, 0f, .985f),  // zoom in
+        Input(18f, 18.5f, 0f, 0f, .985f),  // zoom out (fingers together: a pinch under 1)
         Input(23f, 23.8f, 40f, -4f, 1f),   // round to the side
     )
     var shot = 0
@@ -328,7 +360,7 @@ private fun scriptedWalk(
             TownPlay.playerHead()?.let { marks += it to 0x40E0FF }
             walk.door?.let { d -> TownPlay.headOnScreen(d.x, d.z)?.let { marks += it to 0xFFB040 } }
             TownPlay.talkSprite()?.let { s -> TownPlay.keeperHead(s)?.let { marks += it to 0x60FF60 } }
-            shooter.save(File(dir, "walk_%02ds.png".format(shot * 5)), w, h, hour, marks)
+            shooter.save(File(dir, "walk_%02ds.png".format(shot * 5)), w, h, hour, marks, skyRow = skyRow(hour, h))
             log.appendLine("  %5.1f s shot walk_%02ds: (%.0f, %.0f) on %s (%s, %s), yard %s, door %s, talk %s; %s".format(t, shot * 5, walk.wx, walk.wz,
                 walk.row.id, TownPlay.streetName(), TownPlay.hoodName(), walk.yard?.sprite ?: "-", walk.door?.sprite ?: "-", TownPlay.talkSprite() ?: "-", OrbitCamera.describe()))
             shot++
@@ -348,6 +380,21 @@ private fun scriptedWalk(
     for (e in events) log.appendLine("  $e")
     File(dir, "walk.txt").writeText(log.toString())
     print(log)
+}
+
+/**
+ * The sky as the stage lays it under the town for [hour] on a screen [h] tall: its gradient down to the horizon where the
+ * orbit camera last put it ([OrbitCamera.horizonY]).
+ */
+private fun skyRow(hour: Float, h: Int): (Int) -> Color {
+    val sky = skyColors(hour).sky
+    val hy = OrbitCamera.horizonY
+    val span = h * .9f
+    return { y ->
+        val t = ((y.toFloat() - (hy - span)) / span).coerceIn(0f, 1f) * (sky.size - 1)
+        val i = t.toInt().coerceIn(0, maxOf(0, sky.size - 2))
+        if (sky.size < 2) sky.firstOrNull() ?: Color.Gray else lerp(sky[i], sky[i + 1], (t - i).coerceIn(0f, 1f))
+    }
 }
 
 /**

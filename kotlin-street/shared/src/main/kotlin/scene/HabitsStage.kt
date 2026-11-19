@@ -905,7 +905,7 @@ private fun StageCanvas(
         // turns with it, the sun and the moon too (a quarter turn takes them out of the cross street's view)
         if (cr != null) aimWorld(world, cr, sides!!, f.middle, f.ground, horizon, f.unit, Perspective.k(f.zoom), this.size.width, orb.first * d)
         // (the sky settles a little before the street at either end of a walk round the corner: CornerWalk.skyYaw)
-        val yawPx = if (openSky) -OrbitCamera.lensPx * OrbitCamera.yawRad
+        val yawPx = if (openSky) OrbitCamera.skyPx(this.size.width)
             else if (cr != null) world.cam.f * (if (CornerWalk.active) CornerWalk.skyYaw else world.cam.yaw) else 0f
         val openOrb = if (openSky) OPEN_ORB.takeIf { OrbitCamera.orbAt(p.hour, this.size.width, this.size.height, it) } else null
         // (behind the camera: well off the screen)

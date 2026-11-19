@@ -24,15 +24,35 @@ import kotlin.math.sin
 object OrbitCamera {
     /** The open world (true, the default) or the old street view (false): the AI panel's "View" switch, kept in prefs by the app. */
     @Volatile var open = true
+        set(v) { if (v && !field) behindNext = true; field = v }
+
+    /**
+     * The next open-world frame puts the camera behind the player first (set when the view switches back from the street
+     * view, so the player does not come back to a camera turned however it was left).
+     */
+    @Volatile var behindNext = false
+
+    /**
+     * The renderer pulls the camera in front of a wall only when the camera itself would stand inside a building (eased
+     * in and out); false (the default): it never moves by itself, and whatever stands in the way is cut away instead.
+     */
+    @Volatile var pullIn = false
+
+    /** A drag across turns the camera the way the finger goes (false, the default: drag right, look right) or the world with it (true). */
+    @Volatile var grabWorld = false
 
     /** The point looked at: this far above the player's feet (street units; a person is 36, their chest about 26). */
     const val EYE = 30f
     /** How far down it may look (degrees). */
     const val PITCH_MIN = 10f
     const val PITCH_MAX = 60f
-    /** How near and far it may stand from the player (street units). */
+    /**
+     * How near and far it may stand from the player (street units). The far limit is held at 900 until wide views are
+     * measured on the phone (at 1400 a view drew about twice the street view's draws and shadow casters: an estimate
+     * from the build server, not a measurement).
+     */
     const val DIST_MIN = 140f
-    const val DIST_MAX = 1400f
+    const val DIST_MAX = 900f
     /** Where it starts: a third of the way up, a few houses' width back. */
     const val PITCH0 = 24f
     const val DIST0 = 420f
@@ -71,9 +91,15 @@ object OrbitCamera {
     /** Places it behind a player at ([x], [z]) heading [headingDeg] (0 north, clockwise), at the start distance and pitch, at once. */
     fun reset(x: Float, z: Float, headingDeg: Float) {
         tx = x; tz = z
-        goalYaw = headingDeg; yaw = headingDeg
+        goalYaw = wrap(headingDeg); yaw = goalYaw
         goalPitch = PITCH0; pitch = PITCH0
         goalDist = DIST0; dist = DIST0; pulled = DIST0
+    }
+
+    /** Puts it behind a player at ([x], [z]) heading [headingDeg] at once, keeping its pitch and distance. */
+    fun behind(x: Float, z: Float, headingDeg: Float) {
+        tx = x; tz = z
+        goalYaw = wrap(headingDeg); yaw = goalYaw
     }
 
     /** Sets the camera outright (a preview, a restored snapshot): no easing. */
@@ -89,7 +115,7 @@ object OrbitCamera {
     /** A drag of ([dx], [dy]) pixels on a [w] x [h] screen: right turns the camera right (the world swings left), down looks further down. */
     fun drag(dx: Float, dy: Float, w: Float, h: Float) {
         if (w <= 0f || h <= 0f) return
-        goalYaw += dx / w * YAW_PER_WIDTH
+        goalYaw += (if (grabWorld) -dx else dx) / w * YAW_PER_WIDTH
         goalPitch = (goalPitch + dy / h * PITCH_PER_HEIGHT).coerceIn(PITCH_MIN, PITCH_MAX)
         moving = true
     }
@@ -111,8 +137,9 @@ object OrbitCamera {
         val m = abs(dy) > .01f || abs(dp) > .01f || abs(dd) > .05f
         moving = m
         if (!m) { yaw = goalYaw; pitch = goalPitch; dist = goalDist } else { yaw += dy * k; pitch += dp * k; dist += dd * k }
-        // (kept in -180..180 together, so they never drift apart)
-        if (abs(yaw) > 720f) { val s = 360f * (yaw / 360f).toInt(); yaw -= s; goalYaw -= s }
+        // (kept in -180..180 together, so they never drift apart; the sky's pattern repeats once a turn, [skyPx], so the
+        // wrap does not show)
+        if (yaw > 180f) { yaw -= 360f; goalYaw -= 360f } else if (yaw < -180f) { yaw += 360f; goalYaw += 360f }
         return m
     }
 
@@ -141,6 +168,18 @@ object OrbitCamera {
 
     /** The yaw in radians (for the sky's turn). */
     val yawRad: Float get() = (yaw * PI / 180.0).toFloat()
+
+    /**
+     * How far the sky slides (pixels) on a [w] pixel wide screen for the yaw now: as the lens turns the world, but rounded
+     * so that one full turn is a whole number of the sky's patterns (the stars repeat every screen width, the low clouds
+     * every one and a half: a multiple of three widths a turn), so it is the same sky after a full turn and the wrap of
+     * the yaw at 180 degrees does not jump.
+     */
+    fun skyPx(w: Float): Float {
+        if (w <= 0f) return 0f
+        val turns = (2.0 * PI * lensPx / w / 3.0).let { kotlin.math.round(it) }.coerceAtLeast(1.0) * 3.0
+        return (-(yaw / 360.0) * turns * w).toFloat()
+    }
 
     /**
      * The sun's (or with [moon], the moon's) azimuth at [hour] in the open world (degrees, 0 north, clockwise: 90 east at

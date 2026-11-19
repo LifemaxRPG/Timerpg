@@ -693,6 +693,8 @@ object YardKit {
             m.subs.sumOf { s -> (s.mesh.pos.size + s.mesh.uv.size + s.mesh.nrm.size + s.mesh.tan.size + s.mesh.idx.size + s.mesh.tex.size) * 4L }
     }
     private const val CACHE_BYTES = 16L shl 20
+    /** How far the gates stand open (degrees, swung into the yard on their hinge posts): the walk goes through them. */
+    const val GATE_OPEN = 90f
 
     /** Lets every model made go (the town's yards are baked: the next town makes its own as it needs them). */
     fun trim() = synchronized(cache) { cache.clear(); cache.bytes = 0L }
@@ -1078,6 +1080,8 @@ object YardKit {
             m.ball(x, h + 4.4f, 0f, 1.6f, 1.6f, 1.6f, 6, 3, listOf(YardPics.swatch(r.l), YardPics.swatch(r.b), YardPics.swatch(r.d)), 1)
         }
         val x0 = -hw + 3.2f; val x1 = hw - 3.2f
+        // (the leaf is built shut, then swung open into the yard on its hinge post: the walk goes through the gap)
+        val leaf = m.mark
         val pic = YardPics.picket(r, ((h - 1f) / TEXEL).roundToInt())
         val edge = YardPics.swatch(r.d)
         for (y in listOf(3.5f, h - 4.5f)) m.sbox(x0, y, -1.2f, x1, y + 1.6f, -.3f, r.b)
@@ -1090,6 +1094,7 @@ object YardKit {
         }
         // the latch
         m.sbox(x1 - 2.4f, 9f, .5f, x1 - .4f, 10.2f, 1.2f, Paint.IRON.b)
+        m.turnSince(leaf, -hw + 1.4f, 0f, GATE_OPEN)
     }
 
     private fun boardRamp(v: Int) = when (v % 3) { 0 -> Paint.WOOD; 1 -> Paint.BROWN; else -> YP.TEAK }
@@ -1147,6 +1152,8 @@ object YardKit {
             val r = when (v) { 5 -> Paint.IRON; 6 -> Paint.WHITE; else -> Paint.WOOD }
             for (x in listOf(-hw + 1.6f, hw - 1.6f)) post(m, x, 0f, 3.2f, h + 3f, if (v == 5) Paint.IRON else Paint.BROWN)
             for (s in listOf(-1f, 1f)) {
+                // (each leaf built shut, then swung open into the yard on its own post)
+                val leaf = m.mark
                 val a = s * (hw - 3.4f); val b = s * .4f
                 val x0 = min(a, b); val x1 = max(a, b)
                 if (v == 7) m.tbox(x0, 2f, -.6f, x1, h, .6f, YardPics.swatch(r.d), YardPics.swatch(r.l), YardPics.boards(r, 4, (16f / TEXEL).roundToInt(), 77), YardPics.boards(r, 4, (16f / TEXEL).roundToInt(), 78, true), null)
@@ -1156,6 +1163,7 @@ object YardKit {
                     for (i in 0..n) { val x = x0 + (x1 - x0) * i / n; m.beam(v3(x, 1.7f, 0f), v3(x, h + if (v == 5) 1.6f else 0f, 0f), .9f, YardPics.swatch(if (v == 5) r.l else r.b)) }
                     if (v == 6) m.beam(v3(x0, 2.5f, .5f), v3(x1, h - 1f, .5f), 1f, YardPics.swatch(r.b))
                 }
+                m.turnSince(leaf, s * (hw - 1.6f), 0f, -s * GATE_OPEN)
             }
         } else {
             // a garden gate of boards with its Z brace, in a frame
@@ -1163,6 +1171,7 @@ object YardKit {
             val h = 24f
             for (x in listOf(-hw + 1.4f, hw - 1.4f)) post(m, x, 0f, 2.8f, h + 1.4f, Paint.BROWN)
             val x0 = -hw + 3f; val x1 = hw - 3f
+            val leaf = m.mark
             m.tbox(x0, 1.2f, -.6f, x1, h, .6f, YardPics.swatch(r.d), YardPics.swatch(r.l), YardPics.boards(r, 4, (h / TEXEL).roundToInt(), 51 + v), YardPics.boards(r, 4, (h / TEXEL).roundToInt(), 61 + v), null)
             val br = YardPics.swatch(r.d)
             for (z in listOf(.9f, -.9f)) {
@@ -1170,6 +1179,7 @@ object YardKit {
                 m.beam(v3(x0 + 1f, 5.6f, z), v3(x1 - 1f, h - 4.6f, z), 1.3f, br)
             }
             m.sbox(x1 - 3f, 12f, .9f, x1 - .5f, 13.2f, 1.6f, Paint.IRON.b)
+            m.turnSince(leaf, -hw + 1.4f, 0f, GATE_OPEN)
         }
     }
 

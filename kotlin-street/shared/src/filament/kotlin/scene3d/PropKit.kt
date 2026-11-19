@@ -102,6 +102,26 @@ internal class MeshBuilder {
     private class Poly(val p: FloatArray, val uv: FloatArray, val img: PixImg, val n: FloatArray, val t: FloatArray)
     private val polys = ArrayList<Poly>()
 
+    /** How many faces so far (for [turnSince]). */
+    val mark: Int get() = polys.size
+
+    /**
+     * Turns every face added since [mark] by [deg] degrees about the upright through ([cx], [cz]) (seen from above,
+     * counter-clockwise from +x towards -z): a gate's leaf built shut, swung open on its hinge.
+     */
+    fun turnSince(mark: Int, cx: Float, cz: Float, deg: Float) {
+        val a = Math.toRadians(deg.toDouble()); val c = kotlin.math.cos(a).toFloat(); val s = kotlin.math.sin(a).toFloat()
+        fun turnPoint(v: FloatArray, i: Int, pivot: Boolean) {
+            val x = v[i] - (if (pivot) cx else 0f); val z = v[i + 2] - (if (pivot) cz else 0f)
+            v[i] = x * c + z * s + (if (pivot) cx else 0f); v[i + 2] = -x * s + z * c + (if (pivot) cz else 0f)
+        }
+        for (k in mark until polys.size) {
+            val q = polys[k]
+            for (i in 0 until q.p.size step 3) turnPoint(q.p, i, true)
+            turnPoint(q.n, 0, false); turnPoint(q.t, 0, false)
+        }
+    }
+
     /** A flat polygon (convex, its corners in order) wearing [img] at texel coords [uv] (pairs), normal [n], tangent [t]. */
     fun poly(p: FloatArray, uv: FloatArray, img: PixImg, n: FloatArray, t: FloatArray) { polys += Poly(p, uv, img, nrm(n), nrm(t)) }
 

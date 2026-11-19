@@ -898,8 +898,10 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         // puts it behind them (OrbitGestures, chained outside the stick's own handler so the stick picks first)
         val stickOpen = doorTo == null && !aiPanel && lastCrash == null && !tuning && shot == null && !townLoading
         val orbiting by rememberUpdatedState(townMode && StreetRenderer.view == StreetRenderer.OPEN && inside == null && stickOpen && talk == null)
-        MoveStick(enabled = stickOpen, Modifier.fillMaxSize().orbitGestures({ orbiting }, { townPlay.walk?.let { Math.toDegrees(it.heading.toDouble()).toFloat() } }))
-        if (orbiting) Chip("Behind me", false, Modifier.align(Alignment.CenterEnd).padding(end = 12.dp)) {
+        MoveStick(enabled = stickOpen, Modifier.fillMaxSize().orbitGestures({ orbiting }, { townPlay.walk?.let { Math.toDegrees(it.heading.toDouble()).toFloat() } }),
+            compact = townMode && StreetRenderer.view == StreetRenderer.OPEN && inside == null)
+        // (under the street's name at the top left: out of the way of the right thumb's drags and of the stick's corner)
+        if (orbiting) Chip("Behind me", false, Modifier.align(Alignment.TopStart).padding(top = 52.dp, start = 14.dp)) {
             townPlay.walk?.let { com.lifemax.rpg.feature.habits.presentation.scene.OrbitCamera.recentre(Math.toDegrees(it.heading.toDouble()).toFloat()) }
         }
         // the stick's corner is not the system's back gesture (Android allows 200 dp of an edge: the bottom of it, where a
@@ -1439,6 +1441,12 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             Text("View", 12.sp)
             Chip("Open world", StreetRenderer.view == StreetRenderer.OPEN) { StreetRenderer.setView(ctx, StreetRenderer.OPEN) }
             Chip("Street", StreetRenderer.view == StreetRenderer.STREET) { StreetRenderer.setView(ctx, StreetRenderer.STREET) }
+        }
+        // (the open world's drag: the camera turns the way the finger goes, or the world is grabbed and moves with it)
+        if (StreetRenderer.filament && StreetRenderer.view == StreetRenderer.OPEN) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("Drag", 12.sp)
+            Chip("Turns the camera", !StreetRenderer.grabWorld) { StreetRenderer.setGrab(ctx, false) }
+            Chip("Moves the world", StreetRenderer.grabWorld) { StreetRenderer.setGrab(ctx, true) }
         }
         // (the street view's camera heights)
         if (StreetRenderer.filament && StreetRenderer.view == StreetRenderer.STREET) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {

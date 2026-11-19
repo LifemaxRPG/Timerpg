@@ -335,6 +335,7 @@ class TownCollision private constructor(
                 when (it.kind) {
                     "backFence", "frontFence", "sideFence", "postRail" -> b.rect(r, SolidKind.FENCE, owner)
                     "hedge" -> b.rect(r, SolidKind.HEDGE, owner)
+                    "gate", "sideGate" -> gate(b, it, owner)
                     "lowWall" -> b.rect(r, SolidKind.WALL, owner)
                     "tree", "fruitTree" -> b.circle(cx, cz, TRUNK, SolidKind.TREE, owner)
                     "bush" -> b.circle(cx, cz, min(w, d) * .35f, SolidKind.YARD_OBJECT, owner)
@@ -362,6 +363,35 @@ class TownCollision private constructor(
 
         private const val TRUNK = 6f
         private const val POST = 3f
+
+        /**
+         * A gate (a gap in its fence, drawn open: YardKit's gates swing [GATE_OPEN] degrees into the yard on their hinge
+         * posts): its posts at either end are solid (when the gap leaves a walker room between them). The frame is the
+         * yard kit's for an edge: along its long side, out the way it faces.
+         */
+        private fun gate(b: Builder, it: TownYardItem, owner: String) {
+            val r = it.rect
+            val rw = r[2] - r[0]; val rd = r[3] - r[1]
+            val cx = (r[0] + r[2]) / 2f; val cz = (r[1] + r[3]) / 2f
+            val fx: Float; val fz: Float
+            if (rw >= rd) { fx = 0f; fz = if (it.faceZ < 0f) -1f else 1f } else { fx = if (it.faceX < 0f) -1f else 1f; fz = 0f }
+            val ax = -fz; val az = fx
+            val w = max(rw, rd); val hw = w / 2f
+            fun wx(lx: Float, lz: Float) = cx + ax * lx + fx * lz
+            fun wz(lx: Float, lz: Float) = cz + az * lx + fz * lz
+            val inner = w - 2f * (GATE_POST_OUT + GATE_POST)
+            if (inner < GATE_ROOM) return
+            for (sx in floatArrayOf(-1f, 1f)) b.circle(wx(sx * (hw - GATE_POST_OUT), 0f), wz(sx * (hw - GATE_POST_OUT), 0f), GATE_POST, SolidKind.FENCE, owner)
+            // (the open leaves lie back along the gap's edges, flat to the fence or the house: not solid, so they make no
+            // wedge to get caught in)
+        }
+
+        /** Where a gate's posts stand in from its ends, how thick they are, and the room a walker needs between them. */
+        private const val GATE_POST_OUT = 1.5f
+        private const val GATE_POST = 1.6f
+        private const val GATE_ROOM = 13f
+        /** How far the gates stand open (degrees): YardKit.GATE_OPEN. */
+        const val GATE_OPEN = 90f
 
         // ------------------------------------------------------------------ the street
 

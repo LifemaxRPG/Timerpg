@@ -38,12 +38,14 @@ import kotlin.math.min
  * ([MoveInput.holdUntilNeutral]).
  */
 @Composable
-fun MoveStick(enabled: Boolean, modifier: Modifier = Modifier) {
+fun MoveStick(enabled: Boolean, modifier: Modifier = Modifier, compact: Boolean = false) {
     val stick = MoveInput.stick
     val density = LocalDensity.current
     val haptics = LocalHapticFeedback.current
     val px = density.density
     val open by rememberUpdatedState(enabled)
+    // (the open world: the camera takes every finger the stick does not, so the stick keeps to the lower-left corner)
+    val small by rememberUpdatedState(compact)
     // the drawing's strokes, made once (the stick redraws every frame while the thumb moves)
     val rim = remember(px) { Stroke(1.5f * px) }
     val runRing = remember(px) { Stroke(1f * px) }
@@ -102,7 +104,8 @@ fun MoveStick(enabled: Boolean, modifier: Modifier = Modifier) {
 
     Canvas(
         modifier.onSizeChanged { width = it.width.toFloat(); height = it.height.toFloat() }.pointerInput(Unit) {
-            fun inZone(o: Offset) = o.x < min(size.width * ZONE_W, ZONE_MAX * px) && o.y > size.height * ZONE_TOP
+            fun inZone(o: Offset) = if (small) o.x < min(size.width * OPEN_ZONE_W, OPEN_ZONE_MAX * px) && o.y > size.height * OPEN_ZONE_TOP
+                else o.x < min(size.width * ZONE_W, ZONE_MAX * px) && o.y > size.height * ZONE_TOP
             awaitPointerEventScope {
                 try {
                     while (true) {
@@ -172,6 +175,10 @@ private const val HOME = 84f
 private const val ZONE_W = .45f
 private const val ZONE_MAX = 380f
 private const val ZONE_TOP = .3f
+/** The open world's smaller zone: the lower-left corner (a third of the width, at most 300 dp, the lower half). */
+private const val OPEN_ZONE_W = .33f
+private const val OPEN_ZONE_MAX = 300f
+private const val OPEN_ZONE_TOP = .5f
 /** How close to the screen's edge a thumb can usefully push (dp). */
 private const val EDGE = 4f
 /** How visible it is at rest. */
