@@ -1,0 +1,370 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1970,
+  "topic": "shops",
+  "facts": [
+    {
+      "id": "1970-shops-01",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A fabric shop displays bolts of cloth and sewing patterns for home dressmaking.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-02",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A shoe store clerk measures a customer's feet before bringing boxes from the stockroom.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-03",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Hardware clerks help customers select nails, paintbrushes, and replacement plumbing parts.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-04",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A neighborhood bakery sets fresh rolls and pastries in a glass display case.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-05",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A butcher wraps selected cuts in paper before handing them across the counter.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-06",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Some supermarkets offer paper grocery bags at the checkout counter.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-07",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A cashier rings purchases through a register and puts the receipt in the bag.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-08",
+      "year_from": 1973,
+      "year_to": 1979,
+      "text": "Some stores use mechanical cash registers while others install electronic models.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-09",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A five-and-dime shop stocks inexpensive toys, household notions, and school supplies.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-10",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A drugstore counter sells greeting cards, toiletries, and small household necessities.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-11",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A pharmacist works behind a separate prescription counter inside the drugstore.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-12",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A department store sets up seasonal window displays facing the sidewalk.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-13",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Clothing stores keep fitting rooms near racks of dresses, shirts, and trousers.",
+      "ages": "teens",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-14",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A clerk pins a hem before sending trousers out for alterations.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-15",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Many small shops close earlier on weekdays than large suburban shopping centers.",
+      "ages": "all",
+      "use": [
+        "guard"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-16",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Some downtown stores remain closed on Sunday despite growing weekend shopping.",
+      "ages": "all",
+      "use": [
+        "guard"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-17",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Store owners place handwritten sale signs in front windows.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-18",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A local florist prepares bouquets for pickup and delivers arrangements around town.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-19",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A furniture store displays sofas and dining sets in furnished showroom arrangements.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-20",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A record shop lets customers browse albums arranged in labeled bins.",
+      "ages": "teens",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-21",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A camera shop sells rolls of film and accepts photographs for processing.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-22",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A television repair shop takes in sets with faulty pictures or sound.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-23",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A grocery clerk uses a price stamp or sticker on many packaged goods.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-24",
+      "year_from": 1977,
+      "year_to": 1979,
+      "text": "Some supermarkets begin using barcode scanners near the end of the decade.",
+      "ages": "adults",
+      "use": [
+        "guard"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-25",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A shopkeeper may offer to order an unavailable item from a wholesale catalog.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1970-shops-26",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A downtown merchant decorates the storefront with paper banners for a holiday sale.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "medium"
+    }
+  ],
+  "not_yet": [],
+  "prices": [
+    {
+      "item": "one candy bar",
+      "usd": 0.15,
+      "year": 1975,
+      "confidence": "medium"
+    },
+    {
+      "item": "one bottle of soft drink",
+      "usd": 0.2,
+      "year": 1975,
+      "confidence": "medium"
+    },
+    {
+      "item": "one newspaper",
+      "usd": 0.15,
+      "year": 1975,
+      "confidence": "medium"
+    },
+    {
+      "item": "one paperback novel",
+      "usd": 1.5,
+      "year": 1975,
+      "confidence": "medium"
+    },
+    {
+      "item": "one pair of basic socks",
+      "usd": 1.25,
+      "year": 1975,
+      "confidence": "medium"
+    },
+    {
+      "item": "one tube of toothpaste",
+      "usd": 0.69,
+      "year": 1975,
+      "confidence": "medium"
+    },
+    {
+      "item": "one bar of soap",
+      "usd": 0.25,
+      "year": 1975,
+      "confidence": "medium"
+    },
+    {
+      "item": "one roll of photographic film",
+      "usd": 1.5,
+      "year": 1975,
+      "confidence": "medium"
+    },
+    {
+      "item": "one greeting card",
+      "usd": 0.5,
+      "year": 1975,
+      "confidence": "medium"
+    },
+    {
+      "item": "one ballpoint pen",
+      "usd": 0.29,
+      "year": 1975,
+      "confidence": "medium"
+    },
+    {
+      "item": "one spiral notebook",
+      "usd": 0.69,
+      "year": 1975,
+      "confidence": "medium"
+    },
+    {
+      "item": "one package of chewing gum",
+      "usd": 0.15,
+      "year": 1975,
+      "confidence": "medium"
+    }
+  ],
+  "phrases": []
+}
