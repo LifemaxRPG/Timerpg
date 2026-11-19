@@ -33,7 +33,7 @@ export const METERS_PER_TILE = 2.1;
 /** Minutes to change trains at a station. */
 export const TRANSFER_MIN = 5;
 /** What a change of trains weighs in the route planner (minutes): routes are the quickest with changes counted this much. */
-const CHANGE_PENALTY = 45;
+export const CHANGE_PENALTY = 45;
 
 export type TownRank = 'small' | 'town' | 'major';
 export type LinkKind = 'main' | 'branch';
@@ -372,7 +372,7 @@ function lineLink(w: RailWorld, line: string, i: number): RailLink | null {
 
 const cumCache = new Map<string, Map<number, number>>();
 /** Tiles along [line] from its position 0 to position [i] (negative for positions before 0). */
-function along(w: RailWorld, line: string, i: number): number {
+export function alongLine(w: RailWorld, line: string, i: number): number {
   const key = `${w.seed}|${w.home ?? ''}|${line}`;
   let m = cumCache.get(key);
   if (!m) { m = new Map([[0, 0]]); cumCache.set(key, m); }
@@ -400,7 +400,7 @@ export function departures(w: RailWorld, line: string, i: number, dir: 1 | -1, y
   const n = trainsPerDay(kind, year);
   const head = (SERVICE_HOURS * 60) / n;
   const phase = rand(w.seed, 'rail-phase', line, dir, year >= PASSENGER_SERVICE.from ? 'n' : 'p') * head;
-  const off = dir * minutesFor(along(w, line, i), kind, year);
+  const off = dir * minutesFor(alongLine(w, line, i), kind, year);
   const first = SERVICE_FROM + ((((phase + off) % head) + head) % head);
   return Array.from({ length: n }, (_, k) => Math.round((first + k * head) * 10) / 10);
 }
@@ -493,9 +493,9 @@ export interface Route {
 /** No route: why, and the nearest one can get. */
 export interface NoRoute { from: string; to: string; year: number; reason: string; nearest?: string }
 
-const ROAD_FACTOR = 1.3;
-const ROAD_KMH = 40;
-const ROAD_WAIT = 15;
+export const ROAD_FACTOR = 1.3;
+export const ROAD_KMH = 40;
+export const ROAD_WAIT = 15;
 
 /** The nearest town with passenger trains in [year] to [s] by road (rings of cells out to [radius]), with the road's km. */
 export function nearestStation(w: RailWorld, s: TownSite, year: number, radius = 4): { site: TownSite; km: number } | null {
