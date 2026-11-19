@@ -69,7 +69,39 @@ data class AiStatus(
     val loadInfo: String? = null,
     /** The last reply the check turned down, and why (it was written again). */
     val rejected: String? = null,
+    /** The bank of lines written ahead (this town, every year it has lines for). */
+    val bank: ReplyCache.Bank = ReplyCache.Bank(),
+    /** While the overnight writer runs: what it is writing and how far it is. */
+    val night: NightProgress? = null,
 )
+
+/**
+ * The overnight writer's progress: [stage] 1 the town's lines, 2 the player's own patterns (follow-ups, frequent
+ * themes), 3 more ways of saying each line (variants), 4 other years, 0 nothing left; [done] of [total] in that stage.
+ */
+data class NightProgress(val stage: Int, val done: Int, val total: Int) {
+    val label: String get() = when (stage) {
+        1 -> "Writing dialogue: $done of $total"
+        2 -> "What you ask about: $done of $total"
+        3 -> "More ways to say it: $done of $total"
+        4 -> "Other years: $done of $total"
+        else -> "Dialogue bank complete"
+    }
+}
+
+/** What the model wrote while the overnight writer ran (since [DialogueEngine.beginNight]). */
+data class NightCount(
+    val lines: Int = 0,
+    val variants: Int = 0,
+    val rejected: Int = 0,
+    val genTokens: Long = 0,
+    val genMs: Long = 0,
+    val prefillTokens: Long = 0,
+    val prefillMs: Long = 0,
+) {
+    val genPerSec: Float get() = if (genMs > 0) genTokens * 1000f / genMs else 0f
+    val prefillPerSec: Float get() = if (prefillMs > 0) prefillTokens * 1000f / prefillMs else 0f
+}
 
 /** A line in the dialogue panel: the model's ([ai]) or the game's template; [final] once it will not change. */
 data class Line(val text: String, val ai: Boolean, val final: Boolean, val note: String)
@@ -88,7 +120,7 @@ data class Line(val text: String, val ai: Boolean, val final: Boolean, val note:
 class DialogueEngine private constructor(private val app: Context) {
 
     /** A question on screen: [first] at once, then [onLine] (on the main thread) as the reply comes in. */
-    class Request internal constructor(val first: Line, internal val onLine: ((Line) -> Unit)?) {
+    class Request internal constructor(val first: Line, internal val onLine: ((Line) -> Unit)?, val ready: Boolean = false) {
         @Volatile internal var live = onLine != null
         /** Stop receiving lines (the panel closed or another topic was picked). Main thread. */
         fun close() { live = false }
@@ -97,7 +129,8 @@ class DialogueEngine private constructor(private val app: Context) {
     private class Target(val npc: Npc, val topic: Topic)
 
     /** A line being written. */
-    private class Gen(val key: String, val target: Target, val bypass: Boolean = false, val speed: Boolean = false) {
+    private class Gen(val key: String, val target: Target, val bypass: Boolean = false, val speed: Boolean = false, val variant: Boolean = false,
+                      val slot: String? = null) {
         val listeners = CopyOnWriteArrayList<Request>()
         @Volatile var cancelled = false
         @Volatile var timedOut = false
@@ -107,7 +140,8 @@ class DialogueEngine private constructor(private val app: Context) {
         @Volatile var wanted = false
     }
 
-    private class Planned(val target: Target, val job: PregenQueue.Job)
+    /** [slot]: what the line is for ([BankPlan.slotOf]), recorded with it so a changed fact sheet shows as stale. */
+    private class Planned(val target: Target, val job: PregenQueue.Job, val slot: String)
 
     private val main = Handler(Looper.getMainLooper())
     private val lock = ReentrantLock()
@@ -146,7 +180,17 @@ class DialogueEngine private constructor(private val app: Context) {
     private var timeouts = 0
     private var engineError: String? = null
 
-    private val cache = ReplyCache(File(app.filesDir, "dialogue-cache.json"))
+    private val cache = ReplyCache(File(app.filesDir, "dialogue-cache.json")).apply { warn = { Log.w(TAG, it) } }
+
+    // the overnight writer (com.timerpg.street.night): while [night], lines are written ahead with the game closed
+    @Volatile private var night = false
+    /** The overnight writer loaded the model itself (it lets it go again when it stops). */
+    @Volatile private var nightLoaded = false
+    /** Other years' lines (their dialogue.json shipped beside this town's), written after this year's variants. */
+    @Volatile private var extraPlans: Map<String, Planned> = emptyMap()
+    /** Lines given up on for this night (took too long): not tried again until the next. Under [lock]. */
+    private val nightSkip = HashSet<String>()
+    private val nightCount = java.util.concurrent.atomic.AtomicReference(NightCount())
     private val _status = MutableStateFlow(AiStatus())
     private val _data = MutableStateFlow<DialogueData?>(null)
 
@@ -167,7 +211,10 @@ class DialogueEngine private constructor(private val app: Context) {
     fun ask(npc: Npc, topic: Topic, onLine: (Line) -> Unit): Request {
         val prompt = topic.prompt ?: return Request(template(topic, "built-in"), null)
         val key = keyOf(prompt)
-        cache.get(key)?.let { return Request(lineOf(topic, it), null) }
+        // small talk after a real conversation: what they would say about it next time (written overnight), once
+        if (topic.intent == "chat") followUp(npc)?.let { return Request(Line(it, ai = true, final = true, note = "AI · ready"), null, ready = true) }
+        // (a line written several ways: the next of them, so a repeat visit hears another)
+        cache.get(key)?.let { e -> return Request(cache.next(key)?.let { Line(it, ai = true, final = true, note = "AI") } ?: lineOf(topic, e), null, ready = e.lines.isNotEmpty()) }
         if (closed || _status.value.state != ModelState.READY) return Request(template(topic, "built-in"), null)
         val req = Request(template(topic, "built-in · the AI is writing…", final = false), onLine)
         lock.withLock {
@@ -196,7 +243,14 @@ class DialogueEngine private constructor(private val app: Context) {
      * those words, in the person's own fact sheet for the topic they are nearest ([topicFor]). The template of that topic
      * is the fallback, as for any line. Returns the topic answered and the request.
      */
-    fun askFree(npc: Npc, said: String, remembered: List<String> = emptyList(), onLine: (Line) -> Unit): Pair<Topic, Request>? {
+    fun askFree(npc: Npc, said: String, remembered: List<String> = emptyList(), vec: FloatArray? = null, onLine: (Line) -> Unit): Pair<Topic, Request>? {
+        // one of the player's frequent questions, answered ahead of time from this person's own facts: that line, if the
+        // words are close enough to the theme (same kind of question, same subject: [Themes.match]); else live
+        Themes.match(said, vec, steer.themes)?.let { th ->
+            themeAsk(npc, th)?.let { (t, key) ->
+                cache.next(key)?.let { line -> return topicFor(npc, said)!! to Request(Line(line, ai = true, final = true, note = "AI · ready"), null, ready = true) }
+            }
+        }
         val topic = topicFor(npc, said) ?: return null
         fun clean(s: String) = s.replace("<|", "<").replace("|>", ">").replace("\n", " ").trim()
         val words = clean(said).take(400)
@@ -237,12 +291,12 @@ class DialogueEngine private constructor(private val app: Context) {
     }
 
     /** Holds pre-generation (the corner turn, the app in the background, low memory); on-demand lines still come. */
-    fun pause(reason: String) {
+    fun pause(reason: String, stopRunning: Boolean = true) {
         lock.withLock {
             if (!pauses.add(reason)) return
-            // stop the line being written ahead of time, unless someone is waiting for it
+            // stop the line being written ahead of time, unless someone is waiting for it (or it may finish: [stopRunning])
             val cur = running
-            if (cur != null && !cur.speed && cur.listeners.none { it.live }) cancelLocked(cur)
+            if (stopRunning && cur != null && !cur.speed && cur.listeners.none { it.live }) cancelLocked(cur)
         }
         refresh()
     }
@@ -305,6 +359,8 @@ class DialogueEngine private constructor(private val app: Context) {
         foreground = on
         if (!on) {
             pause("background")
+            // (the rotation of lines given out, and the player's counts, are kept)
+            command { cache.save(); saveStats() }
             // a line the open panel was waiting for stops too (it goes back in the queue; the panel keeps the template)
             lock.withLock { running?.let { if (!it.speed) cancelLocked(it) } }
             return
@@ -419,6 +475,217 @@ class DialogueEngine private constructor(private val app: Context) {
         }
     }
 
+    // ------------------------------------------------------------------------------------------------ the overnight writer
+
+    /**
+     * The overnight writer starts ([com.timerpg.street.night.NightSession]): the phone is charging and the game is not in
+     * front ([gameVisible] false). Lines are written ahead with no player to stay out of the way of: the background and
+     * moving holds do not apply, and the order is the player's predicted need ([Steer], from what they talk about), not
+     * the distance from where they stand. Other holds (memory, [pause] by the writer's own heat care) do apply. The
+     * model is loaded if it is not (and let go again by [endNight]).
+     */
+    fun beginNight(gameVisible: Boolean) {
+        if (night || closed) return
+        night = true
+        if (!gameVisible) foreground = false
+        nightCount.set(NightCount())
+        nightReady = false
+        command {
+            loadSteer()
+            extraPlans = loadYears()
+            val left = lock.withLock { progressLocked(all = true).let { it.total - it.done } }
+            nightLoaded = backend?.loaded != true
+            // (a complete bank needs no model: the writer stops without loading it)
+            if (left > 0 && backend?.loaded != true) { memoryWaits = 0; memoryUnloads = 0; loadModel() }
+            nightReady = true
+        }
+        lock.withLock { wake.signal() }
+        refresh()
+    }
+
+    /** The overnight writer stopped: back to the game's rules; [release] lets the model go if the writer loaded it. */
+    fun endNight(release: Boolean) {
+        if (!night) return
+        night = false
+        lock.withLock {
+            running?.let { if (!it.speed && it.listeners.none { r -> r.live }) cancelLocked(it) }
+            nightSkip.clear()
+            wake.signal()
+        }
+        command {
+            cache.save()
+            if (release && nightLoaded && backend != null) {
+                closeBackend()
+                com.timerpg.street.shot.Crumbs.add("dialogue model: let go by the overnight writer")
+                // the game in front loads it again its own way (after the town is built); otherwise when it comes back
+                if (foreground) { unloadedForMemory = false; loadModel() }
+                else { unloadedForMemory = true; setState(ModelState.UNLOADED, "Let go after writing overnight. It loads again when you come back (or tap Load).") }
+            } else if (backend?.loaded == true) enqueueAll()
+            nightLoaded = false
+        }
+        refresh()
+    }
+
+    /** The overnight writer is on. */
+    val nightOn: Boolean get() = night
+
+    /** Loads the model again for the overnight writer, if it is not loaded (after a memory unload, or a load put off). */
+    fun nightReload() = command { if (night && backend?.loaded != true && !loadingNow) { memoryWaits = 0; loadModel() } }
+
+    /** What has been written since [beginNight]. */
+    fun nightCount(): NightCount = nightCount.get()
+
+    /** Lines still to write tonight (every stage), or -1 before the night's plan is known. */
+    fun nightLeft(): Int = lock.withLock {
+        if (!nightReady || planned.isEmpty()) return -1
+        val p = progressLocked(all = true)
+        p.total - p.done + (if (running != null) 1 else 0)
+    }
+    @Volatile private var nightReady = false
+
+    /** The other years shipped for this town: dialogue.json files in its folder's years/<year>/ (none yet, see CONVERSATION.md). */
+    private fun loadYears(): Map<String, Planned> {
+        val base = "${dataDir}years"
+        val years = try { app.assets.list(base)?.toList().orEmpty() } catch (e: Exception) { emptyList() }
+        val out = LinkedHashMap<String, Planned>()
+        for (y in years.sorted()) loadData("$base/$y/", plan = false)?.let { m -> for ((k, v) in m) if (k !in planned) out.putIfAbsent(k, v) }
+        if (out.isNotEmpty()) com.timerpg.street.shot.Crumbs.add("overnight: ${out.size} lines of ${years.size} other years to write")
+        return out
+    }
+
+    /** One line the player's own patterns ask for: a theme's answer or a follow-up, for one person. */
+    private class Steered(val key: String, val target: Target, val slot: String)
+
+    /**
+     * The player's patterns, from the log (memories.json, player-stats.json): the [Steer], and the lines it asks for:
+     * each person's follow-up to their last exchange, then every frequent theme asked of every person (most needed
+     * first). Worker thread.
+     */
+    private fun loadSteer() {
+        val d = _data.value ?: return
+        val mem = NpcMemory()
+        runCatching { File(app.filesDir, "memories.json").takeIf { it.isFile }?.let { mem.load(it.readText()) } }
+        val st = steerStats()
+        val s = Steer.build(d.npcs, d.town, mem.all(), st, System.currentTimeMillis())
+        steer = s
+        val people = s.order(d.npcs, { it.id }, { null })
+        val out = ArrayList<Steered>()
+        for (n in people) { val e = s.recent[n.id] ?: continue; followUpAsk(n, e)?.let { (t, k) -> out += Steered(k, Target(n, t), BankPlan.slotOf(d.town, d.year, n.id, "next")) } }
+        for (th in s.frequent) for (n in people) themeAsk(n, th)?.let { (t, k) -> out += Steered(k, Target(n, t), BankPlan.slotOf(d.town, d.year, n.id, "theme:${th.id}")) }
+        steered = out.distinctBy { it.key }
+        if (s.themes.isNotEmpty()) com.timerpg.street.shot.Crumbs.add("player themes: ${s.themes.size} (${s.frequent.size} frequent), ${s.recent.size} follow-ups")
+    }
+    @Volatile private var steered: List<Steered> = emptyList()
+
+    /** The player's patterns (themes, who they talk to) as last learned. */
+    @Volatile var steer: Steer = Steer.EMPTY
+        private set
+
+    /** [npc]'s answer to a theme: their topic nearest it, the player's own words as the question (no required words). */
+    private fun themeAsk(npc: Npc, theme: Themes.Theme): Pair<Topic, String>? {
+        val topic = topicFor(npc, theme.exemplar) ?: return null
+        val p = topic.prompt ?: return null
+        val prompt = withQuestion(p, theme.exemplar.replace("<|", "<").replace("|>", ">").replace("\n", " ").trim().take(400))
+        return topic.copy(prompt = prompt, must = emptyList()) to keyOf(prompt)
+    }
+
+    /** What [npc] says the next time, about their last exchange [e]: their small talk with that memory in its facts. */
+    private fun followUpAsk(npc: Npc, e: NpcMemory.Entry): Pair<Topic, String>? {
+        val topic = npc.topics.firstOrNull { it.intent == "chat" && it.prompt != null } ?: return null
+        val facts = NpcMemory.asFacts(listOf(e)).map { it.replace("<|", "<").replace("|>", ">").take(600) }
+        val prompt = withMemories(withQuestion(topic.prompt!!, "Hello again."), facts)
+        return topic.copy(prompt = prompt, must = emptyList()) to keyOf(prompt)
+    }
+
+    /**
+     * Where the bank stands (under [lock]): the first stage with work left, or ([all]) every stage added together.
+     */
+    private fun progressLocked(all: Boolean = false): NightProgress {
+        val ps = planned
+        var baseDone = 0
+        for (k in ps.keys) if (cache.get(k) != null || k in nightSkip) baseDone++
+        val sj = steered
+        var sDone = 0
+        for (j in sj) if (cache.get(j.key) != null || j.key in nightSkip) sDone++
+        var vDone = 0; var vTotal = 0
+        for (k in ps.keys) {
+            val e = cache.get(k) ?: continue
+            if (e.lines.isEmpty() || k in nightSkip) continue
+            vTotal += ReplyCache.VARIANTS
+            vDone += if (cache.variantsDone(k)) ReplyCache.VARIANTS else e.lines.size
+        }
+        val ex = extraPlans
+        var yDone = 0
+        for (k in ex.keys) if (cache.get(k) != null || k in nightSkip) yDone++
+        if (all) return NightProgress(0, baseDone + sDone + vDone + yDone, ps.size + sj.size + vTotal + ex.size)
+        return when {
+            baseDone < ps.size -> NightProgress(1, baseDone, ps.size)
+            sDone < sj.size -> NightProgress(2, sDone, sj.size)
+            vDone < vTotal -> NightProgress(3, vDone, vTotal)
+            yDone < ex.size -> NightProgress(4, yDone, ex.size)
+            else -> NightProgress(0, ps.size, ps.size)
+        }
+    }
+
+    /**
+     * The next line to write tonight, most needed first ([Steer]: the people the player talks to and their neighbours,
+     * the topics they ask; ties nearest the player): every line of this town not written yet; the player's own patterns
+     * (follow-ups, then the frequent themes for every person); more ways of saying each line (all of one prompt's in a
+     * row: the model's prompt cache then makes them nearly free of prompt processing); then the other years. Under [lock].
+     */
+    private fun nightJobLocked(): Gen? {
+        val s = steer
+        val near = planned.values.sortedWith(compareBy<Planned>({ queue.rank(it.job) }, { it.job.order }))
+        val ps = s.order(near, { it.target.npc.id }, { it.target.topic.intent })
+        for (p in ps) { val k = p.job.key; if (cache.get(k) == null && k !in nightSkip) return Gen(k, p.target) }
+        for (j in steered) if (cache.get(j.key) == null && j.key !in nightSkip) return Gen(j.key, j.target, slot = j.slot)
+        for (p in ps) { val k = p.job.key; if (k !in nightSkip && cache.wantsVariant(k)) return Gen(k, p.target, variant = true) }
+        for (p in extraPlans.values) { val k = p.job.key; if (cache.get(k) == null && k !in nightSkip) return Gen(k, p.target) }
+        return null
+    }
+
+    private fun slotOf(key: String): String = (planned[key] ?: extraPlans[key])?.slot ?: ""
+
+    // ------------------------------------------------------------------------------------------------ the player's log
+
+    private val stats = PlayerStats()
+    @Volatile private var statsLoaded = false
+    private var statsDirty = 0
+    private val statsFile = File(app.filesDir, "player-stats.json")
+
+    private fun steerStats(): PlayerStats = synchronized(stats) {
+        if (!statsLoaded) { statsLoaded = true; runCatching { if (statsFile.isFile) stats.load(statsFile.readText()) } }
+        stats
+    }
+
+    /**
+     * The player asked [npc] about [intent] (a tapped topic, or their own words answered from it), answered [how]:
+     * "ready" (a line written ahead), "live" (the model wrote it then) or "template". Counts only (the words go to
+     * [MemoryService.remember]); saved now and then on the worker.
+     */
+    fun record(npc: Npc, intent: String, how: String) {
+        val day = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
+        val save = synchronized(stats) { steerStats().record(npc.id, intent, how, day); ++statsDirty >= 5 }
+        if (save) command { saveStats() }
+    }
+
+    private fun saveStats() {
+        val text = synchronized(stats) { statsDirty = 0; stats.toJson() }
+        runCatching { val tmp = File(statsFile.path + ".tmp"); tmp.writeText(text); if (!tmp.renameTo(statsFile)) { statsFile.delete(); tmp.renameTo(statsFile) } }
+    }
+
+    /** Answers by day (yyyy-MM-dd to ready, live, template), the last [n] days. */
+    fun answerDays(n: Int = 7): List<Pair<String, IntArray>> = synchronized(stats) { steerStats().days.entries.toList().takeLast(n).map { it.key to it.value.copyOf() } }
+
+    /** The follow-up [npc] has ready for the player, said once. */
+    private fun followUp(npc: Npc): String? {
+        val e = steer.recent[npc.id] ?: return null
+        val (_, key) = followUpAsk(npc, e) ?: return null
+        val line = cache.get(key)?.line ?: return null
+        synchronized(stats) { if (!steerStats().followUpsUsed.add(key)) return null; statsDirty++ }
+        return line
+    }
+
     // ------------------------------------------------------------------------------------------------ the worker
 
     private fun start() = thread.start()
@@ -435,14 +702,20 @@ class DialogueEngine private constructor(private val app: Context) {
         while (!closed) {
             commands.removeFirstOrNull()?.let { return it }
             demand?.let { demand = null; running = it; return it }
-            if (pauses.isEmpty() && !moving && pregenOff == null && backend?.loaded == true) {
-                val j = queue.poll()
-                if (j != null) {
-                    val p = planned[j.key]
-                    if (p == null || cache.get(j.key) != null) continue
-                    val g = Gen(j.key, p.target)
-                    running = g
-                    return g
+            // (overnight, with the game out of sight, its background and moving holds do not apply, and the order is the
+            // player's predicted need rather than the distance from where they stand: [nightJobLocked])
+            val held = if (night) pauses.any { it != "background" } else pauses.isNotEmpty() || moving || pregenOff != null
+            if (!held && backend?.loaded == true) {
+                if (night) { nightJobLocked()?.let { running = it; return it } }
+                else {
+                    val j = queue.poll()
+                    if (j != null) {
+                        val p = planned[j.key]
+                        if (p == null || cache.get(j.key) != null) continue
+                        val g = Gen(j.key, p.target)
+                        running = g
+                        return g
+                    }
                 }
             }
             wake.await()
@@ -478,10 +751,19 @@ class DialogueEngine private constructor(private val app: Context) {
 
     private fun startup() {
         // (the lines of every town the game ships are kept: switching between them loses nothing written)
-        val other = (if (dataDir.isEmpty()) TOWN_DIRS else listOf("")).filter { it != dataDir }.flatMap { d -> loadData(d, plan = false)?.keys.orEmpty() }
+        val other = (if (dataDir.isEmpty()) TOWN_DIRS else listOf("")).filter { it != dataDir }.flatMap { d -> loadData(d, plan = false)?.values.orEmpty() }
         loadData()
         cache.load()
-        if (planned.isNotEmpty()) cache.retain(planned.keys + other)
+        if (planned.isNotEmpty()) {
+            extraPlans = loadYears()
+            loadSteer()
+            val all = planned.values + other + extraPlans.values
+            // the lines of every prompt the game has, the player's steered ones, and the stale lines of its people (kept:
+            // their facts may come back)
+            val slots = all.map { it.slot }.toHashSet() + steered.map { it.slot }
+            cache.retain(all.map { it.job.key }.toHashSet() + steered.map { it.key }, slots)
+            for (p in all) cache.setSlot(p.job.key, p.slot)
+        }
         ModelFiles.cleanPartial(app)
         refresh()
         loadModel()
@@ -548,7 +830,7 @@ class DialogueEngine private constructor(private val app: Context) {
             val e = byKey.getOrPut(key) { orders[key] = order++; Target(n, t) to ArrayList() }
             if (spot !in e.second) e.second += spot
         }
-        val plans = byKey.mapValues { (k, v) -> Planned(v.first, PregenQueue.Job(k, v.second, orders[k]!!)) }
+        val plans = byKey.mapValues { (k, v) -> Planned(v.first, PregenQueue.Job(k, v.second, orders[k]!!), BankPlan.slotOf(d.town, d.year, v.first.npc.id, v.first.topic.intent)) }
         if (!plan) return plans
         planned = plans
         lock.withLock {
@@ -753,7 +1035,7 @@ class DialogueEngine private constructor(private val app: Context) {
         val npc = g.target.npc
         val topic = g.target.topic
         val prompt = topic.prompt ?: return g.finish(template(topic, "built-in"))
-        if (!g.bypass) cache.get(g.key)?.let { return g.finish(lineOf(topic, it)) }
+        if (!g.bypass && !g.variant) cache.get(g.key)?.let { return g.finish(lineOf(topic, it)) }
         val b = backend
         if (b == null || !b.loaded) {
             g.finish(template(topic, "built-in · the AI is not ready"))
@@ -761,7 +1043,8 @@ class DialogueEngine private constructor(private val app: Context) {
             return
         }
         // someone is waiting: full speed; ahead of time: stay out of the game's way
-        var raised = g.speed || g.listeners.isNotEmpty()
+        // (overnight with the game closed there is nothing to stay out of the way of)
+        var raised = g.speed || g.listeners.isNotEmpty() || (night && !foreground)
         priority(if (raised) Process.THREAD_PRIORITY_DEFAULT else Process.THREAD_PRIORITY_BACKGROUND)
         _status.update { it.copy(working = if (g.speed) "speed test (${npc.name})" else "${npc.name} · ${topic.intent}") }
         val t0 = SystemClock.elapsedRealtime()
@@ -775,9 +1058,9 @@ class DialogueEngine private constructor(private val app: Context) {
             if (g.wanted && !raised) { raised = true; priority(Process.THREAD_PRIORITY_DEFAULT) }
             val sb = StringBuilder()
             val watchdog = Runnable { g.timedOut = true; lock.withLock { cancelLocked(g) } }
-            main.postDelayed(watchdog, TIMEOUT_MS)
+            main.postDelayed(watchdog, if (night && g.listeners.isEmpty() && !g.speed) NIGHT_TIMEOUT_MS else TIMEOUT_MS)
             var raw: String? = try {
-                com.timerpg.street.llm.AiLane.run("dialogue") { b.generate(prompt, MAX_TOKENS, TEMPERATURE) { piece ->
+                com.timerpg.street.llm.AiLane.run("dialogue") { b.generate(prompt, MAX_TOKENS, if (g.variant) VARIANT_TEMPERATURE else TEMPERATURE) { piece ->
                     // the worker's own thread: someone began waiting for this line, so it gets full speed now
                     if (g.wanted && !raised) { raised = true; priority(Process.THREAD_PRIORITY_DEFAULT) }
                     sb.append(piece)
@@ -798,15 +1081,19 @@ class DialogueEngine private constructor(private val app: Context) {
             val nativeError = (b as? NativeLlm)?.lastGenerateError
             if (raw != null && nativeError != null && nativeError != "cancelled") { error = nativeError; raw = null }
             stats(b)
+            if (night && !g.speed) countNight(b)
             if (g.timedOut) { end = End.TIMEOUT; break }
             if (g.cancelled || closed) { end = End.CANCELLED; break }
             if (raw == null) { end = End.ERROR; break }
             lastRaw = raw
             text = Dialogue.validate(raw, topic.must, topic.self, topic.prompt ?: "")
+            // another way of saying it must be another way: the same words again is a failed try
+            if (text != null && g.variant && !cache.isNew(g.key, text!!)) text = null
             if (text != null) { end = End.OK; break }
             // its first sentence alone may be good (the slip was in the second): keep that rather than start over
             FIRST.find(Dialogue.preview(raw))?.groupValues?.get(1)?.let { first ->
                 text = Dialogue.validate(first, topic.must, topic.self, topic.prompt ?: "")
+                if (text != null && g.variant && !cache.isNew(g.key, text!!)) text = null
             }
             if (text != null) { end = End.OK; break }
             val why = Dialogue.whyRejected(raw, topic.must, topic.self, topic.prompt ?: "")
@@ -816,18 +1103,27 @@ class DialogueEngine private constructor(private val app: Context) {
         when (end) {
             End.OK -> {
                 failures = 0
-                if (!g.speed) { cache.putLine(g.key, text!!); cache.save() }
+                val slot = g.slot ?: slotOf(g.key)
+                if (g.variant) {
+                    if (cache.addVariant(g.key, text!!)) addNight(variants = 1) else { cache.variantFailed(g.key); addNight(rejected = 1) }
+                    saveCache()
+                } else if (!g.speed) { cache.putLine(g.key, text!!, slot); saveCache(); if (night) addNight(lines = 1) }
                 g.finish(Line(text!!, true, true, "AI"))
                 // a line written ahead: its voice can be made ahead too
                 if (!g.speed && g.listeners.isEmpty()) onWritten?.invoke(npc, text!!)
             }
             End.REJECTED -> {
                 failures = 0
-                if (!g.speed) { cache.putTemplate(g.key); cache.save() }
+                if (night && !g.speed) addNight(rejected = 1)
+                if (g.variant) { cache.variantFailed(g.key); saveCache() }
+                else if (!g.speed) { cache.putTemplate(g.key, g.slot ?: slotOf(g.key)); saveCache() }
                 g.finish(template(topic, "built-in · the AI's reply did not pass the check"))
             }
             End.TIMEOUT -> {
-                if (++timeouts >= 2 && pregenOff == null) pregenOff = "The model is too slow on this phone to write lines ahead; it only answers when you ask."
+                // overnight: given up for this night only (no one waited for it)
+                if (night && g.listeners.isEmpty() && !g.speed) {
+                    if (g.variant) cache.variantFailed(g.key) else lock.withLock { nightSkip += g.key }
+                } else if (++timeouts >= 2 && pregenOff == null) pregenOff = "The model is too slow on this phone to write lines ahead; it only answers when you ask."
                 g.finish(template(topic, "built-in · the AI took too long"))
             }
             End.CANCELLED -> {
@@ -839,7 +1135,8 @@ class DialogueEngine private constructor(private val app: Context) {
                 if (error != null && PROMPT_ERRORS.any { error!!.contains(it) }) {
                     // this prompt will always fail (too long for the context, cannot be tokenized): the template it is,
                     // without taking the model down for the rest of the town
-                    if (!g.speed) { cache.putTemplate(g.key); cache.save() }
+                    if (g.variant) cache.variantFailed(g.key)
+                    else if (!g.speed) { cache.putTemplate(g.key, g.slot ?: slotOf(g.key)); saveCache() }
                 } else if (++failures >= 3) {
                     closeBackend()
                     setState(ModelState.ERROR, "The model stopped working (${error ?: "unknown error"}). Tap Retry to load it again.")
@@ -897,10 +1194,31 @@ class DialogueEngine private constructor(private val app: Context) {
     private fun template(topic: Topic, note: String, final: Boolean = true) = Line(topic.template, ai = false, final = final, note = note)
 
     private fun lineOf(topic: Topic, e: ReplyCache.Entry): Line =
-        if (e.line != null) Line(e.line, ai = true, final = true, note = "AI")
-        else template(topic, "built-in · the AI's reply did not pass the check")
+        e.line?.let { Line(it, ai = true, final = true, note = "AI") }
+            ?: template(topic, "built-in · the AI's reply did not pass the check")
 
     private fun setState(s: ModelState, detail: String) = _status.update { it.copy(state = s, detail = detail) }
+
+    private var lastSave = 0L
+
+    /** Saves the bank after a line (overnight, at most once a minute: the file grows with the variants; [endNight] saves). */
+    private fun saveCache() {
+        val now = SystemClock.elapsedRealtime()
+        if (night && now - lastSave < 60_000L) return
+        lastSave = now
+        cache.save()
+    }
+
+    /** The last generation's tokens, into tonight's count. */
+    private fun countNight(b: LlmBackend) {
+        val st = try { b.stats } catch (t: Throwable) { return }
+        nightCount.updateAndGet { it.copy(genTokens = it.genTokens + st.genTokens, genMs = it.genMs + st.genMs,
+            prefillTokens = it.prefillTokens + (st.promptTokens - st.reusedTokens).coerceAtLeast(0), prefillMs = it.prefillMs + st.prefillMs) }
+    }
+
+    private fun addNight(lines: Int = 0, variants: Int = 0, rejected: Int = 0) {
+        nightCount.updateAndGet { it.copy(lines = it.lines + lines, variants = it.variants + variants, rejected = it.rejected + rejected) }
+    }
 
     private fun stats(b: LlmBackend) {
         try { val s = b.stats; _status.update { it.copy(stats = s) } } catch (t: Throwable) { }
@@ -910,7 +1228,17 @@ class DialogueEngine private constructor(private val app: Context) {
         val (q, p) = lock.withLock { queue.size to pauses.sorted().joinToString(", ") }
         val lines = cache.lines
         val builtIn = cache.templates
-        _status.update { it.copy(lines = lines, builtIn = builtIn, queued = q, paused = p, pregenOff = pregenOff) }
+        val prog = if (night) lock.withLock { progressLocked() } else null
+        _status.update { it.copy(lines = lines, builtIn = builtIn, queued = q, paused = p, pregenOff = pregenOff, bank = bank(), night = prog) }
+    }
+
+    /** The bank for every line the game can ask for now: this town's, the player's steered ones, other years'. */
+    fun bank(): ReplyCache.Bank {
+        val plan = HashMap<String, String>()
+        for ((k, v) in planned) plan[k] = v.slot
+        for ((k, v) in extraPlans) plan.putIfAbsent(k, v.slot)
+        for (j in steered) plan.putIfAbsent(j.key, j.slot)
+        return cache.bank(plan)
     }
 
     private fun priority(p: Int) {
@@ -964,6 +1292,10 @@ class DialogueEngine private constructor(private val app: Context) {
         private const val TAG = "Dialogue"
         const val MAX_TOKENS = 56
         const val TEMPERATURE = .3f
+        /** Another way of saying a line already written: a little more freedom (each reply also has its own seed). */
+        const val VARIANT_TEMPERATURE = .7f
+        /** Overnight no one waits: a line is given up only after this long. */
+        const val NIGHT_TIMEOUT_MS = 120_000L
         const val CONTEXT_TOKENS = 1024
         /** Tries per line before it stays the template. */
         const val MAX_TRIES = 2
@@ -995,6 +1327,9 @@ class DialogueEngine private constructor(private val app: Context) {
         @Volatile var startDir = ""
 
         private var shared: DialogueEngine? = null
+
+        /** The process already has its engine (the game's, or the overnight writer's). */
+        val sharedExists: Boolean @Synchronized get() = shared?.closed == false
 
         /** The process's engine (it outlives the activity being recreated). */
         @Synchronized

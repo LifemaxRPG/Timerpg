@@ -45,18 +45,23 @@ class MemoryService(private val ctx: Context) {
     /** Someone to talk to is near: get the model ready. */
     fun prewarm() { touch(); worker.execute { ensure() } }
 
-    /** What [npc] remembers that bears on [said] (as fact sheet lines), to [onFacts]. Empty without the model. */
-    fun recall(npc: String, said: String, onFacts: (List<String>) -> Unit) {
+    /**
+     * What [npc] remembers that bears on [said] (as fact sheet lines), to [onFacts], with the words' vector as a question
+     * (for the player's themes: [Themes.match]). Empty and null without the model.
+     */
+    fun recall(npc: String, said: String, onFacts: (List<String>, FloatArray?) -> Unit) {
         touch()
         worker.execute {
+            var q: FloatArray? = null
             val facts = try {
                 if (!ensure()) emptyList()
                 else {
-                    val q = AiLane.run("memory") { embedder.embed(QUERY + said) }
-                    if (q == null) emptyList() else NpcMemory.asFacts(pick(npc, said, q))
+                    q = AiLane.run("memory") { embedder.embed(QUERY + said) }
+                    q?.let { NpcMemory.asFacts(pick(npc, said, it)) } ?: emptyList()
                 }
             } catch (t: Throwable) { Log.w(TAG, "recall: $t"); emptyList() }
-            main.post { onFacts(facts) }
+            val v = q
+            main.post { onFacts(facts, v) }
         }
     }
 
@@ -86,14 +91,17 @@ class MemoryService(private val ctx: Context) {
         android.app.ActivityManager.MemoryInfo().also { am.getMemoryInfo(it) }.availMem shr 20
     } catch (e: Exception) { 0L }
 
-    /** [npc] will remember that the player said [said] and they answered [answered]. */
-    fun remember(npc: String, said: String, answered: String) {
+    /**
+     * [npc] will remember that the player said [said] and they answered [answered]; the exchange also goes into the
+     * player's conversation log ([town], [year], the topic [intent], [how] it was answered, [q] the words' vector from
+     * [recall]). Without the memory model it is still logged (with no vectors: themes then go by the words).
+     */
+    fun remember(npc: String, said: String, answered: String, town: String = "", year: Int = 0, intent: String = "", how: String = "", q: FloatArray? = null) {
         touch()
         worker.execute {
             try {
-                if (!ensure()) return@execute
-                val v = AiLane.run("memory") { embedder.embed("The player said: $said You answered: $answered") } ?: return@execute
-                memory.add(NpcMemory.Entry(npc, System.currentTimeMillis(), said, answered, v))
+                val v = (if (ensure()) AiLane.run("memory") { embedder.embed("The player said: $said You answered: $answered") } else null) ?: FloatArray(0)
+                memory.add(NpcMemory.Entry(npc, System.currentTimeMillis(), said, answered, v, town, year, intent, how, q))
                 val tmp = File(file.path + ".part")
                 tmp.writeText(memory.toJson())
                 tmp.renameTo(file)
