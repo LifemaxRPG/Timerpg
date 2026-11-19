@@ -1,0 +1,297 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2010,
+  "topic": "work",
+  "facts": [
+    {
+      "id": "2010-work-01",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A warehouse worker scans incoming cartons before placing them on numbered shelves.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-02",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A nursing assistant helps residents dress and eat during an early morning shift.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-03",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A home health aide drives between clients who need help with daily tasks.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-04",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A school custodian cleans classrooms after students leave for the afternoon.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-05",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A restaurant server checks the posted shift schedule before making weekend plans.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-06",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A cook prepares ingredients before the lunch crowd arrives at the diner.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-07",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A grocery stocker fills shelves overnight so aisles are ready in the morning.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-08",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A construction crew wears reflective vests while repairing a sidewalk near Main Street.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-09",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A heating technician visits homes to inspect furnaces before winter.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-10",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A plumber keeps replacement fittings and tools in a work van.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-11",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "An auto mechanic checks diagnostic readings before replacing a faulty part.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-12",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A farmer hires seasonal help when crops are ready to harvest.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-13",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A landscaping crew mows lawns and trims hedges for several customers each day.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-14",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A receptionist answers calls and schedules appointments at a dental office.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-15",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A bookkeeper reconciles invoices and receipts before the monthly accounts close.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-16",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A delivery driver sorts packages by stop before leaving the depot.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-17",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A public librarian helps a visitor complete an online job application.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-18",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A job seeker brings a resume to a hiring fair at the community center.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-19",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some employers ask applicants to submit resumes through an online form.",
+      "ages": "adults",
+      "use": [
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-20",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A part-time retail worker asks for more hours during the holiday rush.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-21",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A factory supervisor checks production totals at the end of each shift.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-22",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some factory employees work rotating shifts to keep equipment running overnight.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-23",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Union members review a proposed workplace contract before voting on it.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-24",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Women work as supervisors, tradespeople, teachers, and business owners throughout town.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-25",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A small business owner handles payroll and employee schedules after closing time.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-work-26",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some office employees work from home on certain days using a company computer.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
