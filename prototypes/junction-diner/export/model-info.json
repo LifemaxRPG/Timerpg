@@ -1,0 +1,20 @@
+{
+  "name": "Junction Diner",
+  "source": "Original procedural geometry and original pixel textures; no third-party models or sprite art.",
+  "renderer": "Blender Cycles desktop prototype, not an in-game/S25 capture.",
+  "metres": {
+    "width": 12,
+    "main_depth": 8.4,
+    "total_depth": 12.2,
+    "roof_height": 3.4,
+    "sign_height": 6.91
+  },
+  "objects": 656,
+  "triangles": 11632,
+  "materials": 27,
+  "texture_pixels": 56960,
+  "nearest_textures": true,
+  "export_meshes": 26,
+  "export_triangles": 11620,
+  "export_note": "Meshes batched by material. Source .blend retains individually editable parts. No mobile performance claim."
+}
