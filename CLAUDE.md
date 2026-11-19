@@ -38,7 +38,9 @@ Elite for Galaxy: 8 fast Oryon cores, no little cores; Adreno 830 GPU; Hexagon N
 - **Open world with a player-controlled camera** (the owner's decision, 2026-11-19, replacing the side-scrolling street view as
   the default): the player walks anywhere (streets, yards, alleys) with collision, and turns/zooms the camera themselves; the
   camera follows the player's position but never turns on its own (the owner disliked the camera moving around). The old
-  street view stays only as an option for comparison.
+  street view stays only as an option for comparison. Exception (the owner's request, 2026-11-19): while riding the
+  bicycle the camera follows behind the rider by default; touching the camera gives full manual control, and after a
+  few seconds without camera input it eases back to following (a setting can turn it off).
 - **Build the world complete from every side**: nothing is built only for one view. Buildings have real backs and
   roofs, every lot has a front yard AND a backyard (fences, patios, sheds, gardens, play sets, pools for the rich
   homes, clotheslines, bins), blocks have alleys and back lanes, and the player's position is kept in world
