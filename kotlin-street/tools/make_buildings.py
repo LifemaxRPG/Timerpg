@@ -110,21 +110,126 @@ def side_segment(seg, windows):
 
 # What sticks out of a middle floor (drawn by the artist seen from above, as a flat picture on the wall): its region in the
 # part's own pixels, the rows above which only the given columns belong to it (a balcony's side rails rise past the
-# windows), and how far it stands out from the wall in sprite pixels. The engine draws it as a box: it slides off the
-# wall with the view, shows its side and its thickness, and throws a shadow on the wall.
-RELIEF = {'middle_8': dict(box=(14, 50, 212, 118), arms_below=68, arms=((14, 34), (190, 212)), depth=48, wall=100)}
+# windows), and how far it stands out from the wall in sprite pixels. The classic street draws it as a box from `_relief`.
+# The three balcony floors (middle_2 brick, middle_8 blue, middle_14 grey) are one drawing in three colours: a U of
+# stone (its cap seen from above, the slab's dark edge under it) round a tiled floor, two small brackets under it, the
+# double window behind it reaching down to the floor. The Filament town builds it as real geometry (`_balc`, BALCONY).
+RELIEF = {k: dict(box=(14, 50, 212, 118), arms_below=68, arms=((14, 34), (190, 212)), depth=48, wall=100)
+          for k in ('middle_2', 'middle_8', 'middle_14')}
 
+# The balcony as built (rows in the part's own pixels, x in the front's): the slab's span, the parapet's top, the floor
+# (the slab's top), the slab's foot, how far it stands out and the parapet's thickness; the brackets under it (their x
+# spans, how far down and out they reach); the rows of the art's floor (from above), of its cap and of the slab's edge;
+# the double window behind it, made a glass door down to the floor (its x span, the glass rows repeated, its sill rows).
+BALCONY = dict(x=(14, 212), top=76, floor=100, foot=108, depth=32, thick=8, brackets=((32, 42), (182, 192)), bdown=8,
+               bout=16, floor_rows=(74, 96), floor_x=(30, 194), cap_row=99, outline_row=96, slab_rows=(105, 113),
+               door_x=(84, 144), door_glass=(46, 66), door_sill=(66, 70))
+
+_TEMPLATE = {}
+# How far the stone ledges (the sill courses between storeys, the cornice under the roof) stand out of the wall
+LEDGE_OUT = 3
+# The steps before the classic offices' doors (their storefront's rows: the upper step 76..84, the lower to the ground)
+DOOR_STEPS = {k: [(92, 132, 84, 96, 10), (92, 132, 76, 84, 5)] for k in ('classic_law_office_', 'classic_doctor_s_office_')}
 def relief_mask(im, spec):
-    """The part's pixels that belong to what sticks out: everything in the box that is not the plain wall colour."""
-    a = np.array(im).astype(int); h, w = a.shape[:2]
-    x0, y0, x1, y1 = spec['box']
-    wall = a[..., 2] >= a[..., 0] + 30                       # the blue-grey wall (and the window glass)
-    m = np.zeros((h, w), bool)
-    m[y0:y1, x0:x1] = ~wall[y0:y1, x0:x1] & (a[y0:y1, x0:x1, 3] > 40)
-    top = np.zeros((h, w), bool)
-    for (c0, c1) in spec['arms']: top[y0:spec['arms_below'], c0:c1] = True
-    m[y0:spec['arms_below'], :] &= top[y0:spec['arms_below'], :]
-    return m
+    """The part's pixels that belong to the balcony: the same drawing in each colour, so its outline is found once on the
+    blue one (everything in the box that is not the plain blue wall or its glass), less the band along the storey's foot
+    that runs on under it, plus the two brackets under the slab."""
+    if 'm' not in _TEMPLATE:
+        a = np.array(load('middle_8')).astype(int); h, w = a.shape[:2]
+        x0, y0, x1, y1 = spec['box']
+        wall = a[..., 2] >= a[..., 0] + 30
+        m = np.zeros((h, w), bool)
+        m[y0:y1, x0:x1] = ~wall[y0:y1, x0:x1] & (a[y0:y1, x0:x1, 3] > 40)
+        top = np.zeros((h, w), bool)
+        for (c0, c1) in spec['arms']: top[y0:spec['arms_below'], c0:c1] = True
+        m[y0:spec['arms_below'], :] &= top[y0:spec['arms_below'], :]
+        m[114:, :] = False
+        b = np.array(load('middle_2')).astype(int)
+        for (c0, c1) in BALCONY['brackets']:
+            br = b[112:118, c0:c1]
+            m[112:118, c0:c1] |= (br[..., 2] > br[..., 0] + 12) & (br[..., 3] > 200)
+        _TEMPLATE['m'] = m
+    return _TEMPLATE['m'].copy()
+
+def wall_fill(fa, hole, ok, period):
+    """Fills `hole` in the picture `fa` (in place) with the wall's own pixels: each from the nearest clean wall (`ok`)
+    a whole number of the brickwork's periods (rows, columns) away, so the courses and their joints carry on through;
+    where no clean wall is that far, a whole number of rows away in the nearest column, then the nearest at all."""
+    P, Q = period
+    h, w = hole.shape
+    tries = []
+    for (p, q, n) in ((P, Q, 7), (P, 1, 60), (1, 1, 60)):
+        tries += sorted(((dy * p, dx * q) for dy in range(-n, n + 1) for dx in range(-n, n + 1) if (dy, dx) != (0, 0)),
+                        key=lambda t: (abs(t[0]) + abs(t[1]) * .7, t))
+    src = fa.copy()
+    for y, x in zip(*np.where(hole)):
+        for dy, dx in tries:
+            sy, sx = y - dy, x - dx
+            if 0 <= sy < h and 0 <= sx < w and ok[sy, sx]:
+                fa[y, x] = src[sy, sx]; break
+
+def balcony_wall(n, out, fa, fa0, relief, overlay, balcs, boxes):
+    """For each balcony floor of a box (at front row `py`): fills the wall behind the art's flat balcony (in `fa`, in
+    place) with the storey's own wall, opens the double window behind it into a glass door down to the floor, and writes
+    what the engine builds the balcony from: `_balc` (its rows in the front's pixels, its colours) and its pictures, the
+    parapet's face (`_balp`), the slab's edge (`_bals`) and the floor (`_balf`), all in the art's own colours and pixels.
+    Returns the windows' boxes, the door's panes made as tall as the door."""
+    B = BALCONY; H = fa.shape[0]
+    rgb = lambda c: int(c[0]) << 16 | int(c[1]) << 8 | int(c[2])
+    specs = []
+    for (py, key, pa) in balcs:
+        # the clean wall of this storey: opaque, not glass or near it, not the balcony, not under the storefront's sign
+        # (the wall's own colours: those of a patch of plain wall under the left window, which every colour of the
+        # drawing has, so no frame, sill or outline is carried into the hole)
+        patch = fa0[py + 58:py + 68, 32:80, :3].reshape(-1, 3).astype(np.int64)
+        pal = np.unique((patch[:, 0] << 16) | (patch[:, 1] << 8) | patch[:, 2])
+        cols = (fa0[..., 0].astype(np.int64) << 16) | (fa0[..., 1].astype(np.int64) << 8) | fa0[..., 2]
+        ok = np.isin(cols, pal) & (fa[..., 3] > 200) & ~relief & ~overlay
+        lim = np.zeros_like(ok); lim[py + 10:py + 113, 16:208] = True; ok &= lim
+        hole = relief.copy(); hole[:py, :] = False; hole[py + MID:, :] = False
+        # brick courses repeat every 12 rows (two courses, the joints staggered) and 30 columns; the plain walls' grain
+        # is matched the same way
+        wall_fill(fa, hole, ok, (12, 30) if key == 'middle_2' else (15, 30))
+        # the glass door: the window's frame and glass carried down to the floor, its sill at the floor
+        dx0, dx1 = B['door_x']; g0, g1 = B['door_glass']; s0, s1 = B['door_sill']
+        sill = s1 - s0; foot = py + B['floor']
+        for r in range(py + g1, foot - sill):
+            src = py + g0 + (r - py - g1) % (g1 - g0)
+            fa[r, dx0:dx1] = fa0[src, dx0:dx1]
+            gl = glass(fa0[src:src + 1, dx0:dx1])[0]
+            fa[r, dx0:dx1][gl] = 0
+        fa[foot - sill:foot, dx0:dx1] = fa0[py + s0:py + s1, dx0:dx1]
+        boxes = [(bx, by, bw, (foot - sill) - by) if (dx0 <= bx and bx + bw <= dx1 and py <= by < py + g1) else (bx, by, bw, bh)
+                 for (bx, by, bw, bh) in boxes]
+        # what the engine builds: the slab, the parapet round it, the brackets under it
+        x0, x1 = B['x']; w = x1 - x0
+        cap = pa[B['cap_row'], 60, :3]; line = pa[B['outline_row'], 60, :3]
+        if not specs:
+            par = np.zeros((B['floor'] - B['top'], w, 4), np.uint8); par[..., 3] = 255
+            par[..., :3] = cap
+            ph = par.shape[0]
+            for c in (11, 19):                                          # the stone's courses
+                par[c, :, :3] = (cap * .88).astype(np.uint8)
+            for k, c in enumerate((11, 19, ph)):                        # its joints, staggered course by course
+                r0 = (0 if k == 0 else (11, 19)[k - 1]) + 1
+                for jx in range((12 * k) % 24 + 6, w - 3, 24): par[r0:c, jx, :3] = (cap * .88).astype(np.uint8)
+            par[1:3, :, :3] = np.clip(cap * 1.08, 0, 255).astype(np.uint8)   # the cap's lit edge
+            par[0, :, :3] = line; par[-1, :, :3] = line; par[:, 0, :3] = line; par[:, -1, :3] = line
+            Image.fromarray(par).save(f'{out}/{n}_balp.png')
+            r0, r1 = B['slab_rows']
+            col = pa[r0:r1, 100].astype(np.uint8)
+            slab = np.repeat(col[:, None, :], w, axis=1); slab[..., 3] = 255
+            slab[:, 0, :3] = line; slab[:, -1, :3] = line
+            Image.fromarray(slab).save(f'{out}/{n}_bals.png')
+            f0, f1 = B['floor_rows']; c0, c1 = B['floor_x']
+            Image.fromarray(pa[f0:f1, c0:c1].astype(np.uint8)).save(f'{out}/{n}_balf.png')
+        under = (pa[B['slab_rows'][0] + 2, 100, :3] * .8)
+        bracket = pa[117, (B['brackets'][0][0] + B['brackets'][0][1]) // 2, :3]
+        (a0, a1), (b0, b1) = B['brackets']
+        specs.append([x0, x1, py + B['top'], py + B['floor'], py + B['foot'], B['depth'], B['thick'], rgb(cap), rgb(under),
+                      rgb(bracket), a0, a1, b0, b1, B['bdown'], B['bout']])
+    WINDOWS[n + '_balc'] = specs
+    return boxes
 
 def build(shop, out):
     # the cinema has no LimeZu sprite: the engine builds it (its era's front, posters and marquee from street.json's
@@ -146,10 +251,11 @@ def build(shop, out):
     body = g.crop((0, g.height - body_h, 224, g.height))
     side.alpha_composite(side_segment(body, False), (0, H - body_h))
     y = H - body_h                                # the middle floors stack on top of the storefront
-    relief = np.zeros((H, 224), bool); depth = 0
+    relief = np.zeros((H, 224), bool); depth = 0; balcs = []
     for m in mids:
         im = load(m['key']); y -= MID
         if m['key'] in RELIEF:
+            balcs.append((y, m['key'], np.array(im).astype(int)))
             rm = relief_mask(im, RELIEF[m['key']]); relief[y:y + MID, :] |= rm; depth = max(depth, RELIEF[m['key']]['depth'])
             wall_line = y + RELIEF[m['key']]['wall']        # where the new balcony's slab meets the wall (above the shop's sign)
             # its colours, from the part itself: the stone's light face, and the floor tiles in the middle of the box
@@ -179,7 +285,8 @@ def build(shop, out):
         else: kept.append((bx, by, bw, bh))
     boxes = kept
     cut &= ~overlay
-    fa = np.array(front); fa[cut] = (0, 0, 0, 0)
+    fa0 = np.array(front)
+    fa = fa0.copy(); fa[cut] = (0, 0, 0, 0)
     # what sticks out comes off the wall into its own picture (where the storefront's sign hangs over it, the sign stays
     # on the front), and the wall behind it is filled in with the wall's own colour, row by row
     relief &= ~overlay
@@ -198,14 +305,34 @@ def build(shop, out):
         x0, x1, yb = int(xs.min()), int(xs.max() + 1), int(wall_line)
         rgb = lambda c: int(c[0]) << 16 | int(c[1]) << 8 | int(c[2])
         WINDOWS[shop['sprite'] + '_relief'] = [(x0, int(ys.min()), x1 - x0, yb - int(ys.min()), depth, rgb(stone), rgb(floor))]
-        wallc = (fa[..., 2].astype(int) >= fa[..., 0].astype(int) + 30) & (fa[..., 3] > 200) & ~glass(fa)
-        fallback = np.median(fa[wallc][:, :4], axis=0).astype(np.uint8) if wallc.any() else np.array((110, 130, 160, 255), np.uint8)
-        for yy in np.unique(ys):
-            row = wallc[yy] & ~relief[yy]
-            c = np.median(fa[yy][row], axis=0).astype(np.uint8) if row.sum() > 6 else fallback
-            fa[yy][relief[yy]] = c
+        # the wall behind it: the wall's own brickwork carried on from the clean wall of the same storey, the double
+        # window made a glass door down to the floor; the balcony itself is built as geometry (`_balc`)
+        boxes = balcony_wall(shop['sprite'], out, fa, fa0, relief, overlay, balcs, boxes)
     front = Image.fromarray(fa)
     WINDOWS[shop['sprite']] = boxes
+    # the stone ledges the art draws flat across the front: each middle floor's sill course at its foot (rows 118..128:
+    # its outline, the light stone, its shade) and the top floor's cornice under the roof (rows 0..8). The Filament
+    # engines build them as real ledges standing out of the wall (BoxShell.ledge), wearing these rows of the front; not
+    # where the storefront's sign hangs over them (it stays on the wall)
+    ledges = []
+    for i in range(len(mids)):
+        y0 = H - body_h - MID * (i + 1)
+        bands = [(y0 + 118, y0 + 128, LEDGE_OUT)] + ([(y0, y0 + 8, LEDGE_OUT)] if i == len(mids) - 1 else [])
+        for (r0, r1, o) in bands:
+            free = ~overlay[r0:r1].any(axis=0) & (fa[r0:r1, :, 3] > 200).all(axis=0)
+            x = 0
+            while x < 224:
+                if not free[x]: x += 1; continue
+                e = x
+                while e < 224 and free[e]: e += 1
+                if e - x >= 8: ledges.append([x, e, r0, r1, o])
+                x = e
+    # the steps up to the door the classic offices' art paints flat at its foot: two stone steps standing out of the
+    # door's recess, each wearing its own rows of the art (the tread's light row along its top)
+    for pre, steps in DOOR_STEPS.items():
+        if ground['key'].startswith(pre):
+            for (x0, x1, r0, r1, o) in steps: ledges.append([x0, x1, H - body_h + r0, H - body_h + r1, o])
+    if ledges: WINDOWS[shop['sprite'] + '_ledge'] = ledges
     # the shopfront glass (the display shows through it): nothing is cut; the engine lays a faint reflection over this mask
     # (big panes only, so signs, lettering and walls are left alone, and the display items stay clean)
     sg = glass(fa); sg[:H - body_h, :] = False
@@ -251,6 +378,11 @@ def build(shop, out):
             rows = [8, 10, 12] + list(range(r0, r0 + 132, 2))
             Image.fromarray(np.ascontiguousarray(ra[rows, :posts])).save(f'{out}/{n}_postl.png')
             Image.fromarray(np.ascontiguousarray(ra[rows, 224 - posts:])).save(f'{out}/{n}_postr.png')
+            # the Filament engines build them as real end walls following the roof's slope (BoxShell.endWalls): their
+            # coping wears the art's light capstone with its border (rows 8..72), their end piers the art's pier, its
+            # lighter band (a capstone at the pier's head) and the panel under it (rows 152..224)
+            Image.fromarray(np.ascontiguousarray(ra[8:72, :posts])).save(f'{out}/{n}_wcap.png')
+            Image.fromarray(np.ascontiguousarray(ra[152:224, :posts])).save(f'{out}/{n}_pier.png')
         Image.fromarray(slope).save(f'{out}/{n}_pitch.png')
         # the gable continues the side wall under it: its upper storey's wall colour (not its glass or frames)
         sa = np.array(side); top = sa[4:min(sa.shape[0], 100)]
@@ -1391,7 +1523,7 @@ def build_model(shop, out):
 # What this script writes for a sprite. Anything else in the folder is left alone: the lighting maps make_lighting.py
 # made from each front need a depth model that is not always on disk, so they must survive a re-run that does not
 # change their front.
-OUTPUTS = ('front', 'side', 'emis', 'roof', 'pitch', 'postl', 'postr', 'gablep', 'sign', 'prop', 'glass', 'over', 'slope', 'ridge', 'back', 'hitch', 'lawn', 'porch', 'fence',
+OUTPUTS = ('front', 'side', 'emis', 'roof', 'pitch', 'postl', 'postr', 'gablep', 'balp', 'bals', 'balf', 'wcap', 'pier', 'sign', 'prop', 'glass', 'over', 'slope', 'ridge', 'back', 'hitch', 'lawn', 'porch', 'fence',
            'fencesnow', 'atlas', 'glow')
 MAPS = ('lit', 'shade')
 

@@ -106,6 +106,18 @@ class SpriteBuilding(
     val postR: ImageBitmap? = null,
     /** The gable wall's picture: the side wall's top storey carried up into the triangle under the roof. */
     val gablePic: ImageBitmap? = null,
+    /**
+     * The balconies the Filament engines build as geometry ([com.lifemax.rpg.feature.habits.domain.BoxShell.balcony]):
+     * each its rows and colours as tools/make_buildings.py wrote them (`_balc`); its pictures in [parts].
+     */
+    val balconies: List<FloatArray> = emptyList(),
+    /** The stone ledges across the front the Filament engines build out of the wall ([com.lifemax.rpg.feature.habits.domain.BoxShell.ledges]). */
+    val ledges: List<FloatArray> = emptyList(),
+    /**
+     * The pictures the box's built parts wear, by name: the balcony's parapet face, slab edge and floor (`balp`, `bals`,
+     * `balf`); the stone end walls' coping and their end piers (`wcap`, `pier`).
+     */
+    val parts: Map<String, ImageBitmap> = emptyMap(),
 )
 
 /**
