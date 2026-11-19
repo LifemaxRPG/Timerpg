@@ -1,0 +1,370 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2000,
+  "topic": "shops",
+  "facts": [
+    {
+      "id": "2000-shops-01",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A grocery store places weekly sale flyers beside the entrance.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-02",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A shopper pushes a cart through aisles arranged by food and household supplies.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-03",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A bakery clerk places fresh rolls in a paper bag for a customer.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-04",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A butcher counter wraps selected cuts of meat in paper for the trip home.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-05",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A pharmacy keeps prescription medicine behind a separate service counter.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-06",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A drugstore displays greeting cards and seasonal decorations near the front.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-07",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A hardware clerk helps a customer find the right size screws and washers.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-08",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A garden center sells potting soil and young plants when spring arrives.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-09",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A clothing shop hangs clearance signs above racks of last season's merchandise.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-10",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A shoe store worker measures a child's feet before bringing out another size.",
+      "ages": "kids",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-11",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A small bookstore sets out paperback novels and children's books on front tables.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-12",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A discount store sells school notebooks and pencils before autumn classes begin.",
+      "ages": "kids",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-13",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A shopping plaza has several storefronts facing a shared parking lot.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-14",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A local gift shop wraps a purchase in tissue paper before placing it in a bag.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-15",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A florist takes orders for bouquets to be collected after work.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-16",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A customer asks a furniture store about delivery charges before buying a sofa.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-17",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A home improvement store stacks lumber on tall racks near the building supplies.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-18",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A grocery worker restocks canned goods from a wheeled cart during quiet hours.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-19",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A store manager marks down unsold holiday decorations after the holiday passes.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-20",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A clerk checks a paper receipt before accepting a returned item.",
+      "ages": "adults",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-21",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A shop window displays opening hours and a telephone number near the door.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-22",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A family visits a weekend yard sale to look for used furniture and toys.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-23",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A convenience store sells packaged snacks and cold drinks near the checkout.",
+      "ages": "all",
+      "use": [
+        "shop"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-24",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A customer orders a birthday cake from a supermarket bakery counter.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-25",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "A local merchant sets up a sidewalk table during a town shopping festival.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-shops-26",
+      "year_from": 2000,
+      "year_to": 2009,
+      "text": "Some small shops close earlier on Sunday than on weekdays.",
+      "ages": "all",
+      "use": [
+        "guard"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [
+    {
+      "item": "loaf of sandwich bread",
+      "usd": 1.4,
+      "year": 2004,
+      "confidence": "medium"
+    },
+    {
+      "item": "gallon of whole milk",
+      "usd": 3.3,
+      "year": 2004,
+      "confidence": "medium"
+    },
+    {
+      "item": "dozen large eggs",
+      "usd": 1.35,
+      "year": 2004,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of bananas",
+      "usd": 0.5,
+      "year": 2004,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of ground beef",
+      "usd": 2.6,
+      "year": 2004,
+      "confidence": "medium"
+    },
+    {
+      "item": "pound of chicken breast",
+      "usd": 3.3,
+      "year": 2004,
+      "confidence": "medium"
+    },
+    {
+      "item": "five-pound bag of flour",
+      "usd": 1.7,
+      "year": 2004,
+      "confidence": "medium"
+    },
+    {
+      "item": "four-pound bag of sugar",
+      "usd": 1.8,
+      "year": 2004,
+      "confidence": "medium"
+    },
+    {
+      "item": "can of condensed soup",
+      "usd": 0.9,
+      "year": 2004,
+      "confidence": "medium"
+    },
+    {
+      "item": "twelve-ounce can of soda",
+      "usd": 0.5,
+      "year": 2004,
+      "confidence": "medium"
+    },
+    {
+      "item": "pair of basic socks",
+      "usd": 3.5,
+      "year": 2004,
+      "confidence": "medium"
+    },
+    {
+      "item": "spiral school notebook",
+      "usd": 1,
+      "year": 2004,
+      "confidence": "medium"
+    }
+  ],
+  "phrases": []
+}
