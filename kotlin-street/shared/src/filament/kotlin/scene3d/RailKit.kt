@@ -150,6 +150,35 @@ internal object RailKit {
         }
     }
 
+    // ------------------------------------------------------------------ the road out of town
+
+    /** The country road's half width (its asphalt; gravel shoulders beyond). */
+    const val COUNTRY_HALF = 52f
+
+    /** A road out of town along x over rect [r] (x0, z0, x1, z1; its middle line at the rect's): asphalt, a dashed white middle, gravel shoulders. */
+    fun countryRoad(m: MeshBuilder, r: FloatArray) {
+        val cz = (r[1] + r[3]) / 2f
+        val step = 64f
+        val aw = (step / TEXEL).roundToInt(); val ah = (2 * COUNTRY_HALF / TEXEL).roundToInt()
+        val asphalt = PixImg(aw, ah).also { im -> Swatches.fill(im, "asphalt")
+            val mid = ah / 2; for (x in 0 until aw / 2) { im[x, mid] = Paint.c(0xE8E4D8); im[x, mid - 1] = Paint.c(0xE8E4D8) }
+            im.hline(0, aw - 1, 2, Paint.c(0xD8D4C8)); im.hline(0, aw - 1, ah - 3, Paint.c(0xD8D4C8)) }
+        val gw = (20f / TEXEL).roundToInt()
+        val gravel = ballastPic(aw, gw, 4, Paint.c(0xA89C80))
+        val y = .35f
+        var x = r[0]
+        while (x < r[2] - 1f) {
+            val x1 = min(r[2], x + step)
+            m.quad(floatArrayOf(x, y, cz - COUNTRY_HALF), floatArrayOf(x1, y, cz - COUNTRY_HALF), floatArrayOf(x1, y, cz + COUNTRY_HALF), floatArrayOf(x, y, cz + COUNTRY_HALF), asphalt, 0f, 0f, aw * (x1 - x) / step, ah.toFloat())
+            for (sz in floatArrayOf(-1f, 1f)) {
+                val a = cz + sz * COUNTRY_HALF; val b = cz + sz * (COUNTRY_HALF + 20f)
+                val z0 = min(a, b); val z1 = max(a, b)
+                m.quad(floatArrayOf(x, y - .1f, z0), floatArrayOf(x1, y - .1f, z0), floatArrayOf(x1, y - .1f, z1), floatArrayOf(x, y - .1f, z1), gravel, 0f, 0f, aw * (x1 - x) / step, gw.toFloat())
+            }
+            x = x1
+        }
+    }
+
     // ------------------------------------------------------------------ level crossings
 
     private val WHITE = Paint.WHITE

@@ -53,6 +53,8 @@ internal class TownRailDraw(
         val m = MeshBuilder()
         // the modern line has concrete ties (relaid in the 1980s); the old lines wood
         val concrete = year >= 1985
+        // the roads out of town: the main street on into the country (asphalt, a dashed middle, gravel shoulders)
+        for (r in net.rail.roadsOut) RailKit.countryRoad(m, r)
         for (d in rail.drawn) RailKit.track(m, d.pts, d.state, concrete && d.kind == "main", siding = d.kind == "siding", wet = ::overWater)
         // the crossings: a deck over the road, a crossbuck on the road's right before the track each way, lights and gates
         val posts = ArrayList<FloatArray>()
@@ -152,6 +154,12 @@ internal class TownRailDraw(
             val t = (((x - a.x) * dx + (z - a.z) * dz) / l2).coerceIn(0f, 1f)
             val d = hypot(a.x + dx * t - x, a.z + dz * t - z)
             if (d < best) { best = d; val l = kotlin.math.sqrt(l2); out = floatArrayOf(dx / l, dz / l) to r.width / 2f }
+        }
+        for (r in net.rail.roadsOut) {
+            val cz = (r[1] + r[3]) / 2f
+            if (x < r[0] || x > r[2]) continue
+            val d = kotlin.math.abs(z - cz)
+            if (d < best) { best = d; out = floatArrayOf(1f, 0f) to RailKit.COUNTRY_HALF + 20f }
         }
         return out
     }

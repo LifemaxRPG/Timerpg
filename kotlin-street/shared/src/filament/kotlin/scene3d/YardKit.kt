@@ -857,7 +857,10 @@ object YardKit {
         // pack them on shelves, as many sheets as needed
         class Slot(val sheet: Int, val x: Int, val y: Int)
         val slots = HashMap<Int, Slot>()
-        val width = max(256, atlases.values.maxOf { it.texW } + 4).let { var w = 256; while (w < it) w *= 2; max(w, 1024).coerceAtMost(maxAtlas) }
+        // (as narrow as the pictures let it be, widened until the sheet is about square: a yard's single shed or tree,
+        // a patch of its own, once had a 1024-wide sheet mostly empty, 136 of them a third of the town's texels)
+        val area = atlases.values.sumOf { (it.texW + 4L) * (it.texH + 4L) }
+        val width = (atlases.values.maxOf { it.texW } + 4).let { var w = 32; while (w < it) w *= 2; while (w < maxAtlas && area * 5 / 4 > w.toLong() * w) w *= 2; w.coerceAtMost(maxAtlas) }
         val sheetH = ArrayList<Int>()
         var sheet = 0; var x = 0; var y = 0; var shelf = 0
         for ((k, a) in atlases.entries.sortedByDescending { it.value.texH }) {

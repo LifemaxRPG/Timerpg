@@ -87,15 +87,24 @@ class GameActivity : ComponentActivity() {
         PlatformImages.update = { img: ImageBitmap, px, w, h -> img.asAndroidBitmap().setPixels(px, 0, w, 0, 0, w, h) }
         immersive()
         fastestRefresh()
-        // our characters: only the first 4 views x 6 frames (x < 768) of rows 0-2 (y < 192) are ever drawn, so only that is
-        // decoded (about 5 MB of bitmaps instead of 75)
+        // our characters: only the first 4 views x 6 frames (x < 768) of rows 0-2 and the seated row 4 (y < 320: the rider
+        // on the bike) are ever drawn, so only that is decoded (about 8 MB of bitmaps instead of 75)
         SpriteSheets.sheets = (1..8).map { n ->
             assets.open("characters/char_0$n.png").use { s ->
                 @Suppress("DEPRECATION") val d = android.graphics.BitmapRegionDecoder.newInstance(s, false)
                 if (d == null) BitmapFactory.decodeStream(assets.open("characters/char_0$n.png"))
-                else try { d.decodeRegion(android.graphics.Rect(0, 0, minOf(768, d.width), minOf(192, d.height)), null) } finally { d.recycle() }
+                else try { d.decodeRegion(android.graphics.Rect(0, 0, minOf(768, d.width), minOf(320, d.height)), null) } finally { d.recycle() }
             }.asImageBitmap()
         }
+        // the townspeople's own sheets (tools/make_townsfolk.py: 768 x 128 each, about 0.4 MB of bitmap apiece), read on
+        // a thread (until they are in, people wear the old sheets)
+        if (com.lifemax.rpg.feature.habits.presentation.scene.TownFolk.sheets.isEmpty()) Thread({
+            runCatching {
+                com.lifemax.rpg.feature.habits.presentation.scene.TownFolk.load(assets.open("characters/folk/folk.json").use { it.readBytes().decodeToString() }) { f ->
+                    assets.open("characters/folk/$f").use { BitmapFactory.decodeStream(it) }?.asImageBitmap()
+                }
+            }
+        }, "townsfolk").start()
         // a recreated activity must not inherit a held direction
         MoveInput.releaseAll()
         // our lamp, trees and bench
@@ -463,7 +472,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             if (last != 0L) FrameStats.add((now - last) / 1e6f)
             last = now
             // moving (walking, a turn or a crossing): nothing new is written ahead until the player has stood a moment
-            if (GameState.walking || townPlay.walk?.transit != null) { movedAt = now; if (!movingNow) { movingNow = true; engine.setMoving(true) } }
+            if (GameState.walking || (GameState.riding && GameState.motion.speed > 1f) || townPlay.walk?.transit != null) { movedAt = now; if (!movingNow) { movingNow = true; engine.setMoving(true) } }
             else if (movingNow && now - movedAt > STILL_NS) { movingNow = false; engine.setMoving(false) }
             near = GameState.nearest
             atCorner = GameState.atCorner
@@ -499,6 +508,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     LaunchedEffect(people, streetNo, townMode) {
         // the town: everyone to talk to stands at their building's door, on the rows round the player
         townPlay.keepers = if (!townMode) emptyMap() else people?.buildings?.associateWith { sp -> people!!.at(sp).first().id.hashCode() and 0x7fffffff }.orEmpty()
+        // (their sex and age pick their look from the townspeople's sheets)
+        townPlay.keeperTraits = if (!townMode) emptyMap() else people?.buildings?.associateWith { sp -> people!!.at(sp).first().let { it.age.coerceAtLeast(0) * 2 + (if (it.female) 1 else 0) } }.orEmpty()
         GameState.keepers = street.sprites.mapIndexedNotNull { i, sp ->
             people?.at(sp)?.firstOrNull()?.let { npc -> i to (npc.id.hashCode() and 0x7fffffff) }
         }
@@ -523,6 +534,7 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     // a conversation open: the speech model gets ready (it loads only now, not when walking past people), and the lines
     // written ahead for others wait, so the phone's memory and the AI lane are the conversation's
     LaunchedEffect(talk != null) {
+        if (talk != null) townPlay.dismount("talking")
         if (talk != null) engine.pause("talking") else engine.resume("talking")
     }
     // walking away ends the conversation (one started by voice: walking out of earshot, see below)
@@ -542,6 +554,12 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
             androidx.compose.runtime.withFrameNanos { }
             val w = WEATHERS[weather].second
             sound.set(com.timerpg.street.audio.SoundRules.at(hour, w?.rain ?: 0f, w?.cloudiness ?: 0f, w?.mist ?: 0f, season, townKind))
+            // the bicycle's tyres and freewheel follow the ride; no footsteps while riding (the ride adds none)
+            townPlay.open?.let { o ->
+                sound.bike.on = o.riding && townPlay.walk === o
+                sound.bike.speed = o.bike.speed; sound.bike.pedalling = o.bike.pedalling; sound.bike.wheelRadius = o.bike.wheelRadius
+                sound.bike.surface = if (season == 3 && GameState.surface != com.lifemax.rpg.feature.habits.presentation.scene.Surface.WOOD) com.lifemax.rpg.feature.habits.presentation.scene.Surface.GRASS else GameState.surface
+            } ?: run { sound.bike.on = false }
             if (GameState.footfalls != feet) {
                 val fresh = GameState.footfalls - feet
                 feet = GameState.footfalls
@@ -661,6 +679,13 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     var door by remember { mutableFloatStateOf(0f) }
     // going in or out: a short fade through black, the room (or the street) swapped at its darkest
     var doorTo by remember { mutableStateOf<Pair<Boolean, com.lifemax.rpg.feature.habits.presentation.scene.InteriorRoom?>?>(null) }
+    // the bicycle: on it (kept in step with the ride, which a door, a conversation or the view switch also ends), and the
+    // moment a tap found no room for it
+    var bikeOn by remember { mutableStateOf(false) }
+    var noRoom by remember { mutableStateOf(0L) }
+    LaunchedEffect(Unit) { while (true) { if (bikeOn != GameState.riding) bikeOn = GameState.riding; kotlinx.coroutines.delay(150) } }
+    // off the bike to go in at a door or to talk to someone
+    LaunchedEffect(doorTo) { if (doorTo != null) townPlay.dismount("door") }
     LaunchedEffect(doorTo) {
         val go = doorTo ?: return@LaunchedEffect
         val start = androidx.compose.runtime.withFrameNanos { it }
@@ -935,6 +960,31 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
         // left thumb rests; a thumb landing higher on the very edge still swipes back, which the back handler above keeps
         // from leaving the game)
         Box(Modifier.align(Alignment.BottomStart).fillMaxWidth(.45f).height(200.dp).systemGestureExclusion())
+        // the bicycle (open world): one tap gets on or off, a long press rings the bell; just right of the stick's corner
+        // (which takes a third of the width, at most 300 dp), low, where the left thumb reaches it from the stick
+        if (townMode && StreetRenderer.view == StreetRenderer.OPEN && inside == null && !townLoading && doorTo == null) {
+            val conf = androidx.compose.ui.platform.LocalConfiguration.current
+            val stickW = minOf(conf.screenWidthDp / 3, 300)
+            Box(
+                Modifier.align(Alignment.BottomStart).padding(start = (stickW + 12).dp, bottom = 22.dp).size(58.dp)
+                    .background(if (bikeOn) AI_BLUE.copy(alpha = .85f) else Color(0x99101420), CircleShape)
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onTap = {
+                                val ok = townPlay.toggleBike()
+                                bikeOn = ok
+                                if (!ok && townPlay.canRide && !GameState.riding) noRoom = System.currentTimeMillis()
+                            },
+                            onLongPress = { if (GameState.riding) sound?.bell() },
+                        )
+                    },
+                contentAlignment = Alignment.Center,
+            ) { Text(if (bikeOn) "🚲✓" else "🚲", if (bikeOn) 18.sp else 24.sp) }
+        }
+        if (noRoom != 0L) {
+            Text("no room for the bike here", 12.sp, Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp), color = DIM.copy(alpha = .8f))
+            LaunchedEffect(noRoom) { kotlinx.coroutines.delay(1600); noRoom = 0L }
+        }
         // the shop the player is standing at
         if (inside != null) {
             Text(inside!!.title + (inside!!.use.takeIf { it != inside!!.title && it != "Home" }?.let { "  ·  $it" } ?: ""), 15.sp,

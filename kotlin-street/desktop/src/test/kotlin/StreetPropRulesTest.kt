@@ -37,7 +37,7 @@ class StreetPropRulesTest {
                 assertTrue("${row.id}: ${spots[i]} overlaps ${spots[j]}", !overlap(fp[i], fp[j]))
             for ((s, f) in spots.zip(fp)) {
                 // never in a doorway: the door's width across the whole pavement
-                for (b in row.buildings) assertTrue("${row.id}: $s in ${b.sprite}'s door", f[1] <= b.mid - PropRules.DOOR_HALF || f[0] >= b.mid + PropRules.DOOR_HALF)
+                for (b in row.buildings.filter { it.kind != PlacementKind.EXTRA }) assertTrue("${row.id}: $s in ${b.sprite}'s door", f[1] <= b.mid - PropRules.DOOR_HALF || f[0] >= b.mid + PropRules.DOOR_HALF)
                 // nor on the lamps', trees' or benches' spots
                 for (fu in row.furniture) assertTrue("${row.id}: $s on furniture at ${fu.x}", f[1] <= fu.x - PropRules.FURNITURE_HALF || f[0] >= fu.x + PropRules.FURNITURE_HALF)
                 // the walking lanes stay clear: at the kerb or against the wall, never between

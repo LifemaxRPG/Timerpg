@@ -149,6 +149,8 @@ class RailScene(val net: RailNet, val year: Int) {
             }
         }
         net.rail.depot?.let { d -> val r = d.rect; if (x > r[0] - 20 && x < r[2] + 20 && z > r[1] - 20 && z < r[3] + 20) return true }
+        // (and the roads out of town)
+        for (r in net.rail.roadsOut) if (x > r[0] - 30 && x < r[2] + 30 && z > r[1] - 60 && z < r[3] + 60) return true
         return false
     }
 

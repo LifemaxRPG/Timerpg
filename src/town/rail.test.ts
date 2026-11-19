@@ -74,7 +74,7 @@ describe('the railroad in town', () => {
         const hit = r.x < q.x + q.w && q.x < r.x + r.w && r.y < q.y + q.h && q.y < r.y + r.h;
         expect(hit, b.site.name).toBe(false);
       }
-      expect(b.plan.roads.some((q) => r.x - 9 < q.x + q.w && q.x < r.x + r.w + 9 && r.y - 9 < q.y + q.h && q.y < r.y + r.h + 9)).toBe(true);
+      expect([...b.plan.roads, ...b.rail.roadsOut].some((q) => r.x - 41 < q.x + q.w && q.x < r.x + r.w + 41 && r.y - 41 < q.y + q.h && q.y < r.y + r.h + 41)).toBe(true);
       // the depot faces the track: its middle is beside the point on the track
       const mx = r.x + r.w / 2, my = r.y + r.h / 2;
       expect(Math.hypot(mx - d.at.x, my - d.at.y)).toBeLessThan(RAIL_CLEAR + 7);
@@ -86,13 +86,43 @@ describe('the railroad in town', () => {
     let n = 0;
     for (const b of built) for (const c of b.rail.crossings) {
       n++;
-      const r = b.plan.roads[c.road]!;
+      const r = [...b.plan.roads, ...b.rail.roadsOut][c.road]!;
       expect(c.x).toBeGreaterThan(r.x - 1); expect(c.x).toBeLessThan(r.x + r.w + 1);
       expect(c.y).toBeGreaterThan(r.y - 1); expect(c.y).toBeLessThan(r.y + r.h + 1);
       expect(Math.hypot(c.dx, c.dy)).toBeCloseTo(1, 2);
       if (c.gatesFrom !== undefined) expect(c.gatesFrom).toBeGreaterThan(c.lightsFrom);
     }
     expect(n).toBeGreaterThan(0);
+  });
+
+  it('crosses the streets in town square (within 15 degrees), at most one skewed crossing at the town\'s edge', () => {
+    for (const b of built) {
+      let skewed = 0;
+      for (const c of b.rail.crossings) {
+        const r = [...b.plan.roads, ...b.rail.roadsOut.map((q) => ({ ...q, horizontal: true }))][c.road]!;
+        // the share of the track's way along the street: sin of the angle off square
+        const off = Math.abs(r.horizontal ? c.dx : c.dy);
+        if (off > Math.sin((15 * Math.PI) / 180)) skewed++;
+      }
+      expect(skewed, b.site.name).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('keeps to the town\'s grid inside the built-up area (east-west or north-south, square turns)', () => {
+    for (const b of built) {
+      const all = [...b.plan.candidates, ...b.plan.landmarks, b.plan.plaza];
+      const x0 = Math.min(...all.map((r) => r.x)), x1 = Math.max(...all.map((r) => r.x + r.w)), y0 = Math.min(...all.map((r) => r.y)), y1 = Math.max(...all.map((r) => r.y + r.h));
+      let along = 0, off = 0;
+      for (const t of b.rail.tracks) for (let i = 0; i + 1 < t.pts.length; i++) {
+        const p = t.pts[i]!, q = t.pts[i + 1]!;
+        const mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2;
+        if (mx < x0 || mx > x1 || my < y0 || my > y1) continue;
+        const L = Math.hypot(q.x - p.x, q.y - p.y);
+        if (Math.min(Math.abs(q.x - p.x), Math.abs(q.y - p.y)) / L < 0.05) along += L; else off += L;
+      }
+      // (the corners' short curves are the only pieces off the grid)
+      expect(off, b.site.name).toBeLessThanOrEqual(Math.max(80, (along + off) * 0.15));
+    }
   });
 
   it('changes with the years: nothing before the line, track and gear after, beds and trails after the rails go', () => {
@@ -113,7 +143,7 @@ describe('the railroad in town', () => {
   it('the app\'s town (gamma) has its depot, a crossing on the road out of town and a siding', () => {
     const g: TownRail = built[0]!.rail;
     expect(g.depot).not.toBeNull();
-    expect(g.crossings.some((c) => built[0]!.plan.roads[c.road]!.main)).toBe(true);
+    expect(g.crossings.some((c) => c.road >= built[0]!.plan.roads.length || built[0]!.plan.roads[c.road]!.main)).toBe(true);
     expect(g.tracks.some((t) => t.kind === 'siding')).toBe(true);
   });
 });

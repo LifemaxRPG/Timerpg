@@ -74,10 +74,10 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
      */
     fun draw(walk: TownWalkView, w: Float, h: Float, hour: Float, seconds: Float, sheets: List<ImageBitmap>): TownPose {
         // (riding the train: the ride's camera round the train; else the player's)
-        val p = town.ridePose(seconds, w, h) ?: if (OrbitCamera.open) orbit(walk, w, h, seconds) else TownFrame.street(walk, w, h)
+        val p = town.ridePose(seconds, w, h)?.also { SeeThrough.off() } ?: if (OrbitCamera.open) orbit(walk, w, h, seconds) else TownFrame.street(walk, w, h).also { SeeThrough.off() }
         town.frame(p, hour, seconds.toDouble())
         // (no people behind the loading screen: their sheets are still being read, and nobody sees them)
-        val n = if (TownPlay.walk === walk && firstViewMs >= 0f) TownPlay.people(seconds) else 0
+        val n = if (TownPlay.walk === walk && firstViewMs >= 0f) TownPlay.people(seconds, hour = hour) else 0
         peopleDrawn = town.people(TownPlay.figures, n, sheets)
         TownPlay.projector = projector
         pose = p
@@ -106,18 +106,24 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
         c.behindNext = false
         c.step(dt)
         c.follow(walk.wx, walk.wz)
+        // (on the bike the camera stands a little further back, eased: a zoom out the player's own zoom rides on, never a turn)
+        val riding = (walk as? com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk)?.riding == true
+        c.rideBack = if (dt == 0f) (if (riding) 1f else 0f) else c.rideBack + ((if (riding) 1f else 0f) - c.rideBack) * (1f - kotlin.math.exp(-dt / RIDE_EASE))
+        val dist = c.dist * (1f + OrbitCamera.RIDE_BACK * c.rideBack)
         // (the open walk's stick pushes relative to where the camera looks; the walk never turns the camera)
         (walk as? com.lifemax.rpg.feature.habits.presentation.scene.OpenWalk)?.cameraYaw = c.yawRad
-        val want = TownFrame.orbit(walk.wx, OrbitCamera.EYE, walk.wz, c.yaw, c.pitch, c.dist, w, h, OrbitCamera.FOV_Y)
+        val want = TownFrame.orbit(walk.wx, OrbitCamera.EYE, walk.wz, c.yaw, c.pitch, dist, w, h, OrbitCamera.FOV_Y)
         town.occlude(walk.wx, OrbitCamera.EYE, walk.wz, want.ex, want.ey, want.ez)
-        val fit = if (c.pullIn && town.eyeInside < 1f) (town.eyeInside * c.dist - PULL_MARGIN).coerceIn(min(PULL_MIN, c.dist), c.dist) else c.dist
-        town.fadeBetween(fit / c.dist)
+        val fit = if (c.pullIn && town.eyeInside < 1f) (town.eyeInside * dist - PULL_MARGIN).coerceIn(min(PULL_MIN, dist), dist) else dist
+        town.fadeBetween(fit / dist)
         // (eased both ways: in quickly, out slowly; never a jump)
         val tau = if (fit < c.pulled) PULL_IN else PULL_OUT
         // (no pull: the camera stands where the player put it, their own zoom unlagged)
         c.pulled = if (dt == 0f || !c.pullIn) fit else c.pulled + (fit - c.pulled) * (1f - kotlin.math.exp(-dt / tau))
-        if (c.pulled > c.dist) c.pulled = c.dist
-        val p = if (abs(c.pulled - c.dist) < .5f) want else TownFrame.orbit(walk.wx, OrbitCamera.EYE, walk.wz, c.yaw, c.pitch, c.pulled, w, h, OrbitCamera.FOV_Y)
+        if (c.pulled > dist) c.pulled = dist
+        val p = if (abs(c.pulled - dist) < .5f) want else TownFrame.orbit(walk.wx, OrbitCamera.EYE, walk.wz, c.yaw, c.pitch, c.pulled, w, h, OrbitCamera.FOV_Y)
+        // (whatever is left between the eye and the player, merged trees too, is cut in a cone by the material)
+        SeeThrough.aim(walk.wx, walk.wz, p.ex, p.ey, p.ez)
         c.lensPx = p.fl
         // (the horizon: where a level line from the eye falls; above the screen's top when looking well down)
         c.horizonY = p.cy - p.fl * (-p.fy) / hypot(p.fx, p.fz).coerceAtLeast(1e-4f)
@@ -133,6 +139,8 @@ class TownRun(val town: FilamentTown, sheets: List<ImageBitmap> = emptyList()) {
         /** Seconds it takes to ease in to a wall ([OrbitCamera.pullIn]) and back out once clear. */
         const val PULL_IN = .15f
         const val PULL_OUT = .5f
+        /** Seconds the camera takes to stand back for the bike (and in again off it). */
+        const val RIDE_EASE = .8f
 
         /** The first view waits for the buildings this near the player (street units): the street in view and the next blocks. */
         const val READY_RADIUS = 1800f

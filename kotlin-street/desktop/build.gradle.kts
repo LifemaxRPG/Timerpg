@@ -90,11 +90,13 @@ tasks.register<JavaExec>("preview") {
     System.getProperty("storesYears")?.let { jvmArgs("-DstoresYears=$it") }
     System.getProperty("weekday")?.let { jvmArgs("-Dweekday=$it") }
     System.getProperty("ref")?.let { jvmArgs("-Dref=$it") }
+    // the landmark models' preview (-Dmode=filament-landmarks): which models, which year
+    for (k in listOf("landmarks", "year")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     // the whole town's preview (-Dmode=filament-town): which town folder, where the pack's pictures are, the yards'
     // builder (kit, or placeholder: flat colours)
     for (k in listOf("town", "assetsRoot", "townYards", "memtrace", "heapBudget", "memlive", "coldOnly")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     // the open world's preview (-Dmode=filament-open): -DtownLod=0 bakes no far yards (to compare)
-    for (k in listOf("townLod")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
+    for (k in listOf("townLod", "townFar", "folk", "see")) System.getProperty(k)?.let { jvmArgs("-D$k=$it") }
     if (withFilament) {
         jvmArgs("-Djava.library.path=" + File(filamentDist, "lib").absolutePath)
         // Mesa's EGL with no display: headless software GL

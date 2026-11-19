@@ -61,9 +61,18 @@ of the world seed and the year, so a town an NPC names is a real place the plann
 ## The railroad in a town (src/town/rail.ts)
 
 - From the finished plan (the generator is untouched: no plan or layout changes): the portals where each link's
-  alignment enters the plan; a path search (8 directions on 2-tile cells; turns cost; lots, landmarks and the plaza
-  kept 3 tiles off; streets crossed square, never followed; rivers bridged, never followed; drawn towards the plaza),
-  straightened and rounded (Chaikin) where the ground allows.
+  alignment enters the plan; a path search on 2-tile cells (lots, landmarks and the plaza kept 3 tiles off; streets
+  never followed; rivers bridged, never followed; drawn towards the plaza). **Inside the built-up area the line keeps
+  to the town's grid** (the owner's note: in American railroad towns the grid was platted along the line, crossings are
+  square): it runs east-west or north-south only, turns square, never within 6 tiles of a street (so every crossing in
+  town is square), and its corners get tight curves (4 tiles); outside, in the woods and fields, it curves freely
+  (wide fillets, 30 tiles) to meet the line's route between towns. Tests: every crossing within 15 degrees of square
+  (at most one skewed per town, at its edge), the track inside the built-up area on the grid (only the corners' short
+  curves off it), never doubling back.
+- **The roads out of town**: the main street's ends run on to the plan's edges (and in the 3D town on into the country:
+  map.ts `linkRoad`), so a line round the town crosses them like any street, square.
+- The app's town is laid with its 3D yards and back lanes as more ground to keep off (`export-rail.ts yardRects`: the
+  yards reach past the plan's plots).
 - **Depot**: a straight 20-tile stretch with the depot's 12 x 6 tile site beside it, on clear ground within 8 tiles of
   a street, nearest the plaza; the through line is laid through the best stretch it can reach without a detour of more
   than 1.7x. A terminus gets a depot site first and the line laid to it; a second line joins the first (a junction).
@@ -140,8 +149,12 @@ museum sign). The back (street side) needs a door, windows and a small gravel ca
 
 ## Not yet / known issues
 
-- Crossings at a street's very end: gamma's main line crosses the road out of town where the 3D town's road ends (the
-  road on to the next town, `linkRoad`, is not drawn in the app yet).
+- Gamma's blocks are packed edge to edge with no street leaving the built-up area but the main street, so its line runs
+  round the town (parallel to the grid) and its two crossings are on the roads out of town at the town's edges, not a
+  Main Street crossing one block off downtown: that needs the generator to plat the town along the line (a Railroad
+  Avenue beside the track, the depot facing downtown), a plan change for the downtown/generator work.
+- The road out of town is drawn as a plain country road from the main street's end; the town's own dead-end head stays
+  under it at the joint.
 - Trains are not solid, have no sound and no steam or smoke yet (`RailKit.puff` is made, not yet used).
 - The 3D town's frame time with trains moving, and the ride's build time (trees for the whole route, built on the
   engine's thread for now), are not measured on the S25: a ride's world should be built on the town's workers first.

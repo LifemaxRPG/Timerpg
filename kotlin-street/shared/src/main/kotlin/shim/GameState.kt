@@ -99,6 +99,8 @@ object GameState {
     var carpet = false
     /** Running (a full push), for the footsteps and the stick. */
     var running = false
+    /** On the bicycle (the open world's ride, [OpenWalk.riding]): no footsteps, the tyres' and the freewheel's sound. */
+    @Volatile var riding = false
     /** How far the figure leans into its walk (degrees, forward positive) ... */
     val lean get() = motion.lean
     /** ... drawn as whole pixels of the art: the body above the hips this far ahead of the legs. */

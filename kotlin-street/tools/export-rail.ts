@@ -6,7 +6,7 @@
 // units, (world tile - the plan's origin) x SCALE. The Kotlin side (domain/RailNet.kt) plans routes on it exactly as
 // src/world/rail.ts planRoute does (checked by the desktop RailNetTest against routes written here with --checks).
 // Usage: npx tsx kotlin-street/tools/export-rail.ts [out.json] [--checks checks.json]
-import { writeFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { archetypeOf } from '../../src/sim/archetype';
 import { rand } from '../../src/sim/rng';
 import { planTown } from '../../src/town/plan';
@@ -49,7 +49,7 @@ export function railJson(w: RailWorld = WORLD): Record<string, unknown> {
       const po = originOf(s, plan);
       const L = local(po.x, po.y);
       const rect = (q: { x: number; y: number; w: number; h: number }): number[] => [...L(q.x, q.y), ...L(q.x + q.w, q.y + q.h)];
-      const rail = townRail(w, s, plan);
+      const rail = cx === 0 && cy === 0 ? townRail(w, s, plan, yardRects(s.seed)) : townRail(w, s, plan);
       t.plan = {
         rect: rect({ x: 0, y: 0, w: plan.width, h: plan.height }),
         roads: plan.roads.map(rect),
@@ -79,7 +79,8 @@ export function railJson(w: RailWorld = WORLD): Record<string, unknown> {
       pts: alignment(w, l).map((p) => fr(p.x, p.y)),
     };
   });
-  const homeRail = townRail(w, home, homePlan);
+  // (the 3D town's yards and lanes reach past the plan's plots: the track keeps off them too)
+  const homeRail = townRail(w, home, homePlan, yardRects(home.seed));
   const L0 = local(o.x, o.y);
   return {
     version: 1, town: home.seed, name: home.name, world: { seed: w.seed, home: w.home ?? null }, radius: RADIUS, from: FROM, to: TO,
@@ -90,6 +91,14 @@ export function railJson(w: RailWorld = WORLD): Record<string, unknown> {
   };
 }
 
+/** The shipped 3D town's yard parcels and back lanes (street.json graph; not the verges along the streets), in the plan's tiles; none for another town. */
+export function yardRects(seed: string): { x: number; y: number; w: number; h: number }[] {
+  let g: { yards?: { parcel: number[] }[]; lanes?: { rect: number[]; kind: string }[] } | undefined;
+  try { g = JSON.parse(readFileSync(new URL(`../app/src/main/assets/town/${seed}/street.json`, import.meta.url), 'utf8')).graph; } catch { return []; }
+  const rect = (r: number[]) => ({ x: Math.floor(r[0]! / SCALE), y: Math.floor(r[1]! / SCALE), w: Math.ceil(r[2]! / SCALE) - Math.floor(r[0]! / SCALE), h: Math.ceil(r[3]! / SCALE) - Math.floor(r[1]! / SCALE) });
+  return [...(g?.yards ?? []).map((y) => rect(y.parcel)), ...(g?.lanes ?? []).filter((l) => l.kind === 'lane').map((l) => rect(l.rect))];
+}
+
 /** A town's own railroad in the town frame ([L] maps the plan's tiles to it). */
 function railBlock(rail: TownRail, L: (x: number, y: number) => P, rect: (q: { x: number; y: number; w: number; h: number }) => number[]): Record<string, unknown> {
   return {
@@ -97,6 +106,8 @@ function railBlock(rail: TownRail, L: (x: number, y: number) => P, rect: (q: { x
     crossings: rail.crossings.map((c) => ({ at: L(c.x, c.y), dir: [c.dx, c.dy], road: c.road, link: c.link, lightsFrom: c.lightsFrom, ...(c.gatesFrom !== undefined ? { gatesFrom: c.gatesFrom } : {}) })),
     depot: rail.depot ? { rect: rect(rail.depot.rect), at: L(rail.depot.at.x, rail.depot.at.y), dir: [Math.round(rail.depot.dx * 1e3) / 1e3, Math.round(rail.depot.dy * 1e3) / 1e3], side: rail.depot.side, built: rail.depot.built } : null,
     elevator: rail.elevator ? rect(rail.elevator) : null,
+    // the roads out of town (the main street on to the next town) as rects, run on 150 tiles past the plan's edge
+    roadsOut: rail.roadsOut.map((q) => rect({ x: q.x === 0 ? q.x - 150 : q.x, y: q.y, w: q.w + 150, h: q.h })),
     // (the world tile beyond each portal is converted by the caller's frame: the portal's own point first)
     portals: rail.portals.map((p) => ({ link: p.link, to: p.to, at: L(p.at.x, p.at.y) })),
   };

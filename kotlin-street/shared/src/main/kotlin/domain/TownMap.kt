@@ -33,7 +33,12 @@ class Node(val id: Int, val x: Float, val z: Float, val kind: NodeKind, val arms
 
 class Road(val id: Int, val name: String, val main: Boolean, val a: Int, val b: Int, val pts: List<TownPoint>, val width: Float)
 
-enum class PlacementKind { SHOP, HOME, LANDMARK }
+/**
+ * What a row's building is: a shop, a home, a landmark, or an EXTRA: a building with nobody in it (yet) that the export adds
+ * (tools/town-downtown.ts: the downtown's towers, hotels and parking behind the main street, the town hall, the chapel):
+ * no door, no one to talk to, no front of its own for the street's props.
+ */
+enum class PlacementKind { SHOP, HOME, LANDMARK, EXTRA }
 
 /**
  * A building on a row: its front from [x0] to [x1] along the row, its front wall [setback] behind the building line (its
@@ -49,6 +54,8 @@ class Placement(
     val neighbourhood: String,
     val kind: PlacementKind,
     val lot: String,
+    /** Flat (a surface car park): walked over, not into. */
+    val flat: Boolean = false,
 ) {
     val mid: Float get() = (x0 + x1) / 2f
     val width: Float get() = x1 - x0
@@ -428,6 +435,7 @@ class Town(
                     Placement(
                         b.getString("sprite"), b.f("x0"), b.f("x1"), b.f("setback"), b.f("depth"), b.optInt("group"),
                         b.optString("neighbourhood"), PlacementKind.valueOf(b.getString("kind").uppercase()), b.optString("lot"),
+                        b.optBoolean("flat"),
                     )
                 },
                 furniture = clearOfCinemas(r.optJSONArray("furniture")?.objects()?.map {

@@ -60,7 +60,9 @@ class RailDepot(val rect: FloatArray, val x: Float, val z: Float, val dx: Float,
 class RailPortal(val link: String, val to: String, val x: Float, val z: Float)
 
 /** A town's own railroad: tracks (with the siding), level crossings, the depot, the elevator's site, where each line leaves. */
-class TownRailData(val tracks: List<RailTrack>, val crossings: List<RailCrossing>, val depot: RailDepot?, val elevator: FloatArray?, val portals: List<RailPortal>)
+class TownRailData(val tracks: List<RailTrack>, val crossings: List<RailCrossing>, val depot: RailDepot?, val elevator: FloatArray?, val portals: List<RailPortal>,
+    /** The roads out of town past the main street's ends, on into the country (x0, z0, x1, z1): crossings' roads past the town's own. */
+    val roadsOut: List<FloatArray> = emptyList())
 
 class RailLine(val phases: Map<String, Double>, val along: Map<Int, Double>)
 
@@ -373,7 +375,8 @@ class RailNet(
             val depot = o.optJSONObject("depot")?.let { d -> val at = d.getJSONArray("at"); val dir = d.getJSONArray("dir")
                 RailDepot(floats(d.getJSONArray("rect")), at.getDouble(0).toFloat(), at.getDouble(1).toFloat(), dir.getDouble(0).toFloat(), dir.getDouble(1).toFloat(), d.getInt("side"), d.getInt("built")) }
             val portals = o.optJSONArray("portals")?.let { a -> (0 until a.length()).map { val p = a.getJSONObject(it); val at = p.getJSONArray("at"); RailPortal(p.getString("link"), p.getString("to"), at.getDouble(0).toFloat(), at.getDouble(1).toFloat()) } } ?: emptyList()
-            return TownRailData(tracks, xs, depot, o.optJSONArray("elevator")?.let { floats(it) }, portals)
+            val outs = o.optJSONArray("roadsOut")?.let { a -> (0 until a.length()).map { floats(a.getJSONArray(it)) } } ?: emptyList()
+            return TownRailData(tracks, xs, depot, o.optJSONArray("elevator")?.let { floats(it) }, portals, outs)
         }
 
         /** Reads a rail.json (null if it is not one). */

@@ -507,3 +507,163 @@ is the AI panel's "View: Open world / Street" (prefs `renderer/view`, open by de
   old near trees, the detail only round the camera); a detailed tree is
   500-1160 triangles (the old 3D tree about 330), its simple level 80-170 (desktop TreeKitTest prints each yard look).
   townMemoryCheck held 184 MB of 256.
+
+## Open world: the bicycle (branch wf-bike)
+
+The owner (2026-11-19): "We need a basic vehicle like a bicycle, because walking around is slow." The player's bike, in
+the open world only (the street view dismounts):
+
+- Getting on and off: the HUD's round bike button just right of the stick's corner (one tap on or off, a long press
+  rings the bell). `TownPlay.toggleBike()` / `OpenWalk.mount()`: the bike needs its own clear circle (radius 7) and a clear
+  front wheel within 14 of where the player stands (else "no room for the bike here"), and rolls on at the walking speed.
+  It is left at once by "Go inside", a door's fade, any conversation (by button or by voice) and the view switch
+  (`TownPlay.dismount(why)`). Breadcrumbs: "bike on (style) at", "bike off (why)", "bike: no room at".
+- Riding (`OpenWalk.stepRide`, tuning in `shim/Bike.kt` `RideTuning`, all plain vars): the stick, relative to the camera as
+  walking, is where the rider wants to go and how fast. Momentum: pedalling up to the push's share of the cruise (290
+  units/s, ~13.7 m/s, ~4x the walk; 90% of it in ~1 s from standing), the sprint (400) after holding a full push 0.8 s,
+  coasting with the stick let go (rolling 18 + drag 0.00035 v^2: 400 -> 335 in a second), braking (420) when the push
+  points more than 115 degrees from where the bike goes, then a tight turn round at <= 70. The heading turns towards the
+  push no faster than `RideTuning.maxRate(v)`: the grip (520 units/s^2 sideways) over the speed, at most 3.2 rad/s, a
+  2.4 rad/s pivot below 25 (radius 36 units at 145 units/s, 218 at 372; a turn round from 387 takes 1.1 s). Slower into
+  sharp turns. Surfaces (`RideSurface`): grass 55% of the top speed and 60% of the pedalling with 5x the rolling loss,
+  gravel 80%, boards 95%.
+- Against the town: the bike's circle (radius 7: it fits the 28-wide gates, 21.8 between the posts) and a probe for the
+  front wheel (radius 5, 17 ahead): a glancing hit slides the front along what it meets and the bike follows it, losing
+  what was stopped and 1.2/s more while scraping, swinging along the slide; head on it stops with the tyre at the wall. A
+  turn never puts the front wheel into something; nearly still with the front at a wall the rider swings the back round
+  the front wheel, rolls it back a little, or (stick pulled back) walks the bike backwards (40 units/s). Held fast with
+  the stick pushed for 0.6 s (a slot narrower than the bike's length), the rider lifts the front wheel round (its probe off
+  until it rides free). Fences, hedges and walls are solid; gates are open. The front wheel may graze 0.5 (a few cm).
+- Drawn (`scene3d/TownBike.kt`, `BikeKit`): real geometry in our style, one entity a part with a shadow twin, through the
+  street's lit material: two wheels (a knurled tread band and a 32-texel spoked disc each side, clear between the spokes,
+  hub and rim in chrome, whitewalls on the cruiser) that turn with the distance rolled; the frame's tubes (a lit stripe on
+  top, a darker underside), seat post and saddle, chain ring and chain; the fork and bar turned about the head tube's
+  line by the turn's radius; the cranks turning with the pedalling only (they stop coasting) and the pedals kept level
+  with orange reflectors; a lamp on the fork that glows at night. The whole bike leans into turns (the real lean,
+  atan(v x rate / g), eased 0.12 s, at most 34 degrees). One style an era, by the town's year (`BikeStyle.of`): a red and
+  cream 1950s cruiser (balloon whitewalls, swept-back bars, mudguards, chain guard, wicker basket), an orange 1970s
+  ten-speed (thin tyres, taped drop bars, a bottle), a blue 1980s BMX (20" wheels, high-rise bar with its crossbar pad,
+  chrome fork), a sage modern hybrid (flat bar, mudguards, rear rack). The pack has no bicycles (10_Vehicles: cars,
+  buses, boats, carts; City props none), so the pictures are painted in its palette. The bike is drawn 1.45x real size
+  (`BikeState.SCALE`): our people are the pack's big-headed figures and a true-size bike vanished under them.
+- The rider (`TownPeople.ride`): the player's card stands in the bike's leaned frame (it leans with it) across the
+  camera's right. From the side, the sheet's seated frames (row 4: right-facing 0-5, left 6-11) on the saddle; from the
+  front or back, the walk's frames standing on the pedals, one walk cycle a crank turn (the idle frames coasting). The app
+  now decodes the sheets' rows down to y 320 (was 192) for the seated row.
+- The camera stands 30% further back on the bike (`OrbitCamera.RIDE_BACK`, eased over 0.8 s: a zoom, never a turn) and
+  follows the position exactly, as walking.
+- Sound (app `audio/BikeSound.kt`, mixed live by SoundScape; nothing recorded): no footsteps while riding; the tyres' hiss
+  growing brighter and louder with the speed on the road, a dull swish on grass (and on snow), crackles on gravel, a
+  knock on boards, a faint thump each wheel turn; coasting, the freewheel's ticks (18 a wheel turn: a tick-tick slowing
+  to a stop); the bell (two strikes, 2.1 and 5.3 kHz partials, 1.6 s) on a long press. The dialogue's writing ahead pauses
+  while riding as while walking.
+- Tests: desktop `BikeRideTest` (gamma): a scripted rider (the stick through a camera swinging round all the while, an
+  autopilot over a bike-sized grid that brakes for bends and backs out when stuck, as a player would) rides to 22 goals
+  (back yards through their gates, both ends of four bridges, the plaza, the cinema's car park, back to the spawn):
+  ~73k units in 304 s, mean 240 units/s, vs 467 s for a runner on the same legs (0.65x the time); never inside anything,
+  the front wheel never in anything but while lifted (69 of ~18300 frames), the turning limit never broken; the cruise,
+  sprint, coast and turn round; the radius growing with speed; a fence slid along at 30 degrees in (192 -> 95 units/s,
+  9.3 from it) and stopped head on 22 off it; a lawn at most 71 units/s after 0.5 s; on and off (no footsteps, no room
+  between things a walker fits); a ride step 1.4-3 us allocating nothing (build server JVM, not the S25). Run with
+  `gradle :desktop:test -DtestOnly=OpenWalkTest,BikeRideTest`.
+- Preview: `gradle :desktop:preview -Dmode=filament-open -Dshots=bike` renders each era's bike from the side, three-quarter,
+  behind, in front and above, leaning both ways, at night (lamp), from a street-wide view, and an 8 s ride through
+  `TownPlay.step` at 60 Hz rendered each second (bike_ride_NNs).
+- Not yet / to check on the S25: the feel (all the numbers are tunable live), heat with the town streaming past at
+  ~4x the walking speed (the build's 4 ms a frame budget and the live rows may need to look further ahead), parked bikes
+  at home, other people on bikes, a rider's own pedalling legs from the side (the sheets have no cycling frames).
+
+## Open world: the owner's screenshots of 0.1.367 (branch wf-feedback2)
+
+Desktop renders (`gradle :desktop:preview -Dmode=filament-open -Dshots=fb2_`: the five screenshots' spots and cameras,
+the player placed where the JSON had them, 17:36 in summer), not S25 captures.
+
+- Townsfolk (015754, "clones"): the townspeople wear their own sheets, baked from the Interiors pack's Character
+  Generator by `tools/make_townsfolk.py` (python3 -I tools/make_townsfolk.py <Character_Generator dir>
+  app/src/main/assets/characters/folk 120; the raw pack stays out of the repo): body and skin tone (5 natural ones),
+  eyes, outfit and its colour, hairstyle and colour (grey for elders), beards and moustaches, glasses, beanies and caps,
+  laid into 768 x 128 sheets of the two rows the town draws (idle, walk), 120 of them (84 adults, 24 elders, 12 kids;
+  half women; 18 in clothes too modern for a town before 1990), with folk.json giving each one's sex, age band and
+  `modern`. `TownFolk.pick(seed, female, age, year)` picks a person's sheet: the people to talk to by their own sex
+  and age (`TownPlay.keeperTraits`, set by the app from dialogue.json beside `keepers`), passers by their seed (about
+  half women, an elder when their walk is an old person's, kids only out of school hours). The player keeps their own
+  sheet. Left out: pink/blue/grey skins, anime hair, cat ears, swimwear, masks, the ninja suit, novelty hats.
+- How busy the pavements are (also 015754): `TownCrowd.share(hour, shops, homes, others, outdoors)` thins each live
+  row's StreetLife stream by its people's day (src/town/schedule.ts: at work, at school or at home most of the day; out
+  on the commute both ways, the school run, errands, evening strolls), by what the row is (shops or houses) and by
+  `TownPlay.outdoors` (the stage sets it from the weather: rain keeps 75% in, mist 35%, an overcast sky 15%, snow some).
+  Who is out is fixed per walker (its slot's hash against the share), so nobody pops mid-walk. King Street at 17:36:
+  13 people drawn round the player (was 27), Main Street keeps most of its stream until the shops shut.
+- See-through (020240, "can't see the character in the woods"): `SeeThrough` + street_lit.mat's `seeA`/`seeB`. In the
+  open world the lit material discards what lies in a cone from the eye to the player's middle (radius 55 at the player,
+  shrinking to the eye), stopping 8 short of them, its edge a 4x4 ordered dither in whole art pixels; never the ground
+  (its layer is left out and nothing under 1.5 up is cut) and never the people (their cards have no cone). It works on
+  merged meshes (TreeCells, yards, stores, buildings) where the box cutaway (`occlude`) cannot take one tree out, and
+  complements it. Cost: two float4 uniforms set with each drawn instance's `look`, and a few ALU per fragment where the
+  cone is on (no texture reads). `-Dsee=0` in the preview turns it off to compare.
+- GPU memory (the AI chip on CPU, PSS 2.5-2.7 GB): the screenshots' breadcrumbs had the town at 1303 MB total PSS when
+  built (graphics 1031 MB, 947 textures, 82.1M texels); the rest of the game's PSS is the light model, which, kept off
+  the GPU for want of room, runs from its 2.46 GB file and is counted in PSS as its pages are read. What grew in the
+  town: the yards' merged atlases were at least 1024 wide however little they held, and each yard's tall thing became a
+  patch of its own (wf-feedback): 136 sheets of 1024 x 256, 69 of 1024 x 128, 50 of 1024 x 64. `YardKit.merge` now
+  makes each sheet as narrow as its pictures allow, widened until about square: 81.1M -> 73.7M texels on the build
+  server (about 40 MB of GPU memory with mipmaps), the yards' pixels the same. The biggest left are the lots' own
+  atlases (115 of 512 x 512: pictures repeated lot by lot; one global yard atlas would share them). The breadcrumbs now
+  list the biggest texture sizes when the town is built (`FilamentTown.biggestTextures`). The townsfolk's sheets are
+  uploaded only once drawn: at most 120 x 0.5 MB.
+
+## The downtown through the decades, and the pack's buildings in the town (branch wf-downtown, 2026-11-19)
+
+Desktop renders and JVM tests only, NOT yet run on the S25.
+
+- **Generator** (`src/town/downtown.ts`, pure functions of the seed and plan; tests in `downtown.test.ts`): every shop plot
+  carries a Main Street block built 1885-1935 with 1-3 storeys over the shop (taller nearer the centre); a block at a corner
+  may be the red-brick corner block. Two neighbouring shop plots' back lots make a tower site (`downtownSites`). From the
+  town's natural population (`population.ts`): urban renewal clears back lots for surface parking 1962-1978 (towns with 120
+  people by 1975); a mid-rise (7-11 storey office, or a hotel) each time the town passes 175, 190, 205, 220 people from 1958;
+  a glass tower (13-19 storeys, office styles 4/2) each time it passes 235, 255, 275, 295 from 1982, which may replace an early
+  mid-rise (demolished, a year of parking between). `downtownHistory` has every building with built / demolished years;
+  `downtownStanding(plan, year)` what stands. Tower sites are only in the core (mean rank under 72 tiles from the centre);
+  when the core has no free site a glass tower takes the oldest mid-rise's. The export leaves out a tower or car park
+  whose two plots have no shop that year. The town hall (Victorian, with its clock tower, built 1880-1910, 75% of towns)
+  stands at the plaza's back facing the main street, the chapel (Grace Chapel, built 1870-1915) on the nearest free woodland
+  by a street within 80 tiles of the centre (about two towns in five).
+- gamma: Main Street blocks and parking until 1994, then a hotel (1994, 9 storeys), a second hotel (2006), two offices (2012,
+  2019; 11 storeys): tier `midrise`. quartz (321 people by 2025): four mid-rises 1977-1993, glass towers 1998, 2006, 2014, 2020
+  (13-19 storeys; two of the mid-rises pulled down for towers in 2012 and 2018). orbit (peak 113) stays Main Street blocks.
+- **Export** (`tools/town-downtown.ts`, called by `town-graph.ts`): the shops become facade-kit blocks (`compose_facade`
+  with `ground.picture`: the business's own storefront as the ground floor, its sign a card over the floor above; the kit's
+  palette from the district's shop colour), a corner bank / law office / doctor's office the octagonal corner block; 40% of
+  medium mobile homes the big mobile home of the same design and colour; apartment lots' condo stand-ins (and half of the
+  others) the pack's condo terraces, Condo_3_46, Condo_8 or a facade-kit condo block; half the schools the Victorian old
+  school (V5). The towers, hotels, car parks, town hall and chapel are row buildings of kind `extra` (nobody in them: no
+  door, no props, not a front; `flat: true` for car parks, walked over), named after every lot and landmark, listed in
+  `graph.extras` (storeys, built, demolished). A tower stands 230 units behind the building line (the shops, then a 44-unit
+  service alley: the shops' lots of that run end there); its depth 320 px. An extra that would overlap anything is left out.
+- **Far boxes** (`scene3d/TownFar.kt`): every building past the haze's start (+300) is drawn as a cheap box (its footprint,
+  as tall as its front picture, wearing its own front and side shrunk 4x with lit windows at night, a flat roof colour),
+  merged per 900-unit cell (one draw a cell, ~10 triangles a building), switched with 120 units of hysteresis and a 0.4 s
+  screen-door crossover, drawn to 24000 units (the camera's far plane follows; shadows keep their own reach). The open
+  world's haze takes the stage sky's horizon colour (its glow) and is thicker (0.00062: ~60% at the view's range); the trees'
+  cards are drawn 3400 units past the range so the edge woods dissolve into it. Cut-out alpha comes from a mip two levels
+  sharper (far crowns no longer vanish under the mask's half). `-DtownFar=0` in the open preview compares without.
+- Measured (desktop, software GL, not the S25): far boxes for gamma 2025: 49 cells, ~1100 triangles in all. Draws and
+  triangles as drawn, before (no far boxes, the old haze) / after (far boxes, cards into the haze): build 0.1.367's horizon
+  spot (015705, GPU p50 22 ms on the S25 there) 548 / 723 draws, 141k / 158k triangles; its woods spot (020102) 176 / 320,
+  112k / 131k; the skyline from across town 585 / 717, 149k / 158k; the widest view 818 / 961, 202k / 212k. Most of the
+  added draws are the trees' cards past the range (one batch a chunk); the far boxes are one draw a cell.
+  townMemoryCheck: held peak 197-201 MB of the 256 budget over runs (was 195).
+- **Frontage by block face** (the owner's rule: never a pavement building beside one set back behind a car park): a run of
+  touching shop plots (`runOf`) is one block face; its frontage is decided for the whole face by its plots' mean rank
+  (`stripFace`): the old core (under 72) is a street wall at the pavement, 2-4 storey blocks shoulder to shoulder, its lots
+  behind reached by the service alley, towers and renewal car parks behind; a face past it is a post-war strip: each shop
+  (1-2 storeys, built 1950-1985) stands 210 units back behind its own car park (painted stalls, a kerb with a gap for the way
+  in, flat: walked over; the shop's lot and yard begin behind it). Transitions fall between runs (at side streets or gaps).
+  gamma 2025 has one strip face (two shops, west Main Street); quartz two.
+- Left (the owner's parking request, not done yet): on-street parking (angled bays on Main Street, parallel on side
+  streets, meters from the 1940s), parked cars on the downtown's and the strips' car parks by the hour (StoreCars could be
+  reused), car-park lighting and planting, side or rear lots for offices and apartments beyond the towers' alleys.
+- Left: the downtown is built for the export's year only (no time travel in the app, unlike the stores); towers have no
+  interiors or people; car parks have no cars; the glass towers are the pack's office styles 2/4 (no curtain-wall art); the
+  far boxes are boxes (pitched roofs read flat far off); the stores and cinema still fade at the range; quartz has a
+  pre-existing shop overlap (b2/b3 on 3R).

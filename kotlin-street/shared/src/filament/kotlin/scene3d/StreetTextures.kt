@@ -20,6 +20,8 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     /** Pictures read and packed ahead on a worker ([warm]), waiting for [of] on the engine's thread. */
     private val warmed: MutableMap<ImageBitmap, Prepared> = java.util.Collections.synchronizedMap(java.util.WeakHashMap())
     private val made = ArrayList<Texture>()
+    /** Textures made by size ("w x h" to how many): what the GPU memory goes to (the preview's report, the breadcrumbs). */
+    val bySize = java.util.concurrent.ConcurrentHashMap<String, Int>()
     /** What this set's owner has put on the GPU: these textures (with their mipmaps), and the buffers its users count in. */
     val gpu = GpuBytes()
     val white: Texture = solid(0xFFFFFFFF.toInt())
@@ -71,8 +73,14 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     /** A picture ready for the GPU: its bytes as Filament takes them and, for one never updated, its content's key. */
     class Prepared internal constructor(internal val buf: ByteBuffer, val w: Int, val h: Int, val linear: Boolean, internal val key: ContentKey?)
 
+
+    /** The [n] sizes holding the most texels: "w x h x count = M texels". */
+    fun biggest(n: Int = 8): String = bySize.entries.sortedByDescending { e -> e.key.split("x").let { it[0].toLong() * it[1].toLong() } * e.value }.take(n)
+        .joinToString(", ") { e -> val (w, h) = e.key.split("x").map { it.toLong() }; "${e.key} x${e.value} = %.1fM".format(java.util.Locale.US, w * h * e.value / 1e6) }
+
     private fun build(buf: ByteBuffer, w: Int, h: Int, linear: Boolean, mips: Boolean): Texture {
         madeCount++; texels += w.toLong() * h
+        bySize.merge("${w}x$h", 1, Int::plus)
         val format = if (srgb && !linear) Texture.InternalFormat.SRGB8_A8 else Texture.InternalFormat.RGBA8
         // (a texture whose mipmaps the engine makes must say so, or Filament aborts the process)
         val levels = if (mips && Texture.isTextureFormatMipmappable(engine, format)) 32 - Integer.numberOfLeadingZeros(maxOf(w, h)) else 1

@@ -2,7 +2,7 @@ import { rand } from '../sim/rng';
 import { originOf, type TownSite } from '../world/map';
 import { alignment, linksAt, otherEnd, stationAt, trackIn, type RailLink, type RailWorld, type Pt, type StationStatus } from '../world/rail';
 import { planTown, type TownPlan } from './plan';
-import type { Rect } from './kinds';
+import type { Rect, Road } from './kinds';
 
 // THE RAILROAD IN TOWN: where the world's lines (src/world/rail.ts) enter and leave a town, the track between them (a
 // path round the town's lots, landmarks and plaza, over the streets it must cross and the river on a bridge, drawn
@@ -32,7 +32,7 @@ export interface LevelCrossing {
   y: number;
   dx: number;
   dy: number;
-  /** Index into plan.roads. */
+  /** Index into plan.roads, or past its end into [TownRail.roadsOut] (the road out of town). */
   road: number;
   link: string;
   /** From when each kind of protection stands (crossbucks from the line's opening). */
@@ -53,6 +53,9 @@ export interface TownRail {
   depot: { rect: Rect; at: Pt; dx: number; dy: number; side: 1 | -1; built: number } | null;
   /** A grain elevator or mill site at the end of the siding (plan tiles), or null. */
   elevator: Rect | null;
+  /** The roads out of town past the main street's ends (plan tiles; to the plan's edge): crossings' road indices past
+   * plan.roads point here. */
+  roadsOut: Rect[];
   /** What the track could not avoid (a lot or landmark it runs over): empty when all went well. */
   conflicts: string[];
 }
@@ -60,9 +63,9 @@ export interface TownRail {
 const CELL = 2; // the path search's cell, tiles
 
 /** The railroad in the town of [site] (plan given or planned here). */
-export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown(site.seed)): TownRail {
+export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown(site.seed), extra: readonly Rect[] = []): TownRail {
   const links = linksAt(w, site.cx, site.cy);
-  const out: TownRail = { siteId: site.id, tracks: [], crossings: [], portals: [], depot: null, elevator: null, conflicts: [] };
+  const out: TownRail = { siteId: site.id, tracks: [], crossings: [], portals: [], depot: null, elevator: null, roadsOut: [], conflicts: [] };
   if (!links.length) return out;
   const W = plan.width, H = plan.height;
   const o = originOf(site, plan);
@@ -75,12 +78,24 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
   };
   // (hard: the plots themselves and a tile round them; the rounding of the corners may cut into the clearance, not these)
   const hard = new Uint8Array(W * H);
-  for (const r of [...plan.candidates, ...plan.landmarks, plan.plaza]) {
+  // ([extra]: more ground to keep off, as the plan's plots: the 3D town's yards, which reach past their plots)
+  for (const r of [...plan.candidates, ...plan.landmarks, plan.plaza, ...extra]) {
     markRect(r, RAIL_CLEAR);
     for (let y = Math.max(0, r.y - 1); y < Math.min(H, r.y + r.h + 1); y++) for (let x = Math.max(0, r.x - 1); x < Math.min(W, r.x + r.w + 1); x++) hard[y * W + x] = 1;
   }
   const roadAt = new Int16Array(W * H).fill(-1);
-  plan.roads.forEach((r, i) => { for (let y = Math.max(0, r.y); y < Math.min(H, r.y + r.h); y++) for (let x = Math.max(0, r.x); x < Math.min(W, r.x + r.w); x++) roadAt[y * W + x] = i; });
+  // the roads out of town (map.ts linkRoad: the main street runs on to the next town) from the main street's ends to the
+  // plan's edges: the line crosses them like any street
+  const mains = plan.roads.filter((r) => r.main && r.horizontal).sort((a, b) => a.x - b.x);
+  const outRoads: Road[] = [];
+  if (mains.length) {
+    const w0 = mains[0]!, e = mains[mains.length - 1]!;
+    if (w0.x > 0) outRoads.push({ x: 0, y: w0.y, w: w0.x, h: w0.h, main: true, horizontal: true });
+    if (e.x + e.w < W) outRoads.push({ x: e.x + e.w, y: e.y, w: W - e.x - e.w, h: e.h, main: true, horizontal: true });
+  }
+  out.roadsOut = outRoads;
+  const roads = [...plan.roads, ...outRoads];
+  roads.forEach((r, i) => { for (let y = Math.max(0, r.y); y < Math.min(H, r.y + r.h); y++) for (let x = Math.max(0, r.x); x < Math.min(W, r.x + r.w); x++) roadAt[y * W + x] = i; });
   // (a road's own tiles are never blocked: a lot's clearance reaching over a street is not what stops a crossing)
   for (let i = 0; i < W * H; i++) if (roadAt[i]! >= 0) blocked[i] = 0;
   const wet = (x: number, y: number): boolean => !!plan.water && plan.water.raw[y * W + x] === 1;
@@ -113,6 +128,17 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
     }
   }
   const taken = new Uint8Array(GW * GH); // cells of tracks already laid (a second line crosses them, never runs along them)
+  // the built-up area (plots, landmarks, plaza, a little round them): inside it the line keeps to the town's grid (runs
+  // east-west or north-south, turns square, never near a street, so every crossing in town is square); outside it, in
+  // the woods and fields, it may curve as it likes
+  let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
+  for (const r of [...plan.candidates, ...plan.landmarks, plan.plaza]) { bx0 = Math.min(bx0, r.x); by0 = Math.min(by0, r.y); bx1 = Math.max(bx1, r.x + r.w); by1 = Math.max(by1, r.y + r.h); }
+  const BOX_PAD = 4;
+  const inBox = (x: number, y: number): boolean => x >= bx0 - BOX_PAD && x <= bx1 + BOX_PAD && y >= by0 - BOX_PAD && y <= by1 + BOX_PAD;
+  const cellIn = (gx: number, gy: number): boolean => inBox(gx * CELL + CELL / 2, gy * CELL + CELL / 2);
+  const nearRoadCell = new Uint8Array(GW * GH);
+  for (let gy = 0; gy < GH; gy++) for (let gx = 0; gx < GW; gx++) if (cellRoad[gy * GW + gx]! >= 0)
+    for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) { const x = gx + dx, y = gy + dy; if (x >= 0 && y >= 0 && x < GW && y < GH) nearRoadCell[y * GW + x] = 1; }
   const cx0 = plan.plaza.x + plan.plaza.w / 2, cy0 = plan.plaza.y + plan.plaza.h / 2;
   const DX = [1, 1, 0, -1, -1, -1, 0, 1], DY = [0, 1, 1, 1, 0, -1, -1, -1];
   const search = (from: Pt, goal: (gx: number, gy: number) => boolean, goalPt: Pt | null): Pt[] | null => {
@@ -143,12 +169,20 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
       const c = s >> 3, d = s & 7, gx = c % GW, gy = (c / GW) | 0;
       if (f - h(gx, gy) > g[s]! + 1e-9) continue;
       if (goal(gx, gy) && !(gx === sx && gy === sy)) { end = s; break; }
-      for (const t of [-1, 0, 1]) {
+      const here = cellIn(gx, gy);
+      for (const t of [-2, -1, 0, 1, 2]) {
+        // (in town: square turns only (two steps of the eight ways), and only on the grid's ways; outside, gentle turns)
+        if (here && (t === 1 || t === -1) && (d & 1) === 0) continue;
+        if (!here && (t === 2 || t === -2)) continue;
         const nd = (d + t + 8) & 7;
         const nx = gx + DX[nd]!, ny = gy + DY[nd]!;
         if (nx < 0 || ny < 0 || nx >= GW || ny >= GH) continue;
         const nc = ny * GW + nx;
         if (cellBlocked[nc]) continue;
+        const there = cellIn(nx, ny);
+        if (there && (nd & 1)) continue;
+        // (no turning by a street in town: the crossing would come out skewed)
+        if (t !== 0 && (here || there) && (nearRoadCell[c] || nearRoadCell[nc])) continue;
         const diag = nd & 1;
         let cost = diag ? 1.414 : 1;
         // drawn towards downtown (the depot wants to be near the plaza)
@@ -158,13 +192,13 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
         if (cellWet[nc]) cost += 40;
         const r = cellRoad[nc]!;
         if (r >= 0) {
-          const rd = plan.roads[r]!;
+          const rd = roads[r]!;
           // (a street is crossed square or not at all along it)
           const along = rd.horizontal ? nd === 0 || nd === 4 : nd === 2 || nd === 6;
           cost += along ? 400 : diag ? 30 : 4;
         }
         if (taken[nc]) cost += (nd === d ? 3 : 200);
-        if (t !== 0) cost += 2.5;
+        if (t !== 0) cost += here || there ? 14 : 2.5;
         const ns = nc * 8 + nd;
         const ng = g[s]! + cost;
         if (ng < g[ns]!) { g[ns] = ng; prev[ns] = s; push(ns, ng + h(nx, ny)); }
@@ -185,13 +219,20 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
     for (let t = 0; t <= L; t += 0.5) { const x = Math.floor(a.x + ((b.x - a.x) * t) / L), y = Math.floor(a.y + ((b.y - a.y) * t) / L); if (x < 0 || y < 0 || x >= W || y >= H || hard[y * W + x]) return false; }
     return true;
   };
+  /** A straight piece is fine if it runs on the grid's ways, or keeps out of the built-up area. */
+  const gridOk = (a: Pt, b: Pt): boolean => {
+    if (Math.abs(a.x - b.x) < 0.01 || Math.abs(a.y - b.y) < 0.01) return true;
+    const L = Math.hypot(b.x - a.x, b.y - a.y);
+    for (let t = 0; t <= L; t += 1) if (inBox(a.x + ((b.x - a.x) * t) / L, a.y + ((b.y - a.y) * t) / L)) return false;
+    return true;
+  };
   const tighten = (p: Pt[]): Pt[] => {
     const outP: Pt[] = [p[0]!];
     let i = 0;
     while (i < p.length - 1) {
       let j = p.length - 1;
       for (; j > i + 1; j--) {
-        if (!clearSeg(p[i]!, p[j]!)) continue;
+        if (!clearSeg(p[i]!, p[j]!) || !gridOk(p[i]!, p[j]!)) continue;
         let orig = 0; for (let k = i; k < j; k++) orig += roadsOn(p[k]!, p[k + 1]!);
         if (roadsOn(p[i]!, p[j]!) <= orig + 1) break;
       }
@@ -200,20 +241,25 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
     }
     return outP;
   };
+  /** Rounds each corner with a curve: tight in town (the grid's square turns), wide out in the country; a corner whose
+   * curve would cut into a plot keeps its point. */
   const round = (p: Pt[]): Pt[] => {
-    let q = p;
-    for (let it = 0; it < 3; it++) {
-      const n: Pt[] = [q[0]!];
-      for (let i = 0; i + 1 < q.length; i++) {
-        const a = q[i]!, b = q[i + 1]!;
-        if (i > 0) n.push({ x: a.x * 0.75 + b.x * 0.25, y: a.y * 0.75 + b.y * 0.25 });
-        if (i + 2 < q.length) n.push({ x: a.x * 0.25 + b.x * 0.75, y: a.y * 0.25 + b.y * 0.75 });
-      }
-      n.push(q[q.length - 1]!);
-      q = n;
+    const out: Pt[] = [p[0]!];
+    for (let i = 1; i + 1 < p.length; i++) {
+      const a = out[out.length - 1]!, v = p[i]!, b = p[i + 1]!;
+      const la = Math.hypot(a.x - v.x, a.y - v.y), lb = Math.hypot(b.x - v.x, b.y - v.y);
+      const r = Math.min(inBox(v.x, v.y) ? 4 : 30, la / 2.2, lb / 2.2);
+      if (r < 0.5) { out.push(v); continue; }
+      const p1 = { x: v.x + ((a.x - v.x) / la) * r, y: v.y + ((a.y - v.y) / la) * r };
+      const p2 = { x: v.x + ((b.x - v.x) / lb) * r, y: v.y + ((b.y - v.y) / lb) * r };
+      const arc: Pt[] = [];
+      for (let k = 0; k <= 6; k++) { const t = k / 6, u = 1 - t; arc.push({ x: u * u * p1.x + 2 * u * t * v.x + t * t * p2.x, y: u * u * p1.y + 2 * u * t * v.y + t * t * p2.y }); }
+      let ok = hardClear(a, arc[0]!);
+      for (let k = 0; ok && k + 1 < arc.length; k++) ok = hardClear(arc[k]!, arc[k + 1]!);
+      if (ok) out.push(...arc); else out.push(v);
     }
-    for (let i = 0; i + 1 < q.length; i++) if (!hardClear(q[i]!, q[i + 1]!)) return p;
-    return q;
+    out.push(p[p.length - 1]!);
+    return out;
   };
   const mark = (c: Pt[]): void => { for (const q of c) taken[Math.min(GH - 1, Math.floor(q.y / CELL)) * GW + Math.min(GW - 1, Math.floor(q.x / CELL))] = 1; };
   /** A path from [from] to the goal, straightened and rounded; [commit]: mark it taken (a later line crosses, never follows it). */
@@ -265,7 +311,7 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
     return picked;
   };
   /** A depot site beside [pts] where a stretch runs near a street's way (within 12 degrees of east-west or north-south), nearest the plaza. */
-  const depotAlong = (pts: Pt[]): TownRail['depot'] => {
+  const depotAlong = (pts: Pt[], roadPad = 8): TownRail['depot'] => {
     let best: { d: number; v: NonNullable<TownRail['depot']> } | null = null;
     for (let i = 0; i + 1 < pts.length; i++) {
       const a = pts[i]!, b = pts[i + 1]!, L = Math.hypot(b.x - a.x, b.y - a.y);
@@ -280,7 +326,7 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
           const c = { x: at.x + nx * (DEPOT.off + DEPOT.deep / 2), y: at.y + ny * (DEPOT.off + DEPOT.deep / 2) };
           const rw = horiz ? DEPOT.len : DEPOT.deep, rh = horiz ? DEPOT.deep : DEPOT.len;
           const rect = { x: Math.round(c.x - rw / 2), y: Math.round(c.y - rh / 2), w: rw, h: rh };
-          if (!freeRect(rect) || !nearRoad(rect, 10)) continue;
+          if (!freeRect(rect) || !nearRoad(rect, roadPad)) continue;
           const d = Math.hypot(c.x - cx0, c.y - cy0);
           if (!best || d < best.d) best = { d, v: { rect, at, dx, dy, side, built: builtYear } };
         }
@@ -381,6 +427,12 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
     if (p) paths.push({ pts: p, links: [l] }); else out.conflicts.push(`no way in for ${l.id}`);
   }
 
+  // ---- no depot yet (no stretch for it near a street): beside any of the lines, further from a street if need be
+  if (!out.depot) for (const pad of [8, 16, 40]) {
+    for (const q of paths) { const d = depotAlong(q.pts, pad); if (d && (!out.depot || Math.hypot(d.at.x - cx0, d.at.y - cy0) < Math.hypot(out.depot.at.x - cx0, out.depot.at.y - cy0))) out.depot = d; }
+    if (out.depot) break;
+  }
+
   // ---- tracks by link: a through track splits at the depot (or its middle)
   for (const p of paths) {
     if (p.links.length === 1) { out.tracks.push({ link: p.links[0]!.id, kind: p.links[0]!.kind, pts: p.pts }); continue; }
@@ -443,7 +495,7 @@ export function townRail(w: RailWorld, site: TownSite, plan: TownPlan = planTown
 
 function crossing(w: RailWorld, l: RailLink, plan: TownPlan, road: number, x: number, y: number, dx: number, dy: number): LevelCrossing {
   const r = (k: string): number => rand(w.seed, 'rail-xing', l.id, road, k);
-  const busy = l.kind === 'main' || plan.roads[road]!.main;
+  const busy = l.kind === 'main' || road >= plan.roads.length || plan.roads[road]!.main;
   const lightsFrom = Math.max(l.built, (busy ? 1946 : 1956) + Math.floor(r('lights') * 22));
   const gates = busy || r('g') < 0.3 ? Math.max(lightsFrom + 4, 1962 + Math.floor(r('gates') * 25)) : undefined;
   return { x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100, dx: Math.round(dx * 1000) / 1000, dy: Math.round(dy * 1000) / 1000, road, link: l.id, lightsFrom, ...(gates !== undefined ? { gatesFrom: gates } : {}) };

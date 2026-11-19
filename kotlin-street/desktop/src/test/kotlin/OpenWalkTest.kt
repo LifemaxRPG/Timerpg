@@ -110,6 +110,8 @@ class OpenWalkTest {
         assertEquals(setOf("b101", "b102", "b103", "b104"), map.stores)
         for (r in town.rows) for (b in r.buildings) {
             if (b.sprite in map.stores) { assertTrue("${b.sprite} is a store", (0 until map.size).none { map.owner(it) == b.sprite }); continue }
+            // (a car park is walked over: nothing of it is solid)
+            if (b.flat) { assertTrue("${b.sprite} is flat", (0 until map.size).none { map.owner(it) == b.sprite }); continue }
             assertTrue("no shapes for ${b.sprite}", (0 until map.size).any { map.owner(it) == b.sprite && map.kind(it) == SolidKind.BUILDING })
         }
         assertTrue(byKind[SolidKind.FENCE]!! > 300); assertTrue(byKind[SolidKind.HEDGE]!! > 40); assertTrue(byKind[SolidKind.WATER]!! > 50)

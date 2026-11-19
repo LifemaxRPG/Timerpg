@@ -1,0 +1,770 @@
+{
+  "name": "Main Street Service",
+  "era": {
+    "suggested_built": 1953,
+    "design_years": [
+      1950,
+      1969
+    ],
+    "survival_after_1969": "Allowed; age and reuse follow simulation facts, not an automatic expiry."
+  },
+  "units": "metres",
+  "axes": "glTF Y up; front +Z",
+  "origin": "Ground level at middle of building front edge",
+  "footprint_m": {
+    "building_width": 15.52,
+    "building_depth": 8.0704,
+    "lot_width": 23.28,
+    "lot_depth": 21.728
+  },
+  "heights_m": {
+    "office_roof": 3.5851200000000003,
+    "service_roof": 4.12832,
+    "highest_structure": 5.5096,
+    "roadside_sign": 6.208
+  },
+  "triangles_visible": 2372,
+  "triangles_collision": 492,
+  "materials": [
+    "detail_period_equipment",
+    "floor_service_concrete",
+    "glass_office",
+    "glow_period_signs_and_lamps",
+    "ground_asphalt",
+    "ground_paving_and_floor",
+    "roof_tar_membrane",
+    "sign_price",
+    "trim_red_enamel",
+    "trim_teal_enamel",
+    "wall_brick_base",
+    "wall_porcelain_enamel"
+  ],
+  "doors": [
+    {
+      "node": "door_main",
+      "position": [
+        -4.9664,
+        0,
+        0.1552
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "node": "door_back",
+      "position": [
+        5.1216,
+        0,
+        -8.3032
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "node": "door_bay_1",
+      "position": [
+        0.0,
+        0,
+        0.1552
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "node": "door_bay_2",
+      "position": [
+        5.1216,
+        0,
+        0.1552
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "collision": {
+    "node": "collision",
+    "render": false,
+    "boxes_blender_z_up": [
+      {
+        "center": [
+          -7.694344688796454,
+          0.7585049550577424,
+          1.7072
+        ],
+        "size": [
+          0.1313106224070929,
+          0.26779008988451575,
+          3.4144
+        ],
+        "group": "structure",
+        "source": "Rounded corner",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -7.664809947410833,
+          0.6100237833000874,
+          1.7072
+        ],
+        "size": [
+          0.160558860364148,
+          0.26197225363079396,
+          3.4144
+        ],
+        "group": "structure",
+        "source": "Rounded corner",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -7.606875468187768,
+          0.4701575778307397,
+          1.7072
+        ],
+        "size": [
+          0.1881100980819837,
+          0.2505601573079016,
+          3.4144
+        ],
+        "group": "structure",
+        "source": "Rounded corner",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -7.522767640673768,
+          0.34428131848801397,
+          1.7072
+        ],
+        "size": [
+          0.2129055569460145,
+          0.2339923613775497,
+          3.4144
+        ],
+        "group": "structure",
+        "source": "Rounded corner",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -7.415718681511986,
+          0.23723235932623205,
+          1.7072
+        ],
+        "size": [
+          0.2339923613775492,
+          0.2129055569460143,
+          3.4144
+        ],
+        "group": "structure",
+        "source": "Rounded corner",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -7.289842422169261,
+          0.15312453181223332,
+          1.7072
+        ],
+        "size": [
+          0.2505601573079019,
+          0.18811009808198315,
+          3.4144
+        ],
+        "group": "structure",
+        "source": "Rounded corner",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -7.149976216699913,
+          0.09519005258916753,
+          1.7072
+        ],
+        "size": [
+          0.2619722536307945,
+          0.1605588603641484,
+          3.4144
+        ],
+        "group": "structure",
+        "source": "Rounded corner",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -7.001495044942258,
+          0.06565531120354666,
+          1.7072
+        ],
+        "size": [
+          0.2677900898845153,
+          0.13131062240709332,
+          3.4144
+        ],
+        "group": "structure",
+        "source": "Rounded corner",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -7.6824,
+          1.1640000000000001,
+          1.7072
+        ],
+        "size": [
+          0.1552,
+          0.776,
+          3.4144
+        ],
+        "group": "structure",
+        "source": "Office left front",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -7.6824,
+          6.0528,
+          1.7072
+        ],
+        "size": [
+          0.1552,
+          4.0352,
+          3.4144
+        ],
+        "group": "structure",
+        "source": "Office left rear",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -7.6824,
+          2.7936,
+          0.4656
+        ],
+        "size": [
+          0.1552,
+          2.4832,
+          0.9312
+        ],
+        "group": "structure",
+        "source": "Office side sill",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -7.6824,
+          2.7936,
+          3.1816
+        ],
+        "size": [
+          0.1552,
+          2.4832,
+          0.4656
+        ],
+        "group": "structure",
+        "source": "Office side lintel",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -6.2856000000000005,
+          0.0776,
+          0.4656
+        ],
+        "size": [
+          1.0864,
+          0.1552,
+          0.9312
+        ],
+        "group": "structure",
+        "source": "Office front sill",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -3.5696000000000003,
+          0.0776,
+          0.4656
+        ],
+        "size": [
+          1.2416,
+          0.1552,
+          0.9312
+        ],
+        "group": "structure",
+        "source": "Office front sill",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -6.984,
+          0.0776,
+          1.7072
+        ],
+        "size": [
+          0.3104,
+          0.1552,
+          3.4144
+        ],
+        "group": "structure",
+        "source": "Office jamb",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -5.6648000000000005,
+          0.0776,
+          1.7072
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.4144
+        ],
+        "group": "structure",
+        "source": "Office jamb",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -4.268,
+          0.0776,
+          1.7072
+        ],
+        "size": [
+          0.1552,
+          0.1552,
+          3.4144
+        ],
+        "group": "structure",
+        "source": "Office jamb",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -2.7936,
+          0.0776,
+          1.7072
+        ],
+        "size": [
+          0.3104,
+          0.1552,
+          3.4144
+        ],
+        "group": "structure",
+        "source": "Office jamb",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -5.1992,
+          7.9928,
+          1.7072
+        ],
+        "size": [
+          5.1216,
+          0.1552,
+          3.4144
+        ],
+        "group": "structure",
+        "source": "Office back",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -2.6384,
+          4.0352,
+          2.0176
+        ],
+        "size": [
+          0.1552,
+          8.0704,
+          4.0352
+        ],
+        "group": "structure",
+        "source": "Office/service partition",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          2.4832,
+          4.0352,
+          2.0176
+        ],
+        "size": [
+          0.1552,
+          8.0704,
+          4.0352
+        ],
+        "group": "structure",
+        "source": "Bay partition",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          7.6824,
+          4.0352,
+          2.0176
+        ],
+        "size": [
+          0.1552,
+          8.0704,
+          4.0352
+        ],
+        "group": "structure",
+        "source": "Right side wall",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -2.4056,
+          0.0776,
+          2.0176
+        ],
+        "size": [
+          0.776,
+          0.1552,
+          4.0352
+        ],
+        "group": "structure",
+        "source": "Service bay jamb",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          2.5608,
+          0.0776,
+          2.0176
+        ],
+        "size": [
+          1.0864,
+          0.1552,
+          4.0352
+        ],
+        "group": "structure",
+        "source": "Service bay jamb",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          7.527200000000001,
+          0.0776,
+          2.0176
+        ],
+        "size": [
+          0.4656,
+          0.1552,
+          4.0352
+        ],
+        "group": "structure",
+        "source": "Service bay jamb",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          5.1216,
+          0.03104,
+          1.7072
+        ],
+        "size": [
+          4.0352,
+          0.0776,
+          3.4144
+        ],
+        "group": "structure",
+        "source": "Closed bay door",
+        "attachment": "garage_door_closed",
+        "gate_node": "garage_door_closed"
+      },
+      {
+        "center": [
+          -0.1552,
+          7.9928,
+          2.0176
+        ],
+        "size": [
+          4.9664,
+          0.1552,
+          4.0352
+        ],
+        "group": "structure",
+        "source": "Service rear wall",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          6.7512,
+          7.9928,
+          2.0176
+        ],
+        "size": [
+          2.0176,
+          0.1552,
+          4.0352
+        ],
+        "group": "structure",
+        "source": "Service rear wall",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          3.4144,
+          7.9928,
+          2.0176
+        ],
+        "size": [
+          2.1728,
+          0.1552,
+          4.0352
+        ],
+        "group": "structure",
+        "source": "Rear middle wall",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          5.1216,
+          7.9928,
+          3.2592
+        ],
+        "size": [
+          1.2416,
+          0.1552,
+          1.552
+        ],
+        "group": "structure",
+        "source": "Rear exit lintel",
+        "attachment": "structure"
+      },
+      {
+        "center": [
+          -6.4408,
+          -5.1992,
+          0.2328
+        ],
+        "size": [
+          0.776,
+          0.6208,
+          0.1552
+        ],
+        "group": "lot",
+        "source": "Pump foot",
+        "attachment": "pump_01"
+      },
+      {
+        "center": [
+          -3.492,
+          -5.1992,
+          0.2328
+        ],
+        "size": [
+          0.776,
+          0.6208,
+          0.1552
+        ],
+        "group": "lot",
+        "source": "Pump foot",
+        "attachment": "pump_02"
+      },
+      {
+        "center": [
+          -7.4496,
+          -5.1992,
+          0.5432
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          1.0864
+        ],
+        "group": "lot",
+        "source": "Island post",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -2.4832,
+          -5.1992,
+          0.5432
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          1.0864
+        ],
+        "group": "lot",
+        "source": "Island post",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -9.700000000000001,
+          -7.6824,
+          2.1728
+        ],
+        "size": [
+          2.6384,
+          0.2328,
+          2.9488000000000003
+        ],
+        "group": "lot",
+        "source": "Price board frame",
+        "attachment": "roadside_price_board"
+      },
+      {
+        "center": [
+          -9.4672,
+          -2.3280000000000003,
+          2.7936
+        ],
+        "size": [
+          0.18624,
+          0.18624,
+          5.5872
+        ],
+        "group": "lot",
+        "source": "Gas sign pole",
+        "attachment": "roadside_fuel_sign"
+      },
+      {
+        "center": [
+          -3.2592,
+          -0.5432,
+          1.0088
+        ],
+        "size": [
+          2.0176,
+          0.776,
+          2.0176
+        ],
+        "group": "lot",
+        "source": "Oil display cabinet",
+        "attachment": "oil_display"
+      },
+      {
+        "center": [
+          -8.536,
+          3.2592,
+          0.9312
+        ],
+        "size": [
+          0.9312,
+          0.776,
+          1.8624
+        ],
+        "group": "lot",
+        "source": "Air water stand",
+        "attachment": "air_water_station"
+      },
+      {
+        "center": [
+          9.312000000000001,
+          0.6984,
+          0.4656
+        ],
+        "size": [
+          2.9488000000000003,
+          0.6208,
+          0.9312
+        ],
+        "group": "lot",
+        "source": "Tire display",
+        "attachment": "tire_display"
+      },
+      {
+        "center": [
+          -2.1728,
+          9.312000000000001,
+          0.6208
+        ],
+        "size": [
+          0.776,
+          0.776,
+          1.2416
+        ],
+        "group": "lot",
+        "source": "Waste bin",
+        "attachment": "lot"
+      },
+      {
+        "center": [
+          -0.9312,
+          9.312000000000001,
+          0.6208
+        ],
+        "size": [
+          0.776,
+          0.776,
+          1.2416
+        ],
+        "group": "lot",
+        "source": "Waste bin",
+        "attachment": "lot"
+      }
+    ],
+    "note": "Suppress collision rendering. Skip lot boxes when dropping lot. Remove garage_door_closed collision only if the simulation/interaction opens bay 2."
+  },
+  "lot_node": "lot",
+  "interior": "Clean office and two service-bay shells with fixed counter; game supplies furniture and vehicles.",
+  "garage_states": {
+    "garage_door_open": "Bay 1 raised, with vehicle-height access",
+    "garage_door_closed": "Bay 2 closed; change its panel and matching collision together"
+  },
+  "swatches_used": [
+    "brick_red_terrace",
+    "asphalt_plain",
+    "sidewalk_cream",
+    "roofflat_grey_condo"
+  ],
+  "swatch_license": "LimeZu: Timerpg only; credit required",
+  "pixel_grid": {
+    "metres_per_texel": 0.0388,
+    "texels_per_art_pixel": 2
+  },
+  "dynamic_prices": {
+    "node": "sign_price",
+    "material": "sign_price",
+    "texture": "textures/prices.png",
+    "texels": [
+      32,
+      40
+    ],
+    "grades": [
+      "regular",
+      "premium"
+    ],
+    "year": 1959,
+    "values": "Illustrative artwork only; simulation supplies actual per-year prices."
+  },
+  "history_handoff": {
+    "site_role": "Main Street, compact parcel",
+    "later_station_asset": "prototypes/modern-gas-station/modern-gas-station.glb",
+    "later_station_min_design_year": 2005,
+    "relocation_requires": [
+      "Simulation says the business moved or a new station opened",
+      "An eligible highway parcel exists"
+    ],
+    "old_parcel": "Keep this building and its identity unless the simulation records demolition or reuse. Both stations may coexist.",
+    "optional_repair_only_hide": [
+      "pump_01",
+      "pump_02",
+      "roadside_price_board",
+      "roadside_fuel_sign"
+    ],
+    "repair_only_requires": "A recorded reuse/closure change; do not apply merely because the year advanced.",
+    "collision_reuse_rule": "When hiding a fuel node for repair-only reuse, also drop metadata collision boxes whose attachment matches that node."
+  },
+  "renders": "Blender desktop previews, not Filament or S25 captures"
+}
