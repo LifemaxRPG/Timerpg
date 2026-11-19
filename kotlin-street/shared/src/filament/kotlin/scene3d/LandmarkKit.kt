@@ -296,7 +296,7 @@ object LandmarkKit {
                 for (i in 1 until pos.size step 3) pos[i] = WATER_LEVEL
             }
             when (role) {
-                CinemaPart.Role.WINDOWS -> glass(img, spec.room == "hall")
+                CinemaPart.Role.WINDOWS -> glass(img, spec.room == "hall", if (swatch != null) null else mat?.let { m -> if (m.emissiveImage >= 0) glb.image(m.emissiveImage) else null })
                 CinemaPart.Role.SIGN -> glowMask(img, if (mi == priceMat) null else mat?.let { m -> if (m.emissiveImage >= 0) glb.image(m.emissiveImage) else null }, mat?.emissiveFactor ?: floatArrayOf(1f, 1f, 1f), false)
                 else -> {}
             }
@@ -328,7 +328,9 @@ object LandmarkKit {
         val solids = solidsOf(colTris, tags, keepLot, hidden, lift) + drawnSolids(parts.zip(names).filter { (_, n) ->
             !n.startsWith("ground_") && !n.startsWith("floor_") && !n.startsWith("roof_") && !n.startsWith("glass_") }.map { it.first }, fx0, fz0, fx1, fz1)
         // (empty nodes only: a door's panel group, `door_panel_*`, is geometry, not an entrance)
-        val doors = glb.nodes.filter { n -> n.name.startsWith("door_") && n.mesh < 0 && glb.nodes.none { it.parent == n.index } && !skipped(n) }.map { n ->
+        // (a door the info file marks `"external": false` joins two rooms: no entrance from the street, the interiors job's)
+        val inner = info?.let { innerDoors(it) } ?: emptySet()
+        val doors = glb.nodes.filter { n -> n.name.startsWith("door_") && n.mesh < 0 && glb.nodes.none { it.parent == n.index } && !skipped(n) && n.name !in inner }.map { n ->
             GlbFile.dir(n.world, 0f, 0f, 1f, tmp, 0)
             val l = sqrt(tmp[0] * tmp[0] + tmp[2] * tmp[2]).coerceAtLeast(1e-6f)
             LandmarkDoor(n.name, n.x * U, n.z * U, tmp[0] / l, tmp[2] / l)
@@ -363,6 +365,8 @@ object LandmarkKit {
 
     /** A pool's water (`water_*`) is laid this high over the town's ground (under the paving's [GROUND]), and drawn over [DEEP_WATER]. */
     const val WATER_LEVEL = .15f
+    /** An emission mask's lit texels: luminance over this (of 255; the funeral home's panes are 120-205, the door art 0). */
+    private const val EMISSION_PANE = 40
     private const val DEEP_WATER = 0xFF1E4660.toInt()
 
     /** [c] (ARGB) made solid over the opaque [back]. */
@@ -403,9 +407,14 @@ object LandmarkKit {
 
     /**
      * Glass made solid (our material does not blend: see-through texels over a dark room) and marked to mirror the sky
-     * by day and glow warm at night: its see-through texels, or (a pane painted opaque) all but its darkest frame texels.
+     * by day and glow warm at night: its see-through texels, or (a pane painted opaque) all but its darkest frame texels,
+     * or, when the material has an emissive picture of the same size (a mask: `glass_home` carries door art as well as
+     * panes, its `pane-emission.png` is lit only where there is glass), exactly the texels that picture lights.
      */
-    private fun glass(im: PixImg, hall: Boolean) {
+    private fun glass(im: PixImg, hall: Boolean, emissive: Png.Image? = null) {
+        // (a model that only copies its base picture as the emissive one has no mask: the pane rule below applies)
+        val mask = emissive?.takeIf { it.w == im.w && it.h == im.h && it.px.indices.any { i -> it.px[i] != im.px[i] } }
+        val lit = mask?.let { e -> BooleanArray(im.px.size) { val c = e.px[it]; ((c shr 16 and 255) * 3 + (c shr 8 and 255) * 4 + (c and 255)) / 8 > EMISSION_PANE } }
         val clear = BooleanArray(im.px.size) { (im.px[it] ushr 24) < 235 }
         val any = clear.any { it }
         val lum = IntArray(im.px.size) { val p = im.px[it]; (p shr 16 and 255) + (p shr 8 and 255) + (p and 255) }
@@ -420,7 +429,7 @@ object LandmarkKit {
                 val b = ((p and 255) * a + (room and 255) * (255 - a)) / 255
                 im.px[i] = (0xFF shl 24) or (r shl 16) or (g shl 8) or b
             }
-            val pane = if (any) clear[i] else lum[i] > frame
+            val pane = if (lit != null) lit[i] else if (any) clear[i] else lum[i] > frame
             // the lamp's warmth over the room's own colours (blue a little over half), so a lit window shows its shelves
             im.mask[i] = if (pane) (255 shl 24) or (220 shl 16) or (255 shl 8) or 150 else 0
         }
@@ -596,6 +605,12 @@ object LandmarkKit {
 
     /** A collision box's tags from model-info.json: its centre in the model (metres, glTF axes), group, attachment. */
     class BoxTag(val x: Float, val y: Float, val z: Float, val group: String, val attachment: String, val sx: Float = 0f, val sy: Float = 0f, val sz: Float = 0f)
+
+    /** The door nodes model-info.json marks as internal (`doors[].external` false). */
+    fun innerDoors(info: String): Set<String> {
+        val a = runCatching { org.json.JSONObject(info).optJSONArray("doors") }.getOrNull() ?: return emptySet()
+        return (0 until a.length()).mapNotNull { a.optJSONObject(it) }.filter { it.has("external") && !it.optBoolean("external", true) }.map { it.optString("node") }.toSet()
+    }
 
     fun collisionTags(info: String): List<BoxTag> {
         val c = runCatching { org.json.JSONObject(info).optJSONObject("collision") }.getOrNull() ?: return emptyList()

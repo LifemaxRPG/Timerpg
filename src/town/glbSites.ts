@@ -47,7 +47,7 @@ export const premierDepot = (seed: string): boolean => peakPeople(seed) >= PREMI
 /** One club a town at a time, and only in towns this big. */
 export const CLUB_PEOPLE = 8000;
 
-export type GlbLotType = 'downtown' | 'corner' | 'highway' | 'civic' | 'edge';
+export type GlbLotType = 'downtown' | 'corner' | 'highway' | 'civic' | 'edge' | 'house';
 const LOT_TYPE: Record<GlbLandmarkKind, GlbLotType> = {
   landmark_glb_gazette_office: 'downtown',
   landmark_glb_coin_laundromat: 'downtown',
@@ -55,6 +55,7 @@ const LOT_TYPE: Record<GlbLandmarkKind, GlbLotType> = {
   landmark_glb_pulse_nightclub: 'corner',
   landmark_glb_foundry_nightclub: 'edge',
   landmark_glb_foundry_factory: 'edge',
+  landmark_glb_funeral_home: 'house',
   landmark_glb_water_tower: 'civic',
   landmark_glb_feed_mill: 'edge',
   landmark_glb_modern_gas_station: 'highway',
@@ -80,12 +81,20 @@ export interface GlbTenure {
   reuse?: { from: number; as: string; hide?: string[] };
   /** Pulled down (or, for the works, turned into the club that follows it on its plot): from this year it is gone. */
   gone?: number;
-  /** Which of the model's painted variants (the works' name: [FACTORY_NAMES]). */
+  /** Which of the model's painted variants (the works' name: [FACTORY_NAMES]; the funeral home's family: [FUNERAL_NAMES]). */
   variant?: number;
+  /** The funeral home: the year its house was built (data; the plot is open ground before [opened], the conversion). */
+  houseBuilt?: number;
+  /** The funeral home's families, oldest first (data only: the painted sign keeps the founders' name). */
+  owners?: { from: number; family: string }[];
 }
 
 /** The works' names, in the order of the model's painted variants (tools/landmarks/foundry-factory/make_art.py VARIANTS). */
 export const FACTORY_NAMES = ['Hargrove Iron Works', 'Whitcomb Foundry & Machine Co.', 'Ostrander Iron Works', 'Pelham Foundry & Machine Co.'];
+
+/** The funeral home's painted family names, in the order of the model's variants (tools/landmarks/funeral-home/make_variants.py SURNAMES). */
+export const FUNERAL_FAMILIES = ['Hollis', 'Pruitt', 'Marlow', 'Whelan', 'Ashby', 'Kessler'];
+export const FUNERAL_NAMES = FUNERAL_FAMILIES.map((f) => `${f} & Sons Funeral Home`);
 
 export interface GlbSite {
   id: string;
@@ -249,6 +258,21 @@ export function glbTenures(seed: string): GlbTenure[] {
       if (works) works.gone = opened;
     }
   }
+  // the funeral home, in a town of 1,500 and more: an early-1900s house on a house lot near the core, converted 1935-60 (from the
+  // seed) and a funeral home ever since; the family that runs it may change later (data only)
+  if (peak >= 1500) {
+    const opened = open('landmark_glb_funeral_home');
+    const hi = Math.min(1935, opened - 1);
+    const houseBuilt = yr(Math.min(Math.max(1910, townFounded(seed) + 3), hi), hi, 'house', 'funeral');
+    const variant = Math.floor(R('name', 'funeral') * FUNERAL_NAMES.length);
+    const owners = [{ from: opened, family: FUNERAL_FAMILIES[variant]! }];
+    if (R('sold', 'funeral') < 0.5) {
+      const from = yr(1975, 2012, 'sold', 'funeral');
+      const next = (variant + 1 + Math.floor(R('buyer', 'funeral') * (FUNERAL_FAMILIES.length - 1))) % FUNERAL_FAMILIES.length;
+      owners.push({ from, family: FUNERAL_FAMILIES[next]! });
+    }
+    out.push({ kind: 'landmark_glb_funeral_home', name: FUNERAL_NAMES[variant]!, opened, variant, houseBuilt, owners });
+  }
   return out.sort((a, b) => a.opened - b.opened || (a.kind < b.kind ? -1 : 1));
 }
 
@@ -262,9 +286,10 @@ export function glbSites(plan: TownPlan, input: GlbInput): GlbSite[] {
   const W = plan.width, H = plan.height;
   const cx = plan.plaza.x + plan.plaza.w / 2, cy = plan.plaza.y + plan.plaza.h / 2;
   // ground to keep off: the plaza, the landmarks, the town hall and chapel, the farms, the railroad, the 3D yards
-  const fixed: { r: Rect; pad: number }[] = [
-    { r: plan.plaza, pad: 2 }, ...plan.landmarks.map((r) => ({ r, pad: 1 })),
-    ...[townHall(plan)?.rect, chapel(plan)?.rect].filter((r): r is Rect => !!r).map((r) => ({ r, pad: 2 })),
+  // (a house lot may stand against a landmark's plot: [lm] is the pad a landmark's plot has for it, 0)
+  const fixed: { r: Rect; pad: number; lm?: boolean; civic?: boolean }[] = [
+    { r: plan.plaza, pad: 2, civic: true }, ...plan.landmarks.map((r) => ({ r, pad: 1, lm: true })),
+    ...[townHall(plan)?.rect, chapel(plan)?.rect].filter((r): r is Rect => !!r).map((r) => ({ r, pad: 2, civic: true })),
     ...(input.keep ?? []).map((r) => ({ r, pad: 1 })),
     ...(input.rail?.rects ?? []).map((r) => ({ r, pad: 2 })),
   ];
@@ -300,11 +325,11 @@ export function glbSites(plan: TownPlan, input: GlbInput): GlbSite[] {
   };
 
   const sites: GlbSite[] = [];
-  const fits = (b: Rect, ri: number, padLots: number): boolean => {
+  const fits = (b: Rect, ri: number, padLots: number, house = false): boolean => {
     if (b.x < 3 || b.y < 3 || b.x + b.w > W - 3 || b.y + b.h > H - 3) return false;
     for (let i = 0; i < plan.roads.length; i++) if (hit(b, plan.roads[i]!, i === ri ? 0 : 1)) return false;
     if (usedC.some((c) => hit(b, c, padLots))) return false;
-    if (fixed.some((f) => hit(b, f.r, f.pad))) return false;
+    if (fixed.some((f) => hit(b, f.r, house ? (f.lm ? 0 : f.civic ? 1 : f.pad) : f.pad))) return false;
     if (sites.some((s) => hit(b, s.rect, 1))) return false;
     if (input.rail) for (const t of input.rail.tracks) if (rectLineDist(b, t) < 4) return false;
     return !wet(b);
@@ -323,7 +348,8 @@ export function glbSites(plan: TownPlan, input: GlbInput): GlbSite[] {
       return;
     }
     const pulse = t.kind === 'landmark_glb_pulse_nightclub';
-    for (const s of [...sites].sort((p, q) => (pulse ? clubFirst(q) - clubFirst(p) : 0))) {
+    // (a house lot is never a pulled-down business's)
+    for (const s of lotType === 'house' ? [] : [...sites].sort((p, q) => (pulse ? clubFirst(q) - clubFirst(p) : 0))) {
       const last = s.tenures[s.tenures.length - 1]!;
       if (!pulse && last.kind === 'landmark_glb_mirage_nightclub' && pulseLater) continue;
       if (last.kind === 'landmark_glb_foundry_factory') continue;
@@ -338,8 +364,9 @@ export function glbSites(plan: TownPlan, input: GlbInput): GlbSite[] {
     const wall = WALL.has(t.kind);
     let best: { s: number; b: Rect; ri: number; face: GlbSite['face'] } | undefined;
     plan.roads.forEach((r, ri) => {
-      if (lotType === 'civic' && r.main) return;
-      if (!r.main && (roadYear.get(ri) ?? 9999) > Math.max(t.opened, POPULATION_FROM)) return;
+      if ((lotType === 'civic' || lotType === 'house') && r.main) return;
+      // (the converted house stands from the town's early years: its street was there when the plan begins)
+      if (!r.main && (roadYear.get(ri) ?? 9999) > (lotType === 'house' ? POPULATION_FROM : Math.max(t.opened, POPULATION_FROM))) return;
       const sides: GlbSite['face'][] = r.horizontal ? ['N', 'S'] : ['E', 'W'];
       for (const face of sides) {
         const len = r.horizontal ? r.w : r.h;
@@ -347,11 +374,11 @@ export function glbSites(plan: TownPlan, input: GlbInput): GlbSite[] {
           const b: Rect = r.horizontal
             ? { x: r.x + o, y: face === 'S' ? r.y - 1 - deep : r.y + r.h + 1, w: along, h: deep }
             : { x: face === 'E' ? r.x - 1 - deep : r.x + r.w + 1, y: r.y + o, w: deep, h: along };
-          if (!fits(b, ri, wall ? 0 : 1)) continue;
+          if (!fits(b, ri, wall ? 0 : 1, lotType === 'house')) continue;
           // the frontage rule: a street-wall building only beside the old core's wall, a building behind its own car park
           // never beside one
           const near = faceShops(b, ri, face, 4);
-          if (wall ? near.some((s) => stripFace(plan, s)) : near.some((s) => !stripFace(plan, s))) continue;
+          if (lotType === 'house' ? near.length > 0 : wall ? near.some((s) => stripFace(plan, s)) : near.some((s) => !stripFace(plan, s))) continue;
           const mx = b.x + b.w / 2, my = b.y + b.h / 2;
           const d = Math.hypot(mx - cx, (my - cy) * 1.3);
           const jit = rand(seed, 'glb', 'site', t.kind, b.x, b.y) * 4;
@@ -364,6 +391,12 @@ export function glbSites(plan: TownPlan, input: GlbInput): GlbSite[] {
             case 'downtown': if (d > 120) continue; s = d + (r.main ? 0 : 20) - (wall && near.length ? 25 : 0) + (corner && wall ? 10 : 0); break;
             case 'corner': if (d > 140) continue; s = d * 0.6 + (r.main ? 0 : 15) - (corner ? 20 : 0); break;
             case 'highway': s = -d + cluster * 0.4 + (r.main ? 0 : 60) + (t.kind === 'landmark_glb_main_street_service_station' ? Math.abs(d - 60) * 2 : 0); break;
+            // a house lot: near the core but not on it, on an old residential street among houses (never a highway strip)
+            case 'house': {
+              const homes = usedC.filter((c) => c.kind !== 'shop' && Math.hypot(c.x + c.w / 2 - mx, c.y + c.h / 2 - my) < 14).length;
+              s = Math.abs(d - 40) * 0.5 - Math.min(homes, 8) * 3 + (roadYear.get(ri) ?? POPULATION_FROM) - POPULATION_FROM;
+              break;
+            }
             case 'civic': s = Math.abs(d - 45) + (usedC.some((c) => hit(b, c, 3)) ? 30 : 0); break;
             default: {
               const el = input.rail?.elevator;
@@ -381,7 +414,24 @@ export function glbSites(plan: TownPlan, input: GlbInput): GlbSite[] {
   const all = glbTenures(seed);
   const pulseLater = all.some((t) => t.kind === 'landmark_glb_pulse_nightclub');
   const clubFirst = (s: GlbSite): number => (s.tenures.some((t) => t.kind === 'landmark_glb_mirage_nightclub') ? 1 : 0);
-  for (const t of all) place(t);
+  // The funeral home last: it takes what ground is left and never moves another model's plot. A town with no house-sized ground left
+  // gives it the first pick instead; then the other models are placed in their order with the ones that ask the most ground
+  // (or all of them) last, whichever of those orders leaves the most models a plot (LANDMARKS_GLB.md "The funeral home").
+  const fh = all.filter((t) => t.kind === 'landmark_glb_funeral_home'), rest = all.filter((t) => t.kind !== 'landmark_glb_funeral_home');
+  rest.forEach(place); fh.forEach(place);
+  if (fh.length && !sites.some((q) => q.tenures.includes(fh[0]!))) {
+    const late = ['landmark_glb_feed_mill', 'landmark_glb_starling_lanes', 'landmark_glb_roadside_motel'];
+    let best: { sites: GlbSite[]; n: number } | undefined;
+    for (let m = 0; m < 1 << late.length; m++) {
+      const set = new Set(late.filter((_, i) => m & (1 << i)));
+      sites.length = 0; fh.forEach(place);
+      rest.filter((t) => !set.has(t.kind)).forEach(place); rest.filter((t) => set.has(t.kind)).forEach(place);
+      const n = sites.reduce((c, q) => c + q.tenures.length, 0);
+      if (sites.some((q) => q.tenures.includes(fh[0]!)) && (!best || n > best.n)) best = { sites: [...sites], n };
+    }
+    sites.length = 0;
+    if (best) sites.push(...best.sites);
+  }
   return sites;
 }
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { runTimeline, worldAt } from '../sim';
 import { railSite, type RailWorld } from '../world/rail';
 import { GLB_LANDMARK_KINDS, GLB_LANDMARKS, type GlbLandmarkKind } from './glbLandmarks';
-import { glbSites, glbStandingOn, glbTenures, glbUnplaced, premierDepot, type GlbSite } from './glbSites';
+import { FUNERAL_NAMES, glbSites, glbStandingOn, glbTenures, glbUnplaced, peakPeople, premierDepot, type GlbSite } from './glbSites';
 import { planTown } from './plan';
 import { townRail, type TownRail } from './rail';
 import type { Rect } from './kinds';
@@ -127,6 +127,45 @@ describe('hand-made landmark models in the towns', () => {
     }
     expect(seen).toBeGreaterThan(0);
   }, 60000);
+
+  it('give a town of 1,500 and more a funeral home: a converted house, from the seed, standing to the present', () => {
+    const kind: GlbLandmarkKind = 'landmark_glb_funeral_home';
+    let placed = 0;
+    for (const seed of [...SEEDS, 'theta', 'kappa', 'beta', 'zeta']) {
+      const ts = glbTenures(seed).filter((t) => t.kind === kind);
+      // one in every town of 1,500 and more, none below
+      expect(ts.length, seed).toBe(peakPeople(seed) >= 1500 ? 1 : 0);
+      for (const t of ts) {
+        // converted 1935-60, from a house built by then (the design's years 1910-35) and in the town's early years
+        expect(t.opened, `${seed} converted in 1935-60`).toBeGreaterThanOrEqual(1935);
+        expect(t.opened).toBeLessThanOrEqual(1960);
+        expect(t.houseBuilt!, `${seed} house built before the conversion`).toBeLessThan(t.opened);
+        expect(t.houseBuilt!).toBeGreaterThanOrEqual(1910);
+        expect(t.houseBuilt!).toBeLessThanOrEqual(1935);
+        // a funeral home to the present, its family name painted from the seed (the sign keeps the founders' name)
+        expect(t.closed).toBeUndefined(); expect(t.gone).toBeUndefined();
+        expect(t.variant!).toBeGreaterThanOrEqual(0); expect(t.variant!).toBeLessThan(FUNERAL_NAMES.length);
+        expect(t.name).toBe(FUNERAL_NAMES[t.variant!]);
+        expect(t.owners![0]).toEqual({ from: t.opened, family: t.name.split(' & ')[0] });
+        for (let i = 1; i < t.owners!.length; i++) { expect(t.owners![i]!.from).toBeGreaterThan(t.owners![i - 1]!.from); expect(t.owners![i]!.family).not.toBe(t.owners![i - 1]!.family); }
+        expect(JSON.stringify(glbTenures(seed))).toBe(JSON.stringify(glbTenures(seed)));
+      }
+    }
+    // placed: on the SEEDS' plans, a house lot on a side street, open ground until the conversion, standing from it to 2025
+    for (const seed of SEEDS) {
+      const { sites } = town(seed);
+      const site = sites.find((s) => s.tenures.some((t) => t.kind === kind));
+      if (!site) continue;
+      placed++;
+      const t = site.tenures[0]!;
+      expect(site.lotType, seed).toBe('house');
+      expect(site.tenures.length, `${seed}: nothing else on a house lot`).toBe(1);
+      expect(planTown(seed).roads[site.road]!.main, `${seed} not on the main street (no highway strip)`).toBe(false);
+      expect(glbStandingOn(site, t.opened - 1), seed).toBeUndefined();
+      for (let y = t.opened; y <= 2025; y++) expect(glbStandingOn(site, y)?.state, `${seed} ${y}`).toBe('open');
+    }
+    expect(placed).toBeGreaterThanOrEqual(2);
+  }, 120000);
 
   it('put the hand-made depot on its track in a town of 3,000 and more', () => {
     // (gamma's own, laid round the 3D town's yards, is checked on the shipped rail.json: tools/town-glb.test.ts)

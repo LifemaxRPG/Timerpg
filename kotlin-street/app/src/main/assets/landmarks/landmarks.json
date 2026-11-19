@@ -159,6 +159,17 @@
       "info": "foundry-factory/model-info.json",
       "era": {"from": 1900, "to": 1945, "built": 1938},
       "footprint": {"lot": [28.56, 29.8], "building": [19.87, 18.0]}
+    },
+    {
+      "kind": "landmark_glb_funeral_home",
+      "name": "Hollis & Sons Funeral Home",
+      "role": "funeral_home",
+      "room": "hall",
+      "file": "funeral-home/funeral-home-hollis.glb",
+      "variants": ["funeral-home/funeral-home-hollis.glb", "funeral-home/funeral-home-pruitt.glb", "funeral-home/funeral-home-marlow.glb", "funeral-home/funeral-home-whelan.glb", "funeral-home/funeral-home-ashby.glb", "funeral-home/funeral-home-kessler.glb"],
+      "info": "funeral-home/model-info.json",
+      "era": {"from": 1935, "to": 1960, "built": 1948},
+      "footprint": {"lot": [26.38, 22.66], "building": [21.74, 17.65]}
     }
   ]
 }

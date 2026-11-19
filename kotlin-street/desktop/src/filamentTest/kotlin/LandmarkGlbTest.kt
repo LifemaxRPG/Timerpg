@@ -80,7 +80,7 @@ class LandmarkGlbTest {
 
     @Test fun theNewLandmarksAreInTheCatalogue() {
         for (k in listOf("gazette_office", "feed_mill", "mirage_nightclub", "pulse_nightclub", "starlight_drive_in", "water_tower", "roadside_motel", "premier_railroad_depot",
-            "coin_laundromat", "foundry_nightclub", "foundry_factory"))
+            "coin_laundromat", "foundry_nightclub", "foundry_factory", "funeral_home"))
             assertTrue("$k listed", specs.any { it.kind == "landmark_glb_$k" })
         // a swatch re-skin replaces the picture at the same texel size
         val club = specs.first { it.kind.endsWith("mirage_nightclub") }
@@ -106,6 +106,56 @@ class LandmarkGlbTest {
         // its chimney stands over the club's square tower (what it was cut down to)
         val works = build(s).model.height / U; val club = build(specs.first { it.kind.endsWith("foundry_nightclub") }).model.height / U
         assertTrue("chimney $works m over the club's $club m", works > 15f && works > club + 3f)
+    }
+
+    @Test fun theFuneralHomeGlowsOnlyItsPanes() {
+        // glass_home carries the doors' art as well as the panes: pane-emission.png (its emissive picture) limits the glow to the
+        // panes, so the wooden doors stay dark (art-regions.json: home_window [0,0,24,30], front_leaf [0,40,12,34] in art pixels)
+        val lm = build(specs.first { it.kind.endsWith("funeral_home") })
+        val g = lm.model.parts[lm.names.indexOf("glass_home")].mesh
+        val mask = g.mask!!
+        fun lit(x0: Int, y0: Int, w: Int, h: Int): Int { var n = 0; for (y in y0 * 2 until (y0 + h) * 2) for (x in x0 * 2 until (x0 + w) * 2) if (mask[y * g.texW + x] != 0) n++; return n }
+        assertTrue("the window's panes glow", lit(2, 2, 20, 26) > 20 * 26 * 4 / 2)
+        for ((name, r) in mapOf("front_leaf" to intArrayOf(0, 40, 12, 34), "side_door" to intArrayOf(16, 40, 18, 32), "staff_door" to intArrayOf(38, 40, 16, 32),
+            "chapel_leaf" to intArrayOf(58, 40, 12, 32), "garage_leaf" to intArrayOf(74, 40, 24, 38))) assertEquals("$name does not glow", 0, lit(r[0], r[1], r[2], r[3]))
+        assertTrue("only a small part of the atlas glows", mask.count { it != 0 } < g.texW * g.texH / 8)
+    }
+
+    @Test fun theFuneralHomeHasItsDoorsAndBoxes() {
+        val s = specs.first { it.kind.endsWith("funeral_home") }
+        val lm = build(s)
+        // five entrances from outside (the chapel's and the staff-room's inner doors are marked internal: no "Go inside" there yet)
+        assertEquals(setOf("door_main", "door_arrival", "door_staff", "door_chapel_exit", "door_service_bay"), lm.doors.map { it.name }.toSet())
+        val main = lm.doors.first { it.name == "door_main" }
+        assertTrue("door_main faces the road", main.outZ > .99f)
+        assertEquals("door_main stands 0.244 m past the front edge", .2444f * U, main.z, .01f)
+        // the closed door panel's box (gate_node panel_door_main) stands in the doorway, behind the door's node
+        fun box(cx: Float, cy: Float, sx: Float, sy: Float): Boolean {
+            // (the info file's Blender centre and size, Z up, front -Y: glTF x = x, z = -y)
+            var i = 0
+            while (i + 3 < lm.solids.size) { val a = lm.solids; if (abs(a[i] - (cx - sx / 2) * U) < .05f && abs(a[i + 1] - (-cy - sy / 2) * U) < .05f && abs(a[i + 2] - (cx + sx / 2) * U) < .05f && abs(a[i + 3] - (-cy + sy / 2) * U) < .05f) return true; i += 4 }
+            return false
+        }
+        assertTrue("closed main door", box(0f, -0.08924f, 1.8624f, 0.1552f))
+        assertTrue("a portico column", box(-1.8624f, -1.8624f, 0.5432f, 0.5432f))
+        assertTrue("the arrival lane's column", box(-10.864f, 2.1728f, 0.6208f, 0.6208f))
+        assertTrue("the reception counter", box(2.328f, 2.1728f, 2.4832f, 1.0864f))
+        assertTrue("the service bay's closed door", box(-2.4832f, 14.36764f, 3.7248f, 0.1552f))
+        assertTrue("the garden bench (lot)", box(7.4496f, 11.1744f, 2.1728f, 0.776f))
+        // the lot's boxes (shrubs, bench, bins) go with the lot
+        val bare = build(s, keepLot = false)
+        assertTrue("the lot's boxes go", bare.solids.size < lm.solids.size)
+    }
+
+    @Test fun theFuneralHomeHasSixPaintedFamilies() {
+        val s = specs.first { it.kind.endsWith("funeral_home") }
+        assertEquals(6, s.variants.size)
+        val signs = s.variants.map { f ->
+            val lm = LandmarkKit.build(GlbFile.read(File(root, f).readBytes()), s, 1950, 7, info = s.info?.let { File(root, it).readText() })
+            lm.model.triangles to lm.model.parts[lm.names.indexOf("sign_name")].mesh.tex.toList()
+        }
+        assertTrue("same geometry", signs.map { it.first }.distinct().size == 1)
+        assertEquals("each family has its own sign", 6, signs.map { it.second }.distinct().size)
     }
 
     @Test fun theFoundryGlowsOnlyOutside() {
