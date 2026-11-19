@@ -94,8 +94,12 @@ fun renderFilamentTown(out: String) {
     // a cold start as the app makes it (a fresh scene through TownRun from the spawn, behind the loading screen, then
     // walking while the rest comes in): -Dshots=cold alone renders only this
     val onlyShots = System.getProperty("shots")?.split(",")?.map { it.trim() }?.toSet()
-    if (onlyShots == null || "cold" in onlyShots || onlyShots.any { it.startsWith("cold") })
-        coldStart(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, report, dir, 2340, 1080, cinema, storeSites)
+    if (onlyShots == null || "cold" in onlyShots || onlyShots.any { it.startsWith("cold") }) {
+        val farmDir = File("../app/src/main/assets/farm")
+        val farmArt = com.lifemax.rpg.feature.habits.presentation.scene3d.FarmArt({ p -> open(File(farmDir, p)) }, { p -> File(farmDir, p).takeIf { it.exists() }?.readText() }, { p -> open(File(assets, p)) })
+        coldStart(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, report, dir, 2340, 1080, cinema, storeSites,
+            com.lifemax.rpg.feature.habits.domain.TownFarmsData.parse(root), farmArt)
+    }
     // (the memory check: the cold start alone)
     if (System.getProperty("coldOnly") != null) { File(dir, "town.txt").writeText(report.toString()); return }
 
@@ -522,9 +526,13 @@ private fun coldStart(
     engine: Engine, mats: (String) -> ByteArray, town: Town, yards: TownYards, art: TownArt, building: (String) -> SpriteBuilding?,
     report: StringBuilder, dir: File, sw: Int, shh: Int, cinema: com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite? = null,
     stores: List<com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite> = emptyList(),
+    farms: com.lifemax.rpg.feature.habits.domain.TownFarmsData = com.lifemax.rpg.feature.habits.domain.TownFarmsData.NONE,
+    farmArt: com.lifemax.rpg.feature.habits.presentation.scene3d.FarmArt? = null,
 ) {
     val t0 = System.nanoTime()
     val ft = FilamentTown(engine, mats, town, yards, art, building, cinema = cinema, stores = stores)
+    // (the farms round the town, as the app adds them)
+    val farmDraw = farmArt?.let { com.lifemax.rpg.feature.habits.presentation.scene3d.TownFarms.attach(ft, farms, it, null) }
     GameState.enabled = true; GameState.look = 1
     GameState.moveX = 0f; GameState.moveLane = 0f
     val walk = TownPlay.start(town)
@@ -591,6 +599,7 @@ private fun coldStart(
         .format(if (busyAtView) "the rest of the town in %.0f ms more".format(restMs) else "nothing left to build when the view was ready", playing.size, pct(playing, 50), pct(playing, 95), playing.maxOrNull() ?: 0f, over,
             ft.buildingsMs, ft.slowest.first, ft.slowest.second, ft.prepareMs, ft.slowestPrepare.first, ft.slowestPrepare.second, ft.groundMs))
     report.appendLine("(cold start: main-thread work only, on the build server's CPU with software GL; the render itself and the S25 are not measured)")
+    farmDraw?.let { report.appendLine("cold start, " + it.report) }
     TownMemory.stop()
     // what the town holds on the GPU (as made; the shadow map, targets and surfaces from their sizes), at the phone's size
     report.appendLine("cold start, " + ft.gpuEstimate(sw, shh).line() + " (shadow map %d x %d cascades)".format(ft.shadowMap, ft.shadowCascades))

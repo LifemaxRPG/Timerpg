@@ -504,11 +504,19 @@ class FilamentTown(
     var groundMs = 0f; private set
     var buildingsMs = 0f; private set
     val pending: Int get() = slots.count { it.built == null && !it.missing } + (if (cinemaDraw?.done == false) 1 else 0) + storeDraws.count { !it.done } +
-        (if (farCounted && !far.allReady) 1 else 0)
+        (if (farCounted && !far.allReady) 1 else 0) + extras.count { it.pending }
     /** The far cells have been counted (each building's cell, at the first [buildNearest]). */
     private var farCounted = false
     /** The far boxes: cells, cells up, their triangles (for reports). */
     val farReport: String get() = "far: ${far.readyCount} of ${far.cellCount} cells up, ${far.triangles} triangles"
+
+    // ------------------------------------------------------------------ more the town draws (the farms: TownFarms)
+    private val extras = ArrayList<TownExtra>()
+    /** Adds something more the town draws ([TownExtra]: the farms), made with the town's engine, scene, materials and workers. */
+    internal fun <T : TownExtra> addExtra(make: (TownExtra.Kit) -> T): T =
+        make(TownExtra.Kit(engine, scene, lit, proxyMat, textures, pool)).also { extras += it }
+    /** The extras' report lines (for previews). */
+    val extraReport: List<String> get() = extras.map { it.report }
     var stats = TownStats(slots.size, 0, 0, 0, 0, 0, 0); private set
     /** Each batch [buildNearest] made: how many it built and how long it took (ms). */
     val batches = ArrayList<Pair<Int, Float>>()
@@ -801,6 +809,8 @@ class FilamentTown(
         if (far.upload()) engine.flush()
         cinemaDraw?.let { c -> c.start(pool); if (!c.done && c.step()) engine.flush() }
         for (st in storeDraws) { st.start(pool, lastHour, weekday); if (!st.done && st.step()) engine.flush() }
+        // (the extras' work waits for the ground: the first view comes first)
+        if (groundBuilt) for (x in extras) x.step()
         if (todo == 0 && chunksTodo == 0 && groundBuilt) return 0
         val t0 = System.nanoTime()
         var n = 0
@@ -1115,6 +1125,10 @@ class FilamentTown(
             val o = st.frame(pose, look, dark, seconds, { x, z -> if (pose.cut > 0f) fadeOf(pose, x, z) else 1f }, storeOut)
             if (o[0] > 0) { visible++; renderables += o[0]; draws += o[0]; tris += o[1] }; casters += o[2]
         }
+        if (extras.isNotEmpty()) {
+            val fc = TownExtra.Frame(pose, look, dark, hour, seconds, floatArrayOf(g0, g1, g2, ga), floatArrayOf(gl0, gl1, gl2), occStep)
+            for (x in extras) { val o = x.frame(fc, storeOut); if (o[0] > 0) { visible++; renderables += o[0]; draws += o[0]; tris += o[1] }; casters += o[2] }
+        }
         val lampsLit = lamps(pose, dark)
         // (copied out under the lock into a list kept for it: the yards' water may add one from a worker meanwhile)
         synchronized(ticks) { tickCopy.clear(); tickCopy.addAll(ticks) }
@@ -1164,8 +1178,10 @@ class FilamentTown(
     /**
      * The open world's camera against what could hide the player: the buildings and the yards' tall things (sheds, garages,
      * greenhouses, carports, play sets, tall hedges, trees: [tallYards]). Not one line but a cone of five, from the player's
-     * chest, feet, head and either side (camera's right) to the eye at ([ex], [ey], [ez]): whatever any of them passes
-     * through is cut away next [frame] ([fadeBetween]), and so is anything within [EYE_CLEAR] of the eye itself (a wall or a
+     * chest, feet, head and either side (camera's right) to the eye at ([ex], [ey], [ez]): whatever really hides the player
+     * (both the chest's and the head's lines through it; since 0.1.402's "buildings disappear too easily", not something
+     * that only covers their feet or a side) is cut away next [frame] ([fadeBetween]), and so is anything within
+     * [EYE_CLEAR] of the eye itself (a wall or a
      * sign beside the camera that the near plane would cut through). Something the player stands in (a porch's box, within
      * its bounds) does not count for the ray starting inside it. Returns how far along the chest's line the first building
      * in the way begins (a share of the way, 1: nothing); [eyeInside] is where that line enters a building the camera
@@ -1202,16 +1218,23 @@ class FilamentTown(
             val elx = (ex - pl.ox) * pl.nz - (ez - pl.oz) * pl.nx
             val elz = (ex - pl.ox) * pl.nx + (ez - pl.oz) * pl.nz
             if (boxDistance(elx, ey, elz, bb[0], bb[1], bb[2], bb[3], bb[4], bb[5]) < EYE_CLEAR) s.occT = .999f
-            for (k in 0 until 5) {
+            // (cut only when it hides the player: both the chest's and the head's lines through it; a building that only
+            // covers their feet or a side, or one line of the two, stays: 075528 "buildings disappear too easily")
+            var tc = Float.MAX_VALUE; var th = Float.MAX_VALUE
+            for (j in 0..1) {
+                val k = j * 2
                 val px = st[k * 3]; val py = st[k * 3 + 1]; val pz = st[k * 3 + 2]
                 o[0] = (px - pl.ox) * pl.nz - (pz - pl.oz) * pl.nx; o[1] = py; o[2] = (px - pl.ox) * pl.nx + (pz - pl.oz) * pl.nz
                 d[0] = elx - o[0]; d[1] = ey - py; d[2] = elz - o[2]
                 lo[0] = bb[0]; lo[1] = bb[1]; lo[2] = bb[2]; hi[0] = bb[3]; hi[1] = bb[4]; hi[2] = bb[5]
                 val t0 = slab(o, d, lo, hi)
-                if (t0 < 0f || t0 > 1f) continue
+                if (j == 0) tc = t0 else th = t0
+            }
+            if (tc in 0f..1f && th in 0f..1f) {
+                val t0 = max(tc, th)
                 if (t0 < s.occT) s.occT = t0
-                if (k == 0 || k == 2) blocked = true
-                if (k == 0 && t0 < first) first = t0
+                blocked = true
+                if (tc < first) first = tc
             }
             // the camera inside it (kept the pad off): where the chest's line enters it, for a camera pulled in to the wall
             o[0] = (tx - pl.ox) * pl.nz - (tz - pl.oz) * pl.nx; o[1] = ty; o[2] = (tx - pl.ox) * pl.nx + (tz - pl.oz) * pl.nz
@@ -1228,26 +1251,28 @@ class FilamentTown(
             val bk = stD.block ?: continue
             lo[0] = bk[0]; lo[1] = 0f; lo[2] = bk[1]; hi[0] = bk[2]; hi[1] = bk[4]; hi[2] = bk[3]
             if (boxDistance(ex, ey, ez, bk[0], 0f, bk[1], bk[2], bk[4], bk[3]) < EYE_CLEAR) stD.occT = .999f
-            for (k in 0 until 5) {
+            var tc = Float.MAX_VALUE; var th = Float.MAX_VALUE
+            for (j in 0..1) {
+                val k = j * 2
                 o[0] = st[k * 3]; o[1] = st[k * 3 + 1]; o[2] = st[k * 3 + 2]
                 d[0] = ex - o[0]; d[1] = ey - o[1]; d[2] = ez - o[2]
                 val t0 = slab(o, d, lo, hi)
-                if (t0 < 0f || t0 > 1f) continue
+                if (j == 0) tc = t0 else th = t0
+            }
+            if (tc in 0f..1f && th in 0f..1f) {
+                val t0 = max(tc, th)
                 if (t0 < stD.occT) stD.occT = t0
-                if (k == 0 || k == 2) blocked = true
-                if (k == 0 && t0 < first) first = t0
+                blocked = true
+                if (tc < first) first = tc
             }
         }
         // the cinema (drawn by its own kit, not a slot's building): as a building, the eye in or by it cutting it whole
         cinemaOccT = Float.MAX_VALUE
         cinemaDraw?.let { cd ->
-            for (k in 0 until 5) {
-                val t0 = cd.inWay(st[k * 3], st[k * 3 + 1], st[k * 3 + 2], ex, ey, ez, if (k == 0) EYE_CLEAR else 0f)
-                if (t0 > 1f) continue
-                if (t0 < cinemaOccT) cinemaOccT = if (t0 <= 0f) .999f else t0
-                if (t0 > 0f && (k == 0 || k == 2)) blocked = true
-                if (k == 0 && t0 > 0f && t0 < first) first = t0
-            }
+            val tc = cd.inWay(st[0], st[1], st[2], ex, ey, ez, EYE_CLEAR)
+            val th = cd.inWay(st[6], st[7], st[8], ex, ey, ez, 0f)
+            if (tc <= 0f) cinemaOccT = .999f
+            else if (tc <= 1f && th <= 1f) { cinemaOccT = max(tc, th); blocked = true; if (tc < first) first = tc }
         }
         // the yards' tall things (world boxes): any of the cone's lines through one, or the eye near it, cuts its lot's
         val tb = tallBoxes
@@ -1263,17 +1288,22 @@ class FilamentTown(
             if (max(x0, x1) < min(tx, ex) - reach || min(x0, x1) > max(tx, ex) + reach || z1 < min(tz, ez) - reach || z0 > max(tz, ez) + reach) continue
             if (boxDistance(ex, ey, ez, x0, 0f, z0, x1, h, z1) < EYE_CLEAR * .75f) { tallHit[li] = true; continue }
             lo[0] = x0; lo[1] = 0f; lo[2] = z0; hi[0] = x1; hi[1] = h; hi[2] = z1
-            for (k in 0 until 5) {
+            // (only the chest's and the head's lines, and both through it: a hedge, a shed or a play set that only covers
+            // the player's feet or a side stays; a line that starts inside it (the player under a tree's crown or a
+            // carport's roof) counts as through it when it has a roof)
+            var through = 0
+            for (j in 0..1) {
+                val k = j * 2
                 o[0] = st[k * 3]; o[1] = st[k * 3 + 1]; o[2] = st[k * 3 + 2]
                 d[0] = ex - o[0]; d[1] = ey - o[1]; d[2] = ez - o[2]
-                // (a line that starts inside it: a player standing under a tree's crown or a carport's roof is hidden by
-                // it, so the chest's and the head's lines count; the feet's and the sides' do not, or a hedge or a shed
-                // beside or behind the player would be cut)
                 val t0 = slab(o, d, lo, hi)
-                if (t0 < 0f) { if ((k == 0 || k == 2) && tallRoof[i - 1]) { tallHit[li] = true; blocked = true; break } }
-                else if (t0 <= 1f) { tallHit[li] = true; if (k == 0 || k == 2) blocked = true; break }
+                if (t0 < 0f) { if (tallRoof[i - 1]) through++ }
+                else if (t0 <= 1f) through++
             }
+            if (through == 2) { tallHit[li] = true; blocked = true }
         }
+        // the extras (the farms' buildings)
+        for (x in extras) if (x.occlude(st, ex, ey, ez)) blocked = true
         // the woods' merged trees (no box of their own to cut): a crown across the chest's or the head's line hides the
         // player, and only then does the see-through cone open ([hidden]); the feet's line behind a bush does not count
         if (!blocked) for (c in chunks.values) {
@@ -1369,6 +1399,7 @@ class FilamentTown(
         for (s in slots) s.occluded = s.occT < t
         for (s in storeDraws) s.occluded = s.occT < t
         cinemaDraw?.occluded = cinemaOccT < t
+        for (x in extras) x.fadeBetween(t)
         occludedLots.clear()
         for (k in tallKeys.indices) if (tallHit[k]) occludedLots.add(tallKeys[k])
     }
@@ -1534,6 +1565,7 @@ class FilamentTown(
         crowd.destroy()
         cinemaDraw?.destroy()
         for (st in storeDraws) st.destroy()
+        for (x in extras) x.destroy()
         for (s in slots) {
             val b = s.built ?: continue
             for (e in listOf(b.entity, b.proxy)) if (e != 0) { scene.remove(e); engine.destroyEntity(e); em.destroy(e) }

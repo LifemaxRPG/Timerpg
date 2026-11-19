@@ -51,7 +51,7 @@ object SoundRules {
             "night_quiet" to 0f,
             "birds_morning" to .6f * dawn * dry * (if (season == 3) .3f else 1f),
             "crickets_night" to .45f * night * warm * dry * (if (season == 1) 1f else .6f),
-            "wind" to (.15f + .35f * cloud + .25f * mist).coerceAtMost(.7f) * (if (season == 3) 1.3f else 1f),
+            "wind" to (.35f * cloud + .25f * mist).coerceAtMost(.6f) * (if (season == 3) 1.3f else 1f),
             "rain_light" to .7f * smooth(.02f, .35f, rain) * (1f - smooth(.55f, .85f, rain)),
             "rain_heavy" to .85f * smooth(.5f, .85f, rain),
         ).mapValues { it.value.coerceIn(0f, 1f) }

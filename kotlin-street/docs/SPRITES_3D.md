@@ -545,11 +545,23 @@ Not wired into the town generator. Same rule as the chapel: the art is 3/4 top-d
   log-post cylinders (the art's post unrolled) with two rails and the art's board gate; hay bales boxes wearing the art with the hay pile and sacks as
   cards; troughs boxes with the art's water from above; crates, milk cans and logs; wells a hollow stone cylinder, water, and for the usable one posts,
   a gable roof and crank; four market stalls (blue, pink, green, yellow) with a sloped striped awning (stripes from the art, scalloped valance as the
-  slab's front), counter, fruit crates; a parked tractor (hood, cab with glass, grey roof from the art, wheels as stacked blocks: the engine has no
-  horizontal cylinder); `fm_bits` cards (scarecrow, doghouse, henhouse, chicken coop, sprinkler, cheese machine). The pack has no windmill and no barrels.
+  slab's front), counter, fruit crates; a parked tractor (hood, cab with glass, grey roof from the art); `fm_bits` cards (scarecrow, doghouse,
+  henhouse, chicken coop, sprinkler, cheese machine). The pack has no windmill and no barrels.
+- **Lying cylinders** (wf-farms2): `cyl` takes an optional `axis` (`x`: the axle across the model, `d`: along its depth; default upright, so every
+  older models.json is unchanged) and an end picture `ct` (both ends of a lying one wear it, laid over the end's ellipse). For a lying one `c` and
+  `r` are its centre and semi-axes in its own upright frame ((d, y) for an x axis, (y, x) for a d axis) and `y` its run along the axis
+  (`lying(...)` in buildings_farm.py writes them). `FilamentModels.cyl` builds it upright and turns it (a rotation, no mirror); `ModelGeometry`
+  keeps its world box in x0..d1 (TownCollision boxes it); the frozen classic skips it. The tractor's wheels are now real wheels: big rear and
+  small front lying cylinders, the tread the art's own tyre lugs (the tyres seen from the front, turned to run round the wheel), each end the
+  art's wheel seen from the side (its lower half, which the body does not hide, mirrored up: tyre, rim, the hub's bolts), a hub boss standing out
+  and the axles under the body. New `fm_roundbales` (round bales lying every way: the big bale's straw wrapped round, a wound spiral at the ends)
+  and `fm_barrels` (steel drums, two standing, one on its side).
 - **Crops** (`make_farm_crops.py` -> `crops_atlas.png`, `crops.json`): all 19 crops (grapes and turnips two variants) with their seven growth frames (sprout,
   young, growing x2 sway, budding, ripe x2 sway: `stages` in the json), each cropped to its tallest frame with feet on the bottom row, plus five 32x32
   soil tiles (tilled, dark tilled, furrows, dirt, sand); `sow`/`harvest` seasons are ours. `fm_field`/`fm_field2` lay rows of upright cards over a tilled
-  ground decal as the sample fields.
-- Honest limits: the tractor is boxy; the barns' board texture repeats (mirrored tiles); the well's stone strip is soft; the soil decal is flat colour; the
+  ground decal as the sample fields. Since wf-farms2 each crop also has `midwest` (grown in our fields) and a `calendar` (days of the year: `sow`,
+  first `ripe`, last `harvest`; `perennial` for strawberries and grapes), a central Illinois / Iowa year: corn sown 1 May, ripe 1 Sep, in by mid
+  October; winter wheat sown 1 Oct, ripe late June, cut by 10 July; pumpkins June to late October; the vegetables spring to late summer; turnips
+  August to October. The town's fields are drawn from it (docs/TOWN.md "Farms").
+- Honest limits: the tractor's body is boxy (its wheels are round since wf-farms2); the barns' board texture repeats (mirrored tiles); the well's stone strip is soft; the soil decal is flat colour; the
   silo dome rings are 8 flat bands; interior pieces (barn insides, stable) were not built; nothing is on a town street.

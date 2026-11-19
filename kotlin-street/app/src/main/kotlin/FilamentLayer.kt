@@ -357,12 +357,17 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
      * player first in a budget a frame (more while the loading screen covers it), drawn through the true camera. Null while
      * there is nothing to draw yet.
      */
+    /** The town's farms (TownFarms), with the town. */
+    private var farms: com.lifemax.rpg.feature.habits.presentation.scene3d.TownFarms? = null
+    /** Today's day of the year for the fields (a test's or screenshot's season if one is set). */
+    private fun farmDay(): Int = com.lifemax.rpg.feature.habits.domain.Season.override?.dayOfYear ?: java.time.LocalDate.now().dayOfYear
+
     private fun townFrame(e: Engine, f: com.lifemax.rpg.feature.habits.presentation.scene.Frame3D): com.google.android.filament.View? {
         val data = TownSession.loaded ?: return null
         val walk = com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.walk ?: return null
         var rn = run
         if (rn == null || town?.town !== data.town) {
-            run = null; town?.destroy(); town = null
+            run = null; farms = null; town?.destroy(); town = null
             val t0 = System.nanoTime()
             val rt = Runtime.getRuntime()
             com.timerpg.street.shot.Crumbs.add("town scene: building ${data.town.seed}; Java heap limit ${rt.maxMemory() shr 20} MB, ${(rt.totalMemory() - rt.freeMemory()) shr 20} MB used")
@@ -370,6 +375,8 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
             buildMarked = true
             val ft = com.lifemax.rpg.feature.habits.presentation.scene3d.FilamentTown(e, mats, data.town, data.yards, data.art, data.building, cinema = data.cinema,
                 stores = data.stores, collision = data.collision)
+            // the farms round the town, their fields as they are today
+            farms = data.farmArt?.let { fa -> com.lifemax.rpg.feature.habits.presentation.scene3d.TownFarms.attach(ft, data.farms, fa, data.collision, day = farmDay()) }
             town = ft
             rn = com.lifemax.rpg.feature.habits.presentation.scene3d.TownRun(ft, com.lifemax.rpg.feature.habits.presentation.scene.SpriteSheets.sheets)
             run = rn
@@ -384,6 +391,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
                 com.timerpg.street.shot.Crumbs.add("town first view, ${w}x$h: " + town!!.gpuEstimate(w, h).line())
             }
         }
+        farms?.day = farmDay()
         rn.draw(walk, w.toFloat(), h.toFloat(), f.hour, f.seconds, com.lifemax.rpg.feature.habits.presentation.scene.SpriteSheets.sheets)
         val ft = town!!
         FilamentStats.buildMs = ft.buildingsMs + ft.groundUploadMs
@@ -422,7 +430,7 @@ private class FilamentHost(private val ctx: Context, view: TextureView, private 
         val e = engine ?: return
         street?.destroy(); street = null
         com.lifemax.rpg.feature.habits.presentation.scene.TownPlay.projector = null
-        run = null; town?.destroy(); town = null
+        run = null; farms = null; town?.destroy(); town = null
         // (the next host builds the town afresh: the loading screen shows again)
         if (townMode) TownSession.sceneGone()
         swap?.let { e.destroySwapChain(it) }; swap = null
