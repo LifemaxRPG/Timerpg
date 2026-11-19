@@ -110,6 +110,8 @@ internal object StoreSigns {
     fun fit(s: String, w: Int, h: Int, maxScale: Int = 4, gap: Int = 1): Int {
         var sc = maxScale
         while (sc > 1 && (BigFont.width(s, sc, gap * sc) > w || BigFont.H * sc > h)) sc--
+        // the art's lettering is drawn in its own pixels, which are 2 x 2 texels: from scale 2 up, whole art pixels only
+        if (sc >= 3 && sc % 2 == 1) sc--
         return sc
     }
 
@@ -131,7 +133,8 @@ internal object StoreSigns {
         if (s.isEmpty()) return sc
         val gap = sc
         val tw = BigFont.width(s, sc, gap); val th = BigFont.H * sc
-        val lx = x0 + (x1 - x0 + 1 - tw) / 2; val ly = y0 + (y1 - y0 + 1 - th) / 2
+        var lx = x0 + (x1 - x0 + 1 - tw) / 2; var ly = y0 + (y1 - y0 + 1 - th) / 2
+        if (sc >= 2) { lx -= lx % 2; ly -= ly % 2 }   // (on the art's 2-texel grid)
         if (out != null) BigFont.outlined(im, s, lx, ly, sc, gap, out, shadow) { fill(it, th) }
         else {
             if (shadow != null) BigFont.draw(im, s, lx + 1, ly + 1, sc, gap) { shadow }

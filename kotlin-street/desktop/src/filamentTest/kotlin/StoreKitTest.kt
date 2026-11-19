@@ -188,6 +188,7 @@ class StoreKitTest {
                 assertEquals("${site.site} $y state", row.getString("state"), st.state)
                 assertEquals("${site.site} $y name", row.getString("name"), st.name)
                 assertEquals("${site.site} $y sign", row.getString("sign"), st.sign)
+                assertEquals("${site.site} $y style", row.getString("style"), st.style)
                 val f = row.getJSONArray("features")
                 assertEquals("${site.site} $y features", (0 until f.length()).map { f.getString(it) }, st.features)
             }
@@ -224,5 +225,10 @@ class StoreKitTest {
         val cars = StoreCars.build(big.copy(hour = 15f, weekday = 6), built.bays)
         assertTrue(cars.parts.isNotEmpty())
         assertTrue(StoreCars.build(big.copy(hour = 3f, weekday = 3), built.bays).triangles < cars.triangles / 4)
+    }
+
+    @Test fun swatchesAreWholeArtPixels() {
+        // the art's pixel is 2 x 2 texels: every swatch is an even size and (the cut ones) is made of whole 2 x 2 blocks
+        assertEquals(emptyList<String>(), StoreKit.swatchProblems())
     }
 }

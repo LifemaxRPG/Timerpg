@@ -22,14 +22,10 @@ import kotlin.math.min
 internal object StoreGrounds {
     private val v = MeshBuilder.Companion::v
 
-    private val ASPHALT = PixImg(32, 32).also { im ->
-        val r = Paint.Rnd(91)
-        for (y in 0 until 32) for (x in 0 until 32) { val t = r.next(); im[x, y] = if (t < .16f) c(0x2E2E38) else if (t < .26f) c(0x4A4A56) else c(0x3A3A46) }
-    }
-    private val OLD_ASPHALT = PixImg(32, 32).also { im ->
-        val r = Paint.Rnd(92)
-        for (y in 0 until 32) for (x in 0 until 32) { val t = r.next(); im[x, y] = if (t < .2f) c(0x3A3A40) else if (t < .32f) c(0x5A5A60) else c(0x4A4A50) }
-        Pix.line(im, 3, 0, 12, 31, c(0x2A2A30)); Pix.line(im, 20, 5, 30, 18, c(0x2A2A30))
+    /** The pack's own asphalt (city terrains), the worn one painted in its palette with oil dither and hairline cracks. */
+    private val ASPHALT = Swatches.get("asphalt")
+    private val OLD_ASPHALT = Swatches.get("asphalt_worn").also { im ->
+        Pix.line(im, 3, 0, 12, 31, c(0x2E2C36)); Pix.line(im, 20, 5, 30, 18, c(0x2E2C36))
     }
     private val GRAVEL = PixImg(32, 32).also { im ->
         val r = Paint.Rnd(7)
@@ -43,10 +39,8 @@ internal object StoreGrounds {
         val r = Paint.Rnd(6)
         for (y in 0 until 16) for (x in 0 until 16) { val t = r.next(); im[x, y] = if (t < .25f) c(0x6A6A3A) else if (t < .4f) c(0x9A9050) else c(0x7E7A44) }
     }
-    private val CONCRETE = PixImg(48, 48).also { im ->
-        val r = Paint.Rnd(4)
-        for (y in 0 until 48) for (x in 0 until 48) im[x, y] = if (x == 0 || y == 0) Paint.CONCRETE.d else if (r.next() < .1f) Paint.CONCRETE.l else Paint.CONCRETE.b
-    }
+    /** The pack's pavement slabs (city terrains). */
+    private val CONCRETE = Swatches.get("pavement")
     private val CHAIN = PixImg(8, 8).also { im ->
         for (y in 0 until 8) for (x in 0 until 8) if ((x + y) % 8 == 0 || (x - y + 8) % 8 == 0) im[x, y] = c(0x9AA0B0)
         im.hline(0, 7, 0, c(0x6C6E85))
