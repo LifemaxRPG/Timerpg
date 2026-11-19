@@ -762,42 +762,51 @@ internal object FilamentModels {
             val n = if (ft != null) ft[2] else 24
             val cx = arc[0]; val cd = arc[1]; val ra = arc[2]; val rb = arc[3]
             val a0 = arc[4]; val a1 = arc[5]
+            // a tapering wall (a cone, a dome's ring): its top's semi-axes
+            val taper = arc.size > 9 && !arc[8].isNaN()
+            val ta = if (taper) arc[8] else ra; val tb = if (taper) arc[9] else rb
             fun at(j: Int, a: Float, b: Float): FloatArray {
                 val t = Math.toRadians((a0 + (a1 - a0) * j / n).toDouble())
                 return floatArrayOf(cx + a * sin(t).toFloat(), cd - b * cos(t).toFloat())
             }
-            fun strip(a: Float, b: Float, inward: Boolean, key: Key, rect: IntArray?) {
+            /** The wall from its foot's semi-axes ([a], [b]) to its top's ([aT], [bT]). */
+            fun strip(a: Float, b: Float, aT: Float, bT: Float, inward: Boolean, key: Key, rect: IntArray?) {
                 val gp = group(key)
                 val base = gp.nv
+                val rise = cy.y1 - cy.y0
+                val lean = ((a - aT) + (b - bT)) / 2f
                 for (j in 0..n) {
-                    val q = at(j, a, b)
-                    // the ellipse's outward normal there
+                    val q = at(j, a, b); val qT = at(j, aT, bT)
+                    // the ellipse's outward normal there, tilted up by the taper
                     var nx = (q[0] - cx) / (a * a); var nd = (q[1] - cd) / (b * b)
                     val l = sqrt(nx * nx + nd * nd).coerceAtLeast(1e-6f); nx /= l; nd /= l
-                    if (inward) { nx = -nx; nd = -nd }
+                    var ny = 0f
+                    if (lean != 0f && rise > .01f) {
+                        val m = sqrt(rise * rise + lean * lean); ny = lean / m; nx *= rise / m; nd *= rise / m
+                    }
+                    if (inward) { nx = -nx; nd = -nd; ny = -ny }
                     val q2 = at(min(j + 1, n), a, b); val q1 = at(max(j - 1, 0), a, b)
                     var tx = q2[0] - q1[0]; var td = q2[1] - q1[1]
                     val tl = sqrt(tx * tx + td * td).coerceAtLeast(1e-6f); tx /= tl; td /= tl
                     val u = if (rect != null) (rect[0] + rect[2] * j.toFloat() / n) / aw else 0f
                     val v0 = if (rect != null) rect[1] / ah else 0f
                     val v1 = if (rect != null) (rect[1] + rect[3]) / ah else 0f
-                    val x = q[0] + nx * eps; val d = q[1] + nd * eps
-                    gp.vert(x, cy.y1, d, u, v0, nx, 0f, nd, tx, 0f, td)
-                    gp.vert(x, cy.y0, d, u, v1, nx, 0f, nd, tx, 0f, td)
+                    gp.vert(qT[0] + nx * eps, cy.y1, qT[1] + nd * eps, u, v0, nx, ny, nd, tx, 0f, td)
+                    gp.vert(q[0] + nx * eps, cy.y0, q[1] + nd * eps, u, v1, nx, ny, nd, tx, 0f, td)
                 }
                 for (j in 0 until n) {
                     val a2 = base + j * 2
                     gp.tri(a2, a2 + 2, a2 + 3); gp.tri(a2, a2 + 3, a2 + 1)
                 }
             }
-            strip(ra, rb, false, if (ft != null) Key.Atlas else Key.Plain(cy.front and 0xFFFFFF), ft)
+            strip(ra, rb, ta, tb, false, if (ft != null) Key.Atlas else Key.Plain(cy.front and 0xFFFFFF), ft)
             if (cy.card) return
             val ring = !arc[6].isNaN()
-            if (ring) strip(arc[6], arc[7], true, Key.Plain(cy.front and 0xFFFFFF), null)
+            if (ring) strip(arc[6], arc[7], arc[6], arc[7], true, Key.Plain(cy.front and 0xFFFFFF), null)
             if (cy.top < 0) return
             val top = Key.Plain(cy.top and 0xFFFFFF)
             for (j in 0 until n) {
-                val o0 = at(j, ra, rb); val o1 = at(j + 1, ra, rb)
+                val o0 = at(j, ta, tb); val o1 = at(j + 1, ta, tb)
                 if (ring) {
                     val i0 = at(j, arc[6], arc[7]); val i1 = at(j + 1, arc[6], arc[7])
                     poly(top, arrayOf(p(o0[0], cy.y1, o0[1]), p(o1[0], cy.y1, o1[1]), p(i1[0], cy.y1, i1[1]), p(i0[0], cy.y1, i0[1])), FloatArray(8), UP)
