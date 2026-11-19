@@ -200,6 +200,12 @@ fun loadSheets(dir: String) {
         val f = File(dir, "char_0$n.png")
         if (f.exists()) SkiaImage.makeFromEncoded(f.readBytes()).toComposeImageBitmap() else null
     }
+    // the townspeople's own baked sheets (tools/make_townsfolk.py), unless -Dfolk=0
+    // (the app's own folder when [dir] is the web game's)
+    val folkDir = listOf(File(dir, "folk"), File("../app/src/main/assets/characters/folk")).firstOrNull { File(it, "folk.json").exists() }
+    if (folkDir != null && System.getProperty("folk") != "0") com.lifemax.rpg.feature.habits.presentation.scene.TownFolk.load(File(folkDir, "folk.json").readText()) { f ->
+        File(folkDir, f).takeIf { it.exists() }?.let { SkiaImage.makeFromEncoded(it.readBytes()).toComposeImageBitmap() }
+    }
 }
 
 /** Our lamp, trees and bench (from the game's asset folder). */

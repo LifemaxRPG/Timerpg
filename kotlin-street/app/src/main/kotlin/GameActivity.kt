@@ -96,6 +96,15 @@ class GameActivity : ComponentActivity() {
                 else try { d.decodeRegion(android.graphics.Rect(0, 0, minOf(768, d.width), minOf(192, d.height)), null) } finally { d.recycle() }
             }.asImageBitmap()
         }
+        // the townspeople's own sheets (tools/make_townsfolk.py: 768 x 128 each, about 0.4 MB of bitmap apiece), read on
+        // a thread (until they are in, people wear the old sheets)
+        if (com.lifemax.rpg.feature.habits.presentation.scene.TownFolk.sheets.isEmpty()) Thread({
+            runCatching {
+                com.lifemax.rpg.feature.habits.presentation.scene.TownFolk.load(assets.open("characters/folk/folk.json").use { it.readBytes().decodeToString() }) { f ->
+                    assets.open("characters/folk/$f").use { BitmapFactory.decodeStream(it) }?.asImageBitmap()
+                }
+            }
+        }, "townsfolk").start()
         // a recreated activity must not inherit a held direction
         MoveInput.releaseAll()
         // our lamp, trees and bench
@@ -498,6 +507,8 @@ private fun GameScreen(engine: DialogueEngine, voices: com.timerpg.street.voice.
     LaunchedEffect(people, streetNo, townMode) {
         // the town: everyone to talk to stands at their building's door, on the rows round the player
         townPlay.keepers = if (!townMode) emptyMap() else people?.buildings?.associateWith { sp -> people!!.at(sp).first().id.hashCode() and 0x7fffffff }.orEmpty()
+        // (their sex and age pick their look from the townspeople's sheets)
+        townPlay.keeperTraits = if (!townMode) emptyMap() else people?.buildings?.associateWith { sp -> people!!.at(sp).first().let { it.age.coerceAtLeast(0) * 2 + (if (it.female) 1 else 0) } }.orEmpty()
         GameState.keepers = street.sprites.mapIndexedNotNull { i, sp ->
             people?.at(sp)?.firstOrNull()?.let { npc -> i to (npc.id.hashCode() and 0x7fffffff) }
         }

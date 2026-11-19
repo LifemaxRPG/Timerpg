@@ -3,6 +3,7 @@ package com.lifemax.rpg.feature.habits.presentation.scene
 import com.lifemax.rpg.feature.habits.domain.Ambient
 import com.lifemax.rpg.feature.habits.domain.Passer
 import com.lifemax.rpg.feature.habits.domain.Placement
+import com.lifemax.rpg.feature.habits.domain.PlacementKind
 import com.lifemax.rpg.feature.habits.domain.Row
 import com.lifemax.rpg.feature.habits.domain.StreetGait
 import com.lifemax.rpg.feature.habits.domain.StreetLife
@@ -32,6 +33,8 @@ class TownFigure {
     var keeper: String? = null
     /** The player's own view of the sheet when it is not the side view (1 back, 3 front: walking up or down the pavement). */
     var facing = 0
+    /** Which of [TownFolk.sheets] they wear (-1: none, the old character sheets by [sheet]). */
+    var folk = -1
 }
 
 /**
@@ -65,6 +68,17 @@ object TownPlay {
 
     /** The people to talk to, by the sprite of the building they stand at (its keeper's look seed). Set by the app. */
     @Volatile var keepers: Map<String, Int> = emptyMap()
+
+    /** The people to talk to's sex and age, by the same sprite: age * 2, plus 1 for a woman ([keeperTraits]). Set by the app. */
+    @Volatile var keeperTraits: Map<String, Int> = emptyMap()
+
+    /** How many of the town's people the weather and season let out (1 a fine day; rain keeps most in). Set by the stage. */
+    @Volatile var outdoors = 1f
+
+    /** The share of each row's passers out ([TownCrowd.share]) last worked out, and for which hour and weather. */
+    private val shareOf = HashMap<String, Float>()
+    private var shareHour = Float.NaN
+    private var shareOut = Float.NaN
 
     /** Where a world point (feet, [y] up) is on the screen as last drawn (set by the renderer each frame; null: not drawn). */
     @Volatile var projector: ((x: Float, y: Float, z: Float) -> androidx.compose.ui.geometry.Offset?)? = null
@@ -328,7 +342,7 @@ object TownPlay {
 
     private fun next(): TownFigure {
         if (figureCount == figures.size) figures += TownFigure()
-        return figures[figureCount++].also { it.keeper = null; it.me = false; it.facing = 0 }
+        return figures[figureCount++].also { it.keeper = null; it.me = false; it.facing = 0; it.folk = -1 }
     }
 
     /**
@@ -336,16 +350,28 @@ object TownPlay {
      * street's own [StreetLife], seeded by the row) and the people to talk to at their doors; then the player. Returns
      * how many.
      */
-    fun people(seconds: Float, seed: Int = 0): Int {
+    fun people(seconds: Float, seed: Int = 0, hour: Float = 13f): Int {
         figureCount = 0
         val w = walk ?: return 0
+        val year = w.town.year
+        val kidsOut = TownFolk.kidsOut(hour)
+        // (the shares move slowly: worked out again every few game minutes or when the weather changes)
+        if (shareHour.isNaN() || abs(hour - shareHour) > .05f || abs(outdoors - shareOut) > .02f) { shareOf.clear(); shareHour = hour; shareOut = outdoors }
         for (r in w.liveRows()) {
             val rowSeed = seed * 31 + r.id.hashCode()
             val centers = centersOf.getOrPut(r.id) { r.buildings.map { it.mid }.ifEmpty { null } }
+            // the open town follows its people's day: few on a street of houses but at the commute, more where the shops are
+            val share = shareOf.getOrPut(r.id) {
+                var shops = 0; var homes = 0; var others = 0
+                for (b in r.buildings) when (b.kind) { PlacementKind.SHOP -> shops++; PlacementKind.HOME -> homes++; else -> others++ }
+                TownCrowd.share(hour, shops, homes, others, outdoors)
+            }
             val n = StreetLife.passers(seconds, rowSeed, 0f, r.length, passers, centers)
             for (i in 0 until n) {
                 val p = passers[i]
                 if (!p.on) continue
+                // (who is out is fixed by when they set out: nobody pops in or out mid-walk while the hour holds)
+                if (Ambient.hash(rowSeed, p.slot, 233) >= share) continue
                 // (the walk's margins run past the row's ends: those beyond are on the next row, or in the side street)
                 if (p.x < -20f || p.x > r.length + 20f) continue
                 val q = r.pointAt(p.x, p.lane)
@@ -354,6 +380,11 @@ object TownPlay {
                 f.x = q.x; f.z = q.z
                 f.dx = a.x * p.dir; f.dz = a.z * p.dir
                 f.sheet = (p.slot * 7 + 3) and 0x7fffffff
+                val who = (rowSeed * 131 + p.slot) and 0x7fffffff
+                val (female, age) = TownFolk.passer(who, com.lifemax.rpg.feature.habits.domain.StreetLooks.ALL[p.look].elder)
+                // (children are at school, or home after dark)
+                if (age < 15 && !kidsOut) { figureCount--; continue }
+                f.folk = TownFolk.pick(who, female, age, year)
                 f.still = p.still > .5f
                 f.frame = if (f.still) ((seconds * 5f).toInt() + p.slot * 3).mod(6) else (p.frame % StreetGait.FRAMES) * 6 / StreetGait.FRAMES
             }
@@ -366,6 +397,8 @@ object TownPlay {
                 // facing the street, out of the door
                 f.dx = -n2.x; f.dz = -n2.z
                 f.sheet = look
+                val t = keeperTraits[b.sprite]
+                f.folk = if (t == null) TownFolk.pick(look, Ambient.hash(look, 17, 977) < .5f, -1, year) else TownFolk.pick(look, t and 1 == 1, t shr 1, year)
                 f.still = true
                 f.frame = ((seconds * 5f).toInt() + k * 3).mod(6)
                 f.keeper = b.sprite

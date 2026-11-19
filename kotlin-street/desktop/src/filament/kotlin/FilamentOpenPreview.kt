@@ -81,6 +81,7 @@ fun renderFilamentOpen(out: String) {
     while (!ft.uploadGround(8f)) Thread.sleep(1)
     while (ft.pending > 0) { if (ft.buildNearest(0f, 0f, 8f) == 0) Thread.sleep(1) }
     report.appendLine("(software GL on the build server, not the S25: draws and triangles are what is sent, the times are not the phone's)")
+    ft.textureStats.let { (n, t, sh) -> report.appendLine("textures after the build: %d, %.1fM texels, %d shared; biggest: %s".format(n, t / 1e6, sh, ft.biggestTextures(10))) }
 
     // the people to talk to (as the app picks them) and the player
     val dialogue = File("../app/src/main/assets/town/${town.seed}/dialogue.json")
@@ -88,6 +89,13 @@ fun renderFilamentOpen(out: String) {
         val a = org.json.JSONObject(dialogue.readText()).getJSONArray("npcs")
         val m = LinkedHashMap<String, Int>()
         for (i in 0 until a.length()) { val o = a.getJSONObject(i); m.putIfAbsent(o.getString("building"), o.getString("id").hashCode() and 0x7fffffff) }
+        m
+    }
+    // (their sex and age, as the app hands them: the first person of each building)
+    TownPlay.keeperTraits = if (!dialogue.exists()) emptyMap() else run {
+        val a = org.json.JSONObject(dialogue.readText()).getJSONArray("npcs")
+        val m = LinkedHashMap<String, Int>()
+        for (i in 0 until a.length()) { val o = a.getJSONObject(i); m.putIfAbsent(o.getString("building"), o.optInt("age").coerceAtLeast(0) * 2 + (if (o.optString("sex") == "F") 1 else 0)) }
         m
     }
     GameState.enabled = true; GameState.look = 1
@@ -313,6 +321,16 @@ fun renderFilamentOpen(out: String) {
     view("fb_yard_a", 2576f, 3674f, 0f, -1f, 124.1f, 22.43f, 420f, 17.6f, "005359: outside a back hedge, the yard behind the player")
     view("fb_yard_b", 2576f, 3674f, 0f, -1f, 98.5f, 20.1f, 420f, 17.6f, "005414: the same spot, the camera turned 25 degrees")
     view("fb_yard_c", 2576f, 3674f, 0f, -1f, 150f, 22f, 420f, 17.6f, "the same spot, the camera turned the other way")
+    // --- the owner's screenshots of build 0.1.367 (the S25, 2026-11-19, 17:36 in summer): the same spots and cameras
+    view("fb2_crowd", 5038.5f, 2519.9f, -1f, .008f, 89.54f, 11.23f, 420f, 17.6f, "015754: King Street, a quiet street of houses at 5:36 pm")
+    view("fb2_crowd_main", 5038.5f, 2519.9f, -1f, .008f, 89.54f, 30f, 900f, 17.6f, "015754's spot from high up")
+    view("fb2_chapel", 11557f, 5279f, .9155f, .4023f, -18.99f, 10f, 420f, 17.6f, "015958: Cornerstone Chapel (the 1960s market reused)")
+    view("fb2_chapel_close", 11557f, 5279f, .9155f, .4023f, -18.99f, 14f, 200f, 17.6f, "015958's chapel, zoomed in")
+    view("fb2_store_side", 14255f, 6145.8f, -.3415f, .9399f, -62.78f, 10f, 420f, 17.6f, "020039: the shut supermarket from the side")
+    view("fb2_store_back", 14087.6f, 5816.6f, -.7994f, .6007f, -119.62f, 10f, 420f, 17.6f, "020054: the supermarket's back and side")
+    view("fb2_store_high", 14087.6f, 5816.6f, -.7994f, .6007f, -119.62f, 35f, 700f, 13f, "020054's spot from above, noon")
+    view("fb2_woods", 18926.5f, 5174.3f, .564f, .8258f, -20.7f, 15.14f, 420f, 17.6f, "020240: in the woods (the player must show)")
+    view("fb2_woods_low", 18926.5f, 5174.3f, .564f, .8258f, 60f, 10f, 300f, 17.6f, "020240's woods, another way, low")
     File(dir, "open.txt").writeText(report.toString())
     print(report)
     if (want("walk")) scriptedWalk(dir, town, yards, walk, run, shooter, sheets, w, h, events)

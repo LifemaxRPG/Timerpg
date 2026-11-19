@@ -307,7 +307,7 @@ class FilamentTown(
     var yardBuilder: YardBuilder = YardKitBuilder
     private val ticks = ArrayList<(Double) -> Unit>()
 
-    private val ground = PropLayer(engine, scene, lit, proxyMat, sharedTextures = textures, cull = true)
+    private val ground = PropLayer(engine, scene, lit, proxyMat, sharedTextures = textures, cull = true).also { it.seeThrough = false }
     private val yardLayer = PropLayer(engine, scene, lit, proxyMat, sharedTextures = textures, cull = true)
     /** The yards a lot or a lane at a time ([YardPatch]): culled with the view, cut with their house in the street view. */
     private inner class Patch(val p: YardPatch) {
@@ -477,6 +477,8 @@ class FilamentTown(
 
     /** The town's pictures: textures made, their texels, and how many asks were answered by one already made. */
     val textureStats: Triple<Int, Long, Int> get() = Triple(textures.madeCount, textures.texels, textures.shared)
+    /** The texture sizes holding the most texels (for the breadcrumbs: what GPU memory goes to). */
+    fun biggestTextures(n: Int = 8): String = textures.biggest(n)
 
     /** How long the ground took (ms), the buildings so far (ms), and how many are left to build. */
     var groundMs = 0f; private set
@@ -952,6 +954,7 @@ class FilamentTown(
             visible++; renderables++; draws += b.primitives; tris += b.triangles
             for (mi in b.mis) {
                 mi.setParameter("look", MaterialInstance.FloatElement.MAT4, look, 0, 1)
+                SeeThrough.apply(mi)
                 mi.setParameter("cell", 2f)
                 mi.setParameter("fade", fade)
                 mi.setParameter("glow", g0, g1, g2, ga)

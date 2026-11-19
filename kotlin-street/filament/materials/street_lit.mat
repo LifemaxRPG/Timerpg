@@ -26,7 +26,11 @@ material {
         // the size of an art pixel on screen, for that screen door
         { type : float, name : cell },
         // 1: a face seen only from its front (a card's two sides are two faces); 0 (unset): from both sides
-        { type : float, name : oneSided }
+        { type : float, name : oneSided },
+        // the open world's see-through cone (FilamentTown/SeeThrough.kt): the eye (xyz, user world) and how far along
+        // the line to the player the cut ends (w), the player's middle (xyz) and the cone's radius there (w; 0 or unset: off)
+        { type : float4, name : seeA, precision : high },
+        { type : float4, name : seeB, precision : high }
     ],
     requires : [ uv0, tangents ]
 }
@@ -55,6 +59,19 @@ fragment {
         vec4 m = texture(materialParams_mask, uv);
         if (materialParams.fade < 1.0 && bayer4(gl_FragCoord.xy / materialParams.cell) > materialParams.fade) c.a = 0.0;
         if (materialParams.oneSided > 0.5 && dot(getWorldGeometricNormalVector(), getWorldViewVector()) < 0.0) c.a = 0.0;
+        // what stands in the cone from the eye to the player is cut, its edge a dither in whole art pixels; never the
+        // ground (nothing under 1.5 up), never past the player
+        if (materialParams.seeB.w > 0.0) {
+            highp vec3 w = getUserWorldPosition();
+            highp vec3 e = materialParams.seeA.xyz;
+            highp vec3 ax = materialParams.seeB.xyz - e;
+            highp float t = dot(w - e, ax) / max(dot(ax, ax), 1e-3);
+            if (t > 0.0 && t < materialParams.seeA.w && w.y > 1.5) {
+                float r = max(t * materialParams.seeB.w, 3.0);
+                float k = length(w - e - ax * t) / r;
+                if (k < 1.0 && bayer4(gl_FragCoord.xy / max(materialParams.cell, 1.0)) > (k - 0.7) / 0.3) c.a = 0.0;
+            }
+        }
         // a mask pixel at half alpha is a light in its own colour (the mask's rgb: a sign's letters, a spotlight's lens)
         float own = step(0.25, m.a) * (1.0 - step(0.75, m.a));
         float gl = m.g * (1.0 - own);
