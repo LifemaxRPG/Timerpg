@@ -7,8 +7,9 @@ import { townFounded, townName } from './names';
 // direction. A town's seed comes from its cell, so the same world seed always has the same towns.
 // Cells are spaced so that even the biggest town plans never touch (checked by tests).
 
-/** Cell size in tiles. Towns reach at most ~150 tiles from their center sideways and ~120 up/down. */
-export const CELL_W = 360;
+/** Cell size in tiles. Towns reach at most ~150 tiles west of their center, ~300 east (the stores at the edge of town,
+ * src/town/storeSites.ts) and ~130 up/down. */
+export const CELL_W = 520;
 export const CELL_H = 320;
 const JITTER = 20;
 

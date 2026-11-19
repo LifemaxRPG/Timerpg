@@ -77,7 +77,7 @@ class CinemaKitTest {
     @Test fun shippedTownCinemaSite() {
         val json = java.io.File("../app/src/main/assets/town/gamma/street.json").readText()
         val site = com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite.parse(json)!!
-        assertEquals("b98", site.sprite)
+        assertEquals("b100", site.sprite)
         assertEquals(CinemaEra.MULTIPLEX, site.info.era)
         assertTrue(site.info.nowShowing.size >= 6)
         assertTrue(site.info.marquee.drop(1).all { m -> site.info.nowShowing.any { it.title.uppercase() == m } })

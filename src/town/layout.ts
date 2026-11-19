@@ -3,6 +3,7 @@ import { rand } from '../sim/rng';
 import { ageIn, fullName, isAlive, type Id, type Person, type World } from '../sim/types';
 import type { LandmarkPlot } from './landmarks';
 import { cinemaEra, cinemaName } from './cinema';
+import { isStoreSite, storeState, townStoreHistories } from './stores';
 import { shopFacade } from './facade';
 import { apartmentCapacity, apartmentEligible, houseArt, type ResidentialKind } from './housing';
 import type { BuildingArt } from './buildings';
@@ -283,7 +284,14 @@ export function layoutTown(w: World): TownLayout {
   // Landmark plots: wooded until the landmark opens.
   // (the cinema wears its era's front and the sign of the year: src/town/cinema.ts)
   const landmarks = plan.landmarks.filter((l) => w.year >= l.openYear)
-    .map((l) => (l.id === 'cinema' ? { ...l, era: cinemaEra(w.year), name: cinemaName(w.seed, w.year) } : l));
+    .map((l) => (l.id === 'cinema' ? { ...l, era: cinemaEra(w.year), name: cinemaName(w.seed, w.year) } : l))
+    // (a store wears the building and the sign of the year, and stands on when it closes: src/town/stores.ts)
+    .map((l) => {
+      if (!isStoreSite(l.id)) return l;
+      const h = townStoreHistories(w.seed, plan.landmarks.map((x) => x.id)).find((x) => x.site === l.id);
+      const store = h && storeState(w.seed, h, w.year);
+      return store ? { ...l, name: store.sign, store } : l;
+    });
   for (const l of plan.landmarks) {
     if (w.year >= l.openYear) continue;
     const n = 6 + Math.round((l.w * l.h) / 25);

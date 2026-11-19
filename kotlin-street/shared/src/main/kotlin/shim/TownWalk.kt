@@ -443,8 +443,14 @@ class TownWalk(override val town: Town) : TownWalkView {
         val a = t.from.pointAt(x, 0f)
         val b = t.to.pointAt(crossToX, 0f)
         val n = t.from.lookAt(x)
-        // the camera's right at the start (the row's along), its look swung by half a turn through it
-        val ang = PI.toFloat() * s * crossSpin
+        // the camera's right at the start (the row's along), its look swung by half a turn through it, onto the facing
+        // row's own look where it lands (which differs from the reverse of this one's where either row bends: the main
+        // street's steps across the road from each other are not opposite, and the end would snap)
+        val m = t.to.lookAt(crossToX)
+        var d = atan2(n.x * m.z - n.z * m.x, n.x * m.x + n.z * m.z) - PI.toFloat() * crossSpin
+        while (d > PI) d -= (2 * PI).toFloat()
+        while (d < -PI) d += (2 * PI).toFloat()
+        val ang = (PI.toFloat() * crossSpin + d) * s
         val c = cos(ang)
         val sn = sin(ang)
         val fx = n.x * c + (-n.z) * sn

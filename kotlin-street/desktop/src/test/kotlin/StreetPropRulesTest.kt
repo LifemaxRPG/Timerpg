@@ -89,11 +89,14 @@ class StreetPropRulesTest {
     @Test fun densityPerNeighbourhoodIsSane() {
         // props per 100 units of building frontage, by neighbourhood (corner signs left out)
         val count = HashMap<String, Int>(); val front = HashMap<String, Float>()
+        // (the stores' fronts are kept clear on purpose: their porches, glass and car parks' edges are their own)
+        val stores = town.landmarks.filter { it.kind in com.lifemax.rpg.feature.habits.domain.StoreLots.KINDS }.map { it.sprite }.toSet()
         for (row in town.rows) {
-            for (b in row.buildings) front.merge(b.neighbourhood, b.width, Float::plus)
+            for (b in row.buildings) if (b.sprite !in stores) front.merge(b.neighbourhood, b.width, Float::plus)
             for (s in all.getValue(row.id)) {
                 if (s.kind in setOf(PropKind.STREET_SIGN, PropKind.STOP_SIGN, PropKind.PED_SIGN)) continue
                 val b = row.buildingAt(s.x) ?: continue
+                if (b.sprite in stores) continue
                 if (s.x < b.x0 - 40f || s.x > b.x1 + 40f) continue
                 count.merge(b.neighbourhood, 1, Int::plus)
             }

@@ -33,8 +33,8 @@ describe('town streets', () => {
   });
 
   it('dresses villa-tier homes in their own villas, with their yards', () => {
-    // eta has no villa on its streets; vale has two on and by Oak Street (a sage district: villa_2 is its only villa)
-    const v = townStreets('vale', YEAR);
+    // eta has no villa on its streets; koala has one (vale had two before the towns got their stores)
+    const v = townStreets('koala', YEAR);
     const vj = v.json as typeof json;
     let villas = 0;
     for (const e of vj.shops) {

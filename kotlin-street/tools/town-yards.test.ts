@@ -43,8 +43,12 @@ describe('town yards', () => {
       const lot = g.graph.lots.find((l) => l.id === v.lot)!;
       if (!within(lot.rect, v.parcel)) bad.push(`${v.lot}: parcel does not hold its lot`);
       if (v.kind === 'shop') { if (!v.items.some((i) => i.zone === 'back')) bad.push(`${v.lot}: shop without a service yard`); continue; }
-      // a block whose front stands on the building line (the condo stand-ins: setback 0) has the pavement for a front yard
-      const flush = g.graph.rows.find((r) => r.id === v.row)!.buildings.find((b) => b.sprite === v.sprite)!.setback < 8;
+      // a block whose front stands on its plot's front (the condo stand-ins: setback 0 from the building line, or a plot
+      // set back from it) has the pavement for a front yard
+      const row = g.graph.rows.find((r) => r.id === v.row)!;
+      const [nx, nz] = row.normal, h = v.house, q = v.parcel;
+      const ahead = nz < -0.5 ? q[3] - h[3] : nz > 0.5 ? h[1] - q[1] : nx < -0.5 ? q[2] - h[2] : h[0] - q[0];
+      const flush = row.buildings.find((b) => b.sprite === v.sprite)!.setback < 8 || ahead < 8;
       if (flush && v.kind === 'apartment') { if (v.front) bad.push(`${v.lot}: front yard on a flush front`); }
       else if (!v.front || !v.items.some((i) => i.zone === 'front' && i.layer === 'ground')) bad.push(`${v.lot}: no front yard`);
       if (!v.items.some((i) => i.zone === 'back' && i.layer === 'ground')) bad.push(`${v.lot}: no backyard`);
@@ -152,7 +156,8 @@ describe('town yards', () => {
       const m = by.get(v.neighbourhood) ?? new Map(); by.set(v.neighbourhood, m); m.set(i.kind, (m.get(i.kind) ?? 0) + 1);
     }
     expect(by.get('heights')?.get('hedge') ?? 0).toBeGreaterThan(0);
-    expect(by.get('gardens')?.get('frontFence') ?? 0).toBeGreaterThan(0);
+    // (gamma's gardens district stands empty in 2025 since the stores took their sites; any flower-style yard fences its front)
+    if (by.has('gardens')) expect(by.get('gardens')!.get('frontFence') ?? 0).toBeGreaterThan(0);
     expect((by.get('woodside')?.get('firePit') ?? 0) + (by.get('waterfront')?.get('firePit') ?? 0)).toBeGreaterThan(0);
     expect(y.yards.some((v) => v.household.children > 0 && v.items.some((i) => ['playSet', 'trampoline', 'sandpit'].includes(i.kind)))).toBe(true);
     expect(y.yards.some((v) => v.household.gardener && v.items.some((i) => i.kind === 'vegBed'))).toBe(true);

@@ -17,148 +17,31 @@
       ]
     },
     {
-      "name": "Orchard Lane",
+      "name": "Hill Road",
       "buildings": [
         "b8",
         "b9",
         "b10",
         "b11",
-        "b12",
-        "b13"
+        "b12"
       ]
     }
   ],
   "junction": {
-    "x": 159,
-    "mainEast": [
-      "b14",
-      "b15"
-    ],
+    "x": 181,
+    "mainEast": [],
     "crossEast": [
-      "b16",
-      "b17"
+      "b12",
+      "b11",
+      "b10",
+      "b9",
+      "b8"
     ]
   },
   "shops": [
     {
-      "id": "b:gen:5:c1:1980",
-      "sprite": "b0",
-      "home": false,
-      "name": "Fairchild's Music Store",
-      "kind": "Music Store",
-      "owner": "Lois Fairchild",
-      "colour": "blue",
-      "parts": [
-        {
-          "key": "shop_Music_Store_5",
-          "w": 224,
-          "h": 128,
-          "y": 0
-        },
-        {
-          "key": "roof_4",
-          "w": 224,
-          "h": 192,
-          "y": 96
-        }
-      ]
-    },
-    {
-      "id": "b:gen:4:c0:1968",
-      "sprite": "b1",
-      "home": false,
-      "name": "Ellis's Bait Shop",
-      "kind": "Bait Shop",
-      "owner": "Howard Ingram",
-      "colour": "blue",
-      "parts": [
-        {
-          "key": "shop_Bait_Shop_7",
-          "w": 224,
-          "h": 192,
-          "y": 0
-        },
-        {
-          "key": "middle_12",
-          "w": 224,
-          "h": 128,
-          "y": 96
-        },
-        {
-          "key": "roof_4",
-          "w": 224,
-          "h": 192,
-          "y": 224
-        },
-        {
-          "key": "roofprop_16",
-          "w": 160,
-          "h": 96,
-          "y": 236
-        }
-      ]
-    },
-    {
-      "id": "b:gen:17:c1:1986",
-      "sprite": "b2",
-      "home": false,
-      "name": "Radcliffe's Bank",
-      "kind": "Bank",
-      "owner": "Louise Radcliffe",
-      "colour": "blue",
-      "parts": [
-        {
-          "key": "classic_bank_7",
-          "w": 224,
-          "h": 96,
-          "y": 0
-        },
-        {
-          "key": "middle_7",
-          "w": 224,
-          "h": 128,
-          "y": 96
-        },
-        {
-          "key": "roof_4",
-          "w": 224,
-          "h": 192,
-          "y": 224
-        }
-      ]
-    },
-    {
-      "id": "b:gen:4",
-      "sprite": "b3",
-      "home": false,
-      "name": "Radcliffe's Gym",
-      "kind": "Gym",
-      "owner": "John Radcliffe",
-      "colour": "blue",
-      "parts": [
-        {
-          "key": "shop_Gym_7",
-          "w": 224,
-          "h": 160,
-          "y": 0
-        },
-        {
-          "key": "middle_8",
-          "w": 224,
-          "h": 128,
-          "y": 96
-        },
-        {
-          "key": "roof_4",
-          "w": 224,
-          "h": 192,
-          "y": 224
-        }
-      ]
-    },
-    {
       "id": "b:gen:10:w:1956",
-      "sprite": "b4",
+      "sprite": "b0",
       "home": false,
       "name": "Keller's Gym",
       "kind": "Gym",
@@ -180,8 +63,37 @@
       ]
     },
     {
+      "id": "b:gen:17:c1:1986",
+      "sprite": "b1",
+      "home": false,
+      "name": "Radcliffe's Bank",
+      "kind": "Bank",
+      "owner": "Louise Radcliffe",
+      "colour": "blue",
+      "parts": [
+        {
+          "key": "classic_bank_7",
+          "w": 224,
+          "h": 96,
+          "y": 0
+        },
+        {
+          "key": "middle_12",
+          "w": 224,
+          "h": 128,
+          "y": 96
+        },
+        {
+          "key": "roof_4",
+          "w": 224,
+          "h": 192,
+          "y": 224
+        }
+      ]
+    },
+    {
       "id": "b:gen:7:w:1962",
-      "sprite": "b5",
+      "sprite": "b2",
       "home": false,
       "name": "Holloway's Bakery",
       "kind": "Bakery",
@@ -195,6 +107,70 @@
           "y": 0
         },
         {
+          "key": "middle_8",
+          "w": 224,
+          "h": 128,
+          "y": 96
+        },
+        {
+          "key": "roof_4",
+          "w": 224,
+          "h": 192,
+          "y": 224
+        }
+      ]
+    },
+    {
+      "id": "b:gen:4:c0:1968",
+      "sprite": "b3",
+      "home": false,
+      "name": "Ellis's Bait Shop",
+      "kind": "Bait Shop",
+      "owner": "Howard Ingram",
+      "colour": "blue",
+      "parts": [
+        {
+          "key": "shop_Bait_Shop_7",
+          "w": 224,
+          "h": 192,
+          "y": 0
+        },
+        {
+          "key": "middle_7",
+          "w": 224,
+          "h": 128,
+          "y": 96
+        },
+        {
+          "key": "roof_4",
+          "w": 224,
+          "h": 192,
+          "y": 224
+        },
+        {
+          "key": "roofprop_16",
+          "w": 160,
+          "h": 96,
+          "y": 236
+        }
+      ]
+    },
+    {
+      "id": "b:gen:14:c0:1987",
+      "sprite": "b4",
+      "home": false,
+      "name": "Okafor's Toy Store",
+      "kind": "Toy Store",
+      "owner": "John Nolan",
+      "colour": "blue",
+      "parts": [
+        {
+          "key": "shop_Shop_21",
+          "w": 224,
+          "h": 96,
+          "y": 0
+        },
+        {
           "key": "middle_9",
           "w": 224,
           "h": 128,
@@ -205,38 +181,9 @@
           "w": 224,
           "h": 192,
           "y": 224
-        }
-      ]
-    },
-    {
-      "id": "b:gen:12:c0:1992",
-      "sprite": "b6",
-      "home": false,
-      "name": "Mercer's Toy Store",
-      "kind": "Toy Store",
-      "owner": "Carl Singh",
-      "colour": "blue",
-      "parts": [
-        {
-          "key": "shop_Shop_21",
-          "w": 224,
-          "h": 96,
-          "y": 0
         },
         {
-          "key": "middle_10",
-          "w": 224,
-          "h": 128,
-          "y": 96
-        },
-        {
-          "key": "roof_4",
-          "w": 224,
-          "h": 192,
-          "y": 224
-        },
-        {
-          "key": "roofprop_13",
+          "key": "roofprop_16",
           "w": 160,
           "h": 96,
           "y": 236
@@ -244,226 +191,12 @@
       ]
     },
     {
-      "id": "b:gen:2",
-      "sprite": "b7",
+      "id": "b:gen:15:c1:1992",
+      "sprite": "b5",
       "home": false,
-      "name": "Jessup's Dress Shop",
-      "kind": "Dress Shop",
-      "owner": "John Jessup",
-      "colour": "blue",
-      "parts": [
-        {
-          "key": "shop_Shop_13",
-          "w": 224,
-          "h": 96,
-          "y": 0
-        },
-        {
-          "key": "middle_11",
-          "w": 224,
-          "h": 128,
-          "y": 96
-        },
-        {
-          "key": "roof_4",
-          "w": 224,
-          "h": 192,
-          "y": 224
-        }
-      ]
-    },
-    {
-      "id": "home:medium:171,125",
-      "sprite": "b8",
-      "home": true,
-      "name": "Vance House",
-      "kind": "Home",
-      "owner": "Ray Vance",
-      "residents": [
-        "Ray Vance",
-        "Gladys Garrity",
-        "Irene Vance",
-        "Helen Vance",
-        "Stanley Vance",
-        "Eugene Vance"
-      ],
-      "colour": "blue",
-      "parts": [
-        {
-          "key": "house_medium_2_c9",
-          "w": 256,
-          "h": 192,
-          "y": 0
-        }
-      ],
-      "house": {
-        "tier": "medium",
-        "design": 2,
-        "colour": "c9"
-      },
-      "yard": {
-        "front": 2,
-        "style": "compact"
-      }
-    },
-    {
-      "id": "home:small:185,116",
-      "sprite": "b9",
-      "home": true,
-      "name": "The Moreau home",
-      "kind": "Home",
-      "owner": "Ernest Moreau",
-      "residents": [
-        "Ernest Moreau"
-      ],
-      "colour": "blue",
-      "parts": [
-        {
-          "key": "house_small_7_c9",
-          "w": 192,
-          "h": 256,
-          "y": 0
-        }
-      ],
-      "house": {
-        "tier": "small",
-        "design": 7,
-        "colour": "c9"
-      },
-      "yard": {
-        "front": 2,
-        "style": "compact"
-      }
-    },
-    {
-      "id": "home:small:173,104",
-      "sprite": "b10",
-      "home": true,
-      "name": "Moreau House",
-      "kind": "Home",
-      "owner": "John Moreau",
-      "residents": [
-        "Edith Haddad",
-        "Edith Moreau",
-        "Ernest Moreau",
-        "John Moreau"
-      ],
-      "colour": "blue",
-      "parts": [
-        {
-          "key": "house_small_8_c2",
-          "w": 192,
-          "h": 256,
-          "y": 0
-        }
-      ],
-      "house": {
-        "tier": "small",
-        "design": 8,
-        "colour": "c2"
-      },
-      "yard": {
-        "front": 2,
-        "style": "compact"
-      }
-    },
-    {
-      "id": "home:small:173,93",
-      "sprite": "b11",
-      "home": true,
-      "name": "The Holloway home",
-      "kind": "Home",
-      "owner": "Clyde Holloway",
-      "residents": [
-        "Clyde Holloway",
-        "Dorothy Moreau"
-      ],
-      "colour": "gray",
-      "parts": [
-        {
-          "key": "house_small_5_c3",
-          "w": 192,
-          "h": 256,
-          "y": 0
-        }
-      ],
-      "house": {
-        "tier": "small",
-        "design": 5,
-        "colour": "c3"
-      },
-      "yard": {
-        "front": 2,
-        "style": "formal"
-      }
-    },
-    {
-      "id": "home:small:173,79",
-      "sprite": "b12",
-      "home": true,
-      "name": "Haddad House",
-      "kind": "Home",
-      "owner": "Lloyd Haddad",
-      "residents": [
-        "Florence Nolan",
-        "Edna Haddad",
-        "Lloyd Haddad"
-      ],
-      "colour": "gray",
-      "parts": [
-        {
-          "key": "house_small_4_c3",
-          "w": 192,
-          "h": 192,
-          "y": 0
-        }
-      ],
-      "house": {
-        "tier": "small",
-        "design": 4,
-        "colour": "c3"
-      },
-      "yard": {
-        "front": 2,
-        "style": "formal"
-      }
-    },
-    {
-      "id": "home:small:173,70",
-      "sprite": "b13",
-      "home": true,
-      "name": "The Chen home",
-      "kind": "Home",
-      "owner": "Vernon Chen",
-      "residents": [
-        "Vernon Chen"
-      ],
-      "colour": "gray",
-      "parts": [
-        {
-          "key": "house_small_3_c7",
-          "w": 192,
-          "h": 192,
-          "y": 0
-        }
-      ],
-      "house": {
-        "tier": "small",
-        "design": 3,
-        "colour": "c7"
-      },
-      "yard": {
-        "front": 2,
-        "style": "formal"
-      }
-    },
-    {
-      "id": "b:imm:1988:0:2016",
-      "sprite": "b14",
-      "home": false,
-      "name": "Haddad's Bank",
+      "name": "Pruitt's Bank",
       "kind": "Bank",
-      "owner": "Robert Haddad",
+      "owner": "Dorothy Pruitt",
       "colour": "blue",
       "parts": [
         {
@@ -473,9 +206,67 @@
           "y": 0
         },
         {
-          "key": "roof_8",
+          "key": "middle_6",
+          "w": 224,
+          "h": 128,
+          "y": 96
+        },
+        {
+          "key": "roof_2",
+          "w": 224,
+          "h": 192,
+          "y": 224
+        },
+        {
+          "key": "roofprop_14",
+          "w": 160,
+          "h": 96,
+          "y": 236
+        }
+      ]
+    },
+    {
+      "id": "b:gen:21:c0:2004",
+      "sprite": "b6",
+      "home": false,
+      "name": "Vance's Gym",
+      "kind": "Gym",
+      "owner": "Walter Vance",
+      "colour": "blue",
+      "parts": [
+        {
+          "key": "shop_Gym_7",
+          "w": 224,
+          "h": 160,
+          "y": 0
+        },
+        {
+          "key": "roof_9",
           "w": 224,
           "h": 224,
+          "y": 96
+        }
+      ]
+    },
+    {
+      "id": "b:imm:1988:0:2016",
+      "sprite": "b7",
+      "home": false,
+      "name": "Haddad's Bank",
+      "kind": "Bank",
+      "owner": "Robert Haddad",
+      "colour": "blue",
+      "parts": [
+        {
+          "key": "classic_bank_11",
+          "w": 224,
+          "h": 96,
+          "y": 0
+        },
+        {
+          "key": "roof_6",
+          "w": 224,
+          "h": 192,
           "y": 96
         },
         {
@@ -487,48 +278,19 @@
       ]
     },
     {
-      "id": "b:gen:18:c2>1966:2022",
-      "sprite": "b15",
-      "home": false,
-      "name": "Reyes's Toy Store",
-      "kind": "Toy Store",
-      "owner": "Vernon Reyes",
-      "colour": "blue",
-      "parts": [
-        {
-          "key": "shop_Shop_9",
-          "w": 224,
-          "h": 96,
-          "y": 0
-        },
-        {
-          "key": "middle_1",
-          "w": 224,
-          "h": 128,
-          "y": 96
-        },
-        {
-          "key": "roof_2",
-          "w": 224,
-          "h": 192,
-          "y": 224
-        }
-      ]
-    },
-    {
-      "id": "home:small:185,125",
-      "sprite": "b16",
+      "id": "home:small:211,131",
+      "sprite": "b8",
       "home": true,
-      "name": "The Jessup home",
+      "name": "The Singh home",
       "kind": "Home",
-      "owner": "Howard Jessup",
+      "owner": "Carl Singh",
       "residents": [
-        "Howard Jessup"
+        "Carl Singh"
       ],
-      "colour": "blue",
+      "colour": "gray",
       "parts": [
         {
-          "key": "house_small_8_c2",
+          "key": "house_small_6_c6",
           "w": 192,
           "h": 256,
           "y": 0
@@ -536,41 +298,131 @@
       ],
       "house": {
         "tier": "small",
-        "design": 8,
-        "colour": "c2"
+        "design": 6,
+        "colour": "c6"
       },
       "yard": {
         "front": 2,
-        "style": "compact"
+        "style": "flower"
       }
     },
     {
-      "id": "home:apartment:185,93",
-      "sprite": "b17",
+      "id": "home:small:211,122",
+      "sprite": "b9",
       "home": true,
-      "name": "Vance House",
+      "name": "The Ingram home",
       "kind": "Home",
-      "owner": "John Vance",
+      "owner": "Howard Ingram",
       "residents": [
-        "Ray Quill",
-        "Dorothy Calloway",
-        "Dorothy Fairchild",
-        "John Vance",
-        "Helen Kowalski",
-        "Henry Moreau"
+        "Howard Ingram",
+        "Mildred Novak"
       ],
-      "colour": "blue",
+      "colour": "gray",
       "parts": [
         {
-          "key": "condo_3_45",
+          "key": "house_small_7_c8",
           "w": 192,
-          "h": 320,
+          "h": 256,
           "y": 0
         }
       ],
+      "house": {
+        "tier": "small",
+        "design": 7,
+        "colour": "c8"
+      },
       "yard": {
-        "front": 0,
-        "style": "compact"
+        "front": 2,
+        "style": "flower"
+      }
+    },
+    {
+      "id": "home:small:211,110",
+      "sprite": "b10",
+      "home": true,
+      "name": "The Haddad home",
+      "kind": "Home",
+      "owner": "Robert Haddad",
+      "residents": [
+        "Robert Haddad"
+      ],
+      "colour": "gray",
+      "parts": [
+        {
+          "key": "house_small_4",
+          "w": 192,
+          "h": 192,
+          "y": 0
+        }
+      ],
+      "house": {
+        "tier": "small",
+        "design": 4,
+        "colour": ""
+      },
+      "yard": {
+        "front": 2,
+        "style": "flower"
+      }
+    },
+    {
+      "id": "home:medium:211,99",
+      "sprite": "b11",
+      "home": true,
+      "name": "Larsen House",
+      "kind": "Home",
+      "owner": "Henry Larsen",
+      "residents": [
+        "Margaret Reyes",
+        "Dorothy Larsen",
+        "Henry Larsen"
+      ],
+      "colour": "gray",
+      "parts": [
+        {
+          "key": "house_medium_5_c8",
+          "w": 256,
+          "h": 256,
+          "y": 0
+        }
+      ],
+      "house": {
+        "tier": "medium",
+        "design": 5,
+        "colour": "c8"
+      },
+      "yard": {
+        "front": 2,
+        "style": "flower"
+      }
+    },
+    {
+      "id": "home:small:211,91",
+      "sprite": "b12",
+      "home": true,
+      "name": "The Kowalski home",
+      "kind": "Home",
+      "owner": "Louise Kowalski",
+      "residents": [
+        "Louise Kowalski"
+      ],
+      "colour": "gray",
+      "parts": [
+        {
+          "key": "house_small_3_c6",
+          "w": 192,
+          "h": 192,
+          "y": 0
+        }
+      ],
+      "house": {
+        "tier": "small",
+        "design": 3,
+        "colour": "c6"
+      },
+      "yard": {
+        "front": 2,
+        "style": "flower"
       }
     }
   ]

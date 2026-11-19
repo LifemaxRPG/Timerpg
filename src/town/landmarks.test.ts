@@ -3,6 +3,7 @@ import { runTimeline, worldAt } from '../sim';
 import { layoutTown } from './layout';
 import { CINEMA_SIZES, landmarkArtKey, landmarkFootprint, LANDMARK_SPECS } from './landmarks';
 import { hasCinema } from './cinema';
+import { isStoreSite, STORE_SIZES } from './stores';
 import { planTown, type Rect } from './plan';
 
 const overlap = (a: Rect, b: Rect): boolean =>
@@ -17,10 +18,11 @@ describe('civic landmarks (plan)', () => {
   it('gives every town at least three landmarks, with sane sizes and opening years', () => {
     for (const seed of SEEDS) {
       const ls = planTown(seed).landmarks;
-      expect(ls.filter((l) => l.id !== 'cinema').length, seed).toBeGreaterThanOrEqual(3);
+      expect(ls.filter((l) => l.id !== 'cinema' && !isStoreSite(l.id)).length, seed).toBeGreaterThanOrEqual(3);
       for (const l of ls) {
         const s = LANDMARK_SPECS[l.id];
         if (l.id === 'cinema') expect(CINEMA_SIZES).toContainEqual([l.w, l.h]);
+        else if (isStoreSite(l.id)) expect(STORE_SIZES[l.id]).toContainEqual([l.w, l.h]);
         else expect([l.w, l.h]).toEqual([s.w, s.h]);
         expect(l.openYear).toBeGreaterThanOrEqual(s.open[0]);
         expect(l.openYear).toBeLessThanOrEqual(s.open[1]);

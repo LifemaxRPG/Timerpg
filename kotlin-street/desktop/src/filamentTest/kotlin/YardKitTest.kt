@@ -24,7 +24,8 @@ class YardKitTest {
         val kinds = items().map { it.kind }.toSet()
         val missing = kinds - YardKit.KINDS
         assertTrue("no builder for $missing", missing.isEmpty())
-        if (gamma() != null) assertTrue("gamma has ${kinds.size} kinds", kinds.size >= 50)
+        // (45: gamma's gardens district stands empty in 2025 since the stores took their sites, src/town/stores.ts)
+        if (gamma() != null) assertTrue("gamma has ${kinds.size} kinds", kinds.size >= 45)
         // and each builds something
         for (it in YardKit.lineup()) assertTrue("$it built nothing", YardKit.bake(listOf(it)).isNotEmpty())
     }

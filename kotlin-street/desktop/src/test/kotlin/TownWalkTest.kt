@@ -88,7 +88,7 @@ class TownWalkTest {
         assertEquals(1f, hypot(c.fx, c.fz), 1e-3f)
         lastCam?.let { (t, yaw) ->
             assertTrue("camera target jumped at ${walk.row.id}", hypot(c.tx - t.x, c.tz - t.z) < 20f)
-            assertTrue("camera turned ${angle(c.yaw - yaw)} at ${walk.row.id}", abs(angle(c.yaw - yaw)) < .25f)
+            assertTrue("camera turned ${angle(c.yaw - yaw)} at ${walk.row.id} x ${walk.x} lane ${walk.lane} transit ${walk.transit?.kind} ${walk.transit?.let { it.from.id + "->" + it.to.id }} vx ${GameState.vx}", abs(angle(c.yaw - yaw)) < .25f)
         }
         lastCam = TownPoint(c.tx, c.tz) to c.yaw
         // never inside a building
@@ -287,7 +287,7 @@ class TownWalkTest {
             assertTrue(GameState.dir < 0f)
             pairs++
         }
-        assertEquals(70, pairs)
+        assertEquals(84, pairs)
     }
 
     @Test fun walkingTheLengthOfEveryRowNeverSticks() {
@@ -308,7 +308,7 @@ class TownWalkTest {
 
     @Test fun theBuildingsKeepThePlayerOut() {
         // pushed hard into the fronts all along a row of shops (no yard: setback 0): held on the pavement
-        val r = WALK_TOWN.row("3R")
+        val r = WALK_TOWN.row("9L")
         place(r, 300f, 8f); frame()
         GameState.moveLane = -.45f
         until(what = "to the wall") { walk.lane <= GameState.LANE_MIN + 1e-3f }
