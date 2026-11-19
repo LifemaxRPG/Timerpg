@@ -156,6 +156,37 @@
           7.45
         ]
       }
+    },
+    {
+      "id": "landmark_glb_mirage_nightclub",
+      "name": "Club Mirage",
+      "role": "nightclub",
+      "era": "1980s",
+      "asset": "landmarks/mirage-nightclub/mirage-nightclub.glb",
+      "info": "landmarks/mirage-nightclub/model-info.json",
+      "building": [
+        18.62,
+        17.38
+      ],
+      "lot": [
+        27.32,
+        29.8
+      ],
+      "doors": [
+        "door_main",
+        "door_back",
+        "door_side"
+      ],
+      "props": [
+        "marquee_pylon",
+        "service_yard",
+        "vip_rope_line"
+      ],
+      "door_panels": [
+        "door_panel_main",
+        "door_panel_back",
+        "door_panel_side"
+      ]
     }
   ]
 }
