@@ -502,7 +502,8 @@ is the AI panel's "View: Open world / Street" (prefs `renderer/view`, open by de
   reach, two cells uploaded a frame, let go 700 past it). Forest sprites map to species (round: maples, lindens, birches,
   oaks; tall: spruces, pines, poplars; big: oaks). The yards' trees and fruit trees are the kit's, full detail near and
   the simple level in the far yards. No seasons in Filament yet (summer colours).
-  Build server, software GL (not the S25): 005324's woods 170 draws, 215k triangles (were 183 and 295k with the old
-  trees: the simple level is lighter than the old near trees, the detail only round the camera); a detailed tree is
+  Build server, software GL (not the S25), on the town as exported with the stores: in the woods (fb_trees) 113 draws,
+  297k triangles (were 117 and 362k with the old trees; zoomed in 377k, was 507k: the simple level is lighter than the
+  old near trees, the detail only round the camera); a detailed tree is
   500-1160 triangles (the old 3D tree about 330), its simple level 80-170 (desktop TreeKitTest prints each yard look).
   townMemoryCheck held 184 MB of 256.

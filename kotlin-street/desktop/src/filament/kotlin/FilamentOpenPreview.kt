@@ -303,13 +303,16 @@ fun renderFilamentOpen(out: String) {
         view("chk_world_edge", c.minX + 300f, (c.minZ + c.maxZ) / 2f, -1f, 0f, 270f, 20f, 700f, 13f, "the world's west edge")
         view("chk_world_edge_n", (c.minX + c.maxX) / 2f, c.minZ + 300f, 0f, -1f, 0f, 20f, 700f, 13f, "the world's north edge")
     }
-    // --- the owner's screenshots of build 0.1.338 (the S25, 2026-11-19): the same spots and cameras, 17:36 in summer
-    view("fb_skyline", 4059.2f, 3885.7f, -.3858f, -.9226f, 11.7f, 13.43f, 420f, 17.6f, "005025: Kiln Lane, the horizon (no painted city)")
-    view("fb_trees", 2319.05f, 5965.84f, .3657f, .9307f, -139.8f, 10f, 420f, 17.6f, "005324: Tanner Street's woods (trees and a bush)")
-    view("fb_trees_close", 2319.05f, 5965.84f, .3657f, .9307f, -139.8f, 12f, 200f, 17.6f, "005324's woods, zoomed in")
-    view("fb_yard_a", 3204.8f, 5246f, .99997f, .00708f, -145.86f, 22.43f, 420f, 17.6f, "005359: Granary Road, the yard behind the player")
-    view("fb_yard_b", 3204.8f, 5246f, .99997f, .00708f, -171.5f, 20.1f, 420f, 17.6f, "005414: the same spot, the camera turned 25 degrees")
-    view("fb_yard_c", 3204.8f, 5246f, .99997f, .00708f, -120f, 22f, 420f, 17.6f, "the same spot, the camera turned the other way")
+    // --- the owner's screenshots of build 0.1.338 (the S25, 2026-11-19), 17:36 in summer. gamma was exported again with
+    // the stores since, so the spots are the same kind of place in today's town: a street looking along it at the
+    // horizon, a clearing in the woods, and outside a back hedge of a lot with a shed, trampoline and play set
+    // (medium:80,101, its hedge on the west: the shots' cameras turned by the same 90 degrees)
+    view("fb_skyline", 4059.2f, 3885.7f, -.3858f, -.9226f, 11.7f, 13.43f, 420f, 17.6f, "005025: a street, the horizon (no painted city)")
+    view("fb_trees", 2200f, 7000f, .3657f, .9307f, -139.8f, 10f, 420f, 17.6f, "005324: in the woods (trees and bushes)")
+    view("fb_trees_close", 2200f, 7000f, .3657f, .9307f, -139.8f, 12f, 200f, 17.6f, "005324's woods, zoomed in")
+    view("fb_yard_a", 2576f, 3674f, 0f, -1f, 124.1f, 22.43f, 420f, 17.6f, "005359: outside a back hedge, the yard behind the player")
+    view("fb_yard_b", 2576f, 3674f, 0f, -1f, 98.5f, 20.1f, 420f, 17.6f, "005414: the same spot, the camera turned 25 degrees")
+    view("fb_yard_c", 2576f, 3674f, 0f, -1f, 150f, 22f, 420f, 17.6f, "the same spot, the camera turned the other way")
     File(dir, "open.txt").writeText(report.toString())
     print(report)
     if (want("walk")) scriptedWalk(dir, town, yards, walk, run, shooter, sheets, w, h, events)
