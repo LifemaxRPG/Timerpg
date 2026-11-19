@@ -58,21 +58,35 @@ class OpenWalkTest {
 
         /** The walkable grid (cells of [STEP]) reached from the spawn, 4-connected. */
         const val STEP = 6f
-        val cols by lazy { ((map.maxX - map.minX) / STEP).toInt() }
-        val rows by lazy { ((map.maxZ - map.minZ) / STEP).toInt() }
+        /**
+         * The paths keep this much more than a walker's radius clear (planning with a margin): a slot a cell's centre clears
+         * by the radius alone can still be narrower than a walker between two neighbours' fences (b0 and b38's corner).
+         */
+        const val PLAN_MARGIN = 1.5f
+        /** The grid's corner, on whole cells from the world's origin (so its cells do not move as the world's edge does). */
+        val gx0 by lazy { kotlin.math.ceil(map.minX / STEP) * STEP }
+        val gz0 by lazy { kotlin.math.ceil(map.minZ / STEP) * STEP }
+        val cols by lazy { ((map.maxX - gx0) / STEP).toInt() }
+        val rows by lazy { ((map.maxZ - gz0) / STEP).toInt() }
         val free: BitSet by lazy {
             val b = BitSet(cols * rows)
             for (j in 0 until rows) for (i in 0 until cols) if (!map.blocked(cx(i), cz(j), R)) b.set(j * cols + i)
             b
         }
-        fun cx(i: Int) = map.minX + (i + .5f) * STEP
-        fun cz(j: Int) = map.minZ + (j + .5f) * STEP
-        fun cellOf(x: Float, z: Float) = ((z - map.minZ) / STEP).toInt() * cols + ((x - map.minX) / STEP).toInt()
+        /** The cells a planned path may use: clear of anything by a walker's radius and [PLAN_MARGIN]. */
+        val pathFree: BitSet by lazy {
+            val b = BitSet(cols * rows)
+            for (j in 0 until rows) for (i in 0 until cols) if (free[j * cols + i] && !map.blocked(cx(i), cz(j), R + PLAN_MARGIN)) b.set(j * cols + i)
+            b
+        }
+        fun cx(i: Int) = gx0 + (i + .5f) * STEP
+        fun cz(j: Int) = gz0 + (j + .5f) * STEP
+        fun cellOf(x: Float, z: Float) = ((z - gz0) / STEP).toInt() * cols + ((x - gx0) / STEP).toInt()
 
         val spawn by lazy { OpenWalk(town, map, yards, doors).let { it.wx to it.wz } }
 
         /** BFS over [free] from [from] (to [stopAt], which may itself be the spawn cell a grid shift left within a walker of something): each reached cell's parent (-1 unreached; the start its own). */
-        fun bfs(from: Int, stopAt: Int = -1): IntArray {
+        fun bfs(from: Int, stopAt: Int = -1, grid: BitSet = free): IntArray {
             val par = IntArray(cols * rows) { -1 }
             val q = IntArray(cols * rows)
             var h = 0; var t = 0
@@ -81,7 +95,7 @@ class OpenWalkTest {
                 val c = q[h++]
                 if (c == stopAt) break
                 val i = c % cols; val j = c / cols
-                fun go(n: Int) { if (par[n] < 0 && (free[n] || n == stopAt)) { par[n] = c; q[t++] = n } }
+                fun go(n: Int) { if (par[n] < 0 && (grid[n] || n == stopAt)) { par[n] = c; q[t++] = n } }
                 if (i > 0) go(c - 1); if (i < cols - 1) go(c + 1); if (j > 0) go(c - cols); if (j < rows - 1) go(c + cols)
             }
             return par
@@ -229,14 +243,27 @@ class OpenWalkTest {
 
     private fun pathTo(fromX: Float, fromZ: Float, toCell: Int): IntArray? {
         // (a walker can stand closer to a trunk than the grid's clearance: then from the nearest reached cell by it)
-        val start = cellOf(fromX, fromZ).let { c -> if (free[c]) c else nearestReached(fromX, fromZ, 24f).takeIf { it >= 0 } ?: c }
-        val par = bfs(start, toCell)
+        val start = cellOf(fromX, fromZ).let { c -> if (pathFree[c]) c else nearestPathCell(fromX, fromZ).takeIf { it >= 0 } ?: c }
+        val par = bfs(start, toCell, pathFree).takeIf { it[toCell] >= 0 } ?: bfs(start, toCell)
         if (par[toCell] < 0) return null
         val p = ArrayList<Int>()
         var c = toCell
         while (c != start) { p += c; c = par[c] }
         p += start
         return p.reversed().toIntArray()
+    }
+
+    /** The nearest cell ([x], [z]) a planned path may use (within 30), or -1. */
+    private fun nearestPathCell(x: Float, z: Float): Int {
+        val c0 = cellOf(x, z); val i0 = c0 % cols; val j0 = c0 / cols
+        var best = -1; var bd = Int.MAX_VALUE
+        for (dj in -5..5) for (di in -5..5) {
+            val i = i0 + di; val j = j0 + dj
+            if (i !in 0 until cols || j !in 0 until rows) continue
+            val c = j * cols + i
+            if (pathFree[c] && reach[c] >= 0 && di * di + dj * dj < bd) { bd = di * di + dj * dj; best = c }
+        }
+        return best
     }
 
     /** The reached cell nearest ([x], [z]) (searched outward), or -1. */
