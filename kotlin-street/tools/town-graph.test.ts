@@ -95,11 +95,8 @@ describe('town graph', () => {
     expect(`${JSON.stringify(townStreets('eta', 2025).json, null, 2)}\n`).toBe(readFileSync(join(__dirname, '../app/src/main/assets/street.json'), 'utf8'));
   });
 
-  // Stale on purpose since the towns got their stores (src/town/stores.ts): the fixture (desktop/src/test/resources/
-  // town-gamma.json) pins the Kotlin town tests (TownMapTest, TownWalkTest, TownPlaceTest, StreetPropRulesTest), which the
-  // open-world work is rewriting; it is re-exported, and those tests re-pinned, when the stores are integrated into the town
-  // (kotlin-street/docs/STORES.md).
-  it.skip('matches the Kotlin tests\' fixture', () => {
+  // the fixture pins the Kotlin town tests (TownMapTest, TownWalkTest, TownPlaceTest, StreetPropRulesTest, OpenWalkTest)
+  it('matches the Kotlin tests\' fixture', () => {
     expect(readFileSync(join(__dirname, '../desktop/src/test/resources/town-gamma.json'), 'utf8')).toBe(`${JSON.stringify(g.json)}\n`);
   });
 });

@@ -48,7 +48,7 @@ class OpenWalkTest {
         val map: TownCollision
         init {
             val t0 = System.nanoTime()
-            map = TownCollision.build(town, yards, models, cinema)
+            map = TownCollision.build(town, yards, models, cinema, com.lifemax.rpg.feature.habits.domain.StoreLots.parse(root).map { it.sprite }.toSet())
             buildMs = (System.nanoTime() - t0) / 1e6
         }
         val doors: TownDoors by lazy { TownDoors(town, yards, map, cinema) }
@@ -106,11 +106,14 @@ class OpenWalkTest {
         val byKind = SolidKind.values().associateWith { k -> (0 until map.size).count { map.kind(it) == k } }
         println("collision: ${map.size} shapes in ${"%.0f".format(buildMs)} ms, grid ${map.cols}x${map.rows}; $byKind")
         // every building is in it, and what its slot covers is solid at its middle (a model's parts or its box)
+        // (a store's plot is left to its store as built: scene3d's TownStores adds its shapes, StoreCollisionTest checks them)
+        assertEquals(setOf("b101", "b102", "b103", "b104"), map.stores)
         for (r in town.rows) for (b in r.buildings) {
+            if (b.sprite in map.stores) { assertTrue("${b.sprite} is a store", (0 until map.size).none { map.owner(it) == b.sprite }); continue }
             assertTrue("no shapes for ${b.sprite}", (0 until map.size).any { map.owner(it) == b.sprite && map.kind(it) == SolidKind.BUILDING })
         }
         assertTrue(byKind[SolidKind.FENCE]!! > 300); assertTrue(byKind[SolidKind.HEDGE]!! > 40); assertTrue(byKind[SolidKind.WATER]!! > 50)
-        assertTrue(byKind[SolidKind.TREE]!! > 4000); assertTrue(byKind[SolidKind.PROP]!! > 500); assertEquals(8, byKind[SolidKind.PARAPET])
+        assertTrue(byKind[SolidKind.TREE]!! > 4000); assertTrue(byKind[SolidKind.PROP]!! > 500); assertEquals(12, byKind[SolidKind.PARAPET])
         // the spawn is clear; the water is solid, the bridges' decks are not
         assertTrue(!map.blocked(spawn.first, spawn.second, R))
         for (w in town.water) {

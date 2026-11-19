@@ -67,7 +67,12 @@ fun renderFilamentOpen(out: String) {
     val engine = Engine.Builder().backend(Engine.Backend.OPENGL).config(com.lifemax.rpg.feature.habits.presentation.scene3d.TownEngine.config()).build()
     val mats = File("../app/src/main/assets/filament")
     val cinema = com.lifemax.rpg.feature.habits.presentation.scene3d.CinemaSite.parse(root)
-    val ft = FilamentTown(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, cinema = cinema)
+    val collision = com.lifemax.rpg.feature.habits.domain.TownCollision.build(town, yards,
+        com.lifemax.rpg.feature.habits.domain.ModelShape.parseAll(File(bdir, "models.json").takeIf { it.exists() }?.readText()),
+        com.lifemax.rpg.feature.habits.domain.CinemaSiteShape.parse(root), com.lifemax.rpg.feature.habits.domain.StoreLots.parse(root).map { it.sprite }.toSet())
+    val storeSites = com.lifemax.rpg.feature.habits.presentation.scene3d.StoreSite.parse(root)
+    val ft = FilamentTown(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, cinema = cinema,
+        stores = storeSites, collision = collision)
     ft.nightBudgetNs = Long.MAX_VALUE
     val report = StringBuilder()
     report.appendLine("open world, town ${town.seed} ${town.year}: ${ft.slots.size} buildings, ${yards.yards.size} yards; far yards ${if (com.lifemax.rpg.feature.habits.presentation.scene3d.YardKitBuilder.far) "baked" else "off (-DtownLod=0)"}")
@@ -87,9 +92,7 @@ fun renderFilamentOpen(out: String) {
     GameState.enabled = true; GameState.look = 1
     GameState.moveX = 0f; GameState.moveLane = 0f
     OrbitCamera.open = true
-    val collision = com.lifemax.rpg.feature.habits.domain.TownCollision.build(town, yards,
-        com.lifemax.rpg.feature.habits.domain.ModelShape.parseAll(File(bdir, "models.json").takeIf { it.exists() }?.readText()),
-        com.lifemax.rpg.feature.habits.domain.CinemaSiteShape.parse(root))
+    report.appendLine("stores (${ft.storeYear.takeIf { it > 0 } ?: town.year}): " + ft.storeReport.joinToString("; ") + "; collision ${collision.size} + ${collision.extraSize} shapes, ${collision.extraDoors.size} store doors")
     val events = ArrayList<String>()
     TownPlay.onEvent = { events += it }
     TownPlay.start(town, collision, yards)
@@ -206,6 +209,42 @@ fun renderFilamentOpen(out: String) {
         view("cinema_quarter_13h", p.x, p.z, a.x, a.z, heading(n.x, n.z) - 40f, 20f, 700f, 13f, "the cinema, three-quarter")
         view("cinema_quarter_dusk", p.x, p.z, a.x, a.z, heading(n.x, n.z) - 40f, 20f, 700f, 19.3f, "the cinema, three-quarter at dusk")
         view("cinema_night", p.x, p.z, a.x, a.z, heading(n.x, n.z) + 25f, 16f, 600f, night, "the cinema at night")
+    }
+    // --- the stores (docs/STORES.md), each year of -DstoresYears (default 1955, 1975, 1995, 2025): the player before each
+    // store's door (or the plot's front, before it opens) facing it, the camera low behind them (as near the player's
+    // height as it goes), at its usual height by day and at night, and up high over the edge of town
+    run {
+        val years = (System.getProperty("storesYears") ?: "1955,1975,1995,2025").split(",").mapNotNull { it.trim().toIntOrNull() }
+        if (only != null && only.none { it.startsWith("store") }) return@run
+        for (yr in years) {
+            ft.storeYear = yr
+            while (ft.pending > 0) { if (ft.buildNearest(0f, 0f, 8f) == 0) Thread.sleep(1) }
+            report.appendLine("stores in $yr: " + ft.storeReport.joinToString("; ") + "; collision + ${collision.extraSize} shapes, ${collision.extraDoors.size} store doors")
+            for (st in storeSites) {
+                val s = ft.slots.firstOrNull { it.b.sprite == st.sprite } ?: continue
+                val r = s.row
+                val n = r.normalAt(s.b.mid)
+                val inn = heading(n.x, n.z)
+                val door = collision.extraDoors.firstOrNull { it.sprite == st.sprite }
+                val back = when (st.site?.site ?: st.info?.kind?.name?.lowercase()) { "generalstore", "general" -> 70f; "market" -> 260f; "supermarket" -> 420f; else -> 620f }
+                val (px, pz) = if (door != null) (door.x + door.outX * back) to (door.z + door.outZ * back)
+                    else r.pointAt(s.b.mid, 6f).let { it.x to it.z }
+                val tag = st.landmark.removePrefix("landmark:")
+                for (h in listOf(13f, night)) {
+                    if (h != 13f && door == null && st.at(yr, h, ft.weekday) == null) continue
+                    val hn = if (h == 13f) "13h" else "night"
+                    while (!ft.parkStores(h)) Thread.sleep(2)
+                    view("store_${tag}_${yr}_low_$hn", px, pz, n.x, n.z, inn, 10f, OrbitCamera.DIST_MIN, h, "$tag in $yr, from the player's height")
+                    view("store_${tag}_${yr}_$hn", px, pz, n.x, n.z, inn - 25f, 24f, 560f, h, "$tag in $yr, the camera's usual height")
+                }
+                if (st.site?.site == "superstore" || st.site?.site == "supermarket") {
+                    while (!ft.parkStores(13f)) Thread.sleep(2)
+                    view("store_${tag}_${yr}_high", px, pz, n.x, n.z, inn + 35f, 50f, OrbitCamera.DIST_MAX, 13f, "$tag in $yr, zoomed out")
+                }
+            }
+        }
+        ft.storeYear = 0
+        while (ft.pending > 0) { if (ft.buildNearest(0f, 0f, 8f) == 0) Thread.sleep(1) }
     }
     // --- Woodside: behind the player on a quiet street
     run {

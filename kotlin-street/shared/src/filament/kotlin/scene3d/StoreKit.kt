@@ -155,6 +155,8 @@ internal class StoreB {
     /** The lights left on at a shut store (a wall-pack or two, one lot lamp), and the car park's bays ([StoreCars]). */
     val secLights = ArrayList<CinemaLight>()
     val bays = ArrayList<StoreBay>()
+    /** The entrances a walker goes in by: (x, z) on the front wall in the model's frame, facing out (+z). */
+    val doors = ArrayList<FloatArray>()
     /** Every word the store's signs spell (for the tests: never a real chain's, nor its trade dress). */
     val texts = ArrayList<String>()
 
@@ -250,7 +252,7 @@ object StoreKit {
         StoreGrounds.build(b, info, site)
         if (cars) StoreCars.place(b, b.det("cars"), info, b.bays)
         val model = b.model(info.kind, info.lot, info.deep)
-        return StoreModel(model, floatArrayOf(site.x0, site.zf, site.x1, site.zb), b.names.toList(), b.bays.toList(), b.texts.toList())
+        return StoreModel(model, floatArrayOf(site.x0, site.zf, site.x1, site.zb), b.names.toList(), b.bays.toList(), b.texts.toList(), b.doors.toList())
     }
 
     /** The pack's own store buildings the builder has (`style` = "pack:<id>"; src/town/stores.ts PACK_LOOKS lists the same). */
@@ -310,7 +312,9 @@ object StoreKit {
      * A built store: its [model] (the engine's parts and lights), its main block's plan [block] (x0, front z, x1, back z),
      * the car park's [bays] (fill them with [StoreCars.build] when built with `cars = false`) and the words on its signs.
      */
-    class StoreModel(val model: CinemaModel, val block: FloatArray, val names: List<String> = emptyList(), val bays: List<StoreBay> = emptyList(), val texts: List<String> = emptyList())
+    class StoreModel(val model: CinemaModel, val block: FloatArray, val names: List<String> = emptyList(), val bays: List<StoreBay> = emptyList(), val texts: List<String> = emptyList(),
+                     /** The entrances: (x, z) on the front wall, facing out (+z), in the model's frame. */
+                     val doors: List<FloatArray> = emptyList())
 
     /**
      * Where the building stands on its plot, for the grounds: the main block [x0]..[x1] from its front wall [zf] back to
@@ -687,6 +691,7 @@ object StoreKit {
         CinemaKit.ledge(det, px0 - 1f, deckH - 2f, pz1 - 1f, px1 + 1f, deckH + .4f, pz1 + 1.5f, DECK)
         // steps: two treads down to the ground in front of the door
         b.box(det, cx - 30f, 0f, pz1, cx + 30f, 8f, pz1 + 10f, DECK, 5)
+        b.doors += floatArrayOf(cx, zf)
         b.box(det, cx - 30f, 0f, pz1 + 10f, cx + 30f, 4f, pz1 + 20f, DECK, 6)
         val postR = Ramp(trim.o, trim.d, trim.b, trim.l, trim.h)
         val nPost = 5

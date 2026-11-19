@@ -193,6 +193,7 @@ internal object StoreMarkets {
         val bays = max(4, ((gx1 - gx0) / 64f).toInt())
         val bayW = (gx1 - gx0) / bays
         val doorBays = setOf(bays / 2 - 1, bays / 2)
+        b.doors += floatArrayOf(gx0 + bays / 2 * bayW, zf)
         val specials = listOf("SALE" to "THIS WEEK", "FRYERS" to "39 LB", "COFFEE" to "2 LB 89", "BREAD" to "2 FOR 25", "PRODUCE" to "FRESH DAILY", "STAMPS" to "DOUBLE")
         for (k in 0 until bays) {
             val a = col(gx0 + k * bayW) + 1; val e = col(gx0 + (k + 1) * bayW) - 1
@@ -337,6 +338,7 @@ internal object StoreMarkets {
             }
         } }
         val lit = b.sign("glass")
+        for (k in listOf(1, nb - 2)) b.doors += floatArrayOf(gx0 + (k + .5f) * bw, zf)
         for (k in 0 until nb) {
             val a = gx0 + k * bw
             val pic = when (k) { 1 -> doorPic("IN"); nb - 2 -> doorPic("OUT"); else -> bayPics[(k + seed) % 3] }
@@ -460,6 +462,7 @@ internal object StoreMarkets {
         while (pz > zb + 60f) { CinemaKit.ledge(b.det("pil"), x1, 0f, pz - 10f, x1 + 6f, H + 6f, pz + 10f, pil); CinemaKit.ledge(b.det("pil"), x0 - 6f, 0f, pz - 10f, x0, H + 6f, pz + 10f, pil); pz -= 220f }
         // the entrances (one or two by the chain's facade), each a tower with its canopy and glass vestibule
         val towers = face.entrances.map { (k, word) -> cx + k * W to word }
+        for ((tcx, _) in towers) b.doors += floatArrayOf(tcx, zf + 40f)
         val TW = 300f; val TD = 40f
         val TH = if (face.gable) 280f else 300f
         val towerWall = b.tile(StoreKit.panelTile(brand.deep, seed + 3, 48, 48, 30))
