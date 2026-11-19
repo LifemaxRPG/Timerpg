@@ -46,10 +46,13 @@ internal class YardLayer(engine: Engine, scene: Scene, visible: Material, proxy:
         private val IDENTITY = floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 0f)
 
         /** The water's shimmer at [seconds]: a texel's step every quarter second, ripples one way and sparkle the other. */
-        fun shimmer(mi: MaterialInstance, mesh: PropMesh, seconds: Double) {
+        fun shimmer(mi: MaterialInstance, mesh: PropMesh, seconds: Double) = shimmer(mi, mesh.texW, mesh.texH, seconds)
+
+        /** The same for a picture of [texW] x [texH]. */
+        fun shimmer(mi: MaterialInstance, texW: Int, texH: Int, seconds: Double) {
             val step = (seconds * 4.0).toLong()
-            val du = (step % mesh.texW).toFloat() / mesh.texW
-            val dv = ((step / 3) % mesh.texH).toFloat() / mesh.texH
+            val du = (step % texW).toFloat() / texW
+            val dv = ((step / 3) % texH).toFloat() / texH
             mi.setParameter("uvRect", du, dv, 1f, 1f)
         }
     }
@@ -81,19 +84,24 @@ object YardKitBuilder : YardBuilder {
             val r = l.rect
             work += l.items.map(::item) to YardPatch(l.id, (r[0] + r[2]) / 2f, (r[1] + r[3]) / 2f, kotlin.math.hypot(r[2] - r[0], r[3] - r[1]) / 2f)
         }
-        // baked on every core (the kit's caches are shared under locks) a few lots per core at a time, handed to the sink
-        // in order (so only those few lots' meshes are held at once)
-        val step = 2 * Runtime.getRuntime().availableProcessors()
+        // baked a few lots at a time on the common pool (the kit's caches are shared under locks), handed to the sink in
+        // order, so only those few lots' meshes are held at once (each lot's atlases and vertices: up to some 5 MB); the
+        // sink packs them for the GPU and waits while the engine's thread is behind (FilamentTown.offer). The whole
+        // town's yards bake in under a second of one core, so more lots at once would only hold more memory.
+        val step = maxOf(2, Runtime.getRuntime().availableProcessors() / 4)
         for (from in work.indices step step) {
             val group = work.subList(from, minOf(work.size, from + step))
-            val baked = group.parallelStream().map { (items, _) -> YardKit.bake(items, perKind = false) }.collect(java.util.stream.Collectors.toList())
-            for ((k, batches) in baked.withIndex()) {
+            val baked: MutableList<List<YardBatch>?> = group.parallelStream().map { (items, _) -> YardKit.bake(items, perKind = false) }.collect(java.util.stream.Collectors.toList())
+            for (k in baked.indices) {
                 val patch = group[k].second
-                for (b in batches) {
+                for (b in baked[k]!!) {
                     val mi = sink.mesh("yard:${patch.id}:${b.group}", b.mesh, at, b.casts, b.tiled, patch, water = b.water)
                     if (b.water && mi != null) sink.animate { s -> YardLayer.shimmer(mi, b.mesh, s) }
                 }
+                // (each lot's meshes let go as soon as the sink has them)
+                baked[k] = null
             }
         }
+        YardKit.trim()
     }
 }

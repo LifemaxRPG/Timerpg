@@ -94,8 +94,12 @@ internal class PropLayer(
     class Packed internal constructor(
         internal val vb: ByteBuffer, internal val ib: ByteBuffer, val vertices: Int, val indices: Int, internal val box: FloatArray,
         internal val tex: StreetTextures.Prepared, internal val mask: StreetTextures.Prepared?,
+        /** Whether its pictures were packed for it (not shared with an earlier batch of the same mesh). */
+        private val ownPictures: Boolean = true,
     ) {
         val bytes: Int get() = vb.capacity() + ib.capacity()
+        /** What it alone holds until its upload: vertices, indices and, unless shared, its pictures (on the phone, Java heap). */
+        val heldBytes: Long get() = bytes.toLong() + if (!ownPictures) 0L else tex.buf.capacity().toLong() + (mask?.buf?.capacity() ?: 0)
     }
 
     /** Uploads a [Packed] batch (the engine's thread); [casts]: it throws a shadow; [tiled]: its picture repeats. */
@@ -117,7 +121,7 @@ internal class PropLayer(
 
     object Packing {
         /** [mesh] at each of [at] (see [addMesh]) packed for [upload], on any thread; null for nothing to add. */
-        fun pack(mesh: PropMesh, at: List<FloatArray>): Packed? {
+        fun pack(mesh: PropMesh, at: List<FloatArray>, share: MutableMap<IntArray, StreetTextures.Prepared>? = null): Packed? {
         if (at.isEmpty()) return null
         val nv = mesh.vertexCount * at.size
         val vb = ByteBuffer.allocateDirect(nv * STRIDE).order(ByteOrder.nativeOrder())
@@ -150,16 +154,19 @@ internal class PropLayer(
         }
         vb.flip(); ib.flip()
         val box = floatArrayOf((minX + maxX) / 2f, (minY + maxY) / 2f, (minZ + maxZ) / 2f, (maxX - minX) / 2f + .5f, (maxY - minY) / 2f + .5f, (maxZ - minZ) / 2f + .5f)
-        return Packed(vb, ib, nv, mesh.idx.size * at.size, box, StreetTextures.prepare(mesh.tex, mesh.texW, mesh.texH, mips = true),
-            mesh.mask?.let { StreetTextures.prepare(it, mesh.texW, mesh.texH, linear = true, mips = true) })
+        // (one mesh packed for many chunks shares one packed picture: the content key makes them one texture anyway, but
+        // each chunk once carried its own copy of the bytes, the town's trees' atlas over and over, until uploaded)
+        val (tex, fresh) = StreetTextures.prepareShared(mesh.tex, mesh.texW, mesh.texH, linear = false, share)
+        val mask = mesh.mask?.let { StreetTextures.prepareShared(it, mesh.texW, mesh.texH, linear = true, share).first }
+        return Packed(vb, ib, nv, mesh.idx.size * at.size, box, tex, mask, fresh)
         }
 
         /** [props] packed for [upload] by look (one batch each), on any thread: each batch, whether it casts, how many props. */
-        fun packProps(props: List<WorldProp>): List<Triple<Packed, Boolean, Int>> {
+        fun packProps(props: List<WorldProp>, share: MutableMap<IntArray, StreetTextures.Prepared>? = null): List<Triple<Packed, Boolean, Int>> {
             val groups = LinkedHashMap<PropMesh, MutableList<WorldProp>>()
             for (p in props) groups.getOrPut(PropKit.mesh(p.spot.kind, p.spot.variant, p.spot.text, p.spot.seed)) { ArrayList() } += p
             return groups.mapNotNull { (mesh, list) ->
-                pack(mesh, list.map { p -> floatArrayOf(p.x, p.z, p.ax, p.az, p.ox, p.oz, p.spot.turn) })?.let { Triple(it, list.first().spot.kind.shadow, list.size) }
+                pack(mesh, list.map { p -> floatArrayOf(p.x, p.z, p.ax, p.az, p.ox, p.oz, p.spot.turn) }, share)?.let { Triple(it, list.first().spot.kind.shadow, list.size) }
             }
         }
     }

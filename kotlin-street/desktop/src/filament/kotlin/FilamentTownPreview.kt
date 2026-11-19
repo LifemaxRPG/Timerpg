@@ -23,6 +23,7 @@ import com.lifemax.rpg.feature.habits.presentation.scene3d.PlaceholderYards
 import com.lifemax.rpg.feature.habits.presentation.scene3d.TownArt
 import com.lifemax.rpg.feature.habits.presentation.scene3d.TownFrame
 import com.lifemax.rpg.feature.habits.presentation.scene3d.TownPose
+import com.lifemax.rpg.feature.habits.presentation.scene3d.TownMemory
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -46,6 +47,7 @@ import org.jetbrains.skia.Image as SkiaImage
  * and town.txt (build times, draw counts per view).
  */
 fun renderFilamentTown(out: String) {
+    watchMemory()
     val dir = File(out, "filament-town").also { it.mkdirs() }
     val townDir = System.getProperty("town")?.let { File(it) } ?: File("../build-town/gamma")
     val assets = File(System.getProperty("assetsRoot") ?: "../../public/assets")
@@ -87,6 +89,8 @@ fun renderFilamentTown(out: String) {
     val onlyShots = System.getProperty("shots")?.split(",")?.map { it.trim() }?.toSet()
     if (onlyShots == null || "cold" in onlyShots || onlyShots.any { it.startsWith("cold") })
         coldStart(engine, { n -> File(mats, "$n.filamat").readBytes() }, town, yards, art, building, report, dir, 2340, 1080)
+    // (the memory check: the cold start alone)
+    if (System.getProperty("coldOnly") != null) { File(dir, "town.txt").writeText(report.toString()); return }
 
     // the walk, standing at the spawn
     GameState.moveX = 0f; GameState.moveLane = 0f
@@ -101,8 +105,13 @@ fun renderFilamentTown(out: String) {
         // the yards' triangles by kind (where a view's triangles go)
         val all = com.lifemax.rpg.feature.habits.presentation.scene3d.YardData.yards(json).flatMap { it.items } +
             com.lifemax.rpg.feature.habits.presentation.scene3d.YardData.laneItems(json)
-        val tris = com.lifemax.rpg.feature.habits.presentation.scene3d.YardKit.bake(all).groupBy { it.group }
-            .mapValues { (_, b) -> b.sumOf { it.mesh.idx.size / 3 } }.entries.sortedByDescending { it.value }
+        // (baked a yard at a time and summed: the whole town's in one bake made meshes of a million vertices for this
+        // line alone, more than the rest of the build held)
+        val parts = com.lifemax.rpg.feature.habits.presentation.scene3d.YardData.yards(json).map { it.items } +
+            listOf(com.lifemax.rpg.feature.habits.presentation.scene3d.YardData.laneItems(json))
+        val byGroup = HashMap<String, Int>()
+        for (items in parts) for (b in com.lifemax.rpg.feature.habits.presentation.scene3d.YardKit.bake(items)) byGroup.merge(b.group, b.mesh.idx.size / 3, Int::plus)
+        val tris = byGroup.entries.sortedByDescending { it.value }
         report.appendLine("yards: ${all.size} items, ${tris.sumOf { it.value }} triangles; most: " + tris.take(10).joinToString { "${it.key} ${it.value}" })
     }
     // the buildings as the game builds them: nearest the player first, a 4 ms budget a frame
@@ -428,6 +437,9 @@ private fun coldStart(
         val ms = (System.nanoTime() - f0) / 1e6f
         if (ms > worst) { worstAt = frames; worstBuild = b; worstDraw = ms - b }
         loading += ms; worst = maxOf(worst, ms); frames++
+        // (-Dmemtrace: the memory every 50 frames while it loads)
+        if (System.getProperty("memtrace") != null && frames % 50 == 0) println("  memtrace frame %d: live %d MB, direct %d MB, ground queue %d MB, %d built".format(
+            frames, TownMemory.mb(TownMemory.live?.invoke() ?: 0L), TownMemory.mb(TownMemory.direct?.invoke() ?: 0L), TownMemory.mb(ft.queuedBytes), ft.slots.count { it.isBuilt }))
         clock += 1f / 120f
         if (ready || (System.nanoTime() - t0) > 180_000_000_000L) break
         pace(f0)
@@ -471,6 +483,44 @@ private fun coldStart(
         .format(if (busyAtView) "the rest of the town in %.0f ms more".format(restMs) else "nothing left to build when the view was ready", playing.size, pct(playing, 50), pct(playing, 95), playing.maxOrNull() ?: 0f, over,
             ft.buildingsMs, ft.slowest.first, ft.slowest.second, ft.prepareMs, ft.slowestPrepare.first, ft.slowestPrepare.second, ft.groundMs))
     report.appendLine("(cold start: main-thread work only, on the build server's CPU with software GL; the render itself and the S25 are not measured)")
+    TownMemory.stop()
+    report.appendLine("cold start, memory: " + TownMemory.summary() + "; the ground's queue peaked at ${TownMemory.mb(ft.queuedPeak)} MB")
+    println("  memory: " + TownMemory.summary())
+    // the memory check (-DheapBudget=MB, gradle :desktop:townMemoryCheck): the live heap and the direct buffers held at
+    // once (on the phone both are its Java heap) must stay under the budget, or the preview fails
+    System.getProperty("heapBudget")?.toLongOrNull()?.let { budget ->
+        val held = TownMemory.mb(TownMemory.peakHeld)
+        check(held <= budget) { "the town's cold build held $held MB of heap and direct buffers at its peak, over the budget of $budget MB" }
+        report.appendLine("cold start, memory check: held $held MB at the peak, within the budget of $budget MB")
+    }
     TownPlay.stop()
     ft.destroy()
+}
+
+/**
+ * Feeds [TownMemory] the desktop's own view of the heap: what each collection left (the heap's pools just after every
+ * GC, from the collectors' notifications: still held, or not yet collected from the old generation, so if anything an
+ * over-count) and the direct buffers held (on the phone those are on the Java heap; here outside it).
+ */
+private fun watchMemory() {
+    val after = java.util.concurrent.atomic.AtomicLong(0)
+    // -Dmemlive: exactly what is held, by a full collection every 100 ms (slows the build: for measuring, not timing);
+    // otherwise what each collection left (G1's young collections leave the old generation's garbage: an over-count)
+    val exact = System.getProperty("memlive") != null
+    if (exact) Thread({
+        while (true) { System.gc(); after.set(TownMemory.used()); TownMemory.sample(); Thread.sleep(100) }
+    }, "memlive").apply { isDaemon = true }.start()
+    for (gc in java.lang.management.ManagementFactory.getGarbageCollectorMXBeans()) {
+        val em = gc as? javax.management.NotificationEmitter ?: continue
+        em.addNotificationListener({ n, _ ->
+            if (exact || n.type != com.sun.management.GarbageCollectionNotificationInfo.GARBAGE_COLLECTION_NOTIFICATION) return@addNotificationListener
+            val info = com.sun.management.GarbageCollectionNotificationInfo.from(n.userData as javax.management.openmbean.CompositeData)
+            val heapPools = java.lang.management.ManagementFactory.getMemoryPoolMXBeans().filter { it.type == java.lang.management.MemoryType.HEAP }.map { it.name }.toSet()
+            after.set(info.gcInfo.memoryUsageAfterGc.filterKeys { it in heapPools }.values.sumOf { it.used })
+            TownMemory.sample()
+        }, null, null)
+    }
+    val pool = java.lang.management.ManagementFactory.getPlatformMXBeans(java.lang.management.BufferPoolMXBean::class.java).firstOrNull { it.name == "direct" }
+    TownMemory.live = { after.get() }
+    TownMemory.direct = { pool?.memoryUsed ?: 0L }
 }

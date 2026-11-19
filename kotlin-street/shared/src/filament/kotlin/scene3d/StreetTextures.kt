@@ -36,6 +36,12 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     }
 
     /**
+     * Lets go what [warm] packed for [imgs] and [of] never took (a building's pictures read ahead for faces it did not
+     * draw in the end): kept, they waited for their picture to be collected, tens of MB of them while the town built.
+     */
+    fun drop(imgs: Collection<ImageBitmap>) { for (i in imgs) warmed.remove(i) }
+
+    /**
      * Pictures never updated ([mips]) by their content: the same pixels make one texture however many batches or
      * buildings wear them (repeated sprites, yard kit pictures baked lot by lot, windows' glass of repeated fronts).
      */
@@ -83,6 +89,11 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
     }
 
 
+    /** Replaces the pixels of [t] (made here, same size) with [buf], already as Filament takes them ([offset]). */
+    fun update(t: Texture, buf: ByteBuffer) {
+        t.setImage(engine, 0, Texture.PixelBufferDescriptor(buf, Texture.Format.RGBA, Texture.Type.UBYTE))
+    }
+
     fun solid(argb: Int): Texture = make(intArrayOf(argb), 1, 1, linear = true)
 
     /** Frees what was made from the street's pictures; [all] also the plain white and black. */
@@ -99,6 +110,29 @@ internal class StreetTextures(private val engine: Engine, private val srgb: Bool
          */
         fun prepare(px: IntArray, w: Int, h: Int, linear: Boolean = false, mips: Boolean = false): Prepared =
             Prepared(pack(px, w, h), w, h, linear, if (mips) ContentKey(w, h, linear, px.contentHashCode(), hash64(px)) else null)
+
+        /**
+         * A blank (transparent black) picture of [w] x [h] for [make], never updated through [prepare]'s path: its bytes
+         * are written in place ([offset]), with no int array of the pixels on the Java heap.
+         */
+        fun blank(w: Int, h: Int, linear: Boolean = false): Prepared =
+            Prepared(ByteBuffer.allocateDirect(w * h * 4).order(ByteOrder.nativeOrder()), w, h, linear, null)
+
+        /** Where pixel [i] of a [w] x [h] picture (rows top first, as ARGB arrays run) starts in a buffer Filament takes. */
+        fun offset(i: Int, w: Int, h: Int): Int { val y = i / w; return ((h - 1 - y) * w + (i - y * w)) * 4 }
+
+        /**
+         * [px] packed as [prepare] with mips (a picture never updated), once per [share] (by the pixel array's identity)
+         * however many batches wear it (a mesh packed for many chunks of the town); the second: whether it was packed now.
+         * [share] is the caller's, for one build: a global one would keep every packed picture as long as its mesh lives.
+         */
+        fun prepareShared(px: IntArray, w: Int, h: Int, linear: Boolean, share: MutableMap<IntArray, Prepared>?): Pair<Prepared, Boolean> {
+            if (share == null) return prepare(px, w, h, linear, mips = true) to true
+            synchronized(share) { share[px]?.let { if (it.w == w && it.h == h && it.linear == linear) return it to false } }
+            val p = prepare(px, w, h, linear, mips = true)
+            synchronized(share) { share[px] = p }
+            return p to true
+        }
 
         /** A second, independent hash of the pixels (FNV-1a over the ints), so two pictures are one only if both agree. */
         fun hash64(px: IntArray): Long {

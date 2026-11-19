@@ -51,6 +51,19 @@
   ahead is paused ("town-load"). The player's world position is kept for the next start.
 - Desktop: `-Dshots=cold` builds a fresh town scene through TownRun from the spawn as the app does (loading budget, then
   walking) and writes the time to the first view and the main thread's frame work to town.txt, and cold_first_view.png.
+- Memory (the town ran the S25's Java heap out: OutOfMemoryError on a 256 MB heap before largeHeap): the cold build held
+  456 MB of live heap and 349 MB of direct buffers at its peak (722 MB together; on Android a direct buffer is a Java
+  array); now 93-101 MB and 105-118 MB (190-205 MB), desktop, measured with a full GC every 100 ms (`-Dmemlive`). What
+  held it: the buildings' night-light arrays (six atlas-sized int arrays a model, five a front, kept for good: ~240 MB;
+  now only the glowing and glass pixels, the mask written straight into Filament's buffer), the whole town's 3D trees
+  packed up front and kept (230 MB direct; now packed on a worker as a chunk comes near and let go after upload), the
+  ground's unbounded upload queue (now waits at 32 MB), every building made ready at once (now workers + 2), the yard
+  kit's model cache (60 MB, now 16 MB LRU and cleared after the yards), zero masks for pictures that never glow, each
+  chunk's own copy of a shared mesh's picture, and the classic stage's sprite warm-up under Filament (now only the sky's:
+  `SceneSprites.warmSky`, the far road's cars after the town is built). `gradle :desktop:townMemoryCheck` builds the
+  whole town cold at `-Xmx320m` and fails over 256 MB held (now 193 MB). The renders are unchanged (the play shots
+  pixel-identical). The phone logs the heap's limit and the build's peak to the breadcrumbs and the AI panel's RAM line;
+  a failed build step says which and the heap at that moment. Not yet measured on the S25.
 - Desktop: `gradle :desktop:preview -Dmode=filament-town -Dshots=play` runs the same TownPlay + TownRun path: play_spawn_13h,
   play_walk_13h, play_mouth_dusk, play_turn_13h, play_turned_13h, play_cross_night, play_crossed_night, with the bubble
   anchors marked (yellow: people to talk to, cyan: the player). Tests: desktop TownPlayTest (the shipped assets agree;

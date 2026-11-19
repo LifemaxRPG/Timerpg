@@ -1314,7 +1314,12 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
                 val mi = android.app.ActivityManager.MemoryInfo().also { am?.getMemoryInfo(it) }
                 val mine = android.os.Debug.getPss() shr 10
                 val busy = com.timerpg.street.llm.AiLane.current ?: "idle"
-                ram = "RAM: ${mi.availMem shr 20} MB free of ${mi.totalMem shr 20} MB · the game ${mine} MB · AI: $busy"
+                // (the Java heap's limit and use, and the town build's peak: what the town's build has to fit in)
+                val rt = Runtime.getRuntime()
+                val tm = com.lifemax.rpg.feature.habits.presentation.scene3d.TownMemory
+                val heap = "Java heap ${(rt.totalMemory() - rt.freeMemory()) shr 20}/${rt.maxMemory() shr 20} MB" +
+                    if (tm.peakUsed > 0) " (town build peak ${tm.peakUsed shr 20} MB)" else ""
+                ram = "RAM: ${mi.availMem shr 20} MB free of ${mi.totalMem shr 20} MB · the game ${mine} MB · $heap · AI: $busy"
                 frames = FrameStats.summary()
                 kotlinx.coroutines.delay(1000)
             }
@@ -1393,6 +1398,19 @@ private fun AiPanel(s: AiStatus, engine: DialogueEngine, voices: com.timerpg.str
             if (voices.downloadNote.isNotEmpty()) Text(voices.downloadNote, 12.sp, color = DIM)
             if (missing > 0) Chip("Download everything: Qwen, voices, speech ($missing MB)", false) { voices.download { engine.reload() } }
             else Text("Qwen, Kokoro and Supertonic are installed.", 12.sp, color = DIM)
+            // optional: two more versions of the same dialogue model, only for trying out speed-ups (not needed to play)
+            var extrasNote by remember { mutableStateOf("") }
+            val extrasMissing = remember(voices.downloading, extrasNote) { voices.extrasMissingMb }
+            val extrasHere = remember(voices.downloading, extrasNote) { voices.extrasOnDeviceMb }
+            Text("Optional speed-up versions of Qwen (NPU Q4_0 and MTP): " +
+                (if (extrasMissing == 0L) "installed" else "not needed to play"), 12.sp, color = DIM)
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (extrasMissing > 0) Chip("Download extras ($extrasMissing MB)", false) { voices.downloadExtras { engine.reload() } }
+                if (extrasHere > 0) Chip("Remove extras ($extrasHere MB)", false) {
+                    val freed = com.timerpg.street.dialogue.ModelDownloads.removeExtras(ctx); extrasNote = "Removed $freed MB"; engine.reload()
+                }
+            }
+            if (extrasNote.isNotEmpty()) Text(extrasNote, 12.sp, color = DIM)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             // off (the default) loads no voice and makes none ahead: switched off, they are let go at once

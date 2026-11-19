@@ -333,7 +333,11 @@ fun main(args: Array<String>) {
         // the whole town (build-town/gamma) in Filament: aerials, the civic centre, street views (FilamentTownPreview.kt)
         val k = runCatching { Class.forName("FilamentTownPreviewKt") }.getOrNull()
             ?: error("Filament is not built in: run tools/build-filament.sh (or pass -Pfilament.dist=DIR)")
-        k.getMethod("renderFilamentTown", String::class.java).invoke(null, out)
+        // (a failure exits the process: Filament's threads would otherwise keep the JVM up, and a check must fail)
+        try { k.getMethod("renderFilamentTown", String::class.java).invoke(null, out); if (System.getProperty("coldOnly") != null) kotlin.system.exitProcess(0) } catch (t: Throwable) {
+            (if (t is java.lang.reflect.InvocationTargetException) t.targetException else t).printStackTrace()
+            kotlin.system.exitProcess(1)
+        }
         return
     }
     if (mode == "junction") {
