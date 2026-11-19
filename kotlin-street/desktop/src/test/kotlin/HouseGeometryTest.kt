@@ -3,6 +3,9 @@ import com.lifemax.rpg.feature.habits.domain.BuildingSpec
 import com.lifemax.rpg.feature.habits.domain.Hit
 import com.lifemax.rpg.feature.habits.domain.HitKind
 import com.lifemax.rpg.feature.habits.domain.HouseShape
+import com.lifemax.rpg.feature.habits.domain.HouseShell
+import com.lifemax.rpg.feature.habits.domain.ShellPart
+import com.lifemax.rpg.feature.habits.domain.ShellQuad
 import com.lifemax.rpg.feature.habits.domain.HouseView
 import com.lifemax.rpg.feature.habits.domain.Piece
 import com.lifemax.rpg.feature.habits.domain.PieceKind
@@ -67,6 +70,36 @@ class HouseGeometryTest {
             assertEquals(v.y(h.ridge, h.depth / 2f), v.y(h.h, -h.eaveOver) - HouseView.slopeRows(h) * v.k, 1e-3f)
             // the eaves front and back are at the fascia's top
             assertEquals(h.h, h.roofTop(-h.eaveOver), 1e-4f); assertEquals(h.h, h.roofTop(h.depth + h.eaveOver), 1e-4f)
+        }
+    }
+
+    @Test fun theShellsRoofMeetsItsWalls() {
+        // (the 3D engines' house: HouseShell) the roof is a slab; the gables reach its underside, the walls' tops are
+        // inside it, its boards and soffits close it all round, and it overhangs the walls at the eaves and the verges
+        for ((_, h) in houses) {
+            val pw = h.wall1 + h.wall0
+            val qs = HouseShell.quads(h, pw, h.h + kotlin.math.ceil(h.rise))
+            fun of(p: ShellPart) = qs.filter { it.part == p }
+            fun corners(q: ShellQuad) = listOf(0f to 0f, 1f to 0f, 1f to 1f, 0f to 1f).map { (a, b) -> FloatArray(3) { q.o[it] + q.u[it] * a + q.v[it] * b } }
+            // the gables stand at the wall's ends, its whole depth
+            assertEquals(listOf(h.wall0, h.wall1), of(ShellPart.GABLE).map { it.o[0] })
+            for (g in of(ShellPart.GABLE)) assertEquals(h.depth, g.u[2], 1e-4f)
+            // the walls' tops are inside the slab where they meet it (under its top, over its underside)
+            assertTrue(h.h <= h.roofTop(0f) && h.h >= h.gableTop(0f))
+            // every rake board and soffit lies on the slab's top or underside, between the eaves
+            for (q in of(ShellPart.RAKE) + of(ShellPart.SOFFIT)) for (c in corners(q)) {
+                val d = c[2]
+                assertTrue("${q.part} at d $d", d >= -h.eaveOver - 1e-3f && d <= h.depth + h.eaveOver + 1e-3f)
+                assertTrue("${q.part} corner (${c[0]}, ${c[1]}, $d)", abs(c[1] - h.roofTop(d)) < 1e-3f || abs(c[1] - h.gableTop(d)) < 1e-3f)
+            }
+            // the rake boards at the verges' edges, past the gables; the slopes as wide
+            assertEquals(setOf(0f, pw), of(ShellPart.RAKE).map { it.o[0] }.toSet())
+            for (sl in of(ShellPart.SLOPE)) { assertEquals(0f, sl.o[0]); assertEquals(pw, sl.u[0]) }
+            // the soffits cover the underside from verge edge to verge edge at both eaves (no gap at a corner)
+            for (e in floatArrayOf(-h.eaveOver, h.depth + h.eaveOver)) {
+                val xs = of(ShellPart.SOFFIT).flatMap { q -> corners(q).filter { abs(it[2] - e) < 1e-3f }.map { it[0] } }
+                assertEquals(0f, xs.min()); assertEquals(pw, xs.max())
+            }
         }
     }
 
