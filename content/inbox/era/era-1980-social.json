@@ -1,0 +1,300 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1980,
+  "topic": "social",
+  "facts": [
+    {
+      "id": "1980-social-01",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A teenager asks a friend to join a school dance at the gym.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-02",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A school committee decorates the gym with paper streamers before the spring dance.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-03",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Parents set a return-home time before teenagers leave for an evening out.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-04",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A young couple meets friends at the roller skating rink on Friday night.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-05",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Teenagers gather at the shopping mall to talk and browse after school.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-06",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A family invites neighbors to a backyard barbecue over a summer weekend.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-07",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Neighbors bring covered dishes to a community potluck supper.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-08",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A church congregation organizes a bake sale to raise money for local needs.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-09",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A volunteer helps arrange folding chairs before a town meeting.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-10",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Parents attend a school meeting to discuss classroom activities and fundraising.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-11",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A student joins an after-school club and meets classmates with shared interests.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-12",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A neighborhood child knocks on a friend's door to ask if they can play.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-13",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Children trade stickers or small collectibles during recess.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-14",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A family watches the local parade from folding chairs along the street.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-15",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A couple announces their engagement to relatives during a family dinner.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-16",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Wedding guests gather in a reception hall for cake and dancing.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-17",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A bride and groom greet guests in a receiving line after the ceremony.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-18",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Friends arrange a weekend gathering by calling each other at home.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-19",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A neighbor leaves a message with a family member when a friend is away.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-20",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Older residents meet for cards or conversation at the senior center.",
+      "ages": "elders",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-21",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A local service club collects donations for families needing assistance.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-22",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Teenagers attend a supervised school social after a home football game.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-23",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A parent volunteers to drive several children to a weekend sports game.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-24",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Neighbors organize a block party and share food at tables in the street.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-25",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "Some families expect children to address unfamiliar adults by title and surname.",
+      "ages": "kids",
+      "use": [
+        "dialogue",
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-social-26",
+      "year_from": 1980,
+      "year_to": 1989,
+      "text": "A community center offers evening classes where adults meet new neighbors.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
