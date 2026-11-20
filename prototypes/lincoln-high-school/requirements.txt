@@ -1,0 +1,4 @@
+Pillow
+numpy
+# Optional offline render cleanup:
+oidn==0.2.1

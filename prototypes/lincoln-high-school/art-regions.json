@@ -1,0 +1,154 @@
+{
+  "class": {
+    "rect_art": [
+      0,
+      0,
+      40,
+      38
+    ]
+  },
+  "small": {
+    "rect_art": [
+      48,
+      0,
+      32,
+      22
+    ]
+  },
+  "ribbon": {
+    "rect_art": [
+      88,
+      0,
+      96,
+      24
+    ]
+  },
+  "gym": {
+    "rect_art": [
+      192,
+      0,
+      48,
+      50
+    ]
+  },
+  "case": {
+    "rect_art": [
+      248,
+      0,
+      48,
+      24
+    ]
+  },
+  "security_side": {
+    "rect_art": [
+      304,
+      0,
+      30,
+      56
+    ]
+  },
+  "security_front": {
+    "rect_art": [
+      344,
+      0,
+      28,
+      42
+    ]
+  },
+  "security_transom": {
+    "rect_art": [
+      384,
+      0,
+      96,
+      14
+    ]
+  },
+  "press": {
+    "rect_art": [
+      0,
+      64,
+      80,
+      20
+    ]
+  },
+  "net": {
+    "rect_art": [
+      88,
+      64,
+      128,
+      80
+    ]
+  },
+  "portable": {
+    "rect_art": [
+      224,
+      64,
+      28,
+      18
+    ]
+  },
+  "tower": {
+    "rect_art": [
+      264,
+      64,
+      32,
+      50
+    ]
+  },
+  "lockers": {
+    "rect_art": [
+      0,
+      0,
+      12,
+      30
+    ]
+  },
+  "scoreboard": {
+    "rect_art": [
+      24,
+      0,
+      96,
+      32
+    ]
+  },
+  "date": {
+    "rect_art": [
+      128,
+      0,
+      28,
+      10
+    ]
+  },
+  "vent": {
+    "rect_art": [
+      168,
+      0,
+      24,
+      16
+    ]
+  },
+  "backboard": {
+    "rect_art": [
+      200,
+      0,
+      24,
+      14
+    ]
+  },
+  "historic_name": {
+    "rect_art": [
+      0,
+      0,
+      128,
+      12
+    ]
+  },
+  "modern_name": {
+    "rect_art": [
+      0,
+      24,
+      144,
+      18
+    ]
+  }
+}
