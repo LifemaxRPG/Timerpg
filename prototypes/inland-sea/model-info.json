@@ -1,0 +1,55 @@
+{
+  "name": "The Inland Sea",
+  "era": "Original civic commission suitable from the 1930s onward",
+  "units": "metres",
+  "axes": "glTF Y up, +Z front, origin at the front tangent of the promenade",
+  "footprint_m": [
+    130,
+    100
+  ],
+  "height_m": 71.826,
+  "triangles_visible": 11842,
+  "materials": [
+    "metal_verdigris",
+    "metal_blue_bronze",
+    "metal_chased_brass",
+    "metal_champagne",
+    "wall_travertine",
+    "wall_blue_basalt",
+    "ground_promenade",
+    "water_reflecting_basin",
+    "glow_lantern",
+    "sign_name",
+    "ground_cypress"
+  ],
+  "swatches_used": [
+    "pavement"
+  ],
+  "texture_scale_m_per_texel": 0.0388,
+  "texels_per_art_pixel": 2,
+  "bearing_tips_gltf_m": [
+    [
+      -26.517009735107422,
+      22.064434051513672,
+      -51.23334872722626
+    ],
+    [
+      -9.046627044677734,
+      25.34771728515625,
+      -47.67597794532776
+    ],
+    [
+      8.872058868408203,
+      38.2053108215332,
+      -56.35425281524658
+    ]
+  ],
+  "doors": [],
+  "collision": {
+    "use_the_walls": true,
+    "notes": "Outdoor sculpture. Use mesh surfaces for curved piers, slopes, basin, seats and tablet. The approach across each causeway stays open. Open water needs the engine's water boundary."
+  },
+  "lot_node": "lot",
+  "sign_name": "Front tablet carries the dedication; replace its 256 x 64 texture to relabel.",
+  "runtime": "Static sculpture and water surface. Desktop lighting is presentation only. No in-game installation, moving water or engineering certification."
+}
