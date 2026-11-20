@@ -150,6 +150,8 @@ def validate_state_glb(state_id, glb_path):
     }
     for i in range(1, 13):
         required_nodes.add(f"flood_{i:02d}")
+    for i in range(1, 5):
+        required_nodes.add(f"flood_sphere_{i:02d}")
     for i in range(1, 9):
         required_nodes.add(f"tree_{i:02d}")
     if state_id == "2000":
@@ -308,7 +310,7 @@ def validate_state_glb(state_id, glb_path):
     }
 
 
-def validate_far_glb(glb_path):
+def validate_lod_glb(glb_path, min_tris, max_tris, require_beacon=True):
     gltf, bin_data = parse_glb(glb_path)
     mats = gltf.get("materials", [])
     textures = gltf.get("textures", [])
@@ -347,7 +349,7 @@ def validate_far_glb(glb_path):
                         bad_uv += 1
     return {
         "file": glb_path.name,
-        "passed": (0 < tris < 400) and (bad_uv == 0) and has_beacon_glow,
+        "passed": (min_tris <= tris <= max_tris) and (bad_uv == 0) and (has_beacon_glow or not require_beacon),
         "visible_triangles": tris,
         "bad_uv_edges": bad_uv,
         "max_uv_error_m": round(max_uv_err, 6),
@@ -390,8 +392,13 @@ def main():
     # Verify 1976 worn state actually has lower emissive area than 2000 restored (beacon off + 3 lamps broken!)
     worn_dimmer_ok = state_results["1976"]["glow_area_m2"] < state_results["2000"]["glow_area_m2"]
 
-    # 3. Validate Far LOD (< 400 tris!)
-    far_res = validate_far_glb(R / info["far_lod"]["file"])
+    # 3. Validate Mid LOD (4,000-6,000 tris!) & Far LOD (< 400 tris!)
+    mid_res = validate_lod_glb(R / info["mid_lod"]["file"], 4000, 6000, require_beacon=True)
+    print(
+        f"Mid LOD: passed={mid_res['passed']} | tris={mid_res['visible_triangles']} (4000-6000) | "
+        f"bad_uv={mid_res['bad_uv_edges']} | beacon_glow={mid_res['has_beacon_glow']}"
+    )
+    far_res = validate_lod_glb(R / info["far_lod"]["file"], 1, 399, require_beacon=True)
     print(
         f"Far LOD: passed={far_res['passed']} | tris={far_res['visible_triangles']}/400 | "
         f"bad_uv={far_res['bad_uv_edges']} | beacon_glow={far_res['has_beacon_glow']}"
@@ -400,9 +407,15 @@ def main():
     # 4. Validate glTF Y-up (+Z front) collision boxes in model-info.json
     boxes = info["collision"]["boxes_gltf_y_up"]
     pier_boxes = [b for b in boxes if b["source"].startswith("cathedral_pier_")]
+    guardian_boxes = [b for b in boxes if b["source"].startswith("guardian_statue_")]
+    door_boxes = [b for b in boxes if b["source"].startswith("bronze_door_open_")]
+    exedra_boxes = [b for b in boxes if "exedra" in b["source"]]
     full_height_piers_ok = (
         len(pier_boxes) == 4
         and all(b["size"][1] >= 33.0 and b["center"][1] > 35.0 for b in pier_boxes)
+        and len(guardian_boxes) == 4
+        and len(door_boxes) == 2
+        and len(exedra_boxes) >= 2
     )
 
     passed = (
@@ -410,12 +423,13 @@ def main():
         and black_ratio >= 0.50
         and all(r["passed"] for r in state_results.values())
         and worn_dimmer_ok
+        and mid_res["passed"]
         and far_res["passed"]
         and full_height_piers_ok
     )
 
     out = {
-        "model": "The Great Meridian Monument (4 historical states + Far LOD)",
+        "model": "The Great Meridian Monument — Revision 2 (4 historical states + Mid LOD + Far LOD)",
         "passed": passed,
         "textures_count": tex_count,
         "textures_2x2_ok": all_2x2,
@@ -425,6 +439,7 @@ def main():
         "full_height_pier_collision_ok": full_height_piers_ok,
         "worn_1976_dimmer_than_2000_ok": worn_dimmer_ok,
         "states": state_results,
+        "mid_lod": mid_res,
         "far_lod": far_res,
     }
     (R / "validation.json").write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")

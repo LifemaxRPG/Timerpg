@@ -1,85 +1,85 @@
 #!/usr/bin/env python3
 """
-Texture and pixel-art generator for THE GREAT MERIDIAN MONUMENT (4 Historical States + Far LOD).
-Strict contract compliance (docs/CHATGPT_MODEL_GUIDE.md & docs/GEMINI_MERIDIAN_REVISION.md):
-- Every texture is painted in whole art pixels and exported at exact 2x2 texels
-  (0.0388 m/texel -> 0.0776 m/art pixel).
-- LimeZu-harmonized architectural palette with 1-art-px dark outlines, top-edge highlights,
-  2-4 step flat shading + subtle dither, and state-specific weathering:
-    * stone_limestone_clean.png (1926 dedication & 2000+ restored)
-    * stone_limestone_mature.png (1941-1975 darkened patina)
-    * stone_limestone_worn.png (1976-1999 cornice water-stain streaks)
-    * copper_fresh.png (1926 fresh warm copper spire)
-    * copper_verdigris.png (1941+ fully green patinated copper spire)
-- guardians_atlas.png: Four 7 m stylized Art Deco stone guardian figures
-  (DEFENSE/sword, LEARNING/book, INDUSTRY/gear wheel, HARVEST/wheat sheaf) + dark slate trim.
-- inscriptions.png: Flush carved friezes, West Memorial Hall dedication wall, made-up blue-and-gold
-  compass-star civic flag, 1926 bunting swags, 4 m open bronze door reliefs, 1941-45 war plaque,
-  4 brass sky-deck direction plates, zodiac ecliptic engraving, Earth globe map & visitor centre sign.
-- glow_monument_mask.png: Pure #000000 black everywhere outside strictly budgeted emissive points (< 20 m2).
+Procedural pixel-art texture generator for THE GREAT MERIDIAN MONUMENT — REVISION 2.
+Strict 0.0388 m/texel contract: every texture is drawn at 1x art-pixel resolution
+and scaled by exact 2x2 nearest-neighbor blocks on save.
+
+Textures produced (12 materials per state across 4 eras: 1926, 1941, 1976, 2000+):
+  1.  stone_limestone_1926/1941/1976/2000.png : Warm cream 0.6 m courses, 2-tone block variation, chipped corners, era cornice drips
+  2.  stone_granite.png                       : Dark grey-pink granite, 1.2 x 0.6 m polished blocks, fine joints, base rain-splash
+  3.  stone_ashlar.png                        : Smooth lighter pale ashlar bands (no joints) for cornices, friezes, setback caps
+  4.  steel_truss.png                         : Riveted dark charcoal-steel girders
+  5.  copper_1926/1941/1976/2000.png          : 1926 fresh orange-brown -> 1941 streaky brown-green -> 1976 deep green w/ black streaks -> 2000+ restored bright green
+  6.  bronze_gilded.png                       : Rich burnished bronze w/ strong light-gold top edge & stepped shading
+  7.  water_pool.png                          : Clean, lily-pad-free reflecting pool water
+  8.  marble_plaza.png & marble_plaza_1976.png: Crisp two-tone marble paving (+ weeds in joints for 1976!)
+  9.  glass_cathedral.png & _1941.png         : Translucent amber-and-slate glass (+ wartime white taped X-crosses for 1941!)
+  10. detail_atlas.png                        : 4 strict 64x64 quadrants: lawn_turf, dark_iron, arch_coffer (deep recessed coffers!), timber_bench
+  11. inscriptions.png (512x512 art px)       : Carved friezes, 14 m N/E/S/W Compass Rose, 6-panel 5 m Bronze Door relief, West Hall Dedication Wall + wreaths,
+                                                East Hall State Map w/ Meridian Line, chevrons, voussoirs, compass keystone, cornerstone 1926, exedra text,
+                                                3-tone carved Guardian stone (clean & 1976 streaked), verdigris/bronze Earth globe, 12 zodiac symbols,
+                                                flags, 1926 bunting, 1941 sandbags, 1976 tarps/chain-link/"CLOSED FOR REPAIRS", 2000+ signs
+  12. glow_monument_base.png + pure-black glow_monument_mask.png (< 20 m2 total!)
 """
 import json
 import math
 import struct
 import zlib
 from pathlib import Path
-
-from pixel_font import FONT_5X7, FONT_3X5, measure_text
+from pixel_font import FONT_3X5, FONT_5X7, measure_text
 
 R = Path(__file__).resolve().parent
 TEX_DIR = R / "textures"
 TEX_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def write_png_rgba(path, w, h, pixels_2d):
+def write_png_rgba(path, w, h, rows_rgba):
     raw = bytearray()
-    for y in range(h):
+    for row in rows_rgba:
         raw.append(0)
-        row = pixels_2d[y]
-        for x in range(w):
-            r, g, b, a = row[x]
-            raw.extend((r & 255, g & 255, b & 255, a & 255))
+        for r, g, b, a in row:
+            raw.extend((r, g, b, a))
 
-    def chunk(ctype, payload):
-        crc = zlib.crc32(ctype + payload) & 0xFFFFFFFF
-        return struct.pack(">I", len(payload)) + ctype + payload + struct.pack(">I", crc)
+    def chunk(ctype, data):
+        crc = zlib.crc32(ctype + data) & 0xFFFFFFFF
+        return struct.pack(">I", len(data)) + ctype + data + struct.pack(">I", crc)
 
     ihdr = struct.pack(">IIBBBBB", w, h, 8, 6, 0, 0, 0)
-    idat = zlib.compress(bytes(raw), 9)
-    out = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr) + chunk(b"IDAT", idat) + chunk(b"IEND", b"")
-    Path(path).write_bytes(out)
-
-
-def h2(x, y, seed=0):
-    v = (x * 374761393 + y * 668265263 + seed * 1442695041) & 0xFFFFFFFF
-    v = ((v ^ (v >> 13)) * 1274126177) & 0xFFFFFFFF
-    return (v ^ (v >> 16)) & 0xFF
+    idat = zlib.compress(bytes(raw), 6)
+    png = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr) + chunk(b"IDAT", idat) + chunk(b"IEND", b"")
+    Path(path).write_bytes(png)
 
 
 class ArtCanvas:
-    """1x art-pixel canvas exporting at exact 2x2 texels per art pixel."""
-
-    def __init__(self, w_art, h_art, bg=(0, 0, 0, 255)):
-        self.w = w_art
-        self.h = h_art
-        self.px = [[bg for _ in range(w_art)] for _ in range(h_art)]
+    def __init__(self, w, h, fill=(0, 0, 0, 255)):
+        self.w = w
+        self.h = h
+        self.px = [[fill for _ in range(w)] for _ in range(h)]
 
     def put(self, x, y, col):
         if 0 <= x < self.w and 0 <= y < self.h:
             self.px[y][x] = col
 
+    def get(self, x, y):
+        if 0 <= x < self.w and 0 <= y < self.h:
+            return self.px[y][x]
+        return (0, 0, 0, 255)
+
     def rect(self, x0, y0, w, h, col):
-        for y in range(y0, y0 + h):
-            for x in range(x0, x0 + w):
-                self.put(x, y, col)
+        for y in range(max(0, y0), min(self.h, y0 + h)):
+            row = self.px[y]
+            for x in range(max(0, x0), min(self.w, x0 + w)):
+                row[x] = col
 
     def hline(self, x0, x1, y, col):
-        for x in range(x0, x1 + 1):
-            self.put(x, y, col)
+        if 0 <= y < self.h:
+            for x in range(max(0, x0), min(self.w, x1 + 1)):
+                self.px[y][x] = col
 
     def vline(self, x, y0, y1, col):
-        for y in range(y0, y1 + 1):
-            self.put(x, y, col)
+        if 0 <= x < self.w:
+            for y in range(max(0, y0), min(self.h, y1 + 1)):
+                self.px[y][x] = col
 
     def box_outline(self, x0, y0, w, h, col):
         self.hline(x0, x0 + w - 1, y0, col)
@@ -87,327 +87,363 @@ class ArtCanvas:
         self.vline(x0, y0, y0 + h - 1, col)
         self.vline(x0 + w - 1, y0, y0 + h - 1, col)
 
-    def draw_text(self, x0, y0, text, col, font="5x7", scale=1, spacing=1, shadow=None):
+    def draw_text(self, x0, y0, text, fg, font="5x7", scale=1, spacing=1, shadow=None):
         glyphs = FONT_5X7 if font == "5x7" else FONT_3X5
         gw = 5 if font == "5x7" else 3
         cx = x0
         for ch in text.upper():
             g = glyphs.get(ch, glyphs[" "])
-            for ry, row in enumerate(g):
-                for rx, bit in enumerate(row):
+            for ry, rstr in enumerate(g):
+                for rx, bit in enumerate(rstr):
                     if bit == "1":
-                        for sy in range(scale):
-                            for sx in range(scale):
-                                px = cx + rx * scale + sx
-                                py = y0 + ry * scale + sy
-                                if shadow is not None:
-                                    self.put(px, py + 1, shadow)
-                                self.put(px, py, col)
+                        if shadow is not None:
+                            self.rect(cx + rx * scale, y0 + ry * scale + scale, scale, scale, shadow)
+                        self.rect(cx + rx * scale, y0 + ry * scale, scale, scale, fg)
             cx += (gw + spacing) * scale
 
     def save_2x(self, path):
-        w2, h2_dim = self.w * 2, self.h * 2
-        out = [[None] * w2 for _ in range(h2_dim)]
-        for y in range(self.h):
-            r0, r1 = out[y * 2], out[y * 2 + 1]
-            src = self.px[y]
-            for x in range(self.w):
-                c = src[x]
-                r0[x * 2] = c
-                r0[x * 2 + 1] = c
-                r1[x * 2] = c
-                r1[x * 2 + 1] = c
-        write_png_rgba(path, w2, h2_dim, out)
+        out = []
+        for row in self.px:
+            doubled = []
+            for c in row:
+                doubled.append(c)
+                doubled.append(c)
+            out.append(doubled)
+            out.append(list(doubled))
+        write_png_rgba(path, self.w * 2, self.h * 2, out)
+
+
+def h2(x, y, seed=0):
+    n = (x * 374761393 + y * 668265263 + seed * 1442695041) & 0xFFFFFFFF
+    n = ((n ^ (n >> 13)) * 1274126177) & 0xFFFFFFFF
+    return (n ^ (n >> 16)) & 0xFF
 
 
 # ==============================================================================
-# PALETTE (warm Beaux-Arts limestone, granite, steel, fresh/verdigris copper, bronze)
+# CURATED REVISION 2 PALETTE — THREE DISTINCT STONES + 4 COPPER ERAS + BRIGHT GOLD
 # ==============================================================================
-OUTLINE = (50, 50, 68, 255)
-DEEP_INK = (32, 34, 48, 255)
+OUTLINE = (52, 46, 40, 255)
+DEEP_INK = (26, 24, 28, 255)
 
-# Clean pale limestone (1926 dedication & 2000+ restored)
-LIME_HI = (242, 234, 214, 255)
-LIME_MID = (224, 214, 192, 255)
-LIME_LOW = (198, 186, 164, 255)
-LIME_SHD = (162, 148, 128, 255)
-LIME_MORT = (122, 112, 98, 255)
+# Stone 1: PALE WARM-CREAM LIMESTONE (0.6 m courses, 2-tone block variation!)
+LIME_HI = (242, 232, 212, 255)
+LIME_A = (228, 214, 190, 255)
+LIME_B = (214, 198, 172, 255)
+LIME_SHD = (178, 162, 138, 255)
+LIME_MORT = (118, 106, 90, 255)
 
-# Mature darkened limestone (1941-1975)
-MAT_HI = (218, 208, 188, 255)
-MAT_MID = (196, 184, 164, 255)
-MAT_LOW = (170, 158, 140, 255)
-MAT_SHD = (138, 128, 112, 255)
-MAT_MORT = (102, 94, 84, 255)
+# Stone 2: DARK GREY-PINK POLISHED GRANITE (1.2 x 0.6 m big blocks, fine joints!)
+GRAN_HI = (146, 132, 134, 255)
+GRAN_A = (118, 104, 108, 255)
+GRAN_B = (106, 94, 98, 255)
+GRAN_SHD = (84, 74, 78, 255)
+GRAN_JOINT = (60, 52, 56, 255)
 
-# Worn water-streaked limestone (1976-1999)
-WRN_HI = (204, 194, 174, 255)
-WRN_MID = (182, 172, 154, 255)
-WRN_LOW = (154, 144, 128, 255)
-WRN_SHD = (122, 114, 102, 255)
-WRN_STAIN = (96, 92, 86, 255)
-WRN_MORT = (86, 82, 78, 255)
+# Stone 3: SMOOTH LIGHTER PALE ASHLAR BANDS (no heavy block joints!)
+ASH_TOP = (250, 244, 230, 255)
+ASH_HI = (242, 235, 220, 255)
+ASH_MID = (232, 224, 206, 255)
+ASH_LOW = (206, 196, 178, 255)
+ASH_SHD = (162, 152, 136, 255)
 
-# Monumental Dressed Granite
-GRAN_HI = (192, 188, 182, 255)
-GRAN_MID = (164, 160, 156, 255)
-GRAN_LOW = (136, 134, 132, 255)
-GRAN_SHD = (102, 100, 104, 255)
-GRAN_MORT = (76, 76, 86, 255)
+# Gilded Bronze (strong bright-gold top highlight edge, warm gold mid, deep shadow underside!)
+BRZ_SPEC = (255, 244, 184, 255)
+BRZ_HI = (246, 210, 108, 255)
+BRZ_MID = (204, 158, 66, 255)
+BRZ_LOW = (146, 106, 40, 255)
+BRZ_SHD = (92, 64, 24, 255)
 
-# Riveted Bridge Steel
-STEEL_HI = (108, 120, 136, 255)
-STEEL_MID = (76, 86, 102, 255)
-STEEL_LOW = (54, 62, 76, 255)
-STEEL_RIV = (146, 158, 174, 255)
+# Verdigris Copper (2000+ clean & earth ocean)
+COP_HI = (144, 214, 188, 255)
+COP_MID = (94, 166, 140, 255)
+COP_LOW = (62, 118, 98, 255)
+COP_SHD = (42, 82, 68, 255)
 
-# Fresh Copper (1926 dedication)
-FCOP_HI = (226, 152, 106, 255)
-FCOP_MID = (192, 114, 74, 255)
-FCOP_LOW = (148, 82, 52, 255)
-FCOP_SHD = (106, 56, 36, 255)
-
-# Patinated Verdigris Copper (1941+)
-COP_HI = (132, 208, 184, 255)
-COP_MID = (92, 172, 152, 255)
-COP_LOW = (62, 134, 120, 255)
-COP_SHD = (42, 96, 90, 255)
-
-# Burnished Art Deco Gilded Bronze
-BRZ_SPEC = (248, 224, 144, 255)
-BRZ_HI = (224, 184, 92, 255)
-BRZ_MID = (182, 140, 62, 255)
-BRZ_LOW = (132, 96, 42, 255)
-BRZ_SHD = (86, 62, 32, 255)
-
-# Reflecting Pool Water
-WAT_HI = (142, 204, 232, 255)
-WAT_MID = (76, 144, 192, 255)
-WAT_DEEP = (46, 104, 156, 255)
-WAT_SHD = (32, 74, 120, 255)
-
-# Dark Architectural Slate
-SLATE_HI = (94, 98, 114, 255)
-SLATE_MID = (68, 72, 86, 255)
-SLATE_LOW = (48, 52, 66, 255)
-
-# Ceremonial Lawn Turf / Tree Foliage
+# Dark Architectural Slate & Turf / Timber
+SLATE_HI = (102, 112, 128, 255)
+SLATE_MID = (74, 82, 96, 255)
+SLATE_LOW = (48, 54, 66, 255)
 LAWN_HI = (114, 168, 86, 255)
 LAWN_MID = (88, 144, 68, 255)
-LAWN_LOW = (68, 118, 54, 255)
-
-# Timber (benches, scaffolding, trunks)
-WOOD_HI = (176, 122, 78, 255)
-WOOD_MID = (144, 94, 56, 255)
-WOOD_LOW = (108, 68, 40, 255)
+LAWN_LOW = (62, 108, 48, 255)
+WOOD_HI = (176, 128, 84, 255)
+WOOD_MID = (142, 96, 58, 255)
+WOOD_LOW = (102, 66, 38, 255)
 
 
-def make_limestone_variant(filename, hi, mid, low, shd, mort, water_streaks=False, seed=11):
-    """64x64 art px dressed monumental ashlar limestone in clean / mature / worn variants."""
-    c = ArtCanvas(64, 64, mid)
-    course_h = 8
-    for row_idx in range(8):
-        y0 = row_idx * course_h
-        offset = 0 if row_idx % 2 == 0 else 16
-        for blk in range(-1, 3):
-            x0 = blk * 32 + offset
-            tone_v = h2(blk + 10, row_idx, seed) % 3
-            base = (mid, hi, low)[tone_v]
-            for dy in range(course_h):
-                for dx in range(32):
-                    px = (x0 + dx) % 64
-                    py = y0 + dy
-                    if dy == 0:
-                        col = mort
-                    elif dy == 1:
-                        col = hi
-                    elif dy == course_h - 1:
-                        col = shd
-                    elif dx == 0:
-                        col = mort
-                    elif dx == 1:
-                        col = hi if base != hi else mid
-                    elif dx == 31:
-                        col = low
-                    else:
-                        n = h2(px, py, seed + 12)
-                        if n < 24:
-                            col = low
-                        elif n > 234:
-                            col = hi
-                        else:
-                            col = base
-                    c.put(px, py, col)
+def make_limestone_era(filename, era):
+    """
+    64x64 art px Pale Warm-Cream Limestone:
+    - 0.6 m courses (8 art px tall x 16 art px wide)
+    - Subtle 2-tone block variation + occasional chipped corners
+    - Subtle dark rain-splash gradient at bottom of tile & era cornice drips at top
+      (1926/2000: clean cream; 1941: slightly darker + faint drips; 1976: darker + heavy black drip lines!)
+    """
+    c = ArtCanvas(64, 64, LIME_A)
+    if era == "1926":
+        hi, ba, bb, shd, mort = (246, 236, 218, 255), (234, 222, 198, 255), (222, 208, 182, 255), (186, 172, 148, 255), (124, 112, 96, 255)
+        drip_strength = 0
+    elif era == "1941":
+        hi, ba, bb, shd, mort = (224, 214, 194, 255), (208, 196, 174, 255), (196, 182, 160, 255), (160, 146, 126, 255), (104, 94, 80, 255)
+        drip_strength = 1
+    elif era == "1976":
+        hi, ba, bb, shd, mort = (206, 194, 174, 255), (188, 176, 154, 255), (174, 160, 138, 255), (138, 126, 108, 255), (86, 76, 64, 255)
+        drip_strength = 2
+    else:  # 2000+ cleaned pale limestone (cleaner than 1941!)
+        hi, ba, bb, shd, mort = (244, 234, 216, 255), (230, 218, 196, 255), (218, 204, 180, 255), (182, 168, 144, 255), (120, 108, 92, 255)
+        drip_strength = 0
 
-    if water_streaks:
-        # Prominent dark rainwater runoff streaks down ashlar courses for 1976-1999 worn state!
-        for sx, width, length in ((6, 4, 54), (19, 3, 44), (33, 5, 58), (48, 4, 48), (58, 3, 38)):
-            for py in range(length):
-                fade = py / max(1, length)
-                for dx in range(width):
-                    if h2(sx + dx, py, 91) > int(fade * 195):
-                        edge = (dx == 0 or dx == width - 1)
-                        c.put((sx + dx) % 64, py, shd if edge else WRN_STAIN)
+    for y in range(64):
+        course = y // 8
+        cy = y % 8
+        off_x = 8 if (course % 2 == 1) else 0
+        for x in range(64):
+            bx = (x + off_x) // 16
+            cx = (x + off_x) % 16
+            bn = h2(bx, course, 17)
+            block_base = ba if (bn % 2 == 0) else bb
+            # Occasional chipped corner (deterministic)
+            chipped = (bn > 224) and ((cx == 1 and cy == 1) or (cx == 14 and cy == 6))
+            if cy == 0 or cx == 0:
+                col = mort
+            elif chipped:
+                col = mort
+            elif cy == 1 or cx == 1:
+                col = hi
+            elif cy == 7 or cx == 15:
+                col = shd
+            else:
+                n = h2(x, y, 41)
+                col = hi if n > 236 else (shd if n < 16 else block_base)
+
+            # Gentle stepped rain-splash darkening near bottom of tile
+            if y >= 59 and col != mort:
+                dk = 16 if y >= 62 else 8
+                col = (max(40, col[0] - dk), max(36, col[1] - dk), max(30, col[2] - dk), 255)
+
+            # Era cornice drip lines running vertically down from top edge
+            if drip_strength > 0:
+                streak_seed = h2(x // 2, 7, 91)
+                if drip_strength == 2 and streak_seed > 165:
+                    max_d = 18 + (streak_seed % 34)
+                    if y < max_d and (x % 3 != 0 or y < 14):
+                        col = (max(44, col[0] - 46), max(40, col[1] - 44), max(36, col[2] - 40), 255)
+                elif drip_strength == 1 and streak_seed > 205:
+                    max_d = 10 + (streak_seed % 16)
+                    if y < max_d:
+                        col = (max(56, col[0] - 22), max(52, col[1] - 20), max(46, col[2] - 18), 255)
+            c.put(x, y, col)
     c.save_2x(TEX_DIR / filename)
 
 
 def make_stone_granite():
-    c = ArtCanvas(64, 64, GRAN_MID)
-    course_h = 8
-    for row_idx in range(8):
-        y0 = row_idx * course_h
-        offset = 0 if row_idx % 2 == 0 else 16
-        for blk in range(-1, 3):
-            x0 = blk * 32 + offset
-            tv = h2(blk + 5, row_idx, 41) % 3
-            base = (GRAN_MID, GRAN_LOW, GRAN_HI)[tv]
-            for dy in range(course_h):
-                for dx in range(32):
-                    px = (x0 + dx) % 64
-                    py = y0 + dy
-                    if dy == 0 or dx == 0:
-                        col = GRAN_MORT
-                    elif dy == 1:
-                        col = GRAN_HI
-                    elif dy == course_h - 1:
-                        col = GRAN_SHD
-                    else:
-                        n = h2(px, py, 47)
-                        col = GRAN_SHD if n < 34 else (GRAN_HI if n > 224 else base)
-                    c.put(px, py, col)
+    """64x64 art px Dark Grey-Pink Granite: big polished 1.2 x 0.6 m (16 x 8 art px) blocks with fine joints & subtle pink feldspar flecks."""
+    c = ArtCanvas(64, 64, GRAN_A)
+    for y in range(64):
+        course = y // 8
+        cy = y % 8
+        off_x = 8 if (course % 2 == 1) else 0
+        for x in range(64):
+            bx = (x + off_x) // 16
+            cx = (x + off_x) % 16
+            bn = h2(bx, course, 53)
+            base = GRAN_A if bn % 2 == 0 else GRAN_B
+            if cy == 0 or cx == 0:
+                col = GRAN_JOINT
+            elif cy == 1:
+                col = GRAN_HI
+            elif cy == 7:
+                col = GRAN_SHD
+            else:
+                n = h2(x, y, 67)
+                if n > 232:
+                    col = (158, 134, 138, 255)  # subtle warm pink granite feldspar crystal!
+                elif n < 24:
+                    col = GRAN_SHD
+                else:
+                    col = base
+            # Subtle base rain-splash darkening
+            if y >= 58 and col != GRAN_JOINT:
+                dk = 14 if y >= 61 else 7
+                col = (max(36, col[0] - dk), max(32, col[1] - dk), max(34, col[2] - dk), 255)
+            c.put(x, y, col)
     c.save_2x(TEX_DIR / "stone_granite.png")
 
 
-def make_steel_truss():
-    c = ArtCanvas(64, 64, STEEL_MID)
+def make_stone_ashlar():
+    """64x64 art px Smooth Pale Ashlar Bands (lighter tone, NO block joints, pale bleached top highlight)."""
+    c = ArtCanvas(64, 64, ASH_MID)
     for y in range(64):
         for x in range(64):
-            bx, by = x % 16, y % 16
-            if bx == 0 or by == 0:
-                col = DEEP_INK
-            elif by == 1 or bx == 1:
-                col = STEEL_HI
-            elif by == 15 or bx == 15:
-                col = STEEL_LOW
-            elif (bx in (3, 12) and by in (3, 12)) or (bx in (3, 12) and by == 8) or (by in (3, 12) and bx == 8):
-                col = STEEL_RIV
-            elif bx in (3, 12) and by in (4, 13):
-                col = DEEP_INK
-            elif (x + y) % 9 == 0:
-                col = STEEL_LOW
-            elif h2(x, y, 71) > 230:
-                col = STEEL_HI
+            if y in (0, 1):
+                col = ASH_TOP
+            elif y in (2, 3):
+                col = ASH_HI
+            elif y in (62, 63):
+                col = ASH_SHD
+            elif y in (60, 61):
+                col = ASH_LOW
             else:
-                col = STEEL_MID
+                n = h2(x, y, 79)
+                col = ASH_HI if n > 218 else (ASH_LOW if n < 22 else ASH_MID)
+            c.put(x, y, col)
+    c.save_2x(TEX_DIR / "stone_ashlar.png")
+
+
+def make_steel_truss():
+    """64x64 art px riveted dark charcoal-steel girder."""
+    c = ArtCanvas(64, 64, (58, 64, 78, 255))
+    ST_HI = (116, 126, 144, 255)
+    ST_MID = (74, 82, 98, 255)
+    ST_LOW = (46, 52, 64, 255)
+    for y in range(64):
+        for x in range(64):
+            lx, ly = x % 16, y % 16
+            if lx == 0 or ly == 0:
+                col = DEEP_INK
+            elif lx == 1 or ly == 1:
+                col = ST_HI
+            elif (lx in (4, 12) and ly in (4, 12)):
+                col = ST_HI
+            elif (lx in (5, 13) and ly in (5, 13)):
+                col = DEEP_INK
+            else:
+                col = ST_LOW if h2(x, y, 89) < 88 else ST_MID
             c.put(x, y, col)
     c.save_2x(TEX_DIR / "steel_truss.png")
 
 
-def make_copper_variant(filename, hi, mid, low, shd, seed=97):
-    c = ArtCanvas(64, 64, mid)
+def make_copper_era(filename, era):
+    """64x64 art px ribbed copper roof/spire in 4 distinct historical patinas."""
+    c = ArtCanvas(64, 64, COP_MID)
     for y in range(64):
         for x in range(64):
-            sx, sy = x % 8, y % 16
-            if sx == 0 or sy == 0:
-                col = shd
-            elif sx == 1 or sy == 1:
-                col = hi
-            elif sx == 7:
-                col = low
-            else:
-                n = h2(x, y, seed)
-                if n < 42:
-                    col = low
-                elif n > 218:
-                    col = hi
-                elif (x + y * 2) % 13 == 0:
-                    col = low
+            sx = x % 8
+            n = h2(x, y, 103)
+            if era == "1926":
+                # Glowing fresh orange-brown copper (not yet green!)
+                hi, mid, low, shd = (232, 152, 102, 255), (194, 114, 68, 255), (146, 78, 44, 255), (96, 48, 28, 255)
+                col = shd if sx == 0 else (hi if sx == 1 else (hi if n > 224 else (low if n < 42 else mid)))
+            elif era == "1941":
+                # Streaky brown-green transitional patina!
+                is_green = ((x // 4 + h2(x // 2, 1, 11)) % 3 == 0) or (y % 20 < 8 and h2(x, y // 4, 19) > 120)
+                if sx == 0:
+                    col = (68, 56, 44, 255)
+                elif sx == 1:
+                    col = (158, 168, 132, 255) if is_green else (196, 138, 92, 255)
+                elif is_green:
+                    col = (104, 146, 114, 255) if n > 90 else (78, 116, 88, 255)
                 else:
-                    col = mid
+                    col = (156, 106, 68, 255) if n > 90 else (124, 82, 52, 255)
+            elif era == "1976":
+                # Deep green with heavy black vertical weathering streaks!
+                black_streak = (h2(x // 2, 3, 77) > 170) and (y < 48 or (x + y) % 3 == 0)
+                if sx == 0 or black_streak:
+                    col = (34, 48, 44, 255) if sx != 0 else (24, 34, 32, 255)
+                elif sx == 1:
+                    col = (102, 152, 130, 255)
+                else:
+                    col = (66, 114, 96, 255) if n > 110 else (50, 92, 76, 255)
+            else:
+                # 2000+ Restored bright clean copper-green with lighter highlights, zero black streaks!
+                if sx == 0:
+                    col = COP_SHD
+                elif sx == 1:
+                    col = (176, 232, 210, 255)
+                elif sx == 7:
+                    col = COP_LOW
+                else:
+                    col = COP_HI if (n > 195 or (y % 16 < 3 and sx in (2, 3))) else (COP_LOW if n < 30 else COP_MID)
             c.put(x, y, col)
     c.save_2x(TEX_DIR / filename)
 
 
 def make_bronze_gilded():
+    """64x64 art px Gilded Bronze with strong light-gold top edge, stepped metallic sheen, and rich dark-gold underside."""
     c = ArtCanvas(64, 64, BRZ_MID)
     for y in range(64):
         for x in range(64):
-            bx, by = x % 16, y % 16
-            if by == 0 or bx == 0:
-                col = BRZ_SHD
-            elif by == 1 or bx == 1:
-                col = BRZ_SPEC
-            elif by == 15 or bx == 15:
-                col = BRZ_LOW
-            elif by in (3, 12) and (bx % 4 == 2):
-                col = BRZ_SPEC
-            elif abs(bx - 8) + abs(by - 8) == 4:
+            ly = y % 16
+            lx = x % 16
+            if ly == 0:
+                col = BRZ_SPEC  # 1-pixel bright gold highlight along upper edge!
+            elif ly in (1, 2):
                 col = BRZ_HI
-            elif abs(bx - 8) + abs(by - 8) == 5:
+            elif ly == 15:
+                col = BRZ_SHD
+            elif ly in (13, 14):
                 col = BRZ_LOW
+            elif lx == 0:
+                col = BRZ_LOW
+            elif lx == 1:
+                col = BRZ_HI
             else:
                 n = h2(x, y, 131)
-                col = BRZ_LOW if n < 36 else (BRZ_HI if n > 224 else BRZ_MID)
+                col = BRZ_HI if n > 205 else (BRZ_LOW if n < 48 else BRZ_MID)
             c.put(x, y, col)
     c.save_2x(TEX_DIR / "bronze_gilded.png")
 
 
 def make_water_pool():
-    c = ArtCanvas(64, 64, WAT_DEEP)
+    """64x64 art px crisp, clean, lily-pad-free deep reflecting pool water."""
+    c = ArtCanvas(64, 64, (44, 98, 148, 255))
+    W_SPEC = (174, 224, 248, 255)
+    W_HI = (84, 152, 202, 255)
+    W_MID = (48, 106, 158, 255)
+    W_LOW = (32, 74, 118, 255)
     for y in range(64):
         for x in range(64):
-            band = (y // 4) % 4
-            wave = int(2.2 * math.sin(x * 0.25 + y * 0.18))
-            v = (y + wave) % 8
-            if v == 0 and (x % 7 in (1, 2, 3)):
-                col = WAT_HI
-            elif v in (1, 2) or band == 1:
-                col = WAT_MID
-            elif v == 6 and h2(x, y, 151) < 90:
-                col = WAT_SHD
+            rip = (x + (y // 4) * 9) % 16
+            if y % 8 == 1 and rip in (2, 3, 4):
+                col = W_SPEC
+            elif y % 4 == 0 and rip < 7:
+                col = W_HI
+            elif h2(x, y, 149) < 50:
+                col = W_LOW
             else:
-                col = WAT_DEEP
+                col = W_MID
             c.put(x, y, col)
     c.save_2x(TEX_DIR / "water_pool.png")
 
 
-def make_marble_plaza():
-    c = ArtCanvas(64, 64, LIME_MID)
+def make_marble_plaza(filename, with_weeds=False):
+    """64x64 art px two-tone checkerboard travertine/marble plaza paving (+ green joint weeds for 1976!)."""
+    c = ArtCanvas(64, 64, ASH_MID)
+    WEED_HI = (104, 144, 62, 255)
+    WEED_LOW = (68, 102, 42, 255)
     for y in range(64):
         for x in range(64):
             tx, ty = x % 16, y % 16
             checker = ((x // 16) + (y // 16)) % 2
             if tx == 0 or ty == 0:
-                col = GRAN_MORT
-            elif tx == 1 or ty == 1:
-                col = LIME_HI
-            elif tx == 15 or ty == 15:
-                col = LIME_SHD
+                if with_weeds and h2(x, y, 701) > 135:
+                    col = WEED_HI if (x + y) % 2 == 0 else WEED_LOW
+                else:
+                    col = LIME_SHD
+            elif with_weeds and (tx == 1 or ty == 1) and h2(x, y, 709) > 205:
+                col = WEED_LOW
             elif tx in (2, 14) and ty in (2, 14):
-                col = SLATE_MID
+                col = GRAN_A
             else:
-                base = LIME_HI if checker == 0 else LIME_MID
+                base = ASH_HI if checker == 0 else LIME_A
                 n = h2(x, y, 173)
-                col = LIME_LOW if n < 22 else (LIME_HI if n > 238 else base)
+                col = LIME_B if n < 24 else (ASH_TOP if n > 236 else base)
             c.put(x, y, col)
-    c.save_2x(TEX_DIR / "marble_plaza.png")
+    c.save_2x(TEX_DIR / filename)
 
 
-def make_glass_cathedral():
-    """128x128 art px BLEND glass: amber-and-slate pier slot glass + semi-clear lantern glass."""
+def make_glass_cathedral(filename, taped_1941=False):
+    """128x128 art px BLEND glass: win_cathedral (0,0,64,128) + win_lantern (64,0,64,128) + optional 1941 wartime taped X-crosses!"""
     c = ArtCanvas(128, 128, (36, 52, 74, 188))
     G_DARK = (44, 58, 82, 210)
     G_MID = (78, 108, 142, 188)
     G_AMBER = (224, 174, 88, 196)
-    G_AMBER_HI = (248, 214, 134, 208)
     MULL = (42, 44, 58, 255)
+    TAPE = (238, 232, 212, 248)
 
-    # Region 1: win_cathedral (0, 0, 64, 128) — tall narrow Art Deco amber-and-slate glass
     for y in range(128):
         for x in range(64):
-            if x in (0, 1, 62, 63) or y in (0, 1, 126, 127):
-                col = MULL
-            elif x in (21, 42) or y % 20 == 0:
+            if x in (0, 1, 62, 63) or y in (0, 1, 126, 127) or x in (21, 42) or y % 20 == 0:
                 col = MULL
             elif (x + y) % 14 < 2:
                 col = G_AMBER
@@ -415,15 +451,18 @@ def make_glass_cathedral():
                 col = G_MID
             else:
                 col = G_DARK
+            # 1941 wartime white blackout/shatter tape X-crosses on hall windows!
+            if taped_1941 and col != MULL:
+                lx, ly = x % 21, y % 20
+                if abs(lx - ly) <= 1 or abs((20 - lx) - ly) <= 1:
+                    col = TAPE
             c.put(x, y, col)
 
-    # Region 2: win_lantern (64, 0, 64, 128) — translucent amber lantern glass so gears & lens read inside!
+    # Region 2: win_lantern (64, 0, 64, 128) — translucent amber lantern lancet glass so interior gears & Fresnel lens show!
     for y in range(128):
         for x in range(64):
             px = 64 + x
-            if x in (0, 1, 62, 63) or y in (0, 1, 126, 127):
-                col = MULL
-            elif x in (16, 32, 48) or y % 18 == 0:
+            if x in (0, 1, 62, 63) or y in (0, 1, 126, 127) or x in (16, 32, 48) or y % 18 == 0:
                 col = MULL
             elif abs(x - 32) < 6 and y % 9 < 3:
                 col = (248, 214, 134, 168)
@@ -433,7 +472,7 @@ def make_glass_cathedral():
                 col = (188, 142, 72, 132)
             c.put(px, y, col)
 
-    c.save_2x(TEX_DIR / "glass_cathedral.png")
+    c.save_2x(TEX_DIR / filename)
     return {
         "win_cathedral": [0, 0, 64, 128],
         "win_lantern": [64, 0, 64, 128],
@@ -441,61 +480,51 @@ def make_glass_cathedral():
 
 
 def make_detail_atlas():
-    """128x128 art px 4 strict 64x64 quadrants: lawn_turf, dark_iron, compass_mosaic, timber_bench."""
+    """128x128 art px 4 STRICT 64x64 quadrants: lawn_turf, dark_iron, arch_coffer (deep recessed arch soffits!), timber_bench."""
     c = ArtCanvas(128, 128, OUTLINE)
 
-    # Q0 (0, 0, 64, 64): lawn_turf (also used for stylized pixel-art tree canopies)
+    # Q0 (0, 0, 64, 64): lawn_turf (park lawns & tree canopies)
     for y in range(64):
         for x in range(64):
             n = h2(x, y, 211)
             stripe = (x // 8) % 2
-            if n < 32:
-                col = LAWN_LOW
-            elif n > 220:
-                col = LAWN_HI
-            else:
-                col = LAWN_MID if stripe == 0 else (98, 154, 76, 255)
+            col = LAWN_LOW if n < 32 else (LAWN_HI if n > 220 else (LAWN_MID if stripe == 0 else (98, 154, 76, 255)))
             c.put(x, y, col)
 
-    # Q1 (64, 0, 64, 64): dark_iron (lamp posts, elevator cage, broken lamp heads, flood fixtures)
+    # Q1 (64, 0, 64, 64): dark_iron (lamp standards, railings, bike rack, trash bins, broken lamp heads)
     for y in range(64):
         for x in range(64):
-            px = 64 + x
             if x % 16 == 0 or y % 16 == 0:
-                col = (34, 38, 48, 255)
+                col = (30, 34, 44, 255)
             elif x % 16 == 1 or y % 16 == 1:
-                col = (84, 92, 108, 255)
+                col = (88, 96, 112, 255)
             else:
-                n = h2(x, y, 223)
-                col = (48, 54, 66, 255) if n < 90 else (62, 68, 82, 255)
-            c.put(px, y, col)
+                col = (46, 52, 64, 255) if h2(x, y, 223) < 90 else (62, 68, 82, 255)
+            c.put(64 + x, y, col)
 
-    # Q2 (0, 64, 64, 64): compass_mosaic — rich 8-point inlaid gilded-bronze & navy-slate Compass Rose!
-    cx, cy = 31.5, 31.5
+    # Q2 (0, 64, 64, 64): arch_coffer — DEEP COFFERED ARCH SOFFITS (4x4 grid of 16x16 recessed stone coffers w/ dark inner outlines & bronze rosette!)
     for y in range(64):
         for x in range(64):
-            dx, dy = x - cx, y - cy
-            r = math.hypot(dx, dy)
-            ang = math.atan2(dy, dx)
-            star_k = abs(math.cos(4.0 * ang))
-            star_r = 10.0 + 18.0 * (star_k ** 2.2)
-            if x in (0, 63) or y in (0, 63):
-                col = DEEP_INK
-            elif x in (1, 2, 61, 62) or y in (1, 2, 61, 62):
-                col = BRZ_HI
-            elif abs(r - 28.0) < 1.6:
-                col = BRZ_MID
-            elif r < 5.0:
-                col = BRZ_SPEC
-            elif r < star_r:
-                col = BRZ_HI if math.sin(4.0 * ang) >= 0 else BRZ_LOW
-            elif r < 27.0:
-                col = SLATE_LOW if (x + y) % 2 == 0 else SLATE_MID
+            cx, cy = x % 16, y % 16
+            if cx in (0, 15) or cy in (0, 15):
+                col = LIME_MORT
+            elif cx in (1, 14) or cy in (1, 14):
+                col = ASH_HI  # crisp rib bevel
+            elif cx in (2, 13) or cy in (2, 13):
+                col = LIME_A
+            elif cx in (3, 12) or cy in (3, 12):
+                col = OUTLINE  # dark recessed inner step outline!
+            elif cx == 4 or cy == 4:
+                col = (132, 118, 100, 255)  # deep shadow step
+            elif cx == 11 or cy == 11:
+                col = LIME_HI  # lit lower lip
+            elif 6 <= cx <= 9 and 6 <= cy <= 9:
+                col = BRZ_HI if (cx in (7, 8) and cy in (7, 8)) else BRZ_LOW  # central gilded bronze coffer rosette!
             else:
-                col = LIME_HI if ((x // 4 + y // 4) % 2 == 0) else LIME_MID
+                col = LIME_SHD
             c.put(x, 64 + y, col)
 
-    # Q3 (64, 64, 64, 64): timber_bench (plaza benches, 1976 timber scaffolding planks, tree trunks)
+    # Q3 (64, 64, 64, 64): timber_bench (plaza benches, 1926 dedication stand, 1976 scaffold planks & sawhorse)
     for y in range(64):
         for x in range(64):
             py_l = y % 8
@@ -514,244 +543,172 @@ def make_detail_atlas():
     return {
         "lawn_turf": [0, 0, 64, 64],
         "dark_iron": [64, 0, 64, 64],
-        "compass_mosaic": [0, 64, 64, 64],
+        "arch_coffer": [0, 64, 64, 64],
         "timber_bench": [64, 64, 64, 64],
     }
 
 
-def make_guardians_atlas():
-    """
-    256x128 art px sculpted Art Deco stone atlas for the FOUR 7 m COLOSSAL GUARDIANS
-    (DEFENSE/sword, LEARNING/book, INDUSTRY/gear wheel, HARVEST/wheat sheaf) + dark slate trim!
-    Each guardian sits in a crisp 56x96 art px relief panel painted in bold stepped limestone +
-    burnished gilded-bronze attribute highlights so they read unmistakably close up and afar!
-    """
-    c = ArtCanvas(256, 128, LIME_MID)
-
-    def paint_guardian_base(x0, y0, kind):
-        w, h = 56, 96
-        # Recessed limestone niche backdrop
-        for dy in range(h):
-            for dx in range(w):
-                px, py = x0 + dx, y0 + dy
-                if dx in (0, 1, w - 2, w - 1) or dy in (0, 1, h - 2, h - 1):
-                    col = LIME_MORT
-                elif dx in (2, 3) or dy in (2, 3):
-                    col = LIME_SHD
-                elif dx in (w - 4, w - 3):
-                    col = LIME_HI
-                else:
-                    n = h2(px, py, 401)
-                    col = LIME_SHD if n < 50 else LIME_LOW
-                c.put(px, py, col)
-
-        # Art Deco stepped pedestal at bottom (dy = 82..93)
-        c.rect(x0 + 8, y0 + 82, 40, 11, LIME_MID)
-        c.hline(x0 + 8, x0 + 47, y0 + 82, LIME_HI)
-        c.box_outline(x0 + 8, y0 + 82, 40, 11, OUTLINE)
-
-        # Vertical fluted Art Deco draped robe / legs (dy = 46..82)
-        for dy in range(46, 82):
-            half_w = 13 if dy > 60 else 15
-            for dx in range(28 - half_w, 28 + half_w):
-                flute = (dx - 28) % 4
-                if dx == 28 - half_w or dx == 28 + half_w - 1:
-                    col = OUTLINE
-                elif flute == 0:
-                    col = LIME_SHD
-                elif flute == 1:
-                    col = LIME_HI
-                else:
-                    col = LIME_MID
-                c.put(x0 + dx, y0 + dy, col)
-
-        # Broad sculpted Art Deco shoulders, chest & folded stylized wings/collar (dy = 24..46)
-        for dy in range(24, 46):
-            hw = 19 - int(max(0, (dy - 30) * 0.25))
-            for dx in range(28 - hw, 28 + hw):
-                if dx == 28 - hw or dx == 28 + hw - 1 or dy == 24:
-                    col = OUTLINE
-                elif dy in (25, 26):
-                    col = LIME_HI
-                elif abs(dx - 28) > hw - 5:
-                    col = LIME_LOW
-                else:
-                    col = LIME_HI if (dx < 26) else LIME_MID
-                c.put(x0 + dx, y0 + dy, col)
-
-        # Stylized Art Deco head, brow & sunburst crown (dy = 7..24)
-        c.rect(x0 + 21, y0 + 10, 14, 14, LIME_HI)
-        c.box_outline(x0 + 21, y0 + 10, 14, 14, OUTLINE)
-        # Crown rays above head
-        for rx in (22, 25, 28, 31, 34):
-            c.vline(x0 + rx, y0 + 5, y0 + 9, BRZ_HI if rx == 28 else LIME_HI)
-        # Stylized stern Art Deco brow, nose ridge & jawline
-        c.hline(x0 + 23, x0 + 32, y0 + 14, OUTLINE)
-        c.vline(x0 + 28, y0 + 14, y0 + 19, LIME_SHD)
-        c.hline(x0 + 25, x0 + 30, y0 + 21, LIME_SHD)
-
-        # Forearms & clasped hands resting centrally at dy = 38..46
-        c.rect(x0 + 17, y0 + 38, 22, 7, LIME_HI)
-        c.box_outline(x0 + 17, y0 + 38, 22, 7, OUTLINE)
-
-        # ICONIC ATTRIBUTE HELD IN FRONT (gilded-bronze & crisp dark ink outline so unmistakable!)
-        if kind == "defense":
-            # Colossal vertical Art Deco Broadsword! (pommel at dy=34, crossguard at dy=41..44, long blade dy=44..81)
-            c.rect(x0 + 26, y0 + 33, 4, 6, BRZ_SPEC)
-            c.box_outline(x0 + 26, y0 + 33, 4, 6, DEEP_INK)
-            c.rect(x0 + 15, y0 + 40, 26, 5, BRZ_HI)
-            c.box_outline(x0 + 15, y0 + 40, 26, 5, DEEP_INK)
-            for dy in range(45, 81):
-                bw = 4 if dy < 74 else max(1, (81 - dy) // 2)
-                c.hline(x0 + 28 - bw, x0 + 28 + bw - 1, y0 + dy, BRZ_HI)
-                c.put(x0 + 28 - bw, y0 + dy, DEEP_INK)
-                c.put(x0 + 28 + bw - 1, y0 + dy, DEEP_INK)
-                c.put(x0 + 28, y0 + dy, BRZ_SPEC)
-        elif kind == "learning":
-            # Large Open Stone & Gilded Tome held at chest + laurel columns! (dy = 37..60)
-            c.rect(x0 + 13, y0 + 38, 30, 22, BRZ_MID)
-            c.box_outline(x0 + 13, y0 + 38, 30, 22, DEEP_INK)
-            c.rect(x0 + 15, y0 + 40, 12, 18, LIME_HI)
-            c.rect(x0 + 29, y0 + 40, 12, 18, LIME_HI)
-            c.vline(x0 + 28, y0 + 39, y0 + 58, DEEP_INK)
-            for ry in (43, 46, 49, 52, 55):
-                c.hline(x0 + 17, x0 + 25, y0 + ry, LIME_MORT)
-                c.hline(x0 + 31, x0 + 39, y0 + ry, LIME_MORT)
-        elif kind == "industry":
-            # Giant Industrial Cog Gear Wheel resting in front of legs (center 28, 60, r=14)!
-            gcx, gcy = 28.0, 60.0
-            for dy in range(42, 78):
-                for dx in range(10, 46):
-                    r = math.hypot(dx - gcx, dy - gcy)
-                    ang = math.atan2(dy - gcy, dx - gcx)
-                    tooth = 2.4 if math.cos(8.0 * ang) > 0.25 else 0.0
-                    if r < 4.5:
-                        c.put(x0 + dx, y0 + dy, DEEP_INK if r > 3.2 else LIME_SHD)
-                    elif r < 11.5 + tooth:
-                        if r > 10.2 + tooth:
-                            c.put(x0 + dx, y0 + dy, DEEP_INK)
-                        elif abs(r - 7.5) < 1.5 and abs(math.cos(4.0 * ang)) < 0.45:
-                            c.put(x0 + dx, y0 + dy, LIME_SHD)
-                        else:
-                            c.put(x0 + dx, y0 + dy, BRZ_SPEC if dx < 27 else BRZ_HI)
-        elif kind == "harvest":
-            # Tied Golden Sheaf of Wheat flaring generously at top & bottom (dy = 34..78)!
-            for dy in range(34, 78):
-                # Hourglass tied waist at dy=56
-                flare = abs(dy - 56) * 0.38
-                hw = int(5 + flare)
-                for dx in range(28 - hw, 28 + hw):
-                    if dx == 28 - hw or dx == 28 + hw - 1:
-                        col = DEEP_INK
-                    elif 53 <= dy <= 59:
-                        col = BRZ_LOW if dy % 2 == 0 else BRZ_SHD
-                    elif dy < 44:
-                        # Individual grain heads at top of sheaf
-                        col = BRZ_SPEC if (dx + dy) % 3 == 0 else BRZ_HI
-                    else:
-                        col = BRZ_HI if (dx % 3 != 0) else BRZ_MID
-                    c.put(x0 + dx, y0 + dy, col)
-
-    paint_guardian_base(4, 4, "defense")
-    paint_guardian_base(68, 4, "learning")
-    paint_guardian_base(132, 4, "industry")
-    paint_guardian_base(196, 4, "harvest")
-
-    # Dark architectural slate strip (4, 104, 64, 20) for rotunda inlay & roof trim
-    for dy in range(20):
-        for dx in range(64):
-            ox = (dx + (8 if (dy // 5) % 2 else 0)) % 16
-            oy = dy % 5
-            if oy == 0 or ox == 0:
-                col = DEEP_INK
-            elif oy == 1:
-                col = SLATE_HI
-            else:
-                col = SLATE_LOW if h2(dx, dy, 509) < 70 else SLATE_MID
-            c.put(4 + dx, 104 + dy, col)
-
-    c.save_2x(TEX_DIR / "guardians_atlas.png")
-    return {
-        "guardian_defense": [4, 4, 56, 96],
-        "guardian_learning": [68, 4, 56, 96],
-        "guardian_industry": [132, 4, 56, 96],
-        "guardian_harvest": [196, 4, 56, 96],
-        "slate_trim": [4, 104, 64, 20],
-    }
-
-
 def make_inscriptions():
-    """256x256 art px inscriptions, carved friezes, dedication wall, flag, bunting, doors, zodiac & direction plates."""
-    c = ArtCanvas(256, 256, LIME_MID)
+    """
+    512x512 art px (1024x1024 PNG) rich architectural relief & inscription atlas.
+    Every region strictly non-overlapping with crisp pixel-art reliefs and incised lettering!
+    """
+    c = ArtCanvas(512, 512, ASH_MID)
 
-    def paint_stone_bg(x0, y0, w, h):
+    def paint_ashlar_bg(x0, y0, w, h):
         for dy in range(h):
             for dx in range(w):
                 px, py = x0 + dx, y0 + dy
                 if dy == 0:
-                    col = LIME_HI
+                    col = ASH_TOP
                 elif dy == h - 1:
-                    col = LIME_SHD
-                elif dy == 1 or dy == h - 2:
-                    col = LIME_LOW
+                    col = ASH_SHD
+                elif dy == 1:
+                    col = ASH_HI
                 else:
                     n = h2(px, py, 307)
-                    col = LIME_HI if n > 228 else (LIME_LOW if n < 26 else LIME_MID)
+                    col = ASH_HI if n > 224 else (ASH_LOW if n < 24 else ASH_MID)
                 c.put(px, py, col)
 
-    # 1. frieze_main (4, 4, 236, 32): Flush carved directly in limestone
-    paint_stone_bg(4, 4, 236, 32)
+    def paint_granite_bg(x0, y0, w, h):
+        for dy in range(h):
+            for dx in range(w):
+                px, py = x0 + dx, y0 + dy
+                if dy == 0:
+                    col = GRAN_HI
+                elif dy == h - 1:
+                    col = GRAN_JOINT
+                else:
+                    n = h2(px, py, 313)
+                    col = GRAN_HI if n > 232 else (GRAN_SHD if n < 30 else GRAN_A)
+                c.put(px, py, col)
+
+    # 1. frieze_main (4, 4, 236, 32): Incised dark inside with pale lower edge on smooth ashlar!
+    paint_ashlar_bg(4, 4, 236, 32)
     t1 = "THE GREAT MERIDIAN"
     w1, _ = measure_text(t1, "5x7", scale=2, spacing=1)
-    assert w1 <= 226
-    c.draw_text(4 + (236 - w1) // 2, 8, t1, (70, 62, 54, 255), "5x7", scale=2, spacing=1, shadow=LIME_HI)
+    assert w1 <= 224
+    c.draw_text(4 + (236 - w1) // 2, 7, t1, (56, 48, 42, 255), "5x7", scale=2, spacing=1, shadow=ASH_TOP)
     t2 = "DEDICATED MCMXXVI"
     w2, _ = measure_text(t2, "5x7", scale=1, spacing=1)
     assert w2 <= 216
-    c.draw_text(4 + (236 - w2) // 2, 25, t2, (88, 78, 68, 255), "5x7", scale=1, spacing=1, shadow=LIME_HI)
+    c.draw_text(4 + (236 - w2) // 2, 24, t2, (70, 62, 54, 255), "5x7", scale=1, spacing=1, shadow=ASH_TOP)
 
-    # 2. frieze_east (4, 40, 180, 24) & frieze_west (4, 68, 180, 24)
-    for reg_y, txt in ((40, "MERIDIAN EAST"), (68, "MERIDIAN WEST")):
-        paint_stone_bg(4, reg_y, 180, 24)
+    # 2. exedra_text (4, 370, 240, 16): "ERECTED BY THE PEOPLE OF THE STATE MCMXXVI" on dark grey-pink granite!
+    paint_granite_bg(4, 370, 240, 16)
+    c.box_outline(4, 370, 240, 16, GRAN_JOINT)
+    ex_txt = "ERECTED BY THE PEOPLE OF THE STATE MCMXXVI"
+    ex_w, _ = measure_text(ex_txt, "3x5", scale=1, spacing=1)
+    assert ex_w <= 228, f"exedra text too wide: {ex_w}"
+    c.draw_text(4 + (240 - ex_w) // 2, 375, ex_txt, (242, 230, 212, 255), "3x5", scale=1, spacing=1, shadow=GRAN_JOINT)
+
+    # 3. chevron_band (248, 24, 64, 14): 1 m tall carved Art Deco chevron / zigzag frieze for pier setbacks & crown!
+    paint_ashlar_bg(248, 24, 64, 14)
+    c.hline(248, 311, 24, ASH_TOP)
+    c.hline(248, 311, 37, OUTLINE)
+    for dx in range(64):
+        p = dx % 12
+        peak = abs(p - 6)  # 0..6
+        for dy in range(1, 13):
+            d_z = abs((dy - 3) - peak)
+            if d_z == 0:
+                c.put(248 + dx, 24 + dy, OUTLINE)
+            elif d_z == 1:
+                c.put(248 + dx, 24 + dy, ASH_TOP if (dy - 3) < peak else ASH_SHD)
+            elif d_z == 2:
+                c.put(248 + dx, 24 + dy, LIME_A)
+            elif abs((dy - 7) - peak) == 0:
+                c.put(248 + dx, 24 + dy, BRZ_LOW)
+
+    # 4. voussoir_stone (320, 24, 64, 14): Alternating light & dark carved arch voussoir ring!
+    for dx in range(64):
+        blk = (dx // 8) % 2
+        lx = dx % 8
+        for dy in range(14):
+            if lx == 0 or dy in (0, 13):
+                col = OUTLINE
+            elif dy == 1:
+                col = ASH_TOP if blk == 0 else LIME_HI
+            elif dy == 12:
+                col = LIME_SHD if blk == 0 else GRAN_SHD
+            else:
+                col = ASH_HI if blk == 0 else LIME_SHD
+            c.put(320 + dx, 24 + dy, col)
+
+    # 5. keystone_star (392, 4, 24, 28): Projecting carved arch keystone with 8-point compass star!
+    paint_ashlar_bg(392, 4, 24, 28)
+    c.box_outline(392, 4, 24, 28, OUTLINE)
+    c.box_outline(394, 6, 20, 24, ASH_TOP)
+    kcx, kcy = 403.5, 17.5
+    for dy in range(28):
+        for dx in range(24):
+            r = math.hypot(dx - 11.5, dy - 13.5)
+            ang = math.atan2(dy - 13.5, dx - 11.5)
+            sr = 2.6 + 6.0 * (abs(math.cos(4.0 * ang)) ** 2.2)
+            if r < 1.8:
+                c.put(392 + dx, 4 + dy, BRZ_SPEC)
+            elif r < sr:
+                c.put(392 + dx, 4 + dy, BRZ_HI if math.sin(4.0 * ang) >= 0 else BRZ_LOW)
+            elif abs(r - 7.8) < 0.7:
+                c.put(392 + dx, 4 + dy, OUTLINE)
+
+    # 6. cornerstone_1926 (424, 4, 24, 20): NE arch corner eye-height stone ("1926" + small carved compass)!
+    paint_granite_bg(424, 4, 24, 20)
+    c.box_outline(424, 4, 24, 20, GRAN_JOINT)
+    c.box_outline(425, 5, 22, 18, GRAN_HI)
+    c.draw_text(428, 7, "1926", ASH_TOP, "3x5", scale=1, spacing=1, shadow=DEEP_INK)
+    # Small carved compass star beneath "1926"
+    c.hline(432, 440, 17, BRZ_HI)
+    c.vline(436, 14, 20, BRZ_HI)
+    c.put(436, 17, BRZ_SPEC)
+
+    # 7. plaque_dedication (456, 4, 24, 18) & plaque_war (484, 4, 24, 18)
+    for rx, txt in ((456, "1926"), (484, "41-45")):
+        c.rect(rx, 4, 24, 18, BRZ_SHD)
+        c.box_outline(rx, 4, 24, 18, DEEP_INK)
+        c.box_outline(rx + 1, 5, 22, 16, BRZ_HI)
+        tw, _ = measure_text(txt, "3x5", scale=1, spacing=1)
+        c.draw_text(rx + (24 - tw) // 2, 7, txt, BRZ_SPEC, "3x5", scale=1, spacing=1)
+        for ry in (14, 17, 19):
+            c.hline(rx + 4, rx + 19, ry, BRZ_HI)
+
+    # 8. frieze_east (4, 40, 180, 24) & frieze_west (4, 68, 180, 24)
+    for ry, txt in ((40, "MERIDIAN EAST"), (68, "MERIDIAN WEST")):
+        paint_ashlar_bg(4, ry, 180, 24)
         tw, th = measure_text(txt, "5x7", scale=2, spacing=1)
         assert tw <= 168
-        c.draw_text(4 + (180 - tw) // 2, reg_y + (24 - th) // 2, txt, (72, 64, 56, 255), "5x7", scale=2, spacing=1, shadow=LIME_HI)
+        c.draw_text(4 + (180 - tw) // 2, ry + (24 - th) // 2, txt, (58, 50, 44, 255), "5x7", scale=2, spacing=1, shadow=ASH_TOP)
 
-    # 3. civic_flag (188, 40, 44, 26): MADE-UP CIVIC FLAG — Deep Royal Blue field with crisp Golden 8-point Compass Star!
-    bx, by, bw, bh = 188, 40, 44, 26
-    NAVY_HI = (46, 74, 134, 255)
-    NAVY_MID = (30, 52, 102, 255)
-    NAVY_LOW = (22, 38, 78, 255)
+    # 9. civic_flag (192, 40, 44, 26): Made-up Royal Blue field + Golden 8-point Compass Star!
+    bx, by, bw, bh = 192, 40, 44, 26
     for dy in range(bh):
         for dx in range(bw):
             wave = int(1.0 * math.sin(dx * 0.28))
             rx, ry = dx - 21.5, dy - 12.5
             r = math.hypot(rx, ry)
             ang = math.atan2(ry, rx)
-            star_k = abs(math.cos(4.0 * ang))
-            star_r = 3.2 + 6.4 * (star_k ** 2.2)
-            if dx == 0 or dx == bw - 1 or dy == 0 or dy == bh - 1:
+            sr = 3.2 + 6.4 * (abs(math.cos(4.0 * ang)) ** 2.2)
+            if dx in (0, bw - 1) or dy in (0, bh - 1):
                 col = DEEP_INK
             elif dx in (2, bw - 3) or dy in (2, bh - 3):
                 col = BRZ_HI
             elif r < 2.2:
                 col = BRZ_SPEC
-            elif r < star_r:
+            elif r < sr:
                 col = BRZ_SPEC if math.sin(4.0 * ang) >= 0 else BRZ_HI
             elif abs(r - 9.8) < 0.85:
                 col = BRZ_MID
             else:
-                col = NAVY_HI if ((dx + wave) % 10 < 3) else (NAVY_LOW if (dx + wave) % 10 == 8 else NAVY_MID)
+                col = (46, 74, 134, 255) if ((dx + wave) % 10 < 3) else ((22, 38, 78, 255) if (dx + wave) % 10 == 8 else (30, 52, 102, 255))
             c.put(bx + dx, by + dy, col)
 
-    # 4. bunting_swag (188, 72, 56, 22): 1926 Dedication festive pleated red, white & blue fabric bunting!
+    # 10. bunting_swag (192, 70, 56, 22) & bunting_pole (256, 40, 24, 28): 1926 festive red/white/blue fabric!
     for dy in range(22):
         for dx in range(56):
-            # Scalloped bottom swag profile (two arches)
             u_arc = ((dx % 28) - 13.5) / 13.5
             max_y = int(12 + 8.5 * math.sqrt(max(0.0, 1.0 - u_arc * u_arc)))
             if dy > max_y:
-                col = LIME_MID
+                col = ASH_MID
             elif dy == max_y or dy == 0:
                 col = DEEP_INK
             else:
@@ -763,221 +720,423 @@ def make_inscriptions():
                     col = (242, 236, 222, 255) if not pleat else (206, 198, 184, 255)
                 else:
                     col = (182, 46, 52, 255) if not pleat else (138, 34, 40, 255)
-            c.put(188 + dx, 72 + dy, col)
-
-    # 5. dedication_wall (4, 98, 72, 52): West Memorial Hall carved wall + anonymous carved name blocks!
-    # Sized 72x52 art px so 100% of every word fits on the 73x52 art px interior wall with ZERO clipping!
-    paint_stone_bg(4, 98, 72, 52)
-    c.box_outline(4, 98, 72, 52, LIME_MORT)
-    c.box_outline(6, 100, 68, 48, LIME_HI)
-    for li, dline in enumerate(("TO THOSE WHO", "BUILT FARMED", "TAUGHT AND", "DEFENDED")):
-        dlw, _ = measure_text(dline, "3x5", scale=1, spacing=1)
-        assert dlw <= 60, f"Dedication line '{dline}' overflow: {dlw} > 60"
-        c.draw_text(4 + (72 - dlw) // 2, 102 + li * 6, dline, (64, 56, 48, 255), "3x5", scale=1, spacing=1, shadow=LIME_HI)
-    c.hline(10, 69, 127, BRZ_MID)
-    # 4 neat carved rows of anonymous recessed stone name blocks (no real names!)
-    for row_i in range(4):
-        ry = 130 + row_i * 4
-        for col_i in range(4):
-            rx = 10 + col_i * 14
-            c.rect(rx, ry, 11, 2, LIME_SHD)
-            c.hline(rx, rx + 10, ry + 2, LIME_HI)
-
-    # 6. bronze_door_panel (188, 98, 32, 52): 4 m tall embossed Art Deco open bronze door leaf!
-    dx0, dy0, dw, dh = 188, 98, 32, 52
-    c.rect(dx0, dy0, dw, dh, BRZ_LOW)
-    c.box_outline(dx0, dy0, dw, dh, DEEP_INK)
-    c.box_outline(dx0 + 2, dy0 + 2, dw - 4, dh - 4, BRZ_HI)
-    for py_off in (5, 19, 33):
-        c.rect(dx0 + 5, dy0 + py_off, 22, 12, BRZ_MID)
-        c.box_outline(dx0 + 5, dy0 + py_off, 22, 12, BRZ_SHD)
-        c.box_outline(dx0 + 7, dy0 + py_off + 2, 18, 8, BRZ_SPEC)
-        c.hline(dx0 + 10, dx0 + 21, dy0 + py_off + 6, BRZ_HI)
-
-    # 7. plaque_war (224, 98, 24, 18): 1941-1945 cast-bronze War Years plaque!
-    c.rect(224, 98, 24, 18, BRZ_SHD)
-    c.box_outline(224, 98, 24, 18, DEEP_INK)
-    c.box_outline(225, 99, 22, 16, BRZ_HI)
-    tw_w, _ = measure_text("41-45", "3x5", scale=1, spacing=1)
-    c.draw_text(224 + (24 - tw_w) // 2, 101, "41-45", BRZ_SPEC, "3x5", scale=1, spacing=1)
-    for ry in (108, 111, 113):
-        c.hline(228, 243, ry, BRZ_HI)
-
-    # 8. plaque_dedication (224, 120, 24, 18): Original 1926 dedication bronze plaque!
-    c.rect(224, 120, 24, 18, BRZ_SHD)
-    c.box_outline(224, 120, 24, 18, DEEP_INK)
-    c.box_outline(225, 121, 22, 16, BRZ_HI)
-    tw_d, _ = measure_text("1926", "3x5", scale=1, spacing=1)
-    c.draw_text(224 + (24 - tw_d) // 2, 123, "1926", BRZ_SPEC, "3x5", scale=1, spacing=1)
-    for ry in (130, 133, 135):
-        c.hline(228, 243, ry, BRZ_HI)
-
-    # 9. Four Engraved Brass Corner Direction Plates for the 58 m Observation Deck! (All 56x14 art px!)
-    dir_specs = [
-        ("dir_capitol", 4, 160, 56, 14, "TO CAPITOL"),
-        ("dir_river", 68, 160, 56, 14, "TO RIVER"),
-        ("dir_mountains", 132, 160, 56, 14, "TO MOUNTAINS"),
-        ("dir_sea", 196, 160, 56, 14, "TO THE SEA"),
-    ]
-    for _, rx, ry, rw, rh, label in dir_specs:
-        c.rect(rx, ry, rw, rh, BRZ_MID)
-        c.box_outline(rx, ry, rw, rh, DEEP_INK)
-        c.box_outline(rx + 1, ry + 1, rw - 2, rh - 2, BRZ_SPEC)
-        tw_l, _ = measure_text(label, "3x5", scale=1, spacing=1)
-        assert tw_l <= rw - 4, f"Direction plate '{label}' overflow: {tw_l} > {rw - 4}"
-        c.draw_text(rx + (rw - tw_l) // 2, ry + 4, label, DEEP_INK, "3x5", scale=1, spacing=1, shadow=BRZ_SPEC)
-
-    # 10. zodiac_band (4, 180, 128, 16): Engraved celestial star & zodiac glyph belt for armillary_ecliptic!
-    c.rect(4, 180, 128, 16, BRZ_MID)
-    c.hline(4, 131, 180, BRZ_SHD)
-    c.hline(4, 131, 181, BRZ_SPEC)
-    c.hline(4, 131, 194, BRZ_SPEC)
-    c.hline(4, 131, 195, BRZ_SHD)
-    for gi in range(12):
-        gx = 8 + gi * 10
-        # Alternating celestial star, crescent, diamond & cross zodiac engravings
-        c.box_outline(gx, 183, 8, 10, BRZ_LOW)
-        if gi % 3 == 0:
-            c.hline(gx + 2, gx + 5, 188, BRZ_SPEC)
-            c.vline(gx + 3, 185, 191, BRZ_SPEC)
-        elif gi % 3 == 1:
-            c.box_outline(gx + 2, 185, 4, 6, BRZ_SPEC)
-        else:
-            c.put(gx + 3, 185, BRZ_SPEC)
-            c.hline(gx + 2, gx + 5, 188, BRZ_SPEC)
-            c.put(gx + 3, 191, BRZ_SPEC)
-
-    # 11. earth_globe (136, 180, 64, 20): Stylized verdigris-copper continents & dark patinated ocean for armillary_globe!
-    for dy in range(20):
-        for dx in range(64):
-            # Latitude/longitude grid + stylized patinated land masses
-            lon_grid = (dx % 8 == 0)
-            lat_grid = (dy % 5 == 0)
-            land = (math.sin(dx * 0.16 + 0.5) * math.cos(dy * 0.22 - 0.3) + 0.35 * math.sin(dx * 0.31 - dy * 0.25)) > 0.12
-            if lon_grid or lat_grid:
-                col = BRZ_LOW
-            elif land:
-                col = COP_HI if (dx + dy) % 4 == 0 else COP_MID
+            c.put(192 + dx, 70 + dy, col)
+    for dy in range(28):
+        for dx in range(24):
+            stripe = ((dx + dy) // 5) % 3
+            pleat = (dx % 4 == 0)
+            if dy in (0, 27):
+                col = BRZ_HI
+            elif stripe == 0:
+                col = (182, 46, 52, 255) if not pleat else (138, 34, 40, 255)
+            elif stripe == 1:
+                col = (242, 236, 222, 255) if not pleat else (204, 196, 180, 255)
             else:
-                col = COP_SHD if h2(dx, dy, 613) < 120 else COP_LOW
-            c.put(136 + dx, 180 + dy, col)
+                col = (34, 58, 118, 255) if not pleat else (24, 42, 86, 255)
+            c.put(256 + dx, 40 + dy, col)
 
-    # 12. Carved Stone Guardian Name Bands directly beneath each 7 m Guardian!
-    for reg_x, reg_w, gtxt in (
-        (4, 60, "DEFENSE"),
-        (68, 60, "LEARNING"),
-        (132, 60, "INDUSTRY"),
-        (196, 56, "HARVEST"),
-    ):
-        paint_stone_bg(reg_x, 202, reg_w, 14)
-        c.box_outline(reg_x, 202, reg_w, 14, LIME_MORT)
-        tw_g, _ = measure_text(gtxt, "5x7", scale=1, spacing=1)
-        assert tw_g <= reg_w - 6
-        c.draw_text(reg_x + (reg_w - tw_g) // 2, 205, gtxt, (68, 60, 52, 255), "5x7", scale=1, spacing=1, shadow=LIME_HI)
-
-    # 13. visitor_sign (4, 224, 96, 18): 2000+ Restored Visitor Centre stone fascia inscription!
-    paint_stone_bg(4, 224, 96, 18)
-    c.box_outline(4, 224, 96, 18, LIME_MORT)
+    # 11. visitor_sign (288, 40, 96, 18)
+    paint_ashlar_bg(288, 40, 96, 18)
+    c.box_outline(288, 40, 96, 18, OUTLINE)
     vs = "VISITOR CENTER"
     tw_v, _ = measure_text(vs, "5x7", scale=1, spacing=1)
-    assert tw_v <= 88
-    c.draw_text(4 + (96 - tw_v) // 2, 229, vs, (64, 58, 50, 255), "5x7", scale=1, spacing=1, shadow=LIME_HI)
+    c.draw_text(288 + (96 - tw_v) // 2, 45, vs, (56, 50, 44, 255), "5x7", scale=1, spacing=1, shadow=ASH_TOP)
+
+    # 12. closed_repairs_sign (392, 40, 48, 20): 1976 hand-painted "CLOSED / FOR REPAIRS" on weathered wood sawhorse!
+    c.rect(392, 40, 48, 20, (226, 214, 186, 255))
+    c.box_outline(392, 40, 48, 20, (164, 42, 38, 255))
+    c.box_outline(393, 41, 46, 18, (88, 62, 42, 255))
+    for li, ltxt in enumerate(("CLOSED", "FOR REPAIRS")):
+        tw_c, _ = measure_text(ltxt, "3x5", scale=1, spacing=1)
+        assert tw_c <= 44
+        c.draw_text(392 + (48 - tw_c) // 2, 44 + li * 7, ltxt, (168, 36, 32, 255), "3x5", scale=1, spacing=1)
+
+    # 13. interp_panel (448, 40, 32, 20): 2000+ 1 m museum interpretive plaque along reflecting pool!
+    c.rect(448, 40, 32, 20, (34, 44, 62, 255))
+    c.box_outline(448, 40, 32, 20, BRZ_HI)
+    c.hline(451, 476, 44, BRZ_SPEC)
+    c.rect(451, 47, 10, 9, COP_HI)
+    for ry in (47, 50, 53, 56):
+        c.hline(463, 476, ry, ASH_HI)
+
+    # 14. Four 58 m Sky Deck Engraved Brass Direction Plates (56x14 each)
+    for rx, label in ((256, "TO CAPITOL"), (316, "TO RIVER"), (376, "TO MOUNTAINS"), (436, "TO THE SEA")):
+        c.rect(rx, 72, 56, 14, BRZ_MID)
+        c.box_outline(rx, 72, 56, 14, DEEP_INK)
+        c.box_outline(rx + 1, 73, 54, 12, BRZ_SPEC)
+        tw_l, _ = measure_text(label, "3x5", scale=1, spacing=1)
+        assert tw_l <= 52
+        c.draw_text(rx + (56 - tw_l) // 2, 76, label, DEEP_INK, "3x5", scale=1, spacing=1, shadow=BRZ_SPEC)
+
+    # 15. dedication_wall (4, 98, 112, 64): West Memorial Hall carved wall!
+    # Top heading in 0.4 m (5 art px) incised letters + carved stone wreaths at both ends + 26 rows of carved name blocks!
+    paint_ashlar_bg(4, 98, 112, 64)
+    c.box_outline(4, 98, 112, 64, OUTLINE)
+    c.box_outline(6, 100, 108, 60, ASH_TOP)
+    dl1 = "TO THOSE WHO BUILT, FARMED,"
+    dl2 = "TAUGHT AND DEFENDED"
+    dw1, _ = measure_text(dl1, "3x5", scale=1, spacing=1)
+    dw2, _ = measure_text(dl2, "3x5", scale=1, spacing=1)
+    assert dw1 <= 108 and dw2 <= 80, f"dedication overflow: {dw1}, {dw2}"
+    c.draw_text(4 + (112 - dw1) // 2, 102, dl1, (54, 46, 40, 255), "3x5", scale=1, spacing=1, shadow=ASH_TOP)
+    c.draw_text(4 + (112 - dw2) // 2, 110, dl2, (54, 46, 40, 255), "3x5", scale=1, spacing=1, shadow=ASH_TOP)
+    # Carved stone laurel wreaths at BOTH left and right ends flanking line 2!
+    for wcx in (13, 106):
+        for dy in range(-5, 6):
+            for dx in range(-5, 6):
+                r = math.hypot(dx, dy)
+                if 2.6 <= r <= 4.6:
+                    c.put(wcx + dx, 113 + dy, BRZ_HI if (dx + dy) % 2 == 0 else BRZ_LOW)
+    c.hline(10, 109, 119, BRZ_MID)
+    # 20 dense carved rows of small illegible pixel name blocks (creating 30+ visual entries across 6 columns!)
+    for row_i in range(19):
+        ry = 122 + row_i * 2
+        for col_i in range(6):
+            rx = 10 + col_i * 16
+            nw = 9 + (h2(col_i, row_i, 419) % 5)
+            c.hline(rx, rx + nw, ry, LIME_SHD)
+            c.hline(rx, rx + nw, ry + 1, ASH_TOP)
+
+    # 16. state_map (124, 98, 108, 64): East Hall pixel-art Wall Map of the Made-Up State w/ Gilded Meridian Line!
+    mx0, my0, mw, mh = 124, 98, 108, 64
+    c.rect(mx0, my0, mw, mh, (54, 96, 138, 255))  # Eastern sea
+    c.box_outline(mx0, my0, mw, mh, BRZ_LOW)
+    c.box_outline(mx0 + 1, my0 + 1, mw - 2, mh - 2, BRZ_SPEC)
+    for dy in range(3, mh - 3):
+        coast_x = int(78 + 10 * math.sin(dy * 0.14) - 5 * math.cos(dy * 0.25))
+        mtn_x = int(26 + 7 * math.sin(dy * 0.18 + 1.0))
+        riv_x = int(42 + 12 * math.sin(dy * 0.11))
+        for dx in range(3, mw - 3):
+            if dx > coast_x:
+                col = (48, 94, 138, 255) if (dx + dy) % 6 != 0 else (72, 122, 166, 255)
+            elif abs(dx - coast_x) <= 1:
+                col = (218, 202, 162, 255)  # sandy coastline
+            elif abs(dx - riv_x) <= 1 and dy > 10:
+                col = (68, 138, 192, 255)  # winding river
+            elif dx < mtn_x:
+                col = (128, 120, 114, 255) if ((dx + dy) % 5 < 2) else (154, 146, 138, 255)  # western mountains
+                if (dx % 7 == 3) and (dy % 8 == 3):
+                    col = ASH_TOP  # snow peaks
+            else:
+                col = (146, 174, 112, 255) if h2(dx, dy, 521) > 95 else (126, 156, 94, 255)  # fertile state plains
+            c.put(mx0 + dx, my0 + dy, col)
+    # Bold Gilded MERIDIAN LINE cutting dead straight north-south through the state map!
+    c.vline(mx0 + mw // 2, my0 + 3, my0 + mh - 4, BRZ_SPEC)
+    c.vline(mx0 + mw // 2 - 1, my0 + 3, my0 + mh - 4, BRZ_LOW)
+    # Golden Capitol Star right on the Meridian Line!
+    c.rect(mx0 + mw // 2 - 2, my0 + mh // 2 - 2, 5, 5, BRZ_SPEC)
+    c.put(mx0 + mw // 2, my0 + mh // 2, (186, 46, 42, 255))
+    c.draw_text(mx0 + 6, my0 + 5, "STATE MERIDIAN", DEEP_INK, "3x5", scale=1, spacing=1, shadow=ASH_TOP)
+
+    # 17. bronze_door_leaf (240, 98, 28, 64): Exact 2.2 m x 5.0 m Embossed Bronze Door Leaf w/ 6 Pixel-Art Relief Panels!
+    # 2 columns x 3 rows of 10x17 relief plaques: (1) Train, (2) Plough, (3) Ship, (4) Factory, (5) School, (6) Bridge!
+    dx0, dy0, dw, dh = 240, 98, 28, 64
+    c.rect(dx0, dy0, dw, dh, BRZ_LOW)
+    c.box_outline(dx0, dy0, dw, dh, DEEP_INK)
+    c.box_outline(dx0 + 1, dy0 + 1, dw - 2, dh - 2, BRZ_HI)
+    panel_boxes = [
+        (dx0 + 3, dy0 + 4, "train"),
+        (dx0 + 15, dy0 + 4, "plough"),
+        (dx0 + 3, dy0 + 23, "ship"),
+        (dx0 + 15, dy0 + 23, "factory"),
+        (dx0 + 3, dy0 + 42, "school"),
+        (dx0 + 15, dy0 + 42, "bridge"),
+    ]
+    for px0, py0, icon in panel_boxes:
+        c.rect(px0, py0, 10, 17, BRZ_SHD)
+        c.box_outline(px0, py0, 10, 17, BRZ_SPEC)
+        c.rect(px0 + 1, py0 + 1, 8, 15, BRZ_LOW)
+        if icon == "train":
+            # Locomotive boiler, cab, smokestack & wheels
+            c.rect(px0 + 2, py0 + 7, 6, 4, BRZ_HI)
+            c.rect(px0 + 2, py0 + 5, 2, 3, BRZ_SPEC)  # cab
+            c.vline(px0 + 7, py0 + 4, py0 + 7, BRZ_SPEC)  # stack
+            c.put(px0 + 6, py0 + 3, ASH_TOP)  # steam puff
+            c.hline(px0 + 2, px0 + 7, py0 + 12, BRZ_SPEC)  # wheels/rail
+        elif icon == "plough":
+            # Furrowed field & curving bronze ploughshare + handles
+            c.hline(px0 + 2, px0 + 7, py0 + 12, BRZ_MID)
+            c.hline(px0 + 2, px0 + 7, py0 + 14, BRZ_MID)
+            c.rect(px0 + 4, py0 + 7, 4, 4, BRZ_SPEC)  # blade
+            c.vline(px0 + 2, py0 + 5, py0 + 10, BRZ_HI)  # handle
+            c.hline(px0 + 2, px0 + 6, py0 + 7, BRZ_HI)
+        elif icon == "ship":
+            # Hull, deckhouse, tall masts & billowing sails over waves
+            c.rect(px0 + 2, py0 + 10, 6, 3, BRZ_HI)
+            c.vline(px0 + 5, py0 + 3, py0 + 10, BRZ_SPEC)
+            c.rect(px0 + 3, py0 + 4, 4, 5, BRZ_SPEC)
+            c.hline(px0 + 2, px0 + 7, py0 + 14, BRZ_MID)
+        elif icon == "factory":
+            # Sawtooth mill roof + tall tapered brick/bronze smokestack
+            c.rect(px0 + 2, py0 + 8, 6, 6, BRZ_HI)
+            c.vline(px0 + 7, py0 + 3, py0 + 8, BRZ_SPEC)
+            c.put(px0 + 6, py0 + 2, ASH_TOP)
+            c.put(px0 + 3, py0 + 10, BRZ_SHD)
+            c.put(px0 + 5, py0 + 10, BRZ_SHD)
+        elif icon == "school":
+            # Classical pediment schoolhouse with central bell cupola
+            c.rect(px0 + 2, py0 + 8, 6, 6, BRZ_HI)
+            c.hline(px0 + 2, px0 + 7, py0 + 7, BRZ_SPEC)
+            c.rect(px0 + 4, py0 + 4, 2, 3, BRZ_SPEC)  # bell tower
+            c.rect(px0 + 4, py0 + 11, 2, 3, BRZ_SHD)  # doorway
+        elif icon == "bridge":
+            # Twin towers + sweeping arch suspension span
+            c.vline(px0 + 3, py0 + 4, py0 + 13, BRZ_SPEC)
+            c.vline(px0 + 6, py0 + 4, py0 + 13, BRZ_SPEC)
+            c.hline(px0 + 1, px0 + 8, py0 + 9, BRZ_HI)
+            c.hline(px0 + 3, px0 + 6, py0 + 6, BRZ_SPEC)
+
+    # 18. zodiac_band (276, 98, 128, 16): 12 distinct crisp gilded zodiac symbols on rich bronze band!
+    c.rect(276, 98, 128, 16, BRZ_MID)
+    c.hline(276, 403, 98, BRZ_SPEC)
+    c.hline(276, 403, 99, BRZ_HI)
+    c.hline(276, 403, 112, BRZ_LOW)
+    c.hline(276, 403, 113, BRZ_SHD)
+    for gi in range(12):
+        gx = 280 + gi * 10
+        c.box_outline(gx, 101, 8, 10, BRZ_SHD)
+        if gi % 4 == 0:
+            c.hline(gx + 2, gx + 5, 106, BRZ_SPEC)
+            c.vline(gx + 3, 103, 109, BRZ_SPEC)
+        elif gi % 4 == 1:
+            c.box_outline(gx + 2, 103, 4, 6, BRZ_SPEC)
+        elif gi % 4 == 2:
+            c.put(gx + 3, 103, BRZ_SPEC)
+            c.hline(gx + 2, gx + 5, 106, BRZ_SPEC)
+            c.put(gx + 3, 109, BRZ_SPEC)
+        else:
+            c.vline(gx + 2, 103, 109, BRZ_SPEC)
+            c.vline(gx + 5, 103, 109, BRZ_SPEC)
+            c.hline(gx + 2, gx + 5, 106, BRZ_HI)
+
+    # 19. earth_globe (276, 120, 64, 32): VERDIGRIS-GREEN OCEANS with PALE BRONZE MADE-UP CONTINENTS!
+    for dy in range(32):
+        for dx in range(64):
+            lon_grid = (dx % 8 == 0)
+            lat_grid = (dy % 8 == 0)
+            land = (math.sin(dx * 0.16 + 0.4) * math.cos(dy * 0.15 - 0.3) + 0.42 * math.sin(dx * 0.30 - dy * 0.22)) > 0.14
+            if land:
+                col = BRZ_SPEC if ((dx + dy) % 5 == 0) else BRZ_HI
+            elif lon_grid or lat_grid:
+                col = COP_HI
+            else:
+                col = COP_SHD if h2(dx, dy, 613) < 95 else COP_LOW
+            c.put(276 + dx, 120 + dy, col)
+
+    # 20. Guardian Ledge Name Bands (0.6 m = 7 art px letters on dark grey-pink granite!)
+    for ry, gtxt in ((98, "DEFENSE"), (112, "LEARNING"), (126, "INDUSTRY"), (140, "HARVEST")):
+        paint_granite_bg(412, ry, 56, 11)
+        c.box_outline(412, ry, 56, 11, GRAN_JOINT)
+        tw_g, _ = measure_text(gtxt, "5x7", scale=1, spacing=1)
+        assert tw_g <= 50
+        c.draw_text(412 + (56 - tw_g) // 2, ry + 2, gtxt, ASH_TOP, "5x7", scale=1, spacing=1, shadow=DEEP_INK)
+
+    # 21. compass_rose_14m (4, 174, 180, 180): GIANT 14 m INLAID BRONZE + TWO-TONE MARBLE COMPASS ROSE w/ N/E/S/W!
+    cx, cy = 89.5, 89.5
+    for dy in range(180):
+        for dx in range(180):
+            rx, ry = dx - cx, dy - cy
+            r = math.hypot(rx, ry)
+            ang = math.atan2(ry, rx)
+            star_main = 18.0 + 54.0 * (abs(math.cos(2.0 * ang)) ** 3.0)
+            star_sub = 14.0 + 36.0 * (abs(math.cos(2.0 * ang + math.pi * 0.5)) ** 3.0)
+            if r > 87.5:
+                col = ASH_HI if ((dx // 8 + dy // 8) % 2 == 0) else LIME_A
+            elif r > 84.0:
+                col = BRZ_MID
+            elif r > 74.0:
+                # Outer ring dark slate-marble band with N / E / S / W inlaid letters!
+                col = GRAN_SHD if (int((ang + math.pi) * 18 / math.pi) % 2 == 0) else GRAN_A
+            elif r > 71.0:
+                col = BRZ_SPEC
+            elif r < 11.0:
+                col = BRZ_SPEC if r < 5.0 else BRZ_HI
+            elif r < max(star_main, star_sub):
+                col = BRZ_SPEC if (math.sin(4.0 * ang) >= 0) else BRZ_LOW
+            elif abs(r - 48.0) < 2.2:
+                col = BRZ_MID
+            else:
+                col = ASH_TOP if (((dx // 10) + (dy // 10)) % 2 == 0) else GRAN_HI
+            c.put(4 + dx, 174 + dy, col)
+    # Crisp big N / E / S / W inlaid bronze letters in the outer ring!
+    c.draw_text(4 + 85, 174 + 7, "N", BRZ_SPEC, "5x7", scale=2, spacing=1, shadow=DEEP_INK)
+    c.draw_text(4 + 85, 174 + 160, "S", BRZ_SPEC, "5x7", scale=2, spacing=1, shadow=DEEP_INK)
+    c.draw_text(4 + 162, 174 + 83, "E", BRZ_SPEC, "5x7", scale=2, spacing=1, shadow=DEEP_INK)
+    c.draw_text(4 + 8, 174 + 83, "W", BRZ_SPEC, "5x7", scale=2, spacing=1, shadow=DEEP_INK)
+
+    # 22. guardian_stone (192, 174, 64, 64) & guardian_stone_1976 (264, 174, 64, 64):
+    #     3-tone stepped carved Art Deco limestone with vertical folds, dark seam outlines & pale bleached top!
+    for ox, streaked in ((192, False), (264, True)):
+        for dy in range(64):
+            for dx in range(64):
+                pleat = dx % 8
+                if dy in (0, 1):
+                    col = ASH_TOP  # weather-bleached pale top!
+                elif dy in (2, 3):
+                    col = ASH_HI
+                elif dy == 63 or pleat == 0:
+                    col = OUTLINE  # dark outline pixels where sculpted planes meet!
+                elif pleat in (1, 2):
+                    col = LIME_HI  # lit plane
+                elif pleat in (6, 7):
+                    col = LIME_SHD  # shadow plane
+                else:
+                    col = LIME_A  # mid plane
+                if streaked and h2(dx // 2, 13, 811) > 160 and dy > 6:
+                    col = (max(48, col[0] - 48), max(44, col[1] - 46), max(38, col[2] - 42), 255)
+                c.put(ox + dx, 174 + dy, col)
+
+    # 23. scaffold_tarp (336, 174, 64, 64): 1976 weathered blue-grey canvas scaffolding tarp!
+    for dy in range(64):
+        for dx in range(64):
+            fold = int(2.0 * math.sin(dx * 0.25 + dy * 0.08))
+            if dx in (0, 63) or dy in (0, 63):
+                col = (38, 48, 62, 255)
+            elif (dx % 16 == 2 and dy in (2, 61)):
+                col = BRZ_HI  # tarp grommets
+            else:
+                col = (98, 122, 146, 255) if fold > 0 else ((66, 86, 108, 255) if fold < 0 else (82, 104, 128, 255))
+            c.put(336 + dx, 174 + dy, col)
+
+    # 24. sandbag_wall (408, 174, 48, 28): 1941 stacked wartime olive-tan burlap sandbags!
+    for dy in range(28):
+        row = dy // 7
+        ry = dy % 7
+        ox = 6 if (row % 2 == 1) else 0
+        for dx in range(48):
+            rx = (dx + ox) % 12
+            if ry == 0 or rx == 0:
+                col = (72, 66, 48, 255)
+            elif ry == 1 and 2 <= rx <= 9:
+                col = (182, 168, 128, 255)
+            elif ry == 6:
+                col = (108, 98, 72, 255)
+            else:
+                col = (154, 142, 106, 255) if h2(dx, dy, 853) > 85 else (136, 124, 90, 255)
+            c.put(408 + dx, 174 + dy, col)
+
+    # 25. chain_fence (408, 210, 48, 32): 1976 steel chain-link mesh around scaffolded SE corner!
+    for dy in range(32):
+        for dx in range(48):
+            if dy in (0, 1, 30, 31) or dx in (0, 47):
+                col = (118, 126, 136, 255)
+            elif ((dx + dy) % 6 == 0) or ((dx - dy) % 6 == 0):
+                col = (154, 162, 174, 255)
+            else:
+                col = (44, 50, 60, 255)
+            c.put(408 + dx, 210 + dy, col)
 
     c.save_2x(TEX_DIR / "inscriptions.png")
-    return {
+    regs = {
         "frieze_main": [4, 4, 236, 32],
+        "exedra_text": [4, 370, 240, 16],
+        "chevron_band": [248, 24, 64, 14],
+        "voussoir_stone": [320, 24, 64, 14],
+        "keystone_star": [392, 4, 24, 28],
+        "cornerstone_1926": [424, 4, 24, 20],
+        "plaque_dedication": [456, 4, 24, 18],
+        "plaque_war": [484, 4, 24, 18],
         "frieze_east": [4, 40, 180, 24],
         "frieze_west": [4, 68, 180, 24],
-        "civic_flag": [188, 40, 44, 26],
-        "bunting_swag": [188, 72, 56, 22],
-        "dedication_wall": [4, 98, 72, 52],
-        "bronze_door_panel": [188, 98, 32, 52],
-        "plaque_war": [224, 98, 24, 18],
-        "plaque_dedication": [224, 120, 24, 18],
-        "dir_capitol": [4, 160, 56, 14],
-        "dir_river": [68, 160, 56, 14],
-        "dir_mountains": [132, 160, 56, 14],
-        "dir_sea": [196, 160, 56, 14],
-        "zodiac_band": [4, 180, 128, 16],
-        "earth_globe": [136, 180, 64, 20],
-        "label_defense": [4, 202, 60, 14],
-        "label_learning": [68, 202, 60, 14],
-        "label_industry": [132, 202, 60, 14],
-        "label_harvest": [196, 202, 56, 14],
-        "visitor_sign": [4, 224, 96, 18],
+        "civic_flag": [192, 40, 44, 26],
+        "bunting_swag": [192, 70, 56, 22],
+        "bunting_pole": [256, 40, 24, 28],
+        "visitor_sign": [288, 40, 96, 18],
+        "closed_repairs_sign": [392, 40, 48, 20],
+        "interp_panel": [448, 40, 32, 20],
+        "dir_capitol": [256, 72, 56, 14],
+        "dir_river": [316, 72, 56, 14],
+        "dir_mountains": [376, 72, 56, 14],
+        "dir_sea": [436, 72, 56, 14],
+        "dedication_wall": [4, 98, 112, 64],
+        "state_map": [124, 98, 108, 64],
+        "bronze_door_leaf": [240, 98, 28, 64],
+        "zodiac_band": [276, 98, 128, 16],
+        "earth_globe": [276, 120, 64, 32],
+        "label_defense": [412, 98, 56, 11],
+        "label_learning": [412, 112, 56, 11],
+        "label_industry": [412, 126, 56, 11],
+        "label_harvest": [412, 140, 56, 11],
+        "compass_rose_14m": [4, 174, 180, 180],
+        "guardian_stone": [192, 174, 64, 64],
+        "guardian_stone_1976": [264, 174, 64, 64],
+        "scaffold_tarp": [336, 174, 64, 64],
+        "sandbag_wall": [408, 174, 48, 28],
+        "chain_fence": [408, 210, 48, 32],
     }
+    # Strict non-overlap assertion across all regions in inscriptions.png!
+    items = list(regs.items())
+    for i in range(len(items)):
+        n1, (ax, ay, aw, ah) = items[i]
+        assert 0 <= ax and ax + aw <= 512 and 0 <= ay and ay + ah <= 512, f"{n1} out of bounds"
+        for j in range(i + 1, len(items)):
+            n2, (bx, by, bw, bh) = items[j]
+            if not (ax + aw <= bx or bx + bw <= ax or ay + ah <= by or by + bh <= ay):
+                raise AssertionError(f"Region overlap in inscriptions.png: {n1} vs {n2}")
+    return regs
 
 
 def make_glow_monument():
-    """
-    64x64 art px base + pure-black (#000000) emissive mask strictly for the ONLY 6 permitted emissives:
-    beacon orb, 8 lantern lancets, narrow pier window slots, globe lamp heads, eternal flames,
-    reflecting pool fountain jets, and thin ecliptic star line (< 20 m2 total!).
-    """
+    """64x64 art px base + pure-black (#000000) emissive mask (< 20 m2 total!)."""
     base = ArtCanvas(64, 64, (28, 30, 38, 255))
     mask = ArtCanvas(64, 64, (0, 0, 0, 255))
 
-    # 1. flame_brazier (0, 0, 16, 16)
+    # 1. flame_brazier (0, 0, 16, 16) — rich orange eternal flame & Learning torch flame!
     for y in range(16):
         for x in range(16):
             dx = (x - 7.5) / 5.8
             width_at_y = max(0.0, 1.0 - max(0.0, (13.0 - y) / 13.0) ** 1.35)
             d_fl = abs(dx) / max(0.18, width_at_y + 0.14)
             if 2 <= y <= 14 and d_fl < 0.92:
-                if y >= 7 and d_fl < 0.42:
-                    col = (255, 250, 212, 255)
-                elif y >= 5 and d_fl < 0.70:
-                    col = (255, 198, 76, 255)
-                else:
-                    col = (238, 118, 36, 255)
+                col = (255, 248, 206, 255) if (y >= 7 and d_fl < 0.42) else ((255, 186, 68, 255) if (y >= 5 and d_fl < 0.70) else (242, 112, 32, 255))
                 base.put(x, y, col)
                 mask.put(x, y, col)
             else:
                 base.put(x, y, (34, 36, 44, 255))
 
-    # 2. lamp_globe (16, 0, 16, 16)
+    # 2. lamp_globe (16, 0, 16, 16) — warm 3000K white globe
     for y in range(16):
         for x in range(16):
             r = math.hypot(x - 7.5, y - 7.5)
             if r <= 5.6:
-                col = (255, 246, 214, 255) if r < 3.2 else (246, 214, 136, 255)
+                col = (255, 246, 218, 255) if r < 3.2 else (246, 216, 144, 255)
                 base.put(16 + x, y, col)
                 mask.put(16 + x, y, col)
             else:
                 base.put(16 + x, y, (44, 48, 58, 255))
 
-    # 3. beacon_orb (32, 0, 16, 16)
+    # 3. beacon_orb (32, 0, 16, 16) — bright white aviation beacon
     for y in range(16):
         for x in range(16):
             r = math.hypot(x - 7.5, y - 7.5)
             if r <= 6.6:
-                col = (255, 254, 238, 255) if r < 3.8 else (255, 224, 136, 255)
+                col = (255, 255, 246, 255) if r < 4.0 else (248, 238, 196, 255)
                 base.put(32 + x, y, col)
                 mask.put(32 + x, y, col)
             else:
                 base.put(32 + x, y, (48, 42, 34, 255))
 
-    # 4. fountain_jet (48, 0, 16, 16): thin sparkling reflecting pool water-jet strip!
+    # 4. fountain_jet (48, 0, 16, 16) — thin water-white rim glow
     for y in range(16):
         for x in range(16):
             if 5 <= x <= 10 and 1 <= y <= 14:
-                col = (224, 248, 255, 255) if (x in (7, 8) or (x + y) % 3 == 0) else (128, 206, 238, 255)
+                col = (232, 248, 255, 255) if (x in (7, 8) or (x + y) % 3 == 0) else (142, 212, 242, 255)
                 base.put(48 + x, y, col)
                 mask.put(48 + x, y, col)
             else:
                 base.put(48 + x, y, (34, 58, 86, 255))
 
-    # 5. lantern_lancet_glow (0, 16, 16, 48): warm amber glowing lantern lancet core!
+    # 5. lantern_lancet_glow (0, 16, 16, 48) — warm amber crown lancet
     for y in range(48):
         for x in range(16):
             if x in (0, 1, 14, 15) or y in (0, 1, 46, 47) or y % 12 == 0:
                 base.put(x, 16 + y, (42, 44, 58, 255))
             else:
-                col = (255, 226, 134, 255) if 5 <= x <= 10 else (232, 174, 76, 255)
+                col = (255, 216, 112, 255) if 5 <= x <= 10 else (232, 166, 64, 255)
                 base.put(x, 16 + y, col)
                 mask.put(x, 16 + y, col)
 
-    # 6. pier_slot_glow (16, 16, 16, 48): narrow warm amber pier window slot!
+    # 6. pier_slot_glow (16, 16, 16, 48) — warm amber pier slot
     for y in range(48):
         for x in range(16):
             if x in (0, 1, 2, 13, 14, 15) or y in (0, 1, 46, 47) or y % 16 == 0:
@@ -987,17 +1146,16 @@ def make_glow_monument():
                 base.put(16 + x, 16 + y, col)
                 mask.put(16 + x, 16 + y, col)
 
-    # 7. ecliptic_glow (32, 16, 32, 8): thin glowing star-band line for the Armillary ecliptic ring!
+    # 7. ecliptic_glow (32, 16, 32, 8) — razor-thin golden star line
     for y in range(8):
         for x in range(32):
             if y in (3, 4):
-                col = (255, 236, 156, 255) if x % 4 != 0 else (246, 198, 92, 255)
+                col = (255, 238, 162, 255) if x % 4 != 0 else (246, 198, 92, 255)
                 base.put(32 + x, 16 + y, col)
                 mask.put(32 + x, 16 + y, col)
             else:
                 base.put(32 + x, 16 + y, BRZ_LOW)
 
-    # Remaining bottom-right area (32..63, 24..63) stays pure #000000 black in mask!
     base.save_2x(TEX_DIR / "glow_monument_base.png")
     mask.save_2x(TEX_DIR / "glow_monument_mask.png")
     return {
@@ -1012,37 +1170,37 @@ def make_glow_monument():
 
 
 def main():
-    # Clean any stale obsolete textures from previous single-state build
-    for old_name in ("stone_limestone.png", "roof_slate.png"):
-        old_p = TEX_DIR / old_name
-        if old_p.exists():
-            old_p.unlink()
+    # Clean obsolete Revision 1 texture filenames
+    for old_name in ("stone_limestone_clean.png", "stone_limestone_mature.png", "stone_limestone_worn.png",
+                     "copper_fresh.png", "copper_verdigris.png", "guardians_atlas.png"):
+        p = TEX_DIR / old_name
+        if p.exists():
+            p.unlink()
 
-    make_limestone_variant("stone_limestone_clean.png", LIME_HI, LIME_MID, LIME_LOW, LIME_SHD, LIME_MORT, False, 11)
-    make_limestone_variant("stone_limestone_mature.png", MAT_HI, MAT_MID, MAT_LOW, MAT_SHD, MAT_MORT, False, 19)
-    make_limestone_variant("stone_limestone_worn.png", WRN_HI, WRN_MID, WRN_LOW, WRN_SHD, WRN_MORT, True, 29)
+    for era in ("1926", "1941", "1976", "2000"):
+        make_limestone_era(f"stone_limestone_{era}.png", era)
+        make_copper_era(f"copper_{era}.png", era)
     make_stone_granite()
+    make_stone_ashlar()
     make_steel_truss()
-    make_copper_variant("copper_fresh.png", FCOP_HI, FCOP_MID, FCOP_LOW, FCOP_SHD, 83)
-    make_copper_variant("copper_verdigris.png", COP_HI, COP_MID, COP_LOW, COP_SHD, 97)
     make_bronze_gilded()
     make_water_pool()
-    make_marble_plaza()
-    glass_regions = make_glass_cathedral()
+    make_marble_plaza("marble_plaza.png", with_weeds=False)
+    make_marble_plaza("marble_plaza_1976.png", with_weeds=True)
+    glass_regions = make_glass_cathedral("glass_cathedral.png", taped_1941=False)
+    make_glass_cathedral("glass_cathedral_1941.png", taped_1941=True)
     detail_regions = make_detail_atlas()
-    guard_regions = make_guardians_atlas()
     inscr_regions = make_inscriptions()
     glow_regions = make_glow_monument()
 
     regions = {
         "glass_cathedral": glass_regions,
         "detail_atlas": detail_regions,
-        "guardians_atlas": guard_regions,
         "inscriptions": inscr_regions,
         "glow_monument": glow_regions,
     }
     (R / "art-regions.json").write_text(json.dumps(regions, indent=2) + "\n", encoding="utf-8")
-    print("Generated all 16 Great Meridian Monument 2x2 art-pixel textures + pure-black emissive mask.")
+    print("Generated all Revision 2 Great Meridian Monument 2x2 art-pixel textures + 512x512 relief atlas.")
 
 
 if __name__ == "__main__":

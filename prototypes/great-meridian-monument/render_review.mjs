@@ -1,19 +1,26 @@
 #!/usr/bin/env node
 /**
- * Software glTF 2.0 renderer generating ONE comprehensive review sheet for THE GREAT MERIDIAN MONUMENT:
- *   great-meridian-review.png (2620 x 2380)
+ * Software glTF 2.0 renderer generating ONE comprehensive, judgeable Revision 2 review sheet
+ * for THE GREAT MERIDIAN MONUMENT:
+ *   great-meridian-review.png (2560 x 5520)
  *
- * Includes EVERY view required by docs/GEMINI_MERIDIAN_REVISION.md:
- *   Row 1: All 4 historical states — DAY (1926 Dedication, 1941 Mature, 1976 Worn, 2000+ Restored)
- *   Row 2: All 4 historical states — NIGHT with projected flood_01..12 & beacon_beam markers
- *   Row 3: Solid Black Silhouette Test (Near vs Far at 128px, 64px, 32px) | Far beside Near (same camera) |
- *          Person-Height Reflecting Pool Approach | Rotunda Looking Up at 3-Node Armillary Sphere
- *   Row 4: Four 7m Art Deco Guardians (2x2 close-up) | Inside Hollow NW Pier (lift_car & winding stairs) |
- *          24m Cornice Gallery Walkway | 58m Sky Observation Deck (direction plate & telescope)
- *   Row 5: Octagonal Lantern Machinery Chamber (gears & Fresnel lens) | Open 4m Bronze Doors & West Hall
- *          Dedication Wall | Era Details (1976 Scaffolding + 2000+ Visitor Centre) | Plan View From Above
+ * Covers ALL 10 numbered views in docs/GEMINI_MERIDIAN_REVISION_2.md (Section 10),
+ * with hero shots >= 832-1256 px wide:
+ *   Band 1 (Item 1): Approach from far end of Reflecting Pool at person height — DAY & NIGHT MONEY SHOT
+ *                    (1256x700 each; night approximates 3000K stone flood pools, warm-gold sphere uplighting,
+ *                    amber lancets, sweeping white aviation beacon beam, orange flames & soft faked water reflection)
+ *   Band 2 (Item 2): All 4 Corner Views at street height (2000+ state, 4 x 1256x440)
+ *   Band 3 (Item 3): All 4 Colossal 8 m Art Deco Guardians — Close-ups + Upward Views from 24 m Gallery/Plaza
+ *   Band 4 (Item 4): 18 m Celestial Armillary Sphere — Outside DAY, Outside NIGHT (4 flood_sphere_*), Rotunda Looking Up
+ *   Band 5 (Items 5 & 6): Art Deco Crown Close-up (3-tier lantern, 8 buttress fins, sunburst, spire) |
+ *                         Stone, Weathering, Deep Coffered Arch Soffits, Voussoirs & Keystone Close-up
+ *   Band 6 (Items 7 & 8): Open 5 m Bronze Doors (6 relief panels) | West Hall Dedication Wall | East Hall (Model & Map)
+ *   Band 7 (Item 9): All 4 Eras from EXACT same camera (Day: 1926, 1941, 1976, 2000+) +
+ *                    1976 Close-ups ("CLOSED FOR REPAIRS" sawhorse, tarped SE scaffolding, chain-link fence)
+ *   Band 8 (Item 10): Near / Mid / Far side-by-side at identical camera & size + Solid Black Silhouettes (128/64/32 px)
  *
- * NOTE: Software renders, not phone/Filament captures.
+ * NOTE: Software renders, not phone/Filament captures. Night floodlight pools, sweeping beacon cone,
+ * and reflecting pool water reflection are approximated in this review renderer (not baked into the .glb).
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -21,7 +28,8 @@ import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const CZ_M = -773.0 * 0.0776; // -59.9848 m
+const U = 0.0776;
+const CZ_M = -773.0 * U; // -59.9848 m
 
 function decodePng(buf) {
   let pos = 8;
@@ -108,6 +116,15 @@ function encodePng(width, height, rgba) {
   ]);
 }
 
+function parseHexColor(hex, fallback = [1.0, 0.89, 0.71]) {
+  if (!hex || typeof hex !== 'string' || !hex.startsWith('#') || hex.length !== 7) return fallback;
+  return [
+    parseInt(hex.slice(1, 3), 16) / 255,
+    parseInt(hex.slice(3, 5), 16) / 255,
+    parseInt(hex.slice(5, 7), 16) / 255,
+  ];
+}
+
 function quatMul(a, b) {
   return [
     a[3] * b[0] + a[0] * b[3] + a[1] * b[2] - a[2] * b[1],
@@ -176,9 +193,12 @@ function loadGlb(glbPath) {
         baseImg,
         emImg,
         ef,
+        matName: mat.name || '',
         isBlend: mat.alphaMode === 'BLEND',
         doubleSided: !!mat.doubleSided,
-        isGlass: mat.name.includes('glass'),
+        isGlass: (mat.name || '').includes('glass'),
+        isWater: (mat.name || '') === 'water_pool',
+        isBronze: (mat.name || '') === 'bronze_gilded',
       };
     })
   );
@@ -197,17 +217,25 @@ function loadGlb(glbPath) {
     const wRot = quatMul(pRot, lr);
 
     if (node.name && node.name.startsWith('flood_')) {
-      floodMarkers.push({ name: node.name, pos: wPos, dir: (node.extras && node.extras.direction) || [0, 1, 0] });
+      const isSphere = node.name.startsWith('flood_sphere_');
+      floodMarkers.push({
+        name: node.name,
+        pos: wPos,
+        dir: norm((node.extras && node.extras.direction) || [0, 1, 0]),
+        color: parseHexColor(node.extras && node.extras.color, isSphere ? [1.0, 0.85, 0.54] : [1.0, 0.89, 0.71]),
+        isSphere,
+      });
     }
     if (node.name === 'beacon_beam') {
       beaconMarker = {
         pos: wPos,
-        dir: (node.extras && node.extras.direction) || [0, -0.05, 1],
+        dir: norm((node.extras && node.extras.direction) || [0, -0.05, 1]),
         active: !(node.extras && node.extras.active === false),
       };
     }
 
     if (node.mesh !== undefined) {
+      const isArmillary = (node.name || '').startsWith('armillary_');
       for (const pr of decodedMeshes[node.mesh]) {
         const xPos = pr.pos.map((v) => {
           const rv = quatRotateVec(wRot, v);
@@ -216,8 +244,10 @@ function loadGlb(glbPath) {
         const xNrm = pr.nrm.map((n) => quatRotateVec(wRot, n));
         for (let t = 0; t < pr.idx.length; t += 3) {
           const i0 = pr.idx[t], i1 = pr.idx[t + 1], i2 = pr.idx[t + 2];
+          const p0 = xPos[i0], p1 = xPos[i1], p2 = xPos[i2];
           drawTriangles.push({
-            p0: xPos[i0], p1: xPos[i1], p2: xPos[i2],
+            p0, p1, p2,
+            cMid: [(p0[0] + p1[0] + p2[0]) / 3, (p0[1] + p1[1] + p2[1]) / 3, (p0[2] + p1[2] + p2[2]) / 3],
             n0: xNrm[i0],
             uv0: pr.uv[i0], uv1: pr.uv[i1], uv2: pr.uv[i2],
             baseImg: pr.baseImg,
@@ -226,6 +256,9 @@ function loadGlb(glbPath) {
             isBlend: pr.isBlend,
             doubleSided: pr.doubleSided,
             isGlass: pr.isGlass,
+            isWater: pr.isWater,
+            isBronze: pr.isBronze,
+            isArmillary,
           });
         }
       }
@@ -257,32 +290,50 @@ function sampleNearest(img, u, v) {
   return [img.data[off], img.data[off + 1], img.data[off + 2], img.data[off + 3]];
 }
 
-function drawLine(rgba, W, H, x0, y0, x1, y1, col, thickness = 1) {
-  const dx = x1 - x0;
-  const dy = y1 - y0;
-  const steps = Math.max(1, Math.ceil(Math.hypot(dx, dy)));
-  for (let i = 0; i <= steps; i++) {
-    const px = Math.round(x0 + (dx * i) / steps);
-    const py = Math.round(y0 + (dy * i) / steps);
-    for (let oy = -thickness; oy <= thickness; oy++) {
-      for (let ox = -thickness; ox <= thickness; ox++) {
-        const x = px + ox, y = py + oy;
-        if (x >= 0 && x < W && y >= 0 && y < H) {
-          const off = (y * W + x) * 4;
-          rgba[off] = col[0]; rgba[off + 1] = col[1]; rgba[off + 2] = col[2]; rgba[off + 3] = 255;
-        }
-      }
+function addSoftBeaconBeam(rgba, W, H, sx0, sy0, sx1, sy1, halfWidthEnd, col, strength = 0.55) {
+  const dx = sx1 - sx0;
+  const dy = sy1 - sy0;
+  const len = Math.hypot(dx, dy) || 1;
+  const ux = dx / len, uy = dy / len;
+  const nx = -uy, ny = ux;
+  const minX = Math.max(0, Math.floor(Math.min(sx0, sx1) - halfWidthEnd - 4));
+  const maxX = Math.min(W - 1, Math.ceil(Math.max(sx0, sx1) + halfWidthEnd + 4));
+  const minY = Math.max(0, Math.floor(Math.min(sy0, sy1) - halfWidthEnd - 4));
+  const maxY = Math.min(H - 1, Math.ceil(Math.max(sy0, sy1) + halfWidthEnd + 4));
+  for (let py = minY; py <= maxY; py++) {
+    for (let px = minX; px <= maxX; px++) {
+      const rx = px - sx0, ry = py - sy0;
+      const along = rx * ux + ry * uy;
+      if (along < -2 || along > len) continue;
+      const t = Math.max(0, along / len);
+      const perp = Math.abs(rx * nx + ry * ny);
+      const hw = 2.5 + t * halfWidthEnd;
+      if (perp > hw) continue;
+      const falloffPerp = Math.pow(1 - perp / hw, 1.8);
+      const falloffLen = Math.pow(1 - t, 1.15);
+      const a = strength * falloffPerp * falloffLen;
+      const off = (py * W + px) * 4;
+      rgba[off]     = Math.min(255, Math.round(rgba[off]     + col[0] * a));
+      rgba[off + 1] = Math.min(255, Math.round(rgba[off + 1] + col[1] * a));
+      rgba[off + 2] = Math.min(255, Math.round(rgba[off + 2] + col[2] * a));
     }
   }
 }
 
-function drawCircle(rgba, W, H, cx, cy, r, col) {
-  for (let y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++) {
-    for (let x = Math.floor(cx - r); x <= Math.ceil(cx + r); x++) {
-      if (x >= 0 && x < W && y >= 0 && y < H && (x - cx) * (x - cx) + (y - cy) * (y - cy) <= r * r) {
-        const off = (y * W + x) * 4;
-        rgba[off] = col[0]; rgba[off + 1] = col[1]; rgba[off + 2] = col[2]; rgba[off + 3] = 255;
-      }
+function addSoftHalo(rgba, W, H, cx, cy, rad, col, strength = 0.65) {
+  const minX = Math.max(0, Math.floor(cx - rad));
+  const maxX = Math.min(W - 1, Math.ceil(cx + rad));
+  const minY = Math.max(0, Math.floor(cy - rad));
+  const maxY = Math.min(H - 1, Math.ceil(cy + rad));
+  for (let py = minY; py <= maxY; py++) {
+    for (let px = minX; px <= maxX; px++) {
+      const d = Math.hypot(px - cx, py - cy);
+      if (d > rad) continue;
+      const a = strength * Math.pow(1 - d / rad, 2.2);
+      const off = (py * W + px) * 4;
+      rgba[off]     = Math.min(255, Math.round(rgba[off]     + col[0] * a));
+      rgba[off + 1] = Math.min(255, Math.round(rgba[off + 1] + col[1] * a));
+      rgba[off + 2] = Math.min(255, Math.round(rgba[off + 2] + col[2] * a));
     }
   }
 }
@@ -293,16 +344,18 @@ function renderPanel(sceneObj, opts) {
     width, height, eye, target, up = [0, 1, 0],
     fovDeg = 46, orthoScale = null,
     nightMode = false,
+    nightFloodSim = false,
+    fakePoolReflection = false,
     silhouetteBlack = false,
     interiorBright = false,
-    showFloodMarkers = false,
     sunDir = [-0.46, 0.76, 0.45],
-    skyTop = [58, 110, 180], skyBottom = [202, 224, 246],
+    skyTop = [56, 108, 178], skyBottom = [202, 224, 246],
     clipMinY = -1e6,
   } = opts;
 
   const rgba = new Uint8Array(width * height * 4);
   const zbuf = new Float32Array(width * height);
+  const waterMask = fakePoolReflection ? new Uint8Array(width * height) : null;
   zbuf.fill(Infinity);
 
   for (let y = 0; y < height; y++) {
@@ -313,6 +366,17 @@ function renderPanel(sceneObj, opts) {
     for (let x = 0; x < width; x++) {
       const off = (y * width + x) * 4;
       rgba[off] = r; rgba[off + 1] = g; rgba[off + 2] = b; rgba[off + 3] = 255;
+    }
+  }
+
+  // Subtle stars in deep night sky
+  if (nightMode && !silhouetteBlack) {
+    for (let si = 0; si < 110; si++) {
+      const sx = ((si * 2654435761) >>> 0) % width;
+      const sy = ((si * 2246822519) >>> 0) % Math.floor(height * 0.52);
+      const off = (sy * width + sx) * 4;
+      const br = 120 + (si % 95);
+      rgba[off] = br; rgba[off + 1] = br + 8; rgba[off + 2] = Math.min(255, br + 24);
     }
   }
 
@@ -378,6 +442,75 @@ function renderPanel(sceneObj, opts) {
     else opaque.push(tr);
   }
 
+  const floods = sceneObj.floodMarkers || [];
+
+  function evalTriLighting(tr) {
+    const ndl = Math.max(0, dot(tr.n0, sun));
+    const hemi = 0.5 + 0.5 * tr.n0[1];
+    if (interiorBright) {
+      const s = 0.64 + 0.16 * hemi + 0.28 * Math.abs(dot(tr.n0, sun));
+      return [s, s, s];
+    }
+    if (!nightMode) {
+      const s = 0.44 + 0.16 * hemi + 0.44 * ndl;
+      // Subtle warm sunlight tint vs cool sky ambient
+      return [s * 1.02, s * 1.00, s * 0.96];
+    }
+    // Deep twilight blue-slate ambient for night
+    let lr = 0.11 + 0.06 * hemi;
+    let lg = 0.14 + 0.07 * hemi;
+    let lb = 0.22 + 0.10 * hemi;
+
+    if (nightFloodSim && floods.length > 0) {
+      const mp = tr.cMid;
+      for (let fi = 0; fi < floods.length; fi++) {
+        const fl = floods[fi];
+        // Sphere floods illuminate the 18 m Armillary Sphere & immediate inner vault warmly!
+        if (fl.isSphere && !tr.isArmillary && mp[1] < 24.0) continue;
+        const dx = mp[0] - fl.pos[0];
+        const dy = mp[1] - fl.pos[1];
+        const dz = mp[2] - fl.pos[2];
+        const d2 = dx * dx + dy * dy + dz * dz;
+        const dist = Math.sqrt(d2) + 0.001;
+        const lx = dx / dist, ly = dy / dist, lz = dz / dist;
+        const cosAng = lx * fl.dir[0] + ly * fl.dir[1] + lz * fl.dir[2];
+        const cosOuter = fl.isSphere ? 0.56 : 0.62;
+        const cosInner = fl.isSphere ? 0.90 : 0.92;
+        if (cosAng <= cosOuter) continue;
+        const cone = Math.pow(Math.min(1, (cosAng - cosOuter) / (cosInner - cosOuter)), 1.7);
+        const ndot = Math.max(fl.isSphere && tr.isArmillary ? 0.52 : 0.20, -(tr.n0[0] * lx + tr.n0[1] * ly + tr.n0[2] * lz));
+        const rng = fl.isSphere ? 28.0 : 38.0;
+        const att = 1.0 / (1.0 + (dist * dist) / (rng * rng));
+        const power = fl.isSphere ? (tr.isArmillary ? 0.95 : 0.16) : 0.34;
+        const contrib = power * cone * ndot * att;
+        lr += fl.color[0] * contrib;
+        lg += fl.color[1] * contrib;
+        lb += fl.color[2] * contrib;
+      }
+      // Subtle amber crown spill on the 3-tier lantern stone immediately around the glowing lancets!
+      if (mp[1] >= 57.0 && mp[1] <= 80.0 && Math.hypot(mp[0], mp[2] - CZ_M) < 16.0) {
+        const spill = 0.28 * (1.0 - Math.abs(mp[1] - 66.0) / 16.0);
+        if (spill > 0) {
+          lr += 1.0 * spill;
+          lg += 0.66 * spill;
+          lb += 0.22 * spill;
+        }
+      }
+      // Warm orange firelight spill from the 4 South stair eternal braziers!
+      if (mp[1] <= 15.0 && Math.abs(mp[0]) < 14.0 && mp[2] > CZ_M + 18.0 && mp[2] < CZ_M + 34.0) {
+        const fspill = 0.22;
+        lr += 1.0 * fspill;
+        lg += 0.44 * fspill;
+        lb += 0.12 * fspill;
+      }
+      // Soft Reinhard tone curve so warm 3000K stone & golden sphere never clip to flat white!
+      lr = lr / (1.0 + 0.38 * lr);
+      lg = lg / (1.0 + 0.38 * lg);
+      lb = lb / (1.0 + 0.38 * lb);
+    }
+    return [lr, lg, lb];
+  }
+
   function rasterTri(tr, isBlendPass) {
     const c0 = toCam(tr.p0);
     const c1 = toCam(tr.p1);
@@ -388,16 +521,7 @@ function renderPanel(sceneObj, opts) {
       ? [[{ c: c0, uv: tr.uv0 }, { c: c1, uv: tr.uv1 }, { c: c2, uv: tr.uv2 }]]
       : clipTriNear({ c: c0, uv: tr.uv0 }, { c: c1, uv: tr.uv1 }, { c: c2, uv: tr.uv2 });
 
-    const ndl = Math.max(0, dot(tr.n0, sun));
-    const hemi = 0.5 + 0.5 * tr.n0[1];
-    let shade;
-    if (interiorBright) {
-      shade = 0.62 + 0.16 * hemi + 0.30 * Math.abs(dot(tr.n0, sun));
-    } else if (nightMode) {
-      shade = 0.22 + 0.14 * hemi + 0.14 * ndl;
-    } else {
-      shade = 0.44 + 0.16 * hemi + 0.44 * ndl;
-    }
+    const [sr, sg, sb] = silhouetteBlack ? [0, 0, 0] : evalTriLighting(tr);
 
     for (const [va, vb, vc] of clipped) {
       const s0 = projectCam(va.c);
@@ -436,7 +560,7 @@ function renderPanel(sceneObj, opts) {
           if (silhouetteBlack) {
             zbuf[pIdx] = z;
             const off = pIdx * 4;
-            rgba[off] = 12; rgba[off + 1] = 14; rgba[off + 2] = 18; rgba[off + 3] = 255;
+            rgba[off] = 10; rgba[off + 1] = 12; rgba[off + 2] = 16; rgba[off + 3] = 255;
             continue;
           }
 
@@ -446,18 +570,18 @@ function renderPanel(sceneObj, opts) {
           const [br, bg, bb, ba] = sampleNearest(tr.baseImg, u, v);
           if (ba < 10) continue;
 
-          let r = br * shade;
-          let g = bg * shade;
-          let b = bb * shade;
+          let r = br * sr;
+          let g = bg * sg;
+          let b = bb * sb;
 
           if (tr.emImg && (tr.ef[0] > 0 || tr.ef[1] > 0 || tr.ef[2] > 0)) {
             const [er, eg, eb] = sampleNearest(tr.emImg, u, v);
-            const boost = nightMode ? 1.85 : 0.45;
+            const boost = nightMode ? 1.95 : 0.45;
             r += er * tr.ef[0] * boost;
             g += eg * tr.ef[1] * boost;
             b += eb * tr.ef[2] * boost;
           } else if (nightMode && tr.isGlass && ba < 245) {
-            r += 96; g += 68; b += 26;
+            r += 118; g += 78; b += 26;
           }
 
           r = Math.min(255, Math.max(0, Math.round(r)));
@@ -468,6 +592,7 @@ function renderPanel(sceneObj, opts) {
           if (!isBlendPass || ba >= 250) {
             zbuf[pIdx] = z;
             rgba[off] = r; rgba[off + 1] = g; rgba[off + 2] = b; rgba[off + 3] = 255;
+            if (waterMask) waterMask[pIdx] = tr.isWater ? 1 : 0;
           } else {
             const a = ba / 255;
             const ia = 1 - a;
@@ -490,37 +615,68 @@ function renderPanel(sceneObj, opts) {
     for (const tr of blends) rasterTri(tr, true);
   }
 
-  // Draw crisp projected flood_01..12 aim rays & beacon_beam cone on night review panels!
-  if (showFloodMarkers) {
-    for (const fl of sceneObj.floodMarkers) {
-      const c0 = toCam(fl.pos);
-      const tip = [fl.pos[0] + fl.dir[0] * 14, fl.pos[1] + fl.dir[1] * 14, fl.pos[2] + fl.dir[2] * 14];
-      const c1 = toCam(tip);
-      if (c0[2] > nearPlane && c1[2] > nearPlane) {
-        const s0 = projectCam(c0);
-        const s1 = projectCam(c1);
-        drawLine(rgba, width, height, s0[0], s0[1], s1[0], s1[1], [96, 232, 255], 1);
-        drawCircle(rgba, width, height, s0[0], s0[1], 3.4, [255, 224, 96]);
+  // Sweeping white aviation beacon cone + soft warm flame halos on Night Money Shot!
+  if (nightFloodSim && sceneObj.beaconMarker && sceneObj.beaconMarker.active) {
+    const bm = sceneObj.beaconMarker;
+    const c0 = toCam(bm.pos);
+    if (c0[2] > nearPlane) {
+      const s0 = projectCam(c0);
+      const tipR = [bm.pos[0] + 62, bm.pos[1] + 9, bm.pos[2] + 18];
+      const tipL = [bm.pos[0] - 58, bm.pos[1] + 4, bm.pos[2] - 12];
+      const cR = toCam(tipR), cL = toCam(tipL);
+      if (cR[2] > nearPlane) {
+        const sR = projectCam(cR);
+        addSoftBeaconBeam(rgba, width, height, s0[0], s0[1], sR[0], sR[1], Math.round(width * 0.045), [255, 255, 255], 0.56);
+      }
+      if (cL[2] > nearPlane) {
+        const sL = projectCam(cL);
+        addSoftBeaconBeam(rgba, width, height, s0[0], s0[1], sL[0], sL[1], Math.round(width * 0.042), [235, 245, 255], 0.44);
+      }
+      addSoftHalo(rgba, width, height, s0[0], s0[1], 24, [255, 252, 232], 0.85);
+    }
+    // Soft warm glow halos on the 4 eternal flames & golden armillary sphere center!
+    const armC = toCam([0, 528 * U, CZ_M]);
+    if (armC[2] > nearPlane) {
+      const sA = projectCam(armC);
+      addSoftHalo(rgba, width, height, sA[0], sA[1], Math.round(height * 0.11), [255, 212, 128], 0.24);
+    }
+    for (const bp of [
+      [-105 * U, 120 * U, (CZ_M / U + 286) * U], [105 * U, 120 * U, (CZ_M / U + 286) * U],
+      [-105 * U, 64 * U, (CZ_M / U + 372) * U], [105 * U, 64 * U, (CZ_M / U + 372) * U],
+    ]) {
+      const cb = toCam(bp);
+      if (cb[2] > nearPlane) {
+        const sb = projectCam(cb);
+        addSoftHalo(rgba, width, height, sb[0], sb[1], 18, [255, 136, 48], 0.55);
       }
     }
-    if (sceneObj.beaconMarker) {
-      const bm = sceneObj.beaconMarker;
-      const c0 = toCam(bm.pos);
-      if (c0[2] > nearPlane) {
-        const s0 = projectCam(c0);
-        if (bm.active) {
-          const tip = [bm.pos[0] + 28, bm.pos[1] - 2, bm.pos[2] + 18];
-          const c1 = toCam(tip);
-          if (c1[2] > nearPlane) {
-            const s1 = projectCam(c1);
-            drawLine(rgba, width, height, s0[0], s0[1], s1[0], s1[1], [255, 246, 168], 2);
-          }
-          drawCircle(rgba, width, height, s0[0], s0[1], 5.5, [255, 252, 200]);
-        } else {
-          // Draw crisp red X showing beacon is OFF in 1976!
-          drawLine(rgba, width, height, s0[0] - 6, s0[1] - 6, s0[0] + 6, s0[1] + 6, [255, 86, 86], 1);
-          drawLine(rgba, width, height, s0[0] - 6, s0[1] + 6, s0[0] + 6, s0[1] - 6, [255, 86, 86], 1);
+  }
+
+  // Soft faked vertical water reflection in the Reflecting Pool (strictly inside waterMask, not in the GLB!)
+  if (fakePoolReflection && waterMask) {
+    const cHoriz = toCam([0.0, 0.0, -346.0 * U]);
+    const yH = cHoriz[2] > nearPlane ? projectCam(cHoriz)[1] : height * 0.72;
+    const snap = new Uint8Array(rgba);
+    for (let py = 0; py < height; py++) {
+      const rip = Math.round(Math.sin(py * 0.42) * 3.0);
+      const sy = Math.max(0, Math.min(height - 1, Math.round(2 * yH - py - 8)));
+      for (let px = 0; px < width; px++) {
+        const pIdx = py * width + px;
+        if (waterMask[pIdx] !== 1) continue;
+        // 3-sample soft horizontal blur for rippling water mirror sheen
+        let rr = 0, rg = 0, rb = 0;
+        for (const ox of [-2, 0, 2]) {
+          const sx = Math.max(0, Math.min(width - 1, px + rip + ox));
+          const so = (sy * width + sx) * 4;
+          rr += snap[so]; rg += snap[so + 1]; rb += snap[so + 2];
         }
+        rr /= 3; rg /= 3; rb /= 3;
+        const off = pIdx * 4;
+        const luma = (rr * 0.3 + rg * 0.59 + rb * 0.11) / 255;
+        const blend = 0.44 + 0.34 * luma;
+        rgba[off]     = Math.min(255, Math.round(rgba[off]     * (1 - blend) + rr * blend * 1.12));
+        rgba[off + 1] = Math.min(255, Math.round(rgba[off + 1] * (1 - blend) + rg * blend * 1.06));
+        rgba[off + 2] = Math.min(255, Math.round(rgba[off + 2] * (1 - blend) + rb * blend * 1.02));
       }
     }
   }
@@ -546,7 +702,7 @@ const FONT = {
   O: ['01110','10001','10001','10001','10001','10001','01110'],
   P: ['11110','10001','10001','11110','10000','10000','10000'],
   Q: ['01110','10001','10001','10001','10101','10010','01101'],
-  R: ['11110','10001','10001','11110','10100','10010','00001'],
+  R: ['11110','10001','10001','11110','10100','10010','10001'],
   S: ['01111','10000','10000','01110','00001','00001','11110'],
   T: ['11111','00100','00100','00100','00100','00100','00100'],
   U: ['10001','10001','10001','10001','10001','10001','01110'],
@@ -577,9 +733,9 @@ const FONT = {
   '<': ['00010','00100','01000','10000','01000','00100','00010'],
   '=': ['00000','00000','11111','00000','11111','00000','00000'],
   ',': ['00000','00000','00000','00000','00110','00010','00100'],
+  '"': ['01010','01010','00000','00000','00000','00000','00000'],
   ' ': ['00000','00000','00000','00000','00000','00000','00000'],
 };
-FONT.R = ['11110','10001','10001','11110','10100','10010','10001'];
 
 function drawText(canvas, CW, CH, x, y, text, fg, scale = 2) {
   let cx = x;
@@ -631,393 +787,383 @@ function blit(dst, CW, CH, src, sx, sy) {
   }
 }
 
-function drawBadge(dst, CW, CH, x, y, text, fg = [250, 232, 162]) {
-  const w = text.length * 6 + 12;
-  fillRect(dst, CW, CH, x, y, w, 17, [16, 18, 26]);
-  drawText(dst, CW, CH, x + 6, y + 5, text, fg, 1);
+function drawBadge(dst, CW, CH, x, y, text, fg = [252, 232, 162], scale = 2) {
+  const padX = scale === 2 ? 10 : 6;
+  const h = scale === 2 ? 26 : 18;
+  const w = text.length * 6 * scale + padX * 2;
+  fillRect(dst, CW, CH, x, y, w, h, [14, 16, 24]);
+  drawText(dst, CW, CH, x + padX, y + (scale === 2 ? 6 : 5), text, fg, scale);
 }
 
-console.log('Loading 4 historical state GLBs + Far LOD...');
+console.log('Loading all 4 historical GLBs + Mid LOD + Far LOD...');
 const s1926 = loadGlb(path.join(__dirname, 'great-meridian-1926.glb'));
 const s1941 = loadGlb(path.join(__dirname, 'great-meridian-1941.glb'));
 const s1976 = loadGlb(path.join(__dirname, 'great-meridian-1976.glb'));
 const s2000 = loadGlb(path.join(__dirname, 'great-meridian-2000.glb'));
+const sMid  = loadGlb(path.join(__dirname, 'great-meridian-mid.glb'));
 const sFar  = loadGlb(path.join(__dirname, 'great-meridian-far.glb'));
 
-const PW = 640;
-const PH = 420;
-const PAD = 12;
-const HEADER_H = 68;
-const ROW_TITLE_H = 26;
-const CW = PAD + 4 * (PW + PAD);
-const CH = HEADER_H + 5 * (ROW_TITLE_H + PH + PAD) + PAD;
+// Large judgeable canvas: 2560 px wide, hero panels 832..1256 px wide!
+const CW = 2560;
+const PAD = 16;
+const INNER = CW - 2 * PAD; // 2528
+const W2 = (INNER - PAD) / 2;         // 1256 px wide!
+const W3 = Math.floor((INNER - 2 * PAD) / 3); // 832 px wide!
+const W4 = (INNER - 3 * PAD) / 4;     // 620 px wide!
+const BANNER_H = 32;
+
+const BANDS = [
+  { id: 'b1', h: 700 },               // Item 1: Hero Pool Approach Day & Night Money Shot (2 x 1256x700)
+  { id: 'b2', h: 430 * 2 + PAD },     // Item 2: 4 Street-Height Corners (2x2 x 1256x430)
+  { id: 'b3', h: 440 + PAD + 390 },   // Item 3: 4 Guardians Close-up + Upward from 24m Gallery/Plaza
+  { id: 'b4', h: 520 },               // Item 4: 18m Sphere Outside Day, Outside Night, Rotunda Looking Up (3 x 832x520)
+  { id: 'b5', h: 540 },               // Items 5 & 6: Crown Close-up | Stone, Weathering, Coffering & Keystone (2 x 1256x540)
+  { id: 'b6', h: 500 },               // Items 7 & 8: Open 5m Bronze Doors | West Hall Dedication | East Hall Model+Map (3 x 832x500)
+  { id: 'b7', h: 420 + PAD + 440 },   // Item 9: All 4 Eras Same Cam (Day) + 1976 "CLOSED FOR REPAIRS" & SE Scaffolding Close-ups
+  { id: 'b8', h: 480 },               // Item 10: Near / Mid / Far Side-by-Side + Black Silhouettes (128 / 64 / 32 px)
+];
+
+const HEADER_H = 84;
+const bandTop = {};
+let curY = HEADER_H;
+for (const b of BANDS) {
+  bandTop[b.id] = curY;
+  curY += BANNER_H + b.h + PAD;
+}
+const CH = curY + PAD;
 const sheet = new Uint8Array(CW * CH * 4);
+fillRect(sheet, CW, CH, 0, 0, CW, CH, [14, 16, 22]);
+fillRect(sheet, CW, CH, PAD, PAD, INNER, HEADER_H - PAD - 6, [26, 30, 44]);
+drawText(sheet, CW, CH, 28, 22, 'THE GREAT MERIDIAN MONUMENT - REVISION 2 REVIEW SHEET (SOFTWARE RENDERS, HERO PANELS 832-1256PX)', [250, 226, 146], 2);
+drawText(sheet, CW, CH, 28, 48, '4 ERAS + MID LOD (4,982 TRIS) + FAR LOD (330 TRIS) | 8M GUARDIANS | 18M SPHERE | 3-TIER CROWN | 3 STONES | NOTE: NIGHT LIGHT POOLS & REFLECTION APPROXIMATED', [172, 214, 246], 2);
 
-fillRect(sheet, CW, CH, 0, 0, CW, CH, [16, 18, 24]);
-fillRect(sheet, CW, CH, PAD, PAD, CW - 2 * PAD, HEADER_H - PAD - 4, [28, 32, 44]);
-drawText(sheet, CW, CH, 24, 18, 'THE GREAT MERIDIAN MONUMENT - 4 HISTORICAL STATES (1926 / 1941 / 1976 / 2000+) + FAR LOD (SOFTWARE RENDERS)', [248, 224, 144], 2);
-drawText(sheet, CW, CH, 24, 42, '3-PART ICONIC SILHOUETTE | <=23.7K TRIS NEAR / 282 TRIS FAR | <16M2 GLOW | 4 GUARDIANS | HOLLOW NW PIER | 3-NODE ARMILLARY', [174, 212, 242], 2);
-
-function rowY(idx) {
-  return HEADER_H + idx * (ROW_TITLE_H + PH + PAD);
-}
-
-function drawRowBanner(idx, title, col) {
-  const y = rowY(idx);
-  fillRect(sheet, CW, CH, PAD, y, CW - 2 * PAD, ROW_TITLE_H - 2, [34, 38, 50]);
-  drawText(sheet, CW, CH, PAD + 10, y + 6, title, col, 2);
+function drawBanner(id, title, col) {
+  const y = bandTop[id];
+  fillRect(sheet, CW, CH, PAD, y, INNER, BANNER_H - 4, [34, 40, 56]);
+  drawText(sheet, CW, CH, PAD + 12, y + 7, title, col, 2);
+  return y + BANNER_H;
 }
 
 // ==============================================================================
-// ROW 1: ALL 4 HISTORICAL STATES — DAY
+// BAND 1 (ITEM 1): HERO REFLECTING POOL APPROACH AT PERSON HEIGHT — DAY & NIGHT MONEY SHOT!
 // ==============================================================================
-drawRowBanner(0, 'ROW 1 - ALL 4 STATES (DAY):  1926 DEDICATION  |  1941 MATURE  |  1976 WORN (STAINS + SCAFFOLDING)  |  2000+ RESTORED (RAMP + VISITOR CTR)', [248, 228, 168]);
-const dayCam = {
-  eye: [-86.0, 44.0, CZ_M + 124.0],
-  target: [0.0, 48.0, CZ_M + 4.0],
-  fovDeg: 49,
-  sunDir: [-0.48, 0.76, 0.44],
-  skyTop: [54, 108, 178],
-  skyBottom: [198, 222, 244],
-};
-const row1Defs = [
-  { sc: s1926, cam: dayCam, badge: '1926 DEDICATION: FRESH COPPER + BUNTING + YOUNG TREES' },
-  { sc: s1941, cam: dayCam, badge: '1941 MATURE: VERDIGRIS SPIRE + WAR PLAQUE + MATURE TREES' },
-  { sc: s1976, cam: { ...dayCam, eye: [86.0, 44.0, CZ_M + 124.0], sunDir: [0.46, 0.76, 0.44] }, badge: '1976 WORN: WATER STREAKS + SE PIER SCAFFOLDING' },
-  { sc: s2000, cam: dayCam, badge: '2000+ RESTORED: CLEAN STONE + EAST RAMP + SW VISITOR CTR' },
-];
-for (let c = 0; c < 4; c++) {
-  const p = renderPanel(row1Defs[c].sc, { ...row1Defs[c].cam, width: PW, height: PH });
-  const x = PAD + c * (PW + PAD), y = rowY(0) + ROW_TITLE_H;
-  blit(sheet, CW, CH, p, x, y);
-  drawBadge(sheet, CW, CH, x + 8, y + 8, row1Defs[c].badge);
-}
-console.log('Rendered Row 1 (4 states Day)');
-
-// ==============================================================================
-// ROW 2: ALL 4 HISTORICAL STATES — NIGHT + FLOODLIGHT & BEACON MARKERS
-// ==============================================================================
-drawRowBanner(1, 'ROW 2 - ALL 4 STATES (NIGHT + FLOOD_01..12 CYAN RAYS + BEACON_BEAM):  1926  |  1941  |  1976 (BEACON OFF + 3 BROKEN LAMPS)  |  2000+', [168, 222, 255]);
-const nightCam = {
-  eye: [86.0, 44.0, CZ_M + 124.0],
-  target: [0.0, 48.0, CZ_M + 4.0],
-  fovDeg: 49,
-  nightMode: true,
-  showFloodMarkers: true,
-  sunDir: [0.35, 0.58, 0.50],
-  skyTop: [10, 14, 28],
-  skyBottom: [26, 36, 66],
-};
-const row2Defs = [
-  { sc: s1926, badge: '1926 NIGHT: GAS LAMPS + BEACON ON + FLOOD NODES' },
-  { sc: s1941, badge: '1941 NIGHT: ELECTRIC LAMPS + BEACON ON + FLOOD NODES' },
-  { sc: s1976, badge: '1976 NIGHT: BEACON OFF (RED X) + 3 BROKEN LAMPS' },
-  { sc: s2000, badge: '2000+ NIGHT: RELIT BEACON + VISIBLE FLOOD FIXTURES' },
-];
-for (let c = 0; c < 4; c++) {
-  const p = renderPanel(row2Defs[c].sc, { ...nightCam, width: PW, height: PH });
-  const x = PAD + c * (PW + PAD), y = rowY(1) + ROW_TITLE_H;
-  blit(sheet, CW, CH, p, x, y);
-  drawBadge(sheet, CW, CH, x + 8, y + 8, row2Defs[c].badge, [164, 232, 255]);
-}
-console.log('Rendered Row 2 (4 states Night + flood markers)');
-
-// ==============================================================================
-// ROW 3: SILHOUETTE TEST (128 / 64 / 32 PX) | FAR BESIDE NEAR | POOL APPROACH | ROTUNDA UP
-// ==============================================================================
-drawRowBanner(2, 'ROW 3 - SILHOUETTE & GRAND VIEWS:  BLACK SILHOUETTE (128/64/32PX)  |  FAR BESIDE NEAR  |  REFLECTING POOL APPROACH  |  ROTUNDA LOOKING UP', [176, 236, 200]);
-
-// Panel 3.1: SOLID BLACK SILHOUETTE TEST (Near vs Far at 128 px, 64 px, 32 px tall!)
 {
-  const px = PAD, py = rowY(2) + ROW_TITLE_H;
-  fillRect(sheet, CW, CH, px, py, PW, PH, [224, 234, 246]);
-  const silCam = {
-    eye: [-110.0, 48.0, CZ_M + 110.0],
-    target: [0.0, 52.0, CZ_M],
-    orthoScale: 58.0,
-    silhouetteBlack: true,
-    clipMinY: 1.8, // isolate monument above flat plaza so base-arch-legs-sphere-deck-lantern-needle silhouette is pure!
-    skyTop: [224, 234, 246],
-    skyBottom: [224, 234, 246],
+  const y0 = drawBanner('b1', '1. REFLECTING POOL APPROACH (PERSON HEIGHT, 1256PX HEROES):  DAY (2000+)  |  NIGHT MONEY SHOT (3000K FLOODS + GOLD SPHERE + AMBER CROWN + BEACON + REFLECTION)', [252, 230, 152]);
+  const poolCam = {
+    eye: [0.0, 2.3, -4.6],
+    target: [0.0, 34.0, CZ_M],
+    fovDeg: 82,
   };
-  const sizes = [
-    { h: 128, w: 128, label: '128PX', xOff: 18 },
-    { h: 64,  w: 64,  label: '64PX',  xOff: 168 },
-    { h: 32,  w: 32,  label: '32PX',  xOff: 252 },
-  ];
-  drawText(sheet, CW, CH, px + 18, py + 34, 'NEAR MODEL (2000+)', [24, 30, 44], 2);
-  drawText(sheet, CW, CH, px + 332, py + 34, 'FAR LOD (282 TRIS)', [24, 30, 44], 2);
-  fillRect(sheet, CW, CH, px + 318, py + 28, 2, PH - 44, [156, 170, 190]);
-  for (const sz of sizes) {
-    const pNear = renderPanel(s2000, { ...silCam, width: sz.w, height: sz.h });
-    const pFar  = renderPanel(sFar,  { ...silCam, width: sz.w, height: sz.h });
-    const baseY = py + 280 - sz.h;
-    blit(sheet, CW, CH, pNear, px + sz.xOff, baseY);
-    blit(sheet, CW, CH, pFar,  px + 316 + sz.xOff, baseY);
-    drawText(sheet, CW, CH, px + sz.xOff, py + 292, sz.label, [36, 44, 62], 1);
-    drawText(sheet, CW, CH, px + 316 + sz.xOff, py + 292, sz.label, [36, 44, 62], 1);
-  }
-  // Also show exact front (+Z) orthographic silhouette at 96px tall at bottom!
-  const frontSil = { ...silCam, eye: [0.0, 52.0, CZ_M + 140.0], target: [0.0, 52.0, CZ_M] };
-  blit(sheet, CW, CH, renderPanel(s2000, { ...frontSil, width: 96, height: 96 }), px + 110, py + 312);
-  blit(sheet, CW, CH, renderPanel(sFar,  { ...frontSil, width: 96, height: 96 }), px + 426, py + 312);
-  drawText(sheet, CW, CH, px + 18, py + 362, 'FRONT +Z 96PX:', [36, 44, 62], 1);
-  drawBadge(sheet, CW, CH, px + 8, py + 8, 'SOLID BLACK SILHOUETTE TEST: NEAR VS FAR (128 / 64 / 32 PX)');
-}
-
-// Panel 3.2: FAR MODEL BESIDE NEAR MODEL AT IDENTICAL CAMERA & SIZE!
-{
-  const px = PAD + 1 * (PW + PAD), py = rowY(2) + ROW_TITLE_H;
-  const halfW = PW / 2;
-  const cmpCam = {
-    eye: [-98.0, 44.0, CZ_M + 126.0],
-    target: [0.0, 50.0, CZ_M],
-    fovDeg: 54,
-    sunDir: [-0.46, 0.76, 0.44],
-    skyTop: [62, 114, 180],
-    skyBottom: [204, 224, 244],
-  };
-  blit(sheet, CW, CH, renderPanel(s2000, { ...cmpCam, width: halfW, height: PH }), px, py);
-  blit(sheet, CW, CH, renderPanel(sFar,  { ...cmpCam, width: halfW, height: PH }), px + halfW, py);
-  fillRect(sheet, CW, CH, px + halfW - 1, py, 2, PH, [248, 224, 144]);
-  drawBadge(sheet, CW, CH, px + 8, py + 8, 'NEAR (23,722 TRIS)');
-  drawBadge(sheet, CW, CH, px + halfW + 8, py + 8, 'FAR LOD (282 TRIS) - SAME CAM');
-}
-
-// Panel 3.3: PERSON-HEIGHT APPROACH FROM FAR END OF REFLECTING POOL!
-{
-  const px = PAD + 2 * (PW + PAD), py = rowY(2) + ROW_TITLE_H;
-  const p = renderPanel(s2000, {
-    width: PW, height: PH,
-    eye: [0.0, 2.2, 2.0],
-    target: [0.0, 46.0, CZ_M],
-    fovDeg: 66,
-    sunDir: [-0.42, 0.76, 0.48],
-    skyTop: [52, 104, 178],
-    skyBottom: [204, 226, 246],
+  const pDay = renderPanel(s2000, {
+    ...poolCam, width: W2, height: 700,
+    sunDir: [-0.42, 0.74, 0.52],
+    skyTop: [46, 98, 174], skyBottom: [198, 224, 248],
   });
-  blit(sheet, CW, CH, p, px, py);
-  drawBadge(sheet, CW, CH, px + 8, py + 8, 'PERSON-HEIGHT APPROACH FROM REFLECTING POOL (Y=0 WATER)');
-}
+  blit(sheet, CW, CH, pDay, PAD, y0);
+  drawBadge(sheet, CW, CH, PAD + 10, y0 + 10, 'DAY APPROACH: EXEDRA, POOL, 8M GUARDIANS, 18M SPHERE IN SKY VAULT, 3-TIER CROWN');
 
-// Panel 3.4: LOOKING UP FROM COMPASS ROSE ROTUNDA AT 3-NODE ARMILLARY SPHERE!
-{
-  const px = PAD + 3 * (PW + PAD), py = rowY(2) + ROW_TITLE_H;
-  const p = renderPanel(s2000, {
-    width: PW, height: PH,
-    eye: [0.0, 8.2, CZ_M + 10.0],
-    target: [0.0, 41.0, CZ_M - 1.5],
-    fovDeg: 74,
-    sunDir: [0.24, 0.92, 0.28],
-    skyTop: [54, 108, 178],
-    skyBottom: [176, 212, 242],
+  const pNight = renderPanel(s2000, {
+    ...poolCam, width: W2, height: 700,
+    nightMode: true,
+    nightFloodSim: true,
+    fakePoolReflection: true,
+    sunDir: [0.25, 0.45, 0.40],
+    skyTop: [8, 12, 26], skyBottom: [24, 34, 62],
   });
-  blit(sheet, CW, CH, p, px, py);
-  drawBadge(sheet, CW, CH, px + 8, py + 8, 'ROTUNDA LOOKING UP: 3-NODE ARMILLARY (OUTER/ECLIPTIC/GLOBE)');
+  blit(sheet, CW, CH, pNight, PAD + W2 + PAD, y0);
+  drawBadge(sheet, CW, CH, PAD + W2 + PAD + 10, y0 + 10, 'NIGHT MONEY SHOT: WARM 3000K FLOODS, GOLD SPHERE, AMBER LANCETS, BEACON & REFLECTION', [168, 232, 255]);
+  console.log('Rendered Band 1 (Day + Night Money Shot)');
 }
-console.log('Rendered Row 3 (Silhouette + Far/Near + Pool Approach + Rotunda Up)');
 
 // ==============================================================================
-// ROW 4: FOUR 7M GUARDIANS | HOLLOW NW PIER ELEVATOR & STAIRS | 24M CORNICE GALLERY | 58M SKY DECK
+// BAND 2 (ITEM 2): FOUR CORNER VIEWS AT STREET HEIGHT (2000+ STATE, 1256PX WIDE EACH!)
 // ==============================================================================
-drawRowBanner(3, 'ROW 4 - GUARDIANS & CLIMB VIEWS:  4 ART DECO GUARDIANS  |  HOLLOW NW PIER (LIFT_CAR & STAIRS)  |  24M CORNICE GALLERY  |  58M SKY DECK', [252, 218, 136]);
-
-// Panel 4.1: FOUR 7 M ART DECO GUARDIANS CLOSE-UP (2x2 composite!)
 {
-  const px = PAD, py = rowY(3) + ROW_TITLE_H;
-  const hw = PW / 2, hh = PH / 2;
-  // Pier upper outer centers: mx_u = +/- 146 * 0.0776 = +/- 11.33 m, mz_u = CZ_M +/- 11.33 m; y = 49.2..56.0 m
-  const gCams = [
-    { label: 'SW: DEFENSE (SWORD)',   eye: [-11.33, 52.6, CZ_M + 27.6], target: [-11.33, 52.1, CZ_M + 13.7], sunDir: [-0.25, 0.72, 0.65] },
-    { label: 'SE: LEARNING (BOOK)',   eye: [11.33, 52.6, CZ_M + 27.6],  target: [11.33, 52.1, CZ_M + 13.7],  sunDir: [0.25, 0.72, 0.65] },
-    { label: 'NW: INDUSTRY (GEAR)',   eye: [-11.33, 52.6, CZ_M - 27.6], target: [-11.33, 52.1, CZ_M - 13.7], sunDir: [-0.25, 0.72, -0.65] },
-    { label: 'NE: HARVEST (WHEAT)',   eye: [11.33, 52.6, CZ_M - 27.6],  target: [11.33, 52.1, CZ_M - 13.7],  sunDir: [0.25, 0.72, -0.65] },
+  const y0 = drawBanner('b2', '2. FOUR CORNER VIEWS AT STREET HEIGHT (2000+ RESTORED STATE):  SW (+ VISITOR CTR)  |  SE (+ EAST RAMP)  |  NW (HOLLOW PIER)  |  NE (+ 1926 CORNERSTONE)', [176, 224, 252]);
+  const cornerDefs = [
+    { x: PAD,            y: y0,             eye: [-54.0, 2.4, CZ_M + 56.0], target: [-4.0, 38.0, CZ_M + 4.0], sun: [-0.45, 0.72, 0.52], badge: 'SW CORNER (STREET HEIGHT): VISITOR CTR, DEFENSE GUARDIAN, SOUTH ARCH' },
+    { x: PAD + W2 + PAD, y: y0,             eye: [54.0, 2.4, CZ_M + 56.0],  target: [4.0, 38.0, CZ_M + 4.0],  sun: [0.45, 0.72, 0.52],  badge: 'SE CORNER (STREET HEIGHT): EAST ACCESS RAMP, LEARNING GUARDIAN, SOUTH ARCH' },
+    { x: PAD,            y: y0 + 430 + PAD, eye: [-54.0, 2.4, CZ_M - 56.0], target: [-4.0, 38.0, CZ_M - 4.0], sun: [-0.45, 0.72, -0.52], badge: 'NW CORNER (STREET HEIGHT): HOLLOW ELEVATOR PIER, INDUSTRY GUARDIAN' },
+    { x: PAD + W2 + PAD, y: y0 + 430 + PAD, eye: [54.0, 2.4, CZ_M - 56.0],  target: [4.0, 38.0, CZ_M - 4.0],  sun: [0.45, 0.72, -0.52],  badge: 'NE CORNER (STREET HEIGHT): 1926 CORNERSTONE, HARVEST GUARDIAN, NORTH ARCH' },
   ];
-  for (let gi = 0; gi < 4; gi++) {
-    const gx = px + (gi % 2) * hw;
-    const gy = py + Math.floor(gi / 2) * hh;
-    const gp = renderPanel(s2000, {
-      width: hw, height: hh,
-      eye: gCams[gi].eye, target: gCams[gi].target,
-      fovDeg: 48, sunDir: gCams[gi].sunDir,
-      skyTop: [54, 108, 178], skyBottom: [192, 218, 242],
+  for (const cd of cornerDefs) {
+    const p = renderPanel(s2000, {
+      width: W2, height: 430, eye: cd.eye, target: cd.target, fovDeg: 66, sunDir: cd.sun,
+      skyTop: [52, 104, 178], skyBottom: [198, 224, 246],
     });
-    blit(sheet, CW, CH, gp, gx, gy);
-    drawBadge(sheet, CW, CH, gx + 4, gy + 4, gCams[gi].label);
+    blit(sheet, CW, CH, p, cd.x, cd.y);
+    drawBadge(sheet, CW, CH, cd.x + 10, cd.y + 10, cd.badge);
   }
-  fillRect(sheet, CW, CH, px + hw - 1, py, 2, PH, [248, 224, 144]);
-  fillRect(sheet, CW, CH, px, py + hh - 1, PW, 2, [248, 224, 144]);
+  console.log('Rendered Band 2 (4 Street-Height Corner Views)');
 }
-
-// Panel 4.2: INSIDE HOLLOW NW PIER — OPEN-CAGE ELEVATOR (`lift_car`) & WINDING STAIRCASE!
-{
-  const px = PAD + 1 * (PW + PAD), py = rowY(3) + ROW_TITLE_H;
-  // NW shaft center: (-11.795, y, -71.780); interior open width: X in [-14.36..-9.86], Z in [-74.34..-69.84]; lift_car at y = 24.06..26.47
-  const p = renderPanel(s2000, {
-    width: PW, height: PH,
-    eye: [-10.05, 29.4, -70.05],
-    target: [-12.35, 25.0, -72.30],
-    fovDeg: 80,
-    interiorBright: true,
-    sunDir: [0.35, 0.85, 0.40],
-    skyTop: [34, 40, 54],
-    skyBottom: [48, 56, 72],
-  });
-  blit(sheet, CW, CH, p, px, py);
-  drawBadge(sheet, CW, CH, px + 8, py + 8, 'INSIDE HOLLOW NW PIER: LIFT_CAR CAGE & WINDING STAIRCASE');
-}
-
-// Panel 4.3: 24 M CORNICE GALLERY WALKWAY, BRONZE RAILING & FRIEZE!
-{
-  const px = PAD + 2 * (PW + PAD), py = rowY(3) + ROW_TITLE_H;
-  const p = renderPanel(s2000, {
-    width: PW, height: PH,
-    eye: [-16.6, 26.2, CZ_M + 16.4],
-    target: [6.0, 26.8, CZ_M + 12.2],
-    fovDeg: 62,
-    sunDir: [-0.42, 0.76, 0.48],
-    skyTop: [54, 108, 178],
-    skyBottom: [200, 224, 246],
-  });
-  blit(sheet, CW, CH, p, px, py);
-  drawBadge(sheet, CW, CH, px + 8, py + 8, '24M CORNICE GALLERY: WALKWAY, BRONZE RAILING & FLUTED PIERS');
-}
-
-// Panel 4.4: 58 M SKY OBSERVATION DECK — ENGRAVED BRASS DIRECTION PLATE & VIEWING TELESCOPE!
-{
-  const px = PAD + 3 * (PW + PAD), py = rowY(3) + ROW_TITLE_H;
-  const halfW = PW / 2;
-  // Left half: close-up looking down onto the SW corner engraved brass direction plate ("TO CAPITOL") right-side up!
-  const pPlate = renderPanel(s2000, {
-    width: halfW, height: PH,
-    eye: [-11.64, 62.10, CZ_M + 11.40],
-    target: [-11.64, 59.35, CZ_M + 14.00],
-    fovDeg: 68,
-    sunDir: [-0.30, 0.86, 0.40],
-    skyTop: [54, 108, 178],
-    skyBottom: [200, 224, 246],
-  });
-  // Right half: walking along the 58 m Sky Observation Deck beside the brass viewing telescope & railing!
-  const pTele = renderPanel(s2000, {
-    width: halfW, height: PH,
-    eye: [-3.4, 59.9, CZ_M + 10.6],
-    target: [0.5, 59.0, CZ_M + 14.2],
-    fovDeg: 62,
-    sunDir: [-0.42, 0.76, 0.48],
-    skyTop: [54, 108, 178],
-    skyBottom: [200, 224, 246],
-  });
-  blit(sheet, CW, CH, pPlate, px, py);
-  blit(sheet, CW, CH, pTele, px + halfW, py);
-  fillRect(sheet, CW, CH, px + halfW - 1, py, 2, PH, [248, 224, 144]);
-  drawBadge(sheet, CW, CH, px + 8, py + 8, '58M DECK: BRASS PLATE');
-  drawBadge(sheet, CW, CH, px + halfW + 8, py + 8, '58M DECK: TELESCOPE');
-}
-console.log('Rendered Row 4 (Guardians + NW Pier Interior + Cornice Gallery + Sky Deck)');
 
 // ==============================================================================
-// ROW 5: LANTERN MACHINERY | BRONZE DOORS & DEDICATION WALL | ERA DETAILS | ABOVE PLAN
+// BAND 3 (ITEM 3): FOUR COLOSSAL 8 M GUARDIANS — CLOSE-UP & UPWARD FROM PLAZA / 24 M GALLERY
 // ==============================================================================
-drawRowBanner(4, 'ROW 5 - INTERIOR & ERA DETAILS:  LANTERN MACHINERY CHAMBER  |  OPEN BRONZE DOORS & DEDICATION WALL  |  1976 & 2000 DETAILS  |  ABOVE PLAN', [192, 214, 250]);
-
-// Panel 5.1: OCTAGONAL LANTERN MACHINERY CHAMBER (GEARS, FRESNEL LENS, DRIVE SHAFT, AMBER LANCETS)
 {
-  const px = PAD, py = rowY(4) + ROW_TITLE_H;
-  // Lantern interior floor y = 61.77 m; bull gear y = 63.9 m, bevel gears y = 64.6..65.0 m, Fresnel lens y = 66.6..71.1 m
-  const p = renderPanel(s2000, {
-    width: PW, height: PH,
-    eye: [-4.2, 65.0, CZ_M + 3.4],
-    target: [0.5, 66.8, CZ_M - 0.5],
-    fovDeg: 78,
-    interiorBright: true,
-    sunDir: [0.40, 0.80, 0.44],
-    skyTop: [46, 86, 152],
-    skyBottom: [176, 204, 234],
-  });
-  blit(sheet, CW, CH, p, px, py);
-  drawBadge(sheet, CW, CH, px + 8, py + 8, 'LANTERN MACHINERY CHAMBER: GEARS, FRESNEL LENS & LANCETS');
+  const y0 = drawBanner('b3', '3. FOUR COLOSSAL 8M ART DECO GUARDIANS (LEDGES AT 44-52M):  TOP = CLOSE-UPS (ATTRIBUTES + 0.6M LEDGE NAMES)  |  BOTTOM = UPWARD SKY SILHOUETTE FROM GALLERY/PLAZA', [252, 218, 138]);
+  // Guardian ledge world centers: (sx * 196 * U, 44.0, CZ_M + sz * 196 * U) = (+/-15.21, 44.0, CZ_M +/-15.21)
+  const gSpecs = [
+    { sx: -1, sz: 1,  title: 'SW: DEFENSE (SWORD + SHIELD)',     upTitle: 'DEFENSE - UPWARD FROM SW PLAZA/GALLERY' },
+    { sx: 1,  sz: 1,  title: 'SE: LEARNING (OPEN BOOK + TORCH)', upTitle: 'LEARNING - UPWARD FROM SE PLAZA/GALLERY' },
+    { sx: -1, sz: -1, title: 'NW: INDUSTRY (HAMMER + GEAR)',     upTitle: 'INDUSTRY - UPWARD FROM NW PLAZA/GALLERY' },
+    { sx: 1,  sz: -1, title: 'NE: HARVEST (WHEAT + SICKLE)',     upTitle: 'HARVEST - UPWARD FROM NE PLAZA/GALLERY' },
+  ];
+  for (let i = 0; i < 4; i++) {
+    const g = gSpecs[i];
+    const gx = g.sx * 15.21;
+    const gz = CZ_M + g.sz * 15.21;
+    const xPos = PAD + i * (W4 + PAD);
+    // Tight close-up right in front of the 45-degree diagonal 8 m guardian statue & ledge!
+    const pClose = renderPanel(s2000, {
+      width: W4, height: 440,
+      eye: [gx + g.sx * 7.2, 48.2, gz + g.sz * 7.2],
+      target: [gx, 47.6, gz],
+      fovDeg: 48,
+      sunDir: [g.sx * 0.48 + g.sz * 0.28, 0.72, g.sz * 0.48 - g.sx * 0.28],
+      skyTop: [48, 102, 176], skyBottom: [192, 218, 244],
+    });
+    blit(sheet, CW, CH, pClose, xPos, y0);
+    drawBadge(sheet, CW, CH, xPos + 8, y0 + 8, g.title, [252, 232, 162], 1);
+
+    // Upward dramatic silhouette view from the 24 m Cornice Gallery / Plaza diagonal!
+    const pUp = renderPanel(s2000, {
+      width: W4, height: 390,
+      eye: [gx + g.sx * 13.5, 25.4, gz + g.sz * 13.5],
+      target: [gx, 47.6, gz],
+      fovDeg: 50,
+      sunDir: [g.sx * 0.45, 0.75, g.sz * 0.45],
+      skyTop: [46, 98, 174], skyBottom: [190, 218, 244],
+    });
+    blit(sheet, CW, CH, pUp, xPos, y0 + 440 + PAD);
+    drawBadge(sheet, CW, CH, xPos + 8, y0 + 440 + PAD + 8, g.upTitle, [176, 232, 255], 1);
+  }
+  console.log('Rendered Band 3 (4 Guardians Close-ups + Upward Views)');
 }
 
-// Panel 5.2: SPLIT — 4 M OPEN BRONZE DOORS (LEFT) & WEST HALL DEDICATION WALL (RIGHT)
+// ==============================================================================
+// BAND 4 (ITEM 4): 18 M CELESTIAL ARMILLARY SPHERE — OUTSIDE DAY, OUTSIDE NIGHT, ROTUNDA UP!
+// ==============================================================================
 {
-  const px = PAD + 1 * (PW + PAD), py = rowY(4) + ROW_TITLE_H;
-  const halfW = PW / 2;
-  // Left: South main arch looking right at the 4m open bronze door folded back against the reveal + Meridian Line!
+  const y0 = drawBanner('b4', '4. THE 18M CELESTIAL ARMILLARY SPHERE (832PX PANELS):  OUTSIDE DAY (OPEN VAULT)  |  OUTSIDE NIGHT (4 FLOOD_SPHERE UPLIGHTS)  |  ROTUNDA LOOKING UP', [176, 236, 200]);
+  const sphOutCam = {
+    eye: [-14.0, 31.0, CZ_M + 42.0],
+    target: [0.0, 41.2, CZ_M],
+    fovDeg: 54,
+  };
+  const pSphDay = renderPanel(s2000, {
+    ...sphOutCam, width: W3, height: 520,
+    sunDir: [-0.42, 0.76, 0.48], skyTop: [48, 100, 176], skyBottom: [196, 222, 246],
+  });
+  blit(sheet, CW, CH, pSphDay, PAD, y0);
+  drawBadge(sheet, CW, CH, PAD + 8, y0 + 8, 'OUTSIDE DAY: 18M GOLD BANDS, 5M EARTH GLOBE, OPEN SKY VAULT', [252, 232, 162], 1);
+
+  const pSphNight = renderPanel(s2000, {
+    ...sphOutCam, width: W3, height: 520,
+    nightMode: true, nightFloodSim: true,
+    sunDir: [0.25, 0.55, 0.40], skyTop: [8, 12, 26], skyBottom: [20, 30, 56],
+  });
+  blit(sheet, CW, CH, pSphNight, PAD + W3 + PAD, y0);
+  drawBadge(sheet, CW, CH, PAD + W3 + PAD + 8, y0 + 8, 'OUTSIDE NIGHT: FLOOD_SPHERE_01..04 WARM GOLD IN DARK VAULT', [168, 232, 255], 1);
+
+  const pSphUp = renderPanel(s2000, {
+    width: W3, height: 520,
+    eye: [0.0, 8.2, CZ_M + 9.2],
+    target: [0.0, 41.0, CZ_M - 1.2],
+    fovDeg: 74,
+    sunDir: [0.26, 0.90, 0.34], skyTop: [48, 102, 178], skyBottom: [176, 214, 246],
+  });
+  blit(sheet, CW, CH, pSphUp, PAD + 2 * (W3 + PAD), y0);
+  drawBadge(sheet, CW, CH, PAD + 2 * (W3 + PAD) + 8, y0 + 8, 'ROTUNDA LOOKING STRAIGHT UP: 12 ZODIAC PLAQUES + 0.4M POLAR AXIS', [252, 232, 162], 1);
+  console.log('Rendered Band 4 (18m Armillary Sphere Day, Night & Rotunda Up)');
+}
+
+// ==============================================================================
+// BAND 5 (ITEMS 5 & 6): CROWN CLOSE-UP FROM 58M DECK | STONE, WEATHERING & ARCH COFFERING
+// ==============================================================================
+{
+  const y0 = drawBanner('b5', '5 & 6. ART DECO CROWN CLOSE-UP (3-TIER LANTERN, 8 BUTTRESS FINS, 16-RIB SUNBURST, SPIRE)  |  THREE STONES, WEATHERING, COFFERED ARCHES, VOUSSOIRS & KEYSTONE', [250, 214, 154]);
+  const pCrown = renderPanel(s2000, {
+    width: W2, height: 540,
+    eye: [-22.0, 62.5, CZ_M + 26.5],
+    target: [0.0, 77.5, CZ_M],
+    fovDeg: 66,
+    sunDir: [-0.46, 0.72, 0.52], skyTop: [46, 98, 174], skyBottom: [194, 220, 246],
+  });
+  blit(sheet, CW, CH, pCrown, PAD, y0);
+  drawBadge(sheet, CW, CH, PAD + 10, y0 + 10, '5. ART DECO CROWN FROM 58M DECK: 3-TIER OCTAGON, 8 FINS, SUNBURST & RIBBED SPIRE');
+
+  const pStone = renderPanel(s2000, {
+    width: W2, height: 540,
+    eye: [-11.5, 13.8, CZ_M + 31.0],
+    target: [1.5, 20.0, CZ_M + 13.5],
+    fovDeg: 54,
+    sunDir: [-0.44, 0.72, 0.54], skyTop: [50, 102, 176], skyBottom: [198, 224, 246],
+  });
+  blit(sheet, CW, CH, pStone, PAD + W2 + PAD, y0);
+  drawBadge(sheet, CW, CH, PAD + W2 + PAD + 10, y0 + 10, '6. STONE CLOSE-UP: DARK GRANITE, CREAM LIMESTONE, ASHLAR, COFFERED SOFFITS & VOUSSOIRS');
+  console.log('Rendered Band 5 (Crown Close-up + Stone/Arch Coffering Close-up)');
+}
+
+// ==============================================================================
+// BAND 6 (ITEMS 7 & 8): OPEN 5M BRONZE DOORS | WEST HALL DEDICATION WALL | EAST HALL (MODEL + MAP)
+// ==============================================================================
+{
+  const y0 = drawBanner('b6', '7 & 8. GROUND LEVEL INTERIORS (832PX PANELS):  OPEN 5M BRONZE DOORS (6 RELIEF PANELS)  |  WEST HALL DEDICATION WALL  |  EAST HALL (SCALE MODEL + STATE MAP)', [198, 222, 252]);
+  // Item 7: Looking straight at the West 5m open bronze door leaf (x=-7.06, z=-45.24..-43.07, y=6.52..11.48)
   const pDoor = renderPanel(s2000, {
-    width: halfW, height: PH,
-    eye: [3.2, 8.8, CZ_M + 23.2],
-    target: [-7.5, 8.6, CZ_M + 14.8],
-    fovDeg: 58,
-    sunDir: [-0.30, 0.72, 0.62],
-    skyTop: [54, 108, 178],
-    skyBottom: [198, 222, 244],
-  });
-  // Right: Standing inside West Memorial Hall looking straight at the carved Dedication Wall!
-  // Wall at x = (-219+16)*0.0776 = -15.75 m, z center = CZ_M + 164.5*0.0776 = CZ_M + 12.765 m, y = 6.83..10.86 m
-  const pWall = renderPanel(s2000, {
-    width: halfW, height: PH,
-    eye: [-10.6, 8.85, CZ_M + 12.76],
-    target: [-15.75, 8.85, CZ_M + 12.76],
+    width: W3, height: 500,
+    eye: [-1.4, 9.0, CZ_M + 15.85],
+    target: [-7.1, 9.0, CZ_M + 15.85],
     fovDeg: 56,
     interiorBright: true,
-    sunDir: [0.85, 0.45, 0.25],
-    skyTop: [36, 40, 50],
-    skyBottom: [48, 52, 62],
+    sunDir: [0.80, 0.45, 0.35], skyTop: [48, 98, 172], skyBottom: [194, 220, 244],
   });
-  blit(sheet, CW, CH, pDoor, px, py);
-  blit(sheet, CW, CH, pWall, px + halfW, py);
-  fillRect(sheet, CW, CH, px + halfW - 1, py, 2, PH, [248, 224, 144]);
-  drawBadge(sheet, CW, CH, px + 8, py + 8, '4M OPEN BRONZE DOOR');
-  drawBadge(sheet, CW, CH, px + halfW + 8, py + 8, 'WEST HALL DEDICATION WALL');
-}
+  blit(sheet, CW, CH, pDoor, PAD, y0);
+  drawBadge(sheet, CW, CH, PAD + 8, y0 + 8, '7. OPEN 5M BRONZE DOOR: TRAIN, PLOUGH, SHIP, FACTORY, SCHOOL, BRIDGE', [252, 232, 162], 1);
 
-// Panel 5.3: SPLIT — 1976 SE PIER SCAFFOLDING + WATER STREAKS (LEFT) & 2000+ SW VISITOR CENTRE (RIGHT)
-{
-  const px = PAD + 2 * (PW + PAD), py = rowY(4) + ROW_TITLE_H;
-  const halfW = PW / 2;
-  const pScaf = renderPanel(s1976, {
-    width: halfW, height: PH,
-    eye: [40.0, 36.0, CZ_M + 40.0],
-    target: [12.0, 38.0, CZ_M + 12.0],
+  // Item 8A: Standing inside West Memorial Hall looking straight at the Dedication Wall + low bronze rail!
+  const pWest = renderPanel(s2000, {
+    width: W3, height: 500,
+    eye: [-10.5, 9.05, CZ_M + 12.42],
+    target: [-16.7, 9.05, CZ_M + 12.42],
     fovDeg: 58,
-    sunDir: [0.42, 0.76, 0.48],
-    skyTop: [68, 108, 162],
-    skyBottom: [198, 214, 232],
+    interiorBright: true,
+    sunDir: [0.85, 0.42, 0.28], skyTop: [36, 40, 52], skyBottom: [48, 52, 64],
   });
-  const pVis = renderPanel(s2000, {
-    width: halfW, height: PH,
-    eye: [-32.0, 6.2, 10.0],
-    target: [-45.0, 3.0, -14.0],
-    fovDeg: 52,
-    sunDir: [-0.42, 0.76, 0.48],
-    skyTop: [54, 108, 178],
-    skyBottom: [198, 222, 244],
+  blit(sheet, CW, CH, pWest, PAD + W3 + PAD, y0);
+  drawBadge(sheet, CW, CH, PAD + W3 + PAD + 8, y0 + 8, '8A. WEST HALL DEDICATION WALL: CARVED LINE, WREATHS, NAME ROWS & RAIL', [252, 232, 162], 1);
+
+  // Item 8B: Inside East Memorial Hall showing 1:35 Scale Model on Plinth + State Wall Map w/ Meridian Line!
+  const pEast = renderPanel(s2000, {
+    width: W3, height: 500,
+    eye: [9.0, 9.4, CZ_M + 16.0],
+    target: [12.5, 8.9, CZ_M + 10.6],
+    fovDeg: 66,
+    interiorBright: true,
+    sunDir: [-0.45, 0.65, 0.60], skyTop: [36, 40, 52], skyBottom: [48, 52, 64],
   });
-  blit(sheet, CW, CH, pScaf, px, py);
-  blit(sheet, CW, CH, pVis, px + halfW, py);
-  fillRect(sheet, CW, CH, px + halfW - 1, py, 2, PH, [248, 224, 144]);
-  drawBadge(sheet, CW, CH, px + 8, py + 8, '1976: SE SCAFFOLDING');
-  drawBadge(sheet, CW, CH, px + halfW + 8, py + 8, '2000+: SW VISITOR CTR');
+  blit(sheet, CW, CH, pEast, PAD + 2 * (W3 + PAD), y0);
+  drawBadge(sheet, CW, CH, PAD + 2 * (W3 + PAD) + 8, y0 + 8, '8B. EAST HALL: 1:35 SCALE MONUMENT MODEL ON PLINTH + STATE WALL MAP', [252, 232, 162], 1);
+  console.log('Rendered Band 6 (Bronze Doors + West Hall + East Hall)');
 }
 
-// Panel 5.4: DIRECTLY ABOVE PLAN VIEW (2000+ RESTORED — 120M X 120M PLAZA)
+// ==============================================================================
+// BAND 7 (ITEM 9): ALL 4 ERAS FROM EXACT SAME CAMERA (DAY) + 1976 "CLOSED FOR REPAIRS" & SE CORNER
+// ==============================================================================
 {
-  const px = PAD + 3 * (PW + PAD), py = rowY(4) + ROW_TITLE_H;
-  const p = renderPanel(s2000, {
-    width: PW, height: PH,
-    eye: [0.0, 220.0, CZ_M],
-    target: [0.0, 0.0, CZ_M],
-    up: [0, 0, -1],
-    orthoScale: 64.0,
-    sunDir: [0.34, 0.88, 0.32],
-    skyTop: [28, 32, 42],
-    skyBottom: [28, 32, 42],
+  const y0 = drawBanner('b7', '9. ALL 4 ERAS FROM EXACT SAME CAMERA (DAY):  1926  |  1941  |  1976  |  2000+  +  BOTTOM: 1976 "CLOSED FOR REPAIRS" SAWHORSE & TARPED SE SCAFFOLDING', [250, 224, 152]);
+  const eraCam = {
+    eye: [-48.0, 24.0, CZ_M + 82.0],
+    target: [0.0, 40.0, CZ_M + 8.0],
+    fovDeg: 62,
+    sunDir: [-0.44, 0.74, 0.50],
+    skyTop: [50, 102, 176], skyBottom: [198, 224, 246],
+  };
+  const eras = [
+    { sc: s1926, badge: '1926: ORANGE COPPER, BUNTING, DEDICATION STAND, YOUNG TREES' },
+    { sc: s1941, badge: '1941: STREAKY COPPER, SANDBAGS, TAPED WINDOWS, WAR PLAQUE' },
+    { sc: s1976, badge: '1976: BLACK-STREAKED GREEN, DRIPS, TARPED SCAFFOLD, WEEDS' },
+    { sc: s2000, badge: '2000+: CLEAN STONE, BRIGHT GREEN, VISITOR CTR, LED FLOODS' },
+  ];
+  for (let i = 0; i < 4; i++) {
+    const p = renderPanel(eras[i].sc, { ...eraCam, width: W4, height: 420 });
+    const xPos = PAD + i * (W4 + PAD);
+    blit(sheet, CW, CH, p, xPos, y0);
+    drawBadge(sheet, CW, CH, xPos + 6, y0 + 6, eras[i].badge, [252, 232, 162], 1);
+  }
+
+  // Bottom strip: 1976 North Stairs "CLOSED FOR REPAIRS" Sawhorse + 1976 SE Tarped Scaffolding & Chain-Link Fence!
+  const yBot = y0 + 420 + PAD;
+  const pClosed = renderPanel(s1976, {
+    width: W2, height: 440,
+    eye: [2.2, 2.3, CZ_M - 35.8],
+    target: [0.0, 1.9, CZ_M - 29.0],
+    fovDeg: 52,
+    sunDir: [0.35, 0.72, -0.60], skyTop: [62, 102, 158], skyBottom: [194, 212, 232],
   });
-  blit(sheet, CW, CH, p, px, py);
-  drawBadge(sheet, CW, CH, px + 8, py + 8, 'ABOVE PLAN (2000+): MERIDIAN LINE, RAMP, VISITOR CTR, 8 TREES');
+  blit(sheet, CW, CH, pClosed, PAD, yBot);
+  drawBadge(sheet, CW, CH, PAD + 10, yBot + 10, '1976 CLOSE-UP A: HAND-PAINTED "CLOSED FOR REPAIRS" SAWHORSE AT NORTH STAIRS + WEEDS');
+
+  const pScaf = renderPanel(s1976, {
+    width: W2, height: 440,
+    eye: [43.0, 9.5, CZ_M + 44.0],
+    target: [16.0, 21.5, CZ_M + 16.0],
+    fovDeg: 66,
+    sunDir: [0.46, 0.74, 0.48], skyTop: [62, 102, 158], skyBottom: [194, 212, 232],
+  });
+  blit(sheet, CW, CH, pScaf, PAD + W2 + PAD, yBot);
+  drawBadge(sheet, CW, CH, PAD + W2 + PAD + 10, yBot + 10, '1976 CLOSE-UP B: SE CORNER CHAIN-LINK FENCE, TARPED SCAFFOLDING & HEAVY CORNICE DRIPS');
+  console.log('Rendered Band 7 (4 Eras Same Camera + 1976 Close-ups)');
 }
-console.log('Rendered Row 5 (Lantern Machinery + Doors/Dedication + Era Details + Plan)');
+
+// ==============================================================================
+// BAND 8 (ITEM 10): NEAR / MID / FAR SIDE-BY-SIDE + SOLID BLACK SILHOUETTES (128 / 64 / 32 PX)
+// ==============================================================================
+{
+  const y0 = drawBanner('b8', '10. LEVEL-OF-DETAIL & SILHOUETTE CHECK:  NEAR (27.7K) / MID (4,982) / FAR (330) AT IDENTICAL CAMERA  |  BLACK SILHOUETTES AT 128PX / 64PX / 32PX', [182, 236, 210]);
+  // Left half (1256x480): Near, Mid, Far side-by-side at EXACT same camera & size!
+  const lodW = Math.floor(W2 / 3);
+  const lodCam = {
+    eye: [-94.0, 46.0, CZ_M + 124.0],
+    target: [0.0, 50.0, CZ_M],
+    fovDeg: 56,
+    sunDir: [-0.44, 0.74, 0.50], skyTop: [54, 108, 178], skyBottom: [200, 224, 246],
+  };
+  const lodList = [
+    { sc: s2000, label: 'NEAR: 27,722 TRIS' },
+    { sc: sMid,  label: 'MID LOD: 4,982 TRIS' },
+    { sc: sFar,  label: 'FAR LOD: 330 TRIS' },
+  ];
+  for (let i = 0; i < 3; i++) {
+    const lx = PAD + i * lodW;
+    const p = renderPanel(lodList[i].sc, { ...lodCam, width: lodW, height: 480 });
+    blit(sheet, CW, CH, p, lx, y0);
+    if (i > 0) fillRect(sheet, CW, CH, lx - 1, y0, 2, 480, [248, 224, 144]);
+    drawBadge(sheet, CW, CH, lx + 8, y0 + 8, lodList[i].label, [252, 232, 162], 1);
+  }
+
+  // Right half (1256x480): Solid Black Silhouette Test — Near, Mid, Far at 128px, 64px, 32px tall!
+  const sxBase = PAD + W2 + PAD;
+  fillRect(sheet, CW, CH, sxBase, y0, W2, 480, [224, 234, 246]);
+  const silCam = {
+    eye: [-110.0, 50.0, CZ_M + 110.0],
+    target: [0.0, 53.0, CZ_M],
+    orthoScale: 58.0,
+    silhouetteBlack: true,
+    clipMinY: 1.8,
+    skyTop: [224, 234, 246], skyBottom: [224, 234, 246],
+  };
+  const frontSil = { ...silCam, eye: [0.0, 53.0, CZ_M + 140.0], target: [0.0, 53.0, CZ_M] };
+  const cols = [
+    { sc: s2000, title: 'NEAR MODEL (27.7K)', ox: 20 },
+    { sc: sMid,  title: 'MID LOD (4,982)',    ox: 438 },
+    { sc: sFar,  title: 'FAR LOD (330)',      ox: 856 },
+  ];
+  const sizes = [
+    { h: 128, w: 128, label: '128PX', dx: 0 },
+    { h: 64,  w: 64,  label: '64PX',  dx: 146 },
+    { h: 32,  w: 32,  label: '32PX',  dx: 226 },
+  ];
+  for (let ci = 0; ci < 3; ci++) {
+    const col = cols[ci];
+    const bx = sxBase + col.ox;
+    if (ci > 0) fillRect(sheet, CW, CH, bx - 16, y0 + 44, 2, 420, [156, 172, 192]);
+    drawText(sheet, CW, CH, bx, y0 + 48, col.title, [20, 26, 40], 2);
+    for (const sz of sizes) {
+      const pSil = renderPanel(col.sc, { ...silCam, width: sz.w, height: sz.h });
+      blit(sheet, CW, CH, pSil, bx + sz.dx, y0 + 230 - sz.h);
+      drawText(sheet, CW, CH, bx + sz.dx + 4, y0 + 240, sz.label, [32, 40, 58], 1);
+    }
+    // Front (+Z) orthographic silhouette at 128px & 64px below!
+    drawText(sheet, CW, CH, bx, y0 + 276, 'FRONT (+Z) 128PX / 64PX:', [36, 44, 62], 1);
+    blit(sheet, CW, CH, renderPanel(col.sc, { ...frontSil, width: 128, height: 128 }), bx + 12, y0 + 436 - 128);
+    blit(sheet, CW, CH, renderPanel(col.sc, { ...frontSil, width: 64, height: 64 }), bx + 160, y0 + 436 - 64);
+  }
+  drawBadge(sheet, CW, CH, sxBase + 10, y0 + 8, 'SOLID BLACK SILHOUETTES: NEAR VS MID VS FAR AT 128PX / 64PX / 32PX');
+  console.log('Rendered Band 8 (Near/Mid/Far LOD Comparison + Black Silhouettes)');
+}
 
 const outPath = path.join(__dirname, 'great-meridian-review.png');
 fs.writeFileSync(outPath, encodePng(CW, CH, sheet));
-console.log(`Wrote great-meridian-review.png (${CW}x${CH})`);
+console.log(`Wrote ${outPath} (${CW}x${CH})`);

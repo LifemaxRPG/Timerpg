@@ -26,7 +26,7 @@
       64,
       64
     ],
-    "compass_mosaic": [
+    "arch_coffer": [
       0,
       64,
       64,
@@ -39,44 +39,54 @@
       64
     ]
   },
-  "guardians_atlas": {
-    "guardian_defense": [
-      4,
-      4,
-      56,
-      96
-    ],
-    "guardian_learning": [
-      68,
-      4,
-      56,
-      96
-    ],
-    "guardian_industry": [
-      132,
-      4,
-      56,
-      96
-    ],
-    "guardian_harvest": [
-      196,
-      4,
-      56,
-      96
-    ],
-    "slate_trim": [
-      4,
-      104,
-      64,
-      20
-    ]
-  },
   "inscriptions": {
     "frieze_main": [
       4,
       4,
       236,
       32
+    ],
+    "exedra_text": [
+      4,
+      370,
+      240,
+      16
+    ],
+    "chevron_band": [
+      248,
+      24,
+      64,
+      14
+    ],
+    "voussoir_stone": [
+      320,
+      24,
+      64,
+      14
+    ],
+    "keystone_star": [
+      392,
+      4,
+      24,
+      28
+    ],
+    "cornerstone_1926": [
+      424,
+      4,
+      24,
+      20
+    ],
+    "plaque_dedication": [
+      456,
+      4,
+      24,
+      18
+    ],
+    "plaque_war": [
+      484,
+      4,
+      24,
+      18
     ],
     "frieze_east": [
       4,
@@ -91,106 +101,154 @@
       24
     ],
     "civic_flag": [
-      188,
+      192,
       40,
       44,
       26
     ],
     "bunting_swag": [
-      188,
-      72,
+      192,
+      70,
       56,
       22
     ],
-    "dedication_wall": [
-      4,
-      98,
-      72,
-      52
+    "bunting_pole": [
+      256,
+      40,
+      24,
+      28
     ],
-    "bronze_door_panel": [
-      188,
-      98,
+    "visitor_sign": [
+      288,
+      40,
+      96,
+      18
+    ],
+    "closed_repairs_sign": [
+      392,
+      40,
+      48,
+      20
+    ],
+    "interp_panel": [
+      448,
+      40,
       32,
-      52
-    ],
-    "plaque_war": [
-      224,
-      98,
-      24,
-      18
-    ],
-    "plaque_dedication": [
-      224,
-      120,
-      24,
-      18
+      20
     ],
     "dir_capitol": [
-      4,
-      160,
+      256,
+      72,
       56,
       14
     ],
     "dir_river": [
-      68,
-      160,
+      316,
+      72,
       56,
       14
     ],
     "dir_mountains": [
-      132,
-      160,
+      376,
+      72,
       56,
       14
     ],
     "dir_sea": [
-      196,
-      160,
+      436,
+      72,
       56,
       14
     ],
-    "zodiac_band": [
+    "dedication_wall": [
       4,
-      180,
+      98,
+      112,
+      64
+    ],
+    "state_map": [
+      124,
+      98,
+      108,
+      64
+    ],
+    "bronze_door_leaf": [
+      240,
+      98,
+      28,
+      64
+    ],
+    "zodiac_band": [
+      276,
+      98,
       128,
       16
     ],
     "earth_globe": [
-      136,
-      180,
+      276,
+      120,
       64,
-      20
+      32
     ],
     "label_defense": [
-      4,
-      202,
-      60,
-      14
+      412,
+      98,
+      56,
+      11
     ],
     "label_learning": [
-      68,
-      202,
-      60,
-      14
+      412,
+      112,
+      56,
+      11
     ],
     "label_industry": [
-      132,
-      202,
-      60,
-      14
+      412,
+      126,
+      56,
+      11
     ],
     "label_harvest": [
-      196,
-      202,
+      412,
+      140,
       56,
-      14
+      11
     ],
-    "visitor_sign": [
+    "compass_rose_14m": [
       4,
-      224,
-      96,
-      18
+      174,
+      180,
+      180
+    ],
+    "guardian_stone": [
+      192,
+      174,
+      64,
+      64
+    ],
+    "guardian_stone_1976": [
+      264,
+      174,
+      64,
+      64
+    ],
+    "scaffold_tarp": [
+      336,
+      174,
+      64,
+      64
+    ],
+    "sandbag_wall": [
+      408,
+      174,
+      48,
+      28
+    ],
+    "chain_fence": [
+      408,
+      210,
+      48,
+      32
     ]
   },
   "glow_monument": {

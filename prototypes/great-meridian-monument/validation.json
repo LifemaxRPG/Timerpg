@@ -1,11 +1,11 @@
 {
-  "model": "The Great Meridian Monument (4 historical states + Far LOD)",
+  "model": "The Great Meridian Monument \u2014 Revision 2 (4 historical states + Mid LOD + Far LOD)",
   "passed": true,
-  "textures_count": 16,
+  "textures_count": 21,
   "textures_2x2_ok": true,
   "emissive_mask_black_ratio": 0.656,
   "collision_coordinate_frame": "glTF metres (Y-up, +Z front \u2014 same frame as doors)",
-  "collision_boxes_count": 97,
+  "collision_boxes_count": 115,
   "full_height_pier_collision_ok": true,
   "worn_1976_dimmer_than_2000_ok": true,
   "states": {
@@ -16,17 +16,17 @@
       "sampler_nearest_repeat_ok": true,
       "required_nodes_ok": true,
       "missing_nodes": [],
-      "visible_triangles_instanced": 23344,
-      "collision_triangles": 1140,
-      "uv_edges_checked": 58482,
+      "visible_triangles_instanced": 26908,
+      "collision_triangles": 1356,
+      "uv_edges_checked": 65826,
       "bad_uv_edges": 0,
       "max_uv_error_m": 1.2e-05,
       "detail_quadrant_violations": 0,
-      "glow_area_m2": 15.76,
+      "glow_area_m2": 19.65,
       "plaza_min_y_m": 0.1552,
       "water_at_y0_ok": true,
       "basin_min_y_m": -0.6208,
-      "max_y_m": 105.536
+      "max_y_m": 106.1568
     },
     "1941": {
       "file": "great-meridian-1941.glb",
@@ -35,17 +35,17 @@
       "sampler_nearest_repeat_ok": true,
       "required_nodes_ok": true,
       "missing_nodes": [],
-      "visible_triangles_instanced": 23194,
-      "collision_triangles": 1140,
-      "uv_edges_checked": 58248,
+      "visible_triangles_instanced": 26538,
+      "collision_triangles": 1416,
+      "uv_edges_checked": 65400,
       "bad_uv_edges": 0,
       "max_uv_error_m": 1.2e-05,
       "detail_quadrant_violations": 0,
-      "glow_area_m2": 15.22,
+      "glow_area_m2": 19.08,
       "plaza_min_y_m": 0.1552,
       "water_at_y0_ok": true,
       "basin_min_y_m": -0.6208,
-      "max_y_m": 105.536
+      "max_y_m": 106.1568
     },
     "1976": {
       "file": "great-meridian-1976.glb",
@@ -54,17 +54,17 @@
       "sampler_nearest_repeat_ok": true,
       "required_nodes_ok": true,
       "missing_nodes": [],
-      "visible_triangles_instanced": 23654,
-      "collision_triangles": 1152,
-      "uv_edges_checked": 59784,
+      "visible_triangles_instanced": 27038,
+      "collision_triangles": 1392,
+      "uv_edges_checked": 67056,
       "bad_uv_edges": 0,
       "max_uv_error_m": 1.2e-05,
       "detail_quadrant_violations": 0,
-      "glow_area_m2": 12.7,
+      "glow_area_m2": 16.64,
       "plaza_min_y_m": 0.1552,
       "water_at_y0_ok": true,
       "basin_min_y_m": -0.6208,
-      "max_y_m": 105.536
+      "max_y_m": 106.1568
     },
     "2000": {
       "file": "great-meridian-2000.glb",
@@ -73,25 +73,33 @@
       "sampler_nearest_repeat_ok": true,
       "required_nodes_ok": true,
       "missing_nodes": [],
-      "visible_triangles_instanced": 23722,
-      "collision_triangles": 1164,
-      "uv_edges_checked": 58536,
+      "visible_triangles_instanced": 27722,
+      "collision_triangles": 1380,
+      "uv_edges_checked": 66306,
       "bad_uv_edges": 0,
       "max_uv_error_m": 1.2e-05,
       "detail_quadrant_violations": 0,
-      "glow_area_m2": 15.22,
+      "glow_area_m2": 19.08,
       "plaza_min_y_m": 0.1552,
       "water_at_y0_ok": true,
       "basin_min_y_m": -0.6208,
-      "max_y_m": 105.536
+      "max_y_m": 106.1568
     }
+  },
+  "mid_lod": {
+    "file": "great-meridian-mid.glb",
+    "passed": true,
+    "visible_triangles": 4982,
+    "bad_uv_edges": 0,
+    "max_uv_error_m": 1.1e-05,
+    "has_beacon_glow": true
   },
   "far_lod": {
     "file": "great-meridian-far.glb",
     "passed": true,
-    "visible_triangles": 282,
+    "visible_triangles": 330,
     "bad_uv_edges": 0,
-    "max_uv_error_m": 1.2e-05,
+    "max_uv_error_m": 1e-05,
     "has_beacon_glow": true
   }
 }
