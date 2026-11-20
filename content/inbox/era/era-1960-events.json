@@ -1,0 +1,297 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1960,
+  "topic": "events",
+  "facts": [
+    {
+      "id": "1960-events-01",
+      "year_from": 1960,
+      "year_to": 1960,
+      "text": "Census workers count households across the country for the new national population tally.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-02",
+      "year_from": 1960,
+      "year_to": 1960,
+      "text": "The presidential election brings unusually close results and lively discussion at kitchen tables.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-03",
+      "year_from": 1960,
+      "year_to": 1960,
+      "text": "Televised presidential debates give voters a new way to compare candidates.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-04",
+      "year_from": 1961,
+      "year_to": 1961,
+      "text": "A new federal volunteer program sends Americans abroad to assist with education and development.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-05",
+      "year_from": 1961,
+      "year_to": 1961,
+      "text": "The first American travels into space on a brief flight and returns safely.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-06",
+      "year_from": 1961,
+      "year_to": 1961,
+      "text": "A new barrier divides a major European city and raises fears about international tensions.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-07",
+      "year_from": 1962,
+      "year_to": 1962,
+      "text": "An American astronaut circles the earth, and families follow the flight on the news.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-08",
+      "year_from": 1962,
+      "year_to": 1962,
+      "text": "A confrontation over missiles near American shores brings anxious days and emergency preparations.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-09",
+      "year_from": 1963,
+      "year_to": 1963,
+      "text": "A national postal code system begins adding five digits to mailing addresses.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-10",
+      "year_from": 1963,
+      "year_to": 1963,
+      "text": "A large demonstration in the national capital calls for equal civil rights.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-11",
+      "year_from": 1963,
+      "year_to": 1963,
+      "text": "The president dies after an attack, and many households follow the solemn national news.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-12",
+      "year_from": 1964,
+      "year_to": 1964,
+      "text": "A major earthquake in the northernmost state damages towns and disrupts transportation.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-13",
+      "year_from": 1964,
+      "year_to": 1964,
+      "text": "A new federal law prohibits racial discrimination in many public accommodations and workplaces.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-14",
+      "year_from": 1964,
+      "year_to": 1964,
+      "text": "Federal antipoverty programs expand assistance and training for families with limited incomes.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-15",
+      "year_from": 1964,
+      "year_to": 1964,
+      "text": "Congress authorizes a wider American military role in a conflict in southeast Asia.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-16",
+      "year_from": 1965,
+      "year_to": 1965,
+      "text": "A new federal law strengthens protections against discrimination in voting.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-17",
+      "year_from": 1965,
+      "year_to": 1965,
+      "text": "A new federal health insurance program promises coverage for many older Americans.",
+      "ages": "elders",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-18",
+      "year_from": 1965,
+      "year_to": 1965,
+      "text": "A major immigration law changes the rules for admitting newcomers to the country.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-19",
+      "year_from": 1965,
+      "year_to": 1965,
+      "text": "A widespread electrical blackout leaves parts of the northeast without power for hours.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-20",
+      "year_from": 1966,
+      "year_to": 1966,
+      "text": "New federal automobile safety requirements draw attention to safer vehicle design.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-21",
+      "year_from": 1966,
+      "year_to": 1966,
+      "text": "A federal law establishes more consistent dates for daylight saving time.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-22",
+      "year_from": 1967,
+      "year_to": 1967,
+      "text": "A new federal broadcasting law supports the development of noncommercial public television and radio.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-23",
+      "year_from": 1967,
+      "year_to": 1967,
+      "text": "A major city fire aboard a spacecraft during ground testing delays plans for crewed space missions.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-24",
+      "year_from": 1968,
+      "year_to": 1968,
+      "text": "A new federal housing law prohibits many forms of discrimination in home sales and rentals.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-25",
+      "year_from": 1968,
+      "year_to": 1968,
+      "text": "The country holds a presidential election amid widespread debate about war and social change.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-events-26",
+      "year_from": 1969,
+      "year_to": 1969,
+      "text": "Astronauts walk on the moon, and families watch the historic broadcast together.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
