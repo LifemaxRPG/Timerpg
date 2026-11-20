@@ -1,0 +1,347 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1980,
+  "topic": "events",
+  "facts": [
+    {
+      "id": "1980-events-01",
+      "year_from": 1980,
+      "year_to": 1980,
+      "text": "News reports describe a failed overseas rescue attempt, and families discuss the uncertainty around Americans held abroad.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-02",
+      "year_from": 1980,
+      "year_to": 1980,
+      "text": "The summer Olympics take place overseas while the American team stays home after a national boycott.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-03",
+      "year_from": 1980,
+      "year_to": 1980,
+      "text": "A major volcanic eruption in the northwest sends ash across communities and disrupts travel.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-04",
+      "year_from": 1980,
+      "year_to": 1980,
+      "text": "Voters follow a presidential election marked by worries about inflation and the economy.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-05",
+      "year_from": 1981,
+      "year_to": 1981,
+      "text": "News of an attempt on the president's life interrupts regular broadcasts.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-06",
+      "year_from": 1981,
+      "year_to": 1981,
+      "text": "Air traffic controllers walk off their jobs, and travelers worry about disrupted flights.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-07",
+      "year_from": 1981,
+      "year_to": 1981,
+      "text": "The first reusable spacecraft launches into orbit, drawing families to television coverage.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-08",
+      "year_from": 1981,
+      "year_to": 1982,
+      "text": "High interest rates and a recession leave many families concerned about jobs and bills.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-09",
+      "year_from": 1982,
+      "year_to": 1982,
+      "text": "A severe recession leaves local factories and shops worried about customers and layoffs.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-10",
+      "year_from": 1982,
+      "year_to": 1982,
+      "text": "A new memorial in the capital honors Americans who served in an earlier overseas war.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-11",
+      "year_from": 1983,
+      "year_to": 1983,
+      "text": "A new federal holiday honoring a civil rights leader becomes law, with observances planned for later years.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-12",
+      "year_from": 1983,
+      "year_to": 1983,
+      "text": "A military intervention on a Caribbean island fills national news reports.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-13",
+      "year_from": 1984,
+      "year_to": 1984,
+      "text": "Summer Olympic competitions held in the United States attract viewers around the country.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-14",
+      "year_from": 1984,
+      "year_to": 1984,
+      "text": "The presidential election draws attention to economic recovery and the direction of the country.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-15",
+      "year_from": 1985,
+      "year_to": 1985,
+      "text": "A major earthquake abroad prompts televised rescue coverage and charitable donations.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-16",
+      "year_from": 1985,
+      "year_to": 1985,
+      "text": "A widely publicized benefit concert raises attention and donations for famine relief overseas.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-17",
+      "year_from": 1986,
+      "year_to": 1986,
+      "text": "A spacecraft breaks apart shortly after launch, and schools and households follow the tragedy on television.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-18",
+      "year_from": 1986,
+      "year_to": 1986,
+      "text": "An overseas nuclear plant accident raises concerns about radioactive contamination and food safety.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-19",
+      "year_from": 1986,
+      "year_to": 1986,
+      "text": "A federal immigration law changes rules for employers and offers legal status to some longtime residents.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-20",
+      "year_from": 1987,
+      "year_to": 1987,
+      "text": "A sharp stock market decline leaves investors and retirees watching financial news closely.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-21",
+      "year_from": 1987,
+      "year_to": 1987,
+      "text": "An international agreement aims to reduce chemicals that damage the upper atmosphere.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-22",
+      "year_from": 1988,
+      "year_to": 1988,
+      "text": "Severe drought and summer heat strain farms and water supplies across much of the country.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-23",
+      "year_from": 1988,
+      "year_to": 1988,
+      "text": "A presidential election brings campaign signs and debates about taxes and national leadership.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-24",
+      "year_from": 1988,
+      "year_to": 1988,
+      "text": "A passenger aircraft bombing overseas raises fears about international air travel.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-25",
+      "year_from": 1989,
+      "year_to": 1989,
+      "text": "A major earthquake damages roads and buildings in northern California during a televised sporting event.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-26",
+      "year_from": 1989,
+      "year_to": 1989,
+      "text": "Television coverage shows crowds crossing a newly opened border barrier in a divided European city.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-27",
+      "year_from": 1989,
+      "year_to": 1989,
+      "text": "A large oil spill along a northern coastline prompts concern for wildlife and fishing communities.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1980-events-28",
+      "year_from": 1989,
+      "year_to": 1989,
+      "text": "A powerful hurricane damages communities along the southeastern coast and sends families seeking shelter.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
