@@ -1,20 +1,17 @@
 #!/usr/bin/env node
 /**
- * Software glTF 2.0 renderer (with perspective-correct texturing, full node transform instancing,
- * near-plane clipping & pure-black emissive glow) generating ONE high-resolution review sheet:
- *   great-meridian-review.png (2620 x 2040)
+ * Software glTF 2.0 renderer generating ONE comprehensive review sheet for THE GREAT MERIDIAN MONUMENT:
+ *   great-meridian-review.png (2620 x 2380)
  *
- * Layout:
- *   Row 1 (4 panels, 640x440): Front 3/4 Day  |  Front 3/4 Night  |  Opposite Back (-Z)  |  Directly Above
- *   Row 2 (4 panels, 640x440): Person-Height Reflecting Pool Approach  |  SW Corner Silhouette  |  SE Corner Silhouette  |  Far LOD Silhouette
- *   Row 3 (3 huge 858x480 close-ups):
- *     1) South Triumphal Archway & Flush Carved Frieze ("THE GREAT MERIDIAN / DEDICATED MCMXXVI")
- *     2) Suspended 15 m Celestial Armillary Sphere & Eiffel-Style Open-Truss Steel Arches
- *     3) 53 m Sky Observation Crown, Octagonal Lantern & 94 m Astral Beacon Spire
- *   Row 4 (3 huge 858x480 walkable & dusk close-ups):
- *     4) Standing on Compass Rose Rotunda Looking STRAIGHT UP into the 15 m Armillary Sphere & Vault
- *     5) Walking the 53 m Sky Observation Deck (Brass Telescope & Panoramic Colonnade)
- *     6) Sweeping Peristyle Colonnade Wing & Eternal-Flame Bronze Brazier at Night
+ * Includes EVERY view required by docs/GEMINI_MERIDIAN_REVISION.md:
+ *   Row 1: All 4 historical states — DAY (1926 Dedication, 1941 Mature, 1976 Worn, 2000+ Restored)
+ *   Row 2: All 4 historical states — NIGHT with projected flood_01..12 & beacon_beam markers
+ *   Row 3: Solid Black Silhouette Test (Near vs Far at 128px, 64px, 32px) | Far beside Near (same camera) |
+ *          Person-Height Reflecting Pool Approach | Rotunda Looking Up at 3-Node Armillary Sphere
+ *   Row 4: Four 7m Art Deco Guardians (2x2 close-up) | Inside Hollow NW Pier (lift_car & winding stairs) |
+ *          24m Cornice Gallery Walkway | 58m Sky Observation Deck (direction plate & telescope)
+ *   Row 5: Octagonal Lantern Machinery Chamber (gears & Fresnel lens) | Open 4m Bronze Doors & West Hall
+ *          Dedication Wall | Era Details (1976 Scaffolding + 2000+ Visitor Centre) | Plan View From Above
  *
  * NOTE: Software renders, not phone/Filament captures.
  */
@@ -24,6 +21,7 @@ import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const CZ_M = -773.0 * 0.0776; // -59.9848 m
 
 function decodePng(buf) {
   let pos = 8;
@@ -186,6 +184,9 @@ function loadGlb(glbPath) {
   );
 
   const drawTriangles = [];
+  const floodMarkers = [];
+  let beaconMarker = null;
+
   function walk(nodeIdx, pPos, pRot) {
     const node = gltf.nodes[nodeIdx];
     if (!node || node.name === 'collision' || (node.extras && node.extras.collision_only)) return;
@@ -194,6 +195,17 @@ function loadGlb(glbPath) {
     const rlt = quatRotateVec(pRot, lt);
     const wPos = [pPos[0] + rlt[0], pPos[1] + rlt[1], pPos[2] + rlt[2]];
     const wRot = quatMul(pRot, lr);
+
+    if (node.name && node.name.startsWith('flood_')) {
+      floodMarkers.push({ name: node.name, pos: wPos, dir: (node.extras && node.extras.direction) || [0, 1, 0] });
+    }
+    if (node.name === 'beacon_beam') {
+      beaconMarker = {
+        pos: wPos,
+        dir: (node.extras && node.extras.direction) || [0, -0.05, 1],
+        active: !(node.extras && node.extras.active === false),
+      };
+    }
 
     if (node.mesh !== undefined) {
       for (const pr of decodedMeshes[node.mesh]) {
@@ -226,7 +238,7 @@ function loadGlb(glbPath) {
   for (const rootIdx of gltf.scenes[gltf.scene || 0].nodes) {
     walk(rootIdx, [0, 0, 0], [0, 0, 0, 1]);
   }
-  return drawTriangles;
+  return { tris: drawTriangles, floodMarkers, beaconMarker };
 }
 
 function sub(a, b) { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
@@ -245,13 +257,48 @@ function sampleNearest(img, u, v) {
   return [img.data[off], img.data[off + 1], img.data[off + 2], img.data[off + 3]];
 }
 
-function renderPanel(tris, opts) {
+function drawLine(rgba, W, H, x0, y0, x1, y1, col, thickness = 1) {
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+  const steps = Math.max(1, Math.ceil(Math.hypot(dx, dy)));
+  for (let i = 0; i <= steps; i++) {
+    const px = Math.round(x0 + (dx * i) / steps);
+    const py = Math.round(y0 + (dy * i) / steps);
+    for (let oy = -thickness; oy <= thickness; oy++) {
+      for (let ox = -thickness; ox <= thickness; ox++) {
+        const x = px + ox, y = py + oy;
+        if (x >= 0 && x < W && y >= 0 && y < H) {
+          const off = (y * W + x) * 4;
+          rgba[off] = col[0]; rgba[off + 1] = col[1]; rgba[off + 2] = col[2]; rgba[off + 3] = 255;
+        }
+      }
+    }
+  }
+}
+
+function drawCircle(rgba, W, H, cx, cy, r, col) {
+  for (let y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++) {
+    for (let x = Math.floor(cx - r); x <= Math.ceil(cx + r); x++) {
+      if (x >= 0 && x < W && y >= 0 && y < H && (x - cx) * (x - cx) + (y - cy) * (y - cy) <= r * r) {
+        const off = (y * W + x) * 4;
+        rgba[off] = col[0]; rgba[off + 1] = col[1]; rgba[off + 2] = col[2]; rgba[off + 3] = 255;
+      }
+    }
+  }
+}
+
+function renderPanel(sceneObj, opts) {
+  const tris = sceneObj.tris;
   const {
     width, height, eye, target, up = [0, 1, 0],
     fovDeg = 46, orthoScale = null,
     nightMode = false,
+    silhouetteBlack = false,
+    interiorBright = false,
+    showFloodMarkers = false,
     sunDir = [-0.46, 0.76, 0.45],
-    skyTop = [64, 114, 182], skyBottom = [204, 224, 246],
+    skyTop = [58, 110, 180], skyBottom = [202, 224, 246],
+    clipMinY = -1e6,
   } = opts;
 
   const rgba = new Uint8Array(width * height * 4);
@@ -275,7 +322,7 @@ function renderPanel(tris, opts) {
   const sun = norm(sunDir);
   const aspect = width / height;
   const f = 1.0 / Math.tan((fovDeg * Math.PI) / 360);
-  const nearPlane = 0.35;
+  const nearPlane = 0.20;
 
   function toCam(p) {
     const d = sub(p, eye);
@@ -326,6 +373,7 @@ function renderPanel(tris, opts) {
   const opaque = [];
   const blends = [];
   for (const tr of tris) {
+    if (clipMinY > -1e5 && Math.max(tr.p0[1], tr.p1[1], tr.p2[1]) < clipMinY) continue;
     if (tr.isBlend) blends.push(tr);
     else opaque.push(tr);
   }
@@ -342,9 +390,14 @@ function renderPanel(tris, opts) {
 
     const ndl = Math.max(0, dot(tr.n0, sun));
     const hemi = 0.5 + 0.5 * tr.n0[1];
-    const shade = nightMode
-      ? (0.20 + 0.14 * hemi + 0.14 * ndl)
-      : (0.42 + 0.16 * hemi + 0.46 * ndl);
+    let shade;
+    if (interiorBright) {
+      shade = 0.62 + 0.16 * hemi + 0.30 * Math.abs(dot(tr.n0, sun));
+    } else if (nightMode) {
+      shade = 0.22 + 0.14 * hemi + 0.14 * ndl;
+    } else {
+      shade = 0.44 + 0.16 * hemi + 0.44 * ndl;
+    }
 
     for (const [va, vb, vc] of clipped) {
       const s0 = projectCam(va.c);
@@ -380,6 +433,13 @@ function renderPanel(tris, opts) {
           const pIdx = py * width + px;
           if (z >= zbuf[pIdx]) continue;
 
+          if (silhouetteBlack) {
+            zbuf[pIdx] = z;
+            const off = pIdx * 4;
+            rgba[off] = 12; rgba[off + 1] = 14; rgba[off + 2] = 18; rgba[off + 3] = 255;
+            continue;
+          }
+
           const u = (w0 * u0w + w1 * u1w + w2 * u2w) / invW;
           const v = (w0 * v0w + w1 * v1w + w2 * v2w) / invW;
 
@@ -392,13 +452,12 @@ function renderPanel(tris, opts) {
 
           if (tr.emImg && (tr.ef[0] > 0 || tr.ef[1] > 0 || tr.ef[2] > 0)) {
             const [er, eg, eb] = sampleNearest(tr.emImg, u, v);
-            const boost = nightMode ? 1.55 : 0.48;
+            const boost = nightMode ? 1.85 : 0.45;
             r += er * tr.ef[0] * boost;
             g += eg * tr.ef[1] * boost;
             b += eb * tr.ef[2] * boost;
           } else if (nightMode && tr.isGlass && ba < 245) {
-            // Warm golden-amber cathedral & lantern interior glow at night (mirrors Filament glass role)
-            r += 148; g += 106; b += 42;
+            r += 96; g += 68; b += 26;
           }
 
           r = Math.min(255, Math.max(0, Math.round(r)));
@@ -422,12 +481,49 @@ function renderPanel(tris, opts) {
   }
 
   for (const tr of opaque) rasterTri(tr, false);
-  blends.sort((a, b) => {
-    const za = toCam(a.p0)[2] + toCam(a.p1)[2] + toCam(a.p2)[2];
-    const zb = toCam(b.p0)[2] + toCam(b.p1)[2] + toCam(b.p2)[2];
-    return zb - za;
-  });
-  for (const tr of blends) rasterTri(tr, true);
+  if (!silhouetteBlack) {
+    blends.sort((a, b) => {
+      const za = toCam(a.p0)[2] + toCam(a.p1)[2] + toCam(a.p2)[2];
+      const zb = toCam(b.p0)[2] + toCam(b.p1)[2] + toCam(b.p2)[2];
+      return zb - za;
+    });
+    for (const tr of blends) rasterTri(tr, true);
+  }
+
+  // Draw crisp projected flood_01..12 aim rays & beacon_beam cone on night review panels!
+  if (showFloodMarkers) {
+    for (const fl of sceneObj.floodMarkers) {
+      const c0 = toCam(fl.pos);
+      const tip = [fl.pos[0] + fl.dir[0] * 14, fl.pos[1] + fl.dir[1] * 14, fl.pos[2] + fl.dir[2] * 14];
+      const c1 = toCam(tip);
+      if (c0[2] > nearPlane && c1[2] > nearPlane) {
+        const s0 = projectCam(c0);
+        const s1 = projectCam(c1);
+        drawLine(rgba, width, height, s0[0], s0[1], s1[0], s1[1], [96, 232, 255], 1);
+        drawCircle(rgba, width, height, s0[0], s0[1], 3.4, [255, 224, 96]);
+      }
+    }
+    if (sceneObj.beaconMarker) {
+      const bm = sceneObj.beaconMarker;
+      const c0 = toCam(bm.pos);
+      if (c0[2] > nearPlane) {
+        const s0 = projectCam(c0);
+        if (bm.active) {
+          const tip = [bm.pos[0] + 28, bm.pos[1] - 2, bm.pos[2] + 18];
+          const c1 = toCam(tip);
+          if (c1[2] > nearPlane) {
+            const s1 = projectCam(c1);
+            drawLine(rgba, width, height, s0[0], s0[1], s1[0], s1[1], [255, 246, 168], 2);
+          }
+          drawCircle(rgba, width, height, s0[0], s0[1], 5.5, [255, 252, 200]);
+        } else {
+          // Draw crisp red X showing beacon is OFF in 1976!
+          drawLine(rgba, width, height, s0[0] - 6, s0[1] - 6, s0[0] + 6, s0[1] + 6, [255, 86, 86], 1);
+          drawLine(rgba, width, height, s0[0] - 6, s0[1] + 6, s0[0] + 6, s0[1] - 6, [255, 86, 86], 1);
+        }
+      }
+    }
+  }
 
   return { width, height, rgba };
 }
@@ -450,7 +546,7 @@ const FONT = {
   O: ['01110','10001','10001','10001','10001','10001','01110'],
   P: ['11110','10001','10001','11110','10000','10000','10000'],
   Q: ['01110','10001','10001','10001','10101','10010','01101'],
-  R: ['11110','10001','10001','11110','10100','10010','10001'],
+  R: ['11110','10001','10001','11110','10100','10010','00001'],
   S: ['01111','10000','10000','01110','00001','00001','11110'],
   T: ['11111','00100','00100','00100','00100','00100','00100'],
   U: ['10001','10001','10001','10001','10001','10001','01110'],
@@ -477,8 +573,13 @@ const FONT = {
   ')': ['01000','00100','00010','00010','00010','00100','01000'],
   '+': ['00000','00100','00100','11111','00100','00100','00000'],
   '|': ['00100','00100','00100','00100','00100','00100','00100'],
+  '&': ['01100','10010','10100','01000','10101','10010','01101'],
+  '<': ['00010','00100','01000','10000','01000','00100','00010'],
+  '=': ['00000','00000','11111','00000','11111','00000','00000'],
+  ',': ['00000','00000','00000','00000','00110','00010','00100'],
   ' ': ['00000','00000','00000','00000','00000','00000','00000'],
 };
+FONT.R = ['11110','10001','10001','11110','10100','10010','10001'];
 
 function drawText(canvas, CW, CH, x, y, text, fg, scale = 2) {
   let cx = x;
@@ -530,207 +631,392 @@ function blit(dst, CW, CH, src, sx, sy) {
   }
 }
 
-const mainScene = loadGlb(path.join(__dirname, 'great-meridian-monument.glb'));
-const farScene = loadGlb(path.join(__dirname, 'great-meridian-monument-far.glb'));
-const CZ_M = -773.0 * 0.0776; // -59.9848 m
+function drawBadge(dst, CW, CH, x, y, text, fg = [250, 232, 162]) {
+  const w = text.length * 6 + 12;
+  fillRect(dst, CW, CH, x, y, w, 17, [16, 18, 26]);
+  drawText(dst, CW, CH, x + 6, y + 5, text, fg, 1);
+}
+
+console.log('Loading 4 historical state GLBs + Far LOD...');
+const s1926 = loadGlb(path.join(__dirname, 'great-meridian-1926.glb'));
+const s1941 = loadGlb(path.join(__dirname, 'great-meridian-1941.glb'));
+const s1976 = loadGlb(path.join(__dirname, 'great-meridian-1976.glb'));
+const s2000 = loadGlb(path.join(__dirname, 'great-meridian-2000.glb'));
+const sFar  = loadGlb(path.join(__dirname, 'great-meridian-far.glb'));
 
 const PW = 640;
-const PH = 440;
-const CU_W = 858;
-const CU_H = 480;
+const PH = 420;
 const PAD = 12;
 const HEADER_H = 68;
-const ROW_TITLE_H = 28;
+const ROW_TITLE_H = 26;
 const CW = PAD + 4 * (PW + PAD);
-const CH = HEADER_H + 2 * (ROW_TITLE_H + PH + PAD) + 2 * (ROW_TITLE_H + CU_H + PAD) + PAD;
+const CH = HEADER_H + 5 * (ROW_TITLE_H + PH + PAD) + PAD;
 const sheet = new Uint8Array(CW * CH * 4);
 
-fillRect(sheet, CW, CH, 0, 0, CW, CH, [18, 20, 26]);
-fillRect(sheet, CW, CH, PAD, PAD, CW - 2 * PAD, HEADER_H - PAD - 4, [30, 34, 46]);
-drawText(sheet, CW, CH, 24, 18, 'THE GREAT MERIDIAN MONUMENT (1926) - 105.5M NATIONAL MONUMENT + 120M CEREMONIAL ACROPOLIS (SOFTWARE RENDERS)', [248, 224, 144], 2);
-drawText(sheet, CW, CH, 24, 42, '0.0388M/TEXEL | 15.2M SUSPENDED CELESTIAL ARMILLARY SPHERE | RIVETED STEEL TRUSS ARCHES | 58.2M SKY DECK | 105.5M BEACON', [176, 212, 242], 2);
+fillRect(sheet, CW, CH, 0, 0, CW, CH, [16, 18, 24]);
+fillRect(sheet, CW, CH, PAD, PAD, CW - 2 * PAD, HEADER_H - PAD - 4, [28, 32, 44]);
+drawText(sheet, CW, CH, 24, 18, 'THE GREAT MERIDIAN MONUMENT - 4 HISTORICAL STATES (1926 / 1941 / 1976 / 2000+) + FAR LOD (SOFTWARE RENDERS)', [248, 224, 144], 2);
+drawText(sheet, CW, CH, 24, 42, '3-PART ICONIC SILHOUETTE | <=23.7K TRIS NEAR / 282 TRIS FAR | <16M2 GLOW | 4 GUARDIANS | HOLLOW NW PIER | 3-NODE ARMILLARY', [174, 212, 242], 2);
 
-// ROW 1: GRAND OVERVIEWS (Day 3/4, Night Illuminated, Opposite Back -Z, Above Plan)
-const ROW1 = [
-  {
-    scene: mainScene,
-    eye: [-92.0, 52.0, CZ_M + 132.0],
-    target: [0.0, 46.0, CZ_M + 2.0],
-    fovDeg: 48,
-    sunDir: [-0.48, 0.76, 0.44],
-    skyTop: [56, 108, 178],
-    skyBottom: [198, 222, 244],
-  },
-  {
-    scene: mainScene,
-    eye: [88.0, 48.0, CZ_M + 130.0],
-    target: [0.0, 46.0, CZ_M + 2.0],
-    fovDeg: 48,
-    nightMode: true,
-    sunDir: [0.35, 0.58, 0.50],
-    skyTop: [10, 14, 28],
-    skyBottom: [28, 36, 66],
-  },
-  {
-    scene: mainScene,
-    eye: [94.0, 52.0, CZ_M - 126.0],
+function rowY(idx) {
+  return HEADER_H + idx * (ROW_TITLE_H + PH + PAD);
+}
+
+function drawRowBanner(idx, title, col) {
+  const y = rowY(idx);
+  fillRect(sheet, CW, CH, PAD, y, CW - 2 * PAD, ROW_TITLE_H - 2, [34, 38, 50]);
+  drawText(sheet, CW, CH, PAD + 10, y + 6, title, col, 2);
+}
+
+// ==============================================================================
+// ROW 1: ALL 4 HISTORICAL STATES — DAY
+// ==============================================================================
+drawRowBanner(0, 'ROW 1 - ALL 4 STATES (DAY):  1926 DEDICATION  |  1941 MATURE  |  1976 WORN (STAINS + SCAFFOLDING)  |  2000+ RESTORED (RAMP + VISITOR CTR)', [248, 228, 168]);
+const dayCam = {
+  eye: [-86.0, 44.0, CZ_M + 124.0],
+  target: [0.0, 48.0, CZ_M + 4.0],
+  fovDeg: 49,
+  sunDir: [-0.48, 0.76, 0.44],
+  skyTop: [54, 108, 178],
+  skyBottom: [198, 222, 244],
+};
+const row1Defs = [
+  { sc: s1926, cam: dayCam, badge: '1926 DEDICATION: FRESH COPPER + BUNTING + YOUNG TREES' },
+  { sc: s1941, cam: dayCam, badge: '1941 MATURE: VERDIGRIS SPIRE + WAR PLAQUE + MATURE TREES' },
+  { sc: s1976, cam: { ...dayCam, eye: [86.0, 44.0, CZ_M + 124.0], sunDir: [0.46, 0.76, 0.44] }, badge: '1976 WORN: WATER STREAKS + SE PIER SCAFFOLDING' },
+  { sc: s2000, cam: dayCam, badge: '2000+ RESTORED: CLEAN STONE + EAST RAMP + SW VISITOR CTR' },
+];
+for (let c = 0; c < 4; c++) {
+  const p = renderPanel(row1Defs[c].sc, { ...row1Defs[c].cam, width: PW, height: PH });
+  const x = PAD + c * (PW + PAD), y = rowY(0) + ROW_TITLE_H;
+  blit(sheet, CW, CH, p, x, y);
+  drawBadge(sheet, CW, CH, x + 8, y + 8, row1Defs[c].badge);
+}
+console.log('Rendered Row 1 (4 states Day)');
+
+// ==============================================================================
+// ROW 2: ALL 4 HISTORICAL STATES — NIGHT + FLOODLIGHT & BEACON MARKERS
+// ==============================================================================
+drawRowBanner(1, 'ROW 2 - ALL 4 STATES (NIGHT + FLOOD_01..12 CYAN RAYS + BEACON_BEAM):  1926  |  1941  |  1976 (BEACON OFF + 3 BROKEN LAMPS)  |  2000+', [168, 222, 255]);
+const nightCam = {
+  eye: [86.0, 44.0, CZ_M + 124.0],
+  target: [0.0, 48.0, CZ_M + 4.0],
+  fovDeg: 49,
+  nightMode: true,
+  showFloodMarkers: true,
+  sunDir: [0.35, 0.58, 0.50],
+  skyTop: [10, 14, 28],
+  skyBottom: [26, 36, 66],
+};
+const row2Defs = [
+  { sc: s1926, badge: '1926 NIGHT: GAS LAMPS + BEACON ON + FLOOD NODES' },
+  { sc: s1941, badge: '1941 NIGHT: ELECTRIC LAMPS + BEACON ON + FLOOD NODES' },
+  { sc: s1976, badge: '1976 NIGHT: BEACON OFF (RED X) + 3 BROKEN LAMPS' },
+  { sc: s2000, badge: '2000+ NIGHT: RELIT BEACON + VISIBLE FLOOD FIXTURES' },
+];
+for (let c = 0; c < 4; c++) {
+  const p = renderPanel(row2Defs[c].sc, { ...nightCam, width: PW, height: PH });
+  const x = PAD + c * (PW + PAD), y = rowY(1) + ROW_TITLE_H;
+  blit(sheet, CW, CH, p, x, y);
+  drawBadge(sheet, CW, CH, x + 8, y + 8, row2Defs[c].badge, [164, 232, 255]);
+}
+console.log('Rendered Row 2 (4 states Night + flood markers)');
+
+// ==============================================================================
+// ROW 3: SILHOUETTE TEST (128 / 64 / 32 PX) | FAR BESIDE NEAR | POOL APPROACH | ROTUNDA UP
+// ==============================================================================
+drawRowBanner(2, 'ROW 3 - SILHOUETTE & GRAND VIEWS:  BLACK SILHOUETTE (128/64/32PX)  |  FAR BESIDE NEAR  |  REFLECTING POOL APPROACH  |  ROTUNDA LOOKING UP', [176, 236, 200]);
+
+// Panel 3.1: SOLID BLACK SILHOUETTE TEST (Near vs Far at 128 px, 64 px, 32 px tall!)
+{
+  const px = PAD, py = rowY(2) + ROW_TITLE_H;
+  fillRect(sheet, CW, CH, px, py, PW, PH, [224, 234, 246]);
+  const silCam = {
+    eye: [-110.0, 48.0, CZ_M + 110.0],
+    target: [0.0, 52.0, CZ_M],
+    orthoScale: 58.0,
+    silhouetteBlack: true,
+    clipMinY: 1.8, // isolate monument above flat plaza so base-arch-legs-sphere-deck-lantern-needle silhouette is pure!
+    skyTop: [224, 234, 246],
+    skyBottom: [224, 234, 246],
+  };
+  const sizes = [
+    { h: 128, w: 128, label: '128PX', xOff: 18 },
+    { h: 64,  w: 64,  label: '64PX',  xOff: 168 },
+    { h: 32,  w: 32,  label: '32PX',  xOff: 252 },
+  ];
+  drawText(sheet, CW, CH, px + 18, py + 34, 'NEAR MODEL (2000+)', [24, 30, 44], 2);
+  drawText(sheet, CW, CH, px + 332, py + 34, 'FAR LOD (282 TRIS)', [24, 30, 44], 2);
+  fillRect(sheet, CW, CH, px + 318, py + 28, 2, PH - 44, [156, 170, 190]);
+  for (const sz of sizes) {
+    const pNear = renderPanel(s2000, { ...silCam, width: sz.w, height: sz.h });
+    const pFar  = renderPanel(sFar,  { ...silCam, width: sz.w, height: sz.h });
+    const baseY = py + 280 - sz.h;
+    blit(sheet, CW, CH, pNear, px + sz.xOff, baseY);
+    blit(sheet, CW, CH, pFar,  px + 316 + sz.xOff, baseY);
+    drawText(sheet, CW, CH, px + sz.xOff, py + 292, sz.label, [36, 44, 62], 1);
+    drawText(sheet, CW, CH, px + 316 + sz.xOff, py + 292, sz.label, [36, 44, 62], 1);
+  }
+  // Also show exact front (+Z) orthographic silhouette at 96px tall at bottom!
+  const frontSil = { ...silCam, eye: [0.0, 52.0, CZ_M + 140.0], target: [0.0, 52.0, CZ_M] };
+  blit(sheet, CW, CH, renderPanel(s2000, { ...frontSil, width: 96, height: 96 }), px + 110, py + 312);
+  blit(sheet, CW, CH, renderPanel(sFar,  { ...frontSil, width: 96, height: 96 }), px + 426, py + 312);
+  drawText(sheet, CW, CH, px + 18, py + 362, 'FRONT +Z 96PX:', [36, 44, 62], 1);
+  drawBadge(sheet, CW, CH, px + 8, py + 8, 'SOLID BLACK SILHOUETTE TEST: NEAR VS FAR (128 / 64 / 32 PX)');
+}
+
+// Panel 3.2: FAR MODEL BESIDE NEAR MODEL AT IDENTICAL CAMERA & SIZE!
+{
+  const px = PAD + 1 * (PW + PAD), py = rowY(2) + ROW_TITLE_H;
+  const halfW = PW / 2;
+  const cmpCam = {
+    eye: [-98.0, 44.0, CZ_M + 126.0],
+    target: [0.0, 50.0, CZ_M],
+    fovDeg: 54,
+    sunDir: [-0.46, 0.76, 0.44],
+    skyTop: [62, 114, 180],
+    skyBottom: [204, 224, 244],
+  };
+  blit(sheet, CW, CH, renderPanel(s2000, { ...cmpCam, width: halfW, height: PH }), px, py);
+  blit(sheet, CW, CH, renderPanel(sFar,  { ...cmpCam, width: halfW, height: PH }), px + halfW, py);
+  fillRect(sheet, CW, CH, px + halfW - 1, py, 2, PH, [248, 224, 144]);
+  drawBadge(sheet, CW, CH, px + 8, py + 8, 'NEAR (23,722 TRIS)');
+  drawBadge(sheet, CW, CH, px + halfW + 8, py + 8, 'FAR LOD (282 TRIS) - SAME CAM');
+}
+
+// Panel 3.3: PERSON-HEIGHT APPROACH FROM FAR END OF REFLECTING POOL!
+{
+  const px = PAD + 2 * (PW + PAD), py = rowY(2) + ROW_TITLE_H;
+  const p = renderPanel(s2000, {
+    width: PW, height: PH,
+    eye: [0.0, 2.2, 2.0],
     target: [0.0, 46.0, CZ_M],
-    fovDeg: 48,
-    sunDir: [0.46, 0.76, -0.46],
-    skyTop: [56, 108, 178],
+    fovDeg: 66,
+    sunDir: [-0.42, 0.76, 0.48],
+    skyTop: [52, 104, 178],
+    skyBottom: [204, 226, 246],
+  });
+  blit(sheet, CW, CH, p, px, py);
+  drawBadge(sheet, CW, CH, px + 8, py + 8, 'PERSON-HEIGHT APPROACH FROM REFLECTING POOL (Y=0 WATER)');
+}
+
+// Panel 3.4: LOOKING UP FROM COMPASS ROSE ROTUNDA AT 3-NODE ARMILLARY SPHERE!
+{
+  const px = PAD + 3 * (PW + PAD), py = rowY(2) + ROW_TITLE_H;
+  const p = renderPanel(s2000, {
+    width: PW, height: PH,
+    eye: [0.0, 8.2, CZ_M + 10.0],
+    target: [0.0, 41.0, CZ_M - 1.5],
+    fovDeg: 74,
+    sunDir: [0.24, 0.92, 0.28],
+    skyTop: [54, 108, 178],
+    skyBottom: [176, 212, 242],
+  });
+  blit(sheet, CW, CH, p, px, py);
+  drawBadge(sheet, CW, CH, px + 8, py + 8, 'ROTUNDA LOOKING UP: 3-NODE ARMILLARY (OUTER/ECLIPTIC/GLOBE)');
+}
+console.log('Rendered Row 3 (Silhouette + Far/Near + Pool Approach + Rotunda Up)');
+
+// ==============================================================================
+// ROW 4: FOUR 7M GUARDIANS | HOLLOW NW PIER ELEVATOR & STAIRS | 24M CORNICE GALLERY | 58M SKY DECK
+// ==============================================================================
+drawRowBanner(3, 'ROW 4 - GUARDIANS & CLIMB VIEWS:  4 ART DECO GUARDIANS  |  HOLLOW NW PIER (LIFT_CAR & STAIRS)  |  24M CORNICE GALLERY  |  58M SKY DECK', [252, 218, 136]);
+
+// Panel 4.1: FOUR 7 M ART DECO GUARDIANS CLOSE-UP (2x2 composite!)
+{
+  const px = PAD, py = rowY(3) + ROW_TITLE_H;
+  const hw = PW / 2, hh = PH / 2;
+  // Pier upper outer centers: mx_u = +/- 146 * 0.0776 = +/- 11.33 m, mz_u = CZ_M +/- 11.33 m; y = 49.2..56.0 m
+  const gCams = [
+    { label: 'SW: DEFENSE (SWORD)',   eye: [-11.33, 52.6, CZ_M + 27.6], target: [-11.33, 52.1, CZ_M + 13.7], sunDir: [-0.25, 0.72, 0.65] },
+    { label: 'SE: LEARNING (BOOK)',   eye: [11.33, 52.6, CZ_M + 27.6],  target: [11.33, 52.1, CZ_M + 13.7],  sunDir: [0.25, 0.72, 0.65] },
+    { label: 'NW: INDUSTRY (GEAR)',   eye: [-11.33, 52.6, CZ_M - 27.6], target: [-11.33, 52.1, CZ_M - 13.7], sunDir: [-0.25, 0.72, -0.65] },
+    { label: 'NE: HARVEST (WHEAT)',   eye: [11.33, 52.6, CZ_M - 27.6],  target: [11.33, 52.1, CZ_M - 13.7],  sunDir: [0.25, 0.72, -0.65] },
+  ];
+  for (let gi = 0; gi < 4; gi++) {
+    const gx = px + (gi % 2) * hw;
+    const gy = py + Math.floor(gi / 2) * hh;
+    const gp = renderPanel(s2000, {
+      width: hw, height: hh,
+      eye: gCams[gi].eye, target: gCams[gi].target,
+      fovDeg: 48, sunDir: gCams[gi].sunDir,
+      skyTop: [54, 108, 178], skyBottom: [192, 218, 242],
+    });
+    blit(sheet, CW, CH, gp, gx, gy);
+    drawBadge(sheet, CW, CH, gx + 4, gy + 4, gCams[gi].label);
+  }
+  fillRect(sheet, CW, CH, px + hw - 1, py, 2, PH, [248, 224, 144]);
+  fillRect(sheet, CW, CH, px, py + hh - 1, PW, 2, [248, 224, 144]);
+}
+
+// Panel 4.2: INSIDE HOLLOW NW PIER — OPEN-CAGE ELEVATOR (`lift_car`) & WINDING STAIRCASE!
+{
+  const px = PAD + 1 * (PW + PAD), py = rowY(3) + ROW_TITLE_H;
+  // NW shaft center: (-11.795, y, -71.780); interior open width: X in [-14.36..-9.86], Z in [-74.34..-69.84]; lift_car at y = 24.06..26.47
+  const p = renderPanel(s2000, {
+    width: PW, height: PH,
+    eye: [-10.05, 29.4, -70.05],
+    target: [-12.35, 25.0, -72.30],
+    fovDeg: 80,
+    interiorBright: true,
+    sunDir: [0.35, 0.85, 0.40],
+    skyTop: [34, 40, 54],
+    skyBottom: [48, 56, 72],
+  });
+  blit(sheet, CW, CH, p, px, py);
+  drawBadge(sheet, CW, CH, px + 8, py + 8, 'INSIDE HOLLOW NW PIER: LIFT_CAR CAGE & WINDING STAIRCASE');
+}
+
+// Panel 4.3: 24 M CORNICE GALLERY WALKWAY, BRONZE RAILING & FRIEZE!
+{
+  const px = PAD + 2 * (PW + PAD), py = rowY(3) + ROW_TITLE_H;
+  const p = renderPanel(s2000, {
+    width: PW, height: PH,
+    eye: [-16.6, 26.2, CZ_M + 16.4],
+    target: [6.0, 26.8, CZ_M + 12.2],
+    fovDeg: 62,
+    sunDir: [-0.42, 0.76, 0.48],
+    skyTop: [54, 108, 178],
+    skyBottom: [200, 224, 246],
+  });
+  blit(sheet, CW, CH, p, px, py);
+  drawBadge(sheet, CW, CH, px + 8, py + 8, '24M CORNICE GALLERY: WALKWAY, BRONZE RAILING & FLUTED PIERS');
+}
+
+// Panel 4.4: 58 M SKY OBSERVATION DECK — ENGRAVED BRASS DIRECTION PLATE & VIEWING TELESCOPE!
+{
+  const px = PAD + 3 * (PW + PAD), py = rowY(3) + ROW_TITLE_H;
+  const halfW = PW / 2;
+  // Left half: close-up looking down onto the SW corner engraved brass direction plate ("TO CAPITOL") right-side up!
+  const pPlate = renderPanel(s2000, {
+    width: halfW, height: PH,
+    eye: [-11.64, 62.10, CZ_M + 11.40],
+    target: [-11.64, 59.35, CZ_M + 14.00],
+    fovDeg: 68,
+    sunDir: [-0.30, 0.86, 0.40],
+    skyTop: [54, 108, 178],
+    skyBottom: [200, 224, 246],
+  });
+  // Right half: walking along the 58 m Sky Observation Deck beside the brass viewing telescope & railing!
+  const pTele = renderPanel(s2000, {
+    width: halfW, height: PH,
+    eye: [-3.4, 59.9, CZ_M + 10.6],
+    target: [0.5, 59.0, CZ_M + 14.2],
+    fovDeg: 62,
+    sunDir: [-0.42, 0.76, 0.48],
+    skyTop: [54, 108, 178],
+    skyBottom: [200, 224, 246],
+  });
+  blit(sheet, CW, CH, pPlate, px, py);
+  blit(sheet, CW, CH, pTele, px + halfW, py);
+  fillRect(sheet, CW, CH, px + halfW - 1, py, 2, PH, [248, 224, 144]);
+  drawBadge(sheet, CW, CH, px + 8, py + 8, '58M DECK: BRASS PLATE');
+  drawBadge(sheet, CW, CH, px + halfW + 8, py + 8, '58M DECK: TELESCOPE');
+}
+console.log('Rendered Row 4 (Guardians + NW Pier Interior + Cornice Gallery + Sky Deck)');
+
+// ==============================================================================
+// ROW 5: LANTERN MACHINERY | BRONZE DOORS & DEDICATION WALL | ERA DETAILS | ABOVE PLAN
+// ==============================================================================
+drawRowBanner(4, 'ROW 5 - INTERIOR & ERA DETAILS:  LANTERN MACHINERY CHAMBER  |  OPEN BRONZE DOORS & DEDICATION WALL  |  1976 & 2000 DETAILS  |  ABOVE PLAN', [192, 214, 250]);
+
+// Panel 5.1: OCTAGONAL LANTERN MACHINERY CHAMBER (GEARS, FRESNEL LENS, DRIVE SHAFT, AMBER LANCETS)
+{
+  const px = PAD, py = rowY(4) + ROW_TITLE_H;
+  // Lantern interior floor y = 61.77 m; bull gear y = 63.9 m, bevel gears y = 64.6..65.0 m, Fresnel lens y = 66.6..71.1 m
+  const p = renderPanel(s2000, {
+    width: PW, height: PH,
+    eye: [-4.2, 65.0, CZ_M + 3.4],
+    target: [0.5, 66.8, CZ_M - 0.5],
+    fovDeg: 78,
+    interiorBright: true,
+    sunDir: [0.40, 0.80, 0.44],
+    skyTop: [46, 86, 152],
+    skyBottom: [176, 204, 234],
+  });
+  blit(sheet, CW, CH, p, px, py);
+  drawBadge(sheet, CW, CH, px + 8, py + 8, 'LANTERN MACHINERY CHAMBER: GEARS, FRESNEL LENS & LANCETS');
+}
+
+// Panel 5.2: SPLIT — 4 M OPEN BRONZE DOORS (LEFT) & WEST HALL DEDICATION WALL (RIGHT)
+{
+  const px = PAD + 1 * (PW + PAD), py = rowY(4) + ROW_TITLE_H;
+  const halfW = PW / 2;
+  // Left: South main arch looking right at the 4m open bronze door folded back against the reveal + Meridian Line!
+  const pDoor = renderPanel(s2000, {
+    width: halfW, height: PH,
+    eye: [3.2, 8.8, CZ_M + 23.2],
+    target: [-7.5, 8.6, CZ_M + 14.8],
+    fovDeg: 58,
+    sunDir: [-0.30, 0.72, 0.62],
+    skyTop: [54, 108, 178],
     skyBottom: [198, 222, 244],
-  },
-  {
-    scene: mainScene,
+  });
+  // Right: Standing inside West Memorial Hall looking straight at the carved Dedication Wall!
+  // Wall at x = (-219+16)*0.0776 = -15.75 m, z center = CZ_M + 164.5*0.0776 = CZ_M + 12.765 m, y = 6.83..10.86 m
+  const pWall = renderPanel(s2000, {
+    width: halfW, height: PH,
+    eye: [-10.6, 8.85, CZ_M + 12.76],
+    target: [-15.75, 8.85, CZ_M + 12.76],
+    fovDeg: 56,
+    interiorBright: true,
+    sunDir: [0.85, 0.45, 0.25],
+    skyTop: [36, 40, 50],
+    skyBottom: [48, 52, 62],
+  });
+  blit(sheet, CW, CH, pDoor, px, py);
+  blit(sheet, CW, CH, pWall, px + halfW, py);
+  fillRect(sheet, CW, CH, px + halfW - 1, py, 2, PH, [248, 224, 144]);
+  drawBadge(sheet, CW, CH, px + 8, py + 8, '4M OPEN BRONZE DOOR');
+  drawBadge(sheet, CW, CH, px + halfW + 8, py + 8, 'WEST HALL DEDICATION WALL');
+}
+
+// Panel 5.3: SPLIT — 1976 SE PIER SCAFFOLDING + WATER STREAKS (LEFT) & 2000+ SW VISITOR CENTRE (RIGHT)
+{
+  const px = PAD + 2 * (PW + PAD), py = rowY(4) + ROW_TITLE_H;
+  const halfW = PW / 2;
+  const pScaf = renderPanel(s1976, {
+    width: halfW, height: PH,
+    eye: [40.0, 36.0, CZ_M + 40.0],
+    target: [12.0, 38.0, CZ_M + 12.0],
+    fovDeg: 58,
+    sunDir: [0.42, 0.76, 0.48],
+    skyTop: [68, 108, 162],
+    skyBottom: [198, 214, 232],
+  });
+  const pVis = renderPanel(s2000, {
+    width: halfW, height: PH,
+    eye: [-32.0, 6.2, 10.0],
+    target: [-45.0, 3.0, -14.0],
+    fovDeg: 52,
+    sunDir: [-0.42, 0.76, 0.48],
+    skyTop: [54, 108, 178],
+    skyBottom: [198, 222, 244],
+  });
+  blit(sheet, CW, CH, pScaf, px, py);
+  blit(sheet, CW, CH, pVis, px + halfW, py);
+  fillRect(sheet, CW, CH, px + halfW - 1, py, 2, PH, [248, 224, 144]);
+  drawBadge(sheet, CW, CH, px + 8, py + 8, '1976: SE SCAFFOLDING');
+  drawBadge(sheet, CW, CH, px + halfW + 8, py + 8, '2000+: SW VISITOR CTR');
+}
+
+// Panel 5.4: DIRECTLY ABOVE PLAN VIEW (2000+ RESTORED — 120M X 120M PLAZA)
+{
+  const px = PAD + 3 * (PW + PAD), py = rowY(4) + ROW_TITLE_H;
+  const p = renderPanel(s2000, {
+    width: PW, height: PH,
     eye: [0.0, 220.0, CZ_M],
     target: [0.0, 0.0, CZ_M],
     up: [0, 0, -1],
     orthoScale: 64.0,
     sunDir: [0.34, 0.88, 0.32],
-    skyTop: [30, 34, 42],
-    skyBottom: [30, 34, 42],
-  },
-];
-
-// ROW 2: STREET-HEIGHT MONUMENTAL SILHOUETTES & FAR LOD
-const ROW2 = [
-  {
-    // Person-height standing right at the +Z front entrance looking down the Grand Reflecting Pool!
-    scene: mainScene,
-    eye: [0.0, 2.8, 10.0],
-    target: [0.0, 48.0, CZ_M],
-    fovDeg: 64,
-    sunDir: [-0.42, 0.76, 0.48],
-    skyTop: [54, 106, 178],
-    skyBottom: [204, 226, 246],
-  },
-  {
-    // SW Street-height corner view showing Peristyle Wing + Cross Arch + 105.5 m Spire!
-    scene: mainScene,
-    eye: [-74.0, 3.6, CZ_M + 74.0],
-    target: [0.0, 43.0, CZ_M],
-    fovDeg: 60,
-    sunDir: [-0.46, 0.74, 0.48],
-    skyTop: [54, 106, 178],
-    skyBottom: [204, 226, 246],
-  },
-  {
-    // SE Street-height corner view!
-    scene: mainScene,
-    eye: [74.0, 3.6, CZ_M + 74.0],
-    target: [0.0, 43.0, CZ_M],
-    fovDeg: 60,
-    sunDir: [0.44, 0.74, 0.50],
-    skyTop: [54, 106, 178],
-    skyBottom: [204, 226, 246],
-  },
-  {
-    // Distant landmark LOD silhouette verification!
-    scene: farScene,
-    eye: [-94.0, 38.0, CZ_M + 128.0],
-    target: [0.0, 44.0, CZ_M],
-    fovDeg: 46,
-    sunDir: [-0.48, 0.76, 0.44],
-    skyTop: [72, 118, 178],
-    skyBottom: [208, 226, 242],
-  },
-];
-
-// ROW 3: 3 HUGE ARCHITECTURAL CLOSE-UPS
-const ROW3 = [
-  {
-    // South Triumphal Archway, flush carved "THE GREAT MERIDIAN / DEDICATED MCMXXVI", & deep cathedral windows!
-    scene: mainScene,
-    eye: [-6.5, 22.0, CZ_M + 54.0],
-    target: [0.0, 24.5, CZ_M + 12.0],
-    fovDeg: 46,
-    sunDir: [-0.36, 0.72, 0.58],
-    skyTop: [56, 108, 178],
-    skyBottom: [198, 222, 244],
-  },
-  {
-    // Unobstructed hero view straight into the open riveted-steel cathedral vault & 15.2 m Celestial Armillary Sphere!
-    scene: mainScene,
-    eye: [6.8, 41.5, CZ_M + 40.0],
-    target: [0.0, 42.0, CZ_M],
-    fovDeg: 46,
-    sunDir: [-0.32, 0.78, 0.54],
-    skyTop: [52, 102, 174],
-    skyBottom: [188, 214, 240],
-  },
-  {
-    // 58.2 m Sky Observation Crown, Octagonal Lantern, 8 Flying Buttress Fins, Starburst Crown & 105.5 m Astral Beacon!
-    scene: mainScene,
-    eye: [-36.0, 76.0, CZ_M + 54.0],
-    target: [0.0, 82.0, CZ_M],
-    fovDeg: 48,
-    sunDir: [-0.42, 0.76, 0.48],
-    skyTop: [46, 94, 168],
-    skyBottom: [176, 206, 236],
-  },
-];
-
-// ROW 4: 3 HUGE WALKABLE & DUSK/NIGHT EXPERIENCE VIEWS
-const ROW4 = [
-  {
-    // Standing right on the Compass Rose Rotunda looking STRAIGHT UP into the 15.2 m Armillary Sphere & Open Steel Vault!
-    scene: mainScene,
-    eye: [0.0, 8.2, CZ_M + 11.5],
-    target: [0.0, 42.0, CZ_M - 1.5],
-    fovDeg: 74,
-    sunDir: [0.24, 0.92, 0.28],
-    skyTop: [56, 108, 178],
-    skyBottom: [168, 206, 238],
-  },
-  {
-    // Standing on the 58.2 m Sky Observation Deck beside the open bronze railing, colonnade & brass telescope looking out over the reflecting pool!
-    scene: mainScene,
-    eye: [-10.5, 60.6, CZ_M + 11.0],
-    target: [0.5, 55.0, CZ_M + 26.0],
-    fovDeg: 66,
-    sunDir: [-0.45, 0.76, 0.46],
-    skyTop: [56, 108, 178],
-    skyBottom: [204, 226, 246],
-  },
-  {
-    // Sweeping West Peristyle Colonnade & Glowing Eternal-Flame Bronze Brazier at Night!
-    scene: mainScene,
-    eye: [-38.0, 8.5, CZ_M + 44.0],
-    target: [-26.0, 9.5, CZ_M + 12.0],
-    fovDeg: 52,
-    nightMode: true,
-    sunDir: [-0.30, 0.62, 0.55],
-    skyTop: [12, 16, 32],
-    skyBottom: [32, 42, 74],
-  },
-];
-
-function drawRow4(rowIdx, title, cfgs, titleCol) {
-  const rowY = HEADER_H + rowIdx * (ROW_TITLE_H + PH + PAD);
-  fillRect(sheet, CW, CH, PAD, rowY, CW - 2 * PAD, ROW_TITLE_H - 2, [34, 38, 50]);
-  drawText(sheet, CW, CH, PAD + 10, rowY + 6, title, titleCol, 2);
-  for (let c = 0; c < cfgs.length; c++) {
-    const panel = renderPanel(cfgs[c].scene, { ...cfgs[c], width: PW, height: PH });
-    blit(sheet, CW, CH, panel, PAD + c * (PW + PAD), rowY + ROW_TITLE_H);
-  }
-  console.log(`Rendered 4-panel row ${rowIdx + 1}`);
+    skyTop: [28, 32, 42],
+    skyBottom: [28, 32, 42],
+  });
+  blit(sheet, CW, CH, p, px, py);
+  drawBadge(sheet, CW, CH, px + 8, py + 8, 'ABOVE PLAN (2000+): MERIDIAN LINE, RAMP, VISITOR CTR, 8 TREES');
 }
-
-function drawRow3(cuIdx, title, cfgs, titleCol) {
-  const rowY = HEADER_H + 2 * (ROW_TITLE_H + PH + PAD) + cuIdx * (ROW_TITLE_H + CU_H + PAD);
-  fillRect(sheet, CW, CH, PAD, rowY, CW - 2 * PAD, ROW_TITLE_H - 2, [40, 44, 58]);
-  drawText(sheet, CW, CH, PAD + 10, rowY + 6, title, titleCol, 2);
-  for (let c = 0; c < cfgs.length; c++) {
-    const panel = renderPanel(cfgs[c].scene, { ...cfgs[c], width: CU_W, height: CU_H });
-    blit(sheet, CW, CH, panel, PAD + c * (CU_W + PAD), rowY + ROW_TITLE_H);
-  }
-  console.log(`Rendered 3-panel close-up row ${cuIdx + 1}`);
-}
-
-drawRow4(0, 'GRAND OVERVIEWS: FRONT 3/4 DAY  |  NIGHT ILLUMINATED  |  OPPOSITE BACK (-Z)  |  DIRECTLY ABOVE (120M X 120M)', ROW1, [248, 228, 168]);
-drawRow4(1, 'STREET-HEIGHT SILHOUETTES: REFLECTING POOL APPROACH  |  SW CORNER  |  SE CORNER  |  DISTANT FAR LOD SILHOUETTE', ROW2, [174, 232, 204]);
-drawRow3(0, 'ARCHITECTURAL CLOSE-UPS: SOUTH TRIUMPHAL ARCHWAY  |  15.2M ARMILLARY SPHERE & STEEL TRUSSES  |  SKY CROWN & 105.5M BEACON', ROW3, [252, 220, 140]);
-drawRow3(1, 'WALKABLE & DUSK VIEWS: ROTUNDA LOOKING UP TO ARMILLARY  |  58.2M SKY OBSERVATION DECK  |  PERISTYLE & ETERNAL FLAME AT NIGHT', ROW4, [184, 218, 250]);
+console.log('Rendered Row 5 (Lantern Machinery + Doors/Dedication + Era Details + Plan)');
 
 const outPath = path.join(__dirname, 'great-meridian-review.png');
 fs.writeFileSync(outPath, encodePng(CW, CH, sheet));

@@ -39,6 +39,38 @@
       64
     ]
   },
+  "guardians_atlas": {
+    "guardian_defense": [
+      4,
+      4,
+      56,
+      96
+    ],
+    "guardian_learning": [
+      68,
+      4,
+      56,
+      96
+    ],
+    "guardian_industry": [
+      132,
+      4,
+      56,
+      96
+    ],
+    "guardian_harvest": [
+      196,
+      4,
+      56,
+      96
+    ],
+    "slate_trim": [
+      4,
+      104,
+      64,
+      20
+    ]
+  },
   "inscriptions": {
     "frieze_main": [
       4,
@@ -58,29 +90,107 @@
       180,
       24
     ],
-    "relief_sunburst": [
-      192,
-      40,
-      56,
-      56
-    ],
     "civic_flag": [
-      4,
-      98,
+      188,
+      40,
       44,
       26
     ],
-    "plaque_dedication": [
+    "bunting_swag": [
+      188,
+      72,
       56,
-      98,
-      16,
-      12
+      22
     ],
-    "cornerstone_1926": [
-      80,
+    "dedication_wall": [
+      4,
+      98,
+      72,
+      52
+    ],
+    "bronze_door_panel": [
+      188,
+      98,
+      32,
+      52
+    ],
+    "plaque_war": [
+      224,
       98,
       24,
-      12
+      18
+    ],
+    "plaque_dedication": [
+      224,
+      120,
+      24,
+      18
+    ],
+    "dir_capitol": [
+      4,
+      160,
+      56,
+      14
+    ],
+    "dir_river": [
+      68,
+      160,
+      56,
+      14
+    ],
+    "dir_mountains": [
+      132,
+      160,
+      56,
+      14
+    ],
+    "dir_sea": [
+      196,
+      160,
+      56,
+      14
+    ],
+    "zodiac_band": [
+      4,
+      180,
+      128,
+      16
+    ],
+    "earth_globe": [
+      136,
+      180,
+      64,
+      20
+    ],
+    "label_defense": [
+      4,
+      202,
+      60,
+      14
+    ],
+    "label_learning": [
+      68,
+      202,
+      60,
+      14
+    ],
+    "label_industry": [
+      132,
+      202,
+      60,
+      14
+    ],
+    "label_harvest": [
+      196,
+      202,
+      56,
+      14
+    ],
+    "visitor_sign": [
+      4,
+      224,
+      96,
+      18
     ]
   },
   "glow_monument": {
@@ -102,11 +212,29 @@
       16,
       16
     ],
-    "flood_lens": [
+    "fountain_jet": [
       48,
       0,
       16,
       16
+    ],
+    "lantern_lancet_glow": [
+      0,
+      16,
+      16,
+      48
+    ],
+    "pier_slot_glow": [
+      16,
+      16,
+      16,
+      48
+    ],
+    "ecliptic_glow": [
+      32,
+      16,
+      32,
+      8
     ]
   }
 }
