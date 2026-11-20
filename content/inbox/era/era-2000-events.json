@@ -1,0 +1,308 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2000,
+  "topic": "events",
+  "facts": [
+    {
+      "id": "2000-events-01",
+      "year_from": 2000,
+      "year_to": 2000,
+      "text": "Residents complete census forms as the country counts its population for a new decade.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-02",
+      "year_from": 2000,
+      "year_to": 2000,
+      "text": "The presidential election remains undecided for weeks while disputed ballots are reviewed.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-03",
+      "year_from": 2000,
+      "year_to": 2000,
+      "text": "News reports describe the last major concerns about computer dates changing to the new millennium.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-04",
+      "year_from": 2000,
+      "year_to": 2001,
+      "text": "Families discuss a closely watched national debate over the accuracy of vote counting.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-05",
+      "year_from": 2001,
+      "year_to": 2001,
+      "text": "Air travel changes sharply after attacks on major American landmarks in September.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-06",
+      "year_from": 2001,
+      "year_to": 2002,
+      "text": "Airline passengers face tighter security checks before boarding flights.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-07",
+      "year_from": 2001,
+      "year_to": 2001,
+      "text": "Mail recipients hear warnings about suspicious envelopes after dangerous letters appear in the news.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-08",
+      "year_from": 2001,
+      "year_to": 2002,
+      "text": "Many towns hold candlelight gatherings to remember people lost in the September attacks.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-09",
+      "year_from": 2002,
+      "year_to": 2002,
+      "text": "Winter sports competitions in the western United States draw national television audiences.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-10",
+      "year_from": 2002,
+      "year_to": 2003,
+      "text": "New federal airport screening procedures become a familiar part of holiday travel.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-11",
+      "year_from": 2003,
+      "year_to": 2003,
+      "text": "A widespread summer power outage leaves parts of the northeastern country without electricity.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-12",
+      "year_from": 2003,
+      "year_to": 2003,
+      "text": "Families watch reports about a major space shuttle accident during its return to Earth.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-13",
+      "year_from": 2003,
+      "year_to": 2003,
+      "text": "National news follows the beginning of a new war in the Middle East.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-14",
+      "year_from": 2004,
+      "year_to": 2004,
+      "text": "Robotic explorers send new pictures from the surface of Mars.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-15",
+      "year_from": 2004,
+      "year_to": 2004,
+      "text": "A powerful ocean earthquake sends destructive waves across parts of southern Asia.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-16",
+      "year_from": 2004,
+      "year_to": 2004,
+      "text": "The presidential election brings long lines to some polling places.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-17",
+      "year_from": 2005,
+      "year_to": 2005,
+      "text": "A major hurricane floods neighborhoods along the Gulf Coast and forces families to evacuate.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-18",
+      "year_from": 2005,
+      "year_to": 2006,
+      "text": "Communities organize clothing and supply donations for families displaced by coastal storms.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-19",
+      "year_from": 2005,
+      "year_to": 2005,
+      "text": "News reports describe the opening of a new national memorial honoring the second world war.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-20",
+      "year_from": 2006,
+      "year_to": 2006,
+      "text": "Astronomers announce a new classification that removes one distant world from the list of major planets.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-21",
+      "year_from": 2006,
+      "year_to": 2006,
+      "text": "Residents follow reports about a strong earthquake that damages communities in the Pacific.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-22",
+      "year_from": 2007,
+      "year_to": 2007,
+      "text": "A major highway bridge collapse prompts discussions about inspections and aging public infrastructure.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-23",
+      "year_from": 2007,
+      "year_to": 2008,
+      "text": "Falling house prices make national headlines as more homeowners struggle with mortgage payments.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-24",
+      "year_from": 2008,
+      "year_to": 2008,
+      "text": "Large financial institutions fail or seek emergency support during a deepening economic crisis.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-25",
+      "year_from": 2008,
+      "year_to": 2009,
+      "text": "The presidential election and inauguration draw unusually large crowds and television audiences.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-26",
+      "year_from": 2009,
+      "year_to": 2009,
+      "text": "A new strain of influenza prompts schools and families to review handwashing and illness precautions.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2000-events-27",
+      "year_from": 2009,
+      "year_to": 2009,
+      "text": "Many television viewers prepare for the nationwide switch from analog to digital broadcasts.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
