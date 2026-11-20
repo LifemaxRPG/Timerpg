@@ -1,0 +1,297 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1960,
+  "topic": "social",
+  "facts": [
+    {
+      "id": "1960-social-01",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Teenagers often meet friends at school football games on Friday evenings.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-02",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A couple may go bowling together on a Saturday night.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-03",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "High school students decorate a gymnasium for the spring prom.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-04",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Parents sometimes expect to meet a teenager's date before an evening outing.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-05",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Young couples may attend a church social before becoming engaged.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-06",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Wedding receptions often serve cake and punch in a church fellowship hall.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-07",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Relatives gather for bridal showers and bring practical household gifts.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-08",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A church congregation organizes a potluck supper with dishes brought from home.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-09",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Volunteer groups arrange clothing drives for families needing assistance.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-10",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Neighbors take turns delivering meals to a household facing illness.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-11",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A school parent association raises money for classroom supplies and activities.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-12",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Scouting groups teach children camping skills and community service.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-13",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Children join organized summer activities at a town recreation center.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-14",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Families spread blankets on the grass to watch a Fourth of July parade.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-15",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "The volunteer fire department may hold a fundraising supper for townspeople.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-16",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A local civic club invites a guest speaker to its monthly luncheon.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-17",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Retired neighbors meet for card games at a community hall.",
+      "ages": "elders",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-18",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Some families gather with relatives for a picnic after Sunday services.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-19",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "A teenage couple may share a milkshake after an afternoon outing.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-20",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Many parents set a firm curfew for teenagers attending weekend gatherings.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-21",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Some schools hold separate graduation parties for students and their families.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-22",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Church youth groups arrange supervised trips and weekend gatherings.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-23",
+      "year_from": 1964,
+      "year_to": 1969,
+      "text": "Young adults increasingly question older expectations about marriage and household roles.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "1960-social-24",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Community members do not always agree about changing expectations for young people.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-25",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Some clubs and social gatherings remain divided by race despite challenges to segregation.",
+      "ages": "adults",
+      "use": [
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1960-social-26",
+      "year_from": 1960,
+      "year_to": 1969,
+      "text": "Town residents gather at public meetings to discuss schools and neighborhood concerns.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
