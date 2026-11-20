@@ -1,0 +1,114 @@
+{
+  "main_door": {
+    "rect_art": [
+      0,
+      0,
+      16,
+      32
+    ]
+  },
+  "side_door": {
+    "rect_art": [
+      20,
+      0,
+      14,
+      30
+    ]
+  },
+  "loading_leaf": {
+    "rect_art": [
+      40,
+      0,
+      24,
+      36
+    ]
+  },
+  "paper": {
+    "rect_art": [
+      72,
+      0,
+      32,
+      32
+    ]
+  },
+  "vent": {
+    "rect_art": [
+      112,
+      0,
+      16,
+      12
+    ]
+  },
+  "arch_window": {
+    "rect_art": [
+      0,
+      0,
+      24,
+      30
+    ]
+  },
+  "small_window": {
+    "rect_art": [
+      28,
+      0,
+      20,
+      26
+    ]
+  },
+  "display_window": {
+    "rect_art": [
+      52,
+      0,
+      48,
+      26
+    ]
+  },
+  "side_window": {
+    "rect_art": [
+      104,
+      0,
+      20,
+      24
+    ]
+  },
+  "clerestory": {
+    "rect_art": [
+      0,
+      40,
+      32,
+      14
+    ]
+  },
+  "masthead": {
+    "rect_art": [
+      0,
+      0,
+      100,
+      14
+    ]
+  },
+  "blade": {
+    "rect_art": [
+      0,
+      24,
+      32,
+      28
+    ]
+  },
+  "emblem": {
+    "rect_art": [
+      104,
+      0,
+      16,
+      16
+    ]
+  },
+  "dispatch": {
+    "rect_art": [
+      40,
+      24,
+      54,
+      12
+    ]
+  }
+}

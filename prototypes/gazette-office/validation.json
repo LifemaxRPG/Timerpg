@@ -1,0 +1,22 @@
+{
+  "visible_triangles": 3066,
+  "materials": 12,
+  "external_doors": 3,
+  "collision_boxes": 15,
+  "prop_triangles": {
+    "news_box": 24,
+    "paper_roll_cart": 68,
+    "service_bin": 24,
+    "service_bin.001": 24
+  },
+  "uv_scale_max_edge_error_m": 4.981007286630756e-07,
+  "textures": "Embedded PNGs use exact 2 x 2 texel art pixels, nearest/repeat sampling",
+  "stairs": "24 risers connect ground/upper floors; upper floor aperture verified",
+  "doorways": "Outward anchors and floor heights match; plinths leave front and internal passages clear",
+  "paving": "No positive-area coplanar top overlap; all exported geometry at or above grade",
+  "sign": "Separate physical-scale sign_name mesh and documented masthead region",
+  "collision": "Full-height boxes match exported collider; architecture uses its walls/floors/stairs",
+  "press": "Foundation/reference only; no printing or archive simulation implemented",
+  "glb_bytes": 261368,
+  "renders": "Blender desktop previews, not Filament/S25 captures."
+}
