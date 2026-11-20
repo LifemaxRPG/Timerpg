@@ -117,6 +117,9 @@ object TownSession {
         com.timerpg.street.shot.Crumbs.add("town unloaded")
     }
 
+    /** A saved spot further than this (street units) from any street of the town is not this town's any more: the spawn. */
+    private const val FAR_SAVE = 2000f
+
     private fun prefs(ctx: Context) = ctx.applicationContext.getSharedPreferences("town", Context.MODE_PRIVATE)
 
     /**
@@ -134,9 +137,18 @@ object TownSession {
         if (p.getString("seed", null) != seed) return
         val x = p.getFloat("wx", Float.NaN); val z = p.getFloat("wz", Float.NaN)
         if (x.isNaN() || z.isNaN()) return
-        // (never inside a building, nor off the town: then the spawn as before)
-        val near = w.town.nearestRow(x, z)?.first ?: return
-        if (w.blockedAt(x, z, near)) return
+        // (never off the town: then the spawn as before; a spot a building now stands on, as a save from before the town was
+        // replanned may be, goes to the nearest free ground: the open world's walk finds it (TownCollision.nearestClear), the
+        // street view's walk the nearest pavement)
+        val (row, _) = w.town.nearestRow(x, z) ?: return
+        var far = Float.MAX_VALUE
+        for (i in 0 until row.pts.size - 1) {
+            val a = row.pts[i]; val b = row.pts[i + 1]
+            val dx = b.x - a.x; val dz = b.z - a.z; val l2 = (dx * dx + dz * dz).coerceAtLeast(1e-6f)
+            val t = (((x - a.x) * dx + (z - a.z) * dz) / l2).coerceIn(0f, 1f)
+            far = minOf(far, kotlin.math.hypot(a.x + dx * t - x, a.z + dz * t - z))
+        }
+        if (far > FAR_SAVE) return
         com.lifemax.rpg.feature.habits.presentation.scene.GameState.dir = if (p.getFloat("dir", 1f) < 0f) -1f else 1f
         // (both walks: the open world's lands on the clear spot nearest, the street view's on the pavement)
         TownPlay.placeAt(x, z, p.getFloat("hx", w.hx), p.getFloat("hz", w.hz))

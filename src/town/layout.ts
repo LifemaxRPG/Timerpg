@@ -381,7 +381,10 @@ export function developedRoads(plan: TownPlan, lots: Lot[], year: number, previo
   const touching = (a: Road, b: Road): boolean => a.x <= b.x + b.w + 1 && b.x <= a.x + a.w + 1 && a.y <= b.y + b.h + 1 && b.y <= a.y + a.h + 1;
   const roads = plan.roads;
   const wanted = new Set<number>(previous);
-  const landmarks = plan.landmarks.filter((l) => year >= l.openYear);
+  // (and the planned town's hand-made models standing by then: their plots' streets are built for them)
+  const BEFORE = new Set(['field', 'woods', 'reserved', 'square', 'shops', 'house', 'plaza']);
+  const landmarks: { x: number; y: number; w: number; h: number }[] = [...plan.landmarks.filter((l) => year >= l.openYear),
+    ...(plan.v2?.reserved ?? []).filter((q) => q.id.startsWith('glb:') && q.chain.some((u) => !BEFORE.has(u.use) && u.from <= year))];
   roads.forEach((r, i) => {
     if (r.main || lots.some((l) => near(l, r)) || landmarks.some((l) => near(l, r))) wanted.add(i);
   });

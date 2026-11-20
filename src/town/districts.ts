@@ -282,7 +282,7 @@ function fill(p: Plat): Districts {
   // ---- the hospital at the edge of the later subdivisions
   if (civicKinds.includes('hospital')) reserve('landmark:hospital', lm('hospital', [{ use: 'field', from: 0 }, { use: 'hospital', from: 0 }]), [...byNear(blocksOf('late')), ...byNear(blocksOf('postwar'))], (b) => [mainFace(b), back(mainFace(b))], [spec('hospital')], 'near');
   // ---- the chapel on an old-town corner near the centre, the cemetery at the old town's edge
-  reserve('civic:chapel', [{ use: 'chapel', from: 1870 }], byNear(blocksOf(['old', 'civic', 'westmain'])), (b) => [back(mainFace(b)), mainFace(b)], [[5, 9]], 'far');
+  reserve('civic:chapel', [{ use: 'chapel', from: 1870 }], byNear(blocksOf(['old', 'civic', 'westmain'])), (b) => [back(mainFace(b)), mainFace(b)], [[5, 9]], 'mid');
   {
     const edge = [...blocksOf(['old', 'heights'])].sort((a, b) => Math.hypot(b.x + b.w / 2 - cx, b.y + b.h / 2 - cy) - Math.hypot(a.x + a.w / 2 - cx, a.y + a.h / 2 - cy) || a.col - b.col);
     for (const b of edge) {
@@ -300,8 +300,10 @@ function fill(p: Plat): Districts {
   /** Lays lots of [kinds] (picked by the seed) along face [f] of [b], [gap] tiles apart. */
   const face = (b: Block, f: Face, kinds: LotKind[], gap: (k: LotKind, i: number) => number, rotate = false): void => {
     if (!b.faces.includes(f)) return;
-    const len = faceLen(b, f);
-    let t = 0;
+    // (homes keep 2 tiles off a block's ends: a corner lot is a face's, never read as the side street's; shops run to the corner)
+    const m = kinds.includes('shop') ? 0 : 2;
+    const len = faceLen(b, f) - m;
+    let t = m;
     for (let i = 0; t < len; i++) {
       const want = kinds[Math.floor(R('kind', b.col, b.row, f, i) * kinds.length)]!;
       const tries: LotKind[] = [want, ...kinds.filter((k) => k !== want).sort((a, c) => SIZES[c].w - SIZES[a].w)];
@@ -328,7 +330,8 @@ function fill(p: Plat): Districts {
     switch (b.district) {
       case 'core': {
         face(b, mfb, k('shop'), () => 0);
-        face(b, bk, k('apartment', 'apartment', 'medium'), g(0, 1));
+        // (behind the shops: the old houses of the core's back street, a few apartment blocks among them)
+        face(b, bk, k('medium', 'medium', 'house', 'apartment'), g(1, 1));
         // the service alley behind the shops
         const ay = mfb === 'S' ? b.y + b.h - SIZES.shop.h - 3 : b.y + SIZES.shop.h;
         const alley = { x: b.x, y: ay, w: b.w, h: 3 };

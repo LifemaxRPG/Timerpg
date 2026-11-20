@@ -421,7 +421,9 @@ export function townGraph(seed: string, year: number): TownGraph {
       const pr = project(row.centre, cumOf(row.centre), [cx, cy]);
       return pr.off > 0;
     }) ?? pair.L;
-    const pf = project(pick.front, pick.cum, [cx, cy]);
+    // (placed by the middle of its front edge, on its road's side: by a bend, a deep plot's centre may lie nearer the other leg)
+    const fp: P = f.dir === 'S' ? [cx, r.y + r.h] : f.dir === 'N' ? [cx, r.y] : f.dir === 'E' ? [r.x + r.w, cy] : [r.x, cy];
+    const pf = project(pick.front, pick.cum, fp);
     const half = (f.dir === 'S' || f.dir === 'N') ? r.w / 2 : r.h / 2;
     const depthT = (f.dir === 'S' || f.dir === 'N') ? r.h : r.w;
     // the plot's front edge: its distance from the road's centre, less the 2 tiles of road and pavement
@@ -540,6 +542,7 @@ export function townGraph(seed: string, year: number): TownGraph {
   };
   const footprints: TownGraph['footprints'] = [];
   const lotsJson: LotJson[] = [];
+  const glbLaid = new Map<string, [number, number, number, number]>();
   const rowJson = new Map<Row, RowJson>();
   for (const row of rows) {
     const out: BuildingJson[] = [];
@@ -566,6 +569,8 @@ export function townGraph(seed: string, year: number): TownGraph {
       // (a lot with its car park in front begins behind it)
       let lotFront = plotFront;
       if (it.kind === 'shop') for (const x of row.items) if (x.kind === 'extra' && x.tier === 'parking' && x.foot.setback === 0 && x.x1 > it.x0 && x.x0 < it.x1) lotFront = Math.max(lotFront, x.e * SCALE + x.foot.depth * PX + 2);
+      // (a hand-made model's plot as laid out on its row: at the art's scale along it, as its neighbours stand)
+      if (it.kind === 'landmark' && it.lotId.startsWith('landmark:glb:')) glbLaid.set(it.sprite, boxOf(row, it.lx0, it.lx1, plotFront, plotBack));
       if (it.kind !== 'landmark' && it.kind !== 'extra') lotsJson.push({ id: it.lotId, sprite: it.sprite, row: row.id, rect: boxOf(row, it.lx0, it.lx1, lotFront, lotBack), kind: it.tier, neighbourhood: it.neighbourhood, yard: it.yard });
     }
     const pts = frontW(row);
@@ -607,11 +612,25 @@ export function townGraph(seed: string, year: number): TownGraph {
     .map((c) => ({ c, n: [rowsOf.get(c)!.L, rowsOf.get(c)!.R].reduce((s, r) => s + r.items.filter((i) => i.kind === 'landmark' && !i.lotId.startsWith('landmark:glb:')).length, 0) }))
     .sort((a, b) => b.n - a.n || a.c.id - b.c.id)[0]?.c ?? chains[0]!;
   const civicNode = isMainNode(civicChain.a) ? civicChain.a : civicChain.b;
-  const spawnRow = rowsOf.get(civicChain)!.L.from === civicNode ? rowsOf.get(civicChain)!.L : rowsOf.get(civicChain)!.R;
+  let spawnRow = rowsOf.get(civicChain)!.L.from === civicNode ? rowsOf.get(civicChain)!.L : rowsOf.get(civicChain)!.R;
   // by the plaza if it is on this row, else by the first building
   const pz = plan.plaza;
   const pzS = project(spawnRow.front, spawnRow.cum, [pz.x + pz.w / 2, pz.y + pz.h / 2]);
-  const spawnX = pzS.off > 0 && pzS.off < pz.w + FRONT_TILES + 2 ? pzS.s * SCALE : (spawnRow.items[0]?.x0 ?? MARGIN + 40);
+  let spawnX = pzS.off > 0 && pzS.off < pz.w + FRONT_TILES + 2 ? pzS.s * SCALE : (spawnRow.items[0]?.x0 ?? MARGIN + 40);
+  // the planned town: on Main Street in front of the civic block (the plaza and town hall, or the courthouse square),
+  // on its side of the street, at the block's middle
+  if (plan.v2) {
+    const civ = plan.v2.blocks.find((b) => b.col === 0 && b.row === -1)!;
+    const at: P = [civ.x + civ.w / 2, civ.y + civ.h / 2];
+    let best: { row: Row; s: number; d: number } | undefined;
+    for (const c of mains) for (const row of [rowsOf.get(c)!.L, rowsOf.get(c)!.R]) {
+      const q = project(row.front, row.cum, at);
+      // (its foot within the row's length, not past an end)
+      if (q.off <= 0 || q.s < 1 || q.s > row.length - 1) continue;
+      if (!best || q.off < best.d) best = { row, s: q.s, d: q.off };
+    }
+    if (best) { spawnRow = best.row; spawnX = best.s * SCALE; }
+  }
 
   // ---------------------------------------------------------------------------------------------- names
   const lineName = new Map<number, string>();
@@ -718,7 +737,7 @@ export function townGraph(seed: string, year: number): TownGraph {
     roads: chains.map((c) => ({ id: c.id, name: lineName.get(find(c.id))!, main: c.main, a: ids.get(c.a)!, b: ids.get(c.b)!, pts: c.pts.map(w3), width: MOUTH })),
     rows: rows.map((r) => ({ ...rowJson.get(r)!, from: ids.get(r.from)!, to: ids.get(r.to)! })),
     landmarks: [...layout.landmarks.map((l): TownMapJson['landmarks'][number] => ({ id: `landmark:${l.id}`, kind: l.id, name: l.name, sprite: landmarkSprite.get(l)!, art: landmarkArtKey(l), row: rowIdOfSprite.get(landmarkSprite.get(l)!) ?? '', rect: rectW(l), ...cinemaLandmark(l), ...storeLandmark(l) }))]
-      .concat(glbNow.filter((g) => rowIdOfSprite.has(g.sprite)).map((g) => ({ id: `landmark:${g.site.id}`, kind: g.tenure.kind, name: g.name, sprite: g.sprite, art: g.tenure.kind, row: rowIdOfSprite.get(g.sprite)!, rect: rectW(g.site.rect) }))),
+      .concat(glbNow.filter((g) => rowIdOfSprite.has(g.sprite)).map((g) => ({ id: `landmark:${g.site.id}`, kind: g.tenure.kind, name: g.name, sprite: g.sprite, art: g.tenure.kind, row: rowIdOfSprite.get(g.sprite)!, rect: glbLaid.get(g.sprite) ?? rectW(g.site.rect) }))),
     ...cinemaBlock(seed, year, layout),
     ...storesBlock(seed, year, layout),
     ...storeSitesBlock(seed, plan.landmarks, rectW),
@@ -726,7 +745,7 @@ export function townGraph(seed: string, year: number): TownGraph {
       id: g.site.id, landmark: `landmark:${g.site.id}`, kind: g.tenure.kind, name: g.name, state: g.state, ...(g.hide.length ? { hide: g.hide } : {}),
       opened: g.tenure.opened, ...(g.tenure.closed !== undefined ? { closed: g.tenure.closed } : {}), ...(g.tenure.gone !== undefined ? { gone: g.tenure.gone } : {}),
       ...(g.tenure.reuse ? { reuse: { from: g.tenure.reuse.from, as: g.tenure.reuse.as } } : {}), ...(g.tenure.variant !== undefined ? { variant: g.tenure.variant } : {}),
-      tiles: g.tiles, rect: rectW(g.site.rect), sprite: g.sprite, row: rowIdOfSprite.get(g.sprite)!, history: g.site.tenures,
+      tiles: g.tiles, rect: glbLaid.get(g.sprite) ?? rectW(g.site.rect), sprite: g.sprite, row: rowIdOfSprite.get(g.sprite)!, history: g.site.tenures,
     })) } : {}),
     extras: extras.filter((x) => rowIdOfSprite.has(x.sprite)).map((x) => ({ id: `extra:${x.id}`, sprite: x.sprite, kind: x.kind, name: x.name, row: rowIdOfSprite.get(x.sprite)!,
       storeys: x.storeys, built: x.built, ...(x.demolished !== undefined ? { demolished: x.demolished } : {}) })),

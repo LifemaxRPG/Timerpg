@@ -134,9 +134,10 @@ class BankTest {
     fun aChangedPersonsLinesGoStaleAndOnlyTheirs() {
         val d = gamma()
         val plan = BankPlan.of(d, DialogueEngine::keyOf)
-        // (650 prompts, 580 of them distinct: the same person at their shop and at home says the same)
+        // (every prompted topic of the town's people, most of them distinct: the same person at their shop and at home says the same)
         val n = plan.size
-        assertTrue(n in 500..650)
+        val total = d.npcs.sumOf { it.topics.count { t -> t.prompt != null } }
+        assertTrue("$n of $total", n in total * 8 / 10..total && n >= 300)
         val c = ReplyCache(tmp())
         for ((k, slot) in plan) c.putLine(k, "A line for $slot.", slot)
         val before = c.bank(plan)

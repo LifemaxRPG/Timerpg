@@ -145,7 +145,7 @@ object PropRules {
     const val CORNER = Crossroads.PAVE + Crossroads.KERB
 
     /** How busy each neighbourhood's pavements are (a multiplier on every chance), by its id. */
-    val density: Map<String, Float> = mapOf("old-town" to 1.25f, "heights" to .8f, "gardens" to 1f, "woodside" to .6f, "waterfront" to .9f)
+    val density: Map<String, Float> = mapOf("old-town" to 1.25f, "heights" to .8f, "gardens" to 1f, "woodside" to .6f, "waterfront" to .9f, "the-flats" to 1.1f)
 
     /** Landmarks that get bollards along their fronts (the civic buildings and the hotel). */
     private val civicKinds = setOf("school", "fire", "police", "hospital", "hotel", "clocktower", "townhall", "library", "museum", "church")
@@ -365,6 +365,8 @@ object PropRules {
             "gardens" -> intArrayOf(2, 1, 3, 2, 0)
             "woodside" -> intArrayOf(0, 2, 5, 3)
             "waterfront" -> intArrayOf(4, 1, 1, 5, 0)
+            // (across the tracks: plain black and silver boxes)
+            "the-flats" -> intArrayOf(0, 0, 5, 5, 1)
             else -> intArrayOf(0, 3, 1, 2, 4, 5)
         }
         return choices[(r * choices.size).toInt().coerceIn(0, choices.size - 1)]

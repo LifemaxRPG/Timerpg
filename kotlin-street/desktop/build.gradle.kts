@@ -48,6 +48,8 @@ tasks.register<Test>("crossroadsTest") {
     classpath = crossroadsTest.runtimeClasspath
     useJUnit()
     jvmArgs("-Djava.awt.headless=true")
+    // (the planned town's yards, baked all at once by YardKitTest: about 2.5 times the old town's)
+    maxHeapSize = "3g"
 }
 kotlin { jvmToolchain(21) }
 tasks.test { useJUnit() }

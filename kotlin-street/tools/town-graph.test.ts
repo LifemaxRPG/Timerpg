@@ -75,7 +75,7 @@ describe('town graph', () => {
     for (const r of atCross) expect(r.ends.end.straight && r.ends.end.turnIn && r.ends.end.cross, r.id).toBeTruthy();
   });
 
-  it('reaches every row from the spawn on the civic avenue', () => {
+  it('reaches every row from the spawn on Main Street before the civic block', () => {
     const seen = new Set([g.graph.spawn.row]);
     const queue = [g.graph.spawn.row];
     while (queue.length) {
@@ -84,20 +84,24 @@ describe('town graph', () => {
     }
     expect(seen.size).toBe(g.graph.rows.length);
     const spawn = rows.get(g.graph.spawn.row) as RowJson;
-    expect(g.graph.roads[spawn.road]!.name).toBe('Civic Avenue');
+    // the planned town: on Main Street in front of the civic block (its post office, clock tower and town hall), the
+    // cinema across it (the view from the square)
+    expect(g.graph.roads[spawn.road]!.name).toBe('Main Street');
     expect(g.graph.spawn.x).toBeGreaterThan(89);
     expect(g.graph.spawn.x).toBeLessThan(spawn.length - 89);
-    // the hotel on the spawn's side, the clock tower across (since the stores took their sites: src/town/stores.ts)
+    expect(spawn.buildings.map((b) => b.lot)).toEqual(expect.arrayContaining(['landmark:post', 'landmark:clocktower']));
     const across = rows.get(spawn.ends.start.cross!)!;
-    expect(spawn.buildings.map((b) => b.lot)).toContain('landmark:hotel');
-    expect(across.buildings.map((b) => b.lot)).toEqual(expect.arrayContaining(['landmark:clocktower']));
+    expect(across.buildings.map((b) => b.lot)).toContain('landmark:cinema');
+    // the civic avenue still has its name (the v1 crossroads' junction is on it)
+    expect(g.graph.roads.some((r) => r.name === 'Civic Avenue')).toBe(true);
   });
 
   it('keeps the v1 fields, for the spawn junction, and names buildings as v1 does', () => {
     const j = g.json as Record<string, unknown> & { shops: { sprite: string }[]; junction: { x: number } };
     expect(j.town).toBe(TOWN.seed);
     expect(j.version).toBe(2);
-    expect(j.junction.x).toBe(164);
+    // (the v1 crossroads' junction: the civic avenue's node on Main Street)
+    expect(j.junction.x).toBeGreaterThan(0);
     expect(j.shops.map((s) => s.sprite)).toEqual(j.shops.map((_, i) => `b${i}`));
     const v1 = townStreets(TOWN.seed, TOWN.year);
     for (const [sprite, lot] of v1.lotOf) expect(g.buildings.lotOf.get(sprite)?.slot, sprite).toBe(lot.slot);

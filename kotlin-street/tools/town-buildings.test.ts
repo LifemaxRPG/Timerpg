@@ -24,10 +24,11 @@ describe('town buildings', () => {
   it('leaves the street.json of other towns byte-identical (recorded before the split)', () => {
     const before: Record<string, string> = {
       // re-recorded when towns big enough got a cinema (src/town/cinema.ts), and again when every town got its stores
-      // (src/town/stores.ts: the general store and the market take main-street plots, the plan grows for the rest)
-      vale: 'a6aaceb05989fc466405c8e42fabde5e7512880d3253b5d149bfb263632f7338',
-      alpha: 'ba5b8d1aa39025dcdf6f15219917c4b6b1e080005e32436d7c1041d54a1f7ec7',
-      gamma: 'eea435175232496e4d8f768a9f22dd8bc34ceff49bc21cd5a6d2c1a767cce31d',
+      // (src/town/stores.ts: the general store and the market take main-street plots, the plan grows for the rest), and again
+      // for the planned town (src/town/plat.ts: the crossroads are Main Street and the civic avenue of the platted town)
+      vale: '8b787bac954462b00dab1b99e5151f6f762da6ccbf9b0914c137bb1aa7b2b270',
+      alpha: '01f097acd7dce08c6bd356f9debbc4df71abe42a973f145aff89ccd9a4070e3d',
+      gamma: '45ab3d2de5da31509fe1ea1fee023f6f87cca5e7707606eaffed08f05a9c6268',
     };
     for (const [seed, h] of Object.entries(before)) expect(sha(streetJson(seed)), seed).toBe(h);
   });

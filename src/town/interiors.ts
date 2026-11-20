@@ -33,7 +33,7 @@ export function planInterior(w: World, e: Entrance, zoneId?: string): RoomPlan {
   const lot = e.lot;
   const home = lot?.kind === 'house';
   const use = home ? (lot.tier === 'apartment' ? 'Apartment' : 'Home')
-    : e.landmark?.name ?? w.businesses[lot!.refId]!.kind;
+    : e.landmark?.name ?? w.businesses[lot!.refId]?.kind ?? lot!.label;
   const widths: Record<string, number> = { small:512, medium:576, house:640, villa:704, estate:768, apartment:640 };
   const W = home ? widths[lot.tier]! : e.landmark?.id === 'hotel' ? 832 : e.landmark ? 768 : 640;
   const H = home && lot.tier === 'small' ? 480 : e.landmark?.id === 'hotel' ? 704 : e.landmark ? 640 : 576;

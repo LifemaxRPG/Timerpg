@@ -17,41 +17,32 @@
       ]
     },
     {
-      "name": "Hill Road",
-      "buildings": [
-        "b8",
-        "b9",
-        "b10",
-        "b11",
-        "b12"
-      ]
+      "name": "Bridge Street",
+      "buildings": []
     }
   ],
   "junction": {
-    "x": 181,
-    "mainEast": [],
-    "crossEast": [
-      "b12",
-      "b11",
-      "b10",
-      "b9",
-      "b8"
-    ]
+    "x": 408,
+    "mainEast": [
+      "b8",
+      "b9"
+    ],
+    "crossEast": []
   },
   "shops": [
     {
-      "id": "b:gen:10:w:1956",
+      "id": "b:gen:19:c0>1967:1998",
       "sprite": "b0",
       "home": false,
-      "name": "Keller's Gym",
-      "kind": "Gym",
-      "owner": "June Keller",
+      "name": "Holloway's Bait Shop",
+      "kind": "Bait Shop",
+      "owner": "Betty Holloway",
       "colour": "blue",
       "parts": [
         {
-          "key": "shop_Gym_5",
+          "key": "shop_Bait_Shop_11",
           "w": 224,
-          "h": 160,
+          "h": 192,
           "y": 0
         },
         {
@@ -63,76 +54,18 @@
       ]
     },
     {
-      "id": "b:gen:17:c1:1986",
+      "id": "b:gen:14:c0:1987",
       "sprite": "b1",
       "home": false,
-      "name": "Radcliffe's Bank",
-      "kind": "Bank",
-      "owner": "Louise Radcliffe",
+      "name": "Okafor's Toy Store",
+      "kind": "Toy Store",
+      "owner": "John Nolan",
       "colour": "blue",
       "parts": [
         {
-          "key": "classic_bank_7",
+          "key": "shop_Shop_21",
           "w": 224,
           "h": 96,
-          "y": 0
-        },
-        {
-          "key": "middle_12",
-          "w": 224,
-          "h": 128,
-          "y": 96
-        },
-        {
-          "key": "roof_4",
-          "w": 224,
-          "h": 192,
-          "y": 224
-        }
-      ]
-    },
-    {
-      "id": "b:gen:7:w:1962",
-      "sprite": "b2",
-      "home": false,
-      "name": "Holloway's Bakery",
-      "kind": "Bakery",
-      "owner": "Clyde Holloway",
-      "colour": "blue",
-      "parts": [
-        {
-          "key": "shop_Bakery_5",
-          "w": 224,
-          "h": 160,
-          "y": 0
-        },
-        {
-          "key": "middle_8",
-          "w": 224,
-          "h": 128,
-          "y": 96
-        },
-        {
-          "key": "roof_4",
-          "w": 224,
-          "h": 192,
-          "y": 224
-        }
-      ]
-    },
-    {
-      "id": "b:gen:4:c0:1968",
-      "sprite": "b3",
-      "home": false,
-      "name": "Ellis's Bait Shop",
-      "kind": "Bait Shop",
-      "owner": "Howard Ingram",
-      "colour": "blue",
-      "parts": [
-        {
-          "key": "shop_Bait_Shop_7",
-          "w": 224,
-          "h": 192,
           "y": 0
         },
         {
@@ -156,22 +89,22 @@
       ]
     },
     {
-      "id": "b:gen:14:c0:1987",
-      "sprite": "b4",
+      "id": "b:gen:4:c0:1968",
+      "sprite": "b2",
       "home": false,
-      "name": "Okafor's Toy Store",
-      "kind": "Toy Store",
-      "owner": "John Nolan",
+      "name": "Ellis's Bait Shop",
+      "kind": "Bait Shop",
+      "owner": "Howard Ingram",
       "colour": "blue",
       "parts": [
         {
-          "key": "shop_Shop_21",
+          "key": "shop_Bait_Shop_7",
           "w": 224,
-          "h": 96,
+          "h": 192,
           "y": 0
         },
         {
-          "key": "middle_9",
+          "key": "middle_12",
           "w": 224,
           "h": 128,
           "y": 96
@@ -191,12 +124,99 @@
       ]
     },
     {
-      "id": "b:gen:15:c1:1992",
+      "id": "b:gen:10:w:1956",
+      "sprite": "b3",
+      "home": false,
+      "name": "Keller's Gym",
+      "kind": "Gym",
+      "owner": "June Keller",
+      "colour": "blue",
+      "parts": [
+        {
+          "key": "shop_Gym_5",
+          "w": 224,
+          "h": 160,
+          "y": 0
+        },
+        {
+          "key": "roof_4",
+          "w": 224,
+          "h": 192,
+          "y": 96
+        }
+      ]
+    },
+    {
+      "id": "b:gen:4",
+      "sprite": "b4",
+      "home": false,
+      "name": "Radcliffe's Gym",
+      "kind": "Gym",
+      "owner": "John Radcliffe",
+      "colour": "blue",
+      "parts": [
+        {
+          "key": "shop_Gym_7",
+          "w": 224,
+          "h": 160,
+          "y": 0
+        },
+        {
+          "key": "middle_8",
+          "w": 224,
+          "h": 128,
+          "y": 96
+        },
+        {
+          "key": "roof_4",
+          "w": 224,
+          "h": 192,
+          "y": 224
+        }
+      ]
+    },
+    {
+      "id": "b:gen:17:c2>1979:2022",
       "sprite": "b5",
       "home": false,
-      "name": "Pruitt's Bank",
+      "name": "Okafor's Bank",
       "kind": "Bank",
-      "owner": "Dorothy Pruitt",
+      "owner": "Mildred Okafor",
+      "colour": "blue",
+      "parts": [
+        {
+          "key": "classic_bank_7",
+          "w": 224,
+          "h": 96,
+          "y": 0
+        },
+        {
+          "key": "middle_9",
+          "w": 224,
+          "h": 128,
+          "y": 96
+        },
+        {
+          "key": "roof_4",
+          "w": 224,
+          "h": 192,
+          "y": 224
+        },
+        {
+          "key": "roofprop_15",
+          "w": 160,
+          "h": 96,
+          "y": 236
+        }
+      ]
+    },
+    {
+      "id": "b:gen:17:c1:1986",
+      "sprite": "b6",
+      "home": false,
+      "name": "Radcliffe's Bank",
+      "kind": "Bank",
+      "owner": "Louise Radcliffe",
       "colour": "blue",
       "parts": [
         {
@@ -206,7 +226,7 @@
           "y": 0
         },
         {
-          "key": "middle_6",
+          "key": "middle_4",
           "w": 224,
           "h": 128,
           "y": 96
@@ -216,28 +236,22 @@
           "w": 224,
           "h": 192,
           "y": 224
-        },
-        {
-          "key": "roofprop_14",
-          "w": 160,
-          "h": 96,
-          "y": 236
         }
       ]
     },
     {
-      "id": "b:gen:21:c0:2004",
-      "sprite": "b6",
+      "id": "b:gen:0",
+      "sprite": "b7",
       "home": false,
-      "name": "Vance's Gym",
-      "kind": "Gym",
-      "owner": "Walter Vance",
+      "name": "Brennan's Bait Shop",
+      "kind": "Bait Shop",
+      "owner": "William Pruitt",
       "colour": "blue",
       "parts": [
         {
-          "key": "shop_Gym_7",
+          "key": "shop_Bait_Shop_9",
           "w": 224,
-          "h": 160,
+          "h": 192,
           "y": 0
         },
         {
@@ -249,181 +263,68 @@
       ]
     },
     {
-      "id": "b:imm:1988:0:2016",
-      "sprite": "b7",
+      "id": "b:gen:7:w:1962",
+      "sprite": "b8",
       "home": false,
-      "name": "Haddad's Bank",
-      "kind": "Bank",
-      "owner": "Robert Haddad",
+      "name": "Holloway's Bakery",
+      "kind": "Bakery",
+      "owner": "Clyde Holloway",
       "colour": "blue",
       "parts": [
         {
-          "key": "classic_bank_11",
+          "key": "shop_Bakery_5",
           "w": 224,
-          "h": 96,
+          "h": 160,
           "y": 0
         },
         {
-          "key": "roof_6",
+          "key": "middle_10",
           "w": 224,
-          "h": 192,
+          "h": 128,
           "y": 96
         },
         {
-          "key": "roofprop_14",
-          "w": 160,
-          "h": 96,
-          "y": 108
+          "key": "roof_4",
+          "w": 224,
+          "h": 192,
+          "y": 224
         }
       ]
     },
     {
-      "id": "home:small:211,131",
-      "sprite": "b8",
-      "home": true,
-      "name": "The Singh home",
-      "kind": "Home",
-      "owner": "Carl Singh",
-      "residents": [
-        "Carl Singh"
-      ],
-      "colour": "gray",
-      "parts": [
-        {
-          "key": "house_small_6_c6",
-          "w": 192,
-          "h": 256,
-          "y": 0
-        }
-      ],
-      "house": {
-        "tier": "small",
-        "design": 6,
-        "colour": "c6"
-      },
-      "yard": {
-        "front": 2,
-        "style": "flower"
-      }
-    },
-    {
-      "id": "home:small:211,122",
+      "id": "b:gen:20:w:1974",
       "sprite": "b9",
-      "home": true,
-      "name": "The Ingram home",
-      "kind": "Home",
-      "owner": "Howard Ingram",
-      "residents": [
-        "Howard Ingram",
-        "Mildred Novak"
-      ],
-      "colour": "gray",
+      "home": false,
+      "name": "Underhill's Gym",
+      "kind": "Gym",
+      "owner": "Clyde Underhill",
+      "colour": "blue",
       "parts": [
         {
-          "key": "house_small_7_c8",
-          "w": 192,
-          "h": 256,
+          "key": "shop_Gym_3",
+          "w": 224,
+          "h": 160,
           "y": 0
-        }
-      ],
-      "house": {
-        "tier": "small",
-        "design": 7,
-        "colour": "c8"
-      },
-      "yard": {
-        "front": 2,
-        "style": "flower"
-      }
-    },
-    {
-      "id": "home:small:211,110",
-      "sprite": "b10",
-      "home": true,
-      "name": "The Haddad home",
-      "kind": "Home",
-      "owner": "Robert Haddad",
-      "residents": [
-        "Robert Haddad"
-      ],
-      "colour": "gray",
-      "parts": [
+        },
         {
-          "key": "house_small_4",
-          "w": 192,
+          "key": "middle_1",
+          "w": 224,
+          "h": 128,
+          "y": 96
+        },
+        {
+          "key": "roof_2",
+          "w": 224,
           "h": 192,
-          "y": 0
-        }
-      ],
-      "house": {
-        "tier": "small",
-        "design": 4,
-        "colour": ""
-      },
-      "yard": {
-        "front": 2,
-        "style": "flower"
-      }
-    },
-    {
-      "id": "home:medium:211,99",
-      "sprite": "b11",
-      "home": true,
-      "name": "Larsen House",
-      "kind": "Home",
-      "owner": "Henry Larsen",
-      "residents": [
-        "Margaret Reyes",
-        "Dorothy Larsen",
-        "Henry Larsen"
-      ],
-      "colour": "gray",
-      "parts": [
+          "y": 224
+        },
         {
-          "key": "house_medium_5_c8",
-          "w": 256,
-          "h": 256,
-          "y": 0
+          "key": "roofprop_13",
+          "w": 160,
+          "h": 96,
+          "y": 236
         }
-      ],
-      "house": {
-        "tier": "medium",
-        "design": 5,
-        "colour": "c8"
-      },
-      "yard": {
-        "front": 2,
-        "style": "flower"
-      }
-    },
-    {
-      "id": "home:small:211,91",
-      "sprite": "b12",
-      "home": true,
-      "name": "The Kowalski home",
-      "kind": "Home",
-      "owner": "Louise Kowalski",
-      "residents": [
-        "Louise Kowalski"
-      ],
-      "colour": "gray",
-      "parts": [
-        {
-          "key": "house_small_3_c6",
-          "w": 192,
-          "h": 192,
-          "y": 0
-        }
-      ],
-      "house": {
-        "tier": "small",
-        "design": 3,
-        "colour": "c6"
-      },
-      "yard": {
-        "front": 2,
-        "style": "flower"
-      }
+      ]
     }
   ]
 }

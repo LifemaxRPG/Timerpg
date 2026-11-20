@@ -93,6 +93,8 @@ const places: Map<string, Place> = whole ? placesIn(flag('--street') ?? asset, s
 /** The people to talk to at one building: a shop's owner, or a home's head and one other adult. */
 function talkAt(sprite: string, place: Record<string, unknown>): void {
   const lot = t.lotOf.get(sprite) ?? whole!.lotOf.get(sprite)!;
+  // (the town's other homes and shops: nobody to talk to yet)
+  if (lot.filler) { people.set(sprite, 0); return; }
   const add = (p: Person, role: string, building: string, job: string): void => {
     npcs.push({ id: p.id, name: fullName(p), first: p.first, age: ageIn(p, w.year), sex: p.sex, warmth: Math.round(p.traits.charm * 100) / 100, building: sprite, buildingName: building, ...place, role, job, topics: topicsOf(ctxOf(p, job)) });
   };
