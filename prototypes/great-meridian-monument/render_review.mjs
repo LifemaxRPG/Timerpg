@@ -835,7 +835,7 @@ const sheet = new Uint8Array(CW * CH * 4);
 fillRect(sheet, CW, CH, 0, 0, CW, CH, [14, 16, 22]);
 fillRect(sheet, CW, CH, PAD, PAD, INNER, HEADER_H - PAD - 6, [26, 30, 44]);
 drawText(sheet, CW, CH, 28, 22, 'THE GREAT MERIDIAN MONUMENT - REVISION 2 REVIEW SHEET (SOFTWARE RENDERS, HERO PANELS 832-1256PX)', [250, 226, 146], 2);
-drawText(sheet, CW, CH, 28, 48, '4 ERAS + MID LOD (4,982 TRIS) + FAR LOD (330 TRIS) | 8M GUARDIANS | 18M SPHERE | 3-TIER CROWN | 3 STONES | NOTE: NIGHT LIGHT POOLS & REFLECTION APPROXIMATED', [172, 214, 246], 2);
+drawText(sheet, CW, CH, 28, 48, '4 ERAS + MID LOD (5,042 TRIS) + FAR LOD (330 TRIS) | 8M GUARDIANS | 18M SPHERE | 3-TIER CROWN | 3 STONES | NOTE: NIGHT LIGHT POOLS & REFLECTION APPROXIMATED', [172, 214, 246], 2);
 
 function drawBanner(id, title, col) {
   const y = bandTop[id];
@@ -902,38 +902,41 @@ function drawBanner(id, title, col) {
 // ==============================================================================
 {
   const y0 = drawBanner('b3', '3. FOUR COLOSSAL 8M ART DECO GUARDIANS (LEDGES AT 44-52M):  TOP = CLOSE-UPS (ATTRIBUTES + 0.6M LEDGE NAMES)  |  BOTTOM = UPWARD SKY SILHOUETTE FROM GALLERY/PLAZA', [252, 218, 138]);
-  // Guardian ledge world centers: (sx * 196 * U, 44.0, CZ_M + sz * 196 * U) = (+/-15.21, 44.0, CZ_M +/-15.21)
+  // Guardian ledge world centers: (sx * 210 * U, 44.54, CZ_M + sz * 210 * U) = (+/-16.30, 44.54, CZ_M +/-16.30)
   const gSpecs = [
-    { sx: -1, sz: 1,  title: 'SW: DEFENSE (SWORD + SHIELD)',     upTitle: 'DEFENSE - UPWARD FROM SW PLAZA/GALLERY' },
-    { sx: 1,  sz: 1,  title: 'SE: LEARNING (OPEN BOOK + TORCH)', upTitle: 'LEARNING - UPWARD FROM SE PLAZA/GALLERY' },
-    { sx: -1, sz: -1, title: 'NW: INDUSTRY (HAMMER + GEAR)',     upTitle: 'INDUSTRY - UPWARD FROM NW PLAZA/GALLERY' },
-    { sx: 1,  sz: -1, title: 'NE: HARVEST (WHEAT + SICKLE)',     upTitle: 'HARVEST - UPWARD FROM NE PLAZA/GALLERY' },
+    { sx: -1, sz: 1,  title: 'SW: DEFENSE (SWORD + SHIELD)',     upTitle: 'DEFENSE - UPWARD SKY SILHOUETTE (PLAZA/GALLERY)' },
+    { sx: 1,  sz: 1,  title: 'SE: LEARNING (OPEN BOOK + TORCH)', upTitle: 'LEARNING - UPWARD SKY SILHOUETTE (PLAZA/GALLERY)' },
+    { sx: -1, sz: -1, title: 'NW: INDUSTRY (HAMMER + GEAR)',     upTitle: 'INDUSTRY - UPWARD SKY SILHOUETTE (PLAZA/GALLERY)' },
+    { sx: 1,  sz: -1, title: 'NE: HARVEST (WHEAT + SICKLE)',     upTitle: 'HARVEST - UPWARD SKY SILHOUETTE (PLAZA/GALLERY)' },
   ];
   for (let i = 0; i < 4; i++) {
     const g = gSpecs[i];
-    const gx = g.sx * 15.21;
-    const gz = CZ_M + g.sz * 15.21;
+    const gx = g.sx * 16.30;
+    const gz = CZ_M + g.sz * 16.30;
     const xPos = PAD + i * (W4 + PAD);
-    // Tight close-up right in front of the 45-degree diagonal 8 m guardian statue & ledge!
+    const invS2 = 0.70710678;
+    const dx = g.sx * invS2, dz = g.sz * invS2;
+    const tx = dz, tz = -dx;
+    // Heroic 3/4 sculptural close-up framing BOTH the 0.6 m granite ledge name AND Learning's full raised torch!
     const pClose = renderPanel(s2000, {
       width: W4, height: 440,
-      eye: [gx + g.sx * 7.2, 48.2, gz + g.sz * 7.2],
-      target: [gx, 47.6, gz],
-      fovDeg: 48,
-      sunDir: [g.sx * 0.48 + g.sz * 0.28, 0.72, g.sz * 0.48 - g.sx * 0.28],
-      skyTop: [48, 102, 176], skyBottom: [192, 218, 244],
+      eye: [gx + dx * 13.0 + tx * 2.8, 49.4, gz + dz * 13.0 + tz * 2.8],
+      target: [gx, 49.2, gz],
+      fovDeg: 52,
+      sunDir: [dx * 0.48 + tx * 0.58, 0.65, dz * 0.48 + tz * 0.58],
+      skyTop: [46, 98, 174], skyBottom: [190, 218, 244],
     });
     blit(sheet, CW, CH, pClose, xPos, y0);
     drawBadge(sheet, CW, CH, xPos + 8, y0 + 8, g.title, [252, 232, 162], 1);
 
-    // Upward dramatic silhouette view from the 24 m Cornice Gallery / Plaza diagonal!
+    // Upward dramatic sky-silhouette view from the 24 m gallery / plaza off-diagonal so full figure silhouettes against blue sky!
     const pUp = renderPanel(s2000, {
       width: W4, height: 390,
-      eye: [gx + g.sx * 13.5, 25.4, gz + g.sz * 13.5],
-      target: [gx, 47.6, gz],
-      fovDeg: 50,
-      sunDir: [g.sx * 0.45, 0.75, g.sz * 0.45],
-      skyTop: [46, 98, 174], skyBottom: [190, 218, 244],
+      eye: [gx + dx * 20.0 + tx * 11.0, 26.8, gz + dz * 20.0 + tz * 11.0],
+      target: [gx, 49.6, gz],
+      fovDeg: 38,
+      sunDir: [dx * 0.45 + tx * 0.62, 0.64, dz * 0.45 + tz * 0.62],
+      skyTop: [44, 96, 172], skyBottom: [188, 216, 244],
     });
     blit(sheet, CW, CH, pUp, xPos, y0 + 440 + PAD);
     drawBadge(sheet, CW, CH, xPos + 8, y0 + 440 + PAD + 8, g.upTitle, [176, 232, 255], 1);
@@ -1101,7 +1104,7 @@ function drawBanner(id, title, col) {
 // BAND 8 (ITEM 10): NEAR / MID / FAR SIDE-BY-SIDE + SOLID BLACK SILHOUETTES (128 / 64 / 32 PX)
 // ==============================================================================
 {
-  const y0 = drawBanner('b8', '10. LEVEL-OF-DETAIL & SILHOUETTE CHECK:  NEAR (27.7K) / MID (4,982) / FAR (330) AT IDENTICAL CAMERA  |  BLACK SILHOUETTES AT 128PX / 64PX / 32PX', [182, 236, 210]);
+  const y0 = drawBanner('b8', '10. LEVEL-OF-DETAIL & SILHOUETTE CHECK:  NEAR (29.0K) / MID (5,042) / FAR (330) AT IDENTICAL CAMERA  |  BLACK SILHOUETTES AT 128PX / 64PX / 32PX', [182, 236, 210]);
   // Left half (1256x480): Near, Mid, Far side-by-side at EXACT same camera & size!
   const lodW = Math.floor(W2 / 3);
   const lodCam = {
@@ -1111,8 +1114,8 @@ function drawBanner(id, title, col) {
     sunDir: [-0.44, 0.74, 0.50], skyTop: [54, 108, 178], skyBottom: [200, 224, 246],
   };
   const lodList = [
-    { sc: s2000, label: 'NEAR: 27,722 TRIS' },
-    { sc: sMid,  label: 'MID LOD: 4,982 TRIS' },
+    { sc: s2000, label: 'NEAR: 29,017 TRIS' },
+    { sc: sMid,  label: 'MID LOD: 5,042 TRIS' },
     { sc: sFar,  label: 'FAR LOD: 330 TRIS' },
   ];
   for (let i = 0; i < 3; i++) {
@@ -1136,8 +1139,8 @@ function drawBanner(id, title, col) {
   };
   const frontSil = { ...silCam, eye: [0.0, 53.0, CZ_M + 140.0], target: [0.0, 53.0, CZ_M] };
   const cols = [
-    { sc: s2000, title: 'NEAR MODEL (27.7K)', ox: 20 },
-    { sc: sMid,  title: 'MID LOD (4,982)',    ox: 438 },
+    { sc: s2000, title: 'NEAR MODEL (29.0K)', ox: 20 },
+    { sc: sMid,  title: 'MID LOD (5,042)',    ox: 438 },
     { sc: sFar,  title: 'FAR LOD (330)',      ox: 856 },
   ];
   const sizes = [

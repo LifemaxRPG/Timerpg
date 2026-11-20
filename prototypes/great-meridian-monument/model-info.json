@@ -16,7 +16,7 @@
     "cornice_gallery_24m": 24.06,
     "pier_setback_1": 33.99,
     "armillary_sphere_center": 40.97,
-    "guardian_ledges_44m": 44.0,
+    "guardian_ledges_44m": 44.54,
     "pier_setback_2": 46.02,
     "sky_observation_deck_58m": 58.04,
     "lantern_chamber_floor": 60.06,
@@ -34,7 +34,7 @@
       "label": "Dedication",
       "summary": "Clean limestone, glowing fresh orange-brown copper spire, cornice bunting swags, flagpole-base bunting, timber dedication stand, gas lamps, young trees.",
       "file": "great-meridian-1926.glb",
-      "visible_triangles_instanced": 26908,
+      "visible_triangles_instanced": 28203,
       "doors": {
         "door_main": [
           0.0,
@@ -113,7 +113,7 @@
       "label": "Mature / Wartime",
       "summary": "Slightly darkened stone with faint drips, streaky brown-green copper, 1941-1945 bronze war plaque, sandbags at main stairs, taped X-cross hall windows, mature trees.",
       "file": "great-meridian-1941.glb",
-      "visible_triangles_instanced": 26538,
+      "visible_triangles_instanced": 27833,
       "doors": {
         "door_main": [
           0.0,
@@ -192,7 +192,7 @@
       "label": "Worn / Stalled Repairs",
       "summary": "Heavy dark cornice drips, deep black-streaked green copper, paving weeds, chipped Industry gear, tarped SE pier scaffolding + chain-link fence, 'CLOSED FOR REPAIRS' North stair sawhorse, beacon off, 3 broken lamps, East telescope missing.",
       "file": "great-meridian-1976.glb",
-      "visible_triangles_instanced": 27038,
+      "visible_triangles_instanced": 28297,
       "doors": {
         "door_main": [
           0.0,
@@ -271,7 +271,7 @@
       "label": "Restored & Accessible",
       "summary": "Cleaned pale stone, restored streak-free bright verdigris copper, visible LED floodlight fixtures, East accessibility ramp, SW Visitor Centre, 1 m interpretive panels, trash bins, bike rack.",
       "file": "great-meridian-2000.glb",
-      "visible_triangles_instanced": 27722,
+      "visible_triangles_instanced": 29017,
       "doors": {
         "door_main": [
           0.0,
@@ -355,7 +355,7 @@
   },
   "mid_lod": {
     "file": "great-meridian-mid.glb",
-    "visible_triangles": 4982,
+    "visible_triangles": 5042,
     "distance_range_m": "500-2000"
   },
   "far_lod": {
@@ -1832,16 +1832,16 @@
         "source": "guardian_statue_industry",
         "category": "exterior",
         "center": [
-          -15.0544,
-          47.6464,
-          -75.0392
+          -16.296,
+          48.6552,
+          -76.2808
         ],
         "size": [
-          4.3456,
-          9.1568,
-          4.3456
+          4.656,
+          10.3984,
+          4.656
         ],
-        "height_top_m": 52.2248
+        "height_top_m": 53.8544
       },
       {
         "source": "cathedral_pier_wn",
@@ -1862,16 +1862,16 @@
         "source": "guardian_statue_defense",
         "category": "exterior",
         "center": [
-          -15.0544,
-          47.6464,
-          -44.9304
+          -16.296,
+          48.6552,
+          -43.6888
         ],
         "size": [
-          4.3456,
-          9.1568,
-          4.3456
+          4.656,
+          10.3984,
+          4.656
         ],
-        "height_top_m": 52.2248
+        "height_top_m": 53.8544
       },
       {
         "source": "cathedral_pier_ws",
@@ -1892,16 +1892,16 @@
         "source": "guardian_statue_harvest",
         "category": "exterior",
         "center": [
-          15.0544,
-          47.6464,
-          -75.0392
+          16.296,
+          48.6552,
+          -76.2808
         ],
         "size": [
-          4.3456,
-          9.1568,
-          4.3456
+          4.656,
+          10.3984,
+          4.656
         ],
-        "height_top_m": 52.2248
+        "height_top_m": 53.8544
       },
       {
         "source": "cathedral_pier_en",
@@ -1922,16 +1922,16 @@
         "source": "guardian_statue_learning",
         "category": "exterior",
         "center": [
-          15.0544,
-          47.6464,
-          -44.9304
+          16.296,
+          48.6552,
+          -43.6888
         ],
         "size": [
-          4.3456,
-          9.1568,
-          4.3456
+          4.656,
+          10.3984,
+          4.656
         ],
-        "height_top_m": 52.2248
+        "height_top_m": 53.8544
       },
       {
         "source": "cathedral_pier_es",

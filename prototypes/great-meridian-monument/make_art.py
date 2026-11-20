@@ -965,26 +965,74 @@ def make_inscriptions():
     c.draw_text(4 + 8, 174 + 83, "W", BRZ_SPEC, "5x7", scale=2, spacing=1, shadow=DEEP_INK)
 
     # 22. guardian_stone (192, 174, 64, 64) & guardian_stone_1976 (264, 174, 64, 64):
-    #     3-tone stepped carved Art Deco limestone with vertical folds, dark seam outlines & pale bleached top!
+    #     Smooth warm sculpted Art Deco ivory-limestone (NO column stripes!) with chiseled bevel edges,
+    #     subtle 3-tone carved planes, weather-bleached top highlight & 1976 dark vertical runoff streaks!
+    SCULPT_TOP = (242, 236, 222, 255)
+    SCULPT_HI  = (230, 222, 204, 255)
+    SCULPT_MID = (212, 202, 182, 255)
+    SCULPT_LOW = (188, 176, 156, 255)
+    SCULPT_RIM = (124, 114, 98, 255)
     for ox, streaked in ((192, False), (264, True)):
         for dy in range(64):
             for dx in range(64):
-                pleat = dx % 8
                 if dy in (0, 1):
-                    col = ASH_TOP  # weather-bleached pale top!
-                elif dy in (2, 3):
-                    col = ASH_HI
-                elif dy == 63 or pleat == 0:
-                    col = OUTLINE  # dark outline pixels where sculpted planes meet!
-                elif pleat in (1, 2):
-                    col = LIME_HI  # lit plane
-                elif pleat in (6, 7):
-                    col = LIME_SHD  # shadow plane
+                    col = SCULPT_TOP  # weather-bleached bright stone top
+                elif dy == 63 or dx == 0 or dx == 63:
+                    col = SCULPT_RIM  # subtle carved seam outline
+                elif dy < 12:
+                    col = SCULPT_HI if (h2(dx // 2, dy // 2, 701) > 45) else SCULPT_MID
+                elif dy > 52:
+                    col = SCULPT_LOW if (h2(dx // 2, dy // 2, 709) > 50) else SCULPT_MID
                 else:
-                    col = LIME_A  # mid plane
-                if streaked and h2(dx // 2, 13, 811) > 160 and dy > 6:
-                    col = (max(48, col[0] - 48), max(44, col[1] - 46), max(38, col[2] - 42), 255)
+                    n = h2(dx // 3, dy // 3, 719)
+                    col = SCULPT_HI if n > 195 else (SCULPT_LOW if n < 45 else SCULPT_MID)
+                if streaked and h2(dx // 2, 13, 811) > 152 and dy > 5:
+                    col = (max(54, col[0] - 54), max(48, col[1] - 50), max(42, col[2] - 46), 255)
                 c.put(ox + dx, 174 + dy, col)
+
+    # 22b. guardian_shadow (192, 250, 48, 48): natural carved limestone shadow tone for stern eye sockets,
+    #      under-chin recesses & sculpted Art Deco stone hair (noble chiselled stone, never flat charcoal!)
+    for dy in range(48):
+        for dx in range(48):
+            if dy == 0 or dx == 0 or dy == 47 or dx == 47:
+                col = (112, 102, 88, 255)
+            else:
+                n = h2(dx // 2, dy // 2, 733)
+                col = (164, 154, 138, 255) if n > 180 else ((136, 126, 110, 255) if n < 70 else (150, 140, 124, 255))
+            c.put(192 + dx, 250 + dy, col)
+
+    # 22c. guardian_leather (248, 250, 48, 48): rich dark saddle-brown forged work leather w/ bronze rivets
+    #      for Industry's waist apron & suspenders (warm sculptural contrast, not a flat black slab!)
+    for dy in range(48):
+        for dx in range(48):
+            if dy in (0, 1, 46, 47) or dx in (0, 1, 46, 47):
+                col = (62, 42, 28, 255)
+            elif (dx in (4, 43) and dy % 12 in (4, 5)):
+                col = BRZ_HI  # brass apron rivets
+            else:
+                n = h2(dx // 2, dy // 2, 743)
+                col = (112, 76, 48, 255) if n > 170 else ((84, 56, 36, 255) if n < 75 else (98, 66, 42, 255))
+            c.put(248 + dx, 250 + dy, col)
+
+    # 22d. guardian_drape (304, 250, 48, 48) & guardian_drape_1976 (360, 250, 48, 48):
+    #      Broad, soft 3-tone sculptural drapery folds (12-px wide flutes) for robes & cloaks only!
+    for ox, streaked in ((304, False), (360, True)):
+        for dy in range(48):
+            for dx in range(48):
+                flute = dx % 12
+                if dy in (0, 1):
+                    col = SCULPT_TOP
+                elif flute == 0:
+                    col = SCULPT_RIM
+                elif flute in (1, 2, 3):
+                    col = SCULPT_HI
+                elif flute in (9, 10, 11):
+                    col = SCULPT_LOW
+                else:
+                    col = SCULPT_MID
+                if streaked and h2(dx // 2, 17, 823) > 154 and dy > 4:
+                    col = (max(52, col[0] - 52), max(46, col[1] - 48), max(40, col[2] - 44), 255)
+                c.put(ox + dx, 250 + dy, col)
 
     # 23. scaffold_tarp (336, 174, 64, 64): 1976 weathered blue-grey canvas scaffolding tarp!
     for dy in range(64):
@@ -1060,6 +1108,10 @@ def make_inscriptions():
         "compass_rose_14m": [4, 174, 180, 180],
         "guardian_stone": [192, 174, 64, 64],
         "guardian_stone_1976": [264, 174, 64, 64],
+        "guardian_shadow": [192, 250, 48, 48],
+        "guardian_leather": [248, 250, 48, 48],
+        "guardian_drape": [304, 250, 48, 48],
+        "guardian_drape_1976": [360, 250, 48, 48],
         "scaffold_tarp": [336, 174, 64, 64],
         "sandbag_wall": [408, 174, 48, 28],
         "chain_fence": [408, 210, 48, 32],

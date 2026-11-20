@@ -232,6 +232,30 @@
       64,
       64
     ],
+    "guardian_shadow": [
+      192,
+      250,
+      48,
+      48
+    ],
+    "guardian_leather": [
+      248,
+      250,
+      48,
+      48
+    ],
+    "guardian_drape": [
+      304,
+      250,
+      48,
+      48
+    ],
+    "guardian_drape_1976": [
+      360,
+      250,
+      48,
+      48
+    ],
     "scaffold_tarp": [
       336,
       174,

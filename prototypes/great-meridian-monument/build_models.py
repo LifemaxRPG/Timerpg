@@ -672,7 +672,7 @@ def build_state(state_id):
     Y_T3 = 84.0        # 6.52 m Tier 3 Rotunda & Memorial Halls
     Y_CORNICE = 310.0  # 24.06 m Arch Block top & Cornice Gallery
     Y_SET1 = 438.0     # 33.99 m Pier Setback 1
-    Y_LEDGE = 567.0    # 44.00 m Guardian Corner Ledges (8 m statues -> 52.0 m!)
+    Y_LEDGE = 574.0    # 44.54 m Guardian Corner Ledges (8.2 m sculpted statues -> 53.3 m, proud against sky!)
     Y_SET2 = 593.0     # 46.02 m Pier Setback 2
     Y_DECK = 748.0     # 58.04 m Square Sky Observation Deck
     Y_L1_TOP = 864.0   # 67.05 m Crown Tier 1 top
@@ -1261,10 +1261,10 @@ def build_state(state_id):
             structure.add_panel_x(mz_m - 2.8, 446, mz_m + 2.8, 546, x_face + x_dir * 0.5, "+x" if sx > 0 else "-x", "glass_cathedral", "win_cathedral")
             structure.add_panel_x(mz_m - 0.85, 468, mz_m + 0.85, 496, x_face + x_dir * 0.9, "+x" if sx > 0 else "-x", "glow_monument", "pier_slot_glow", fit_region=True)
 
-            # COLOSSAL 8.0 m ART DECO GUARDIAN STATUE standing on a projecting dark-granite corner ledge (44-52 m),
-            # facing outward diagonally at 45 degrees so it silhouettes dramatically against the sky!
-            gx = sx * 194.0
-            gz = CZ + sz * 194.0
+            # COLOSSAL 8.2 m ART DECO GUARDIAN STATUE standing proud on a cantilevered dark-granite corner ledge
+            # (44.5-53.3 m), facing outward diagonally at 45 degrees so it silhouettes dramatically against open sky!
+            gx = sx * 210.0
+            gz = CZ + sz * 210.0
             yaw = math.atan2(sx, sz)  # SW=-45°, SE=+45°, NW=-135°, NE=+135°
             build_guardian_statue(structure, coll, gx, Y_LEDGE, gz, yaw, g_kind, state_id)
 
@@ -1932,7 +1932,7 @@ def main():
             "cornice_gallery_24m": round(310 * U, 2),
             "pier_setback_1": round(438 * U, 2),
             "armillary_sphere_center": round(528 * U, 2),
-            "guardian_ledges_44m": round(567 * U, 2),
+            "guardian_ledges_44m": round(574 * U, 2),
             "pier_setback_2": round(593 * U, 2),
             "sky_observation_deck_58m": round(748 * U, 2),
             "lantern_chamber_floor": round(774 * U, 2),

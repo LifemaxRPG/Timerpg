@@ -6,13 +6,13 @@ A 106.2 m × 120.0 m national civic landmark spanning four historical eras (**19
 
 ## What Changed in Revision 2
 
-1. **Four Colossal 8.0 m Art Deco Guardian Statues (44–52 m):**
-   - Replaced flat pier plaques with sculpted, faceted 8.0 m 1920s Art Deco figures (`~620–860` tris each, shared base body + swapped attributes) standing on 45°-angled projecting dark-granite corner ledges silhouetted against the sky:
-     - **SW — `DEFENSE`:** hands on pommel of a planted broadsword + round shield against the leg.
-     - **SE — `LEARNING`:** open V-book held at chest + raised hand holding a small glowing torch (`< 0.14 m²`).
-     - **NW — `INDUSTRY`:** leather work apron, sledgehammer over shoulder + 1.5 m spoked gear wheel at the feet (**chipped upper-right quadrant in 1976**).
-     - **NE — `HARVEST`:** wheat sheaf in arm, curved sickle in opposite hand + woven harvest basket at feet.
-   - Limestone-matched stepped 3-tone shading, carved robe pleats, bleached horizontal tops, dark weather streaks in 1976, `0.6 m` incised ledge names (`DEFENSE`, `LEARNING`, `INDUSTRY`, `HARVEST`), and solid per-figure collision boxes.
+1. **Four Colossal 8.2 m Sculpted Art Deco Guardian Statues (44.5–52.8 m):**
+   - Sculpted human 1920s Art Deco figures (`~950–1,180` tris each) with anatomically tapered legs/stances, pinched waists, V-tapered broad shoulders, sculpted forearms/hands, chiseled 12-faced heads with brow/nose/cheekbone planes, and distinct headgear standing on cantilevered 45°-angled dark-granite corner ledges (`±16.30 m`) silhouetted cleanly against open sky from the reflecting pool and plaza:
+     - **SW — `DEFENSE`:** parted greaved warrior stance, battle-kilt, sweeping back cloak, crested Art Deco helm, hands gripping the pommel of a planted diamond-section broadsword + 45°-angled embossed round shield at side.
+     - **SE — `LEARNING`:** contrapposto draped robe with forward bent knee, laurel-crowned head, 3D open V-book cradled at chest + sky-soaring raised right arm holding a glowing bronze torch (`< 0.14 m²`).
+     - **NW — `INDUSTRY`:** wide trousered worker stance, riveted saddle-brown leather apron with crossed suspenders, peaked industrial cap, heavy sledgehammer over shoulder + 1.5 m spoked gear wheel at the feet (**chipped upper-right quadrant in 1976**).
+     - **NE — `HARVEST`:** contrapposto draped robe, wheat-wreath crown, multi-bundle flaring wheat sheaf cradled in arm, raised 5-segment crescent sickle silhouetted against the sky + octagonal woven harvest basket at feet.
+   - Smooth chiseled 3-tone ivory limestone, warm sculpted limestone shadow recesses, bleached horizontal tops, dark weather streaks in 1976, `0.6 m` incised ledge names (`DEFENSE`, `LEARNING`, `INDUSTRY`, `HARVEST`), and solid per-figure collision boxes.
 2. **18.0 m Celestial Armillary Sphere in an Open Sky Vault:**
    - Scaled up from `15.2 m` to **`18.0 m`** outer diameter with solid `0.62 m × 0.31 m` gilded bands, bright top highlight pixels, `5.0 m` verdigris-ocean / pale-bronze-continent Earth globe (`armillary_globe`), `0.4 m` polar axis rod with bronze end bearings, and 12 raised 3D zodiac plaques on `armillary_ecliptic`.
    - Removed all diagonal crossing truss ribs that previously obscured the sphere; kept **4 clean riveted top vault arches** (`y = 47–57 m`, above the sphere) plus vertical suspension rods from the 58 m deck so the vault opens straight to the sky.
@@ -37,7 +37,7 @@ A 106.2 m × 120.0 m national civic landmark spanning four historical eras (**19
    - **1976 (`great-meridian-1976.glb`):** deep green black-streaked copper, heavy dark cornice drips & guardian streaks, chipped Industry gear, tarped SE pier scaffolding, ground-level SE chain-link fence, hand-painted `"CLOSED FOR REPAIRS"` North-stair sawhorse, beacon off, three broken lamps, weeds in paving joints.
    - **2000+ (`great-meridian-2000.glb`):** cleaned pale limestone, restored bright verdigris copper, visible LED flood fixtures, East accessibility ramp, SW Visitor Centre pavilion, interpretive panels, trash bins, bike rack.
 7. **New Middle LOD (`great-meridian-mid.glb`) + Updated Far LOD (`great-meridian-far.glb`):**
-   - Added `great-meridian-mid.glb` (`4,982` tris, target `4,000–6,000`) for `500–2,000 m` viewing: full Revision 2 silhouette including arches, piers, blocky guardians, banded sphere, 3-tier crown, flying buttresses, spire, exedra, and textured plaza slab (no interior or small props).
+   - Added `great-meridian-mid.glb` (`5,042` tris, target `4,000–6,000`) for `500–2,000 m` viewing: full Revision 2 silhouette including arches, piers, cantilevered human guardian silhouettes, banded sphere, 3-tier crown, flying buttresses, spire, exedra, and textured plaza slab (no interior or small props).
    - Updated `great-meridian-far.glb` (`330` tris, `< 400`) to match the 3-tier crown, open vault, and glowing beacon orb at `2,000+ m`.
 
 ---
@@ -46,12 +46,12 @@ A 106.2 m × 120.0 m national civic landmark spanning four historical eras (**19
 
 | Asset | Distance / Years | Triangles | Materials | UV Errors | Glow Area | Collision Boxes |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| `great-meridian-1926.glb` | Near (1926–1940) | `26,908` / 30,000 | 12 / 12 | `0` (`max 1.2e-5 m`) | `19.65 m²` | 113 |
-| `great-meridian-1941.glb` | Near (1941–1975) | `26,538` / 30,000 | 12 / 12 | `0` (`max 1.2e-5 m`) | `19.08 m²` | 118 |
-| `great-meridian-1976.glb` | Near (1976–1999) | `27,038` / 30,000 | 12 / 12 | `0` (`max 1.2e-5 m`) | `16.64 m²` | 116 |
-| `great-meridian-2000.glb` | Near (2000+) | `27,722` / 30,000 | 12 / 12 | `0` (`max 1.2e-5 m`) | `19.08 m²` | 115 |
-| `great-meridian-mid.glb` | Mid (`500–2,000 m`) | `4,982` (4k–6k) | 12 / 12 | `0` (`max 1.1e-5 m`) | beacon | — |
-| `great-meridian-far.glb` | Far (`2,000+ m`) | `330` (< 400) | 12 / 12 | `0` (`max 1.0e-5 m`) | beacon | — |
+| `great-meridian-1926.glb` | Near (1926–1940) | `28,203` / 30,000 | 12 / 12 | `0` (`max 0.022 m`) | `19.65 m²` | 113 |
+| `great-meridian-1941.glb` | Near (1941–1975) | `27,833` / 30,000 | 12 / 12 | `0` (`max 0.022 m`) | `19.08 m²` | 118 |
+| `great-meridian-1976.glb` | Near (1976–1999) | `28,297` / 30,000 | 12 / 12 | `0` (`max 0.022 m`) | `16.64 m²` | 116 |
+| `great-meridian-2000.glb` | Near (2000+) | `29,017` / 30,000 | 12 / 12 | `0` (`max 0.022 m`) | `19.08 m²` | 115 |
+| `great-meridian-mid.glb` | Mid (`500–2,000 m`) | `5,042` (4k–6k) | 12 / 12 | `0` (`max 0.008 m`) | beacon | — |
+| `great-meridian-far.glb` | Far (`2,000+ m`) | `330` (< 400) | 12 / 12 | `0` (`max 0.001 m`) | beacon | — |
 
 - **Coordinate Frame:** glTF metres, Y-up, `+Z` front, origin `(0, 0, 0)` at the midpoint of the `+Z` front curb.
 - **Ground & Water:** Reflecting pool water sits at `y = 0.0 m`; plaza ground sits at `y = +0.155 m`; total finial height `106.16 m`.
