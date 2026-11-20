@@ -11,7 +11,7 @@
         "rear_bin.001": 24
       },
       "uv_max_edge_error_m": 8.987426758366723e-07,
-      "bytes": 253344
+      "bytes": 253376
     },
     {
       "state": "drive-through",
@@ -26,7 +26,7 @@
         "rear_bin.001": 24
       },
       "uv_max_edge_error_m": 8.987426758366723e-07,
-      "bytes": 314504
+      "bytes": 314544
     }
   ],
   "art": "Exact 2x2 texel blocks, nearest/repeat PNGs, physical 0.0388m/texel UVs and atlas containment validated. Real faceted arch area and four clear teller pane areas verified.",

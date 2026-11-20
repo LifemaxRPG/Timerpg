@@ -6,7 +6,7 @@ R=Path(__file__).resolve().parent
 states=[json.loads((R/('state-'+s+'.json')).read_text()) for s in ['1920s','drive-through']]
 info=dict(states[0]);info['states']=states;info['default_state']='1920s';info['state_selection']='Choose one complete state from actual town history and available side land. The drive-through is eligible from 1965, never a forced event.'
 (R/'model-info.json').write_text(json.dumps(info,indent=2)+'\n')
-SHOTS=[('01-front-day','Stone portico, arched transom and repaintable frieze'),('02-blue-hour','Warm hall, bronze surrounds and lit lanterns'),('03-rear','Brick service side, open staff entry and finished roof'),('04-above','Complete shell, parapets and supported roof details'),('05-person-height','Open public entrance from pedestrian height'),('06-banking-hall','Four fixed teller wickets, offices and vault beyond')]
+SHOTS=[('01-front-day','Stone portico, arched transom and repaintable frieze'),('02-blue-hour','Warm hall, bronze surrounds and lit lanterns'),('03-rear','Matching stone rear, open staff entry and finished roof'),('04-above','Complete shell, parapets and supported roof details'),('05-person-height','Open public entrance from pedestrian height'),('06-banking-hall','Four fixed teller wickets, offices and vault beyond')]
 EXTRA=[('07-vault','Fixed vault: circular leaf, locking bars and handwheel'),('08-drive-through','1965+ addition: two lanes and pneumatic conduit'),('09-drive-lanes','Driver eye: separate terminals and clear canopy')]
 for n,_ in SHOTS+EXTRA:
  raw=R/'renders'/(n+'.png');clean=R/'renders'/(n+'-clean.png')

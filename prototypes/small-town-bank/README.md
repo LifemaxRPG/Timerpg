@@ -1,6 +1,6 @@
 # Small-town bank — two complete period states
 
-An original one-storey classical bank: ashlar stone street front, two tall columns, carved name frieze and a real faceted arched transom. Brick sides, rear staff entry, roof equipment and service apron finish the whole building. Inside are a high banking hall, four fixed teller wickets, two unfurnished offices and a fixed circular vault door with hinges, locking bars and a three-spoke wheel.
+An original one-storey classical bank: ashlar stone street front, two tall columns, carved name frieze and a real faceted arched transom. Matching ashlar stone sides and rear, staff entry, roof equipment and service apron finish the whole building. Inside are a high banking hall, four fixed teller wickets, two unfurnished offices and a fixed circular vault door with hinges, locking bars and a three-spoke wheel.
 
 | File | Visual state | Visible triangles | Materials |
 | --- | --- | ---: | ---: |

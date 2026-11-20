@@ -10,6 +10,7 @@
   "units": "metres",
   "axes": "glTF Y up; public entrance +Z",
   "origin": "Grade at centre of original front stone wall. Both states retain the same origin and original door anchors.",
+  "exterior_walls": "Matching ashlar stone on front, sides, rear and parapets",
   "main_footprint_m": [
     13.968,
     18.0032
@@ -304,6 +305,7 @@
       "units": "metres",
       "axes": "glTF Y up; public entrance +Z",
       "origin": "Grade at centre of original front stone wall. Both states retain the same origin and original door anchors.",
+      "exterior_walls": "Matching ashlar stone on front, sides, rear and parapets",
       "main_footprint_m": [
         13.968,
         18.0032
@@ -598,6 +600,7 @@
       "units": "metres",
       "axes": "glTF Y up; public entrance +Z",
       "origin": "Grade at centre of original front stone wall. Both states retain the same origin and original door anchors.",
+      "exterior_walls": "Matching ashlar stone on front, sides, rear and parapets",
       "main_footprint_m": [
         13.968,
         18.0032
