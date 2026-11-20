@@ -1,0 +1,114 @@
+{
+  "front_wide": {
+    "rect_art": [
+      0,
+      0,
+      52,
+      32
+    ]
+  },
+  "front_small": {
+    "rect_art": [
+      56,
+      0,
+      36,
+      32
+    ]
+  },
+  "side_display": {
+    "rect_art": [
+      0,
+      40,
+      64,
+      32
+    ]
+  },
+  "upper": {
+    "rect_art": [
+      96,
+      0,
+      20,
+      28
+    ]
+  },
+  "service": {
+    "rect_art": [
+      120,
+      0,
+      24,
+      20
+    ]
+  },
+  "corner_sidelight": {
+    "rect_art": [
+      148,
+      0,
+      9,
+      28
+    ]
+  },
+  "side_small": {
+    "rect_art": [
+      164,
+      0,
+      24,
+      28
+    ]
+  },
+  "cabinet": {
+    "rect_art": [
+      0,
+      0,
+      128,
+      128
+    ]
+  },
+  "board": {
+    "rect_art": [
+      128,
+      0,
+      64,
+      64
+    ]
+  },
+  "seat": {
+    "rect_art": [
+      128,
+      64,
+      32,
+      32
+    ]
+  },
+  "basin": {
+    "rect_art": [
+      164,
+      64,
+      6,
+      8
+    ]
+  },
+  "louver": {
+    "rect_art": [
+      176,
+      64,
+      24,
+      16
+    ]
+  },
+  "nameplate": {
+    "rect_art": [
+      0,
+      0,
+      100,
+      16
+    ]
+  },
+  "blade": {
+    "rect_art": [
+      0,
+      24,
+      18,
+      50
+    ]
+  }
+}

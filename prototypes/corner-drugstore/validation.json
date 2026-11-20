@@ -1,0 +1,86 @@
+{
+  "states": [
+    {
+      "state": "family",
+      "file": "corner-drugstore-family.glb",
+      "triangles": 5222,
+      "materials": 12,
+      "doors": 3,
+      "collision_boxes": 21,
+      "fountain_stools": 8,
+      "props": {
+        "fixed_stool_1": 128,
+        "fixed_stool_2": 128,
+        "fixed_stool_3": 128,
+        "fixed_stool_4": 128,
+        "fixed_stool_5": 128,
+        "fixed_stool_6": 128,
+        "fixed_stool_7": 128,
+        "fixed_stool_8": 128,
+        "service_bin": 24,
+        "service_bin.001": 24
+      },
+      "uv_max_edge_error_m": 2.009582519946207e-06,
+      "bytes": 412652
+    },
+    {
+      "state": "retail",
+      "file": "corner-drugstore-retail.glb",
+      "triangles": 3352,
+      "materials": 12,
+      "doors": 3,
+      "collision_boxes": 11,
+      "fountain_stools": 0,
+      "props": {
+        "service_bin": 24,
+        "service_bin.001": 24
+      },
+      "uv_max_edge_error_m": 2.009582519946207e-06,
+      "bytes": 279260
+    },
+    {
+      "state": "closed",
+      "file": "corner-drugstore-closed.glb",
+      "triangles": 3448,
+      "materials": 12,
+      "doors": 3,
+      "collision_boxes": 11,
+      "fountain_stools": 0,
+      "props": {
+        "service_bin": 24,
+        "service_bin.001": 24
+      },
+      "uv_max_edge_error_m": 2.009582519946207e-06,
+      "bytes": 285560
+    },
+    {
+      "state": "cafe",
+      "file": "corner-drugstore-cafe.glb",
+      "triangles": 5222,
+      "materials": 12,
+      "doors": 3,
+      "collision_boxes": 21,
+      "fountain_stools": 8,
+      "props": {
+        "fixed_stool_1": 128,
+        "fixed_stool_2": 128,
+        "fixed_stool_3": 128,
+        "fixed_stool_4": 128,
+        "fixed_stool_5": 128,
+        "fixed_stool_6": 128,
+        "fixed_stool_7": 128,
+        "fixed_stool_8": 128,
+        "service_bin": 24,
+        "service_bin.001": 24
+      },
+      "uv_max_edge_error_m": 2.009582519946207e-06,
+      "bytes": 412452
+    }
+  ],
+  "art": "Actual embedded PNGs are exact 2x2 texel blocks, with nearest/repeat sampling, physical 0.0388m/texel UVs and contained atlas regions.",
+  "architecture": "Both common floor areas, original ceiling, state-specific dropped ceiling, all 26 tread rectangles and all three open thresholds (including the diagonal corner) verified.",
+  "variants": "Brick/roof shell and all door anchors match exactly. Family/cafe have eight fixed stools and the original fountain group; retail/closed omit them. Closed emission is zero.",
+  "collision": "Every glTF Y-up metadata box matches actual exported collision corners and its supporting-floor height. Exterior thresholds have no gate boxes.",
+  "runtime": "State selection, business facts, restored-counter provenance, upper-floor/stair navigation, glTF collision parsing and lighting remain game integration work.",
+  "renders": "Actual Blender desktop previews, not Filament/S25 captures."
+}
