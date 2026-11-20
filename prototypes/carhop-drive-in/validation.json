@@ -1,0 +1,55 @@
+{
+  "states": [
+    {
+      "state": "original",
+      "visible_triangles": 2594,
+      "materials": 12,
+      "embedded_images": 13,
+      "max_uv_edge_error_m": 1.2817553809441051e-06,
+      "glow_geometry_area_m2": 3.55283,
+      "glass_area_m2": 25.29139,
+      "collision_boxes": 33,
+      "largest_optional_prop_triangles": 156,
+      "picnic_tables": 0,
+      "menu_speakers": 8,
+      "open_exterior_doors": 2
+    },
+    {
+      "state": "closed",
+      "visible_triangles": 2920,
+      "materials": 11,
+      "embedded_images": 11,
+      "max_uv_edge_error_m": 1.2817382781804554e-06,
+      "glow_geometry_area_m2": 3.55283,
+      "glass_area_m2": 0,
+      "collision_boxes": 33,
+      "largest_optional_prop_triangles": 156,
+      "picnic_tables": 0,
+      "menu_speakers": 8,
+      "open_exterior_doors": 2
+    },
+    {
+      "state": "restored",
+      "visible_triangles": 3050,
+      "materials": 12,
+      "embedded_images": 13,
+      "max_uv_edge_error_m": 1.2817553809441051e-06,
+      "glow_geometry_area_m2": 3.55283,
+      "glass_area_m2": 16.81275,
+      "collision_boxes": 37,
+      "largest_optional_prop_triangles": 156,
+      "picnic_tables": 4,
+      "menu_speakers": 8,
+      "open_exterior_doors": 2
+    }
+  ],
+  "checks": [
+    "Actual GLB triangles, embedded images, nearest/repeat samplers and exact 2x2 art blocks.",
+    "UV edge distances retain 0.0388m/texel; paving vertex colours survive export.",
+    "Grade, all collision corners, full-height boxes, clear and supported same-frame door anchors.",
+    "Reference car slots clear menu cases and canopy columns; eight speaker nodes exist in each state.",
+    "Closed has no glass geometry or emission; four removable picnic-table props occur only in restored."
+  ],
+  "renders": "Blender desktop previews, not Filament/S25 captures.",
+  "integration": "Asset validation only; game state selection, runtime collisions, furniture, navigation and lighting need integration."
+}

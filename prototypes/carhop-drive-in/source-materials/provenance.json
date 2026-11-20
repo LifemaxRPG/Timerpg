@@ -1,0 +1,147 @@
+{
+  "licence": "Shared LimeZu swatches retained for Timerpg only. Original geometry and supplemental pixel art.",
+  "swatches": [
+    {
+      "id": "block_courses",
+      "rect": [
+        66,
+        113,
+        48,
+        48
+      ],
+      "entry": {
+        "id": "block_courses",
+        "family": "wall",
+        "pack": "paint",
+        "paint": "brickbig",
+        "rect": [
+          0,
+          0,
+          48,
+          48
+        ],
+        "seam": "none",
+        "tags": [
+          "block",
+          "tone",
+          "painted"
+        ],
+        "wrap": "xy",
+        "size": [
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "id": "roof_membrane_grey",
+      "rect": [
+        99,
+        0,
+        32,
+        32
+      ],
+      "entry": {
+        "id": "roof_membrane_grey",
+        "family": "roof",
+        "pack": "exteriors",
+        "file": "24_Additional_Houses_32x32.png",
+        "rect": [
+          300,
+          5380,
+          32,
+          32
+        ],
+        "tags": [
+          "flat",
+          "membrane"
+        ],
+        "wrap": "xy"
+      }
+    },
+    {
+      "id": "asphalt_worn",
+      "rect": [
+        0,
+        113,
+        32,
+        32
+      ],
+      "entry": {
+        "id": "asphalt_worn",
+        "family": "ground",
+        "pack": "paint",
+        "paint": "asphalt_worn",
+        "rect": [
+          0,
+          0,
+          32,
+          32
+        ],
+        "seam": "none",
+        "tags": [
+          "carpark",
+          "painted"
+        ],
+        "wrap": "xy",
+        "size": [
+          32,
+          32
+        ]
+      }
+    },
+    {
+      "id": "pavement",
+      "rect": [
+        171,
+        66,
+        32,
+        32
+      ],
+      "entry": {
+        "id": "pavement",
+        "family": "ground",
+        "pack": "exteriors",
+        "pick": {
+          "glob": "2_City_Terrains_Singles_32x32/*Sidewalk_1_*.png",
+          "opaque": true,
+          "lum": [
+            150,
+            255
+          ]
+        },
+        "tags": [
+          "sidewalk",
+          "concrete"
+        ],
+        "wrap": "xy"
+      }
+    },
+    {
+      "id": "plank_horizontal",
+      "rect": [
+        0,
+        66,
+        32,
+        32
+      ],
+      "entry": {
+        "id": "plank_horizontal",
+        "family": "wood",
+        "pack": "exteriors",
+        "file": "11_Camping_32x32.png",
+        "rect": [
+          132,
+          486,
+          32,
+          32
+        ],
+        "tags": [
+          "plank",
+          "deck"
+        ],
+        "wrap": "xy"
+      }
+    }
+  ]
+}
