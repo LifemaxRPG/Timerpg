@@ -1,0 +1,29 @@
+{
+  "licence": "LimeZu: Timerpg game use only; retain original credit. Original geometry and supplemental steel/sign/gravel artwork.",
+  "swatches": [
+    {
+      "x": 171,
+      "y": 66,
+      "w": 32,
+      "h": 32,
+      "entry": {
+        "id": "pavement",
+        "family": "ground",
+        "pack": "exteriors",
+        "pick": {
+          "glob": "2_City_Terrains_Singles_32x32/*Sidewalk_1_*.png",
+          "opaque": true,
+          "lum": [
+            150,
+            255
+          ]
+        },
+        "tags": [
+          "sidewalk",
+          "concrete"
+        ],
+        "wrap": "xy"
+      }
+    }
+  ]
+}
