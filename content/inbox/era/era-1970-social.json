@@ -1,0 +1,305 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1970,
+  "topic": "social",
+  "facts": [
+    {
+      "id": "1970-social-01",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "School clubs organize dances in the gym with teachers serving as chaperones.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-02",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Teenagers arrange dates by calling the family telephone and asking to speak to someone.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-03",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Couples often meet for dates at a diner or local movie theater.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-04",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Some young couples attend group outings before going on dates alone.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-05",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Families hold wedding receptions in church halls or community rooms.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-06",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Relatives travel to weddings and stay overnight with family when rooms are scarce.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-07",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A wedding party may decorate the newlyweds' car with ribbons and signs.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-08",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Church congregations gather for potluck suppers and holiday programs.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-09",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Sunday school classes meet before or after worship services in many congregations.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-10",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Volunteer fire departments host fundraising suppers and community gatherings.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-11",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Parents join school organizations to raise money for classroom supplies and activities.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-12",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Local service clubs sponsor pancake breakfasts and charity drives.",
+      "ages": "adults",
+      "use": [
+        "newspaper",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-13",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Neighbors bring folding chairs to watch a town parade.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-14",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Families visit county fairs to see livestock exhibits and homemade crafts.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-15",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Teenagers gather at skating rinks for music and socializing.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-16",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Some young adults attend dances at community centers on weekend evenings.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-17",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "School sports games bring students, parents, and alumni together in the stands.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-18",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A student council plans spirit week activities and school fundraisers.",
+      "ages": "teens",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-19",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Children join scouting groups for camping trips, badges, and community projects.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-20",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Some families host backyard cookouts for neighbors during summer weekends.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-21",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Friends arrange visits in advance because dropping by may find nobody home.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-22",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Neighbors exchange invitations to graduation parties and anniversary celebrations.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-23",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Some young adults choose to live together before marriage despite disapproval from older neighbors.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-24",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Women increasingly join local committees and civic groups that once had mostly male members.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-25",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "Older residents sometimes disagree with younger neighbors about dating customs and family roles.",
+      "ages": "elders",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1970-social-26",
+      "year_from": 1970,
+      "year_to": 1979,
+      "text": "A town library hosts children's story hours and occasional community talks.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "newspaper"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
