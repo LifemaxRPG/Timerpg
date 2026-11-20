@@ -1,0 +1,297 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1950,
+  "topic": "events",
+  "facts": [
+    {
+      "id": "1950-events-01",
+      "year_from": 1950,
+      "year_to": 1950,
+      "text": "The fighting overseas that began in summer brings new military service notices to families.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-02",
+      "year_from": 1950,
+      "year_to": 1953,
+      "text": "Families listen for reports about the war on the Korean peninsula.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-03",
+      "year_from": 1951,
+      "year_to": 1951,
+      "text": "Civil defense volunteers practice responding to possible air attacks.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-04",
+      "year_from": 1951,
+      "year_to": 1954,
+      "text": "Schools sometimes hold air raid drills as communities prepare for emergencies.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-05",
+      "year_from": 1952,
+      "year_to": 1952,
+      "text": "Families follow the presidential election results on election night.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-06",
+      "year_from": 1952,
+      "year_to": 1953,
+      "text": "A nationwide steel strike disrupts supplies for some manufacturers and building projects.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-07",
+      "year_from": 1953,
+      "year_to": 1953,
+      "text": "The end of fighting in Korea brings relief, though families know peace is not formally settled.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-08",
+      "year_from": 1953,
+      "year_to": 1954,
+      "text": "Newspapers report that the polio epidemic remains a worry for parents.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-09",
+      "year_from": 1954,
+      "year_to": 1954,
+      "text": "A major court ruling challenges segregation in public schools.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-10",
+      "year_from": 1954,
+      "year_to": 1955,
+      "text": "Communities debate how and when to change school arrangements after the court ruling.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-11",
+      "year_from": 1955,
+      "year_to": 1955,
+      "text": "Parents hear news of a new polio vaccine becoming available.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-12",
+      "year_from": 1955,
+      "year_to": 1957,
+      "text": "Families ask local doctors about polio vaccination for their children.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-13",
+      "year_from": 1955,
+      "year_to": 1956,
+      "text": "A bus boycott in a southern city becomes national news.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-14",
+      "year_from": 1956,
+      "year_to": 1956,
+      "text": "Congress approves a major program to build interstate highways.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-15",
+      "year_from": 1956,
+      "year_to": 1959,
+      "text": "Residents watch road crews survey land for new highway routes.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-16",
+      "year_from": 1956,
+      "year_to": 1957,
+      "text": "News of unrest in eastern Europe reaches households through radio reports.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-17",
+      "year_from": 1956,
+      "year_to": 1956,
+      "text": "The presidential election brings campaign signs and conversations to town.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-18",
+      "year_from": 1957,
+      "year_to": 1957,
+      "text": "A satellite launched into orbit makes the space race a topic of conversation.",
+      "ages": "all",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-19",
+      "year_from": 1957,
+      "year_to": 1957,
+      "text": "National news follows the integration of a southern high school under federal protection.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-20",
+      "year_from": 1957,
+      "year_to": 1959,
+      "text": "Schoolchildren study the new space age and imagine future journeys beyond earth.",
+      "ages": "kids",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-21",
+      "year_from": 1958,
+      "year_to": 1958,
+      "text": "A new federal space agency begins coordinating civilian space research.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-22",
+      "year_from": 1958,
+      "year_to": 1958,
+      "text": "A recession leaves some workers facing layoffs and shorter hours.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-23",
+      "year_from": 1958,
+      "year_to": 1959,
+      "text": "Families hear news of American satellites entering orbit.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-24",
+      "year_from": 1959,
+      "year_to": 1959,
+      "text": "Two new states join the union, changing the number of stars expected on future flags.",
+      "ages": "all",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-25",
+      "year_from": 1959,
+      "year_to": 1959,
+      "text": "National news reports a revolution in a Caribbean island nation.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-events-26",
+      "year_from": 1959,
+      "year_to": 1959,
+      "text": "Families follow reports about a visit between the American president and the Soviet leader.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
