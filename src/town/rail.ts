@@ -472,6 +472,35 @@ function layRail(w: RailWorld, site: TownSite, plan: TownPlan, extra: readonly R
     const a = ports.get(l0.id)!.at, b = ports.get(l1.id)!.at;
     const direct = lay(a, cellGoal(b), b, b, false);
     let p: Pt[] | null = null;
+    // the planned town: the line runs straight down its rail band from end to end, past the depot at the foot of Depot
+    // Street (Main Street's in a T-plan), its legs joining the band's ends round the town
+    if (band && !out.depot && direct) {
+      const r = band.rect, hz = band.horizontal;
+      const lo = hz ? Math.max(r.x, bx0 - 8) : Math.max(r.y, by0 - 8), hi = hz ? Math.min(r.x + r.w, bx1 + 8) : Math.min(r.y + r.h, by1 + 8);
+      const E0: Pt = hz ? { x: lo, y: band.track } : { x: band.track, y: lo }, E1: Pt = hz ? { x: hi, y: band.track } : { x: band.track, y: hi };
+      const st = strips().find((q) => (hz ? q.dy === 0 && Math.abs(q.s0.y - band.track) <= 1.5 : q.dx === 0 && Math.abs(q.s0.x - band.track) <= 1.5));
+      let best: { leg0: Pt[]; leg1: Pt[]; c0: Pt[]; c1: Pt[]; s0: Pt; s1: Pt; L: number } | null = null;
+      if (st) for (const flip of [false, true]) {
+        const s0 = flip ? E1 : E0, s1 = flip ? E0 : E1;
+        const c0 = search(a, cellGoal(s0), s0); if (!c0) continue;
+        const c1 = search(s1, cellGoal(b), b); if (!c1) continue;
+        const leg0 = tighten([a, ...c0.slice(1, -1), s0]), leg1 = tighten([s1, ...c1.slice(1, -1), b]);
+        const L = len(leg0) + len(leg1);
+        if (!best || L < best.L) best = { leg0, leg1, c0, c1, s0, s1, L };
+      }
+      if (st && best) {
+        const { leg0, leg1, c0, c1, s0, s1 } = best;
+        mark(c0); mark(c1);
+        const dx = Math.sign(s1.x - s0.x), dy = Math.sign(s1.y - s0.y);
+        for (let t = 0, n = Math.hypot(s1.x - s0.x, s1.y - s0.y); t <= n; t += 1) taken[Math.min(GH - 1, Math.floor((s0.y + dy * t) / CELL)) * GW + Math.min(GW - 1, Math.floor((s0.x + dx * t) / CELL))] = 1;
+        const mid = { x: (st.s0.x + st.s1.x) / 2, y: (st.s0.y + st.s1.y) / 2 };
+        const rc = { x: st.rect.x + st.rect.w / 2 - mid.x, y: st.rect.y + st.rect.h / 2 - mid.y };
+        const side: 1 | -1 = rc.x * dy - rc.y * dx > 0 ? 1 : -1;
+        out.depot = { rect: st.rect, at: mid, dx, dy, side, built: builtYear };
+        const r0 = leg0.slice(0, -1), r1 = leg1.slice(1);
+        p = round([...r0, s0, mid, s1, ...r1]);
+      }
+    }
     if (!out.depot && direct) {
       for (const st of strips()) {
         // (the stretch is run the way that needs no doubling back: each leg meets it along its own way, and of the two
@@ -613,8 +642,9 @@ function layRail(w: RailWorld, site: TownSite, plan: TownPlan, extra: readonly R
   if (out.depot) {
     const d = out.depot;
     const nx = -d.dy * d.side, ny = d.dx * d.side; // away from the depot
-    const OFF = 4, LEN = 30;
-    for (const shift of [6, -6 - LEN, 14, -14 - LEN]) {
+    const OFF = 4;
+    // (further along the line, and shorter, where the depot's block is short: the planned town's band between its streets)
+    for (const [shift, LEN] of [[6, 30], [-36, 30], [14, 30], [-44, 30], [6, 20], [-26, 20], [24, 20], [-44, 20], [40, 20], [-60, 20]] as [number, number][]) {
       const a = { x: d.at.x + d.dx * shift + nx * OFF, y: d.at.y + d.dy * shift + ny * OFF };
       const b = { x: a.x + d.dx * LEN, y: a.y + d.dy * LEN };
       if (!clearSeg(a, b) || roadsOn(a, b) > 0) continue;

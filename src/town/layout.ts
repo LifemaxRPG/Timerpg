@@ -305,6 +305,8 @@ export function layoutTown(w: World): TownLayout {
     });
   for (const l of plan.landmarks) {
     if (w.year >= l.openYear) continue;
+    // (a downtown plot waits as a vacant lot, not woods: the export lays its gravel)
+    if (plan.v2?.reserved.some((q) => q.id === `landmark:${l.id}` && q.district === 'core')) continue;
     const n = 6 + Math.round((l.w * l.h) / 25);
     for (let i = 0; i < n; i++) {
       const r3 = rand(w.seed, 'lm-k', l.id, i);

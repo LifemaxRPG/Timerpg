@@ -136,7 +136,8 @@ export function platTown(seed: string): Plat {
   // ---------------------------------------------------------------------------------------------- the grid
   const coreBase = size === 'S' ? 1 : 2;
   const coreW = Math.min(3, Math.max(1, coreBase + (seat ? 1 : 0) - (size !== 'S' && R('coreW') < 0.3 ? 1 : 0)));
-  const coreE = Math.min(3, coreBase + (seat ? 1 : 0) + (size === 'L' && R('coreE') < 0.5 ? 1 : 0));
+  // (a river town's core is two blocks east of the civic block at least: the river runs between core blocks)
+  const coreE = Math.min(3, Math.max(river ? 2 : 1, coreBase + (seat ? 1 : 0) + (size === 'L' && R('coreE') < 0.5 ? 1 : 0)));
   const westCols = size === 'S' ? 1 : size === 'M' ? jit(1, 2, 'westCols') : jit(2, 3, 'westCols');
   const stripCols = size === 'S' ? 2 : size === 'M' ? jit(2, 3, 'stripCols') : 3;
   const edgeW = needs.superstore !== undefined ? jit(146, 154, 'edgeW') : needs.supermarket !== undefined ? jit(98, 106, 'edgeW') : jit(70, 84, 'edgeW');
@@ -160,7 +161,10 @@ export function platTown(seed: string): Plat {
     const inner = coreIdx.filter((i) => i > first && i !== civicCol && i !== civicCol + 1);
     const edges = [first, last + 1];
     const mill = type === 'mill' || type === 'mining';
-    const options = mill || !inner.length ? edges : R('riverEdge') < 0.25 ? edges : inner;
+    // (through downtown, the owner's choice: between two core blocks, core on both banks; a mill town's too, its works on
+    // the river where it meets the rail side)
+    void mill;
+    const options = inner.length ? inner : edges;
     riverB = options[Math.floor(R('riverB') * options.length)]!;
     cols.splice(riverB, 0, { kind: 'river', w: jit(32, 36, 'riverW') });
     // (indexes past the insertion move along)
@@ -172,7 +176,9 @@ export function platTown(seed: string): Plat {
       let a = riverB + away * step + (away > 0 ? 1 : 0);
       // (stay inside the town's columns, west of the strip)
       const lastStrip = cols.findIndex((c) => c.kind === 'strip');
-      if (a > 0 && a < cols.length - 1 && (lastStrip < 0 || a <= lastStrip)) {
+      // (and through the core there too: core blocks on both of its banks)
+      const coreLike = (c?: Col): boolean => !!c && (c.kind === 'core' || c.kind === 'civic');
+      if (a > 0 && a < cols.length - 1 && (lastStrip < 0 || a <= lastStrip) && coreLike(cols[a - 1]) && coreLike(cols[a])) {
         cols.splice(a, 0, { kind: 'river', w: jit(30, 34, 'riverWA') });
         if (a <= riverB) riverB++;
         riverA = a;
@@ -256,7 +262,8 @@ export function platTown(seed: string): Plat {
   const coreHi = cols.length - 1 - [...cols].reverse().findIndex((c) => c.kind === 'core' || c.kind === 'civic');
   const crossAt = new Set<number>([coreLo, coreHi + 1, 1, cols.length - 1]);
   // bridges over the river: Main Street, the street past the track (or one south), and one street north of the core
-  const bridgeRows = new Set<number>([mainRow, mainRow + 1 + (form === 'parallel' ? 1 : 0), coreNRow]);
+  // (Main Street, the core's back streets on both sides, the street past the track)
+  const bridgeRows = new Set<number>([mainRow, mainRow + 1, mainRow + 1 + (form === 'parallel' ? 1 : 0), coreNRow]);
   for (let j = 0; j <= rows.length; j++) {
     const y = Y[j]!;
     if (j === mainRow) {

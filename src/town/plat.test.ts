@@ -135,6 +135,17 @@ describe('the planned town', () => {
       const bridges = p.water.bridges.filter((b) => b.horizontal);
       expect(bridges.some((b) => b.y <= main.y && b.y + b.h >= main.y + main.h), s).toBe(true);
       expect(bridges.filter((b) => !(b.y <= main.y && b.y + b.h >= main.y + main.h)).length, s).toBeGreaterThanOrEqual(1);
+      // through downtown: core blocks on both banks where the river crosses Main Street, and a core street besides Main bridging it
+      const col = p.v2!.blocks.filter((b) => b.district === 'river' && (b.row === 0 || b.row === -1));
+      expect(col.length, s).toBeGreaterThan(0);
+      for (const c of col) {
+        const core = p.v2!.blocks.filter((b) => b.district === 'core' && b.row === c.row);
+        expect(core.some((b) => Math.abs(b.x + b.w - c.x) <= 6), `${s} core west of the river`).toBe(true);
+        expect(core.some((b) => Math.abs(c.x + c.w - b.x) <= 6), `${s} core east of the river`).toBe(true);
+      }
+      const coreRows = p.v2!.blocks.filter((b) => b.district === 'core');
+      const y0 = Math.min(...coreRows.map((b) => b.y)) - 6, y1 = Math.max(...coreRows.map((b) => b.y + b.h)) + 6;
+      expect(bridges.filter((b) => b.y >= y0 && b.y + b.h <= y1).length, `${s} core bridges`).toBeGreaterThanOrEqual(2);
     }
   });
 

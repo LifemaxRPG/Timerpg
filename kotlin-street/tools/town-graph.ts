@@ -40,7 +40,7 @@ import { neighborhoodOf } from '../../src/town/neighborhoods';
 import { hash, makeBuildings, townLots, type Buildings } from './town-buildings';
 import { townStreets } from './town-streets';
 import { glbStanding, townGlb, type GlbJson } from './town-glb';
-import { extraBuildings, oldSchool, packEntries, packOf, type ExtraBuilding, type PackEntry } from './town-downtown';
+import { extraBuildings, oldSchool, packEntries, packOf, WALL_W, type ExtraBuilding, type PackEntry } from './town-downtown';
 
 /** Street units per tile at the art's size (BuildingSpec.W 184 per 224 px; 32 px a tile). */
 export const UNIT_PER_TILE = 32 * 184 / 224;
@@ -493,9 +493,12 @@ export function townGraph(seed: string, year: number): TownGraph {
     const L = row.length * SCALE;
     const items = row.items.sort((a, b) => a.s0 - b.s0 || a.sprite.localeCompare(b.sprite, 'en', { numeric: true }));
     const groups: Item[][] = [];
+    // (a street-wall shop stands on its own at the position scale, its width its plot's: the wall runs on unbroken)
+    const wall = (q: Item): boolean => (q.kind === 'shop' && q.foot.width >= WALL_W) || (q.lotId.startsWith('extra:vacant:') && q.foot.width !== 480);
     for (const it of items) {
       const g = groups[groups.length - 1];
-      if (g && it.s0 - Math.max(...g.map((q) => q.s1)) <= GROUP_GAP + 1e-9) g.push(it); else groups.push([it]);
+      // (a street-wall shop stands on its own at the position scale, its width its plot's: the wall runs on unbroken)
+      if (g && !wall(it) && !g.some(wall) && it.s0 - Math.max(...g.map((q) => q.s1)) <= GROUP_GAP + 1e-9) g.push(it); else groups.push([it]);
     }
     const placed = groups.map((g, gi) => {
       const lo = Math.min(...g.map((q) => q.s0)), hi = Math.max(...g.map((q) => q.s1));
@@ -510,13 +513,20 @@ export function townGraph(seed: string, year: number): TownGraph {
       conflicts.push(`row ${row.id}: group ${p.g.map((q) => q.sprite).join('+')} nudged ${r3(dx)} units (${why})`);
     };
     // clear of the mouths, then of each other (forward and back), keeping at least a tile between groups
-    for (const p of placed) { if (p.lo < minX) shift(p, minX - p.lo, 'start mouth'); if (p.hi > maxX) shift(p, maxX - p.hi, 'end mouth'); }
-    for (let i = 1; i < placed.length; i++) { const a = placed[i - 1]!, b = placed[i]!; if (b.lo < a.hi + UNIT_PER_TILE - 1e-6) shift(b, a.hi + UNIT_PER_TILE - b.lo, 'neighbour'); }
-    for (let i = placed.length - 1; i >= 0; i--) {
-      const p = placed[i]!;
+    // (a building standing back behind the shops on its own, a tower or a renewal car park beside a street wall's shops,
+    // keeps its place at the position scale: it is clear of the front row in depth)
+    const behind = (p: typeof placed[number]): boolean => p.g.every((q) => q.kind === 'extra' && q.foot.setback * PX > 100);
+    const all = placed;
+    const front = placed.filter((p) => !behind(p));
+    for (const p of all) { if (p.lo < minX) shift(p, minX - p.lo, 'start mouth'); if (p.hi > maxX) shift(p, maxX - p.hi, 'end mouth'); }
+    // (two shops of a street wall stand shoulder to shoulder: no tile between them)
+    const gapOf = (a: typeof placed[number], b: typeof placed[number]): number => (a.g.some(wall) && b.g.some(wall) ? 0 : UNIT_PER_TILE);
+    for (let i = 1; i < front.length; i++) { const a = front[i - 1]!, b = front[i]!, gp = gapOf(a, b); if (b.lo < a.hi + gp - 1e-6) shift(b, a.hi + gp - b.lo, 'neighbour'); }
+    for (let i = front.length - 1; i >= 0; i--) {
+      const p = front[i]!;
       if (p.hi > maxX + 1e-6) shift(p, maxX - p.hi, 'end mouth');
-      const a = placed[i - 1];
-      if (a && a.hi > p.lo - UNIT_PER_TILE + 1e-6) shift(a, p.lo - UNIT_PER_TILE - a.hi, 'neighbour');
+      const a = front[i - 1];
+      if (a && a.hi > p.lo - gapOf(a, p) + 1e-6) shift(a, p.lo - gapOf(a, p) - a.hi, 'neighbour');
     }
     for (const p of placed) {
       if (p.lo < minX - 1e-6 || p.hi > maxX + 1e-6) conflicts.push(`row ${row.id}: group ${p.g.map((q) => q.sprite).join('+')} does not fit between its mouths (${r3(p.lo)}..${r3(p.hi)} of ${r3(L)})`);
@@ -565,7 +575,7 @@ export function townGraph(seed: string, year: number): TownGraph {
       // the service alley between)
       let lotBack = plotBack;
       // (every shop of a run with one behind it ends there, so the alley runs the run's whole back, out at its ends)
-      if (it.kind === 'shop') for (const x of row.items) if (x.kind === 'extra' && x.group === it.group && x.foot.setback * PX > 100) lotBack = Math.min(lotBack, Math.max(setback + depth + 8, x.e * SCALE + x.foot.setback * PX - ALLEY));
+      if (it.kind === 'shop') for (const x of row.items) if (x.kind === 'extra' && (x.group === it.group || (x.x1 > it.x0 && x.x0 < it.x1)) && x.foot.setback * PX > 100) lotBack = Math.min(lotBack, Math.max(setback + depth + 8, x.e * SCALE + x.foot.setback * PX - ALLEY));
       // (a lot with its car park in front begins behind it)
       let lotFront = plotFront;
       if (it.kind === 'shop') for (const x of row.items) if (x.kind === 'extra' && x.tier === 'parking' && x.foot.setback === 0 && x.x1 > it.x0 && x.x0 < it.x1) lotFront = Math.max(lotFront, x.e * SCALE + x.foot.depth * PX + 2);

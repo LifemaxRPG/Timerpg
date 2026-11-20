@@ -232,6 +232,11 @@ fun renderFilamentOpen(out: String) {
         // the river: the bridge nearest the start spot
         g.optJSONArray("bridges")?.let { b -> (0 until b.length()).map { mid4(b.getJSONObject(it).getJSONArray("rect")) }.minByOrNull { hypot(it[0] - s0.x, it[1] - s0.z) } }
             ?.let { at("plan_river", it[0], it[1], 70f, 24f, 700f, 13f, "the river crossing downtown") }
+        // the riverwalk along the river's banks through the core
+        g.optJSONArray("lanes")?.let { a -> (0 until a.length()).map { a.getJSONObject(it) }.firstOrNull { it.getString("id").startsWith("riverwalk:") } }?.let { l ->
+            val c = mid4(l.getJSONArray("rect"))
+            view("plan_riverwalk", c[0], c[1], 0f, 1f, 150f, 18f, 520f, 13f, "the riverwalk through the core")
+        }
         // the models: the depot's neighbours (the feed mill, the works), the strip (the motel, the lanes), the radio station
         val glb = g.optJSONArray("glbLandmarks")?.let { a -> (0 until a.length()).map { a.getJSONObject(it) } } ?: emptyList()
         fun model(k: String) = glb.firstOrNull { it.getString("kind").contains(k) }?.let { mid4(it.getJSONArray("rect")) }

@@ -91,12 +91,12 @@ function fill(p: Plat): Districts {
       : f === 'W' ? { x: b.x, y: b.y + t, w: deep, h: along } : { x: b.x + b.w - deep, y: b.y + t, w: deep, h: along };
   const faceLen = (b: Block, f: Face): number => (f === 'N' || f === 'S' ? b.w : b.h);
   /** Positions along a face, in the order a slot of kind [pos] tries them. */
-  const positions = (b: Block, f: Face, along: number, pos: 'near' | 'far' | 'mid' | 'strip' | 'core'): number[] => {
+  const positions = (b: Block, f: Face, along: number, pos: 'near' | 'far' | 'mid' | 'strip' | 'core', toward?: { x: number; y: number }): number[] => {
     const n = faceLen(b, f) - along;
     if (n < 0) return [];
     const all = Array.from({ length: n + 1 }, (_, i) => i);
     const centre = (t: number): number => (f === 'N' || f === 'S' ? b.x + t + along / 2 : b.y + t + along / 2);
-    const c0 = f === 'N' || f === 'S' ? cx : cy;
+    const c0 = f === 'N' || f === 'S' ? (toward?.x ?? cx) : (toward?.y ?? cy);
     if (pos === 'mid') return all.sort((a, q) => Math.abs(a - n / 2) - Math.abs(q - n / 2) || a - q);
     if (pos === 'near') return all.sort((a, q) => Math.abs(centre(a) - c0) - Math.abs(centre(q) - c0) || a - q);
     if (pos === 'far') return all.sort((a, q) => Math.abs(centre(q) - c0) - Math.abs(centre(a) - c0) || a - q);
@@ -110,13 +110,13 @@ function fill(p: Plat): Districts {
    * Reserve [id] in the first of [blocks] (and faces) where a plot [along] x [deep] fits at the first free position of
    * kind [pos]; [sizes] more sizes to try (best first). Returns the plot, or undefined.
    */
-  function reserve(id: string, chain: PlotUse[], blocks: (Block | undefined)[], faces: (b: Block) => Face[], sizes: [number, number][], pos: Parameters<typeof positions>[3], opt: { pad?: number; except?: string[]; keep?: (r: Rect) => boolean } = {}): Reserved | undefined {
+  function reserve(id: string, chain: PlotUse[], blocks: (Block | undefined)[], faces: (b: Block) => Face[], sizes: [number, number][], pos: Parameters<typeof positions>[3], opt: { pad?: number; except?: string[]; keep?: (r: Rect) => boolean; toward?: { x: number; y: number } } = {}): Reserved | undefined {
     for (const b of blocks) {
       if (!b) continue;
       for (const f of faces(b)) {
         if (!b.faces.includes(f)) continue;
         for (const [along, deep] of sizes) {
-          for (const t of positions(b, f, along, pos)) {
+          for (const t of positions(b, f, along, pos, opt.toward)) {
             const r = onFace(b, f, along, deep, t);
             if (!free(r, b, opt.except, opt.pad ?? 1) || (opt.keep && !opt.keep(r))) continue;
             const q: Reserved = { ...r, id, district: b.district, face: f, chain };
@@ -151,7 +151,9 @@ function fill(p: Plat): Districts {
     reserved.push({ ...r, id: 'glb:county_courthouse', district: 'square', face: mf, chain: chainOf(tenures.filter((t) => t.kind.startsWith('landmark_glb_county_courthouse_')), 'square') });
     plaza = r;
   } else {
-    const pz = onFace(civic, mf, 16, 13, Math.round((civic.w - 16) / 2));
+    // (the plaza paved across the block between the post office and the clock tower; the town hall at its back)
+    const pzW = Math.max(16, civic.w - 22);
+    const pz = onFace(civic, mf, pzW, 13, Math.round((civic.w - pzW) / 2));
     reserved.push({ ...pz, id: 'civic:plaza', district: 'square', face: mf, chain: [{ use: 'plaza', from: 0 }] });
     plaza = pz;
     if (civicKinds.includes('post')) reserve('landmark:post', lm('post'), [civic], () => [mf], [spec('post')], 'near', { pad: 0, keep: (r) => pz.x - (r.x + r.w) >= 2 && pz.x - (r.x + r.w) <= 4 });
@@ -257,7 +259,8 @@ function fill(p: Plat): Districts {
     if (works.length) {
       const mill = p.type === 'mill' || p.type === 'mining';
       const byRiver = mill && p.river ? [...railBlocks].sort((a, b) => Math.min(...p.river!.column.map((c) => Math.abs(c.x + c.w / 2 - a.x - a.w / 2))) - Math.min(...p.river!.column.map((c) => Math.abs(c.x + c.w / 2 - b.x - b.w / 2)))) : [];
-      reserve('glb:foundry', chainOf(works), [...byRiver, ...towardStrip, ...awayStrip], () => [townFace], [tiles('landmark_glb_foundry_factory')], mill ? 'far' : 'near', { pad: 2 });
+      const riverAt = mill && p.river ? p.river.column.map((c) => ({ x: c.x + c.w / 2, y: c.y + c.h / 2 })).sort((a, q) => Math.abs(a.x - cx) - Math.abs(q.x - cx))[0] : undefined;
+      reserve('glb:foundry', chainOf(works), [...byRiver, ...towardStrip, ...awayStrip], () => [townFace], [tiles('landmark_glb_foundry_factory')], 'near', { pad: 2, ...(riverAt ? { toward: riverAt } : {}) });
     }
     // the farm town's water tower beside the elevator
     if (p.type === 'farm' && has('water_tower').length) reserve('glb:water_tower', chainOf(has('water_tower')), [...awayStrip, ...towardStrip], () => [townFace], [tiles('landmark_glb_water_tower')], 'near', { pad: 2 });
@@ -310,7 +313,8 @@ function fill(p: Plat): Districts {
       let placed = false;
       for (const k of tries) {
         const [w, h] = S(k);
-        const along = rotate ? h : w, deep = rotate ? w : h;
+        // (turned to face an east or west street: 7 along it, 13 deep, as a shop on Main Street)
+        const along = w, deep = h;
         if (t + along > len) continue;
         const r0 = onFace(b, f, along, deep, t);
         const r = rotate ? r0 : f === 'E' || f === 'W' ? { ...r0, w, h } : r0;
@@ -324,14 +328,18 @@ function fill(p: Plat): Districts {
     }
   };
   const g = (lo: number, hi: number) => (k: LotKind, i: number): number => lo + Math.floor(R('gap', k, i, lo, hi) * (hi - lo + 1));
+  const parkFrom = blocksOf('worker').length ? blocksOf('worker') : blocksOf('late');
+  const mobilePark = [...parkFrom].sort((a, b) => Math.hypot(b.x + b.w / 2 - cx, b.y + b.h / 2 - cy) - Math.hypot(a.x + a.w / 2 - cx, a.y + a.h / 2 - cy) || a.col - b.col)[0];
   for (const b of p.blocks) {
     const mfb = mainFace(b), bk = back(mfb);
     const k = (...ks: LotKind[]): LotKind[] => ks;
+    /** One housing kind a street face (the owner's rule, 2026-11-20), picked by the seed from [kinds]. */
+    const one = (f: Face, ...kinds: LotKind[]): LotKind[] => [kinds[Math.floor(R('faceKind', b.col, b.row, f) * kinds.length)]!];
     switch (b.district) {
       case 'core': {
         face(b, mfb, k('shop'), () => 0);
-        // (behind the shops: the old houses of the core's back street, a few apartment blocks among them)
-        face(b, bk, k('medium', 'medium', 'house', 'apartment'), g(1, 1));
+        // (behind the shops, on the core's edge: apartment blocks, the only ones in town)
+        face(b, bk, k('apartment'), g(0, 1));
         // the service alley behind the shops
         const ay = mfb === 'S' ? b.y + b.h - SIZES.shop.h - 3 : b.y + SIZES.shop.h;
         const alley = { x: b.x, y: ay, w: b.w, h: 3 };
@@ -341,42 +349,50 @@ function fill(p: Plat): Districts {
           const toward: Face = b.x < civic.x ? 'E' : 'W';
           face(b, toward, k('shop'), () => 0, true);
         }
+        // the blocks on the river's banks turn their shops round the corner to face the riverwalk
+        for (const f of ['E', 'W'] as Face[]) {
+          const side = f === 'E' ? { x: b.x + b.w + 4, y: b.y, w: 6, h: b.h } : { x: b.x - 10, y: b.y, w: 6, h: b.h };
+          if ((p.river?.column ?? []).some((c) => hit(side, c, 0))) face(b, f, k('shop'), () => 0, true);
+        }
         break;
       }
       case 'square': case 'civic':
-        face(b, mfb, k('medium', 'house'), g(1, 2));
-        face(b, bk, k('medium', 'house'), g(1, 2));
+        face(b, mfb, one(mfb, 'house'), g(1, 2));
+        face(b, bk, one(bk, 'house'), g(1, 2));
         break;
       case 'westmain':
-        face(b, mfb, k('house', 'house', 'medium'), g(1, 2));
-        face(b, bk, k('medium', 'medium', 'small', 'house'), g(1, 1));
+        face(b, mfb, one(mfb, 'house', 'villa'), g(1, 2));
+        face(b, bk, one(bk, 'house', 'villa'), g(1, 2));
         oldAlley(b);
         break;
       case 'old':
-        face(b, mfb, k('medium', 'medium', 'small', 'house'), g(1, 1));
-        face(b, bk, k('medium', 'medium', 'small', 'house'), g(1, 1));
+        face(b, mfb, one(mfb, 'house', 'house', 'villa'), g(1, 1));
+        face(b, bk, one(bk, 'house', 'house', 'villa'), g(1, 1));
         oldAlley(b);
         break;
       case 'worker':
-        face(b, mfb, k('small', 'small', 'medium'), g(0, 1));
-        face(b, bk, k('small', 'small', 'medium'), g(0, 1));
+        // across the tracks: small houses, and the mobile home park on the town's edge
+        if (b === mobilePark) { face(b, mfb, k('small', 'medium'), g(0, 1)); face(b, bk, k('small', 'medium'), g(0, 1)); }
+        else { face(b, mfb, one(mfb, 'house'), g(1, 1)); face(b, bk, one(bk, 'house'), g(1, 1)); }
         break;
       case 'strip':
-        // post-war stand-alone shops between the models, garden apartments behind
+        // post-war stand-alone shops between the models; houses behind
         face(b, mfb, k('shop'), g(2, 3));
-        face(b, bk, k('apartment'), g(2, 2));
+        face(b, bk, one(bk, 'house'), g(2, 2));
         break;
       case 'postwar':
-        face(b, mfb, k('medium', 'medium', 'house'), g(1, 2));
-        face(b, bk, k('medium', 'medium', 'house', 'small'), g(1, 2));
+        // ranches and small houses (the pack's family houses)
+        face(b, mfb, one(mfb, 'house'), g(1, 2));
+        face(b, bk, one(bk, 'house'), g(1, 2));
         break;
       case 'heights':
-        face(b, mfb, k('villa', 'villa', 'estate'), g(2, 3));
-        face(b, bk, k('villa', 'estate', 'villa'), g(2, 3));
+        face(b, mfb, one(mfb, 'villa', 'villa', 'estate'), g(2, 3));
+        face(b, bk, one(bk, 'villa', 'estate'), g(2, 3));
         break;
       case 'late':
-        face(b, mfb, k('house', 'house', 'villa', 'apartment'), g(2, 3));
-        face(b, bk, k('house', 'villa', 'house'), g(2, 3));
+        if (b === mobilePark) { face(b, mfb, k('small', 'medium'), g(0, 1)); face(b, bk, k('small', 'medium'), g(0, 1)); break; }
+        face(b, mfb, one(mfb, 'house', 'villa'), g(2, 3));
+        face(b, bk, one(bk, 'house', 'villa'), g(2, 3));
         break;
       default:
         break;

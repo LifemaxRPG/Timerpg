@@ -397,6 +397,16 @@ function planTownV2(seed: string): TownPlan {
       }
     }
   }
+  // the riverwalk through the core: lamps and benches along both banks (its paving is the export's: town-yards.ts)
+  for (const b of plat.blocks.filter((q) => q.district === 'river' && (q.row === 0 || q.row === -1)).map(mv)) {
+    for (const x of [b.x + 1, b.x + b.w - 1]) {
+      for (let y = b.y + 3; y < b.y + b.h - 2; y += 9) {
+        if (waterNear(water, Math.floor(x), y, 1)) continue;
+        add('lamp', x, y + 1, look('rwlamp', x, y));
+        if (y + 4 < b.y + b.h - 2 && !waterNear(water, Math.floor(x), y + 4, 1)) add('bench', x, y + 5, look('rwbench', x, y));
+      }
+    }
+  }
   if (!plat.countySeat) {
     const pcx = plaza.x + plaza.w / 2;
     const pby = plaza.y + plaza.h - 1;

@@ -532,7 +532,9 @@ export function townYards(g: TownGraph): Yards {
   }
 
   // ------------------------------------------------------------------------------------------- lanes and verges
-  const lanes = backLanes(g, parcels.map(parcelRect), parcels.map((p) => p.f), parcels.map((p) => p.p), fixed, bodies, roads, R);
+  // (a strip found from both of its backyards' sides once only: the first kept)
+  const lanes = backLanes(g, parcels.map(parcelRect), parcels.map((p) => p.f), parcels.map((p) => p.p), fixed, bodies, roads, R)
+    .filter((l, i, a) => !a.slice(0, i).some((o) => hit(l.rect, o.rect)));
   // the planned town's alleys (src/town/districts.ts: down the old town's blocks, behind Main Street's shops): walkable
   // lanes where the backyards and buildings leave them free (cut short of anything in the way)
   const taken: Rect4[] = [...parcels.map(parcelRect), ...lanes.map((l) => l.rect)];
@@ -555,6 +557,16 @@ export function townYards(g: TownGraph): Yards {
     lanes.push({ id: `alley:${i}`, kind: 'lane', rect: r, axis, reaches: 2, items: [] });
     taken.push(r);
   });
+  // the riverwalk: a paved path along both banks of the river through the core (its lamps and benches are the plan's props)
+  for (const b of (g.layout.plan.v2?.blocks ?? []).filter((q) => q.district === 'river' && (q.row === 0 || q.row === -1))) {
+    for (const [i, x0] of [b.x, b.x + b.w - 2].entries()) {
+      const r: Rect4 = [x0 * SCALE + 6, b.y * SCALE, (x0 + 2) * SCALE - 6, (b.y + b.h) * SCALE];
+      if (fixed.some((o) => hit(r, o)) || taken.some((o) => hit(r, o))) continue;
+      lanes.push({ id: `riverwalk:${b.col},${b.row},${i}`, kind: 'lane', rect: r, axis: 'z', reaches: 2,
+        items: [{ kind: 'frontPath', rect: r, face: [i ? -1 : 1, 0], variant: 0, layer: 'surface', zone: 'street' }] });
+      taken.push(r);
+    }
+  }
   // gaps left along a row between parcels: verges
   for (const row of graph.rows) {
     const mine = parcels.filter((p) => p.row === row).sort((a, b) => a.p.u0 - b.p.u0);

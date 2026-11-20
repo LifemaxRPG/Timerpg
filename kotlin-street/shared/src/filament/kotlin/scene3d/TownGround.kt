@@ -533,25 +533,38 @@ internal class TownGround(private val town: Town, private val art: TownArt) {
         return listOf(piece("water", wf), piece("banks", bf))
     }
 
-    /** The bridges: the road runs over as their deck; its edges (stone, down towards the water) and a parapet each side. */
+    /**
+     * The bridges: the road runs over as their deck, on a concrete slab whose edge (fascia) shows over the water, a
+     * concrete parapet (a metre high, 30 cm thick, its cap a shade lighter) along each side, and a pier under the middle of
+     * a long one.
+     */
     private fun bridges(): List<GroundPiece> {
         if (town.bridges.isEmpty()) return emptyList()
         val m = MeshBuilder()
-        val stone = Ramp(Paint.c(0x4F4A40), Paint.c(0x6B6558), Paint.c(0x8A8474), Paint.c(0x9C9686), Paint.c(0xB4AE9E))
+        val concrete = Ramp(Paint.c(0x5E5E58), Paint.c(0x7A7A72), Paint.c(0x96958C), Paint.c(0xAAA99F), Paint.c(0xC2C1B6))
+        val cap = Ramp(Paint.c(0x7A7A72), Paint.c(0x96958C), Paint.c(0xAAA99F), Paint.c(0xC2C1B6), Paint.c(0xD6D5CA))
+        // (a metre: 21 units)
+        val slab = 26f; val wall = 21f; val t = 6f
         for (b in town.bridges) {
             val r = b.rect
-            // the deck along x (horizontal) or z; its two long edges
-            val h = 7f; val t = 3f; val drop = 5f
+            // the slab under the deck, its edges the fascia over the water
+            m.panelBox(r[0], -slab, r[1], r[2], LIFT_ROAD - .3f, r[3], concrete, 3, edges = true)
             if (b.horizontal) {
                 for (z in listOf(r[1], r[3])) {
                     val inward = if (z == r[1]) 1f else -1f
-                    m.panelBox(r[0], -drop, min(z, z + inward * t), r[2], LIFT_ROAD + h, max(z, z + inward * t), stone, 3, edges = true)
+                    val z0 = min(z, z + inward * t); val z1 = max(z, z + inward * t)
+                    m.panelBox(r[0], LIFT_ROAD - .3f, z0, r[2], LIFT_ROAD + wall - 3f, z1, concrete, 3, edges = true)
+                    m.panelBox(r[0] - 1f, LIFT_ROAD + wall - 3f, z0 - 1f, r[2] + 1f, LIFT_ROAD + wall, z1 + 1f, cap, 3, edges = true)
                 }
+                if (r[2] - r[0] > 500f) { val cx = (r[0] + r[2]) / 2f; m.panelBox(cx - 14f, -60f, r[1] + 10f, cx + 14f, -slab, r[3] - 10f, concrete, 3, edges = true) }
             } else {
                 for (x in listOf(r[0], r[2])) {
                     val inward = if (x == r[0]) 1f else -1f
-                    m.panelBox(min(x, x + inward * t), -drop, r[1], max(x, x + inward * t), LIFT_ROAD + h, r[3], stone, 3, edges = true)
+                    val x0 = min(x, x + inward * t); val x1 = max(x, x + inward * t)
+                    m.panelBox(x0, LIFT_ROAD - .3f, r[1], x1, LIFT_ROAD + wall - 3f, r[3], concrete, 3, edges = true)
+                    m.panelBox(x0 - 1f, LIFT_ROAD + wall - 3f, r[1] - 1f, x1 + 1f, LIFT_ROAD + wall, r[3] + 1f, cap, 3, edges = true)
                 }
+                if (r[3] - r[1] > 500f) { val cz = (r[1] + r[3]) / 2f; m.panelBox(r[0] + 10f, -60f, cz - 14f, r[2] - 10f, -slab, cz + 14f, concrete, 3, edges = true) }
             }
         }
         return listOf(GroundPiece("bridges", m.build(), identity, casts = true))

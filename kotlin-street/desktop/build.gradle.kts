@@ -121,6 +121,10 @@ if (withFilament) tasks.register<JavaExec>("townMemoryCheck") {
         // (as many workers as the S25's cores give it)
         "-XX:ActiveProcessorCount=8",
         "-Dmode=filament-town", "-Dshots=cold", "-DcoldOnly=1", "-Dmemlive=1", "-DheapBudget=" + (System.getProperty("heapBudget") ?: "256"))
+    // (-DtownYards=placeholder: the yards as flat colours, to weigh what the yard kit holds)
+    System.getProperty("townYards")?.let { jvmArgs("-DtownYards=$it") }
+    // (-Dtown=<folder>: another town's export, for comparing what it holds)
+    System.getProperty("town")?.let { jvmArgs("-Dtown=$it") }
     jvmArgs("-Djava.library.path=" + File(filamentDist, "lib").absolutePath)
     environment("EGL_PLATFORM", "surfaceless")
     args(layout.buildDirectory.dir("memcheck").get().asFile.absolutePath, file("../../public/assets/characters").absolutePath)
