@@ -1,0 +1,122 @@
+{
+  "metal": {
+    "rect_art": [
+      0,
+      0,
+      64,
+      64
+    ]
+  },
+  "sack": {
+    "rect_art": [
+      64,
+      0,
+      16,
+      16
+    ]
+  },
+  "public_door": {
+    "rect_art": [
+      80,
+      0,
+      14,
+      30
+    ]
+  },
+  "load_front": {
+    "rect_art": [
+      96,
+      0,
+      30,
+      48
+    ]
+  },
+  "load_rear": {
+    "rect_art": [
+      128,
+      0,
+      28,
+      48
+    ]
+  },
+  "service_door": {
+    "rect_art": [
+      160,
+      0,
+      14,
+      30
+    ]
+  },
+  "louver": {
+    "rect_art": [
+      176,
+      0,
+      12,
+      20
+    ]
+  },
+  "lamp": {
+    "rect_art": [
+      192,
+      0,
+      8,
+      8
+    ]
+  },
+  "office_window": {
+    "rect_art": [
+      0,
+      0,
+      24,
+      24
+    ]
+  },
+  "narrow_window": {
+    "rect_art": [
+      28,
+      0,
+      12,
+      24
+    ]
+  },
+  "tower_window": {
+    "rect_art": [
+      44,
+      0,
+      24,
+      16
+    ]
+  },
+  "side_window": {
+    "rect_art": [
+      72,
+      0,
+      16,
+      20
+    ]
+  },
+  "mill_name": {
+    "rect_art": [
+      0,
+      0,
+      96,
+      18
+    ]
+  },
+  "tower_sign": {
+    "rect_art": [
+      0,
+      32,
+      12,
+      40
+    ]
+  },
+  "dock_label": {
+    "rect_art": [
+      16,
+      32,
+      48,
+      12
+    ]
+  }
+}

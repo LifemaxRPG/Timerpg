@@ -1,0 +1,24 @@
+{
+  "visible_triangles": 6119,
+  "materials": 12,
+  "external_doors": 4,
+  "grain_bins": 2,
+  "collision_boxes": 26,
+  "prop_triangles": {
+    "pallet_and_sacks_1": 36,
+    "pallet_and_sacks_2": 36,
+    "pallet_and_sacks_3": 36,
+    "service_bin": 24,
+    "service_bin.001": 24
+  },
+  "uv_scale_max_edge_error_m": 1.5018910950459485e-06,
+  "textures": "All embedded PNGs are exact 2 x 2 texel art pixels; nearest/repeat sampling",
+  "roof_cutout": "No warehouse roof triangles continue inside the elevator shaft",
+  "signs": "Separate physical-scale sign_name and tower FEED panel",
+  "doors": "Anchors match floor heights and outward orientations; closed panels have companion gate boxes",
+  "collision": "Full-height boxes match the exported collider; bin geometry is covered. Architecture uses its walls/floors/ramps.",
+  "rail": "Reference anchor only; no rails or operational railway connection",
+  "ground": "All exported geometry at or above grade; no positive-area overlap between coplanar paving tops",
+  "glb_bytes": 479092,
+  "renders": "Blender desktop previews, not Filament or S25 captures."
+}

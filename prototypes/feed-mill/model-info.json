@@ -1,0 +1,631 @@
+{
+  "name": "Hearthside Feed & Grain",
+  "era": {
+    "design_years": [
+      1920,
+      1960
+    ],
+    "fits": [
+      1950,
+      2030
+    ],
+    "notes": "Original timber country elevator with a feed-store/warehouse wing and galvanized grain bins. Actual opening, expansion, closure and ownership belong to simulation facts."
+  },
+  "units": "metres",
+  "axes": "glTF Y up; front public entrance +Z",
+  "origin": "Ground at midpoint of the main building front edge; front span X=-88..88 art pixels. Source construction coordinates are uniformly offset +24 art pixels on X before export.",
+  "building_m": [
+    26.2288,
+    16.684
+  ],
+  "lot_m": {
+    "width": 29.7984,
+    "depth": 19.8656
+  },
+  "main_block_m": [
+    13.6576,
+    8.6912
+  ],
+  "footprint_m": {
+    "structure_bounds_blender_art": [
+      -113,
+      -32,
+      225,
+      183
+    ],
+    "lot_bounds_blender_art": [
+      -144,
+      -72,
+      240,
+      184
+    ]
+  },
+  "heights_m": {
+    "elevator_peak": 20.0014,
+    "warehouse_ridge": 9.1568,
+    "grain_bin_hatch": 14.200800000000001
+  },
+  "triangles_visible": 6119,
+  "materials": [
+    "detail_dark",
+    "detail_equipment",
+    "detail_galvanized",
+    "detail_timber",
+    "glass_mill",
+    "glow_lamps",
+    "ground_gravel",
+    "ground_paving",
+    "roof_metal",
+    "sign_name",
+    "wall_brick_base",
+    "wall_timber_red"
+  ],
+  "pixel_grid": {
+    "metres_per_texel": 0.0388,
+    "texels_per_art_pixel": 2
+  },
+  "doors": [
+    {
+      "node": "door_main",
+      "position": [
+        -3.1040000915527344,
+        0.6208000183105469,
+        0.2444400042295456
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "floor_m": 0.6208,
+      "panel": "panel_door_main",
+      "use": "Retail entrance"
+    },
+    {
+      "node": "door_loading_front",
+      "position": [
+        3.259200096130371,
+        1.086400032043457,
+        0.2444400042295456
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "floor_m": 1.0864,
+      "panel": "panel_door_loading_front",
+      "use": "Loading or maintenance"
+    },
+    {
+      "node": "door_loading_rear",
+      "position": [
+        -4.345600128173828,
+        1.086400032043457,
+        -8.93175983428955
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ],
+      "floor_m": 1.0864,
+      "panel": "panel_door_loading_rear",
+      "use": "Loading or maintenance"
+    },
+    {
+      "node": "door_service",
+      "position": [
+        2.793600082397461,
+        1.086400032043457,
+        -12.035759925842285
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ],
+      "floor_m": 1.0864,
+      "panel": "panel_door_service",
+      "use": "Loading or maintenance"
+    }
+  ],
+  "door_panels": [
+    "panel_door_main",
+    "panel_door_loading_front",
+    "panel_door_loading_rear",
+    "panel_door_service"
+  ],
+  "rooms": [
+    {
+      "id": "retail",
+      "bounds_blender_art": [
+        -88,
+        0,
+        -8,
+        64
+      ],
+      "floor_m": 0.6208,
+      "ceiling_m": 4.1904,
+      "notes": "Includes a fixed counter; game furnishes loose retail goods."
+    },
+    {
+      "id": "warehouse",
+      "floor_m": 1.0864,
+      "notes": "Main room east of retail and rear loading strip; three internal steps from the shop. Clean shell with timber trusses."
+    },
+    {
+      "id": "elevator_shaft",
+      "bounds_blender_art": [
+        0,
+        88,
+        72,
+        152
+      ],
+      "floor_m": 1.0864,
+      "notes": "Enclosed maintenance shaft, closed by default; no simulated milling equipment or climbing."
+    }
+  ],
+  "bins": {
+    "nodes": [
+      "grain_bin_01",
+      "grain_bin_02"
+    ],
+    "centres_blender_art": [
+      [
+        128,
+        96
+      ],
+      [
+        194,
+        96
+      ]
+    ],
+    "radius_m": 2.1728,
+    "cylinder_top_m": 12.571200000000001,
+    "hatch_top_m": 14.200800000000001
+  },
+  "sign_name": {
+    "node": "sign_name",
+    "material": "sign_name",
+    "texture": "textures/signs.png",
+    "rect_art": [
+      0,
+      0,
+      96,
+      18
+    ],
+    "text": "HEARTHSIDE / FEED & GRAIN",
+    "binding": "Static original preview name; runtime town/business name binding not implemented. Preserve the separate tower FEED region."
+  },
+  "rail": {
+    "anchor": "anchor_rail_dock",
+    "reference_only": true,
+    "siding_tangent_gltf": [
+      1,
+      0,
+      0
+    ],
+    "platform_edge_blender_y_art": 144,
+    "dock_height_m": 1.0864,
+    "notes": "No rails or trains baked in. Railway is unfinished; developer must resolve actual track centreline, loading gap, rail-head elevation, collision, operations and placement before connecting."
+  },
+  "collision": {
+    "node": "collision",
+    "render": false,
+    "use_the_walls": true,
+    "strategy": "Architectural walls, floors, ramps and closed door meshes provide structural contact; full-height companion boxes cover bins, ladders/blowers, posts, pipes and yard props.",
+    "boxes_blender_z_up": [
+      {
+        "source": "Closed door_main",
+        "center": [
+          -3.104,
+          -0.08924,
+          1.4744000000000002
+        ],
+        "size": [
+          1.0864,
+          0.1552,
+          2.9488000000000003
+        ],
+        "group": "structure",
+        "attachment": "panel_door_main",
+        "gate_node": "panel_door_main"
+      },
+      {
+        "source": "Closed door_loading_front",
+        "center": [
+          3.2592,
+          -0.08924,
+          2.4056
+        ],
+        "size": [
+          4.656000000000001,
+          0.1552,
+          4.8112
+        ],
+        "group": "structure",
+        "attachment": "panel_door_loading_front",
+        "gate_node": "panel_door_loading_front"
+      },
+      {
+        "source": "Closed door_loading_rear",
+        "center": [
+          -4.3456,
+          8.77656,
+          2.4056
+        ],
+        "size": [
+          4.3456,
+          0.1552,
+          4.8112
+        ],
+        "group": "structure",
+        "attachment": "panel_door_loading_rear",
+        "gate_node": "panel_door_loading_rear"
+      },
+      {
+        "source": "Fixed retail counter",
+        "center": [
+          -4.9664,
+          3.2592,
+          0.8148
+        ],
+        "size": [
+          2.6384,
+          1.0864,
+          1.6296
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Canopy post",
+        "center": [
+          -6.6736,
+          -1.7072,
+          2.3280000000000003
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          4.656000000000001
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Canopy post",
+        "center": [
+          -0.3104,
+          -1.7072,
+          2.3280000000000003
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          4.656000000000001
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Canopy post",
+        "center": [
+          6.5184,
+          -1.7072,
+          2.3280000000000003
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          4.656000000000001
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Rear canopy post",
+        "center": [
+          -6.5184,
+          11.0192,
+          2.4056
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          4.8112
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Rear canopy post",
+        "center": [
+          -0.3104,
+          11.0192,
+          2.4056
+        ],
+        "size": [
+          0.2328,
+          0.2328,
+          4.8112
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Closed door_service",
+        "center": [
+          2.7936,
+          11.88056,
+          1.7072
+        ],
+        "size": [
+          1.0864,
+          0.1552,
+          3.4144
+        ],
+        "group": "structure",
+        "attachment": "panel_door_service",
+        "gate_node": "panel_door_service"
+      },
+      {
+        "source": "Bin and foundation",
+        "center": [
+          9.9328,
+          7.4496,
+          7.1004000000000005
+        ],
+        "size": [
+          4.656000000000001,
+          4.656000000000001,
+          14.200800000000001
+        ],
+        "group": "structure",
+        "attachment": "grain_bin_01"
+      },
+      {
+        "source": "Bin ladder and blower",
+        "center": [
+          10.5536,
+          5.0440000000000005,
+          6.5184
+        ],
+        "size": [
+          2.4832,
+          0.6208,
+          13.0368
+        ],
+        "group": "structure",
+        "attachment": "grain_bin_01"
+      },
+      {
+        "source": "Bin and foundation",
+        "center": [
+          15.054400000000001,
+          7.4496,
+          7.1004000000000005
+        ],
+        "size": [
+          4.656000000000001,
+          4.656000000000001,
+          14.200800000000001
+        ],
+        "group": "structure",
+        "attachment": "grain_bin_02"
+      },
+      {
+        "source": "Bin ladder and blower",
+        "center": [
+          15.6752,
+          5.0440000000000005,
+          6.5184
+        ],
+        "size": [
+          2.4832,
+          0.6208,
+          13.0368
+        ],
+        "group": "structure",
+        "attachment": "grain_bin_02"
+      },
+      {
+        "source": "Downpipe",
+        "center": [
+          -6.9064000000000005,
+          7.76,
+          3.5308
+        ],
+        "size": [
+          0.0776,
+          0.0776,
+          7.0616
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Downpipe",
+        "center": [
+          6.9064000000000005,
+          7.76,
+          3.5308
+        ],
+        "size": [
+          0.0776,
+          0.0776,
+          7.0616
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Dock bumper",
+        "center": [
+          1.2416,
+          -1.94,
+          0.5432
+        ],
+        "size": [
+          0.3104,
+          0.1552,
+          1.0864
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Dock bumper",
+        "center": [
+          5.2768,
+          -1.94,
+          0.5432
+        ],
+        "size": [
+          0.3104,
+          0.1552,
+          1.0864
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Dock bumper",
+        "center": [
+          -5.897600000000001,
+          11.252,
+          0.5432
+        ],
+        "size": [
+          0.3104,
+          0.1552,
+          1.0864
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Dock bumper",
+        "center": [
+          -2.7936,
+          11.252,
+          0.5432
+        ],
+        "size": [
+          0.3104,
+          0.1552,
+          1.0864
+        ],
+        "group": "structure",
+        "attachment": "structure"
+      },
+      {
+        "source": "Elevator ladder and brackets",
+        "center": [
+          4.9664,
+          12.183200000000001,
+          9.6224
+        ],
+        "size": [
+          0.8536,
+          0.8536,
+          19.2448
+        ],
+        "group": "structure",
+        "attachment": "elevator_ladder"
+      },
+      {
+        "source": "Pallet and sacks",
+        "center": [
+          -6.208,
+          9.6224,
+          0.9312
+        ],
+        "size": [
+          0.9312,
+          0.9312,
+          1.8624
+        ],
+        "group": "lot",
+        "attachment": "pallet_and_sacks_1"
+      },
+      {
+        "source": "Pallet and sacks",
+        "center": [
+          -5.897600000000001,
+          10.088000000000001,
+          0.9312
+        ],
+        "size": [
+          0.9312,
+          0.9312,
+          1.8624
+        ],
+        "group": "lot",
+        "attachment": "pallet_and_sacks_2"
+      },
+      {
+        "source": "Pallet and sacks",
+        "center": [
+          1.2416,
+          -1.0088,
+          0.9312
+        ],
+        "size": [
+          0.9312,
+          0.9312,
+          1.8624
+        ],
+        "group": "lot",
+        "attachment": "pallet_and_sacks_3"
+      },
+      {
+        "source": "Service bin",
+        "center": [
+          7.4496,
+          11.4848,
+          0.5044
+        ],
+        "size": [
+          0.6984,
+          0.6984,
+          1.0088
+        ],
+        "group": "lot",
+        "attachment": "service_bin"
+      },
+      {
+        "source": "Service bin",
+        "center": [
+          -8.0704,
+          9.0016,
+          0.5044
+        ],
+        "size": [
+          0.6984,
+          0.6984,
+          1.0088
+        ],
+        "group": "lot",
+        "attachment": "service_bin.001"
+      }
+    ],
+    "runtime": "Hide collision from rendering. Opening/hiding a door panel requires disabling its gate_node box. Ladders/shaft landing remain non-climbable until navigation and height collision are integrated."
+  },
+  "lot_node": "lot",
+  "interior": "Clean retail and warehouse shells, timber trusses and fixed architectural counter; no loose indoor furniture, workers or grain machinery.",
+  "runtime_handoff": [
+    "No business, jobs, grain inventory or goods are spawned.",
+    "Rail connection and utility/mill operations need simulation integration.",
+    "Door and ladder traversal require runtime handling; preview doors are closed.",
+    "Material-role lighting is previewed in Blender; no Filament/S25 validation is claimed."
+  ],
+  "swatches_used": [
+    "brick_red",
+    "roof_tin_blue",
+    "pavement"
+  ],
+  "licence": "Shared LimeZu swatches: Timerpg game use only, original credit required. Original geometry and supplemental pixel art.",
+  "renders": "Blender desktop previews, not Filament or S25 captures."
+}
