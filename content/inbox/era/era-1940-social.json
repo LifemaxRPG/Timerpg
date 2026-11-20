@@ -1,0 +1,297 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1940,
+  "topic": "social",
+  "facts": [
+    {
+      "id": "1940-social-01",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Families visit relatives after Sunday services and share a midday meal.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-02",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Neighbors gather for church suppers where volunteers serve food at long tables.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-03",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A school hosts a seasonal pageant with pupils performing for parents.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-04",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Teenagers meet friends at school dances supervised by adults.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-05",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A young man may ask a young woman's parents before taking her on a date.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-06",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Couples arrange dates by telephone or in person rather than through written notes alone.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-07",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A couple may go courting at a soda fountain after school.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-08",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A chaperone sometimes accompanies young people to a social gathering.",
+      "ages": "teens",
+      "use": [
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-09",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Engaged couples announce wedding plans to family and neighbors.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-10",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Wedding receptions often take place in church halls or family homes.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-11",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A local women's club organizes charity drives and community lectures.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-12",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Volunteer groups collect clothing for families facing hardship.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-13",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Residents gather at the town hall for civic meetings and public discussions.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-14",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A school parent association raises funds for classroom supplies.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-15",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Children join neighborhood games in yards and vacant lots after school.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-16",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A scout troop practices outdoor skills and helps with community projects.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-17",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Older neighbors sit on front porches and visit with passersby.",
+      "ages": "elders",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-18",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A family invites a new neighbor over for coffee and introductions.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-19",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Many social gatherings follow separate customs for men and women.",
+      "ages": "adults",
+      "use": [
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-20",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Black residents face segregation and unequal treatment in many public places.",
+      "ages": "all",
+      "use": [
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-21",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "Some community organizations exclude residents because of race or religion.",
+      "ages": "adults",
+      "use": [
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-22",
+      "year_from": 1941,
+      "year_to": 1945,
+      "text": "During the war, local volunteers prepare parcels for service members overseas.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-23",
+      "year_from": 1941,
+      "year_to": 1945,
+      "text": "During the war, families attend community gatherings to support households with absent relatives.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-24",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A town fair brings families together for games, exhibits, and homemade food.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-25",
+      "year_from": 1940,
+      "year_to": 1949,
+      "text": "A school gymnasium hosts a community basketball game with neighbors cheering from the bleachers.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-social-26",
+      "year_from": 1945,
+      "year_to": 1949,
+      "text": "After the war, returning veterans join local clubs and neighborhood activities.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
