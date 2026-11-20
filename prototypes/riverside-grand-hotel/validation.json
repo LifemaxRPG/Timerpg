@@ -1,0 +1,12 @@
+{
+  "visible_triangles": 11950,
+  "materials": 12,
+  "embedded_pixel_aligned_images": 13,
+  "max_uv_edge_error_m": 5.7e-06,
+  "min_triangle_area_m2": 0.002444409,
+  "height_m": 37.248,
+  "door_apertures": 4,
+  "treads_supported": 104,
+  "collision_boxes": 41,
+  "glow_area_m2": 2.34849
+}

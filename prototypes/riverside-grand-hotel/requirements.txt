@@ -1,0 +1,4 @@
+numpy
+Pillow
+scipy
+oidn==0.2.1

@@ -1,0 +1,2134 @@
+{
+  "name": "Riverside Grand Hotel",
+  "file": "riverside-grand-hotel.glb",
+  "design_year": 1908,
+  "typical_years": [
+    1908,
+    2030
+  ],
+  "units": "metres",
+  "axes": "glTF Y up/+Z front",
+  "origin": "Grade at the midpoint of the projecting entrance loggia front edge.",
+  "main_block_footprint_m": [
+    41.904,
+    24.056
+  ],
+  "overall_width_m": 60.877201080322266,
+  "lot_bounds_gltf_m": {
+    "x": [
+      -32.592,
+      39.576
+    ],
+    "z": [
+      -36.472,
+      12.416
+    ]
+  },
+  "main_roof_height_m": 21.1072,
+  "tower_height_m": 37.248000000000005,
+  "floor_levels_m": [
+    0.4656,
+    4.5008,
+    8.536,
+    12.571200000000001
+  ],
+  "triangles_visible": 11950,
+  "materials": [
+    "detail_iron",
+    "detail_wood",
+    "glass_windows",
+    "glow_lamps",
+    "ground_foliage",
+    "ground_paving",
+    "roof_copper",
+    "roof_slate",
+    "sign_name",
+    "wall_brick",
+    "wall_interior",
+    "wall_limestone"
+  ],
+  "triangles_per_part": {
+    "hotel": 7784,
+    "veranda": 714,
+    "clock_tower": 1516,
+    "winter_garden": 776,
+    "lot": 1160
+  },
+  "prop_triangles": {
+    "arrival_court": 6,
+    "garden_terrace": 24,
+    "rear_service_walk": 12,
+    "tree_0": 88,
+    "tree_1": 88,
+    "tree_2": 88,
+    "tree_3": 88,
+    "tree_4": 88,
+    "tree_5": 88,
+    "planter_0": 90,
+    "planter_1": 90,
+    "planter_2": 74,
+    "planter_3": 58,
+    "bench_0": 48,
+    "bench_1": 48,
+    "bench_2": 48,
+    "bench_3": 48,
+    "service_bin_0": 24,
+    "service_bin_1": 24,
+    "parking_marks": 26
+  },
+  "doors": [
+    {
+      "node": "door_main",
+      "position": [
+        0.0,
+        0.4656,
+        0.0
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "width_m": 3.7248,
+      "height_m": 3.4144,
+      "floor_m": 0.4656,
+      "external": true,
+      "open": true
+    },
+    {
+      "node": "door_tower",
+      "position": [
+        -23.435200000000002,
+        0.4656,
+        -2.0952
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "width_m": 1.8624,
+      "height_m": 3.2592,
+      "floor_m": 0.4656,
+      "external": true,
+      "open": true
+    },
+    {
+      "node": "door_garden",
+      "position": [
+        27.625600000000002,
+        0.4656,
+        -6.014
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "width_m": 3.7248,
+      "height_m": 3.104,
+      "floor_m": 0.4656,
+      "external": true,
+      "open": true
+    },
+    {
+      "node": "door_back",
+      "position": [
+        0.0,
+        0.4656,
+        -29.9536
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ],
+      "width_m": 2.4832,
+      "height_m": 2.9488000000000003,
+      "floor_m": 0.4656,
+      "external": true,
+      "open": true
+    }
+  ],
+  "stairs": [
+    {
+      "id": "Rear stair first flight",
+      "start_floor_m": 0.4656,
+      "end_floor_m": 2.4832,
+      "risers": 13,
+      "rise_m": 0.1552,
+      "run_m": 0.3104,
+      "width_m": 1.552,
+      "start_gltf_m": [
+        -19.6328,
+        0.4656,
+        -21.728
+      ],
+      "direction_z": -1
+    },
+    {
+      "id": "Rear stair return flight",
+      "start_floor_m": 2.4832,
+      "end_floor_m": 4.5008,
+      "risers": 13,
+      "rise_m": 0.1552,
+      "run_m": 0.3104,
+      "width_m": 1.552,
+      "start_gltf_m": [
+        -17.3048,
+        2.4832,
+        -25.7632
+      ],
+      "direction_z": 1
+    },
+    {
+      "id": "Rear stair first flight",
+      "start_floor_m": 4.5008,
+      "end_floor_m": 6.5184,
+      "risers": 13,
+      "rise_m": 0.1552,
+      "run_m": 0.3104,
+      "width_m": 1.552,
+      "start_gltf_m": [
+        -19.6328,
+        4.5008,
+        -21.728
+      ],
+      "direction_z": -1
+    },
+    {
+      "id": "Rear stair return flight",
+      "start_floor_m": 6.5184,
+      "end_floor_m": 8.536,
+      "risers": 13,
+      "rise_m": 0.1552,
+      "run_m": 0.3104,
+      "width_m": 1.552,
+      "start_gltf_m": [
+        -17.3048,
+        6.5184,
+        -25.7632
+      ],
+      "direction_z": 1
+    },
+    {
+      "id": "Rear stair first flight",
+      "start_floor_m": 8.536,
+      "end_floor_m": 10.5536,
+      "risers": 13,
+      "rise_m": 0.1552,
+      "run_m": 0.3104,
+      "width_m": 1.552,
+      "start_gltf_m": [
+        -19.6328,
+        8.536,
+        -21.728
+      ],
+      "direction_z": -1
+    },
+    {
+      "id": "Rear stair return flight",
+      "start_floor_m": 10.5536,
+      "end_floor_m": 12.571200000000001,
+      "risers": 13,
+      "rise_m": 0.1552,
+      "run_m": 0.3104,
+      "width_m": 1.552,
+      "start_gltf_m": [
+        -17.3048,
+        10.5536,
+        -25.7632
+      ],
+      "direction_z": 1
+    },
+    {
+      "id": "Lobby stair outward",
+      "start_floor_m": 0.4656,
+      "end_floor_m": 2.4832,
+      "risers": 13,
+      "rise_m": 0.1552,
+      "run_m": 0.3104,
+      "width_m": 2.1728,
+      "start_gltf_m": [
+        -3.104,
+        0.4656,
+        -10.2432
+      ],
+      "direction_z": -1
+    },
+    {
+      "id": "Lobby stair return",
+      "start_floor_m": 2.4832,
+      "end_floor_m": 4.5008,
+      "risers": 13,
+      "rise_m": 0.1552,
+      "run_m": 0.3104,
+      "width_m": 2.1728,
+      "start_gltf_m": [
+        3.104,
+        2.4832,
+        -14.278400000000001
+      ],
+      "direction_z": 1
+    }
+  ],
+  "windows": [
+    {
+      "source_label": "Tall lobby arch",
+      "part_node": "hotel__glass_windows",
+      "key": "lobby",
+      "width_art": 40,
+      "height_art": 80,
+      "bottom_art": 18,
+      "profile": "round",
+      "area_m2": 18.06528
+    },
+    {
+      "source_label": "Tall lobby arch.001",
+      "part_node": "hotel__glass_windows",
+      "key": "lobby",
+      "width_art": 40,
+      "height_art": 80,
+      "bottom_art": 18,
+      "profile": "round",
+      "area_m2": 18.06528
+    },
+    {
+      "source_label": "Tall paired guest window",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.001",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.002",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.003",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.004",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.005",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.006",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.007",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.008",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.009",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.010",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.011",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.012",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.013",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.014",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.015",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.016",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.017",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.018",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.019",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.020",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.021",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.022",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.023",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.024",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.025",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.026",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.027",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.028",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.029",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.030",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.031",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.032",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.033",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.034",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.035",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.036",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Tall paired guest window.037",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.001",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.002",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.003",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.004",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.005",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.006",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.007",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.008",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.009",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.010",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.011",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.012",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.013",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.014",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.015",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.016",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.017",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.018",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.019",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.020",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.021",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.022",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.023",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.024",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.025",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.026",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.027",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.028",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.029",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.030",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.031",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.032",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.033",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.034",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.035",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.036",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.037",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.038",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.039",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.040",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.041",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Side guest window.042",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.001",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.002",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.003",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.004",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.005",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.006",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.007",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.008",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.009",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.010",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.011",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.012",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.013",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.014",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.015",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.016",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.017",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.018",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.019",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.020",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.021",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.022",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.023",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.024",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.025",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.026",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.027",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.028",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.029",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.030",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.031",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.032",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.033",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.034",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.035",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.036",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.037",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.038",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.039",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.040",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.041",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    },
+    {
+      "source_label": "Rear guest window.042",
+      "part_node": "hotel__glass_windows",
+      "key": "guest",
+      "width_art": 24,
+      "height_art": 28,
+      "profile": "rect",
+      "area_m2": 4.04662272
+    }
+  ],
+  "rooms": [
+    {
+      "id": "lobby",
+      "notes": "Actual double-height volume, grand return stair, first-floor gallery, architectural chandelier and fixed concierge counter."
+    },
+    {
+      "id": "guest_wings",
+      "notes": "Four actual floorplates with corridor walls and unfurnished room bays. Rear return stair connects all floors. Furniture, room assignments, occupants and operation are not implemented."
+    },
+    {
+      "id": "winter_garden",
+      "notes": "Double-height iron-and-glass shell and pitched glazed roof; game supplies planters, dining furnishings and occupants."
+    },
+    {
+      "id": "clock_tower",
+      "notes": "Clock faces show a fixed sample time; upper lantern/belfry is exterior architecture without access or clock animation."
+    }
+  ],
+  "collision": {
+    "node": "collision",
+    "render": false,
+    "coordinate_frame": "glTF metres/Y up/+Z front",
+    "boxes_gltf_y_up": [
+      {
+        "source": "Lobby column",
+        "center": [
+          -6.3632,
+          4.4232000000000005,
+          -6.5184
+        ],
+        "size": [
+          0.6984,
+          7.9152000000000005,
+          0.6984
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "hotel",
+        "group": "structure"
+      },
+      {
+        "source": "Lobby column",
+        "center": [
+          -6.3632,
+          4.4232000000000005,
+          -13.6576
+        ],
+        "size": [
+          0.6984,
+          7.9152000000000005,
+          0.6984
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "hotel",
+        "group": "structure"
+      },
+      {
+        "source": "Lobby column",
+        "center": [
+          6.3632,
+          4.4232000000000005,
+          -6.5184
+        ],
+        "size": [
+          0.6984,
+          7.9152000000000005,
+          0.6984
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "hotel",
+        "group": "structure"
+      },
+      {
+        "source": "Lobby column",
+        "center": [
+          6.3632,
+          4.4232000000000005,
+          -13.6576
+        ],
+        "size": [
+          0.6984,
+          7.9152000000000005,
+          0.6984
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "hotel",
+        "group": "structure"
+      },
+      {
+        "source": "Fixed concierge desk",
+        "center": [
+          0.0,
+          1.0088,
+          -16.4512
+        ],
+        "size": [
+          5.7424,
+          1.0864,
+          1.1640000000000001
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "hotel",
+        "group": "structure"
+      },
+      {
+        "source": "Veranda column",
+        "center": [
+          -20.952,
+          2.2116000000000002,
+          -1.0864
+        ],
+        "size": [
+          0.6208,
+          3.492,
+          0.6208
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "veranda",
+        "group": "structure"
+      },
+      {
+        "source": "Veranda column",
+        "center": [
+          -16.296,
+          2.2116000000000002,
+          -1.0864
+        ],
+        "size": [
+          0.6208,
+          3.492,
+          0.6208
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "veranda",
+        "group": "structure"
+      },
+      {
+        "source": "Veranda column",
+        "center": [
+          -11.64,
+          2.2116000000000002,
+          -1.0864
+        ],
+        "size": [
+          0.6208,
+          3.492,
+          0.6208
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "veranda",
+        "group": "structure"
+      },
+      {
+        "source": "Veranda column",
+        "center": [
+          -6.984,
+          2.2116000000000002,
+          -1.0864
+        ],
+        "size": [
+          0.6208,
+          3.492,
+          0.6208
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "veranda",
+        "group": "structure"
+      },
+      {
+        "source": "Veranda column",
+        "center": [
+          6.984,
+          2.2116000000000002,
+          -1.0864
+        ],
+        "size": [
+          0.6208,
+          3.492,
+          0.6208
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "veranda",
+        "group": "structure"
+      },
+      {
+        "source": "Veranda column",
+        "center": [
+          11.64,
+          2.2116000000000002,
+          -1.0864
+        ],
+        "size": [
+          0.6208,
+          3.492,
+          0.6208
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "veranda",
+        "group": "structure"
+      },
+      {
+        "source": "Veranda column",
+        "center": [
+          16.296,
+          2.2116000000000002,
+          -1.0864
+        ],
+        "size": [
+          0.6208,
+          3.492,
+          0.6208
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "veranda",
+        "group": "structure"
+      },
+      {
+        "source": "Veranda column",
+        "center": [
+          20.952,
+          2.2116000000000002,
+          -1.0864
+        ],
+        "size": [
+          0.6208,
+          3.492,
+          0.6208
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "veranda",
+        "group": "structure"
+      },
+      {
+        "source": "West veranda column",
+        "center": [
+          -23.668,
+          2.2504,
+          -9.7776
+        ],
+        "size": [
+          0.4656,
+          3.5696000000000003,
+          0.4656
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "veranda",
+        "group": "structure"
+      },
+      {
+        "source": "West veranda column",
+        "center": [
+          -23.668,
+          2.2504,
+          -14.8992
+        ],
+        "size": [
+          0.4656,
+          3.5696000000000003,
+          0.4656
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "veranda",
+        "group": "structure"
+      },
+      {
+        "source": "West veranda column",
+        "center": [
+          -23.668,
+          2.2504,
+          -20.0208
+        ],
+        "size": [
+          0.4656,
+          3.5696000000000003,
+          0.4656
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "veranda",
+        "group": "structure"
+      },
+      {
+        "source": "West veranda column",
+        "center": [
+          -23.668,
+          2.2504,
+          -25.142400000000002
+        ],
+        "size": [
+          0.4656,
+          3.5696000000000003,
+          0.4656
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "veranda",
+        "group": "structure"
+      },
+      {
+        "source": "Entry pier",
+        "center": [
+          -6.0528,
+          3.0652,
+          -0.3104
+        ],
+        "size": [
+          0.9312,
+          5.1992,
+          0.9312
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "veranda",
+        "group": "structure"
+      },
+      {
+        "source": "Entry pier",
+        "center": [
+          6.0528,
+          3.0652,
+          -0.3104
+        ],
+        "size": [
+          0.9312,
+          5.1992,
+          0.9312
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "veranda",
+        "group": "structure"
+      },
+      {
+        "source": "Garden pier",
+        "center": [
+          21.1072,
+          2.8712,
+          -6.208
+        ],
+        "size": [
+          0.388,
+          4.8112,
+          0.388
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "winter_garden",
+        "group": "structure"
+      },
+      {
+        "source": "Garden pier",
+        "center": [
+          34.144,
+          2.8712,
+          -6.208
+        ],
+        "size": [
+          0.388,
+          4.8112,
+          0.388
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "winter_garden",
+        "group": "structure"
+      },
+      {
+        "source": "Garden pier",
+        "center": [
+          21.1072,
+          2.8712,
+          -24.5216
+        ],
+        "size": [
+          0.388,
+          4.8112,
+          0.388
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "winter_garden",
+        "group": "structure"
+      },
+      {
+        "source": "Garden pier",
+        "center": [
+          34.144,
+          2.8712,
+          -24.5216
+        ],
+        "size": [
+          0.388,
+          4.8112,
+          0.388
+        ],
+        "support_floor_m": 0.4656,
+        "attachment": "winter_garden",
+        "group": "structure"
+      },
+      {
+        "source": "Rear downpipe",
+        "center": [
+          -20.176000000000002,
+          8.458400000000001,
+          -28.324
+        ],
+        "size": [
+          0.3104,
+          16.916800000000002,
+          0.6208
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "hotel",
+        "group": "structure"
+      },
+      {
+        "source": "Rear downpipe",
+        "center": [
+          20.176000000000002,
+          8.458400000000001,
+          -28.324
+        ],
+        "size": [
+          0.3104,
+          16.916800000000002,
+          0.6208
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "hotel",
+        "group": "structure"
+      },
+      {
+        "source": "Tree trunk",
+        "center": [
+          -27.936,
+          4.78016,
+          4.8112
+        ],
+        "size": [
+          0.68288,
+          9.56032,
+          0.68288
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "tree_0",
+        "group": "lot"
+      },
+      {
+        "source": "Tree trunk",
+        "center": [
+          23.28,
+          3.69376,
+          5.5872
+        ],
+        "size": [
+          0.52768,
+          7.38752,
+          0.52768
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "tree_1",
+        "group": "lot"
+      },
+      {
+        "source": "Tree trunk",
+        "center": [
+          35.540800000000004,
+          3.69376,
+          5.1992
+        ],
+        "size": [
+          0.52768,
+          7.38752,
+          0.52768
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "tree_2",
+        "group": "lot"
+      },
+      {
+        "source": "Tree trunk",
+        "center": [
+          -27.936,
+          4.3456,
+          -20.564
+        ],
+        "size": [
+          0.6208,
+          8.6912,
+          0.6208
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "tree_3",
+        "group": "lot"
+      },
+      {
+        "source": "Tree trunk",
+        "center": [
+          36.472,
+          3.91104,
+          -29.332800000000002
+        ],
+        "size": [
+          0.55872,
+          7.82208,
+          0.55872
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "tree_4",
+        "group": "lot"
+      },
+      {
+        "source": "Tree trunk",
+        "center": [
+          -27.16,
+          3.4764800000000005,
+          -31.9712
+        ],
+        "size": [
+          0.49664,
+          6.952960000000001,
+          0.49664
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "tree_5",
+        "group": "lot"
+      },
+      {
+        "source": "Planter",
+        "center": [
+          -12.804,
+          0.776,
+          5.1216
+        ],
+        "size": [
+          7.139200000000001,
+          1.552,
+          2.3280000000000003
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "planter_0",
+        "group": "lot"
+      },
+      {
+        "source": "Planter",
+        "center": [
+          3.88,
+          0.776,
+          5.1216
+        ],
+        "size": [
+          7.139200000000001,
+          1.552,
+          2.3280000000000003
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "planter_1",
+        "group": "lot"
+      },
+      {
+        "source": "Planter",
+        "center": [
+          13.192,
+          0.776,
+          5.1216
+        ],
+        "size": [
+          4.656000000000001,
+          1.552,
+          2.3280000000000003
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "planter_2",
+        "group": "lot"
+      },
+      {
+        "source": "Planter",
+        "center": [
+          36.3168,
+          0.776,
+          -21.2624
+        ],
+        "size": [
+          2.1728,
+          1.552,
+          6.0528
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "planter_3",
+        "group": "lot"
+      },
+      {
+        "source": "Bench",
+        "center": [
+          -17.072,
+          0.5820000000000001,
+          2.4832
+        ],
+        "size": [
+          1.94,
+          1.1640000000000001,
+          0.6984
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "bench_0",
+        "group": "lot"
+      },
+      {
+        "source": "Bench",
+        "center": [
+          7.76,
+          0.5820000000000001,
+          2.4832
+        ],
+        "size": [
+          1.94,
+          1.1640000000000001,
+          0.6984
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "bench_1",
+        "group": "lot"
+      },
+      {
+        "source": "Bench",
+        "center": [
+          36.084,
+          0.5820000000000001,
+          -11.0192
+        ],
+        "size": [
+          1.94,
+          1.1640000000000001,
+          0.6984
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "bench_2",
+        "group": "lot"
+      },
+      {
+        "source": "Bench",
+        "center": [
+          36.084,
+          0.5820000000000001,
+          -18.624000000000002
+        ],
+        "size": [
+          1.94,
+          1.1640000000000001,
+          0.6984
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "bench_3",
+        "group": "lot"
+      },
+      {
+        "source": "Service bin",
+        "center": [
+          -6.984,
+          0.5044,
+          -30.264
+        ],
+        "size": [
+          1.0088,
+          1.0088,
+          0.8536
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "service_bin_0",
+        "group": "lot"
+      },
+      {
+        "source": "Service bin",
+        "center": [
+          -8.3808,
+          0.5044,
+          -30.264
+        ],
+        "size": [
+          1.0088,
+          1.0088,
+          0.8536
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "service_bin_1",
+        "group": "lot"
+      }
+    ],
+    "use_the_walls": true,
+    "notes": "Use the architectural surfaces for walls/floors/stairs and the full-height listed boxes for obstructions. Do not apply the legacy Blender rotation."
+  },
+  "sign_name": {
+    "node": "sign_name",
+    "material": "sign_name",
+    "texture": "textures/signs.png",
+    "rect_art": [
+      0,
+      0,
+      120,
+      20
+    ],
+    "text": "RIVERSIDE / GRAND HOTEL",
+    "clock_region_art": [
+      0,
+      32,
+      48,
+      48
+    ],
+    "notes": "Repaint only the name region per town. Clock is a separate static sample-time region, not additional branding."
+  },
+  "lot_node": "lot",
+  "non_window_emissive_area_m2": 2.3484863999999996,
+  "pixel_grid": {
+    "metres_per_texel": 0.0388,
+    "texels_per_art_pixel": 2
+  },
+  "swatches_used": [
+    "brick_red",
+    "roof_slate",
+    "plank_horizontal",
+    "pavement"
+  ],
+  "runtime_handoff": [
+    "Original grand-hotel asset, not an automatic generated business or landmark spawn.",
+    "A city parcel is required. Riverside compatibility is a placement suggestion; no river is generated or assumed.",
+    "Clock faces and chandelier are static geometry. Hotel operation, room allocation, guests, furniture, doors, navigation, collisions, analytic lighting and pane masks need engine integration.",
+    "The model is not measured in Filament or on the S25. No frame rate or AAA runtime performance claim."
+  ],
+  "renders": "Actual Blender desktop model previews, not Filament/S25 captures."
+}
