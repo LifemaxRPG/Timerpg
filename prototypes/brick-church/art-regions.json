@@ -1,0 +1,64 @@
+{
+  "lancet": {
+    "rect_art": [
+      0,
+      0,
+      32,
+      68
+    ],
+    "profile": "point"
+  },
+  "front_lancet": {
+    "rect_art": [
+      40,
+      0,
+      16,
+      28
+    ],
+    "profile": "point"
+  },
+  "hall": {
+    "rect_art": [
+      64,
+      0,
+      28,
+      28
+    ],
+    "profile": "rect"
+  },
+  "country": {
+    "rect_art": [
+      100,
+      0,
+      22,
+      42
+    ],
+    "profile": "round"
+  },
+  "country_front": {
+    "rect_art": [
+      132,
+      0,
+      20,
+      40
+    ],
+    "profile": "round"
+  },
+  "vestry": {
+    "rect_art": [
+      164,
+      0,
+      20,
+      28
+    ],
+    "profile": "rect"
+  },
+  "name": {
+    "rect_art": [
+      0,
+      0,
+      32,
+      20
+    ]
+  }
+}
