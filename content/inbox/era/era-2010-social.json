@@ -1,0 +1,297 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2010,
+  "topic": "social",
+  "facts": [
+    {
+      "id": "2010-social-01",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A high school prom committee chooses decorations and sells tickets during lunch.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-02",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Students gather for a homecoming dance after the autumn football game.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-03",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A teenager asks a friend to accompany them to a school dance.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-04",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Parents take photographs of couples before a formal school dance.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-05",
+      "year_from": 2011,
+      "year_to": 2019,
+      "text": "Friends organize a birthday gathering through a group message.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-06",
+      "year_from": 2013,
+      "year_to": 2019,
+      "text": "Some teenagers arrange weekend meetups through online group chats.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-07",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A couple meets through an online dating service before arranging coffee together.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-08",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some couples announce their engagement to relatives through social media.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-09",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Wedding guests sign a guest book near the reception entrance.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-10",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Couples sometimes choose outdoor wedding ceremonies in a garden or park.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-11",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Families gather for graduation parties after the school year ends.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-12",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A church congregation holds a potluck supper in its fellowship hall.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-13",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Volunteers organize a clothing drive for families needing winter coats.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-14",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A local club collects donations for a neighbor facing a house fire.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-15",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Parents sign children up for youth sports at a recreation center.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-16",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A youth team celebrates the end of its season with a pizza party.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-17",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Neighbors gather along the parade route during the town's summer festival.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-18",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A community center hosts a craft fair where residents meet and visit.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-19",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some families attend a weekly farmers market as a social outing.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-20",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Retirees meet for coffee and conversation at the senior center.",
+      "ages": "elders",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-21",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A book club meets in a library room to discuss its latest selection.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-22",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Parents volunteer to supervise a school field trip.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-23",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A neighborhood association holds an evening meeting about shared concerns.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-24",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Friends arrange a weekend board game night at someone's house.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-25",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "A family reunion brings relatives from neighboring towns to a rented pavilion.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2010-social-26",
+      "year_from": 2010,
+      "year_to": 2019,
+      "text": "Some young adults prefer smaller informal gatherings over large organized parties.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
