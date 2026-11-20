@@ -1,0 +1,323 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2020,
+  "topic": "fashion",
+  "facts": [
+    {
+      "id": "2020-fashion-01",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Loose sweatshirts and joggers are common choices for errands and casual visits.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-02",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Teenagers often pair oversized hooded sweatshirts with relaxed jeans.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-03",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "High-waisted jeans remain a familiar option in women's everyday wardrobes.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-04",
+      "year_from": 2021,
+      "year_to": 2029,
+      "text": "Wide-leg trousers become more visible in shops and school hallways.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-05",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Some young adults wear cropped tops with high-waisted pants.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-06",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Athletic sneakers are worn with jeans, skirts, and casual dresses.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-07",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Children wear soft leggings or sweatpants for play and school.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-08",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Older residents often favor comfortable walking shoes with supportive soles.",
+      "ages": "elders",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-09",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A denim jacket remains useful over a shirt on cool evenings.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-10",
+      "year_from": 2022,
+      "year_to": 2029,
+      "text": "Some teenagers choose loose cargo pants with roomy side pockets.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-11",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Knit cardigans are layered over simple shirts during colder months.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-12",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Young adults sometimes wear matching sweatshirt and sweatpant sets.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-13",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Many people wear baseball caps for sun protection or casual style.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-14",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Teenagers sometimes part their hair down the middle.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-15",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Some young men keep longer hair on top with shorter sides.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-16",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Women wear hair in buns, ponytails, or loose waves for everyday activities.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-17",
+      "year_from": 2021,
+      "year_to": 2029,
+      "text": "Claw clips hold longer hair up during work or chores.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-18",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Some people color sections of their hair in bright shades.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-19",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Small hoop earrings and layered necklaces are common casual accessories.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-20",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "A plain button-down shirt and neat trousers suit many office workplaces.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-21",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Workers in service jobs often wear practical uniforms and slip-resistant shoes.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-22",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Some offices allow clean sneakers and casual trousers instead of formal suits.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-23",
+      "year_from": 2020,
+      "year_to": 2021,
+      "text": "During 2020, cloth face coverings become part of many people's outfits in public places.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-24",
+      "year_from": 2021,
+      "year_to": 2021,
+      "text": "During 2021, some shoppers choose face coverings that match their clothing.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-25",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Secondhand clothing appeals to shoppers seeking lower prices or distinctive styles.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-fashion-26",
+      "year_from": 2020,
+      "year_to": 2029,
+      "text": "Some teenagers combine older thrifted pieces with newly purchased basics.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
