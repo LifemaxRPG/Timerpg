@@ -30,14 +30,14 @@
     },
     {
       "state": "restored",
-      "visible_triangles": 3050,
+      "visible_triangles": 3478,
       "materials": 12,
       "embedded_images": 13,
       "max_uv_edge_error_m": 1.2817553809441051e-06,
-      "glow_geometry_area_m2": 3.55283,
+      "glow_geometry_area_m2": 3.73348,
       "glass_area_m2": 16.81275,
-      "collision_boxes": 37,
-      "largest_optional_prop_triangles": 156,
+      "collision_boxes": 47,
+      "largest_optional_prop_triangles": 316,
       "picnic_tables": 4,
       "menu_speakers": 8,
       "open_exterior_doors": 2

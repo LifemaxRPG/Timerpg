@@ -34,8 +34,11 @@ def text(d,label,xy,fill,scale=1):
     if v=='1':d.rectangle((x+xx*scale,y+yy*scale,x+(xx+1)*scale-1,y+(yy+1)*scale-1),fill=fill)
   x+=6*scale
 for state in ['original','closed','restored']:
- closed=state=='closed'
+ closed=state=='closed';restored=state=='restored'
  palettes={'wall':['#7c7d64','#b0b19a','#c3c3ad','#d1ceb2'] if closed else ['#7b806c','#c0bda0','#d8d2b4','#e9dec0'], 'roof':['#666d60','#8d9484','#a4aa96','#babda5'], 'asphalt':['#424b45','#626a5f','#7a8070','#8c917f'] if closed else ['#323f3d','#4b5751','#606e62','#788273']}
+ if restored:
+  palettes['wall']=['#89958e','#c4ccc1','#d9ded0','#eee9d5']
+  palettes['roof']=['#68797c','#91a1a0','#b7c2b9','#d0d5c5']
  for n in ['wall','roof','asphalt']:
   im=recolour(bases[n],palettes[n]);d=ImageDraw.Draw(im)
   if closed and n in ['roof','asphalt']:
@@ -54,6 +57,7 @@ for state in ['original','closed','restored']:
    if y%16==0:d.point((x,y),fill='#3b5750')
    elif y%16==1:d.point((x,y),fill='#a7b6a1' if closed else '#80a899')
    elif (x*13+y*31)%131==0:d.point((x,y),fill='#c5bfa1' if closed else '#416c62')
+ if restored:im=recolour(im,['#283d4b','#405c70','#6a8492','#9baeb0'])
  save(im,'teal-'+state+'.png')
  im=Image.new('RGBA',(64,64),'#a58f78' if closed else '#b56b52');d=ImageDraw.Draw(im)
  for y in range(64):
@@ -61,6 +65,7 @@ for state in ['original','closed','restored']:
    if y%8==0:d.point((x,y),fill='#765b4a')
    elif y%8==1:d.point((x,y),fill='#ccb493' if closed else '#d79972')
    elif (x*19+y*7)%101==0:d.point((x,y),fill='#bdb197' if closed else '#946149')
+ if restored:im=recolour(im,['#715b39','#a98246','#c5a565','#e1c488'])
  save(im,'coral-'+state+'.png')
  # All fixed panels use actual size on art grid; pane mask black on frames.
  im=Image.new('RGBA',(256,128),(0,0,0,0));em=Image.new('RGBA',im.size,'black');d=ImageDraw.Draw(im);e=ImageDraw.Draw(em)
@@ -73,7 +78,9 @@ for state in ['original','closed','restored']:
  im=Image.new('RGBA',(128,128),'#c3c4a9');d=ImageDraw.Draw(im)
  for key,rect in [('name',[0,0,80,32]),('menu',[0,40,12,20]),('status',[0,70,32,12])]:
   x,y,w,h=rect;REG[key]={'rect_art':rect};d.rectangle((x,y,x+w-1,y+h-1),fill='#748a7b' if closed else '#326d67',outline='#2e4843');d.line((x+1,y+1,x+w-2,y+1),fill='#b9c2a3')
- text(d,"MILO'S", (22,4),'#d0c2a2' if closed else '#f0dfb7');text(d,'DRIVE-IN',(17,16),'#d0c2a2' if closed else '#f0dfb7')
+ if restored:
+  im=recolour(im,['#263d4b','#3f5a6b','#8a9f9b','#e0c896']);d=ImageDraw.Draw(im)
+ text(d,"MILO'S", (22,4),'#d0c2a2' if closed else '#f0dfb7');text(d,'DINER' if restored else 'DRIVE-IN',(26 if restored else 17,16),'#d0c2a2' if closed else '#f0dfb7')
  # The surname-free made-up ordinary name is repaintable. One restrained name panel.
  d.rectangle((2,42,9,48),outline='#eee0b5');d.rectangle((3,44,8,45),fill='#ac7254')
  for y in [52,55]:d.line((2,y,9,y),fill='#d7c9a7')

@@ -94,7 +94,16 @@ for x in [-54,54]:
 # The restored stand has open walk-up serving hatches above those fixed counters.
 if RESTORED:
  # Upper clerestory is retained; lower pane is removed from glass atlas alpha by art generation.
- for x in [-54,54]:B('Walk-up ledge',(x,-5,14),(48,10,2),cream)
+ for x in [-54,54]:
+  B('Walk-up ledge',(x,-5,14),(48,10,2),cream)
+  # New slim, angled metal hoods make the renovated order hatches explicit.
+  beam('Order hatch hood front',(x-25,-13,35),(x+25,-13,35),2,2,teal)
+  mesh('Order hatch hood',[(xx*U,yy*U,zz*U) for xx,yy,zz in [(x-25,-13,35),(x+25,-13,35),(x+25,-2,37),(x-25,-2,37)]],[(0,1,2,3)],teal)
+ # Open navy portal and cedar-coloured cheek piers frame, without moving, the retained entrance.
+ for x in [-14,14]:
+  B('Remodeled entry cheek',(x,-3,17),(5,6,34),wood);block('Entry cheek',x,-3,5,6,34)
+ B('Remodeled entry header',(0,-3,35),(33,6,4),teal)
+
 for x in [-92,92]:B('Side enamel base',(x+(.2 if x>0 else -.2),66,5),(4.5,132,10),teal)
 for y in [0,132]:
  for a,b in [(-94,-10),(10,94)]:B('Front base enamel',((a+b)/2,y,5),(b-a,4.5,10),teal)
@@ -117,7 +126,7 @@ mesh('Canopy membrane',[(x*U,y*U,47*U) for x,y in outline],[tuple(range(len(outl
 mesh('Canopy underside',[(x*U,y*U,38*U) for x,y in outline],[tuple(range(len(outline)-1,-1,-1))],cream)
 for i,(x,y) in enumerate(outline):
  a,b=outline[(i+1)%len(outline)]
- for z0,z1,m in [(38,40,teal),(40,44,coral),(44,47,cream)]:
+ for z0,z1,m in ([(38,43,teal),(43,44,coral),(44,47,cream)] if RESTORED else [(38,40,teal),(40,44,coral),(44,47,cream)]):
   mesh('Canopy fascia',[(xx*U,yy*U,z*U) for xx,yy,z in [(x,y,z0),(a,b,z0),(a,b,z1),(x,y,z1)]],[(0,1,2,3)],m)
 for x in [-160,-80,80,160]:
  # A single supported front row keeps the drive aisle and centre walk clear.
@@ -183,13 +192,29 @@ if RESTORED:
   for xx in [x-11,x+11]:
    beam('Table trestle',(xx,y-10,1),(xx,y+6,9),1.8,2,teal);beam('Table trestle',(xx,y+10,1),(xx,y-6,9),1.8,2,teal);B('Seat support',(xx,y,4),(2,29,2),teal)
   block('Picnic table',x,y,34,31,11)
+if RESTORED:
+ # A visible modern patio remodel, structurally distinct from the retained 1950s canopy.
+ # Six columns make the timber spans about 4m, clear of the four table footprints.
+ prop('patio_pergola')
+ for x in [126,182,238]:
+  for y in [8,118]:
+   B('Patio pergola column',(x,y,18),(3,3,36),teal);block('Patio pergola column',x,y,3,3,36)
+  B('Patio long rafter',(x,63,36),(3,114,4),teal)
+ for y in [8,118]:B('Patio end beam',(182,y,34),(118,3,4),teal)
+ for y in range(10,119,9):B('Patio cedar louvre',(182,y,39),(118,2,2),wood)
+ for x in [153,210]:lens('Patio downlight',x,63,33,3,5,18)
+ # Perimeter planter boxes define the new terrace without enclosing its access.
+ for i,x in enumerate([145,220]):
+  prop('patio_planter_'+str(i));B('Raised timber planter',(x,126,4),(22,10,8),wood)
+  colour(B('Planter inset',(x,126,8.3),(19,7,.6),paving),'soil');block('Patio planter',x,126,22,10,10)
 # Modest landscaping from actual 3D geometry. Closed state has grounded weeds, no billboard trees.
 for i,(x,y) in enumerate([(-188,104),(242,156),(-228,171)]):
  prop('planting_'+str(i));colour(B('Planting curb',(x,y,1),(28,26,2),paving),'cream')
  plane('Planting soil',[(x-12,y-11),(x+12,y-11),(x+12,y+11),(x-12,y+11)],2.1,paving,'soil')
  for dx,dy in [(-6,0),(5,5),(3,-5)]:
   # Angular low foliage, deliberately small prop with a muted vertex tint.
-  ob=mesh('Shrub',[((x+dx+a)*U,(y+dy+b)*U,(3+c)*U) for a,b,c in [(0,0,10),(-7,-6,0),(7,-6,0),(7,6,0),(-7,6,0)]],[(0,1,2),(0,2,3),(0,3,4),(0,4,1),(4,3,2,1)],teal)
+  ob=mesh('Shrub',[((x+dx+a)*U,(y+dy+b)*U,(3+c)*U) for a,b,c in [(0,0,10),(-7,-6,0),(7,-6,0),(7,6,0),(-7,6,0)]],[(0,1,2),(0,2,3),(0,3,4),(0,4,1),(4,3,2,1)],paving if RESTORED else teal)
+  if RESTORED:colour(ob,(.49,.61,.38,1))
  block('Planting',x,y,28,26,14)
 if CLOSED:
  for i,(x,y) in enumerate([(-162,-130),(-90,-167),(160,-133),(214,125),(-210,15),(38,-181)]):
@@ -220,7 +245,7 @@ for im in bpy.data.images:
 bpy.ops.object.select_all(action='DESELECT')
 for o in model:o.select_set(True)
 bpy.ops.export_scene.gltf(filepath=str(R/('carhop-'+STATE+'.glb')),use_selection=True,export_format='GLB',export_yup=True,export_extras=True,export_vertex_color='ACTIVE')
-info={'name':"Milo's Drive-In",'state':STATE,'file':'carhop-'+STATE+'.glb','design_year':1954,'typical_years':[1952,1975] if STATE=='original' else [2000,2030],'selection':'Original operating carhop; later closed or restored are alternative outcomes selected from actual simulation facts, not automatic changes.','units':'metres','axes':'glTF Y up/+Z front','origin':'Grade at middle of stand front wall; canopy projects toward +Z.','building_footprint_m':[184*U,132*U],'canopy_footprint_m':[360*U,118*U],'height_m':108*U,'lot_bounds_gltf_m':{'x':[-280*U,280*U],'z':[-222*U,222*U]},'triangles_visible':tris,'materials':mats,'triangles_per_part':{g.name:count(g.children_recursive) for g in [SHELL,CANOPY,PYLON,LOT]},'prop_triangles':{g.name:count(g.children_recursive) for g in PROPS},'doors':DOORS,'internal_door':'door_prep_inside','rooms':[{'id':'front_service_room','floor_m':U,'notes':'Clean service shell with two fixed order counters, no loose interior furniture.'},{'id':'rear_prep_room','floor_m':U,'notes':'Open internal connection, own rear entry. No kitchen appliances or people are baked in.'}],'windows':WINDOWS,'parking_bays':BAYS,'collision':{'node':'collision','render':False,'coordinate_frame':'glTF metres/Y up/+Z front','boxes_gltf_y_up':COLL,'use_the_walls':True,'notes':'Use actual walls/floors/counters plus full-height listed boxes. Read boxes directly without legacy Blender rotation. Closed windows are boarded; entry anchors remain geometrically open for the engine access policy.'},'sign_name':{'node':'sign_name','material':'sign_name','texture':'textures/'+TEXMAP.get('sign-'+STATE+'.png','sign-'+STATE+'.png'),'rect_art':[0,0,80,32],'text':"MILO'S / DRIVE-IN",'notes':'Single modest name panel; repaint using the included 5x7 pixel alphabet without stretching its fixed UV region.'},'lot_node':'lot','non_window_emissive_area_m2':GLOW_AREA,'pixel_grid':{'metres_per_texel':T,'texels_per_art_pixel':2},'swatches_used':['block_courses','roof_membrane_grey','asphalt_worn','pavement','plank_horizontal'],'runtime_handoff':['Three matching shells and anchors. No cars, workers, ownership, business transitions or interactive speakers are created.','Restored variant uses walk-up counters and removable outdoor picnic tables; original has the carhop bays only.','Closed variant has faded paint, boarded windows, dry weeds and no light output. The open doorways are deliberate engine interaction portals, not a claim that a closed business admits the player.','Per-town sign repainting, terrain/navigation, collision adapter, furniture, analytic lighting, pane masks and game-state selection remain integration work.'],'renders':'Actual Blender desktop renders, not Filament/S25 captures.'}
+info={'name':"Milo's Drive-In",'state':STATE,'file':'carhop-'+STATE+'.glb','design_year':1954,'typical_years':[1952,1975] if STATE=='original' else [2000,2030],'selection':'Original operating carhop; later closed or restored are alternative outcomes selected from actual simulation facts, not automatic changes.','units':'metres','axes':'glTF Y up/+Z front','origin':'Grade at middle of stand front wall; canopy projects toward +Z.','building_footprint_m':[184*U,132*U],'canopy_footprint_m':[360*U,118*U],'height_m':108*U,'lot_bounds_gltf_m':{'x':[-280*U,280*U],'z':[-222*U,222*U]},'triangles_visible':tris,'materials':mats,'triangles_per_part':{g.name:count(g.children_recursive) for g in [SHELL,CANOPY,PYLON,LOT]},'prop_triangles':{g.name:count(g.children_recursive) for g in PROPS},'doors':DOORS,'internal_door':'door_prep_inside','rooms':[{'id':'front_service_room','floor_m':U,'notes':'Clean service shell with two fixed order counters, no loose interior furniture.'},{'id':'rear_prep_room','floor_m':U,'notes':'Open internal connection, own rear entry. No kitchen appliances or people are baked in.'}],'windows':WINDOWS,'parking_bays':BAYS,'collision':{'node':'collision','render':False,'coordinate_frame':'glTF metres/Y up/+Z front','boxes_gltf_y_up':COLL,'use_the_walls':True,'notes':'Use actual walls/floors/counters plus full-height listed boxes. Read boxes directly without legacy Blender rotation. Closed windows are boarded; entry anchors remain geometrically open for the engine access policy.'},'sign_name':{'node':'sign_name','material':'sign_name','texture':'textures/'+TEXMAP.get('sign-'+STATE+'.png','sign-'+STATE+'.png'),'rect_art':[0,0,80,32],'text':"MILO'S / DINER" if RESTORED else "MILO'S / DRIVE-IN",'notes':'Single modest name panel; repaint using the included 5x7 pixel alphabet without stretching its fixed UV region.'},'lot_node':'lot','non_window_emissive_area_m2':GLOW_AREA,'pixel_grid':{'metres_per_texel':T,'texels_per_art_pixel':2},'swatches_used':['block_courses','roof_membrane_grey','asphalt_worn','pavement','plank_horizontal'],'runtime_handoff':['Three matching shells and anchors. No cars, workers, ownership, business transitions or interactive speakers are created.','Restored remodel uses cool ivory paint, navy enamel and muted brass accents, new hatch hoods and timber entry cheeks, plus a lit slatted patio pergola, planter boxes and four removable picnic tables. The historic canopy and arrow silhouette are retained.','Closed variant has faded paint, boarded windows, dry weeds and no light output. The open doorways are deliberate engine interaction portals, not a claim that a closed business admits the player.','Per-town sign repainting, terrain/navigation, collision adapter, furniture, analytic lighting, pane masks and game-state selection remain integration work.'],'renders':'Actual Blender desktop renders, not Filament/S25 captures.'}
 (R/('model-info-'+STATE+'.json')).write_text(json.dumps(info,indent=2)+'\n');print('CARHOP_EXPORT',STATE,tris,len(mats),flush=True)
 # Actual model renders; cameras/lighting/staging are excluded from GLBs.
 parent=None;gm=bpy.data.materials.new('Presentation ground');gm.diffuse_color=(.25,.29,.24,1);bpy.ops.mesh.primitive_plane_add(size=600,location=(0,0,-.04));bpy.context.object.data.materials.append(gm)

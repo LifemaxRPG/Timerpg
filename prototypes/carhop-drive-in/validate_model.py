@@ -66,6 +66,10 @@ def validate(state):
   for t in near:assert clipped_area(t[:,[0,1]],rect)<1e-4,(state,'Blocked door',d['node'])
  assert len(info['doors'])==2 and 'door_prep_inside' in nodes and 'sign_name' in nodes and 'lot' in nodes
  tables=[n for n in nodes if n.startswith('picnic_table_') and '__' not in n];assert len(tables)==(4 if state=='restored' else 0)
+ assert ('patio_pergola' in nodes)==(state=='restored')
+ if state=='restored':
+  assert info['sign_name']['text']=="MILO'S / DINER"
+  paint=json.loads((R/'texture-map.json').read_text());assert all(paint[k+'-restored.png']!=paint[k+'-original.png'] for k in ['wall','teal','coral','sign'])
  if state=='closed':assert glass_area==0 and all(max(m.get('emissiveFactor',[0]))==0 for m in mats)
  else:assert glass_area>0
  return {'state':state,'visible_triangles':count,'materials':len(mats),'embedded_images':len(images),'max_uv_edge_error_m':uv_error,'glow_geometry_area_m2':round(glow_area,5),'glass_area_m2':round(glass_area,5),'collision_boxes':len(info['collision']['boxes_gltf_y_up']),'largest_optional_prop_triangles':max(info['prop_triangles'].values()),'picnic_tables':len(tables),'menu_speakers':8,'open_exterior_doors':2}

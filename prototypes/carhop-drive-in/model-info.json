@@ -1744,7 +1744,7 @@
           17.2272
         ]
       },
-      "triangles_visible": 3050,
+      "triangles_visible": 3478,
       "materials": [
         "detail_coral",
         "detail_metal",
@@ -1760,10 +1760,10 @@
         "wall_enamel"
       ],
       "triangles_per_part": {
-        "stand": 760,
+        "stand": 824,
         "carhop_canopy": 584,
         "roadside_pylon": 210,
-        "lot": 1496
+        "lot": 1860
       },
       "prop_triangles": {
         "menu_speaker_1": 74,
@@ -1783,6 +1783,9 @@
         "picnic_table_1": 108,
         "picnic_table_2": 108,
         "picnic_table_3": 108,
+        "patio_pergola": 316,
+        "patio_planter_0": 24,
+        "patio_planter_1": 24,
         "planting_0": 32,
         "planting_1": 32,
         "planting_2": 32
@@ -2003,6 +2006,38 @@
         "render": false,
         "coordinate_frame": "glTF metres/Y up/+Z front",
         "boxes_gltf_y_up": [
+          {
+            "source": "Entry cheek",
+            "center": [
+              -1.0864,
+              1.3192,
+              0.2328
+            ],
+            "size": [
+              0.388,
+              2.6384,
+              0.4656
+            ],
+            "group": "structure",
+            "attachment": "stand",
+            "support_floor_m": 0
+          },
+          {
+            "source": "Entry cheek",
+            "center": [
+              1.0864,
+              1.3192,
+              0.2328
+            ],
+            "size": [
+              0.388,
+              2.6384,
+              0.4656
+            ],
+            "group": "structure",
+            "attachment": "stand",
+            "support_floor_m": 0
+          },
           {
             "source": "Downpipe",
             "center": [
@@ -2548,6 +2583,134 @@
             "support_floor_m": 0
           },
           {
+            "source": "Patio pergola column",
+            "center": [
+              9.7776,
+              1.3968,
+              -0.6208
+            ],
+            "size": [
+              0.2328,
+              2.7936,
+              0.2328
+            ],
+            "group": "lot",
+            "attachment": "patio_pergola",
+            "support_floor_m": 0
+          },
+          {
+            "source": "Patio pergola column",
+            "center": [
+              9.7776,
+              1.3968,
+              -9.1568
+            ],
+            "size": [
+              0.2328,
+              2.7936,
+              0.2328
+            ],
+            "group": "lot",
+            "attachment": "patio_pergola",
+            "support_floor_m": 0
+          },
+          {
+            "source": "Patio pergola column",
+            "center": [
+              14.1232,
+              1.3968,
+              -0.6208
+            ],
+            "size": [
+              0.2328,
+              2.7936,
+              0.2328
+            ],
+            "group": "lot",
+            "attachment": "patio_pergola",
+            "support_floor_m": 0
+          },
+          {
+            "source": "Patio pergola column",
+            "center": [
+              14.1232,
+              1.3968,
+              -9.1568
+            ],
+            "size": [
+              0.2328,
+              2.7936,
+              0.2328
+            ],
+            "group": "lot",
+            "attachment": "patio_pergola",
+            "support_floor_m": 0
+          },
+          {
+            "source": "Patio pergola column",
+            "center": [
+              18.4688,
+              1.3968,
+              -0.6208
+            ],
+            "size": [
+              0.2328,
+              2.7936,
+              0.2328
+            ],
+            "group": "lot",
+            "attachment": "patio_pergola",
+            "support_floor_m": 0
+          },
+          {
+            "source": "Patio pergola column",
+            "center": [
+              18.4688,
+              1.3968,
+              -9.1568
+            ],
+            "size": [
+              0.2328,
+              2.7936,
+              0.2328
+            ],
+            "group": "lot",
+            "attachment": "patio_pergola",
+            "support_floor_m": 0
+          },
+          {
+            "source": "Patio planter",
+            "center": [
+              11.252,
+              0.388,
+              -9.7776
+            ],
+            "size": [
+              1.7072,
+              0.776,
+              0.776
+            ],
+            "group": "lot",
+            "attachment": "patio_planter_0",
+            "support_floor_m": 0
+          },
+          {
+            "source": "Patio planter",
+            "center": [
+              17.072,
+              0.388,
+              -9.7776
+            ],
+            "size": [
+              1.7072,
+              0.776,
+              0.776
+            ],
+            "group": "lot",
+            "attachment": "patio_planter_1",
+            "support_floor_m": 0
+          },
+          {
             "source": "Planting",
             "center": [
               -14.5888,
@@ -2602,18 +2765,18 @@
       "sign_name": {
         "node": "sign_name",
         "material": "sign_name",
-        "texture": "textures/sign-original.png",
+        "texture": "textures/sign-restored.png",
         "rect_art": [
           0,
           0,
           80,
           32
         ],
-        "text": "MILO'S / DRIVE-IN",
+        "text": "MILO'S / DINER",
         "notes": "Single modest name panel; repaint using the included 5x7 pixel alphabet without stretching its fixed UV region."
       },
       "lot_node": "lot",
-      "non_window_emissive_area_m2": 3.5528383999999997,
+      "non_window_emissive_area_m2": 3.7334911999999996,
       "pixel_grid": {
         "metres_per_texel": 0.0388,
         "texels_per_art_pixel": 2
@@ -2627,7 +2790,7 @@
       ],
       "runtime_handoff": [
         "Three matching shells and anchors. No cars, workers, ownership, business transitions or interactive speakers are created.",
-        "Restored variant uses walk-up counters and removable outdoor picnic tables; original has the carhop bays only.",
+        "Restored remodel uses cool ivory paint, navy enamel and muted brass accents, new hatch hoods and timber entry cheeks, plus a lit slatted patio pergola, planter boxes and four removable picnic tables. The historic canopy and arrow silhouette are retained.",
         "Closed variant has faded paint, boarded windows, dry weeds and no light output. The open doorways are deliberate engine interaction portals, not a claim that a closed business admits the player.",
         "Per-town sign repainting, terrain/navigation, collision adapter, furniture, analytic lighting, pane masks and game-state selection remain integration work."
       ],
