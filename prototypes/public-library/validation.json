@@ -1,0 +1,44 @@
+{
+  "states": [
+    {
+      "state": "1912",
+      "file": "public-library-1912.glb",
+      "triangles": 5410,
+      "materials": 10,
+      "doors": 2,
+      "collision_boxes": 14,
+      "props": {
+        "bicycle_racks": 108,
+        "stair_lamp": 36,
+        "stair_lamp.001": 36,
+        "stone_bench": 36,
+        "stone_bench.001": 36
+      },
+      "uv_max_edge_error_m": 6.904602050106234e-07,
+      "bytes": 417648
+    },
+    {
+      "state": "1970s",
+      "file": "public-library-1970s.glb",
+      "triangles": 6450,
+      "materials": 11,
+      "doors": 4,
+      "collision_boxes": 14,
+      "props": {
+        "bicycle_racks": 108,
+        "stair_lamp": 36,
+        "stair_lamp.001": 36,
+        "stone_bench": 36,
+        "stone_bench.001": 36
+      },
+      "uv_max_edge_error_m": 6.904602050106234e-07,
+      "bytes": 497972
+    }
+  ],
+  "art": "Exact 2x2 texel blocks, nearest/repeat samplers, physical 0.0388m/texel UVs and atlas containment verified.",
+  "architecture": "Real arched panes, pitched roof orientation, twenty basement riser elevations, genuine floor aperture and clear exterior portals validated.",
+  "collision": "All metadata boxes are in glTF Y-up metres; actual exported collider corners match them. Upstairs counter starts at its support floor. Optional lot remains at/above grade.",
+  "variants": "Original door coordinates and outward directions are identical across both states. Exterior doors have no closed panels or gate boxes.",
+  "runtime": "Terrain cutout, basement/stair navigation, glTF collision metadata parsing, state choice and lighting require importer/game integration.",
+  "renders": "Blender desktop renders, not Filament/S25 captures."
+}
