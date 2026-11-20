@@ -4,12 +4,14 @@ Four complete GLBs share one campus lot, origin and original main-portal positio
 
 | State | Visual changes |
 | --- | --- |
-| 1925–1954 | Three-storey brick school, projecting entrance tower, stone trim, carved name, 1925 datestone, walks, flagpole and a dirt baseball diamond with timber backstop. |
-| 1955–1974 | Low ribbon-window classroom wing, cafeteria connection, bow-roof gym, bus loop, football field, wooden bleachers and pole-mounted floodlights. |
+| 1925–1954 | Three-storey brick school, projecting raised entrance tower with a static school clock, paired tall sash windows, stone trim, carved name, 1925 datestone, walks, flagpole and a dirt baseball diamond with timber backstop. |
+| 1955–1974 | Low ribbon-window classroom wing, cafeteria connection, bow-roof gym, west-side bus loop, ticket booth, football field, wooden bleachers and pole-mounted floodlights. |
 | 1975–1999 | **Lincoln Consolidated** road monument replaces the active name binding; some original panes shrink inside infill frames. Three portable classroom shells with ramps, a 40-bay student car park, steel grandstand and press box. |
 | 2000 onward | Portables removed; new glass-and-brick entrance vestibule, accessible side ramp, artificial turf, five-lane oval running track and a plain non-emissive scoreboard. |
 
-Pick **one complete state**, according to actual town history. These years describe visual alternatives and do not create construction, pupils, renaming, staff, vehicles or sports events. The original 1925 block remains in every state.
+Pick **one complete state**, according to actual town history. These years describe visual alternatives and do not create construction, pupils, renaming, staff, vehicles or sports events. The original 1925 block remains in every state. The revision adds a connected paving network, twelve rooted three-dimensional trees, front benches, period parking and complete field enclosures. Earlier states have a staff pull-in; the student lot replaces it in 1975. The ticket booth is a clean shell with a fixed counter and an open rear entrance. Its TICKETS label is a generic fixture label, separate from the one active school-name panel. The tower clock is static preview art, not a simulated clock.
+
+The bus loop sits on the west side, clear of the school entrances. Its approximate 15 m outside turning radii and 4 m lane are geometric references, not a tested bus-routing system. Pedestrian junctions are exported as one non-overlapping paving surface. Tree collision uses full-height trunk columns, leaving room beneath the raised canopies; foliage and buildings remain actual geometry. No traffic, ticket sales or tree growth is implemented.
 
 ## Campus and interiors
 
@@ -29,6 +31,8 @@ Exactly one active `sign_name` node is present per state. Before consolidation, 
 - Consolidated name: **[0, 24, 144, 18] art pixels**.
 
 Double these coordinates for texture texels. Repaint the active region per town. The small datestone and plain scoreboard are separate regions in `textures/panels.png`; lettering and shapes use the original 5×7 pixel alphabet, without external typefaces. There are no real logos or mascots.
+
+The raised entrance tower reaches approximately 20.87 m, while the original three-storey block and stone floor bands remain. Each classroom bay now contains two tall sash panes separated by a structural masonry pier; the 1975 infill bays retain paired smaller panes.
 
 Every art pixel is exactly 2×2 texels; one texel covers 0.0388 m. All PNGs use nearest/repeat sampling. Twelve materials per state. Repeated window and locker panels share exported mesh data. Each `.blend` is editable and contains all thirteen packed texture images. No normal maps, photo textures, baked GI or glowing sport surfaces. The glass emission mask leaves mullions, the empty trophy case and fence mesh black. Non-window glow is limited to actual lamp faces/lenses and remains below 15 m².
 
@@ -59,6 +63,6 @@ python prototypes/lincoln-high-school/package_preview.py
 
 `--shots=none` exports only. `--shots=day,above` selects views, and `--review` renders drafts. Full views are 1024×768 at 12 Cycles samples. Raw frames go to `/tmp/lincoln-school-raw/`; `finish_renders.py` uses standard OIDN to remove sampling noise and writes the single delivery PNG for each view. It does not generate or replace model detail. Raw duplicates, zips, caches and Blender backups are excluded from publication.
 
-Validation reads actual exported buffers/images: triangle/material budgets, texture blocks and samplers, physical UV edge lengths, no geometry below grade, shared panel meshes, clear exterior apertures, exact collision-box corners, state features, shared origin/main portal and measured emissive triangle area. It also checks the far budget. See `validation.json` for actual measurements.
+Validation reads actual exported buffers/images: triangle/material budgets, texture blocks and samplers, physical UV edge lengths, no geometry below grade, shared panel meshes, clear exterior apertures, exact collision-box corners, state features, shared origin/main portal and measured emissive triangle area. It also checks the far budget, the 96 paired sash panes, twelve tree groups, period ticket-booth presence and non-overlapping exported path triangles. See `validation.json` for actual measurements.
 
-`preview.html` links all models, sources and **22 actual Blender desktop views**: day/night/rear/above in every era, plus the original entrance, locker corridor, gym, view from the bleachers, portables and new security entrance. The review sheet combines them. These are **not Filament/S25 captures**; game integration and phone measurements remain pending.
+`preview.html` links all models, sources and **24 actual Blender desktop views**: day/night/rear/above in every era, plus the original entrance, locker corridor, gym, view from the bleachers, portables, new security entrance, ticket booth and bus loop. The review sheet combines them. These are **not Filament/S25 captures**; game integration and phone measurements remain pending.

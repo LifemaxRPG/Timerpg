@@ -4,7 +4,7 @@ from pathlib import Path
 from mathutils import Vector
 R=Path(__file__).resolve().parent;U=.0776;T=.0388;F=8
 STATE=next((a.split('=')[1] for a in sys.argv if a.startswith('--state=')),'1925');assert STATE in ['1925','1955','1975','2000'];ERA=int(STATE);POST=ERA>=1955;CONS=ERA>=1975;NEW=ERA>=2000
-REG=json.loads((R/'art-regions.json').read_text());COLL=[];LIGHTS=[];PROPS=[];DOORS=[];ROOMS=[];INST={};GLOW_AREA=0
+REG=json.loads((R/'art-regions.json').read_text());COLL=[];LIGHTS=[];PROPS=[];DOORS=[];ROOMS=[];INST={};TREES=[];PATHS=[];GLOW_AREA=0
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
 for m in list(bpy.data.materials):bpy.data.materials.remove(m)
 def empty(n,p=None):
@@ -62,16 +62,21 @@ def wallrun(n,a,b,z0,z1,fixed,holes=[],axis='x',m=wall,inside=True):
     old=bpy.data.images.get(m['texture_file']).size;new=bpy.data.images.get(plaster['texture_file']).size
     for li in f.loop_indices:o.data.uv_layers.active.data[li].uv*=Vector((old[0]/new[0],old[1]/new[1]))
 def win(n,p,key='class',side='front',shrink=False):
- x,y,z=p;w,h=REG[key]['rect_art'][2:]
- if shrink:
-  # Reduced 1970s pane inside the unchanged 1925 masonry aperture.
-  sw,sh=32,22
-  for dx in [-18,18]:B('Energy infill side',(x+dx,y,z),(4,1,38),wood)
-  for dz in [-15,15]:B('Energy infill band',(x,y,z+dz),(32,1,8),wood)
-  IP(n,(x,y-0.2 if side=='front' else y+0.2,z),sw,sh,'small',glass,side)
+ x,y,z=p;w,h=REG[key]['rect_art'][2:];front=side in ['front','back']
+ def at(dx,dz=0):return (x+dx,y,z+dz) if front else (x,y+dx,z+dz)
+ def section(n,dx,dz,ww,hh,m):return B(n,at(dx,dz),(ww,3,hh) if front else (3,ww,hh),m)
+ if key=='class':
+  if shrink:
+   for dx in [-18,18]:section('Energy infill side',dx,0,4,38,wood)
+   for dz in [-15,15]:section('Energy infill band',0,dz,32,8,wood)
+   section('Paired infill pier',0,0,4,22,wood)
+   for dx in [-9,9]:IP(n+' paired sash',at(dx),14,22,'small_pair',glass,side)
+  else:
+   section('Paired classroom masonry pier',0,0,4,38,stone)
+   for dx in [-11,11]:IP(n+' tall paired sash',at(dx),18,38,'class_pair',glass,side)
  else:IP(n,p,w,h,key,glass,side)
- B('Window stone sill',(x,y,z-h/2-1),(w+4,4,2) if side in ['front','back'] else (4,w+4,2),stone)
- B('Window lintel',(x,y,z+h/2+1),(w+2,3,2) if side in ['front','back'] else (3,w+2,2),stone)
+ B('Window stone sill',(x,y,z-h/2-1),(w+4,4,2) if front else (4,w+4,2),stone)
+ B('Window lintel',(x,y,z+h/2+1),(w+2,3,2) if front else (3,w+2,2),stone)
 def room(n,box,f=F,notes='Unfurnished shell'):
  ROOMS.append({'id':n,'bounds_source_art':box,'floor_m':f*U,'notes':notes})
 def prop(n):
@@ -96,6 +101,21 @@ def fence(n,x0,x1,y,gates=[],height=28):
    for li,uv in zip(o.data.polygons[0].loop_indices,[(rr[0]*2/W,1-(rr[1]+height)*2/H),((rr[0]+w)*2/W,1-(rr[1]+height)*2/H),((rr[0]+w)*2/W,1-rr[1]*2/H),(rr[0]*2/W,1-rr[1]*2/H)]):o.data.uv_layers.active.data[li].uv=uv
    B('Fence upright',(a+i*w,y,height/2),(1.5,1.5,height),metal)
   B('Fence end post',(b,y,height/2),(1.5,1.5,height),metal);beam('Fence top rail',(a,y,height),(b,y,height),1,m=metal);block(n,(a+b)/2,y,b-a,2,height)
+def yfence(n,y0,y1,x,gates=[],height=30):
+ old={o.name for o in parent.children};start=len(COLL);fence(n,y0,y1,x,gates,height)
+ for o in parent.children:
+  if o.name in old or o.type!='MESH':continue
+  for v in o.data.vertices:v.co.x,v.co.y=v.co.y,v.co.x
+  for face in o.data.polygons:face.flip()
+ for box in COLL[start:]:
+  a,b,c=box['center'];w,h,d=box['size'];box['center']=[-c,b,-a];box['size']=[d,h,w]
+
+def walk(n,x0,y0,x1,y1,w=18):
+ assert abs(x1-x0)<1e-8 or abs(y1-y0)<1e-8
+ if abs(x1-x0)<1e-8:rect=[x0-w/2,min(y0,y1),x0+w/2,max(y0,y1)]
+ else:rect=[min(x0,x1),y0-w/2,max(x0,x1),y0+w/2]
+ PATHS.append(rect)
+
 def ramp(n,x0,x1,y0,y1,high,along='y'):
  if along=='y':vs=[(x0,y0,0),(x1,y0,0),(x1,y1,high),(x0,y1,high),(x0,y1,0),(x1,y1,0)]
  else:vs=[(x0,y0,0),(x1,y0,high),(x1,y1,high),(x0,y1,0),(x1,y0,0),(x1,y1,0)]
@@ -145,12 +165,15 @@ for y in [118,330]:
 for x,y,w,d in [(-261,224,3,212),(261,224,3,212),(0,329,524,3),(0,119,524,3)]:B('Brick parapet',(x,y,197),(w,d,14),wall);B('Coping',(x,y,205),(w+2 if d==3 else 5,5 if d==3 else d,2),stone)
 # Projecting entrance tower, open through to the original ground floor.
 B('Tower floor',(0,110,4),(144,24,8),stone)
-wallrun('Tower front',-72,72,0,222,100,[[-18,18,8,52],[-16,16,76,126],[-16,16,148,198]])
-for x in [-72,72]:B('Tower return',(x,110,111),(2,20,222),wall);B('Tower stone pier',(x,98,111),(6,5,222),stone)
+wallrun('Tower front',-72,72,0,254,100,[[-18,18,8,52],[-16,16,76,126],[-16,16,148,198]])
+for x in [-72,72]:B('Tower return',(x,110,127),(2,20,254),wall);B('Tower stone pier',(x,98,127),(6,5,254),stone)
 for z in [101,173]:win('Tower window',(0,98.8,z),'tower')
 for x in [-24,24]:B('Entrance stone jamb',(x,97,31),(8,6,46),stone)
-B('Entrance lintel',(0,97,56),(56,6,8),stone);B('Tower cornice',(0,110,223),(152,28,4),stone);B('Tower copper cap',(0,110,227),(156,32,4),metal)
-B('Tower stepped crest',(0,110,232),(82,24,6),wall);B('Tower crest coping',(0,110,236),(88,28,2),stone)
+B('Entrance lintel',(0,97,56),(56,6,8),stone);B('Tower cornice',(0,110,255),(152,28,4),stone);B('Tower copper cap',(0,110,259),(156,32,4),metal)
+B('Tower stepped crest',(0,110,264),(82,24,6),wall);B('Tower crest coping',(0,110,268),(88,28,2),stone)
+B('Tower upper rear',(0,120,221),(144,2,66),wall)
+for z in [204,250]:B('Tower stone stringcourse',(0,98,z),(148,5,3),stone)
+B('Clock stone surround',(0,98,226),(40,3,40),stone);P('School clock',(0,96.3,226),32,32,'clock',utility)
 P('Datestone',(0,96.8,66),28,10,'date',utility)
 if not CONS:P('sign_name',(0,98.6,141),128,12,'historic_name',sign)
 else:B('Cleaned historic frieze',(0,98.6,141),(128,.4,12),stone)
@@ -248,13 +271,54 @@ if POST:
 if POST:
  parent=GYM;B('Gym rear landing',(-500,467,4),(48,10,8),stone)
  for i in range(4):B('Gym rear step',(-500,492-i*4,i+1),(48,4,2*(i+1)),stone)
-# Front campus walks, pole and later bus circuit.
+# Pedestrian network, a west-side bus loop and connected parking.
 parent=LOT
+walk('Front campus promenade',-720,68,720,68,18)
+walk('Main street approach',0,0,0,84,32)
 if POST:
- slab('Bus loop',0,72,1460,84,1,'asphalt');B('Bus loop lawn',(0,72,1.05),(1200,38,.1),grass)
- for x in [-680,680]:plane('Bus direction arrow',[(x-8,60),(x+8,60),(x,78)],1.15,sport,'chalk')
-# Long walks over the lawn are only slightly proud, with crossings above loop paving.
-slab('Main walk',0,43,48,86,1.5,'chalk');slab('Front terrace',0,105,156,10,2,'chalk')
+ walk('Gym approach',-500,68,-500,126,24)
+ walk('Wing approach',316,68,316,126,24)
+walk('West campus walk',-720,68,-720,625,20)
+walk('East campus walk',720,68,720,514,20)
+walk('Rear campus walk',-720,514,760,514,18)
+if POST:walk('Gym service connection',-500,494,-500,514,18)
+walk('Parking pedestrian connection',720,200,740 if CONS else 850,200,18)
+walk('Baseball gate approach',-820,625,-720,625,18)
+if CONS and not NEW:
+ walk('Rear stair connection',0,364,-70,364,18)
+ walk('Portable west aisle',-70,338,-70,514,16)
+ walk('Portable west footpath',-210,338,-26,338,12)
+ walk('Portable east footpath',26,338,250,338,12)
+ walk('Portable east return',250,338,250,390,12)
+ walk('Portable east crosswalk',250,390,330,390,12)
+ walk('Portable east aisle',330,390,330,514,16)
+elif POST:
+ walk('School rear connection',0,364,720,364,18)
+
+if POST:
+ prop('bus_loop');cx,cy,rx,ry=-955,240,195,200
+ for i in range(24):
+  a=i*math.tau/24;b=(i+1)*math.tau/24
+  plane('Bus loop pavement',[(cx+rx*math.cos(a),cy+ry*math.sin(a)),(cx+rx*math.cos(b),cy+ry*math.sin(b)),(cx+140*math.cos(b),cy+145*math.sin(b)),(cx+140*math.cos(a),cy+145*math.sin(a))],1,sport,'asphalt')
+  for xx,yy in [(rx,ry),(140,145)]:plane('Loop edge stripe',[(cx+xx*math.cos(a),cy+yy*math.sin(a)),(cx+xx*math.cos(b),cy+yy*math.sin(b)),(cx+(xx-1)*math.cos(b),cy+(yy-1)*math.sin(b)),(cx+(xx-1)*math.cos(a),cy+(yy-1)*math.sin(a))],1.3,sport,'chalk')
+ for x in [-1040,-870]:slab('Bus entrance apron',x,60,44,120,1.2,'asphalt')
+ plane('Bus one-way arrow',[(-796,246),(-780,246),(-788,228)],1.35,sport,'chalk')
+ plane('Bus one-way arrow',[(-1134,234),(-1118,234),(-1126,252)],1.35,sport,'chalk')
+ parent=LOT;walk('Bus drop-off walk',-760,240,-720,240,22)
+ walk('Stadium gate walk',5,514,5,550 if NEW else 750,24)
+ walk('East stadium gate walk',750,450,750,550,24)
+ walk('Ticket approach',720,450,840,450,18)
+ walk('Ticket forecourt',800,450,800,480,70)
+else:
+ walk('Original rear door connection',0,360,280,360,18)
+ walk('Original east rear connection',280,360,720,360,18)
+# The parking entrance is shared; the larger student lot replaces the earlier staff pull-in.
+prop('parking_drive');drive_depth=150 if CONS else 168;slab('Parking access',1080,drive_depth/2,56,drive_depth,1,'asphalt')
+if not CONS:
+ prop('staff_parking');slab('Staff pull-in',1000,240,300,144,1,'asphalt')
+ for x in range(900,1093,32):plane('Staff bay stripe',[(x,170),(x+1,170),(x+1,232),(x,232)],1.15,sport,'chalk')
+# Durable raised landing remains, with pavement only outside the actual school.
+parent=LOT;slab('Front terrace',0,105,156,10,2,'chalk')
 prop('flagpole');cylinder('Flagpole',(-310,80,48),1,96,metal,None,8);B('Flagpole base',(-310,80,3),(12,12,6),stone);block('Flagpole',-310,80,12,12,96)
 # Plain fictional school pennant, no national symbols or real logos.
 mesh('School pennant',[(-310*U,80*U,90*U),(-270*U,80*U,88*U),(-310*U,80*U,72*U)],[(0,1,2)],wood)
@@ -269,6 +333,8 @@ cylinder('Pitch mound',(hx,hy+238,1),22,1.2,sport,None,12);tint(bpy.context.coll
 prop('wooden_backstop');fence('Backstop',hx-120,hx+120,hy-45,[],64)
 for x in [hx-120,hx,hx+120]:B('Backstop timber post',(x,hy-45,32),(4,4,64),wood)
 for z in [24,62]:beam('Backstop timber rail',(hx-120,hy-45,z),(hx+120,hy-45,z),3,m=wood)
+prop('baseball_fence');fence('Baseball perimeter',-1470,-790,550,[],30);fence('Baseball perimeter',-1470,-790,1480,[(-1200,-1140)],30)
+yfence('Baseball perimeter',550,1480,-1470,[],30);yfence('Baseball perimeter',550,1480,-790,[(600,650)],30)
 if POST:
  prop('football_field');x0,x1,y0,y1=-320,1094,800,1430;cy=(y0+y1)/2
  plane('Football grass',[(x0,y0),(x1,y0),(x1,y1),(x0,y1)],.7,grass if not NEW else sport,'turf' if NEW else None)
@@ -339,6 +405,19 @@ if POST:
   for x in range(760,1401,32):
    for y in [184,356]:plane('Parking stripe',[(x,y-32),(x+1,y-32),(x+1,y+32),(x,y+32)],1.15,sport,'chalk')
   for y in [148,392]:B('Parking kerb',(1080,y,2),(686,4,4),stone)
+if POST:
+ prop('ticket_booth');B('Ticket floor',(800,500,2),(52,40,4),stone)
+ wallrun('Ticket front',774,826,4,44,480,[[786,814,16,34]])
+ wallrun('Ticket rear',774,826,4,44,520,[[793,807,4,34]],inside='back')
+ for x in [774,826]:wallrun('Ticket side',480,520,4,44,x,[],'y',inside=x==774)
+ B('Ticket roof',(800,500,46),(58,46,4),roof);IP('Ticket glazing',(800,478.8,25),28,18,'ticket_window',glass)
+ IP('Ticket label',(800,478.7,38),48,10,'ticket_label',utility);B('Ticket counter',(800,482,15),(30,8,2),wood)
+ doorway('door_ticket',800,522,14,30,f=4,side='back')
+ B('Ticket rear landing',(800,522,2),(22,4,4),stone);B('Ticket rear step',(800,526,1),(22,4,2),stone)
+ room('ticket_booth',[775,481,825,519],f=4,notes='Unfurnished ticket booth shell with fixed counter; no ticket sales behavior.')
+ lamp('Ticket fixture',800,500,42,6,4,45)
+ parent=LOT
+ for x in [-22,32,718,782]:B('Stadium gate pier',(x,530,16),(6,6,32),wall);B('Stadium pier cap',(x,530,33),(8,8,2),stone);block('Stadium gate pier',x,530,8,8,34)
 # Three portable classrooms appear only in the consolidation state.
 if CONS and not NEW:
  for i,cx in enumerate([-170,30,230],1):
@@ -348,7 +427,7 @@ if CONS and not NEW:
   for x in [cx-70,cx+70]:wallrun('Portable end',405,495,6,41,x,[],'y',m=plaster,inside=False)
   for x in [cx-43,cx+43]:IP('Portable window',(x,403.8,26),28,18,'portable',glass)
   doorway('door_portable_'+str(i),cx,403,20,32,f=6);ramp('Portable ramp',cx-10,cx+10,333,405,6)
-  for x in [cx-11,cx+11]:beam('Portable handrail',(x,333,12),(x,405,18),.8,m=metal)
+  for x in [cx-11,cx+11]:beam('Portable handrail',(x,345,13),(x,405,18),.8,m=metal)
   room('portable_'+str(i),[cx-69,406,cx+69,494],f=6,notes='Unfurnished raised shell; 1:12 geometric ramp, no runtime accessibility certification.')
 # New name is one active repaintable region, moved to a road monument in 1975.
 if CONS:
@@ -384,6 +463,31 @@ if NEW:
 for i,x in enumerate([-235,-221]):
  prop('service_bin_'+str(i));B('Service bin',(x,346,7),(10,10,14),metal);B('Bin lid',(x,346,14.5),(12,12,1),metal);block('Service bin',x,346,12,12,15)
 
+# Merge the paving plan as non-overlapping rectangles before producing its geometry.
+prop('campus_paths');edges=sorted(set(v for r in PATHS for v in [r[0],r[2]]))
+for xa,xb in zip(edges,edges[1:]):
+ mid=(xa+xb)/2;intervals=sorted((r[1],r[3]) for r in PATHS if r[0]<mid<r[2]);merged=[]
+ for ya,yb in intervals:
+  if merged and ya<=merged[-1][1]+1e-8:merged[-1][1]=max(merged[-1][1],yb)
+  else:merged.append([ya,yb])
+ for ya,yb in merged:plane('Joined campus paving',[(xa,ya),(xb,ya),(xb,yb),(xa,yb)],.72,sport,'chalk')
+
+# A planted landscape frames the school and the athletic grounds, without inventing residents.
+bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1,radius=1);template=bpy.context.object
+ico_v=[v.co.copy() for v in template.data.vertices];ico_f=[tuple(p.vertices) for p in template.data.polygons];bpy.data.objects.remove(template,do_unlink=True)
+TREE_POS=[(-1280,120),(-1280,410),(-620,100),(480,100),(1420,100),(1420,460),(-620,500),(1180,480),(-1320,1700),(-850,1990),(100,1990),(1120,1990)]
+for i,(x,y) in enumerate(TREE_POS):
+ prop('campus_tree_'+str(i+1));TREES.append(parent.name);s=.92+.04*(i%4)
+ cylinder('Tree trunk',(x,y,38*s),2.5*s,76*s,wood,None,8)
+ for side in [-1,1]:beam('Tree branch',(x,y,58*s),(x+24*side*s,y+side*6*s,90*s),1.5*s,m=wood)
+ for dx,dy,z,rx,ry,rz in [(0,0,104,44,36,42),(-24,6,90,32,30,32),(24,-6,91,32,30,32)]:
+  mesh('Leaf crown',[((x+(dx+v.x*rx)*s)*U,(y+(dy+v.y*ry)*s)*U,(z+v.z*rz)*s*U) for v in ico_v],ico_f,grass)
+ block('Tree trunk clearance',x,y,7*s,7*s,146*s)
+for x in [-160,160]:
+ prop('campus_bench');B('Bench seat',(x,50,5),(26,8,2),wood);B('Bench back',(x,53.5,10),(26,1,8),wood)
+ for xx in [x-10,x+10]:B('Bench leg',(xx,50,2),(2,6,4),metal)
+ block('Campus bench',x,50,28,10,14)
+
 # Collision companion: exact separate boxes, already in the glTF frame in metadata.
 parent=ROOT;vs=[];fs=[]
 for b in COLL:
@@ -410,16 +514,22 @@ def export(objects,path):
  bpy.ops.export_scene.gltf(filepath=str(path),use_selection=True,export_format='GLB',export_yup=True,export_extras=True,export_vertex_color='ACTIVE')
 export(model,R/('lincoln-high-school-'+STATE+'.glb'))
 part_tris={g.name:count(g.children_recursive) for g in GROUPS if g not in [ROOT,LOT]};part_tris['lot_total']=count(LOT.children_recursive)
-info={'name':'Lincoln Consolidated' if CONS else 'Lincoln High School','state':STATE,'file':'lincoln-high-school-'+STATE+'.glb','years':[ERA,{'1925':1954,'1955':1974,'1975':1999,'2000':2030}[STATE]],'units':'metres','axes':'glTF Y up, +Z street front','origin':'Grade at middle of the campus front street edge; all four states use identical lot/origin.','campus_m':[3000*U,2060*U],'original_school_m':[520*U,208*U],'hall_floor_m':F*U,'original_roof_m':190*U,'tower_m':237*U,'triangles_visible':tris,'triangles_per_part':part_tris,'materials':mats,'doors':DOORS,'rooms':ROOMS,'sign_name':{'node':'sign_name','texture':'textures/signs.png','rect_art':REG['modern_name' if CONS else 'historic_name']['rect_art'],'text':'LINCOLN CONSOLIDATED' if CONS else 'LINCOLN HIGH SCHOOL','notes':'Exactly one active school-name panel. Road monument replaces the blanked historic frieze from 1975. Repaint per town; Lincoln is the requested fictional preview name.'},'datestone':{'texture':'textures/panels.png','rect_art':REG['date']['rect_art'],'text':'1925'},'collision':{'node':'collision','render':False,'coordinate_frame':'glTF metres, Y up/+Z front','boxes_gltf_y_up':COLL,'use_the_walls':True,'notes':'Architectural meshes supply complete wall/floor/stair collision, including all open exterior portals. Listed boxes supplement props, backstop, fences, field poles, grandstand and closed upper landing. Keep fence gate gaps. Do not apply the old Blender rotation.'},'features':{'modern_wing':POST,'gym':POST,'bus_loop':POST,'baseball_diamond':True,'football_field':POST,'wood_bleachers':POST and not CONS,'steel_bleachers':CONS,'press_box':CONS,'student_parking':CONS,'portables':3 if CONS and not NEW else 0,'security_entry':NEW,'turf':NEW,'running_track':NEW,'scoreboard':NEW},'sports_dimensions':{'base_path_m':250*U*math.sqrt(2),'football_including_endzones_m':[1414*U,630*U],'track_inner_circumference_m':(2*1088+math.tau*475)*U if NEW else None,'track_lanes':5 if NEW else 0},'non_window_emissive_area_m2_upper_bound':GLOW_AREA,'pixel_grid':{'metres_per_texel':T,'texels_per_art_pixel':2},'lot_node':'lot','lot_bounds_gltf_m':{'x':[-1500*U,1500*U],'z':[-2060*U,0]},'swatches_used':['brick_red','wall_stucco_red','roof_membrane_grey'],'licence':'Retain original LimeZu credits; shared swatches Timerpg-only. Supplemental art and geometry original.','runtime_handoff':['No pupils, staff, vehicles, admissions, security, school renaming or sports simulation is implemented. States are visual alternatives selected by actual town history.','Main entrance node retains the same position in all states; in 2000 it is the original interior portal and door_security is the new exterior entrance.','Upper floors have exterior shells and floor slabs but are closed at the stair landing; no upper classroom navigation is claimed.','Importer must read boxes_gltf_y_up without the legacy Blender-axis rotation. Wall/floor collision, lights, pane mask, navigation and state selection require game integration.','The requested sports grounds require a wider campus than the compact repository suggestion: this lot is 232.8 by 159.856 metres.','Base paths and football envelope are near regulation scale; compact baseball outfield and five-lane approximate 400m track are not certified facilities.'],'renders':'Actual Blender desktop renders, not Filament/S25 captures.'}
+info={'name':'Lincoln Consolidated' if CONS else 'Lincoln High School','state':STATE,'file':'lincoln-high-school-'+STATE+'.glb','years':[ERA,{'1925':1954,'1955':1974,'1975':1999,'2000':2030}[STATE]],'units':'metres','axes':'glTF Y up, +Z street front','origin':'Grade at middle of the campus front street edge; all four states use identical lot/origin.','campus_m':[3000*U,2060*U],'original_school_m':[520*U,208*U],'hall_floor_m':F*U,'original_roof_m':190*U,'tower_m':269*U,'triangles_visible':tris,'triangles_per_part':part_tris,'materials':mats,'doors':DOORS,'rooms':ROOMS,'sign_name':{'node':'sign_name','texture':'textures/signs.png','rect_art':REG['modern_name' if CONS else 'historic_name']['rect_art'],'text':'LINCOLN CONSOLIDATED' if CONS else 'LINCOLN HIGH SCHOOL','notes':'Exactly one active school-name panel. Road monument replaces the blanked historic frieze from 1975. Repaint per town; Lincoln is the requested fictional preview name.'},'datestone':{'texture':'textures/panels.png','rect_art':REG['date']['rect_art'],'text':'1925'},'collision':{'node':'collision','render':False,'coordinate_frame':'glTF metres, Y up/+Z front','boxes_gltf_y_up':COLL,'use_the_walls':True,'notes':'Architectural meshes supply complete wall/floor/stair collision, including all open exterior portals. Listed boxes supplement props, backstop, fences, field poles, grandstand and closed upper landing. Keep fence gate gaps. Do not apply the old Blender rotation.'},'features':{'modern_wing':POST,'gym':POST,'bus_loop':POST,'paired_windows':True,'ticket_booth':POST,'baseball_fence':True,'tree_count':len(TREES),'staff_parking':not CONS,'connected_paths':True,'baseball_diamond':True,'football_field':POST,'wood_bleachers':POST and not CONS,'steel_bleachers':CONS,'press_box':CONS,'student_parking':CONS,'portables':3 if CONS and not NEW else 0,'security_entry':NEW,'turf':NEW,'running_track':NEW,'scoreboard':NEW},'sports_dimensions':{'base_path_m':250*U*math.sqrt(2),'football_including_endzones_m':[1414*U,630*U],'track_inner_circumference_m':(2*1088+math.tau*475)*U if NEW else None,'track_lanes':5 if NEW else 0},'non_window_emissive_area_m2_upper_bound':GLOW_AREA,'pixel_grid':{'metres_per_texel':T,'texels_per_art_pixel':2},'path_rectangles_source_art':PATHS,'lot_node':'lot','lot_bounds_gltf_m':{'x':[-1500*U,1500*U],'z':[-2060*U,0]},'swatches_used':['brick_red','wall_stucco_red','roof_membrane_grey'],'licence':'Retain original LimeZu credits; shared swatches Timerpg-only. Supplemental art and geometry original.','runtime_handoff':['Trees, paths, the bus loop, parking and the ticket booth are static model geometry; no vehicle routing, passengers, ticket sales or school events are implemented. No pupils, staff, vehicles, admissions, security, school renaming or sports simulation is implemented. States are visual alternatives selected by actual town history.','Main entrance node retains the same position in all states; in 2000 it is the original interior portal and door_security is the new exterior entrance.','Upper floors have exterior shells and floor slabs but are closed at the stair landing; no upper classroom navigation is claimed.','Importer must read boxes_gltf_y_up without the legacy Blender-axis rotation. Wall/floor collision, lights, pane mask, navigation and state selection require game integration.','The requested sports grounds require a wider campus than the compact repository suggestion: this lot is 232.8 by 159.856 metres.','Base paths and football envelope are near regulation scale; compact baseball outfield and five-lane approximate 400m track are not certified facilities.'],'renders':'Actual Blender desktop renders, not Filament/S25 captures.'}
 (R/('state-'+STATE+'.json')).write_text(json.dumps(info,indent=2)+'\n');print('SCHOOL_EXPORT',STATE,tris,len(mats),'glow',GLOW_AREA)
 # Very cheap 1955 silhouette fallback. Only appropriate to the post-war state.
 if STATE=='1955':
  far=empty('school_far');parent=far
- B('Far main',(0,224,94),(520,208,188),wall);B('Far tower',(0,110,118),(144,24,236),wall);B('Far wing',(480,250,32),(440,200,64),wall);B('Far link',(-290,230,32),(60,60,64),wall);B('Far gym',(-500,305,48),(360,310,96),wall)
+ B('Far main',(0,224,94),(520,208,188),wall);B('Far tower',(0,110,134.5),(144,24,269),wall);B('Far wing',(480,250,32),(440,200,64),wall);B('Far link',(-290,230,32),(60,60,64),wall);B('Far gym',(-500,305,48),(360,310,96),wall)
  curve=[(-500+180*math.cos(i*math.pi/4),96+34*math.sin(i*math.pi/4)) for i in range(5)]
  for (a,za),(b,zb) in zip(curve,curve[1:]):mesh('Far gym bow',[(a*U,150*U,za*U),(a*U,460*U,za*U),(b*U,460*U,zb*U),(b*U,150*U,zb*U)],[(0,1,2,3)],roof)
  for y in [150,460]:mesh('Far gym gable',[(x*U,y*U,z*U) for x,z in curve],[tuple(range(5))],wall)
  B('Far grounds',(0,1030,.2),(3000,2060,.4),grass);B('Far field',(387,1115,.6),(1414,630,.4),grass);B('Far bleachers',(360,1757,22),(768,90,44),wood)
+ for x,y in TREE_POS:
+  mesh('Far tree trunk',[(xx*U,y*U,z*U) for xx,z in [(x-2,0),(x+2,0),(x+2,72),(x-2,72)]],[(0,1,2,3)],wood)
+  mesh('Far tree trunk cross',[(x*U,yy*U,z*U) for yy,z in [(y-2,0),(y+2,0),(y+2,72),(y-2,72)]],[(0,1,2,3)],wood)
+  mesh('Far tree crown',[((x+xx)*U,(y+yy)*U,z*U) for xx,yy,z in [(-44,-30,70),(44,-30,70),(44,30,70),(-44,30,70),(0,0,144)]],[(0,3,2,1),(0,1,4),(1,2,4),(2,3,4),(3,0,4)],grass)
+ for i in range(8):
+  a=i*math.tau/8;b=(i+1)*math.tau/8;plane('Far bus loop',[(-955+195*math.cos(a),240+200*math.sin(a)),(-955+195*math.cos(b),240+200*math.sin(b)),(-955+140*math.cos(b),240+145*math.sin(b)),(-955+140*math.cos(a),240+145*math.sin(a))],1,sport,'asphalt')
  farobjects=[far]+list(far.children_recursive);ft=count(farobjects);assert ft<400;export(farobjects,R/'school-far.glb');(R/'far-info.json').write_text(json.dumps({'file':'school-far.glb','state':'1955','triangles':ft,'notes':'Static post-war silhouette only. Same campus origin/metres; no doors, collision, interiors or automatic LOD selection.'},indent=2)+'\n')
  for o in farobjects:o.hide_render=True;o.hide_set(True)
 # Actual model previews; staging terrain/lights/camera are excluded from GLB.
@@ -443,10 +553,12 @@ shot('night',(92,-94,72),(0,23,5) if POST else (0,18,6),135 if POST else 72,True
 shot('rear',(-138,188,115),(0,74,3),220)
 shot('above',(100,-80,280),(0,80,1),280)
 if STATE=='1925':
- shot('entrance',(-12,-4,1.7),(0,10,8),100,False,True)
+ shot('entrance',(-15,-11,1.7),(0,9.5,9),100,False,True)
  shot('corridor',(-16,17.1,1.8),(15,17.1,1.9),100,True,True)
 if STATE=='1955':shot('gym',(-46,14.5,4),(-38,25.5,1),100,True,True)
 if STATE=='1975':
  shot('bleachers',(12,139,4.3),(25,85,1.4),100,False,True)
  shot('portables',(33,52,22),(2,33,1),66)
+ shot('ticket',(66,31,1.7),(62.08,37.6,1.8),100,False,True)
+ shot('bus-loop',(-91,-11,32),(-65,15,1),90)
 if STATE=='2000':shot('security',(-13,1,1.7),(0,6.7,3.8),100,False,True)

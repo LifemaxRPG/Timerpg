@@ -19,16 +19,34 @@
   ],
   "hall_floor_m": 0.6208,
   "original_roof_m": 14.744,
-  "tower_m": 18.3912,
-  "triangles_visible": 5013,
+  "tower_m": 20.8744,
+  "triangles_visible": 7779,
   "triangles_per_part": {
-    "school_1925": 4662,
+    "school_1925": 5384,
+    "parking_drive": 12,
+    "staff_parking": 26,
     "flagpole": 41,
     "baseball_diamond": 114,
     "wooden_backstop": 112,
+    "baseball_fence": 536,
     "service_bin_0": 24,
     "service_bin_1": 24,
-    "lot_total": 351
+    "campus_paths": 42,
+    "campus_tree_1": 112,
+    "campus_tree_2": 112,
+    "campus_tree_3": 112,
+    "campus_tree_4": 112,
+    "campus_tree_5": 112,
+    "campus_tree_6": 112,
+    "campus_tree_7": 112,
+    "campus_tree_8": 112,
+    "campus_tree_9": 112,
+    "campus_tree_10": 112,
+    "campus_tree_11": 112,
+    "campus_tree_12": 112,
+    "campus_bench": 48,
+    "campus_bench.001": 48,
+    "lot_total": 2395
   },
   "materials": [
     "detail_metal",
@@ -414,6 +432,102 @@
         "group": "lot"
       },
       {
+        "source": "Baseball perimeter",
+        "center": [
+          -87.688,
+          1.1640000000000001,
+          -42.68
+        ],
+        "size": [
+          52.768,
+          2.3280000000000003,
+          0.1552
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "baseball_fence",
+        "group": "lot"
+      },
+      {
+        "source": "Baseball perimeter",
+        "center": [
+          -103.596,
+          1.1640000000000001,
+          -114.848
+        ],
+        "size": [
+          20.952,
+          2.3280000000000003,
+          0.1552
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "baseball_fence",
+        "group": "lot"
+      },
+      {
+        "source": "Baseball perimeter",
+        "center": [
+          -74.884,
+          1.1640000000000001,
+          -114.848
+        ],
+        "size": [
+          27.16,
+          2.3280000000000003,
+          0.1552
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "baseball_fence",
+        "group": "lot"
+      },
+      {
+        "source": "Baseball perimeter",
+        "center": [
+          -114.072,
+          1.1640000000000001,
+          -78.764
+        ],
+        "size": [
+          0.1552,
+          2.3280000000000003,
+          72.168
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "baseball_fence",
+        "group": "lot"
+      },
+      {
+        "source": "Baseball perimeter",
+        "center": [
+          -61.304,
+          1.1640000000000001,
+          -44.620000000000005
+        ],
+        "size": [
+          0.1552,
+          2.3280000000000003,
+          3.88
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "baseball_fence",
+        "group": "lot"
+      },
+      {
+        "source": "Baseball perimeter",
+        "center": [
+          -61.304,
+          1.1640000000000001,
+          -82.644
+        ],
+        "size": [
+          0.1552,
+          2.3280000000000003,
+          64.408
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "baseball_fence",
+        "group": "lot"
+      },
+      {
         "source": "Service bin",
         "center": [
           -18.236,
@@ -444,6 +558,230 @@
         "support_floor_m": 0.0,
         "attachment": "service_bin_1",
         "group": "lot"
+      },
+      {
+        "source": "Tree trunk clearance",
+        "center": [
+          -99.328,
+          5.211616,
+          -9.312000000000001
+        ],
+        "size": [
+          0.499744,
+          10.423232,
+          0.499744
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "campus_tree_1",
+        "group": "lot"
+      },
+      {
+        "source": "Tree trunk clearance",
+        "center": [
+          -99.328,
+          5.438208000000001,
+          -31.816000000000003
+        ],
+        "size": [
+          0.521472,
+          10.876416000000003,
+          0.521472
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "campus_tree_2",
+        "group": "lot"
+      },
+      {
+        "source": "Tree trunk clearance",
+        "center": [
+          -48.112,
+          5.6648000000000005,
+          -7.76
+        ],
+        "size": [
+          0.5432,
+          11.329600000000001,
+          0.5432
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "campus_tree_3",
+        "group": "lot"
+      },
+      {
+        "source": "Tree trunk clearance",
+        "center": [
+          37.248000000000005,
+          5.891392000000001,
+          -7.76
+        ],
+        "size": [
+          0.564928,
+          11.782784000000001,
+          0.564928
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "campus_tree_4",
+        "group": "lot"
+      },
+      {
+        "source": "Tree trunk clearance",
+        "center": [
+          110.19200000000001,
+          5.211616,
+          -7.76
+        ],
+        "size": [
+          0.499744,
+          10.423232,
+          0.499744
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "campus_tree_5",
+        "group": "lot"
+      },
+      {
+        "source": "Tree trunk clearance",
+        "center": [
+          110.19200000000001,
+          5.438208000000001,
+          -35.696
+        ],
+        "size": [
+          0.521472,
+          10.876416000000003,
+          0.521472
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "campus_tree_6",
+        "group": "lot"
+      },
+      {
+        "source": "Tree trunk clearance",
+        "center": [
+          -48.112,
+          5.6648000000000005,
+          -38.800000000000004
+        ],
+        "size": [
+          0.5432,
+          11.329600000000001,
+          0.5432
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "campus_tree_7",
+        "group": "lot"
+      },
+      {
+        "source": "Tree trunk clearance",
+        "center": [
+          91.568,
+          5.891392000000001,
+          -37.248000000000005
+        ],
+        "size": [
+          0.564928,
+          11.782784000000001,
+          0.564928
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "campus_tree_8",
+        "group": "lot"
+      },
+      {
+        "source": "Tree trunk clearance",
+        "center": [
+          -102.432,
+          5.211616,
+          -131.92000000000002
+        ],
+        "size": [
+          0.499744,
+          10.423232,
+          0.499744
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "campus_tree_9",
+        "group": "lot"
+      },
+      {
+        "source": "Tree trunk clearance",
+        "center": [
+          -65.96000000000001,
+          5.438208000000001,
+          -154.424
+        ],
+        "size": [
+          0.521472,
+          10.876416000000003,
+          0.521472
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "campus_tree_10",
+        "group": "lot"
+      },
+      {
+        "source": "Tree trunk clearance",
+        "center": [
+          7.76,
+          5.6648000000000005,
+          -154.424
+        ],
+        "size": [
+          0.5432,
+          11.329600000000001,
+          0.5432
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "campus_tree_11",
+        "group": "lot"
+      },
+      {
+        "source": "Tree trunk clearance",
+        "center": [
+          86.912,
+          5.891392000000001,
+          -154.424
+        ],
+        "size": [
+          0.564928,
+          11.782784000000001,
+          0.564928
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "campus_tree_12",
+        "group": "lot"
+      },
+      {
+        "source": "Campus bench",
+        "center": [
+          -12.416,
+          0.5432,
+          -3.88
+        ],
+        "size": [
+          2.1728,
+          1.0864,
+          0.776
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "campus_bench",
+        "group": "lot"
+      },
+      {
+        "source": "Campus bench",
+        "center": [
+          12.416,
+          0.5432,
+          -3.88
+        ],
+        "size": [
+          2.1728,
+          1.0864,
+          0.776
+        ],
+        "support_floor_m": 0.0,
+        "attachment": "campus_bench.001",
+        "group": "lot"
       }
     ],
     "use_the_walls": true,
@@ -453,6 +791,12 @@
     "modern_wing": false,
     "gym": false,
     "bus_loop": false,
+    "paired_windows": true,
+    "ticket_booth": false,
+    "baseball_fence": true,
+    "tree_count": 12,
+    "staff_parking": true,
+    "connected_paths": true,
     "baseball_diamond": true,
     "football_field": false,
     "wood_bleachers": false,
@@ -479,6 +823,62 @@
     "metres_per_texel": 0.0388,
     "texels_per_art_pixel": 2
   },
+  "path_rectangles_source_art": [
+    [
+      -720,
+      59.0,
+      720,
+      77.0
+    ],
+    [
+      -16.0,
+      0,
+      16.0,
+      84
+    ],
+    [
+      -730.0,
+      68,
+      -710.0,
+      625
+    ],
+    [
+      710.0,
+      68,
+      730.0,
+      514
+    ],
+    [
+      -720,
+      505.0,
+      760,
+      523.0
+    ],
+    [
+      720,
+      191.0,
+      850,
+      209.0
+    ],
+    [
+      -820,
+      616.0,
+      -720,
+      634.0
+    ],
+    [
+      0,
+      351.0,
+      280,
+      369.0
+    ],
+    [
+      280,
+      351.0,
+      720,
+      369.0
+    ]
+  ],
   "lot_node": "lot",
   "lot_bounds_gltf_m": {
     "x": [
@@ -497,7 +897,7 @@
   ],
   "licence": "Retain original LimeZu credits; shared swatches Timerpg-only. Supplemental art and geometry original.",
   "runtime_handoff": [
-    "No pupils, staff, vehicles, admissions, security, school renaming or sports simulation is implemented. States are visual alternatives selected by actual town history.",
+    "Trees, paths, the bus loop, parking and the ticket booth are static model geometry; no vehicle routing, passengers, ticket sales or school events are implemented. No pupils, staff, vehicles, admissions, security, school renaming or sports simulation is implemented. States are visual alternatives selected by actual town history.",
     "Main entrance node retains the same position in all states; in 2000 it is the original interior portal and door_security is the new exterior entrance.",
     "Upper floors have exterior shells and floor slabs but are closed at the stair landing; no upper classroom navigation is claimed.",
     "Importer must read boxes_gltf_y_up without the legacy Blender-axis rotation. Wall/floor collision, lights, pane mask, navigation and state selection require game integration.",

@@ -95,6 +95,30 @@
       50
     ]
   },
+  "ticket_window": {
+    "rect_art": [
+      304,
+      64,
+      28,
+      18
+    ]
+  },
+  "class_pair": {
+    "rect_art": [
+      368,
+      64,
+      18,
+      38
+    ]
+  },
+  "small_pair": {
+    "rect_art": [
+      344,
+      64,
+      14,
+      22
+    ]
+  },
   "lockers": {
     "rect_art": [
       0,
@@ -133,6 +157,22 @@
       0,
       24,
       14
+    ]
+  },
+  "ticket_label": {
+    "rect_art": [
+      240,
+      0,
+      48,
+      10
+    ]
+  },
+  "clock": {
+    "rect_art": [
+      304,
+      0,
+      32,
+      32
     ]
   },
   "historic_name": {

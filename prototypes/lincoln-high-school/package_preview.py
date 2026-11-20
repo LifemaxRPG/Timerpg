@@ -4,7 +4,7 @@ from PIL import Image,ImageDraw,ImageFont
 import json,html
 R=Path(__file__).resolve().parent
 STATES=['1925','1955','1975','2000'];NAMES=['1925: original school','1955: post-war growth','1975: Lincoln Consolidated','2000: renovated campus']
-EXTRAS=[('1925-entrance','Original entrance tower and datestone'),('1925-corridor','Locker corridor and open classroom portals'),('1955-gym','Bow-roof gym, court and fixed basketball hoops'),('1975-bleachers','Field viewed from the steel grandstand'),('1975-portables','Three raised portable classrooms and ramps'),('2000-security','New glass entrance and accessible side ramp')]
+EXTRAS=[('1925-entrance','Entrance tower, school clock and datestone'),('1925-corridor','Locker corridor and open classroom portals'),('1955-gym','Bow-roof gym, court and fixed basketball hoops'),('1975-bleachers','Field viewed from the steel grandstand'),('1975-portables','Three raised portable classrooms and ramps'),('2000-security','New glass entrance and accessible side ramp'),('1975-ticket','Ticket booth beside the stadium entry gate'),('1975-bus-loop','West-side bus loop and connected paths')]
 infos=[json.loads((R/('state-'+s+'.json')).read_text()) for s in STATES]
 info={'name':'Lincoln High School campus through time','default_state':'1925','state_selection':'Choose one complete state from actual town history; no scheduled construction/renaming/occupants are created.','states':infos,'far':json.loads((R/'far-info.json').read_text()),'render_provenance':'Actual Blender desktop models, 1024x768 Cycles renders, standard OIDN sampling-noise cleanup. Not Filament/S25 captures.'}
 (R/'model-info.json').write_text(json.dumps(info,indent=2)+'\n')

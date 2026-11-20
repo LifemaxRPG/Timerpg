@@ -2,53 +2,54 @@
   "states": [
     {
       "state": "1925",
-      "triangles": 5013,
+      "triangles": 7779,
       "materials": 12,
       "non_window_emissive_m2": 3.51671,
       "open_exterior_entries": 2,
-      "collision_boxes": 5,
+      "collision_boxes": 25,
       "uv_max_edge_error_m": 1.1169433591362576e-05,
       "shared_panel_meshes": 9,
-      "bytes": 404488
+      "bytes": 661396
     },
     {
       "state": "1955",
-      "triangles": 9251,
+      "triangles": 12501,
       "materials": 12,
-      "non_window_emissive_m2": 9.58665,
-      "open_exterior_entries": 5,
-      "collision_boxes": 23,
+      "non_window_emissive_m2": 9.73117,
+      "open_exterior_entries": 6,
+      "collision_boxes": 47,
       "uv_max_edge_error_m": 1.1718750002387424e-05,
-      "shared_panel_meshes": 14,
-      "bytes": 752616
+      "shared_panel_meshes": 18,
+      "bytes": 1059552
     },
     {
       "state": "1975",
-      "triangles": 10465,
+      "triangles": 13741,
       "materials": 12,
-      "non_window_emissive_m2": 9.58665,
-      "open_exterior_entries": 8,
-      "collision_boxes": 25,
+      "non_window_emissive_m2": 9.73117,
+      "open_exterior_entries": 9,
+      "collision_boxes": 49,
       "uv_max_edge_error_m": 1.1718750002387424e-05,
-      "shared_panel_meshes": 17,
-      "bytes": 854212
+      "shared_panel_meshes": 21,
+      "bytes": 1162796
     },
     {
       "state": "2000",
-      "triangles": 10295,
+      "triangles": 13511,
       "materials": 12,
-      "non_window_emissive_m2": 9.58665,
-      "open_exterior_entries": 6,
-      "collision_boxes": 26,
+      "non_window_emissive_m2": 9.73117,
+      "open_exterior_entries": 7,
+      "collision_boxes": 50,
       "uv_max_edge_error_m": 1.1718750002387424e-05,
-      "shared_panel_meshes": 18,
-      "bytes": 848524
+      "shared_panel_meshes": 22,
+      "bytes": 1151676
     }
   ],
-  "far_triangles": 110,
+  "far_triangles": 246,
   "art": "Embedded exact 2x2 texel PNGs; nearest/repeat; 0.0388m/texel UV edge lengths; constant sport palette tints. Repeated window/locker panels share exported meshes.",
   "architecture": "All four models remain above grade. Open exterior apertures checked from actual triangles, shared campus origin/lot and original main portal retained.",
   "collision": "Exact exported companion corners match glTF Y-up metre metadata. Walls/floors/stairs use architecture; gate gaps and prop blockers supplied.",
+  "campus_revision": "Raised entrance tower with static school clock, 96 paired sash panes, connected paths, 12 three-dimensional trees, west-side bus loop, period parking, ticket booth and complete baseball/football enclosures verified.",
   "chronology": "Modern wing/gym/football from 1955; rename/steel bleachers/parking/press box/three portables in 1975; no portables and new vestibule/turf/track/scoreboard in 2000.",
   "lighting": "Actual exported non-window glow geometry below 15m2 in every state; fence-net emission mask is black.",
   "runtime": "Visual asset and geometric checks only. State selection, pupils, security, vehicle routing, collisions, lights and navigation need game integration.",

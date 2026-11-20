@@ -31,7 +31,7 @@ for name,pal in [('stone',['#8f9387','#cccbb3','#e9dfc5','#b0b39e']),('metal',['
  save(im,name+'.png')
 # All window mullions and net mesh are texture pixels, not geometry.
 im=Image.new('RGBA',(512,256),(100,136,134,42));mask=Image.new('RGBA',im.size,'black');d=ImageDraw.Draw(im);md=ImageDraw.Draw(mask)
-for key,rect in [('class',[0,0,40,38]),('small',[48,0,32,22]),('ribbon',[88,0,96,24]),('gym',[192,0,48,50]),('case',[248,0,48,24]),('security_side',[304,0,30,56]),('security_front',[344,0,28,42]),('security_transom',[384,0,96,14]),('press',[0,64,80,20]),('net',[88,64,128,80]),('portable',[224,64,28,18]),('tower',[264,64,32,50])]:
+for key,rect in [('class',[0,0,40,38]),('small',[48,0,32,22]),('ribbon',[88,0,96,24]),('gym',[192,0,48,50]),('case',[248,0,48,24]),('security_side',[304,0,30,56]),('security_front',[344,0,28,42]),('security_transom',[384,0,96,14]),('press',[0,64,80,20]),('net',[88,64,128,80]),('portable',[224,64,28,18]),('tower',[264,64,32,50]),('ticket_window',[304,64,28,18]),('class_pair',[368,64,18,38]),('small_pair',[344,64,14,22])]:
  REG[key]={'rect_art':rect};x,y,w,h=rect
  if key=='net':
   d.rectangle((x,y,x+w-1,y+h-1),fill=(0,0,0,0))
@@ -45,7 +45,7 @@ for key,rect in [('class',[0,0,40,38]),('small',[48,0,32,22]),('ribbon',[88,0,96
  yy=y+(h*2//3 if key in ['class','tower'] else h//2);d.line((x+1,yy,x+w-2,yy),fill='#344a48');md.line((x+1,yy,x+w-2,yy),fill='black')
 save(im,'glass.png');save(mask,'glass-emission.png')
 im=Image.new('RGBA',(512,128),'#8d9b88');d=ImageDraw.Draw(im)
-for key,rect in [('lockers',[0,0,12,30]),('scoreboard',[24,0,96,32]),('date',[128,0,28,10]),('vent',[168,0,24,16]),('backboard',[200,0,24,14])]:
+for key,rect in [('lockers',[0,0,12,30]),('scoreboard',[24,0,96,32]),('date',[128,0,28,10]),('vent',[168,0,24,16]),('backboard',[200,0,24,14]),('ticket_label',[240,0,48,10]),('clock',[304,0,32,32])]:
  REG[key]={'rect_art':rect};x,y,w,h=rect;d.rectangle((x,y,x+w-1,y+h-1),fill='#87947f',outline='#3d514b');d.line((x+1,y+1,x+w-2,y+1),fill='#bec7ad')
  if key=='lockers':
   d.line((x+6,y,x+6,y+h-1),fill='#3d514b')
@@ -55,6 +55,12 @@ for key,rect in [('lockers',[0,0,12,30]),('scoreboard',[24,0,96,32]),('date',[12
  if key=='date':d.rectangle((x,y,x+w-1,y+h-1),fill='#cccbb3');text(d,x+3,y+2,'1925','#49534a')
  if key=='scoreboard':
   d.rectangle((x+1,y+1,x+w-2,y+h-2),fill='#354d46');text(d,x+27,y+3,'LINCOLN','#d4cfac');text(d,x+8,y+18,'00     00','#d4cfac')
+ if key=='ticket_label':
+  d.rectangle((x,y,x+w-1,y+h-1),fill='#d2cbb2',outline='#46594f');text(d,x+3,y+1,'TICKETS','#46594f')
+ if key=='clock':
+  d.ellipse((x+1,y+1,x+30,y+30),fill='#d8d3b9',outline='#46594f')
+  for xx,yy in [(16,3),(29,16),(16,29),(3,16)]:d.rectangle((x+xx-1,y+yy-1,x+xx+1,y+yy+1),fill='#46594f')
+  d.line((x+16,y+7,x+16,y+16,x+25,y+18),fill='#46594f',width=2)
  if key=='backboard':
   d.rectangle((x,y,x+w-1,y+h-1),fill='#e3ddc4',outline='#53645b');d.rectangle((x+7,y+6,x+16,y+12),outline='#946957')
  if key=='vent':

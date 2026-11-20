@@ -46,13 +46,14 @@ def validate(state):
  for im in g['images']:
   v=g['bufferViews'][im['bufferView']];img=Image.open(io.BytesIO(b[v.get('byteOffset',0):v.get('byteOffset',0)+v['byteLength']])).convert('RGBA');a=np.asarray(img);assert not(a.shape[0]%2 or a.shape[1]%2)
   assert np.array_equal(a[::2,::2],a[1::2,::2]) and np.array_equal(a[::2,::2],a[::2,1::2]) and np.array_equal(a[::2,::2],a[1::2,1::2]);images.append(a)
- visible=[];collverts=[];triangles=0;glow_area=0;err=0;counts={};shared={}
+ visible=[];paving=[];collverts=[];triangles=0;glow_area=0;err=0;counts={};shared={}
  for ni,n in enumerate(g['nodes']):
   if 'mesh' not in n:continue
   count=0
   for p in g['meshes'][n['mesh']]['primitives']:
    pos=acc(g,b,p['attributes']['POSITION']);idx=acc(g,b,p['indices']).ravel();world=(np.c_[pos,np.ones(len(pos))]@trans[ni].T)[:,:3];ts=world[idx].reshape(-1,3,3)
    if n['name']=='collision':collverts.extend(world);continue
+   if n['name'].startswith('campus_paths__'):paving.extend(ts)
    count+=len(ts);areas=np.linalg.norm(np.cross(ts[:,1]-ts[:,0],ts[:,2]-ts[:,0]),axis=1)/2;assert np.all(areas>1e-10),(state,n['name'],'degenerate');assert world[:,1].min()>-1e-5,(state,n['name'],'below grade',world[:,1].min());visible.append(ts)
    ma=mats[p['material']];ti=ma['pbrMetallicRoughness']['baseColorTexture']['index'];img=images[g['textures'][ti]['source']];uv=acc(g,b,p['attributes']['TEXCOORD_0']);pixels=uv*np.array([img.shape[1],img.shape[0]])*.0388;u=pixels[idx].reshape(-1,3,2)
    for i,j in [(0,1),(1,2),(2,0)]:err=max(err,float(np.max(np.abs(np.linalg.norm(u[:,i]-u[:,j],axis=1)-np.linalg.norm(ts[:,i]-ts[:,j],axis=1)))))
@@ -64,6 +65,12 @@ def validate(state):
   if n.get('extras',{}).get('linked_panel'):shared[n.get('mesh')]=shared.get(n.get('mesh'),0)+1
  assert triangles==info['triangles_visible'] and triangles<=15000,(state,triangles);assert err<.002,(state,err);assert glow_area<15,(state,glow_area);assert abs(glow_area-info['non_window_emissive_area_m2_upper_bound'])<.01,(glow_area,info['non_window_emissive_area_m2_upper_bound'])
  assert any(v>=6 for v in shared.values()),'Repeated panels must share exported mesh data'
+ paving=np.array(paving);assert len(paving)>0,(state,"Missing revised paving")
+ for i,a in enumerate(paving):
+  lo=a[:,[0,2]].min(0);hi=a[:,[0,2]].max(0)
+  for b1 in paving[i+1:]:
+   b2=b1[:,[0,2]]
+   if np.all(np.minimum(hi,b2.max(0))-np.maximum(lo,b2.min(0))>1e-6):assert clipped_area(a[:,[0,2]],b2)<1e-5,(state,'Overlapping path surfaces')
  visible=np.concatenate(visible);cv=np.array(collverts);assert info['collision']['coordinate_frame'].startswith('glTF') and info['collision']['use_the_walls']
  for box in info['collision']['boxes_gltf_y_up']:
   c=np.array(box['center']);s=np.array(box['size']);assert np.all(s>0);assert np.isclose(c[1]-s[1]/2,box['support_floor_m'],atol=1e-6)
@@ -79,6 +86,10 @@ def validate(state):
   for t in close:assert clipped_area(t[:,[horizontal,1]],rect)<1e-4,(state,d['node'],'blocked exterior aperture')
  assert 'sign_name' in nodes and sum(n.get('name')=='sign_name' for n in g['nodes'])==1
  fe=info['features'];assert fe['modern_wing']==(int(state)>=1955) and fe['steel_bleachers']==(int(state)>=1975) and fe['portables']==(3 if state=='1975' else 0) and fe['running_track']==(state=='2000')
+ assert fe['paired_windows'] and fe['baseball_fence'] and fe['tree_count']==12 and fe['ticket_booth']==(int(state)>=1955)
+ assert len([n for n in g['nodes'] if 'paired sash' in n['name']])==96,(state,'Paired classroom sash count')
+ assert len([n for n in g['nodes'] if n['name'].startswith('campus_tree_') and '__' not in n['name']])==12
+ assert ('ticket_booth' in nodes)==fe['ticket_booth'];assert 'baseball_fence' in nodes
  assert ('modern_wing' in nodes)==fe['modern_wing'];assert ('security_entry' in nodes)==fe['security_entry'];assert sum(n['name'].startswith('portable_') and '__' not in n['name'] for n in g['nodes'])==fe['portables']
  glass=next(m for m in mats if m['name']=='glass_windows');mask=images[g['textures'][glass['emissiveTexture']['index']]['source']];rr=json.loads((R/'art-regions.json').read_text())['net']['rect_art'];x,y,w,h=rr;assert not mask[y*2:(y+h)*2,x*2:(x+w)*2,:3].any(),'Fence net must never emit'
  return {'state':state,'triangles':triangles,'materials':len(mats),'non_window_emissive_m2':round(glow_area,5),'open_exterior_entries':sum(d['external'] for d in info['doors']),'collision_boxes':len(info['collision']['boxes_gltf_y_up']),'uv_max_edge_error_m':err,'shared_panel_meshes':len(shared),'bytes':(R/info['file']).stat().st_size}
@@ -89,5 +100,5 @@ for i in infos[1:]:
  assert i['campus_m']==infos[0]['campus_m'] and i['lot_bounds_gltf_m']==infos[0]['lot_bounds_gltf_m']
  assert next(d['position'] for d in i['doors'] if d['node']=='door_main')==next(d['position'] for d in infos[0]['doors'] if d['node']=='door_main')
 g,b=load(R/'school-far.glb');ft=sum(len(acc(g,b,p['indices']))//3 for n in g['nodes'] if 'mesh' in n for p in g['meshes'][n['mesh']]['primitives']);assert ft<400
-out={'states':results,'far_triangles':ft,'art':'Embedded exact 2x2 texel PNGs; nearest/repeat; 0.0388m/texel UV edge lengths; constant sport palette tints. Repeated window/locker panels share exported meshes.','architecture':'All four models remain above grade. Open exterior apertures checked from actual triangles, shared campus origin/lot and original main portal retained.','collision':'Exact exported companion corners match glTF Y-up metre metadata. Walls/floors/stairs use architecture; gate gaps and prop blockers supplied.','chronology':'Modern wing/gym/football from 1955; rename/steel bleachers/parking/press box/three portables in 1975; no portables and new vestibule/turf/track/scoreboard in 2000.','lighting':'Actual exported non-window glow geometry below 15m2 in every state; fence-net emission mask is black.','runtime':'Visual asset and geometric checks only. State selection, pupils, security, vehicle routing, collisions, lights and navigation need game integration.','renders':'Actual Blender desktop views, not Filament/S25 captures.'}
+out={'states':results,'far_triangles':ft,'art':'Embedded exact 2x2 texel PNGs; nearest/repeat; 0.0388m/texel UV edge lengths; constant sport palette tints. Repeated window/locker panels share exported meshes.','architecture':'All four models remain above grade. Open exterior apertures checked from actual triangles, shared campus origin/lot and original main portal retained.','collision':'Exact exported companion corners match glTF Y-up metre metadata. Walls/floors/stairs use architecture; gate gaps and prop blockers supplied.','campus_revision':'Raised entrance tower with static school clock, 96 paired sash panes, connected paths, 12 three-dimensional trees, west-side bus loop, period parking, ticket booth and complete baseball/football enclosures verified.', 'chronology':'Modern wing/gym/football from 1955; rename/steel bleachers/parking/press box/three portables in 1975; no portables and new vestibule/turf/track/scoreboard in 2000.','lighting':'Actual exported non-window glow geometry below 15m2 in every state; fence-net emission mask is black.','runtime':'Visual asset and geometric checks only. State selection, pupils, security, vehicle routing, collisions, lights and navigation need game integration.','renders':'Actual Blender desktop views, not Filament/S25 captures.'}
 (R/'validation.json').write_text(json.dumps(out,indent=2)+'\n');print(json.dumps(out,indent=2))
