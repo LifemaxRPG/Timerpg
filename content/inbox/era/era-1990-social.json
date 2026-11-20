@@ -1,0 +1,323 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1990,
+  "topic": "social",
+  "facts": [
+    {
+      "id": "1990-social-01",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A school gym hosts a homecoming dance with crepe paper decorations and a volunteer chaperone.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-02",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Students vote for classmates to represent their grade at the homecoming celebration.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-03",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Teenagers ask someone to the prom weeks before the school year ends.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-04",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Parents often expect a teenager to say where a date is going and when they will return.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-05",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A couple meets friends for a double date at the local bowling alley.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-06",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A school club organizes a car wash to raise money for a class trip.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-07",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A youth group gathers in a church basement for games and snacks.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-08",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Neighbors bring covered dishes to a church supper in the fellowship hall.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-09",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A newly engaged couple visits a minister to discuss their wedding ceremony.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-10",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Wedding guests sign a guest book before taking their seats.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-11",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A reception hall sets out a tiered cake beside the gift table.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-12",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Relatives gather for a family reunion at a picnic shelter in the park.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-13",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Parents volunteer to supervise a school field trip.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-14",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A parent group holds a meeting about the school fundraiser.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-15",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Children trade friendship bracelets and invite classmates to birthday parties.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-16",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A birthday party at a skating rink includes rented skates and a shared cake.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-17",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A neighborhood block party fills a closed street with folding tables and lawn chairs.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-18",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Residents line the parade route for a holiday celebration downtown.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-19",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A civic club organizes a pancake breakfast to support a local cause.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-20",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Volunteers collect canned food for households needing help before the holidays.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-21",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Older residents gather for cards and conversation at the senior center.",
+      "ages": "elders",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-22",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A library hosts a summer reading celebration for children and their families.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-23",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Teenagers gather at the mall to socialize even when they have little money to spend.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-24",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Friends meet at a roller rink for a weekend evening of skating.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-25",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "A family attends a community potluck after a school sports banquet.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1990-social-26",
+      "year_from": 1990,
+      "year_to": 1999,
+      "text": "Neighbors organize a meal schedule when a family welcomes a new baby.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
