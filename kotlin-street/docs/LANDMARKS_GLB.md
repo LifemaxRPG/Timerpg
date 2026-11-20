@@ -456,3 +456,28 @@ Desktop renders and JVM tests only, not yet run on the S25.
 - No far box: the models are drawn whole to 12,000 units (3-12k triangles each); measure on the S25.
 
 
+
+## The planned town's plots, the courthouse and the radio station (branch wf-town-plan, 2026-11-20)
+
+- **Placement**: glbSites no longer searches: it returns the plan's reserved plots (src/town/districts.ts, TOWN_PLAN.md
+  "Where each building goes"), one plot per chain (`glbPlotOf`: the clubs, the works and The Foundry, the strip centre's
+  and the courthouse's states), each fronting the street of its block face. Every model a town earns has its plot (the
+  motel and Starling Lanes too). street.json's model rect is its plot as laid out on its row.
+- **The county courthouse** (prototypes/county-courthouse, copied with `git show`; sources under
+  tools/landmarks/county-courthouse/): four states on one shell, origin, lot (79.46 m square) and doors, the whole civic
+  block of a county seat (isCountySeat: 35% of L, 15% of M, 5% of S towns). Built 1885-1905 (the 1894 state), modernised
+  1951-62 (the 1962 state with its annex), neglected 1972-82 (1988: the clock stopped at 4:17, the banner), restored
+  1996-2006 (2008). Catalogue: per-state info files with the eleven `door_room_*` doors marked internal (four entrances:
+  door_main, door_north, door_east, door_west), `far` the distant silhouette (courthouse-far.glb, 142 triangles) the town
+  draws past 3,000 units (TownLandmark.LOD) instead of the 13,800-triangle state. The clock's hands (clock_hour*,
+  clock_minute*, pivoted at each dial) are turned to the game's time when the model is built (FilamentTown.clockHours,
+  LandmarkKit.clockHands): cheap, but set once a build, not moving while the player watches (moving hands need their own
+  renderables: not done). The neglected state's stopped clock keeps its 4:17. Its porch landing and steps (boxes no higher
+  than 1.3 m named step/stair/landing/porch/ramp) are walk-on ground, so door_main can be reached. Test seed: rho.
+- **The radio station** ("Valley Radio", prototypes/radio-station; tools/landmarks/radio-station/): a 1950s-60s broadcast
+  house with its mast, in a town of 2,500 and more (70%), opened 1946-60, from 1990-2006 run automated (the station's name
+  and "(automated)") or the Radio Building Offices; on open ground at the post-war edge, kept 8 tiles off the river and 30
+  off the rail line. Six painted nameplates (make_variants.py: Valley Radio, Prairie 1340 AM, Riverbend Radio, Hometown
+  Radio, Cedar 1400 AM, Crossroads 1450; made-up names, no call letters), `variant` per town (glbSites RADIO_NAMES); three
+  inner doors marked internal; its glazed entrance bay stands ~2.5 m before its front (the scale test allows it). The ON
+  AIR plate is static art (bind or hide it when broadcasts are simulated).
