@@ -1,0 +1,304 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1950,
+  "topic": "social",
+  "facts": [
+    {
+      "id": "1950-social-01",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Neighbors bring a casserole when a family welcomes a new baby.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-02",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Church congregations hold potluck suppers in fellowship halls.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-03",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "High school students decorate the gym for a Saturday dance.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-04",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A boy may telephone a girl's parents before arranging a date.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-05",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Some parents expect teenagers to return home by a set curfew.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-06",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Couples often meet at school events or through mutual friends.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-07",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A young couple may go bowling together on a Friday evening.",
+      "ages": "teens",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-08",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Wedding guests sign a book at the reception entrance.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-09",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Relatives gather for wedding cake and punch after a ceremony.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-10",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A bride and groom often receive household gifts from wedding guests.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-11",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Local civic clubs organize fundraising dinners for town improvements.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-12",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A volunteer fire department hosts a community benefit supper.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-13",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Families gather along Main Street to watch a holiday parade.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-14",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Children join supervised games at a church picnic.",
+      "ages": "kids",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-15",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A school parent group raises money for classroom supplies.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-16",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Neighbors exchange greetings across backyard fences on summer evenings.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-17",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A town library hosts a children's summer reading program.",
+      "ages": "kids",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-18",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Teenagers join school clubs to practice music or public speaking.",
+      "ages": "teens",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-19",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Families attend county fairs to see livestock and homemade crafts.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-20",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A community center offers square dances with a caller.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-21",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Some social clubs admit members only by invitation.",
+      "ages": "adults",
+      "use": [
+        "guard",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-22",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Many public places remain segregated by race in parts of the country.",
+      "ages": "all",
+      "use": [
+        "guard",
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-23",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Girls and boys may face different expectations about dating and household duties.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "guard"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-24",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A family invites nearby relatives to celebrate a child's birthday.",
+      "ages": "all",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-25",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "A neighborhood committee plans a shared cleanup day for the park.",
+      "ages": "adults",
+      "use": [
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1950-social-26",
+      "year_from": 1950,
+      "year_to": 1959,
+      "text": "Older residents gather at a lodge hall for regular meetings.",
+      "ages": "elders",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
