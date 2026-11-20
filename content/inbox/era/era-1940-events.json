@@ -1,0 +1,323 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 1940,
+  "topic": "events",
+  "facts": [
+    {
+      "id": "1940-events-01",
+      "year_from": 1940,
+      "year_to": 1940,
+      "text": "A national population count brings census workers to households across the country.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-02",
+      "year_from": 1940,
+      "year_to": 1940,
+      "text": "News reports describe fighting spreading across western Europe as families follow developments by radio.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-03",
+      "year_from": 1940,
+      "year_to": 1941,
+      "text": "Newspapers explain the first peacetime military draft and the registration of eligible young men.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-04",
+      "year_from": 1940,
+      "year_to": 1941,
+      "text": "Defense factories expand production as the country sends supplies to nations fighting overseas.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-05",
+      "year_from": 1941,
+      "year_to": 1941,
+      "text": "Families hear urgent radio reports after an attack on the naval base in the Pacific.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-06",
+      "year_from": 1941,
+      "year_to": 1941,
+      "text": "The country enters the world war, and many young adults prepare for military service.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-07",
+      "year_from": 1942,
+      "year_to": 1942,
+      "text": "Households begin using ration books as wartime limits reach sugar and other everyday goods.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-08",
+      "year_from": 1942,
+      "year_to": 1942,
+      "text": "Communities hold scrap metal collections to support wartime manufacturing.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-09",
+      "year_from": 1942,
+      "year_to": 1945,
+      "text": "Civilian defense volunteers practice blackout precautions in communities concerned about possible attacks.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-10",
+      "year_from": 1942,
+      "year_to": 1945,
+      "text": "Families display service flags in windows when household members serve in the armed forces.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-11",
+      "year_from": 1942,
+      "year_to": 1945,
+      "text": "News reports describe the forced removal and confinement of many residents of Japanese ancestry.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-12",
+      "year_from": 1943,
+      "year_to": 1943,
+      "text": "Families hear reports of major Allied victories in North Africa.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-13",
+      "year_from": 1943,
+      "year_to": 1945,
+      "text": "War bond drives encourage residents to lend savings to the government.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-14",
+      "year_from": 1944,
+      "year_to": 1944,
+      "text": "Radio bulletins announce the large Allied landing on the coast of France.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-15",
+      "year_from": 1944,
+      "year_to": 1944,
+      "text": "Families follow newspaper maps as Allied forces advance through western Europe.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-16",
+      "year_from": 1944,
+      "year_to": 1945,
+      "text": "Wartime shortages make holiday travel and long family visits difficult.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-17",
+      "year_from": 1945,
+      "year_to": 1945,
+      "text": "News of the war ending in Europe brings crowds into town streets.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-18",
+      "year_from": 1945,
+      "year_to": 1945,
+      "text": "Newspapers report the use of a new devastating weapon against two Japanese cities.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-19",
+      "year_from": 1945,
+      "year_to": 1945,
+      "text": "The end of the war in the Pacific brings public celebrations and prayers for returning troops.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-20",
+      "year_from": 1945,
+      "year_to": 1945,
+      "text": "Families hear about the creation of a new international organization intended to prevent future wars.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-21",
+      "year_from": 1946,
+      "year_to": 1946,
+      "text": "A nationwide railroad strike disrupts passenger journeys and freight deliveries.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-22",
+      "year_from": 1946,
+      "year_to": 1947,
+      "text": "News stories discuss widespread housing shortages as veterans return and families grow.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-23",
+      "year_from": 1947,
+      "year_to": 1947,
+      "text": "Reports of a new federal law changing labor union rules reach local workplaces.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-24",
+      "year_from": 1947,
+      "year_to": 1947,
+      "text": "Newspapers describe an international plan to help rebuild damaged European economies.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-25",
+      "year_from": 1948,
+      "year_to": 1948,
+      "text": "Radio reports follow an airlift carrying supplies into a blockaded European city.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "1940-events-26",
+      "year_from": 1949,
+      "year_to": 1949,
+      "text": "Families read news of a new defensive alliance among North American and European countries.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "dialogue"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
