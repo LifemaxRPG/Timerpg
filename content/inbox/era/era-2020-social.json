@@ -1,0 +1,319 @@
+{
+  "kind": "era_pack",
+  "version": 1,
+  "decade": 2020,
+  "topic": "social",
+  "facts": [
+    {
+      "id": "2020-social-01",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Neighbors organize meal trains for families welcoming a baby or recovering from illness.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-02",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Parents arrange playdates at public parks where children can run and climb.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-03",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Teenagers gather at a friend's house to play games and share snacks.",
+      "ages": "teens",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-04",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Couples sometimes meet through dating apps before arranging a first coffee date.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-05",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Some couples choose a small courthouse wedding instead of a large reception.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-06",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Wedding guests may use a shared online album to contribute photographs.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-07",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A family reunion brings cousins and grandparents together for a picnic.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-08",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A neighborhood association holds meetings about street lighting and shared spaces.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-09",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Volunteers collect canned food for neighbors facing a difficult month.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-10",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A school parent group recruits helpers for a seasonal carnival.",
+      "ages": "adults",
+      "use": [
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-11",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Children invite classmates to birthday parties at playgrounds or community centers.",
+      "ages": "kids",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-12",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Teenagers arrange group outings to bowling alleys or miniature golf courses.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-13",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Some residents meet weekly for a walking group around the neighborhood.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-14",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A local congregation hosts a potluck where families bring dishes to share.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-15",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Older residents attend social lunches at a senior center.",
+      "ages": "elders",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-16",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A town recreation department offers summer camps for schoolchildren.",
+      "ages": "kids",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-17",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Parents cheer from the sidelines during children's weekend sports games.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-18",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Neighbors leave spare garden produce on a porch for others to take.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-19",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A community center hosts an evening craft class for interested residents.",
+      "ages": "adults",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-20",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Some families host a backyard cookout to celebrate a graduation.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-21",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Teenagers sometimes invite friends to a school homecoming dance.",
+      "ages": "teens",
+      "use": [
+        "dialogue",
+        "scenery"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-22",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "A library meeting room hosts a local board game club.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-23",
+      "year_from": 2020,
+      "year_to": 2026,
+      "text": "Neighbors exchange favors such as collecting mail or feeding pets during trips.",
+      "ages": "adults",
+      "use": [
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-24",
+      "year_from": 2020,
+      "year_to": 2021,
+      "text": "During 2020, many families postpone weddings and milestone parties because large gatherings are restricted.",
+      "ages": "adults",
+      "use": [
+        "dialogue",
+        "newspaper"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-25",
+      "year_from": 2020,
+      "year_to": 2021,
+      "text": "During 2020, some friends celebrate birthdays by waving from cars outside a home.",
+      "ages": "all",
+      "use": [
+        "scenery",
+        "dialogue"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "2020-social-26",
+      "year_from": 2021,
+      "year_to": 2023,
+      "text": "During 2021, some community groups resume outdoor gatherings before returning to crowded indoor events.",
+      "ages": "all",
+      "use": [
+        "newspaper",
+        "scenery"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "not_yet": [],
+  "prices": [],
+  "phrases": []
+}
