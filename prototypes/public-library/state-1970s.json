@@ -1,0 +1,413 @@
+{
+  "name": "Public Library",
+  "state": "1970s",
+  "file": "public-library-1970s.glb",
+  "design_year": 1912,
+  "activation_years": [
+    1965,
+    1985
+  ],
+  "units": "metres",
+  "axes": "glTF Y up; front +Z",
+  "origin": "Grade at middle of original brick frontage. Both states retain identical origin and original door coordinates.",
+  "main_footprint_m": [
+    18.0032,
+    13.968
+  ],
+  "heights_m": {
+    "hip_ridge": 9.6224,
+    "main_floor": 1.8624,
+    "basement_floor": -1.2416,
+    "main_ceiling": 6.5184
+  },
+  "triangles_visible": 6450,
+  "materials": [
+    "detail_steel",
+    "detail_stone",
+    "detail_wood",
+    "glass_reading",
+    "glow_lamps",
+    "ground_paving",
+    "roof_membrane",
+    "roof_slate",
+    "sign_name",
+    "wall_brick",
+    "wall_interior"
+  ],
+  "pixel_grid": {
+    "metres_per_texel": 0.0388,
+    "texels_per_art_pixel": 2
+  },
+  "doors": [
+    {
+      "node": "door_main",
+      "position": [
+        0.0,
+        1.8624000549316406,
+        0.24831999838352203
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "floor_m": 1.8624,
+      "width_m": 1.8624,
+      "height_m": 2.9488000000000003,
+      "external": true,
+      "open": true
+    },
+    {
+      "node": "door_back",
+      "position": [
+        5.897600173950195,
+        1.8624000549316406,
+        -14.216320037841797
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ],
+      "floor_m": 1.8624,
+      "width_m": 1.552,
+      "height_m": 2.7936,
+      "external": false,
+      "open": true
+    },
+    {
+      "node": "door_addition_back",
+      "position": [
+        0.0,
+        1.8624000549316406,
+        -23.5283203125
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ],
+      "floor_m": 1.8624,
+      "width_m": 1.552,
+      "height_m": 2.7936,
+      "external": true,
+      "open": true
+    },
+    {
+      "node": "door_addition",
+      "position": [
+        -9.249919891357422,
+        1.8624000549316406,
+        -19.710399627685547
+      ],
+      "outward": [
+        -1,
+        0,
+        0
+      ],
+      "floor_m": 1.8624,
+      "width_m": 1.552,
+      "height_m": 2.7936,
+      "external": true,
+      "open": true
+    }
+  ],
+  "rooms": [
+    {
+      "id": "central_desk_hall",
+      "floor_m": 1.8624,
+      "notes": "Fixed circulation desk; open passages into both reading rooms."
+    },
+    {
+      "id": "west_reading_room",
+      "floor_m": 1.8624,
+      "notes": "Unfurnished room with three actual round-arched side windows."
+    },
+    {
+      "id": "east_reading_room",
+      "floor_m": 1.8624,
+      "notes": "Unfurnished room with three actual round-arched side windows."
+    },
+    {
+      "id": "basement_children_room",
+      "floor_m": -1.2416,
+      "notes": "Unfurnished basement shell, reached by actual two-flight stairs. Runtime supplies books, shelves and furniture."
+    },
+    {
+      "id": "later_reading_addition",
+      "floor_m": 1.8624,
+      "notes": "Low brick/glass 1970s shell, joined to the unchanged rear door by a short glazed link."
+    }
+  ],
+  "stairs": {
+    "node": "basement_stairs",
+    "upper_floor_m": 1.8624,
+    "lower_floor_m": -1.2416,
+    "half_landing_m": 0.3104,
+    "risers": 20,
+    "rise_m": 0.1552,
+    "tread_m": 0.2328,
+    "notes": "Real floor aperture, two flights and handrails; height-aware traversal and basement furnishing remain runtime work."
+  },
+  "sign_name": {
+    "node": "sign_name",
+    "material": "sign_name",
+    "texture": "textures/signs.png",
+    "rect_art": [
+      0,
+      0,
+      100,
+      16
+    ],
+    "text": "PUBLIC LIBRARY",
+    "binding": "Exactly one carved name region, repainted per town."
+  },
+  "collision": {
+    "node": "collision",
+    "render": false,
+    "coordinate_frame": "glTF metres: Y up, +Z front",
+    "boxes_gltf_y_up": [
+      {
+        "source": "Circulation desk",
+        "group": "structure",
+        "attachment": "structure",
+        "support_floor_m": 1.8624,
+        "center": [
+          0,
+          2.5220000000000002,
+          -4.5008
+        ],
+        "size": [
+          3.4144,
+          1.3192,
+          1.3968
+        ]
+      },
+      {
+        "source": "Downpipe",
+        "group": "structure",
+        "attachment": "structure",
+        "center": [
+          -9.1568,
+          3.4144,
+          -0.1552
+        ],
+        "size": [
+          0.0776,
+          6.8288,
+          0.0776
+        ]
+      },
+      {
+        "source": "Downpipe",
+        "group": "structure",
+        "attachment": "structure",
+        "center": [
+          -9.1568,
+          3.4144,
+          -13.812800000000001
+        ],
+        "size": [
+          0.0776,
+          6.8288,
+          0.0776
+        ]
+      },
+      {
+        "source": "Downpipe",
+        "group": "structure",
+        "attachment": "structure",
+        "center": [
+          9.1568,
+          3.4144,
+          -0.1552
+        ],
+        "size": [
+          0.0776,
+          6.8288,
+          0.0776
+        ]
+      },
+      {
+        "source": "Downpipe",
+        "group": "structure",
+        "attachment": "structure",
+        "center": [
+          9.1568,
+          3.4144,
+          -13.812800000000001
+        ],
+        "size": [
+          0.0776,
+          6.8288,
+          0.0776
+        ]
+      },
+      {
+        "source": "Terrace guard",
+        "group": "structure",
+        "attachment": "structure",
+        "center": [
+          -3.88,
+          1.5132,
+          1.3968
+        ],
+        "size": [
+          0.1552,
+          3.0264,
+          2.6384
+        ]
+      },
+      {
+        "source": "Terrace guard",
+        "group": "structure",
+        "attachment": "structure",
+        "center": [
+          3.88,
+          1.5132,
+          1.3968
+        ],
+        "size": [
+          0.1552,
+          3.0264,
+          2.6384
+        ]
+      },
+      {
+        "source": "Portico column",
+        "group": "structure",
+        "attachment": "structure",
+        "center": [
+          -2.6384,
+          2.5608,
+          2.0952
+        ],
+        "size": [
+          0.9312,
+          5.1216,
+          0.9312
+        ]
+      },
+      {
+        "source": "Portico column",
+        "group": "structure",
+        "attachment": "structure",
+        "center": [
+          2.6384,
+          2.5608,
+          2.0952
+        ],
+        "size": [
+          0.9312,
+          5.1216,
+          0.9312
+        ]
+      },
+      {
+        "source": "Stair lamp",
+        "group": "lot",
+        "attachment": "stair_lamp",
+        "center": [
+          -3.5696000000000003,
+          1.0088,
+          5.7424
+        ],
+        "size": [
+          0.6208,
+          2.0176,
+          0.6208
+        ]
+      },
+      {
+        "source": "Stair lamp",
+        "group": "lot",
+        "attachment": "stair_lamp.001",
+        "center": [
+          3.5696000000000003,
+          1.0088,
+          5.7424
+        ],
+        "size": [
+          0.6208,
+          2.0176,
+          0.6208
+        ]
+      },
+      {
+        "source": "Bench",
+        "group": "lot",
+        "attachment": "stone_bench",
+        "center": [
+          -6.8288,
+          0.388,
+          1.0864
+        ],
+        "size": [
+          2.6384,
+          0.776,
+          0.6208
+        ]
+      },
+      {
+        "source": "Bench",
+        "group": "lot",
+        "attachment": "stone_bench.001",
+        "center": [
+          6.8288,
+          0.388,
+          1.0864
+        ],
+        "size": [
+          2.6384,
+          0.776,
+          0.6208
+        ]
+      },
+      {
+        "source": "Bicycle racks",
+        "group": "lot",
+        "attachment": "bicycle_racks",
+        "center": [
+          -6.984,
+          0.5820000000000001,
+          2.9488000000000003
+        ],
+        "size": [
+          2.4832,
+          1.1640000000000001,
+          0.1552
+        ]
+      }
+    ],
+    "use_the_walls": true,
+    "notes": "Exterior doorways are open and have no closed panels or gate boxes. Architectural walls, floors and stairs supply contact. The upstairs desk blocker starts at its supporting floor, preserving basement space below; runtime must use vertical collision/navigation."
+  },
+  "lot_node": "lot",
+  "lot_bounds_gltf_m": {
+    "x": [
+      -14.278400000000001,
+      14.278400000000001
+    ],
+    "z": [
+      -28.556800000000003,
+      8.0704
+    ]
+  },
+  "basement": "Intentional below-grade architecture, not a sunken lot. All exterior lot paving is at/above grade. Cut terrain under original footprint and supply basement navigation.",
+  "swatches_used": [
+    "brick_red",
+    "wall_stucco_red",
+    "roof_slate",
+    "roof_membrane_grey",
+    "pavement"
+  ],
+  "licence": "Shared LimeZu textures: Timerpg-only; retain original credit. All geometry and supplemental art original.",
+  "runtime_handoff": [
+    "No residents, books, collection contents, ownership or history are created.",
+    "Both states preserve original door nodes/coordinates. In the later state door_back opens into the link; hide/rebind its exterior interaction as appropriate.",
+    "Open exterior doorways intentionally have no panels/gates. Runtime provides entry behavior.",
+    "Basement, stairs, glass emission mask, terrain cutout and state selection need game integration.",
+    "State years are eligibility hints; simulation decides construction and addition timing."
+  ],
+  "renders": "Actual Blender desktop previews, not Filament/S25 captures."
+}
