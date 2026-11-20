@@ -1,0 +1,112 @@
+{
+  "glass_cathedral": {
+    "win_cathedral": [
+      0,
+      0,
+      64,
+      128
+    ],
+    "win_lantern": [
+      64,
+      0,
+      64,
+      128
+    ]
+  },
+  "detail_atlas": {
+    "lawn_turf": [
+      0,
+      0,
+      64,
+      64
+    ],
+    "dark_iron": [
+      64,
+      0,
+      64,
+      64
+    ],
+    "compass_mosaic": [
+      0,
+      64,
+      64,
+      64
+    ],
+    "timber_bench": [
+      64,
+      64,
+      64,
+      64
+    ]
+  },
+  "inscriptions": {
+    "frieze_main": [
+      4,
+      4,
+      236,
+      32
+    ],
+    "frieze_east": [
+      4,
+      40,
+      180,
+      24
+    ],
+    "frieze_west": [
+      4,
+      68,
+      180,
+      24
+    ],
+    "relief_sunburst": [
+      192,
+      40,
+      56,
+      56
+    ],
+    "civic_flag": [
+      4,
+      98,
+      44,
+      26
+    ],
+    "plaque_dedication": [
+      56,
+      98,
+      16,
+      12
+    ],
+    "cornerstone_1926": [
+      80,
+      98,
+      24,
+      12
+    ]
+  },
+  "glow_monument": {
+    "flame_brazier": [
+      0,
+      0,
+      16,
+      16
+    ],
+    "lamp_globe": [
+      16,
+      0,
+      16,
+      16
+    ],
+    "beacon_orb": [
+      32,
+      0,
+      16,
+      16
+    ],
+    "flood_lens": [
+      48,
+      0,
+      16,
+      16
+    ]
+  }
+}

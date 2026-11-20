@@ -1,0 +1,21 @@
+{
+  "model": "The Great Meridian Monument (near + far LOD)",
+  "passed": true,
+  "textures_2x2_ok": true,
+  "materials_count": 12,
+  "sampler_nearest_repeat_ok": true,
+  "required_nodes_ok": true,
+  "visible_triangles_instanced": 24084,
+  "collision_triangles": 1056,
+  "collision_boxes": 88,
+  "full_height_pylon_collision_ok": true,
+  "uv_edges_checked": 55386,
+  "bad_uv_edges": 0,
+  "max_uv_error_m": 0.000444,
+  "detail_quadrant_violations": 0,
+  "glow_area_m2": 54.31,
+  "emissive_mask_black_ratio": 0.763,
+  "min_y_m": 0.0,
+  "height_m": 105.536,
+  "far_lod_triangles": 390
+}
