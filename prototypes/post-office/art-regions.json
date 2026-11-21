@@ -1,0 +1,316 @@
+{
+  "shared_swatches": [
+    {
+      "id": "brick_red",
+      "file": "brick_red.png",
+      "size": [
+        60,
+        48
+      ],
+      "role": "1938 WPA red-brick main building walls, side wings, and tapered boiler chimney"
+    },
+    {
+      "id": "roof_slate",
+      "file": "roof_slate.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Classical hipped slate roof and octagonal rooftop cupola roof"
+    },
+    {
+      "id": "ballast",
+      "file": "ballast.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Recessed rear flat tar-and-gravel roof terrace behind parapet"
+    },
+    {
+      "id": "roof_membrane_grey",
+      "file": "roof_membrane_grey.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Flashing, cupola trim, and 1988 extended loading-dock canopy deck"
+    },
+    {
+      "id": "asphalt_worn",
+      "file": "asphalt_worn.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "East postal truck drive and rear mail loading yard asphalt"
+    },
+    {
+      "id": "pavement",
+      "file": "pavement.png",
+      "size": [
+        32,
+        32
+      ],
+      "role": "Front civic plaza, sidewalks, accessibility ramp, loading dock, and clean lobby floor"
+    }
+  ],
+  "regions": {
+    "1938": {
+      "details": {
+        "entry_doors": [
+          0,
+          0,
+          32,
+          44
+        ],
+        "loading_door": [
+          48,
+          0,
+          48,
+          44
+        ],
+        "louver_vent": [
+          96,
+          0,
+          32,
+          44
+        ],
+        "mailbox_body": [
+          0,
+          44,
+          32,
+          24
+        ],
+        "dark_metal": [
+          32,
+          44,
+          32,
+          24
+        ],
+        "brass_gold": [
+          64,
+          44,
+          32,
+          24
+        ],
+        "wood_trim": [
+          96,
+          44,
+          32,
+          24
+        ],
+        "hedge_green": [
+          0,
+          68,
+          32,
+          16
+        ],
+        "yellow_stripe": [
+          32,
+          68,
+          64,
+          16
+        ],
+        "po_boxes": [
+          96,
+          68,
+          32,
+          16
+        ],
+        "interior_wall": [
+          0,
+          84,
+          64,
+          44
+        ],
+        "counter_front": [
+          64,
+          84,
+          64,
+          24
+        ]
+      },
+      "signs": {
+        "main_entablature": [
+          0,
+          0,
+          120,
+          16
+        ],
+        "date_stone": [
+          0,
+          16,
+          40,
+          14
+        ],
+        "mail_plaque": [
+          40,
+          16,
+          40,
+          14
+        ],
+        "civic_flag": [
+          0,
+          32,
+          32,
+          20
+        ],
+        "loading_sign": [
+          64,
+          36,
+          64,
+          24
+        ]
+      },
+      "glow": {
+        "backlit_monument": [
+          0,
+          0,
+          44,
+          18
+        ],
+        "warm_lantern": [
+          48,
+          0,
+          16,
+          12
+        ],
+        "cupola_glow": [
+          64,
+          0,
+          16,
+          12
+        ]
+      }
+    },
+    "1988": {
+      "details": {
+        "entry_doors": [
+          0,
+          0,
+          32,
+          44
+        ],
+        "loading_door": [
+          48,
+          0,
+          48,
+          44
+        ],
+        "louver_vent": [
+          96,
+          0,
+          32,
+          44
+        ],
+        "mailbox_body": [
+          0,
+          44,
+          32,
+          24
+        ],
+        "dark_metal": [
+          32,
+          44,
+          32,
+          24
+        ],
+        "brass_gold": [
+          64,
+          44,
+          32,
+          24
+        ],
+        "wood_trim": [
+          96,
+          44,
+          32,
+          24
+        ],
+        "hedge_green": [
+          0,
+          68,
+          32,
+          16
+        ],
+        "yellow_stripe": [
+          32,
+          68,
+          64,
+          16
+        ],
+        "po_boxes": [
+          96,
+          68,
+          32,
+          16
+        ],
+        "interior_wall": [
+          0,
+          84,
+          64,
+          44
+        ],
+        "counter_front": [
+          64,
+          84,
+          64,
+          24
+        ]
+      },
+      "signs": {
+        "main_entablature": [
+          0,
+          0,
+          120,
+          16
+        ],
+        "date_stone": [
+          0,
+          16,
+          40,
+          14
+        ],
+        "mail_plaque": [
+          40,
+          16,
+          40,
+          14
+        ],
+        "civic_flag": [
+          0,
+          32,
+          32,
+          20
+        ],
+        "loading_sign": [
+          64,
+          36,
+          64,
+          24
+        ]
+      },
+      "glow": {
+        "backlit_monument": [
+          0,
+          0,
+          44,
+          18
+        ],
+        "warm_lantern": [
+          48,
+          0,
+          16,
+          12
+        ],
+        "cupola_glow": [
+          64,
+          0,
+          16,
+          12
+        ]
+      }
+    }
+  }
+}

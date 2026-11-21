@@ -1,0 +1,219 @@
+{
+  "passed": true,
+  "all_textures_2x2_ok": true,
+  "doors_shared_across_states": true,
+  "textures": {
+    "asphalt_worn.png": {
+      "size": [
+        32,
+        32
+      ],
+      "ok_2x2": true,
+      "note": "ok"
+    },
+    "ballast.png": {
+      "size": [
+        32,
+        32
+      ],
+      "ok_2x2": true,
+      "note": "ok"
+    },
+    "brick_red.png": {
+      "size": [
+        60,
+        48
+      ],
+      "ok_2x2": true,
+      "note": "ok"
+    },
+    "details_1938.png": {
+      "size": [
+        256,
+        256
+      ],
+      "ok_2x2": true,
+      "note": "ok"
+    },
+    "details_1988.png": {
+      "size": [
+        256,
+        256
+      ],
+      "ok_2x2": true,
+      "note": "ok"
+    },
+    "glass_1938.png": {
+      "size": [
+        64,
+        64
+      ],
+      "ok_2x2": true,
+      "note": "ok"
+    },
+    "glass_1988.png": {
+      "size": [
+        64,
+        64
+      ],
+      "ok_2x2": true,
+      "note": "ok"
+    },
+    "glow_base_1938.png": {
+      "size": [
+        256,
+        64
+      ],
+      "ok_2x2": true,
+      "note": "ok"
+    },
+    "glow_base_1988.png": {
+      "size": [
+        256,
+        64
+      ],
+      "ok_2x2": true,
+      "note": "ok"
+    },
+    "glow_mask_1938.png": {
+      "size": [
+        256,
+        64
+      ],
+      "ok_2x2": true,
+      "note": "ok"
+    },
+    "glow_mask_1988.png": {
+      "size": [
+        256,
+        64
+      ],
+      "ok_2x2": true,
+      "note": "ok"
+    },
+    "pavement.png": {
+      "size": [
+        32,
+        32
+      ],
+      "ok_2x2": true,
+      "note": "ok"
+    },
+    "roof_membrane_grey.png": {
+      "size": [
+        32,
+        32
+      ],
+      "ok_2x2": true,
+      "note": "ok"
+    },
+    "roof_slate.png": {
+      "size": [
+        32,
+        32
+      ],
+      "ok_2x2": true,
+      "note": "ok"
+    },
+    "signs_1938.png": {
+      "size": [
+        256,
+        128
+      ],
+      "ok_2x2": true,
+      "note": "ok"
+    },
+    "signs_1988.png": {
+      "size": [
+        256,
+        128
+      ],
+      "ok_2x2": true,
+      "note": "ok"
+    },
+    "stone_trim.png": {
+      "size": [
+        64,
+        64
+      ],
+      "ok_2x2": true,
+      "note": "ok"
+    },
+    "wpa_mural.png": {
+      "size": [
+        256,
+        72
+      ],
+      "ok_2x2": true,
+      "note": "ok"
+    }
+  },
+  "states": [
+    {
+      "year": 1938,
+      "file": "post-office-1938.glb",
+      "passed": true,
+      "visible_triangles": 2186,
+      "collision_triangles": 168,
+      "collision_boxes": 14,
+      "materials": 12,
+      "has_wpa_mural": true,
+      "samplers_ok": true,
+      "required_nodes_ok": true,
+      "doors_ok": true,
+      "door_coords": {
+        "door_main": [
+          0.0,
+          0.0,
+          1.3968
+        ],
+        "door_back": [
+          0.0,
+          0.0,
+          -12.5712
+        ]
+      },
+      "min_y_m": 0.0,
+      "max_y_m": 12.6488,
+      "coll_max_y_m": 12.6488,
+      "coll_full_height": true,
+      "bad_uv_edges": 0,
+      "max_uv_err_m": 1e-06,
+      "glow_mesh_area_m2": 7.23,
+      "glow_mask_black_ratio": 0.941
+    },
+    {
+      "year": 1988,
+      "file": "post-office-1988.glb",
+      "passed": true,
+      "visible_triangles": 2428,
+      "collision_triangles": 216,
+      "collision_boxes": 18,
+      "materials": 12,
+      "has_wpa_mural": true,
+      "samplers_ok": true,
+      "required_nodes_ok": true,
+      "doors_ok": true,
+      "door_coords": {
+        "door_main": [
+          0.0,
+          0.0,
+          1.3968
+        ],
+        "door_back": [
+          0.0,
+          0.0,
+          -12.5712
+        ]
+      },
+      "min_y_m": 0.0,
+      "max_y_m": 12.6488,
+      "coll_max_y_m": 12.6488,
+      "coll_full_height": true,
+      "bad_uv_edges": 0,
+      "max_uv_err_m": 1e-06,
+      "glow_mesh_area_m2": 16.77,
+      "glow_mask_black_ratio": 0.777
+    }
+  ]
+}
