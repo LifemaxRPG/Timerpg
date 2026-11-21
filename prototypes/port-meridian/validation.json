@@ -1,0 +1,22 @@
+{
+  "triangles": 11952,
+  "materials": 12,
+  "pixel_aligned_pngs": 12,
+  "max_uv_edge_error_m": 1.886e-05,
+  "minimum_triangle_area_m2": 0.000899998,
+  "verified_stair_treads": 96,
+  "anchors_checked": 23,
+  "gangway_segment_grades_pct": [
+    3.057,
+    6.694,
+    6.778
+  ],
+  "copperwake_reference": {
+    "ship_mesh_length_m": 309.0,
+    "minimum_quay_to_ship_envelope_gap_m": 1.21,
+    "quay_margin_aft_m": 38.0,
+    "quay_margin_forward_m": 39.0,
+    "ship_port_anchor_matches": true,
+    "ship_outboard_passage_samples_clear": 15
+  }
+}
