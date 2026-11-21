@@ -1,0 +1,11 @@
+{
+  "visible_triangles": 8392,
+  "materials": 12,
+  "embedded_pixel_aligned_images": 12,
+  "max_uv_edge_error_m": 1.63e-05,
+  "min_triangle_area_m2": 0.002283126,
+  "height_m": 113.4592,
+  "stair_treads": 40,
+  "removable_props": 20,
+  "largest_prop_triangles": 100
+}
